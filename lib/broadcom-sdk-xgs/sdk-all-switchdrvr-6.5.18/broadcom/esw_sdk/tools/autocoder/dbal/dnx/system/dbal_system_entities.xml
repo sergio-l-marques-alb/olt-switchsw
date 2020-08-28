@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+<HwGroups xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="hw_entity_groups.xsd">    
+-->
+<!--xsi:noNamespaceSchemaLocation="field_types_schema.xsd"-->
+<SystemEntities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="system_entities_schema.xsd">
+    <Labels Type="Enum" Description="enum that represents all label types, label are SW identification for fields and tables">
+         <Label Name="SYSTEM" Description="identify global info"/>
+         <Label Name="EGQ"/>
+         <Label Name="IQS"/>
+         <Label Name="FAILOVER"/>
+         <Label Name="L2"/>
+         <Label Name="L3"/>
+         <Label Name="LIF"/>
+         <Label Name="MPLS"/>
+         <Label Name="FCOE"/>
+         <Label Name="SNIF"/>
+         <Label Name="ECGM"/>
+         <Label Name="ICGM"/>
+         <Label Name="SCHEDULER"/>
+         <Label Name="ITM"/>
+         <Label Name="ETM"/>
+         <Label Name="STACK"/>
+         <Label Name="LAG"/>
+         <Label Name="MULTICAST"/>
+         <Label Name="FABRIC"/>
+         <Label Name="NIF"/>
+         <Label Name="FC"/>
+         <Label Name="CRPS"/>
+         <Label Name="PTP"/>
+         <Label Name="MIRROR"/>
+         <Label Name="SNOOP"/>
+         <Label Name="OAM"/>
+         <Label Name="BFD"/>
+         <Label Name="PARSER"/>
+         <Label Name="VSWITCH"/>
+         <Label Name="PP_PORT"/>
+         <Label Name="VLAN_TRANSLATION"/>
+         <Label Name="VLAN"/>
+         <Label Name="L2_LEARNING"/>
+         <Label Name="VPLS"/>
+         <Label Name="VPWS"/>
+         <Label Name="EVPN"/>
+         <Label Name="TRILL"/>
+         <Label Name="L2GRE"/>
+         <Label Name="MIN"/>
+         <Label Name="VXLAN"/>
+         <Label Name="ROO"/>
+         <Label Name="HASHING"/>
+         <Label Name="QOS"/>
+         <Label Name="QOS_PHB"/>
+         <Label Name="QOS_REMARKING"/>
+         <Label Name="QOS_ECN"/>
+         <Label Name="QOS_TTL"/>
+         <Label Name="STG"/>
+         <Label Name="SIT"/>
+         <Label Name="L3_IF_RIF"/>
+         <Label Name="TRAP"/>
+         <Label Name="FIELD"/>
+         <Label Name="TUNNEL"/>
+         <Label Name="METER"/>
+         <Label Name="SYNCE"/>
+         <Label Name="SAT"/>
+         <Label Name="SVTAG"/>
+         <Label Name="EGW"/>
+         <Label Name="KBP"/>
+         <Label Name="PLL"/>
+         <Label Name="RCPU"/>
+         <Label Name="DRAM"/>
+         <Label Name="STIF"/>
+         <Label Name="MIB"/>
+         <Label Name="PP_STATISTICS"/>
+         <Label Name="INSTRU"/>
+         <Label Name="SFLOW"/>
+         <Label Name="DIAGNOSTICS"/>
+         <Label Name="LATENCY"/>
+         <Label Name="DRAM_PHY_MIDSTACK"/>
+         <Label Name="DRAM_PHY_DWORD"/>
+         <Label Name="DRAM_PHY_AWORD"/>
+         <Label Name="DRAM_PHY_CONTROL"/>
+         <Label Name="EEDB"/>
+         <Label Name="KBP_FWD"/>
+         <Label Name="KBP_MNGM"/>
+         <Label Name="IPMC"/>
+         <Label Name="STAT"/>
+         <Label Name="TDM"/>
+         <Label Name="J2P_NOTREV"/>
+         <Label Name="TINY_MAC"/>
+    </Labels>
+</SystemEntities>
+
+<!--
+
+to run the label maker need to do the following:
+
+run make in: tools/autocoder/dbalEnum/SystemEntitiesEnumeratorXsd/ 
+run make in: tools/autocoder/dbalEnum/logicalDBSystemEntities/ 
+
+output:
+
+1.enum of all the labels
+in /include/soc/dnx/dbal/auto_generated/dbal_defines_system.h
+/** brief blabla*/
+typedef enum
+{
+DBAL_LABEL_NONE,
+DBAL_LABEL_X,
+DBAL_LABEL_Y,
+.
+.
+.
+DBAL_NOF_LABEL_TYPES
+} dbal_labels_e;
+
+
+2. create names related to the strings
+in src/soc/dnx/dbal/auto_generated/
+
+
+char *dbal_label_strings[DBAL_NOF_LABEL_TYPES] = {
+    "EMPTY",
+    "LABEL_X",
+    "LABEL_Y",
+.
+.
+.
+
+};
+
+
+3. create xsd related to the labels
+in tools\sand\db\jericho_2\dbal\dbal_system_entities.xsd
+ <xs:simpleType name="LabelListType">
+        <xs:list>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="SYSTEM"/>
+                    <xs:enumeration value="IQS"/>
+                    <xs:enumeration value="FAILOVER"/>
+                    <xs:enumeration value="L2"/>
+                    <xs:enumeration value="L3"/>
+                    <xs:enumeration value="MPLS"/>
+                    <xs:enumeration value="FCOE"/>
+                    <xs:enumeration value="SNIF"/>
+                    <xs:enumeration value="ECGM"/>
+                    <xs:enumeration value="ICGM"/>
+                    <xs:enumeration value="SCHEDULER"/>
+                    <xs:enumeration value="ITM"/>
+                    <xs:enumeration value="ETM"/>
+                    <xs:enumeration value="STACK"/>
+                    <xs:enumeration value="LAG"/>
+                    <xs:enumeration value="MULTICAST"/>
+                    <xs:enumeration value="FABRIC"/>
+                    <xs:enumeration value="NIF"/>
+                    <xs:enumeration value="FC"/>
+                    <xs:enumeration value="CRPS"/>
+                    <xs:enumeration value="MIRROR"/>
+                    <xs:enumeration value="SNOOP"/>
+                    <xs:enumeration value="OAM"/>
+                    <xs:enumeration value="BFD"/>
+                    <xs:enumeration value="PARSER"/>
+                    <xs:enumeration value="VSWITCH"/>
+                    <xs:enumeration value="PP_PORT"/>
+                    <xs:enumeration value="VLAN_TRANSLATION"/>
+                    <xs:enumeration value="VLAN"/>
+                    <xs:enumeration value="L2_LEARNING"/>
+                    <xs:enumeration value="VPLS"/>
+                    <xs:enumeration value="VPWS"/>
+                    <xs:enumeration value="EVPN"/>
+                    <xs:enumeration value="TRILL"/>
+                    <xs:enumeration value="L2GRE"/>
+                    <xs:enumeration value="MIN"/>
+                    <xs:enumeration value="VXLAN"/>
+                    <xs:enumeration value="ROO"/>
+                    <xs:enumeration value="HASHING"/>
+                    <xs:enumeration value="QOS"/>
+                    <xs:enumeration value="QOS_PHB"/>
+                    <xs:enumeration value="QOS_REMARKING"/>
+                    <xs:enumeration value="QOS_ECN"/>
+                    <xs:enumeration value="QOS_TTL"/>
+                    <xs:enumeration value="STG"/>
+                    <xs:enumeration value="SIT"/>
+                    <xs:enumeration value="L3_IF_RIF"/>
+                    <xs:enumeration value="TRAP"/>
+                    <xs:enumeration value="FIELD"/>
+                    <xs:enumeration value="TUNNEL"/>
+                    <xs:enumeration value="METER"/>
+                    <xs:enumeration value="SYNCE"/>
+                    <xs:enumeration value="SAT"/>
+                    <xs:enumeration value="EGW"/>
+                    <xs:enumeration value="KBP"/>
+                    <xs:enumeration value="PLL"/>
+                    <xs:enumeration value="RCPU"/>
+                    <xs:enumeration value="PP_STATISTICS"/>
+                    <xs:enumeration value="INSTRU"/>
+                    <xs:enumeration value="SFLOW"/>
+         <Label Name="SFLOW"/>                    
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:list>
+    </xs:simpleType>
+    
+
+-->

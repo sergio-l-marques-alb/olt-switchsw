@@ -1,0 +1,585 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Fields DB:
+    This xml contains the fields DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<FieldTypesDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="field_types_schema.xsd">
+
+    <FieldType Name="QOS_MODEL" Size="6" Print="ENUM">
+        <OneLineDescription>qos model</OneLineDescription>
+        <FieldDbInterface>
+             <EnumValues>
+                <EnumVal Name="UNIFORM"      Description="QOS Model is UNIFORM"/>
+                <EnumVal Name="PIPE"         Description="QOS Model is PIPE"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="UNIFORM"      Value="0"/>
+                <EnumVal Name="PIPE"         Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="ENCAP_QOS_MODEL" Size="6" Print="ENUM">
+        <OneLineDescription>qos model</OneLineDescription>
+        <FieldDbInterface>
+             <EnumValues>
+                <EnumVal Name="UNIFORM"          Description="QOS Model is UNIFORM"/>
+                <EnumVal Name="PIPE_NEXT_SPACE"  Description="QOS Model is PIPE next space"/>
+                <EnumVal Name="PIPE_MY_SPACE"    Description="QOS Model is PIPE my space"/>
+                <EnumVal Name="INITIAL"          Description="QOS Model is INITIAL"/>
+                <EnumVal Name="UNIFORM_ECN"      Description="QOS Model is UNIFORM and ecn eligible"/>
+                <EnumVal Name="PIPE_ECN"         Description="QOS Model is PIPE next space and ECN eligible"/>
+                <EnumVal Name="INIT_ECN"         Description="QOS Model is INITIAL and ECN eligible"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="UNIFORM"          Value="0"/>
+                <EnumVal Name="PIPE_NEXT_SPACE"  Value="1"/>
+                <EnumVal Name="PIPE_MY_SPACE"    Value="2"/>
+                <EnumVal Name="INITIAL"          Value="3"/>
+                <EnumVal Name="UNIFORM_ECN"      Value="4"/>
+                <EnumVal Name="PIPE_ECN"         Value="5"/>
+                <EnumVal Name="INIT_ECN"         Value="6"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+   <FieldType Name="FORWARD_QOS_MODEL" Size="6" Print="ENUM">
+        <OneLineDescription>qos model</OneLineDescription>
+        <FieldDbInterface>
+             <EnumValues>
+                <EnumVal Name="UNIFORM"      Description="QOS Model is UNIFORM"/>
+                <EnumVal Name="PIPE"         Description="QOS Model is PIPE"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="UNIFORM"      Value="0"/>
+                <EnumVal Name="PIPE"         Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="MODEL_TYPE" Size="1" Print="ENUM">
+        <OneLineDescription>qos model</OneLineDescription>
+        <FieldDbInterface>
+             <EnumValues>
+                <EnumVal Name="UNIFORM"      Description="QOS or TTL Model type is UNIFORM"/>
+                <EnumVal Name="PIPE"         Description="QOS or TTL Model type is PIPE"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="UNIFORM"      Value="0"/>
+                <EnumVal Name="PIPE"         Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_PROFILE" Size="10" Print="UINT32" ResourceName="INGRESS QOS">
+        <OneLineDescription>QOS profile is used for Mapping Logical Interface to QOS propertie</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="ECN_QOS_PROFILE" Size="2" Print="UINT32">
+        <OneLineDescription>QOS profile is used for Mapping Logical Interface to QOS propertie</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_ECN" Size="DNX_DATA.qos.qos.ecn_bits_width" Print="UINT32">
+        <OneLineDescription>ECN result</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_CS_PROFILE" Size="4" Print="ENUM">
+        <OneLineDescription>QOS Context-Selection profile, mapped from QOS profile.
+                            Used as indicator for some QOS priority mapping.
+                            For example: In case L3 packet bridge, the profile can indicate if to select between L3
+                            QOS properites (DSCP) or L2 QOS properties (PCP)</OneLineDescription>
+        <FieldDbInterface>
+             <EnumValues>
+                <EnumVal Name="DEFAULT"                Description="typical default CS profile"/>
+                <EnumVal Name="TWO_TAGS_INNER"         Description="use inner tag for qos mapping in case two tags packet"/>
+                <EnumVal Name="TWO_TAGS_DOUBLE"        Description="use double tags for qos mapping in case two tags packet"/>
+                <EnumVal Name="L3_L2"                  Description="use L3 for qos mapping in case L3 packet bridge"/>
+                <EnumVal Name="PWE_TAG_TYPICAL"        Description="use native Ethernet for qos mapping in case PWE tagged mode"/>
+                <EnumVal Name="PWE_TAG_OUTER"          Description="use native Ethernet outer tage for qos mapping in case PWE tagged mode"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="DEFAULT"                Value="0"/>
+                <EnumVal Name="TWO_TAGS_INNER"         Value="1"/>
+                <EnumVal Name="TWO_TAGS_DOUBLE"        Value="2"/>
+                <EnumVal Name="L3_L2"                  Value="3"/>
+                <EnumVal Name="PWE_TAG_TYPICAL"        Value="4"/>
+                <EnumVal Name="PWE_TAG_OUTER"          Value="5"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_PROFILE_NAME_SPACE" Size="4" Print="ENUM">
+        <OneLineDescription>QOS profile name space, is relative CS profile</OneLineDescription>
+        <FieldDbInterface>
+             <EnumValues>
+                <EnumVal Name="DEFAULT"          Description="default"/>
+                <EnumVal Name="L3_L2"            Description="profile is for L2 use L3"/>
+                <EnumVal Name="ETHERNET"         Description="profile is in L2 name space"/>
+                <EnumVal Name="TAGGED_PWE"       Description="profile is in PWE tagged mode"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="DEFAULT"          Value="0"/>
+                <EnumVal Name="L3_L2"            Value="1"/>
+                <EnumVal Name="ETHERNET"         Value="2"/>
+                <EnumVal Name="TAGGED_PWE"       Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="NETWORK_QOS_INITIAL_SELECT" Size="2" Print="ENUM">
+        <OneLineDescription>which network qos input do we use. supprot JR2 / JR1 WA</OneLineDescription>
+        <FieldDbInterface>
+             <EnumValues>
+                <EnumVal Name="INGRESS_NETWORK_QOS"         Description="use ingress network QOS"/>
+                <EnumVal Name="FORWARD_NETWORK_QOS"         Description="use FORWARD NETWORK QOS"/>
+                <EnumVal Name="FORWARD_PLUS_1_NETWORK_QOS"  Description="use FORWARD PLUS 1 NETWORK QOS"/>
+                <EnumVal Name="TC_NETWORK_QOS"              Description="use TC NETWORK QOS"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="INGRESS_NETWORK_QOS"         Value="0"/>
+                <EnumVal Name="FORWARD_NETWORK_QOS"         Value="1"/>
+                <EnumVal Name="FORWARD_PLUS_1_NETWORK_QOS"  Value="2"/>
+                <EnumVal Name="TC_NETWORK_QOS"              Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+
+    <FieldType Name="QOS_FWD_PLUS_ONE_EXPLICIT_REMARK_PROFILE" Size="2" Print="UINT32">
+        <OneLineDescription>explicit-remark-profile</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="DP_IS_PRESERVE" Size="1" Print="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="METER_DP_PROFILE" Size="2" Print="UINT32">
+        <OneLineDescription> Ingress meter DP profile</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="NETWORK_QOS_IS_PRESERVE" Size="1" Print="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_DP_SELECT" Size="3" Print="ENUM">
+        <OneLineDescription>QOS propagation profile</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="PIPE"        Description="qos DP select PIPE"/>
+                <EnumVal Name="UNIFORM"     Description="qos DP select UNIFORM"/>
+                <EnumVal Name="INITIAL"     Description="qos DP select INITIAL"/>
+                <EnumVal Name="PIPE_DP"     Description="qos DP select PIPE and DP"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="PIPE"       Value="0"/>
+                <EnumVal Name="UNIFORM"    Value="1"/>
+                <EnumVal Name="INITIAL"    Value="2"/>
+                <EnumVal Name="PIPE_DP"    Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_PROPAG_STRENGTH" Size="2" Print="ENUM">
+        <OneLineDescription>QOS Propagation strength</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="LOW"        Description="qos propagatin profile strength is low"/>
+                <EnumVal Name="MIDDLE"     Description="qos propagatin profile strength is middle"/>
+                <EnumVal Name="HIGH"       Description="qos propagatin profile strength is high"/>
+                <EnumVal Name="STRONG"     Description="qos propagatin profile strength is strong"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="LOWER"       Value="0"/>
+                <EnumVal Name="MIDDLE"      Value="1"/>
+                <EnumVal Name="HIGH"        Value="2"/>
+                <EnumVal Name="STRONG"      Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_CAM_PRIORITY" Size="5" Print="UINT32">
+        <OneLineDescription>QOS Context selection cam priority</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_INT_MAP_ID" Size="8" Print="UINT32">
+        <OneLineDescription>The QOS internal MAP-ID. The internal MAP-ID is the ID of the mapping table between QOS
+                            priority fields to QOS action fields. The decision of the ID is according to QOS-profile
+                            (derive usually from logical-interface and mapping-type (derived usually from packet-header
+                            and internal signals). For example, for the case of PHB, the internal map id is used as the
+                            actual mapping table to map QOS priority header (e.g. TOS) to TC,DP </OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_INT_MAP_KEY" Size="8" Print="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_CS_PROFILE_MASK" Size="4" Print="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_ACTION" Size="5" Print="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_KEY_OFFSET" Size="4" Print="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_FIELD_OFFSET" Size="11" Print="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_OPCODE" Size="2" Print="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_FIELD_SIZE" Size="2" Print="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_INDEX" Size="3" Print="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="TTL_INHERITANCE" Size="1" Print="BOOL">
+        <OneLineDescription>Enable STP</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="TTL_PIPE_MAP" Size="1" Print="BOOL">
+        <OneLineDescription>Enable STP</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_RESOLUTION_MODE" Size="1" Print="ENUM">
+        <OneLineDescription> Select the action resolution table from QOS mapping: Either to resolve the result
+                             as an explicit value or from a mapped value</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="EXPLICIT"    Description="Qos result from an explicit value"/>
+                <EnumVal Name="MAPPED"      Description="Qos result from a mapped value"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+                <EnumValueMapping>
+                <EnumVal Name="EXPLICIT"   Value="0"/>
+                <EnumVal Name="MAPPED"   Value="1"/>
+                </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_INT_MAP_KEY_SIZE" Size="3" Print="UINT32">
+        <OneLineDescription> Indicates the number of bits the QOS_INT_MAP_KEY. For example, in case the map key is PCP,
+                             DEI then the key size should be 4</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="INGRESS_QOS_MAP_INDEX" Size="4" Print="ENUM">
+        <OneLineDescription> Indicates the name for the mapping table key fields of QOS_INT_MAP_ID mapping table.
+                             For example: In case the mapping table is for L2 outer tag PCP, the naming will be
+                             accordingly to reflect that the mapping key is PCP</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DEFAULT" Description="qos mapping type DEFAULT"/>
+                <EnumVal Name="L2_ONE_TAG" Description="qos mapping type L2_ONE_TAG PCP DEI from single tag"/>
+                <EnumVal Name="L2_TWO_TAGS" Description="qos mapping type L2_TWO_TAG PCP DEI from both outer and inner tag"/>
+                <EnumVal Name="IPV4" Description="qos mapping type IPV4 take the DSCP"/>
+                <EnumVal Name="IPV6" Description="qos mapping type IPV6 take the TOS"/>
+                <EnumVal Name="MPLS" Description="qos mapping type MPLS"/>
+                <EnumVal Name="RCH" Description="qos mapping type RCH"/>
+                <EnumVal Name="7" Description="qos mapping type 7"/>
+                <EnumVal Name="8" Description="qos mapping type 8"/>
+                <EnumVal Name="9" Description="qos mapping type 9"/>
+                <EnumVal Name="10" Description="qos mapping type 10"/>
+                <EnumVal Name="11" Description="qos mapping type 11"/>
+                <EnumVal Name="12" Description="qos mapping type 12"/>
+                <EnumVal Name="13" Description="qos mapping type 13"/>
+                <EnumVal Name="14" Description="qos mapping type 14"/>
+                <EnumVal Name="15" Description="qos mapping type 15"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+                <EnumValueMapping>
+                <EnumVal Name="DEFAULT" Value="0"/>
+                <EnumVal Name="L2_ONE_TAG" Value="1"/>
+                <EnumVal Name="L2_TWO_TAGS" Value="2"/>
+                <EnumVal Name="IPV4" Value="3"/>
+                <EnumVal Name="IPV6" Value="4"/>
+                <EnumVal Name="MPLS" Value="5"/>
+                <EnumVal Name="RCH" Value="6"/>
+                <EnumVal Name="7" Value="7"/>
+                <EnumVal Name="8" Value="8"/>
+                <EnumVal Name="9" Value="9"/>
+                <EnumVal Name="10" Value="10"/>
+                <EnumVal Name="11" Value="11"/>
+                <EnumVal Name="12" Value="12"/>
+                <EnumVal Name="13" Value="13"/>
+                <EnumVal Name="14" Value="14"/>
+                <EnumVal Name="15" Value="15"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="INGRESS_NWK_QOS_TYPE" Size="2" Print="ENUM">
+        <OneLineDescription>mapped fwd code to Nwk-Qos-type</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="IPV4" Description="ingress network qos type is IPv4 UC/MC"/>
+                <EnumVal Name="IPV6" Description="ingress network qos type is IPv6 UC/MC"/>
+                <EnumVal Name="MPLS" Description="ingress network qos type is MPLS"/>
+                <EnumVal Name="OTHER" Description="other ingress network qos type"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="IPV4" Value="0"/>
+                <EnumVal Name="IPV6" Value="1"/>
+                <EnumVal Name="MPLS" Value="2"/>
+                <EnumVal Name="OTHER" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="INGRESS_QOS_NETWORK_VALID" Size="1" Print="UINT32">
+        <OneLineDescription>ingress network valid (1) otherwise (0)</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="FTMH_ECN_ELIGIBLE" Size="1" Print="ENUM">
+        <OneLineDescription>ECN functionality enabled (1) otherwise (0)</OneLineDescription>
+        <FieldDbInterface>
+        <EnumValues>
+                <EnumVal Name="DISABLE"    Description="ECN is enabled"/>
+                <EnumVal Name="ENABLE"     Description="ECN is disabled"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="DISABLE"    Value="0"/>
+                <EnumVal Name="ENABLE"     Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="ECN_IS_ELIGIBLE" Size="1" Print="ENUM">
+        <OneLineDescription>Egress is ECN eligible (1) otherwise (0)</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NOT_ELIGIBLE" Description="EGRESS is not ECN eligiable"/>
+                <EnumVal Name="ELIGIBLE"     Description="EGRESS is ECN eligiable"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NOT_ELIGIBLE"    Value="0"/>
+                <EnumVal Name="ELIGIBLE"        Value="1"/>
+            </EnumValueMapping>
+            </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="KEEP_ECN_BITS" Size="1" Print="ENUM">
+        <OneLineDescription>Egress is ECN eligible (1) otherwise (0)</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DONT_KEEP_ECN_BITS"  Description="bits 7:0 of the Old-QOS are updated with the New-QOS (DSCP)"/>
+                <EnumVal Name="KEEP_ECN_BITS"      Description="only bits 7:2 of the Old-QOS are updated with the New-QOS
+                                                                (DSCP)and bits 1:0 are taken from New-QOS (ECN)"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="DONT_KEEP_ECN_BITS"    Value="0"/>
+                <EnumVal Name="KEEP_ECN_BITS"        Value="1"/>
+            </EnumValueMapping>
+            </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="REMARK_OR_PRESERVE" Size="1" Print="ENUM">
+        <OneLineDescription>Keeping the previous value (0) or changing it to the new QoS variable (1)</OneLineDescription>
+        <FieldDbInterface>
+        <EnumValues>
+                <EnumVal Name="KEEP"   Description="Keeping the previous value"/>
+                <EnumVal Name="REMARK" Description="changing it to the new QoS variable"/>
+               </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+                <EnumValueMapping>
+                <EnumVal Name="KEEP"    Value="0"/>
+                <EnumVal Name="REMARK"  Value="1"/>
+               </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_INGRESS_APP_TYPE" Size="2" Print="ENUM">
+        <OneLineDescription> Indicates the ingress application type: PHB/REMARKING/ECN/TTL </OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="PHB"    Description="qos ingress application type PHB"/>
+                <EnumVal Name="REMARK" Description="qos ingress application type REMARKING"/>
+                <EnumVal Name="ECN"    Description="qos ingress application type ECN"/>
+                <EnumVal Name="TTL"    Description="qos ingress application type TTL"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+                <EnumValueMapping>
+                <EnumVal Name="PHB"    Value="0"/>
+                <EnumVal Name="REMARK" Value="1"/>
+                <EnumVal Name="ECN"    Value="2"/>
+                <EnumVal Name="TTL"    Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="QOS_LAYER_PROTOCOL" Size="3" Print="ENUM">
+        <OneLineDescription>mapped fwd code to Nwk-Qos-type</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="INIT" Description="ingress network qos type is initial"/>
+                <EnumVal Name="ETH" Description="ingress network qos type is ETHERNET"/>
+                <EnumVal Name="IPV4" Description="ingress network qos type is IPv4 UC/MC"/>
+                <EnumVal Name="IPV6" Description="ingress network qos type is IPv6 UC/MC"/>
+                <EnumVal Name="MPLS" Description="ingress network qos type is MPLS"/>
+                <EnumVal Name="OTHER" Description="other ingress network qos type"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="INIT" Value="0"/>
+                <EnumVal Name="ETH"  Value="1"/>
+                <EnumVal Name="IPV4" Value="2"/>
+                <EnumVal Name="IPV6" Value="3"/>
+                <EnumVal Name="MPLS" Value="4"/>
+                <EnumVal Name="OTHER" Value="5"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="NETWORK_QOS" Size="8" Print="UINT32">
+        <OneLineDescription>ingress remarking network qos</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="PCP_DEI" Size="4" Print="UINT32">
+        <OneLineDescription>VLAN tag pcp and dei</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="NETWORK_QOS_PIPE_PROFILE" Size="6" Print="UINT32">
+        <OneLineDescription>network qos index</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+</FieldTypesDbCatalog>

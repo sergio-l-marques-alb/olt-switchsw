@@ -1,0 +1,1613 @@
+<?xml version="1.0"?>
+<SignalInfo device="jericho2c_a0">
+<!--No editing - File is auto-generated-->
+    <Signal>
+        <Size>1152</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:16} bits: [1151 : 0]</Address>
+        <From>Fabric</From>
+        <To>ERParser</To>
+        <Attribute>Pkt_Header</Attribute>
+        <Expansion>packet_header</Expansion>
+        <Adapter>ingress_packet_header</Adapter>
+    </Signal>
+    <Signal>
+        <Size>28</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:15} bits: [121 : 94]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Psg_Header_Layer_Offsets</Attribute>
+    </Signal>
+    <Signal>
+        <Size>20</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:15} bits: [93 : 74]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Psg_Layer_Protocols</Attribute>
+    </Signal>
+    <Signal>
+        <Size>64</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:15} bits: [73 : 10]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Psg_Layer_Qualifiers</Attribute>
+    </Signal>
+    <Signal>
+        <Size>3</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:15} bits: [9 : 7]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_15_7</Attribute>
+    </Signal>
+    <Signal>
+        <Size>7</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:15} bits: [6 : 0]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Sys_Headers_Size</Attribute>
+        <Adapter>system_headers_size</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [957 : 957]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>is_TDM</Attribute>
+    </Signal>
+    <Signal>
+        <Size>4</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [956 : 953]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>TC_Map_Profile</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [952 : 952]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>1st_Copy</Attribute>
+        <Adapter>first_copy</Adapter>
+    </Signal>
+    <Signal>
+        <Size>11</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [951 : 941]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>MC_PP_DSP</Attribute>
+    </Signal>
+    <Signal>
+        <Size>22</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [940 : 919]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>CUD_Out_LIF_or_MCDB_Ptr</Attribute>
+        <Adapter>cud_outlif_or_mcdb_ptr</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [918 : 918]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_918</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [917 : 917]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Mem_Soft_Err</Attribute>
+    </Signal>
+    <Signal>
+        <Size>110</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [916 : 807]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>MCDB_Record</Attribute>
+        <Condition>MCDB_Record_Match</Condition>
+        <Expansion>MCDB_Record</Expansion>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [806 : 806]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>MCDB_Record_Match</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [805 : 805]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>IP_MC_Eligible</Attribute>
+    </Signal>
+    <Signal>
+        <Size>7</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [804 : 798]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Sys_Headers_Size</Attribute>
+        <Adapter>system_headers_size</Adapter>
+    </Signal>
+    <Signal>
+        <Size>14</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [797 : 784]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>FTMH_Pkt_Size</Attribute>
+        <Adapter>ftmh_packet_size</Adapter>
+    </Signal>
+    <Signal>
+        <Size>3</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [783 : 781]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>FTMH_TC</Attribute>
+    </Signal>
+    <Signal>
+        <Size>16</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [780 : 765]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>FTMH_Src_Sys_Port</Attribute>
+        <Adapter>ftmh_source_system_port</Adapter>
+    </Signal>
+    <Signal>
+        <Size>8</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [764 : 757]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>FTMH_PP_DSP</Attribute>
+    </Signal>
+    <Signal>
+        <Size>2</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [756 : 755]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>PP_DSP_Ext</Attribute>
+    </Signal>
+    <Signal>
+        <Size>2</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [754 : 753]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>FTMH_DP</Attribute>
+    </Signal>
+    <Signal>
+        <Size>2</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [752 : 751]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>FTMH_TM_Action_Type</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [750 : 750]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>FTMH_TSH_Ext_Present</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [749 : 749]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_749</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [748 : 748]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>FTMH_TM_Action_is_MC</Attribute>
+    </Signal>
+    <Signal>
+        <Size>22</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [747 : 726]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>FTMH_MCID_or_Out_LIF_0_or_MCDB_Ptr</Attribute>
+        <Adapter>ftmh_mcid_or_outlif_0_or_mcdb_ptr</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [725 : 725]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>FTMH_TM_Dst_Ext_Present</Attribute>
+        <Adapter>ftmh_tm_destination_ext_present</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [724 : 724]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>FTMH_App_Specific_Ext_Present</Attribute>
+        <Adapter>ftmh_application_specific_ext_present</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [723 : 723]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>FTMH_Flow_ID_Ext_Present</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [722 : 722]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>FTMH_BIER_BFR_Ext_Present</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [721 : 721]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>FTMH_CNI</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [720 : 720]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>FTMH_ECN_Enable</Attribute>
+    </Signal>
+    <Signal>
+        <Size>2</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [719 : 718]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>FTMH_TM_Profile</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [717 : 717]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>FTMH_Reserved</Attribute>
+    </Signal>
+    <Signal>
+        <Size>24</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [716 : 693]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>LB_Key_Ext</Attribute>
+        <Expansion>LB_Key_Ext</Expansion>
+    </Signal>
+    <Signal>
+        <Size>16</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [692 : 677]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Stacking_Ext</Attribute>
+        <Expansion>Stacking_Extension</Expansion>
+    </Signal>
+    <Signal>
+        <Size>16</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [676 : 661]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>BIER_BFR_Ext</Attribute>
+        <Expansion>BIER_BFR_Ext</Expansion>
+    </Signal>
+    <Signal>
+        <Size>24</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [660 : 637]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>TM_Dst_Ext</Attribute>
+        <Expansion>TM_Dst_Ext</Expansion>
+        <Adapter>tm_destination_ext</Adapter>
+    </Signal>
+    <Signal>
+        <Size>48</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [636 : 589]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>App_Specific_Ext</Attribute>
+        <Adapter>application_specific_ext</Adapter>
+    </Signal>
+    <Signal>
+        <Size>56</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [588 : 533]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>TSH_Ext</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [532 : 532]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_532</Attribute>
+    </Signal>
+    <Signal>
+        <Size>152</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [531 : 380]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Learn_Ext</Attribute>
+    </Signal>
+    <Signal>
+        <Size>2</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [379 : 378]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_378</Attribute>
+    </Signal>
+    <Signal>
+        <Size>3</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [377 : 375]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_375</Attribute>
+    </Signal>
+    <Signal>
+        <Size>7</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [374 : 368]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_368</Attribute>
+    </Signal>
+    <Signal>
+        <Size>5</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [367 : 363]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_363</Attribute>
+    </Signal>
+    <Signal>
+        <Size>3</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [362 : 360]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_360</Attribute>
+    </Signal>
+    <Signal>
+        <Size>4</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [359 : 356]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_356</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [355 : 355]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_355</Attribute>
+    </Signal>
+    <Signal>
+        <Size>8</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [354 : 347]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_347</Attribute>
+    </Signal>
+    <Signal>
+        <Size>18</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [346 : 329]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_329</Attribute>
+    </Signal>
+    <Signal>
+        <Size>22</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [328 : 307]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_307</Attribute>
+    </Signal>
+    <Signal>
+        <Size>8</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [306 : 299]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_299</Attribute>
+    </Signal>
+    <Signal>
+        <Size>8</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [298 : 291]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_291</Attribute>
+    </Signal>
+    <Signal>
+        <Size>3</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [290 : 288]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_288</Attribute>
+    </Signal>
+    <Signal>
+        <Size>8</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [287 : 280]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_280</Attribute>
+    </Signal>
+    <Signal>
+        <Size>8</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [279 : 272]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_272</Attribute>
+    </Signal>
+    <Signal>
+        <Size>72</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [271 : 200]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_200</Attribute>
+    </Signal>
+    <Signal>
+        <Size>64</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [199 : 136]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>Internal_6_14_136</Attribute>
+    </Signal>
+    <Signal>
+        <Size>136</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:14} bits: [135 : 0]</Address>
+        <From>ERParser</From>
+        <To>PRP</To>
+        <Attribute>UDH</Attribute>
+        <Expansion>UDH</Expansion>
+    </Signal>
+    <Signal>
+        <Size>22</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:13} bits: [21 : 0]</Address>
+        <From>PRP</From>
+        <To>GLEM</To>
+        <Attribute>Key</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:12} bits: [24 : 24]</Address>
+        <From>Glem</From>
+        <To>PRP</To>
+        <Attribute>Found</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:12} bits: [23 : 23]</Address>
+        <From>Glem</From>
+        <To>PRP</To>
+        <Attribute>Err</Attribute>
+    </Signal>
+    <Signal>
+        <Size>23</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:12} bits: [22 : 0]</Address>
+        <From>Glem</From>
+        <To>PRP</To>
+        <Attribute>Payload</Attribute>
+        <Condition>Found</Condition>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [513 : 513]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>Mem_Soft_Err</Attribute>
+    </Signal>
+    <Signal>
+        <Size>16</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [512 : 497]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>Dst_Sys_Port</Attribute>
+    </Signal>
+    <Signal>
+        <Size>10</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [496 : 487]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>Out_TM_Port</Attribute>
+    </Signal>
+    <Signal>
+        <Size>10</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [486 : 477]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>Out_PP_Port</Attribute>
+    </Signal>
+    <Signal>
+        <Size>4</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [476 : 473]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>Out_LIF_Profile</Attribute>
+        <Expansion>Out_LIF_Profile</Expansion>
+        <Adapter>outlif_profile</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [472 : 472]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>Fabric_or_Egress_MC</Attribute>
+    </Signal>
+    <Signal>
+        <Size>6</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [471 : 466]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>Fwd_Context</Attribute>
+    </Signal>
+    <Signal>
+        <Size>10</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [465 : 456]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>Eth_Tag_Format</Attribute>
+        <Expansion>Eth_Tag_Format</Expansion>
+    </Signal>
+    <Signal>
+        <Size>144</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [455 : 312]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>Updated_Tpids_Pkt_Data</Attribute>
+        <Adapter>updated_tpids_packet_data</Adapter>
+    </Signal>
+    <Signal>
+        <Size>5</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [311 : 307]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>IVE_Bytes_to_Add</Attribute>
+    </Signal>
+    <Signal>
+        <Size>5</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [306 : 302]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>IVE_Bytes_to_Remove</Attribute>
+    </Signal>
+    <Signal>
+        <Size>16</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [301 : 286]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>Eth_Type_Code</Attribute>
+    </Signal>
+    <Signal>
+        <Size>22</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [285 : 264]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>In_LIF_0</Attribute>
+        <Adapter>inlif0</Adapter>
+    </Signal>
+    <Signal>
+        <Size>8</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [263 : 256]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>In_LIF_Profile_0</Attribute>
+        <Adapter>inlif_profile0</Adapter>
+    </Signal>
+    <Signal>
+        <Size>20</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [255 : 236]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>Local_Out_LIF</Attribute>
+        <Adapter>local_outlif</Adapter>
+    </Signal>
+    <Signal>
+        <Size>22</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [235 : 214]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>Global_Out_LIF_0</Attribute>
+        <Adapter>global_outlif0</Adapter>
+    </Signal>
+    <Signal>
+        <Size>22</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [213 : 192]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>Global_Out_LIF_1</Attribute>
+        <Adapter>global_outlif1</Adapter>
+    </Signal>
+    <Signal>
+        <Size>22</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [191 : 170]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>Global_Out_LIF_2</Attribute>
+        <Adapter>global_outlif2</Adapter>
+    </Signal>
+    <Signal>
+        <Size>22</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [169 : 148]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>Global_Out_LIF_3</Attribute>
+        <Adapter>global_outlif3</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [147 : 147]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>IP_MC_Should_be_Bridged</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [146 : 146]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>GLEM_PP_Trap_is_Required</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [145 : 145]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>GLEM_NON_PP_Trap_is_Required</Attribute>
+    </Signal>
+    <Signal>
+        <Size>75</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [144 : 70]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>per_TM_Port_Table_Data</Attribute>
+    </Signal>
+    <Signal>
+        <Size>70</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:11} bits: [69 : 0]</Address>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>per_PP_Port_Table_Data</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:10} bits: [11 : 11]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>Invalid_OTM_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:10} bits: [10 : 10]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>TDM_Wrong_Port_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:10} bits: [9 : 9]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>Dss_Stacking_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:10} bits: [8 : 8]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>Exclude_Src_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:10} bits: [7 : 7]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>LAG_MC_Int</Attribute>
+        <Adapter>lag_multicast_int</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:10} bits: [6 : 6]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>Unacceptable_Frame_Type_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:10} bits: [5 : 5]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>Split_Horizon_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:10} bits: [4 : 4]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>GLEM_PP_Trap_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:10} bits: [3 : 3]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>GLEM_NON_PP_Trap_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:10} bits: [2 : 2]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>TTL_Scope_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:10} bits: [1 : 1]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>TTL_Eq_Zero_Int</Attribute>
+        <Adapter>ttl_equals_zero_int</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:10} bits: [0 : 0]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>TTL_Eq_One_Int</Attribute>
+        <Adapter>ttl_equals_one_int</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [29 : 29]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>Src_Eq_Dst_Int</Attribute>
+        <Adapter>src_equal_dest_int</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [28 : 28]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>Unknown_DA_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [27 : 27]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>MTU_Violation_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [26 : 26]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv4_Version_Err_Int</Attribute>
+        <Adapter>ipv4_version_error_int</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [25 : 25]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv6_Version_Err_Int</Attribute>
+        <Adapter>ipv6_version_error_int</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [24 : 24]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv4_Header_Length_Err_Int</Attribute>
+        <Adapter>ipv4_header_length_error_int</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [23 : 23]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv4_Total_Length_Err_Int</Attribute>
+        <Adapter>ipv4_total_length_error_int</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [22 : 22]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv4_Options_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [21 : 21]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv4_SIP_Eq_DIP_Int</Attribute>
+        <Adapter>ipv4_sip_equals_dip_int</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [20 : 20]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv4_DIP_Eq_Zero_Int</Attribute>
+        <Adapter>ipv4_dip_equals_zero_int</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [19 : 19]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv4_SIP_is_MC_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [18 : 18]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv6_SIP_is_MC_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [17 : 17]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv6_Unspecified_Dst_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [16 : 16]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv6_Unspecified_Src_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [15 : 15]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv6_Loopback_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [14 : 14]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv6_Hop_by_Hop_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [13 : 13]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv6_Link_Local_Dst_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [12 : 12]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv6_Link_Local_Src_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [11 : 11]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv6_Site_Local_Dst_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [10 : 10]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv6_Site_Local_Src_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [9 : 9]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv6_IPv4_Compatible_Dst_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [8 : 8]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv6_IPv4_Mapped_Dst_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [7 : 7]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv6_DIP_is_MC_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [6 : 6]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>TCP_Seq_Num_and_Flags_are_Zero_Int</Attribute>
+        <Adapter>tcp_sequence_number_and_flags_are_zero_int</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [5 : 5]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>TCP_Seq_Num_is_Zero_and_FIN_or_URG_or_PSH_is_Set_Int</Attribute>
+        <Adapter>tcp_sequence_number_is_zero_and_fin_or_urg_or_psh_is_set_int</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [4 : 4]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>TCP_SYN_and_FIN_are_Set_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [3 : 3]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>TCP_Src_Port_Eq_Dst_Port_Int</Attribute>
+        <Adapter>tcp_src_port_equals_dst_port_int</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [2 : 2]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>TCP_Fragment_with_Incomplete_TCP_Header_Int</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [1 : 1]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>TCP_Fragment_with_Offset_Less_than_8_Int</Attribute>
+        <Adapter>tcp_fragment_with_offset_less_than8_int</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:9} bits: [0 : 0]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>UDP_Src_Port_Eq_Dst_Port_Int</Attribute>
+        <Adapter>udp_src_port_equals_dst_port_int</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:8} bits: [0 : 0]</Address>
+        <From>Erpp</From>
+        <To>Cpu</To>
+        <Attribute>IPv4_Checksum_Err_Int</Attribute>
+        <Adapter>ipv4_checksum_error_int</Adapter>
+    </Signal>
+    <Signal>
+        <Size>4</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:7} bits: [11 : 8]</Address>
+        <From>Filter</From>
+        <To>EPMF</To>
+        <Attribute>Fwd_Strength</Attribute>
+        <Adapter>forwarding_strength</Adapter>
+    </Signal>
+    <Signal>
+        <Size>3</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:7} bits: [7 : 5]</Address>
+        <From>Filter</From>
+        <To>EPMF</To>
+        <Attribute>Fwd_Action_Profile_Index</Attribute>
+        <Adapter>forwarding_action_profile_index</Adapter>
+    </Signal>
+    <Signal>
+        <Size>2</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:7} bits: [4 : 3]</Address>
+        <From>Filter</From>
+        <To>EPMF</To>
+        <Attribute>Snoop_Action_Profile_Index</Attribute>
+    </Signal>
+    <Signal>
+        <Size>3</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:7} bits: [2 : 0]</Address>
+        <From>Filter</From>
+        <To>EPMF</To>
+        <Attribute>Snoop_Strength</Attribute>
+    </Signal>
+    <Signal>
+        <Size>160</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:6} bits: [165 : 6]</Address>
+        <From>EPMF</From>
+        <To>TCAM</To>
+        <Attribute>Key_B</Attribute>
+    </Signal>
+    <Signal>
+        <Size>6</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:6} bits: [5 : 0]</Address>
+        <From>EPMF</From>
+        <To>TCAM</To>
+        <Attribute>AppDB_B</Attribute>
+    </Signal>
+    <Signal>
+        <Size>160</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:5} bits: [165 : 6]</Address>
+        <From>EPMF</From>
+        <To>TCAM</To>
+        <Attribute>Key_C</Attribute>
+    </Signal>
+    <Signal>
+        <Size>6</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:5} bits: [5 : 0]</Address>
+        <From>EPMF</From>
+        <To>TCAM</To>
+        <Attribute>AppDB_C</Attribute>
+    </Signal>
+    <Signal>
+        <Size>160</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:4} bits: [165 : 6]</Address>
+        <From>EPMF</From>
+        <To>LEXEM1</To>
+        <Attribute>Key_A</Attribute>
+    </Signal>
+    <Signal>
+        <Size>6</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:4} bits: [5 : 0]</Address>
+        <From>EPMF</From>
+        <To>LEXEM1</To>
+        <Attribute>AppDB_A</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:3} bits: [200 : 200]</Address>
+        <From>LEXEM1</From>
+        <To>EPMF</To>
+        <Attribute>Hit_A</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:3} bits: [199 : 199]</Address>
+        <From>TCAM</From>
+        <To>EPMF</To>
+        <Attribute>Hit_B</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:3} bits: [198 : 198]</Address>
+        <From>TCAM</From>
+        <To>EPMF</To>
+        <Attribute>Hit_C</Attribute>
+    </Signal>
+    <Signal>
+        <Size>6</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:3} bits: [197 : 192]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>Context</Attribute>
+    </Signal>
+    <Signal>
+        <Size>64</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:3} bits: [191 : 128]</Address>
+        <From>LEXEM1</From>
+        <To>EPMF</To>
+        <Attribute>Result_A</Attribute>
+        <Condition>Hit_A</Condition>
+    </Signal>
+    <Signal>
+        <Size>64</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:3} bits: [127 : 64]</Address>
+        <From>TCAM</From>
+        <To>EPMF</To>
+        <Attribute>Result_B</Attribute>
+        <Condition>Hit_B</Condition>
+    </Signal>
+    <Signal>
+        <Size>64</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:3} bits: [63 : 0]</Address>
+        <From>TCAM</From>
+        <To>EPMF</To>
+        <Attribute>Result_C</Attribute>
+        <Condition>Hit_C</Condition>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [118 : 118]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>Mem_Soft_Err</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [117 : 117]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>Discard</Attribute>
+    </Signal>
+    <Signal>
+        <Size>4</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [116 : 113]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>TC_Map_Profile</Attribute>
+    </Signal>
+    <Signal>
+        <Size>3</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [112 : 110]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>FTMH_TC</Attribute>
+    </Signal>
+    <Signal>
+        <Size>2</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [109 : 108]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>FTMH_DP</Attribute>
+    </Signal>
+    <Signal>
+        <Size>22</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [107 : 86]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>CUD_Out_LIF_or_MCDB_Ptr</Attribute>
+        <Adapter>cud_outlif_or_mcdb_ptr</Adapter>
+    </Signal>
+    <Signal>
+        <Size>10</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [85 : 76]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>PP_DSP</Attribute>
+    </Signal>
+    <Signal>
+        <Size>4</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [75 : 72]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>CoS_Profile</Attribute>
+    </Signal>
+    <Signal>
+        <Size>2</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [71 : 70]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>Mirror_Profile</Attribute>
+    </Signal>
+    <Signal>
+        <Size>2</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [69 : 68]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>Snoop_Action_Profile_Index</Attribute>
+    </Signal>
+    <Signal>
+        <Size>3</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [67 : 65]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>Snoop_Strength</Attribute>
+    </Signal>
+    <Signal>
+        <Size>3</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [64 : 62]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>Fwd_Action_Profile_Index</Attribute>
+        <Adapter>forwarding_action_profile_index</Adapter>
+    </Signal>
+    <Signal>
+        <Size>4</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [61 : 58]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>Fwd_Strength</Attribute>
+        <Adapter>forwarding_strength</Adapter>
+    </Signal>
+    <Signal>
+        <Size>4</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [57 : 54]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>PMF_Fwd_Strength</Attribute>
+        <Adapter>pmf_forward_strength</Adapter>
+    </Signal>
+    <Signal>
+        <Size>3</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [53 : 51]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>PMF_Snoop_Strength</Attribute>
+    </Signal>
+    <Signal>
+        <Size>3</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [50 : 48]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>PMF_Profile</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [47 : 47]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>Snoop_Override_Enable</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [46 : 46]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>PMF_Fwd_Override_Enable</Attribute>
+        <Adapter>pmf_forward_override_enable</Adapter>
+    </Signal>
+    <Signal>
+        <Size>3</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [45 : 43]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>PMF_Counter_0_Profile</Attribute>
+    </Signal>
+    <Signal>
+        <Size>20</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [42 : 23]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>PMF_Counter_0_Ptr</Attribute>
+    </Signal>
+    <Signal>
+        <Size>3</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [22 : 20]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>PMF_Counter_1_Profile</Attribute>
+    </Signal>
+    <Signal>
+        <Size>20</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:2} bits: [19 : 0]</Address>
+        <From>EPMF</From>
+        <To>ETMR</To>
+        <Attribute>PMF_Counter_1_Ptr</Attribute>
+    </Signal>
+    <Signal>
+        <Size>160</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:1} bits: [159 : 0]</Address>
+        <From>ETMR</From>
+        <To>LEM</To>
+        <Attribute>MACT_Learn_Cmd_Data</Attribute>
+        <Expansion>MACT_Learn_Cmd_Data</Expansion>
+        <Adapter>mact_learn_command_data</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [207 : 207]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>Discard</Attribute>
+    </Signal>
+    <Signal>
+        <Size>14</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [206 : 193]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>Pkt_Size</Attribute>
+        <Adapter>packet_size</Adapter>
+    </Signal>
+    <Signal>
+        <Size>9</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [192 : 184]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>Estimated_Btr</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [183 : 183]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>is_TDM</Attribute>
+    </Signal>
+    <Signal>
+        <Size>45</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [182 : 138]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>ETM_Record</Attribute>
+    </Signal>
+    <Signal>
+        <Size>10</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [137 : 128]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>OTM</Attribute>
+    </Signal>
+    <Signal>
+        <Size>41</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [127 : 87]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>CUD</Attribute>
+        <Expansion>CUD</Expansion>
+        <Adapter>erpp_cud</Adapter>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [86 : 86]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>Egress_MC</Attribute>
+        <Adapter>egress_multicast</Adapter>
+    </Signal>
+    <Signal>
+        <Size>3</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [85 : 83]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>Sys_TC</Attribute>
+    </Signal>
+    <Signal>
+        <Size>2</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [82 : 81]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>Sys_DP</Attribute>
+    </Signal>
+    <Signal>
+        <Size>4</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [80 : 77]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>TC_Map_Profile</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [76 : 76]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>TM_Counter_Ptr_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [75 : 75]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>Counter_0_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Size>2</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [74 : 73]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>Counter_0_Type</Attribute>
+    </Signal>
+    <Signal>
+        <Size>20</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [72 : 53]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>Counter_0_Ptr</Attribute>
+    </Signal>
+    <Signal>
+        <Size>1</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [52 : 52]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>Counter_1_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Size>2</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [51 : 50]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>Counter_1_Type</Attribute>
+    </Signal>
+    <Signal>
+        <Size>20</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [49 : 30]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>Counter_1_Ptr</Attribute>
+    </Signal>
+    <Signal>
+        <Size>16</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [29 : 14]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>Counter_Metadata</Attribute>
+    </Signal>
+    <Signal>
+        <Size>14</Size>
+        <BlockID>6</BlockID>
+        <Address>{bus:0} bits: [13 : 0]</Address>
+        <From>ETMR</From>
+        <To>ETM</To>
+        <Attribute>Counter_Pkt_Size</Attribute>
+        <Adapter>counter_packet_size</Adapter>
+    </Signal>
+</SignalInfo>

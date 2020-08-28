@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<top device="jericho2_a0" version="1.0">
+    <parsing-objects>
+        <object name="FTMH_Base" size="80" structure="FTMH_Base">
+            <description>Fabric TM Header</description>
+            <extension name="LB_Key"/>
+            <!-- <extension name="Stacking"> <condition type="soc" mode="enable"> <enable val="1" /> <soc_property name="stacking_enable" /> </condition>
+                </extension> -->
+            <extension name="FTMH_BIER">
+                <condition type="field" mode="enable">
+                    <enable val="1" mask="1"/>
+                    <field path="FTMH_Base.FTMH_BIER_BFR_Ext_Present"/>
+                </condition>
+            </extension>
+            <extension name="FTMH_TM_DEST">
+                <condition type="field" mode="enable">
+                    <enable val="1" mask="1"/>
+                    <field path="FTMH_Base.FTMH_TM_Dst_Ext_Present"/>
+                </condition>
+            </extension>
+            <extension name="FTMH_APP_SPECIFIC">
+                <condition type="field" mode="enable">
+                    <enable val="1" mask="1"/>
+                    <field path="FTMH_Base.FTMH_Application_Specific_Extension_Present"/>
+                </condition>
+            </extension>
+            <extension name="FTMH_FLOW_ID">
+                <condition type="field" mode="enable">
+                    <enable val="1" mask="1"/>
+                    <field path="FTMH_Base.FTMH_Flow_ID_Extension_Present"/>
+                </condition>
+            </extension>
+            <extension name="FTMH_TSH">
+                <condition type="field" mode="enable">
+                    <enable val="2" mask="2"/>
+                    <field path="FTMH_Base.FTMH_PPH_Type"/>
+                </condition>
+            </extension>
+            <extension name="PPH_Base">
+                <condition type="field" mode="enable">
+                    <enable val="1" mask="1"/>
+                    <field path="FTMH_Base.FTMH_PPH_Type"/>
+                </condition>
+            </extension>
+        </object>
+        <object name="FTMH_OPT" size="32" structure="FTMH_OPT"/>
+        <object name="LB_Key" size="24" structure="LB_Key_Ext"/>
+        <object name="FTMH_BIER" size="16" structure="BIER_BFR_Ext"/>
+        <object name="FTMH_TM_DEST" size="24" structure="TM_Dst_Ext"/>
+        <object name="FTMH_APP_SPECIFIC" size="48" structure="FTMH_Application_Specific">
+            <description>FTMH Application Specific extension (OAM-TS/1588/ERSPAN)</description>
+        </object>
+        <!--  For packet compose only!  -->
+        <object name="OAM_TS" size="48"/>
+        <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+        <object name="FTMH_FLOW_ID" size="24" structure="FTMH_Flow_ID_Ext"/>
+        <object name="FTMH_TSH" size="32" structure="FTMH_TSH"/>
+        <object name="IngressPacket" size="0">
+              <!-- 
+              >>>  SHOULD NOT BE USED TO PARSE NIF SIGNALS!!!  <<< 
+              -->
+            <description>Incoming packet. Can be PTCH+ITMH, PTCH+ETH or ETH only.</description>
+            <extension name="PTCH_2">
+                <condition type="plugin" mode="enable" callback="packet_ptch"/>
+            </extension>
+            <extension name="RCH">
+                <condition type="plugin" mode="enable" callback="packet_rch"/>
+            </extension>
+            <extension name="ETH">
+                <condition type="plugin" mode="disable" callback="packet_ptch"/>
+                <condition type="plugin" mode="disable" callback="packet_rch"/>
+            </extension>
+        </object>
+        <object name="PTCH_2" size="16" structure="PTCH_2">
+            <description>Static structure of PTCH-2 system header</description>
+            <extension name="ITMH_Base">
+                <condition type="field" mode="enable">
+                    <enable val="0" mask="1"/>
+                    <field path="PTCH_2.Parser_Program_Control"/>
+                </condition>
+                <condition type="soc" mode="enable">
+                    <enable val="1" />
+                    <soc_property name="system_headers_mode" />
+                </condition>
+            </extension>
+            <extension name="ITMH_Base_J1">
+                <condition type="field" mode="enable">
+                    <enable val="0" mask="1"/>
+                    <field path="PTCH_2.Parser_Program_Control"/>
+                </condition>
+                <condition type="soc" mode="enable">
+                    <enable val="0" />
+                    <soc_property name="system_headers_mode" />
+                </condition>
+            </extension>
+            <extension name="ETH">
+                <condition type="field" mode="enable">
+                    <enable val="1" mask="1"/>
+                    <field path="PTCH_2.Parser_Program_Control"/>
+                </condition>
+            </extension>
+        </object>
+        <object name="ITMH_Base" size="40" structure="ITMH_Base">
+            <description>Ingress TM Header</description>
+            <extension name="ITMH_Base_Ext">
+                <condition type="field" mode="enable">
+                    <enable val="1" mask="1"/>
+                    <field path="ITMH_Base.Extension_Exists"/>
+                </condition>
+            </extension>
+            <extension name="FTMH_APP_SPECIFIC">
+                <condition type="field" mode="enable">
+                    <enable val="1" mask="1"/>
+                    <field path="ITMH_Base.Injected_AS_Extension_Present"/>
+                </condition>
+            </extension>
+            <extension name="FTMH_TSH">
+                <condition type="field" mode="enable">
+                    <enable val="2" mask="2"/>
+                    <field path="ITMH_Base.PPH_Type"/>
+                </condition>
+            </extension>
+            <extension name="PPH_Base">
+                <condition type="field" mode="enable">
+                    <enable val="1" mask="1"/>
+                    <field path="ITMH_Base.PPH_Type"/>
+                </condition>
+            </extension>
+        </object>
+        <object name="FHEI_TRAP_SNIFF_5B" size="40" />
+        <object name="ITMH_Base_Ext" size="24" structure="ITMH_Base_Ext" />
+        <!--  For packet composition  -->
+        <object name="ITMH_Out_LIF_Ext" size="24" />
+        <object name="ITMH_MC_Ext" size="24" />
+        <!-- ~~~~~~~~~~~~~~~~~~~~~~~~ -->
+        <object name="UDH" size="8" structure="UDH_Base">
+            <extension name="UDH_DATA_0">
+                <condition type="field" mode="enable">
+                    <enable val="0x1" mask="0x1"/>
+                    <field path="UDH_Base.UDH_Type_0"/>
+                </condition>
+            </extension>        
+            <extension name="UDH_DATA_0">
+                <condition type="field" mode="enable">
+                    <enable val="0x2" mask="0x3"/>
+                    <field path="UDH_Base.UDH_Type_0"/>
+                </condition>
+            </extension>        
+            <extension name="UDH_DATA_1">
+                <condition type="field" mode="enable">
+                    <enable val="0x1" mask="0x1"/>
+                    <field path="UDH_Base.UDH_Type_1"/>
+                </condition>
+            </extension>        
+            <extension name="UDH_DATA_1">
+                <condition type="field" mode="enable">
+                    <enable val="0x2" mask="0x3"/>
+                    <field path="UDH_Base.UDH_Type_1"/>
+                </condition>
+            </extension>        
+            <extension name="UDH_DATA_2">
+                <condition type="field" mode="enable">
+                    <enable val="0x1" mask="0x1"/>
+                    <field path="UDH_Base.UDH_Type_2"/>
+                </condition>
+            </extension>        
+            <extension name="UDH_DATA_2">
+                <condition type="field" mode="enable">
+                    <enable val="0x2" mask="0x3"/>
+                    <field path="UDH_Base.UDH_Type_2"/>
+                </condition>
+            </extension>        
+            <extension name="UDH_DATA_3">
+                <condition type="field" mode="enable">
+                    <enable val="0x1" mask="0x1"/>
+                    <field path="UDH_Base.UDH_Type_3"/>
+                </condition>
+            </extension>        
+            <extension name="UDH_DATA_3">
+                <condition type="field" mode="enable">
+                    <enable val="0x2" mask="0x3"/>
+                    <field path="UDH_Base.UDH_Type_3"/>
+                </condition>
+            </extension>        
+        </object>
+        <object name="UDH_DATA_0" size="32" />
+        <object name="UDH_DATA_1" size="32" />
+        <object name="UDH_DATA_2" size="32" />
+        <object name="UDH_DATA_3" size="32" />
+        <object name="FabricPacket" size="0">
+            <description>System headers (FTMH) followed be network headers (ETH)</description>
+            <extension name="FTMH_Base">
+                <condition type="soc" mode="enable">
+                    <enable val="1" />
+                    <soc_property name="system_headers_mode" />
+                </condition>
+            </extension>
+            <extension name="FTMH_J1">
+                <condition type="soc" mode="enable">
+                    <enable val="0" />
+                    <soc_property name="system_headers_mode" />
+                </condition>
+            </extension>
+            <extension name="ETH">
+                <condition type="soc" mode="enable">
+                    <enable val="0" />
+                    <soc_property name="system_headers_mode" />
+                </condition>
+            </extension>
+        </object>
+        <object name="RCH" size="232">
+            <next-header field="RCH.Eth_Type" options="ETH_Next_Protocol"/>
+        </object>
+    </parsing-objects>
+</top>

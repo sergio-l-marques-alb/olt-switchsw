@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="port_pp">
+
+    <sub_module name="general">    
+        <features>
+        </features>
+        
+        <defines>
+            <define name="nof_ingress_llvp_profiles" value="8"></define>
+            <define name="nof_egress_llvp_profiles" value="8"></define>
+            <define name="default_ingress_native_ac_llvp_profile_id" value="0"></define>            
+            <define name="default_egress_native_ac_llvp_profile_id" value="0"></define>
+            <define name="default_egress_ip_tunnel_llvp_profile_id" value="7"></define>
+            <define name="nof_egress_sit_profile" value="8"></define>
+            <define name="nof_egress_acceptable_frame_type_profile" value="4"></define>
+            <define name="sit_inner_eth_additional_tag" value="1"></define>
+        </defines>
+        
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+</device_data>
+
+
+

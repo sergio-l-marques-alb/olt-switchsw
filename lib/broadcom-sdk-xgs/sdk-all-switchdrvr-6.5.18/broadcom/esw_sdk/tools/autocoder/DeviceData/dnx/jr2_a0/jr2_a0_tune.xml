@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="tune">
+
+    <includes>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_iqs.h</include>
+    </includes>
+
+    <sub_module name="ecgm">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="core_flow_control_percentage_ratio" value="92"></define>
+            <define name="port_uc_flow_control_min_divider" value="2"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+
+        <tables>
+            <table name="port_dp_ratio">
+                <key name="dp" size="4"></key>
+                <value name="percentage_ratio" default="100"></value>
+                <entries>
+                    <entry dp="0" percentage_ratio="100"></entry>
+                    <entry dp="1" percentage_ratio="50"></entry>
+                    <entry dp="2" percentage_ratio="50"></entry>
+                    <entry dp="3" percentage_ratio="10"></entry>
+                </entries>                
+            </table>
+
+        </tables>   
+        
+    </sub_module>
+    
+    <sub_module name="iqs">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="credit_resolution_up_th" value="128 * 1024"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="fabric_delay" value="300">
+                <property name="fabric_connect_mode" method="direct_map">
+                    <map name="FE" value="1000"></map>
+                    <map name="SINGLE_FAP" value="300"></map>
+                    <map name="MESH" value="500"></map>
+                    <doc>
+                        See fabric module
+                    </doc>
+                </property>
+            </numeric>
+            
+            <numeric name="fabric_multicast_delay" value="200"> </numeric>
+             <numeric name="fmq_max_rate" value="600"/>
+        </numerics>        
+        
+        <tables>
+            <table name="bw_level_rate">
+                <key name="bw_level" size="DATA(iqs,credit,nof_bw_levels)"></key>
+                <value name="max" default="-1"></value>
+                <value name="min" default="-1"></value>
+                <entries>
+                    <entry bw_level="0" min="0" max="75"></entry>
+                    <entry bw_level="1" min="75" max="300"></entry>
+                    <entry bw_level="2" min="300" max="400"></entry>
+                    <entry bw_level="3" min="400" max="-1"></entry>
+                </entries>
+            </table>
+            
+            
+        </tables>
+    </sub_module>
+    
+    <sub_module name="fabric">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="cgm_llfc_pipe_th" value="248"></define>
+            <define name="cgm_drop_fabric_class_th" value="2048"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+    </sub_module>
+    
+</device_data>
+
+
+

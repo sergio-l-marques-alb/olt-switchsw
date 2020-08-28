@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="ingress_cs" bsl_flag="BSL_LS_BCMDNX_INGRCS">
+    
+    <sub_module name="properties" doc="Information about ingress CS TCAM, plus PRT TCAM and  ePMF CS TCAM.">
+        <features>
+        </features>
+        <defines>
+            <define name="cs_buffer_nof_bits_max" doc="Length in bits of the Context Selection TCAM buffer for qualifiers or masks, the maximum of all ingress CS TCAMs."></define>
+            <define name="nof_bits_entry_size_prefix" doc="Number of bits used in the prefix indicating half key or full key. Expected to be used for each half key at the lsb for tables that support half entries."></define>
+        </defines>
+        <numerics>
+        </numerics>
+        <tables>
+            <table name="per_stage" doc="Per stage (CS DB) information, including whether the CS_TCAM supports half entries.">
+                <key name="stage" doc="CS DB, which CS TCAM to provide information for."></key>
+                <value name="valid" type="int" doc="If the stage has information in this table."></value>
+                <value name="supports_half_entries" type="int" doc="If the CS TCAM can use half entries."></value>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="hw_workarounds" doc="All devices workarounds">
+        <features>
+            <feature name="disable_ecc_fix_en_before_read_write"
+                doc="Disables the ECC fixing mechanism before reading or writing to a CS TCAM (HWJERICHO2-2415).">
+            </feature>
+        </features>
+    </sub_module>
+    
+    <sub_module name="parser" doc="Ingress parser data">
+
+        <features>
+            <feature name="parsing_context_map_enable" doc="data path control valid flag"></feature>
+        </features>
+    </sub_module>
+
+</device_data>

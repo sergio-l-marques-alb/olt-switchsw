@@ -1,0 +1,741 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+    <AppDB Name="PVT_MON_ENABLE">
+        <OneLineDescription>Enable the temperature monitors</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="PVT_MON_CONTROL" NofInstances="DNX_DATA.pvt.general.nof_pvt_monitors" Size="32" Type="ARRAY8"/>
+                <Field Name="PVT_MON_CONTROL_POWERDOWN" NofInstances="DNX_DATA.pvt.general.nof_pvt_monitors" Size="1" Type="UINT"/>
+                <Field Name="PVT_MON_CONTROL_RESET" NofInstances="DNX_DATA.pvt.general.nof_pvt_monitors" Size="1" Type="UINT"/>
+                <Field Name="PVT_MON_CONTROL_VAVSMON_PWRDN" NofInstances="DNX_DATA.pvt.general.nof_pvt_monitors" Size="1" Type="UINT"/>
+                <Field Name="PVT_MON_CONTROL_SEL" NofInstances="DNX_DATA.pvt.general.nof_pvt_monitors" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="J2C_A0" Name="PVT_MON_CONTROL">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_CONTROL_REGr">
+                            <HwField Name="CTRL_Af"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_CONTROL_REGr">
+                            <HwField Name="CTRL_Bf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_CONTROL_REGr">
+                            <HwField Name="CTRL_Cf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_CONTROL_REGr">
+                            <HwField Name="CTRL_Df"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="ECI_PVT_MON_E_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="PVT_MON_CONTROL_POWERDOWN">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_CONTROL_REGr">
+                            <HwField Name="CTRL_Af"/>
+                            <DataOffset Formula="32"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_CONTROL_REGr">
+                            <HwField Name="CTRL_Bf"/>
+                            <DataOffset Formula="32"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_CONTROL_REGr">
+                            <HwField Name="CTRL_Cf"/>
+                            <DataOffset Formula="32"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_CONTROL_REGr">
+                            <HwField Name="CTRL_Df"/>
+                            <DataOffset Formula="32"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="ECI_PVT_MON_E_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="32"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="PVT_MON_CONTROL_RESET">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_CONTROL_REGr">
+                            <HwField Name="CTRL_Af"/>
+                            <DataOffset Formula="33"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_CONTROL_REGr">
+                            <HwField Name="CTRL_Bf"/>
+                            <DataOffset Formula="33"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_CONTROL_REGr">
+                            <HwField Name="CTRL_Cf"/>
+                            <DataOffset Formula="33"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_CONTROL_REGr">
+                            <HwField Name="CTRL_Df"/>
+                            <DataOffset Formula="33"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="ECI_PVT_MON_E_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="33"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="PVT_MON_CONTROL_VAVSMON_PWRDN">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_CONTROL_REGr">
+                            <HwField Name="CTRL_Af"/>
+                            <DataOffset Formula="34"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_CONTROL_REGr">
+                            <HwField Name="CTRL_Bf"/>
+                            <DataOffset Formula="34"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_CONTROL_REGr">
+                            <HwField Name="CTRL_Cf"/>
+                            <DataOffset Formula="34"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_CONTROL_REGr">
+                            <HwField Name="CTRL_Df"/>
+                            <DataOffset Formula="34"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="ECI_PVT_MON_E_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="34"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="PVT_MON_CONTROL_SEL">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_CONTROL_REGr">
+                            <HwField Name="CTRL_Af"/>
+                            <DataOffset Formula="35"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_CONTROL_REGr">
+                            <HwField Name="CTRL_Bf"/>
+                            <DataOffset Formula="35"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_CONTROL_REGr">
+                            <HwField Name="CTRL_Cf"/>
+                            <DataOffset Formula="35"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_CONTROL_REGr">
+                            <HwField Name="CTRL_Df"/>
+                            <DataOffset Formula="35"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="ECI_PVT_MON_E_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="35"/>
+                        </Register>
+                    </Access>
+                </Field>
+                
+                <Field Device="JR2_A0 JR2_B0 Q2A_A0 Q2A_B0" Name="PVT_MON_CONTROL">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_CONTROL_REGr">
+                            <HwField Name="CTRL_Af"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_CONTROL_REGr">
+                            <HwField Name="CTRL_Bf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_CONTROL_REGr">
+                            <HwField Name="CTRL_Cf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_CONTROL_REGr">
+                            <HwField Name="CTRL_Df"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 Q2A_A0 Q2A_B0" Name="PVT_MON_CONTROL_POWERDOWN">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_CONTROL_REGr">
+                            <HwField Name="CTRL_Af"/>
+                            <DataOffset Formula="32"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_CONTROL_REGr">
+                            <HwField Name="CTRL_Bf"/>
+                            <DataOffset Formula="32"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_CONTROL_REGr">
+                            <HwField Name="CTRL_Cf"/>
+                            <DataOffset Formula="32"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_CONTROL_REGr">
+                            <HwField Name="CTRL_Df"/>
+                            <DataOffset Formula="32"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 Q2A_A0 Q2A_B0" Name="PVT_MON_CONTROL_RESET">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_CONTROL_REGr">
+                            <HwField Name="CTRL_Af"/>
+                            <DataOffset Formula="33"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_CONTROL_REGr">
+                            <HwField Name="CTRL_Bf"/>
+                            <DataOffset Formula="33"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_CONTROL_REGr">
+                            <HwField Name="CTRL_Cf"/>
+                            <DataOffset Formula="33"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_CONTROL_REGr">
+                            <HwField Name="CTRL_Df"/>
+                            <DataOffset Formula="33"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 Q2A_A0 Q2A_B0" Name="PVT_MON_CONTROL_VAVSMON_PWRDN">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_CONTROL_REGr">
+                            <HwField Name="CTRL_Af"/>
+                            <DataOffset Formula="34"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_CONTROL_REGr">
+                            <HwField Name="CTRL_Bf"/>
+                            <DataOffset Formula="34"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_CONTROL_REGr">
+                            <HwField Name="CTRL_Cf"/>
+                            <DataOffset Formula="34"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_CONTROL_REGr">
+                            <HwField Name="CTRL_Df"/>
+                            <DataOffset Formula="34"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 Q2A_A0 Q2A_B0" Name="PVT_MON_CONTROL_SEL">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_CONTROL_REGr">
+                            <HwField Name="CTRL_Af"/>
+                            <DataOffset Formula="35"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_CONTROL_REGr">
+                            <HwField Name="CTRL_Bf"/>
+                            <DataOffset Formula="35"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_CONTROL_REGr">
+                            <HwField Name="CTRL_Cf"/>
+                            <DataOffset Formula="35"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_CONTROL_REGr">
+                            <HwField Name="CTRL_Df"/>
+                            <DataOffset Formula="35"/>
+                        </Register>
+                    </Access>
+                </Field>
+
+                <!-- J2P dbal definition, 7 instance  -->
+                <Field Device="J2P_A0" Name="PVT_MON_CONTROL">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_CONTROL_REGr">
+                            <HwField Name="CTRL_Af"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_CONTROL_REGr">
+                            <HwField Name="CTRL_Bf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_CONTROL_REGr">
+                            <HwField Name="CTRL_Cf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_CONTROL_REGr">
+                            <HwField Name="CTRL_Df"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="ECI_PVT_MON_E_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Register Name="ECI_PVT_MON_F_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Register Name="ECI_PVT_MON_G_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="PVT_MON_CONTROL_POWERDOWN">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_CONTROL_REGr">
+                            <HwField Name="CTRL_Af"/>
+                            <DataOffset Formula="32"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_CONTROL_REGr">
+                            <HwField Name="CTRL_Bf"/>
+                            <DataOffset Formula="32"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_CONTROL_REGr">
+                            <HwField Name="CTRL_Cf"/>
+                            <DataOffset Formula="32"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_CONTROL_REGr">
+                            <HwField Name="CTRL_Df"/>
+                            <DataOffset Formula="32"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="ECI_PVT_MON_E_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="32"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Register Name="ECI_PVT_MON_F_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="32"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Register Name="ECI_PVT_MON_G_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="32"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="PVT_MON_CONTROL_RESET">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_CONTROL_REGr">
+                            <HwField Name="CTRL_Af"/>
+                            <DataOffset Formula="33"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_CONTROL_REGr">
+                            <HwField Name="CTRL_Bf"/>
+                            <DataOffset Formula="33"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_CONTROL_REGr">
+                            <HwField Name="CTRL_Cf"/>
+                            <DataOffset Formula="33"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_CONTROL_REGr">
+                            <HwField Name="CTRL_Df"/>
+                            <DataOffset Formula="33"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="ECI_PVT_MON_E_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="33"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Register Name="ECI_PVT_MON_F_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="33"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Register Name="ECI_PVT_MON_G_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="33"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="PVT_MON_CONTROL_VAVSMON_PWRDN">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_CONTROL_REGr">
+                            <HwField Name="CTRL_Af"/>
+                            <DataOffset Formula="34"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_CONTROL_REGr">
+                            <HwField Name="CTRL_Bf"/>
+                            <DataOffset Formula="34"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_CONTROL_REGr">
+                            <HwField Name="CTRL_Cf"/>
+                            <DataOffset Formula="34"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_CONTROL_REGr">
+                            <HwField Name="CTRL_Df"/>
+                            <DataOffset Formula="34"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="ECI_PVT_MON_E_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="34"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Register Name="ECI_PVT_MON_F_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="34"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Register Name="ECI_PVT_MON_G_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="34"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="PVT_MON_CONTROL_SEL">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_CONTROL_REGr">
+                            <HwField Name="CTRL_Af"/>
+                            <DataOffset Formula="35"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_CONTROL_REGr">
+                            <HwField Name="CTRL_Bf"/>
+                            <DataOffset Formula="35"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_CONTROL_REGr">
+                            <HwField Name="CTRL_Cf"/>
+                            <DataOffset Formula="35"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_CONTROL_REGr">
+                            <HwField Name="CTRL_Df"/>
+                            <DataOffset Formula="35"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="ECI_PVT_MON_E_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="35"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Register Name="ECI_PVT_MON_F_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="35"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Register Name="ECI_PVT_MON_G_CONTROL_REGr">
+                            <HwField Name="CTRL_Ef"/>
+                            <DataOffset Formula="35"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PVT_TEMPERATURE_MONITOR">
+        <OneLineDescription>Get the PVT temperature value</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Current temperature value of monitor." Name="THERMAL_DATA" NofInstances="DNX_DATA.pvt.general.nof_pvt_monitors" Permission="READONLY" Size="10" Type="UINT"/>
+                <Field Description="Peak temperature value of monitor." Name="PEAK_THERMAL_DATA" NofInstances="DNX_DATA.pvt.general.nof_pvt_monitors" Permission="READONLY" Size="10" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="J2C_A0" Name="THERMAL_DATA">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_THERMAL_DATAr">
+                            <HwField Name="THERMAL_DATA_Af"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_THERMAL_DATAr">
+                            <HwField Name="THERMAL_DATA_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_THERMAL_DATAr">
+                            <HwField Name="THERMAL_DATA_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_THERMAL_DATAr">
+                            <HwField Name="THERMAL_DATA_Df"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="ECI_PVT_MON_E_THERMAL_DATAr">
+                            <HwField Name="THERMAL_DATA_Ef"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="PEAK_THERMAL_DATA">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_THERMAL_DATAr">
+                            <HwField Name="PEAK_THERMAL_DATA_Af"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_THERMAL_DATAr">
+                            <HwField Name="PEAK_THERMAL_DATA_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_THERMAL_DATAr">
+                            <HwField Name="PEAK_THERMAL_DATA_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_THERMAL_DATAr">
+                            <HwField Name="PEAK_THERMAL_DATA_Df"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="ECI_PVT_MON_E_THERMAL_DATAr">
+                            <HwField Name="PEAK_THERMAL_DATA_Ef"/>
+                        </Register>
+                    </Access>
+                </Field>
+                
+                <Field Device="JR2_A0 JR2_B0 Q2A_A0 Q2A_B0" Name="THERMAL_DATA">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_THERMAL_DATAr">
+                            <HwField Name="THERMAL_DATA_Af"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_THERMAL_DATAr">
+                            <HwField Name="THERMAL_DATA_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_THERMAL_DATAr">
+                            <HwField Name="THERMAL_DATA_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_THERMAL_DATAr">
+                            <HwField Name="THERMAL_DATA_Df"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 Q2A_A0 Q2A_B0" Name="PEAK_THERMAL_DATA">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_THERMAL_DATAr">
+                            <HwField Name="PEAK_THERMAL_DATA_Af"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_THERMAL_DATAr">
+                            <HwField Name="PEAK_THERMAL_DATA_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_THERMAL_DATAr">
+                            <HwField Name="PEAK_THERMAL_DATA_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_THERMAL_DATAr">
+                            <HwField Name="PEAK_THERMAL_DATA_Df"/>
+                        </Register>
+                    </Access>
+                </Field>
+                
+                <!-- J2P dbal definition, 7 instance  -->
+                <Field Device="J2P_A0" Name="THERMAL_DATA">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_THERMAL_DATAr">
+                            <HwField Name="THERMAL_DATA_Af"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_THERMAL_DATAr">
+                            <HwField Name="THERMAL_DATA_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_THERMAL_DATAr">
+                            <HwField Name="THERMAL_DATA_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_THERMAL_DATAr">
+                            <HwField Name="THERMAL_DATA_Df"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="ECI_PVT_MON_E_THERMAL_DATAr">
+                            <HwField Name="THERMAL_DATA_Ef"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Register Name="ECI_PVT_MON_F_THERMAL_DATAr">
+                            <HwField Name="THERMAL_DATA_Ef"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Register Name="ECI_PVT_MON_G_THERMAL_DATAr">
+                            <HwField Name="THERMAL_DATA_Ef"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="PEAK_THERMAL_DATA">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_PVT_MON_A_THERMAL_DATAr">
+                            <HwField Name="PEAK_THERMAL_DATA_Af"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_PVT_MON_B_THERMAL_DATAr">
+                            <HwField Name="PEAK_THERMAL_DATA_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_PVT_MON_C_THERMAL_DATAr">
+                            <HwField Name="PEAK_THERMAL_DATA_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_PVT_MON_D_THERMAL_DATAr">
+                            <HwField Name="PEAK_THERMAL_DATA_Df"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="ECI_PVT_MON_E_THERMAL_DATAr">
+                            <HwField Name="PEAK_THERMAL_DATA_Ef"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Register Name="ECI_PVT_MON_F_THERMAL_DATAr">
+                            <HwField Name="PEAK_THERMAL_DATA_Ef"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Register Name="ECI_PVT_MON_G_THERMAL_DATAr">
+                            <HwField Name="PEAK_THERMAL_DATA_Ef"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

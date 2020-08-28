@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="pp" bsl_flag="BSL_LS_BCMDNX_INIT_PP">
+    <includes>
+        <include>soc/dnx/pp_stage.h</include>
+    </includes>
+
+    <sub_module name="stages" doc="Information on PP stages">
+
+        <tables>
+            <table name="params" doc="Per stage properties and characteristics">
+                <key name="stage" doc="stage enum"></key>
+                <value name="valid" type="int" doc="stage validity flag"/>
+                <value name="name" type="char *" doc="stage name"/>
+                <value name="block" type="char *" doc="block name"/>
+                <value name="is_fp" type="int" doc="flag indicating support by Filed Processor"/>
+                <value name="is_kleap" type="int" doc="flag indicating kleap processing"/>
+                <value name="pema_id" type="int" doc="PEMA Access ID - mapping to PEMA register in DBAL"/>
+            </table>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="application" doc="Information on PP applications">
+        <tables>
+            <table name="device_image" doc="device pp image info">
+               <value name="standard_image_name" type="char *" doc="standard image name"></value>
+               <value name="name" type="char *" doc="image name"></value>
+           </table>
+           <table name="ucode" doc="ucode file information">
+               <value name="relative_path" type="char *" doc="pemla ucode relative path. relative to exe_location/pemla/device_name/ucode/"></value>
+           </table>
+        </tables>
+       <defines>
+        </defines>
+    </sub_module>
+
+    <sub_module name="ETPP" doc="ETPP general parameters">
+        <defines>
+            <define name="etps_type_size_bits" doc="Size in bits of the ETPS type field"/>
+            </defines>
+    </sub_module>
+
+    <sub_module name="debug" doc="debug proprties and data">
+        <defines>
+            <define name="packet_header_data" doc="number of original packet header data"/>
+            <define name="ptc_size" doc="Size of PTC field in debug register"/>
+            <define name="valid_bytes" doc="valid bytes"/>
+            <define name="time_stamp" doc="Time Stamp (only for packets received from NIF)"/>
+            </defines>
+            <features>
+            </features>
+    </sub_module>
+
+</device_data>

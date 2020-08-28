@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0" module="multicast">
+    <includes>
+        <include>shared/utilex/utilex_integer_arithmetic.h</include>
+        <include>bcm_int/dnx/algo/multicast/algo_multicast.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_port.h</include>
+    </includes>
+    
+    <sub_module name="params" doc="default values for different multicast groups">
+        <numerics>
+            <numeric name="max_ing_mc_groups" value="DATA(multicast,params,nof_mcdb_entries)/4-1">
+                <property name="multicast_ingress_group_id_range_max" method="range" range_min="-1" range_max="DATA(multicast,params,nof_mcdb_entries)-1">
+                    <doc>
+                        maximum ingress multicast groups id
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="max_egr_mc_groups" value="DATA(multicast,params,nof_mcdb_entries)/4-1">
+                <property name="multicast_egress_group_id_range_max" method="range" range_min="0" range_max="DATA(multicast,params,nof_mcdb_entries)-1">
+                    <doc>
+                        maximum egress multicast groups id
+                        for single FAP or MESH systems it's restricted to 65535
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="nof_ing_mc_bitmaps" value="0">
+                <property name="multicast_nof_ingress_bitmap" method="range" range_min="0" range_max="DATA(multicast,params,nof_mcdb_entries)-1">
+                    <doc>
+                        nof ingress multicast bitmap ids
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="nof_egr_mc_bitmaps" value="8192">
+                <property name="multicast_nof_egress_bitmap" method="range" range_min="0" range_max="DATA(multicast,params,nof_mcdb_entries)-1">
+                    <doc>
+                        nof egress multicast bitmap ids
+                    </doc>
+                </property>
+
+            </numeric>
+
+            <numeric name="mcdb_allocation_method" value="DNX_ALGO_MULTICAST_ALLOCATION_BASIC"></numeric>
+            <numeric name="nof_mcdb_entries_bits" value="utilex_log2_round_up(DATA(multicast,params,nof_mcdb_entries))"></numeric>
+
+        </numerics>
+        <defines>
+            <define name="mcdb_block_size" value="8192"></define>
+            <define name="nof_mcdb_entries" value="8192*32"></define>
+        </defines>  
+    </sub_module>
+
+</device_data>
+

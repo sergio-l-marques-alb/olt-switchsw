@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    Signals Diag:
+    This xml contains the lastHit diag DB.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<TblDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="Signals_diag_schema.xsd">
+
+    <TblDB Name="INGRESS_IRPP_VT1_CONTEXT_PROPERTIES">
+        <OneLineDescription></OneLineDescription>
+        <TblDbInterface>
+            <Key>
+                <Stage Name="LLR">
+                    <Signal Name="context"/>  
+                </Stage>
+            </Key>
+            <Result>
+            </Result>
+        </TblDbInterface>
+    </TblDB>
+
+    <TblDB Name="INGRESS_IRPP_VT2_CONTEXT_PROPERTIES">
+        <OneLineDescription></OneLineDescription>
+        <TblDbInterface>
+            <Key>
+                <Stage Name="VTT1">
+                    <Signal Name="context"/>  
+                </Stage>
+            </Key>
+            <Result>
+            </Result>
+        </TblDbInterface>
+    </TblDB>
+
+    <TblDB Name="INGRESS_IRPP_VT3_CONTEXT_PROPERTIES">
+        <OneLineDescription></OneLineDescription>
+        <TblDbInterface>
+            <Key>
+                <Stage Name="VTT2">
+                    <Signal Name="context"/>  
+                </Stage>
+            </Key>
+            <Result>
+            </Result>
+        </TblDbInterface>
+    </TblDB>
+
+    <TblDB Name="INGRESS_IRPP_VT4_CONTEXT_PROPERTIES">
+        <OneLineDescription></OneLineDescription>
+        <TblDbInterface>
+            <Key>
+                <Stage Name="VTT3">
+                    <Signal Name="context"/>  
+                </Stage>
+            </Key>
+            <Result>
+            </Result>
+        </TblDbInterface>
+    </TblDB>
+
+    <TblDB Name="INGRESS_IRPP_VT5_CONTEXT_PROPERTIES">
+        <OneLineDescription></OneLineDescription>
+        <TblDbInterface>
+            <Key>
+                <Stage Name="VTT4">
+                    <Signal Name="context"/>  
+                </Stage>
+            </Key>
+            <Result>
+            </Result>
+        </TblDbInterface>
+    </TblDB>
+
+    <TblDB Name="QOS_INGRESS_PROFILE_INFO">
+        <OneLineDescription></OneLineDescription>
+        <TblDbInterface>
+            <Key>
+                <Stage Name="LLR">
+                    <Signal Name="PHB_Mapping_Profile"/>  <!-- <Field Name="QOS_PROFILE"   Size="10"/> -->
+                </Stage>
+            </Key>
+            <Result>
+            </Result>
+        </TblDbInterface>
+    </TblDB>
+
+    <TblDB Name="INGRESS_PTC_PORT">
+        <OneLineDescription></OneLineDescription>
+        <TblDbInterface>
+            <Key>
+                <Stage Name="NIF">
+                    <Signal Name="PTC"/> 
+                </Stage>
+            </Key>
+            <Result>
+            </Result>
+        </TblDbInterface>
+    </TblDB>
+
+    <TblDB Name="INGRESS_VLAN_DOMAIN_INFO">
+        <OneLineDescription></OneLineDescription>
+        <TblDbInterface>
+            <Key>
+                <Stage Name="LLR">
+                    <Signal Name="VLAN_Domain"/>  <!-- <Field Name="VLAN_DOMAIN"/> -->
+                </Stage>
+            </Key>
+            <Result>
+            </Result>
+        </TblDbInterface>
+    </TblDB>
+
+    <TblDB Name="EGRESS_PP_PORT">
+        <OneLineDescription></OneLineDescription>
+        <TblDbInterface>
+            <Key>
+                <Stage Name="PRP">
+                    <Signal Name="Out_PP_Port"/> <!-- <Field Name="PP_PORT"           Size="8"/> -->
+                </Stage>
+            </Key>
+            <Result>
+            </Result>
+        </TblDbInterface>
+    </TblDB>
+<!--
+    <TblDB Name="QOS_EGRESS_NETWORK_QOS_MAPPING_PACKET">
+        <OneLineDescription>Map Protocol-QoS-Map(5), QoS_DP(10) to New-QoS-VAR(8) 
+                            Table is accessed with Address14:4 where: Address = Protocol-QoS-Map(5), QoS_DP(10)",  
+                            Each entry contains 16 New QOS Variables. New-QOS-Var = NewQosVarDatan*8+:8 
+                            where n = Address3:0</OneLineDescription>
+        <TblDbInterface>
+            <Key>
+                <MultipleStages>
+                    <Stage Name="IFWD2">
+                        <Signal Name="NWK_QOS"/> 
+                        <Signal Name="FTMH_DP"/> 
+                        <Signal Name="TBD"/> 
+                    </Stage>
+                    <Stage Name="IPMF2">
+                        <Signal Name="FTMH_DP"/> 
+                        <Signal Name="TBD"/> 
+                    </Stage>
+                </MultipleStages>
+            </Key>
+            <Result>
+                <MultipleStages>
+                    <Stage Name="IFWD2">
+                        <Field Name="CURRENT_LAYER_NETWORK_QOS"        Size="8" Type="NETWORK_QOS"/>
+                    </Stage>
+                    <Stage Name="IPMF2">
+                        <Field Name="CURRENT_LAYER_NETWORK_QOS"        Size="8" Type="NETWORK_QOS"/>
+                    </Stage>
+                </MultipleStages>
+            </Result>
+        </TblDbInterface>
+    </TblDB>
+-->
+</TblDbCatalog>
+

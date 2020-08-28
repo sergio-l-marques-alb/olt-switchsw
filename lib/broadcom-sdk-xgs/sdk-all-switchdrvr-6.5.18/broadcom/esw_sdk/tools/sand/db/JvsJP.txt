@@ -1,0 +1,1287 @@
+ERPP
+    <Signal>
+        <Name>prp2filter_internal_fields</Name>
+        <Size>40</Size>
+        <BlockID>15</BlockID>
+        <Address>{15'd0,16'd0} bits: [179 : 140] </Address>
+        <Changeable>Yes</Changeable>
+        <From>PRP</From>
+        <To>Filter</To>
+        <Attribute>Internal_Fields</Attribute>
+    </Signal>
+    <Signal>
+        <Name>filter2pmf_internal_fields</Name>
+        <Size>40</Size>
+        <BlockID>15</BlockID>
+        <Address>{15'd1,16'd0} bits: [90 : 51] </Address>
+        <Changeable>Yes</Changeable>
+        <From>Filter</From>
+        <To>PMF</To>
+        <Attribute>Internal_Fields</Attribute>
+    </Signal>
+    <Signal>
+        <Name>pmf2tm_internal_fields</Name>
+        <Size>40</Size>
+        <BlockID>15</BlockID>
+        <Address>{15'd2,16'd0} bits: [107 : 68] </Address>
+        <Changeable>Yes</Changeable>
+        <From>PMF</From>
+        <To>TM Action</To>
+        <Attribute>Internal_Fields</Attribute>
+    </Signal>
+    <Signal>
+        <Name>pmf2dbg_program_index</Name>
+        <Size>3</Size>
+        <BlockID>15</BlockID>
+        <Address>{15'd2,16'd0} bits: [156 : 154] </Address>
+        <Changeable>Yes</Changeable>
+        <From>PMF</From>
+        <To>TM Action</To>
+        <Attribute>Program_Index</Attribute>
+    </Signal>
+    <Signal>
+        <Name>dspm2prp_internal_fields</Name>
+        <Size>40</Size>
+        <BlockID>15</BlockID>
+        <Address>{15'd4,16'd2} bits: [255 : 223] | {15'd4,16'd3} bits: [6 : 0] </Address>
+        <Changeable>Yes</Changeable>
+        <From>DSPM</From>
+        <To>PRP</To>
+        <Attribute>Internal_Fields</Attribute>
+    </Signal>
+ETPP
+    <Signal>
+        <Name>prp2term_ees_action5_valid</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd4,16'd1} bits: [88 : 88]</Address>
+        <From>PRP</From>
+        <To>Term</To>
+        <Perm>1</Perm>
+        <Attribute>EES_Action_5_Valid</Attribute>
+        <Changeable>Yes</Changeable>
+    </Signal>
+    <Signal>
+        <Name>prp2term_ees_action5</Name>
+        <Size>131</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd4,16'd1} bits: [219 : 89]</Address>
+        <From>PRP</From>
+        <To>Term</To>
+        <Perm>1</Perm>
+        <Attribute>EES_Action_5</Attribute>
+        <Expansion>EES_Action</Expansion>
+        <Condition>EES_Action_5_Valid</Condition>
+        <Changeable>Yes</Changeable>
+        <Paragraph>7.2.1 Egress Encapsulation Database</Paragraph>
+    </Signal>
+    <Signal>
+        <Name>prp2term_ees_action4_valid</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd4,16'd1} bits: [220 : 220]</Address>
+        <From>PRP</From>
+        <To>Term</To>
+        <Perm>1</Perm>
+        <Attribute>EES_Action_4_Valid</Attribute>
+        <Changeable>Yes</Changeable>
+    </Signal>
+    <Signal>
+        <Name>prp2term_ees_action4</Name>
+        <Size>131</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd4,16'd1} bits: [255 : 221] | {15'd4,16'd2} bits: [95 : 0]</Address>
+        <From>PRP</From>
+        <To>Term</To>
+        <Perm>1</Perm>
+        <Attribute>EES_Action_4</Attribute>
+        <Expansion>EES_Action</Expansion>
+        <Condition>EES_Action_4_Valid</Condition>
+        <Changeable>Yes</Changeable>
+    </Signal>
+    <Signal>
+        <Name>term2fwd_ees_action5_valid</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd5,16'd3} bits: [196 : 196]</Address>
+        <From>Term</From>
+        <To>Fwd</To>
+        <Attribute>EES_Action_5_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>term2fwd_ees_action4_valid</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd5,16'd3} bits: [197 : 197]</Address>
+        <From>Term</From>
+        <To>Fwd</To>
+        <Attribute>EES_Action_4_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>term2fwd_ees_action3_valid</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd5,16'd3} bits: [198 : 198]</Address>
+        <From>Term</From>
+        <To>Fwd</To>
+        <Attribute>EES_Action_3_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>enc2link_ees_action5_valid</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd8,16'd1} bits: [71 : 71]</Address>
+        <From>Encap</From>
+        <To>LL</To>
+        <Attribute>EES_Action_5_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>enc2link_ees_action4_valid</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd8,16'd1} bits: [72 : 72]</Address>
+        <From>Encap</From>
+        <To>LL</To>
+        <Attribute>EES_Action_4_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>prge2dbg_program_index</Name>
+        <Size>5</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd9,16'd0} bits: [4 : 0]</Address>
+        <From>PRGE</From>
+        <To></To>
+        <Attribute>Program_Index</Attribute>
+    </Signal>
+    <Signal>
+        <Name>link2prge_native_ac_lif_profile_mapped</Name>
+        <Size>6</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd9,16'd0} bits: [17 : 12]</Address>
+        <From>LL</From>
+        <To>PRGE</To>
+        <Attribute>Native_AC_Lif_Profile_Mapped</Attribute>
+    </Signal>
+    <Signal>
+        <Name>link2prge_sixth_out_lif_profile</Name>
+        <Size>6</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd9,16'd0} bits: [23 : 18]</Address>
+        <From>LL</From>
+        <To>PRGE</To>
+        <Attribute>6th_Out_LIF_Profile</Attribute>
+    </Signal>
+    <Signal>
+        <Name>link2prge_fifth_out_lif_profile</Name>
+        <Size>6</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd9,16'd0} bits: [29 : 24]</Address>
+        <From>LL</From>
+        <To>PRGE</To>
+        <Attribute>5th_Out_Lif_Profile</Attribute>
+    </Signal>
+    <Signal>
+        <Name>link2edb_eedb_eq_addr_s</Name>
+        <Size>18</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd9,16'd0} bits: [47 : 30]</Address>
+        <From>LL</From>
+        <To>EEDB</To>
+        <Attribute>EEDB_Index</Attribute>
+    </Signal>
+    <Signal>
+        <Name>link_epe2mems_esem_eq_key_s</Name>
+        <Size>40</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd11,16'd0} bits: [39 : 0]</Address>
+        <From>LL</From>
+        <To>ESEM</To>
+        <Attribute>ESEM_Key</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_epe2mems_esem_eq_key_s</Name>
+        <Size>40</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd11,16'd0} bits: [79 : 40]</Address>
+        <From>Native Link layer</From>
+        <To>ESEM</To>
+        <Attribute>ESEM_Key</Attribute>
+    </Signal>
+    <Signal>
+        <Name>edb2prp_ees_eq_action5_err_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd12,16'd0} bits: [0 : 0]</Address>
+        <From>EEDB</From>
+        <To>PRP</To>
+        <Attribute>EES_Action_5_Error</Attribute>
+    </Signal>
+    <Signal>
+        <Name>edb2prp_ees_eq_action4_err_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd12,16'd0} bits: [1 : 1]</Address>
+        <From>EEDB</From>
+        <To>PRP</To>
+        <Attribute>EES_Action_4_Error</Attribute>
+    </Signal>
+    <Signal>
+        <Name>edb2prp_ees_eq_action3_err_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd12,16'd0} bits: [2 : 2]</Address>
+        <From>EEDB</From>
+        <To>PRP</To>
+        <Attribute>EES_Action_3_Error</Attribute>
+    </Signal>
+    <Signal>
+        <Name>edb2prp_ees_eq_action2_err_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd12,16'd0} bits: [3 : 3]</Address>
+        <From>EEDB</From>
+        <To>PRP</To>
+        <Attribute>EES_Action_2_Error</Attribute>
+    </Signal>
+    <Signal>
+        <Name>edb2prp_ees_eq_action1_err_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd12,16'd0} bits: [4 : 4]</Address>
+        <From>EEDB</From>
+        <To>PRP</To>
+        <Attribute>EES_Action_1_Error</Attribute>
+    </Signal>
+    <Signal>
+        <Name>edb2prp_ees_eq_action5_valid_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd12,16'd0} bits: [5 : 5]</Address>
+        <From>EEDB</From>
+        <To>PRP</To>
+        <Attribute>EES_Action_5_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>edb2prp_ees_eq_action4_valid_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd12,16'd0} bits: [6 : 6]</Address>
+        <From>EEDB</From>
+        <To>PRP</To>
+        <Attribute>EES_Action_4_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>edb2prp_ees_eq_action3_valid_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd12,16'd0} bits: [7 : 7]</Address>
+        <From>EEDB</From>
+        <To>PRP</To>
+        <Attribute>EES_Action_3_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>edb2prp_ees_eq_action2_valid_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd12,16'd0} bits: [8 : 8]</Address>
+        <From>EEDB</From>
+        <To>PRP</To>
+        <Attribute>EES_Action_2_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>edb2prp_ees_eq_action1_valid_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd12,16'd0} bits: [9 : 9]</Address>
+        <From>EEDB</From>
+        <To>PRP</To>
+        <Attribute>EES_Action_1_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>edb2prp_ees_eq_action5_s</Name>
+        <Size>131</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd12,16'd0} bits: [140 : 10]</Address>
+        <From>EEDB</From>
+        <To>PRP</To>
+        <Attribute>EES_Action_5</Attribute>
+    </Signal>
+    <Signal>
+        <Name>edb2prp_ees_eq_action4_s</Name>
+        <Size>131</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd12,16'd0} bits: [255 : 141] | {15'd12,16'd1} bits: [15 : 0]</Address>
+        <From>EEDB</From>
+        <To>PRP</To>
+        <Attribute>EES_Action_4</Attribute>
+    </Signal>
+    <Signal>
+        <Name>edb2prp_ees_eq_action3_s</Name>
+        <Size>131</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd12,16'd1} bits: [146 : 16]</Address>
+        <From>EEDB</From>
+        <To>PRP</To>
+        <Attribute>EES_Action_3</Attribute>
+    </Signal>
+    <Signal>
+        <Name>edb2prp_ees_eq_action2_s</Name>
+        <Size>131</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd12,16'd1} bits: [255 : 147] | {15'd12,16'd2} bits: [21 : 0]</Address>
+        <From>EEDB</From>
+        <To>PRP</To>
+        <Attribute>EES_Action_2</Attribute>
+    </Signal>
+    <Signal>
+        <Name>edb2prp_ees_eq_action1_s</Name>
+        <Size>30</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd12,16'd2} bits: [51 : 22]</Address>
+        <From>EEDB</From>
+        <To>PRP</To>
+        <Attribute>EES_Action_1</Attribute>
+    </Signal>
+    <Signal>
+        <Name>edb2prp_ees_eq_oam_lif_s</Name>
+        <Size>19</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd12,16'd2} bits: [70 : 52]</Address>
+        <From>EEDB</From>
+        <To>PRP</To>
+        <Attribute>EES_OAM_LIF</Attribute>
+    </Signal>
+    <Signal>
+        <Name>edb2prp_ees_eq_next_outlif_s</Name>
+        <Size>18</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd12,16'd2} bits: [88 : 71]</Address>
+        <From>EEDB</From>
+        <To>PRP</To>
+        <Attribute>EES_Next_Out_LIF</Attribute>
+    </Signal>
+    <Signal>
+        <Name>prp2edb_ees_eq_outrif_valid_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd13,16'd0} bits: [0 : 0]</Address>
+        <From>PRP</From>
+        <To>EEDB</To>
+        <Attribute>EES_Out_RIF_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>prp2edb_ees_eq_outrif_s</Name>
+        <Size>18</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd13,16'd0} bits: [18 : 1]</Address>
+        <From>PRP</From>
+        <To>EEDB</To>
+        <Attribute>EES_Out_RIF</Attribute>
+    </Signal>
+    <Signal>
+        <Name>prp2edb_ees_eq_eei_valid_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd13,16'd0} bits: [19 : 19]</Address>
+        <From>PRP</From>
+        <To>EEDB</To>
+        <Attribute>EES_EEI_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>prp2edb_ees_eq_eei_s</Name>
+        <Size>18</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd13,16'd0} bits: [37 : 20]</Address>
+        <From>PRP</From>
+        <To>EEDB</To>
+        <Attribute>EES_EEI</Attribute>
+    </Signal>
+    <Signal>
+        <Name>prp2edb_ees_eq_outlif_s</Name>
+        <Size>18</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd13,16'd0} bits: [55 : 38]</Address>
+        <From>PRP</From>
+        <To>EEDB</To>
+        <Attribute>EES_Out_LIF</Attribute>
+    </Signal>
+    <Signal>
+        <Name>prp2edb_ees_eq_mapped_outlif_s</Name>
+        <Size>18</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd13,16'd0} bits: [73 : 56]</Address>
+        <From>PRP</From>
+        <To>EEDB</To>
+        <Attribute>EES_Mapped_Out_LIF</Attribute>
+    </Signal>
+    <Signal>
+        <Name>epni2ihb_epni2flp_eq_packet_is_oam_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd14,16'd0} bits: [0 : 0]</Address>
+        <From>Term</From>
+        <To>OAM</To>
+        <Attribute>Packet_is_OAM</Attribute>
+    </Signal>
+    <Signal>
+        <Name>epni2ihb_epni2flp_eq_oam_lif_profile_s</Name>
+        <Size>2</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd14,16'd0} bits: [2 : 1]</Address>
+        <From>Term</From>
+        <To>OAM</To>
+        <Attribute>OAM_LIF_Profile</Attribute>
+    </Signal>
+    <Signal>
+        <Name>epni2ihb_epni2flp_eq_oam_pcp_s</Name>
+        <Size>3</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd14,16'd0} bits: [5 : 3]</Address>
+        <From>Term</From>
+        <To>OAM</To>
+        <Attribute>OAM_PCP</Attribute>
+    </Signal>
+    <Signal>
+        <Name>epni2ihb_epni2flp_eq_oam_opcode_s</Name>
+        <Size>4</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd14,16'd0} bits: [9 : 6]</Address>
+        <From>Term</From>
+        <To>OAM</To>
+        <Attribute>OAM_Opcode</Attribute>
+    </Signal>
+    <Signal>
+        <Name>epni2ihb_epni2flp_eq_oam_md_level_s</Name>
+        <Size>3</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd14,16'd0} bits: [12 : 10]</Address>
+        <From>Term</From>
+        <To>OAM</To>
+        <Attribute>OAM_MD_Level</Attribute>
+    </Signal>
+    <Signal>
+        <Name>epni2ihb_epni2flp_eq_oam_lif_or_counter_pointer_s</Name>
+        <Size>18</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd14,16'd0} bits: [30 : 13]</Address>
+        <From>Term</From>
+        <To>OAM</To>
+        <Attribute>OAM_LIF_or_Counter_Ptr</Attribute>
+    </Signal>
+    <Signal>
+        <Name>epni2ihb_epni2flp_eq_my_cfm_mac_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd14,16'd0} bits: [31 : 31]</Address>
+        <From>Term</From>
+        <To>OAM</To>
+        <Attribute>My_CFM_Mac</Attribute>
+    </Signal>
+    <Signal>
+        <Name>epni2ihb_epni2flp_eq_counter_pointer_valid_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd14,16'd0} bits: [32 : 32]</Address>
+        <From>Term</From>
+        <To>OAM</To>
+        <Attribute>Counter_Ptr_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>ihb2epni_flp2epni_eq_mem_soft_err_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd15,16'd0} bits: [0 : 0]</Address>
+        <From>OAM</From>
+        <To>Term</To>
+        <Attribute>Mem_Soft_Error</Attribute>
+    </Signal>
+    <Signal>
+        <Name>ihb2epni_flp2epni_eq_oam_sub_type_s</Name>
+        <Size>3</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd15,16'd0} bits: [3 : 1]</Address>
+        <From>OAM</From>
+        <To>Term</To>
+        <Attribute>OAM_Sub_Type</Attribute>
+    </Signal>
+    <Signal>
+        <Name>ihb2epni_flp2epni_eq_oam_id_s</Name>
+        <Size>17</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd15,16'd0} bits: [20 : 4]</Address>
+        <From>OAM</From>
+        <To>Term</To>
+        <Attribute>OAM_Id</Attribute>
+    </Signal>
+    <Signal>
+        <Name>ihb2epni_flp2epni_eq_mirror_strength_s</Name>
+        <Size>2</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd15,16'd0} bits: [22 : 21]</Address>
+        <From>OAM</From>
+        <To>Term</To>
+        <Attribute>Mirror_Strength</Attribute>
+    </Signal>
+    <Signal>
+        <Name>ihb2epni_flp2epni_eq_fwd_strength_s</Name>
+        <Size>2</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd15,16'd0} bits: [24 : 23]</Address>
+        <From>OAM</From>
+        <To>Term</To>
+        <Attribute>Fwd_Strength</Attribute>
+    </Signal>
+    <Signal>
+        <Name>ihb2epni_flp2epni_eq_mirror_enable_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd15,16'd0} bits: [25 : 25]</Address>
+        <From>OAM</From>
+        <To>Term</To>
+        <Attribute>Mirror_Enable</Attribute>
+    </Signal>
+    <Signal>
+        <Name>ihb2epni_flp2epni_eq_mirror_command_s</Name>
+        <Size>4</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd15,16'd0} bits: [29 : 26]</Address>
+        <From>OAM</From>
+        <To>Term</To>
+        <Attribute>Mirror_Cmd</Attribute>
+    </Signal>
+    <Signal>
+        <Name>ihb2epni_flp2epni_eq_forward_enable_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd15,16'd0} bits: [30 : 30]</Address>
+        <From>OAM</From>
+        <To>Term</To>
+        <Attribute>Fwd_Enable</Attribute>
+    </Signal>
+    <Signal>
+        <Name>ihb2epni_flp2epni_eq_ctr_s</Name>
+        <Size>32</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd15,16'd0} bits: [62 : 31]</Address>
+        <From>OAM</From>
+        <To>Term</To>
+        <Attribute>Flp2epni_Eq_Counter_S</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_routing_over_overlay_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd0} bits: [0 : 0]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>Routing_Over_Overlay</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_native_link_layer_size_s</Name>
+        <Size>7</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd0} bits: [7 : 1]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>Native_Link_Layer_Size</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_ethernet_type_code_s</Name>
+        <Size>3</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd0} bits: [10 : 8]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>Eth_Type_Code</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_native_ac_lif_profile_s</Name>
+        <Size>6</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd0} bits: [16 : 11]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>Native_AC_LIF_Profile</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_native_ac_lif_s</Name>
+        <Size>18</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd0} bits: [34 : 17]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>Native_AC_LIF</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_ace_table_data_s</Name>
+        <Size>10</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd0} bits: [44 : 35]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>Ace_Table_Data</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_mirror_profile_s</Name>
+        <Size>4</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd0} bits: [48 : 45]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>Mirror_Profile</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_oam_trap_engine_access_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd0} bits: [49 : 49]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>Oam_Trap_Engine_Access</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_oam_rd_ctr_and_stamp_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd0} bits: [50 : 50]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>Oam_Rd_Counter_and_Stamp</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_aux_table_data_s</Name>
+        <Size>8</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd0} bits: [58 : 51]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>Aux_Table_Data</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_glem_trap_is_required_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd0} bits: [59 : 59]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>GLEM_Trap_Is_Required</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_ees_action_drop_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd0} bits: [60 : 60]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>EES_Action_Drop</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_ees_action5_valid_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd0} bits: [61 : 61]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>EES_Action_5_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_ees_action4_valid_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd0} bits: [62 : 62]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>EES_Action_4_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_ees_action3_valid_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd0} bits: [63 : 63]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>EES_Action_3_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_ees_action2_valid_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd0} bits: [64 : 64]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>EES_Action_2_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_ees_action1_valid_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd0} bits: [65 : 65]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>EES_Action_1_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_system_headers_record_s</Name>
+        <Size>365</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd0} bits: [255 : 66] | {15'd16,16'd1} bits: [174 : 0]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>System_Headers_Record</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_pp_pct_data_s</Name>
+        <Size>108</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd1} bits: [255 : 175] | {15'd16,16'd2} bits: [26 : 0]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>PP_Pct_Data</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_pct_data_s</Name>
+        <Size>68</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd2} bits: [94 : 27]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>PCT_Data</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_out_dscp_exp_s</Name>
+        <Size>8</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd2} bits: [102 : 95]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>Out_DSCP_EXP</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_out_ttl_s</Name>
+        <Size>8</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd2} bits: [110 : 103]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>Out_TTL</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_tpid_profile_s</Name>
+        <Size>3</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd2} bits: [113 : 111]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>TPID_Profile</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_vsi_s</Name>
+        <Size>16</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd2} bits: [129 : 114]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>VSI</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_fwd_headers_size_s</Name>
+        <Size>7</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd2} bits: [136 : 130]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>Fwd_Headers_Size</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_nwk_headers_size_s</Name>
+        <Size>7</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd2} bits: [143 : 137]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>Nwk_Headers_Size</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_sys_headers_size_s</Name>
+        <Size>7</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd2} bits: [150 : 144]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>Sys_Headers_Size</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_header_code_s</Name>
+        <Size>4</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd2} bits: [154 : 151]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>Header_Code</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_out_lif_s</Name>
+        <Size>18</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd2} bits: [172 : 155]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>Out_LIF</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_out_pp_port_s</Name>
+        <Size>8</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd2} bits: [180 : 173]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>Out_PP_Port</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2enc_out_tm_port_s</Name>
+        <Size>8</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd2} bits: [188 : 181]</Address>
+        <From>Native LL</From>
+        <To>Encap</To>
+        <Attribute>Out_TM_Port</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_link2edb_eedb_eq_addr_s</Name>
+        <Size>18</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd2} bits: [206 : 189]</Address>
+        <From>Native LL</From>
+        <To>EEDB</To>
+        <Attribute>EEDB_Index</Attribute>
+    </Signal>
+    <Signal>
+        <Name>native_epni2ihp_etpp2vsd_eq_vsi_s</Name>
+        <Size>16</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd16,16'd2} bits: [222 : 207]</Address>
+        <From>Native LL</From>
+        <To>VSD Table</To>
+        <Attribute>VSI</Attribute>
+    </Signal>
+    <Signal>
+        <Name>epni2iqm_eq_st_counter_ptr_b_s</Name>
+        <Size>21</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd17,16'd0} bits: [20 : 0]</Address>
+        <From>Postprocessor</From>
+        <To>Counter Engine</To>
+        <Attribute>Statistics_Counter_Ptr_B</Attribute>
+    </Signal>
+    <Signal>
+        <Name>epni2iqm_eq_st_counter_ptr_b_valid_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd17,16'd0} bits: [21 : 21]</Address>
+        <From>Postprocessor</From>
+        <To>Counter Engine</To>
+        <Attribute>Statistics_Counter_Ptr_B_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>epni2iqm_eq_st_counter_ptr_a_s</Name>
+        <Size>21</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd17,16'd0} bits: [42 : 22]</Address>
+        <From>Postprocessor</From>
+        <To>Counter Engine</To>
+        <Attribute>Statistics_Counter_Ptr_A</Attribute>
+    </Signal>
+    <Signal>
+        <Name>epni2iqm_eq_st_counter_ptr_a_valid_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd17,16'd0} bits: [43 : 43]</Address>
+        <From>Postprocessor</From>
+        <To>Counter Engine</To>
+        <Attribute>Statistics_Counter_Ptr_A_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>epni2iqm_eq_st_counter_tc_s</Name>
+        <Size>3</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd17,16'd0} bits: [46 : 44]</Address>
+        <From>Postprocessor</From>
+        <To>Counter Engine</To>
+        <Attribute>Statistics_Counter_TC</Attribute>
+    </Signal>
+    <Signal>
+        <Name>epni2iqm_eq_st_counter_color_s</Name>
+        <Size>2</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd17,16'd0} bits: [48 : 47]</Address>
+        <From>Postprocessor</From>
+        <To>Counter Engine</To>
+        <Attribute>Statistics_Counter_DP</Attribute>
+    </Signal>
+    <Signal>
+        <Name>epni2iqm_eq_st_counter_disposition_s</Name>
+        <Size>1</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd17,16'd0} bits: [49 : 49]</Address>
+        <From>Postprocessor</From>
+        <To>Counter Engine</To>
+        <Attribute>Statistics_Counter_Drop</Attribute>
+    </Signal>
+    <Signal>
+        <Name>epni2iqm_eq_st_counter_packet_size_s</Name>
+        <Size>14</Size>
+        <BlockID>18</BlockID>
+        <Address>{15'd17,16'd0} bits: [63 : 50]</Address>
+        <From>Postprocessor</From>
+        <To>Counter Engine</To>
+        <Attribute>Statistics_Counter_Packet_Size</Attribute>
+    </Signal>
+IRPP
+    <Signal>
+        <Name>vtt2flp_2eq3_vtt_oam_lif_inner_valid</Name>
+        <Size>1</Size>
+        <BlockID>4</BlockID>
+        <Address>{15'd3,16'd0} bits: [100 : 100]</Address>
+        <From>TT</From>
+        <To>FLP</To>
+        <Attribute>OAM_LIF_Inner_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>vtt2flp_2eq3_vtt_oam_lif_inner</Name>
+        <Size>18</Size>
+        <BlockID>4</BlockID>
+        <Address>{15'd3,16'd0} bits: [118 : 101]</Address>
+        <From>TT</From>
+        <To>FLP</To>
+        <Attribute>OAM_LIF_Inner</Attribute>
+    </Signal>
+    <Signal>
+        <Name>vtt2flp_2eq3_vtt_oam_inner_pcp</Name>
+        <Size>3</Size>
+        <BlockID>4</BlockID>
+        <Address>{15'd3,16'd0} bits: [121 : 119]</Address>
+        <From>TT</From>
+        <To>FLP</To>
+        <Attribute>OAM_Inner_PCP</Attribute>
+    </Signal>
+    <Signal>
+        <Name>vtt2tcam_second_key</Name>
+        <Size>160</Size>
+        <BlockID>4</BlockID>
+        <Address>{15'd12,16'd0} bits: [159 : 0]</Address>
+        <From>TT</From>
+        <To>TCAM</To>
+        <Attribute>TT_TCAM_Key</Attribute>
+    </Signal>
+    <Signal>
+        <Name>vtt2tcam_second_db_profile_index</Name>
+        <Size>6</Size>
+        <BlockID>4</BlockID>
+        <Address>{15'd12,16'd0} bits: [165 : 160]</Address>
+        <From>TT</From>
+        <To>TCAM</To>
+        <Attribute>TT_TCAM_DB_Profile_Index</Attribute>
+    </Signal>
+    <Signal>
+        <Name>vtt2tcam_first_key</Name>
+        <Size>160</Size>
+        <BlockID>4</BlockID>
+        <Address>{15'd12,16'd0} bits: [255 : 166] | {15'd12,16'd1} bits: [69 : 0]</Address>
+        <From>VT</From>
+        <To>TCAM</To>
+        <Attribute>VT_TCAM_Key</Attribute>
+    </Signal>
+    <Signal>
+        <Name>vtt2tcam_first_db_profile_index</Name>
+        <Size>6</Size>
+        <BlockID>4</BlockID>
+        <Address>{15'd12,16'd1} bits: [75 : 70]</Address>
+        <From>VT</From>
+        <To>TCAM</To>
+        <Attribute>VT_TCAM_DB_Profile_Index</Attribute>
+    </Signal>
+    <Signal>
+        <Name>tcam2vtt_second_mem_soft_err</Name>
+        <Size>1</Size>
+        <BlockID>4</BlockID>
+        <Address>{15'd13,16'd0} bits: [0 : 0]</Address>
+        <From>TCAM</From>
+        <To>TT</To>
+        <Attribute>TT_TCAM_Mem_Soft_Error</Attribute>
+    </Signal>
+    <Signal>
+        <Name>tcam2vtt_second_action</Name>
+        <Size>48</Size>
+        <BlockID>4</BlockID>
+        <Address>{15'd13,16'd0} bits: [48 : 1]</Address>
+        <From>TCAM</From>
+        <To>TT</To>
+        <Attribute>TT_TCAM_Result</Attribute>
+        <Condition>TT_TCAM_Match</Condition>
+    </Signal>
+    <Signal>
+        <Name>tcam2vtt_second_match</Name>
+        <Size>1</Size>
+        <BlockID>4</BlockID>
+        <Address>{15'd13,16'd0} bits: [49 : 49]</Address>
+        <From>TCAM</From>
+        <To>TT</To>
+        <Attribute>TT_TCAM_Match</Attribute>
+    </Signal>
+    <Signal>
+        <Name>tcam2vtt_first_mem_soft_err</Name>
+        <Size>1</Size>
+        <BlockID>4</BlockID>
+        <Address>{15'd13,16'd0} bits: [50 : 50]</Address>
+        <From>TCAM</From>
+        <To>VT</To>
+        <Attribute>VT_TCAM_Mem_Soft_Error</Attribute>
+    </Signal>
+    <Signal>
+        <Name>tcam2vtt_first_action</Name>
+        <Size>48</Size>
+        <BlockID>4</BlockID>
+        <Address>{15'd13,16'd0} bits: [98 : 51]</Address>
+        <From>TCAM</From>
+        <To>VT</To>
+        <Attribute>VT_TCAM_Result</Attribute>
+        <Condition>VT_TCAM_Match</Condition>
+    </Signal>
+    <Signal>
+        <Name>tcam2vtt_first_match</Name>
+        <Size>1</Size>
+        <BlockID>4</BlockID>
+        <Address>{15'd13,16'd0} bits: [99 : 99]</Address>
+        <From>TCAM</From>
+        <To>VT</To>
+        <Attribute>VT_TCAM_Match</Attribute>
+    </Signal>
+    <Signal>
+        <Name>vsd2vtt_vtt_tt_in_rif_valid</Name>
+        <Size>1</Size>
+        <BlockID>4</BlockID>
+        <Address>{15'd17,16'd0} bits: [0 : 0]</Address>
+        <From>VSI Table</From>
+        <To>TT</To>
+        <Attribute>In_RIF_Valid</Attribute>
+    </Signal>
+    <Signal>
+        <Name>vsd2vtt_vtt_tt_in_rif</Name>
+        <Size>15</Size>
+        <BlockID>4</BlockID>
+        <Address>{15'd17,16'd0} bits: [15 : 1]</Address>
+        <From>VSI Table</From>
+        <To>TT</To>
+        <Attribute>In_RIF</Attribute>
+        <Condition>In_RIF_Valid</Condition>
+    </Signal>
+    <Signal>
+        <Name>oema2flp_err_1</Name>
+        <Size>1</Size>
+        <BlockID>4</BlockID>
+        <Address>{15'd35,16'd0} bits: [37 : 37]</Address>
+        <From>OEM_A</From>
+        <To>FLP</To>
+        <Attribute>OEM_A_2nd_Lookup_Error</Attribute>
+    </Signal>
+    <Signal>
+        <Name>oema2flp_payload_1</Name>
+        <Size>35</Size>
+        <BlockID>4</BlockID>
+        <Address>{15'd35,16'd0} bits: [72 : 38]</Address>
+        <From>OEM_A</From>
+        <To>FLP</To>
+        <Attribute>OEM_A_2nd_Lookup_Result</Attribute>
+        <Condition>OEM_A_2nd_Lookup_Found</Condition>
+    </Signal>
+    <Signal>
+        <Name>oema2flp_found_1</Name>
+        <Size>1</Size>
+        <BlockID>4</BlockID>
+        <Address>{15'd35,16'd0} bits: [73 : 73]</Address>
+        <From>OEM_A</From>
+        <To>FLP</To>
+        <Attribute>OEM_A_2nd_Lookup_Found</Attribute>
+    </Signal>
+    <Signal>
+        <Name>pmf2fer_6eq7_packet_is_compatible_mc</Name>
+        <Size>1</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd0,16'd0} bits: [17 : 17]</Address>
+        <From>PMF</From>
+        <To>FER</To>
+        <Attribute>Packet_is_Compatible_MC</Attribute>
+    </Signal>
+    <Signal>
+        <Name>pmf2fer_38eq39_user_header_type</Name>
+        <Size>8</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd0,16'd9} bits: [7 : 0]</Address>
+        <From>PMF</From>
+        <To>FER</To>
+        <Attribute>User_Header_Type</Attribute>
+    </Signal>
+    <Signal>
+        <Name>pmf2fer_38eq39_user_header4</Name>
+        <Size>32</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd0,16'd9} bits: [39 : 8]</Address>
+        <From>PMF</From>
+        <To>FER</To>
+        <Attribute>User_Header_4</Attribute>
+    </Signal>
+    <Signal>
+        <Name>pmf2fer_38eq39_user_header3</Name>
+        <Size>32</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd0,16'd9} bits: [71 : 40]</Address>
+        <From>PMF</From>
+        <To>FER</To>
+        <Attribute>User_Header_3</Attribute>
+    </Signal>
+    <Signal>
+        <Name>pmf2fer_38eq39_statistics_pointer1</Name>
+        <Size>21</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd0,16'd9} bits: [185 : 165]</Address>
+        <From>PMF</From>
+        <To>FER</To>
+        <Attribute>Statistics_Ptr_1</Attribute>
+    </Signal>
+    <Signal>
+        <Name>pmf2fer_38eq39_statistics_pointer0</Name>
+        <Size>21</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd0,16'd9} bits: [206 : 186]</Address>
+        <From>PMF</From>
+        <To>FER</To>
+        <Attribute>Statistics_Ptr_0</Attribute>
+    </Signal>
+    <Signal>
+        <Name>pmf2fer_38eq39_pph_reserved</Name>
+        <Size>3</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd0,16'd10} bits: [42 : 40]</Address>
+        <From>PMF</From>
+        <To>FER</To>
+        <Perm>1</Perm>
+        <Attribute>PPH_Reserved</Attribute>
+    </Signal>
+    <Signal>
+        <Name>pmf2fer_38eq39_latency_flow</Name>
+        <Size>19</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd0,16'd13} bits: [39 : 21]</Address>
+        <From>PMF</From>
+        <To>FER</To>
+        <Attribute>Latency_Flow</Attribute>
+    </Signal>
+    <Signal>
+        <Name>pmf2fer_38eq39_itpp_delta</Name>
+        <Size>9</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd0,16'd13} bits: [68 : 60]</Address>
+        <From>PMF</From>
+        <To>FER</To>
+        <Attribute>ITPP_Delta</Attribute>
+    </Signal>
+    <Signal>
+        <Name>pmf2fer_38eq39_admt_profile</Name>
+        <Size>3</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd0,16'd14} bits: [215 : 213]</Address>
+        <From>PMF</From>
+        <To>FER</To>
+        <Attribute>Admt_Profile</Attribute>
+    </Signal>
+    <Signal>
+        <Name>fer2lbp_eq_user_header_type</Name>
+        <Size>8</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd2,16'd0} bits: [7 : 0]</Address>
+        <From>FER</From>
+        <To>LBP</To>
+        <Attribute>User_Header_Type</Attribute>
+    </Signal>
+    <Signal>
+        <Name>fer2lbp_eq2_user_header4</Name>
+        <Size>32</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd2,16'd0} bits: [190 : 159]</Address>
+        <From>FER</From>
+        <To>LBP</To>
+        <Attribute>User_Header_4</Attribute>
+    </Signal>
+    <Signal>
+        <Name>fer2lbp_eq2_user_header3</Name>
+        <Size>32</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd2,16'd0} bits: [222 : 191]</Address>
+        <From>FER</From>
+        <To>LBP</To>
+        <Attribute>User_Header_3</Attribute>
+    </Signal>
+    <Signal>
+        <Name>fer2lbp_eq2_statistics_pointer1</Name>
+        <Size>21</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd2,16'd1} bits: [78 : 58]</Address>
+        <From>FER</From>
+        <To>LBP</To>
+        <Attribute>Statistics_Ptr_1</Attribute>
+    </Signal>
+    <Signal>
+        <Name>fer2lbp_eq2_statistics_pointer0</Name>
+        <Size>21</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd2,16'd1} bits: [99 : 79]</Address>
+        <From>FER</From>
+        <To>LBP</To>
+        <Attribute>Statistics_Ptr_0</Attribute>
+    </Signal>
+    <Signal>
+        <Name>fer2lbp_eq2_packet_is_compatible_mc</Name>
+        <Size>1</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd2,16'd1} bits: [143 : 143]</Address>
+        <From>FER</From>
+        <To>LBP</To>
+        <Attribute>Packet_is_Compatible_MC</Attribute>
+    </Signal>
+    <Signal>
+        <Name>fer2lbp_eq2_latency_flow</Name>
+        <Size>19</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd2,16'd2} bits: [21 : 3]</Address>
+        <From>FER</From>
+        <To>LBP</To>
+        <Attribute>Latency_Flow</Attribute>
+    </Signal>
+    <Signal>
+        <Name>fer2lbp_eq2_itpp_delta</Name>
+        <Size>9</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd2,16'd2} bits: [46 : 38]</Address>
+        <From>FER</From>
+        <To>LBP</To>
+        <Attribute>ITPP_Delta</Attribute>
+    </Signal>
+    <Signal>
+        <Name>fer2lbp_eq2_header_below_is_eth</Name>
+        <Size>1</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd2,16'd2} bits: [114 : 114]</Address>
+        <From>FER</From>
+        <To>LBP</To>
+        <Attribute>Header_Below_Is_Eth</Attribute>
+    </Signal>
+    <Signal>
+        <Name>fer2lbp_eq2_admt_profile</Name>
+        <Size>3</Size>
+        <BlockID>21</BlockID>
+        <Address>{15'd2,16'd4} bits: [66 : 64]</Address>
+        <From>FER</From>
+        <To>LBP</To>
+        <Attribute>Eq2_Admt_Profile</Attribute>
+    </Signal>
+    

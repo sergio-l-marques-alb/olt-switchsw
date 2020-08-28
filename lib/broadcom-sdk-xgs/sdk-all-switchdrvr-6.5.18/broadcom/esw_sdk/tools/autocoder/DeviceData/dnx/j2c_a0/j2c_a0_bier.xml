@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0" module="bier">
+    <includes>
+    </includes>
+    
+    <sub_module name="params" doc="bier parameters">
+         <features>
+             <feature name="is_supported"></feature>
+         </features>
+
+         <defines>
+            <define name="nof_egr_table_copies" value="2"></define>
+        </defines>  
+    </sub_module>   
+</device_data>
+

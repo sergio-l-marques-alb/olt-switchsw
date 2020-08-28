@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL L3 VRRP state:
+    This xml contains the sw staate logical DB for the DBAL.
+    ******************************************************
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../sw_state_schema.xsd">
+
+
+    <AppDB Name="L3_VRRP_PROTOCOL_GROUP_SW">
+        <OneLineDescription>Map protocol group to l3 protocols bitmap. Each bit in the bitmap indicates layer-type</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VRRP_GROUP_ID"/>
+            </Key>
+            <Result>
+                <Field Name="L3_PROTOCOLS_BITMAP" Type="UINT" Size="32"/>              
+                <Field Name="NOF_L3_VRRP_TCAM_ENTRIES" Type="UINT" Size="32"/>              
+            </Result>            
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="L3_VRRP_SYSTEM_CONFIG_SW">
+        <OneLineDescription>System configuration for VRRP module</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="VRRP_EXEM_MODE"/>                          
+            </Result>            
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="L3_VRRP_EXEM_DB_SW">
+        <OneLineDescription>System configuration for VRRP module</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="BCM_STATION_ID" Type="UINT" MaxValue="4095"/>    
+            </Key>
+            <MultipleResults>           
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="VSI" Description="MY MAC EXEM VSI entry"/>
+                    <Field Name="VSI"/>
+                    <Field Name="L2_MAC"/>                     
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="PORT" Description="MY MAC EXEM source port entry"/>
+                    <Field Name="PP_PORT"/>
+                    <Field Name="CORE"/>
+                    <Field Name="L2_MAC"/>                    
+                </Result>                
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="PORT_PROTOCOL" Description="MY MAC EXEM source port protocol entry"/>
+                    <Field Name="PP_PORT"/>
+                    <Field Name="CORE"/>
+                    <Field Name="LAYER_TYPES"/>
+                </Result>
+            </MultipleResults>            
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="PHYDB.SEXEM1+1"/>
+        </AppToPhyDbMapping>
+    </AppDB>       
+ 
+</AppDbCatalog>
+

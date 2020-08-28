@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_b0"  module="trap">
+    <includes>
+        <include>bcm_int/dnx/rx/rx_trap.h</include>
+    </includes>
+    
+    <sub_module name="erpp">
+
+        <features>
+            <feature name="unknown_da_trap_en" value="1"></feature>      
+        </features>
+    </sub_module>
+    
+</device_data>

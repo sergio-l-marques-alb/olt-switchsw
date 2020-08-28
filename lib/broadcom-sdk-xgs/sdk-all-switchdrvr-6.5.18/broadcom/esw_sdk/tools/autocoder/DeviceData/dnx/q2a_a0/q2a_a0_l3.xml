@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="l3">
+
+    <sub_module name="source_address">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="custom_sa_use_dual_homing"                 value="0"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+         
+    </sub_module>
+    <sub_module name="fec">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="nof_fecs" value="0x60000"></define> 
+            <define name="max_default_fec" value="0xFFFF"></define>
+            <define name="bank_size" value="13106"></define>
+            <define name="nof_physical_fecs_per_bank" value="4096"></define>
+            <define name="fer_mdb_granularity_ratio" value="2"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+         
+    </sub_module>
+    <sub_module name="rif">
+        
+        <numerics>
+            <numeric name="nof_rifs" value="4096">
+                <property name="rif_id_max" method="custom">
+                    <doc>NULL</doc> <!--  not required - soc property already defined by a different data -->
+                </property>
+            </numeric>
+        </numerics>
+    </sub_module>
+
+    <sub_module name="fwd">
+        <defines>
+            <define name="flp_fragment_support" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="hw_bug" doc="L3 related Hw bugs">
+
+        <features>
+            <feature name="fer_fec_granularity_double_size" value="1"></feature>
+            <feature name="fec_hit_bit" value="0"></feature>
+        </features>
+
+    </sub_module>
+</device_data>

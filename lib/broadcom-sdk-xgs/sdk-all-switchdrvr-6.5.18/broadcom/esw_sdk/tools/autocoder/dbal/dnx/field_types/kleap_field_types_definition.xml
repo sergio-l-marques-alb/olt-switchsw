@@ -1,0 +1,860 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Fields Types DB:
+    This xml contains the fields types DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+    According to:d88547d
+    DB Rules:
+    *********
+-->
+
+<FieldTypesDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="field_types_schema.xsd">
+
+    <FieldType Name="KLEAP_STAGE_SELECTOR" Size="1" Print="ENUM">
+        <OneLineDescription>
+         Stage A or B, select between the sub stage of a doube kleap stage.
+         FWD12: FWD1/FWD2, VT23: VT2/VT3, VT45: VT4/VT5
+        </OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="STAGE_A" Description="KLEAP stage"/>
+                <EnumVal Name="STAGE_B" Description="KLEAP stage"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="STAGE_A" Value="0"/>
+                <EnumVal Name="STAGE_B" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+<!-- General FFC types -->
+    <FieldType Name="FFC_KEY_OFFSET" Size="32" Print="HEX">
+        <OneLineDescription>the offset in the key builder that the data is placed in</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="FFC_FIELD_SIZE" Size="32" Print="HEX">
+        <OneLineDescription>the of the data to take into key builder</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="FFC_FIELD_OFFSET" Size="32" Print="HEX">
+        <OneLineDescription>The offfset for start reading the field</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="FFC_INDEX" Size="32" Print="HEX">
+        <OneLineDescription>Index in FFC instruction, used for choosing layer/header</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+<!-- FWD12 Stage -->
+    <FieldType Name="FWD12_FFC_RELATIVE_HEADER" Size="27" Print="STRUCTURE">
+     <OneLineDescription>FFC instruction, key taken from relative header. FWD12 stage</OneLineDescription>
+     <FieldDbInterface>
+         <StructFields>
+             <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+             <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+             <StructField Name="FFC_FIELD_OFFSET" Size="11"/>
+             <StructField Name="FFC_INDEX" Size="3"/>
+         </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+         <StructFieldsEncoding>
+             <StructField Name="FFC_KEY_OFFSET"/>
+             <StructField Name="FFC_FIELD_SIZE"/>
+             <StructField Name="FFC_FIELD_OFFSET"/>
+             <StructField Name="FFC_INDEX"/>
+         </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="FWD12_FFC_HEADER" Size="27" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from header. FWD12 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="11"/>
+                <StructField Name="FFC_INDEX" Size="3"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+                <StructField Name="FFC_INDEX"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="FWD12_FFC_LITERALLY" Size="25" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from full pbus. FWD12 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="12"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="FWD12_FFC_LAYER_RECORD" Size="27" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from layer record. FWD12 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="5"/>
+                <StructField Name="FFC_INDEX" Size="3"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+                <StructField Name="FFC_INDEX" Offset="6"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="FWD12_FFC_INSTRUCTION" Size="29" Print="HEX">
+        <OneLineDescription>Forwarding physical destination</OneLineDescription>
+        <FieldDbInterface>
+            <ChildFields>
+                <ChildField Name="FWD12_FFC_RELATIVE_HEADER"/>
+                <ChildField Name="FWD12_FFC_HEADER"/>
+                <ChildField Name="FWD12_FFC_LITERALLY"/>
+                <ChildField Name="FWD12_FFC_LAYER_RECORD"/>
+            </ChildFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ChildFieldsEncoding>
+                <ChildField Name="FWD12_FFC_HEADER" EncodeType="PREFIX" Value="1"/>
+                <ChildField Name="FWD12_FFC_LITERALLY" EncodeType="PREFIX" Value="8"/>
+                <ChildField Name="FWD12_FFC_LAYER_RECORD" EncodeType="PREFIX" Value="3"/>
+                <ChildField Name="FWD12_FFC_RELATIVE_HEADER" EncodeType="PREFIX" Value="0"/>
+            </ChildFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+<!-- VT1 Stage -->
+    <FieldType Name="VT1_FFC_RELATIVE_HEADER" Size="27" Print="STRUCTURE">
+     <OneLineDescription>FFC instruction, key taken from relative header. VT1 stage</OneLineDescription>
+     <FieldDbInterface>
+         <StructFields>
+             <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+             <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+             <StructField Name="FFC_FIELD_OFFSET" Size="11"/>
+             <StructField Name="FFC_INDEX" Size="3"/>
+         </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+         <StructFieldsEncoding>
+             <StructField Name="FFC_KEY_OFFSET"/>
+             <StructField Name="FFC_FIELD_SIZE"/>
+             <StructField Name="FFC_FIELD_OFFSET"/>
+             <StructField Name="FFC_INDEX"/>
+         </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="VT1_FFC_HEADER" Size="27" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from header. VT1 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="11"/>
+                <StructField Name="FFC_INDEX" Size="3"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+                <StructField Name="FFC_INDEX"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="VT1_FFC_LITERALLY" Size="25" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from full pbus. VT1 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="12"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="VT1_FFC_LAYER_RECORD" Size="27" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from layer record. VT1 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="5"/>
+                <StructField Name="FFC_INDEX" Size="3"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+                <StructField Name="FFC_INDEX" Offset="6"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="VT1_FFC_INSTRUCTION" Size="29" Print="HEX">
+        <OneLineDescription>Forwarding physical destination</OneLineDescription>
+        <FieldDbInterface>
+            <ChildFields>
+                <ChildField Name="VT1_FFC_RELATIVE_HEADER"/>
+                <ChildField Name="VT1_FFC_HEADER"/>
+                <ChildField Name="VT1_FFC_LITERALLY"/>
+                <ChildField Name="VT1_FFC_LAYER_RECORD"/>
+            </ChildFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ChildFieldsEncoding>
+                <ChildField Name="VT1_FFC_HEADER" EncodeType="PREFIX" Value="1"/>
+                <ChildField Name="VT1_FFC_LITERALLY" EncodeType="PREFIX" Value="8"/>
+                <ChildField Name="VT1_FFC_LAYER_RECORD" EncodeType="PREFIX" Value="3"/>
+                <ChildField Name="VT1_FFC_RELATIVE_HEADER" EncodeType="PREFIX" Value="0"/>
+            </ChildFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+<!-- VT23 Stage -->
+    <FieldType Name="VT23_FFC_RELATIVE_HEADER" Size="27" Print="STRUCTURE">
+     <OneLineDescription>FFC instruction, key taken from relative header. VT23 stage</OneLineDescription>
+     <FieldDbInterface>
+         <StructFields>
+             <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+             <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+             <StructField Name="FFC_FIELD_OFFSET" Size="11"/>
+             <StructField Name="FFC_INDEX" Size="3"/>
+         </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+         <StructFieldsEncoding>
+             <StructField Name="FFC_KEY_OFFSET"/>
+             <StructField Name="FFC_FIELD_SIZE"/>
+             <StructField Name="FFC_FIELD_OFFSET"/>
+             <StructField Name="FFC_INDEX"/>
+         </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="VT23_FFC_HEADER" Size="27" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from header. VT23 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="11"/>
+                <StructField Name="FFC_INDEX" Size="3"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+                <StructField Name="FFC_INDEX"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="VT23_FFC_LITERALLY" Size="25" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from full pbus. VT23 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="12"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="VT23_FFC_LAYER_RECORD" Size="27" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from layer record. VT23 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="5"/>
+                <StructField Name="FFC_INDEX" Size="3"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+                <StructField Name="FFC_INDEX" Offset="6"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="VT23_FFC_INSTRUCTION" Size="29" Print="HEX">
+        <OneLineDescription>Forwarding physical destination</OneLineDescription>
+        <FieldDbInterface>
+            <ChildFields>
+                <ChildField Name="VT23_FFC_RELATIVE_HEADER"/>
+                <ChildField Name="VT23_FFC_HEADER"/>
+                <ChildField Name="VT23_FFC_LITERALLY"/>
+                <ChildField Name="VT23_FFC_LAYER_RECORD"/>
+            </ChildFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ChildFieldsEncoding>
+                <ChildField Name="VT23_FFC_HEADER" EncodeType="PREFIX" Value="1"/>
+                <ChildField Name="VT23_FFC_LITERALLY" EncodeType="PREFIX" Value="8"/>
+                <ChildField Name="VT23_FFC_LAYER_RECORD" EncodeType="PREFIX" Value="3"/>
+                <ChildField Name="VT23_FFC_RELATIVE_HEADER" EncodeType="PREFIX" Value="0"/>
+            </ChildFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+<!-- VT45 Stage -->
+    <FieldType Name="VT45_FFC_RELATIVE_HEADER" Size="27" Print="STRUCTURE">
+     <OneLineDescription>FFC instruction, key taken from relative header. VT45 stage</OneLineDescription>
+     <FieldDbInterface>
+         <StructFields>
+             <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+             <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+             <StructField Name="FFC_FIELD_OFFSET" Size="11"/>
+             <StructField Name="FFC_INDEX" Size="3"/>
+         </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+         <StructFieldsEncoding>
+             <StructField Name="FFC_KEY_OFFSET"/>
+             <StructField Name="FFC_FIELD_SIZE"/>
+             <StructField Name="FFC_FIELD_OFFSET"/>
+             <StructField Name="FFC_INDEX"/>
+         </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="VT45_FFC_HEADER" Size="27" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from header. VT45 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="11"/>
+                <StructField Name="FFC_INDEX" Size="3"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+                <StructField Name="FFC_INDEX"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="VT45_FFC_LITERALLY" Size="25" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from full pbus. VT45 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="12"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="VT45_FFC_LAYER_RECORD" Size="27" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from layer record. VT45 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="5"/>
+                <StructField Name="FFC_INDEX" Size="3"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+                <StructField Name="FFC_INDEX" Offset="6"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="VT45_FFC_INSTRUCTION" Size="29" Print="HEX">
+        <OneLineDescription>Forwarding physical destination</OneLineDescription>
+        <FieldDbInterface>
+            <ChildFields>
+                <ChildField Name="VT45_FFC_RELATIVE_HEADER"/>
+                <ChildField Name="VT45_FFC_HEADER"/>
+                <ChildField Name="VT45_FFC_LITERALLY"/>
+                <ChildField Name="VT45_FFC_LAYER_RECORD"/>
+            </ChildFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ChildFieldsEncoding>
+                <ChildField Name="VT45_FFC_HEADER" EncodeType="PREFIX" Value="1"/>
+                <ChildField Name="VT45_FFC_LITERALLY" EncodeType="PREFIX" Value="8"/>
+                <ChildField Name="VT45_FFC_LAYER_RECORD" EncodeType="PREFIX" Value="3"/>
+                <ChildField Name="VT45_FFC_RELATIVE_HEADER" EncodeType="PREFIX" Value="0"/>
+            </ChildFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    
+<!-- IPMF1 Stage -->
+    <FieldType Name="IPMF1_FFC_RELATIVE_HEADER" Size="28" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from relative header. IPMF1 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="12"/>
+                <StructField Name="FFC_INDEX" Size="3"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+                <StructField Name="FFC_INDEX"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPMF1_FFC_HEADER" Size="28" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from header. IPMF1 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="12"/>
+                <StructField Name="FFC_INDEX" Size="3"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+                <StructField Name="FFC_INDEX"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPMF1_FFC_LITERALLY" Size="26" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from full pbus. IPMF1 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="13"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPMF1_FFC_LAYER_RECORD" Size="28" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from layer record. IPMF1 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="6"/>
+                <StructField Name="FFC_INDEX" Size="3"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+                <StructField Name="FFC_INDEX" Offset="6"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPMF1_FFC_INSTRUCTION" Size="30" Print="HEX">
+        <OneLineDescription>Forwarding physical destination</OneLineDescription>
+        <FieldDbInterface>
+            <ChildFields>
+                <ChildField Name="IPMF1_FFC_RELATIVE_HEADER"/>
+                <ChildField Name="IPMF1_FFC_HEADER"/>
+                <ChildField Name="IPMF1_FFC_LITERALLY"/>
+                <ChildField Name="IPMF1_FFC_LAYER_RECORD"/>
+            </ChildFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ChildFieldsEncoding>
+                <ChildField Name="IPMF1_FFC_HEADER" EncodeType="PREFIX" Value="1"/>
+                <ChildField Name="IPMF1_FFC_LITERALLY" EncodeType="PREFIX" Value="8"/>
+                <ChildField Name="IPMF1_FFC_LAYER_RECORD" EncodeType="PREFIX" Value="3"/>
+                <ChildField Name="IPMF1_FFC_RELATIVE_HEADER" EncodeType="PREFIX" Value="0"/>
+            </ChildFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+<!-- IPMF2 Stage -->    
+    <FieldType Name="IPMF2_FFC_LITERALLY" Size="24" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from full pbus. IPMF2 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="11"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPMF2_FFC_INSTRUCTION" Size="24" Print="HEX">
+        <OneLineDescription>Forwarding physical destination</OneLineDescription>
+        <FieldDbInterface>
+            <ChildFields>
+                <ChildField Name="IPMF2_FFC_LITERALLY"/>
+            </ChildFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ChildFieldsEncoding>
+                <ChildField Name="IPMF2_FFC_LITERALLY" EncodeType="PREFIX" Value="0"/>
+            </ChildFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    
+<!-- IPMF3 Stage -->
+    <FieldType Name="IPMF3_FFC_LITERALLY" Size="25" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from full pbus. IPMF3 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="12"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPMF3_FFC_LAYER_RECORD" Size="27" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from layer record. IPMF3 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="6"/>
+                <StructField Name="FFC_INDEX" Size="3"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+                <StructField Name="FFC_INDEX" Offset="5"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPMF3_FFC_INSTRUCTION" Size="29" Print="HEX">
+        <OneLineDescription>Forwarding physical destination</OneLineDescription>
+        <FieldDbInterface>
+            <ChildFields>
+                <ChildField Name="IPMF3_FFC_LITERALLY"/>
+                <ChildField Name="IPMF3_FFC_LAYER_RECORD"/>
+            </ChildFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ChildFieldsEncoding>
+                <ChildField Name="IPMF3_FFC_LITERALLY" EncodeType="PREFIX" Value="8"/>
+                <ChildField Name="IPMF3_FFC_LAYER_RECORD" EncodeType="PREFIX" Value="3"/>
+            </ChildFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    
+<!-- EPMF Stage -->
+    <FieldType Name="EPMF_FFC_HEADER" Size="27" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from header. EPMF stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="10"/>
+                <StructField Name="FFC_INDEX" Size="3"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+                <StructField Name="FFC_INDEX" Offset="1"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="EPMF_FFC_LITERALLY" Size="25" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from full pbus. EPMF stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="12"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="EPMF_FFC_LAYER_RECORD" Size="27" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from layer record. EPMF stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="10"/>
+                <StructField Name="FFC_INDEX" Size="3"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+                <StructField Name="FFC_INDEX" Offset="1"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="EPMF_FFC_RELATIVE_HEADER" Size="27" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from relative header. EPMF stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_KEY_OFFSET" Size="8"/>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="10"/>
+                <StructField Name="FFC_INDEX" Size="3"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_KEY_OFFSET"/>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+                <StructField Name="FFC_INDEX" Offset="1"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="EPMF_FFC_INSTRUCTION" Size="29" Print="HEX">
+        <OneLineDescription>Forwarding physical destination</OneLineDescription>
+        <FieldDbInterface>
+            <ChildFields>
+                <ChildField Name="EPMF_FFC_HEADER"/>
+                <ChildField Name="EPMF_FFC_LITERALLY"/>
+                <ChildField Name="EPMF_FFC_LAYER_RECORD"/>
+                <ChildField Name="EPMF_FFC_RELATIVE_HEADER"/>
+            </ChildFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ChildFieldsEncoding>
+                <ChildField Name="EPMF_FFC_HEADER" EncodeType="PREFIX" Value="1"/>
+                <ChildField Name="EPMF_FFC_LITERALLY" EncodeType="PREFIX" Value="8"/>
+                <ChildField Name="EPMF_FFC_LAYER_RECORD" EncodeType="PREFIX" Value="3"/>
+                <ChildField Name="EPMF_FFC_RELATIVE_HEADER" EncodeType="PREFIX" Value="0"/>
+            </ChildFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+<!-- L4OPS -->
+    <FieldType Name="L4OPS_FFC_RELATIVE_HEADER" Size="20" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from relative header. IPMF1 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="12"/>
+                <StructField Name="FFC_INDEX" Size="3"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+                <StructField Name="FFC_INDEX"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="L4OPS_FFC_HEADER" Size="20" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from header. IPMF1 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="12"/>
+                <StructField Name="FFC_INDEX" Size="3"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+                <StructField Name="FFC_INDEX"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="L4OPS_FFC_LITERALLY" Size="18" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from full pbus. IPMF1 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="13"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="L4OPS_FFC_LAYER_RECORD" Size="20" Print="STRUCTURE">
+        <OneLineDescription>FFC instruction, key taken from layer record. IPMF1 stage</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FFC_FIELD_SIZE" Size="5"/>
+                <StructField Name="FFC_FIELD_OFFSET" Size="6"/>
+                <StructField Name="FFC_INDEX" Size="3"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FFC_FIELD_SIZE"/>
+                <StructField Name="FFC_FIELD_OFFSET"/>
+                <StructField Name="FFC_INDEX" Offset="6"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="L4OPS_FFC_INSTRUCTION" Size="22" Print="HEX">
+        <OneLineDescription>Forwarding physical destination</OneLineDescription>
+        <FieldDbInterface>
+            <ChildFields>
+                <ChildField Name="L4OPS_FFC_RELATIVE_HEADER"/>
+                <ChildField Name="L4OPS_FFC_HEADER"/>
+                <ChildField Name="L4OPS_FFC_LITERALLY"/>
+                <ChildField Name="L4OPS_FFC_LAYER_RECORD"/>
+            </ChildFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ChildFieldsEncoding>
+                <ChildField Name="L4OPS_FFC_HEADER" EncodeType="PREFIX" Value="1"/>
+                <ChildField Name="L4OPS_FFC_LITERALLY" EncodeType="PREFIX" Value="8"/>
+                <ChildField Name="L4OPS_FFC_LAYER_RECORD" EncodeType="PREFIX" Value="3"/>
+                <ChildField Name="L4OPS_FFC_RELATIVE_HEADER" EncodeType="PREFIX" Value="0"/>
+            </ChildFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+
+
+    <FieldType Name="FWD12_KBR_ID" Size="5" Print="UINT32">
+        <OneLineDescription>Possible Keys for ELK</OneLineDescription>
+        <FieldDbInterface>
+             <FieldDefines>
+                <Define Name="KBP_0" Value="4" Description="First Key for KBP" />
+                <Define Name="KBP_1" Value="5" Description="Second Key for KBP" />
+                <Define Name="KBP_2" Value="16" Description="Third Key for KBP" />
+                <Define Name="KBP_3" Value="17" Description="Fourth Key for KBP" />
+            </FieldDefines>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+              <ValueRestricts>
+                <MaxValue Value="17" />
+              </ValueRestricts>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+</FieldTypesDbCatalog>

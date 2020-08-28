@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="stg" bsl_flag="BSL_LS_BCMDNX_STG">
+    <sub_module name="stg" doc="STG data">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_topology_ids" doc="Number of Topology IDs"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>
+
+
+
+

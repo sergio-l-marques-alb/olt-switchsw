@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="SPLIT_HORIZON_FILTER">
+        <OneLineDescription>Split Horizon Filter table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OUT_LIF_ORIENTATION" Size="3"/>
+                <Field Name="IN_LIF_ORIENTATION" Size="3"/>
+            </Key>
+            <Result>
+                <Field Name="SPLIT_HORIZON_FILTER_ENABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SPLIT_HORIZON_FILTER_ENABLE">
+                    <Access>
+                        <Register Name="ETPPC_CFG_SPLIT_HORIZON_FILTERr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>  
+    
+    <AppDB Name="SVTAG_DEFAULT" Valid="DNX_DATA.switch.svtag.supported">
+        <OneLineDescription>The Default value of the SVTAG in case the SVTAG lookup failed</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="SVTAG_DEFAULT_VALUE" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>SVTAG</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SVTAG_DEFAULT_VALUE">
+                    <Access>
+                        <Register GroupName="ETPP_DEFAULT_SVTAG">
+                            <HwField Name="DEFAULT_SVTAGf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>  
+
+</AppDbCatalog>

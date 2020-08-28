@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2p_a0"  module="l3">
+
+    <sub_module name="hw_bug" doc="L3 related Hw bugs">
+
+        <features>
+            <feature name="ipv6_mc_compatible_dmac" value="0"></feature>
+            <feature name="fec_hit_bit" value="0"></feature>
+            <feature name="mc_bridge_fallback" value="0"></feature>
+        </features>
+
+    </sub_module>
+    
+    <sub_module name="ecmp">
+
+        <defines>
+            <define name="group_size_nof_bits" value="9"></define>
+            <define name="tunnel_priority_support" value="1"></define>
+            <define name="nof_tunnel_priority_map_profiles" value="4"></define>
+            <define name="tunnel_priority_field_width" value="5"></define>
+            <define name="tunnel_priority_index_field_width" value="3"></define>
+        </defines>
+    
+    </sub_module>
+</device_data>

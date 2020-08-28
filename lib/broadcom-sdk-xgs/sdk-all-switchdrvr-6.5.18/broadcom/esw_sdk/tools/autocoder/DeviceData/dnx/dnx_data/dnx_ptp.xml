@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="ptp" bsl_flag="BSL_LS_BCMDNX_PTP">
+
+    <sub_module name="general" doc="PTP general attributes">
+
+        <features>
+            <feature name="has_trap_code_offset" doc="Ptp trap code offset together with ptp trap code prefix represent ptp trap code"></feature>
+        </features>
+
+        <defines>
+            <define name="nof_port_profiles" doc="Number of port profiles"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+</device_data>

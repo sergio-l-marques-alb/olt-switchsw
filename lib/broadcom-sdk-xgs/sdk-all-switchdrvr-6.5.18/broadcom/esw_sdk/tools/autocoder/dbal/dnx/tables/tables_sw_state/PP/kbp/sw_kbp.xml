@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL GPM SW state:
+    This xml contains the sw staate logical DB for the DBAL.
+    ******************************************************
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../sw_state_schema.xsd">
+
+    <AppDB Name="KBP_DB_INFO">
+        <OneLineDescription>SW KBP DB information to configure</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DB_ID"                 Type="UINT" Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="VALID"                 Type="BOOL"/>
+                <Field Name="DB_NAME"               Type="STRING"/>
+                <Field Name="KEY_WIDTH"             Type="UINT" Size="10"/>
+                <Field Name="RESULT_WIDTH"          Type="UINT" Size="9"/>
+                <Field Name="OPTIMIZED_WIDTH"       Type="UINT" Size="9"/>
+                <Field Name="CLONE_DB"              Type="UINT" Size="6"/>
+                <Field Name="DB_TYPE"               Type="UINT" Size="8"/>
+                <Field Name="TABLE_SIZE"            Type="UINT"/>
+                <Field Name="RESULT_CAPACITY"       Type="UINT"/>
+                <Field Name="OPTIMIZED_CAPACITY"    Type="UINT"/>
+                <Field Name="ENTRY_COUNTERS_EN"     Type="BOOL"/>
+                <Field Name="DB_HAS_ZERO_SIZE_AD"          Type="BOOL"/>
+                <Field Name="ALGO_MODE"/>
+                <Field Name="XL_DB"                 Type="UINT" Size="2"/>
+                <Field Name="LOCALITY"              Type="UINT" Size="2"/>
+                <Field Name="TABLE_ID"              Type="DBAL_TABLE"/>
+                <Field Name="META_PRIORITY"         Type="UINT" Size="2"/>
+                <Field Name="NOF_VALID_SEGMENTS"    Type="UINT" Size="6"/>
+            </Result>
+            <TableLabels>KBP KBP_MNGM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="KBP_OPCODE_INFO">
+        <OneLineDescription>SW KBP LTR information to configure</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OPCODE_ID"                 Type="KBP_OPCODE_ID"  />
+            </Key>
+            <Result>
+                <Field Name="OPCODE_NAME"               Type="STRING"/>
+                <Field Name="VALID"                     Type="BOOL"     Description="Is the opcode valid"/>
+                <Field Name="LOOKUP_BITMAP"             Type="BITMAP"   Size="8"    Description="Bit per lookup is lookup enabled"/>
+                <Field Name="RESULT_BITMAP"             Type="BITMAP"   Size="8"    Description="Bit per result is result enabled"/>
+                <Field Name="NOF_PUBLIC_LOOKUPS"        Type="UINT"     Size="3"    Description="The number of cases in which two lookups return data to the same result (public/private)"/>
+                <Field Name="NOF_VALID_SEGMENTS"        Type="UINT"     Size="6"/>
+                <Field Name="OPCODE_FWD_CONTEXT"        Type="UINT"     Size="6"    NofInstances="5"    Description="FWD2 contexts that use this opcode"/>
+                <Field Name="NOF_OPCODE_FWD_CONTEXTS"   Type="UINT"     Size="3"    Description="The number of FWD2 contexts that use this opcode"/>
+            </Result>
+            <TableLabels>KBP KBP_MNGM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KBP_DB_KEY_SEGMENT_INFO">
+        <OneLineDescription>SW KBP key segment information to configure</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DB_ID"                     Type="UINT"     Size="6"/>
+                <Field Name="KEY_SEGMENT_INDEX"         Type="UINT"     Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="SEGMENT_NAME"              Type="STRING"   Size="160"/>
+                <Field Name="SEGMENT_SIZE"              Type="UINT"     Size="8"/>
+                <Field Name="SEGMENT_TYPE"              Type="KBP_KEY_FIELD_TYPE"/>
+            </Result>
+            <TableLabels>KBP KBP_MNGM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KBP_MASTER_KEY_SEGMENT_INFO">
+        <OneLineDescription>SW KBP key segment information to configure</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OPCODE_ID"                 Type="KBP_OPCODE_ID"/>
+                <Field Name="KEY_SEGMENT_INDEX"         Type="UINT"     Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="SEGMENT_NAME"              Type="STRING"   Size="160"/>
+                <Field Name="SEGMENT_SIZE"              Type="UINT"     Size="8"/>
+                <Field Name="SEGMENT_TYPE"              Type="KBP_KEY_FIELD_TYPE"/>
+                <Field Name="SEGMENT_OVERLAY_OFFSET"    Type="UINT"     Size="8"/>
+            </Result>
+            <TableLabels>KBP KBP_MNGM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="KBP_OPCODE_LOOKUP_INFO">
+        <OneLineDescription>SW KBP LTR single lookup information</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OPCODE_ID"             Type="KBP_OPCODE_ID"/>
+                <Field Name="LOOKUP_ID"             Type="UINT"     Size="3"/>
+            </Key>
+            <Result>
+                <Field Name="VALID"                 Type="BOOL"                 Description="Is the lookup valid"/>
+                <Field Name="LOOKUP_TYPE"           Type="KBP_LOOKUP_TYPE"      Description="Lookup type FWD/RPF/ACL (PUBLIC)"/>
+                <Field Name="LOOKUP_DB"             Type="UINT"     Size="6"    Description="DB ID per available lookup"/>
+                <Field Name="RESULT_ID"             Type="UINT"     Size="3"    Description="The result ID of each DB"/>
+                <Field Name="NOF_VALID_SEGMENTS"    Type="UINT"     Size="6" />
+                <Field Name="LOOKUP_SEGMENT_IDS"    Type="UINT"     Size="8"    NofInstances="15"   Description="Indication of used master key segments in the lookup and their order"/>
+            </Result>
+            <TableLabels>KBP KBP_MNGM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KBP_OPCODE_RESULT_INFO">
+        <OneLineDescription>SW KBP LTR single lookup information</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OPCODE_ID"             Type="KBP_OPCODE_ID" />
+                <Field Name="RESULT_ID"             Type="UINT"     Size="3"/>
+            </Key>
+            <Result>
+                <Field Name="VALID"                 Type="BOOL"                 Description="Is the lookup valid"/>
+                <Field Name="RESULT_PADDING"        Type="UINT"     Size="8"    Description="The padding from the end of the previous result to the offset of this one in the buffer"/>
+                <Field Name="RESULT_OFFSET"         Type="UINT"     Size="8"    Description="The offset of the result in the KBP returned buffer"/>
+                <Field Name="RESULT_SIZE"           Type="UINT"     Size="8"    Description="The size of the result in the KBP returned buffer"/>
+            </Result>
+            <TableLabels>KBP KBP_MNGM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KBP_GENERAL_INFO">
+        <OneLineDescription>SW KBP general information </OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="KBP_STATUS"            Type="KBP_DEVICE_STATUS"/>
+                <Field Name="NOF_DBS"               Type="UINT" Size="6"/>
+                <Field Name="NOF_OPCODES"           Type="UINT" Size="6"/>
+                <Field Name="DEVICE_CONNECT_MODE"   Type="KBP_DEVICE_MODE"/>
+				<Field Name="ACL_CONTEXT_STATUS"    Type="BITMAP" Size="32" Description="Bit per acl context that indicate if it is used"/>
+                <Field Name="IPV4_PUBLIC_ENABLED"   Type="BOOL"/>
+                <Field Name="IPV6_PUBLIC_ENABLED"   Type="BOOL"/>
+            </Result>
+            <TableLabels>KBP KBP_MNGM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>
+

@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<top>
+    <packets>
+        <packet name="simple">
+           <source port="200"/>
+           <proto name="PTCH_2"/>
+           <proto name="ETH0">
+               <field name="DA" value="00:01:02:03:04:05"/>
+           </proto>
+           <proto name="IPv4">
+               <field name="SIP" value="10.20.30.41"/>
+           </proto>
+           <proto name="UDP"/>
+        </packet>
+        <packet name="default">
+           <source port="201"/>
+           <proto name="PTCH_2"/>
+           <proto name="ETH2">
+               <field name="SA" value="00:66:77:88:99:AA"/>
+               <field name="DA" value="00:11:22:33:44:55"/>
+               <field name="Inner_VLAN.VID" value="24"/>
+           </proto>
+           <proto name="IPv4">
+               <field name="DIP" value="10.01.01.222"/>
+           </proto>
+           <proto name="TCP"/>
+        </packet>
+        <!--
+          These packet structures are reserved for TDM tests. See \src\appl\ctest\dnx\ctest_dnx_tdm.c
+          Note that 'length' is the size of the packet, including PTCH.
+          a. Sending from CPU to the port which is on loopback:
+            So, when actually sent over, say, Ethernet, the legth would be larger by 4 bytes of CRC
+            and smaller by 2 bytes of PTCH (So, altogether, a size of 252 here will result in sending
+            a packet of size 254 to the loopback port and in receiving that size).
+          b. Following that, within the chip, the ETHERNET CRC is removed (-4 bytes) but an internal
+            2 bytes CRC is added. Also, FTMH header (4 bytes for 'optimized') is added so the specified
+            lenght of 252 above becomes 256 bytes. This is the maximum for Q2A,
+          So, maximal size, as sent by CPU, including PTCH, is 252 for Q2A and 507 for
+          J2C.
+          However, we only set 248 (or 503). 
+          This is because, if FTMH header is NOT removed by egress editing, then a packet which
+          starts with size 248/503 (incl. PTCH) enters egress NIF with size 252 (or 507), which
+          is the max allowed (4 bytes of EHERNET CRC are added at the NIF).
+          We only need to send this maximal size, and not more, since we have a loopback
+          at the egress NIF.
+        -->
+        <packet name="tdm_01" length="248">
+           <source port="201"/>
+           <proto name="PTCH_2"/>
+           <proto name="ETH2">
+               <field name="SA" value="00:66:77:88:99:AA"/>
+               <field name="DA" value="00:11:22:33:44:55"/>
+               <!--
+                 This field is interpreted by the network processor as 'TC'
+               -->
+               <field name="Outer_VLAN.PCP" value="6"/>
+               <!--
+                 This field is interpreted by the network processor as 'DP'
+               -->
+               <field name="Outer_VLAN.DEI" value="1"/>
+               <field name="Outer_VLAN.VID" value="100"/>
+               <field name="Inner_VLAN.VID" value="24"/>
+           </proto>
+           <proto name="IPv4">
+               <field name="DIP" value="10.01.01.222"/>
+               <field name="TOS" value="105"/>
+           </proto>
+           <proto name="TCP"/>
+        </packet>
+        <packet name="tdm_02" length="503">
+           <source port="201"/>
+           <proto name="PTCH_2"/>
+           <proto name="ETH2">
+               <field name="SA" value="00:66:77:88:99:AA"/>
+               <field name="DA" value="00:11:22:33:44:55"/>
+               <!--
+                 This field is interpreted by the network processor as 'TC'
+               -->
+               <field name="Outer_VLAN.PCP" value="6"/>
+               <!--
+                 This field is interpreted by the network processor as 'DP'
+               -->
+               <field name="Outer_VLAN.DEI" value="1"/>
+               <field name="Inner_VLAN.VID" value="24"/>
+           </proto>
+           <proto name="IPv4">
+               <field name="DIP" value="10.01.01.222"/>
+               <field name="TOS" value="105"/>
+           </proto>
+           <proto name="TCP"/>
+        </packet>
+        <packet name="tdm_03" length="210">
+           <source port="201"/>
+           <proto name="PTCH_2"/>
+           <proto name="ETH2">
+               <field name="SA" value="00:66:77:88:99:AA"/>
+               <field name="DA" value="00:11:22:33:44:55"/>
+               <!--
+                 This field is interpreted by the network processor as 'TC'
+               -->
+               <field name="Outer_VLAN.PCP" value="6"/>
+               <!--
+                 This field is interpreted by the network processor as 'DP'
+               -->
+               <field name="Outer_VLAN.DEI" value="1"/>
+               <field name="Inner_VLAN.VID" value="24"/>
+           </proto>
+           <proto name="IPv4">
+               <field name="DIP" value="10.01.01.222"/>
+               <field name="TOS" value="105"/>
+           </proto>
+           <proto name="TCP"/>
+        </packet>
+
+        <packet name="mpls_ipv4">
+           <source port="201"/>
+           <proto name="PTCH_2"/>
+           <proto name="ETH1">
+               <field name="DA" value="00:66:77:88:99:AA"/>
+           </proto>
+           <proto name="MPLS"/>
+           <proto name="MPLS"/>
+           <proto name="MPLS"/>
+           <proto name="IPv4">
+               <field name="SIP" value="192.0.0.111"/>
+           </proto>
+           <proto name="UDP"/>
+        </packet>
+        <packet name="ipv6">
+           <source port="201"/>
+           <proto name="PTCH_2"/>
+           <proto name="ETH1">
+               <field name="DA" value="00:66:77:88:99:AA"/>
+           </proto>
+           <proto name="IPv6">
+               <field name="SIP" value="cdef:1234:4321:5678:8765:ab01:01ab:fedc"/>
+           </proto>
+           <proto name="UDP"/>
+        </packet>
+        <packet name="mpls_ipv6">
+           <source port="201"/>
+           <proto name="PTCH_2"/>
+           <proto name="ETH1">
+               <field name="DA" value="00:66:77:88:99:AA"/>
+           </proto>
+           <proto name="MPLS"/>
+           <proto name="MPLS"/>
+           <proto name="MPLS"/>
+           <proto name="IPv6">
+               <field name="SIP" value="cdef:1234:4321:5678:8765:ab01:01ab:fedc"/>
+           </proto>
+           <proto name="UDP"/>
+        </packet>
+        <packet name="sa_equals_da">
+           <source port="200"/>
+           <proto name="PTCH_2"/>
+           <proto name="ETH0">
+               <field name="DA" value="00:01:02:03:04:05"/>
+               <field name="SA" value="00:01:02:03:04:05"/>
+           </proto>
+           <proto name="IPv4">
+               <field name="SIP" value="10.20.30.41"/>
+           </proto>
+        </packet>
+        <packet name="sat" length="1000">
+           <source port="218"/>
+           <proto name="PTCH_2"/>
+           <proto name="ITMH_base"/>
+           <proto name="ETH0">
+               <field name="DA" value="00:01:02:03:04:05"/>
+           </proto>
+           <proto name="IPv4">
+               <field name="SIP" value="10.20.30.41"/>
+           </proto>
+           <stream time="5" rate="1000" burst="10000"/>
+        </packet>
+        <packet name="ipv4_checksum_error" length="256">
+           <source port="200"/>
+           <proto name="PTCH_2"/>
+           <proto name="ETH0">
+               <field name="DA" value="00:01:02:03:04:05"/>
+           </proto>
+           <proto name="IPv4">
+               <field name="SIP" value="10.20.30.41"/>
+               <field name="Checksum" value="0x5555"/>
+           </proto>
+           <proto name="UDP"/>
+        </packet>
+        <packet name="ipv4_raw">
+           <proto name="IPv4">
+                <field name="Total_Length" value="160"/>
+           </proto>
+        </packet>
+        <packet name="ipv4_explicit_cs_and_len" length="22">
+           <proto name="ETH1"/>
+           <proto name="MPLS">
+                <field name="TTL" value="0xff"/>
+           </proto>
+           <proto name="IPv4">
+                <field name="Total_Length" value="0xabcd"/>
+                <field name="Checksum" value="0xdcba"/>
+           </proto>
+           <proto name="UDP"/>
+        </packet>
+    </packets>
+    <signals>
+       <set name="layer1">
+           <signal name="Layer_Protocols.1" block="IRPP" from="VTT1" value="1"/>
+       </set>
+       <set name="default">
+           <signal name="Layer_Protocols.0" block="IRPP" from="VTT1" value="LAYER_TYPES_ETHERNET"/>
+           <signal name="Layer_Protocols.1" block="IRPP" from="VTT1" value="LAYER_TYPES_IPV4"/>
+           <signal name="Layer_Protocols.2" block="IRPP" from="VTT1" value="LAYER_TYPES_TCP"/>
+       </set>
+       <set name="mpls_ipv4">
+           <signal name="Layer_Protocols.0" block="IRPP" from="VTT1" value="LAYER_TYPES_ETHERNET"/>
+           <signal name="Layer_Protocols.1" block="IRPP" from="VTT1" value="LAYER_TYPES_MPLS"/>
+           <signal name="Layer_Protocols.2" block="IRPP" from="VTT1" value="LAYER_TYPES_MPLS"/>
+           <signal name="Layer_Protocols.3" block="IRPP" from="VTT1" value="LAYER_TYPES_IPV4"/>
+           <signal name="Layer_Protocols.4" block="IRPP" from="VTT1" value="LAYER_TYPES_UDP"/>
+       </set>
+       <set name="mpls_IPv6">
+           <signal name="Layer_Protocols.0" block="IRPP" from="VTT1" value="LAYER_TYPES_ETHERNET"/>
+           <signal name="Layer_Protocols.1" block="IRPP" from="VTT1" value="LAYER_TYPES_MPLS"/>
+           <signal name="Layer_Protocols.2" block="IRPP" from="VTT1" value="LAYER_TYPES_MPLS"/>
+           <signal name="Layer_Protocols.3" block="IRPP" from="VTT1" value="LAYER_TYPES_IPV6"/>
+           <signal name="Layer_Protocols.4" block="IRPP" from="VTT1" value="LAYER_TYPES_UDP"/>
+       </set>
+       <set name="IPv6">
+           <signal name="Layer_Protocols.0" block="IRPP" from="VTT1" value="LAYER_TYPES_ETHERNET"/>
+           <signal name="Layer_Protocols.1" block="IRPP" from="VTT1" value="LAYER_TYPES_IPV6"/>
+           <signal name="Layer_Protocols.2" block="IRPP" from="VTT1" value="LAYER_TYPES_UDP"/>
+       </set>
+    </signals>
+</top>

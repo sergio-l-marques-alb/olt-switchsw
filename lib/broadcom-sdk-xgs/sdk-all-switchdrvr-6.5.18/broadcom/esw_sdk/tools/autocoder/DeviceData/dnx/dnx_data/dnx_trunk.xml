@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+
+<device_data lib="dnx_data" module="trunk" bsl_flag="BSL_LS_BCMDNX_TRUNK">
+    <sub_module name="parameters" doc="Trunk parameters and defines">
+        <numerics>
+        </numerics>
+        <defines>
+            <define labels="j2p_notrev" name="nof_pools" doc="trunk module might be represented with pools in certain architectures, this number represents the number of pools currently supported for this device. each pool has a constant amount of members."></define>
+            <define labels="j2p_notrev" name="max_nof_members_in_pool" doc="the maximal amount of members that a pool can contain."></define>
+            <define labels="j2p_notrev" name="max_nof_groups_in_pool" doc="the maximal amount of groups that a pool can contain."></define>
+            <define labels="j2p_notrev" name="spa_pool_shift" doc="bit shifts to describe the pool of a trunk in a System Port Aggregate"></define>
+            <define labels="j2p_notrev" name="spa_type_shift" doc="bit shifts to describe trunk type in a System Port Aggregate"></define>
+        </defines>
+        <tables>
+            <table labels="j2p_notrev" name="pool_info" doc="this table contains the information per pool of trunks">
+                <key name="pool_index" doc="pool index"></key>
+                <value name="max_nof_members_in_group" type="uint32" doc="maxmimal number of members in a group in this pool"></value>
+                <value name="max_nof_groups_in_pool" type="uint32" doc="maximal number of groups in this pool"></value>
+                <value name="pool_hw_mode" type="int" doc="mapping to the actual value the HW needs to get to represent given pool mode"></value>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="psc" doc="Trunk Port Selection Criteria (PSC) Data">
+        <numerics>
+        </numerics>
+        <defines>
+            <define labels="j2p_notrev" name="consistant_hashing_small_group_size_in_bits" doc="size in bits of small groups in c-lag"></define>
+            <define labels="j2p_notrev" name="smooth_division_max_nof_member" doc="max number of member is trunk group with smooth division as PSC"></define>
+            <define labels="j2p_notrev" name="smooth_division_entries_per_profile" doc="logical number of entries dedicated in the HW per SMD profile"></define>
+        </defines>
+        <features>
+            <feature labels="j2p_notrev" name="multiply_and_divide" doc="is Multiply and Divide PSC supported"></feature>
+            <feature labels="j2p_notrev" name="smooth_division" doc="is Smooth Division PSC supported"></feature>
+            <feature labels="j2p_notrev" name="consistant_hashing" doc="is Consistant Hashing PSC supported"></feature>
+        </features>
+        <tables>
+        </tables>
+    </sub_module>
+    <sub_module name="egress_trunk" doc="Egress Trunks - for egress MC">
+        <features>
+            <feature labels="j2p_notrev" name="multiple_egress_trunk_sizes" doc="device is supporting multiple modes for sizes of egress lags"></feature>
+        </features>
+        <numerics>
+            <numeric labels="j2p_notrev" name="nof" doc="number of egress trunks"></numeric>
+            <numeric labels="j2p_notrev" name="nof_lb_keys_per_profile" doc="number of lb keys per Egress trunk"></numeric>
+            <numeric labels="j2p_notrev" name="dbal_egress_trunk_index_multiplier" doc="multiplier size for mapping dbal key EGRESS_TRUNK_INDEX in dbal table TRUNK_EGRESS_MC_RESOLUTION"></numeric>
+            <numeric labels="j2p_notrev" name="dbal_entry_index_divider" doc="divider size for mapping dbal key ENTRY_INDEX in dbal table TRUNK_EGRESS_MC_RESOLUTION"></numeric>
+            <numeric labels="j2p_notrev" name="dbal_entry_index_msb_multiplier" doc="multiplier size for mapping dbal key ENTRY_INDEX msb in dbal table TRUNK_EGRESS_MC_RESOLUTION"></numeric>
+            <numeric labels="j2p_notrev" name="size_mode" doc="HW mode relevant for group size"></numeric>
+            <numeric name="invalid_pp_dsp" doc="invalid pp dsp that should be connected to invalid out port for egress trunk"></numeric>
+        </numerics>
+    </sub_module>
+    <sub_module name="graceful" doc="data regarding graceful modification of trunks">
+        <features>
+            <feature labels="j2p_notrev" name="allow" doc="allow changing lag in an atomic action in the device's local scope"></feature>
+        </features>
+        <defines>
+            <define labels="j2p_notrev" name="first_hw_configuration" doc="hw value to indicate first configuration is currently used"></define>
+            <define labels="j2p_notrev" name="second_hw_configuration" doc="hw value to indicate second configuration is currently used"></define>
+        </defines>
+    </sub_module>    
+</device_data>
+
+
+
+
+

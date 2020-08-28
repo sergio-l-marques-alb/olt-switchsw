@@ -1,0 +1,3098 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="INGRESS_PP_PORT">
+        <OneLineDescription>Ingress PP Port actions</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="VLAN_DOMAIN" Size="DNX_DATA.port.general.ingress_vlan_domain_size"/>
+                <Field Name="PORT_VID" Type="VLAN_ID"/>
+                <Field Name="DEFAULT_LIF" Size="20" Type="IN_LIF"/>
+                <Field Name="VLAN_MEMBERSHIP_IF"/>
+                <Field Name="MY_CFM_MAC_MSB" Offset="8" Size="40" Type="L2_MAC"/>
+                <Field Name="MY_CFM_MAC_LSB_MAP" Valid="!DNX_DATA.oam.general.oam_my_cfm_mac_by_range"/>
+                <Field Name="MAC_LSBS_RANGE_MIN" Size="8" Type="MAC_LSB" Valid="DNX_DATA.oam.general.oam_my_cfm_mac_by_range"/>
+                <Field Name="MAC_LSBS_RANGE_MAX" Size="8" Type="MAC_LSB" Valid="DNX_DATA.oam.general.oam_my_cfm_mac_by_range"/>
+                <Field Name="SOURCE_SYSTEM_PORT" Type="SYSTEM_PORT"/>
+                <Field Name="IRPP_1ST_PARSER_PARSER_CONTEXT"/>
+                <Field Name="PRT_QUALIFIER"/>
+                <Field Name="TRACE_PROBABILITY"/>
+                <Field Name="LAYER_OFFSET"/>
+                <Field Name="INGRESS_LLVP_PROFILE"/>
+                <Field Description="If true, ignoring Incoming VID is being Enabled" Name="IGNORE_INCOMING_VID_ENABLE" Type="BOOL"/>
+                <Field Name="PP_INJECT_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Enable learning SA" Name="LEARN_ENABLE" Size="1"/>
+                <Field Description="Enable valid LIF in MACT payload upon learning" Name="LEARN_LIF_ENABLE" Size="1" Type="BOOL"/>
+                <Field Name="SA_NOT_FOUND_ACTION_PROFILE" Size="2" Type="ACTION_PROFILE"/>
+                <Field Name="SA_DROP_ACTION_PROFILE"/>
+                <Field Name="DA_NOT_FOUND_ACTION_PROFILE"/>
+                <Field Name="ECN_MAPPING_PROFILE" Size="2"/>
+                <Field Name="PHB_QOS_PROFILE" Type="QOS_PROFILE"/>
+                <Field Name="REMARK_QOS_PROFILE" Type="QOS_PROFILE"/>
+                <Field Name="PHB_STRENGTH" Type="QOS_PROPAG_STRENGTH"/>
+                <Field Name="REMARK_STRENGTH" Type="QOS_PROPAG_STRENGTH"/>
+                <Field Name="ECN_STRENGTH" Type="QOS_PROPAG_STRENGTH"/>
+                <Field Name="TTL_STRENGTH" Type="QOS_PROPAG_STRENGTH"/>
+                <Field Description="Map Port to Port profile in FWD context-selection" Name="FWD_PORT_PROFILE" Size="5" Type="UINT"/>
+                <Field Name="STAT_OBJECT_ID"/>
+                <Field Name="STAT_OBJECT_CMD"/>
+                <Field Name="VISIBILITY_ENABLE" Type="BOOL"/>
+                <Field Name="VISIBILITY_FORCE" Type="BOOL"/>
+                <Field Name="INGRESS_TRAP_ID"/>
+                <Field Name="TRAP_FWD_STRENGTH"/>
+                <Field Name="TRAP_SNP_STRENGTH"/>
+                <Field Name="IN_PORT_SAME_INTERFACE_FILTER_PROFILE"/>
+                <Field Description="Set always as CORE_ID and PORT_PP" Name="MAPPED_PP_PORT"/>
+                <Field Description="pp port profile for ECOlogic application" Name="ECOL_PP_PORT_PROFILE" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.ecologic_support"/>
+                <Field Name="PORT_LB_PROFILE" Size="2" Type="UINT" Valid="DNX_DATA.switch.load_balancing.hashing_selection_per_layer"/>
+            </Result>
+            <TableLabels>PP_PORT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="VLAN_DOMAIN">
+                    <Access>
+                        <Memory Name="IPPE_PP_PORT_TO_VDm">
+                            <HwField Name="VLAN_DOMAINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PORT_VID">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <HwField Name="DEFAULT_INITIAL_VIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DEFAULT_LIF">
+                    <Access>
+                        <Memory Name="IPPF_VTT_IN_PP_PORT_CONFIG_0m">
+                            <HwField Name="DEFAULT_PORT_LIFf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_IF">
+                    <Access>
+                        <Memory GroupName="INGRESS_MAP_PORT_TO_MEMBERSHIP_IF_VEC">
+                            <HwField Name="VLAN_MEMBERSHIP_IFf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PP_INJECT_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_PINFO_FLP_MEMm">
+                            <HwField Name="ENABLE_PP_INJECTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_CFM_MAC_MSB">
+                    <Access>
+                        <Memory Name="IPPB_OAM_MY_CFM_MACm">
+                            <HwField Name="MSBf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--FIXME: SDK-139459 J2C: DA7:0 matches for OAM-my-CFM-MAC lsb
+                    MY_CFM_MAC_LSB_MAP(OAM-my-CFM-MAC lsb) is changed from bitmap to range
+                    For J2C, it will be IPPB_OAM_MY_CFM_MACm.LSB_RANGE_BASEf >= DA7:0 <= IPPB_OAM_MY_CFM_MACm.LSB_RANGE_BASEf+LSB_RANGE_LENGTHf
+                -->
+                <Field Device="JR2_A0 JR2_B0" Name="MY_CFM_MAC_LSB_MAP">
+                    <Access>
+                        <Memory Name="IPPB_OAM_MY_CFM_MACm">
+                            <HwField Name="LSB_BITMAPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="MAC_LSBS_RANGE_MIN">
+                    <Access>
+                        <Memory Name="IPPB_OAM_MY_CFM_MACm">
+                            <HwField Name="MAC_LSBS_RANGE_MINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="MAC_LSBS_RANGE_MAX">
+                    <Access>
+                        <Memory Name="IPPB_OAM_MY_CFM_MACm">
+                            <HwField Name="MAC_LSBS_RANGE_MAXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SOURCE_SYSTEM_PORT">
+                    <Access>
+                        <Memory Name="IPPE_PRT_PP_PORT_INFOm">
+                            <HwField Name="SRC_SYS_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IRPP_1ST_PARSER_PARSER_CONTEXT">
+                    <Access>
+                        <Memory Name="IPPE_PRT_PP_PORT_INFOm">
+                            <HwField Name="PARSING_CONTEXTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PRT_QUALIFIER">
+                    <Access>
+                        <Memory Name="IPPE_PRT_PP_PORT_INFOm">
+                            <HwField Name="PRT_QUALIFIERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRACE_PROBABILITY">
+                    <Access>
+                        <Memory Name="IPPE_PRT_PP_PORT_INFOm">
+                            <HwField Name="TRACE_PROBABILITYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAYER_OFFSET">
+                    <Access>
+                        <Memory Name="IPPE_PRT_PP_PORT_INFOm">
+                            <HwField Name="OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INGRESS_LLVP_PROFILE">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <HwField Name="VLAN_CLASSIFICATION_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="IGNORE_INCOMING_VID_ENABLE">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <HwField Name="IGNORE_INCOMING_VIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LEARN_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_PINFO_FLP_MEMm">
+                            <HwField Name="LEARN_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SA_NOT_FOUND_ACTION_PROFILE">
+                    <Access>
+                        <Memory Name="IPPB_PINFO_FLP_MEMm">
+                            <HwField Name="ACTION_PROFILE_SA_NOT_FOUND_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SA_DROP_ACTION_PROFILE">
+                    <Access>
+                        <Memory Name="IPPB_PINFO_FLP_MEMm">
+                            <HwField Name="ACTION_PROFILE_SA_DROP_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DA_NOT_FOUND_ACTION_PROFILE">
+                    <Access>
+                        <Memory Name="IPPB_PINFO_FLP_MEMm">
+                            <HwField Name="ACTION_PROFILE_DA_NOT_FOUND_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ECN_MAPPING_PROFILE">
+                    <Access>
+                        <Memory Name="IPPE_PP_PORT_TO_QOSm">
+                            <HwField Name="ECN_MAPPING_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PHB_QOS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPE_PP_PORT_TO_QOSm">
+                            <HwField Name="PHB_MAPPING_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REMARK_QOS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPE_PP_PORT_TO_QOSm">
+                            <HwField Name="RM_MAPPING_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ECN_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPE_PP_PORT_TO_QOSm">
+                            <HwField Name="ECN_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PHB_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPE_PP_PORT_TO_QOSm">
+                            <HwField Name="PHB_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REMARK_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPE_PP_PORT_TO_QOSm">
+                            <HwField Name="RM_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPE_PP_PORT_TO_QOSm">
+                            <HwField Name="TTL_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2P_A0" Name="LEARN_LIF_ENABLE">
+                    <Access>
+                        <Register GroupName="INGRESS_MAP_PORT_TO_LEARN_LIF_VEC">
+                            <HwField Name="LEARN_LIF_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(PP_PORT)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <!-- For J2C, IPPA/F_MAP_PORT_TO_LEARN_LIF_VEC is divided into IPPA/F_MAP_PORT_TO_LEARN_LIF_VEC_LSB and IPPA/F_MAP_PORT_TO_LEARN_LIF_VEC_MSB-->
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="LEARN_LIF_ENABLE">
+                    <Access>
+                        <KeyCondition Field="PP_PORT" Type="LOWER_THAN" Value="512"/>
+                        <Register GroupName="INGRESS_MAP_PORT_TO_LEARN_LIF_VEC_LOW">
+                            <HwField Name="LEARN_LIF_VEC_LSBf"/>
+                            <DataOffset Formula="#KEY_VALUE(PP_PORT)%512"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PP_PORT" Type="BIGGER_THAN" Value="511"/>
+                        <Register GroupName="INGRESS_MAP_PORT_TO_LEARN_LIF_VEC_HIGH">
+                            <HwField Name="LEARN_LIF_VEC_MSBf"/>
+                            <DataOffset Formula="#KEY_VALUE(PP_PORT)%512"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FWD_PORT_PROFILE">
+                    <Access>
+                        <Memory Name="IPPB_FLP_PORT_PROFILE_MAPm">
+                            <HwField Name="PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STAT_OBJECT_ID">
+                    <Access>
+                        <Memory Name="IPPC_PER_PORT_STATISTICSm">
+                            <HwField Name="OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STAT_OBJECT_CMD">
+                    <Access>
+                        <Memory Name="IPPC_PER_PORT_STATISTICSm">
+                            <HwField Name="OBJ_CMDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2P_A0" Name="VISIBILITY_ENABLE">
+                    <Access>
+                        <Register Name="IPPE_PORT_VISIBILITY_CONFIGr">
+                            <HwField Name="PORT_VISIBILITY_ENABLEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="VISIBILITY_ENABLE">
+                    <Access>
+                        <KeyCondition Field="PP_PORT" Type="LOWER_THAN" Value="256"/>
+                        <Register Name="IPPE_PORT_VISIBILITY_CONFIGr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PORT_VISIBILITY_ENABLE_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(PP_PORT)%256"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PP_PORT" Type="BIGGER_THAN" Value="255"/>
+                        <KeyCondition Field="PP_PORT" Type="LOWER_THAN" Value="512"/>
+                        <Register Name="IPPE_PORT_VISIBILITY_CONFIGr">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="PORT_VISIBILITY_ENABLE_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(PP_PORT)%256"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PP_PORT" Type="BIGGER_THAN" Value="511"/>
+                        <KeyCondition Field="PP_PORT" Type="LOWER_THAN" Value="768"/>
+                        <Register Name="IPPE_PORT_VISIBILITY_CONFIGr">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="PORT_VISIBILITY_ENABLE_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(PP_PORT)%256"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PP_PORT" Type="BIGGER_THAN" Value="767"/>
+                        <Register Name="IPPE_PORT_VISIBILITY_CONFIGr">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="PORT_VISIBILITY_ENABLE_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(PP_PORT)%256"/>
+                        </Register>
+                    </Access>
+                </Field>
+		<Field Device="JR2_A0 JR2_B0 J2P_A0" Name="VISIBILITY_FORCE">
+                    <Access>
+                        <Register Name="IPPE_PORT_VISIBILITY_CONFIGr">
+                            <HwField Name="PORT_VISIBILITY_FORCEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="VISIBILITY_FORCE">
+                    <Access>
+                        <KeyCondition Field="PP_PORT" Type="LOWER_THAN" Value="256"/>
+                        <Register Name="IPPE_PORT_VISIBILITY_CONFIGr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PORT_VISIBILITY_FORCE_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(PP_PORT)%256"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PP_PORT" Type="BIGGER_THAN" Value="255"/>
+                        <KeyCondition Field="PP_PORT" Type="LOWER_THAN" Value="512"/>
+                        <Register Name="IPPE_PORT_VISIBILITY_CONFIGr">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="PORT_VISIBILITY_FORCE_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(PP_PORT)%256"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PP_PORT" Type="BIGGER_THAN" Value="511"/>
+                        <KeyCondition Field="PP_PORT" Type="LOWER_THAN" Value="768"/>
+                        <Register Name="IPPE_PORT_VISIBILITY_CONFIGr">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="PORT_VISIBILITY_FORCE_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(PP_PORT)%256"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PP_PORT" Type="BIGGER_THAN" Value="767"/>
+                        <Register Name="IPPE_PORT_VISIBILITY_CONFIGr">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="PORT_VISIBILITY_FORCE_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(PP_PORT)%256"/>
+                        </Register>
+                    </Access>
+                </Field>
+		<Field Name="INGRESS_TRAP_ID">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <HwField Name="DEFAULT_CPU_TRAP_CODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_FWD_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <HwField Name="DEFAULT_ACTION_PROFILE_FWDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_SNP_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <HwField Name="DEFAULT_ACTION_PROFILE_SNPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IN_PORT_SAME_INTERFACE_FILTER_PROFILE">
+                    <Access>
+                        <Memory Name="IPPD_IN_PORT_PROFILE_TABLEm">
+                            <HwField Name="IN_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAPPED_PP_PORT">
+                    <Access>
+                        <Memory Name="IPPB_PINFO_FLP_MEMm">
+                            <HwField Name="MAPPED_PP_PORTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="IPPF_VTT_IN_PP_PORT_CONFIG_0m">
+                            <HwField Name="MAPPED_PP_PORTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="IPPF_VTT_IN_PP_PORT_CONFIGm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="MAPPED_PP_PORTf"/>
+                        </Memory>
+                    </Access>
+		    <Access>
+                        <Memory Name="IPPF_VTT_IN_PP_PORT_CONFIGm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="MAPPED_PP_PORTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="IPPA_VTT_IN_PP_PORT_CONFIGm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="MAPPED_PP_PORTf"/>
+                        </Memory>
+                    </Access>
+		    <Access>
+                        <Memory Name="IPPA_VTT_IN_PP_PORT_CONFIGm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="MAPPED_PP_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ECOL_PP_PORT_PROFILE">
+                        <Access>
+                        <Memory Name="IPPE_ECL_PORT_PROFILEm">
+                            <HwField Name="ECL_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PORT_LB_PROFILE">
+                    <Access>
+                        <Memory Name="IPPB_PINFO_FLP_MEMm">
+                            <HwField Name="PORT_LB_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_PP_PORT">
+        <OneLineDescription>Egress PP port actions</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="VLAN_DOMAIN"/>
+                <Field Name="ESEM_ACCESS_CMD" Size="6"/>
+                <Field Name="TX_OUTER_TAG_VALID" Type="BOOL"/>
+                <Field Name="TX_OUTER_TAG_VID" Type="VLAN_ID"/>
+                <Field Name="VLAN_MEMBERSHIP_IF"/>
+                <Field Name="MY_CFM_MAC_MSB" Offset="8" Size="40" Type="L2_MAC"/>
+                <Field Name="MY_CFM_MAC_LSB_MAP" Valid="!DNX_DATA.oam.general.oam_my_cfm_mac_by_range"/>
+                <Field Name="MAC_LSBS_RANGE_MIN" Type="MAC_LSB" Valid="DNX_DATA.oam.general.oam_my_cfm_mac_by_range"/>
+                <Field Name="MAC_LSBS_RANGE_MAX" Type="MAC_LSB" Valid="DNX_DATA.oam.general.oam_my_cfm_mac_by_range"/>
+                <Field Name="EGRESS_LLVP_PROFILE"/>
+                <Field Name="EGRESS_FWD_CODE_PORT_PROFILE"/>
+                <Field Name="PRP_CONTEXT_PORT_PROFILE"/>
+                <Field Name="ETPP_TERMINATION_PORT_CS_VAR"/>
+                <Field Name="FORWARDING_CONTEXT_PORT_PROFILE"/>
+                <Field Name="ENC_1_CONTEXT_PORT_PROFILE" Type="ENCAPSULATION_CONTEXT_PORT_PROFILE"/>
+                <Field Name="ENC_2_CONTEXT_PORT_PROFILE" Type="ENCAPSULATION_CONTEXT_PORT_PROFILE"/>
+                <Field Name="ENC_3_CONTEXT_PORT_PROFILE" Type="ENCAPSULATION_CONTEXT_PORT_PROFILE"/>
+                <Field Name="ENC_4_CONTEXT_PORT_PROFILE" Type="ENCAPSULATION_CONTEXT_PORT_PROFILE"/>
+                <Field Name="ENC_5_CONTEXT_PORT_PROFILE" Type="ENCAPSULATION_CONTEXT_PORT_PROFILE"/>
+                <Field Name="TRAP_CONTEXT_PORT_PROFILE" Type="ETPP_TRAP_CONTEXT_PORT_PROFILE"/>
+                <Field Description="If true, VLAN membership per port is Enabled." Name="VLAN_MEMBERSHIP_ENABLE" Type="BOOL"/>
+                <Field Name="SIT_PROFILE" Size="3"/>
+                <Field Name="SIT_PCP" Type="PCP"/>
+                <Field Name="SIT_DEI" Type="DEI"/>
+                <Field Name="SIT_VID" Size="12" Type="VLAN_ID"/>
+                <Field Description="Enabler for filtering of unknown broadcast Destination Address." Name="UNKNOWN_BC_DA_FILTER_ENABLE" Type="BOOL"/>
+                <Field Description="Per PP Port Info: TC Map Profile." Name="COS_MAP_PROFILE" Size="3" Type="UINT"/>
+                <Field Description="Enabler for filtering of unknown multicast Destination Address." Name="UNKNOWN_MC_DA_FILTER_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for filtering of unknown unicast Destination Address." Name="UNKNOWN_UC_DA_FILTER_ENABLE" Type="BOOL"/>
+                <Field Description="A profile value used by the PMF to select a program." Name="PP_PORT_CS_PROFILE" Size="3" Type="UINT"/>
+                <Field Name="OUT_PP_PORT_PMF_DATA"/>
+                <Field Description="Split Horizon Enable per Out PP Port." Name="SPLIT_HORIZON_ENABLE" Size="1" Type="BOOL"/>
+                <Field Name="STAT_OBJECT_ID"/>
+                <Field Name="STAT_OBJECT_CMD"/>
+                <Field Description="DSS Stacking Filter Enable per Out PP Port." Name="DSS_STACKING_ENABLE" Type="BOOL"/>
+                <Field Description="LAG Multicast Filter Enable per Out PP Port." Name="LAG_MULTICAST_ENABLE" Type="BOOL"/>
+                <Field Description="ERPP Split Horizon Filter Enable per Out PP Port." Name="ERPP_SPLIT_HORIZON_ENABLE" Type="BOOL"/>
+                <Field Description="Egress Acceptable Frame Type Profile per Out PP Port." Name="ACCEPTABLE_FRAME_TYPE_PROFILE"/>
+                <Field Description="Acceptable Frame Type Filter Enable per Out PP Port." Name="ACCEPTABLE_FRAME_TYPE_ENABLE" Type="BOOL"/>
+                <Field Description="Unknown DA Filter Enable per Out PP Port." Name="UNKNOWN_DA_ENABLE" Type="BOOL"/>
+                <Field Description="Same Interface Enable per Out TM Port." Name="SAME_INTERFACE_ENABLE" Type="BOOL"/>
+                <Field Description="GLEM PP Filter Enable per Out PP Port." Name="GLEM_PP_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="GLEM NON  PP Filter Enable per Out PP Port." Name="GLEM_NON_PP_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="TTL Scoping Filter Enable per Out PP Port." Name="TTL_SCOPING_ENABLE" Type="BOOL"/>
+                <Field Description="TTL Zero Filter Enable per Out PP Port." Name="TTL_ZERO_ENABLE" Type="BOOL"/>
+                <Field Description="TTL One Filter Enable per Out PP Port." Name="TTL_ONE_ENABLE" Type="BOOL"/>
+                <Field Description="MTU Ckeck Filter Enable per Out PP Port." Name="MTU_CHECK_ENABLE" Type="BOOL"/>
+                <Field Description="IPV4  Filters Enable per Out PP Port." Name="IPV4_FILTERS_ENABLE" Type="BOOL" Valid="DNX_DATA.dev_init.general.erpp_filters_non_separate_enablers"/>
+                <Field Description="IPV6  Filters Enable per Out PP Port." Name="IPV6_FILTERS_ENABLE" Type="BOOL" Valid="DNX_DATA.dev_init.general.erpp_filters_non_separate_enablers"/>
+                <Field Description="Layer 4 Filters Enable per Out PP Port." Name="LAYER_4_FILTERS_ENABLE" Type="BOOL" Valid="DNX_DATA.dev_init.general.erpp_filters_non_separate_enablers"/>
+                <Field Description="end to end latency flow profile" Name="LATENCY_FLOW_PROFILE" Size="4" Type="UINT"/>
+                <Field Description="Stamp value" Name="STAMP_VALUE" Size="16" Type="UINT"/>
+                <Field Name="MTU_PROFILE"/> 
+                <Field Description="Enable Exclude Src per Out PP Port" Name="EXCLUDE_SRC_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>PP_PORT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0" Hook="1">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="VLAN_DOMAIN">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="VLAN_DOMAINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ESEM_ACCESS_CMD">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="PORT_EM_ACC_CMDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                 <Field Name="TX_OUTER_TAG_VALID">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="TX_TAG_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TX_OUTER_TAG_VID">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="TX_TAG_VIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_IF">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="VLAN_MEMBERSHIP_INTERFACEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_CFM_MAC_MSB">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_MY_CFM_MAC_TABLEm">
+                            <HwField Name="MAC_MSBSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_CFM_MAC_LSB_MAP">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_MY_CFM_MAC_TABLEm">
+                            <HwField Name="MAC_LSBS_BITMAPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_FWD_CODE_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="FWD_CODE_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PRP_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="PRP_CONTEXT_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_LLVP_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="LLVP_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                 <Field Name="ETPP_TERMINATION_PORT_CS_VAR">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="TERM_CONTEXT_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORWARDING_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="FWD_CONTEXT_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ENC_1_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_ENC_1_CONTEXT_SELECTION_PER_PORT_PROFILEm">
+                            <HwField Name="CONTEXT_SELECTION_PER_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ENC_2_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_ENC_2_CONTEXT_SELECTION_PER_PORT_PROFILEm">
+                            <HwField Name="CONTEXT_SELECTION_PER_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ENC_3_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPB_ENC_3_CONTEXT_SELECTION_PER_PORT_PROFILEm">
+                            <HwField Name="CONTEXT_SELECTION_PER_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ENC_4_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPB_ENC_4_CONTEXT_SELECTION_PER_PORT_PROFILEm">
+                            <HwField Name="CONTEXT_SELECTION_PER_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ENC_5_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPB_ENC_5_CONTEXT_SELECTION_PER_PORT_PROFILEm">
+                            <HwField Name="CONTEXT_SELECTION_PER_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_SELECTION_PER_PORT_PROFILEm">
+                            <HwField Name="CONTEXT_SELECTION_PER_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Register Name="ETPPB_CFG_MEMBERSHIP_PER_PORT_ENr">
+                            <HwField Name="CFG_MEMBERSHIP_PER_PORT_ENf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SIT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="SIT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIT_PCP">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm"> 
+                            <HwField Name="SIT_PCP_DEIf"/>
+                            <DataOffset Formula="1"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIT_DEI">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="SIT_PCP_DEIf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIT_VID">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm"> 
+                            <HwField Name="SIT_VIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UNKNOWN_BC_DA_FILTER_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PER_PORT_TABLEm"> 
+                            <HwField Name="UNKNOWN_BC_DA_ACTION_FILTERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="COS_MAP_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PER_PORT_TABLEm"> 
+                            <HwField Name="TC_MAP_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UNKNOWN_MC_DA_FILTER_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PER_PORT_TABLEm"> 
+                            <HwField Name="UNKNOWN_MC_DA_ACTION_FILTERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UNKNOWN_UC_DA_FILTER_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PER_PORT_TABLEm">
+                            <HwField Name="UNKNOWN_UC_DA_ACTION_FILTERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PP_PORT_CS_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PER_PORT_TABLEm">
+                            <!--  Should have been PMF_PROFILEf in bits 83:83, but due to a bug (JIRA HWJERICHO2-2237) uses bits 0:2.-->
+                            <DataOffset Formula="dnx_data_field.features.per_pp_port_pmf_profile_cs_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUT_PP_PORT_PMF_DATA">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PER_PORT_TABLEm">
+                            <HwField Name="PP_PMF_DATAf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SPLIT_HORIZON_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Register Name="ETPPC_CFG_SPLIT_HORIZON_PER_OUT_PP_PORTr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STAT_OBJECT_ID">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="PORT_STAT_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STAT_OBJECT_CMD">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="PORT_STAT_OBJ_CMDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DSS_STACKING_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_DSS_STACKING_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAG_MULTICAST_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_LAG_MULTICAST_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ERPP_SPLIT_HORIZON_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_SPLIT_HORIZON_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ACCEPTABLE_FRAME_TYPE_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="ACCEPTABLE_FRAME_TYPE_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ACCEPTABLE_FRAME_TYPE_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="ACCEPTABLE_FRAME_TYPE_ENf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_UNACCEPTABLE_FRAME_TYPE_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LATENCY_FLOW_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="PORT_LATENCY_FLOW_ID_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UNKNOWN_DA_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_UNKNOWN_DA_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SAME_INTERFACE_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_SAME_INTERFACE_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="GLEM_PP_TRAP_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_GLEM_PP_TRAP_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="GLEM_NON_PP_TRAP_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_GLEM_NON_PP_TRAP_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_SCOPING_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_TTL_SCOPING_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_ZERO_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_TTL_ZERO_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_ONE_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_TTL_ONE_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MTU_CHECK_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_MTU_VIOLATION_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_FILTERS_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_IPV4_FILTERS_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_FILTERS_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_IPV6_FILTERS_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAYER_4_FILTERS_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_LAYER_4_FILTERS_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                 <Field Name="STAMP_VALUE">
+                     <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_PER_PP_PORT_TABLEm">
+                            <HwField Name="STAMP_VALUEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MTU_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="MTU_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXCLUDE_SRC_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_EXCLUDE_SRC_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0" Hook="1">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="VLAN_DOMAIN">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="VLAN_DOMAINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ESEM_ACCESS_CMD">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="PORT_EM_ACC_CMDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                 <Field Name="TX_OUTER_TAG_VALID">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="TX_TAG_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TX_OUTER_TAG_VID">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="TX_TAG_VIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_IF">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="VLAN_MEMBERSHIP_INTERFACEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_CFM_MAC_MSB">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_MY_CFM_MAC_TABLEm">
+                            <HwField Name="MAC_MSBSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAC_LSBS_RANGE_MIN">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_MY_CFM_MAC_TABLEm">
+                            <HwField Name="MAC_LSBS_RANGE_MINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAC_LSBS_RANGE_MAX">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_MY_CFM_MAC_TABLEm">
+                            <HwField Name="MAC_LSBS_RANGE_MAXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_FWD_CODE_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="FWD_CODE_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PRP_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="PRP_CONTEXT_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_LLVP_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="LLVP_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                 <Field Name="ETPP_TERMINATION_PORT_CS_VAR">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="TERM_CONTEXT_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORWARDING_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="FWD_CONTEXT_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ENC_1_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_ENC_1_CONTEXT_SELECTION_PER_PORT_PROFILEm">
+                            <HwField Name="CONTEXT_SELECTION_PER_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ENC_2_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_ENC_2_CONTEXT_SELECTION_PER_PORT_PROFILEm">
+                            <HwField Name="CONTEXT_SELECTION_PER_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ENC_3_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPB_ENC_3_CONTEXT_SELECTION_PER_PORT_PROFILEm">
+                            <HwField Name="CONTEXT_SELECTION_PER_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ENC_4_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPB_ENC_4_CONTEXT_SELECTION_PER_PORT_PROFILEm">
+                            <HwField Name="CONTEXT_SELECTION_PER_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ENC_5_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPB_ENC_5_CONTEXT_SELECTION_PER_PORT_PROFILEm">
+                            <HwField Name="CONTEXT_SELECTION_PER_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_SELECTION_PER_PORT_PROFILEm">
+                            <HwField Name="CONTEXT_SELECTION_PER_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                <!--- Out-PP-Port9:8 selects Register0..3
+                      Out-PP-Port7:0 used to access the register
+                -->
+                    <Access>
+                        <Register Name="ETPPB_CFG_MEMBERSHIP_PER_PORT_ENr">
+                            <ArrayOffset Formula="#KEY_VALUE(PP_PORT)/256"/>
+                            <HwField Name="CFG_MEMBERSHIP_PER_PORT_EN_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(PP_PORT)%256"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SIT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="SIT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIT_PCP">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="SIT_PCP_DEIf"/>
+                            <DataOffset Formula="1"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIT_DEI">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="SIT_PCP_DEIf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIT_VID">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="SIT_VIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UNKNOWN_BC_DA_FILTER_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PER_PP_PORT_TABLEm">
+                            <HwField Name="UNKNOWN_BC_DA_ACTION_FILTERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="COS_MAP_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PER_PP_PORT_TABLEm"> 
+                            <HwField Name="TC_MAP_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UNKNOWN_MC_DA_FILTER_ENABLE">
+                     <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PER_PP_PORT_TABLEm">
+                            <HwField Name="UNKNOWN_MC_DA_ACTION_FILTERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UNKNOWN_UC_DA_FILTER_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PER_PP_PORT_TABLEm">
+                            <HwField Name="UNKNOWN_UC_DA_ACTION_FILTERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PP_PORT_CS_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PER_PP_PORT_TABLEm">
+                            <HwField Name="PMF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUT_PP_PORT_PMF_DATA">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PER_PP_PORT_TABLEm">
+                            <HwField Name="PP_PMF_DATAf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SPLIT_HORIZON_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                <!--- Out-PP-Port9:8 selects Register0..3
+                      Out-PP-Port7:0 used to access the register
+                -->
+                    <Access>
+                        <Register Name="ETPPC_CFG_SPLIT_HORIZON_PER_OUT_PP_PORTr">
+                            <ArrayOffset Formula="#KEY_VALUE(PP_PORT)/256"/>
+                            <HwField Name="CFG_SPLIT_HORIZON_PER_OUT_PP_PORT_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(PP_PORT)%256"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STAT_OBJECT_ID">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="PORT_STAT_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STAT_OBJECT_CMD">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="PORT_STAT_OBJ_CMDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DSS_STACKING_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_DSS_STACKING_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAG_MULTICAST_ENABLE">
+                     <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_LAG_MULTICAST_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ERPP_SPLIT_HORIZON_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_SPLIT_HORIZON_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ACCEPTABLE_FRAME_TYPE_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="ACCEPTABLE_FRAME_TYPE_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ACCEPTABLE_FRAME_TYPE_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="ACCEPTABLE_FRAME_TYPE_ENf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_UNACCEPTABLE_FRAME_TYPE_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LATENCY_FLOW_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="PORT_LATENCY_FLOW_ID_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UNKNOWN_DA_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_UNKNOWN_DA_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SAME_INTERFACE_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_SAME_INTERFACE_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="GLEM_PP_TRAP_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_GLEM_PP_TRAP_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="GLEM_NON_PP_TRAP_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                     <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_GLEM_NON_PP_TRAP_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_SCOPING_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_TTL_SCOPING_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_ZERO_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_TTL_ZERO_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_ONE_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_TTL_ONE_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MTU_CHECK_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_MTU_VIOLATION_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_FILTERS_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                     <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_IPV4_FILTERS_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_FILTERS_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_IPV6_ERR_FILTERS_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAYER_4_FILTERS_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_LAYER_4_FILTERS_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STAMP_VALUE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_PER_PP_PORT_TABLEm">
+                            <HwField Name="STAMP_VALUEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MTU_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="MTU_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXCLUDE_SRC_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_EXCLUDE_SRC_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2P_A0" Hook="1">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="VLAN_DOMAIN">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="VLAN_DOMAINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ESEM_ACCESS_CMD">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="PORT_EM_ACC_CMDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                 <Field Name="TX_OUTER_TAG_VALID">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="TX_TAG_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TX_OUTER_TAG_VID">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="TX_TAG_VIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_IF">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="VLAN_MEMBERSHIP_INTERFACEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_CFM_MAC_MSB">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_MY_CFM_MAC_TABLEm">
+                            <HwField Name="MAC_MSBSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAC_LSBS_RANGE_MIN">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_MY_CFM_MAC_TABLEm">
+                            <HwField Name="MAC_LSBS_RANGE_MINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAC_LSBS_RANGE_MAX">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_MY_CFM_MAC_TABLEm">
+                            <HwField Name="MAC_LSBS_RANGE_MAXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_FWD_CODE_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="FWD_CODE_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PRP_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="PRP_CONTEXT_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_LLVP_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="LLVP_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                 <Field Name="ETPP_TERMINATION_PORT_CS_VAR">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="TERM_CONTEXT_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORWARDING_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="FWD_CONTEXT_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ENC_1_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_ENC_1_CONTEXT_SELECTION_PER_PORT_PROFILEm">
+                            <HwField Name="CONTEXT_SELECTION_PER_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ENC_2_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_ENC_2_CONTEXT_SELECTION_PER_PORT_PROFILEm">
+                            <HwField Name="CONTEXT_SELECTION_PER_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ENC_3_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPB_ENC_3_CONTEXT_SELECTION_PER_PORT_PROFILEm">
+                            <HwField Name="CONTEXT_SELECTION_PER_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ENC_4_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPB_ENC_4_CONTEXT_SELECTION_PER_PORT_PROFILEm">
+                            <HwField Name="CONTEXT_SELECTION_PER_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ENC_5_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPB_ENC_5_CONTEXT_SELECTION_PER_PORT_PROFILEm">
+                            <HwField Name="CONTEXT_SELECTION_PER_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_CONTEXT_PORT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_SELECTION_PER_PORT_PROFILEm">
+                            <HwField Name="CONTEXT_SELECTION_PER_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Register Name="ETPPB_CFG_MEMBERSHIP_PER_PORT_ENr">
+                            <HwField Name="CFG_MEMBERSHIP_PER_PORT_ENf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SIT_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="SIT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIT_PCP">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="SIT_PCP_DEIf"/>
+                            <DataOffset Formula="1"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIT_DEI">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="SIT_PCP_DEIf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIT_VID">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="SIT_VIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UNKNOWN_BC_DA_FILTER_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PER_PP_PORT_TABLEm">
+                            <HwField Name="UNKNOWN_BC_DA_ACTION_FILTERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="COS_MAP_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PER_PP_PORT_TABLEm">
+                            <HwField Name="TC_MAP_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UNKNOWN_MC_DA_FILTER_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PER_PP_PORT_TABLEm">
+                            <HwField Name="UNKNOWN_MC_DA_ACTION_FILTERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UNKNOWN_UC_DA_FILTER_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PER_PP_PORT_TABLEm">
+                            <HwField Name="UNKNOWN_UC_DA_ACTION_FILTERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PP_PORT_CS_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PER_PP_PORT_TABLEm">
+                            <HwField Name="PMF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUT_PP_PORT_PMF_DATA">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PER_PP_PORT_TABLEm">
+                            <HwField Name="PP_PMF_DATAf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SPLIT_HORIZON_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Register Name="ETPPC_CFG_SPLIT_HORIZON_PER_OUT_PP_PORTr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STAT_OBJECT_ID">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="PORT_STAT_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STAT_OBJECT_CMD">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="PORT_STAT_OBJ_CMDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DSS_STACKING_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_DSS_STACKING_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAG_MULTICAST_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_LAG_MULTICAST_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ERPP_SPLIT_HORIZON_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_SPLIT_HORIZON_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ACCEPTABLE_FRAME_TYPE_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="ACCEPTABLE_FRAME_TYPE_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ACCEPTABLE_FRAME_TYPE_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="ACCEPTABLE_FRAME_TYPE_ENf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_UNACCEPTABLE_FRAME_TYPE_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LATENCY_FLOW_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm">
+                            <HwField Name="PORT_LATENCY_FLOW_ID_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UNKNOWN_DA_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_UNKNOWN_DA_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SAME_INTERFACE_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_SAME_INTERFACE_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="GLEM_PP_TRAP_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_GLEM_PP_TRAP_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="GLEM_NON_PP_TRAP_ENABLE">
+                     <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_GLEM_NON_PP_TRAP_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_SCOPING_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_TTL_SCOPING_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_ZERO_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_TTL_ZERO_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_ONE_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_TTL_ONE_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MTU_CHECK_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_MTU_VIOLATION_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                 <Field Name="STAMP_VALUE">
+                     <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_PER_PP_PORT_TABLEm">
+                            <HwField Name="STAMP_VALUEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MTU_PROFILE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm">
+                            <HwField Name="MTU_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXCLUDE_SRC_ENABLE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_EXCLUDE_SRC_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ESEM_ACCESS_CMD_TABLE">
+        <OneLineDescription>Properties per ESEM access command. The access command is a port/LIF property.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ESEM_ACCESS_CMD" Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="ESEM_ACCESS_1_VALID" Type="BOOL"/>
+                <Field Name="ESEM_ACCESS_2_VALID" Type="BOOL"/>
+                <Field Name="ESEM_ACCESS_3_VALID" Type="BOOL"/>
+                <Field Name="ESEM_1_APP_DB_ID" Size="DNX_DATA.esem.access_cmd.app_di_id_size_in_bits" Type="ESEM_APP_DB_ID"/>
+                <Field Name="ESEM_2_APP_DB_ID" Size="DNX_DATA.esem.access_cmd.app_di_id_size_in_bits" Type="ESEM_APP_DB_ID"/>
+                <Field Name="ESEM_3_APP_DB_ID" Size="DNX_DATA.esem.access_cmd.app_di_id_size_in_bits" Type="ESEM_APP_DB_ID"/>
+                <Field Name="ESEM_1_DESIGNATED_OFFSET" Size="2" Type="ESEM_OFFSET"/>
+                <Field Name="ESEM_2_DESIGNATED_OFFSET" Size="2" Type="ESEM_OFFSET"/>
+                <Field Name="ESEM_3_DESIGNATED_OFFSET" Size="2" Type="ESEM_OFFSET"/>
+                <Field Name="ESEM_1_DEFAULT_RESULT_PROFILE" Type="ESEM_DEFAULT_RESULT_PROFILE"/>
+                <Field Name="ESEM_2_DEFAULT_RESULT_PROFILE" Type="ESEM_DEFAULT_RESULT_PROFILE"/>
+                <Field Name="ESEM_3_DEFAULT_RESULT_PROFILE" Type="ESEM_DEFAULT_RESULT_PROFILE"/>
+            </Result>
+            <TableLabels>PP_PORT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ESEM_ACCESS_1_VALID">
+                    <Access>
+                        <Memory Name="ETPPC_CFG_EM_ACCESS_CMDm">
+                            <HwField Name="ESEM_1_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ESEM_ACCESS_2_VALID">
+                    <Access>
+                        <Memory Name="ETPPC_CFG_EM_ACCESS_CMDm">
+                            <HwField Name="ESEM_2_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ESEM_ACCESS_3_VALID">
+                    <Access>
+                        <Memory Name="ETPPC_CFG_EM_ACCESS_CMDm">
+                            <HwField Name="ESEM_3_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ESEM_1_APP_DB_ID">
+                    <Access>
+                        <Memory Name="ETPPC_CFG_EM_ACCESS_CMDm">
+                            <HwField Name="ESEM_1_APP_DB_IDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ESEM_2_APP_DB_ID">
+                    <Access>
+                        <Memory Name="ETPPC_CFG_EM_ACCESS_CMDm">
+                            <HwField Name="ESEM_2_APP_DB_IDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ESEM_3_APP_DB_ID">
+                    <Access>
+                        <Memory Name="ETPPC_CFG_EM_ACCESS_CMDm">
+                            <HwField Name="ESEM_3_APP_DB_IDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ESEM_1_DESIGNATED_OFFSET">
+                    <Access>
+                        <Memory Name="ETPPC_CFG_EM_ACCESS_CMDm">
+                            <HwField Name="ESEM_1_DESIGNATED_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ESEM_2_DESIGNATED_OFFSET">
+                    <Access>
+                        <Memory Name="ETPPC_CFG_EM_ACCESS_CMDm">
+                            <HwField Name="ESEM_2_DESIGNATED_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ESEM_3_DESIGNATED_OFFSET">
+                    <Access>
+                        <Memory Name="ETPPC_CFG_EM_ACCESS_CMDm">
+                            <HwField Name="ESEM_3_DESIGNATED_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ESEM_1_DEFAULT_RESULT_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPC_CFG_EM_ACCESS_CMDm">
+                            <HwField Name="ESEM_1_DEFAULT_RESULT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ESEM_2_DEFAULT_RESULT_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPC_CFG_EM_ACCESS_CMDm">
+                            <HwField Name="ESEM_2_DEFAULT_RESULT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ESEM_3_DEFAULT_RESULT_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPC_CFG_EM_ACCESS_CMDm">
+                            <HwField Name="ESEM_3_DEFAULT_RESULT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="INGRESS_PTC_PORT">
+        <OneLineDescription>Ingress TM Port actions in Ingress PP blocks</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PTC"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="PORT_TERMINATION_PTC_PROFILE"/>
+                <Field Name="PP_PORT"/>
+                <Field Name="SOURCE_SYSTEM_PORT" Type="SYSTEM_PORT"/>
+                <Field Name="TAG_SWAP_ENABLE" Size="1" Type="BOOL"/>
+                <Field Name="TAG_SWAP_OP_MODE" Size="2" Type="SIT_TAG_SWAP_MODE"/>
+                <Field Name="SRV6_SID_SWAP_ENABLE" Type="BOOL"/>
+                <Field Description="Map PTC to PTC routing enable profile at stage VTT1" Name="PTC_ROUTING_ENABLE_PROFILE_VTT1"/>
+                <Field Description="Port profile used in FWD context-selection" Name="FWD_PTC_PROFILE" Type="PORT_TERMINATION_PTC_PROFILE"/>
+                <Field Description="Map PTC to PTC profile at LLR toward VTT1." Name="VTT1_PTC_CS_PROFILE" Type="PTC_PROFILE_VTT1"/>
+                <Field Description="Map PTC to PTC profile at VTT1 toward VTT2." Name="VTT2_PTC_CS_PROFILE" Type="PTC_PROFILE_VTT2"/>
+                <Field Description="Map PTC to PTC profile at VTT2 toward VTT3." Name="VTT3_PTC_CS_PROFILE" Type="PTC_PROFILE_VTT3"/>
+                <Field Description="Map PTC to PTC profile at VTT3 toward VTT4." Name="VTT4_PTC_CS_PROFILE" Type="PTC_PROFILE_VTT4"/>
+                <Field Description="Map PTC to PTC profile at VTT4 toward VTT5." Name="VTT5_PTC_CS_PROFILE" Type="PTC_PROFILE_VTT5"/>
+                <Field Description="Map PTC to PTC profile at VTT5 toward FWD1" Name="FWD_PTC_CS_PROFILE" Type="PTC_PROFILE_VTT5"/>
+                <Field Name="IRPP_1ST_PARSER_PARSER_CONTEXT"/>
+                <Field Description="Using PRT Qualifier field to use as DB for parser" Name="PRT_QUALIFIER_RAW"/>
+                <Field Description="PTC to PTC profile for ECOlogic application" Name="ECOL_PTC_PROFILE" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.ecologic_support"/>
+            </Result>
+            <TableLabels>PP_PORT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="PORT_TERMINATION_PTC_PROFILE">
+                    <Access>
+                        <Memory Name="IPPE_PRT_PTC_PROFILEm">
+                            <HwField Name="PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PP_PORT">
+                    <Access>
+                        <Memory Name="IPPE_PRT_PTC_INFOm">
+                            <HwField Name="IN_PP_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SOURCE_SYSTEM_PORT">
+                    <Access>
+                        <Memory Name="IPPE_PRT_PTC_INFOm">
+                            <HwField Name="SRC_SYS_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TAG_SWAP_ENABLE">
+                    <Access>
+                        <Memory Name="IRE_TAG_SWAP_CFGm">
+                            <HwField Name="TAG_SWAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TAG_SWAP_OP_MODE">
+                    <Access>
+                        <Memory Name="IRE_TAG_SWAP_CFGm">
+                            <HwField Name="TPID_DEPENDENTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRV6_SID_SWAP_ENABLE">
+                    <Access>
+                        <Memory Name="IRE_IPV6_SR_CFGm">
+                            <HwField Name="IPV6_SR_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="VTT1_PTC_CS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPE_LLR_PTC_TABLEm">
+                            <HwField Name="LLR_PTC_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="VTT1_PTC_CS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPE_MAP_LLR_PTC_TO_PTC_PROFILEm">
+                            <EntryOffset Formula="#KEY_VALUE(PTC)/4"/>
+                            <HwField Name="PTC_PROFILE_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)%4*4"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="VTT1_PTC_CS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPE_MAP_LLR_PTC_TO_PTC_PROFILEm">
+                            <HwField Name="PTC_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_PTC_PROFILE">
+                    <Access>
+                        <Memory Name="IPPB_FLP_PTC_PROFILE_MAPm">
+                            <HwField Name="PTC_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="PTC_ROUTING_ENABLE_PROFILE_VTT1">
+                    <Access>
+                        <KeyCondition Field="PTC" Type="LOWER_THAN" Value="128"/>
+                        <Register Name="IPPF_LOW_PTC_MAPPINGr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LOW_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))+#RESULT_SIZE(VTT2_PTC_CS_PROFILE)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PTC" Type="BIGGER_THAN" Value="127"/>
+                        <Register Name="IPPF_HIGH_PTC_MAPPINGr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="HIGH_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)%128*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))+#RESULT_SIZE(VTT2_PTC_CS_PROFILE)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PTC" Type="LOWER_THAN" Value="128"/>
+                        <Register Name="IPPF_CONTEXT_SELECTION_LOW_PTC_MAPPINGr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CONTEXT_SELECTION_LOW_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))+#RESULT_SIZE(VTT2_PTC_CS_PROFILE)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PTC" Type="BIGGER_THAN" Value="127"/>
+                        <Register Name="IPPF_CONTEXT_SELECTION_HIGH_PTC_MAPPINGr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CONTEXT_SELECTION_HIGH_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)%128*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))+#RESULT_SIZE(VTT2_PTC_CS_PROFILE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="PTC_ROUTING_ENABLE_PROFILE_VTT1">
+                    <Access>
+                        <Memory Name="IPPF_MAP_PTC_TO_PTC_PROFILEm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PTC)/4"/>
+                            <HwField Name="PTC_PROFILE_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)%4*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))+#RESULT_SIZE(VTT2_PTC_CS_PROFILE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="VTT2_PTC_CS_PROFILE">
+                    <Access>
+                        <KeyCondition Field="PTC" Type="LOWER_THAN" Value="128"/>
+                        <Register Name="IPPF_LOW_PTC_MAPPINGr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LOW_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PTC" Type="BIGGER_THAN" Value="127"/>
+                        <Register Name="IPPF_HIGH_PTC_MAPPINGr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="HIGH_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)%128*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PTC" Type="LOWER_THAN" Value="128"/>
+                        <Register Name="IPPF_CONTEXT_SELECTION_LOW_PTC_MAPPINGr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CONTEXT_SELECTION_LOW_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PTC" Type="BIGGER_THAN" Value="127"/>
+                        <Register Name="IPPF_CONTEXT_SELECTION_HIGH_PTC_MAPPINGr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CONTEXT_SELECTION_HIGH_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)%128*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="VTT2_PTC_CS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPF_MAP_PTC_TO_PTC_PROFILEm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PTC)/4"/>
+                            <HwField Name="PTC_PROFILE_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)%4*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="VTT3_PTC_CS_PROFILE">
+                    <Access>
+                        <KeyCondition Field="PTC" Type="LOWER_THAN" Value="128"/>
+                        <Register Name="IPPF_LOW_PTC_MAPPINGr">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="LOW_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PTC" Type="BIGGER_THAN" Value="127"/>
+                        <Register Name="IPPF_HIGH_PTC_MAPPINGr">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="HIGH_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)%128*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PTC" Type="LOWER_THAN" Value="128"/>
+                        <Register Name="IPPF_CONTEXT_SELECTION_LOW_PTC_MAPPINGr">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="CONTEXT_SELECTION_LOW_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PTC" Type="BIGGER_THAN" Value="127"/>
+                        <Register Name="IPPF_CONTEXT_SELECTION_HIGH_PTC_MAPPINGr">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="CONTEXT_SELECTION_HIGH_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)%128*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="VTT3_PTC_CS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPF_MAP_PTC_TO_PTC_PROFILEm">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(PTC)/4"/>
+                            <HwField Name="PTC_PROFILE_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)%4*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="VTT4_PTC_CS_PROFILE">
+                    <Access>
+                        <KeyCondition Field="PTC" Type="LOWER_THAN" Value="128"/>
+                        <Register Name="IPPF_LOW_PTC_MAPPINGr">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="LOW_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PTC" Type="BIGGER_THAN" Value="127"/>
+                        <Register Name="IPPF_HIGH_PTC_MAPPINGr">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="HIGH_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)%128*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PTC" Type="LOWER_THAN" Value="128"/>
+                        <Register Name="IPPF_CONTEXT_SELECTION_LOW_PTC_MAPPINGr">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="CONTEXT_SELECTION_LOW_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PTC" Type="BIGGER_THAN" Value="127"/>
+                        <Register Name="IPPF_CONTEXT_SELECTION_HIGH_PTC_MAPPINGr">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="CONTEXT_SELECTION_HIGH_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)%128*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="VTT4_PTC_CS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPF_MAP_PTC_TO_PTC_PROFILEm">
+                            <ArrayOffset Formula="2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PTC)/4"/>
+                            <HwField Name="PTC_PROFILE_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)%4*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="VTT5_PTC_CS_PROFILE">
+                    <Access>
+                        <KeyCondition Field="PTC" Type="LOWER_THAN" Value="128"/>
+                        <Register Name="IPPA_LOW_PTC_MAPPINGr">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="LOW_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PTC" Type="BIGGER_THAN" Value="127"/>
+                        <Register Name="IPPA_HIGH_PTC_MAPPINGr">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="HIGH_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)%128*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PTC" Type="LOWER_THAN" Value="128"/>
+                        <Register Name="IPPA_CONTEXT_SELECTION_LOW_PTC_MAPPINGr">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="CONTEXT_SELECTION_LOW_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PTC" Type="BIGGER_THAN" Value="127"/>
+                        <Register Name="IPPA_CONTEXT_SELECTION_HIGH_PTC_MAPPINGr">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="CONTEXT_SELECTION_HIGH_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)%128*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="VTT5_PTC_CS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPA_MAP_PTC_TO_PTC_PROFILEm">
+                            <ArrayOffset Formula="3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PTC)/4"/>
+                            <HwField Name="PTC_PROFILE_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)%4*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="FWD_PTC_CS_PROFILE">
+                    <Access>
+                        <KeyCondition Field="PTC" Type="LOWER_THAN" Value="128"/>
+                        <Register Name="IPPA_LOW_PTC_MAPPINGr">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="LOW_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PTC" Type="BIGGER_THAN" Value="127"/>
+                        <Register Name="IPPA_HIGH_PTC_MAPPINGr">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="HIGH_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)%128*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PTC" Type="LOWER_THAN" Value="128"/>
+                        <Register Name="IPPA_CONTEXT_SELECTION_LOW_PTC_MAPPINGr">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="CONTEXT_SELECTION_LOW_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PTC" Type="BIGGER_THAN" Value="127"/>
+                        <Register Name="IPPA_CONTEXT_SELECTION_HIGH_PTC_MAPPINGr">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="CONTEXT_SELECTION_HIGH_PTC_PROFILES_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)%128*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="FWD_PTC_CS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPA_MAP_PTC_TO_PTC_PROFILEm">
+                            <ArrayOffset Formula="4"/>
+                            <EntryOffset Formula="#KEY_VALUE(PTC)/4"/>
+                            <HwField Name="PTC_PROFILE_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(PTC)%4*(#RESULT_SIZE(PTC_ROUTING_ENABLE_PROFILE_VTT1)+#RESULT_SIZE(VTT2_PTC_CS_PROFILE))"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IRPP_1ST_PARSER_PARSER_CONTEXT">
+                    <Access>
+                        <Memory Name="IPPE_PRT_PTC_INFOm">
+                            <HwField Name="PARSING_CONTEXTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PRT_QUALIFIER_RAW">
+                    <Access>
+                        <Memory Name="IPPE_PRT_PTC_INFOm">
+                            <HwField Name="PRT_QUALIFIERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ECOL_PTC_PROFILE">
+                 <Access>
+                  <Memory Name="IPPE_ECL_PTC_PROFILEm">
+                   <HwField Name="ECL_PTC_PROFILEf"/>
+                  </Memory>
+                 </Access>
+                 </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_PP_RECYCLE_COMMAND">
+        <OneLineDescription>Ingress Recycle command actions in Ingress PP blocks</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="RECYCLE_CMD"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="RECYCLE_CMD_PRT_PROFILE"/>
+                <Field Name="SOURCE_SYSTEM_PORT" Type="SYSTEM_PORT"/>
+                <Field Name="IN_PP_PORT" Type="PP_PORT"/>
+                <Field Name="IRPP_1ST_PARSER_PARSER_CONTEXT"/>
+                <Field Name="PRT_QUALIFIER"/>
+            </Result>
+            <TableLabels>PP_PORT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="RECYCLE_CMD_PRT_PROFILE">
+                    <Access>
+                        <Memory Name="IPPE_PRT_RECYCLE_PROFILEm">
+                            <HwField Name="PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SOURCE_SYSTEM_PORT">
+                    <Access>
+                        <Memory Name="IPPE_PRT_RECYCLE_INFOm">
+                            <HwField Name="SRC_SYS_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IN_PP_PORT">
+                    <Access>
+                        <Memory Name="IPPE_PRT_RECYCLE_INFOm">
+                            <HwField Name="IN_PP_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IRPP_1ST_PARSER_PARSER_CONTEXT">
+                    <Access>
+                        <Memory Name="IPPE_PRT_RECYCLE_INFOm">
+                            <HwField Name="PARSING_CONTEXTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PRT_QUALIFIER">
+                    <Access>
+                        <Memory Name="IPPE_PRT_RECYCLE_INFOm">
+                            <HwField Name="PRT_QUALIFIERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="PRT_QUALIFIER_INFO">
+        <OneLineDescription>Properties of PRT Qualifier in Ingress PP blocks</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PRT_QUALIFIER"/>
+            </Key>
+            <Result>
+                <Field Name="VISIBILITY_ENABLE" Type="BOOL"/>
+                <Field Name="PROTECTION_IGNORE" Type="BOOL" Valid="DNX_DATA.device.general.protection_state_ignore"/>
+            </Result>
+            <TableLabels>PP_PORT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VISIBILITY_ENABLE">
+                    <Access>
+                        <Register Name="IPPE_VISIBILITY_CONFIGr">
+                            <HwField Name="PRT_QUALIFIER_VISIBILITY_ENABLEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="PROTECTION_IGNORE">
+                    <Access>
+                        <Register Name="IPPD_RESOLUTION_CFGr">
+                            <HwField Name="PRT_QUALIFIER_PROTECTION_IGNOREf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_PRT_INFO">
+        <OneLineDescription>Port Termination information</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PRT_RECYCLE_PROFILE"/>
+                <Field Name="PORT_TERMINATION_PTC_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="FFC_INSTRUCTION" NofInstances="6" Size="DNX_DATA.port.general.ffc_instruction_size"/>
+                <Field Description="KBR Valid Bitmap" Name="KBR_VALID_BITMAP" NofInstances="5" Size="6" Type="UINT"/>
+                <Field Description="If it is set, PP Port is Enabled" Name="PP_PORT_ENABLE" Size="1" Type="BOOL"/>
+                <Field Name="SOURCE_SYSTEM_PORT_PRT_MODE"/>
+                <Field Name="CONTEXT_PRT_MODE" Type="PRT_SELECT_MODE"/>
+                <Field Name="PRT_QUALIFIER_MODE" Type="PRT_SELECT_MODE"/>
+                <Field Description="TCAM Mode Full Enable" Name="TCAM_MODE_FULL_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="First layer offset" Name="LAYER_OFFSET"/>
+            </Result>
+            <TableLabels>PP_PORT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FFC_INSTRUCTION">
+                    <Access instanceIndex="0">
+                        <Memory Name="IPPE_PRT_PROFILE_INFOm">
+                            <HwField Name="FFC_0_INSTRUCTIONf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="IPPE_PRT_PROFILE_INFOm">
+                            <HwField Name="FFC_1_INSTRUCTIONf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="IPPE_PRT_PROFILE_INFOm">
+                            <HwField Name="FFC_2_INSTRUCTIONf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="IPPE_PRT_PROFILE_INFOm">
+                            <HwField Name="FFC_3_INSTRUCTIONf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Memory Name="IPPE_PRT_PROFILE_INFOm">
+                            <HwField Name="FFC_4_INSTRUCTIONf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Memory Name="IPPE_PRT_PROFILE_INFOm">
+                            <HwField Name="FFC_5_INSTRUCTIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="KBR_VALID_BITMAP">
+                    <Access instanceIndex="0">
+                        <Memory Name="IPPE_PRT_PROFILE_INFOm">
+                            <HwField Name="KBR_0_VALID_BITMAPf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="IPPE_PRT_PROFILE_INFOm">
+                            <HwField Name="KBR_1_VALID_BITMAPf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="IPPE_PRT_PROFILE_INFOm">
+                            <HwField Name="KBR_2_VALID_BITMAPf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="IPPE_PRT_PROFILE_INFOm">
+                            <HwField Name="KBR_3_VALID_BITMAPf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Memory Name="IPPE_PRT_PROFILE_INFOm">
+                            <HwField Name="KBR_4_VALID_BITMAPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PP_PORT_ENABLE">
+                    <Access>
+                        <Memory Name="IPPE_PRT_PROFILE_INFOm">
+                            <HwField Name="PP_PORT_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SOURCE_SYSTEM_PORT_PRT_MODE">
+                    <Access>
+                        <Memory Name="IPPE_PRT_PROFILE_INFOm">
+                            <HwField Name="SYS_PORT_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CONTEXT_PRT_MODE">
+                    <Access>
+                        <Memory Name="IPPE_PRT_PROFILE_INFOm">
+                            <HwField Name="CONTEXT_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PRT_QUALIFIER_MODE">
+                    <Access>
+                        <Memory Name="IPPE_PRT_PROFILE_INFOm">
+                            <HwField Name="QUAL_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TCAM_MODE_FULL_ENABLE">
+                    <Access>
+                        <Memory Name="IPPE_PRT_PROFILE_INFOm">
+                            <HwField Name="TCAM_MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAYER_OFFSET">
+                    <Access>
+                        <Memory Name="IPPE_PRT_PROFILE_INFOm">
+                            <HwField Name="OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_VLAN_DOMAIN_INFO">
+        <OneLineDescription>Ingress VLAN DOMAIN Information</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="DNX_DATA.port.general.ingress_vlan_domain_size"/>
+            </Key>
+            <Result>
+                <Field Name="INGRESS_LLVP_PROFILE"/>
+                <Field Description="If true, ignoring Incoming VID is being Enabled" Name="IGNORE_INCOMING_VID_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>PP_PORT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INGRESS_LLVP_PROFILE">
+                    <Access>
+                        <Memory GroupName="INGRESS_VD_TO_VLAN_CLASSIFICATION_PROFILE">
+                            <HwField Name="VLAN_CLASSIFICATION_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IGNORE_INCOMING_VID_ENABLE">
+                    <Access>
+                        <Memory GroupName="INGRESS_VTT_VLAN_DOMAIN_ATTRIBUTES">
+                            <HwField Name="IGNORE_INCOMING_VIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INGRESS_LLVP_PROFILE">
+                    <Access>
+                        <Memory GroupName="INGRESS_VD_TO_VLAN_CLASSIFICATION_PROFILE">
+                            <EntryOffset Formula="#KEY_VALUE(VLAN_DOMAIN)/16"/>
+                            <HwField Name="VLAN_CLASSIFICATION_PROFILE_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(VLAN_DOMAIN)%16*4"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IGNORE_INCOMING_VID_ENABLE">
+                    <Access>
+                        <Memory GroupName="INGRESS_VTT_VLAN_DOMAIN_ATTRIBUTES">
+                            <HwField Name="IGNORE_INCOMING_VIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_VLAN_MEMBERSHIP_INFO">
+        <OneLineDescription>Ingress VLAN MEMBERSHIP Information</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VLAN_MEMBERSHIP_IF"/>
+            </Key>
+            <Result>
+                <Field Description="If true, VLAN membership check is Enabled." Name="VLAN_MEMBERSHIP_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>PP_PORT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VLAN_MEMBERSHIP_ENABLE">
+                    <Access EncodeType="BITWISE_NOT">
+                        <Memory GroupName="INGRESS_VLAN_MEMBERSHIP_IF_ATTR">
+                            <HwField Name="ALL_VLAN_MEMBERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VLAN_MEMBERSHIP_ENABLE">
+                    <Access EncodeType="BITWISE_NOT">
+                        <Memory GroupName="INGRESS_VLAN_MEMBERSHIP_IF_ATTR">
+                            <EntryOffset Formula="#KEY_VALUE(VLAN_MEMBERSHIP_IF)/16"/>
+                            <HwField Name="ALL_VLAN_MEMBERf"/>
+                            <DataOffset Formula="#KEY_VALUE(VLAN_MEMBERSHIP_IF)%16*4"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="PP_ATTRIBUTES_PER_TM_PORT_TABLE">
+        <OneLineDescription>maps tm port to same interface enable</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TM_PORT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Enable(Allow) ERPP Visibility" Name="ERPP_VISIBILITY_ENABLE" Type="BOOL"/>
+                <Field Description="Force(Enforce) ERPP Visibility, requires Enable" Name="ERPP_VISIBILITY_FORCE" Type="BOOL"/>
+                <Field Description="Enable(Allow) ETPP Visibility" Name="ETPP_VISIBILITY_ENABLE" Type="BOOL"/>
+                <Field Description="Force(Enforce) ETPP Visibility, requires Enable" Name="ETPP_VISIBILITY_FORCE" Type="BOOL"/>
+                <Field Description="RQP Discard Filter Enable per TM Port." Name="RQP_DISCARD_ENABLE" Type="BOOL"/>
+                <Field Description="Ivalid OTM Filter Enable per TM Port." Name="INVALID_OTM_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>LAG</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0 J2P_A0" Name="ERPP_VISIBILITY_ENABLE">
+                    <Access>
+                        <Register Name="ERPP_PORT_VISIBILITY_ENr">
+                            <HwField Name="PORT_VISIBILITY_ENf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <!--- Out-PP-Port9:8 selects Register0..3  
+                      Out-PP-Port7:0 used to access the register
+                -->
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="ERPP_VISIBILITY_ENABLE">
+                    <Access>
+                        <Register Name="ERPP_PORT_VISIBILITY_ENr">
+                            <ArrayOffset Formula="#KEY_VALUE(TM_PORT)/256"/>
+                            <HwField Name="PORT_VISIBILITY_EN_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(TM_PORT)%256"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2P_A0" Name="ERPP_VISIBILITY_FORCE">
+                    <Access>
+                        <Register Name="ERPP_PORT_VISIBILITY_FORCEr">
+                            <HwField Name="PORT_VISIBILITY_FORCEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <!--- Out-PP-Port9:8 selects Register0..3  
+                      Out-PP-Port7:0 used to access the register
+                -->
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="ERPP_VISIBILITY_FORCE">
+                    <Access>
+                        <Register Name="ERPP_PORT_VISIBILITY_FORCEr">
+                            <ArrayOffset Formula="#KEY_VALUE(TM_PORT)/256"/>
+                            <HwField Name="PORT_VISIBILITY_FORCE_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(TM_PORT)%256"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2P_A0" Name="ETPP_VISIBILITY_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_PORT_VISIBILITY_ENr">
+                            <HwField Name="PORT_VISIBILITY_ENf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <!--- Out-PP-Port9:8 selects Register0..3  
+                      Out-PP-Port7:0 used to access the register
+                -->
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="ETPP_VISIBILITY_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_PORT_VISIBILITY_ENr">
+                            <ArrayOffset Formula="#KEY_VALUE(TM_PORT)/256"/>
+                            <HwField Name="PORT_VISIBILITY_EN_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(TM_PORT)%256"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2P_A0" Name="ETPP_VISIBILITY_FORCE">
+                    <Access>
+                        <Register Name="ETPPA_PORT_VISIBILITY_FORCEr">
+                            <HwField Name="PORT_VISIBILITY_FORCEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <!--- Out-PP-Port9:8 selects Register0..3  
+                      Out-PP-Port7:0 used to access the register
+                -->
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="ETPP_VISIBILITY_FORCE">
+                    <Access>
+                        <Register Name="ETPPA_PORT_VISIBILITY_FORCEr">
+                            <ArrayOffset Formula="#KEY_VALUE(TM_PORT)/256"/>
+                            <HwField Name="PORT_VISIBILITY_FORCE_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(TM_PORT)%256"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RQP_DISCARD_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_RQP_DISCARD_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INVALID_OTM_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm">
+                            <HwField Name="CFG_INVALID_OTM_PER_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

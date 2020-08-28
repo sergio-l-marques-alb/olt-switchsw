@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FieldTypesDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../field_types_schema.xsd">
+
+    <GeneralInfo image="standard_1" dynamic_loading="0" />
+
+<FieldType Name="FEC_DESTINATION_MC_RPF" Print="STRUCTURE" Size="24">
+    <OneLineDescription>Typical JR2 use Cases:
+                         (1)FEC KAPS result enumeration (i.e. SUPER_FEC is SUPER_FEC_NO_PROTECTION_W_2_STAT FEC)
+                         (2)Multicast into MC_Group with &quot;MC SIP Based RPF&quot; (i.e. destination is MC_Group)
+                            Applicable to JR1 backward compatibility as well</OneLineDescription>
+    <FieldDbInterface>
+        <StructFields>
+            <StructField Name="MC_RPF_MODE" Size="3"/>
+            <StructField Name="DESTINATION" Size="21"/>
+        </StructFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping/>
+</FieldType>
+
+
+<FieldType Name="FEC_DESTINATION_LIF0" Print="STRUCTURE" Size="43">
+    <OneLineDescription>Typical JR2 use cases:
+                         (1)Unicast forwarding
+                         Applicable to JR1 backward compatibility as well</OneLineDescription>
+    <FieldDbInterface>
+        <StructFields>
+            <StructField Name="GLOB_OUT_LIF" Size="22"/>
+            <StructField Name="DESTINATION" Size="21"/>
+        </StructFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping/>
+</FieldType>
+
+
+<FieldType Name="FEC_DESTINATION_LIF0_17BIT_LIF1" Print="STRUCTURE" Size="60">
+    <OneLineDescription>Typical JR2 use cases: (used only in SUPER_FEC_NO_PROTECTION/SUPER_FEC_W_PROTECTION)
+                         (1) IPvX UC with RIF and ARP </OneLineDescription>
+    <FieldDbInterface>
+        <StructFields>
+            <StructField Name="GLOB_OUT_LIF_2ND" Size="22" Type="GLOB_OUT_LIF"/>
+            <StructField Name="GLOB_OUT_LIF" Size="17"/>
+            <StructField Name="DESTINATION" Size="21"/>
+        </StructFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping/>
+</FieldType>
+
+
+<FieldType Name="FEC_DESTINATION_LIF0_HTM" Print="STRUCTURE" Size="62">
+    <OneLineDescription>FEC_ENTRY_DESTINATION_LIF0 with Hierarchical TM Flow</OneLineDescription>
+    <FieldDbInterface>
+        <StructFields>
+            <StructField Name="HIERARCHICAL_TM_FLOW" Size="19" Type="UINT"/>
+            <StructField Name="GLOB_OUT_LIF" Size="22"/>
+            <StructField Name="DESTINATION" Size="21"/>
+        </StructFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping/>
+</FieldType>
+
+
+<FieldType Name="FEC_DESTINATION_LIF0_LIF1_MC_RPF" Print="STRUCTURE" Size="66">
+    <OneLineDescription>Typical JR2 use cases: (used only in SUPER_FEC_NO_PROTECTION)
+                         (1) MC forwarding into tunnel with Explicit RPF
+                         Note that in this entry the &quot;Forwarding OutLIF&quot; is OUTLIF_1 and the &quot;RPF OutLIF&quot; is GLOBAL_OUT_LIF_0</OneLineDescription>
+    <FieldDbInterface>
+        <StructFields>
+            <StructField ArrPrefixValue="DNX_DATA.arr.prefix.IRPP_FEC_ENTRY_FORMAT___prefix_6" ArrPrefixWidth="24" Name="MC_RPF_MODE" Size="1"/>
+            <StructField Name="GLOB_OUT_LIF_2ND" Size="22" Type="GLOB_OUT_LIF"/>
+            <StructField Name="GLOB_OUT_LIF" Size="22"/>
+            <StructField Name="DESTINATION" Size="21"/>
+        </StructFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping/>
+</FieldType>
+
+
+<FieldType Name="FEC_DESTINATION_LIF0_MC_RPF" Print="STRUCTURE" Size="46">
+    <OneLineDescription>Typical JR2 use cases:
+                         (1) Multicast (i.e. Destination is MC_Group) with &quot;MC Explicit RPF&quot;
+                             Applicable to JR1 backward compatibility as well
+                         (2) Multicast into tunnel (i.e. Destination is not MC_Group and GLOBAL_OUT_LIF_0 is used to indicate the tunnel)
+                             Applicable to JR1 backward compatibility as well</OneLineDescription>
+    <FieldDbInterface>
+        <StructFields>
+            <StructField Name="MC_RPF_MODE" Size="3"/>
+            <StructField Name="GLOB_OUT_LIF" Size="22"/>
+            <StructField Name="DESTINATION" Size="21"/>
+        </StructFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping/>
+</FieldType>
+
+
+<FieldType Name="FEC_DESTINATION_MPLS_POP" Print="STRUCTURE" Size="41">
+    <OneLineDescription>Typical JR2 use cases:
+                         (1) JR2 MPLS POP</OneLineDescription>
+    <FieldDbInterface>
+        <StructFields>
+            <StructField ArrPrefixValue="DNX_DATA.arr.prefix.IRPP_FEC_ENTRY_FORMAT___prefix_4" ArrPrefixWidth="24" Name="EEI" Size="20"/>
+            <StructField Name="DESTINATION" Size="21"/>
+        </StructFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping/>
+</FieldType>
+
+
+<FieldType Name="FEC_DESTINATION_MPLS_SWAP" Print="STRUCTURE" Size="41">
+    <OneLineDescription>Typical JR2 use cases:
+                         (1) JR2 MPLS POP</OneLineDescription>
+    <FieldDbInterface>
+        <StructFields>
+            <StructField ArrPrefixValue="DNX_DATA.arr.prefix.IRPP_FEC_ENTRY_FORMAT___prefix_5" ArrPrefixWidth="24" Name="EEI" Size="20"/>
+            <StructField Name="DESTINATION" Size="21"/>
+        </StructFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping/>
+</FieldType>
+
+
+<FieldType Name="FEC_JR1_DESTINATION_EEI" Print="STRUCTURE" Size="45">
+    <OneLineDescription>JR1 use cases: (used only in SUPER_FEC_W_PROTECTION)
+                         (1) Anything with EEI</OneLineDescription>
+    <FieldDbInterface>
+        <StructFields>
+            <StructField Name="EEI" Size="24"/>
+            <StructField Name="DESTINATION" Size="21"/>
+        </StructFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping/>
+</FieldType>
+
+
+<FieldType Name="FEC_JR1_DESTINATION_ETH_RIF_ARP" Print="STRUCTURE" Size="59">
+    <OneLineDescription>JR1 use cases: (used only in SUPER_FEC_W_PROTECTION)
+                         (1) IPvX Unicast Routing</OneLineDescription>
+    <FieldDbInterface>
+        <StructFields>
+            <StructField ArrPrefixValue="DNX_DATA.arr.prefix.IRPP_FEC_ENTRY_FORMAT___prefix_3" ArrPrefixWidth="24" Name="GLOB_OUT_LIF" Size="16"/>
+            <StructField ArrPrefixValue="DNX_DATA.arr.prefix.IRPP_FEC_ENTRY_FORMAT___prefix_2" ArrPrefixWidth="24" Name="EEI" Size="22"/>
+            <StructField Name="DESTINATION" Size="21"/>
+        </StructFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping/>
+</FieldType>
+
+
+<FieldType Name="FEC_ENTRY_NO_PROTECTION_NO_STATS" Print="ARRAY32" Size="73">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <ChildFields>
+            <ChildField Name="FEC_DESTINATION_MC_RPF"/>
+            <ChildField Name="FEC_DESTINATION_LIF0"/>
+            <ChildField Name="FEC_DESTINATION_LIF0_17BIT_LIF1"/>
+            <ChildField Name="FEC_DESTINATION_LIF0_HTM"/>
+            <ChildField Name="FEC_DESTINATION_LIF0_LIF1_MC_RPF"/>
+            <ChildField Name="FEC_DESTINATION_LIF0_MC_RPF"/>
+            <ChildField Name="FEC_DESTINATION_MPLS_POP"/>
+            <ChildField Name="FEC_DESTINATION_MPLS_SWAP"/>
+            <ChildField Name="FEC_JR1_DESTINATION_EEI"/>
+            <ChildField Name="FEC_JR1_DESTINATION_ETH_RIF_ARP"/>
+        </ChildFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <ChildFieldsEncoding>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_MC_RPF" Value="0"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_LIF0" Value="704643072"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_LIF0_17BIT_LIF1" Value="5632"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_LIF0_HTM" Value="1248"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_LIF0_LIF1_MC_RPF" Value="8"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_LIF0_MC_RPF" Value="100663296"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_MPLS_POP" Value="67108864"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_MPLS_SWAP" Value="134217728"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_JR1_DESTINATION_EEI" Value="12582912"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_JR1_DESTINATION_ETH_RIF_ARP" Value="10240"/>
+        </ChildFieldsEncoding>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="FEC_ENTRY_NO_PROTECTION_W_2_STATS" Print="ARRAY32" Size="48">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <ChildFields>
+            <ChildField Name="FEC_DESTINATION_MC_RPF"/>
+            <ChildField Name="FEC_DESTINATION_LIF0"/>
+            <ChildField Name="FEC_DESTINATION_LIF0_MC_RPF"/>
+            <ChildField Name="FEC_DESTINATION_MPLS_POP"/>
+            <ChildField Name="FEC_DESTINATION_MPLS_SWAP"/>
+        </ChildFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <ChildFieldsEncoding>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_MC_RPF" Value="0"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_LIF0" Value="21"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_LIF0_MC_RPF" Value="3"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_MPLS_POP" Value="2"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_MPLS_SWAP" Value="4"/>
+        </ChildFieldsEncoding>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="FEC_ENTRY_W_PROTECTION_NO_STATS" Print="ARRAY32" Size="64">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <ChildFields>
+            <ChildField Name="FEC_DESTINATION_MC_RPF"/>
+            <ChildField Name="FEC_DESTINATION_LIF0"/>
+            <ChildField Name="FEC_DESTINATION_LIF0_17BIT_LIF1"/>
+            <ChildField Name="FEC_DESTINATION_LIF0_MC_RPF"/>
+            <ChildField Name="FEC_DESTINATION_MPLS_POP"/>
+            <ChildField Name="FEC_DESTINATION_MPLS_SWAP"/>
+            <ChildField Name="FEC_JR1_DESTINATION_EEI"/>
+            <ChildField Name="FEC_JR1_DESTINATION_ETH_RIF_ARP"/>
+        </ChildFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <ChildFieldsEncoding>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_MC_RPF" Value="0"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_LIF0" Value="1376256"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_LIF0_17BIT_LIF1" Value="11"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_LIF0_MC_RPF" Value="196608"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_MPLS_POP" Value="131072"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_MPLS_SWAP" Value="262144"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_JR1_DESTINATION_EEI" Value="24576"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_JR1_DESTINATION_ETH_RIF_ARP" Value="20"/>
+        </ChildFieldsEncoding>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="FEC_ENTRY_W_PROTECTION_W_1_STATS" Print="ARRAY32" Size="51">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <ChildFields>
+            <ChildField Name="FEC_DESTINATION_MC_RPF"/>
+            <ChildField Name="FEC_DESTINATION_LIF0"/>
+            <ChildField Name="FEC_DESTINATION_LIF0_MC_RPF"/>
+            <ChildField Name="FEC_DESTINATION_MPLS_POP"/>
+            <ChildField Name="FEC_DESTINATION_MPLS_SWAP"/>
+            <ChildField Name="FEC_JR1_DESTINATION_EEI"/>
+        </ChildFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <ChildFieldsEncoding>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_MC_RPF" Value="0"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_LIF0" Value="168"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_LIF0_MC_RPF" Value="24"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_MPLS_POP" Value="16"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_DESTINATION_MPLS_SWAP" Value="32"/>
+            <ChildField EncodeType="PREFIX" Name="FEC_JR1_DESTINATION_EEI" Value="3"/>
+        </ChildFieldsEncoding>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+</FieldTypesDbCatalog>

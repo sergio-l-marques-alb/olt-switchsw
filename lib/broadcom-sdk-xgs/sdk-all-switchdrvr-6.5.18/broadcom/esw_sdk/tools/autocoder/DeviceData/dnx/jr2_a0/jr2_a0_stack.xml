@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="stack">
+
+    <sub_module name="general">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_tm_domains_max" value="13"></define>
+            <define name="dest_port_base_queue_min" value="0xffc0"></define>
+            <define name="dest_port_base_queue_max" value="0xffff"></define>
+            <define name="lag_stack_trunk_resolve_entry_min" value="0"></define>
+            <define name="lag_stack_trunk_resolve_entry_max" value="256"></define>
+            <define name="lag_stack_trunk_resolve_entry_all" value="0xfffffff"></define>
+            <define name="lag_stack_fec_resolve_entry_min" value="0"></define>
+            <define name="lag_stack_fec_resolve_entry_max" value="4"></define>
+            <define name="lag_stack_fec_resolve_entry_all" value="0xfffffff"></define>
+            <define name="lag_domain_min" value="0"></define>
+            <define name="lag_domain_max" value="64"></define>
+            <define name="trunk_entry_per_tmd_bit_num" value="8"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="stacking_enable" value="0"></numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+</device_data>
+
+
+

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="TUNNEL_SOURCE_ADDRESS_IPV4">
+        <OneLineDescription>Source address table for IPv4 (mutual with Ethernet)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SA_SIP_PROFILE" Type="SOURCE_ADDRESS_INDEX"/>
+            </Key>
+            <Result>
+                <Field Name="IPV4_SIP" Type="IPV4"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IPV4_SIP">
+                    <Access>
+                        <Memory GroupName="ETPP_SOURCE_ADRS_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/4"/>
+                            <HwField Name="SOURCE_ADDRESSf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()%4*#FULL_RESULT_SIZE()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="TUNNEL_SOURCE_ADDRESS_IPV6">
+        <OneLineDescription>Source address table for IPv6 (mutual with Ethernet)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SA_SIP_PROFILE" Type="SOURCE_ADDRESS_INDEX"/>
+            </Key>
+            <Result>
+                <Field Name="IPV6_SIP" Type="IPV6"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IPV6_SIP">
+                    <Access>
+                        <Memory GroupName="ETPP_SOURCE_ADRS_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/4"/>
+                            <HwField Name="SOURCE_ADDRESSf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

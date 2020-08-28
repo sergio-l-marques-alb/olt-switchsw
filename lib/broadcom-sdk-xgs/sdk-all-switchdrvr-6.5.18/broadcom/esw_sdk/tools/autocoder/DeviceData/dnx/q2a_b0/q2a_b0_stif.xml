@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_b0"  module="stif">
+    <includes>
+        <include>bcm/stat.h</include>
+        <include>bcm_int/dnx/stat/stif/stif_mgmt.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_nif.h</include>
+    </includes>
+    <sub_module name="config">
+        <features>
+            <feature name="mixing_ports_limitation" value="0"></feature>        
+        </features>
+    </sub_module>
+</device_data>
+
+

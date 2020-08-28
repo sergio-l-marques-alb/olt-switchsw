@@ -1,0 +1,1355 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    **********************************************************************
+    This xml contains tables mapping ECGM thresholds.
+    **********************************************************************
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+  <!--
+    **********************************************************************
+    Table: ECGM_CORE_GLOBAL_THRESHOLDS
+    Used in API: bcm_cosq_gport_threshold_ set / get
+    Mapping of core thresholds: 
+    packet descriptors - max allocated PDs and flow control threshold.
+    data buffers - max allocated DBs and flow control threshold.
+    **********************************************************************
+-->
+  <AppDB Name="ECGM_CORE_GLOBAL_THRESHOLDS">
+    <OneLineDescription>This table contains core PD and DB thresholds.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+      </Key>
+      <Result>
+        <Field Name="PD_DROP" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="PD_FLOW_CONTROL" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="DB_DROP" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+        <Field Name="DB_FLOW_CONTROL" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD_DROP">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr">
+              <HwField Name="MAXIMUM_TOTAL_PACKET_DESCRIPTORSf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="PD_FLOW_CONTROL">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr">
+              <HwField Name="TOTAL_PACKET_DESCRIPTORS_FLOW_CONTROLLIMITf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="DB_DROP">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr">
+              <HwField Name="MAXIMUM_TOTAL_DATA_BUFFERSf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="DB_FLOW_CONTROL">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr">
+              <HwField Name="TOTAL_DATA_BUFFERS_FLOW_CONTROL_LIMITf"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+
+  <!--
+    **********************************************************************
+    Table: ECGM_CORE_UNICAST_THRESHOLDS
+    Used in API: bcm_cosq_gport_threshold_ set / get
+    Mapping of unicast thresholds: 
+    packet descriptors - max allocated PDs and flow control threshold.
+    data buffers - max allocated DBs and flow control threshold.
+    **********************************************************************
+-->
+  <AppDB Name="ECGM_CORE_UNICAST_THRESHOLDS">
+    <OneLineDescription>This table contains unicast PD and DB thresholds.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+      </Key>
+      <Result>
+        <Field Name="PD_DROP" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="PD_FLOW_CONTROL" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="DB_DROP" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+        <Field Name="DB_FLOW_CONTROL" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD_DROP">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr">
+              <HwField Name="MAXIMUM_UNICAST_PACKET_DESCRIPTORSf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="PD_FLOW_CONTROL">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr">
+              <HwField Name="UNICAST_PACKET_DESCRIPTORS_FLOW_CONTROL_LIMITf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="DB_DROP">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr">
+              <HwField Name="MAXIMUM_UNICAST_DATA_BUFFERSf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="DB_FLOW_CONTROL">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr">
+              <HwField Name="UNICAST_DATA_BUFFERS_FLOW_CONTROL_LIMITf"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+  <!--
+    **********************************************************************
+    Table: ECGM_CORE_MULTICAST_THRESHOLDS
+    Used in API: bcm_cosq_gport_threshold_ set / get
+    Mapping of multicast thresholds: 
+    packet descriptors - max allocated PDs and flow control threshold.
+    data buffers - max allocated DBs and flow control threshold.
+    **********************************************************************
+-->
+  <AppDB Name="ECGM_CORE_MULTICAST_THRESHOLDS">
+    <OneLineDescription>This table contains multicast PD and DB thresholds.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+      </Key>
+      <Result>
+        <Field Name="PD_DROP" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="PD_FLOW_CONTROL" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="DB_DROP" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+        <Field Name="DB_FLOW_CONTROL" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD_DROP">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr">
+              <HwField Name="MAXIMUM_MULTICAST_PACKET_DESCRIPTORSf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="PD_FLOW_CONTROL">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr">
+              <HwField Name="MULTICAST_PACKET_DESCRIPTORS_FLOW_CONTROL_LIMITf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="DB_DROP">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr">
+              <HwField Name="MAXIMUM_MULTICAST_DATA_BUFFERSf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="DB_FLOW_CONTROL">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr">
+              <HwField Name="MULTICAST_DATA_BUFFERS_FLOW_CONTROL_LIMITf"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+
+  <!--
+    **********************************************************************
+    Table: ECGM_CORE_MULTICAST_SP_THRESHOLDS
+    Used in API: bcm_cosq_gport_threshold_ set / get
+    Mapping of ETM resources per service pool (SP) ID:
+    packet descriptors - max PDs per service pool, flow control threshold and reserved. 
+    data buffers - max DBs per service pool, flow control threshold and reserved. 
+    **********************************************************************
+-->
+
+  <AppDB Name="ECGM_CORE_MULTICAST_SP_THRESHOLDS">
+    <OneLineDescription>This table contains multicast service pool thresholds for PD and DB.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="SERVICE_POOL_ID"/>
+      </Key>
+      <Result>
+        <Field Name="PD_DROP" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="PD_FLOW_CONTROL" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="DB_DROP" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+        <Field Name="DB_FLOW_CONTROL" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+        <Field Name="RESERVED_PD" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="RESERVED_DB" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD_DROP">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr">
+              <HwField Name="SERVICE_POOL_0_MAXIMUM_PACKET_DESCRIPTORSf"/>            
+              <DataOffset Formula="dnx_data_ecgm.core_resources.total_pds_nof_bits_get(unit)*#KEY_VALUE(SERVICE_POOL_ID)"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="PD_FLOW_CONTROL">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr">
+              <HwField Name="MULTICAST_PACKET_DESCRIPTORS_SERVICE_POOL_0_FLOW_CONTROL_LIMITf"/>            
+              <DataOffset Formula="dnx_data_ecgm.core_resources.total_pds_nof_bits_get(unit)*#KEY_VALUE(SERVICE_POOL_ID)"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="DB_DROP">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr">
+              <HwField Name="SERVICE_POOL_0_MAXIMUM_DATA_BUFFERSf"/>            
+              <DataOffset Formula="dnx_data_ecgm.core_resources.total_dbs_nof_bits_get(unit)*#KEY_VALUE(SERVICE_POOL_ID)"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="DB_FLOW_CONTROL">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr">
+              <HwField Name="MULTICAST_DATA_BUFFERS_SERVICE_POOL_0_FLOW_CONTROL_LIMITf"/>
+              <DataOffset Formula="dnx_data_ecgm.core_resources.total_dbs_nof_bits_get(unit)*#KEY_VALUE(SERVICE_POOL_ID)"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="RESERVED_PD">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr">
+              <HwField Name="RESERVED_P_DS_SERVICE_POOL_0f"/>
+              <DataOffset Formula="dnx_data_ecgm.core_resources.total_pds_nof_bits_get(unit)*#KEY_VALUE(SERVICE_POOL_ID)"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="RESERVED_DB">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr">
+              <HwField Name="RESERVED_D_BS_SERVICE_POOL_0f"/>
+              <DataOffset Formula="dnx_data_ecgm.core_resources.total_dbs_nof_bits_get(unit)*#KEY_VALUE(SERVICE_POOL_ID)"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+
+  <!--
+  **********************************************************************
+  Table: ECGM_CORE_TC_MULTICAST_THRESHOLDS
+    Used in API: bcm_cosq_gport_threshold_ set / get
+    Mapping PD and DB flow control thresholds per traffic class.
+  **********************************************************************
+-->
+  <AppDB Name="ECGM_CORE_TC_MULTICAST_THRESHOLDS">
+    <OneLineDescription>This table contains PD and DB flow control thresholds per traffic class.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="TC"/>
+      </Key>
+      <Result>
+        <Field Name="PD_FLOW_CONTROL" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="DB_FLOW_CONTROL" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD_FLOW_CONTROL">
+          <Access>
+            <Register Name="ECGM_CGM_MC_PD_TC_FC_THr">
+              <DataOffset Formula="dnx_data_ecgm.core_resources.total_pds_nof_bits_get(unit)*#KEY_VALUE(TC)"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="DB_FLOW_CONTROL">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr">
+              <DataOffset Formula="dnx_data_ecgm.core_resources.total_dbs_nof_bits_get(unit)*#KEY_VALUE(TC)"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+
+
+  <!--
+    **********************************************************************
+    Table: ECGM_CORE_TC_MULTICAST_SP_THRESHOLDS
+    Used in API: bcm_cosq_gport_threshold_ set / get
+    Mapping service pool resources thresholds per traffic class.
+    **********************************************************************
+-->
+  <AppDB Name="ECGM_CORE_TC_MULTICAST_SP_THRESHOLDS">
+    <OneLineDescription>This table contains service pool PD and DB thresholds per traffic class.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="TC"/>
+        <Field Name="SERVICE_POOL_ID"/>
+      </Key>
+      <Result>
+        <Field Name="PD_DROP" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="DB_DROP_MAX" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+        <Field Name="DB_DROP_MIN" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+        <Field Name="DB_DROP_ALPHA_0" Type="ECGM_ALPHA"/>
+        <Field Name="DB_DROP_ALPHA_1" Type="ECGM_ALPHA"/>
+        <Field Name="RESERVED_DB" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD_DROP">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr">
+              <DataOffset Formula="dnx_data_ecgm.core_resources.total_pds_nof_bits_get(unit)*8*#KEY_VALUE(SERVICE_POOL_ID)+dnx_data_ecgm.core_resources.total_pds_nof_bits_get(unit)*#KEY_VALUE(TC)"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="DB_DROP_MAX">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr">
+              <DataOffset Formula="dnx_data_ecgm.core_resources.total_dbs_nof_bits_get(unit)*8*#KEY_VALUE(SERVICE_POOL_ID)+dnx_data_ecgm.core_resources.total_dbs_nof_bits_get(unit)*#KEY_VALUE(TC)"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="DB_DROP_MIN">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MINIMUM_THRESHOLDSr">
+              <DataOffset Formula="dnx_data_ecgm.core_resources.total_dbs_nof_bits_get(unit)*8*#KEY_VALUE(SERVICE_POOL_ID)+dnx_data_ecgm.core_resources.total_dbs_nof_bits_get(unit)*#KEY_VALUE(TC)"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="DB_DROP_ALPHA_0">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_ALPHA_0r">
+              <DataOffset Formula="#KEY_VALUE(SERVICE_POOL_ID)*32+#KEY_VALUE(TC)*4"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="DB_DROP_ALPHA_1">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_ALPHA_1r">
+              <DataOffset Formula="#KEY_VALUE(SERVICE_POOL_ID)*32+#KEY_VALUE(TC)*4"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="RESERVED_DB">
+          <Access>
+            <Register Name="ECGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr">
+              <DataOffset Formula="dnx_data_ecgm.core_resources.total_dbs_nof_bits_get(unit)*8*#KEY_VALUE(SERVICE_POOL_ID)+dnx_data_ecgm.core_resources.total_dbs_nof_bits_get(unit)*#KEY_VALUE(TC)"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+  <!--
+    **********************************************************************
+    Table: ECGM_INTERFACE_UNICAST_THRESHOLDS
+    Used in API: bcm_cosq_gport_threshold_ set / get
+    Mapping PD and DB flow control thresholds per interface profile and priority. 
+    **********************************************************************
+-->
+  <AppDB Name="ECGM_INTERFACE_UNICAST_THRESHOLDS">
+    <OneLineDescription>This table contains PD and DB FC thresholds per interface profile and priority. </OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="ECGM_PRIORITY"/>
+        <Field Name="INTERFACE_PROFILE" Type="ECGM_INTERFACE_PROFILE"/>
+      </Key>
+      <Result>
+        <Field Name="PD_FLOW_CONTROL_MAX" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="PD_FLOW_CONTROL_MIN" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="PD_FLOW_CONTROL_ALPHA" Type="ECGM_ALPHA"/>
+        <Field Name="DB_FLOW_CONTROL_MAX" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+        <Field Name="DB_FLOW_CONTROL_MIN" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+        <Field Name="DB_FLOW_CONTROL_ALPHA" Type="ECGM_ALPHA"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD_FLOW_CONTROL_MAX">
+          <Access>
+            <Memory Name="ECGM_FDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(INTERFACE_PROFILE)*2+#KEY_VALUE(ECGM_PRIORITY)"/>
+              <HwField Name="CGM_UC_PD_INTERFACE_FC_MAX_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="PD_FLOW_CONTROL_MIN">
+          <Access>
+            <Memory Name="ECGM_FDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(INTERFACE_PROFILE)*2+#KEY_VALUE(ECGM_PRIORITY)"/>
+              <HwField Name="CGM_UC_PD_INTERFACE_FC_MIN_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="PD_FLOW_CONTROL_ALPHA">
+          <Access>
+            <Memory Name="ECGM_FDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(INTERFACE_PROFILE)*2+#KEY_VALUE(ECGM_PRIORITY)"/>
+              <HwField Name="CGM_UC_PD_INTERFACE_FC_ALPHAf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="DB_FLOW_CONTROL_MAX">
+          <Access>
+            <Memory Name="ECGM_FDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(INTERFACE_PROFILE)*2+#KEY_VALUE(ECGM_PRIORITY)"/>
+              <HwField Name="CGM_UC_SIZE_256_INTERFACE_FC_MAX_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="DB_FLOW_CONTROL_MIN">
+          <Access>
+            <Memory Name="ECGM_FDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(INTERFACE_PROFILE)*2+#KEY_VALUE(ECGM_PRIORITY)"/>
+              <HwField Name="CGM_UC_SIZE_256_INTERFACE_FC_MIN_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="DB_FLOW_CONTROL_ALPHA">
+          <Access>
+            <Memory Name="ECGM_FDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(INTERFACE_PROFILE)*2+#KEY_VALUE(ECGM_PRIORITY)"/>
+              <HwField Name="CGM_UC_SIZE_256_INTERFACE_FC_ALPHAf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+
+
+  <!--
+    **********************************************************************
+    Table: ECGM_EGQ_IF_TO_INTERFACE_PROFILE_MAP
+    Used in API: bcm_cosq_gport_threshold_ set / get
+    Mapping EGQ interface to an Interface profile.
+    **********************************************************************
+-->
+  <AppDB Name="ECGM_EGQ_IF_TO_INTERFACE_PROFILE_MAP">
+    <OneLineDescription>This table contains mapping of EGQ interface to an interface profile.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="EGQ_IF"/>
+      </Key>
+      <Result>
+        <Field Name="INTERFACE_PROFILE" Type="ECGM_INTERFACE_PROFILE"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="INTERFACE_PROFILE">
+          <Access>
+            <Register Name="ECGM_CGM_MAP_IF_2_THr">
+              <HwField Name="CGM_MAP_IF_2_THf"/>
+              <DataOffset Formula="#KEY_VALUE(EGQ_IF)*3"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+  <!--
+    **********************************************************************
+  Table: ECGM_QUEUE_DISABLE
+    Used in API: bcm_cosq_gport_threshold_ set / get
+    Mapping a queue pair number to a disable indication bit. 
+  **********************************************************************
+-->
+  <AppDB Name="ECGM_QUEUE_DISABLE">
+    <OneLineDescription>This table contains disable bit indication per queue pair number.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="QPAIR"/>
+      </Key>
+      <Result>
+        <Field Name="IS_QUEUE_DISABLED" Type="BOOL"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Device="JR2_A0 JR2_B0 Q2A_A0 Q2A_B0 J2P_A0" Name="IS_QUEUE_DISABLED">
+          <Access>
+            <Register Name="ECGM_CGM_QUEUE_PAIR_DISABLEDr">
+              <HwField Name="CGM_QUEUE_PAIR_DISABLEDf"/>
+              <DataOffset Formula="#KEY_VALUE(QPAIR)"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Device="J2C_A0" Name="IS_QUEUE_DISABLED">
+          <Access>
+            <KeyCondition Field="QPAIR" Type="LOWER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+            <Register Name="ECGM_CGM_QUEUE_PAIR_DISABLED_0r">
+              <HwField Name="CGM_QUEUE_PAIR_DISABLED_0f"/>
+              <DataOffset Formula="#KEY_VALUE(QPAIR)"/>
+            </Register>
+          </Access>
+          <Access>
+            <KeyCondition Field="QPAIR" Type="BIGGER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2-1"/>
+            <Register Name="ECGM_CGM_QUEUE_PAIR_DISABLED_1r">
+              <HwField Name="CGM_QUEUE_PAIR_DISABLED_1f"/>
+              <DataOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>
+            </Register>
+          </Access>
+        </Field>        
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+  <!--
+    **********************************************************************    
+  Table: ECGM_INTERFACE_MULTICAST_THRESHOLDS
+    Used in API: bcm_cosq_gport_threshold_ set / get
+    Mapping packet descriptors threshold per Interface profile and priority.
+  **********************************************************************
+-->
+  <AppDB Name="ECGM_INTERFACE_MULTICAST_THRESHOLDS">
+    <OneLineDescription>This table contains PD thresholds per interface profile and priority.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="ECGM_PRIORITY"/>
+        <Field Name="INTERFACE_PROFILE" Type="ECGM_INTERFACE_PROFILE"/>
+      </Key>
+      <Result>
+        <Field Name="PD_DROP" Type="ECGM_PD_THRESHOLD"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD_DROP">
+          <Access>
+            <Memory Name="ECGM_FDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(INTERFACE_PROFILE)*2+#KEY_VALUE(ECGM_PRIORITY)"/>
+              <HwField Name="MC_INTERFACE_PD_DIS_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+  <!--
+    **********************************************************************
+    Table: ECGM_UNICAST_PORT_THRESHOLDS
+    Used in API: bcm_cosq_gport_threshold_ set / get
+    Mapping PD and DB thresholds per unicast port profile.
+    **********************************************************************
+-->
+  <AppDB Name="ECGM_UNICAST_PORT_THRESHOLDS">
+    <OneLineDescription>This table contains PD and DB thresholds per port profile.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="ECGM_PORT_PROFILE"/>
+      </Key>
+      <Result>
+        <Field Name="PD_DROP" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="PD_FLOW_CONTROL_MAX" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="PD_FLOW_CONTROL_MIN" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="PD_FLOW_CONTROL_ALPHA" Type="ECGM_ALPHA"/>
+        <Field Name="DB_DROP" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+        <Field Name="DB_FLOW_CONTROL_MAX" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+        <Field Name="DB_FLOW_CONTROL_MIN" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+        <Field Name="DB_FLOW_CONTROL_ALPHA" Type="ECGM_ALPHA"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD_DROP">
+          <Access>
+            <Memory Name="ECGM_PDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)"/>
+              <HwField Name="PORT_UC_PD_DIS_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="PD_FLOW_CONTROL_MAX">
+          <Access>
+            <Memory Name="ECGM_PDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)"/>
+              <HwField Name="PORT_UC_PD_MAX_FC_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="PD_FLOW_CONTROL_MIN">
+          <Access>
+            <Memory Name="ECGM_PDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)"/>
+              <HwField Name="PORT_UC_PD_MIN_FC_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="PD_FLOW_CONTROL_ALPHA">
+          <Access>
+            <Memory Name="ECGM_PDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)"/>
+              <HwField Name="PORT_UC_PD_ALPHAf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="DB_DROP">
+          <Access>
+            <Memory Name="ECGM_PQST_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)"/>
+              <HwField Name="PORT_UC_DB_DIS_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="DB_FLOW_CONTROL_MAX">
+          <Access>
+            <Memory Name="ECGM_PQST_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)"/>
+              <HwField Name="PORT_UC_DB_MAX_FC_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="DB_FLOW_CONTROL_MIN">
+          <Access>
+            <Memory Name="ECGM_PQST_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)"/>
+              <HwField Name="PORT_UC_DB_MIN_FC_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="DB_FLOW_CONTROL_ALPHA">
+          <Access>
+            <Memory Name="ECGM_PQST_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)"/>
+              <HwField Name="PORT_UC_DB_ALPHAf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+  <!--
+    **********************************************************************
+    Table: ECGM_TM_PORT_TO_PORT_PROFILE_MAP
+    Used in API: bcm_cosq_gport_threshold_ set / get
+    Mapping of port profiles to OTM ports.
+    **********************************************************************
+-->
+  <AppDB Name="ECGM_TM_PORT_TO_PORT_PROFILE_MAP">
+    <OneLineDescription>This table contains mapping of port profiles to OTM ports.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="TM_PORT"/>
+      </Key>
+      <Result>
+        <Field Name="ECGM_PORT_PROFILE"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="ECGM_PORT_PROFILE">
+          <Access>
+            <Memory Name="PQP_OTM_ATTRIBUTES_TABLE_ENQm">
+              <EntryOffset Formula="#KEY_VALUE(TM_PORT)"/>
+              <HwField Name="CGM_PORT_PROFILEf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+<!--
+    **********************************************************************
+    Table: ECGM_BASE_Q_PAIR_TO_PORT_PROFILE_MAP
+    Used in API: bcm_cosq_gport_threshold_ set / get
+    Mapping of port profiles to base queue pair.
+    **********************************************************************
+-->
+    <AppDB Name="ECGM_BASE_Q_PAIR_TO_PORT_PROFILE_MAP">
+        <OneLineDescription>This table contains mapping of port profiles to a base queue pair.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="BASE_Q_PAIR" Type="QPAIR"/>
+            </Key>
+            <Result>
+                <Field Name="ECGM_PORT_PROFILE"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+        </AppDbInterface>
+
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ECGM_PORT_PROFILE">
+                    <Access>
+                        <Memory Name="PQP_OTM_ATTRIBUTES_TABLE_DEQm">
+                            <EntryOffset Formula="#KEY_VALUE(BASE_Q_PAIR)"/>
+                            <HwField Name="CGM_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+  <!--
+    **********************************************************************
+    Table: ECGM_UNICAST_QUEUE_THRESHOLDS
+    Used in API: bcm_cosq_gport_threshold_ set / get
+    Mapping PD and DB thresholds per port profile and traffic class for unicast queues.
+    **********************************************************************
+-->
+  <AppDB Name="ECGM_UNICAST_QUEUE_THRESHOLDS">
+    <OneLineDescription>This table contains PD and DB thresholds per port profile and traffic class for unicast queues.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="ECGM_PORT_PROFILE"/>
+        <Field Name="ECGM_QUEUE_OFFSET" Type="TC"/>
+      </Key>
+      <Result>
+        <Field Name="PD_DROP" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="PD_FLOW_CONTROL_MAX" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="PD_FLOW_CONTROL_MIN" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="PD_FLOW_CONTROL_ALPHA" Type="ECGM_ALPHA"/>
+        <Field Name="DB_DROP" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+        <Field Name="DB_FLOW_CONTROL_MAX" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+        <Field Name="DB_FLOW_CONTROL_MIN" Size="DNX_DATA.ecgm.core_resources.total_dbs_nof_bits" Type="UINT"/>
+        <Field Name="DB_FLOW_CONTROL_ALPHA" Type="ECGM_ALPHA"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD_DROP">
+          <Access>
+            <Memory Name="ECGM_QDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_UC_PD_DIS_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="PD_FLOW_CONTROL_MAX">
+          <Access>
+            <Memory Name="ECGM_QDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_UC_PD_MAX_FC_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="PD_FLOW_CONTROL_MIN">
+          <Access>
+            <Memory Name="ECGM_QDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_UC_PD_MIN_FC_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="PD_FLOW_CONTROL_ALPHA">
+          <Access>
+            <Memory Name="ECGM_QDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_UC_PD_ALPHAf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="DB_DROP">
+          <Access>
+            <Memory Name="ECGM_QQST_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_UC_DB_DIS_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="DB_FLOW_CONTROL_MAX">
+          <Access>
+            <Memory Name="ECGM_QQST_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_UC_DB_MAX_FC_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="DB_FLOW_CONTROL_MIN">
+          <Access>
+            <Memory Name="ECGM_QQST_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_UC_DB_MIN_FC_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="DB_FLOW_CONTROL_ALPHA">
+          <Access>
+            <Memory Name="ECGM_QQST_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_UC_DB_ALPHAf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+  <!--
+    **********************************************************************
+    Table: ECGM_MULTICAST_PORT_THRESHOLDS
+    Used in API: bcm_cosq_gport_threshold_ set / get
+    Mapping PD and DB thresholds per multicast port profile.
+    **********************************************************************
+-->
+  <AppDB Name="ECGM_MULTICAST_PORT_THRESHOLDS">
+    <OneLineDescription>This table contains PD and DB thresholds per port profile.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="ECGM_PORT_PROFILE"/>
+      </Key>
+      <Result>
+        <Field Name="PD_DROP_MAX" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="PD_DROP_MIN" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="PD_DROP_ALPHA" Type="ECGM_ALPHA"/>
+        <Field Name="DB_DROP" Size="22" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD_DROP_MAX">
+          <Access>
+            <Memory Name="ECGM_PDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)"/>
+              <HwField Name="PORT_MC_PD_SHARED_MAX_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="PD_DROP_MIN">
+          <Access>
+            <Memory Name="ECGM_PDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)"/>
+              <HwField Name="PORT_MC_PD_SHARED_MIN_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="PD_DROP_ALPHA">
+          <Access>
+            <Memory Name="ECGM_PDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)"/>
+              <HwField Name="PORT_MC_PD_SHARED_ALPHAf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="DB_DROP">
+          <Access>
+            <Memory Name="ECGM_PQST_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)"/>
+              <HwField Name="PORT_MC_DB_SHARED_THf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+  <!--
+    **********************************************************************
+    Table: ECGM_MULTICAST_QUEUE_TC_DP_THRESHOLDS
+    Used in API: bcm_cosq_gport_threshold_ set / get
+    Mapping PD and DB thresholds per drop precedence
+    for each port profile and traffic class for multicast queues.
+    **********************************************************************
+-->
+ <AppDB Name="ECGM_MULTICAST_QUEUE_TC_DP_THRESHOLDS">
+    <OneLineDescription>This table contains PD and DB thresholds for MC queues per DP, for each port profile and traffic class.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="ECGM_PORT_PROFILE"/>
+        <Field Name="ECGM_QUEUE_OFFSET" Type="TC"/>
+        <Field Name="DP"/>
+      </Key>
+      <Result>
+        <Field Name="PD_DROP_MAX" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="PD_DROP_MIN" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="PD_DROP_ALPHA" Type="ECGM_ALPHA"/>
+        <Field Name="DB_DROP" Size="22" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD_DROP_MAX">
+          <Access>
+            <KeyCondition Field="DP" Type="EQUAL_TO" Value="0"/>          
+            <Memory Name="ECGM_QDCT_TABLEm">              
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_MC_PD_MAX_TH_DP_0f"/>
+            </Memory>
+          </Access>
+          <Access>
+            <KeyCondition Field="DP" Type="EQUAL_TO" Value="1"/>          
+            <Memory Name="ECGM_QDCT_TABLEm">              
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_MC_PD_MAX_TH_DP_1f"/>
+            </Memory>
+          </Access>
+          <Access>
+            <KeyCondition Field="DP" Type="EQUAL_TO" Value="2"/>          
+            <Memory Name="ECGM_QDCT_TABLEm">              
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_MC_PD_MAX_TH_DP_2f"/>
+            </Memory>
+          </Access>
+          <Access>
+            <KeyCondition Field="DP" Type="EQUAL_TO" Value="3"/>          
+            <Memory Name="ECGM_QDCT_TABLEm">              
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_MC_PD_MAX_TH_DP_3f"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="PD_DROP_MIN">
+          <Access>
+            <KeyCondition Field="DP" Type="EQUAL_TO" Value="0"/>
+            <Memory Name="ECGM_QDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_MC_PD_MIN_TH_DP_0f"/>
+            </Memory>
+          </Access>
+          <Access>
+            <KeyCondition Field="DP" Type="EQUAL_TO" Value="1"/>
+            <Memory Name="ECGM_QDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_MC_PD_MIN_TH_DP_1f"/>
+            </Memory>
+          </Access>
+          <Access>
+            <KeyCondition Field="DP" Type="EQUAL_TO" Value="2"/>
+            <Memory Name="ECGM_QDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_MC_PD_MIN_TH_DP_2f"/>
+            </Memory>
+          </Access>
+          <Access>
+            <KeyCondition Field="DP" Type="EQUAL_TO" Value="3"/>
+            <Memory Name="ECGM_QDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_MC_PD_MIN_TH_DP_3f"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="PD_DROP_ALPHA">
+          <Access>
+            <Memory Name="ECGM_QDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_MC_PD_ALPHA_DP_0f"/>
+              <DataOffset Formula="#KEY_VALUE(DP)*4"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="DB_DROP">
+          <Access>
+            <Memory Name="ECGM_QQST_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_MC_DB_DP_0_THf"/>
+              <DataOffset Formula="#KEY_VALUE(DP)*22"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+  <!--
+    **********************************************************************
+    Table: ECGM_MULTICAST_QUEUE_TC_THRESHOLDS
+    Used in API: bcm_cosq_gport_threshold_ set / get
+    Mapping reserved PD thresholds per traffic class for each port profile.
+    **********************************************************************
+-->
+  <AppDB Name="ECGM_MULTICAST_QUEUE_TC_THRESHOLDS">
+    <OneLineDescription>This table contains reserved PD thresholds per traffic class for each port profile.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="ECGM_PORT_PROFILE"/>
+        <Field Name="ECGM_QUEUE_OFFSET" Type="TC"/>
+      </Key>
+      <Result>
+        <Field Name="RESERVED_PD_DROP" Type="ECGM_PD_THRESHOLD"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="RESERVED_PD_DROP">
+          <Access>
+            <Memory Name="ECGM_QDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_MC_PD_RSVD_THf"/>
+            </Memory>
+          </Access>
+          <Access>
+            <Memory Name="ECGM_QDCT_TABLEm">
+              <EntryOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+              <HwField Name="QUEUE_MC_PD_RSVD_TH_SP_1f"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+  <!--
+    **********************************************************************
+    Table: ECGM_DELETE_FIFO_MODE
+    Used for Init/Deinit process of configuring DELETE FIFOs mode.
+    **********************************************************************
+-->
+  <AppDB Name="ECGM_DELETE_FIFO_MODE">
+    <OneLineDescription>This table is used for Init/Deinit process of configuring DELETE FIFOs mode.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+      </Key>
+      <Result>
+        <Field Name="ECGM_DELETE_FIFO_MODE"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="ECGM_DELETE_FIFO_MODE">
+          <Access>
+            <Register Name="PQP_DELETE_FIFO_CONFIGURATIONr">
+              <HwField Name="DEL_FIFOS_MODEf"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+  <!--
+    **********************************************************************
+    Table: ECGM_DELETE_FIFO_THRESHOLDS
+    Used for Init/Deinit process of configuring DELETE FIFOs thresholds.
+    **********************************************************************
+ -->
+  <AppDB Name="ECGM_DELETE_FIFO_THRESHOLDS">
+    <OneLineDescription>This table is used for configuring DELETE FIFO thresholds.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="FIFO_TYPE" Type="ECGM_DELETE_FIFO_TYPE"/>
+      </Key>
+      <Result>
+        <Field Name="FQP_HIGH_PRIORITY" Size="10" Type="UINT"/>
+        <Field Name="STOP_MC_LOW" Size="10" Type="UINT"/>
+        <Field Name="STOP_MC_HIGH" Size="10" Type="UINT"/>
+        <Field Name="STOP_ALL" Size="10" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="FQP_HIGH_PRIORITY">
+          <Access>
+            <KeyCondition Enum="LONG_PACKET_FIFO" Field="FIFO_TYPE" Type="EQUAL_TO"/>
+            <Register Name="PQP_DELETE_FIFO_CONFIGURATIONr">
+              <HwField Name="DEL_FIFO_ALMOSTFULLf"/>
+            </Register>
+          </Access>
+          <Access>
+            <KeyCondition Enum="LCD_FIFO" Field="FIFO_TYPE" Type="EQUAL_TO"/>
+            <Register Name="PQP_LCD_FIFO_CONFIGURATIONr">
+              <HwField Name="LCD_FIFO_ALMOSTFULLf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="STOP_MC_LOW">
+          <Access>
+            <KeyCondition Enum="LONG_PACKET_FIFO" Field="FIFO_TYPE" Type="EQUAL_TO"/>
+            <Register Name="PQP_DELETE_FIFO_CONFIGURATIONr">
+              <HwField Name="DEL_FIFO_ALMOSTFULL_1f"/>
+            </Register>
+          </Access>
+          <Access>
+            <KeyCondition Enum="LCD_FIFO" Field="FIFO_TYPE" Type="EQUAL_TO"/>
+            <Register Name="PQP_LCD_FIFO_CONFIGURATIONr">
+              <HwField Name="LCD_FIFO_ALMOSTFULL_1f"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="STOP_MC_HIGH">
+          <Access>
+            <KeyCondition Enum="LONG_PACKET_FIFO" Field="FIFO_TYPE" Type="EQUAL_TO"/>
+            <Register Name="PQP_DELETE_FIFO_CONFIGURATIONr">
+              <HwField Name="DEL_FIFO_ALMOSTFULL_2f"/>
+            </Register>
+          </Access>
+          <Access>
+            <KeyCondition Enum="LCD_FIFO" Field="FIFO_TYPE" Type="EQUAL_TO"/>
+            <Register Name="PQP_LCD_FIFO_CONFIGURATIONr">
+              <HwField Name="LCD_FIFO_ALMOSTFULL_2f"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="STOP_ALL">
+          <Access>
+            <KeyCondition Enum="LONG_PACKET_FIFO" Field="FIFO_TYPE" Type="EQUAL_TO"/>
+            <Register Name="PQP_DELETE_FIFO_CONFIGURATIONr">
+              <HwField Name="DEL_FIFO_ALMOSTFULL_3f"/>
+            </Register>
+          </Access>
+          <Access>
+            <KeyCondition Enum="LONG_PACKET_FIFO" Field="FIFO_TYPE" Type="EQUAL_TO"/>
+            <Register Name="PQP_DELETE_FIFO_CONFIGURATIONr">
+              <HwField Name="DEL_FIFO_ALMOSTFULL_4f"/>
+            </Register>
+          </Access>
+          <Access>
+            <KeyCondition Enum="LCD_FIFO" Field="FIFO_TYPE" Type="EQUAL_TO"/>
+            <Register Name="PQP_LCD_FIFO_CONFIGURATIONr">
+              <HwField Name="LCD_FIFO_ALMOSTFULL_3f"/>
+            </Register>
+          </Access>
+          <Access>
+            <KeyCondition Enum="LCD_FIFO" Field="FIFO_TYPE" Type="EQUAL_TO"/>
+            <Register Name="PQP_LCD_FIFO_CONFIGURATIONr">
+              <HwField Name="LCD_FIFO_ALMOSTFULL_4f"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+  <!--
+    **********************************************************************
+    Table: ECGM_DELETE_FIFO_TDM_SHORT_THRESHOLDS
+    Used for Init/Deinit process of configuring DELETE FIFOs thresholds for TDM and short packets FIFOs.
+    **********************************************************************
+-->
+  <AppDB Name="ECGM_DELETE_FIFO_TDM_SHORT_THRESHOLDS">
+    <OneLineDescription>This table is used for configuring DELETE FIFO thresholds for short packets FIFOs.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+      </Key>
+      <Result>
+        <Field Name="FQP_HIGH_PRIORITY" Size="9" Type="UINT"/>
+        <Field Name="STOP_MC_LOW" Size="9" Type="UINT"/>
+        <Field Name="STOP_MC_HIGH" Size="9" Type="UINT"/>
+        <Field Name="STOP_ALL" Size="9" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="FQP_HIGH_PRIORITY">
+          <Access>
+            <Register Name="PQP_DELETE_FIFO_CONFIGURATIONr">
+              <HwField Name="DEL_TDM_FIFO_ALMOSTFULLf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="STOP_MC_LOW">
+          <Access>
+            <Register Name="PQP_DELETE_FIFO_CONFIGURATIONr">
+              <HwField Name="DEL_TDM_FIFO_ALMOSTFULL_1f"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="STOP_MC_HIGH">
+          <Access>
+            <Register Name="PQP_DELETE_FIFO_CONFIGURATIONr">
+              <HwField Name="DEL_TDM_FIFO_ALMOSTFULL_2f"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="STOP_ALL">
+          <Access>
+            <Register Name="PQP_DELETE_FIFO_CONFIGURATIONr">
+              <HwField Name="DEL_TDM_FIFO_ALMOSTFULL_3f"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+  <!--
+    **********************************************************************
+    Table: ECGM_THRESHOLDS_STRICT_PRIORITY_OR_DISCRETE_PARTITIONING
+    Used for in ecgm init process - configuring TC thresholds mode for ecgm service pools for both PDs and DBs.
+    **********************************************************************
+-->
+  <AppDB Name="ECGM_THRESHOLDS_STRICT_PRIORITY_OR_DISCRETE_PARTITIONING">
+    <OneLineDescription>This table is used for configuring TC thresholds mode for ecgm service pools for both PDs and DBs.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+      </Key>
+      <Result>
+        <Field Name="ECGM_SP_TC_TH_MODE_PD" Size="1" Type="UINT"/>
+        <Field Name="ECGM_SP_TC_TH_MODE_DB" Size="1" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM FC</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="ECGM_SP_TC_TH_MODE_PD">
+          <Access>
+            <Register Name="ECGM_CGM_PD_TH_SP_OR_SHAREDr"/>
+          </Access>
+        </Field>
+        <Field Name="ECGM_SP_TC_TH_MODE_DB">
+          <Access>
+            <Register Name="ECGM_CGM_DB_TH_SP_OR_SHAREDr"/>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+</AppDbCatalog>

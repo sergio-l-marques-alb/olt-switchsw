@@ -1,0 +1,3704 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="GDDR6_DRAM_PLL_RESET" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>GDDR6 DRAM PLL configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_PLL_RESETB" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_ISO_IN" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="DRAM_PLL_RESETB">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_RESETBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_ISO_IN">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_ISO_INf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_PLL_POST_RESET" Valid="DNX_DATA.dram.gddr6.is_supported">
+        <OneLineDescription>DRAM PLL configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_PLL_POST_RESETB" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="DRAM_PLL_POST_RESETB">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_POST_RESETBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_PLL_DIV_CONFIG" Valid="DNX_DATA.dram.gddr6.is_supported">
+        <OneLineDescription>DRAM PLL configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_PLL_PDIV" Size="4" Type="UINT"/>
+                <Field Name="DRAM_PLL_NDIV_INT" Size="10" Type="UINT"/>
+                <Field Name="DRAM_PLL_NDIV_FRAC" Size="24" Type="UINT"/>
+                <Field Name="DRAM_PLL_MDIV" Size="4" Type="UINT"/>
+                <Field Name="DRAM_PLL_FREFEFF_INFO" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="DRAM_PLL_PDIV">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_PDIVf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_NDIV_INT">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_NDIV_INTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_NDIV_FRAC">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_NDIV_FRACf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_MDIV">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_MDIVf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_FREFEFF_INFO">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_FREFEFF_INFOf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+	
+    <AppDB Name="GDDR6_DRAM_PLL_CONFIG" Valid="DNX_DATA.dram.gddr6.is_supported">
+        <OneLineDescription>DRAM PLL configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_PLL_WDT_ENB" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_WDT_CNT" Size="2" Type="UINT"/>
+                <Field Name="DRAM_PLL_VCO_SEL" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_VC_OVERRIDE" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_STAYS_LOCKED" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_STAT_UPDATE" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_STAT_SELECT" Size="3" Type="UINT"/>
+                <Field Name="DRAM_PLL_STAT_RESET" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_STAT_MODE" Size="2" Type="UINT"/>
+                <Field Name="DRAM_PLL_SSC_STEP" Size="6" Type="UINT"/>
+                <Field Name="DRAM_PLL_SSC_MODE" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_SSC_LIMIT" Size="22" Type="UINT"/>
+                <Field Name="DRAM_PLL_SSC_DOWNSPREAD" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_SPARE_DIG" Size="24" Type="UINT"/>
+                <Field Name="DRAM_PLL_RATE_MNGR_MODE" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_PWR_ON_LDO" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_PWR_ON" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_PQ_MODE" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_POST_CTRL" Size="8" Type="UINT"/>
+                <Field Name="DRAM_PLL_PLL_CTRL" Size="32" Type="UINT"/>
+                <Field Name="DRAM_PLL_NOREF_CHK_ENB" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_MASH_11_MODE" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_LOOP_PARAM_CTR" Size="48" Type="ARRAY32"/>
+                <Field Name="DRAM_PLL_LOCK_LOST_CLR" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_LOCK_CNT" Size="3" Type="UINT"/>
+                <Field Name="DRAM_PLL_LDO_CTRL" Size="16" Type="UINT"/>
+                <Field Name="DRAM_PLL_ISO_IN" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_HOLD_DELAY" Size="3" Type="UINT"/>
+                <Field Name="DRAM_PLL_EN_CTRL" Size="8" Type="UINT"/>
+                <Field Name="DRAM_PLL_DITH_ORDER" Size="2" Type="UINT"/>
+                <Field Name="DRAM_PLL_DITH_EN" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_DC_COMP_OPT" Size="3" Type="UINT"/>
+                <Field Name="DRAM_PLL_CP_CTRL" Size="8" Type="UINT"/>
+                <Field Name="DRAM_PLL_CODE_VCOCAL" Size="2" Type="UINT"/>
+                <Field Name="DRAM_PLL_BYPASS_MODE" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_BYPASS_DAC" Size="9" Type="UINT"/>
+                <Field Name="DRAM_PLL_BG_CTRL" Size="20" Type="UINT"/>
+                <Field Name="DRAM_PLL_AUTO_CNFG_DSBL" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DRAM_PLL_WDT_ENB">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_WDT_ENBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_WDT_CNT">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_WDT_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_VCO_SEL">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_VCO_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_VC_OVERRIDE">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_VC_OVERRIDEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_STAYS_LOCKED">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_STAYS_LOCKEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_STAT_UPDATE">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_STAT_UPDATEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_STAT_SELECT">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_STAT_SELECTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_STAT_RESET">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_STAT_RESETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_STAT_MODE">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_STAT_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_SSC_STEP">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_SSC_STEPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_SSC_MODE">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_SSC_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_SSC_LIMIT">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_SSC_LIMITf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_SSC_DOWNSPREAD">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_SSC_DOWNSPREADf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_SPARE_DIG">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_SPARE_DIGf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_RATE_MNGR_MODE">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_RATE_MNGR_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_PWR_ON_LDO">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_PWR_ON_LDOf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_PWR_ON">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_PWR_ONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_PQ_MODE">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_PQ_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_POST_CTRL">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_POST_CTRLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_PLL_CTRL">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_PLL_CTRLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_NOREF_CHK_ENB">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_NOREF_CHK_ENBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_MASH_11_MODE">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_MASH_11_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_LOOP_PARAM_CTR">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_LOOP_PARAM_CTRLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_LOCK_LOST_CLR">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_LOCK_LOST_CLRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_LOCK_CNT">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_LOCK_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_LDO_CTRL">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_LDO_CTRLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_ISO_IN">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_ISO_INf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_HOLD_DELAY">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_HOLD_DELAYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_EN_CTRL">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_EN_CTRLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_DITH_ORDER">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_DITH_ORDERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_DITH_EN">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_DITH_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_DC_COMP_OPT">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_DC_COMP_OPTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_CP_CTRL">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_CP_CTRLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_CODE_VCOCAL">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_CODE_VCOCALf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_BYPASS_MODE">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_BYPASS_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_BYPASS_DAC">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_BYPASS_DACf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_BG_CTRL">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_BG_CTRLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_AUTO_CNFG_DSBL">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_AUTO_CNFG_DSBLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_PHY_IDDQ" Valid="DNX_DATA.dram.gddr6.is_supported">
+        <OneLineDescription>DRAM Phy control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_PHY_IDDQ" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DRAM_PHY_IDDQ">
+                    <Access>
+                        <Register Name="DPC_DRAM_PHY_CONTROLr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PHY_IDDQf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_PLL_REFCLK_SEL" Valid="DNX_DATA.dram.gddr6.is_supported">
+        <OneLineDescription>DRAM Phy control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_PLL_REFCLK_SEL" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DRAM_PLL_REFCLK_SEL">
+                    <Access>
+                        <Register Name="DPC_DRAM_PHY_CONTROLr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="PLL_REFCLK_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_PHY_CHANNEL_CONTROL" Valid="DNX_DATA.dram.gddr6.is_supported">
+        <OneLineDescription>DRAM Phy channel control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_PHY_CH_RESET" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PHY_CH_WRITE_FIFO_ENABLE" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PHY_ILM_MODE" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DRAM_PHY_CH_RESET">
+                    <Access>
+                        <Register Name="DPC_DRAM_PHY_CONTROLr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PHY_RESET_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PHY_CH_WRITE_FIFO_ENABLE">
+                    <Access>
+                        <Register Name="DPC_DRAM_PHY_CONTROLr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PHY_WRITE_FIFO_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PHY_ILM_MODE">
+                    <Access>
+                        <Register Name="DPC_DRAM_PHY_CONTROLr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PHY_ILM_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_PLL_STATUS" Valid="DNX_DATA.dram.gddr6.is_supported">
+        <OneLineDescription>DRAM PLL status</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_PLL_LOCK" Permission="READONLY" Size="1" Type="UINT"/>
+                <Field Name="DRAM_PLL_STAT_OUT" Permission="READONLY" Size="12" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="DRAM_PLL_LOCK">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_STATUSr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_LOCKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_PLL_STAT_OUT">
+                    <Access>
+                        <Register Name="DPC_DRAM_PLL_STATUSr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PLL_STAT_OUTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="DPC_ENABLE_DYNAMIC_MEMORY_ACCESS" Valid="DNX_DATA.dram.gddr6.is_supported">
+        <OneLineDescription>enable dynamic memory access to DPC</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE_DYNAMIC_MEMORY_ACCESS" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="ENABLE_DYNAMIC_MEMORY_ACCESS">
+                    <Access>
+                        <Register Name="DPC_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_ENABLE_DYNAMIC_MEMORY_ACCESS" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>enable dynamic memory acces to DCC</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH_SKIP_DEVICE"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE_DYNAMIC_MEMORY_ACCESS" Permission="WRITEONLY" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="ENABLE_DYNAMIC_MEMORY_ACCESS">
+                    <Access>
+                        <Register Name="DCC_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_DRAM_CPU_ACCESSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_RESET_CONTROL" Valid="DNX_DATA.dram.gddr6.is_supported">
+        <OneLineDescription>DPC reset control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_RESET_N" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="DRAM_RESET_N">
+                    <Access>
+                        <Register Name="DPC_DRAM_RESET_CONTROLr">
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_RESET_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_CONFIG" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>HCC configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="NUM_OF_BANKS" Size="3" Type="UINT"/>
+                <Field Name="NUM_OF_BANK_GROUPS" Size="2" Type="UINT"/>
+                <Field Name="NUM_OF_BANKS_PER_GROUP" Size="2" Type="UINT"/>
+                <Field Name="DRAM_BANK_GROUPS_EN" Size="1" Type="UINT"/>
+                <Field Name="DRAM_WR_CRC" Size="1" Type="UINT"/>
+                <Field Name="DRAM_RD_CRC" Size="1" Type="UINT"/>
+                <Field Name="DRAM_WRITE_LATENCY" Size="4" Type="UINT"/>
+                <Field Name="DRAM_EDC_WRITE_LATENCY" Size="5" Type="UINT"/>
+                <Field Name="DRAM_EDC_READ_LATENCY" Size="5" Type="UINT"/>
+                <Field Name="DRAM_EDC_HALF_RATE" Size="1" Type="UINT"/>
+                <Field Name="DRAM_DBIDC_WRITE" Size="1" Type="UINT"/>
+                <Field Name="DRAM_DBIDC_READ" Size="1" Type="UINT"/>
+                <Field Name="DRAM_CABIDC" Size="1" Type="UINT"/>
+                <Field Name="USE_11_CABITS" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="NUM_OF_BANKS">
+                    <Access>
+                        <Register Name="DCC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="NUM_OF_BANKSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NUM_OF_BANK_GROUPS">
+                    <Access>
+                        <Register Name="DCC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="NUM_OF_BANK_GROUPSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NUM_OF_BANKS_PER_GROUP">
+                    <Access>
+                        <Register Name="DCC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="NUM_OF_BANKS_PER_GROUPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_BANK_GROUPS_EN">
+                    <Access>
+                        <Register Name="DCC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_BANK_GROUPS_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_WR_CRC">
+                    <Access>
+                        <Register Name="DCC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_WR_CRCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_RD_CRC">
+                    <Access>
+                        <Register Name="DCC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_RD_CRCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+
+                <Field Name="DRAM_WRITE_LATENCY">
+                    <Access>
+                        <Register Name="DCC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_WRITE_LATENCYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_EDC_WRITE_LATENCY">
+                    <Access>
+                        <Register Name="DCC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_EDC_WRITE_LATENCYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_EDC_READ_LATENCY">
+                    <Access>
+                        <Register Name="DCC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_EDC_READ_LATENCYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_EDC_HALF_RATE">
+                    <Access>
+                        <Register Name="DCC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_EDC_HALF_RATEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_DBIDC_WRITE">
+                    <Access>
+                        <Register Name="DCC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_DBIDC_WRITEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_DBIDC_READ">
+                    <Access>
+                        <Register Name="DCC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_DBIDC_READf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_CABIDC">
+                    <Access>
+                        <Register Name="DCC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_CABIDCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="USE_11_CABITS">
+                    <Access>
+                        <Register Name="DCC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="USE_11_CABITSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_ROW_ACCESS_TIMINGS" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_TRC" Size="6" Type="UINT"/>
+                <Field Name="DRAM_TRAS" Size="6" Type="UINT"/>
+                <Field Name="DRAM_TRCDRD" Size="6" Type="UINT"/>
+                <Field Name="DRAM_TRCDWR" Size="6" Type="UINT"/>
+                <Field Name="DRAM_TRRDL" Size="6" Type="UINT"/>
+                <Field Name="DRAM_TRRDS" Size="6" Type="UINT"/>
+                <Field Name="DRAM_TFAW" Size="6" Type="UINT"/>
+                <Field Name="DRAM_TRTPL" Size="6" Type="UINT"/>
+                <Field Name="DRAM_TRTPS" Size="6" Type="UINT"/>
+                <Field Name="DRAM_TRP" Size="6" Type="UINT"/>
+                <Field Name="DRAM_TWR" Size="6" Type="UINT"/>
+                <Field Name="DRAM_WR_TO_RDAP" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="DRAM_TRC">
+                    <Access>
+                        <Register Name="DCC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+
+                <Field Name="DRAM_TRAS">
+                    <Access>
+                        <Register Name="DCC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRASf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TRCDRD">
+                    <Access>
+                        <Register Name="DCC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRCDRDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TRCDWR">
+                    <Access>
+                        <Register Name="DCC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRCDWRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TRRDL">
+                    <Access>
+                        <Register Name="DCC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRRDLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TRRDS">
+                    <Access>
+                        <Register Name="DCC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRRDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TFAW">
+                    <Access>
+                        <Register Name="DCC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TFAWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TRTPL">
+                    <Access>
+                        <Register Name="DCC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRTPLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TRTPS">
+                    <Access>
+                        <Register Name="DCC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRTPSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TRP">
+                    <Access>
+                        <Register Name="DCC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TWR">
+                    <Access>
+                        <Register Name="DCC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TWRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_WR_TO_RDAP">
+                    <Access>
+                        <Register Name="DCC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_WR_TO_RDAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_COLUMN_ACCESS_TIMINGS" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_TCCDL" Size="6" Type="UINT"/>
+                <Field Name="DRAM_TCCDS" Size="6" Type="UINT"/>
+                <Field Name="DRAM_TWTRL" Size="6" Type="UINT"/>
+                <Field Name="DRAM_TWTRS" Size="6" Type="UINT"/>
+                <Field Name="DRAM_TRTW" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="DRAM_TCCDL">
+                    <Access>
+                        <Register Name="DCC_HBM_COLUMN_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TCCDLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TCCDS">
+                    <Access>
+                        <Register Name="DCC_HBM_COLUMN_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TCCDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TWTRL">
+                    <Access>
+                        <Register Name="DCC_HBM_COLUMN_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TWTRLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TWTRS">
+                    <Access>
+                        <Register Name="DCC_HBM_COLUMN_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TWTRSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TRTW">
+                    <Access>
+                        <Register Name="DCC_HBM_COLUMN_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRTWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_REFRESH_TIMINGS" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>HCC refresh timings</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_TRFC" Size="10" Type="UINT"/>
+                <Field Name="DRAM_TRFCSB" Size="10" Type="UINT"/>
+                <Field Name="DRAM_TRREFD" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="DRAM_TRFC">
+                    <Access>
+                        <Register Name="DCC_HBM_REFRESH_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRFCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TRFCSB">
+                    <Access>
+                        <Register Name="DCC_HBM_REFRESH_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRFCSBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TRREFD">
+                    <Access>
+                        <Register Name="DCC_HBM_REFRESH_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRREFDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_GENERAL_TIMINGS" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>HCC General timings</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_TMOD" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="DRAM_TMOD">
+                    <Access>
+                        <Register Name="DCC_DRAM_GENERAL_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_TMODf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_TRAINING_GENERAL_TIMINGS" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_TRCDLTR" Size="7" Type="UINT"/>
+                <Field Name="DRAM_TRCDRTR" Size="7" Type="UINT"/>
+                <Field Name="DRAM_TRCDWTR" Size="7" Type="UINT"/>
+                <Field Name="DRAM_TREFTR" Size="7" Type="UINT"/>
+                <Field Name="DRAM_TLTLTR" Size="7" Type="UINT"/>
+                <Field Name="DRAM_TLTRTR" Size="7" Type="UINT"/>
+                <Field Name="DRAM_TRDTLT" Size="7" Type="UINT"/>
+                <Field Name="DRAM_TWTRTR" Size="7" Type="UINT"/>
+                <Field Name="DRAM_TWRWTR" Size="7" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="DRAM_TRCDLTR">
+                    <Access>
+                        <Register Name="DCC_DRAM_TRAINING_GENERAL_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_TRCDLTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+
+                <Field Name="DRAM_TRCDRTR">
+                    <Access>
+                        <Register Name="DCC_DRAM_TRAINING_GENERAL_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_TRCDRTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TRCDWTR">
+                    <Access>
+                        <Register Name="DCC_DRAM_TRAINING_GENERAL_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_TRCDWTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TREFTR">
+                    <Access>
+                        <Register Name="DCC_DRAM_TRAINING_GENERAL_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_TREFTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TLTLTR">
+                    <Access>
+                        <Register Name="DCC_DRAM_TRAINING_GENERAL_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_TLTLTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TLTRTR">
+                    <Access>
+                        <Register Name="DCC_DRAM_TRAINING_GENERAL_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_TLTRTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TRDTLT">
+                    <Access>
+                        <Register Name="DCC_DRAM_TRAINING_GENERAL_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_TRDTLTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TWTRTR">
+                    <Access>
+                        <Register Name="DCC_DRAM_TRAINING_GENERAL_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_TWTRTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TWRWTR">
+                    <Access>
+                        <Register Name="DCC_DRAM_TRAINING_GENERAL_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_TWRWTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_PIPELINES_CONFIG" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="PIPELINES_MUX_FORCE_SELECTOR" Size="1" Type="UINT"/>
+                <Field Name="PIPELINES_MUX_FORCE_SELECTOR_VALUE" Size="1" Type="UINT"/>
+                <Field Name="OUTPUT_ENABLE_DELAY" Size="4" Type="UINT"/>
+                <Field Name="OUTPUT_ENABLE_LENGTH" Size="3" Type="UINT"/>
+                <Field Name="COMMAND_PIPE_EXTRA_DELAY" Size="3" Type="UINT"/>
+                <Field Name="PHY_LOOPBACK_MODE" Size="1" Type="UINT"/>
+                <Field Name="RD_CMD_EXTRA_DELAY" Size="4" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="PIPELINES_MUX_FORCE_SELECTOR">
+                    <Access>
+                        <Register Name="DCC_PIPELINES_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="PIPELINES_MUX_FORCE_SELECTORf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PIPELINES_MUX_FORCE_SELECTOR_VALUE">
+                    <Access>
+                        <Register Name="DCC_PIPELINES_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="PIPELINES_MUX_FORCE_SELECTOR_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OUTPUT_ENABLE_DELAY">
+                    <Access>
+                        <Register Name="DCC_PIPELINES_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="OUTPUT_ENABLE_DELAYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OUTPUT_ENABLE_LENGTH">
+                    <Access>
+                        <Register Name="DCC_PIPELINES_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="OUTPUT_ENABLE_LENGTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COMMAND_PIPE_EXTRA_DELAY">
+                    <Access>
+                        <Register Name="DCC_PIPELINES_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="COMMAND_PIPE_EXTRA_DELAYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PHY_LOOPBACK_MODE">
+                    <Access>
+                        <Register Name="DCC_PIPELINES_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="PHY_LOOPBACK_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RD_CMD_EXTRA_DELAY">
+                    <Access>
+                        <Register Name="DCC_PIPELINES_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="RD_CMD_EXTRA_DELAYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_PIPELINES_BANK_REMAPPING" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="PIPELINES_BANK_REMAPPING_BIT_0" Size="3" Type="UINT"/>
+                <Field Name="PIPELINES_BANK_REMAPPING_BIT_1" Size="3" Type="UINT"/>
+                <Field Name="PIPELINES_BANK_REMAPPING_BIT_2" Size="3" Type="UINT"/>
+                <Field Name="PIPELINES_BANK_REMAPPING_BIT_3" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="PIPELINES_BANK_REMAPPING_BIT_0">
+                    <Access>
+                        <Register Name="DCC_PIPELINES_BANK_REMAPPINGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="PIPELINES_BANK_REMAPPING_BIT_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PIPELINES_BANK_REMAPPING_BIT_1">
+                    <Access>
+                        <Register Name="DCC_PIPELINES_BANK_REMAPPINGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="PIPELINES_BANK_REMAPPING_BIT_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PIPELINES_BANK_REMAPPING_BIT_2">
+                    <Access>
+                        <Register Name="DCC_PIPELINES_BANK_REMAPPINGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="PIPELINES_BANK_REMAPPING_BIT_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PIPELINES_BANK_REMAPPING_BIT_3">
+                    <Access>
+                        <Register Name="DCC_PIPELINES_BANK_REMAPPINGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="PIPELINES_BANK_REMAPPING_BIT_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_REFRESH_INTERVALS" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>HCC refresh intervals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_TREFIAB" Size="24" Type="UINT"/>
+                <Field Name="DRAM_TREFIAB_ACC" Size="13" Type="UINT"/>
+                <Field Name="DRAM_TREFISB" Size="12" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="DRAM_TREFIAB">
+                    <Access>
+                        <Register Name="DCC_DRAM_REFRESH_INTERVALSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_TREFIABf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TREFIAB_ACC">
+                    <Access>
+                        <Register Name="DCC_DRAM_REFRESH_INTERVALSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_TREFIAB_ACCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_TREFISB">
+                    <Access>
+                        <Register Name="DCC_DRAM_REFRESH_INTERVALSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_TREFISBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_TRAINING_CADT_CONFIG" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>HCC refresh intervals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TRAINING_CADT_NUM_OF_COMMANDS" Size="8" Type="UINT"/>
+                <Field Name="CADT_MODE" Size="2" Type="UINT"/>
+                <Field Name="CADT_INVERT_CA_UI_2" Size="1" Type="UINT"/>
+                <Field Name="CADT_TO_CADT_PRD" Size="7" Type="UINT"/>
+                <Field Name="CADT_TO_RDEN_PRD" Size="7" Type="UINT"/>
+                <Field Name="CADT_PRBS_MODE" Size="1" Type="UINT"/>
+                <Field Name="CADT_SEED" Size="10" Type="UINT"/>
+                <Field Name="CADT_BYTE_MAP" Size="1" Type="UINT"/>
+                <Field Name="CADT_PATTERN_N" NofInstances="8" Size="10" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="TRAINING_CADT_NUM_OF_COMMANDS">
+                    <Access>
+                        <Register Name="DCC_TRAINING_CADT_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TRAINING_CADT_NUM_OF_COMMANDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CADT_MODE">
+                    <Access>
+                        <Register Name="DCC_TRAINING_CADT_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CADT_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CADT_INVERT_CA_UI_2">
+                    <Access>
+                        <Register Name="DCC_TRAINING_CADT_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CADT_INVERT_CA_UI_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CADT_TO_CADT_PRD">
+                    <Access>
+                        <Register Name="DCC_TRAINING_CADT_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CADT_TO_CADT_PRDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CADT_TO_RDEN_PRD">
+                    <Access>
+                        <Register Name="DCC_TRAINING_CADT_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CADT_TO_RDEN_PRDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CADT_PRBS_MODE">
+                    <Access>
+                        <Register Name="DCC_TRAINING_CADT_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CADT_PRBS_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CADT_SEED">
+                    <Access>
+                        <Register Name="DCC_TRAINING_CADT_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CADT_SEEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CADT_BYTE_MAP">
+                    <Access>
+                        <Register Name="DCC_TRAINING_CADT_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CADT_BYTE_MAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CADT_PATTERN_N">
+                    <Access instanceIndex="ALL">
+                        <Register Name="DCC_CADT_TRAINING_PATTERNr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CADT_PATTERN_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_TRAINING_CADT_BYTE_MAP" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>HCC refresh intervals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="CADT_BYTE_MAP" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="CADT_BYTE_MAP">
+                    <Access>
+                        <Register Name="DCC_TRAINING_CADT_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CADT_BYTE_MAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_MODE_REGISTER_MANAGER_CONFIG" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="UPDATE_DRAM_ON_MODE_REGISTER_CHANGE" Size="1" Type="UINT"/>
+                <Field Name="FORCE_UPDATE_PER_MODE_REGISTER_BITMAP" Size="16" Type="UINT"/>
+                <Field Name="MASK_UPDATE_PER_MODE_REGISTER_BITMAP" Size="16" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="UPDATE_DRAM_ON_MODE_REGISTER_CHANGE">
+                    <Access>
+                        <Register Name="DCC_DRAM_MODE_REGISTER_MANAGER_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="UPDATE_DRAM_ON_MODE_REGISTER_CHANGEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FORCE_UPDATE_PER_MODE_REGISTER_BITMAP">
+                    <Access>
+                        <Register Name="DCC_DRAM_MODE_REGISTER_MANAGER_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="FORCE_UPDATE_PER_MODE_REGISTER_BITMAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MASK_UPDATE_PER_MODE_REGISTER_BITMAP">
+                    <Access>
+                        <Register Name="DCC_DRAM_MODE_REGISTER_MANAGER_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MASK_UPDATE_PER_MODE_REGISTER_BITMAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_TSM_CONFIG" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TSM_BANK_DISABLE" Size="16" Type="UINT"/>
+                <Field Name="TSM_REFRESH_ENABLE" Size="1" Type="UINT"/>
+                <Field Name="TSM_AB_REFRESH_ENABLE" Size="1" Type="UINT"/>
+                <Field Name="TSM_HIGH_PRIORITY_REFRESH_ENABLE" Size="1" Type="UINT"/>
+                <Field Name="TSM_HIGH_PRIORITY_REFRESH_NUMBER_OF_BANKS" Size="6" Type="UINT"/>
+                <Field Name="TSM_EMERGENCY_REFRESH_ENABLE" Size="1" Type="UINT"/>
+                <Field Name="TSM_EMERGENCY_REFRESH_START_THRESHOLD" Size="10" Type="UINT"/>
+                <Field Name="TSM_EMERGENCY_REFRESH_STOP_THRESHOLD" Size="10" Type="UINT"/>
+                <Field Name="TSM_NO_AB_REFRESH_DURING_PB_REFRESH" Size="1" Type="UINT"/>
+                <Field Name="TSM_REFRESH_PEND_SWITCH" Size="1" Type="BOOL" Valid="DNX_DATA.dram.gddr6.refresh_pend_switch"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="TSM_BANK_DISABLE">
+                    <Access>
+                        <Register Name="DCC_TSM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TSM_BANK_DISABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSM_REFRESH_ENABLE">
+                    <Access>
+                        <Register Name="DCC_TSM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TSM_REFRESH_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSM_AB_REFRESH_ENABLE">
+                    <Access>
+                        <Register Name="DCC_TSM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TSM_AB_REFRESH_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSM_HIGH_PRIORITY_REFRESH_ENABLE">
+                    <Access>
+                        <Register Name="DCC_TSM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TSM_HIGH_PRIORITY_REFRESH_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSM_HIGH_PRIORITY_REFRESH_NUMBER_OF_BANKS">
+                    <Access>
+                        <Register Name="DCC_TSM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TSM_HIGH_PRIORITY_REFRESH_NUMBER_OF_BANKSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSM_EMERGENCY_REFRESH_ENABLE">
+                    <Access>
+                        <Register Name="DCC_TSM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TSM_EMERGENCY_REFRESH_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSM_EMERGENCY_REFRESH_START_THRESHOLD">
+                    <Access>
+                        <Register Name="DCC_TSM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TSM_EMERGENCY_REFRESH_START_THRESHOLDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSM_EMERGENCY_REFRESH_STOP_THRESHOLD">
+                    <Access>
+                        <Register Name="DCC_TSM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TSM_EMERGENCY_REFRESH_STOP_THRESHOLDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSM_NO_AB_REFRESH_DURING_PB_REFRESH">
+                    <Access>
+                        <Register Name="DCC_TSM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TSM_NO_AB_REFRESH_DURING_PB_REFRESHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSM_REFRESH_PEND_SWITCH">
+                    <Access>
+                        <Register Name="DCC_TSM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="REFRESH_PEND_SWITCHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_TSM_READ_WRITE_SWITCH_CONFIG" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="SWITCH_BANK_ALMOST_FULL_THRESHOLD" Size="14" Type="UINT"/>
+                <Field Name="SWITCH_TO_WRITE_MIN_ALMOST_FULL_BANKS_WRITE" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="SWITCH_BANK_ALMOST_FULL_THRESHOLD">
+                    <Access>
+                        <Register Name="DCC_TSM_READ_WRITE_SWITCH_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="SWITCH_BANK_ALMOST_FULL_THRESHOLDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SWITCH_TO_WRITE_MIN_ALMOST_FULL_BANKS_WRITE">
+                    <Access>
+                        <Register Name="DCC_TSM_READ_WRITE_SWITCH_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="SWITCH_TO_WRITE_MIN_ALMOST_FULL_BANKS_WRITEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_DATA_SOURCE_CONFIG" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="MAX_READ_INFLIGHTS_DS_N" Size="9" Type="UINT"/>
+                <Field Name="MAX_WRITE_INFLIGHTS_DS_N" Size="9" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="MAX_READ_INFLIGHTS_DS_N">
+                    <Access>
+                        <Register Name="DCC_DATA_SOURCE_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MAX_READ_INFLIGHTS_DS_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MAX_WRITE_INFLIGHTS_DS_N">
+                    <Access>
+                        <Register Name="DCC_DATA_SOURCE_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MAX_WRITE_INFLIGHTS_DS_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_CPU_CONTROL" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="WCK_O_EN" Size="12" Type="UINT"/>
+                <Field Name="WCK" Size="16" Type="UINT"/>
+                <Field Name="TRIGGER_CPU_COMMAND" Size="1" Type="UINT"/>
+                <Field Name="FORCE_CONSTANT_CPU_VALUES" Size="1" Type="UINT"/>
+                <Field Name="EDC_EN" Size="2" Type="UINT"/>
+                <Field Name="CKE_N" Size="2" Type="UINT"/>
+                <Field Name="CA_O_EN" Size="2" Type="UINT"/>
+                <Field Name="CABI_N" Size="2" Type="UINT"/>
+                <Field Name="RD_CMD" Size="2" Type="UINT"/>
+                <Field Name="CA" Size="22" Type="UINT"/>
+                <Field Name="DEFAULT_CA" Size="22" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="WCK_O_EN">
+                    <Access>
+                        <Register Name="DCC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="WCK_O_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="WCK">
+                    <Access>
+                        <Register Name="DCC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="WCKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TRIGGER_CPU_COMMAND">
+                    <Access>
+                        <Register Name="DCC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TRIGGER_CPU_COMMANDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FORCE_CONSTANT_CPU_VALUES">
+                    <Access>
+                        <Register Name="DCC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="FORCE_CONSTANT_CPU_VALUESf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EDC_EN">
+                    <Access>
+                        <Register Name="DCC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="EDC_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CKE_N">
+                    <Access>
+                        <Register Name="DCC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CKE_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CA_O_EN">
+                    <Access>
+                        <Register Name="DCC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CA_O_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CABI_N">
+                    <Access>
+                        <Register Name="DCC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CABI_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RD_CMD">
+                    <Access>
+                        <Register Name="DCC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="RD_CMDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+
+                <Field Name="CA">
+                    <Access>
+                        <Register Name="DCC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DEFAULT_CA">
+                    <Access>
+                        <Register Name="DCC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DEFAULT_CAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_MRS_RESET" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="MRS_RST_N" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="MRS_RST_N">
+                    <Access>
+                        <Register Name="DCC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MRS_RSTNf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_MODE_REGISTERS" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>Channel mode registers</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_MR" NofInstances="16" Size="12" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="DRAM_MR">
+                    <Access instanceIndex="0">
+                        <Register Name="DCC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="DCC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="DCC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_2f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="DCC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_3f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="DCC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_4f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Register Name="DCC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_5f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Register Name="DCC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_6f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Register Name="DCC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_7f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="8">
+                        <Register Name="DCC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_8f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="9">
+                        <Register Name="DCC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_9f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="10">
+                        <Register Name="DCC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_10f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="11">
+                        <Register Name="DCC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_11f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="12">
+                        <Register Name="DCC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_12f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="13">
+                        <Register Name="DCC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_13f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="14">
+                        <Register Name="DCC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_14f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="15">
+                        <Register Name="DCC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_15f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_BIST_GO" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>Start running BIST</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="BIST_GO" Permission="TRIGGER" Size="1" Type="UINT"/>
+                <Field Name="TRAINING_BIST_GO" Permission="TRIGGER" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="BIST_GO">
+                    <Access>
+                        <Register Name="DCC_BIST_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_GOf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TRAINING_BIST_GO">
+                    <Access>
+                        <Register Name="DCC_BIST_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TRAINING_BIST_GOf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_BIST_BANK_REORDER" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>Start running BIST</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="BIST_BANK_REORDER_BIT_0" Size="3" Type="UINT"/>
+                <Field Name="BIST_BANK_REORDER_BIT_1" Size="3" Type="UINT"/>
+                <Field Name="BIST_BANK_REORDER_BIT_2" Size="3" Type="UINT"/>
+                <Field Name="BIST_BANK_REORDER_BIT_3" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="BIST_BANK_REORDER_BIT_0">
+                    <Access>
+                        <Register Name="DCC_BIST_BANK_REORDERr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_BANK_REORDER_BIT_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BIST_BANK_REORDER_BIT_1">
+                    <Access>
+                        <Register Name="DCC_BIST_BANK_REORDERr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_BANK_REORDER_BIT_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BIST_BANK_REORDER_BIT_2">
+                    <Access>
+                        <Register Name="DCC_BIST_BANK_REORDERr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_BANK_REORDER_BIT_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BIST_BANK_REORDER_BIT_3">
+                    <Access>
+                        <Register Name="DCC_BIST_BANK_REORDERr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_BANK_REORDER_BIT_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_BIST_CONTROL" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>        
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="BIST_GO" Permission="TRIGGER" Size="1" Type="UINT"/>
+                <Field Name="TRAINING_BIST_GO" Permission="TRIGGER" Size="1" Type="UINT"/>
+                <Field Name="BIST_REFRESH_ENABLE" Size="1" Type="UINT"/>
+                <Field Name="BIST_IGNORE_ADDRESS" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="BIST_GO">
+                    <Access>
+                        <Register Name="DCC_BIST_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_GOf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TRAINING_BIST_GO">
+                    <Access>
+                        <Register Name="DCC_BIST_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TRAINING_BIST_GOf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BIST_REFRESH_ENABLE">
+                    <Access>
+                        <Register Name="DCC_BIST_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_REFRESH_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BIST_IGNORE_ADDRESS">
+                    <Access>
+                        <Register Name="DCC_BIST_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_IGNORE_ADDRESSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_BIST_STATUS" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>Status of last BIST run</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+       <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="WRITE_COMMAND_CNT" Permission="READONLY" Size="40" Type="ARRAY32"/>
+                <Field Name="READ_COMMAND_CNT" Permission="READONLY" Size="40" Type="ARRAY32"/>
+                <Field Name="READ_DATA_CNT" Permission="READONLY" Size="40" Type="ARRAY32"/>
+                <Field Name="READ_TRAINING_DATA_CNT" Permission="READONLY" Size="40" Type="ARRAY32"/>
+                <Field Name="READ_EDC_CNT" Permission="READONLY" Size="40" Type="ARRAY32"/>
+                <Field Name="WRTR_COMMAND_CNT" Permission="READONLY" Size="40" Type="ARRAY32"/>
+                <Field Name="RDTR_COMMAND_CNT" Permission="READONLY" Size="40" Type="ARRAY32"/>
+                <Field Name="LDFF_COMMAND_CNT" Permission="READONLY" Size="40" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="WRITE_COMMAND_CNT">
+                    <Access>
+                        <Register Name="DCC_BIST_STATUSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="WRITE_COMMAND_CNTf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="READ_COMMAND_CNT">
+                    <Access>
+                        <Register Name="DCC_BIST_STATUSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="READ_COMMAND_CNTf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="READ_DATA_CNT">
+                    <Access>
+                        <Register Name="DCC_BIST_STATUSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="READ_DATA_CNTf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="READ_TRAINING_DATA_CNT" Device="Q2A_A0">
+                    <Access>
+                        <Register Name="DCC_BIST_STATUSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="READ_DATA_CNTf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="READ_TRAINING_DATA_CNT" Device="Q2A_B0">
+                    <Access>
+                        <Register Name="DCC_BIST_STATUSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="READ_TRAINING_DATA_CNTf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="READ_EDC_CNT">
+                    <Access>
+                        <Register Name="DCC_BIST_STATUSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="READ_EDC_CNTf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="WRTR_COMMAND_CNT">
+                    <Access>
+                        <Register Name="DCC_BIST_STATUSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="WRTR_COMMAND_CNTf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RDTR_COMMAND_CNT">
+                    <Access>
+                        <Register Name="DCC_BIST_STATUSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="RDTR_COMMAND_CNTf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LDFF_COMMAND_CNT">
+                    <Access>
+                        <Register Name="DCC_BIST_STATUSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="LDFF_COMMAND_CNTf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_BIST_ERR_COUNTERS" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_BIST_DATA_ERR_BITMAP" Permission="READONLY" Size="16" Type="UINT"/>
+                <Field Name="DRAM_BIST_EDC_ERR_BITMAP" Permission="READONLY" Size="2" Type="UINT"/>
+                <Field Name="DRAM_BIST_DBI_ERR_BITMAP" Permission="READONLY" Size="2" Type="UINT"/>
+                <Field Name="DRAM_CADT_ERR_BITMAP" Permission="READONLY" Size="10" Type="UINT"/>
+                <Field Name="DRAM_BIST_DATA_ERR_CNT" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="DRAM_BIST_EDC_ERR_CNT" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="DRAM_BIST_DBI_ERR_CNT" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="DRAM_CADT_ERR_CNT" Permission="READONLY" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="DRAM_BIST_DATA_ERR_BITMAP">
+                    <Access>
+                        <Register Name="DCC_BIST_ERR_COUNTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_DATA_ERR_BITMAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_BIST_EDC_ERR_BITMAP">
+                    <Access>
+                        <Register Name="DCC_BIST_ERR_COUNTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_EDC_ERR_BITMAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_BIST_DBI_ERR_BITMAP">
+                    <Access>
+                        <Register Name="DCC_BIST_ERR_COUNTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_DBI_ERR_BITMAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_CADT_ERR_BITMAP">
+                    <Access>
+                        <Register Name="DCC_BIST_ERR_COUNTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CADT_ERR_BITMAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_BIST_DATA_ERR_CNT">
+                    <Access>
+                        <Register Name="DCC_BIST_ERR_COUNTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_DATA_ERR_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_BIST_EDC_ERR_CNT">
+                    <Access>
+                        <Register Name="DCC_BIST_ERR_COUNTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_EDC_ERR_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_BIST_DBI_ERR_CNT">
+                    <Access>
+                        <Register Name="DCC_BIST_ERR_COUNTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_DBI_ERR_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_CADT_ERR_CNT">
+                    <Access>
+                        <Register Name="DCC_BIST_ERR_COUNTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CADT_ERR_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_LAST_RETURNED_DATA" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="LAST_RETURNED_EDC" Permission="READONLY" Size="16" Type="UINT"/>
+                <Field Name="LAST_RETURNED_DBI" Permission="READONLY" Size="16" Type="UINT"/>
+                <Field Name="LAST_RETURNED_DQ" Permission="READONLY" Size="128" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="LAST_RETURNED_EDC">
+                    <Access>
+                        <Register Name="DCC_LAST_RETURNED_DATAr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="LAST_RETURNED_EDCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LAST_RETURNED_DBI">
+                    <Access>
+                        <Register Name="DCC_LAST_RETURNED_DATAr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="LAST_RETURNED_DBIf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LAST_RETURNED_DQ">
+                    <Access>
+                        <Register Name="DCC_LAST_RETURNED_DATAr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="LAST_RETURNED_DQf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_CPU_ACCESS" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+                <Field Name="COLUMN_PADDING" Size="1" Type="ZERO_PADDING"/>
+                <Field Name="COLUMN" Size="5" Type="UINT"/>
+                <Field Name="ROW" Size="14" Type="UINT"/>
+                <Field Name="ROW_PADDING" Size="1" Type="ZERO_PADDING"/>
+                <Field Name="BANK" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_CPU_ACCESS" Size="256" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="DRAM_CPU_ACCESS">
+                    <Access>
+                        <Memory Name="DCC_DRAM_CPU_ACCESSm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/4"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_CPU_ACCESSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_CHANNEL_SOFT_INIT" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>Doesn't reset configuration registers</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="IN_SOFT_INIT" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IN_SOFT_INIT">
+                    <Access>
+                        <KeyCondition Field="DRAM_INDEX" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_DCC_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="DRAM_INDEX" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_DCC_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="DRAM_INDEX" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_DCC_2f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="DRAM_INDEX" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_DCC_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_CHANNEL_SOFT_RESET" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>Reset entire block, including configuration registers</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="IN_SOFT_RESET" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IN_SOFT_RESET">
+                    <Access>
+                        <KeyCondition Field="DRAM_INDEX" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_DCC_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="DRAM_INDEX" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_DCC_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="DRAM_INDEX" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_DCC_2f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="DRAM_INDEX" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_DCC_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+	<AppDB Name="GDDR6_DRAM_PHY_SOFT_INIT" Valid="DNX_DATA.dram.gddr6.is_supported">
+        <OneLineDescription>Doesn't reset configuration registers</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="IN_SOFT_INIT" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IN_SOFT_INIT">
+                    <Access>
+                        <KeyCondition Field="DRAM_INDEX" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_DPC_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="DRAM_INDEX" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_DPC_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_PHY_SOFT_RESET" Valid="DNX_DATA.dram.gddr6.is_supported">
+        <OneLineDescription>Reset entire block, including configuration registers</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="IN_SOFT_RESET" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IN_SOFT_RESET">
+                    <Access>
+                        <KeyCondition Field="DRAM_INDEX" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_DPC_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="DRAM_INDEX" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_DPC_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_TDU_SOFT_INIT" Valid="DNX_DATA.dram.gddr6.is_supported">
+        <OneLineDescription>Doesn't reset configuration registers</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="IN_SOFT_INIT" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IN_SOFT_INIT">
+                    <Access>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_TDUf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_TDU_SOFT_RESET" Valid="DNX_DATA.dram.gddr6.is_supported">
+        <OneLineDescription>Reset entire block, including configuration registers</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="IN_SOFT_RESET" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IN_SOFT_RESET">
+                    <Access>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_TDUf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_PHY_REGISTER_ACCESS" Valid="DNX_DATA.dram.gddr6.is_supported">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="PHY_REG_ADDRESS" Size="12" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_PHY_REGISTER_ACCESS" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DRAM_PHY_REGISTER_ACCESS">
+                    <Access>
+                        <Memory Name="DPC_DRAM_PHY_REGISTER_ACCESSm">
+                            <EntryOffset Formula="#KEY_VALUE(PHY_REG_ADDRESS)"/>
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PHY_REGISTER_ACCESSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_CA_BIT_MAP" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="CA_BIT_MAP" NofInstances="DNX_DATA.dram.gddr6.nof_ca_bits+1" Size="4" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="CA_BIT_MAP">
+                    <Access instanceIndex="0">
+                        <Register Name="DCC_CA_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CA_BIT_0_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="DCC_CA_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CA_BIT_1_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="DCC_CA_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CA_BIT_2_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="DCC_CA_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CA_BIT_3_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="DCC_CA_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CA_BIT_4_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Register Name="DCC_CA_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CA_BIT_5_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Register Name="DCC_CA_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CA_BIT_6_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Register Name="DCC_CA_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CA_BIT_7_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="8">
+                        <Register Name="DCC_CA_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CA_BIT_8_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="9">
+                        <Register Name="DCC_CA_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CA_BIT_9_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="10">
+                        <Register Name="DCC_CA_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CA_BIT_10_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="11">
+                        <Register Name="DCC_CA_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CABI_N_BIT_MAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_DQ_BIT_MAP" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DQ_BYTE_BIT_MAP" NofInstances="16" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="DQ_BYTE_BIT_MAP">
+                    <Access instanceIndex="0">
+                        <Register Name="DCC_DQ_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DQ_BYTE_0_BIT_0_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="DCC_DQ_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DQ_BYTE_0_BIT_1_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="DCC_DQ_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DQ_BYTE_0_BIT_2_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="DCC_DQ_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DQ_BYTE_0_BIT_3_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="DCC_DQ_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DQ_BYTE_0_BIT_4_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Register Name="DCC_DQ_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DQ_BYTE_0_BIT_5_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Register Name="DCC_DQ_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DQ_BYTE_0_BIT_6_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Register Name="DCC_DQ_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DQ_BYTE_0_BIT_7_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="8">
+                        <Register Name="DCC_DQ_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DQ_BYTE_1_BIT_0_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="9">
+                        <Register Name="DCC_DQ_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DQ_BYTE_1_BIT_1_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="10">
+                        <Register Name="DCC_DQ_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DQ_BYTE_1_BIT_2_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="11">
+                        <Register Name="DCC_DQ_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DQ_BYTE_1_BIT_3_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="12">
+                        <Register Name="DCC_DQ_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DQ_BYTE_1_BIT_4_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="13">
+                        <Register Name="DCC_DQ_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DQ_BYTE_1_BIT_5_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="14">
+                        <Register Name="DCC_DQ_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DQ_BYTE_1_BIT_6_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="15">
+                        <Register Name="DCC_DQ_BIT_MAPr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DQ_BYTE_1_BIT_7_MAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+	
+    <AppDB Name="GDDR6_DRAM_READ_FIFO_RSTN" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_READ_FIFO_RESET" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DRAM_READ_FIFO_RESET">
+                    <Access>
+                        <Register Name="DCC_DRAM_READ_FIFO_CNTRLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_READ_FIFO_RSTNf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+	
+    <AppDB Name="GDDR6_LDFF_TRAINING_PATTERN" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_LDFF_DQ_PATTERN_N" NofInstances="8" Size="128" Type="ARRAY32"/>
+                <Field Name="DRAM_LDFF_DBI_PATTERN_N" NofInstances="8" Size="16" Type="UINT"/>
+                <Field Name="DRAM_LDFF_EDC_PATTERN_N" NofInstances="8" Size="16" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DRAM_LDFF_DQ_PATTERN_N">
+                    <Access instanceIndex="ALL">
+                        <Register Name="DCC_LDFF_TRAINING_PATTERNr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_LDFF_DQ_PATTERN_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_LDFF_DBI_PATTERN_N">
+                    <Access instanceIndex="ALL">
+                        <Register Name="DCC_LDFF_TRAINING_PATTERNr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_LDFF_DBI_PATTERN_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_LDFF_EDC_PATTERN_N">
+                    <Access instanceIndex="ALL">
+                        <Register Name="DCC_LDFF_TRAINING_PATTERNr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_LDFF_EDC_PATTERN_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_TRAINING_BIST_COMMAND_CONFIG" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_READ_FIFO_DEPTH" Size="3" Type="UINT"/>
+                <Field Name="TRAINING_BIST_MODE" Size="3" Type="UINT"/>
+                <Field Name="TRAINING_NUM_OF_COMMANDS" Size="40" Type="ARRAY32"/>
+                <Field Name="TRAINING_CONSECUTIVE_WRITE_COMMANDS" Size="3" Type="UINT"/>
+                <Field Name="TRAINING_CONSECUTIVE_READ_COMMANDS" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DRAM_READ_FIFO_DEPTH">
+                    <Access>
+                        <Register Name="DCC_TRAINING_BIST_COMMAND_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DRAM_READ_FIFO_DEPTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TRAINING_BIST_MODE">
+                    <Access>
+                        <Register Name="DCC_TRAINING_BIST_COMMAND_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TRAINING_BIST_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TRAINING_NUM_OF_COMMANDS">
+                    <Access>
+                        <Register Name="DCC_TRAINING_BIST_COMMAND_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TRAINING_NUM_OF_COMMANDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TRAINING_CONSECUTIVE_WRITE_COMMANDS">
+                    <Access>
+                        <Register Name="DCC_TRAINING_BIST_COMMAND_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TRAINING_CONSECUTIVE_WRITE_COMMANDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TRAINING_CONSECUTIVE_READ_COMMANDS">
+                    <Access>
+                        <Register Name="DCC_TRAINING_BIST_COMMAND_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TRAINING_CONSECUTIVE_READ_COMMANDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DYNAMIC_CALIBRATION_CONFIG" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="SHADOW_VDL_TO_TRAINING_PRD" Size="5" Type="UINT"/>
+                <Field Name="CDR_WRAPAROUND_UPDATE_ENABLE" Size="1" Type="UINT"/>
+                <Field Name="CDR_WRAPAROUND_UPDATE_LENGTH" Size="7" Type="UINT"/>
+                <Field Name="CALIB_VDL_UPDATE_ENABLE" Size="1" Type="UINT"/>
+                <Field Name="CALIB_TO_CALIB_PRD" Size="6" Type="UINT"/>
+                <Field Name="CALIB_VDL_CENTER_DRIFT_TRESHOLD" Size="32" Type="UINT"/>
+                <Field Name="CALIB_VDL_JUMP" Size="32" Type="UINT"/>
+                <Field Name="VDL_ADDRESS_N" NofInstances="DNX_DATA.dram.gddr6.bytes_per_channel" Size="12" Type="UINT"/>
+                <Field Name="STATIC_VDL_ADDRESS_N" NofInstances="DNX_DATA.dram.gddr6.bytes_per_channel" Size="12" Type="UINT"/>
+                <Field Name="VDL_RIGHT_BORDER_DATA_N" NofInstances="DNX_DATA.dram.gddr6.bytes_per_channel" Size="32" Type="UINT"/>
+                <Field Name="VDL_LEFT_BORDER_DATA_N" NofInstances="DNX_DATA.dram.gddr6.bytes_per_channel" Size="32" Type="UINT"/>
+                <Field Name="VDL_RIGHT_INITIAL_DATA_N" NofInstances="DNX_DATA.dram.gddr6.bytes_per_channel" Size="32" Type="UINT"/>
+                <Field Name="VDL_LEFT_INITIAL_DATA_N" NofInstances="DNX_DATA.dram.gddr6.bytes_per_channel" Size="32" Type="UINT"/>
+                <Field Name="VDL_UI_SHIFT_ENABLE" Size="1" Type="UINT"/>
+                <Field Name="VDL_UI_SIZE" Size="9" Type="UINT"/>
+                <Field Name="CALIB_LOAD_INITIAL_BORDERS" Size="1" Type="UINT"/>
+                <Field Name="ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SHADOW_VDL_TO_TRAINING_PRD">
+                    <Access>
+                        <Register Name="DCC_COMMON_DYNAMIC_CALIBRATION_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="SHADOW_VDL_TO_TRAINING_PRDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CDR_WRAPAROUND_UPDATE_ENABLE">
+                    <Access>
+                        <Register Name="DCC_CDR_WRAPAROUND_UPDATE_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CDR_WRAPAROUND_UPDATE_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CDR_WRAPAROUND_UPDATE_LENGTH">
+                    <Access>
+                        <Register Name="DCC_CDR_WRAPAROUND_UPDATE_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CDR_WRAPAROUND_UPDATE_LENGTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CALIB_VDL_UPDATE_ENABLE">
+                    <Access>
+                        <Register Name="DCC_HW_DYNAMIC_CALIBRATION_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CALIB_VDL_UPDATE_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CALIB_TO_CALIB_PRD">
+                    <Access>
+                        <Register Name="DCC_HW_DYNAMIC_CALIBRATION_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CALIB_TO_CALIB_PRDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CALIB_VDL_CENTER_DRIFT_TRESHOLD">
+                    <Access>
+                        <Register Name="DCC_HW_DYNAMIC_CALIBRATION_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CALIB_VDL_CENTER_DRIFT_TRESHOLDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CALIB_VDL_JUMP">
+                    <Access>
+                        <Register Name="DCC_HW_DYNAMIC_CALIBRATION_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CALIB_VDL_JUMPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VDL_ADDRESS_N">
+                    <Access instanceIndex="ALL">
+                        <Register Name="DCC_DYNAMIC_CALIBRATION_VDL_CTRLr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="VDL_ADDRESS_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STATIC_VDL_ADDRESS_N">
+                    <Access instanceIndex="ALL">
+                        <Register Name="DCC_DYNAMIC_CALIBRATION_VDL_CTRLr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="STATIC_VDL_ADDRESS_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VDL_RIGHT_BORDER_DATA_N">
+                    <Access instanceIndex="ALL">
+                        <Register Name="DCC_DYNAMIC_CALIBRATION_VDL_CTRLr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="VDL_RIGHT_BORDER_DATA_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VDL_LEFT_BORDER_DATA_N">
+                    <Access instanceIndex="ALL">
+                        <Register Name="DCC_DYNAMIC_CALIBRATION_VDL_CTRLr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="VDL_LEFT_BORDER_DATA_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VDL_RIGHT_INITIAL_DATA_N">
+                    <Access instanceIndex="ALL">
+                        <Register Name="DCC_DYNAMIC_CALIBRATION_VDL_CTRLr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="VDL_RIGHT_INITIAL_DATA_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VDL_LEFT_INITIAL_DATA_N">
+                    <Access instanceIndex="ALL">
+                        <Register Name="DCC_DYNAMIC_CALIBRATION_VDL_CTRLr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="VDL_LEFT_INITIAL_DATA_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VDL_UI_SHIFT_ENABLE">
+                    <Access>
+                        <Register Name="DCC_COMMON_DYNAMIC_CALIBRATION_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="VDL_UI_SHIFT_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VDL_UI_SIZE">
+                    <Access>
+                        <Register Name="DCC_COMMON_DYNAMIC_CALIBRATION_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="VDL_STEP_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CALIB_LOAD_INITIAL_BORDERS">
+                    <Access>
+                        <Register Name="DCC_HW_DYNAMIC_CALIBRATION_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CALIB_LOAD_INITIAL_BORDERSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="DCC_HW_DYNAMIC_CALIBRATION_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DYNAMIC_CALIBRATION_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_CADT_TRAINING_PATTERN" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="CADT_PATTERN_N" NofInstances="8" Size="10" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CADT_PATTERN_N">
+                    <Access instanceIndex="ALL">
+                        <Register Name="DCC_CADT_TRAINING_PATTERNr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CADT_PATTERN_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_BIST_CONFIG" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>        
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="NUM_OF_COMMANDS" Size="40" Type="ARRAY32"/>
+                <Field Name="CONSECUTIVE_WRITE_COMMANDS" Size="16" Type="UINT"/>
+                <Field Name="CONSECUTIVE_READ_COMMANDS" Size="16" Type="UINT"/>
+                <Field Name="SAME_ROW_COMMANDS" Size="7" Type="UINT"/>
+                <Field Name="BANK_MODE" Size="1" Type="UINT"/>
+                <Field Name="BANK_START" Size="4" Type="UINT"/>
+                <Field Name="BANK_END" Size="4" Type="UINT"/>
+                <Field Name="BANK_SEED" Size="4" Type="UINT"/>
+                <Field Name="COLUMN_MODE" Size="1" Type="UINT"/>
+                <Field Name="COLUMN_START" Size="7" Type="UINT"/>
+                <Field Name="COLUMN_END" Size="7" Type="UINT"/>
+                <Field Name="COLUMN_SEED" Size="7" Type="UINT"/>
+                <Field Name="ROW_MODE" Size="1" Type="UINT"/>
+                <Field Name="ROW_START" Size="16" Type="UINT"/>
+                <Field Name="ROW_END" Size="16" Type="UINT"/>
+                <Field Name="ROW_SEED" Size="16" Type="UINT"/>
+                <Field Name="DBI_MODE" Size="2" Type="UINT"/>
+                <Field MaxValue="1" Name="DATA_MODE" Type="UINT"/>
+                <Field Name="BIST_DQ_PATTERN_N" NofInstances="8" Size="256" Type="ARRAY32"/>
+                <Field Name="BIST_DBI_PATTERN_N" NofInstances="8" Size="32" Type="UINT"/>
+                <Field Name="PRBS_DATA_SEED" Size="256" Type="ARRAY32"/>
+                <Field Name="PRBS_DBI_SEED" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="NUM_OF_COMMANDS">
+                    <Access>
+                        <Register Name="DCC_BIST_COMMAND_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="NUM_OF_COMMANDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CONSECUTIVE_WRITE_COMMANDS">
+                    <Access>
+                        <Register Name="DCC_BIST_COMMAND_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CONSECUTIVE_WRITE_COMMANDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CONSECUTIVE_READ_COMMANDS">
+                    <Access>
+                        <Register Name="DCC_BIST_COMMAND_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CONSECUTIVE_READ_COMMANDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SAME_ROW_COMMANDS">
+                    <Access>
+                        <Register Name="DCC_BIST_COMMAND_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="SAME_ROW_COMMANDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BANK_MODE">
+                    <Access>
+                        <Register Name="DCC_BIST_ADDR_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BANK_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BANK_START">
+                    <Access>
+                        <Register Name="DCC_BIST_ADDR_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BANK_STARTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BANK_END">
+                    <Access>
+                        <Register Name="DCC_BIST_ADDR_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BANK_ENDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BANK_SEED">
+                    <Access>
+                        <Register Name="DCC_BIST_ADDR_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BANK_SEEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COLUMN_MODE">
+                    <Access>
+                        <Register Name="DCC_BIST_ADDR_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="COLUMN_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COLUMN_START">
+                    <Access>
+                        <Register Name="DCC_BIST_ADDR_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="COLUMN_STARTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COLUMN_END">
+                    <Access>
+                        <Register Name="DCC_BIST_ADDR_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="COLUMN_ENDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COLUMN_SEED">
+                    <Access>
+                        <Register Name="DCC_BIST_ADDR_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="COLUMN_SEEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ROW_MODE">
+                    <Access>
+                        <Register Name="DCC_BIST_ADDR_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="ROW_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ROW_START">
+                    <Access>
+                        <Register Name="DCC_BIST_ADDR_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="ROW_STARTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ROW_END">
+                    <Access>
+                        <Register Name="DCC_BIST_ADDR_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="ROW_ENDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ROW_SEED">
+                    <Access>
+                        <Register Name="DCC_BIST_ADDR_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="ROW_SEEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DBI_MODE">
+                    <Access>
+                        <Register Name="DCC_BIST_DATA_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DBI_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DATA_MODE">
+                    <Access EncodeType="MULTIPLY" EncodeValue="0xFFFF">
+                        <Register Name="DCC_BIST_DATA_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DATA_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BIST_DQ_PATTERN_N">
+                    <Access instanceIndex="ALL">
+                        <Register Name="DCC_BIST_PATTERNr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_DQ_PATTERN_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BIST_DBI_PATTERN_N">
+                    <Access instanceIndex="ALL">
+                        <Register Name="DCC_BIST_PATTERNr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_DBI_PATTERN_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PRBS_DATA_SEED">
+                    <Access>
+                        <Register Name="DCC_PRBS_SEEDr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="PRBS_DATA_SEEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PRBS_DBI_SEED">
+                    <Access>
+                        <Register Name="DCC_PRBS_SEEDr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="PRBS_DBI_SEEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_DRAM_VENDOR_ID_CONFIG" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="VENDOR_ID_MODE" Size="2" Type="UINT"/>
+                <Field Name="VENDOR_ID_TO_RDEN_PRD" Size="7" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VENDOR_ID_MODE">
+                    <Access>
+                        <Register Name="DCC_VENDOR_ID_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="VENDOR_ID_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VENDOR_ID_TO_RDEN_PRD">
+                    <Access>
+                        <Register Name="DCC_VENDOR_ID_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="VENDOR_ID_TO_RDEN_PRDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_BIST_LAST_RETURNED_DATA" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-176623" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="BIST_LAST_RETURNED_DQ" Permission="READONLY" Size="256" Type="ARRAY32"/>
+                <Field Name="BIST_LAST_RETURNED_DBI" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="BIST_LAST_RETURNED_EDC" Permission="READONLY" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="BIST_LAST_RETURNED_DQ">
+                    <Access>
+                        <Register Name="DCC_BIST_LAST_RETURNED_DATAr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_LAST_RETURNED_DQf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BIST_LAST_RETURNED_DBI">
+                    <Access>
+                        <Register Name="DCC_BIST_LAST_RETURNED_DATAr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_LAST_RETURNED_DBIf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BIST_LAST_RETURNED_EDC">
+                    <Access>
+                        <Register Name="DCC_BIST_LAST_RETURNED_DATAr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_LAST_RETURNED_EDCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="GDDR6_PIPELINES_INTERRUPTS" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="EDC_RD_IS_TRAINING_FIFO_UNDERFLOW" Permission="TRIGGER" Size="1" Type="UINT"/>
+                <Field Name="EDC_RD_IS_TRAINING_FIFO_OVERFLOW" Permission="TRIGGER" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="EDC_RD_IS_TRAINING_FIFO_UNDERFLOW">
+                    <Access>
+                        <Register Name="DCC_PIPELINES_INTERRUPT_REGISTERr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="EDC_RD_IS_TRAINING_FIFO_UNDERFLOWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EDC_RD_IS_TRAINING_FIFO_OVERFLOW">
+                    <Access>
+                        <Register Name="DCC_PIPELINES_INTERRUPT_REGISTERr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(DRAM_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="EDC_RD_IS_TRAINING_FIFO_OVERFLOWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+<!-- @@@ from this point onwards, phy registers DBAL tables -->
+
+    <AppDB Name="GDDR6_PHY_WRITE_MAX_VDL_DATA" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DRAM_INDEX" Size="1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="1" Type="UINT"/>
+                <Field Name="DBYTE" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="UI_SHIFT" Size="4" Type="UINT"/>
+                <Field Name="MAX_VDL_STEP" Size="9" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM_PHY_DWORD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="UI_SHIFT">
+                    <Access>
+                        <Memory Name="DPC_DRAM_PHY_REGISTER_ACCESSm">
+                            <EntryOffset Formula="0xa + 0x200*#KEY_VALUE(CHANNEL) + 0x100*#KEY_VALUE(DBYTE)"/>
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PHY_REGISTER_ACCESSf"/>
+                            <DataOffset Formula="12"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_VDL_STEP">
+                    <Access>
+                        <Memory Name="DPC_DRAM_PHY_REGISTER_ACCESSm">
+                            <EntryOffset Formula="0xa + 0x200*#KEY_VALUE(CHANNEL) + 0x100*#KEY_VALUE(DBYTE)"/>
+                            <BlockIndex Formula="#KEY_VALUE(DRAM_INDEX)"/>
+                            <HwField Name="DRAM_PHY_REGISTER_ACCESSf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

@@ -1,0 +1,631 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="EGW_LOOKUP_CTRL">
+        <OneLineDescription>This table is used for controlling the EGW lookup.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Enables lookups to ELK" Name="ELK_LOOKUP_EN" Size="1" Type="BOOL"/>
+                <Field Description="Number of clocks to issue time out (0 is disable)" Name="LOOKUP_TIMEOUT_DLY" Size="16" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV EGW</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ELK_LOOKUP_EN">
+                    <Access>
+                        <Register Name="IPPD_GENERAL_CFGSr">
+                            <HwField Name="ENABLE_ELK_LOOKUPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LOOKUP_TIMEOUT_DLY">
+                    <Access>
+                        <Register Name="IPPD_GENERAL_CFGSr">
+                            <HwField Name="TIMEOUT_DLYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="EGW_TRANSMIT_ATTRIBUTES_CFG">
+        <OneLineDescription>This table is used for configuring the EGW transmit attributes.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Minimum packet size in Bytes." Name="MIN_PKT_SIZE" Size="14" Type="UINT"/>
+                <Field Description="Maximum packet size in Bytes." Name="MAX_PKT_SIZE" Size="14" Type="UINT"/>
+                <Field Description="EGW will not transmit FLP/CPU records if FIFO exceed this threshold." Name="FLP_TRANSMIT_THRESHOLD" Size="9" Type="UINT"/>
+                <Field Description="Congestion identified when FIFO exceed this threshold." Name="CONGESTION_THRESHOLD" Size="9" Type="UINT"/>
+                <Field Description="Enable ROP style packing." Name="ROP_PACKING_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="If set, CPU has priority over traffic lookups." Name="CPU_RECORD_PRIO" Size="1" Type="BOOL"/>
+                <Field Description="Enable terminating the packet even if not reached minimum packet size." Name="TIMER_MODE" Size="1" Type="BOOL"/>
+                <Field Description="Number of cycles for timer to count untill termiate packet." Name="TIMER_DELAY" Size="9" Type="UINT"/>
+                <Field Description="Enable Attaching application prefix in packet transmition." Name="TX_APP_PREFIX_EN" Size="1" Type="BOOL"/>
+                <Field Description="Enable removing application prefix in packet receiving." Name="RX_APP_PREFIX_EN" Size="1" Type="BOOL"/>
+                <Field Description="Channel number for transmitter." Name="TX_CHANNEL_NUM" Size="8" Type="UINT"/>
+                <Field Description="Channel number for receiver." Name="RX_CHANNEL_NUM" Size="8" Type="UINT"/>
+                <Field Description="If set, enable interlaken mode, to compensate Interlaken overheads in shaper." Name="ILKN_MODE" Size="1" Type="BOOL"/>
+                <Field Description="Interlaken minimum burst in 32B resolution." Name="ILKN_MIN_BURST" Size="3" Type="UINT"/>
+                <Field Description="Interlaken maximum burst in 32B resolution." Name="ILKN_MAX_BURST" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV EGW</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MIN_PKT_SIZE">
+                    <Access>
+                        <Register Name="IPPD_PACKET_SIZEr">
+                            <HwField Name="MIN_PKT_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MAX_PKT_SIZE">
+                    <Access>
+                        <Register Name="IPPD_PACKET_SIZEr">
+                            <HwField Name="MAX_PKT_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FLP_TRANSMIT_THRESHOLD">
+                    <Access>
+                        <Register Name="IPPD_TRANSMIT_CFGSr">
+                            <HwField Name="FLP_TRANSMITING_THRESHOLDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CONGESTION_THRESHOLD">
+                    <Access>
+                        <Register Name="IPPD_TRANSMIT_CFGSr">
+                            <HwField Name="CONGESTION_THRESHOLDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ROP_PACKING_ENABLE">
+                    <Access>
+                        <Register Name="IPPD_TRANSMIT_CFGSr">
+                            <HwField Name="PACKING_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CPU_RECORD_PRIO">
+                    <Access>
+                        <Register Name="IPPD_TRANSMIT_CFGSr">
+                            <HwField Name="CPU_RECORD_PRIOf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TIMER_MODE">
+                    <Access>
+                        <Register Name="IPPD_TRANSMIT_CFGSr">
+                            <HwField Name="TIMER_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TIMER_DELAY">
+                    <Access>
+                        <Register Name="IPPD_TRANSMIT_CFGSr">
+                            <HwField Name="TIMER_DELAYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TX_APP_PREFIX_EN">
+                    <Access>
+                        <Register Name="IPPD_APP_PREFIX_CONTROLr">
+                            <HwField Name="TX_APP_PREFIX_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_APP_PREFIX_EN">
+                    <Access>
+                        <Register Name="IPPD_APP_PREFIX_CONTROLr">
+                            <HwField Name="RX_APP_PREFIX_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TX_CHANNEL_NUM">
+                    <Access>
+                        <Register Name="IPPD_PHY_CHANNEL_CFGSr">
+                            <HwField Name="TX_CHANNEL_NUMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_CHANNEL_NUM">
+                    <Access>
+                        <Register Name="IPPD_PHY_CHANNEL_CFGSr">
+                            <HwField Name="RX_CHANNEL_NUMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ILKN_MODE">
+                    <Access>
+                        <Register Name="IPPD_INTERLAKEN_CFGSr">
+                            <HwField Name="ILKN_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ILKN_MIN_BURST">
+                    <Access>
+                        <Register Name="IPPD_INTERLAKEN_CFGSr">
+                            <HwField Name="ILKN_MIN_BURSTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ILKN_MAX_BURST">
+                    <Access>
+                        <Register Name="IPPD_INTERLAKEN_CFGSr">
+                            <HwField Name="ILKN_MAX_BURSTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="EGW_SHAPER_CFG">
+        <OneLineDescription>This table is used for configuring the EGW shapper.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Shaper number of cycles between two egw words (32B) in transmitter." Name="SHAPER_DLY" Size="8" Type="UINT"/>
+                <Field Description="Tunning of shaper in 1/64K cycle units." Name="SHAPER_DLY_FRACTION" Size="16" Type="UINT"/>
+                <Field Description="Maximal number of tokens (32B) that can be accumulated." Name="SHAPER_MAX_BURST" Size="9" Type="UINT"/>
+                <Field Description="Alignment for word to be considered by shaper after overhead." Name="WORD_ALIGNMENT" Size="3" Type="UINT"/>
+                <Field Description="Gap in Bytes between packets after alignment." Name="PACKET_GAP" Size="5" Type="UINT"/>
+                <Field Description="Overhead in Bytes to be considered (per packet) by shaper." Name="PACKET_OVERHEAD" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV EGW</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SHAPER_DLY">
+                    <Access>
+                        <Register Name="IPPD_SPR_DLY_CFGSr">
+                            <HwField Name="SPR_DLYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SHAPER_DLY_FRACTION">
+                    <Access>
+                        <Register Name="IPPD_SPR_DLY_CFGSr">
+                            <HwField Name="SPR_DLY_FRACTIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SHAPER_MAX_BURST">
+                    <Access>
+                        <Register Name="IPPD_SPR_DLY_CFGSr">
+                            <HwField Name="SPR_MAX_BURSTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="WORD_ALIGNMENT">
+                    <Access>
+                        <Register Name="IPPD_SPR_CFGSr">
+                            <HwField Name="WORD_ALIGNMENTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PACKET_GAP">
+                    <Access>
+                        <Register Name="IPPD_SPR_CFGSr">
+                            <HwField Name="PACKET_GAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PACKET_OVERHEAD">
+                    <Access>
+                        <Register Name="IPPD_SPR_CFGSr">
+                            <HwField Name="PACKET_OVERHEADf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="EGW_CPU_RECORD_CTRL">
+        <OneLineDescription>This table is used for controlling the CPU record.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="User asserts to access ELK." Name="RECORD_TRIGGER" Permission="TRIGGER" Size="1" Type="BOOL"/>
+                <Field Description="A CPU request still waiting for ELK to return a reply." Name="REQUEST_PENDING" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="CPU request FIFO ready for another command" Name="REQUEST_FIFO_READY" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="CPU request FIFO status." Name="REQUEST_FIFO_STATUS" Permission="READONLY" Size="5" Type="UINT"/>
+                <Field Description="If set, writing to CpuRecordDataLsb will trigger CPU request." Name="RECORD_DATA_LSB_TRIGGER" Permission="TRIGGER" Size="1" Type="BOOL"/>
+                <Field Description="If set, writing to CpuRecordDataMsb will trigger CPU request." Name="RECORD_DATA_MSB_TRIGGER" Permission="TRIGGER" Size="1" Type="BOOL"/>
+                <Field Description="This will be returned at LookupReplyUserData." Name="RECORD_USER_DATA" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV EGW</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="RECORD_TRIGGER">
+                    <Access>
+                        <Register Name="IPPD_CPU_RECORD_CONTROLr">
+                            <HwField Name="CPU_RECORD_TRIGGERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="REQUEST_PENDING">
+                    <Access>
+                        <Register Name="IPPD_CPU_RECORD_CONTROLr">
+                            <HwField Name="CPU_REQUEST_PENDINGf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="REQUEST_FIFO_READY">
+                    <Access>
+                        <Register Name="IPPD_CPU_RECORD_CONTROLr">
+                            <HwField Name="CPU_REQUEST_FIFO_READYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="REQUEST_FIFO_STATUS">
+                    <Access>
+                        <Register Name="IPPD_CPU_RECORD_CONTROLr">
+                            <HwField Name="CPU_REQUEST_FIFO_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RECORD_DATA_LSB_TRIGGER">
+                    <Access>
+                        <Register Name="IPPD_CPU_RECORD_CONTROLr">
+                            <HwField Name="CPU_RECORD_DATA_LSB_TRIGGERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RECORD_DATA_MSB_TRIGGER">
+                    <Access>
+                        <Register Name="IPPD_CPU_RECORD_CONTROLr">
+                            <HwField Name="CPU_RECORD_DATA_MSB_TRIGGERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RECORD_USER_DATA">
+                    <Access>
+                        <Register Name="IPPD_CPU_RECORD_CONTROLr">
+                            <HwField Name="CPU_RECORD_USER_DATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="EGW_RECORD_REQUEST">
+        <OneLineDescription>This table is used for sending the CPU record.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Access opcode." Name="RECORD_OPCODE" Size="8" Type="UINT"/>
+                <Field Description="Access data in ELK - MSB." Name="RECORD_DATA_MSB" Size="512" Type="ARRAY32"/>
+                <Field Description="Access data in ELK - LSB." Name="RECORD_DATA_LSB" Size="512" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV EGW</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="RECORD_OPCODE">
+                    <Access>
+                        <Register Name="IPPD_CPU_RECORD_OPCODEr">
+                            <HwField Name="CPU_RECORD_OPCODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RECORD_DATA_MSB">
+                    <Access>
+                        <Register Name="IPPD_CPU_RECORD_DATA_MSBr">
+                            <HwField Name="CPU_RECORD_DATA_MSBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RECORD_DATA_LSB">
+                    <Access>
+                        <Register Name="IPPD_CPU_RECORD_DATA_LSBr">
+                            <HwField Name="CPU_RECORD_DATA_LSBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="EGW_RECORD_REPLY">
+        <OneLineDescription>This table is used for handling the record reply.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="If set, reply lookup is ready." Name="REPLY_VALID" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Reply Lookup record." Name="REPLY_RECORD" Permission="READONLY" Size="256" Type="ARRAY32"/>
+                <Field Description="Reply Lookup ROP sequence number." Name="REPLY_SEQ_NUM" Permission="READONLY" Size="16" Type="UINT"/>
+                <Field Description="Reply Lookup opcode." Name="REPLY_OPCODE" Permission="READONLY" Size="8" Type="UINT"/>
+                <Field Description="Copied from CpuRecordUserData." Name="REPLY_USER_DATA" Permission="READONLY" Size="8" Type="UINT"/>
+                <Field Description="Reply Lookup with ROP error indication." Name="REPLY_ROP_ERROR" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Reply Lookup with ELK error indication." Name="REPLY_ELK_ERROR" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Error at any entry." Name="REPLY_ERROR" Permission="READONLY" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV EGW</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="REPLY_VALID">
+                    <Access>
+                        <Register Name="IPPD_LOOKUP_REPLYr">
+                            <HwField Name="LOOKUP_REPLY_VALIDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="REPLY_RECORD">
+                    <Access>
+                        <Register Name="IPPD_LOOKUP_REPLYr">
+                            <HwField Name="LOOKUP_REPLY_RECORDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="REPLY_SEQ_NUM">
+                    <Access>
+                        <Register Name="IPPD_LOOKUP_REPLYr">
+                            <HwField Name="LOOKUP_REPLY_SEQ_NUMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="REPLY_OPCODE">
+                    <Access>
+                        <Register Name="IPPD_LOOKUP_REPLYr">
+                            <HwField Name="LOOKUP_REPLY_OPCODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="REPLY_USER_DATA">
+                    <Access>
+                        <Register Name="IPPD_LOOKUP_REPLYr">
+                            <HwField Name="LOOKUP_REPLY_USER_DATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="REPLY_ROP_ERROR">
+                    <Access>
+                        <Register Name="IPPD_LOOKUP_REPLYr">
+                            <HwField Name="LOOKUP_REPLY_ROP_ERRORf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="REPLY_ELK_ERROR">
+                    <Access>
+                        <Register Name="IPPD_LOOKUP_REPLYr">
+                            <HwField Name="LOOKUP_REPLY_ELK_ERRORf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="REPLY_ERROR">
+                    <Access>
+                        <Register Name="IPPD_LOOKUP_REPLYr">
+                            <HwField Name="LOOKUP_REPLY_ERRORf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="EGW_RECORD_REPLY_COUNTER">
+        <OneLineDescription>EGW reply record counter.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Counts request replies to CPU." Name="LOOKUP_REPLY_COUNTER" Permission="READONLY" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV EGW</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="LOOKUP_REPLY_COUNTER">
+                    <Access>
+                        <Register Name="IPPD_CPU_LOOKUP_REPLY_COUNTERr">
+                            <HwField Name="CPU_LOOKUP_REPLY_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGW_RECORD_OPCODE_MAPPING_TABLE">
+        <OneLineDescription>EGW OPcode mapping table.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.elk.general.egw_max_opcode" MinValue="0" Name="OPCODE" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Rx record type." Name="RX_RECORD_TYPE" Size="3" Type="UINT"/>
+                <Field Description="Tx record type" Name="TX_RECORD_TYPE" Size="1" Type="UINT"/>
+                <Field Description="Rx record size, byte resolution, add 1 for actual size" Name="RX_RECORD_SIZE" Size="5" Type="UINT"/>
+                <Field Description="Tx record size, byte resolution, add 1 for actual size" Name="TX_RECORD_SIZE" Size="7" Type="UINT"/>
+                <Field Description="If set, check error bit at LSB of first byte of record" Name="CHECK_ELK_ERROR" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV EGW</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="RX_RECORD_TYPE">
+                    <Access>
+                        <Memory Name="IPPD_OPCODE_MAP_RXm">
+                            <EntryOffset Formula="#KEY_VALUE(OPCODE)"/>
+                            <HwField Name="TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TX_RECORD_TYPE">
+                    <Access>
+                        <Memory Name="IPPD_OPCODE_MAP_TXm">
+                            <EntryOffset Formula="#KEY_VALUE(OPCODE)"/>
+                            <HwField Name="TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RX_RECORD_SIZE">
+                    <Access>
+                        <Memory Name="IPPD_OPCODE_MAP_RXm">
+                            <EntryOffset Formula="#KEY_VALUE(OPCODE)"/>
+                            <HwField Name="SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TX_RECORD_SIZE">
+                    <Access>
+                        <Memory Name="IPPD_OPCODE_MAP_TXm">
+                            <EntryOffset Formula="#KEY_VALUE(OPCODE)"/>
+                            <HwField Name="SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CHECK_ELK_ERROR">
+                    <Access>
+                        <Memory Name="IPPD_OPCODE_MAP_RXm">
+                            <EntryOffset Formula="#KEY_VALUE(OPCODE)"/>
+                            <HwField Name="CHECK_ELK_ERRORf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGW_ROP_FIFO_TABLE">
+        <OneLineDescription>EGW ROP FIFO table.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="FIFO_INDEX" Size="9" Type="UINT"/>
+                <Field Name="ROP_TYPE" Type="ROP_PACKET_TYPE"/>
+            </Key>
+            <Result>
+                <Field Description="ROP DATA" Name="ROP_DATA" Permission="READONLY" Size="512" Type="ARRAY8"/>
+            </Result>
+            <TableLabels>J2P_NOTREV EGW</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ROP_DATA">
+                    <Access>
+                        <KeyCondition Enum="REQUEST" Field="ROP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPD_FIFO_ELK_TXm">
+                            <EntryOffset Formula="#KEY_VALUE(FIFO_INDEX)"/>
+                            <HwField Name="DATAf"/>
+                            <DataOffset Formula="8"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="RESPONSE" Field="ROP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPD_FIFO_ELK_RXm">
+                            <EntryOffset Formula="#KEY_VALUE(FIFO_INDEX)"/>
+                            <HwField Name="DATAf"/>
+                            <DataOffset Formula="8"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGW_ROP_FIFO_STATUS">
+        <OneLineDescription>EGW fifo satus.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="ROP_TYPE" Type="ROP_PACKET_TYPE"/>
+            </Key>
+            <Result>
+                <Field Description="FIFO status watermark" Name="FIFO_STATUS_WM" Permission="READONLY" Size="9" Type="UINT"/>
+                <Field Description="FIFO write pointer" Name="FIFO_WR_PTR" Permission="READONLY" Size="9" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV EGW</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="FIFO_STATUS_WM">
+                    <Access>
+                        <KeyCondition Enum="REQUEST" Field="ROP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPD_TRANSMIT_FIFO_STATUSr">
+                            <HwField Name="TX_FIFO_STATUS_WATERMARKf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="RESPONSE" Field="ROP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPD_RECEIVE_FIFO_STATUSr">
+                            <HwField Name="RX_FIFO_STATUS_WATERMARKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIFO_WR_PTR">
+                    <Access>
+                        <KeyCondition Enum="REQUEST" Field="ROP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPD_TRANSMIT_FIFO_STATUSr">
+                            <HwField Name="TX_FIFO_WR_PTRf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="RESPONSE" Field="ROP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPD_RECEIVE_FIFO_STATUSr">
+                            <HwField Name="RX_FIFO_WR_PTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

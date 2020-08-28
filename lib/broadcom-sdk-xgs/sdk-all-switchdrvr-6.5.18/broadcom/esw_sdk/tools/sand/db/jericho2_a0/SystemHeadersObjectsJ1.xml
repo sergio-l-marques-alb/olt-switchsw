@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<top device="jericho2_a0" version="1.0">
+    <parsing-objects>
+        <object name="FTMH_J1" size-type="static" size="72" structure="FTMH_Base_J1">
+            <description>Egress TM Header</description>
+            <extension name="LB_Key_J1">
+                <condition type="soc" mode="enable">
+                    <enable val="ENABLED" />
+                    <soc_property name="system_ftmh_load_balancing_ext_mode" />
+                </condition>
+            </extension>
+            <extension name="DSP_J1">
+                <condition type="field" mode="enable">
+                    <enable val="1" />
+                    <field path="FTMH_Base_J1.DSP_Extension_Present" />
+                </condition>
+            </extension>
+            <extension name="Stacking_J1">
+                <condition type="soc" mode="enable">
+                    <enable val="1" />
+                    <soc_property name="stacking_extension_enable" />
+                </condition>
+            </extension>
+            <extension name="OTSH_J1">
+                <condition type="field" mode="enable">
+                    <enable val="2" mask="2" />
+                    <field path="FTMH_Base_J1.PPH_Type"/>
+                </condition>
+            </extension>
+            <extension name="PPH_J1">
+                <condition type="field" mode="enable">
+                    <enable val="1" mask="1" />
+                    <field path="FTMH_Base_J1.PPH_Type"/>
+                </condition>
+            </extension>
+        </object>
+        <object name="LB_Key_J1" size="8" structure="LB_Key_Ext_J1"/>
+        <object name="DSP_J1" size="16" structure="DSP_Extension_J1"/>
+        <object name="Stacking_J1" size="16" structure="Stacking_Extension_J1"/>
+        <object name="ITMH_Base_J1" size-type="static" size="32">
+            <description>Ingress TM Header</description>
+            <extension name="ITMH_Base_Ext_J1">
+                <condition type="field" mode="enable">
+                    <field path="ITMH_Base_J1.Base_Ext_Exists" />
+                    <enable val="1" />
+                </condition>
+            </extension>
+        </object>
+        <object name="ITMH_Base_Ext_J1" size-type="static" size="24">
+            <extension name="ITMH_ISQ_Flow_ID_J1">
+                <condition type="field" mode="enable">
+                    <field path="ITMH_Base_Ext_J1.Type" />
+                    <enable val="6" mask="1"/> <!-- Type == 6/7 -->
+                </condition>
+            </extension>
+        </object>
+        <object name="ITMH_ISQ_Flow_ID_J1" size="24" />
+        <object name="OTSH_J1" size-type="static" size="48" structure="OTSH_J1">
+            <description>OAM/TimeStamp Header</description>
+        </object>
+        <object name="PPH_J1" size-type="static" size="56" structure="PPH_Base_J1">
+            <description>Packet Processing Header</description>
+            <extension name="FHEI_Bridge_3B_J1">
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.FHEI_Size" />
+                    <enable val="1" mask="3" />
+                </condition>
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.Forward_Code" />
+                    <enable val="0" mask="0xf" />
+                </condition>
+            </extension>
+            <extension name="FHEI_Bridge_5B_J1">
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.FHEI_Size" />
+                    <enable val="2" mask="3" />
+                </condition>
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.Forward_Code" />
+                    <enable val="0" mask="0xf" />
+                </condition>
+            </extension>
+            <extension name="FHEI_CPU_Trap_3B_J1">
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.FHEI_Size" />
+                    <enable val="1" mask="3" />
+                </condition>
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.Forward_Code" />
+                    <enable val="7" mask="0xf" />
+                </condition>
+            </extension>
+            <extension name="FHEI_CPU_Trap_5B_J1">
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.FHEI_Size" />
+                    <enable val="2" mask="3" />
+                </condition>
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.Forward_Code" />
+                    <enable val="7" mask="0xf" />
+                </condition>
+            </extension>
+            <extension name="FHEI_CPU_Trap_8B_J1">
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.FHEI_Size" />
+                    <enable val="3" mask="3" />
+                </condition>
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.Forward_Code" />
+                    <enable val="7" mask="0xf" />
+                </condition>
+            </extension>
+            <extension name="FHEI_IPv4_UC_Routed_3B_J1">
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.FHEI_Size" />
+                    <enable val="1" mask="3" />
+                </condition>
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.Forward_Code" />
+                    <enable val="1" mask="0xf" />
+                </condition>
+            </extension>
+            <extension name="FHEI_IPv4_MC_Routed_3B_J1">
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.FHEI_Size" />
+                    <enable val="1" mask="3" />
+                </condition>
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.Forward_Code" />
+                    <enable val="2" mask="0xf" />
+                </condition>
+            </extension>
+            <extension name="FHEI_IPv6_UC_Routed_3B_J1">
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.FHEI_Size" />
+                    <enable val="1" mask="3" />
+                </condition>
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.Forward_Code" />
+                    <enable val="3" mask="0xf" />
+                </condition>
+            </extension>
+            <extension name="FHEI_IPv6_MC_Routed_3B_J1">
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.FHEI_Size" />
+                    <enable val="1" mask="3" />
+                </condition>
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.Forward_Code" />
+                    <enable val="4" mask="0xf" />
+                </condition>
+            </extension>
+            <extension name="FHEI_IPv4_UC_Routed_8B_J1">
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.FHEI_Size" />
+                    <enable val="3" mask="3" />
+                </condition>
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.Forward_Code" />
+                    <enable val="1" mask="0xf" />
+                </condition>
+            </extension>
+            <extension name="FHEI_IPv4_MC_Routed_8B_J1">
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.FHEI_Size" />
+                    <enable val="3" mask="3" />
+                </condition>
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.Forward_Code" />
+                    <enable val="2" mask="0xf" />
+                </condition>
+            </extension>
+            <extension name="FHEI_IPv6_UC_Routed_8B_J1">
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.FHEI_Size" />
+                    <enable val="3" mask="3" />
+                </condition>
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.Forward_Code" />
+                    <enable val="3" mask="0xf" />
+                </condition>
+            </extension>
+            <extension name="FHEI_IPv6_MC_Routed_8B_J1">
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.FHEI_Size" />
+                    <enable val="3" mask="3" />
+                </condition>
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.Forward_Code" />
+                    <enable val="4" mask="0xf" />
+                </condition>
+            </extension>
+            <extension name="FHEI_MPLS_3B_J1">
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.FHEI_Size" />
+                    <enable val="1" mask="3" />
+                </condition>
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.Forward_Code" />
+                    <enable val="5" mask="0xf" />
+                </condition>
+            </extension>
+            <extension name="FHEI_MPLS_5B_J1">
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.FHEI_Size" />
+                    <enable val="2" mask="3" />
+                </condition>
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.Forward_Code" />
+                    <enable val="5" mask="0xf" />
+                </condition>
+            </extension>
+            <extension name="FHEI_TRILL_3B_J1">
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.FHEI_Size" />
+                    <enable val="1" mask="3" />
+                </condition>
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.Forward_Code" />
+                    <enable val="6" mask="0xf" />
+                </condition>
+            </extension>
+            <extension name="PPH_EEI_MPLS_J1">
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.EEI_Extension_Present" />
+                    <enable val="1" mask="1" />
+                </condition>
+            </extension>
+            <extension name="PPH_Learn_Ext_J1">
+                <condition type="field" mode="enable">
+                    <field path="PPH_Base_J1.Learn_Extension_Present" />
+                    <enable val="1" mask="1" />
+                </condition>
+            </extension>
+        </object>
+        <object name="FHEI_Bridge_3B_J1" size-type="static" size="24"
+            structure="FHEI_Bridge_3B_J1" />
+        <object name="FHEI_Bridge_5B_J1" size-type="static" size="40"
+            structure="FHEI_Bridge_5B_J1" />
+        <object name="FHEI_CPU_Trap_3B_J1" size-type="static" size="24"
+            structure="FHEI_CPU_Trap_3B_J1" />
+        <object name="FHEI_CPU_Trap_5B_J1" size-type="static" size="40"
+            structure="FHEI_CPU_Trap_5B_J1" />
+        <object name="FHEI_CPU_Trap_8B_J1" size-type="static" size="64"
+            structure="FHEI_CPU_Trap_8B_J1" />
+        <object name="FHEI_IPv4_UC_Routed_3B_J1" size-type="static" size="24"
+            structure="FHEI_IP_Routed_3B_J1" />
+        <object name="FHEI_IPv4_MC_Routed_3B_J1" size-type="static" size="24"
+            structure="FHEI_IP_Routed_3B_J1" />
+        <object name="FHEI_IPv6_UC_Routed_3B_J1" size-type="static" size="24"
+            structure="FHEI_IP_Routed_3B_J1" />
+        <object name="FHEI_IPv6_MC_Routed_3B_J1" size-type="static" size="24"
+            structure="FHEI_IP_Routed_3B_J1" />
+        <object name="FHEI_IPv4_UC_Routed_8B_J1" size-type="static" size="64"
+            structure="FHEI_IP_Routed_8B_J1" />
+        <object name="FHEI_IPv4_MC_Routed_8B_J1" size-type="static" size="64"
+            structure="FHEI_IP_Routed_8B_J1" />
+        <object name="FHEI_IPv6_UC_Routed_8B_J1" size-type="static" size="64"
+            structure="FHEI_IP_Routed_8B_J1" />
+        <object name="FHEI_IPv6_MC_Routed_8B_J1" size-type="static" size="64"
+            structure="FHEI_IP_Routed_8B_J1" />
+        <object name="FHEI_MPLS_3B_J1" size-type="static" size="24"
+            structure="FHEI_MPLS_3B_J1" />
+        <object name="FHEI_MPLS_5B_J1" size-type="static" size="40"
+            structure="FHEI_MPLS_5B_J1" />
+        <object name="FHEI_TRILL_3B_J1" size-type="static" size="24"
+            structure="FHEI_TRILL_3B_J1" />
+        <object name="PPH_EEI_MPLS_J1" size-type="static" size="24" structure="PPH_EEI_MPLS_J1" />
+        <object name="PPH_Learn_Ext_J1" size-type="static" size="40" structure="PPH_Learn_Ext_J1" />
+    </parsing-objects>
+</top>

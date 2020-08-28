@@ -1,0 +1,714 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FieldTypesDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../field_types_schema.xsd">
+
+    <GeneralInfo image="standard_1" dynamic_loading="0" />
+
+<FieldType Name="EGRESS_GLEM_FORMATS" Print="ENUM" Size="6">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="GLEM_GLOBAL_TO_LOCAL" Name="GLEM_GLOBAL_TO_LOCAL"/>
+            <EnumVal Description="GLEM_GLOBAL_TO_LOCAL_RIF_1" Name="GLEM_GLOBAL_TO_LOCAL_RIF_1"/>
+            <EnumVal Description="NONE" Name="NONE"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="GLEM_GLOBAL_TO_LOCAL" Value="1"/>
+            <EnumVal Name="GLEM_GLOBAL_TO_LOCAL_RIF_1" Value="2"/>
+            <EnumVal Name="NONE" Value="0"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="EGRESS_PPMC_FORMATS" Print="ENUM" Size="6">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="PPMC_DOUBLE_OUTLIF" Name="PPMC_DOUBLE_OUTLIF"/>
+            <EnumVal Description="PPMC_EMPTY" Name="PPMC_EMPTY"/>
+            <EnumVal Description="PPMC_RESERVED_4" Name="PPMC_RESERVED_4"/>
+            <EnumVal Description="PPMC_RESERVED_5" Name="PPMC_RESERVED_5"/>
+            <EnumVal Description="PPMC_SINGLE_OUTLIF" Name="PPMC_SINGLE_OUTLIF"/>
+            <EnumVal Description="PPMC_TRIPLE_OUTLIF" Name="PPMC_TRIPLE_OUTLIF"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="PPMC_DOUBLE_OUTLIF" Value="2"/>
+            <EnumVal Name="PPMC_EMPTY" Value="0"/>
+            <EnumVal Name="PPMC_RESERVED_4" Value="4"/>
+            <EnumVal Name="PPMC_RESERVED_5" Value="5"/>
+            <EnumVal Name="PPMC_SINGLE_OUTLIF" Value="1"/>
+            <EnumVal Name="PPMC_TRIPLE_OUTLIF" Value="3"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="EGRESS_VSI_FORMATS" Print="ENUM" Size="6">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="EGRESS_VSI_1" Name="EGRESS_VSI_1"/>
+            <EnumVal Description="NONE" Name="NONE"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="EGRESS_VSI_1" Value="1"/>
+            <EnumVal Name="NONE" Value="0"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="ETPP_ETPS_FORMATS" Print="ENUM" Size="DNX_DATA.pp.ETPP.etps_type_size_bits">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="ETPS_AC" Name="ETPS_AC"/>
+            <EnumVal Description="ETPS_AC_QOS_OAM" Name="ETPS_AC_QOS_OAM"/>
+            <EnumVal Description="ETPS_AC_STAT" Name="ETPS_AC_STAT"/>
+            <EnumVal Description="ETPS_AC_STAT_PROTECTION" Name="ETPS_AC_STAT_PROTECTION"/>
+            <EnumVal Description="ETPS_AC_TRIPLE_TAG" Name="ETPS_AC_TRIPLE_TAG"/>
+            <EnumVal Description="ETPS_ARP" Name="ETPS_ARP"/>
+            <EnumVal Description="ETPS_ARP_AC" Name="ETPS_ARP_AC"/>
+            <EnumVal Description="ETPS_ARP_AC_1TAG_STAT" Name="ETPS_ARP_AC_1TAG_STAT"/>
+            <EnumVal Description="ETPS_ARP_PLUS_AC_1TAG" Name="ETPS_ARP_PLUS_AC_1TAG"/>
+            <EnumVal Description="ETPS_ARP_SA_Custom" Name="ETPS_ARP_SA_CUSTOM"/>
+            <EnumVal Description="ETPS_ARP_SA_tunneling" Name="ETPS_ARP_SA_TUNNELING"/>
+            <EnumVal Description="ETPS_BFD_IPV4_SIP_WA" Name="ETPS_BFD_IPV4_SIP_WA"/>
+            <EnumVal Description="ETPS_BIER_64" Name="ETPS_BIER_64"/>
+            <EnumVal Description="ETPS_BIER_MPLS" Name="ETPS_BIER_MPLS"/>
+            <EnumVal Description="ETPS_DATA_128b" Name="ETPS_DATA_128B"/>
+            <EnumVal Description="ETPS_DATA_VAR_SIZE_DATA" Name="ETPS_DATA_VAR_SIZE_DATA"/>
+            <EnumVal Description="ETPS_DUAL_HOMING" Name="ETPS_DUAL_HOMING"/>
+            <EnumVal Description="ETPS_ERSPANv2" Name="ETPS_ERSPANV2"/>
+            <EnumVal Description="ETPS_ERSPANv3" Name="ETPS_ERSPANV3"/>
+            <EnumVal Description="ETPS_ETH_RIF" Name="ETPS_ETH_RIF"/>
+            <EnumVal Description="ETPS_ETH_RIF_STAT" Name="ETPS_ETH_RIF_STAT"/>
+            <EnumVal Description="ETPS_IPFIX_PSAMP" Name="ETPS_IPFIX_PSAMP"/>
+            <EnumVal Description="ETPS_IPV4_TUNNEL" Name="ETPS_IPV4_TUNNEL"/>
+            <EnumVal Description="ETPS_IPV4_TUNNEL_GRE_GENEVE" Name="ETPS_IPV4_TUNNEL_GRE_GENEVE"/>
+            <EnumVal Description="ETPS_IPV4_TUNNEL_UDP" Name="ETPS_IPV4_TUNNEL_UDP"/>
+            <EnumVal Description="ETPS_IPV4_TUNNEL_VXLAN_GPE" Name="ETPS_IPV4_TUNNEL_VXLAN_GPE"/>
+            <EnumVal Description="ETPS_IPV4_TUNNEL_VXLAN_GPE_ECN" Name="ETPS_IPV4_TUNNEL_VXLAN_GPE_ECN"/>
+            <EnumVal Description="ETPS_IPV6_TUNNEL_GENEVE" Name="ETPS_IPV6_TUNNEL_GENEVE"/>
+            <EnumVal Description="ETPS_IPV6_TUNNEL_GRE" Name="ETPS_IPV6_TUNNEL_GRE"/>
+            <EnumVal Description="ETPS_IPV6_TUNNEL_RAW" Name="ETPS_IPV6_TUNNEL_RAW"/>
+            <EnumVal Description="ETPS_IPV6_TUNNEL_UDP" Name="ETPS_IPV6_TUNNEL_UDP"/>
+            <EnumVal Description="ETPS_IPV6_TUNNEL_VXLAN" Name="ETPS_IPV6_TUNNEL_VXLAN"/>
+            <EnumVal Description="ETPS_IPV6_TUNNEL_VXLAN_ECN" Name="ETPS_IPV6_TUNNEL_VXLAN_ECN"/>
+            <EnumVal Description="ETPS_J2P_test_result" Name="ETPS_J2P_TEST_RESULT"/>
+            <EnumVal Description="ETPS_L2TPv2" Name="ETPS_L2TPV2"/>
+            <EnumVal Description="ETPS_L2_FODO" Name="ETPS_L2_FODO"/>
+            <EnumVal Description="ETPS_L2_FODO_VLANS" Name="ETPS_L2_FODO_VLANS"/>
+            <EnumVal Description="ETPS_L3_FODO" Name="ETPS_L3_FODO"/>
+            <EnumVal Description="ETPS_MPLS_1" Name="ETPS_MPLS_1"/>
+            <EnumVal Description="ETPS_MPLS_1_AH" Name="ETPS_MPLS_1_AH"/>
+            <EnumVal Description="ETPS_MPLS_1_IML" Name="ETPS_MPLS_1_IML"/>
+            <EnumVal Description="ETPS_MPLS_1_STAT" Name="ETPS_MPLS_1_STAT"/>
+            <EnumVal Description="ETPS_MPLS_1_TANDEM" Name="ETPS_MPLS_1_TANDEM"/>
+            <EnumVal Description="ETPS_MPLS_2" Name="ETPS_MPLS_2"/>
+            <EnumVal Description="ETPS_MPLS_2_1_AH" Name="ETPS_MPLS_2_1_AH"/>
+            <EnumVal Description="ETPS_MPLS_2_2_AH" Name="ETPS_MPLS_2_2_AH"/>
+            <EnumVal Description="ETPS_MPLS_2_3_AH" Name="ETPS_MPLS_2_3_AH"/>
+            <EnumVal Description="ETPS_MPLS_2_STAT" Name="ETPS_MPLS_2_STAT"/>
+            <EnumVal Description="ETPS_MPLS_2_TANDEM" Name="ETPS_MPLS_2_TANDEM"/>
+            <EnumVal Description="ETPS_MPLS_FHEI" Name="ETPS_MPLS_FHEI"/>
+            <EnumVal Description="ETPS_MPLS_PHP" Name="ETPS_MPLS_PHP"/>
+            <EnumVal Description="ETPS_MPLS_PHP_STAT" Name="ETPS_MPLS_PHP_STAT"/>
+            <EnumVal Description="ETPS_NULL" Name="ETPS_NULL"/>
+            <EnumVal Description="ETPS_PPPOE" Name="ETPS_PPPOE"/>
+            <EnumVal Description="ETPS_RCH" Name="ETPS_RCH"/>
+            <EnumVal Description="ETPS_REFLECTOR" Name="ETPS_REFLECTOR"/>
+            <EnumVal Description="ETPS_REFLECTOR_L2_MC" Name="ETPS_REFLECTOR_L2_MC"/>
+            <EnumVal Description="ETPS_REFLECTOR_OAM" Name="ETPS_REFLECTOR_OAM"/>
+            <EnumVal Description="ETPS_REFLECTOR_TWAMP" Name="ETPS_REFLECTOR_TWAMP"/>
+            <EnumVal Description="ETPS_RSPAN" Name="ETPS_RSPAN"/>
+            <EnumVal Description="ETPS_SFLOW_EXT_first" Name="ETPS_SFLOW_EXT_FIRST"/>
+            <EnumVal Description="ETPS_SFLOW_EXT_second" Name="ETPS_SFLOW_EXT_SECOND"/>
+            <EnumVal Description="ETPS_SFLOW_HDR_DP" Name="ETPS_SFLOW_HDR_DP"/>
+            <EnumVal Description="ETPS_SFLOW_HDR_SAMP" Name="ETPS_SFLOW_HDR_SAMP"/>
+            <EnumVal Description="ETPS_SRV6" Name="ETPS_SRV6"/>
+            <EnumVal Description="ETPS_SVTAG" Name="ETPS_SVTAG"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="ETPS_AC" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___190"/>
+            <EnumVal Name="ETPS_AC_QOS_OAM" Value="10"/>
+            <EnumVal Name="ETPS_AC_STAT" Value="9"/>
+            <EnumVal Name="ETPS_AC_STAT_PROTECTION" Value="8"/>
+            <EnumVal Name="ETPS_AC_TRIPLE_TAG" Value="12"/>
+            <EnumVal Name="ETPS_ARP" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___191"/>
+            <EnumVal Name="ETPS_ARP_AC" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___192"/>
+            <EnumVal Name="ETPS_ARP_AC_1TAG_STAT" Value="6"/>
+            <EnumVal Name="ETPS_ARP_PLUS_AC_1TAG" Value="33"/>
+            <EnumVal Name="ETPS_ARP_SA_CUSTOM" Value="5"/>
+            <EnumVal Name="ETPS_ARP_SA_TUNNELING" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___193"/>
+            <EnumVal Name="ETPS_BFD_IPV4_SIP_WA" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___194"/>
+            <EnumVal Name="ETPS_BIER_64" Value="49"/>
+            <EnumVal Name="ETPS_BIER_MPLS" Value="48"/>
+            <EnumVal Name="ETPS_DATA_128B" Value="3"/>
+            <EnumVal Name="ETPS_DATA_VAR_SIZE_DATA" Value="55"/>
+            <EnumVal Name="ETPS_DUAL_HOMING" Value="61"/>
+            <EnumVal Name="ETPS_ERSPANV2" Value="42"/>
+            <EnumVal Name="ETPS_ERSPANV3" Value="56"/>
+            <EnumVal Name="ETPS_ETH_RIF" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___195"/>
+            <EnumVal Name="ETPS_ETH_RIF_STAT" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___196"/>
+            <EnumVal Name="ETPS_IPFIX_PSAMP" Value="40"/>
+            <EnumVal Name="ETPS_IPV4_TUNNEL" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___197"/>
+            <EnumVal Name="ETPS_IPV4_TUNNEL_GRE_GENEVE" Value="19"/>
+            <EnumVal Name="ETPS_IPV4_TUNNEL_UDP" Value="32"/>
+            <EnumVal Name="ETPS_IPV4_TUNNEL_VXLAN_GPE" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___198"/>
+            <EnumVal Name="ETPS_IPV4_TUNNEL_VXLAN_GPE_ECN" Value="13"/>
+            <EnumVal Name="ETPS_IPV6_TUNNEL_GENEVE" Value="44"/>
+            <EnumVal Name="ETPS_IPV6_TUNNEL_GRE" Value="37"/>
+            <EnumVal Name="ETPS_IPV6_TUNNEL_RAW" Value="35"/>
+            <EnumVal Name="ETPS_IPV6_TUNNEL_UDP" Value="38"/>
+            <EnumVal Name="ETPS_IPV6_TUNNEL_VXLAN" Value="36"/>
+            <EnumVal Name="ETPS_IPV6_TUNNEL_VXLAN_ECN" Value="14"/>
+            <EnumVal Name="ETPS_J2P_TEST_RESULT" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___199"/>
+            <EnumVal Name="ETPS_L2TPV2" Value="41"/>
+            <EnumVal Name="ETPS_L2_FODO" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___200"/>
+            <EnumVal Name="ETPS_L2_FODO_VLANS" Value="45"/>
+            <EnumVal Name="ETPS_L3_FODO" Value="47"/>
+            <EnumVal Name="ETPS_MPLS_1" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___201"/>
+            <EnumVal Name="ETPS_MPLS_1_AH" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___202"/>
+            <EnumVal Name="ETPS_MPLS_1_IML" Value="16"/>
+            <EnumVal Name="ETPS_MPLS_1_STAT" Value="29"/>
+            <EnumVal Name="ETPS_MPLS_1_TANDEM" Value="30"/>
+            <EnumVal Name="ETPS_MPLS_2" Value="27"/>
+            <EnumVal Name="ETPS_MPLS_2_1_AH" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___203"/>
+            <EnumVal Name="ETPS_MPLS_2_2_AH" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___204"/>
+            <EnumVal Name="ETPS_MPLS_2_3_AH" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___205"/>
+            <EnumVal Name="ETPS_MPLS_2_STAT" Value="26"/>
+            <EnumVal Name="ETPS_MPLS_2_TANDEM" Value="18"/>
+            <EnumVal Name="ETPS_MPLS_FHEI" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___206"/>
+            <EnumVal Name="ETPS_MPLS_PHP" Value="62"/>
+            <EnumVal Name="ETPS_MPLS_PHP_STAT" Value="15"/>
+            <EnumVal Name="ETPS_NULL" Value="0"/>
+            <EnumVal Name="ETPS_PPPOE" Value="21"/>
+            <EnumVal Name="ETPS_RCH" Value="39"/>
+            <EnumVal Name="ETPS_REFLECTOR" Value="51"/>
+            <EnumVal Name="ETPS_REFLECTOR_L2_MC" Value="52"/>
+            <EnumVal Name="ETPS_REFLECTOR_OAM" Value="53"/>
+            <EnumVal Name="ETPS_REFLECTOR_TWAMP" Value="54"/>
+            <EnumVal Name="ETPS_RSPAN" Value="43"/>
+            <EnumVal Name="ETPS_SFLOW_EXT_FIRST" Value="59"/>
+            <EnumVal Name="ETPS_SFLOW_EXT_SECOND" Value="60"/>
+            <EnumVal Name="ETPS_SFLOW_HDR_DP" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___207"/>
+            <EnumVal Name="ETPS_SFLOW_HDR_SAMP" Value="58"/>
+            <EnumVal Name="ETPS_SRV6" Value="34"/>
+            <EnumVal Name="ETPS_SVTAG" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___208"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="IRPP_FEC_ENTRY_FORMAT" Print="ENUM" Size="6">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="FEC_ENTRY_DESTINATION" Name="FEC_ENTRY_DESTINATION"/>
+            <EnumVal Description="FEC_ENTRY_DESTINATION_LIF0" Name="FEC_ENTRY_DESTINATION_LIF0"/>
+            <EnumVal Description="FEC_ENTRY_DESTINATION_LIF0_17BIT_LIF1" Name="FEC_ENTRY_DESTINATION_LIF0_17BIT_LIF1"/>
+            <EnumVal Description="FEC_ENTRY_DESTINATION_LIF0_HTM" Name="FEC_ENTRY_DESTINATION_LIF0_HTM"/>
+            <EnumVal Description="FEC_ENTRY_DESTINATION_LIF0_LIF1_MC_RPF" Name="FEC_ENTRY_DESTINATION_LIF0_LIF1_MC_RPF"/>
+            <EnumVal Description="FEC_ENTRY_DESTINATION_LIF0_MC_RPF" Name="FEC_ENTRY_DESTINATION_LIF0_MC_RPF"/>
+            <EnumVal Description="FEC_ENTRY_DESTINATION_MPLS_POP" Name="FEC_ENTRY_DESTINATION_MPLS_POP"/>
+            <EnumVal Description="FEC_ENTRY_DESTINATION_MPLS_SWAP" Name="FEC_ENTRY_DESTINATION_MPLS_SWAP"/>
+            <EnumVal Description="FEC_ENTRY_JR1_DESTINATION_EEI" Name="FEC_ENTRY_JR1_DESTINATION_EEI"/>
+            <EnumVal Description="FEC_ENTRY_JR1_DESTINATION_ETH_RIF_ARP" Name="FEC_ENTRY_JR1_DESTINATION_ETH_RIF_ARP"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="FEC_ENTRY_DESTINATION" Value="0"/>
+            <EnumVal Name="FEC_ENTRY_DESTINATION_LIF0" Value="21"/>
+            <EnumVal Name="FEC_ENTRY_DESTINATION_LIF0_17BIT_LIF1" Value="11"/>
+            <EnumVal Name="FEC_ENTRY_DESTINATION_LIF0_HTM" Value="39"/>
+            <EnumVal Name="FEC_ENTRY_DESTINATION_LIF0_LIF1_MC_RPF" Value="4"/>
+            <EnumVal Name="FEC_ENTRY_DESTINATION_LIF0_MC_RPF" Value="3"/>
+            <EnumVal Name="FEC_ENTRY_DESTINATION_MPLS_POP" Value="1"/>
+            <EnumVal Name="FEC_ENTRY_DESTINATION_MPLS_SWAP" Value="2"/>
+            <EnumVal Name="FEC_ENTRY_JR1_DESTINATION_EEI" Value="3"/>
+            <EnumVal Name="FEC_ENTRY_JR1_DESTINATION_ETH_RIF_ARP" Value="20"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="IRPP_FEC_SUPER_ENTRY_FORMAT" Print="ENUM" Size="6">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="SUPER_FEC_NO_PROTECTION" Name="SUPER_FEC_NO_PROTECTION"/>
+            <EnumVal Description="SUPER_FEC_NO_PROTECTION_W_2_STAT" Name="SUPER_FEC_NO_PROTECTION_W_2_STAT"/>
+            <EnumVal Description="SUPER_FEC_W_PROTECTION" Name="SUPER_FEC_W_PROTECTION"/>
+            <EnumVal Description="SUPER_FEC_W_PROTECTION_W_1_STAT" Name="SUPER_FEC_W_PROTECTION_W_1_STAT"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="SUPER_FEC_NO_PROTECTION" Value="0"/>
+            <EnumVal Name="SUPER_FEC_NO_PROTECTION_W_2_STAT" Value="1"/>
+            <EnumVal Name="SUPER_FEC_W_PROTECTION" Value="2"/>
+            <EnumVal Name="SUPER_FEC_W_PROTECTION_W_1_STAT" Value="3"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="IRPP_FWD_STAGE_FLOATING_FORMATS" Print="ENUM" Size="6">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="COMPRESSED_SOURCE" Name="COMPRESSED_SOURCE"/>
+            <EnumVal Description="COMPRESSED_SOURCE_AND_INTERFACE" Name="COMPRESSED_SOURCE_AND_INTERFACE"/>
+            <EnumVal Description="LEARN_DESTINATION" Name="LEARN_DESTINATION"/>
+            <EnumVal Description="TCAM_RESULT_VRF" Name="TCAM_RESULT_VRF"/>
+            <EnumVal Description="NONE" Name="NONE"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="COMPRESSED_SOURCE" Value="1"/>
+            <EnumVal Name="COMPRESSED_SOURCE_AND_INTERFACE" Value="2"/>
+            <EnumVal Name="LEARN_DESTINATION" Value="3"/>
+            <EnumVal Name="TCAM_RESULT_VRF" Value="4"/>
+            <EnumVal Name="NONE" Value="0"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="IRPP_FWD_STAGE_FORMATS" Print="ENUM" Size="6">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="FWD_DEST" Name="FWD_DEST"/>
+            <EnumVal Description="FWD_DEST_DOUBLE_OUTLIF" Name="FWD_DEST_DOUBLE_OUTLIF"/>
+            <EnumVal Description="FWD_DEST_DOUBLE_OUTLIF_STAT" Name="FWD_DEST_DOUBLE_OUTLIF_STAT"/>
+            <EnumVal Description="FWD_DEST_EEI" Name="FWD_DEST_EEI"/>
+            <EnumVal Description="FWD_DEST_EEI_STAT" Name="FWD_DEST_EEI_STAT"/>
+            <EnumVal Description="FWD_DEST_OUTLIF" Name="FWD_DEST_OUTLIF"/>
+            <EnumVal Description="FWD_DEST_OUTLIF_STAT" Name="FWD_DEST_OUTLIF_STAT"/>
+            <EnumVal Description="FWD_DEST_STAT" Name="FWD_DEST_STAT"/>
+            <EnumVal Description="FWD_DEST_W_DEFAULT" Name="FWD_DEST_W_DEFAULT"/>
+            <EnumVal Description="FWD_MACT_RESULT_DEST_LIF_STAT" Name="FWD_MACT_RESULT_DEST_LIF_STAT"/>
+            <EnumVal Description="FWD_MACT_RESULT_DEST_STAT" Name="FWD_MACT_RESULT_DEST_STAT"/>
+            <EnumVal Description="FWD_MACT_RESULT_DOUBLE_OUTLIF" Name="FWD_MACT_RESULT_DOUBLE_OUTLIF"/>
+            <EnumVal Description="FWD_MACT_RESULT_EEI_FEC" Name="FWD_MACT_RESULT_EEI_FEC"/>
+            <EnumVal Description="FWD_MACT_RESULT_NO_OUTLIF" Name="FWD_MACT_RESULT_NO_OUTLIF"/>
+            <EnumVal Description="FWD_MACT_RESULT_SINGLE_OUTLIF" Name="FWD_MACT_RESULT_SINGLE_OUTLIF"/>
+            <EnumVal Description="FWD_NO_ACTION" Name="FWD_NO_ACTION"/>
+            <EnumVal Description="KAPS_FEC" Name="KAPS_FEC"/>
+            <EnumVal Description="KAPS_FEC_2" Name="KAPS_FEC_2"/>
+            <EnumVal Description="KAPS_FEC_3" Name="KAPS_FEC_3"/>
+            <EnumVal Description="KAPS_FEC_4" Name="KAPS_FEC_4"/>
+            <EnumVal Description="KAPS_FEC_5" Name="KAPS_FEC_5"/>
+            <EnumVal Description="KAPS_FEC_6" Name="KAPS_FEC_6"/>
+            <EnumVal Description="KAPS_FEC_Default" Name="KAPS_FEC_DEFAULT"/>
+            <EnumVal Description="KAPS_MC_ID" Name="KAPS_MC_ID"/>
+            <EnumVal Description="KBP_DEST_W_DEFAULT" Name="KBP_DEST_W_DEFAULT"/>
+            <EnumVal Description="KBP_FORWARD_DEST_EEI_W_DEFAULT" Name="KBP_FORWARD_DEST_EEI_W_DEFAULT"/>
+            <EnumVal Description="KBP_FORWARD_DEST_STAT_W_DEFAULT" Name="KBP_FORWARD_DEST_STAT_W_DEFAULT"/>
+            <EnumVal Description="KBP_FORWARD_OUTLIF_W_DEFAULT" Name="KBP_FORWARD_OUTLIF_W_DEFAULT"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="FWD_DEST" Value="10"/>
+            <EnumVal Name="FWD_DEST_DOUBLE_OUTLIF" Value="7"/>
+            <EnumVal Name="FWD_DEST_DOUBLE_OUTLIF_STAT" Value="8"/>
+            <EnumVal Name="FWD_DEST_EEI" Value="3"/>
+            <EnumVal Name="FWD_DEST_EEI_STAT" Value="4"/>
+            <EnumVal Name="FWD_DEST_OUTLIF" Value="5"/>
+            <EnumVal Name="FWD_DEST_OUTLIF_STAT" Value="6"/>
+            <EnumVal Name="FWD_DEST_STAT" Value="2"/>
+            <EnumVal Name="FWD_DEST_W_DEFAULT" Value="1"/>
+            <EnumVal Name="FWD_MACT_RESULT_DEST_LIF_STAT" Value="50"/>
+            <EnumVal Name="FWD_MACT_RESULT_DEST_STAT" Value="49"/>
+            <EnumVal Name="FWD_MACT_RESULT_DOUBLE_OUTLIF" Value="12"/>
+            <EnumVal Name="FWD_MACT_RESULT_EEI_FEC" Value="40"/>
+            <EnumVal Name="FWD_MACT_RESULT_NO_OUTLIF" Value="16"/>
+            <EnumVal Name="FWD_MACT_RESULT_SINGLE_OUTLIF" Value="48"/>
+            <EnumVal Name="FWD_NO_ACTION" Value="55"/>
+            <EnumVal Name="KAPS_FEC" Value="0"/>
+            <EnumVal Name="KAPS_FEC_2" Value="1"/>
+            <EnumVal Name="KAPS_FEC_3" Value="2"/>
+            <EnumVal Name="KAPS_FEC_4" Value="3"/>
+            <EnumVal Name="KAPS_FEC_5" Value="4"/>
+            <EnumVal Name="KAPS_FEC_6" Value="5"/>
+            <EnumVal Name="KAPS_FEC_DEFAULT" Value="6"/>
+            <EnumVal Name="KAPS_MC_ID" Value="7"/>
+            <EnumVal Name="KBP_DEST_W_DEFAULT" Value="0"/>
+            <EnumVal Name="KBP_FORWARD_DEST_EEI_W_DEFAULT" Value="17"/>
+            <EnumVal Name="KBP_FORWARD_DEST_STAT_W_DEFAULT" Value="19"/>
+            <EnumVal Name="KBP_FORWARD_OUTLIF_W_DEFAULT" Value="20"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="IRPP_IN_LIF_FORMATS" Print="ENUM" Size="6">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="IN_ETH_AC_MP" Name="IN_ETH_AC_MP"/>
+            <EnumVal Description="IN_ETH_AC_VSI_P2P" Name="IN_ETH_AC_VSI_P2P"/>
+            <EnumVal Description="IN_ETH_VLAN_EDIT_ONLY" Name="IN_ETH_VLAN_EDIT_ONLY"/>
+            <EnumVal Description="IN_ETH_VLAN_EDIT_VSI_MP" Name="IN_ETH_VLAN_EDIT_VSI_MP"/>
+            <EnumVal Description="IN_LIF_AC2EEI" Name="IN_LIF_AC2EEI"/>
+            <EnumVal Description="IN_LIF_AC_MP" Name="IN_LIF_AC_MP"/>
+            <EnumVal Description="IN_LIF_AC_MP_LARGE" Name="IN_LIF_AC_MP_LARGE"/>
+            <EnumVal Description="IN_LIF_AC_MP_LARGE_GENERIC_DATA" Name="IN_LIF_AC_MP_LARGE_GENERIC_DATA"/>
+            <EnumVal Description="IN_LIF_AC_P2P" Name="IN_LIF_AC_P2P"/>
+            <EnumVal Description="IN_LIF_AC_P2P_LARGE" Name="IN_LIF_AC_P2P_LARGE"/>
+            <EnumVal Description="IN_LIF_AC_P2P_LARGE_GENERIC_DATA" Name="IN_LIF_AC_P2P_LARGE_GENERIC_DATA"/>
+            <EnumVal Description="IN_LIF_AC_P2P_W_1_VLAN" Name="IN_LIF_AC_P2P_W_1_VLAN"/>
+            <EnumVal Description="IN_LIF_AC_P2P_W_VSI_WO_PROTECTION" Name="IN_LIF_AC_P2P_W_VSI_WO_PROTECTION"/>
+            <EnumVal Description="IN_LIF_AC_P2P_W_VSI_W_1_VLAN" Name="IN_LIF_AC_P2P_W_VSI_W_1_VLAN"/>
+            <EnumVal Description="IN_LIF_BIER_MPLS" Name="IN_LIF_BIER_MPLS"/>
+            <EnumVal Description="IN_LIF_BIER_TI" Name="IN_LIF_BIER_TI"/>
+            <EnumVal Description="IN_LIF_DROPPED_COPY" Name="IN_LIF_DROPPED_COPY"/>
+            <EnumVal Description="IN_LIF_DUMMY" Name="IN_LIF_DUMMY"/>
+            <EnumVal Description="IN_LIF_EVPN_EVI_MP" Name="IN_LIF_EVPN_EVI_MP"/>
+            <EnumVal Description="IN_LIF_EVPN_EVI_P2P_NO_LEARNING" Name="IN_LIF_EVPN_EVI_P2P_NO_LEARNING"/>
+            <EnumVal Description="IN_LIF_IPvX_1" Name="IN_LIF_IPVX_1"/>
+            <EnumVal Description="IN_LIF_IPvX_2" Name="IN_LIF_IPVX_2"/>
+            <EnumVal Description="IN_LIF_IPvX_3" Name="IN_LIF_IPVX_3"/>
+            <EnumVal Description="IN_LIF_ISID_MP" Name="IN_LIF_ISID_MP"/>
+            <EnumVal Description="IN_LIF_ISID_P2P" Name="IN_LIF_ISID_P2P"/>
+            <EnumVal Description="IN_LIF_LSP" Name="IN_LIF_LSP"/>
+            <EnumVal Description="IN_LIF_MIM_TUNNEL" Name="IN_LIF_MIM_TUNNEL"/>
+            <EnumVal Description="IN_LIF_MPLS_DUMMY" Name="IN_LIF_MPLS_DUMMY"/>
+            <EnumVal Description="IN_LIF_PSEUDO_FOR_VALIDATION" Name="IN_LIF_PSEUDO_FOR_VALIDATION"/>
+            <EnumVal Description="IN_LIF_PWE2EEI_NO_LEARNING" Name="IN_LIF_PWE2EEI_NO_LEARNING"/>
+            <EnumVal Description="IN_LIF_PWE_MP" Name="IN_LIF_PWE_MP"/>
+            <EnumVal Description="IN_LIF_PWE_P2P_NO_LEARNING" Name="IN_LIF_PWE_P2P_NO_LEARNING"/>
+            <EnumVal Description="IN_LIF_RCH_CONTROL_LIF" Name="IN_LIF_RCH_CONTROL_LIF"/>
+            <EnumVal Description="IN_LIF_SRv6_TERMINATED" Name="IN_LIF_SRV6_TERMINATED"/>
+            <EnumVal Description="IN_LIF_Tunnel_W_L3_Payload_LARGE_W_GENERIC_DATA" Name="IN_LIF_TUNNEL_W_L3_PAYLOAD_LARGE_W_GENERIC_DATA"/>
+            <EnumVal Description="IN_LIF_Tunnel_W_L3_Payload_MP_Forward_W_GENERIC_DATA" Name="IN_LIF_TUNNEL_W_L3_PAYLOAD_MP_FORWARD_W_GENERIC_DATA"/>
+            <EnumVal Description="IN_LIF_Tunnel_W_L3_Payload_P2P_Forward_TO_FEC_W_GENERIC_DATA" Name="IN_LIF_TUNNEL_W_L3_PAYLOAD_P2P_FORWARD_TO_FEC_W_GENERIC_DATA"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="IN_ETH_AC_MP" Value="50"/>
+            <EnumVal Name="IN_ETH_AC_VSI_P2P" Value="41"/>
+            <EnumVal Name="IN_ETH_VLAN_EDIT_ONLY" Value="40"/>
+            <EnumVal Name="IN_ETH_VLAN_EDIT_VSI_MP" Value="39"/>
+            <EnumVal Name="IN_LIF_AC2EEI" Value="2"/>
+            <EnumVal Name="IN_LIF_AC_MP" Value="1"/>
+            <EnumVal Name="IN_LIF_AC_MP_LARGE" Value="60"/>
+            <EnumVal Name="IN_LIF_AC_MP_LARGE_GENERIC_DATA" Value="4"/>
+            <EnumVal Name="IN_LIF_AC_P2P" Value="0"/>
+            <EnumVal Name="IN_LIF_AC_P2P_LARGE" Value="61"/>
+            <EnumVal Name="IN_LIF_AC_P2P_LARGE_GENERIC_DATA" Value="5"/>
+            <EnumVal Name="IN_LIF_AC_P2P_W_1_VLAN" Value="1"/>
+            <EnumVal Name="IN_LIF_AC_P2P_W_VSI_WO_PROTECTION" Value="58"/>
+            <EnumVal Name="IN_LIF_AC_P2P_W_VSI_W_1_VLAN" Value="57"/>
+            <EnumVal Name="IN_LIF_BIER_MPLS" Value="35"/>
+            <EnumVal Name="IN_LIF_BIER_TI" Value="43"/>
+            <EnumVal Name="IN_LIF_DROPPED_COPY" Value="34"/>
+            <EnumVal Name="IN_LIF_DUMMY" Value="44"/>
+            <EnumVal Name="IN_LIF_EVPN_EVI_MP" Value="51"/>
+            <EnumVal Name="IN_LIF_EVPN_EVI_P2P_NO_LEARNING" Value="52"/>
+            <EnumVal Name="IN_LIF_IPVX_1" Value="47"/>
+            <EnumVal Name="IN_LIF_IPVX_2" Value="48"/>
+            <EnumVal Name="IN_LIF_IPVX_3" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___209"/>
+            <EnumVal Name="IN_LIF_ISID_MP" Value="54"/>
+            <EnumVal Name="IN_LIF_ISID_P2P" Value="55"/>
+            <EnumVal Name="IN_LIF_LSP" Value="33"/>
+            <EnumVal Name="IN_LIF_MIM_TUNNEL" Value="53"/>
+            <EnumVal Name="IN_LIF_MPLS_DUMMY" Value="42"/>
+            <EnumVal Name="IN_LIF_PSEUDO_FOR_VALIDATION" Value="38"/>
+            <EnumVal Name="IN_LIF_PWE2EEI_NO_LEARNING" Value="3"/>
+            <EnumVal Name="IN_LIF_PWE_MP" Value="36"/>
+            <EnumVal Name="IN_LIF_PWE_P2P_NO_LEARNING" Value="37"/>
+            <EnumVal Name="IN_LIF_RCH_CONTROL_LIF" Value="15"/>
+            <EnumVal Name="IN_LIF_SRV6_TERMINATED" Value="32"/>
+            <EnumVal Name="IN_LIF_TUNNEL_W_L3_PAYLOAD_LARGE_W_GENERIC_DATA" Value="45"/>
+            <EnumVal Name="IN_LIF_TUNNEL_W_L3_PAYLOAD_MP_FORWARD_W_GENERIC_DATA" Value="59"/>
+            <EnumVal Name="IN_LIF_TUNNEL_W_L3_PAYLOAD_P2P_FORWARD_TO_FEC_W_GENERIC_DATA" Value="56"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="IRPP_ISEM_ACCESS_FORMATS" Print="ENUM" Size="6">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="COMPRESSED_MAC_ID" Name="COMPRESSED_MAC_ID"/>
+            <EnumVal Description="FORWARD_DOMAIN" Name="FORWARD_DOMAIN"/>
+            <EnumVal Description="INLIF_INDEX" Name="INLIF_INDEX"/>
+            <EnumVal Description="IPV6_ADDRESS_MSBS_ID" Name="IPV6_ADDRESS_MSBS_ID"/>
+            <EnumVal Description="IPv6_MP_Tunnel_IDX" Name="IPV6_MP_TUNNEL_IDX"/>
+            <EnumVal Description="NONE" Name="NONE"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="COMPRESSED_MAC_ID" Value="1"/>
+            <EnumVal Name="FORWARD_DOMAIN" Value="2"/>
+            <EnumVal Name="INLIF_INDEX" Value="3"/>
+            <EnumVal Name="IPV6_ADDRESS_MSBS_ID" Value="4"/>
+            <EnumVal Name="IPV6_MP_TUNNEL_IDX" Value="5"/>
+            <EnumVal Name="NONE" Value="0"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="IRPP_MY_MAC_EXEM_FORMATS" Print="ENUM" Size="6">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="MY_MAC_EXEM_RESULT" Name="MY_MAC_EXEM_RESULT"/>
+            <EnumVal Description="NONE" Name="NONE"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="MY_MAC_EXEM_RESULT" Value="1"/>
+            <EnumVal Name="NONE" Value="0"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="IRPP_VSI_FORMATS" Print="ENUM" Size="6">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="VSI_ENTRY_BASIC" Name="VSI_ENTRY_BASIC"/>
+            <EnumVal Description="VSI_ENTRY_BASIC_NON_MC_DESTINATION" Name="VSI_ENTRY_BASIC_NON_MC_DESTINATION"/>
+            <EnumVal Description="VSI_ENTRY_WITH_STATS" Name="VSI_ENTRY_WITH_STATS"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="VSI_ENTRY_BASIC" Value="2"/>
+            <EnumVal Name="VSI_ENTRY_BASIC_NON_MC_DESTINATION" Value="0"/>
+            <EnumVal Name="VSI_ENTRY_WITH_STATS" Value="3"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="IRPP_VTT_TCAM_ACCESS_FORMATS" Print="ENUM" Size="6">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="FOUND" Name="FOUND"/>
+            <EnumVal Description="NONE" Name="NONE"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="FOUND" Value="1"/>
+            <EnumVal Name="NONE" Value="0"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="OAMP_FORMATS" Print="ENUM" Size="6">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="MEP_DB_BFD_ON_IPV4_MULTI_HOP_SHORT_STATIC" Name="MEP_DB_BFD_ON_IPV4_MULTI_HOP_SHORT_STATIC"/>
+            <EnumVal Description="MEP_DB_BFD_ON_IPV4_ONE_HOP_SHORT_STATIC" Name="MEP_DB_BFD_ON_IPV4_ONE_HOP_SHORT_STATIC"/>
+            <EnumVal Description="MEP_DB_BFD_ON_MPLS_SHORT_STATIC" Name="MEP_DB_BFD_ON_MPLS_SHORT_STATIC"/>
+            <EnumVal Description="MEP_DB_BFD_ON_PWE_SHORT_STATIC" Name="MEP_DB_BFD_ON_PWE_SHORT_STATIC"/>
+            <EnumVal Description="MEP_DB_BFD_ON_PWE_STATIC_PART_1" Name="MEP_DB_BFD_ON_PWE_STATIC_PART_1"/>
+            <EnumVal Description="MEP_DB_BFD_ON_PWE_STATIC_PART_2" Name="MEP_DB_BFD_ON_PWE_STATIC_PART_2"/>
+            <EnumVal Description="MEP_DB_CCM_ETH_SHORT_STATIC" Name="MEP_DB_CCM_ETH_SHORT_STATIC"/>
+            <EnumVal Description="MEP_DB_CCM_ETH_STATIC_PART_1_DOWNMEP" Name="MEP_DB_CCM_ETH_STATIC_PART_1_DOWNMEP"/>
+            <EnumVal Description="MEP_DB_CCM_ETH_STATIC_PART_1_UPMEP" Name="MEP_DB_CCM_ETH_STATIC_PART_1_UPMEP"/>
+            <EnumVal Description="MEP_DB_CCM_ETH_STATIC_PART_2" Name="MEP_DB_CCM_ETH_STATIC_PART_2"/>
+            <EnumVal Description="MEP_DB_EXTRA_DATA_IN_MDB_HEADER" Name="MEP_DB_EXTRA_DATA_IN_MDB_HEADER"/>
+            <EnumVal Description="MEP_DB_EXTRA_DATA_IN_MDB_PAYLOAD" Name="MEP_DB_EXTRA_DATA_IN_MDB_PAYLOAD"/>
+            <EnumVal Description="MEP_DB_Y1731_ON_MPLS_TP_SHORT_STATIC" Name="MEP_DB_Y1731_ON_MPLS_TP_SHORT_STATIC"/>
+            <EnumVal Description="MEP_DB_Y1731_ON_MPLS_TP_STATIC_PART_1" Name="MEP_DB_Y1731_ON_MPLS_TP_STATIC_PART_1"/>
+            <EnumVal Description="MEP_DB_Y1731_ON_MPLS_TP_STATIC_PART_2" Name="MEP_DB_Y1731_ON_MPLS_TP_STATIC_PART_2"/>
+            <EnumVal Description="MEP_DB_Y1731_ON_PWE_SHORT_STATIC" Name="MEP_DB_Y1731_ON_PWE_SHORT_STATIC"/>
+            <EnumVal Description="MEP_DB_Y1731_ON_PWE_STATIC_PART_1" Name="MEP_DB_Y1731_ON_PWE_STATIC_PART_1"/>
+            <EnumVal Description="MEP_DB_Y1731_ON_PWE_STATIC_PART_2" Name="MEP_DB_Y1731_ON_PWE_STATIC_PART_2"/>
+            <EnumVal Description="OAMP_LM_SESSION_ID" Name="OAMP_LM_SESSION_ID"/>
+            <EnumVal Description="OAMP_RMEP_INDEX" Name="OAMP_RMEP_INDEX"/>
+            <EnumVal Description="OAMP_RMEP_STATIC_DATA" Name="OAMP_RMEP_STATIC_DATA"/>
+            <EnumVal Description="NONE" Name="NONE"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="MEP_DB_BFD_ON_IPV4_MULTI_HOP_SHORT_STATIC" Value="1"/>
+            <EnumVal Name="MEP_DB_BFD_ON_IPV4_ONE_HOP_SHORT_STATIC" Value="2"/>
+            <EnumVal Name="MEP_DB_BFD_ON_MPLS_SHORT_STATIC" Value="3"/>
+            <EnumVal Name="MEP_DB_BFD_ON_PWE_SHORT_STATIC" Value="4"/>
+            <EnumVal Name="MEP_DB_BFD_ON_PWE_STATIC_PART_1" Value="5"/>
+            <EnumVal Name="MEP_DB_BFD_ON_PWE_STATIC_PART_2" Value="6"/>
+            <EnumVal Name="MEP_DB_CCM_ETH_SHORT_STATIC" Value="7"/>
+            <EnumVal Name="MEP_DB_CCM_ETH_STATIC_PART_1_DOWNMEP" Value="8"/>
+            <EnumVal Name="MEP_DB_CCM_ETH_STATIC_PART_1_UPMEP" Value="9"/>
+            <EnumVal Name="MEP_DB_CCM_ETH_STATIC_PART_2" Value="10"/>
+            <EnumVal Name="MEP_DB_EXTRA_DATA_IN_MDB_HEADER" Value="11"/>
+            <EnumVal Name="MEP_DB_EXTRA_DATA_IN_MDB_PAYLOAD" Value="12"/>
+            <EnumVal Name="MEP_DB_Y1731_ON_MPLS_TP_SHORT_STATIC" Value="13"/>
+            <EnumVal Name="MEP_DB_Y1731_ON_MPLS_TP_STATIC_PART_1" Value="14"/>
+            <EnumVal Name="MEP_DB_Y1731_ON_MPLS_TP_STATIC_PART_2" Value="15"/>
+            <EnumVal Name="MEP_DB_Y1731_ON_PWE_SHORT_STATIC" Value="16"/>
+            <EnumVal Name="MEP_DB_Y1731_ON_PWE_STATIC_PART_1" Value="17"/>
+            <EnumVal Name="MEP_DB_Y1731_ON_PWE_STATIC_PART_2" Value="18"/>
+            <EnumVal Name="OAMP_LM_SESSION_ID" Value="19"/>
+            <EnumVal Name="OAMP_RMEP_INDEX" Value="20"/>
+            <EnumVal Name="OAMP_RMEP_STATIC_DATA" Value="21"/>
+            <EnumVal Name="NONE" Value="0"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="OAM_CLASSIFIER_FORMATS" Print="ENUM" Size="6">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="OAM_ACC_MEP_DB" Name="OAM_ACC_MEP_DB"/>
+            <EnumVal Description="OAM_LIF_DB" Name="OAM_LIF_DB"/>
+            <EnumVal Description="NONE" Name="NONE"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="OAM_ACC_MEP_DB" Value="1"/>
+            <EnumVal Name="OAM_LIF_DB" Value="2"/>
+            <EnumVal Name="NONE" Value="0"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="PRT_VP_FORMATS" Print="ENUM" Size="6">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="IN_PP_PORT_INDEX_Result_type" Name="IN_PP_PORT_INDEX_RESULT_TYPE"/>
+            <EnumVal Description="NONE" Name="NONE"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="IN_PP_PORT_INDEX_RESULT_TYPE" Value="1"/>
+            <EnumVal Name="NONE" Value="0"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="TCAM_IDENTIFICATION_FORMATS" Print="ENUM" Size="6">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="OAM_IDENTIFICATION" Name="OAM_IDENTIFICATION"/>
+            <EnumVal Description="NONE" Name="NONE"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="OAM_IDENTIFICATION" Value="1"/>
+            <EnumVal Name="NONE" Value="0"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="EEDB_TYPE_EM_BUSTER" Print="ENUM" Size="DNX_DATA.pp.ETPP.etps_type_size_bits">
+    <OneLineDescription>list of ETPS formats with EM_BUSTER flag</OneLineDescription>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="NONE" Name="NONE"/>
+            <EnumVal Description="ETPS_AC" Name="ETPS_AC"/>
+            <EnumVal Description="ETPS_AC_QOS_OAM" Name="ETPS_AC_QOS_OAM"/>
+            <EnumVal Description="ETPS_AC_STAT" Name="ETPS_AC_STAT"/>
+            <EnumVal Description="ETPS_AC_STAT_PROTECTION" Name="ETPS_AC_STAT_PROTECTION"/>
+            <EnumVal Description="ETPS_AC_TRIPLE_TAG" Name="ETPS_AC_TRIPLE_TAG"/>
+            <EnumVal Description="ETPS_ARP_AC" Name="ETPS_ARP_AC"/>
+            <EnumVal Description="ETPS_ARP_AC_1TAG_STAT" Name="ETPS_ARP_AC_1TAG_STAT"/>
+            <EnumVal Description="ETPS_L2_FODO_VLANS" Name="ETPS_L2_FODO_VLANS"/>
+            <EnumVal Description="ETPS_RSPAN" Name="ETPS_RSPAN"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="NONE" Value="0"/>
+            <EnumVal Name="ETPS_AC" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___210"/>
+            <EnumVal Name="ETPS_AC_QOS_OAM" Value="10"/>
+            <EnumVal Name="ETPS_AC_STAT" Value="9"/>
+            <EnumVal Name="ETPS_AC_STAT_PROTECTION" Value="8"/>
+            <EnumVal Name="ETPS_AC_TRIPLE_TAG" Value="12"/>
+            <EnumVal Name="ETPS_ARP_AC" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___211"/>
+            <EnumVal Name="ETPS_ARP_AC_1TAG_STAT" Value="6"/>
+            <EnumVal Name="ETPS_L2_FODO_VLANS" Value="45"/>
+            <EnumVal Name="ETPS_RSPAN" Value="43"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="EEDB_TYPE_VSD_ENABLE" Print="ENUM" Size="DNX_DATA.pp.ETPP.etps_type_size_bits">
+    <OneLineDescription>list of ETPS formats with VSD Enable flag</OneLineDescription>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="NONE" Name="NONE"/>
+            <EnumVal Description="ETPS_ARP_AC" Name="ETPS_ARP_AC"/>
+            <EnumVal Description="ETPS_ARP_AC_1TAG_STAT" Name="ETPS_ARP_AC_1TAG_STAT"/>
+            <EnumVal Description="ETPS_ARP_PLUS_AC_1TAG" Name="ETPS_ARP_PLUS_AC_1TAG"/>
+            <EnumVal Description="ETPS_ARP_SA_Custom" Name="ETPS_ARP_SA_CUSTOM"/>
+            <EnumVal Description="ETPS_ARP_SA_tunneling" Name="ETPS_ARP_SA_TUNNELING"/>
+            <EnumVal Description="ETPS_ETH_RIF" Name="ETPS_ETH_RIF"/>
+            <EnumVal Description="ETPS_ETH_RIF_STAT" Name="ETPS_ETH_RIF_STAT"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="NONE" Value="0"/>
+            <EnumVal Name="ETPS_ARP_AC" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___211"/>
+            <EnumVal Name="ETPS_ARP_AC_1TAG_STAT" Value="6"/>
+            <EnumVal Name="ETPS_ARP_PLUS_AC_1TAG" Value="33"/>
+            <EnumVal Name="ETPS_ARP_SA_CUSTOM" Value="5"/>
+            <EnumVal Name="ETPS_ARP_SA_TUNNELING" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___212"/>
+            <EnumVal Name="ETPS_ETH_RIF" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___213"/>
+            <EnumVal Name="ETPS_ETH_RIF_STAT" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___214"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+
+<FieldType Name="EEDB_TYPE_SVTAG_ENABLE" Print="ENUM" Size="DNX_DATA.pp.ETPP.etps_type_size_bits">
+    <OneLineDescription>list of ETPS formats with SVTAGS Enable flag</OneLineDescription>
+    <FieldDbInterface>
+        <EnumValues>
+            <EnumVal Description="NONE" Name="NONE"/>
+            <EnumVal Description="ETPS_J2P_test_result" Name="ETPS_J2P_TEST_RESULT"/>
+            <EnumVal Description="ETPS_SVTAG" Name="ETPS_SVTAG"/>
+        </EnumValues>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <EnumValueMapping>
+            <EnumVal Name="NONE" Value="0"/>
+            <EnumVal Name="ETPS_J2P_TEST_RESULT" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___215"/>
+            <EnumVal Name="ETPS_SVTAG" Value="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___216"/>
+        </EnumValueMapping>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+</FieldTypesDbCatalog>

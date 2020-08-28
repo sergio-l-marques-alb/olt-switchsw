@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="synce" bsl_flag="BSL_LS_BCMDNX_SYNCEDNX">
+    <includes>
+        <include>bcm/port.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_nif.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_fabric.h</include>
+    </includes>
+    <sub_module name="general" doc="Synchronous Ethernet general attributes shared by Nif and Fabric SyncE.">
+        <defines>
+            <define labels="j2p_notrev" name="nof_plls" doc="Number of synce plls in the device."></define>
+            <define labels="j2p_notrev" name="nif_div_min" doc="Min value for the nif synce output clk."></define>
+            <define labels="j2p_notrev" name="nif_div_max" doc="Max value for the nif synce output clk."></define>
+            <define labels="j2p_notrev" name="fabric_div_min" doc="Min value for the fabric synce output clk."></define>
+            <define labels="j2p_notrev" name="fabric_div_max" doc="Max value for the fabric synce output clk."></define>
+            <define labels="j2p_notrev" name="nof_clk_blocks" doc="Max value for the nif synce clock blocks."></define>
+            <define labels="j2p_notrev" name="nof_fabric_clk_blocks" doc="Max value for the fabric synce clock blocks."></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="output_clk_mode" doc="SyncE output clock mode."></numeric>
+        </numerics>
+
+        <features>
+        </features>
+
+        <tables>
+            <table labels="j2p_notrev" name="cfg" doc="SyncE common configuration.">
+                <key name="synce_index" doc="Master or Slave SyncE."></key>
+                <value name="source_clock_port" type="bcm_port_t" doc="Select the SyncE source port for SyncE PLL."></value>
+                <value name="squelch_enable" type="uint32" doc="Enable or Disable the SyncE auto-squelch."></value>
+                <value name="output_clock_sel" type="uint32" doc="SyncE output clock select."></value>
+            </table>
+            <table labels="j2p_notrev" name="nmg_chain_map" doc="ethu_id mapped to NMG chain related to SYNCE">
+                <key name="ethu_index" doc="ethu instance number."></key>
+                <value name="chain_id" type="uint32" doc="NMG chain id"></value>
+            </table>
+        </tables>
+
+        <features>
+            <feature labels="j2p_notrev" name="synce_no_sdm_mode" doc="Indicates SYNCE is NOT in SDM mode."></feature>
+            <feature labels="j2p_notrev" name="synce_nmg_chain_select" doc="NMG_SYNC_CHAIN_SEL is needed or not to be configured to select NMG chain 0 or 1"></feature>
+        </features>
+    </sub_module>
+</device_data>

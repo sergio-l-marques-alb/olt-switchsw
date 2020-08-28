@@ -1,0 +1,450 @@
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Examples Results</title>
+        <style>
+              body {font-family: Arial;}
+              h1 {font-size: 18pt; font-weight: bold;}
+              h2 {font-size: 16pt; font-weight: bold;}
+              h3 {font-size: 14pt; font-weight: bold;}
+              h4 {font-size: 12pt; font-weight: bold;}
+              h5 {font-size: 11pt; font-weight: bold;}
+              p {font-size: 10pt;}
+              th {font-size: 9pt; font-weight: bold;}
+              td {font-size: 9pt;}
+        </style>
+    </head>
+    <body>
+        </p><a name="tocLink">
+            <h1><font color="CC092F">Table of Contents</font></h1></a>
+            <table style="width:30%" border="1" cellpadding="5">
+                <tr bgcolor="#D0D0CE">
+                    <th>#</th>
+                    <th>Commands</th>
+                </tr>
+                <tr>
+                    <td>0.</td>
+                    <td><a href="#MDB INFo">MDB INFo</a></td>
+                </tr>
+                <tr>
+                    <td>1.</td>
+                    <td><a href="#MDB INFo table=ISEM1">MDB INFo table=ISEM1</a></td>
+                </tr>
+                <tr>
+                    <td>2.</td>
+                    <td><a href="#MDB INFo Clusters">MDB INFo Clusters</a></td>
+                </tr>
+                <tr>
+                    <td>3.</td>
+                    <td><a href="#MDB INFo">MDB INFo</a></td>
+                </tr>
+                <tr>
+                    <td>4.</td>
+                    <td><a href="#MDB LPM add table=KAPS1 key=0x1234567812345678123456781234560000000000 prefix_length=120 payload=0xabcd app_id=0">MDB LPM add table=KAPS1 key=0x1234567812345678123456781234560000000000 prefix_length=120 payload=0xabcd app_id=0</a></td>
+                </tr>
+                <tr>
+                    <td>5.</td>
+                    <td><a href="#MDB LPM get table=KAPS1 key=0x1234567812345678123456781234560000000000 prefix_length=120 app_id=0">MDB LPM get table=KAPS1 key=0x1234567812345678123456781234560000000000 prefix_length=120 app_id=0</a></td>
+                </tr>
+                <tr>
+                    <td>6.</td>
+                    <td><a href="#MDB LPM search table=KAPS1 key=0x1234567812345678123456781234560000000000 app_id=0">MDB LPM search table=KAPS1 key=0x1234567812345678123456781234560000000000 app_id=0</a></td>
+                </tr>
+                <tr>
+                    <td>7.</td>
+                    <td><a href="#MDB LPM add table=KAPS1 key=0x1534567812345678123456781234560000000000 prefix_length=120 payload=0xabcd app_id=0 hit">MDB LPM add table=KAPS1 key=0x1534567812345678123456781234560000000000 prefix_length=120 payload=0xabcd app_id=0 hit</a></td>
+                </tr>
+                <tr>
+                    <td>8.</td>
+                    <td><a href="#MDB LPM get table=KAPS1 key=0x1534567812345678123456781234560000000000 prefix_length=120 app_id=0 hit">MDB LPM get table=KAPS1 key=0x1534567812345678123456781234560000000000 prefix_length=120 app_id=0 hit</a></td>
+                </tr>
+                <tr>
+                    <td>9.</td>
+                    <td><a href="#MDB LPM get table=KAPS1 key=0x1534567812345678123456781234560000000000 prefix_length=120 app_id=0 hit_clr">MDB LPM get table=KAPS1 key=0x1534567812345678123456781234560000000000 prefix_length=120 app_id=0 hit_clr</a></td>
+                </tr>
+                <tr>
+                    <td>10.</td>
+                    <td><a href="#MDB LPM delete table=KAPS1 key=0x1534567812345678123456781234560000000000 prefix_length=120 app_id=0 hit">MDB LPM delete table=KAPS1 key=0x1534567812345678123456781234560000000000 prefix_length=120 app_id=0 hit</a></td>
+                </tr>
+                <tr>
+                    <td>11.</td>
+                    <td><a href="#MDB LPM stats table=KAPS1">MDB LPM stats table=KAPS1</a></td>
+                </tr>
+                <tr>
+                    <td>12.</td>
+                    <td><a href="#MDB LPM dump=1 table=KAPS1">MDB LPM dump=1 table=KAPS1</a></td>
+                </tr>
+                <tr>
+                    <td>13.</td>
+                    <td><a href="#MDB LPM dump=2 table=KAPS1">MDB LPM dump=2 table=KAPS1</a></td>
+                </tr>
+                <tr>
+                    <td>14.</td>
+                    <td><a href="#MDB LPM version">MDB LPM version</a></td>
+                </tr>
+                <tr>
+                    <td>15.</td>
+                    <td><a href="#MDB LPM delete table=KAPS1 key=0x1234567812345678123456781234560000000000 prefix_length=120 app_id=0">MDB LPM delete table=KAPS1 key=0x1234567812345678123456781234560000000000 prefix_length=120 app_id=0</a></td>
+                </tr>
+                <tr>
+                    <td>16.</td>
+                    <td><a href="#MDB LPM clear table=KAPS1 app_id=0xFFFFFFFF">MDB LPM clear table=KAPS1 app_id=0xFFFFFFFF</a></td>
+                </tr>
+                <tr>
+                    <td>17.</td>
+                    <td><a href="#MDB DIRECT add table=IVSI key=100 payload_size=90 payload=0x12345678abcdef01030507">MDB DIRECT add table=IVSI key=100 payload_size=90 payload=0x12345678abcdef01030507</a></td>
+                </tr>
+                <tr>
+                    <td>18.</td>
+                    <td><a href="#MDB DIRECT get table=IVSI key=100 payload_size=90">MDB DIRECT get table=IVSI key=100 payload_size=90</a></td>
+                </tr>
+                <tr>
+                    <td>19.</td>
+                    <td><a href="#MDB DIRECT get table=IVSI key=100 payload_size=90 hit">MDB DIRECT get table=IVSI key=100 payload_size=90 hit</a></td>
+                </tr>
+                <tr>
+                    <td>20.</td>
+                    <td><a href="#MDB DIRECT get table=IVSI key=100 payload_size=90 hit_clr">MDB DIRECT get table=IVSI key=100 payload_size=90 hit_clr</a></td>
+                </tr>
+                <tr>
+                    <td>21.</td>
+                    <td><a href="#MDB DIRECT get hw table=IVSI key=100 payload_size=90">MDB DIRECT get hw table=IVSI key=100 payload_size=90</a></td>
+                </tr>
+                <tr>
+                    <td>22.</td>
+                    <td><a href="#MDB DIRECT dump table=IVSI">MDB DIRECT dump table=IVSI</a></td>
+                </tr>
+                <tr>
+                    <td>23.</td>
+                    <td><a href="#MDB DIRECT dump hw table=IVSI">MDB DIRECT dump hw table=IVSI</a></td>
+                </tr>
+                <tr>
+                    <td>24.</td>
+                    <td><a href="#MDB DIRECT delete table=IVSI key=100 payload_size=90 payload=0x12345678abcdef01030507">MDB DIRECT delete table=IVSI key=100 payload_size=90 payload=0x12345678abcdef01030507</a></td>
+                </tr>
+                <tr>
+                    <td>25.</td>
+                    <td><a href="#MDB DIRECT clear table=IVSI">MDB DIRECT clear table=IVSI</a></td>
+                </tr>
+                <tr>
+                    <td>26.</td>
+                    <td><a href="#MDB EEDB add table=EEDB1 key=100 payload_size=120 payload=0x12345678abcdef01030507 eedb_ll=0">MDB EEDB add table=EEDB1 key=100 payload_size=120 payload=0x12345678abcdef01030507 eedb_ll=0</a></td>
+                </tr>
+                <tr>
+                    <td>27.</td>
+                    <td><a href="#MDB EEDB get table=EEDB1 key=100 payload_size=120 eedb_ll=0">MDB EEDB get table=EEDB1 key=100 payload_size=120 eedb_ll=0</a></td>
+                </tr>
+                <tr>
+                    <td>28.</td>
+                    <td><a href="#MDB EEDB get table=EEDB1 key=100 payload_size=120 eedb_ll=0 hit">MDB EEDB get table=EEDB1 key=100 payload_size=120 eedb_ll=0 hit</a></td>
+                </tr>
+                <tr>
+                    <td>29.</td>
+                    <td><a href="#MDB EEDB get table=EEDB1 key=100 payload_size=120 eedb_ll=0 hit_clr">MDB EEDB get table=EEDB1 key=100 payload_size=120 eedb_ll=0 hit_clr</a></td>
+                </tr>
+                <tr>
+                    <td>30.</td>
+                    <td><a href="#MDB EEDB get hw table=EEDB1 key=100 payload_size=120 eedb_ll=0">MDB EEDB get hw table=EEDB1 key=100 payload_size=120 eedb_ll=0</a></td>
+                </tr>
+                <tr>
+                    <td>31.</td>
+                    <td><a href="#MDB EEDB dump table=EEDB1">MDB EEDB dump table=EEDB1</a></td>
+                </tr>
+                <tr>
+                    <td>32.</td>
+                    <td><a href="#MDB EEDB dump hw table=EEDB1">MDB EEDB dump hw table=EEDB1</a></td>
+                </tr>
+                <tr>
+                    <td>33.</td>
+                    <td><a href="#MDB EEDB delete table=EEDB1 key=100 payload_size=120 payload=0x12345678abcdef01030507 eedb_ll=0">MDB EEDB delete table=EEDB1 key=100 payload_size=120 payload=0x12345678abcdef01030507 eedb_ll=0</a></td>
+                </tr>
+                <tr>
+                    <td>34.</td>
+                    <td><a href="#MDB EEDB clear table=EEDB1">MDB EEDB clear table=EEDB1</a></td>
+                </tr>
+                <tr>
+                    <td>35.</td>
+                    <td><a href="#MDB EM add table=ISEM1 key=0x12345678 key_size=32 payload_size=16 payload=0xabcd app_id=0">MDB EM add table=ISEM1 key=0x12345678 key_size=32 payload_size=16 payload=0xabcd app_id=0</a></td>
+                </tr>
+                <tr>
+                    <td>36.</td>
+                    <td><a href="#MDB EM get table=ISEM1 key=0x12345678 key_size=32 payload_size=16 app_id=0">MDB EM get table=ISEM1 key=0x12345678 key_size=32 payload_size=16 app_id=0</a></td>
+                </tr>
+                <tr>
+                    <td>37.</td>
+                    <td><a href="#MDB EM dump table=ISEM1">MDB EM dump table=ISEM1</a></td>
+                </tr>
+                <tr>
+                    <td>38.</td>
+                    <td><a href="#MDB EM dump hw table=ISEM1">MDB EM dump hw table=ISEM1</a></td>
+                </tr>
+                <tr>
+                    <td>39.</td>
+                    <td><a href="#MDB EM delete table=ISEM1 key=0x12345678 key_size=32 app_id=0">MDB EM delete table=ISEM1 key=0x12345678 key_size=32 app_id=0</a></td>
+                </tr>
+                <tr>
+                    <td>40.</td>
+                    <td><a href="#MDB EM add table=LEM key=0x123456789abc key_size=49 payload_size=48 payload=0xabcdef0123 app_id=0">MDB EM add table=LEM key=0x123456789abc key_size=49 payload_size=48 payload=0xabcdef0123 app_id=0</a></td>
+                </tr>
+                <tr>
+                    <td>41.</td>
+                    <td><a href="#MDB EM get hw table=LEM key=0x123456789abc key_size=49 payload_size=48 app_id=0">MDB EM get hw table=LEM key=0x123456789abc key_size=49 payload_size=48 app_id=0</a></td>
+                </tr>
+                <tr>
+                    <td>42.</td>
+                    <td><a href="#MDB EM get table=LEM key=0x123456789abc key_size=49 payload_size=48 hit app_id=0">MDB EM get table=LEM key=0x123456789abc key_size=49 payload_size=48 hit app_id=0</a></td>
+                </tr>
+                <tr>
+                    <td>43.</td>
+                    <td><a href="#MDB EM get table=LEM key=0x123456789abc key_size=49 payload_size=48 hit_clr app_id=0">MDB EM get table=LEM key=0x123456789abc key_size=49 payload_size=48 hit_clr app_id=0</a></td>
+                </tr>
+                <tr>
+                    <td>44.</td>
+                    <td><a href="#MDB EM delete table=LEM key=0x123456789abc key_size=49 payload_size=48 app_id=0">MDB EM delete table=LEM key=0x123456789abc key_size=49 payload_size=48 app_id=0</a></td>
+                </tr>
+                <tr>
+                    <td>45.</td>
+                    <td><a href="#MDB EM clear table=LEM app_id=0xFFFFFFFF">MDB EM clear table=LEM app_id=0xFFFFFFFF</a></td>
+                </tr>
+                <tr>
+                    <td>46.</td>
+                    <td><a href="#MDB LoGger Severity=3">MDB LoGger Severity=3</a></td>
+                </tr>
+            </table>
+        <h5><a name="MDB INFo">MDB INFo</a></h5>
+        <textarea cols='180' rows='47' >================================&#13;&#10;| MDB Profile                  |&#13;&#10;|   MDB profile: Balanced-Exem |&#13;&#10;|   MDB profile KAPS cfg: 2    |&#13;&#10;================================&#13;&#10;============================================================================&#13;&#10;|                           DBAL PHYSICAL TABLES                           |&#13;&#10;============================================================================&#13;&#10;| Table Name | Type          | Address capacity | Address Resolution[bits] |&#13;&#10;============================================================================&#13;&#10;| KAPS1      | KAPS (LPM)    | 1572864          |                          |&#13;&#10;| KAPS2      | KAPS (LPM)    | 524288           |                          |&#13;&#10;| ISEM1      | Exact Match   | 131076           | 120                      |&#13;&#10;| INLIF1     | Direct Access | 131072           | 60                       |&#13;&#10;| IVSI       | Direct Access | 43691            | 90                       |&#13;&#10;| ISEM2      | Exact Match   | 131076           | 120                      |&#13;&#10;| ISEM3      | Exact Match   | 131076           | 120                      |&#13;&#10;| INLIF2     | Direct Access | 131072           | 60                       |&#13;&#10;| INLIF3     | Direct Access | 131072           | 60                       |&#13;&#10;| LEM        | Exact Match   | 2097160          | 240                      |&#13;&#10;| IOEM1      | Exact Match   | 98308            | 120                      |&#13;&#10;| IOEM2      | Exact Match   | 98308            | 120                      |&#13;&#10;| MAP        | Direct Access | 65536            | 30                       |&#13;&#10;| FEC1       | Direct Access | 52430            | 150                      |&#13;&#10;| FEC2       | Direct Access | 39324            | 150                      |&#13;&#10;| FEC3       | Direct Access | 26215            | 150                      |&#13;&#10;| PPMC       | Exact Match   | 98308            | 120                      |&#13;&#10;| GLEM1      | Exact Match   | 131076           | 120                      |&#13;&#10;| GLEM2      | Exact Match   | 131076           | 120                      |&#13;&#10;| EEDB1      | EEDB          | 49152            |                          |&#13;&#10;| EEDB2      | EEDB          | 49152            |                          |&#13;&#10;| EEDB3      | EEDB          | 32768            |                          |&#13;&#10;| EEDB4      | EEDB          | 32768            |                          |&#13;&#10;| EEDB5      | EEDB          | 0                |                          |&#13;&#10;| EEDB6      | EEDB          | 0                |                          |&#13;&#10;| EEDB7      | EEDB          | 0                |                          |&#13;&#10;| EEDB8      | EEDB          | 0                |                          |&#13;&#10;| EOEM1      | Exact Match   | 98308            | 120                      |&#13;&#10;| EOEM2      | Exact Match   | 98308            | 120                      |&#13;&#10;| ESEM       | Exact Match   | 131076           | 120                      |&#13;&#10;| EVSI       | Direct Access | 65536            | 30                       |&#13;&#10;| SEXEM1     | Exact Match   | 131074           | 120                      |&#13;&#10;| SEXEM2     | Exact Match   | 131074           | 120                      |&#13;&#10;| SEXEM3     | Exact Match   | 131074           | 120                      |&#13;&#10;| LEXEM      | Exact Match   | 262146           | 240                      |&#13;&#10;| RMEP_EM    | Exact Match   | 131076           | 120                      |&#13;&#10;============================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB INFo table=ISEM1">MDB INFo table=ISEM1</a></h5>
+        <textarea cols='180' rows='89' >================================&#13;&#10;| MDB Profile                  |&#13;&#10;|   MDB profile: Balanced-Exem |&#13;&#10;|   MDB profile KAPS cfg: 2    |&#13;&#10;================================&#13;&#10;==========================================================================&#13;&#10;|                           DBAL PHYSICAL TABLE                          |&#13;&#10;==========================================================================&#13;&#10;| Table Name | Type        | Address capacity | Address Resolution[bits] |&#13;&#10;==========================================================================&#13;&#10;| ISEM1      | Exact Match | 131076           | 120                      |&#13;&#10;==========================================================================&#13;&#10;========================================================================&#13;&#10;|                  DBAL PHYSICAL TABLE - CLUSTER INFO                  |&#13;&#10;========================================================================&#13;&#10;| Macro type | Macro index | Cluster index | EEDB type | Logical start |&#13;&#10;========================================================================&#13;&#10;| MACRO_A    | 5           | 6             |           | 0x0           |&#13;&#10;| MACRO_B    | 4           | 2             |           | 0x0           |&#13;&#10;| MACRO_B    | 4           | 3             |           | 0x0           |&#13;&#10;========================================================================&#13;&#10;=====================================================================================&#13;&#10;|                                 Associated APP IDs                                |&#13;&#10;=====================================================================================&#13;&#10;| Logical table name           | APP ID | APP ID size | Key size | Max payload size |&#13;&#10;=====================================================================================&#13;&#10;| IN_AC_C_VLAN_DB              | 0      | 1           | 21       | 20               |&#13;&#10;| IN_AC_S_VLAN_DB              | 1      | 6           | 21       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 2      | 1           | 21       | 20               |&#13;&#10;| IN_AC_S_C_VLAN_DB            | 3      | 6           | 33       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 4      | 1           | 21       | 20               |&#13;&#10;| IN_BR_E_S_C_VLAN_DB          | 5      | 3           | 45       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 6      | 1           | 21       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 8      | 1           | 21       | 20               |&#13;&#10;| IN_BR_E_C_VLAN_DB            | 9      | 6           | 33       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 10     | 1           | 21       | 20               |&#13;&#10;| IN_BR_E_S_VLAN_DB            | 11     | 6           | 33       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 12     | 1           | 21       | 20               |&#13;&#10;| IN_BR_E_S_C_VLAN_DB          | 13     | 3           | 45       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 14     | 1           | 21       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 16     | 1           | 21       | 20               |&#13;&#10;| IN_AC_S_S_VLAN_DB            | 17     | 6           | 33       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 18     | 1           | 21       | 20               |&#13;&#10;| IN_AC_UNTAGGED_DB            | 19     | 6           | 20       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 20     | 1           | 21       | 20               |&#13;&#10;| IN_BR_E_S_C_VLAN_DB          | 21     | 3           | 45       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 22     | 1           | 21       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 24     | 1           | 21       | 20               |&#13;&#10;| PON_UNMATCHED_CLASSIFICATION | 25     | 6           | 25       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 26     | 1           | 21       | 20               |&#13;&#10;| IN_BR_E_VLAN_DB              | 27     | 6           | 21       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 28     | 1           | 21       | 20               |&#13;&#10;| IN_BR_E_S_C_VLAN_DB          | 29     | 3           | 45       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 30     | 1           | 21       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 32     | 1           | 21       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 34     | 1           | 21       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 36     | 1           | 21       | 20               |&#13;&#10;| IN_BR_E_S_C_VLAN_DB          | 37     | 3           | 45       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 38     | 1           | 21       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 40     | 1           | 21       | 20               |&#13;&#10;| PON_UNTAGGED_CLASSIFICATION  | 41     | 6           | 25       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 42     | 1           | 21       | 20               |&#13;&#10;| PON_S_TAG_CLASSIFICATION     | 43     | 6           | 37       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 44     | 1           | 21       | 20               |&#13;&#10;| IN_BR_E_S_C_VLAN_DB          | 45     | 3           | 45       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 46     | 1           | 21       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 48     | 1           | 21       | 20               |&#13;&#10;| IN_AC_C_C_VLAN_DB            | 49     | 6           | 33       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 50     | 1           | 21       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 52     | 1           | 21       | 20               |&#13;&#10;| IN_BR_E_S_C_VLAN_DB          | 53     | 3           | 45       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 54     | 1           | 21       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 56     | 1           | 21       | 20               |&#13;&#10;| PON_C_TAG_CLASSIFICATION     | 57     | 6           | 37       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 58     | 1           | 21       | 20               |&#13;&#10;| RCH_TERM_BFIR_2ND_PASS       | 59     | 6           | 20       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 60     | 1           | 21       | 20               |&#13;&#10;| IN_BR_E_S_C_VLAN_DB          | 61     | 3           | 45       | 20               |&#13;&#10;| IN_AC_C_VLAN_DB              | 62     | 1           | 21       | 20               |&#13;&#10;=====================================================================================&#13;&#10;==============================================================================================================&#13;&#10;|                                                                     Associated VMV                         |&#13;&#10;|   Total number of HW entries (including learned entries): 0                                                |&#13;&#10;==============================================================================================================&#13;&#10;| Entry encoding (0-full,1-half,2-quarter...) | VMV size | VMV value | Entry count | Entry capacity estimate |&#13;&#10;==============================================================================================================&#13;&#10;| 1                                           | 2        | 16        | 0           | 61605                   |&#13;&#10;| 2                                           | 1        | 32        | 0           | 123211                  |&#13;&#10;==============================================================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB INFo Clusters">MDB INFo Clusters</a></h5>
+        <textarea cols='180' rows='73' >================================&#13;&#10;| MDB Profile                  |&#13;&#10;|   MDB profile: Balanced-Exem |&#13;&#10;|   MDB profile KAPS cfg: 2    |&#13;&#10;================================&#13;&#10;============================================================================&#13;&#10;|                           DBAL PHYSICAL TABLES                           |&#13;&#10;============================================================================&#13;&#10;| Table Name | Type          | Address capacity | Address Resolution[bits] |&#13;&#10;============================================================================&#13;&#10;| KAPS1      | KAPS (LPM)    | 1572864          |                          |&#13;&#10;| KAPS2      | KAPS (LPM)    | 524288           |                          |&#13;&#10;| ISEM1      | Exact Match   | 131076           | 120                      |&#13;&#10;| INLIF1     | Direct Access | 131072           | 60                       |&#13;&#10;| IVSI       | Direct Access | 43691            | 90                       |&#13;&#10;| ISEM2      | Exact Match   | 131076           | 120                      |&#13;&#10;| ISEM3      | Exact Match   | 131076           | 120                      |&#13;&#10;| INLIF2     | Direct Access | 131072           | 60                       |&#13;&#10;| INLIF3     | Direct Access | 131072           | 60                       |&#13;&#10;| LEM        | Exact Match   | 2097160          | 240                      |&#13;&#10;| IOEM1      | Exact Match   | 98308            | 120                      |&#13;&#10;| IOEM2      | Exact Match   | 98308            | 120                      |&#13;&#10;| MAP        | Direct Access | 65536            | 30                       |&#13;&#10;| FEC1       | Direct Access | 52430            | 150                      |&#13;&#10;| FEC2       | Direct Access | 39324            | 150                      |&#13;&#10;| FEC3       | Direct Access | 26215            | 150                      |&#13;&#10;| PPMC       | Exact Match   | 98308            | 120                      |&#13;&#10;| GLEM1      | Exact Match   | 131076           | 120                      |&#13;&#10;| GLEM2      | Exact Match   | 131076           | 120                      |&#13;&#10;| EEDB1      | EEDB          | 49152            |                          |&#13;&#10;| EEDB2      | EEDB          | 49152            |                          |&#13;&#10;| EEDB3      | EEDB          | 32768            |                          |&#13;&#10;| EEDB4      | EEDB          | 32768            |                          |&#13;&#10;| EEDB5      | EEDB          | 0                |                          |&#13;&#10;| EEDB6      | EEDB          | 0                |                          |&#13;&#10;| EEDB7      | EEDB          | 0                |                          |&#13;&#10;| EEDB8      | EEDB          | 0                |                          |&#13;&#10;| EOEM1      | Exact Match   | 98308            | 120                      |&#13;&#10;| EOEM2      | Exact Match   | 98308            | 120                      |&#13;&#10;| ESEM       | Exact Match   | 131076           | 120                      |&#13;&#10;| EVSI       | Direct Access | 65536            | 30                       |&#13;&#10;| SEXEM1     | Exact Match   | 131074           | 120                      |&#13;&#10;| SEXEM2     | Exact Match   | 131074           | 120                      |&#13;&#10;| SEXEM3     | Exact Match   | 131074           | 120                      |&#13;&#10;| LEXEM      | Exact Match   | 262146           | 240                      |&#13;&#10;| RMEP_EM    | Exact Match   | 131076           | 120                      |&#13;&#10;============================================================================&#13;&#10;==============================================================================================================&#13;&#10;|                                              Cluster allocation                                            |&#13;&#10;==============================================================================================================&#13;&#10;| Macro ID | Cluster 0 | Cluster 1 | Cluster 2 | Cluster 3 | Cluster 4 | Cluster 5 | Cluster 6 | Cluster 7   |&#13;&#10;==============================================================================================================&#13;&#10;| Macro 0  | LEM       | LEM       | LEM       | LEM       | FEC1      | FEC1      | RMEP_EM   | ESEM        |&#13;&#10;| Macro 1  | KAPS1     | KAPS1     | KAPS1     | KAPS1     | IVSI      | IVSI      | LEXEM     | LEXEM       |&#13;&#10;| Macro 2  | INLIF2    | INLIF2    | INLIF2    | INLIF2    | LEM       | LEM       | SEXEM3    | SEXEM1      |&#13;&#10;| Macro 3  | KAPS1     | KAPS1     | KAPS1     | KAPS1     | LEM       | LEM       | SEXEM3    | SEXEM1      |&#13;&#10;| Macro 4  | LEM       | LEM       | LEM       | LEM       | LEM       | LEM       | LEM       | LEM         |&#13;&#10;| Macro 5  | LEM       | LEM       | LEM       | LEM       | FEC3      | FEC3      | ISEM1     | GLEM1       |&#13;&#10;| Macro 6  | LEM       | LEM       | LEM       | LEM       | LEM       | LEM       | LEM       | LEM         |&#13;&#10;| Macro 7  | KAPS1     | KAPS1     | KAPS1     | KAPS1     | PPMC      | MAP       | GLEM1     | EOEM1       |&#13;&#10;| Macro 8  | KAPS1     | KAPS1     | KAPS1     | KAPS1     | INLIF1    | INLIF1    | GLEM2     | SEXEM2      |&#13;&#10;| Macro 9  | INLIF3    | INLIF3    | INLIF3    | INLIF3    | LEM       | LEM       | SEXEM2    | EEDB3       |&#13;&#10;| Macro 10 | LEM       | LEM       | FEC1      | FEC1      | LEXEM     | LEXEM     | ISEM2     | IOEM1       |&#13;&#10;| Macro 11 | KAPS1     | KAPS1     | KAPS1     | KAPS1     | GLEM2     | EVSI      | ESEM      | KAPS2       |&#13;&#10;| Macro 12 | KAPS1     | KAPS1     | KAPS1     | KAPS1     | KAPS1     | KAPS1     | KAPS1     | KAPS1       |&#13;&#10;| Macro 13 | KAPS2     | KAPS2     | KAPS2     | KAPS2     | KAPS2     | KAPS2     | KAPS2     | KAPS2       |&#13;&#10;| Macro 14 | KAPS1     | KAPS1     | KAPS1     | KAPS1     | EEDB1     | EEDB1     | ISEM2     | Unallocated |&#13;&#10;| Macro 15 | INLIF1    | INLIF1    | INLIF1    | INLIF1    | ISEM3     | ISEM3     | IOEM2     | Unallocated |&#13;&#10;| Macro 16 | RMEP_EM   | RMEP_EM   | ISEM1     | ISEM1     | PPMC      | IOEM1     | EEDB1     | Unallocated |&#13;&#10;| Macro 17 | KAPS2     | KAPS2     | KAPS2     | KAPS2     | KAPS2     | KAPS2     | KAPS2     | KAPS2       |&#13;&#10;| Macro 18 | EOEM2     | EOEM2     | ISEM3     | ISEM3     | IOEM2     | IOEM2     | EOEM2     | EOEM1       |&#13;&#10;| Macro 19 | FEC2      | FEC2      | FEC2      | FEC2      | FEC2      | FEC2      | ISEM2     | Unallocated |&#13;&#10;==============================================================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB INFo">MDB INFo</a></h5>
+        <textarea cols='180' rows='47' >================================&#13;&#10;| MDB Profile                  |&#13;&#10;|   MDB profile: Balanced-Exem |&#13;&#10;|   MDB profile KAPS cfg: 2    |&#13;&#10;================================&#13;&#10;============================================================================&#13;&#10;|                           DBAL PHYSICAL TABLES                           |&#13;&#10;============================================================================&#13;&#10;| Table Name | Type          | Address capacity | Address Resolution[bits] |&#13;&#10;============================================================================&#13;&#10;| KAPS1      | KAPS (LPM)    | 1572864          |                          |&#13;&#10;| KAPS2      | KAPS (LPM)    | 524288           |                          |&#13;&#10;| ISEM1      | Exact Match   | 131076           | 120                      |&#13;&#10;| INLIF1     | Direct Access | 131072           | 60                       |&#13;&#10;| IVSI       | Direct Access | 43691            | 90                       |&#13;&#10;| ISEM2      | Exact Match   | 131076           | 120                      |&#13;&#10;| ISEM3      | Exact Match   | 131076           | 120                      |&#13;&#10;| INLIF2     | Direct Access | 131072           | 60                       |&#13;&#10;| INLIF3     | Direct Access | 131072           | 60                       |&#13;&#10;| LEM        | Exact Match   | 2097160          | 240                      |&#13;&#10;| IOEM1      | Exact Match   | 98308            | 120                      |&#13;&#10;| IOEM2      | Exact Match   | 98308            | 120                      |&#13;&#10;| MAP        | Direct Access | 65536            | 30                       |&#13;&#10;| FEC1       | Direct Access | 52430            | 150                      |&#13;&#10;| FEC2       | Direct Access | 39324            | 150                      |&#13;&#10;| FEC3       | Direct Access | 26215            | 150                      |&#13;&#10;| PPMC       | Exact Match   | 98308            | 120                      |&#13;&#10;| GLEM1      | Exact Match   | 131076           | 120                      |&#13;&#10;| GLEM2      | Exact Match   | 131076           | 120                      |&#13;&#10;| EEDB1      | EEDB          | 49152            |                          |&#13;&#10;| EEDB2      | EEDB          | 49152            |                          |&#13;&#10;| EEDB3      | EEDB          | 32768            |                          |&#13;&#10;| EEDB4      | EEDB          | 32768            |                          |&#13;&#10;| EEDB5      | EEDB          | 0                |                          |&#13;&#10;| EEDB6      | EEDB          | 0                |                          |&#13;&#10;| EEDB7      | EEDB          | 0                |                          |&#13;&#10;| EEDB8      | EEDB          | 0                |                          |&#13;&#10;| EOEM1      | Exact Match   | 98308            | 120                      |&#13;&#10;| EOEM2      | Exact Match   | 98308            | 120                      |&#13;&#10;| ESEM       | Exact Match   | 131076           | 120                      |&#13;&#10;| EVSI       | Direct Access | 65536            | 30                       |&#13;&#10;| SEXEM1     | Exact Match   | 131074           | 120                      |&#13;&#10;| SEXEM2     | Exact Match   | 131074           | 120                      |&#13;&#10;| SEXEM3     | Exact Match   | 131074           | 120                      |&#13;&#10;| LEXEM      | Exact Match   | 262146           | 240                      |&#13;&#10;| RMEP_EM    | Exact Match   | 131076           | 120                      |&#13;&#10;============================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB LPM add table=KAPS1 key=0x1234567812345678123456781234560000000000 prefix_length=120 payload=0xabcd app_id=0">MDB LPM add table=KAPS1 key=0x1234567812345678123456781234560000000000 prefix_length=120 payload=0xabcd app_id=0</a></h5>
+        <textarea cols='180' rows='1' >Add operation completed successfully on LPM table.</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB LPM get table=KAPS1 key=0x1234567812345678123456781234560000000000 prefix_length=120 app_id=0">MDB LPM get table=KAPS1 key=0x1234567812345678123456781234560000000000 prefix_length=120 app_id=0</a></h5>
+        <textarea cols='180' rows='2' >Get operation completed successfully on LPM table.&#13;&#10;The associated payload is: 0xabcd</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB LPM search table=KAPS1 key=0x1234567812345678123456781234560000000000 app_id=0">MDB LPM search table=KAPS1 key=0x1234567812345678123456781234560000000000 app_id=0</a></h5>
+        <textarea cols='180' rows='8' >===============================================================================&#13;&#10;|                                 MDB LPM PRIVATE                             |&#13;&#10;===============================================================================&#13;&#10;| Core | Prefix Length | Prefix                                     | Payload |&#13;&#10;===============================================================================&#13;&#10;| 0    | 0             | 0x1234567812345678123456781234560000000000 | 0x00000 |&#13;&#10;| 1    | 0             | 0x1234567812345678123456781234560000000000 | 0x00000 |&#13;&#10;===============================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB LPM add table=KAPS1 key=0x1534567812345678123456781234560000000000 prefix_length=120 payload=0xabcd app_id=0 hit">MDB LPM add table=KAPS1 key=0x1534567812345678123456781234560000000000 prefix_length=120 payload=0xabcd app_id=0 hit</a></h5>
+        <textarea cols='180' rows='1' >Add operation completed successfully on LPM table.</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB LPM get table=KAPS1 key=0x1534567812345678123456781234560000000000 prefix_length=120 app_id=0 hit">MDB LPM get table=KAPS1 key=0x1534567812345678123456781234560000000000 prefix_length=120 app_id=0 hit</a></h5>
+        <textarea cols='180' rows='3' >Get operation completed successfully on LPM table.&#13;&#10;The associated payload is: 0xabcd&#13;&#10;Hitbit: No Hit</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB LPM get table=KAPS1 key=0x1534567812345678123456781234560000000000 prefix_length=120 app_id=0 hit_clr">MDB LPM get table=KAPS1 key=0x1534567812345678123456781234560000000000 prefix_length=120 app_id=0 hit_clr</a></h5>
+        <textarea cols='180' rows='3' >Get operation completed successfully on LPM table.&#13;&#10;The associated payload is: 0xabcd&#13;&#10;Hitbit: No Hit</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB LPM delete table=KAPS1 key=0x1534567812345678123456781234560000000000 prefix_length=120 app_id=0 hit">MDB LPM delete table=KAPS1 key=0x1534567812345678123456781234560000000000 prefix_length=120 app_id=0 hit</a></h5>
+        <textarea cols='180' rows='1' >Delete operation completed successfully on LPM table.</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB LPM stats table=KAPS1">MDB LPM stats table=KAPS1</a></h5>
+        <textarea cols='180' rows='7' >===================================================================================================&#13;&#10;|                                             MDB LPM Stats                                       |&#13;&#10;===================================================================================================&#13;&#10;| Database | Num Entries | Num Entries Iterator | IPv4 Capacity estimate | IPv6 Capacity estimate |&#13;&#10;===================================================================================================&#13;&#10;| KAPS1    | 1           | 1                    | 1136640                | 568320                 |&#13;&#10;===================================================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB LPM dump=1 table=KAPS1">MDB LPM dump=1 table=KAPS1</a></h5>
+        <textarea cols='180' rows='7' >=================================================================================&#13;&#10;|                                  MDB LPM PRIVATE                              |&#13;&#10;=================================================================================&#13;&#10;| Prefix Length | Prefix                                     | Payload | HitBit |&#13;&#10;=================================================================================&#13;&#10;| 120           | 0x1234567812345678123456781234560000000000 | 0x0abcd | No Hit |&#13;&#10;=================================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB LPM dump=2 table=KAPS1">MDB LPM dump=2 table=KAPS1</a></h5>
+        <textarea cols='180' rows='39' >Small KAPS RPB:&#13;&#10;Row 1754: 0x000000000000000000000000000000000000000003&#13;&#10;Row 1755: 0x000000000000000000000000000000000000000003&#13;&#10;&#13;&#10;Small KAPS ADS:&#13;&#10;  Row 877: 0x00000000000000000000000100000000 BDATA:0x0 BLENGTH:0x0 ROFS:0x0 FM_0:0x1 1:0x0 2:0x0 3:0x0 4:0x0 5:0x0 6:0x0 7:0x0 8:0x0 9:0x0 10:0x0 11:0x0 12:0x0 13:0x0 14:0x0 15:0x0 KSHIFT:0x0 LBUCKET:0x0&#13;&#10;&#13;&#10;Small KAPS BBS:&#13;&#10;  Small KAPS BB 0:&#13;&#10;    Row 0: 0x800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000&#13;&#10;  Small KAPS BB 1:&#13;&#10;  Small KAPS BB 2:&#13;&#10;  Small KAPS BB 3:&#13;&#10;  Small KAPS BB 4:&#13;&#10;  Small KAPS BB 5:&#13;&#10;  Small KAPS BB 6:&#13;&#10;  Small KAPS BB 7:&#13;&#10;  Small KAPS BB 8:&#13;&#10;  Small KAPS BB 9:&#13;&#10;  Small KAPS BB 10:&#13;&#10;  Small KAPS BB 11:&#13;&#10;&#13;&#10;Big KAPS ADS:&#13;&#10;macro_type 1, macro_idx 2, cluster_idx 0:&#13;&#10;    Row 0: 0x12000000000000000000000a00000000 BDATA:0x0 BLENGTH:0x0 ROFS:0x0 FM_0:0xa 1:0x0 2:0x0 3:0x0 4:0x0 5:0x0 6:0x0 7:0x0 8:0x0 9:0x0 10:0x0 11:0x0 12:0x0 13:0x0 14:0x0 15:0x0 KSHIFT:0x0 LBUCKET:0x0&#13;&#10;macro_type 1, macro_idx 2, cluster_idx 1:&#13;&#10;macro_type 1, macro_idx 2, cluster_idx 2:&#13;&#10;macro_type 1, macro_idx 2, cluster_idx 3:&#13;&#10;&#13;&#10;Big KAPS BBs:&#13;&#10;macro_type 0, macro_idx 1, cluster_idx 0:&#13;&#10;    Row 0: 0x12345678123456781234567812345680000000000000000000000000000000000000000000000000000000000000000000000000000000000000abcd&#13;&#10;macro_type 0, macro_idx 3, cluster_idx 0:&#13;&#10;    Row 0: 0x04003f02a00a000000000000000000000004003f02a0060000000000000000000000000005ff11111111111100008000000000000001f40ccce0ccce&#13;&#10;macro_type 0, macro_idx 7, cluster_idx 0:&#13;&#10;macro_type 0, macro_idx 8, cluster_idx 0:&#13;&#10;macro_type 0, macro_idx 11, cluster_idx 0:&#13;&#10;macro_type 1, macro_idx 0, cluster_idx 0:&#13;&#10;macro_type 1, macro_idx 0, cluster_idx 4:</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB LPM version">MDB LPM version</a></h5>
+        <textarea cols='180' rows='1' >KBPSDK version test passed, version: KBP SDK 1.5.11_EA2 03-November-2019</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB LPM delete table=KAPS1 key=0x1234567812345678123456781234560000000000 prefix_length=120 app_id=0">MDB LPM delete table=KAPS1 key=0x1234567812345678123456781234560000000000 prefix_length=120 app_id=0</a></h5>
+        <textarea cols='180' rows='1' >Delete operation completed successfully on LPM table.</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB LPM clear table=KAPS1 app_id=0xFFFFFFFF">MDB LPM clear table=KAPS1 app_id=0xFFFFFFFF</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB DIRECT add table=IVSI key=100 payload_size=90 payload=0x12345678abcdef01030507">MDB DIRECT add table=IVSI key=100 payload_size=90 payload=0x12345678abcdef01030507</a></h5>
+        <textarea cols='180' rows='1' >Add operation completed successfully on direct table.</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB DIRECT get table=IVSI key=100 payload_size=90">MDB DIRECT get table=IVSI key=100 payload_size=90</a></h5>
+        <textarea cols='180' rows='4' >Get operation completed successfully on direct table.&#13;&#10;entry.payload[2]: 0x00123456.&#13;&#10;entry.payload[1]: 0x78abcdef.&#13;&#10;entry.payload[0]: 0x01030507.</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB DIRECT get table=IVSI key=100 payload_size=90 hit">MDB DIRECT get table=IVSI key=100 payload_size=90 hit</a></h5>
+        <textarea cols='180' rows='5' >Get operation completed successfully on direct table.&#13;&#10;entry.payload[2]: 0x00123456.&#13;&#10;entry.payload[1]: 0x78abcdef.&#13;&#10;entry.payload[0]: 0x01030507.&#13;&#10;Hitbit: No Primary Hit</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB DIRECT get table=IVSI key=100 payload_size=90 hit_clr">MDB DIRECT get table=IVSI key=100 payload_size=90 hit_clr</a></h5>
+        <textarea cols='180' rows='5' >Get operation completed successfully on direct table.&#13;&#10;entry.payload[2]: 0x00123456.&#13;&#10;entry.payload[1]: 0x78abcdef.&#13;&#10;entry.payload[0]: 0x01030507.&#13;&#10;Hitbit: No Primary Hit</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB DIRECT get hw table=IVSI key=100 payload_size=90">MDB DIRECT get hw table=IVSI key=100 payload_size=90</a></h5>
+        <textarea cols='180' rows='4' >Get operation completed successfully on direct table.&#13;&#10;entry.payload[2]: 0x00123456.&#13;&#10;entry.payload[1]: 0x78abcdef.&#13;&#10;entry.payload[0]: 0x01030507.</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB DIRECT dump table=IVSI">MDB DIRECT dump table=IVSI</a></h5>
+        <textarea cols='180' rows='9' >=========================================================================&#13;&#10;|                             Entries in: IVSI                          |&#13;&#10;=========================================================================&#13;&#10;| Key | Payload Size | Payload                    | HitBit A | HitBit B |&#13;&#10;=========================================================================&#13;&#10;| 0   | 90           | 0x02000000000000000007ffff | No Hit   | No Hit   |&#13;&#10;| 1   | 90           | 0x020000000000000000000001 | Hit      | No Hit   |&#13;&#10;| 100 | 90           | 0x0012345678abcdef01030507 | No Hit   | No Hit   |&#13;&#10;=========================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB DIRECT dump hw table=IVSI">MDB DIRECT dump hw table=IVSI</a></h5>
+        <textarea cols='180' rows='9' >=========================================================================&#13;&#10;|                             Entries in: IVSI                          |&#13;&#10;=========================================================================&#13;&#10;| Key | Payload Size | Payload                    | HitBit A | HitBit B |&#13;&#10;=========================================================================&#13;&#10;| 0   | 90           | 0x02000000000000000007ffff | No Hit   | No Hit   |&#13;&#10;| 1   | 90           | 0x020000000000000000000001 | Hit      | No Hit   |&#13;&#10;| 100 | 90           | 0x0012345678abcdef01030507 | No Hit   | No Hit   |&#13;&#10;=========================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB DIRECT delete table=IVSI key=100 payload_size=90 payload=0x12345678abcdef01030507">MDB DIRECT delete table=IVSI key=100 payload_size=90 payload=0x12345678abcdef01030507</a></h5>
+        <textarea cols='180' rows='1' >Delete operation completed successfully on direct table.</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB DIRECT clear table=IVSI">MDB DIRECT clear table=IVSI</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EEDB add table=EEDB1 key=100 payload_size=120 payload=0x12345678abcdef01030507 eedb_ll=0">MDB EEDB add table=EEDB1 key=100 payload_size=120 payload=0x12345678abcdef01030507 eedb_ll=0</a></h5>
+        <textarea cols='180' rows='1' >Add operation completed successfully on eedb table.</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EEDB get table=EEDB1 key=100 payload_size=120 eedb_ll=0">MDB EEDB get table=EEDB1 key=100 payload_size=120 eedb_ll=0</a></h5>
+        <textarea cols='180' rows='5' >Get operation completed successfully on eedb table.&#13;&#10;entry.payload[3]: 0x00000000.&#13;&#10;entry.payload[2]: 0x00123456.&#13;&#10;entry.payload[1]: 0x78abcdef.&#13;&#10;entry.payload[0]: 0x01030507.</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EEDB get table=EEDB1 key=100 payload_size=120 eedb_ll=0 hit">MDB EEDB get table=EEDB1 key=100 payload_size=120 eedb_ll=0 hit</a></h5>
+        <textarea cols='180' rows='6' >Get operation completed successfully on eedb table.&#13;&#10;entry.payload[3]: 0x00000000.&#13;&#10;entry.payload[2]: 0x00123456.&#13;&#10;entry.payload[1]: 0x78abcdef.&#13;&#10;entry.payload[0]: 0x01030507.&#13;&#10;Hitbit: No Hit</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EEDB get table=EEDB1 key=100 payload_size=120 eedb_ll=0 hit_clr">MDB EEDB get table=EEDB1 key=100 payload_size=120 eedb_ll=0 hit_clr</a></h5>
+        <textarea cols='180' rows='6' >Get operation completed successfully on eedb table.&#13;&#10;entry.payload[3]: 0x00000000.&#13;&#10;entry.payload[2]: 0x00123456.&#13;&#10;entry.payload[1]: 0x78abcdef.&#13;&#10;entry.payload[0]: 0x01030507.&#13;&#10;Hitbit: No Hit</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EEDB get hw table=EEDB1 key=100 payload_size=120 eedb_ll=0">MDB EEDB get hw table=EEDB1 key=100 payload_size=120 eedb_ll=0</a></h5>
+        <textarea cols='180' rows='5' >Get operation completed successfully on eedb table.&#13;&#10;entry.payload[3]: 0x00000000.&#13;&#10;entry.payload[2]: 0x00123456.&#13;&#10;entry.payload[1]: 0x78abcdef.&#13;&#10;entry.payload[0]: 0x01030507.</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EEDB dump table=EEDB1">MDB EEDB dump table=EEDB1</a></h5>
+        <textarea cols='180' rows='8' >==================================================================&#13;&#10;| Entries in: EEDB1                                              |&#13;&#10;|   Shared entries are printed for both phases in the phase-pair |&#13;&#10;==================================================================&#13;&#10;| Key   | Payload Size | Payload            | HitBit |&#13;&#10;==================================================================&#13;&#10;| 32768 | 60           | 0x0d40020000000000 | No Hit |&#13;&#10;==================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EEDB dump hw table=EEDB1">MDB EEDB dump hw table=EEDB1</a></h5>
+        <textarea cols='180' rows='8' >==================================================================&#13;&#10;| Entries in: EEDB1                                              |&#13;&#10;|   Shared entries are printed for both phases in the phase-pair |&#13;&#10;==================================================================&#13;&#10;| Key   | Payload Size | Payload            | HitBit |&#13;&#10;==================================================================&#13;&#10;| 32768 | 60           | 0x0d40020000000000 | No Hit |&#13;&#10;==================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EEDB delete table=EEDB1 key=100 payload_size=120 payload=0x12345678abcdef01030507 eedb_ll=0">MDB EEDB delete table=EEDB1 key=100 payload_size=120 payload=0x12345678abcdef01030507 eedb_ll=0</a></h5>
+        <textarea cols='180' rows='1' >Delete operation completed successfully on eedb table.</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EEDB clear table=EEDB1">MDB EEDB clear table=EEDB1</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EM add table=ISEM1 key=0x12345678 key_size=32 payload_size=16 payload=0xabcd app_id=0">MDB EM add table=ISEM1 key=0x12345678 key_size=32 payload_size=16 payload=0xabcd app_id=0</a></h5>
+        <textarea cols='180' rows='1' >Add operation completed successfully on EM table.</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EM get table=ISEM1 key=0x12345678 key_size=32 payload_size=16 app_id=0">MDB EM get table=ISEM1 key=0x12345678 key_size=32 payload_size=16 app_id=0</a></h5>
+        <textarea cols='180' rows='2' >Get operation completed successfully on EM table.&#13;&#10;entry.payload[0]: 0x0000abcd.</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EM dump table=ISEM1">MDB EM dump table=ISEM1</a></h5>
+        <textarea cols='180' rows='7' >==========================================================================================&#13;&#10;|                                     Entries in: ISEM1                                  |&#13;&#10;==========================================================================================&#13;&#10;| APP ID | Key Size | Key        | Payload Size | Payload    | HitBit A | HitBit B | Age |&#13;&#10;==========================================================================================&#13;&#10;| 0      | 21       | 0x00145678 | 20           | 0x000abcd0 | No Hit   | No Hit   | 0x0 |&#13;&#10;==========================================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EM dump hw table=ISEM1">MDB EM dump hw table=ISEM1</a></h5>
+        <textarea cols='180' rows='7' >==========================================================================================&#13;&#10;|                                     Entries in: ISEM1                                  |&#13;&#10;==========================================================================================&#13;&#10;| APP ID | Key Size | Key        | Payload Size | Payload    | HitBit A | HitBit B | Age |&#13;&#10;==========================================================================================&#13;&#10;| 0      | 21       | 0x00145678 | 20           | 0x000abcd0 | No Hit   | No Hit   | 0x0 |&#13;&#10;==========================================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EM delete table=ISEM1 key=0x12345678 key_size=32 app_id=0">MDB EM delete table=ISEM1 key=0x12345678 key_size=32 app_id=0</a></h5>
+        <textarea cols='180' rows='1' >Delete operation completed successfully on EM table.</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EM add table=LEM key=0x123456789abc key_size=49 payload_size=48 payload=0xabcdef0123 app_id=0">MDB EM add table=LEM key=0x123456789abc key_size=49 payload_size=48 payload=0xabcdef0123 app_id=0</a></h5>
+        <textarea cols='180' rows='1' >Add operation completed successfully on EM table.</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EM get hw table=LEM key=0x123456789abc key_size=49 payload_size=48 app_id=0">MDB EM get hw table=LEM key=0x123456789abc key_size=49 payload_size=48 app_id=0</a></h5>
+        <textarea cols='180' rows='3' >Get operation completed successfully on EM table.&#13;&#10;entry.payload[1]: 0x000000ab.&#13;&#10;entry.payload[0]: 0xcdef0123.</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EM get table=LEM key=0x123456789abc key_size=49 payload_size=48 hit app_id=0">MDB EM get table=LEM key=0x123456789abc key_size=49 payload_size=48 hit app_id=0</a></h5>
+        <textarea cols='180' rows='4' >Get operation completed successfully on EM table.&#13;&#10;entry.payload[1]: 0x000000ab.&#13;&#10;entry.payload[0]: 0xcdef0123.&#13;&#10;Hitbit: No Hit</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EM get table=LEM key=0x123456789abc key_size=49 payload_size=48 hit_clr app_id=0">MDB EM get table=LEM key=0x123456789abc key_size=49 payload_size=48 hit_clr app_id=0</a></h5>
+        <textarea cols='180' rows='4' >Get operation completed successfully on EM table.&#13;&#10;entry.payload[1]: 0x000000ab.&#13;&#10;entry.payload[0]: 0xcdef0123.&#13;&#10;Hitbit: No Hit</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EM delete table=LEM key=0x123456789abc key_size=49 payload_size=48 app_id=0">MDB EM delete table=LEM key=0x123456789abc key_size=49 payload_size=48 app_id=0</a></h5>
+        <textarea cols='180' rows='1' >Delete operation completed successfully on EM table.</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB EM clear table=LEM app_id=0xFFFFFFFF">MDB EM clear table=LEM app_id=0xFFFFFFFF</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="MDB LoGger Severity=3">MDB LoGger Severity=3</a></h5>
+        <textarea cols='180' rows='1' >Current MDB log severity: Info (4)</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+    </body>
+</html>

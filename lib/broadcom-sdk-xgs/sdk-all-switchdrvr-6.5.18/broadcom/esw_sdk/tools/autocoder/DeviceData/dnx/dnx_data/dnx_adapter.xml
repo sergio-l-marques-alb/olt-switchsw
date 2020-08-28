@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="adapter" bsl_flag="BSL_LS_BCMDNX_TX">
+    <sub_module name="tx" doc="adapter tx">
+        <numerics>
+            <numeric name="loopback_enable" doc="Use loopback in the adapter server instead of go through the pipe when receiving tx packets"></numeric>
+        </numerics>
+    </sub_module>
+    <sub_module name="rx" doc="adapter rx">
+        <numerics>
+                <numeric name="packet_header_signal_id" doc="The adater signal id to identify the packet header"></numeric>
+        </numerics>
+        <numerics>
+                <numeric name="constant_header_size" doc="Number of bytes in the constant header of a rx packet"></numeric>
+        </numerics>
+    </sub_module>
+    <sub_module name="general" doc="adapter general configurations">
+        <numerics>
+                <numeric name="lib_ver" doc="Adapter library version"></numeric>
+        </numerics>
+    </sub_module>
+
+    <sub_module name="reg_mem_access" doc="adapter reg/mem access">
+        <defines>
+        </defines>
+
+        <numerics>
+                <numeric name="do_collect_enable" doc="Use do_collect in adapter in order to collect writes into one bulk write."></numeric>
+        </numerics>
+
+        <features>
+        </features>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

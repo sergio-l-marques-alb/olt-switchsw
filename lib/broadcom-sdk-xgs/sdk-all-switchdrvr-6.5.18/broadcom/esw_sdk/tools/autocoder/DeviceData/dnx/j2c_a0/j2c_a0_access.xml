@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0"  module="access">
+
+    <sub_module name="blocks" doc="HW blocks related data">
+        <tables>
+            <table name="soft_init" doc="soft_init info">
+                <value name="trigger_value" default="0x0"></value>
+                <!-- SCH should be excluded from soft init
+                     it is located in bits 69
+                  -->
+                <entries>
+                    <!--                    31 - 0     63 - 32    95 - 64    127 - 96  128 - 159  191 - 160  223 - 192  255 - 224   -->
+                    <entry trigger_value="0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFDF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+</device_data>

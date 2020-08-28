@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="FABRIC_CONTROL_CELLS_REACHABILITY" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Configure reachability</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Generation rate of a single reachability message" Name="RATE" Size="11" Type="UINT"/>
+                <Field Description="Generation rate of all reachability messages" Name="GLOBAL_RATE" Size="13" Type="UINT"/>
+                <Field Description="Maximum time between 2 reachability messages on the same link before link is faulty" Name="WATCHDOG_THRESHOLD" Size="6" Type="UINT"/>
+                <Field Description="Enable link status masking" Name="LINK_STATUS_MASK_ENABLE" Type="BOOL"/>
+                <Field Description="Enable updating the reachability table by incoming reachability messages" Name="IN_MSG_UPDATE_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="RATE">
+                    <Access>
+                        <Register Name="RTP_RTP_ENABLEr">
+                            <HwField Name="RMGRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GLOBAL_RATE">
+                    <Access>
+                        <Register Name="RTP_RTP_ENABLEr">
+                            <HwField Name="RMGR_GLOBALf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="WATCHDOG_THRESHOLD">
+                    <Access>
+                        <Register Name="RTP_RTP_ENABLEr">
+                            <HwField Name="RTPWPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LINK_STATUS_MASK_ENABLE">
+                    <Access>
+                        <Register Name="RTP_RTP_ENABLEr">
+                            <HwField Name="RTP_EN_MSKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IN_MSG_UPDATE_ENABLE">
+                    <Access>
+                        <Register Name="RTP_RTP_ENABLEr">
+                            <HwField Name="RTP_UP_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CONTROL_CELLS_TX_DISCARD" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Discard outgoing control cells</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Discard flow status control cells" Name="IS_FLOW_STATUS_DISCARD" Type="BOOL"/>
+                <Field Description="Discard credit control cells" Name="IS_CREDIT_DISCARD" Type="BOOL"/>
+                <Field Description="Discard reachability control cells" Name="IS_REACHABILITY_DISCARD" Type="BOOL"/>
+                <Field Description="Discard all packets" Name="IS_ALL_PACKETS_DISCARD" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_FLOW_STATUS_DISCARD">
+                    <Access>
+                        <Register Name="FCT_FCT_ENABLER_REGISTERr">
+                            <HwField Name="DIS_STSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IS_CREDIT_DISCARD">
+                    <Access>
+                        <Register Name="FCT_FCT_ENABLER_REGISTERr">
+                            <HwField Name="DIS_CRDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IS_REACHABILITY_DISCARD">
+                    <Access>
+                        <Register Name="FCT_FCT_ENABLER_REGISTERr">
+                            <HwField Name="DIS_RCHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IS_ALL_PACKETS_DISCARD">
+                    <Access>
+                        <Register Name="FDT_FDT_ENABLER_REGISTERr">
+                            <HwField Name="DISCARD_ALL_PKTSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CONTROL_CELLS_RX_DISCARD" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Discard incoming control cells</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Trap all incoming control cells to the CPU" Name="IS_TRAP_ALL" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_TRAP_ALL">
+                    <Access>
+                        <Register Name="FCR_FCR_ENABLERS_AND_FILTER_MATCH_INPUT_LINKr">
+                            <HwField Name="TRAP_ALL_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CONTROL_CELLS_LINK_ACTIVE" Valid="DNX_DATA.fabric.links.nof_links">
+        <OneLineDescription>Indicates if link is up (available to transmit cells)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Is link available to transmit cells" Name="IS_LINK_ACTIVE" NofInstances="DNX_DATA.fabric.links.nof_links" Permission="READONLY" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_LINK_ACTIVE">
+                    <Access EncodeType="BITWISE_NOT" instanceIndex="ALL">
+                        <Register Name="RTP_LINK_ACTIVE_MASKr">
+                            <HwField Name="LNK_ACTV_MSKf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CONTROL_CELLS_RECEIVE_DATA" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Memory where cells captured for the CPU are stored</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Control cell place to read" Name="CONTROL_CELL_DATA" Permission="READONLY" Size="110" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                 <Field Name="CONTROL_CELL_DATA">
+                    <Access>
+                        <Register Name="FCR_CONTROL_CELL_FIFO_BUFFERr">
+                            <HwField Name="CONTROL_CELL_FIFO_BUFFERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CONTROL_CELLS_RECEIVE_CONTROL" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Controls regarding the memory where cells captured for the CPU are stored</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="is CPU-control-FIFO not empty" Name="CONTROL_CELL_DATA_READY" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                 <Field Name="CONTROL_CELL_DATA_READY">
+                    <Access>
+                        <Register Name="FCR_INTERRUPT_REGISTERr">
+                            <HwField Name="CPU_CNT_CELL_FNEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CONTROL_CELLS_LLFC" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Set LLFC control cells configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="MAC id" Name="MAC" Type="FMAC_BLK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Enable the creation of link level flow control cells at the transmission side" Name="ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                 <Field Name="ENABLE">
+                    <Access EncodeType="BITWISE_NOT">
+                        <Register Name="FMAC_GENERAL_CONFIGURATION_REGISTERr">
+                            <BlockIndex Formula="#KEY_VALUE(MAC)"/>
+                            <HwField Name="ENABLE_SERIAL_LINKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CONTROL_CELLS_REACHABILITY_STATUS" Valid="DNX_DATA.fabric.links.nof_links">
+        <OneLineDescription>Get reachability status</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Module id" Name="FAP_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Is FAP reachable through link" Name="IS_REACHABLE" NofInstances="DNX_DATA.fabric.links.nof_links" Permission="READONLY" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                 <Field Name="IS_REACHABLE">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="RTP_UNICAST_DISTRIBUTION_MEMORY_FOR_DATA_CELLSm">
+                            <EntryOffset Formula="#KEY_VALUE(FAP_ID)/2"/>
+                            <DataOffset Formula="#KEY_VALUE(FAP_ID)%2*dnx_data_fabric.links.nof_links_get(unit)+#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CONTROL_CELLS_CONNECTIVITY_STATUS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Get connectivity status</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Link id" Name="FABRIC_LINK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="The module id of the connected device" Name="CONNECTED_DEVICE_FAP_ID" Permission="READONLY" Size="11" Type="UINT"/>
+                <Field Description="The device level of the connected device" Name="CONNECTED_DEVICE_LEVEL" Permission="READONLY" Size="3" Type="UINT"/>
+                <Field Description="The link id of the connected device" Name="CONNECTED_DEVICE_LINK_ID" Permission="READONLY" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                 <Field Name="CONNECTED_DEVICE_FAP_ID">
+                    <Access>
+                        <Register Name="FCR_CONNECTIVITY_MAP_REGISTERSr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK_ID)"/>
+                            <HwField Name="SOURCE_DEVICE_ID_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                 <Field Name="CONNECTED_DEVICE_LEVEL">
+                    <Access>
+                        <Register Name="FCR_CONNECTIVITY_MAP_REGISTERSr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK_ID)"/>
+                            <HwField Name="SOURCE_DEVICE_LEVEL_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                 <Field Name="CONNECTED_DEVICE_LINK_ID">
+                    <Access>
+                        <Register Name="FCR_CONNECTIVITY_MAP_REGISTERSr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK_ID)"/>
+                            <HwField Name="SOURCE_DEVICE_LINK_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

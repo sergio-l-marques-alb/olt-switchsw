@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="port_pp" bsl_flag="BSL_LS_BCMDNX_PORT_PP">
+   
+    <sub_module name="general" doc="general port pp data">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="nof_ingress_llvp_profiles" doc="nof ingress llvp profiles"></define>
+            <define name="nof_egress_llvp_profiles" doc="nof egress llvp profiles"></define>
+            <define name="default_ingress_native_ac_llvp_profile_id" doc="Default Ingress Native AC LLVP profile id"></define>            
+            <define name="default_egress_native_ac_llvp_profile_id" doc="Default Egress Native AC LLVP profile id"></define>
+            <define name="default_egress_ip_tunnel_llvp_profile_id" doc="Default Egress IP Tunnel LLVP profile id"></define>
+            <define name="nof_egress_sit_profile" doc="nof sit profile"></define>
+            <define name="nof_egress_acceptable_frame_type_profile" doc="nof egress acceptable frame type profile"></define>
+            <define name="sit_inner_eth_additional_tag" doc="Additional Eth tag is added to SIT packets due to HW bug"></define>
+        </defines>
+        
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+</device_data>

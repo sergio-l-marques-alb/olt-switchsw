@@ -1,0 +1,135 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="meter">
+    <includes>
+        <include>bcm/policer.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_crps.h</include>
+        <include>shared/utilex/utilex_integer_arithmetic.h</include>
+    </includes>
+    <sub_module name="profile">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="large_bucket_mode_exp_add" value="6"></define>
+            <define name="max_regular_bucket_mode_burst" value="4161536"></define>
+            <define name="rev_exp_min" value="0"></define>
+            <define name="rev_exp_max" value="31"></define>
+            <define name="burst_size_min" value="1"></define>
+            <define name="nof_valid_global_meters" value="5"></define>
+            <define name="nof_dp_command_max" value="16"></define>
+            <define name="global_engine_hw_stat_database_id" value="3"></define>
+            <define name="ir_mant_nof_bits" value="7"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>    
+        </tables>
+         
+    </sub_module>
+    <sub_module name="diag">
+        
+        <features>
+            <feature name="rate_measurements_support" value="0"></feature>      
+        </features>
+        
+        <defines>      
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>    
+        </tables>
+         
+    </sub_module>  
+    <sub_module name="meter_db">
+        
+        <features>
+            <feature name="refresh_disable_required"></feature>
+        </features>     
+        
+        <defines>
+            <define name="nof_ingress_db" value="3"></define>
+            <define name="nof_egress_db" value="2"></define>
+            <define name="meter_ids_in_group" value="4"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>    
+        </tables>
+         
+    </sub_module>      
+    <sub_module name="mem_mgmt">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="adrress_range_resolution" value="8192"></define>
+            <define name="object_stat_pointer_base_resolution" value="16384"></define>            
+            <define name="ptr_map_table_resolution" value="4096"></define>
+            <define name="base_big_engine_for_meter" value="16"></define>
+            <define name="ingress_single_bucket_engine" value="0"></define>
+            <define name="egress_single_bucket_engine" value="1"></define>
+            <define name="counters_buckets_ratio_per_engine" value="2"></define>
+            <define name="meter_pointer_size" value="18"></define> 
+            <define name="meter_pointer_map_size" value="8"></define>
+            <define name="invalid_bank_id" value="15"></define>          
+        </defines>
+
+        <numerics>
+            <numeric name="bank_id_size" value="utilex_log2_round_up(DATA(crps,engine,nof_big_engines)*2)"></numeric>
+            <numeric name="nof_bank_ids" value="DATA(crps,engine,nof_big_engines)*2"></numeric>
+            <numeric name="sections_offset" value="DATA(crps,engine,nof_big_engines)"></numeric>
+        </numerics>
+
+        <tables>    
+        </tables>
+         
+    </sub_module>          
+    <sub_module name="compensation">
+        
+        <features>
+        </features>
+        
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+            <table name="ingress_port_delta_value">
+                <value name="min" default="-128"></value>
+                <value name="max" default="127"></value>
+            </table>
+        </tables>
+
+         
+    </sub_module>
+    
+    <sub_module name="expansion">
+        <features>
+            <feature name="expansion_based_on_tc_support" value="0"></feature>
+        </features>
+
+        <defines>
+            <define name="max_size" value="4"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    
+</device_data>
+
+
+

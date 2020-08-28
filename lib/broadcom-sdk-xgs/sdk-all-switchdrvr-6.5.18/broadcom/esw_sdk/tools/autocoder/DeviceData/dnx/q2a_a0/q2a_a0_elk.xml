@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="elk">
+    <includes>
+        <include>soc/kbp/alg_kbp/include/init.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_device.h</include>
+    </includes>
+
+    <sub_module name="general">
+        <defines>
+            <define name="flp_full_treshold" value="1000"></define>
+        </defines>
+        <numerics>
+        </numerics>
+
+        <features>
+        </features>
+ 
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="application">
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <features>
+        </features>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="connectivity">
+        <defines>
+        </defines>
+ 
+        <numerics>
+        </numerics>
+
+        <features>
+        </features>
+ 
+        <tables>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="recovery">
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <features>
+        </features>
+ 
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

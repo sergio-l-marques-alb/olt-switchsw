@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="bfd" bsl_flag="BSL_LS_BCMDNX_BFD">
+    <sub_module name="general" doc="general bfd constants">
+
+        <features>
+            <feature name="configurable_single_hop_tos" doc="HW bug: single-hop TOS is not configurable - JR2_A0 only!  Works for B0 and up"></feature>
+            <feature name="extended_sip_support" doc="HW limitation: Extended  BFD SIP is not supported on  - JR2_A0 only!  Works for B0 and up"></feature>
+        </features>
+
+        <defines>
+            <define name="nof_bits_bfd_endpoints" doc="Number of bits needed for BFD endpoints"></define>
+        </defines>
+        <defines>
+            <define name="nof_endpoints" doc="Maximum number of BFD endpoints"></define>
+        </defines>
+        <defines>
+            <define name="nof_dips_for_bfd_multihop" doc="Number of usable BFD Destination IPs for multi-hop"></define>
+        </defines>      
+        <defines>
+            <define name="nof_bits_dips_for_bfd_multihop" doc="Number of bits needed for BFD Destination IPs"></define>
+        </defines>
+        <defines>
+            <define name="nof_bfd_server_trap_codes" doc="Number of usable BFD server trap codes"></define>
+        </defines>
+        <defines>
+            <define name="nof_bits_bfd_server_trap_codes" doc="Number of bit needed for BFD server trap codes"></define>
+        </defines>  
+        <defines>
+            <define name="rmep_index_db_ipv4_const" doc="RMEP index DB constant for IPv4 MEPs"></define>
+        </defines>
+        <defines>
+            <define name="rmep_index_db_mpls_const" doc="RMEP index DB constant for MEPs over MPLS"></define>
+        </defines>
+        <defines>
+            <define name="rmep_index_db_pwe_const" doc="RMEP index DB constant for MEPs over PWE"></define>
+        </defines>
+        <defines>
+            <define name="nof_req_int_profiles" doc="Number of entries in required interrupt table"></define>
+        </defines>
+        <defines>
+            <define name="nof_bits_your_discr_to_lif" doc="Number of bits from your discriminator to oam_lif"></define>
+        </defines>
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="hw_bug" doc="BFD-related HW bugs">
+
+        <features>
+            <feature name="detect_multiplier_limitation" doc="HW bug: detect_multiplier is not calculated - JR2_A0 only!  Works for B0 and up"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+        
+</device_data>
+
+
+
+

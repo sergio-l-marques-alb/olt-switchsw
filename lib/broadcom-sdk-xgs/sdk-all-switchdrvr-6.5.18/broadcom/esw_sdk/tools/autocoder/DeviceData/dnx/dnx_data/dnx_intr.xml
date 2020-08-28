@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="intr" bsl_flag="BSL_LS_BCMDNX_INTR">
+    <includes>
+        <include>soc/dnxc/intr.h</include>
+        <include>soc/dnx/intr/dnx_intr.h</include>
+    </includes>
+    <sub_module name="general" doc="General interrupt information.">
+        <defines>
+        </defines>
+        <numerics>
+             <numeric labels="j2p_notrev" name="nof_interrupts" doc="Number of interrupts in the device."></numeric>
+             <numeric labels="j2p_notrev" name="polled_irq_mode" doc="Are interrupts supported polling mode."></numeric>
+             <numeric labels="j2p_notrev" name="polled_irq_priority" signed="1" doc="The priority of IRQ polling thread."></numeric>
+             <numeric labels="j2p_notrev" name="polled_irq_delay" doc="The minimum delay between IRQ polls."></numeric>
+
+             <numeric labels="j2p_notrev" name="table_dma_enable" doc="Enable/disable table DMA operations."></numeric>
+             <numeric labels="j2p_notrev" name="tdma_timeout_usec" doc="Table DMA operation timeout."></numeric>
+             <numeric labels="j2p_notrev" name="tdma_intr_enable" doc="Table DMA done is interrupt driven or by polling."> </numeric>
+             <numeric labels="j2p_notrev" name="tslam_dma_enable" doc="Enable/disable tslam DMA operations."></numeric>
+             <numeric labels="j2p_notrev" name="tslam_timeout_usec" doc="Tslam DMA operation timeout."></numeric>
+             <numeric labels="j2p_notrev" name="tslam_intr_enable" doc="Tslam DMA done is interrupt driven or by polling."> </numeric>
+             <numeric labels="j2p_notrev" name="schan_timeout_usec" doc="Schan operation timeout."> </numeric>
+             <numeric labels="j2p_notrev" name="schan_intr_enable" doc="Schan operation done is interrupt driven or by polling."></numeric>
+             <numeric labels="j2p_notrev" name="miim_timeout_usec" doc="MIM operation timeout."></numeric>
+             <numeric labels="j2p_notrev" name="miim_intr_enable" doc="MIM operation done is interrupt driver or by polling."></numeric>
+             <numeric labels="j2p_notrev" name="sbus_dma_interval" doc="sbus DMA operation interval."></numeric>
+             <numeric labels="j2p_notrev" name="sbus_dma_intr_enable" doc="sbus DMA interrupt enable."></numeric>
+             <numeric labels="j2p_notrev" name="mem_clear_chunk_size" doc="sbus DMA chunk size."></numeric>
+        </numerics>
+
+        <features>
+        </features>
+
+        <tables>
+            <table labels="j2p_notrev" name="active_on_init" doc="interrupt active on init">
+                <key name="offset" doc="active interrupt offset"></key>
+                <value name="intr" type="uint32" doc="interrupt ident"></value>
+            </table>
+            <table labels="j2p_notrev" name="disable_on_init" doc="interrupt disabled on init">
+                <key name="offset" doc="disable interrupt offset"></key>
+                <value name="intr" type="uint32" doc="interrupt ident"></value>
+            </table>
+            <table labels="j2p_notrev" name="disable_print_on_init" doc="interrupt disable print on init">
+                <key name="offset" doc="disable print on init offset"></key>
+                <value name="intr" type="uint32" doc="interrupt ident"></value>
+            </table>
+            
+            <table labels="j2p_notrev" name="block_intr_field_mapping" doc="block to intr field mapping">
+                <key name="offset" doc="block to intr field mapping"></key>
+                <value name="intr" type="uint32" doc="intr field"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="ser" doc="SER handle information.">
+        <defines>
+            <define labels="j2p_notrev" name="tcam_protection_issue"
+                doc="If there are tcam protect machine issue at device\n">
+            </define>
+        </defines>
+
+        <numerics>
+        </numerics>
+        <features>
+        </features>
+        <tables>
+            <table labels="j2p_notrev" name="mem_mask" doc="memory need masked">
+                <key name="index" doc="memory masked index"></key>
+                <value name="reg" type="soc_reg_t" doc="register name for  memory mask"></value>
+                <value name="field" type="soc_field_t" doc="If field defined - will set just the specified field"></value>
+                <value name="mode" type="dnxc_mem_mask_mode_e" doc="Register field should be set value, 0 or 1"></value>
+            </table>
+            <table labels="j2p_notrev" name="xor_mem" doc="XOR memory information">
+                <key name="index" doc="XOR memory index"></key>
+                <value name="mem" type="soc_mem_t" doc="xor memory name"></value>
+                <value name="sram_banks_bits" type="int" doc="SRAM bank wide bits"></value>
+                <value name="entry_used_bits" type="int" doc="Entry number address wide for each bank"></value>
+                <value name="flags" type="int" doc="xor memory flags"></value>
+            </table>
+            <table labels="j2p_notrev" name="intr_exception" doc="interrupt exceptional">
+                <key name="index" doc="exceptional_intr index"></key>
+                <value name="intr" type="uint32" doc="interrupt ident"></value>
+                <value name="exception_get_cb" type="dnx_intr_exceptional_get_f" doc="callback to get if it is exceptional interrupt"></value>
+            </table>
+            <table labels="j2p_notrev" name="static_mem" doc="static memory">
+                <key name="index" doc="static memory index"></key>
+                <value name="mem" type="soc_mem_t" doc="memory"></value>
+            </table>
+            <table labels="j2p_notrev" name="mdb_mem_map" doc="mdb memory mapping">
+                <key name="index" doc="mdb memory index"></key>
+                <value name="acc_mem" type="soc_mem_t" doc="acc_mem"></value>
+                <value name="phy_mem" type="soc_mem_t" doc="phy_mem"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+</device_data>

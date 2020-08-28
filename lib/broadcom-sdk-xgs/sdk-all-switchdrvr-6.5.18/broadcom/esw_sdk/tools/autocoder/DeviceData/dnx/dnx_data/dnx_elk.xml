@@ -1,0 +1,119 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="elk" bsl_flag="BSL_LS_BCMDNX_ELKDNX">
+    <includes>
+        <include>soc/kbp/alg_kbp/include/init.h</include>
+    </includes>
+
+    <sub_module name="general" doc="ELK general data.">
+        <defines>
+            <define labels="j2p_notrev" name="max_ports" doc="Max Elk ports"></define>
+            <define labels="j2p_notrev" name="rop_fifo_depth" doc="ROP Fifo memory depth in EGW"></define>
+            <define labels="j2p_notrev" name="flp_full_treshold" doc=" number of elements in the FLPB lookup accessing FIFO, should be size of IPPB_FLPB_LOOKUP_ACCESS_LOOKUP_FIFO_3 - const: (less than the max queue size)"></define>
+            <define labels="j2p_notrev" name="max_lane_id" doc="KBP MAX lane id"></define>
+            <define labels="j2p_notrev" name="egw_max_opcode" doc="Maximum value for the EGW opcode"></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="device_type" doc="External Tcam device type."></numeric>
+        </numerics>
+
+        <features>
+        </features>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="application" doc="ELK forwarding applications.">
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="optimized_result" doc="Device use optimized result"></numeric>
+            <numeric labels="j2p_notrev" name="split_rpf" doc="Device use split or non-split FWD and RPF tables"></numeric>
+            <numeric labels="j2p_notrev" name="thread_safety" doc="Device has KBP thread safety enabled"></numeric>
+            <numeric labels="j2p_notrev" name="ipv4_large_mc_enable" doc="Device use large or small IPv4 multicast table"></numeric>
+            <numeric labels="j2p_notrev" name="ipv6_large_mc_enable" doc="Device use large or small IPv6 multicast table"></numeric>
+            <numeric labels="j2p_notrev" name="ipv4_mc_hash_table_size" doc="Number of SW entries for KBP IPv4 Multicast; Not relevant when IPv4 application is not enabled; Actual hash table size will be the smallest power fo 2, which can fit this size"></numeric>
+            <numeric labels="j2p_notrev" name="ipv6_mc_hash_table_size" doc="Number of SW entries for KBP IPv6 Multicast; Not relevant when IPv6 application is not enabled; Actual hash table size will be the smallest power fo 2, which can fit this size"></numeric>
+            <numeric labels="j2p_notrev" name="ipv4_mc_table_size" doc="Number of SW entries for KBP IPv4 Multicast; Not relevant when IPv4 application is not enabled"></numeric>
+            <numeric labels="j2p_notrev" name="ipv6_mc_table_size" doc="Number of SW entries for KBP IPv6 Multicast; Not relevant when IPv6 application is not enabled"></numeric>
+        </numerics>
+
+        <features>
+            <feature labels="j2p_notrev" name="ipv4" doc="KBP IPv4 application enabled"></feature>
+            <feature labels="j2p_notrev" name="ipv6" doc="KBP IPv6 application enabled"></feature>
+        </features>
+
+        <tables>
+            <table labels="j2p_notrev" name="db_property" doc="DB properties">
+                <key name="db" doc="DBAL table ID of the DB"></key>
+                <value name="initial_regular_capacity" type="int" doc="Initial capacity for the regular result type"></value>
+                <value name="initial_optimized_capacity" type="int" doc="Initial capacity for the optimized result type"></value>
+                <value name="xl_db" type="int" doc="Property value for extra large DB"></value>
+                <value name="locality" type="int" doc="Property value for DB locality"></value>
+                <value name="zero_size_ad" type="int" doc="Indication if zero_size_ad needs to be initialized (OP2 suppot only)"></value>
+                <value name="dbal_none_direct_optimized" type="int" doc="Indicates if the DBAL NONE_DIRECT_OPTIMIZED indication should be set to the table for improving the insertion rate"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="connectivity" doc="ELK connectivity parameters.">
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="connect_mode" doc="External Tcam connect mode."></numeric>
+            <numeric labels="j2p_notrev" name="mdio_id" doc="KBP MDIO ID."></numeric>
+        </numerics>
+
+        <features>
+            <feature labels="j2p_notrev" name="blackhole" doc="KBP Blackhole mode enabled"></feature>
+        </features>
+
+        <tables>
+            <table labels="j2p_notrev" name="ilkn_reverse" doc="External lookup (elk) ILKN lanes swap">
+                <key name="ilkn_id" size="2" doc="port id elk device side"></key>
+                <value name="reverse" type="uint32" doc="If set, reverse the lanes numbering order on elk device side"></value>
+            </table>
+            <table labels="j2p_notrev" name="topology" doc="KBP to Jericho connection topology.">
+                <value name="start_lane" type="uint32[DNX_DATA_MAX_ELK_GENERAL_MAX_PORTS]" doc="Start lane number for each kbp port."></value>
+                <value name="port_core_mapping" type="uint32[DNX_DATA_MAX_ELK_GENERAL_MAX_PORTS]" doc="KBP port to Jericho2 core mapping."></value>
+            </table>
+            <table labels="j2p_notrev" name="kbp_serdes_tx_taps" doc="PHY TX tap configuration on KBP side per device">
+                <value name="pre" type="int" doc="Tx fir pre tap"></value>
+                <value name="main" type="int" doc="Tx fir main tap"></value>
+                <value name="post" type="int" doc="Tx fir post tap"></value>
+                <value name="pre2" type="int" doc="Tx fir pre2 tap"></value>
+                <value name="post2" type="int" doc="Tx fir post2 tap"></value>
+                <value name="post3" type="int" doc="Tx fir post3 tap"></value>
+                <value name="txfir_tap_enable" type="enum kbp_blackhawk_tsc_txfir_tap_enable_enum" doc="TXFIR Tap Enable Enum"></value>
+            </table>
+            <table labels="j2p_notrev" name="kbp_lane_serdes_tx_taps" doc="PHY TX tap configuration on KBP side per lane">
+                <key name="lane_id" size="DATA(elk,general,max_lane_id)" doc="lane id on KBP side"></key>
+                <value name="pre" type="int" doc="Tx fir pre tap"></value>
+                <value name="main" type="int" doc="Tx fir main tap"></value>
+                <value name="post" type="int" doc="Tx fir post tap"></value>
+                <value name="pre2" type="int" doc="Tx fir pre2 tap"></value>
+                <value name="post2" type="int" doc="Tx fir post2 tap"></value>
+                <value name="post3" type="int" doc="Tx fir post3 tap"></value>
+                <value name="txfir_tap_enable" type="enum kbp_blackhawk_tsc_txfir_tap_enable_enum" doc="TXFIR Tap Enable Enum"></value>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="recovery" doc="ELK general data.">
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="enable" doc="Enable the KBP recovery sequence."></numeric>
+            <numeric labels="j2p_notrev" name="iteration" doc="KBP recovery iteration."></numeric>
+        </numerics>
+
+        <features>
+        </features>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL GPM SW state:
+    This xml contains the sw staate logical DB for the DBAL.
+    ******************************************************
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../sw_state_schema.xsd">
+
+    <AppDB Name="BFD_ENDPOINT_SW_INFO">
+        <OneLineDescription>sw state info for existing BFD endpoints</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="BFD_ENDPOINT_ID" Size="25"/>
+            </Key>
+            <Result>
+                <Field Name="BFD_ENDPOINT_SW_STATE_FLAGS" Size="32" Description="Software state flags for BFD DBAL_DEFINE_BFD_ENDPOINT_SW_STATE_FLAGS_* - defined in oam_bfd_field_types_definition.xml"/>
+                <Field Name="BCM_BFD_TUNNEL_TYPE" Size="4" Description="Type of endpoint specified by user. Value is similar to BCM enum dbal_enum_value_field_bcm_bfd_tunnel_type_e."/>
+                <Field Name="BFD_MEP_PROFILE" Description="Profile value of key in OAMA/OAMB entry"/>
+                <Field Name="BFD_DIP_PROFILE" Description="Index of relevant entry in DIP table.  Multi-hop only."/>
+                <Field Name="BFD_SERVER_TRAP_CODE_INDEX" Description="Index of relevant BFD server trap code register."/>
+                <Field Name="RMEP_INDEX" Description="Index of Remote Endpoint Entry"/>
+                <Field Name="GPORT" Description="Endpoint Gport for accelerated BFD on PWE"/>
+                <Field Name="OAM_LIF" Description="Local discriminator of the BFD endpoint"/>
+                <Field Name="OAM_TRAP_TCAM_INDEX" Type="UINT" Size="5" Description="Index of server trap in OAM trap TCAM table"/>
+            </Result>
+            <TableLabels>BFD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="DNX_DATA.bfd.general.nof_endpoints"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="BFD_TX_PERIOD_CLUSTER_INFO">
+        <OneLineDescription>tx period info for a cluster of acc EPs</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="TX_PERIOD_CLUSTER_INDEX" Type="UINT" Size="3"/>
+            </Key>
+            <Result>
+                <Field Name="BFD_TX_RATE_PROFILE"/>
+                <Field Name="MEP_PROFILE_NO_IPV6_COUNT_0" Type="MEP_PROFILE" Description="MEP profile for IPv4 endpoints with CCM count=0"/>
+                <Field Name="MEP_PROFILE_IPV6_COUNT_0" Type="MEP_PROFILE" Description="MEP profile for IPv6 endpoints with CCM count=0"/>
+                <Field Name="MEP_PROFILE_NO_IPV6_COUNT_1" Type="MEP_PROFILE" Description="MEP profile for IPv4 endpoints with CCM count=1"/>
+                <Field Name="MEP_PROFILE_IPV6_COUNT_1" Type="MEP_PROFILE" Description="MEP profile for IPv6 endpoints with CCM count=1"/>
+                <Field Name="MEP_PROFILE_NO_IPV6_COUNT_0_VALID" Type="BOOL"/>
+                <Field Name="MEP_PROFILE_IPV6_COUNT_0_VALID" Type="BOOL"/>
+                <Field Name="MEP_PROFILE_NO_IPV6_COUNT_1_VALID" Type="BOOL"/>
+                <Field Name="MEP_PROFILE_IPV6_COUNT_1_VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>BFD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="8"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>
+

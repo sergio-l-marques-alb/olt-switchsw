@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="mpls" bsl_flag="BSL_LS_BCMDNX_MPLS">
+    <sub_module name="general" doc="general mpls constants">
+        
+        <features>
+            <feature name="mpls_term_1_or_2_labels" doc="If current label is not BOS, terminate it and the subsequent one else terminate it only in case of label-to-terminate is 3."></feature>
+            <feature name="mpls_ioam_d_flag_stamping" doc="IOAM stamping feature support"></feature>
+        </features>
+        
+        <defines>
+            <define name="nof_mpls_termination_profiles" doc="Number of MPLS Termination Profiles"></define>
+            <define name="nof_mpls_push_profiles" doc="JR mode Number of MPLS Push Profiles"></define>
+            <define name="nof_bits_mpls_label" doc="Specifies number of bits used to represent an MPLS label"></define>
+            <define name="log_nof_mpls_range_elements"
+                     doc="Specifies number of bits used to represent number of available elements on any of mpls-range tables"></define>
+            <define name="nof_mpls_range_elements"
+                     doc="Specifies number of available elements on any of mpls-range tables"></define>
+             <define name="mpls_special_label_encap_handling"
+                     doc="Indicates whether special labels should be handled separatly"></define>
+             <define name="mpls_control_word_supported"
+                     doc="Indicates whether control word non-zero values supported."></define>
+            <define name="mpls_second_stage_parser_handling"
+                     doc="Indicates whether 2nd stage parser supported properly."></define>         
+            <define name="mpls_control_word_flag_bits_lsb"
+                     doc="Indicates the control word flag bits location."></define>
+            <define name="fhei_mps_type_nof_bits"  doc="Indicates the number of mpls fhei type bits."></define>
+        </defines>
+
+        <numerics>
+            <numeric name="nof_php_gport_lif"
+                     doc="Indicates the LIF number used for PHP, JR1 mode only."></numeric>
+        </numerics>
+        
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

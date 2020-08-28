@@ -1,0 +1,2334 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="L2_FORWARD_UNKNOWN_DA_PROFILE">
+        <OneLineDescription>Ingress table describing unknown DA flooding destination</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DA_NOT_FOUND_ACTION_PROFILE"/>
+                <Field Name="DA_NOT_FOUND_DESTINATION_PROFILE"/>
+                <Field Name="DA_TYPE" Type="DESTINATION_DISTRIBUTION_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="DESTINATION"/>
+                <Field Description="If True UNKNOWN_DA_DESTINATION from the vsi is added to the DESTINATION" Name="ADD_VSI_DEST" Type="BOOL"/>
+            </Result>
+            <TableLabels>L2 VLAN</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DESTINATION">
+                    <Access>
+                        <Memory Name="IPPB_UNKNOWN_DA_PROFILEm">
+                            <HwField Name="DESTINATIONf"/>
+                        </Memory>
+                    </Access>
+               </Field>
+                <Field Name="ADD_VSI_DEST">
+                    <Access>
+                        <Memory Name="IPPB_UNKNOWN_DA_PROFILEm">
+                            <HwField Name="ADD_VSI_DESTf"/>
+                        </Memory>
+                    </Access>
+               </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MACT_VSI_COUNTERS">
+        <OneLineDescription>MACT Counters per VSI</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VSI"/>
+            </Key>
+            <Result>
+                <Field Description="Holds the number of MACT entries per vsi" Name="COUNTER" Size="21" Type="UINT"/>
+            </Result>
+            <TableLabels>L2 VLAN</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="COUNTER">
+                    <Access>
+                        <Memory Name="MACT_VSI_COUNTERSm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/4"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()%4*#FULL_RESULT_SIZE()"/>
+                        </Memory>
+                    </Access>
+               </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="VSI_LEARNING_PROFILE">
+        <OneLineDescription>Holds VSI profile ID for each VSI</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VSI"/>
+            </Key>
+            <Result>
+                <Field Description="Limit number of entries in VSI or LIF" Name="VSI_LEARNING_PROFILE"/>                
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VSI_LEARNING_PROFILE">
+                    <Access>
+                        <Memory Name="MACT_VSI_PROFILESm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/16"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()%16*#FULL_RESULT_SIZE()"/>                            
+                        </Memory>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="VSI_LEARNING_PROFILE_INFO">
+        <OneLineDescription>VSI profile for learning related properties</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VSI_LEARNING_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Description="Limit number of entries in VSI or LIF" Name="LEARN_LIMIT"/>
+                <Field Description="Enable interrupts of limit cross" Name="INTERRUPT_ENABLE" Type="BOOL"/>
+                <Field Description="Enable DSPs of limit cross" Name="MESSAGE_ENABLE" Type="BOOL"/>
+                <Field Description="Profile for DSPs distribution" Name="EVENT_FORWARDING_PROFILE"/>
+                <Field Description="Profile for events creation per age state" Name="AGE_PROFILE"/>
+                <Field Name="CYCLE_PERIOD" Type="AGING_CYCLE"/>
+                <Field Description="Allow different frequencies of the cycle period" Name="CYCLE_MASK" Type="AGING_CYCLE"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LEARN_LIMIT">
+                    <Access>
+                        <Memory Name="MACT_FID_PROFILE_INFOm">
+                            <HwField Name="LIMITf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INTERRUPT_ENABLE">
+                    <Access>
+                        <Memory Name="MACT_FID_PROFILE_INFOm">
+                            <HwField Name="INTERRUPT_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MESSAGE_ENABLE">
+                    <Access>
+                        <Memory Name="MACT_FID_PROFILE_INFOm">
+                            <HwField Name="MESSAGE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EVENT_FORWARDING_PROFILE">
+                    <Access>
+                        <Memory Name="MACT_FID_PROFILE_INFOm">
+                            <HwField Name="EVENT_FORWARDING_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="AGE_PROFILE">
+                    <Access>
+                        <Memory Name="MACT_FID_PROFILE_INFOm">
+                            <HwField Name="FID_AGING_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CYCLE_PERIOD">
+                    <Access>
+                        <Memory Name="MACT_FID_PROFILE_INFOm">
+                            <HwField Name="CYCLE_PERIODf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CYCLE_MASK">
+                    <Access>
+                        <Memory Name="MACT_FID_PROFILE_INFOm">
+                            <HwField Name="CYCLE_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MACT_APP_DB_CONFIGURATION">
+        <OneLineDescription>MACT app DB configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="LEM_APP_DB" Size="6"/>
+            </Key>
+            <Result>
+                <Field Description="True if the app db is in the large EM db" Name="IS_LARGE_EM" Type="BOOL"/>
+                <Field Description="True if the app db is used for learning" Name="IS_MACT" Type="BOOL"/>            
+                <Field Name="MACT_APP_DB_INDEX"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_LARGE_EM">
+                    <Access>
+                        <Register Name="IPPB_IS_LARGE_EMr">
+                            <HwField Name="IS_LARGE_EMf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IS_MACT">
+                    <Access>
+                        <Register Name="MACT_IS_LARGE_EMr">
+                            <HwField Name="IS_LARGE_EMf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MACT_APP_DB_INDEX">
+                    <Access>
+                        <Register Name="MACT_APP_DB_TO_APP_DB_INDEX_MAPr">
+                            <HwField Name="APP_DB_INDEXf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*2"/>
+                        </Register> 
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="MACT_APP_DB_INDEX_TO_APP_DB">
+        <OneLineDescription>maps APP_DB_INDEX(2b) to APP_DB(6b)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>                
+                <Field Name="MACT_APP_DB_INDEX"/>
+            </Key>
+            <Result>
+                <Field Name="LEM_APP_DB"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LEM_APP_DB">
+                    <Access>                        
+                        <Register Name="IPPB_APP_DB_INDEX_MAPr">
+                            <HwField Name="APP_DB_INDEX_TO_APP_DBf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*6"/>
+                        </Register> 
+                    </Access>
+                    <Access>
+                        <Memory Name="IPPB_LEARN_APPDB_MAPm">
+                            <HwField Name="APPDBf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MACT_AGING_CONFIGURATION">
+        <OneLineDescription>define which events should be raised in each age state and profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="AGE_PROFILE"/>
+                <Field Name="AGE_TYPE" Size="3" Type="UINT"/>
+                <Field Description="Refreshed by DSP indication. Valid only for insert, refresh and learn commands." Name="RBD" Type="BOOL"/>
+                <Field Name="MAC_STRENGTH"/>
+            </Key>
+            <Result>
+                <Field Description="Raise an age out event" Name="AGE_OUT" Type="BOOL"/>
+                <Field Description="Raise a refresh event" Name="AGE_REFRESH" Type="BOOL"/>
+                <Field Description="Delete the MAC entry locally" Name="AGE_DELETE" Type="BOOL"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="AGE_OUT">
+                    <Access>
+                        <Memory Name="MACT_LARGE_EM_AGING_CONFIGURATION_TABLEm">                            
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/32"/>
+                            <DataOffset Formula="#KEY_VALUE(AGE_PROFILE)*3+1"/>
+                        </Memory> 
+                    </Access>
+                </Field>
+                <Field Name="AGE_REFRESH">
+                    <Access>
+                        <Memory Name="MACT_LARGE_EM_AGING_CONFIGURATION_TABLEm">                                                        
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/32"/>
+                            <DataOffset Formula="#KEY_VALUE(AGE_PROFILE)*3+2"/>
+                        </Memory> 
+                    </Access>
+                </Field>
+                <Field Name="AGE_DELETE">
+                    <Access>
+                        <Memory Name="MACT_LARGE_EM_AGING_CONFIGURATION_TABLEm">                            
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/32"/>
+                            <DataOffset Formula="#KEY_VALUE(AGE_PROFILE)*3"/>
+                        </Memory> 
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="FLUSH_MACHINE_GENERAL_PARAMS">
+        <OneLineDescription>General configurations and status params of the flush machine</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>                
+            </Key>
+            <Result>
+                <Field Description="Work status of the flush machine" Name="MACHINE_STATUS" Permission="READONLY" Type="FLUSH_MACHINE_STATUS"/>                
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0" Name="MACHINE_STATUS">
+                    <Access>
+                        <Register Name="MDB_REG_212r">
+                            <HwField Name="ITEM_36_37f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0" Name="MACHINE_STATUS">
+                    <Access>
+                        <Register Name="MDB_REG_221r">
+                            <HwField Name="ITEM_36_37f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="MACHINE_STATUS">
+                    <Access>
+                        <Register Name="MDB_REG_215r">
+                            <HwField Name="ITEM_36_37f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+
+    <AppDB Name="MACT_MANAGEMENT_GENERAL_CONFIGURATION">
+        <OneLineDescription>General configuration of the MACT management</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="If set the management request OLP interface is accesible through the register interface." Name="OLP_INTERFACE_ENABLE" Type="BOOL"/>
+                <Field Description="If set the management of the MACT is made by the CPU (ARM). MACT machines are disabled." Name="MNGMNT_BY_CPU" Type="BOOL"/>
+                <Field Description="If set get ACKs only on failure." Name="MNGNT_ACK_ONLY_FAILURE" Type="BOOL"/>                
+                <Field Description="MAC entry strength threshold. Larger strength for static entries, otherwise dynamic." Name="DYNAMIC_STRENGTH_THRESHOLD"/> 
+                <Field Description="Max number of entries in the MACT." Name="MACT_DB_ENTRIES_LIMIT" Type="LEARN_LIMIT"/>
+                <Field Description="Enable the VSI limit check" Name="CHECK_VSI_LIMIT" Type="BOOL"/>
+                <Field Description="Enable the MACT limit check" Name="CHECK_MACT_DB_LIMIT" Type="BOOL"/>
+                <Field Description="Check VSI limit before creating a learn event." Name="LEARN_EVENT_CHECK_VSI_LIMIT" Type="BOOL"/>
+                <Field Description="Check MACT limit before creating a learn event." Name="LEARN_EVENT_CHECK_MACT_DB_LIMIT" Type="BOOL"/>
+                <Field Description="If set then the LEM will signal the OLP and CPU when a valid event is ready for read." Name="EVENT_FIFO_ENABLE_OLP" Type="BOOL"/>                
+                <Field Name="MACT_REQ_OLP_REGISTER_INTERFACE_ENABLE" Type="BOOL"/>                
+                <Field Name="INGRESS_LEARNING_MODE"/>
+                <Field Name="INGRESS_OPPORTUNISTIC_LEARNING"/>
+                <Field Description="Periodic scan cycles interval. Number of 100 clock units per age cycle." Name="CYCLE_RATE" Size="32" Type="UINT"/>
+                <Field Description="Enable/Disable the automatic run of the age machine" Name="MACHINE_AUTO_EN" Type="BOOL"/>
+                <Field Description="Holds the number of MACT entries" Name="MACT_ENTRY_COUNTER" Size="21" Type="UINT"/>
+                <Field Description="If set then all packet copies are learned (i.e. not only first copy). Learn all copies" Name="LEARN_ALL_COPIES" Type="BOOL"/>
+                <Field Description="Destination prefix used for Jericho mode. Use Jericho 1 prefix." Name="SYS_PORT_PREFIX" Size="3" Type="UINT"/>
+                <Field Description="Bitmap, if cleared, need to compare relevant MactDbIdMactId bit to relevant Entry.Key bit." Name="MACT_DB_ID_MACT_MASK" Size="4" Type="UINT"/>              
+                <Field Description="Bitmap, if cleared, need to compare relevant BMactDbIdMactId bit to relevant Entry.Key bit." Name="MACT_DB_ID_BMACT_MASK" Size="4" Type="UINT"/>
+                <Field Description="Bitmap, if cleared, need to compare relevant ProgDbIdMactId bit to relevant Entry.Key bit." Name="MACT_DB_ID_PROG_MASK" Size="4" Type="UINT"/>
+                <Field Description="Disable ECC in MACT block." Name="DISABLE_ECC" Type="BOOL"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OLP_INTERFACE_ENABLE">
+                    <Access>
+                        <Register Name="MACT_LARGE_EM_MNGMNT_REQ_CONFIGURATIONr">
+                            <HwField Name="LARGE_EM_MNGMNT_REQ_OLP_REGISTER_INTERFACE_ENABLEf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="MNGMNT_BY_CPU">
+                    <Access>
+                        <Register Name="MACT_LARGE_EM_MNGMNT_REQ_CONFIGURATIONr">
+                            <HwField Name="LARGE_EM_MNGMNT_BY_CPUf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="MNGNT_ACK_ONLY_FAILURE">
+                    <Access>
+                        <Register Name="MACT_LARGE_EM_MNGMNT_REQ_CONFIGURATIONr">
+                            <HwField Name="LARGE_EM_MNGMNT_ACNOWLEDGE_ONLY_FAILUREf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="DYNAMIC_STRENGTH_THRESHOLD">
+                    <Access>
+                        <Register Name="MACT_LARGE_EM_MRQ_CONFIGURATIONr">
+                            <HwField Name="LARGE_EM_MRQ_DYNAMIC_STRENGTH_THRESHOLDf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="MACT_DB_ENTRIES_LIMIT">
+                    <Access>
+                        <Register Name="MACT_LARGE_EM_COUNTER_LIMIT_CONFIGURATIONr">
+                            <HwField Name="LARGE_EM_MNGMNT_LARGE_EM_DB_ENTRIES_LIMITf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="CHECK_VSI_LIMIT">
+                    <Access>
+                        <Register Name="MACT_LARGE_EM_COUNTER_LIMIT_CONFIGURATIONr">
+                            <HwField Name="LARGE_EM_FID_DB_CHECK_FID_LIMITf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="CHECK_MACT_DB_LIMIT">
+                    <Access>
+                        <Register Name="MACT_LARGE_EM_COUNTER_LIMIT_CONFIGURATIONr">
+                            <HwField Name="LARGE_EM_FID_DB_CHECK_LARGE_EM_DB_LIMITf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="LEARN_EVENT_CHECK_VSI_LIMIT">
+                    <Access>
+                        <Register Name="MACT_LARGE_EM_COUNTER_LIMIT_CONFIGURATIONr">
+                            <HwField Name="LARGE_EM_FID_DB_LEARN_EVENT_CHECK_FID_LIMITf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="LEARN_EVENT_CHECK_MACT_DB_LIMIT">
+                    <Access>
+                        <Register Name="MACT_LARGE_EM_COUNTER_LIMIT_CONFIGURATIONr">
+                            <HwField Name="LARGE_EM_FID_DB_LEARN_EVENT_CHECK_LARGE_EM_DB_LIMITf"/>
+                        </Register> 
+                    </Access>
+                </Field>             
+                <Field Name="EVENT_FIFO_ENABLE_OLP">
+                    <Access>
+                        <Register Name="MACT_LARGE_EM_EVENT_FIFO_CONFIGURATIONr">                            
+                            <HwField Name="LARGE_EM_EVENT_FIFO_ENABLE_OLPf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="MACT_REQ_OLP_REGISTER_INTERFACE_ENABLE">
+                    <Access>
+                        <Register Name="MACT_LARGE_EM_MNGMNT_REQ_CONFIGURATIONr">
+                            <HwField Name="LARGE_EM_MNGMNT_REQ_OLP_REGISTER_INTERFACE_ENABLEf"/>
+                        </Register> 
+                    </Access>
+                </Field>                
+                <Field Name="INGRESS_LEARNING_MODE">
+                    <Access>
+                        <Register Name="IPPB_LEARNING_CFGr">
+                            <HwField Name="INGRESS_LEARNINGf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="INGRESS_OPPORTUNISTIC_LEARNING">
+                    <Access>
+                        <Register Name="IPPB_GENERAL_CONFIGr">
+                            <HwField Name="INGRESS_OPPORTUNISTIC_LEARNINGf"/>
+                        </Register>
+                    </Access>
+                </Field>                
+                <Field Device="JR2_A0" Name="CYCLE_RATE">
+                    <Access>
+                        <Register Name="MDB_REG_173r">
+                            <HwField Name="ITEM_1_32f"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0" Name="CYCLE_RATE">
+                    <Access>
+                        <Register Name="MDB_REG_183r">
+                            <HwField Name="ITEM_1_32f"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="CYCLE_RATE">
+                    <Access>
+                        <Register Name="MDB_REG_177r">
+                            <HwField Name="ITEM_1_32f"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="CYCLE_RATE">
+                    <Access>
+                        <Register Name="MDB_REG_179r">
+                            <HwField Name="ITEM_1_32f"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0" Name="MACHINE_AUTO_EN">
+                    <Access>
+                        <Register Name="MDB_REG_173r">
+                            <HwField Name="ITEM_33_33f"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0" Name="MACHINE_AUTO_EN">
+                    <Access>
+                        <Register Name="MDB_REG_183r">
+                            <HwField Name="ITEM_33_33f"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="MACHINE_AUTO_EN">
+                    <Access>
+                        <Register Name="MDB_REG_177r">
+                            <HwField Name="ITEM_33_33f"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="MACHINE_AUTO_EN">
+                    <Access>
+                        <Register Name="MDB_REG_179r">
+                            <HwField Name="ITEM_33_33f"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="MACT_ENTRY_COUNTER">
+                    <Access>
+                        <Register Name="MACT_LARGE_EM_DB_ENTRIES_COUNTERr">
+                            <HwField Name="LARGE_EM_DB_ENTRIES_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEARN_ALL_COPIES">
+                    <Access>
+                        <Register Name="ERPP_PP_CONFIGr">
+                            <HwField Name="CFG_LEARN_ALL_COPIESf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SYS_PORT_PREFIX">
+                    <Access>
+                        <Register Name="ERPP_PP_CONFIGr">
+                            <HwField Name="CFG_SYS_PORT_PREFIXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MACT_DB_ID_MACT_MASK">
+                    <Access>
+                        <Register Name="ECI_FAP_GLOBAL_PP_1r">
+                            <HwField Name="MACT_DB_ID_MACT_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MACT_DB_ID_BMACT_MASK">
+                    <Access>
+                        <Register Name="ECI_FAP_GLOBAL_PP_1r">
+                            <HwField Name="MACT_DB_ID_BMACT_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MACT_DB_ID_PROG_MASK">
+                    <Access>
+                        <Register Name="ECI_FAP_GLOBAL_PP_1r">
+                            <HwField Name="MACT_DB_ID_PROG_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>   
+                <Field Name="DISABLE_ECC">
+                    <Access>
+                        <Register Name="MACT_REG_00C2r">
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MACT_LIMIT_EXCEED_CONFIGURATION">
+        <OneLineDescription>Configure whether to drop the MAC entry add request</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="True if the limit was not crossed. False otherwise." Name="LIMIT_CHECK_PASS" Type="BOOL"/>
+                <Field Description="True if the operation was done by the CPU." Name="IS_HOST_REQUEST" Type="BOOL"/>
+                <Field Description="True if the requested entry's strength is larger than the dynamic threshold." Name="IS_STATIC" Type="BOOL"/>
+            </Key>
+            <Result>
+                <Field Description="Drop if the global MACT limit is crossed." Name="DROP_IF_EXCEED_MACT_LIMIT" Type="BOOL"/>
+                <Field Description="Drop if the VSI limit is crossed." Name="DROP_IF_EXCEED_VSI_LIMIT" Type="BOOL"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DROP_IF_EXCEED_MACT_LIMIT">
+                    <Access>
+                        <Register Name="MACT_LARGE_EM_COUNTER_LIMIT_CONFIGURATIONr">
+                            <HwField Name="LARGE_EM_MNGMNT_DROP_IF_EXCEED_LARGE_EM_LIMITf"/>
+                            <DataOffset Formula="#KEY_VALUE(LIMIT_CHECK_PASS)*4+#KEY_VALUE(IS_HOST_REQUEST)*2+#KEY_VALUE(IS_STATIC)"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="DROP_IF_EXCEED_VSI_LIMIT">
+                    <Access>
+                        <Register Name="MACT_LARGE_EM_COUNTER_LIMIT_CONFIGURATIONr">
+                            <HwField Name="LARGE_EM_MNGMNT_DROP_IF_EXCEED_FID_LIMITf"/>
+                            <DataOffset Formula="#KEY_VALUE(LIMIT_CHECK_PASS)*4+#KEY_VALUE(IS_HOST_REQUEST)*2+#KEY_VALUE(IS_STATIC)"/>
+                        </Register> 
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MACT_PROFILE_POINTER_CONFIG">
+        <OneLineDescription>Configure where bits chosen to be mapped to profile will be situated on learn entry</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="LEARN_FORMAT_INDEX"/>
+                <Field Name="MACT_APP_DB_INDEX"/>                
+            </Key>
+            <Result>
+                <Field Description="Pointer offset in learn Entry" Name="POINTER_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Size of pointer" MaxValue="17" Name="POINTER_SIZE" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Memory Name="MACT_FID_POINTER_INFOm"/>
+                    </Access>
+                </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OLP_DSP_EVENT_ROUTE">
+        <OneLineDescription>OLP events distribution</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Forwarding profile ID." Name="EVENT_FORWARDING_PROFILE"/>
+                <Field Description="OLP command type." Name="OLP_COMMAND"/>
+                <Field Description="Allow different events distribution per APPDB index." Name="MACT_APP_DB_INDEX"/>
+            </Key>
+            <Result>
+                <Field Description="Distribute the DSP to a multicast group" Name="OLP_DISTRIBUTION_MC" Type="BOOL"/>
+                <Field Description="Distribute the DSP to a CPU" Name="OLP_DISTRIBUTION_CPU" Type="BOOL"/>
+                <Field Description="Distribute the OLP command to a CPU using DMA" Name="OLP_DISTRIBUTION_CPU_DMA" Type="BOOL"/>                
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OLP_DISTRIBUTION_MC">
+                    <Access>
+                        <Memory Name="OLP_DSP_EVENT_ROUTEm">
+                            <!-- 8 is the max value of OLP_COMMAND -->
+                            <EntryOffset Formula="8*#KEY_VALUE(MACT_APP_DB_INDEX)+#KEY_VALUE(OLP_COMMAND)"/>                            
+                            <DataOffset Formula="#KEY_VALUE(EVENT_FORWARDING_PROFILE)*4+1"/>                             
+                        </Memory> 
+                    </Access>
+                </Field>
+                <Field Name="OLP_DISTRIBUTION_CPU">
+                    <Access>
+                        <Memory Name="OLP_DSP_EVENT_ROUTEm">
+                            <!-- 8 is the max value of OLP_COMMAND -->
+                            <EntryOffset Formula="8*#KEY_VALUE(MACT_APP_DB_INDEX)+#KEY_VALUE(OLP_COMMAND)"/>
+                            <DataOffset Formula="#KEY_VALUE(EVENT_FORWARDING_PROFILE)*4+2"/>                             
+                        </Memory> 
+                    </Access>
+                </Field>
+                <Field Name="OLP_DISTRIBUTION_CPU_DMA">
+                    <Access>
+                        <Memory Name="OLP_DSP_EVENT_ROUTEm">      
+                            <!-- 8 is the max value of OLP_COMMAND -->                      
+                            <EntryOffset Formula="8*#KEY_VALUE(MACT_APP_DB_INDEX)+#KEY_VALUE(OLP_COMMAND)"/>
+                            <DataOffset Formula="#KEY_VALUE(EVENT_FORWARDING_PROFILE)*4+3"/>                             
+                        </Memory> 
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="OLP_HEADER_CONFIGURATION">
+        <OneLineDescription>Wrapper header to the DSPs from the OLP</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OLP_COMMAND_DESTINATION"/>
+            </Key>
+            <MultipleResults>            
+                <Result>                    
+                    <Field Description="UDH over ITMH header over PTCH2" Name="RESULT_TYPE" Size="4" Value="UDH_O_ITMH_PTCH2"/>                    
+                    <Field Description="Pad the header to 32 bytes" Name="OLP_HEADER_PADDING" Size="25*8-DNX_DATA.headers.system_headers.udh_base_size-DNX_DATA.field.udh.field_class_id_total_size" Type="ARRAY8"/>
+                    <Field Name="UDH_BASE" Type="UDH"/>
+                    <Field Name="ITMH_BASE"/>                    
+                    <Field Name="PTCH_2"/>                    
+                </Result>
+                <Result>
+                    <Field Description="Ethernet without vlan over UDH over ITMH over PTCH2" Name="RESULT_TYPE" Size="4" Value="ETH_O_UDH_ITMH_PTCH2"/>
+                    <Field Description="Pad the header to 32 bytes" Name="OLP_HEADER_PADDING" Size="11*8-DNX_DATA.headers.system_headers.udh_base_size-DNX_DATA.field.udh.field_class_id_total_size" Type="ARRAY8"/>
+                    <Field Name="ETH_TYPE" Size="16" Type="UINT"/> 
+                    <Field Name="SA" Type="L2_MAC"/>             
+                    <Field Name="DA" Type="L2_MAC"/>
+                    <Field Name="UDH_BASE" Type="UDH"/>                    
+                    <Field Name="ITMH_BASE"/>
+                    <Field Name="PTCH_2"/>                                        
+                </Result>
+                <Result>
+                    <Field Description="Ethernet with vlan over UDH over ITMH over PTCH2" Name="RESULT_TYPE" Size="4" Value="ETH_WITH_VLAN_O_UDH_ITMH_PTCH2"/>
+                    <Field Description="Pad the header to 32 bytes" Name="OLP_HEADER_PADDING" Size="7*8-DNX_DATA.headers.system_headers.udh_base_size-DNX_DATA.field.udh.field_class_id_total_size" Type="ARRAY8"/>                           
+                    <Field Name="ETH_TYPE" Size="16" Type="UINT"/> 
+                    <Field Name="VID1" Type="VLAN_ID"/>
+                    <Field Name="DEI"/>
+                    <Field Name="PCP"/>
+                    <Field Name="TPID"/>
+                    <Field Name="SA" Type="L2_MAC"/>
+                    <Field Name="DA" Type="L2_MAC"/>
+                    <Field Name="UDH_BASE" Type="UDH"/>
+                    <Field Name="ITMH_BASE"/>
+                    <Field Name="PTCH_2"/>                      
+                </Result>
+                <Result>
+                    <Field Description="UDH over ITMH" Name="RESULT_TYPE" Size="4" Value="UDH_O_ITMH"/>                   
+                    <Field Description="Pad the header to 32 bytes" Name="OLP_HEADER_PADDING" Size="27*8-DNX_DATA.headers.system_headers.udh_base_size-DNX_DATA.field.udh.field_class_id_total_size" Type="ARRAY8"/>                          
+                    <Field Name="UDH_BASE" Type="UDH"/>  
+                    <Field Name="ITMH_BASE"/>                                      
+                </Result>
+                <Result>
+                    <Field Description="Ethernet without vlan over UDH over ITMH" Name="RESULT_TYPE" Size="4" Value="ETH_O_UDH_ITMH"/>                   
+                    <Field Description="Pad the header to 32 bytes" Name="OLP_HEADER_PADDING" Size="13*8-DNX_DATA.headers.system_headers.udh_base_size-DNX_DATA.field.udh.field_class_id_total_size" Type="ARRAY8"/>                          
+                    <Field Name="ETH_TYPE" Size="16" Type="UINT"/> 
+                    <Field Name="SA" Type="L2_MAC"/>             
+                    <Field Name="DA" Type="L2_MAC"/>  
+                    <Field Name="UDH_BASE" Type="UDH"/>
+                    <Field Name="ITMH_BASE"/>                                      
+                </Result>
+                <Result>
+                    <Field Description="Ethernet with vlan over UDH over ITMH" Name="RESULT_TYPE" Size="4" Value="ETH_WITH_VLAN_O_UDH_ITMH"/>                 
+                    <Field Description="Pad the header to 32 bytes" Name="OLP_HEADER_PADDING" Size="9*8-DNX_DATA.headers.system_headers.udh_base_size-DNX_DATA.field.udh.field_class_id_total_size" Type="ARRAY8"/>                          
+                    <Field Name="ETH_TYPE" Size="16" Type="UINT"/> 
+                    <Field Name="VID1" Type="VLAN_ID"/>
+                    <Field Name="DEI"/>
+                    <Field Name="PCP"/>
+                    <Field Name="TPID"/>
+                    <Field Name="SA" Type="L2_MAC"/>
+                    <Field Name="DA" Type="L2_MAC"/>
+                    <Field Name="UDH_BASE" Type="UDH"/>
+                    <Field Name="ITMH_BASE"/>
+                </Result>
+                <Result>
+                    <Field Description="ITMH" Name="RESULT_TYPE" Size="4" Value="ITMH"/>                   
+                    <Field Description="Pad the header to 32 bytes" Name="OLP_HEADER_PADDING" Size="27*8" Type="ARRAY8"/>                          
+                    <Field Name="ITMH_BASE"/>                                      
+                </Result>
+                <Result>
+                    <Field Description="Ethernet without vlan over ITMH" Name="RESULT_TYPE" Size="4" Value="ETHERNET_O_ITMH"/>                   
+                    <Field Description="Pad the header to 32 bytes" Name="OLP_HEADER_PADDING" Size="13*8" Type="ARRAY8"/>                          
+                    <Field Name="ETH_TYPE" Size="16" Type="UINT"/> 
+                    <Field Name="SA" Type="L2_MAC"/>             
+                    <Field Name="DA" Type="L2_MAC"/>  
+                    <Field Name="ITMH_BASE"/>                                      
+                </Result>
+                <Result>
+                    <Field Description="Ethernet with vlan over ITMH" Name="RESULT_TYPE" Size="4" Value="ETH_WITH_VLAN_O_ITMH"/>                 
+                    <Field Description="Pad the header to 32 bytes" Name="OLP_HEADER_PADDING" Size="9*8" Type="ARRAY8"/>                          
+                    <Field Name="ETH_TYPE" Size="16" Type="UINT"/> 
+                    <Field Name="VID1" Type="VLAN_ID"/>
+                    <Field Name="DEI"/>
+                    <Field Name="PCP"/>
+                    <Field Name="TPID"/>
+                    <Field Name="SA" Type="L2_MAC"/>
+                    <Field Name="DA" Type="L2_MAC"/>
+                    <Field Name="ITMH_BASE"/>
+                </Result>
+                <Result>
+                    <Field Description="Ethernet without vlan over ITMH over PTCH2" Name="RESULT_TYPE" Size="4" Value="ETH_O_ITMH_PTCH2"/>
+                    <Field Description="Pad the header to 32 bytes" Name="OLP_HEADER_PADDING" Size="11*8" Type="ARRAY8"/>
+                    <Field Name="ETH_TYPE" Size="16" Type="UINT"/> 
+                    <Field Name="SA" Type="L2_MAC"/>             
+                    <Field Name="DA" Type="L2_MAC"/>               
+                    <Field Name="ITMH_BASE"/>
+                    <Field Name="PTCH_2"/>                                        
+                </Result>
+                <Result>
+                    <Field Description="Ethernet with vlan over ITMH over PTCH2" Name="RESULT_TYPE" Size="4" Value="ETH_WITH_VLAN_O_ITMH_PTCH2"/>
+                    <Field Description="Pad the header to 32 bytes" Name="OLP_HEADER_PADDING" Size="7*8" Type="ARRAY8"/>
+                    <Field Name="ETH_TYPE" Size="16" Type="UINT"/> 
+                    <Field Name="VID1" Type="VLAN_ID"/>
+                    <Field Name="DEI"/>
+                    <Field Name="PCP"/>
+                    <Field Name="TPID"/>
+                    <Field Name="SA" Type="L2_MAC"/>             
+                    <Field Name="DA" Type="L2_MAC"/>               
+                    <Field Name="ITMH_BASE"/>
+                    <Field Name="PTCH_2"/>                                        
+                </Result>
+            </MultipleResults>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>            
+            <FieldMapping ResultType="UDH_O_ITMH_PTCH2">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>
+                <Field Name="OLP_HEADER_PADDING">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>                           
+                        </Register>
+                    </Access>
+                </Field>   
+                <Field Name="UDH_BASE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)"/>                           
+                        </Register>
+                    </Access>
+                </Field>             
+                <Field Name="ITMH_BASE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(UDH_BASE)"/>
+                        </Register>
+                    </Access>
+                </Field>     
+                <Field Name="PTCH_2">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(UDH_BASE)+#RESULT_SIZE(ITMH_BASE)"/>
+                        </Register>
+                    </Access>
+                </Field>     
+            </FieldMapping>
+            <FieldMapping ResultType="ETH_O_UDH_ITMH_PTCH2">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>            
+                <Field Name="OLP_HEADER_PADDING">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>                           
+                        </Register>
+                    </Access>
+                </Field>     
+                <Field Name="ETH_TYPE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)"/>    
+                        </Register>
+                    </Access>
+                </Field>          
+                <Field Name="SA">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)"/>                           
+                        </Register>
+                    </Access>
+                </Field>          
+                <Field Name="DA">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(SA)"/>                           
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="UDH_BASE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(SA)+#RESULT_SIZE(DA)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ITMH_BASE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(SA)+#RESULT_SIZE(DA)+#RESULT_SIZE(UDH_BASE)"/>
+                        </Register>
+                    </Access>
+                </Field>                
+                <Field Name="PTCH_2">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(SA)+#RESULT_SIZE(DA)+#RESULT_SIZE(UDH_BASE)+#RESULT_SIZE(ITMH_BASE)"/>    
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>                        
+            <FieldMapping ResultType="ETH_WITH_VLAN_O_UDH_ITMH_PTCH2">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field> 
+                <Field Name="OLP_HEADER_PADDING">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>                           
+                        </Register>
+                    </Access>
+                </Field>       
+                <Field Name="ETH_TYPE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>                           
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="VID1">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)"/>
+                        </Register>
+                    </Access>
+                </Field>                     
+                <Field Name="DEI">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="PCP">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="TPID">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SA">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)+#RESULT_SIZE(TPID)"/>                           
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="DA">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)+#RESULT_SIZE(TPID)+#RESULT_SIZE(SA)"/>                           
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="UDH_BASE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)+#RESULT_SIZE(TPID)+#RESULT_SIZE(SA)+#RESULT_SIZE(DA)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ITMH_BASE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)+#RESULT_SIZE(TPID)+#RESULT_SIZE(SA)+#RESULT_SIZE(DA)+#RESULT_SIZE(UDH_BASE)"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="PTCH_2">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)+#RESULT_SIZE(TPID)+#RESULT_SIZE(SA)+#RESULT_SIZE(DA)+#RESULT_SIZE(UDH_BASE)+#RESULT_SIZE(ITMH_BASE)"/>
+                        </Register>
+                    </Access>
+                </Field>                 
+            </FieldMapping>
+            <FieldMapping ResultType="UDH_O_ITMH">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field> 
+                <Field Name="OLP_HEADER_PADDING">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>                           
+                        </Register>
+                    </Access>
+                </Field>                       
+                <Field Name="UDH_BASE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ITMH_BASE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(UDH_BASE)"/>
+                        </Register>
+                    </Access>
+                </Field> 
+            </FieldMapping>
+            <FieldMapping ResultType="ETH_O_UDH_ITMH">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field> 
+                <Field Name="OLP_HEADER_PADDING">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>                           
+                        </Register>
+                    </Access>
+                </Field>       
+                <Field Name="ETH_TYPE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>                           
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="SA">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)"/>                           
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="DA">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(SA)"/>                           
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="UDH_BASE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(SA)+#RESULT_SIZE(DA)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ITMH_BASE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(SA)+#RESULT_SIZE(DA)+#RESULT_SIZE(UDH_BASE)"/>
+                        </Register>
+                    </Access>
+                </Field> 
+            </FieldMapping>
+            <FieldMapping ResultType="ETH_WITH_VLAN_O_UDH_ITMH">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field> 
+                <Field Name="OLP_HEADER_PADDING">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>                           
+                        </Register>
+                    </Access>
+                </Field>       
+                <Field Name="ETH_TYPE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>                           
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="VID1">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)"/>
+                        </Register>
+                    </Access>
+                </Field>                     
+                <Field Name="DEI">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="PCP">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="TPID">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SA">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)+#RESULT_SIZE(TPID)"/>                           
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="DA">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)+#RESULT_SIZE(TPID)+#RESULT_SIZE(SA)"/>                           
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="UDH_BASE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)+#RESULT_SIZE(TPID)+#RESULT_SIZE(SA)+#RESULT_SIZE(DA)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ITMH_BASE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)+#RESULT_SIZE(TPID)+#RESULT_SIZE(SA)+#RESULT_SIZE(DA)+#RESULT_SIZE(UDH_BASE)"/>
+                        </Register>
+                    </Access>
+                </Field> 
+            </FieldMapping>
+            <FieldMapping ResultType="ITMH">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>     
+                <Field Name="OLP_HEADER_PADDING">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>                           
+                        </Register>
+                    </Access>
+                </Field>           
+                <Field Name="ITMH_BASE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>   
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)"/>
+                        </Register>
+                    </Access>
+                </Field>                   
+            </FieldMapping>
+            <FieldMapping ResultType="ETHERNET_O_ITMH">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>     
+                <Field Name="OLP_HEADER_PADDING">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>                           
+                        </Register>
+                    </Access>
+                </Field>           
+                <Field Name="ETH_TYPE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>                           
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)"/>
+                        </Register>
+                    </Access>
+                </Field>     
+                <Field Name="SA">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)"/>                           
+                        </Register>
+                    </Access>
+                </Field>          
+                <Field Name="DA">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>   
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(SA)"/>                        
+                        </Register>
+                    </Access>
+                </Field>      
+                <Field Name="ITMH_BASE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>   
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(SA)+#RESULT_SIZE(DA)"/>
+                        </Register>
+                    </Access>
+                </Field>                   
+            </FieldMapping>
+            <FieldMapping ResultType="ETH_WITH_VLAN_O_ITMH">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>       
+                <Field Name="OLP_HEADER_PADDING">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>       
+                        </Register>
+                    </Access>
+                </Field>           
+                <Field Name="ETH_TYPE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>       
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)"/>                    
+                        </Register>
+                    </Access>
+                </Field>  
+                <Field Name="VID1">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="DEI">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="PCP">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="TPID">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="SA">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)+#RESULT_SIZE(TPID)"/>                           
+                        </Register>
+                    </Access>
+                </Field>                                       
+                <Field Name="DA">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)+#RESULT_SIZE(TPID)+#RESULT_SIZE(SA)"/>                           
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="ITMH_BASE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)+#RESULT_SIZE(TPID)+#RESULT_SIZE(SA)+#RESULT_SIZE(DA)"/>
+                        </Register>
+                    </Access>
+                </Field>                 
+            </FieldMapping>
+            <FieldMapping ResultType="ETH_O_ITMH_PTCH2">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>            
+                <Field Name="OLP_HEADER_PADDING">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>                           
+                        </Register>
+                    </Access>
+                </Field>     
+                <Field Name="ETH_TYPE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)"/>    
+                        </Register>
+                    </Access>
+                </Field>          
+                <Field Name="SA">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)"/>                           
+                        </Register>
+                    </Access>
+                </Field>          
+                <Field Name="DA">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(SA)"/>                           
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ITMH_BASE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(SA)+#RESULT_SIZE(DA)"/>
+                        </Register>
+                    </Access>
+                </Field>                
+                <Field Name="PTCH_2">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(SA)+#RESULT_SIZE(DA)+#RESULT_SIZE(ITMH_BASE)"/>    
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping> 
+            <FieldMapping ResultType="ETH_WITH_VLAN_O_ITMH_PTCH2">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>            
+                <Field Name="OLP_HEADER_PADDING">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>                           
+                        </Register>
+                    </Access>
+                </Field>     
+                <Field Name="ETH_TYPE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)"/>    
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="VID1">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="DEI">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="PCP">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="TPID">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="SA">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)+#RESULT_SIZE(TPID)"/>                           
+                        </Register>
+                    </Access>
+                </Field>          
+                <Field Name="DA">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)+#RESULT_SIZE(TPID)+#RESULT_SIZE(SA)"/>                           
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ITMH_BASE">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)+#RESULT_SIZE(TPID)+#RESULT_SIZE(SA)+#RESULT_SIZE(DA)"/>
+                        </Register>
+                    </Access>
+                </Field>                
+                <Field Name="PTCH_2">
+                    <Access>
+                       <Register Name="OLP_DSP_HEADERr">
+                           <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                           <HwField Name="DSP_HEADER_Nf"/>
+                           <DataOffset Formula="#RESULT_SIZE(OLP_HEADER_PADDING)+#RESULT_SIZE(ETH_TYPE)+#RESULT_SIZE(VID1)+#RESULT_SIZE(DEI)+#RESULT_SIZE(PCP)+#RESULT_SIZE(TPID)+#RESULT_SIZE(SA)+#RESULT_SIZE(DA)+#RESULT_SIZE(ITMH_BASE)"/>    
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping> 
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OLP_DSP_ENGINE_CONFIGURATION">
+        <OneLineDescription>Configure the header of the DSPs from the OLP</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>        
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>                
+                <Field Name="OLP_COMMAND_DESTINATION"/>
+            </Key>
+            <Result>
+                <Field Description="DSP minimum size in bytes: If packet is smaller, 0 padding is added. Must be configured to even values." Name="MIN_DSP_SIZE"/>
+                <Field Name="MAX_DSP_CMD"/>
+                <Field Description="Maxium number of commands in a packet minus one." Name="MAX_CMD_DELAY" Size="3" Type="UINT"/>
+                <Field Description="1 for generating DSPs. When 0 DSPs are not generated." Name="DSP_GENERATION_ENABLE" Type="BOOL"/>
+                <Field Description="DSP Header size in Bytes. Valid values are 1 through 32." Name="DSP_HEADER_SIZE" Size="6" Type="UINT"/>                
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MIN_DSP_SIZE">
+                    <Access>
+                        <Register Name="OLP_DSP_ENGINE_CONFIGURATIONr">
+                            <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                            <HwField Name="MIN_DSP_Nf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="MAX_DSP_CMD">
+                    <Access>
+                        <Register Name="OLP_DSP_ENGINE_CONFIGURATIONr">
+                            <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                            <HwField Name="MAX_DSP_CMD_Nf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="MAX_CMD_DELAY">
+                    <Access>
+                        <Register Name="OLP_DSP_ENGINE_CONFIGURATIONr">
+                            <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                            <HwField Name="MAX_CMD_DELAY_Nf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="DSP_GENERATION_ENABLE">
+                    <Access>
+                        <Register Name="OLP_DSP_ENGINE_CONFIGURATIONr">
+                            <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                            <HwField Name="DSP_GENERATION_EN_Nf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="DSP_HEADER_SIZE">
+                    <Access>
+                        <Register Name="OLP_DSP_ENGINE_CONFIGURATIONr">
+                            <ArrayOffset Formula="#KEY_VALUE(OLP_COMMAND_DESTINATION)"/>
+                            <HwField Name="DSP_HEADER_SIZE_Nf"/>
+                        </Register> 
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="OLP_GENERAL_CONFIGURATION">
+        <OneLineDescription>Configure the event fifo properties</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>                
+            </Key>
+            <Result>
+                <Field Description="Mask for comparison only valid bits are checked" Name="DSP_IDENTIFIER_MASK" Type="DSP_IDENTIFIER_ID"/>
+                <Field Description="Two bytes ID to determine this is a DSP" Name="DSP_IDENTIFIER_ID"/>
+                <Field Description="If Set, Identifier Check is perfomed" Name="DSP_IDENTIFIER_CHECK" Type="BOOL"/>
+                <Field Description="Number of bytes to skip from the start of the DSP until the ID" Name="DSP_IDENTIFIER_BYTES_TO_SKIP" Size="6" Type="UINT"/>
+                <Field Description="Number of bytes to skip from the start of the DSP until the first command. Valid range 2-32" Name="DSP_FIRST_CMD_OFFSET" Size="6" Type="UINT"/>
+                <Field Description="Should be set to 1 when non-jr2 device in the system." Name="IS_JR_MODE" Size="1" Type="BOOL" Valid="DNX_DATA.l2.olp.jr_mode_enhanced_performance_enable"/>
+                <Field Description="If set, learn events to MACT will be generated with INSERT command" Name="LEL_USE_INSERT_CMD" Size="1" Type="BOOL" Valid="DNX_DATA.l2.general.learning_use_insert_cmd"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DSP_IDENTIFIER_MASK">
+                    <Access>
+                        <Register Name="OLP_RX_CONFIGS_DSP_IDENTIFIERr">
+                            <HwField Name="DSP_IDENTIFIER_MASKf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="DSP_IDENTIFIER_ID">
+                    <Access>
+                        <Register Name="OLP_RX_CONFIGS_DSP_IDENTIFIERr">
+                            <HwField Name="DSP_IDENTIFIER_IDf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="DSP_IDENTIFIER_CHECK">
+                    <Access>
+                        <Register Name="OLP_RX_CONFIGS_DSP_IDENTIFIERr">
+                            <HwField Name="DSP_IDENTIFIER_CHECKf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="DSP_IDENTIFIER_BYTES_TO_SKIP">
+                    <Access>
+                        <Register Name="OLP_RX_CONFIGS_DSP_IDENTIFIERr">
+                            <HwField Name="DSP_IDENTIFIER_BYTES_TO_SKIPf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="DSP_FIRST_CMD_OFFSET">
+                    <Access>
+                        <Register Name="OLP_RX_CONFIGS_GENERALr">
+                            <HwField Name="DSP_FIRST_CMD_OFFSETf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="IS_JR_MODE">
+                    <Access>
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_1r">
+                            <HwField Name="JERICHO_1_IN_SYSTEMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="Q2A_A0 Q2A_B0" Name="LEL_USE_INSERT_CMD">
+                    <Access>
+                        <Register Name="IPPB_LEL_USE_INSERT_CMDr">
+                            <HwField Name="LEL_USE_INSERT_CMDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="L2_LEARN_GENERAL_CONFIGURATION">
+        <OneLineDescription>General properties of the learn FILTER</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>                
+            </Key>
+            <Result>
+                <Field Description="If set, filter examines each entry before transmission; if it is a duplicate, it is dropped and a counter is incremented." Name="LEARN_FILTER_DROP_DUPLICATE" Type="BOOL"/>
+                <Field Description="Entry Time to leave in Filter, counted in LearnFilterResolution units" Name="LEARN_FILTER_ENTRY_TTL" Size="6" Type="UINT"/>
+                <Field Name="LEARN_FILTER_RES"/>
+                <Field Name="LEARN_FILTER_WATERMARK" Permission="READONLY" Size="4" Type="UINT"/>
+                <Field Name="LEARN_FILTER_DROP_DUPLICATE_COUNTER" Permission="READONLY" Size="18" Type="UINT"/>
+                <Field Name="LEARN_FILTER_DROP_DUPLICATE_COUNTER_OVERFLOW" Permission="READONLY" Type="BOOL"/>                
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LEARN_FILTER_DROP_DUPLICATE">
+                    <Access>
+                        <Register Name="IPPB_LARGE_EM_LEARN_FILTER_PROPERTIESr">
+                            <HwField Name="LEARN_FILTER_DROP_DUPLICATEf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="LEARN_FILTER_ENTRY_TTL">
+                    <Access>
+                        <Register Name="IPPB_LARGE_EM_LEARN_FILTER_PROPERTIESr">
+                            <HwField Name="LEARN_FILTER_ENTRY_TTLf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="LEARN_FILTER_RES">
+                    <Access>
+                        <Register Name="IPPB_LARGE_EM_LEARN_FILTER_PROPERTIESr">
+                            <HwField Name="LEARN_FILTER_RESf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="LEARN_FILTER_WATERMARK">
+                    <Access>
+                        <Register Name="IPPB_LARGE_EM_LEARN_FILTER_PROPERTIESr">
+                            <HwField Name="LEL_LEARN_FILTER_WATERMARKf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="LEARN_FILTER_DROP_DUPLICATE_COUNTER">
+                    <Access>
+                        <Register Name="IPPB_LARGE_EM_LEARN_FILTER_PROPERTIESr">
+                            <HwField Name="LEL_LEARN_FILTER_DROP_DUPLICATE_COUNTERf"/>
+                        </Register> 
+                    </Access>
+                </Field>
+                <Field Name="LEARN_FILTER_DROP_DUPLICATE_COUNTER_OVERFLOW">
+                    <Access>
+                        <Register Name="IPPB_LARGE_EM_LEARN_FILTER_PROPERTIESr">
+                            <HwField Name="LEL_LEARN_FILTER_DROP_DUPLICATE_COUNTER_OVERFLOWf"/>
+                        </Register> 
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="L2_LEARN_PAYLOAD_BUILD">
+        <OneLineDescription>Rules for building the learn payload</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>                
+                <Field Name="LEARN_PAYLOAD_CONTEXT"/>                                                
+            </Key>
+            <Result>                
+                <Field Name="LEARN_FFC_INSTRUCTION" NofInstances="6" Size="19" Type="UINT"/>                
+                <Field Name="LEARN_KBR_VALID" NofInstances="6" Type="BOOL"/>
+                <Field Name="LEARN_PAYLOAD_KEY_GEN_VAR" Size="8"/>
+                <Field Name="LEARN_FORMAT_INDEX" Size="2"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LEARN_FFC_INSTRUCTION">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPF_LEARN_PAYLOAD_CONTEXT_MAPPINGm">
+                            <!-- 3 IPPF blocks. In each block 16 lines. Every line has 130 bit. This access is for IPPF 0. -->
+                            <!-- FFC instructions are in the beginning of the line. Each FFC intruction has 19 bits. -->
+                            <HwField Name="FFC_INSTRUCTIONSf"/>                               
+                           <DataOffset Formula="#RESULT_SIZE(LEARN_FFC_INSTRUCTION)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPA_LEARN_PAYLOAD_CONTEXT_MAPPINGm">
+                            <!-- 3 IPPF blocks. In each block 16 lines. Every line has 130 bit. This access is for IPPF 0. -->
+                            <!-- FFC instructions are in the beginning of the line. Each FFC intruction has 19 bits. -->
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="FFC_INSTRUCTIONSf"/>                               
+                           <DataOffset Formula="#RESULT_SIZE(LEARN_FFC_INSTRUCTION)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>    
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPA_LEARN_PAYLOAD_CONTEXT_MAPPINGm">
+                            <!-- 3 IPPF blocks. In each block 16 lines. Every line has 130 bit. This access is for IPPF 0. -->
+                            <!-- FFC instructions are in the beginning of the line. Each FFC intruction has 19 bits. -->
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="FFC_INSTRUCTIONSf"/>                               
+                           <DataOffset Formula="#RESULT_SIZE(LEARN_FFC_INSTRUCTION)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>                        
+                </Field>
+                <Field Name="LEARN_KBR_VALID">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPF_LEARN_PAYLOAD_CONTEXT_MAPPINGm">
+                            <!-- In each block 16 lines. Every line has 130 bit. -->                            
+                            <HwField Name="KBR_VALID_BITMAPSf"/>                               
+                            <DataOffset Formula="#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPA_LEARN_PAYLOAD_CONTEXT_MAPPINGm">
+                            <!-- In each block 16 lines. Every line has 130 bit. -->                            
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="KBR_VALID_BITMAPSf"/>                               
+                            <DataOffset Formula="#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>    
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPA_LEARN_PAYLOAD_CONTEXT_MAPPINGm">
+                            <!-- In each block 16 lines. Every line has 130 bit. -->                            
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="KBR_VALID_BITMAPSf"/>                               
+                            <DataOffset Formula="#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>                    
+                </Field> 
+                <Field Name="LEARN_PAYLOAD_KEY_GEN_VAR">
+                    <Access>
+                        <Memory Name="IPPF_LEARN_PAYLOAD_CONTEXT_MAPPINGm">
+                            <!-- In each block 16 lines. Every line has 130 bit. -->                            
+                            <HwField Name="LEARN_PAYLOAD_KEY_GEN_VARf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="IPPA_LEARN_PAYLOAD_CONTEXT_MAPPINGm">
+                            <!-- In each block 16 lines. Every line has 130 bit. -->                            
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="LEARN_PAYLOAD_KEY_GEN_VARf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="IPPA_LEARN_PAYLOAD_CONTEXT_MAPPINGm">
+                            <!-- In each block 16 lines. Every line has 130 bit. -->                            
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="LEARN_PAYLOAD_KEY_GEN_VARf"/>
+                        </Memory>
+                    </Access>                    
+                </Field>   
+                <Field Name="LEARN_FORMAT_INDEX">
+                    <Access>
+                        <Memory Name="IPPF_LEARN_PAYLOAD_CONTEXT_MAPPINGm">
+                            <!-- In each block 16 lines. Every line has 130 bit. -->                            
+                            <HwField Name="LEARN_FORMAT_IDXf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="IPPA_LEARN_PAYLOAD_CONTEXT_MAPPINGm">
+                            <!-- In each block 16 lines. Every line has 130 bit. -->                            
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="LEARN_FORMAT_IDXf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="IPPA_LEARN_PAYLOAD_CONTEXT_MAPPINGm">
+                            <!-- In each block 16 lines. Every line has 130 bit. -->                            
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="LEARN_FORMAT_IDXf"/>
+                        </Memory>
+                    </Access>                    
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="ING_VSI_LEARN">
+        <OneLineDescription>Ingress VSI context.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VSI_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="LEARN_KEY_CONTEXT"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LEARN_KEY_CONTEXT">
+                    <Access>
+                        <!-- 512=2^9 it means 0 in the 10th bit of the VSI -->
+                        <KeyCondition Type="LOWER_THAN" Value="512"/>
+                        <Memory GroupName="INGRESS_VSI_PROFILE_ATTRIBUTES_0">
+                            <HwField Name="VSI_LEARN_KEY_CONTEXT_0f"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <!-- 511=2^9-1 it means 1 in the 10th bit of the VSI -->
+                        <KeyCondition Type="BIGGER_THAN" Value="511"/>
+                        <Memory GroupName="INGRESS_VSI_PROFILE_ATTRIBUTES_1">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%512"/>
+                            <HwField Name="VSI_LEARN_KEY_CONTEXT_1f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="L2_LEARN_KEY_CONSTRUCTION">
+        <OneLineDescription>Ingress VSI context.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="LEARN_KEY_CONTEXT"/>
+            </Key>
+            <Result>
+                <Field Name="MACT_APP_DB_IDX"/>
+                <Field Name="VLAN_SOURCE"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MACT_APP_DB_IDX">
+                    <Access>
+                        <Register GroupName="INGRESS_LEARN_KEY_CONTEXT">
+                            <DataOffset Formula="#KEY_VALUE(LEARN_KEY_CONTEXT)*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_SOURCE">
+                    <Access>
+                        <Register GroupName="INGRESS_LEARN_KEY_CONTEXT">
+                            <DataOffset Formula="#KEY_VALUE(LEARN_KEY_CONTEXT)*#FULL_RESULT_SIZE()+#RESULT_SIZE(MACT_APP_DB_IDX)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="L2_LEARN_FORMAT_INDEX_TO_VMV">
+        <OneLineDescription>Map 2 bits entry format index to 6 bits vmv.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="LEARN_FORMAT_INDEX"/>
+            </Key>
+            <Result>
+                <Field Description="Format of mdb entry" Name="MDB_VMV" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MDB_VMV">
+                    <Access>
+                        <Register Name="IPPB_LEL_ENTRY_FORMAT_INDEX_TO_VMVr">
+                            <DataOffset Formula="#KEY_VALUE(LEARN_FORMAT_INDEX)*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="L2_LEARN_FORMAT_INDEX_FROM_VMV">
+        <OneLineDescription>Map 6 bits vmv to 2 bits entry format index.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MDB_VMV" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="LEARN_FORMAT_INDEX"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LEARN_FORMAT_INDEX">
+                    <Access>
+                        <Register Name="MACT_VMV_TO_ENTRY_FORMAT_INDEX_MAPr">
+                            <DataOffset Formula="#KEY_VALUE(MDB_VMV)*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="L2_AGE_SCAN">
+        <OneLineDescription>Configure L2 Age Scan</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Trigger an age scan if it is set to 1" Name="AGE_SCAN_TRIGGER" Permission="TRIGGER" Type="BOOL"/>
+                <Field Name="AGE_SCAN_STATUS" Permission="READONLY"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0" Name="AGE_SCAN_TRIGGER">
+                    <Access>
+                        <Register Name="MDB_REG_3020r">
+                            <HwField Name="REG_3020f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0" Name="AGE_SCAN_STATUS">
+                    <Access>
+                        <Register Name="MDB_REG_212r">
+                            <HwField Name="ITEM_36_37f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="JR2_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="AGE_SCAN_TRIGGER">
+                    <Access>
+                        <Register Name="MDB_REG_3020r">
+                            <HwField Name="REG_3020f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="AGE_SCAN_STATUS">
+                    <Access>
+                        <Register Name="MDB_REG_221r">
+                            <HwField Name="ITEM_36_37f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                 <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="AGE_SCAN_TRIGGER">
+                    <Access>
+                        <Register Name="MDB_REG_301Cr">
+                            <HwField Name="REG_301Cf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="AGE_SCAN_STATUS">
+                    <Access>
+                        <Register Name="MDB_REG_215r">
+                            <HwField Name="ITEM_36_37f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2P_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="J2P_A0" Name="AGE_SCAN_TRIGGER">
+                    <Access>
+                        <Register Name="MDB_REG_3020r">
+                            <HwField Name="REG_3020f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="AGE_SCAN_STATUS">
+                    <Access>
+                        <Register Name="MDB_REG_217r">
+                            <HwField Name="ITEM_37_38f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OLP_JR_TO_JR_2_TRANSLATION_CFG">
+        <OneLineDescription>Configuration for mapping from JR-DSP to INT-DSP</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="6b VMV for JR2 Int-DSP/Event when in JR mode." Name="JR_TO_JR_2_VMV" Size="6" Type="UINT"/>
+                <Field Description="4b Rbd/Age for JR2 Int-DSP/Event when in JR mode." Name="JR_TO_JR_2_AGE" Size="4" Type="UINT"/>
+                <Field Description="6b App-db for JR2 Int-DSP/Event when in JR mode." Name="JR_TO_JR_2_APP_DB" Size="6" Type="UINT"/>
+                <Field Description="10b Key73:64 Mask JR2 Int-DSP/Event when in JR mode." Name="JR_TO_JR_2_KEY_MASK" Size="10" Type="UINT"/>
+                <Field Description="Cmd type 000 (delete) in JR mode." Name="JR_CMD_TYPE_DELETE" Size="3" Type="OLP_COMMAND"/>
+                <Field Description="Cmd type 001 (Insert) in JR mode." Name="JR_CMD_TYPE_INSERT" Size="3" Type="OLP_COMMAND"/>
+                <Field Description="Cmd type 010 (Refresh) in JR mode." Name="JR_CMD_TYPE_REFRESH" Size="3" Type="OLP_COMMAND"/>
+                <Field Description="Cmd type 011 (Learn) in JR mode." Name="JR_CMD_TYPE_LEARN" Size="3" Type="OLP_COMMAND"/>
+                <Field Description="Cmd type 100 (Defrag) in JR mode." Name="JR_CMD_TYPE_DEFRAG" Size="3" Type="UINT"/>
+                <Field Description="Cmd type 101 (Ack) in JR mode." Name="JR_CMD_TYPE_ACK" Size="3" Type="OLP_COMMAND"/>
+                <Field Description="Cmd type 110 (Move) in JR mode." Name="JR_CMD_TYPE_TRANSPLANT" Size="3" Type="OLP_COMMAND"/>
+                <Field Description="Cmd type 111 (Change-Fail) in JR mode." Name="JR_CMD_TYPE_CHANGE_FAIL" Size="3" Type="UINT"/>
+                <Field Description="Used as initial value for the Jr2_learn_payload, required to create the constants on the payload (type, Entry-Strength, etc)." Name="EEI_AND_FEC_INIT_VALUE" Size="64" Type="ARRAY8"/>
+                <Field Description="Used as initial value for the Jr2_learn_payload, required to create the constants on the payload (type, Entry-Strength, etc)." Name="LIF_AND_DESTINATION_INIT_VALUE" Size="64" Type="ARRAY8"/>
+                <Field Description="Define the configuration for Learn Command Destination Offset." Name="DESTINATION_OFFSET" Size="6" Type="UINT"/>
+                <Field Description="Define the configuration for Learn Command OutLif Offset." Name="OUT_LIF_OFFSET" Size="6" Type="UINT"/>
+                <Field Description="Define the configuration for Learn Command Eei Offset." Name="EEI_OFFSET" Size="6" Type="UINT"/>
+                <Field Description="Define the configuration for Learn Command Fec Offset." Name="FEC_OFFSET" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="JR_TO_JR_2_VMV">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_TO_JR_2_VMVr">
+                            <HwField Name="CFG_JR_TO_JR_2_VMVf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_TO_JR_2_AGE">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_TO_JR_2_AGEr">
+                            <HwField Name="CFG_JR_TO_JR_2_AGEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_TO_JR_2_APP_DB">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_TO_JR_2_APP_DBr">
+                            <HwField Name="CFG_JR_TO_JR_2_APP_DBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_TO_JR_2_KEY_MASK">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_TO_JR_2_KEY_MASKr">
+                            <HwField Name="CFG_JR_TO_JR_2_KEY_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_CMD_TYPE_DELETE">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_CMD_TO_JR_2_CMD_MAPr">
+                            <HwField Name="JR_CMD_TYPE_000f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_CMD_TYPE_INSERT">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_CMD_TO_JR_2_CMD_MAPr">
+                            <HwField Name="JR_CMD_TYPE_001f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_CMD_TYPE_REFRESH">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_CMD_TO_JR_2_CMD_MAPr">
+                            <HwField Name="JR_CMD_TYPE_010f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_CMD_TYPE_LEARN">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_CMD_TO_JR_2_CMD_MAPr">
+                            <HwField Name="JR_CMD_TYPE_011f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_CMD_TYPE_DEFRAG">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_CMD_TO_JR_2_CMD_MAPr">
+                            <HwField Name="JR_CMD_TYPE_100f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_CMD_TYPE_ACK">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_CMD_TO_JR_2_CMD_MAPr">
+                            <HwField Name="JR_CMD_TYPE_101f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_CMD_TYPE_TRANSPLANT">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_CMD_TO_JR_2_CMD_MAPr">
+                            <HwField Name="JR_CMD_TYPE_110f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_CMD_TYPE_CHANGE_FAIL">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_CMD_TO_JR_2_CMD_MAPr">
+                            <HwField Name="JR_CMD_TYPE_111f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EEI_AND_FEC_INIT_VALUE">
+                    <Access>
+                        <Register Name="OLP_LEARN_CMD_EEI_AND_FEC_JR_2_LEARN_PAYLOAD_INITIAL_VALUEr">
+                            <HwField Name="LEARN_CMD_EEI_AND_FEC_JR_2_LEARN_PAYLOAD_INITIAL_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LIF_AND_DESTINATION_INIT_VALUE">
+                    <Access>
+                        <Register Name="OLP_LEARN_CMD_LIF_AND_DESTINATION_JR_2_LEARN_INFO_DATA_INITIAL_VALUEr">
+                            <HwField Name="LEARN_CMD_LIF_AND_DESTINATION_JR_2_LEARN_INFO_DATA_INITIAL_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DESTINATION_OFFSET">
+                    <Access>
+                        <Register Name="OLP_LEARN_CMD_DESTINATION_OFFSETr">
+                            <HwField Name="LEARN_CMD_DESTINATION_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OUT_LIF_OFFSET">
+                    <Access>
+                        <Register Name="OLP_LEARN_CMD_OUT_LIF_OFFSETr">
+                            <HwField Name="LEARN_CMD_OUT_LIF_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EEI_OFFSET">
+                    <Access>
+                        <Register Name="OLP_LEARN_CMD_EEI_OFFSETr">
+                            <HwField Name="LEARN_CMD_EEI_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FEC_OFFSET">
+                    <Access>
+                        <Register Name="OLP_LEARN_CMD_FEC_OFFSETr">
+                            <HwField Name="LEARN_CMD_FEC_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OLP_JR_2_TO_JR_TRANSLATION_CFG">
+        <OneLineDescription>Configuration For payload translation from JR2 to JR</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="4b logical db_type to be used in key73:70 for JR DSP." Name="LOGICAL_DB_TYPE" Size="4" Type="UINT"/>
+                <Field Description="Cmd type 000 (Insert) in JR2 mode." Name="JR_2_CMD_TYPE_INSERT" Size="3" Type="UINT"/>
+                <Field Description="Cmd type 001 (Transplant) in JR2 mode." Name="JR_2_CMD_TYPE_TRANSPLANT" Size="3" Type="UINT"/>
+                <Field Description="Cmd type 010 (Delete) in JR2 mode." Name="JR_2_CMD_TYPE_DELETE" Size="3" Type="UINT"/>
+                <Field Description="Cmd type 011 (Refresh) in JR2 mode." Name="JR_2_CMD_TYPE_REFRESH" Size="3" Type="UINT"/>
+                <Field Description="Cmd type 100 (Learn) in JR2 mode." Name="JR_2_CMD_TYPE_LEARN" Size="3" Type="UINT"/>
+                <Field Description="Cmd type 101 (Ack) in JR2 mode." Name="JR_2_CMD_TYPE_ACK" Size="3" Type="UINT"/>
+                <Field Description="Cmd type 110 (Flush Reply) in JR2 mode." Name="JR_2_CMD_TYPE_FLUSH_REPLY" Size="3" Type="UINT"/>
+                <Field Description="Cmd type 111 (NOP) in JR2 mode." Name="JR_2_CMD_TYPE_NOP" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LOGICAL_DB_TYPE">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_LOGICAL_DB_TYPEr">
+                            <HwField Name="CFG_JR_LOGICAL_DB_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_2_CMD_TYPE_INSERT">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_2_CMD_TO_JR_CMD_MAPr">
+                            <HwField Name="JR_2_CMD_TYPE_000f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_2_CMD_TYPE_TRANSPLANT">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_2_CMD_TO_JR_CMD_MAPr">
+                            <HwField Name="JR_2_CMD_TYPE_001f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_2_CMD_TYPE_DELETE">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_2_CMD_TO_JR_CMD_MAPr">
+                            <HwField Name="JR_2_CMD_TYPE_010f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_2_CMD_TYPE_REFRESH">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_2_CMD_TO_JR_CMD_MAPr">
+                            <HwField Name="JR_2_CMD_TYPE_011f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_2_CMD_TYPE_LEARN">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_2_CMD_TO_JR_CMD_MAPr">
+                            <HwField Name="JR_2_CMD_TYPE_100f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_2_CMD_TYPE_ACK">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_2_CMD_TO_JR_CMD_MAPr">
+                            <HwField Name="JR_2_CMD_TYPE_101f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_2_CMD_TYPE_FLUSH_REPLY">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_2_CMD_TO_JR_CMD_MAPr">
+                            <HwField Name="JR_2_CMD_TYPE_110f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_2_CMD_TYPE_NOP">
+                    <Access>
+                        <Register Name="OLP_CFG_JR_2_CMD_TO_JR_CMD_MAPr">
+                            <HwField Name="JR_2_CMD_TYPE_111f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

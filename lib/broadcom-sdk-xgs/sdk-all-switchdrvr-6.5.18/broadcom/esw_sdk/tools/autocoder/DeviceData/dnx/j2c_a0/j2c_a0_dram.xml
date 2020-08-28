@@ -1,0 +1,207 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0" module="dram">
+    <includes>
+        <include>soc/shmoo_hbm16.h</include>
+        <include>bcm_int/dnx/dram/hbmc/hbmc.h</include>
+    </includes>
+    
+    <sub_module name="hbm">
+        <features>
+            <feature name="is_supported" value="1"></feature>
+            <feature name="low_temperature_dram_protction" value="1"></feature>
+            <feature name="dword_alignment_check" value="0"></feature>
+            <feature name="is_delete_bdb_supported" value="1"></feature>
+            <feature name="cpu2tap_access" value="0"></feature>
+            <feature name="seamless_commands_to_same_bank_control" value="1"></feature> <!-- in J2C this feature exists, however it should always be deaticted (it is activated by default unfortunatly) -->
+        </features>
+
+        <numerics>
+            <numeric name="stop_traffic_low_temp_threshold" value="5">
+                <property name="dram_low_temperature_threshold_stop_traffic" method="range"
+                  range_min="0"
+                  range_max="DATA(dram, hbm, restore_traffic_low_temp_threshold)-1">
+                    <doc>
+                        This soc property holds the low temperature threshold.
+                        When getting below this temperature, system will stop directing traffic to DRAM.
+                        Units: degrees Celsius 
+                    </doc>
+                </property>
+            </numeric> 
+            <numeric name="restore_traffic_low_temp_threshold" value="10">
+                <property name="dram_low_temperature_threshold_restore_traffic" method="range"
+                  range_min="0"
+                  range_max="DATA(dram, hbm, restore_traffic_temp_threshold)-1">
+                    <doc>
+                        This soc property holds temperature threshold.
+                        When crossing this threshold from below, system will renew directing traffic to DRAM.
+                        Units: degrees Celsius 
+                    </doc>
+                </property>
+            </numeric> 
+            <numeric name="power_down_low_temp_threshold" value="0">
+                <property name="dram_low_temperature_threshold_power_down" method="range"
+                  range_min="0"
+                  range_max="DATA(dram, hbm, stop_traffic_low_temp_threshold)-1">
+                    <doc>
+                        This soc property holds temperature threshold.
+                        When crossing this threshold from above, system will power down DRAM.
+                        Units: degrees Celsius 
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <defines>
+            <define name="hbc_physical_last_in_chain" value="5"></define>
+        </defines>
+
+        <tables> 
+            <table name="channel_symmetric_regs">
+                <key name="index" size="19"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry index="0" reg="HBC_HBM_CONFIGr"></entry>
+                    <entry index="1" reg="HBC_HBM_MODE_REGISTERSr"></entry>
+                    <entry index="2" reg="HBC_HBM_MODE_REGISTER_MANAGER_CONFIGr"></entry>
+                    <entry index="3" reg="HBC_DATA_SOURCE_CONFIGr"></entry>
+                    <entry index="4" reg="HBC_DSI_ASYNC_FIFO_CONFIGr"></entry>
+                    <entry index="5" reg="HBC_WPBQ_CONFIGr"></entry>
+                    <entry index="6" reg="HBC_RPBQ_CONFIGr"></entry>
+                    <entry index="7" reg="HBC_HBM_ROW_ACCESS_TIMINGSr"></entry>
+                    <entry index="8" reg="HBC_HBM_COLUMN_ACCESS_TIMINGSr"></entry>
+                    <entry index="9" reg="HBC_HBM_REFRESH_TIMINGSr"></entry>
+                    <entry index="10" reg="HBC_HBM_GENERAL_TIMINGSr"></entry>
+                    <entry index="11" reg="HBC_HBM_REFRESH_INTERVALSr"></entry>
+                    <entry index="12" reg="HBC_TSM_CONFIGr"></entry>
+                    <entry index="13" reg="HBC_TSM_READ_WRITE_SWITCH_CONFIGr"></entry>
+                    <entry index="14" reg="HBC_PIPELINES_COMMAND_PIN_MUXr"></entry>
+                    <entry index="15" reg="HBC_PIPELINES_BANK_REMAPPINGr"></entry>
+                    <entry index="16" reg="HBC_PIPELINES_PHY_RCMDr"></entry>
+                    <entry index="17" reg="HBC_HBM_CPU_CONTROLr"></entry>
+                    <entry index="18" reg="HBC_PIPELINES_CONFIGr"></entry>
+                </entries>
+            </table>
+
+            <table name="channel_not_symmetric_regs">
+                <key name="index" size="0"></key>
+                <value name="reg" default="INVALIDr"></value>
+            </table>
+
+            <table name="controller_symmetric_regs">
+                <key name="index" size="10"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry index="0" reg="HBMC_HBM_PLL_CONFIGr"></entry>
+                    <entry index="1" reg="HBMC_HBM_RESET_CONTROLr"></entry>
+                    <entry index="2" reg="HBMC_HBM_PHY_CONTROLr"></entry>
+                    <entry index="3" reg="HBMC_HBM_PHY_CHANNEL_CONTROLr"></entry>
+                    <entry index="4" reg="TDU_WRITE_REQUEST_PATH_CONFIGr"></entry>
+                    <entry index="5" reg="TDU_READ_REQUEST_PATH_CONFIGr"></entry>
+                    <entry index="6" reg="TDU_READ_DATA_PATH_CONFIGr"></entry>
+                    <entry index="7" reg="TDU_ADDRESS_TRANSLATION_MATRIXr"></entry>
+                    <entry index="8" reg="TDU_DRAM_BLOCKED_CONFIGr"></entry>
+                    <entry index="9" reg="TDU_ADDRESS_TRANSLATION_CONFIGr"></entry>
+                </entries>
+            </table>
+
+            <table name="controller_not_symmetric_regs">
+                <key name="index" size="0"></key>
+                <value name="reg" default="INVALIDr"></value>
+            </table>
+
+        </tables>
+    </sub_module>
+
+    <sub_module name="general_info">
+        <defines>
+            <define name="max_nof_drams" value="1"></define>
+        </defines>  
+        <numerics>
+            <numeric name="frequency" value="1000">
+                <property name="ext_ram_freq" method="range" range_min="500" range_max="1400">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes 
+                        dram Frequency in MHZ
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+            <table name="dram_info">
+                <value name="dram_type" default="SHMOO_HBM16_DRAM_TYPE_GEN2"></value>
+                <value name="dram_bitmap" default="0x1">
+                    <property name="ext_ram_enabled_bitmap" method="range" range_min="0x0" range_max="0x1">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            A bitmap that indicates which HBMs are used.
+                        </doc>
+                    </property>
+                </value>
+                <value name="nof_columns" default="32">
+                    <property name="ext_ram_columns" method="direct_map" extern="0">
+                        <map name="32" value="32"></map>
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            Number of columns in the dram
+                        </doc>
+                    </property>
+                </value>
+                <value name="nof_rows" default="16384">
+                    <property name="ext_ram_rows" method="direct_map" extern="0">
+                        <map name="16384" value="16384"></map>
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            Number of rows in the dram
+                        </doc>
+                    </property>
+                </value>
+                <value name="nof_banks" default="32">
+                    <property name="ext_ram_banks" method="direct_map" extern="0">
+                        <map name="32" value="32"></map>
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            Number of banks in the dram
+                        </doc>
+                    </property>
+                </value>
+                <value name="data_rate" default="DATA(dram, general_info, frequency) * 2"></value>
+                <value name="ref_clock" default="100"></value>
+                <value name="ctl_type" default="SHMOO_HBM16_CTL_TYPE_1"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="address_translation">
+        <numerics>
+        </numerics>
+
+        <defines>
+        </defines>
+
+        <tables>
+            <table name="matrix_configuration" doc="address translation matrix(ATM) configuration options">
+                <key name="matrix_option" size="DNX_HBMC_NOF_ATMS"/>
+                <value name="logical_to_physical" default="0"></value>
+                <entries>
+                    <entry matrix_option="DNX_HBMC_SINGLE_HBM_ATM" logical_to_physical="0x1000000, 0x0400002, 0x0000024, 0x0004008, 0x0000041, 0x0008008, 0x0010004, 0x0020002, 0x0000011, 0x0000080, 0x0000100, 0x0000200, 0x0000400, 0x0000800, 0x0001000, 0x0002000, 0x0000001, 0x0000002, 0x0000004, 0x0000008, 0x0040000, 0x0080000, 0x0100000, 0x0000000, 0x0800000, 0x200000, 0x0000000, 0x0000000, 0x0000000, 0x0000000"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="dram_block">
+        <features>
+            <feature name="write_minus_read_leaky_bucket_disable"></feature>
+            <feature name="average_read_inflights_leaky_bucket"></feature>
+            <feature name="write_plus_read_leaky_bucket_disable"></feature>
+        </features>
+
+        <defines>
+            <define name="leaky_bucket_window_size" value="4096"></define>
+            <define name="wmr_reset_on_deassert" value="0"></define>
+            <define name="wmr_full_size" value="30"></define>
+        </defines>
+    </sub_module>
+
+</device_data>

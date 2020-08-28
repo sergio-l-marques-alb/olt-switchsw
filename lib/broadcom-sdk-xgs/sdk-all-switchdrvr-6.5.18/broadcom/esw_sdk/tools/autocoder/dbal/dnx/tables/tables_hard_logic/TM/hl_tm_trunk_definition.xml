@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+    <AppDB Name="TRUNK_CONSISTENT_HASHING_PROFILE">
+        <OneLineDescription>consistent hashing configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PROFILE_INDEX" Size="9" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="MEMBER_BASE" Size="8" Type="UINT"/>
+                <Field Name="MEMBER_MODE" Size="2" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LAG</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MEMBER_BASE">
+                    <Access>
+                        <Memory Name="CGM_LAG_GROUP_PROFILEm">
+                            <HwField Name="MEMBER_BASEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MEMBER_MODE">
+                    <Access>
+                        <Memory Name="CGM_LAG_GROUP_PROFILEm">
+                            <HwField Name="MEMBER_MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TRUNK_CONSISTENT_HASHING_MEMBERS_MAP">
+        <OneLineDescription>consistent hashing members mapping</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HASHED_INDEX" Size="14" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="MAPPED_MEMBER" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LAG</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MAPPED_MEMBER">
+                    <Access>
+                        <Memory Name="CGM_LAG_MEMBER_TABLEm">
+                            <HwField Name="LAG_MEMBER_TABLE_DATAf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TRUNK_POOL_ATTRIBUTES">
+        <OneLineDescription>POOL specific attributes</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="1" Name="POOL_INDEX" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="POOL_SIZE_MODE" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LAG</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="POOL_SIZE_MODE">
+                    <Access>
+                        <KeyCondition Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_3r">
+                            <HwField Name="LAG_MODE_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_3r">
+                            <HwField Name="LAG_MODE_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TRUNK_MEMBERS">
+        <OneLineDescription>trunk members data base - contain only enabled members</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MEMBER_INDEX" Size="15" Type="UINT"/> <!-- FIXME make sure to change it later to a size defined in dnx data -->
+            </Key>
+            <Result>
+            <!-- This is just SYS_PORT_ID not Encoded DESTINATION -->
+                <Field Name="DST_SYS_PORT_ID" Size="21" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LAG</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0" Name="DST_SYS_PORT_ID">
+                    <Access>
+                        <Memory Name="CGM_MEMBER_TO_DSP_MAPPINGm">
+                            <HwField Name="DESTINATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="Q2A_A0 Q2A_B0 J2P_A0" Name="DST_SYS_PORT_ID">
+                    <Access>
+                        <Memory Name="CGM_LAG_MAPPINGm">
+                            <HwField Name="DESTINATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TRUNK_SMOOTH_DIVISION">
+        <OneLineDescription>trunk smooth division table - contains the default smooth division profiles</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PROFILE_INDEX" Size="6" Type="UINT"/>
+                <Field Name="ENTRY_INDEX" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="MEMBER_INDEX" Size="4" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LAG</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MEMBER_INDEX">
+                    <Access>
+                        <Memory Name="CGM_SMOOTH_DIVISIONm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)*64+#KEY_VALUE(ENTRY_INDEX)/4"/>
+                            <DataOffset Formula="#KEY_VALUE(ENTRY_INDEX)%4*4"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TRUNK_ATTRIBUTES">
+        <OneLineDescription>trunk attributes such as PSC profile or size</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="GROUP_INDEX" Size="13" Type="UINT"/>
+                <Field Name="POOL_INDEX" Size="1" Type="UINT"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Description="Multiply and Divide port selection criteria" Name="RESULT_TYPE" Size="2" Value="PSC_MULTIPLY_AND_DIVIDE"/>
+                    <Field Description="Index of the max member" Name="MAX_MEMBER" Size="8" Type="UINT"/>
+                </Result>
+                <Result>
+                    <Field Description="Smooth Division port selection criteria" Name="RESULT_TYPE" Size="2" Value="PSC_SMOOTH_DIVISION"/>
+                    <Field Description="Smooth Division profile" Name="SMOOTH_DIVISION_PROFILE" Size="6" Type="UINT"/>
+                </Result>
+                <Result>
+                    <Field Description="Consistant Hashing port selection criteria" Name="RESULT_TYPE" Size="2" Value="PSC_CONSISTANT_HASHING"/>
+                    <Field Description="Consistant Hashing profile" Name="C_LAG_PROFILE" Size="9" Type="UINT"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>J2P_NOTREV LAG</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <MultipleResultsMapping>
+                <Result LogicalValue="PSC_MULTIPLY_AND_DIVIDE" Value="0"/>
+                <Result LogicalValue="PSC_SMOOTH_DIVISION" Value="1"/>
+                <Result LogicalValue="PSC_CONSISTANT_HASHING" Value="2"/>
+            </MultipleResultsMapping>
+            <FieldMapping ResultType="PSC_MULTIPLY_AND_DIVIDE">
+                <Field Name="RESULT_TYPE">
+                    <Access Size="2">
+                        <Memory Name="CGM_LAG_ATTRIBUTESm">
+                            <HwField Name="MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_MEMBER">
+                    <Access>
+                        <Memory Name="CGM_LAG_ATTRIBUTESm">
+                            <HwField Name="PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="PSC_SMOOTH_DIVISION">
+                <Field Name="RESULT_TYPE">
+                    <Access Size="2">
+                        <Memory Name="CGM_LAG_ATTRIBUTESm">
+                            <HwField Name="MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SMOOTH_DIVISION_PROFILE">
+                    <Access>
+                        <Memory Name="CGM_LAG_ATTRIBUTESm">
+                            <HwField Name="PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="PSC_CONSISTANT_HASHING">
+                <Field Name="RESULT_TYPE">
+                    <Access Size="2">
+                        <Memory Name="CGM_LAG_ATTRIBUTESm">
+                            <HwField Name="MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="C_LAG_PROFILE">
+                    <Access>
+                        <Memory Name="CGM_LAG_ATTRIBUTESm">
+                            <HwField Name="PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TRUNK_EGRESS_MC_RESOLUTION">
+        <OneLineDescription>trunk egress MC resolution table - resolves a trunk on the egress side</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="EGRESS_TRUNK_INDEX" Size="#log2_round_up(DNX_DATA.trunk.egress_trunk.nof)" Type="UINT"/>
+                <Field Name="ENTRY_INDEX" Size="#log2_round_up(DNX_DATA.trunk.egress_trunk.nof_lb_keys_per_profile)" Type="UINT"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_PORT" Size="DNX_DATA.port.general.nof_port_bits_in_pp_bus" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LAG</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="OUT_PORT">
+                    <Access>
+                        <Memory Name="ERPP_DSP_IN_LAG_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(ENTRY_INDEX)*2/dnx_data_trunk.egress_trunk.nof_lb_keys_per_profile_get(unit)*dnx_data_trunk.egress_trunk.dbal_entry_index_msb_multiplier_get(unit)+#KEY_VALUE(EGRESS_TRUNK_INDEX)*dnx_data_trunk.egress_trunk.dbal_egress_trunk_index_multiplier_get(unit)+#KEY_VALUE(ENTRY_INDEX)*2%dnx_data_trunk.egress_trunk.nof_lb_keys_per_profile_get(unit)/2/dnx_data_trunk.egress_trunk.dbal_entry_index_divider_get(unit)"/>
+                            <DataOffset Formula="#KEY_VALUE(ENTRY_INDEX)%4*dnx_data_port.general.nof_port_bits_in_pp_bus_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TRUNK_EGRESS_ATTRIBUTES" Valid="DNX_DATA.trunk.egress_trunk.multiple_egress_trunk_sizes">
+        <OneLineDescription>Egress trunk attributes - number of egress trunk</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="SIZE_MODE" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LAG</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SIZE_MODE">
+                    <Access>
+                        <Register Name="ERPP_LAG_GROUP_MODEr">
+                            <HwField Name="LAG_GROUP_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TRUNK_ACTIVE_CONFIGURATION_SELECTOR">
+        <OneLineDescription>indicates what is the currently selected configuration and if feature is activated</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="MULTIPLE_CONFIGURATIONS_ENABLED" Size="1" Type="UINT"/>
+                <Field Name="GRACEFUL_ACTIVE_CONFIGURATION"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LAG</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MULTIPLE_CONFIGURATIONS_ENABLED">
+                    <Access>
+                        <Register Name="IPPD_LBP_GENERAL_CONFIG_1r">
+                            <HwField Name="OVERRIDE_FTMH_LB_KEY_MSBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GRACEFUL_ACTIVE_CONFIGURATION">
+                    <Access>
+                        <Register Name="IPPD_LBP_GENERAL_CONFIG_1r">
+                            <HwField Name="OVERRIDE_FTMH_LB_KEY_MSB_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="RCPU_ENABLE_CTRL">
+        <OneLineDescription>This table is used for enabling the RCPU functionality.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH_SKIP_CMODEL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enables SCHAN requests" Name="SCHAN_EN" Size="1" Type="BOOL"/>
+                <Field Description="Enables CMIC requests" Name="CMIC_EN" Size="1" Type="BOOL"/>
+                <Field Description="Enables MAC check" Name="MAC_MATCH_EN" Size="1" Type="BOOL"/>
+                <Field Description="Enables VLAN check" Name="VLAN_MATCH_EN" Size="1" Type="BOOL"/>
+                <Field Description="Enables ATE test mode" Name="RCPU_FOR_ATE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV RCPU</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SCHAN_EN">
+                    <Access>
+                        <Register Name="CMIC_RPE_PKT_CTRLr">
+                            <HwField Name="ENABLE_SCHAN_REQUESTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CMIC_EN">
+                    <Access>
+                        <Register Name="CMIC_RPE_PKT_CTRLr">
+                            <HwField Name="ENABLE_CMIC_REQUESTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MAC_MATCH_EN">
+                    <Access>
+                        <Register Name="CMIC_RPE_PKT_CTRLr">
+                            <HwField Name="LMAC0_MATCHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MATCH_EN">
+                    <Access>
+                        <Register Name="CMIC_RPE_PKT_CTRLr">
+                            <HwField Name="VLAN_MATCHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RCPU_FOR_ATE">
+                    <Access>
+                        <Register Name="CMIC_RPE_PKT_CTRLr">
+                            <HwField Name="ENABLE_RCPU_FOR_ATEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="RCPU_ENCAP_CTRL">
+        <OneLineDescription>This table is used to configure RCPU packet encapulation.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH_SKIP_CMODEL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Lower 32 bits of the source MAC address used for generated RCPU packets" Name="SRC_MAC_LO" Size="32" Type="UINT"/>
+                <Field Description="Lower 32 bits of the destination MAC address used for generated RCPU packets" Name="DST_MAC_LO" Size="32" Type="UINT"/>
+                <Field Description="Higher 16 bits of the source MAC address used for generated RCPU packets" Name="SRC_MAC_HI" Size="16" Type="UINT"/>
+                <Field Description="Higher 16 bits of the destination MAC address used for generated RCPU packets" Name="DST_MAC_HI" Size="16" Type="UINT"/>
+                <Field Description="VLAN tag used for generated RCPU packets" Name="VLAN" Size="16" Type="UINT"/>
+                <Field Description="TPID used for generated RCPU packets" Name="TPID"/>
+                <Field Description="EtherType used for generated RCPU packets" Name="ETHERTYPE"/>
+                <Field Description="Signature used for generated RCPU packets" Name="SIGNATURE" Size="16" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV RCPU</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SRC_MAC_LO">
+                    <Access>
+                        <Register Name="CMIC_RPE_PKT_LMAC0_LOr">
+                            <HwField Name="MAC0_LOf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DST_MAC_LO">
+                    <Access>
+                        <Register Name="CMIC_RPE_PKT_RMACr">
+                            <HwField Name="MAC_LOf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRC_MAC_HI">
+                    <Access>
+                        <Register Name="CMIC_RPE_PKT_LMAC0_HIr">
+                            <HwField Name="MAC0_HIf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DST_MAC_HI">
+                    <Access>
+                        <Register Name="CMIC_RPE_PKT_RMAC_HIr">
+                            <HwField Name="MAC_HIf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VLAN">
+                    <Access>
+                        <Register Name="CMIC_RPE_PKT_VLANr">
+                            <HwField Name="VLAN_IDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TPID">
+                    <Access>
+                        <Register Name="CMIC_RPE_PKT_VLANr">
+                            <HwField Name="TPIDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ETHERTYPE">
+                    <Access>
+                        <Register Name="CMIC_RPE_PKT_ETHER_SIGr">
+                            <HwField Name="ETHERTYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SIGNATURE">
+                    <Access>
+                        <Register Name="CMIC_RPE_PKT_ETHER_SIGr">
+                            <HwField Name="SIGNATUREf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

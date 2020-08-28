@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_b1"  module="mdb">
+        
+    <sub_module name="em">
+
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>                    
+        </tables>
+    </sub_module>
+    
+    <sub_module name="direct">
+
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>    
+
+    <sub_module name="hw_bug">
+
+        <features>
+            <feature name="eedb_bank_traffic_lock" value="0"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

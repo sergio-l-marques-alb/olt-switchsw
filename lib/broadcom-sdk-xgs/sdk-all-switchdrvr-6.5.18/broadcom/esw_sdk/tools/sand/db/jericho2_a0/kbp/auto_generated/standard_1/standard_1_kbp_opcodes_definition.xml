@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Aligned to Pemla. Arch version: #***
+    Auto-Generted - DO NOT EDIT!!!!
+-->
+
+<KbpOpcodesDbCatalogue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="../../kbp_opcodes_schema.xsd">
+
+
+<Opcode Name="BRIDGE_SVL" OpCode="11">
+    <OneLineDescription>BRIDGE_SVL</OneLineDescription>
+    <Description>No Lookups!!!!Note!!!!
+    this is a not a real AppDB
+    this is KBP-Command (Master Key)
+    it is appear as AppDB in the device PP for the sake of completeness when transferring information to the SDK
+!!!!
+</Description>
+    <MasterKey/>
+    <FwdContexts>
+        <Context Name="BRIDGE___SVL"/>
+    </FwdContexts>
+</Opcode>
+
+
+<Opcode Name="IPV4_MULTICAST_PRIVATE_W_UC_RPF" OpCode="1">
+    <OneLineDescription>Master Key for MultiCast</OneLineDescription>
+    <Description>4 lookups:
+                         (1)Forward: (a){VRF,G,S,In_LIF} (b){VRF,G,In_LIF,S}
+                         (2)RPF (a){VRF,SIP} (b){SIP}!!!!Note!!!!
+    this is a not a real AppDB
+    this is KBP-Command (Master Key)
+    it is appear as AppDB in the device PP for the sake of completeness when transferring information to the SDK
+!!!!
+</Description>
+    <AppDB Name="KBP_IPV4_MULTICAST_TCAM_FORWARD" ResultLocation="FWD" Segments="1, 2, 3, 4"/>
+    <AppDB Name="KBP_IPV4_UNICAST_PRIVATE_LPM_RPF" ResultLocation="RPF" Segments="1, 3"/>
+    <MasterKey>
+        <Field BitSize="16" Name="ZERO_PADDING" Segment="0"/>
+        <Field BitSize="16" Name="VRF" Segment="1"/>
+        <Field BitSize="32" Name="IPV4_DIP" Segment="2"/>
+        <Field BitSize="32" Name="IPV4_SIP" Segment="3"/>
+        <Field BitSize="24" Name="GLOBAL_IN_LIF" Segment="4"/>
+    </MasterKey>
+    <FwdContexts>
+        <Context Name="IPV4___MC_PRIVATE_WO_BF_WO_F2B"/>
+        <Context Name="IPV4___MC_PRIVATE_WO_BF_W_F2B"/>
+        <Context Name="IPV4___MC_PRIVATE_W_BF_W_F2B"/>
+    </FwdContexts>
+</Opcode>
+
+
+<Opcode Name="IPV4_UNICAST_PRIVATE_W_UC_RPF" OpCode="3">
+    <OneLineDescription>Master Key for Unicast IPv4</OneLineDescription>
+    <Description>4 lookups (1) Private and Public, (2) FWD and RFP, resulting in 2 results: FWD and RPF!!!!Note!!!!
+    this is a not a real AppDB
+    this is KBP-Command (Master Key)
+    it is appear as AppDB in the device PP for the sake of completeness when transferring information to the SDK
+!!!!
+</Description>
+    <AppDB Name="KBP_IPV4_UNICAST_PRIVATE_LPM_FORWARD" ResultLocation="FWD" Segments="0, 2"/>
+    <AppDB Name="KBP_IPV4_UNICAST_PRIVATE_LPM_RPF" ResultLocation="RPF" Segments="0, 1"/>
+    <MasterKey>
+        <Field BitSize="16" Name="VRF" Segment="0"/>
+        <Field BitSize="32" Name="IPV4_SIP" Segment="1"/>
+        <Field BitSize="32" Name="IPV4_DIP" Segment="2"/>
+    </MasterKey>
+    <FwdContexts>
+        <Context Name="IPV4___PRIVATE_UC"/>
+    </FwdContexts>
+</Opcode>
+
+
+<Opcode Name="IPV6_MULTICAST_PRIVATE_W_UC_RPF" OpCode="2">
+    <OneLineDescription>Master Key for MultiCast</OneLineDescription>
+    <Description>4 lookups:
+                         (1)Forward: (a){VRF,G,S,In_LIF} (b){VRF,G,In_LIF,S}
+                         (2)RPF (a){VRF,SIP} (b){SIP}!!!!Note!!!!
+    this is a not a real AppDB
+    this is KBP-Command (Master Key)
+    it is appear as AppDB in the device PP for the sake of completeness when transferring information to the SDK
+!!!!
+</Description>
+    <AppDB Name="KBP_IPV6_MULTICAST_TCAM_FORWARD" ResultLocation="FWD" Segments="1, 5, 2, 3, 6"/>
+    <AppDB Name="KBP_IPV6_UNICAST_PRIVATE_LPM_RPF" ResultLocation="RPF" Segments="1, 2"/>
+    <MasterKey>
+        <Field BitSize="8" Name="ZERO_PADDING_4" Segment="0"/>
+        <Field BitSize="16" Name="VRF" Segment="1"/>
+        <Field BitSize="128" Name="IPV6_SIP" Segment="2"/>
+        <Field BitSize="8" Name="GLOBAL_IN_LIF_21_16" Segment="3"/>
+        <Field BitSize="16" Name="ZERO_PADDING_3" Segment="4"/>
+        <Field BitSize="128" Name="IPV6_DIP" Segment="5"/>
+        <Field BitSize="16" Name="GLOBAL_IN_LIF_15_00" Segment="6"/>
+    </MasterKey>
+    <FwdContexts>
+        <Context Name="IPV6___MC_PRIVATE_WO_BF_WO_F2B"/>
+        <Context Name="IPV6___MC_PRIVATE_WO_BF_W_F2B"/>
+        <Context Name="IPV6___MC_PRIVATE_W_BF_W_F2B"/>
+    </FwdContexts>
+</Opcode>
+
+
+<Opcode Name="IPV6_UNICAST_PRIVATE_W_UC_RPF" OpCode="4">
+    <OneLineDescription>Master Key for Unicast IPv6</OneLineDescription>
+    <Description>4 lookups (1) Private and Public, (2) FWD and RFP, resulting in 2 results: FWD and RPF!!!!Note!!!!
+    this is a not a real AppDB
+    this is KBP-Command (Master Key)
+    it is appear as AppDB in the device PP for the sake of completeness when transferring information to the SDK
+!!!!
+</Description>
+    <AppDB Name="KBP_IPV6_UNICAST_PRIVATE_LPM_FORWARD" ResultLocation="FWD" Segments="1, 2"/>
+    <AppDB Name="KBP_IPV6_UNICAST_PRIVATE_LPM_RPF" ResultLocation="RPF" Segments="1, 5"/>
+    <MasterKey>
+        <Field BitSize="16" Name="ZERO_PADDING" Segment="0"/>
+        <Field BitSize="16" Name="VRF" Segment="1"/>
+        <Field BitSize="128" Name="IPV6_DIP" Segment="2"/>
+        <Field BitSize="24" Name="GLOBAL_IN_LIF" Segment="3"/>
+        <Field BitSize="8" Name="ZERO_PADDING_2" Segment="4"/>
+        <Field BitSize="128" Name="IPV6_SIP" Segment="5"/>
+    </MasterKey>
+    <FwdContexts>
+        <Context Name="IPV6___PRIVATE_UC"/>
+        <Context Name="IPV6___PRIVATE_UC_BFD"/>
+    </FwdContexts>
+</Opcode>
+
+
+<Opcode Name="MPLS_PER_PLATFORM" OpCode="7">
+    <OneLineDescription>Master Key for MPLS_PER_PLATFORM</OneLineDescription>
+    <Description>1 lookups (1) in KBP_MPLS_PER_PLATFORM!!!!Note!!!!
+    this is a not a real AppDB
+    this is KBP-Command (Master Key)
+    it is appear as AppDB in the device PP for the sake of completeness when transferring information to the SDK
+!!!!
+</Description>
+    <MasterKey/>
+    <FwdContexts>
+        <Context Name="MPLS___FWD"/>
+    </FwdContexts>
+</Opcode>
+
+
+<Opcode Name="NOP" OpCode="12">
+    <OneLineDescription>NOP</OneLineDescription>
+    <Description>NOP!!!!Note!!!!
+    this is a not a real AppDB
+    this is KBP-Command (Master Key)
+    it is appear as AppDB in the device PP for the sake of completeness when transferring information to the SDK
+!!!!
+</Description>
+    <MasterKey/>
+    <FwdContexts>
+        <Context Name="GENERAL___NOP_CTX"/>
+    </FwdContexts>
+</Opcode>
+
+</KbpOpcodesDbCatalogue>

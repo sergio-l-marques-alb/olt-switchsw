@@ -1,0 +1,428 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="ingr_congestion">
+
+    <includes>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_dram.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_system_red.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_nif.h</include>
+        <include>bcm_int/dnx/cosq/ingress/ingress_congestion.h</include>
+        <include>bcm_int/dnx/cosq/ingress/system_red.h</include>    
+        <include>soc/dnx/dbal/dbal.h</include>
+     </includes>
+
+    <sub_module name="config">
+        
+        <features>
+             <feature name="pp_port_by_reassembly_overwrite"></feature>
+        </features>
+        
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric name="guarantee_mode" value="0"> 
+                <property name="ingress_congestion_management" method="suffix_direct_map" suffix="guarantee_mode">
+                    <map name="LOOSE" value="0"></map>
+                    <doc> 
+                       legacy SoC property to define CGM guarantee mode
+                       defined here just to ensure unsupported value is not specified by user
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="wred_packet_size" value="0"> 
+                <property name="discard_mtu_size" method="range" range_min="0" range_max="16*1024">
+                    <doc> 
+                       Maximal packet size
+                       used in computation of WRED parameters
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>                       
+        </tables>
+         
+    </sub_module>
+
+    <sub_module name="info" doc="Ingress congestion info">
+        <features>
+            <feature name="latency_based_admission" value="0"></feature>
+        </features>
+        
+        <defines>
+             <define name="threshold_granularity" value="16"></define>
+             <define name="words_resolution" value="16"></define>
+             <define name="bytes_threshold_granularity" value="DATA(ingr_congestion,info,threshold_granularity)*DATA(ingr_congestion,info,words_resolution)"></define>
+             <define name="nof_dropped_reasons_cgm" value="32"></define>
+             <define name="wred_max_gain" value="31"></define>
+             <define name="wred_granularity" value="16"></define>
+             <define name="nof_pds_in_pdb" value="4"></define>
+        </defines>
+
+        <numerics>
+            <!-- SRAM PD Buffer  is 4 SRAM PDs 
+                 DRAM BD Buffer  is 8 DRAM BDs
+             -->
+            <numeric name="max_sram_pdbs" value="DATA(ingr_congestion,info,resource,max,DNX_INGRESS_CONGESTION_RESOURCE_SRAM_PDS)/DATA(ingr_congestion,info,nof_pds_in_pdb)"></numeric>
+            <!-- note,
+                 this does not take into acount configuration which does not load maximal number of HBMs
+            -->
+            <numeric name="max_dram_bdbs" value="DATA(dram, buffers, nof_bdbs)"></numeric>
+        
+        </numerics>        
+        
+        <tables>
+            <table name="resource">
+                <key name="type" size="3"></key>
+                <value name="max" default="0"></value>
+                <value name="hw_resolution_max" default="0"></value>
+                <value name="hw_resolution_nof_bits" default="0"></value>
+                <value name="fadt_alpha_min" default="0"></value>
+                <value name="fadt_alpha_max" default="0"></value>
+                <entries>
+                    <!-- 
+                         The Total-Word available resources is approximated as 4GB
+                    -->               
+                    <entry type="DNX_INGRESS_CONGESTION_RESOURCE_TOTAL_BYTES"   max="0xffffffff" hw_resolution_max="DATA(ingr_congestion,info,resource,max,DNX_INGRESS_CONGESTION_RESOURCE_TOTAL_BYTES)/DATA(ingr_congestion,info,bytes_threshold_granularity)" hw_resolution_nof_bits="24" fadt_alpha_min="-15" fadt_alpha_max="15"></entry> 
+                    <entry type="DNX_INGRESS_CONGESTION_RESOURCE_SRAM_BUFFERS"  max="64*1024-1" hw_resolution_max="DATA(ingr_congestion,info,resource,max,DNX_INGRESS_CONGESTION_RESOURCE_SRAM_BUFFERS)/DATA(ingr_congestion,info,threshold_granularity)" hw_resolution_nof_bits="12" fadt_alpha_min="-7" fadt_alpha_max="7"></entry> <!-- 64K SRAM Buffers --> 
+                    <entry type="DNX_INGRESS_CONGESTION_RESOURCE_SRAM_PDS"      max="128*1024-1" hw_resolution_max="DATA(ingr_congestion,info,resource,max,DNX_INGRESS_CONGESTION_RESOURCE_SRAM_PDS)/DATA(ingr_congestion,info,threshold_granularity)" hw_resolution_nof_bits="13" fadt_alpha_min="-7" fadt_alpha_max="7"></entry> <!-- 128K SRAM PDs --> 
+                </entries>
+            </table>
+            <table name="dp_free_res_presentage_drop">
+                <key name="dp" size="4"></key>
+                <value name="drop_precentage" default="100"></value>
+                <entries>
+                    <entry dp="0" drop_precentage="0"></entry> <!-- Drop 0% of Green packets -->
+                    <entry dp="1" drop_precentage="15"></entry> <!-- Drop 15% of Yellow packets -->
+                    <entry dp="2" drop_precentage="25"></entry> <!-- Drop 25% of Red packets -->
+                    <entry dp="3" drop_precentage="100"></entry> <!-- Drop 1000% of Black packets -->
+                </entries>
+            </table>
+            <table name="admission_preferences">
+                <key name="dp" size="3"></key>
+                <value name="is_guarantee_over_admit" default="0">
+                    <property name="cosq_admission_preference" method="suffix_direct_map">
+                        <map name="ADMIT_OVER_GUARANTEE" value="0"></map>
+                        <map name="GUARANTEE_OVER_ADMIT" value="1"></map>
+                        <doc>
+                            if GUARANTEE_OVER_ADMIT is set, than in case statistic admission tests fail (for example WRED), 
+                            but the queue level is within the guaranteed, packet will enter.
+                            this soc property is only rlevant for DPs 0-2 (DP3 is always dropped).
+                        </doc>
+                    </property>
+                </value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="fadt_tail_drop" doc="FADT tail drop thresholds and related sizes">
+        <numerics>
+            <numeric name="default_max_size_byte_threshold_for_ocb_only" value="8*1024*1024" />
+        </numerics>
+    </sub_module>
+
+    <sub_module name="dram_bound" doc="dram bound thresholds and related sizes">
+        <defines>
+            <define name="fadt_alpha_min" value="-8"/>
+            <define name="fadt_alpha_max" value="7"/>
+        </defines> 
+        <tables>
+            <table name="resource">
+                <key name="type" size="3"></key>
+                <value name="max" default="0"></value>
+                <value name="is_resource_range" default="0"></value>
+                <entries>
+                    <entry type="DNX_INGRESS_CONGESTION_DRAM_BOUND_RESOURCE_SRAM_BYTES"   max="0xffffff" is_resource_range="FALSE"></entry> <!-- 16M SRAM bytes -->
+                    <entry type="DNX_INGRESS_CONGESTION_DRAM_BOUND_RESOURCE_SRAM_BUFFERS" max="DATA(ingr_congestion,info,resource,max,DNX_INGRESS_CONGESTION_RESOURCE_SRAM_BUFFERS)" is_resource_range="TRUE"></entry> <!-- 64K SRAM Buffers --> 
+                    <entry type="DNX_INGRESS_CONGESTION_DRAM_BOUND_RESOURCE_SRAM_PDS"     max="DATA(ingr_congestion,info,resource,max,DNX_INGRESS_CONGESTION_RESOURCE_SRAM_PDS)" is_resource_range="TRUE"></entry> <!-- 128K SRAM PDs --> 
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="voq" doc="VOQ info">
+        <defines>
+            <define name="nof_rate_class" value="64"/>
+            <define name="rate_class_nof_bits" value="6"/>
+            <define name="nof_compensation_profiles" value="32"/>
+            <define name="default_compensation" value="24"/>
+            <define name="latency_bins" value="8"/>
+        </defines>    
+    </sub_module>
+
+    <sub_module name="vsq" doc="VSQ info">
+        <features>
+            <feature name="size_watermark_support" value="0"></feature>
+        </features>
+        
+        <defines>
+            <define name="vsq_rate_class_nof" value="16"></define>
+            <define name="vsq_a_rate_class_nof" value="4"></define>
+
+            <define name="vsq_a_nof" value="4"></define>
+            <define name="vsq_b_nof" value="32"></define>
+            <define name="vsq_c_nof" value="128"></define>
+            <define name="vsq_d_nof" value="256"></define>
+            <define name="vsq_e_hw_nof" value="48+4"></define>
+            <define name="vsq_e_nof" value="DATA(ingr_congestion,vsq,vsq_e_hw_nof) - 1"></define>
+            <define name="vsq_f_hw_nof" value="384+8"></define>
+            <define name="vsq_f_nof" value="DATA(ingr_congestion,vsq,vsq_f_hw_nof) - 1"></define>
+
+            <define name="nif_vsq_e_nof" value="48"></define>
+            <define name="non_nif_vsq_f_nof" value="DATA(ingr_congestion,vsq,vsq_f_nof) - DATA(nif,phys,nof_phys_per_core)*8"></define>
+
+            <define name="pool_nof" value="2"></define>
+            <define name="connection_class_nof" value="32"></define>
+            <define name="tc_pg_profile_nof" value="16"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="vsq_e_default" value="DATA(ingr_congestion,vsq,vsq_e_nof)"></numeric>
+            <numeric name="vsq_f_default" value="DATA(ingr_congestion,vsq,vsq_f_nof)"></numeric>
+        </numerics>        
+        
+        <tables>
+            <table name="info">
+                <key name="vsq_group" size="DNX_INGRESS_CONGESTION_VSQ_GROUP_NOF"></key>
+                <value name="nof" default="-1"></value>
+                <entries>
+                    <entry vsq_group="DNX_INGRESS_CONGESTION_VSQ_GROUP_CTGRY" nof="DATA(ingr_congestion,vsq,vsq_a_nof)"></entry>
+                    <entry vsq_group="DNX_INGRESS_CONGESTION_VSQ_GROUP_CTGRY_TRAFFIC_CLS" nof="DATA(ingr_congestion,vsq,vsq_b_nof)"></entry>
+                    <entry vsq_group="DNX_INGRESS_CONGESTION_VSQ_GROUP_CTGRY_CNCTN_CLS" nof="DATA(ingr_congestion,vsq,vsq_c_nof)"></entry>
+                    <entry vsq_group="DNX_INGRESS_CONGESTION_VSQ_GROUP_STTSTCS_TAG" nof="DATA(ingr_congestion,vsq,vsq_d_nof)"></entry>
+                    <entry vsq_group="DNX_INGRESS_CONGESTION_VSQ_GROUP_SRC_PORT" nof="DATA(ingr_congestion,vsq,vsq_e_nof)"></entry>
+                    <entry vsq_group="DNX_INGRESS_CONGESTION_VSQ_GROUP_PG" nof="DATA(ingr_congestion,vsq,vsq_f_nof)"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="init" doc="init info">
+        <defines>
+            <define name="fifo_size"  value="256"></define>        
+        </defines>
+
+        <tables>
+            <table name="vsq_words_rjct_map" mode="sequential">
+                <key name="index"></key>
+                <value name="is_total_shared_blocked" default="0"></value>
+                <value name="is_port_pg_shared_blocked" default="0"></value>
+                <value name="is_total_headroom_blocked" default="0"></value>
+                <value name="is_port_pg_headroom_blocked" default="0"></value>
+                <value name="is_voq_in_guaranteed" default="0"></value>
+                <value name="vsq_guaranteed_status" default="0"></value>
+                <entries>
+                    <!--   
+                      Set reject bits for lossy: 
+                      Total-Headroom-State & Port-PG-Headroom-State are BLOCKED in HW
+                    -->
+                    <entry is_total_shared_blocked="1" is_port_pg_shared_blocked="0" 
+                           is_total_headroom_blocked="1" is_port_pg_headroom_blocked="1"
+                           vsq_guaranteed_status="DBAL_ENUM_FVAL_VSQ_GUARANTEED_STATUS_BLOCKED"></entry>
+                    <entry is_total_shared_blocked="0" is_port_pg_shared_blocked="1" 
+                           is_total_headroom_blocked="1" is_port_pg_headroom_blocked="1"
+                           vsq_guaranteed_status="DBAL_ENUM_FVAL_VSQ_GUARANTEED_STATUS_BLOCKED"></entry>
+                    <entry is_total_shared_blocked="1" is_port_pg_shared_blocked="1" 
+                           is_total_headroom_blocked="1" is_port_pg_headroom_blocked="1"
+                           vsq_guaranteed_status="DBAL_ENUM_FVAL_VSQ_GUARANTEED_STATUS_BLOCKED"></entry>
+                    <!--   
+                      Set reject bits for the case of lossless and in flow control:
+                      Total-Shared-State & Port-PG-Shared-State are BLOCKED in HW
+                    -->
+
+                    <entry is_total_shared_blocked="1" is_port_pg_shared_blocked="1" 
+                           is_total_headroom_blocked="1" is_port_pg_headroom_blocked="0"
+                           vsq_guaranteed_status="DBAL_ENUM_FVAL_VSQ_GUARANTEED_STATUS_BLOCKED"></entry>
+                    <entry is_total_shared_blocked="1" is_port_pg_shared_blocked="1" 
+                           is_total_headroom_blocked="0" is_port_pg_headroom_blocked="1"
+                           vsq_guaranteed_status="DBAL_ENUM_FVAL_VSQ_GUARANTEED_STATUS_BLOCKED"></entry>
+                    <entry is_total_shared_blocked="1" is_port_pg_shared_blocked="1" 
+                           is_total_headroom_blocked="1" is_port_pg_headroom_blocked="1"
+                           vsq_guaranteed_status="DBAL_ENUM_FVAL_VSQ_GUARANTEED_STATUS_BLOCKED"></entry>
+                </entries>
+            </table>
+
+            <table name="vsq_sram_rjct_map" mode="sequential">
+                <key name="index"></key>
+                <value name="is_total_shared_blocked" default="0"></value>
+                <value name="is_port_pg_shared_blocked" default="0"></value>
+                <value name="is_headroom_extension_blocked" default="0"></value>
+                <value name="is_total_headroom_blocked" default="0"></value>
+                <value name="is_port_headroom_blocked" default="0"></value>
+                <value name="is_pg_headroom_blocked" default="0"></value>
+                <value name="is_voq_in_guaranteed" default="0"></value>
+                <value name="vsq_guaranteed_status" default="0"></value>
+                <entries>
+                    <!--   
+                      Set reject bits for lossy: 
+                      Total-Shared-State | Total-Headroom-Ext-State | PG-Headroom-Ext-State
+                      & Total-Headroom-State & Port-Headroom-State & PG-Headroom-State are BLOCKED in HW
+                    -->
+                    <entry is_total_shared_blocked="0" is_port_pg_shared_blocked="1" 
+                           is_headroom_extension_blocked="1" is_total_headroom_blocked="1"
+                           is_port_headroom_blocked="1" is_pg_headroom_blocked="1"
+                           vsq_guaranteed_status="DBAL_ENUM_FVAL_VSQ_GUARANTEED_STATUS_BLOCKED">
+                    </entry>
+                    <entry is_total_shared_blocked="1" is_port_pg_shared_blocked="0" 
+                           is_headroom_extension_blocked="1" is_total_headroom_blocked="1"
+                           is_port_headroom_blocked="1" is_pg_headroom_blocked="1"
+                           vsq_guaranteed_status="DBAL_ENUM_FVAL_VSQ_GUARANTEED_STATUS_BLOCKED">
+                    </entry>
+                    <entry is_total_shared_blocked="1" is_port_pg_shared_blocked="1" 
+                           is_headroom_extension_blocked="1" is_total_headroom_blocked="1"
+                           is_port_headroom_blocked="1" is_pg_headroom_blocked="1"
+                           vsq_guaranteed_status="DBAL_ENUM_FVAL_VSQ_GUARANTEED_STATUS_BLOCKED">
+                    </entry>
+                    <!--   
+                      Set reject bit for lossless and in flow control:
+                      Total-Shared-State & Port-PG-Shared-State are BLOCKED in HW
+                    -->
+                    <entry is_total_shared_blocked="1" is_port_pg_shared_blocked="1" 
+                           is_headroom_extension_blocked="0" is_total_headroom_blocked="1"
+                           is_port_headroom_blocked="0" is_pg_headroom_blocked="0"
+                           vsq_guaranteed_status="DBAL_ENUM_FVAL_VSQ_GUARANTEED_STATUS_BLOCKED">
+                    </entry>
+                    <entry is_total_shared_blocked="1" is_port_pg_shared_blocked="1" 
+                           is_headroom_extension_blocked="0" is_total_headroom_blocked="0"
+                           is_port_headroom_blocked="1" is_pg_headroom_blocked="0"
+                           vsq_guaranteed_status="DBAL_ENUM_FVAL_VSQ_GUARANTEED_STATUS_BLOCKED">
+                    </entry>
+                    <entry is_total_shared_blocked="1" is_port_pg_shared_blocked="1" 
+                           is_headroom_extension_blocked="1" is_total_headroom_blocked="0"
+                           is_port_headroom_blocked="0" is_pg_headroom_blocked="1"
+                           vsq_guaranteed_status="DBAL_ENUM_FVAL_VSQ_GUARANTEED_STATUS_BLOCKED">
+                    </entry>
+                    <entry is_total_shared_blocked="1" is_port_pg_shared_blocked="1" 
+                           is_headroom_extension_blocked="1" is_total_headroom_blocked="0"
+                           is_port_headroom_blocked="1" is_pg_headroom_blocked="1"
+                           vsq_guaranteed_status="DBAL_ENUM_FVAL_VSQ_GUARANTEED_STATUS_BLOCKED">
+                    </entry>
+                    <entry is_total_shared_blocked="1" is_port_pg_shared_blocked="1" 
+                           is_headroom_extension_blocked="0" is_total_headroom_blocked="1"
+                           is_port_headroom_blocked="1" is_pg_headroom_blocked="0"
+                           vsq_guaranteed_status="DBAL_ENUM_FVAL_VSQ_GUARANTEED_STATUS_BLOCKED">
+                    </entry>
+                    <entry is_total_shared_blocked="1" is_port_pg_shared_blocked="1" 
+                           is_headroom_extension_blocked="1" is_total_headroom_blocked="1"
+                           is_port_headroom_blocked="1" is_pg_headroom_blocked="1"
+                           vsq_guaranteed_status="DBAL_ENUM_FVAL_VSQ_GUARANTEED_STATUS_BLOCKED">
+                    </entry>
+                </entries>
+            </table>
+
+            <table name="dp_global_sram_buffer_drop">
+                <key name="dp" size="4"></key>
+                <value name="set_threshold" default="0"></value>
+                <value name="clear_threshold" default="0"></value>
+                <entries>
+                    <entry dp="0" set_threshold="64" clear_threshold="112"></entry>
+                    <entry dp="1" set_threshold="128" clear_threshold="176"></entry>
+                    <entry dp="2" set_threshold="176" clear_threshold="240"></entry>
+                    <entry dp="3" set_threshold="240" clear_threshold="288"></entry>
+                </entries>
+            </table>
+            <table name="dp_global_sram_pdb_drop">
+                <key name="dp" size="4"></key>
+                <value name="set_threshold" default="0"></value>
+                <value name="clear_threshold" default="0"></value>
+                <entries>
+                    <entry dp="0" set_threshold="64" clear_threshold="112"></entry>
+                    <entry dp="1" set_threshold="128" clear_threshold="176"></entry>
+                    <entry dp="2" set_threshold="176" clear_threshold="240"></entry>
+                    <entry dp="3" set_threshold="240" clear_threshold="288"></entry>
+                </entries>
+            </table>
+            <table name="dp_global_dram_bdb_drop">
+                <key name="dp" size="4"></key>
+                <value name="set_threshold" default="0"></value>
+                <value name="clear_threshold" default="0"></value>
+                <entries>
+                    <entry dp="0" set_threshold="128" clear_threshold="128"></entry>
+                    <entry dp="1" set_threshold="144" clear_threshold="144"></entry>
+                    <entry dp="2" set_threshold="192" clear_threshold="192"></entry>
+                    <entry dp="3" set_threshold="224" clear_threshold="224"></entry>
+                </entries>
+            </table>
+            <table name="equivalent_global_drop">
+                <key name="type" size="3"></key>
+                <value name="drop" default="0"></value>
+                <entries>
+                    <!-- dp=3 has maximal drop threshold --> 
+                    <entry type="DNX_INGRESS_CONGESTION_RESOURCE_TOTAL_BYTES"   drop="DATA(ingr_congestion,init,dp_global_dram_bdb_drop,set_threshold,3)*32*1024*10/3"></entry> 
+                    <entry type="DNX_INGRESS_CONGESTION_RESOURCE_SRAM_BUFFERS"  drop="DATA(ingr_congestion,init,dp_global_sram_buffer_drop,set_threshold,3)"></entry>
+                    <entry type="DNX_INGRESS_CONGESTION_RESOURCE_SRAM_PDS"      drop="DATA(ingr_congestion,init,dp_global_dram_bdb_drop,set_threshold,3)*4*4/3"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="dbal" doc="init info">
+
+        <numerics>
+            <numeric name="admission_test_nof" value="37"></numeric> 
+            <numeric name="dram_bdbs_th_nof_bits" value="DATA(system_red,info,resource,hw_resolution_nof_bits,DNX_SYSTEM_RED_RESOURCE_DRAM_BDBS)+1"></numeric>
+            <numeric name="total_bytes_th_nof_bits" value="DATA(ingr_congestion,info,resource,hw_resolution_nof_bits,DNX_INGRESS_CONGESTION_RESOURCE_TOTAL_BYTES)"></numeric>
+            <numeric name="sram_buffer_th_nof_bits" value="DATA(ingr_congestion,info,resource,hw_resolution_nof_bits,DNX_INGRESS_CONGESTION_RESOURCE_SRAM_BUFFERS)"></numeric>
+            <numeric name="sram_buffer_free_th_nof_bits" value="DATA(ingr_congestion,dbal,sram_buffer_th_nof_bits)+1"></numeric> <!-- +1 so the threshold can reach full resource size -->
+            <numeric name="sram_pds_th_nof_bits" value="DATA(ingr_congestion,info,resource,hw_resolution_nof_bits,DNX_INGRESS_CONGESTION_RESOURCE_SRAM_PDS)"></numeric>
+            <numeric name="sram_pdbs_th_nof_bits" value="DATA(system_red,info,resource,hw_resolution_nof_bits,DNX_SYSTEM_RED_RESOURCE_SRAM_PDBS)+1"></numeric>
+            <numeric name="dram_bdbs_nof_bits" value="18"></numeric>
+            <numeric name="sram_pdbs_nof_bits" value="16"></numeric>
+            <numeric name="sram_buffer_nof_bits" value="17"></numeric>
+        </numerics>
+
+        <tables>
+            <table name="admission_bits_mapping">
+                <key name="rjct_bit" size="DNX_INGRESS_CONGESTION_REJECT_BIT_NOF"></key>
+                <value name="index" default="-1"></value>
+                <entries>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VOQ_SRAM_PDS_TOTAL_SHARED" index="0"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VOQ_SRAM_PDS_MAX_SIZE" index="1"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VOQ_SRAM_BUFFERS_TOTAL_SHARED" index="2"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VOQ_SRAM_BUFFERS_MAX_SIZE" index="3"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VOQ_WORDS_TOTAL_SHARED" index="4"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VOQ_WORDS_MAX_SIZE" index="5"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VOQ_SYSTEM_RED" index="6"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VOQ_WRED" index="7"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VOQ_DRAM_BLOCK" index="8"></entry>
+
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_E_F_SRAM_PDS_TOTAL_SHARED" index="9"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_E_F_SRAM_PDS_MAX_SIZE" index="10"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_D_SRAM_PDS_MAX_SIZE" index="11"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_C_SRAM_PDS_MAX_SIZE" index="12"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_B_SRAM_PDS_MAX_SIZE" index="13"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_A_SRAM_PDS_MAX_SIZE" index="14"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_E_F_SRAM_BUFFERS_TOTAL_SHARED" index="15"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_E_F_SRAM_BUFFERS_MAX_SIZE" index="16"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_D_SRAM_BUFFERS_MAX_SIZE" index="17"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_C_SRAM_BUFFERS_MAX_SIZE" index="18"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_B_SRAM_BUFFERS_MAX_SIZE" index="19"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_A_SRAM_BUFFERS_MAX_SIZE" index="20"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_E_F_WORDS_TOTAL_SHARED" index="21"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_E_F_WORDS_MAX_SIZE" index="22"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_D_WORDS_MAX_SIZE" index="23"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_C_WORDS_MAX_SIZE" index="24"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_B_WORDS_MAX_SIZE" index="25"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_A_WORDS_MAX_SIZE" index="26"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_F_WORDS_WRED" index="27"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_E_WORDS_WRED" index="28"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_D_WORDS_WRED" index="29"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_C_WORDS_WRED" index="30"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_B_WORDS_WRED" index="31"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_A_WORDS_WRED" index="32"></entry>
+
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_DRAM_BDBS_OCCUPANCY" index="33"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_SRAM_BUFFERS_OCCUPANCY" index="34"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_SRAM_PDS_OCCUPANCY" index="35"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_DP_LEVEL" index="36"></entry>
+                 </entries>
+            </table>
+
+        </tables>
+
+    </sub_module>
+       
+</device_data>
+
+
+

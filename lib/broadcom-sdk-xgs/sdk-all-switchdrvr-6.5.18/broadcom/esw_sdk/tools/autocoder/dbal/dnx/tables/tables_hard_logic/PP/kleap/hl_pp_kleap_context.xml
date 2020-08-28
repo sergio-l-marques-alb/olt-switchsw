@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+    <AppDB Name="KLEAP_VTA_TCAM_HIT_INDICATION">
+        <OneLineDescription>Indicate which TCAM line was hit in VTA</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <Maturity Device="JR2_A0 JR2_B0" Level="HIGH_SKIP_DEVICE"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ROW_IDX" Size="4" Type="UINT"/>
+                <Field MaxValue="7" Name="ENTRY_IDX" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TCAM_HIT" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TCAM_HIT">
+                    <Access>
+                        <Memory Name="IPPF_VTACS_TCAM_HIT_INDICATIONm"> 
+                            <EntryOffset Formula="#KEY_VALUE(ROW_IDX)"/>
+                            <HwField Name="VTACS_HITf"/>
+                            <DataOffset Formula="#KEY_VALUE(ENTRY_IDX)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KLEAP_VTB_TCAM_HIT_INDICATION">
+        <OneLineDescription>Indicate which TCAM line was hit in VTB</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <Maturity Device="JR2_A0 JR2_B0" Level="HIGH_SKIP_DEVICE"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ROW_IDX" Size="4" Type="UINT"/>
+                <Field MaxValue="7" Name="ENTRY_IDX" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TCAM_HIT" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TCAM_HIT">
+                    <Access>
+                        <Memory Name="IPPF_VTBCS_TCAM_HIT_INDICATIONm"> 
+                            <EntryOffset Formula="#KEY_VALUE(ROW_IDX)"/>
+                            <HwField Name="VTBCS_HITf"/>
+                            <DataOffset Formula="#KEY_VALUE(ENTRY_IDX)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KLEAP_VTC_TCAM_HIT_INDICATION">
+        <OneLineDescription>Indicate which TCAM line was hit in VTC</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <Maturity Device="JR2_A0 JR2_B0" Level="HIGH_SKIP_DEVICE"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ROW_IDX" Size="4" Type="UINT"/>
+                <Field MaxValue="7" Name="ENTRY_IDX" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TCAM_HIT" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TCAM_HIT">
+                    <Access>
+                        <Memory Name="IPPF_VTCCS_TCAM_HIT_INDICATIONm"> 
+                            <EntryOffset Formula="#KEY_VALUE(ROW_IDX)"/>
+                            <HwField Name="VTCCS_HITf"/>
+                            <DataOffset Formula="#KEY_VALUE(ENTRY_IDX)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KLEAP_VTD_TCAM_HIT_INDICATION">
+        <OneLineDescription>Indicate which TCAM line was hit in VTD</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <Maturity Device="JR2_A0 JR2_B0" Level="HIGH_SKIP_DEVICE"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ROW_IDX" Size="4" Type="UINT"/>
+                <Field MaxValue="7" Name="ENTRY_IDX" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TCAM_HIT" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TCAM_HIT">
+                    <Access>
+                        <Memory Name="IPPA_VTDCS_TCAM_HIT_INDICATIONm"> 
+                            <EntryOffset Formula="#KEY_VALUE(ROW_IDX)"/>
+                            <HwField Name="VTDCS_HITf"/>
+                            <DataOffset Formula="#KEY_VALUE(ENTRY_IDX)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KLEAP_VTE_TCAM_HIT_INDICATION">
+        <OneLineDescription>Indicate which TCAM line was hit in VTE</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <Maturity Device="JR2_A0 JR2_B0" Level="HIGH_SKIP_DEVICE"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ROW_IDX" Size="4" Type="UINT"/>
+                <Field MaxValue="7" Name="ENTRY_IDX" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TCAM_HIT" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TCAM_HIT">
+                    <Access>
+                        <Memory Name="IPPA_VTECS_TCAM_HIT_INDICATIONm"> 
+                            <EntryOffset Formula="#KEY_VALUE(ROW_IDX)"/>
+                            <HwField Name="VTECS_HITf"/>
+                            <DataOffset Formula="#KEY_VALUE(ENTRY_IDX)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KLEAP_FLPA_TCAM_HIT_INDICATION">
+        <OneLineDescription>Indicate which TCAM line was hit in FLPA</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <Maturity Device="JR2_A0 JR2_B0" Level="HIGH_SKIP_DEVICE"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ROW_IDX" Size="4" Type="UINT"/>
+                <Field MaxValue="7" Name="ENTRY_IDX" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TCAM_HIT" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TCAM_HIT">
+                    <Access>
+                        <Memory Name="IPPB_FLPACS_TCAM_HIT_INDICATIONm"> 
+                            <EntryOffset Formula="#KEY_VALUE(ROW_IDX)"/>
+                            <HwField Name="FLPACS_HITf"/>
+                            <DataOffset Formula="#KEY_VALUE(ENTRY_IDX)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KLEAP_FLPB_TCAM_HIT_INDICATION">
+        <OneLineDescription>Indicate which TCAM line was hit in FLPB</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <Maturity Device="JR2_A0 JR2_B0" Level="HIGH_SKIP_DEVICE"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ROW_IDX" Size="4" Type="UINT"/>
+                <Field MaxValue="7" Name="ENTRY_IDX" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TCAM_HIT" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TCAM_HIT">
+                    <Access>
+                        <Memory Name="IPPB_FLPBCS_TCAM_HIT_INDICATIONm"> 
+                            <EntryOffset Formula="#KEY_VALUE(ROW_IDX)"/>
+                            <HwField Name="FLPBCS_HITf"/>
+                            <DataOffset Formula="#KEY_VALUE(ENTRY_IDX)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KLEAP_IPMF1_TCAM_HIT_INDICATION">
+        <OneLineDescription>Indicate which TCAM line was hit in IPMFA_CSA</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <Maturity Device="JR2_A0 JR2_B0" Level="HIGH_SKIP_DEVICE"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ROW_IDX" Size="4" Type="UINT"/>
+                <Field MaxValue="7" Name="ENTRY_IDX" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TCAM_HIT" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TCAM_HIT">
+                    <Access>
+                        <Memory Name="IPPC_PMFACSA_TCAM_HIT_INDICATIONm"> 
+                            <EntryOffset Formula="#KEY_VALUE(ROW_IDX)"/>
+                            <HwField Name="PMFACSA_HITf"/>
+                            <DataOffset Formula="#KEY_VALUE(ENTRY_IDX)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KLEAP_IPMF2_TCAM_HIT_INDICATION">
+        <OneLineDescription>Indicate which TCAM line was hit in IPMFA_CSB</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <Maturity Device="JR2_A0 JR2_B0" Level="HIGH_SKIP_DEVICE"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ROW_IDX" Size="4" Type="UINT"/>
+                <Field MaxValue="7" Name="ENTRY_IDX" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TCAM_HIT" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TCAM_HIT">
+                    <Access>
+                        <Memory Name="IPPC_PMFACSB_TCAM_HIT_INDICATIONm"> 
+                            <EntryOffset Formula="#KEY_VALUE(ROW_IDX)"/>
+                            <HwField Name="PMFACSB_HITf"/>
+                            <DataOffset Formula="#KEY_VALUE(ENTRY_IDX)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KLEAP_IPMF3_TCAM_HIT_INDICATION">
+        <OneLineDescription>Indicate which TCAM line was hit in IPMFB</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <Maturity Device="JR2_A0 JR2_B0" Level="HIGH_SKIP_DEVICE"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ROW_IDX" Size="4" Type="UINT"/>
+                <Field MaxValue="7" Name="ENTRY_IDX" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TCAM_HIT" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TCAM_HIT">
+                    <Access>
+                        <Memory Name="IPPD_PMFBCS_TCAM_HIT_INDICATIONm"> 
+                            <EntryOffset Formula="#KEY_VALUE(ROW_IDX)"/>
+                            <HwField Name="PMFBCS_HITf"/>
+                            <DataOffset Formula="#KEY_VALUE(ENTRY_IDX)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="KLEAP_EPMF_TCAM_HIT_INDICATION">
+        <OneLineDescription>Indicate which TCAM line was hit in IPMFB</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <Maturity Device="JR2_A0 JR2_B0" Level="HIGH_SKIP_DEVICE"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ROW_IDX" Size="4" Type="UINT"/>
+                <Field MaxValue="7" Name="ENTRY_IDX" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TCAM_HIT" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TCAM_HIT">
+                    <Access>
+                        <Memory Name="ERPP_EPMFCS_TCAM_HIT_INDICATIONm"> 
+                            <EntryOffset Formula="#KEY_VALUE(ROW_IDX)"/>
+                            <HwField Name="EPMFCS_HITf"/>
+                            <DataOffset Formula="#KEY_VALUE(ENTRY_IDX)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

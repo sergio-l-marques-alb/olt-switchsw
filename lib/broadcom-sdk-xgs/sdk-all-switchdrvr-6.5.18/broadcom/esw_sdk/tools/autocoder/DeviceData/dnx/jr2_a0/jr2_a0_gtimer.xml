@@ -1,0 +1,690 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="gtimer">
+
+    <sub_module name="rtp">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="fdt">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="fdtl">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="pem">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="3"></define>
+            <define name="block_index_max_value" value="7"></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="dhc">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="cdu">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="4"></define>
+            <define name="block_index_max_value" value="9"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="esb">
+        
+        <features>
+            <feature name="is_supported" value="0"></feature>
+        </features>
+
+    </sub_module>
+
+    <sub_module name="cdum">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="mesh_topology">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="bdm">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="hbc">
+        
+        <features>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="4"></define>
+            <define name="block_index_max_value" value="15"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="ecgm">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="cfc">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="cgm">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="crps">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="ddha">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="ddp">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="dqm">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="edb">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="epni">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="epre">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="eps">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="erpp">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="etppa">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="etppb">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="etppc">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="fqp">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="ile">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="ippa">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="ippb">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="ippc">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="ippd">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="ippe">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="ippf">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="ips">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="ipt">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="iqm">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="ire">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="itpp">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="itppd">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="kaps">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="mcp">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="mrps">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="nmg">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="ocb">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="pdm">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="pqp">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="rqp">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="sch">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="sif">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="spb">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="sqm">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="tcam">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="tdu">
+        
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="block_index_size" value="1"></define>
+            <define name="block_index_max_value" value="1"></define>
+        </defines>
+
+    </sub_module>
+
+</device_data>
+
+

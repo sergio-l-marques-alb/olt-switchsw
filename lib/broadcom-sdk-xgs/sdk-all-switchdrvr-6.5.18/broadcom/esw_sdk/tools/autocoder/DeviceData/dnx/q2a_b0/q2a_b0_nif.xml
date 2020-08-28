@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_b0" module="nif">
+    <sub_module name="flexe" doc="data about FlexE">
+        <features>
+            <feature name="is_led_supported" value="1"></feature>
+            <feature name="double_slots_for_small_client" value="0"></feature>
+            <feature name="double_slots_for_all_client" value="1"></feature>
+            <feature name="l1_mismatch_rate_support" value="1"></feature>
+            <feature name="half_capability" value="0"></feature>
+            <feature name="rmc_cal_per_priority" value="1"></feature>
+            <feature name="pcs_port_enable_support" value="1"></feature>
+            <feature name="rx_valid_in_lf" value="1"></feature>
+            <feature name="prd_is_bypassed" value="0"></feature>
+            <feature name="feu_ilkn_burst_size_support" value="1"></feature>
+            <feature name="disable_l1_mismatch_rate_checking" value="0">
+                <property name="custom_feature" method="suffix_enable" suffix="flexe_disable_l1_mismatch_rate_checking">
+                    <doc>
+                        1: Do not check the L1 rate when configuring L1 switching between Busb and ETH.
+                        0: Check L1 rate when configuring L1 switching between Busb and ETH.
+                    </doc>
+                </property>
+            </feature>
+        </features>
+
+        <defines>
+            <define name="rmc_cal_nof_slots" value="82"></define>
+            <define name="nof_sb_rx_fifos" value="256"></define>
+            <define name="ilkn_burst_size_in_feu" value="244"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="nb_tdm_slot_allocation_mode" value="1"></numeric>
+        </numerics>
+
+        <tables>
+            <table name="phy_info">
+                <key name="idx" size="4"></key>
+                <value name="speed" default="-1"></value>
+                <value name="min_logical_phy_id" default="-1"></value>
+                <value name="max_logical_phy_id" default="-1"></value>
+                <value name="flexe_core_port" default="-1"></value>
+                <entries>
+                    <entry idx="0" speed="50000" min_logical_phy_id="1" max_logical_phy_id="126" flexe_core_port="0,1,2,3,4,5,6,7"></entry>
+                    <entry idx="1" speed="100000" min_logical_phy_id="1" max_logical_phy_id="254" flexe_core_port="0,2,4,6"></entry>
+                    <entry idx="2" speed="200000" min_logical_phy_id="1" max_logical_phy_id="126" flexe_core_port="0,4"></entry>
+                    <entry idx="3" speed="400000" min_logical_phy_id="1" max_logical_phy_id="62" flexe_core_port="0"></entry>
+                </entries>
+            </table>
+            <table name="l1_mismatch_rate_table">
+                <key name="idx" size="3"></key>
+                <value name="eth_speed" default="0"></value>
+                <value name="client_speed" default="0"></value>
+                <value name="tx_thr" default="0"></value>
+                <entries>
+                    <entry idx="0" eth_speed="1000" client_speed="5000" tx_thr="120"></entry>
+                    <entry idx="1" eth_speed="10000" client_speed="5000" tx_thr="120"></entry>
+                    <entry idx="2" eth_speed="25000" client_speed="5000" tx_thr="120"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+</device_data>

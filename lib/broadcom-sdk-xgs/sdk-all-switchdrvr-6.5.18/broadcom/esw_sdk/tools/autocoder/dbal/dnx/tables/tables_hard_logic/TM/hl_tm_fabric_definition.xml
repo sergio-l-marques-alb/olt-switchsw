@@ -1,0 +1,1771 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="FABRIC_PIPES" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Number of fabric pipes</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Maximum fabric pipe id" Name="MAX_PIPE_ID" Type="FABRIC_PIPE_ID"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MAX_PIPE_ID">
+                    <Access>
+                        <Register Name="FDT_FDT_ENABLER_REGISTERr">
+                            <HwField Name="PARALLEL_DATA_PATHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FDTL_PARALLEL_DATA_PATHr">
+                            <HwField Name="PARALLEL_DATA_PATHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FDR_FDR_ENABLERS_REGISTER_2r">
+                            <HwField Name="PARALLEL_DATA_PATHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_PIPES_MAPPING" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Mapping cast and priority into a pipe</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="traffic cast - unicast/multicast" Name="CAST" Type="TRAFFIC_CAST"/>
+                <Field Description="fabric priority" Name="FABRIC_PRIORITY"/>
+            </Key>
+            <Result>
+                <Field Description="pipe number" Name="PIPE_ID" Type="FABRIC_PIPE_ID"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PIPE_ID">
+                    <Access>
+                        <Register Name="FDT_FABRIC_PIPE_MAPPINGr">
+                            <DataOffset Formula="#RESULT_SIZE(PIPE_ID)*dnx_data_fabric.cell.nof_priorities_get(unit)*#KEY_VALUE(CAST)+#RESULT_SIZE(PIPE_ID)*#KEY_VALUE(FABRIC_PRIORITY)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FDR_FDR_ENABLERS_REGISTER_2r">
+                            <DataOffset Formula="19+#RESULT_SIZE(PIPE_ID)*dnx_data_fabric.cell.nof_priorities_get(unit)*#KEY_VALUE(CAST)+#RESULT_SIZE(PIPE_ID)*#KEY_VALUE(FABRIC_PRIORITY)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_PIPES_STRICT_PRIORITY" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Which pipe gets strict priority over the other pipes</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="pipe number" Name="PIPE_ID" Type="FABRIC_PIPE_ID"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PIPE_ID">
+                    <Access>
+                        <Register Name="FDA_FDA_REGISTER_0r">
+                            <HwField Name="FIELD_0_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_PIPES_TDM" Valid="DNX_DATA.fabric.general.is_supported*DNX_DATA.tdm.params.is_supported">
+        <OneLineDescription>Set TDM pipe</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="pipe number" Name="PIPE_ID" Type="FABRIC_PIPE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="is pipe TDM" Name="IS_TDM" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_TDM">
+                    <Access>
+                        <Register Name="FDTL_AUTO_DOC_NAME_1r">
+                            <HwField Name="FABRIC_PIPE_TDMf"/>
+                            <DataOffset Formula="#KEY_VALUE(PIPE_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_PIPES_DTQ_MODE" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Data Transmit Queue mode</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="DTQ mode" Name="DTQ_MODE" Type="FABRIC_DTQ_MODE"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DTQ_MODE">
+                    <Access>
+                        <Register Name="IPT_DTQ_CONFIGr">
+                            <HwField Name="DTQ_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_PIPES_MULTI_PIPES_SYSTEM" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Multi-pipes system configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="OT size" MaxValue="2" Name="OT_SIZE" Size="2" Type="UINT"/>
+                <Field Description="GT size" MaxValue="3" Name="GT_SIZE" Size="2" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OT_SIZE">
+                    <Access>
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_1r">
+                            <HwField Name="RESERVED_QTSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GT_SIZE">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_MESH_TOPOLOGYr">
+                            <HwField Name="RESERVED_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CELL_PRIORITY">
+        <OneLineDescription>Maps packet parameters to cell priority</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <!-- Each key represents bit(s) in the entry index. Together they
+                     comprised the final entry index.
+                     is_hp - msb, is_ocb_only - lsb -->
+                <Field Description="is ocb only queue" Name="IS_OCB_ONLY" Size="1" Type="BOOL"/>
+                <Field Description="Traffic Class" Name="TC"/>
+                <Field Description="Drop Precedence" Name="DP"/>
+                <Field Description="is multicast" Name="IS_MC" Size="1" Type="BOOL"/>
+                <Field Description="is high priority queue" Name="IS_HP" Size="1" Type="BOOL"/>
+            </Key>
+            <Result>
+                <Field Description="cell priority" Name="FABRIC_PRIORITY" Valid="DNX_DATA.fabric.general.is_supported"/>
+                <Field Description="is cell TDM" Name="IS_TDM" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FABRIC_PRIORITY">
+                    <Access>
+                        <Memory Name="IPT_PRIORITY_BITS_MAPPING_2_FDTm">
+                            <HwField Name="PRIORITYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_TDM">
+                    <Access>
+                        <Memory Name="IPT_PRIORITY_BITS_MAPPING_2_FDTm">
+                            <HwField Name="TDMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TDM_PRIORITY" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>TDM priority configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <!-- value of MaxValue disables the TDM indication -->
+                <Field Description="From which priority cell will be considered as TDM priority" MaxValue="DNX_DATA.fabric.cell.nof_priorities" Name="MIN_TDM_PRIORITY" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MIN_TDM_PRIORITY">
+                    <Access>
+                        <Register Name="FDT_FDT_ENABLER_REGISTERr">
+                            <HwField Name="TDM_HEADER_PRIORITYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_PCP_ENABLE" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Enable/Disable packet cell packing</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable PCP" Name="ENABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="FDT_FDT_ENABLER_REGISTERr">
+                            <HwField Name="PCP_ENABLEDf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FDR_FDR_ENABLERS_REGISTER_2r">
+                            <HwField Name="PCP_ENABLEDf"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                        <Register Name="RQP_GENERAL_RQP_DEBUG_CONFIGr">
+                            <HwField Name="PCP_DISf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_PCP_CONFIG" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Set packet cell packing for each module id</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Destination module id" MaxValue="DNX_DATA.device.general.nof_faps-1" Name="FAP_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Packing mode" Name="FABRIC_PCP_MODE"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FABRIC_PCP_MODE">
+                    <Access>
+                        <Memory Name="IPT_PCP_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(FAP_ID)/16"/>
+                            <DataOffset Formula="#KEY_VALUE(FAP_ID)%16*2"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_WFQ_INIT" Valid="DNX_DATA.fabric.general.is_supported*!DNX_DATA.fabric.pipes.ocb_wfq">
+        <OneLineDescription>WFQ initialization</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="is WFQ affected by both ocb/non-ocb traffic or by non-ocb traffic only" Name="IS_WFQ_AFFECTED_BY_OCB_TRAFFIC" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_WFQ_AFFECTED_BY_OCB_TRAFFIC">
+                    <Access>
+                        <Register Name="FDT_LOAD_BALANCING_CONFIGURATIONr">
+                            <HwField Name="IPT_WFQ_SHARED_ENf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FDT_LOAD_BALANCING_CONFIGURATIONr">
+                            <HwField Name="IPT_OCB_WFQ_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_WFQ_PIPE_ENABLE" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>WFQ enable per pipe</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="pipe number" Name="PIPE_ID" Type="FABRIC_PIPE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Enable WFQ for pipe" Name="ENABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="FDR_WFQ_CONFIGr">
+                            <HwField Name="WFQ_ENf"/>
+                            <DataOffset Formula="#KEY_VALUE(PIPE_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_WFQ_CONTEXT_ENABLE" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>WFQ enable per context</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Context number" Name="CONTEXT_ID" Type="FABRIC_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Enable WFQ for context" Name="ENABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="ENABLE">
+                    <Access>
+                        <Register Name="FDT_WFQ_0_CONFIGr">
+                            <HwField Name="WFQ_0_CTX_ENf"/>
+                            <DataOffset Formula="#KEY_VALUE(CONTEXT_ID)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FDT_WFQ_1_CONFIGr">
+                            <HwField Name="WFQ_1_CTX_ENf"/>
+                            <DataOffset Formula="#KEY_VALUE(CONTEXT_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="ENABLE">
+                    <Access>
+                        <Register Name="FDT_WFQM_0_CONFIGr">
+                            <HwField Name="WFQM_0_CTX_ENf"/>
+                            <DataOffset Formula="#KEY_VALUE(CONTEXT_ID)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FDT_WFQO_0_CONFIGr">
+                            <HwField Name="WFQO_0_CTX_ENf"/>
+                            <DataOffset Formula="#KEY_VALUE(CONTEXT_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_WFQ_CONTEXTS_WEIGHTS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Configure contexts WFQ weights</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Context number" Name="CONTEXT_ID" Type="FABRIC_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="WFQ weight" Name="WEIGHT" Size="7" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="WEIGHT">
+                    <Access>
+                        <Register Name="FDT_WFQ_0_CONFIGr">
+                            <DataOffset Formula="3+#KEY_VALUE(CONTEXT_ID)*7"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FDT_WFQ_1_CONFIGr">
+                            <DataOffset Formula="3+#KEY_VALUE(CONTEXT_ID)*7"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="WEIGHT">
+                    <Access>
+                        <Register Name="FDT_WFQM_0_CONFIGr">
+                            <DataOffset Formula="3+#KEY_VALUE(CONTEXT_ID)*7"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FDT_WFQO_0_CONFIGr">
+                            <DataOffset Formula="3+#KEY_VALUE(CONTEXT_ID)*7"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_WFQ_PIPES_WEIGHTS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Configure pipes WFQ weights</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="pipe number" Name="PIPE_ID" Type="FABRIC_PIPE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="WFQ weight" Name="WEIGHT" Size="7" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="WEIGHT">
+                    <Access>
+                        <Register Name="FDR_WFQ_CONFIGr">
+                            <DataOffset Formula="#KEY_VALUE(PIPE_ID)*7"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_WFQ_DYNAMIC_WEIGHTS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Configure dynamic WFQ weights</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="is configuration for congested case" Name="IS_CONGESTED" Type="BOOL"/>
+                <Field Description="FIFO to configure the weight upon" Name="FABRIC_WFQ_FIFO"/>
+            </Key>
+            <Result>
+                <Field Description="WFQ weight" Name="WEIGHT" Size="7" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="WEIGHT">
+                    <!-- Regular case -->
+                    <Access>
+                        <KeyCondition Field="IS_CONGESTED" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Enum="FABRIC_PIPE_0" Field="FABRIC_WFQ_FIFO" Type="EQUAL_TO"/>
+                        <Register Name="FDA_FDA_EGQ_WFQr">
+                            <HwField Name="EGQ_N_WFQ_WEIGHT_FABFIF_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="IS_CONGESTED" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Enum="FABRIC_PIPE_1" Field="FABRIC_WFQ_FIFO" Type="EQUAL_TO"/>
+                        <Register Name="FDA_FDA_EGQ_WFQr">
+                            <HwField Name="EGQ_N_WFQ_WEIGHT_FABFIF_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="IS_CONGESTED" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Enum="FABRIC_PIPE_2" Field="FABRIC_WFQ_FIFO" Type="EQUAL_TO"/>
+                        <Register Name="FDA_FDA_EGQ_WFQr">
+                            <HwField Name="EGQ_N_WFQ_WEIGHT_FABFIF_2f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="IS_CONGESTED" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Enum="LOCAL_UC" Field="FABRIC_WFQ_FIFO" Type="EQUAL_TO"/>
+                        <Register Name="FDA_FDA_EGQ_WFQr">
+                            <HwField Name="EGQ_N_WFQ_WEIGHT_IPTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="IS_CONGESTED" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Enum="MESH_MC" Field="FABRIC_WFQ_FIFO" Type="EQUAL_TO"/>
+                        <Register Name="FDA_FDA_EGQ_WFQr">
+                            <HwField Name="EGQ_N_WFQ_WEIGHT_MESHMCf"/>
+                        </Register>
+                    </Access>
+
+                    <!-- Congested case -->
+                    <Access>
+                        <KeyCondition Field="IS_CONGESTED" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Enum="FABRIC_PIPE_0" Field="FABRIC_WFQ_FIFO" Type="EQUAL_TO"/>
+                        <Register Name="FDA_FDA_EGQ_WFQ_ALMOST_FULL_WEIGHTSr">
+                            <HwField Name="EGQ_N_WFQ_WEIGHT_FABFIF_0_AFf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="IS_CONGESTED" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Enum="FABRIC_PIPE_1" Field="FABRIC_WFQ_FIFO" Type="EQUAL_TO"/>
+                        <Register Name="FDA_FDA_EGQ_WFQ_ALMOST_FULL_WEIGHTSr">
+                            <HwField Name="EGQ_N_WFQ_WEIGHT_FABFIF_1_AFf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="IS_CONGESTED" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Enum="FABRIC_PIPE_2" Field="FABRIC_WFQ_FIFO" Type="EQUAL_TO"/>
+                        <Register Name="FDA_FDA_EGQ_WFQ_ALMOST_FULL_WEIGHTSr">
+                            <HwField Name="EGQ_N_WFQ_WEIGHT_FABFIF_2_AFf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="IS_CONGESTED" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Enum="LOCAL_UC" Field="FABRIC_WFQ_FIFO" Type="EQUAL_TO"/>
+                        <Register Name="FDA_FDA_EGQ_WFQ_ALMOST_FULL_WEIGHTSr">
+                            <HwField Name="EGQ_N_WFQ_WEIGHT_IPT_AFf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="IS_CONGESTED" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Enum="MESH_MC" Field="FABRIC_WFQ_FIFO" Type="EQUAL_TO"/>
+                        <Register Name="FDA_FDA_EGQ_WFQ_ALMOST_FULL_WEIGHTSr">
+                            <HwField Name="EGQ_N_WFQ_WEIGHT_MESHMC_AFf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_LINK_WATCHDOG" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Configure active link watchdog periods</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Active Link Down Watchdog Period (in clocks units)" Name="ALDWP" Size="6" Type="UINT"/>
+                <Field Description="Active Link Up Watchdog Period (in clocks units)" Name="ALUWP" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ALDWP">
+                    <Access>
+                        <Register Name="FDR_FDR_ENABLERS_REGISTER_1r">
+                            <HwField Name="AUTO_DOC_NAME_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ALUWP">
+                    <Access>
+                        <Register Name="FDR_FDR_ENABLERS_REGISTER_1r">
+                            <HwField Name="AUTO_DOC_NAME_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_FAULT_LINKS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Get fabric fault links. Both on link local side and on link remote side.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Link id" Name="FABRIC_LINK" Type="FABRIC_LINK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Link is active on local side" Name="FAULT_LOCAL" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Link is active on remote side" Name="FAULT_REMOTE" Permission="READONLY" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FAULT_LOCAL">
+                    <Access EncodeType="BITWISE_NOT">
+                        <Register Name="RTP_LOCALLY_GENERATED_ACLr">
+                            <HwField Name="LOCAL_ACLf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_LINK)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FAULT_REMOTE">
+                    <Access EncodeType="BITWISE_NOT">
+                        <Register Name="RTP_ACL_RECEIVEDr">
+                            <HwField Name="ACL_RECIEVEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_LINK)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_LINKS_ALLOWED" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Configure which links are allowed for sending traffic</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Link id" Name="FABRIC_LINK" Type="FABRIC_LINK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Is link allowed for sending cells" Name="IS_ALLOWED" Size="1" Type="BOOL"/>
+                <Field Description="Is link allowed for sending reachability messages" Name="IS_ALLOWED_REACHABILITY" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_ALLOWED">
+                    <Access>
+                        <Register Name="RTP_ALLOWED_LINKSr">
+                            <HwField Name="ALLOWED_LINKSf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_LINK)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="RTP_MULTICAST_LINK_UPr">
+                            <HwField Name="MC_LINK_UPf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_LINK)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IS_ALLOWED_REACHABILITY">
+                    <Access>
+                        <Register Name="RTP_ALLOWED_LINKS_FOR_REACHABILITY_MESSAGESr">
+                            <HwField Name="ALLOWED_LINKS_FOR_RMf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_LINK)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_SR_CELL_TRANSMIT_DATA" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Memory where source routed cells will be written</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="SR cell place to write" Name="SR_CELL_DATA" NofInstances="3" Size="256" Type="ARRAY32"/>
+                <Field Description="Fourth part of SR cell place to write" Name="SR_CELL_DATA_3" Size="376" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                 <Field Name="SR_CELL_DATA">
+                    <Access instanceIndex="0">
+                        <Register Name="FDT_CPU_DATA_CELL_0r">
+                            <HwField Name="CPU_DATA_CELL_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="FDT_CPU_DATA_CELL_1r">
+                            <HwField Name="CPU_DATA_CELL_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="FDT_CPU_DATA_CELL_2r">
+                            <HwField Name="CPU_DATA_CELL_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SR_CELL_DATA_3">
+                    <Access>
+                        <Register Name="FDT_CPU_DATA_CELL_3r">
+                            <HwField Name="CPU_DATA_CELL_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_SR_CELL_TRANSMIT_CONTROL" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Cell transmit control fields</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Ouput Link number" Name="FABRIC_LINK_ID"/>
+                <Field Description="Cell size" Name="CELL_SIZE" Size="7" Type="UINT"/>
+                <Field Description="Trigger for send" Name="TRIGGER" Permission="TRIGGER" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                 <Field Name="FABRIC_LINK_ID">
+                    <Access>
+                        <Register Name="FDT_TRANSMIT_CELL_OUTPUT_LINK_NUMBERr">
+                            <HwField Name="CPU_LINK_NUMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                 <Field Name="CELL_SIZE">
+                    <Access>
+                        <Register Name="FDT_TRANSMIT_CELL_OUTPUT_LINK_NUMBERr">
+                            <HwField Name="CPU_CELL_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                 <Field Name="TRIGGER">
+                    <Access>
+                        <Register Name="FDT_TRANSMIT_DATA_CELL_TRIGGERr">
+                            <HwField Name="CPU_TRGf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_SR_CELL_RECEIVE_DATA" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Memory where source routed cells will be written</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Flattened index on block/mac" Name="FABRIC_SR_CELL_INSTANCE"/>
+            </Key>
+            <Result>
+                <Field Description="SR cell place to read" Name="SR_CELL_DATA_LSB" Permission="READONLY" Size="512" Type="ARRAY32"/>
+                <Field Description="SR cell place to read" Name="SR_CELL_DATA_MSB" Permission="READONLY" Size="73" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                 <Field Name="SR_CELL_DATA_LSB">
+                    <Access instanceIndex="ALL">
+                        <Register Name="FDR_CPU_DATA_CELL_MACr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_SR_CELL_INSTANCE)%dnx_data_fabric.cell.sr_cell_nof_instances_get(unit)"/>
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_SR_CELL_INSTANCE)/dnx_data_fabric.cell.sr_cell_nof_instances_get(unit)"/>
+                            <HwField Name="CPU_DATA_CELL_MAC_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                 <Field Name="SR_CELL_DATA_MSB">
+                    <Access instanceIndex="ALL">
+                        <Register Name="FDR_CPU_DATA_CELL_MACr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_SR_CELL_INSTANCE)%dnx_data_fabric.cell.sr_cell_nof_instances_get(unit)"/>
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_SR_CELL_INSTANCE)/dnx_data_fabric.cell.sr_cell_nof_instances_get(unit)"/>
+                            <HwField Name="CPU_DATA_CELL_MAC_Nf"/>
+                            <DataOffset Formula="#RESULT_SIZE(SR_CELL_DATA_LSB)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="FABRIC_SR_CELL_RECEIVE_CONTROL" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Memory where source routed cells will be written</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Flattened index on block/mac" Name="FABRIC_SR_CELL_INSTANCE"/>
+            </Key>
+            <Result>
+                <Field Description="Status for per mac fifo" Name="SR_CELL_DATA_READY" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                 <Field Name="SR_CELL_DATA_READY">
+                    <Access>
+                        <Register Name="FDR_FDR_INTERRUPT_REGISTER_GENERALr">
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_SR_CELL_INSTANCE)/dnx_data_fabric.cell.sr_cell_nof_instances_get(unit)"/>
+                            <DataOffset Formula="11+#KEY_VALUE(FABRIC_SR_CELL_INSTANCE)%dnx_data_fabric.cell.sr_cell_nof_instances_get(unit)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_MESH_CONFIG" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Global Mesh Configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Set MESH mode" Name="MESH_MODE" Type="BOOL"/>
+                <Field Description="Enable MESH Fabric Multicast" Name="MESH_MC_ENABLE" Type="BOOL"/>
+                <Field Description="" Name="MESH_MC_BMP_TDM_SRC" Type="BOOL"/>
+                <Field Description="" Name="MESH_MULTI_FAP" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MESH_MODE">
+                    <Access>
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_1r">
+                            <HwField Name="MESH_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MESH_MC_ENABLE">
+                    <Access>
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_2r">
+                            <HwField Name="FMC_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="MESH_MC_BMP_TDM_SRC">
+                    <Access>
+                        <Register Name="FDT_FDT_ENABLER_REGISTERr">
+                            <HwField Name="FDT_ENABLER_REGISTER_FIELD_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="MESH_MC_BMP_TDM_SRC">
+                    <Access>
+                        <Register Name="FDT_FDT_ENABLER_REGISTERr">
+                            <HwField Name="TDM_MESH_MC_BMP_SRCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MESH_MULTI_FAP">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_MESH_TOPOLOGYr">
+                            <HwField Name="MULTI_FAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_MESH_DEV_ID_LOCAL" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Mesh local device ids configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE"/>
+            </Key>
+            <Result>
+                <Field Description="Module id" Name="MESH_MODE_DEV_ID" NofInstances="DNX_DATA.device.general.max_nof_fap_ids_per_core" Size="11" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MESH_MODE_DEV_ID">
+                    <Access>
+                        <KeyCondition Field="CORE" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CORE" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MESH_MODE_DEV_ID">
+                    <Access instanceIndex="ALL">
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <DataOffset Formula="#RESULT_SIZE(MESH_MODE_DEV_ID)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_MESH_DEV_ID_LOCAL_INIT" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Mesh local device ids init configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE"/>
+            </Key>
+            <Result>
+                <Field Description="Module id" Name="MESH_MODE_DEV_ID" Size="11" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0 J2P_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MESH_MODE_DEV_ID">
+                    <Access>
+                        <KeyCondition Field="CORE" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CORE" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MESH_MODE_DEV_ID">
+                    <Access>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_2f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_MESH_DEV_ID_DEST" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Mesh destination device ids configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.fabric.mesh.max_nof_dest-1" Name="MESH_GROUP_ID" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Module id" Name="MESH_MODE_DEV_ID" NofInstances="DNX_DATA.device.general.max_nof_fap_ids_per_device" Size="11" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MESH_MODE_DEV_ID">
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <DataOffset Formula="22+#RESULT_SIZE(MESH_MODE_DEV_ID)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <DataOffset Formula="44+#RESULT_SIZE(MESH_MODE_DEV_ID)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <DataOffset Formula="66+#RESULT_SIZE(MESH_MODE_DEV_ID)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MESH_MODE_DEV_ID">
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <DataOffset Formula="44+#RESULT_SIZE(MESH_MODE_DEV_ID)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <DataOffset Formula="88+#RESULT_SIZE(MESH_MODE_DEV_ID)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <DataOffset Formula="132+#RESULT_SIZE(MESH_MODE_DEV_ID)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_MESH_DEV_ID_DEST_INIT" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Mesh destination device ids init configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="2" Name="MESH_GROUP_ID" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Module id" Name="MESH_MODE_DEV_ID" Size="11" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MESH_MODE_DEV_ID">
+                    <Access>
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_2f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_3f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_4f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_5f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_6f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_7f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MESH_MODE_DEV_ID">
+                    <Access>
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_4f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_5f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_6f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_7f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_8f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_9f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_10f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_11f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_12f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_13f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_14f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="MESH_GROUP_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="FCT_MESH_MODE_DEVICE_IDSr">
+                            <HwField Name="MESH_MODE_DEVICE_ID_15f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_MESH_MC_DB" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Multicast DB for mesh replications</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Maximum MC ID" MaxValue="DNX_DATA.fabric.mesh.max_mc_id" Name="MESH_MC_ID" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Set MESH mode" Name="MESH_MC_REP" Size="DNX_DATA.fabric.mesh_mc.nof_replication" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MESH_MC_REP">
+                    <Access>
+                        <Memory Name="FDT_MESH_MCm">
+                            <EntryOffset Formula="#KEY_VALUE(MESH_MC_ID)/32"/>
+                            <DataOffset Formula="#KEY_VALUE(MESH_MC_ID)%32*#RESULT_SIZE(MESH_MC_REP)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FABRIC_MESH_REPLICATION_LINK_MAP" Valid="DNX_DATA.fabric.links.nof_links">
+        <OneLineDescription>Replication link map per destination</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="" MaxValue="DNX_DATA.fabric.mesh.nof_dest" Name="MESH_DEST_ID" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="" Name="MESH_LINK_ENABLE" NofInstances="DNX_DATA.fabric.links.nof_links" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MESH_LINK_ENABLE">
+                    <Access instanceIndex="ALL">
+                        <Register Name="FDT_MESH_MC_RELICATIONr">
+                            <ArrayOffset Formula="#KEY_VALUE(MESH_DEST_ID)"/>
+                            <DataOffset Formula="#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_MESH_FAP_ID_TO_CONTEXT_MAP" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Contexts for faps</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+<!-- Number of instance is actually number of faps in mesh mode but DNX_DATA cannot be used because of clos mode -->
+                <Field Description="Context per FAP" Name="GROUP_CONTEXT" NofInstances="16" Size="4" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GROUP_CONTEXT">
+                    <Access instanceIndex="ALL">
+                        <Register Name="IPS_DEV_ID_TO_CONTEXT_MAPr">
+                            <DataOffset Formula="#RESULT_SIZE(GROUP_CONTEXT)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_DELAY_SINGLE_CELL_IN_FABRIC_RX" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Delay single cell in fabric Rx</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable delay of single cell in fabric Rx until a second cell will arrive (or timeout)" Name="ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <!-- FDR_FAP_GLOBAL_GENERAL_CFG_1r JERICHO_1_IN_SYSTEMf -->
+                        <Register Name="FDR_REG_00C3r">
+                            <HwField Name="FIELD_3_3f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <!-- RQP_FAP_GLOBAL_GENERAL_CFG_1r JERICHO_1_IN_SYSTEMf -->
+                        <Register Name="RQP_REG_00C3r">
+                            <HwField Name="FIELD_3_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_MIN_LINKS_TO_DEST_INIT" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Minimum links to destination init</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable" Name="ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="FDT_FDT_ENABLER_REGISTERr">
+                            <HwField Name="MIN_NOF_LINKS_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_MIN_LINKS_TO_DEST" Valid="DNX_DATA.fabric.links.nof_links">
+        <OneLineDescription>Minimum links to destination per modid</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Module id to configure" Name="FAP_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Minimum number of links" MaxValue="DNX_DATA.fabric.links.nof_links" Name="MIN_NOF_LINKS" Size="DNX_DATA.fabric.dbal.nof_links_bits_nof" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MIN_NOF_LINKS">
+                    <Access>
+                        <Memory Name="FDT_MESH_MCm">
+                            <EntryOffset Formula="#KEY_VALUE(FAP_ID)"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_MIN_LINKS_MULTICAST" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Minimum links to destination for multicast</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Minimum number of links" Name="MIN_NOF_LINKS" Size="DNX_DATA.fabric.dbal.nof_links_bits_nof" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MIN_NOF_LINKS">
+                    <Access>
+                        <Register Name="RTP_MULTICAST_DISTRIBUTION_CONFIGURATIONr">
+                            <HwField Name="ALRC_MIN_NUM_OF_LINKSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_MULTICAST_CONFIG" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Fabric multicast configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable updates of all-reachable vector" Name="ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Rate of updating the all-reachable vector [clocks]" Name="RATE" Size="16" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="RTP_MULTICAST_DISTRIBUTION_CONFIGURATIONr">
+                            <HwField Name="ENABLE_MCL_UPDATESf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RATE">
+                    <Access>
+                        <Register Name="RTP_MC_TRAVERSE_RATEr">
+                            <HwField Name="MC_TRAVERSE_RATEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TDM_CONTEXTS_MAPPING" Valid="DNX_DATA.fabric.general.is_supported*DNX_DATA.tdm.params.is_supported">
+        <OneLineDescription>Map contexts to fabric TDM contexts</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="If set, the sub-context is mapped to fabric TDM context" Name="IS_TDM" NofInstances="DNX_DATA.fabric.pipes.max_nof_subcontexts" Size="1" Type="BOOL"/>
+                <Field Description="If set, IRE is mapped to fabric TDM context" Name="IS_TDM_BYPASS" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_TDM">
+                    <Access instanceIndex="ALL">
+                        <Register Name="FDT_FABRIC_TDM_PIPEr">
+                            <DataOffset Formula="#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IS_TDM_BYPASS">
+                    <Access>
+                        <Register Name="FDT_FABRIC_TDM_PIPEr">
+                            <DataOffset Formula="dnx_data_fabric.pipes.max_nof_subcontexts_get(unit)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_INTERLEAVING_ENABLE" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Packet interleaving enable</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="context" Name="FABRIC_SUBCONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="For which contexts, packets from context instance may be interleaved with" Name="SUBCONTEXT_ENABLE" NofInstances="DNX_DATA.fabric.pipes.max_nof_subcontexts" Size="1" Type="BOOL"/>
+                <Field Description="For which contexts, packets from TDM context may be interleaved with" Name="SUBCONTEXT_TDM_ENABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SUBCONTEXT_ENABLE">
+                    <Access instanceIndex="ALL">
+                        <Register Name="FDT_FDT_CONTEXTS_INTERLEAVINGr">
+                            <DataOffset Formula="#INSTANCE_IDX()*dnx_data_fabric.pipes.max_nof_subcontexts_get(unit)+#KEY_VALUE(FABRIC_SUBCONTEXT_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SUBCONTEXT_TDM_ENABLE">
+                    <Access>
+                        <Register Name="FDT_FDT_CONTEXTS_INTERLEAVINGr">
+                            <HwField Name="INTERLEAVING_IPT_TO_IRE_ENf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_SUBCONTEXT_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_REASSEMBLY_CONTEXT" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Reassembly context configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="is open reassembly context dynamically" Name="IS_DYNAMIC" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_DYNAMIC">
+                    <Access>
+                        <Register Name="RQP_GENERAL_RQP_CONFIGr">
+                            <HwField Name="RCM_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_LOAD_BALANCING" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Load balancing configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable load balancing" Name="ENABLE" Type="BOOL"/>
+                <Field Description="Initial seed for the LFSR" Name="SEED" Type="UINT"/>
+                <Field Description="What are the units resolution between each LFSR change" Name="RESOLUTION" Size="19" Type="UINT"/>
+                <Field Description="Counting mode which tells what are the units for the resolution field" Name="COUNT_MODE" Type="FABRIC_LOAD_BALANCING_COUNT_MODE"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="FDT_LOAD_BALANCING_CONFIGURATIONr">
+                            <HwField Name="ENABLE_SWITCHING_NETWORKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SEED">
+                    <Access>
+                        <Register Name="FDT_LOAD_BALANCING_SWITCH_CONFIGURATIONr">
+                            <HwField Name="SWITCHING_NETWORK_SEEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RESOLUTION">
+                    <Access>
+                        <Register Name="FDT_LOAD_BALANCING_SWITCH_CONFIGURATIONr">
+                            <HwField Name="SWITCHING_NETWORK_LFSR_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COUNT_MODE">
+                    <Access>
+                        <Register Name="FDT_LOAD_BALANCING_SWITCH_CONFIGURATIONr">
+                            <HwField Name="SWITCHING_NETWORK_LFSR_CNT_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_LOAD_BALANCING_RR_PTR" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Load balancing round robin pointer configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable round robin pointer" Name="ENABLE" Type="BOOL"/>
+                <Field Description="Fabric pipe TDM index" Name="TDM_PIPE_ID" Size="2" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="FDT_LB_RR_PTR_CTXr">
+                            <HwField Name="LB_RR_PTR_CTX_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0" Name="TDM_PIPE_ID">
+                    <Access>
+                        <Register Name="FDT_LB_RR_PTR_CTXr">
+                            <HwField Name="LB_RR_PTR_CTX_FIELD_7f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0" Name="TDM_PIPE_ID">
+                    <Access>
+                        <Register Name="FDT_LB_RR_PTR_CTXr">
+                            <HwField Name="LB_RR_PTR_CTX_FIELD_8f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="TDM_PIPE_ID">
+                    <Access>
+                        <Register Name="FDT_LB_RR_PTR_CTXr">
+                            <HwField Name="LB_RR_PTR_CTX_IREf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_SCHEDULER_ADAPTATION" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Scheduler fabric links adaptation</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Share credits between the schedulers" Name="ENABLE_CREDITS_SHARE" Type="BOOL"/>
+                <Field Description="Mask link integrity information for scheduling with multicast links" Name="ENABLE_MC_LINKS_MASK" Type="BOOL"/>
+                <Field Description="Mask link integrity information for scheduling with active links" Name="ENABLE_ACTIVE_LINKS_MASK" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE_CREDITS_SHARE">
+                    <Access>
+                        <Register Name="SCH_DVS_CREDIT_SHARE_CONFIGURATIONr">
+                            <HwField Name="ENABLE_DVS_CREDITS_SHAREf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENABLE_MC_LINKS_MASK">
+                    <Access>
+                        <Register Name="RTP_LINK_STATE_FOR_SC_HAND_FDTr">
+                            <HwField Name="EN_LOCAL_LINK_REDUCTION_MCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="ENABLE_ACTIVE_LINKS_MASK">
+                    <Access>
+                        <Register Name="RTP_LINK_STATE_FOR_SC_HAND_FDTr">
+                            <HwField Name="EN_LOCAL_LINKS_REDUCTION_SCH_0_PIPEID_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="RTP_LINK_STATE_FOR_SC_HAND_FDTr">
+                            <HwField Name="EN_LOCAL_LINKS_REDUCTION_SCH_1_PIPEID_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="ENABLE_ACTIVE_LINKS_MASK">
+                    <Access>
+                        <Register Name="RTP_LINK_STATE_FOR_SC_HAND_FDTr">
+                            <HwField Name="EN_LOCAL_LINKS_REDUCTION_SCH_0_PIPEID_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="RTP_LINK_STATE_FOR_SC_HAND_FDTr">
+                            <HwField Name="EN_LOCAL_LINKS_REDUCTION_SCH_0_PIPEID_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="RTP_LINK_STATE_FOR_SC_HAND_FDTr">
+                            <HwField Name="EN_LOCAL_LINKS_REDUCTION_SCH_0_PIPEID_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="RTP_LINK_STATE_FOR_SC_HAND_FDTr">
+                            <HwField Name="EN_LOCAL_LINKS_REDUCTION_SCH_0_PIPEID_Df"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRAFFIC_ENABLE" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Enabling or disabling receiving of data in fabric</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Empty" Name="DISABLE_FIELD_1" Type="BOOL"/>
+                <Field Description="Empty" Name="DISABLE_FIELD_2" Type="BOOL"/>
+                <Field Description="Empty" Name="DISABLE_FIELD_3" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DISABLE_FIELD_1">
+                    <Access>
+                        <Register Name="FDR_FDR_ENABLERS_REGISTER_1r">
+                            <HwField Name="AUTO_DOC_NAME_6f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DISABLE_FIELD_2">
+                    <Access>
+                        <Register Name="FDR_FDR_ENABLERS_REGISTER_1r">
+                            <HwField Name="AUTO_DOC_NAME_7f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DISABLE_FIELD_3">
+                    <Access>
+                        <Register Name="FDR_FDR_ENABLERS_REGISTER_1r">
+                            <HwField Name="AUTO_DOC_NAME_8f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

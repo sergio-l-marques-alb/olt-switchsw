@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="adapter">
+
+    <includes>
+        <include>src/bcm/dnx/rx/auto_generated/rx_internal_q2a_a0.h</include>
+   </includes>
+
+    <sub_module name="rx">
+        <numerics>
+                    <numeric name="packet_header_signal_id" value="PACKET_HEADER_SIGNAL_ID_Q2A_A0"/>
+        </numerics>
+    </sub_module>
+</device_data>

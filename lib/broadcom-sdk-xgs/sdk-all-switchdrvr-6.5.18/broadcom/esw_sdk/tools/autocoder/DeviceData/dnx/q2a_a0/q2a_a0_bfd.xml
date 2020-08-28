@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="bfd">
+
+    <sub_module name="general">
+
+        <features>
+            <feature name="configurable_single_hop_tos" value="1"></feature>
+        </features>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="hw_bug" doc="BFD related Hw bugs">
+
+        <features>
+            <feature name="detect_multiplier_limitation" value="0"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>
+
+
+

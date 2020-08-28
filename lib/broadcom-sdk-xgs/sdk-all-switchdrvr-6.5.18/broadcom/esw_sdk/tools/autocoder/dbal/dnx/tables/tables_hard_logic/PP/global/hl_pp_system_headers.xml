@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="SYSTEM_HEADER_GLOBAL_CFG_UDH">
+        <OneLineDescription>Global System Header UDH Configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="UDH_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="UDH_MAP_TYPE_TO_LENGTH" NofInstances="4"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="UDH_MAP_TYPE_TO_LENGTH">
+                    <Access instanceIndex="0">
+                        <Register GroupName="INGRESS_ITPP_GENERAL_CFG">
+                            <HwField Name="UDH_MAP_TYPE_TO_LENGHT_0f"/>
+                            <DataOffset Formula="#KEY_VALUE(UDH_TYPE)*3"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="0">
+                        <Register Name="OAMP_HEADER_CONFIGr">
+                            <HwField Name="UDH_MAP_TYPE_TO_LENGTH_0f"/>
+                            <DataOffset Formula="#KEY_VALUE(UDH_TYPE)*3"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="0">
+                        <Register Name="IPPD_UDH_TYPE_TO_SIZE_MAPr">
+                            <HwField Name="UDH_TYPE_TO_SIZE_MAPf"/>
+                            <DataOffset Formula="#KEY_VALUE(UDH_TYPE)*3"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register GroupName="INGRESS_ITPP_GENERAL_CFG">
+                            <HwField Name="UDH_MAP_TYPE_TO_LENGHT_1f"/>
+                            <DataOffset Formula="#KEY_VALUE(UDH_TYPE)*3"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="OAMP_HEADER_CONFIGr">
+                            <HwField Name="UDH_MAP_TYPE_TO_LENGTH_1f"/>
+                            <DataOffset Formula="#KEY_VALUE(UDH_TYPE)*3"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register GroupName="INGRESS_ITPP_GENERAL_CFG">
+                            <HwField Name="UDH_MAP_TYPE_TO_LENGHT_2f"/>
+                            <DataOffset Formula="#KEY_VALUE(UDH_TYPE)*3"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="OAMP_HEADER_CONFIGr">
+                            <HwField Name="UDH_MAP_TYPE_TO_LENGTH_2f"/>
+                            <DataOffset Formula="#KEY_VALUE(UDH_TYPE)*3"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register GroupName="INGRESS_ITPP_GENERAL_CFG">
+                            <HwField Name="UDH_MAP_TYPE_TO_LENGHT_3f"/>
+                            <DataOffset Formula="#KEY_VALUE(UDH_TYPE)*3"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="OAMP_HEADER_CONFIGr">
+                            <HwField Name="UDH_MAP_TYPE_TO_LENGTH_3f"/>
+                            <DataOffset Formula="#KEY_VALUE(UDH_TYPE)*3"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SYSTEM_HEADER_GLOBAL_CFG">
+        <OneLineDescription>Global System Header Configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="FTMH_LB_KEY_EXT_SIZE"/>
+                <Field Name="FTMH_STACKING_EXT_SIZE"/>
+                <Field Name="SYSTEM_HEADERS_MODE"/>
+                <Field Description="User Defined Header(UDH) enable" Name="USER_HEADER_ENABLE" Size="1" Type="BOOL"/>
+                <Field Name="PPH_BASE_SIZE"/>
+                <Field Name="OUT_LIF_EXT_SIZE" NofInstances="3"/>
+                <Field Name="IN_LIF_EXT_SIZE"/>
+                <Field Description="Mac-in-Mac vsi, only used in compatible mode" Name="MAC_IN_MAC_VSI" Type="FODO_VSI"/>
+                <Field Description="Network offset for ERPP and ETPP block, only used in JR1 mode" Name="JR_NETWORK_OFFSET" Size="5" Type="UINT"/>
+                <Field Name="JR_NETWORK_OFFSET_FOR_SYSTEM_HEADERS" Size="5" Type="UINT" Valid="DNX_DATA.dev_init.general.network_offset_for_system_headers_valid"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FTMH_LB_KEY_EXT_SIZE">
+                    <Access>
+                        <Register GroupName="ECI_FAP_GLOBAL_SYS_HEADER_CFG">
+                            <HwField Name="FTMH_LB_KEY_EXT_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FTMH_STACKING_EXT_SIZE">
+                    <Access>
+                        <Register GroupName="ECI_FAP_GLOBAL_SYS_HEADER_CFG">
+                            <HwField Name="FTMH_STACKING_EXT_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SYSTEM_HEADERS_MODE">
+                    <Access>
+                        <Register GroupName="ECI_FAP_GLOBAL_SYS_HEADER_CFG">
+                            <HwField Name="SYSTEM_HEADERS_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="USER_HEADER_ENABLE">
+                    <Access>
+                        <Register GroupName="ECI_FAP_GLOBAL_SYS_HEADER_CFG">
+                            <HwField Name="USER_HEADER_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_BASE_SIZE">
+                    <Access>
+                        <Register GroupName="INGRESS_ITPP_GENERAL_CFG">
+                            <HwField Name="PPH_BASE_SIZEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_HEADER_CONFIGr">
+                            <HwField Name="PPH_BASE_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OUT_LIF_EXT_SIZE">
+                    <Access instanceIndex="0">
+                        <Register GroupName="INGRESS_ITPP_GENERAL_CFG">
+                            <HwField Name="OUT_LIF_X_1_EXT_SIZEf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="0">
+                        <Register Name="OAMP_HEADER_CONFIGr">
+                            <HwField Name="OUT_LIF_X_1_EXT_SIZEf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register GroupName="INGRESS_ITPP_GENERAL_CFG">
+                            <HwField Name="OUT_LIF_X_2_EXT_SIZEf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="OAMP_HEADER_CONFIGr">
+                            <HwField Name="OUT_LIF_X_2_EXT_SIZEf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register GroupName="INGRESS_ITPP_GENERAL_CFG">
+                            <HwField Name="OUT_LIF_X_3_EXT_SIZEf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="OAMP_HEADER_CONFIGr">
+                            <HwField Name="OUT_LIF_X_3_EXT_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IN_LIF_EXT_SIZE">
+                    <Access>
+                        <Register GroupName="INGRESS_ITPP_GENERAL_CFG">
+                            <HwField Name="IN_LIF_EXT_SIZEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_HEADER_CONFIGr">
+                            <HwField Name="IN_LIF_EXT_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MAC_IN_MAC_VSI">
+                    <Access>
+                        <Register Name="ECI_FAP_GLOBAL_PP_8r">
+                            <HwField Name="MAC_IN_MAC_VSIf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0" Name="JR_NETWORK_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_JERICHO_COMPATIBLE_REGISTERS">
+                            <HwField Name="NETWORK_OFFSETf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ETPPB_NETWORK_OFFSETr">
+                            <HwField Name="NETWORK_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="JR_NETWORK_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_JERICHO_COMPATIBLE_REGISTERS">
+                            <HwField Name="J_MODE_NETWORK_OFFSETf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ETPPB_NETWORK_OFFSETr">
+                            <HwField Name="NETWORK_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_NETWORK_OFFSET_FOR_SYSTEM_HEADERS">
+                    <Access>
+                        <Register GroupName="EGRESS_JERICHO_COMPATIBLE_REGISTERS">
+                            <HwField Name="J_MODE_NETWORK_OFFSET_FOR_SYSTEM_HEADERSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="JR_FWD_CODE_MAPPING_TABLE">
+        <OneLineDescription>JR MODE PPH FWD CODE MAPPING TABLEn</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FWD_LAYER_QUAL_LSB" Type="BOOL"/>
+                <Field Name="FORWARD_LAYER_TYPE" Type="LAYER_TYPES"/>
+            </Key>
+            <Result>
+                <Field Name="JR_FWD_CODE"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="JR_FWD_CODE">
+                    <Access>
+                        <Memory Name="IPPD_FORWARDING_TYPE_TO_CODEm">
+                            <HwField Name="CODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="JR_VSI_SRC_MAPPING_TABLE">
+        <OneLineDescription>JR MODE PPH VSI MAPPING TABLEn</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OUTLIF_IS_RIF" Type="BOOL"/>
+                <Field Name="IS_MC" Type="BOOL"/>
+                <Field Name="JR_FWD_CODE"/>
+            </Key>
+            <Result>
+                <Field Name="JR_VSI_SRC"/>
+                <Field Name="JR_IN_LIF_SRC" Type="BOOL" Valid="1-DNX_DATA.field.init.wa_jr1_ipmc_inlif"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="J2P_A0 Q2A_A0 Q2A_B0" Name="JR_VSI_SRC">
+                    <Access>
+                        <Register Name="IPPD_PPH_VSI_SOURCEr">
+                            <DataOffset Formula="#FULL_RESULT_SIZE()*#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0" Name="JR_VSI_SRC">
+                    <Access>
+                        <Register Name="IPPD_PPH_VSI_SOURCEr">
+                            <DataOffset Formula="#RESULT_SIZE(JR_VSI_SRC)*#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0 Q2A_A0 Q2A_B0" Name="JR_IN_LIF_SRC">
+                    <Access>
+                        <Register Name="IPPD_PPH_VSI_SOURCEr">
+                            <DataOffset Formula="#FULL_RESULT_SIZE()*#FULL_KEY_VALUE()+#RESULT_SIZE(JR_VSI_SRC)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="JR_FHEI_SIZE_MAPPING">
+        <OneLineDescription>JR MODE PPH FHEI SIZE MAPPING TABLEn</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FWD_LAYER_IDX" Size="3" Type="UINT"/>
+                <Field Name="INLIF_EQ_ZERO" Type="BOOL"/>
+                <Field Name="JR_FWD_CODE"/>
+                </Key>
+            <Result>
+                <Field Name="FHEI_SIZE"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FHEI_SIZE">
+                    <Access>
+                        <Register Name="IPPD_PPH_FHEI_FWD_SIZEr">
+                            <DataOffset Formula="#RESULT_SIZE(FHEI_SIZE)*#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>        
+</AppDbCatalog>

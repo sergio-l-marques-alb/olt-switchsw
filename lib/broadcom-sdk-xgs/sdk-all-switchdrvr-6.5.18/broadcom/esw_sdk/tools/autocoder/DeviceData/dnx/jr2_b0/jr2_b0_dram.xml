@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_b0" module="dram">
+    <includes>
+        <include>soc/shmoo_hbm16.h</include>
+        <include>bcm_int/dnx/dram/hbmc/hbmc.h</include>
+    </includes>
+    
+    <sub_module name="hbm">
+        <features>
+            <feature name="dword_alignment_check" value="0"></feature>
+            <feature name="is_delete_bdb_supported" value="1"></feature>
+        </features>
+    </sub_module>
+
+    <sub_module name="general_info">
+        <numerics>
+            <numeric name="frequency" value="1000">
+                <property name="ext_ram_freq" method="range" range_min="500" range_max="1400">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes 
+                        dram Frequency in MHZ
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+        <tables>
+            <table name="dram_info">
+                <value name="dram_type" default="SHMOO_HBM16_DRAM_TYPE_GEN2"></value>
+                <value name="dram_bitmap" default="0x3">
+                    <property name="ext_ram_enabled_bitmap" method="range" range_min="0x0" range_max="0x3">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            A bitmap that indicates which HBMs are used.
+                        </doc>
+                    </property>
+                </value>
+                <value name="nof_columns" default="32">
+                    <property name="ext_ram_columns" method="direct_map" extern="0">
+                        <map name="32" value="32"></map>
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            Number of columns in the dram
+                        </doc>
+                    </property>
+                </value>
+                <value name="nof_rows" default="16384">
+                    <property name="ext_ram_rows" method="direct_map" extern="0">
+                        <map name="16384" value="16384"></map>
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            Number of rows in the dram
+                        </doc>
+                    </property>
+                </value>
+                <value name="nof_banks" default="32">
+                    <property name="ext_ram_banks" method="direct_map" extern="0">
+                        <map name="32" value="32"></map>
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            Number of banks in the dram
+                        </doc>
+                    </property>
+                </value>
+                <value name="data_rate" default="DATA(dram, general_info, frequency) * 2"></value>
+                <value name="ref_clock" default="100"></value>
+                <value name="ctl_type" default="SHMOO_HBM16_CTL_TYPE_1"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="dram_block">
+        <features>
+            <feature name="write_minus_read_leaky_bucket_disable"></feature>
+        </features>
+    </sub_module>
+</device_data>

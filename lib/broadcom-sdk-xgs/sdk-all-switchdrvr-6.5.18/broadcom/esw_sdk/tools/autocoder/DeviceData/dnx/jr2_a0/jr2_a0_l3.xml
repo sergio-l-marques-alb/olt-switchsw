@@ -1,0 +1,251 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="l3">
+    <includes>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_lif.h</include>
+        <include>shared/utilex/utilex_integer_arithmetic.h</include>
+    </includes>
+
+    <sub_module name="egr_pointed">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <!--
+                This 4 letters combination '& l t ;' stand for the 'less than' sign which may not be used as is
+                because it is a basic XML character. When two consequent such combinations are used, it
+                results in 'shift left' sign.
+            -->
+            <define name = "first_egr_pointed_id"
+                    value = "1"></define>
+        </defines>
+
+        <numerics>
+            <numeric name= "nof_bits_in_egr_pointed_id"  value="DATA(lif, out_lif, outlif_pointer_size)"></numeric>
+            <numeric name= "nof_egr_pointed_ids"
+                    value="1 &lt;&lt; DATA(l3, egr_pointed, nof_bits_in_egr_pointed_id)"></numeric>
+        </numerics>
+        
+        <tables>                       
+        </tables>
+         
+    </sub_module>
+    <sub_module name="fec">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="nof_fecs" value="0xC0000"></define>
+            <define name="max_fec_id_for_single_dhb_cluster_pair_granularity" value="UTILEX_MIN(DATA(l3, fec, nof_fecs),0x80000)-1"></define> 
+            <define name="max_fec_id_for_double_dhb_cluster_pair_granularity" value="DATA(l3, fec, nof_fecs)-1"></define>
+            <define name="max_default_fec" value="0x1FFFF"></define>
+            <define name="bank_size" value="26214"></define>
+            <define name="bank_size_round_up" value="DATA(l3, fec, bank_size)+2"></define>
+            <define name="max_nof_super_fecs_per_bank" value="DATA(l3, fec, bank_size_round_up)/2"></define>
+            <define name="nof_physical_fecs_per_bank" value="8192"></define>
+            <define name="super_fec_size" value="150"></define>
+            <define name="max_nof_banks" value="(DATA(l3, fec, nof_fecs)/DATA(l3, fec, bank_size))"></define>
+            <!-- The required  number of FEC banks to cover the entire ECMP rage   -->
+            <define name="first_bank_without_id_alloc" value="(DATA(l3, ecmp, total_nof_ecmp) + DATA(l3, fec, bank_size) - 1)/DATA(l3, fec, bank_size)"></define>
+            <define name="max_super_fec_id" value="(DATA(l3, fec, nof_fecs)/2-1)"></define>
+            <define name="fer_mdb_granularity_ratio" value="1"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+         
+    </sub_module>
+    <sub_module name="source_address">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="source_address_table_size" value="256"></define>
+            <define name="custom_sa_use_dual_homing" value="1"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="vrf">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_vrf" value="65536"></define>
+            <define name="nof_vrf_ipv6" value="16384"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+    
+    <sub_module name="routing_enablers">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_routing_enablers_profiles" value="4096"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="rif">
+    
+        <defines>
+            <define name="max_nof_rifs" value="0x20000"></define>
+        </defines>
+        
+        <numerics>
+            <numeric name="nof_rifs" value="4096">
+                <property name="rif_id_max" method="range" range_min="1" range_max="DATA(l3,rif,max_nof_rifs)-1">
+                    <doc>
+                    Default: 4096
+                    </doc> <!--  not required - soc property already defined by a different data -->
+                </property>
+            </numeric>
+        </numerics>
+    </sub_module>
+
+    <sub_module name="fwd">
+
+        <defines>
+            <define name="flp_fragment_support" value="0"></define>
+            <define name="max_mc_group_lpm" value="0x1FFFF"></define>
+            <define name="max_mc_group_em" value="0x7FFFF"></define>
+            <define name="nof_my_mac_prefixes" value="64"></define>
+            <define name="compressed_sip_svl_size" value="16"></define>
+            <define name="nof_compressed_svl_sip" value="1 &lt;&lt; DATA(l3, fwd, compressed_sip_svl_size)"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="ecmp">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="group_size_nof_bits" value="8"></define>
+            <define name="max_group_size" value="1 &lt;&lt; DATA(l3, ecmp, group_size_nof_bits)"></define>
+            <define name="nof_ecmp_per_bank_of_low_ecmps" value="0x800"></define>
+            <define name="nof_ecmp_basic_mode" value="0x8000"></define>
+            <define name="total_nof_ecmp" value="0xA000"></define>
+            <define name="max_ecmp_basic_mode" value="0x7FFF"></define>
+            <define name="max_ecmp_extended_mode" value="0x97FF"></define>
+            <define name="nof_ecmp_per_bank_of_extended_ecmps" value="0x200"></define>
+            <define name="nof_fec_banks_per_extended_ecmp_bank" value="4"></define>
+            <define name="nof_group_profiles_per_hierarchy" value="0x400"></define>
+            <define name="members_table_size_in_bits" value="0x20000"></define>
+            <define name="ecmp_stage_map_size" value="0x800"></define>
+            <define name="nof_ecmp_banks_basic" value="16"></define>
+            <!-- nof_ecmp_banks_extended = (nof_ecmp - nof_ecmp_basic_mode) / ecmp_stage_map_size -->
+            <define name="nof_ecmp_banks_extended" value="0x2000/0x800"></define>
+            <define name="first_valid_ecmp_group_id" value="1"></define>
+            <define name="nof_ecmp" value="0xA000"></define>
+            <!-- max_nof_fec_ecmp_tables = (members_table_size_in_bits / (L3_ECMP_CONSISTENT_TABLE_SMALL_NOF_ENTRIES  * L3_ECMP_CONSISTENT_MEMBER_SIZE_TABLE_SMALL)) -->
+            <define name="max_nof_fec_ecmp_tables" value="256"></define>
+            <define name="profile_id_size" value="10"></define>
+            <define name="profile_id_offset" value="0"></define>
+            <define name="member_table_row_width" value="32"></define>
+            <define name="tunnel_priority_support" value="0"></define>
+            <define name="nof_tunnel_priority_map_profiles" value="0"></define>
+            <define name="tunnel_priority_field_width" value="0"></define>
+            <define name="tunnel_priority_index_field_width" value="0"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="source_address_ethernet">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_mymac_prefixes" value="64"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+    
+    <sub_module name="vrrp">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_protocol_groups" value="4"></define>
+            <define name="nof_tcam_entries" value="32"></define>
+            <define name="nof_vsi_tcam_entries" value="16"></define>
+            <define name="exem_vrid_ipv4_tcam_index" value="17"></define>
+            <define name="exem_vrid_ipv6_tcam_index" value="18"></define>
+            <define name="exem_default_tcam_index" value="19"></define>
+            <define name="exem_default_tcam_index_msb" value="20"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+    <sub_module name="hw_bug" doc="L3 related Hw bugs">
+
+        <features>
+            <feature name="ipv6_mc_compatible_dmac" value="1"></feature>
+            <feature name="fec_hit_bit" value="1"></feature>
+            <feature name="fer_fec_granularity_double_size" value="0"></feature>
+            <feature name="mc_bridge_fallback" value="1"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>
+
+
+

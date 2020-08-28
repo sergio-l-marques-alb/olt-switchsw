@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+
+    <AppDB Name="FIELD_TCAM_ACCESS_PROFILES">
+    <OneLineDescription>This table that represents the TCAM Access Profiles is responsible for defining TCAM search per database</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="63" Name="FIELD_ACCESS_PROFILE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="KEY_SIZE" Size="2" Type="UINT"/>
+                <Field Name="IS_DIRECT" Size="1" Type="UINT"/>
+                <Field Name="PREFIX" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="KEY_SIZE">
+                    <Access>
+                        <Memory Name="TCAM_TCAM_ACCESS_PROFILEm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_ACCESS_PROFILE_ID)"/>
+                            <HwField Name="KEY_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_DIRECT">
+                    <Access>
+                        <Memory Name="TCAM_TCAM_ACCESS_PROFILEm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_ACCESS_PROFILE_ID)"/>
+                            <HwField Name="IS_DIRECTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PREFIX">
+                    <Access>
+                        <Memory Name="TCAM_TCAM_ACCESS_PROFILEm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_ACCESS_PROFILE_ID)"/>
+                            <HwField Name="ORf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+
+    </AppDB>
+    <AppDB Name="FIELD_TCAM_ACCESS_PROFILES_BANKS">
+    <OneLineDescription>This table is responsible for mananging the banks inside each access profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="63" Name="FIELD_ACCESS_PROFILE_ID"/>
+                <Field MaxValue="15" Name="FIELD_TCAM_BANK_ID"/>
+            </Key>
+            <Result>
+                <Field Name="ACTION_SELECT" Size="2" Type="UINT"/>
+                <Field Name="PD_SELECT" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ACTION_SELECT">
+                    <Access>
+                        <Memory Name="TCAM_TCAM_ACCESS_PROFILEm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_ACCESS_PROFILE_ID)"/>
+                            <HwField Name="ACTION_BITMAPf"/>
+                            <DataOffset Formula="#KEY_VALUE(FIELD_TCAM_BANK_ID)*2"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PD_SELECT">
+                    <Access>
+                        <Memory Name="TCAM_TCAM_PD_PROFILEm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_ACCESS_PROFILE_ID)"/>
+                            <HwField Name="BITMAPf"/>
+                            <DataOffset Formula="#KEY_VALUE(FIELD_TCAM_BANK_ID)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+
+    </AppDB>
+    
+    <AppDB Name="FIELD_TCAM_BANK_BLOCK_OWNER">
+    <OneLineDescription>This table maps TCAM banks to bank owners.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="15" Name="FIELD_TCAM_BANK_ID"/>
+            </Key>
+            <Result>
+                <Field Name="TCAM_BANK_BLOCK_OWNER"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TCAM_BANK_BLOCK_OWNER">
+                    <Access>
+                        <Register Name="TCAM_TCAM_BANK_BLOCK_OWNERr">
+                            <HwField Name="TCAM_BANK_BLOCK_OWNERf"/>
+                            <DataOffset Formula="#KEY_VALUE(FIELD_TCAM_BANK_ID)*2"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+
+    </AppDB>
+    
+    <AppDB Name="FIELD_TCAM_TCAM_ACTION_HIT_INDICATION">
+    <OneLineDescription>This table is returning hit indication for a specific TCAM entry.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="23" Name="TCAM_BANK_SRAM_ID" Size="5" Type="UINT"/>
+                <Field MaxValue="((DNX_DATA.field.tcam.nof_big_bank_lines/DNX_DATA.field.tcam.action_width_selector_size)/DNX_DATA.field.tcam.hit_indication_entries_per_byte)-1" Name="TCAM_BANK_LINE_ID" Size="8" Type="UINT"/>
+                <Field MaxValue="7" Name="TCAM_ENTRY_ID" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TCAM_ENTRY_HIT" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="TCAM_ENTRY_HIT">
+                    <Access>
+                        <Memory Name="TCAM_TCAM_ACTION_HIT_INDICATIONm">
+                            <ArrayOffset Formula="#KEY_VALUE(TCAM_BANK_SRAM_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(TCAM_BANK_LINE_ID)"/>
+                            <HwField Name="HITf"/>
+                            <DataOffset Formula="#KEY_VALUE(TCAM_ENTRY_ID)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="FIELD_TCAM_TCAM_ACTION_HIT_INDICATION_SMALL">
+    <OneLineDescription>This table is returning hit indication for a specific TCAM entry of SMALL TCAM banks.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="31" MinValue="24" Name="TCAM_BANK_SRAM_ID" Size="5" Type="UINT"/>
+                <Field MaxValue="31" Name="TCAM_BANK_LINE_ID" Size="8" Type="UINT"/>
+                <Field MaxValue="7" Name="TCAM_ENTRY_ID" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TCAM_ENTRY_HIT" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="TCAM_ENTRY_HIT">
+                    <Access>
+                        <Memory Name="TCAM_TCAM_ACTION_HIT_INDICATION_SMALLm">
+                            <ArrayOffset Formula="#KEY_VALUE(TCAM_BANK_SRAM_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(TCAM_BANK_LINE_ID)"/>
+                            <HwField Name="HITf"/>
+                            <DataOffset Formula="#KEY_VALUE(TCAM_ENTRY_ID)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

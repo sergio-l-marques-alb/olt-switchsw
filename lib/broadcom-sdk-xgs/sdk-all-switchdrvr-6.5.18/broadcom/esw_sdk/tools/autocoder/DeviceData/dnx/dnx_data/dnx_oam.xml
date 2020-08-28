@@ -1,0 +1,313 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="oam" bsl_flag="BSL_LS_BCMDNX_OAM">
+    <sub_module name="general" doc="general oam constants">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="oam_nof_non_acc_action_profiles" doc="Number of profiles for non-accelerated OAM endpoints"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_acc_action_profiles" doc="Number of profiles for accelerated OAM endpoints"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_bits_non_acc_action_profiles" doc="Number of bits needed for profiles for non-accelerated OAM endpoints"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_bits_acc_action_profiles" doc="Number of bits needed for profiles for accelerated OAM endpoints"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_bits_oam_lif_db_key_base_ingress" doc="Number of bits used in ingress LIF DB and Acc MEP DB tables for LIF ID key"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_bits_oam_lif_db_key_base_egress" doc="Number of bits used in egress LIF DB and Acc MEP DB tables for LIF ID key"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_endpoints" doc="Number of OAM endpoints that may be allocated"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_oamp_meps" doc="Number of endpoints that may be defined in the OAMP."></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_groups" doc="Number of oam groups in the device"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_entries_oam_lif_db" doc="Number of OAM lifs that may be defined"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_bits_counter_base" doc="Number of bits in counter base field in OAM-LIF-DB payload"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_punt_error_codes" doc="Number of error codes supported by punt feature"></define>
+        </defines>        
+        <defines>
+            <define name="oam_nof_priority_map_profiles" doc="Number of priority map profiles supported (egress tc to pcp mapping)"></define>
+        </defines>        
+        <defines>
+            <define name="oam_force_interface_for_meps_without_counter" doc="HW Bug - Egress doesnt support counter_if 3 as invalid. JR2_A0 only!"></define>
+        </defines>
+        <defines>
+            <define name="oam_my_cfm_mac_by_range" doc="My CFM MAC defined by range rather than bitmap"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_pemla_channel_types" doc="number of channel types in PEMLA OAM"></define>
+        </defines>
+        <defines>
+            <define name="oam_mdb_rmep_db_profile_limitation" doc="Minimum capacity for RMEP_DB in MDB profile "></define>
+        </defines>
+        <defines>
+            <define name="oam_lm_read_index_field_exists" doc="1 if current device has this field; 0 if it does not have it"></define>
+        </defines>
+        <defines>
+            <define name="oam_lm_read_per_sub_enable_field_exists" doc="1 if current device has this field; 0 if it does not have it"></define>
+        </defines>
+        <defines>
+            <define name="oam_lm_read_per_sub_disable_field_exists" doc="1 if current device has this field; 0 if it does not have it"></define>
+        </defines>
+        <defines>
+            <define name="oam_identification_appdb_1_field_exists" doc="1 if current device has this field; 0 if it does not have it"></define>
+        </defines>
+        <defines>
+            <define name="oam_ntp_freq_control_word" doc="NTP Frequency control word"></define>
+        </defines>
+        <defines>
+            <define name="oam_ntp_time_freq_control" doc="Frequency value added to the 32 bit accumulator"></define>
+        </defines>
+        <defines>
+            <define name="oam_IEEE_1588_time_freq_control" doc="Frequency value added to the 32 bit accumulator"></define>
+        </defines>
+        <defines>
+            <define name="oam_nse_nco_freq_control" doc="Determines whether the NCO Frequency stepping control is from a register or DPLL"></define>
+        </defines>
+        <defines>
+            <define name="oam_tod_config_in_eci" doc="Determines whether the ToD Configuration is done through ECI registers"></define>
+        </defines>
+        <numerics>
+        </numerics>        
+       
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="oamp" doc="oamp related consts">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="nof_mep_db_entry_banks" doc="Number of entry banks for OAMP MEP DB"></define>
+        </defines>
+        <defines>
+            <define name="nof_mep_db_entries_per_bank" doc="Number of entries per bank for OAMP MEP DB"></define>
+        </defines>
+        <defines>
+            <define name="scan_rate_bank_exist" doc="In JER_A0 different scan rate not supported."></define>
+        </defines>
+        <defines>
+            <define name="nof_mep_db_entries" doc="Total number of entries in OAMP MEP DB"></define>
+        </defines>
+        <defines>
+            <define name="max_nof_endpoint_id" doc="Maximal number of endpoints ID that could be created"></define>
+        </defines>
+        <defines>
+            <define name="max_nof_mep_id" doc="Maiximal number of possible MEP-ID's(size of MEP_DB table)."></define>
+        </defines>
+        <defines>
+            <define name="max_value_of_mep_id" doc="Maximal value of OAM ID (upper limit of table key)"></define>
+        </defines>
+        <defines>
+            <define name="nof_umc" doc="Number of maximum Unique MEG-ID Codes"></define>
+        </defines>
+        <defines>
+            <define name="mep_id_nof_bits" doc="Number of bits in 'OAM_ID' of an OAM/BFD accelerated endpoint"></define>
+        </defines>
+        <defines>
+            <define name="nof_mep_db_entry_banks_for_endpoints" doc="Number of entry banks in OAMP MEP DB that can contain endpoints"></define>
+        </defines>
+        <defines>
+            <define name="nof_mep_db_endpoint_entries" doc="Number of entries in OAMP MEP DB that can contain endpoints"></define>
+        </defines>
+        <defines>
+            <define name="mep_db_da_is_mc_for_short_entries_support" doc="DA_is_MC bug in A0 is fixed"></define>
+        </defines>
+        <defines>
+            <define name="nof_icc_profiles" doc="Number of ICC profiles in OAMP"></define>
+        </defines>
+        <defines>
+            <define name="local_port_2_system_port_size" doc="Size of local to system port table"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_sa_mac_profiles" doc="Number of sa mac profiles(33msb)"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_da_mac_msb_profiles" doc="Number of da mac msb profiles"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_da_mac_lsb_profiles" doc="Number of da mac lsb profiles"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_tpid_profiles" doc="Number of tpid profiles"></define>
+        </defines>
+        <defines>
+            <define name="oamp_pe_default_instruction_index" doc="index of default instruction"></define>
+        </defines>
+        <defines>
+            <define name="oamp_pe_max_nof_instructions" doc="maximal number of instructions to execute in single program"></define>
+        </defines>
+        <defines>
+            <define name="oamp_pe_nof_fem_bits" doc="number of bits that each FEM configures"></define>
+        </defines>
+        <defines>
+            <define name="mep_db_sub_entry_size" doc="Number of bits in OAMP MEP DB sub-entry"></define>
+        </defines>
+        <defines>
+            <define name="mep_db_nof_sub_entries" doc="Number of sub-entries each full entry in OAMP MEP DB"></define>
+        </defines>
+        <defines>
+            <define name="mep_db_full_entry_size" doc="Number of bits in OAMP MEP DB full entry"></define>
+        </defines>
+        <defines>
+            <define name="mep_pe_profile_nof_bits" doc="Size of MEP PE profile"></define>
+        </defines>
+        <defines>
+            <define name="rmep_db_entries_nof_bits" doc="Number of bits used for remote MEP"></define>
+        </defines>
+        <defines>
+            <define name="rmep_db_rmep_index_nof_bits" doc="Number of bits used for RMEP index"></define>
+        </defines>
+        <defines>
+            <define name="rmep_max_self_contained" doc="Number of maximum self contained RMEP's"></define>
+        </defines>
+        <defines>
+            <define name="rmep_sys_clocks" doc="Number of system clocks required for single RMEP scan"></define>
+        </defines>
+        <defines>
+            <define name="mep_sys_clocks" doc="Number of system clocks required for single MEP scan"></define>
+        </defines>
+        <defines>
+            <define name="mep_db_version_limitation" doc="HW bug: MEP type field for all short entries is read from sub-index 0. JR2_A0 only!"></define>
+        </defines>
+        <defines>
+            <define name="oamp_mep_db_threshold_version_limitation" doc="HW bug: oamp_mep_db_threshold could be set to 0 or 64k. JR2_A0 only!"></define>
+        </defines>
+        <defines>
+            <define name="rmep_db_non_zero_lifetime_units_limitation" doc="HW bug: OAMP_RMEP_DB lifetime units cannot be set to non-zero value. JR2_A0 only!"></define>
+        </defines>
+        <defines>
+            <define name="crc_calculation_supported" doc="HW bug: CRC calculation fails - JR2_A0 only!  Works for B0 and up"></define>
+        </defines>
+        <defines>
+            <define name="modified_mep_db_structure" doc="Differntiates betweeen JR2 A0 structure and B0 and up structure"></define>
+        </defines>        
+        <defines>
+            <define name="local_port_2_system_port_bits" doc="Number of bits in local to system port field"></define>
+        </defines>
+        <defines>
+            <define name="mdb_nof_access_ids" doc="number of access ids per mdb entry"></define>
+        </defines>
+        <defines>
+            <define name="bfd_mpls_short_mdb_reserved_bits" doc="Number of bits in reserved field in mdb bfd over MPLS 1/4 entry"></define>
+        </defines>
+        <defines>
+            <define name="bfd_m_hop_short_mdb_reserved_bits" doc="Number of bits in reserved field in mdb bfd over multi-hop IPv4 1/4 entry"></define>
+        </defines>
+        <defines>
+            <define name="bfd_pwe_short_mdb_reserved_bits" doc="Number of bits in reserved field in mdb bfd over PWE 1/4 entry"></define>
+        </defines>
+        <defines>
+            <define name="ccm_eth_offload_mdb_reserved_bits" doc="Number of bits reserved field in mdb CCM ethernet LM/DM offloaded entry"></define>
+        </defines>
+        <defines>
+            <define name="bfd_1_hop_short_mdb_reserved_bits" doc="Number of bits in reserved field in mdb bfd over single-hop IPv4 1/4 entry"></define>
+        </defines>
+        <defines>
+            <define name="ccm_mpls_tp_pwe_offload_mdb_reserved_bits" doc="Number of bits reserved field in mdb CCM over MPLS-TP/PWE LM/DM offloaded entry"></define>
+        </defines>
+        <defines>
+            <define name="punt_packet_destination_size" doc="Number of bits in the destination fields in the OAMP_CPUPORT register"></define>
+        </defines>
+        <defines>
+            <define name="punt_packet_itmh_destination_full_encoding_supported" doc="Due to HW issue less encodings are avaliable in JER_A0/B0"></define>
+        </defines>
+        <defines>
+            <define name="core_nof_bits" doc="Number of core bits in dbal field"></define>
+        </defines>
+        <defines>
+            <define name="punt_packet_pph_ttl_supported" doc="HW bug: punt packet pph's ttl calculation is wrong - JR2_A0 only!  Works for B0 and up"></define>
+        </defines>
+        <defines>
+            <define name="lmm_dmm_supported" doc="HW bug: oamp lmm and dmm don't work - JR2_A0 only!  Works for B0 and up"></define>
+        </defines>
+        <defines>
+            <define name="intr_oamp_pending_event" doc="interrupt index - oamp pending event"></define>
+        </defines>
+        <defines>
+            <define name="intr_oamp_stat_pending_event" doc="interrupt index - oamp stat pending event"></define>
+        </defines> 
+        <defines>
+            <define name="slm_supported" doc="SLM has new mechanism in JR2_B0 and above!"></define>
+        </defines>
+        <defines>
+            <define name="mdb_tx_rate_lsb_field_present" doc="Indicates if tx rate least significant bit is part of the MDB entry"></define>
+        </defines>
+        <defines>
+            <define name="nof_jumbo_dm_tlv_entries" doc="The max number of dm tlv entries"></define>
+        </defines>
+        <defines>
+            <define name="mdb_reserved_field_size_calculation" doc="Used in calculation of reservevd field size for MDB entries"></define>
+        </defines>
+        <numerics>
+            <numeric name="oamp_nof_scan_rmep_db_entries" doc="Number of remote MEPs"></numeric>
+            <numeric name="oamp_mep_full_entry_threshold" doc="MEP DB Full Entry Threshold"></numeric>
+            <numeric name="oamp_rmep_full_entry_threshold" doc="RMEP DB Full Entry Threshold"></numeric>
+            <numeric name="mep_db_jr1_mode" doc="MEP_DB mode(Inter-op)"></numeric>
+            <numeric name="oamp_fifo_dma_event_interface_enable" doc="Enables OAMP DMA event interrupts interface"></numeric>
+            <numeric name="oamp_fifo_dma_event_interface_buffer_size" doc="OAMP fifo DMA host memory buffer size in bytes"></numeric>
+            <numeric name="oamp_fifo_dma_event_interface_timeout" doc="OAMP fifo dma timeout in microseconds"></numeric>
+            <numeric name="oamp_fifo_dma_event_interface_threshold" doc="OAMP fifo dma threshold to raise an interrupt."></numeric>
+            <numeric name="oamp_fifo_dma_report_interface_enable" doc="Enables OAMP DMA statistic interrupts interface"></numeric>
+            <numeric name="oamp_fifo_dma_report_interface_buffer_size" doc="OAMP fifo DMA statistic host memory buffer size in bytes"></numeric>
+            <numeric name="oamp_fifo_dma_report_interface_timeout" doc="OAMP fifo dma statistic timeout in microseconds"></numeric>
+            <numeric name="oamp_fifo_dma_report_interface_threshold" doc="OAMP fifo dma statistic threshold to raise an interrupt."></numeric>
+            <numeric name="server_destination_msb_bits" doc="Server destinaion: number of bits stored in MSB part"></numeric>
+            <numeric name="server_destination_lsb_bits" doc="Server destinaion: number of bits stored in LSB part"></numeric>
+        </numerics>        
+        
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="property" doc="customer soc property">
+        <numerics>
+            <numeric name="oam_injected_over_lsp_cnt" doc="Count injected CCM packet over LSP" ></numeric>
+        </numerics>
+    </sub_module>
+
+    <sub_module name="hw_bug" doc="OAM-related HW bugs">
+
+        <features>
+            <feature name="oam_offset_supported" doc="HW bug: oam_offset is not used - JR2_A0 only!  Works for B0 and up"></feature>
+            <feature name="oam_statistics_supported" doc="HW bug: oam statistics is not used - JR2_A0 only!  Works for B0 and up"></feature>
+            <feature name="lm_read_index_limitation" doc="HW bug: there needs to be a configuration per OAM-Sub-Type to either use the calculated lm_read_index, or set it to NULL. - JR2_A0 only!"></feature>
+            <feature name="oamp_scanner_limitation" doc="RMEP is unreliable in A0 device"></feature>
+            <feature name="oamp_tx_rate_limitation" doc="HW bug: OAMP transmission rate is not accurate on JR2_A0 device"></feature>
+            <feature name="oamp_protection_rmep_id_limitation" doc="HW bug: OAMP RMEP ID is not stamped on protection packets - JR2_A0 only! Works for B0 and up"></feature>
+            <feature name="oamp_generic_response_supported" doc="HW bug: OAMP reply with wrong vlan fields. Works for J2P and above"></feature>
+            <feature name="oamp_txm_bank_limitation" doc="HW bug: OAMP TXM cannot support all banks - JR2 only! Applcable for Q2A aswell, because of low frequency"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>
+
+
+
+

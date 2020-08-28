@@ -1,0 +1,2686 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FieldTypesDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../field_types_schema.xsd">
+    <!--
+    ******************************************************
+    DBAL Fields Types DB:
+    This xml contains the fields types DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+    Auto generated synced to PEMLA
+    ******************************************************
+-->
+    <FieldType Name="IANA_IP_PROTOCOL" Size="DNX_DATA.aod_sizes.AOD.sizes.value(1)" Print="ENUM">
+        <OneLineDescription>The Size was not specified in the ARCH file.</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="HOPBYHOP" Description="Empty"/>
+                <EnumVal Name="IPV6_ROUTE" Description="Empty"/>
+                <EnumVal Name="IPV6_FRAG" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="HOPBYHOP" Value="0"/>
+                <EnumVal Name="IPV6_ROUTE" Value="43"/>
+                <EnumVal Name="IPV6_FRAG" Value="44"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="FHEI_SIZE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(2)" Print="ENUM">
+        <OneLineDescription>The Size was not specified in the ARCH file.</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="0B" Description="Empty"/>
+                <EnumVal Name="3B" Description="Empty"/>
+                <EnumVal Name="5B" Description="Empty"/>
+                <EnumVal Name="8B" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="0B" Value="0"/>
+                <EnumVal Name="3B" Value="1"/>
+                <EnumVal Name="5B" Value="2"/>
+                <EnumVal Name="8B" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_ENC1_PORT_CS_VAR" Size="DNX_DATA.aod_sizes.AOD.sizes.value(3)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="ETHERNET_TYPICAL" Description="Empty"/>
+                <EnumVal Name="MACSEC" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="ETHERNET_TYPICAL" Value="0"/>
+                <EnumVal Name="MACSEC" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_ENC2_PORT_CS_VAR" Size="DNX_DATA.aod_sizes.AOD.sizes.value(4)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="ETHERNET_TYPICAL" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="ETHERNET_TYPICAL" Value="0"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_ENC3_PORT_CS_VAR" Size="DNX_DATA.aod_sizes.AOD.sizes.value(5)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="ETHERNET_TYPICAL" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="ETHERNET_TYPICAL" Value="0"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_ENC4_PORT_CS_VAR" Size="DNX_DATA.aod_sizes.AOD.sizes.value(6)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="ETHERNET_TYPICAL" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="ETHERNET_TYPICAL" Value="0"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_ENC5_PORT_CS_VAR" Size="DNX_DATA.aod_sizes.AOD.sizes.value(7)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="ETHERNET_TYPICAL" Description="Empty"/>
+                <EnumVal Name="NPV_UPSTREAM" Description="Empty"/>
+                <EnumVal Name="MACSEC" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="ETHERNET_TYPICAL" Value="0"/>
+                <EnumVal Name="NPV_UPSTREAM" Value="1"/>
+                <EnumVal Name="MACSEC" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="VTT_TT_PROCESS_CODE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(8)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="ETHERNET" Description="Empty"/>
+                <EnumVal Name="MAC_IN_MAC" Description="Empty"/>
+                <EnumVal Name="IPV4" Description="Empty"/>
+                <EnumVal Name="IPV6" Description="Empty"/>
+                <EnumVal Name="MPLS" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="ETHERNET" Value="0"/>
+                <EnumVal Name="MAC_IN_MAC" Value="1"/>
+                <EnumVal Name="IPV4" Value="2"/>
+                <EnumVal Name="IPV6" Value="3"/>
+                <EnumVal Name="MPLS" Value="4"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="GENERAL_DEFINES" Size="DNX_DATA.aod_sizes.AOD.sizes.value(9)" Print="ENUM">
+        <OneLineDescription>The Size was not specified in the ARCH file.</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Empty"/>
+                <EnumVal Name="FWD2_ACL_NOF_CTXS" Description="Empty"/>
+                <EnumVal Name="FWD2_ACL_START_CTX" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="FWD2_ACL_NOF_CTXS" Value="16"/>
+                <EnumVal Name="FWD2_ACL_START_CTX" Value="48"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_FWD_ACE_CTXT_VALUE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(12)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NULL" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NULL" Value="0"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_FORWARDING_CANDIDATE_HEADER" Size="DNX_DATA.aod_sizes.AOD.sizes.value(13)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NULLPUSHFWD" Description="Empty"/>
+                <EnumVal Name="NULLREMOVEFWD" Description="Empty"/>
+                <EnumVal Name="MPLSSWAP" Description="Empty"/>
+                <EnumVal Name="MPLS2SELF" Description="Empty"/>
+                <EnumVal Name="MPLSSWAPCOUPLED" Description="Empty"/>
+                <EnumVal Name="MPLSPHP" Description="Empty"/>
+                <EnumVal Name="IPV4" Description="Empty"/>
+                <EnumVal Name="IPV6" Description="Empty"/>
+                <EnumVal Name="TRILL" Description="Empty"/>
+                <EnumVal Name="BIER_MPLS" Description="Empty"/>
+                <EnumVal Name="BIER_TI" Description="Empty"/>
+                <EnumVal Name="ETHERNET" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NULLPUSHFWD" Value="0"/>
+                <EnumVal Name="NULLREMOVEFWD" Value="1"/>
+                <EnumVal Name="MPLSSWAP" Value="2"/>
+                <EnumVal Name="MPLS2SELF" Value="3"/>
+                <EnumVal Name="MPLSSWAPCOUPLED" Value="4"/>
+                <EnumVal Name="MPLSPHP" Value="5"/>
+                <EnumVal Name="IPV4" Value="6"/>
+                <EnumVal Name="IPV6" Value="7"/>
+                <EnumVal Name="TRILL" Value="8"/>
+                <EnumVal Name="BIER_MPLS" Value="9"/>
+                <EnumVal Name="BIER_TI" Value="10"/>
+                <EnumVal Name="ETHERNET" Value="11"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="MACSEC_ERROR_CODE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(14)" Print="ENUM">
+        <OneLineDescription>The Size was not specified in the ARCH file.</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Empty"/>
+                <EnumVal Name="SP_TCAM_MISS" Description="Empty"/>
+                <EnumVal Name="TAG_CONTROL_PORT_DISABLED_PKT" Description="Empty"/>
+                <EnumVal Name="UNTAG_CONTROL_PORT_DISABLED_PKT" Description="Empty"/>
+                <EnumVal Name="IPV4_CHECKSUM_MISMATCH_OR_MPLS_BOS_NOT_FOUND" Description="Empty"/>
+                <EnumVal Name="INVALID_SECTAG" Description="Empty"/>
+                <EnumVal Name="SC_TCAM_MISS" Description="Empty"/>
+                <EnumVal Name="NO_SA" Description="Empty"/>
+                <EnumVal Name="REPLAY_FAILURE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="SP_TCAM_MISS" Value="16"/>
+                <EnumVal Name="TAG_CONTROL_PORT_DISABLED_PKT" Value="17"/>
+                <EnumVal Name="UNTAG_CONTROL_PORT_DISABLED_PKT" Value="18"/>
+                <EnumVal Name="IPV4_CHECKSUM_MISMATCH_OR_MPLS_BOS_NOT_FOUND" Value="19"/>
+                <EnumVal Name="INVALID_SECTAG" Value="20"/>
+                <EnumVal Name="SC_TCAM_MISS" Value="21"/>
+                <EnumVal Name="NO_SA" Value="22"/>
+                <EnumVal Name="REPLAY_FAILURE" Value="23"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="JR2_SYSTEM_MODE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(34)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="JR1_MODE" Description="Empty"/>
+                <EnumVal Name="JR2_MODE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="JR1_MODE" Value="0"/>
+                <EnumVal Name="JR2_MODE" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_ENCAPSULATION_MAIN_HEADER_TYPE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(40)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="BIER_MPLS_1ST_256_128" Description="Empty"/>
+                <EnumVal Name="BIER_MPLS_1ST_64" Description="Empty"/>
+                <EnumVal Name="BIER_MPLS_2ND_256" Description="Empty"/>
+                <EnumVal Name="BIER_MPLS_2ND_128_64" Description="Empty"/>
+                <EnumVal Name="BIER_TI_1ST_256_128" Description="Empty"/>
+                <EnumVal Name="BIER_TI_1ST_64" Description="Empty"/>
+                <EnumVal Name="BIER_TI_2ND_256_HDR_START" Description="Empty"/>
+                <EnumVal Name="BIER_TI_2ND_HDR_START" Description="Empty"/>
+                <EnumVal Name="IPV6" Description="Empty"/>
+                <EnumVal Name="IPV4" Description="Empty"/>
+                <EnumVal Name="TRILL" Description="Empty"/>
+                <EnumVal Name="MPLS_PUSH_1" Description="Empty"/>
+                <EnumVal Name="MPLS_PUSH_2" Description="Empty"/>
+                <EnumVal Name="MPLS_TANDEM_PUSH_1_PLUS_PUSH_1" Description="Empty"/>
+                <EnumVal Name="MPLS_TANDEM_PUSH_1_PLUS_PUSH_2" Description="Empty"/>
+                <EnumVal Name="MPLS_TANDEM_PUSH_2_PLUS_PUSH_1" Description="Empty"/>
+                <EnumVal Name="MPLS_TANDEM_PUSH_2_PLUS_PUSH_2" Description="Empty"/>
+                <EnumVal Name="8021Q" Description="Empty"/>
+                <EnumVal Name="8021AH" Description="Empty"/>
+                <EnumVal Name="IPFIX_PSAMP" Description="Empty"/>
+                <EnumVal Name="ERSPAN_V2" Description="Empty"/>
+                <EnumVal Name="ERSPAN_V3" Description="Empty"/>
+                <EnumVal Name="RAW" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BIER_MPLS_1ST_256_128" Value="0"/>
+                <EnumVal Name="BIER_MPLS_1ST_64" Value="1"/>
+                <EnumVal Name="BIER_MPLS_2ND_256" Value="2"/>
+                <EnumVal Name="BIER_MPLS_2ND_128_64" Value="3"/>
+                <EnumVal Name="BIER_TI_1ST_256_128" Value="4"/>
+                <EnumVal Name="BIER_TI_1ST_64" Value="5"/>
+                <EnumVal Name="BIER_TI_2ND_256_HDR_START" Value="6"/>
+                <EnumVal Name="BIER_TI_2ND_HDR_START" Value="7"/>
+                <EnumVal Name="IPV6" Value="8"/>
+                <EnumVal Name="IPV4" Value="11"/>
+                <EnumVal Name="TRILL" Value="12"/>
+                <EnumVal Name="MPLS_PUSH_1" Value="13"/>
+                <EnumVal Name="MPLS_PUSH_2" Value="14"/>
+                <EnumVal Name="MPLS_TANDEM_PUSH_1_PLUS_PUSH_1" Value="15"/>
+                <EnumVal Name="MPLS_TANDEM_PUSH_1_PLUS_PUSH_2" Value="16"/>
+                <EnumVal Name="MPLS_TANDEM_PUSH_2_PLUS_PUSH_1" Value="17"/>
+                <EnumVal Name="MPLS_TANDEM_PUSH_2_PLUS_PUSH_2" Value="18"/>
+                <EnumVal Name="8021Q" Value="19"/>
+                <EnumVal Name="8021AH" Value="20"/>
+                <EnumVal Name="IPFIX_PSAMP" Value="21"/>
+                <EnumVal Name="ERSPAN_V2" Value="22"/>
+                <EnumVal Name="ERSPAN_V3" Value="23"/>
+                <EnumVal Name="RAW" Value="24"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="PTC_PROFILE_FWD1" Size="DNX_DATA.aod_sizes.AOD.sizes.value(42)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LIF_VTT5_CSP_1BIT_L3LIF_VIRTUAL_IP_MODE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(43)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LIF_FWD1_CSP_1BIT_URPF_MODE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(48)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="QOS_FORWARD_P1_EXPLICIT_REMARK_PROFILE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(52)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="REMARK_TYPE_EXPLICIT" Description="Empty"/>
+                <EnumVal Name="REMARK_TYPE_INHERIT_REMARK_ALL" Description="Empty"/>
+                <EnumVal Name="REMARK_TYPE_INHERIT_REMARK_NON_ECN" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="REMARK_TYPE_EXPLICIT" Value="0"/>
+                <EnumVal Name="REMARK_TYPE_INHERIT_REMARK_ALL" Value="1"/>
+                <EnumVal Name="REMARK_TYPE_INHERIT_REMARK_NON_ECN" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="QOS_FORWARD_P1_REMARK_PROFILE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(53)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="INGRESS_REMARK_PROFILE_0" Description="Empty"/>
+                <EnumVal Name="INGRESS_REMARK_PROFILE_1" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="INGRESS_REMARK_PROFILE_0" Value="0"/>
+                <EnumVal Name="INGRESS_REMARK_PROFILE_1" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="QOS_LR_FORWARD_P1_TYPE_INDEX" Size="DNX_DATA.aod_sizes.AOD.sizes.value(54)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="IPV4" Description="Empty"/>
+                <EnumVal Name="IPV6" Description="Empty"/>
+                <EnumVal Name="RESERVED" Description="Empty"/>
+                <EnumVal Name="OTHER" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="IPV4" Value="0"/>
+                <EnumVal Name="IPV6" Value="1"/>
+                <EnumVal Name="RESERVED" Value="2"/>
+                <EnumVal Name="OTHER" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="QOS_TYPEFWDPLUS1_TYPE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(55)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="IPV4" Description="Empty"/>
+                <EnumVal Name="IPV6" Description="Empty"/>
+                <EnumVal Name="OTHER" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="IPV4" Value="0"/>
+                <EnumVal Name="IPV6" Value="1"/>
+                <EnumVal Name="OTHER" Value="7"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ESEM1_DEFAULT_RESULT" Size="DNX_DATA.aod_sizes.AOD.sizes.value(56)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Empty"/>
+                <EnumVal Name="IPV6_GENEVE_NO_FODO2VNI_MAPPING" Description="Empty"/>
+                <EnumVal Name="IPV6_VXLAN_NO_FODO2VNI_MAPPING" Description="Empty"/>
+                <EnumVal Name="IPV6_VXLAN_GPE_NO_FODO2VNI_MAPPING" Description="Empty"/>
+                <EnumVal Name="IPV6_GRE_NO_FODO2VNI_MAPPING" Description="Empty"/>
+                <EnumVal Name="IPV4_VXLAN_NO_FODO2VNI_MAPPING" Description="Empty"/>
+                <EnumVal Name="IPV4_VXLAN_GPE_NO_FODO2VNI_MAPPING" Description="Empty"/>
+                <EnumVal Name="IML_NO_FODO_OUTLIF_MAP" Description="Empty"/>
+                <EnumVal Name="RSPAN_ADVANCED_NO_SSPA" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="IPV6_GENEVE_NO_FODO2VNI_MAPPING" Value="1"/>
+                <EnumVal Name="IPV6_VXLAN_NO_FODO2VNI_MAPPING" Value="2"/>
+                <EnumVal Name="IPV6_VXLAN_GPE_NO_FODO2VNI_MAPPING" Value="3"/>
+                <EnumVal Name="IPV6_GRE_NO_FODO2VNI_MAPPING" Value="4"/>
+                <EnumVal Name="IPV4_VXLAN_NO_FODO2VNI_MAPPING" Value="5"/>
+                <EnumVal Name="IPV4_VXLAN_GPE_NO_FODO2VNI_MAPPING" Value="6"/>
+                <EnumVal Name="IML_NO_FODO_OUTLIF_MAP" Value="7"/>
+                <EnumVal Name="RSPAN_ADVANCED_NO_SSPA" Value="8"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ESEM2_DEFAULT_RESULT" Size="DNX_DATA.aod_sizes.AOD.sizes.value(57)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Empty"/>
+                <EnumVal Name="IML_NO_SSPA_NAMESPACE_MAP" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="IML_NO_SSPA_NAMESPACE_MAP" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="EXEM_DEFAULT_RESULT" Size="DNX_DATA.aod_sizes.AOD.sizes.value(58)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ESEM_COMMAND_ATTRIBUTE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(59)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Empty"/>
+                <EnumVal Name="IPV6_GRE_FODO_NAMESPACE" Description="Empty"/>
+                <EnumVal Name="EVPN_IML_FODO_OUTLIF_AND_SSPA_NAMESPACE" Description="Empty"/>
+                <EnumVal Name="RSPAN_ADVANCED_SSPA_NAMESPACE" Description="Empty"/>
+                <EnumVal Name="SVTAG_TUNNEL" Description="Empty"/>
+                <EnumVal Name="SVTAG_PORT" Description="Empty"/>
+                <EnumVal Name="IPV4_VXLAN_FODO_NAMESPACE" Description="Empty"/>
+                <EnumVal Name="IPV4_VXLAN_GPE_FODO_NAMESPACE" Description="Empty"/>
+                <EnumVal Name="IPV6_GENEVE_FODO_NAMESPACE" Description="Empty"/>
+                <EnumVal Name="IPV6_VXLAN_FODO_NAMESPACE" Description="Empty"/>
+                <EnumVal Name="IPV6_VXLAN_GPE_FODO_NAMESPACE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="IPV6_GRE_FODO_NAMESPACE" Value="1"/>
+                <EnumVal Name="EVPN_IML_FODO_OUTLIF_AND_SSPA_NAMESPACE" Value="8"/>
+                <EnumVal Name="RSPAN_ADVANCED_SSPA_NAMESPACE" Value="24"/>
+                <EnumVal Name="SVTAG_TUNNEL" Value="56"/>
+                <EnumVal Name="SVTAG_PORT" Value="57"/>
+                <EnumVal Name="IPV4_VXLAN_FODO_NAMESPACE" Value="58"/>
+                <EnumVal Name="IPV4_VXLAN_GPE_FODO_NAMESPACE" Value="59"/>
+                <EnumVal Name="IPV6_GENEVE_FODO_NAMESPACE" Value="61"/>
+                <EnumVal Name="IPV6_VXLAN_FODO_NAMESPACE" Value="62"/>
+                <EnumVal Name="IPV6_VXLAN_GPE_FODO_NAMESPACE" Value="63"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LAYER_TYPES" Size="DNX_DATA.aod_sizes.AOD.sizes.value(60)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="INITIALIZATION" Description="Empty"/>
+                <EnumVal Name="ETHERNET" Description="Empty"/>
+                <EnumVal Name="IPV4" Description="Empty"/>
+                <EnumVal Name="IPV6" Description="Empty"/>
+                <EnumVal Name="MPLS" Description="Empty"/>
+                <EnumVal Name="MPLS_UA" Description="Empty"/>
+                <EnumVal Name="ARP" Description="Empty"/>
+                <EnumVal Name="FCOE" Description="Empty"/>
+                <EnumVal Name="TCP" Description="Empty"/>
+                <EnumVal Name="UDP" Description="Empty"/>
+                <EnumVal Name="BFD_SINGLE_HOP" Description="Empty"/>
+                <EnumVal Name="BFD_MULTI_HOP" Description="Empty"/>
+                <EnumVal Name="L2TP" Description="Empty"/>
+                <EnumVal Name="PTP" Description="Empty"/>
+                <EnumVal Name="Y_1731" Description="Empty"/>
+                <EnumVal Name="ICMP" Description="Empty"/>
+                <EnumVal Name="BIER_TI" Description="Empty"/>
+                <EnumVal Name="BIER_MPLS" Description="Empty"/>
+                <EnumVal Name="RCH" Description="Empty"/>
+                <EnumVal Name="PPPOE" Description="Empty"/>
+                <EnumVal Name="SRV6_ENDPOINT" Description="Empty"/>
+                <EnumVal Name="SRV6_BEYOND" Description="Empty"/>
+                <EnumVal Name="IGMP" Description="Empty"/>
+                <EnumVal Name="IPT" Description="Empty"/>
+                <EnumVal Name="INGRESS_SCTP_EGRESS_FTMH" Description="Empty"/>
+                <EnumVal Name="GTP" Description="Empty"/>
+                <EnumVal Name="PPP" Description="Empty"/>
+                <EnumVal Name="MPLS_UNTERM" Description="Empty"/>
+                <EnumVal Name="ITMH_J1_VAL" Description="Empty"/>
+                <EnumVal Name="IPVX" Description="Empty"/>
+                <EnumVal Name="UNKNOWN" Description="Empty"/>
+                <EnumVal Name="ITMH_VAL" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="INITIALIZATION" Value="0"/>
+                <EnumVal Name="ETHERNET" Value="1"/>
+                <EnumVal Name="IPV4" Value="2"/>
+                <EnumVal Name="IPV6" Value="3"/>
+                <EnumVal Name="MPLS" Value="4"/>
+                <EnumVal Name="MPLS_UA" Value="5"/>
+                <EnumVal Name="ARP" Value="6"/>
+                <EnumVal Name="FCOE" Value="7"/>
+                <EnumVal Name="TCP" Value="8"/>
+                <EnumVal Name="UDP" Value="9"/>
+                <EnumVal Name="BFD_SINGLE_HOP" Value="10"/>
+                <EnumVal Name="BFD_MULTI_HOP" Value="11"/>
+                <EnumVal Name="L2TP" Value="12"/>
+                <EnumVal Name="PTP" Value="13"/>
+                <EnumVal Name="Y_1731" Value="14"/>
+                <EnumVal Name="ICMP" Value="15"/>
+                <EnumVal Name="BIER_TI" Value="16"/>
+                <EnumVal Name="BIER_MPLS" Value="17"/>
+                <EnumVal Name="RCH" Value="18"/>
+                <EnumVal Name="PPPOE" Value="19"/>
+                <EnumVal Name="SRV6_ENDPOINT" Value="20"/>
+                <EnumVal Name="SRV6_BEYOND" Value="21"/>
+                <EnumVal Name="IGMP" Value="22"/>
+                <EnumVal Name="IPT" Value="23"/>
+                <EnumVal Name="INGRESS_SCTP_EGRESS_FTMH" Value="24"/>
+                <EnumVal Name="GTP" Value="25"/>
+                <EnumVal Name="PPP" Value="26"/>
+                <EnumVal Name="MPLS_UNTERM" Value="27"/>
+                <EnumVal Name="ITMH_J1_VAL" Value="28"/>
+                <EnumVal Name="IPVX" Value="29"/>
+                <EnumVal Name="UNKNOWN" Value="30"/>
+                <EnumVal Name="ITMH_VAL" Value="31"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="CURRENT_PROTOCOL_TYPE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(61)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Empty"/>
+                <EnumVal Name="ETHERNET" Description="Empty"/>
+                <EnumVal Name="IPV4" Description="Empty"/>
+                <EnumVal Name="IPV6" Description="Empty"/>
+                <EnumVal Name="MPLS" Description="Empty"/>
+                <EnumVal Name="MPLS_UA" Description="Empty"/>
+                <EnumVal Name="ARP" Description="Empty"/>
+                <EnumVal Name="FCOE" Description="Empty"/>
+                <EnumVal Name="UDP" Description="Empty"/>
+                <EnumVal Name="L2TP" Description="Empty"/>
+                <EnumVal Name="BIER_TI" Description="Empty"/>
+                <EnumVal Name="BIER_MPLS" Description="Empty"/>
+                <EnumVal Name="PPPOE_SESSION" Description="Empty"/>
+                <EnumVal Name="SRV6_ENDPOINT" Description="Empty"/>
+                <EnumVal Name="IPT" Description="Empty"/>
+                <EnumVal Name="FTMH" Description="Empty"/>
+                <EnumVal Name="SFLOW" Description="Empty"/>
+                <EnumVal Name="ERSPAN" Description="Empty"/>
+                <EnumVal Name="GRE" Description="Empty"/>
+                <EnumVal Name="VXLAN_GPE" Description="Empty"/>
+                <EnumVal Name="VXLAN" Description="Empty"/>
+                <EnumVal Name="GENEVE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="ETHERNET" Value="1"/>
+                <EnumVal Name="IPV4" Value="2"/>
+                <EnumVal Name="IPV6" Value="3"/>
+                <EnumVal Name="MPLS" Value="4"/>
+                <EnumVal Name="MPLS_UA" Value="5"/>
+                <EnumVal Name="ARP" Value="6"/>
+                <EnumVal Name="FCOE" Value="7"/>
+                <EnumVal Name="UDP" Value="9"/>
+                <EnumVal Name="L2TP" Value="12"/>
+                <EnumVal Name="BIER_TI" Value="16"/>
+                <EnumVal Name="BIER_MPLS" Value="17"/>
+                <EnumVal Name="PPPOE_SESSION" Value="19"/>
+                <EnumVal Name="SRV6_ENDPOINT" Value="20"/>
+                <EnumVal Name="IPT" Value="23"/>
+                <EnumVal Name="FTMH" Value="24"/>
+                <EnumVal Name="SFLOW" Value="25"/>
+                <EnumVal Name="ERSPAN" Value="26"/>
+                <EnumVal Name="GRE" Value="28"/>
+                <EnumVal Name="VXLAN_GPE" Value="29"/>
+                <EnumVal Name="VXLAN" Value="30"/>
+                <EnumVal Name="GENEVE" Value="31"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_NEXT_PROTOCOL_NAMESPACE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(62)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="ETHERTYPE" Description="Empty"/>
+                <EnumVal Name="IP_NEXT_PROTOCOL" Description="Empty"/>
+                <EnumVal Name="VXLAN_GPE_NEXT_PROTOCOL" Description="Empty"/>
+                <EnumVal Name="MPLS_BOS" Description="Empty"/>
+                <EnumVal Name="BIER_NEXT_PROTOCOL" Description="Empty"/>
+                <EnumVal Name="UDP_DESTINATION_PORT" Description="Empty"/>
+                <EnumVal Name="PPP_NEXT_PROTOCOL" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="ETHERTYPE" Value="0"/>
+                <EnumVal Name="IP_NEXT_PROTOCOL" Value="1"/>
+                <EnumVal Name="VXLAN_GPE_NEXT_PROTOCOL" Value="2"/>
+                <EnumVal Name="MPLS_BOS" Value="3"/>
+                <EnumVal Name="BIER_NEXT_PROTOCOL" Value="4"/>
+                <EnumVal Name="UDP_DESTINATION_PORT" Value="5"/>
+                <EnumVal Name="PPP_NEXT_PROTOCOL" Value="6"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_PROTOCOL_X_NEXT_PROTOCOL_NAMESPACE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(63)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="MPLS_O_MPLS_BOS_OR_MPLS_UA_O_MPLS_BOS" Description="Empty"/>
+                <EnumVal Name="ETH_O_MPLS_BOS_OR_IPV4_O_MPLS_BOS_OR_IPV6_O_MPLS_BOS_OR_IPV4_O_VXLAN_GPE" Description="Empty"/>
+                <EnumVal Name="IPV6_O_VXLAN_GPE" Description="Empty"/>
+                <EnumVal Name="ETH_O_VXLAN_GPE" Description="Empty"/>
+                <EnumVal Name="IPV4_IN_IP_NEXT_PROTOCOL" Description="Empty"/>
+                <EnumVal Name="MPLS_O_VXLAN_GPE" Description="Empty"/>
+                <EnumVal Name="UDP_IN_IP_NEXT_PROTOCOL" Description="Empty"/>
+                <EnumVal Name="IPV4_O_PPP_NEXT_PROTOCOL" Description="Empty"/>
+                <EnumVal Name="IPV6_IN_IP_NEXT_PROTOCOL" Description="Empty"/>
+                <EnumVal Name="GRE_IN_IP_NEXT_PROTOCOL" Description="Empty"/>
+                <EnumVal Name="IPV6_O_PPP_NEXT_PROTOCOL" Description="Empty"/>
+                <EnumVal Name="L2TP_IN_IP_NEXT_PROTOCOL" Description="Empty"/>
+                <EnumVal Name="MPLS_IN_IP_NEXT_PROTOCOL_OR_MPLS_UA_IN_IP_NEXT_PROTOCOL" Description="Empty"/>
+                <EnumVal Name="L2TP_O_UDP_DESTINATION_PORT" Description="Empty"/>
+                <EnumVal Name="IPV4_O_ETHERTYPE" Description="Empty"/>
+                <EnumVal Name="GRE_O_UDP_DESTINATION_PORT" Description="Empty"/>
+                <EnumVal Name="VXLAN_O_UDP_DESTINATION_PORT" Description="Empty"/>
+                <EnumVal Name="VXLAN_GPE_O_UDP_DESTINATION_PORT" Description="Empty"/>
+                <EnumVal Name="GENEVE_O_UDP_DESTINATION_PORT" Description="Empty"/>
+                <EnumVal Name="MPLS_O_UDP_DESTINATION_PORT" Description="Empty"/>
+                <EnumVal Name="IPV6_O_ETHERTYPE" Description="Empty"/>
+                <EnumVal Name="MPLS_O_ETHERTYPE" Description="Empty"/>
+                <EnumVal Name="MPLS_UA_O_ETHERTYPE" Description="Empty"/>
+                <EnumVal Name="PPPOE_SESSION_O_ETHERTYPE" Description="Empty"/>
+                <EnumVal Name="ERSPAN_O_ETHERTYPE" Description="Empty"/>
+                <EnumVal Name="FCOE_O_ETHERTYPE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="MPLS_O_MPLS_BOS_OR_MPLS_UA_O_MPLS_BOS" Value="0"/>
+                <EnumVal Name="ETH_O_MPLS_BOS_OR_IPV4_O_MPLS_BOS_OR_IPV6_O_MPLS_BOS_OR_IPV4_O_VXLAN_GPE" Value="1"/>
+                <EnumVal Name="IPV6_O_VXLAN_GPE" Value="2"/>
+                <EnumVal Name="ETH_O_VXLAN_GPE" Value="3"/>
+                <EnumVal Name="IPV4_IN_IP_NEXT_PROTOCOL" Value="4"/>
+                <EnumVal Name="MPLS_O_VXLAN_GPE" Value="5"/>
+                <EnumVal Name="UDP_IN_IP_NEXT_PROTOCOL" Value="17"/>
+                <EnumVal Name="IPV4_O_PPP_NEXT_PROTOCOL" Value="33"/>
+                <EnumVal Name="IPV6_IN_IP_NEXT_PROTOCOL" Value="41"/>
+                <EnumVal Name="GRE_IN_IP_NEXT_PROTOCOL" Value="47"/>
+                <EnumVal Name="IPV6_O_PPP_NEXT_PROTOCOL" Value="87"/>
+                <EnumVal Name="L2TP_IN_IP_NEXT_PROTOCOL" Value="115"/>
+                <EnumVal Name="MPLS_IN_IP_NEXT_PROTOCOL_OR_MPLS_UA_IN_IP_NEXT_PROTOCOL" Value="137"/>
+                <EnumVal Name="L2TP_O_UDP_DESTINATION_PORT" Value="1701"/>
+                <EnumVal Name="IPV4_O_ETHERTYPE" Value="2048"/>
+                <EnumVal Name="GRE_O_UDP_DESTINATION_PORT" Value="4754"/>
+                <EnumVal Name="VXLAN_O_UDP_DESTINATION_PORT" Value="4789"/>
+                <EnumVal Name="VXLAN_GPE_O_UDP_DESTINATION_PORT" Value="4790"/>
+                <EnumVal Name="GENEVE_O_UDP_DESTINATION_PORT" Value="6081"/>
+                <EnumVal Name="MPLS_O_UDP_DESTINATION_PORT" Value="6635"/>
+                <EnumVal Name="IPV6_O_ETHERTYPE" Value="34525"/>
+                <EnumVal Name="MPLS_O_ETHERTYPE" Value="34887"/>
+                <EnumVal Name="MPLS_UA_O_ETHERTYPE" Value="34888"/>
+                <EnumVal Name="PPPOE_SESSION_O_ETHERTYPE" Value="34916"/>
+                <EnumVal Name="ERSPAN_O_ETHERTYPE" Value="35006"/>
+                <EnumVal Name="FCOE_O_ETHERTYPE" Value="35078"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LAYER_TYPES_ITMH" Size="DNX_DATA.aod_sizes.AOD.sizes.value(64)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="INITIALIZATION" Description="Empty"/>
+                <EnumVal Name="ASE" Description="Empty"/>
+                <EnumVal Name="TSH" Description="Empty"/>
+                <EnumVal Name="PPH" Description="Empty"/>
+                <EnumVal Name="UNKNOWN" Description="Empty"/>
+                <EnumVal Name="ITMH_VAL" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="INITIALIZATION" Value="0"/>
+                <EnumVal Name="ASE" Value="1"/>
+                <EnumVal Name="TSH" Value="2"/>
+                <EnumVal Name="PPH" Value="3"/>
+                <EnumVal Name="UNKNOWN" Value="30"/>
+                <EnumVal Name="ITMH_VAL" Value="31"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LAYER_TYPES_FTMH" Size="DNX_DATA.aod_sizes.AOD.sizes.value(65)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="INITIALIZATION" Description="Empty"/>
+                <EnumVal Name="PPH" Description="Empty"/>
+                <EnumVal Name="UDH" Description="Empty"/>
+                <EnumVal Name="UNKNOWN" Description="Empty"/>
+                <EnumVal Name="FTMH_VAL" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="INITIALIZATION" Value="0"/>
+                <EnumVal Name="PPH" Value="3"/>
+                <EnumVal Name="UDH" Value="4"/>
+                <EnumVal Name="UNKNOWN" Value="30"/>
+                <EnumVal Name="FTMH_VAL" Value="31"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LAYER_TYPES_ITMH_JR1" Size="DNX_DATA.aod_sizes.AOD.sizes.value(66)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="INITIALIZATION" Description="Empty"/>
+                <EnumVal Name="OTSH_JR1_VAL" Description="Empty"/>
+                <EnumVal Name="PPH_JR1_VAL" Description="Empty"/>
+                <EnumVal Name="ITMH_J1_VAL" Description="Empty"/>
+                <EnumVal Name="UNKNOWN" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="INITIALIZATION" Value="0"/>
+                <EnumVal Name="OTSH_JR1_VAL" Value="2"/>
+                <EnumVal Name="PPH_JR1_VAL" Value="3"/>
+                <EnumVal Name="ITMH_J1_VAL" Value="28"/>
+                <EnumVal Name="UNKNOWN" Value="30"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="EGRESS_FWD_CODE_PORT_PROFILE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(67)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NORMAL" Description="Empty"/>
+                <EnumVal Name="STACKING_PORT" Description="Empty"/>
+                <EnumVal Name="CPU_PORT" Description="Empty"/>
+                <EnumVal Name="RAW_PROCESSING" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NORMAL" Value="0"/>
+                <EnumVal Name="STACKING_PORT" Value="1"/>
+                <EnumVal Name="CPU_PORT" Value="2"/>
+                <EnumVal Name="RAW_PROCESSING" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="EGRESS_FWD_CODE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(68)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="ETHERNET" Description="Empty"/>
+                <EnumVal Name="MIRROR_OR_SS" Description="Empty"/>
+                <EnumVal Name="IPV4_UC_R0" Description="Empty"/>
+                <EnumVal Name="IPV4_MC_R0" Description="Empty"/>
+                <EnumVal Name="IPV6_UC_R0" Description="Empty"/>
+                <EnumVal Name="IPV6_MC_R0" Description="Empty"/>
+                <EnumVal Name="BIER_MPLS" Description="Empty"/>
+                <EnumVal Name="BIER_TI" Description="Empty"/>
+                <EnumVal Name="INGRESS_TRAPPED_JR1_LEGACY" Description="Empty"/>
+                <EnumVal Name="CPU_PORT" Description="Empty"/>
+                <EnumVal Name="RCH_ENC" Description="Empty"/>
+                <EnumVal Name="RCH_PTCH_ENC" Description="Empty"/>
+                <EnumVal Name="STACKING_PORT" Description="Empty"/>
+                <EnumVal Name="FCOE_FCF" Description="Empty"/>
+                <EnumVal Name="FCOE_FCF_VFT" Description="Empty"/>
+                <EnumVal Name="SRV6_ENDPOINT" Description="Empty"/>
+                <EnumVal Name="SRV6_ENDPOINT_PSP" Description="Empty"/>
+                <EnumVal Name="SRV6_TUNNEL_TERMINATED" Description="Empty"/>
+                <EnumVal Name="TM" Description="Empty"/>
+                <EnumVal Name="RAW_PROCESSING" Description="Empty"/>
+                <EnumVal Name="TDM" Description="Empty"/>
+                <EnumVal Name="MPLS_INJECTED_FROM_OAMP" Description="Empty"/>
+                <EnumVal Name="ERPP_TRAPPED" Description="Empty"/>
+                <EnumVal Name="DO_NOT_EDIT" Description="Empty"/>
+                <EnumVal Name="MPLS" Description="Empty"/>
+                <EnumVal Name="PPP" Description="Empty"/>
+                <EnumVal Name="IPV4_UC_R1" Description="Empty"/>
+                <EnumVal Name="IPV4_MC_R1" Description="Empty"/>
+                <EnumVal Name="IPV6_UC_R1" Description="Empty"/>
+                <EnumVal Name="IPV6_MC_R1" Description="Empty"/>
+                <EnumVal Name="FWD_CODE_BUG_CODE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="ETHERNET" Value="0"/>
+                <EnumVal Name="MIRROR_OR_SS" Value="1"/>
+                <EnumVal Name="IPV4_UC_R0" Value="2"/>
+                <EnumVal Name="IPV4_MC_R0" Value="3"/>
+                <EnumVal Name="IPV6_UC_R0" Value="4"/>
+                <EnumVal Name="IPV6_MC_R0" Value="5"/>
+                <EnumVal Name="BIER_MPLS" Value="6"/>
+                <EnumVal Name="BIER_TI" Value="7"/>
+                <EnumVal Name="INGRESS_TRAPPED_JR1_LEGACY" Value="8"/>
+                <EnumVal Name="CPU_PORT" Value="10"/>
+                <EnumVal Name="RCH_ENC" Value="11"/>
+                <EnumVal Name="RCH_PTCH_ENC" Value="12"/>
+                <EnumVal Name="STACKING_PORT" Value="13"/>
+                <EnumVal Name="FCOE_FCF" Value="14"/>
+                <EnumVal Name="FCOE_FCF_VFT" Value="15"/>
+                <EnumVal Name="SRV6_ENDPOINT" Value="16"/>
+                <EnumVal Name="SRV6_ENDPOINT_PSP" Value="17"/>
+                <EnumVal Name="SRV6_TUNNEL_TERMINATED" Value="18"/>
+                <EnumVal Name="TM" Value="19"/>
+                <EnumVal Name="RAW_PROCESSING" Value="20"/>
+                <EnumVal Name="TDM" Value="21"/>
+                <EnumVal Name="MPLS_INJECTED_FROM_OAMP" Value="22"/>
+                <EnumVal Name="ERPP_TRAPPED" Value="23"/>
+                <EnumVal Name="DO_NOT_EDIT" Value="25"/>
+                <EnumVal Name="MPLS" Value="26"/>
+                <EnumVal Name="PPP" Value="27"/>
+                <EnumVal Name="IPV4_UC_R1" Value="34"/>
+                <EnumVal Name="IPV4_MC_R1" Value="35"/>
+                <EnumVal Name="IPV6_UC_R1" Value="36"/>
+                <EnumVal Name="IPV6_MC_R1" Value="37"/>
+                <EnumVal Name="FWD_CODE_BUG_CODE" Value="63"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_FWD_CODE_ACE_CTXT_VALUE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(72)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NULL" Description="Empty"/>
+                <EnumVal Name="ERPP_TRAPPED" Description="Empty"/>
+                <EnumVal Name="J_MODE_FWD_CODE_OVERRIDE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NULL" Value="0"/>
+                <EnumVal Name="ERPP_TRAPPED" Value="1"/>
+                <EnumVal Name="J_MODE_FWD_CODE_OVERRIDE" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LIF_SERVICE_TYPE_AC_PWE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(73)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="SERVICE_TYPE_P2MP" Description="Empty"/>
+                <EnumVal Name="SERVICE_TYPE_P2P" Description="Empty"/>
+                <EnumVal Name="SERVICE_TYPE_P2P_WITH_SOURCE_LOOKUP" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="SERVICE_TYPE_P2MP" Value="0"/>
+                <EnumVal Name="SERVICE_TYPE_P2P" Value="1"/>
+                <EnumVal Name="SERVICE_TYPE_P2P_WITH_SOURCE_LOOKUP" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="VTT_LIF_SERVICE_TYPE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(74)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="SERVICE_TYPE_P2MP" Description="Empty"/>
+                <EnumVal Name="SERVICE_TYPE_P2P" Description="Empty"/>
+                <EnumVal Name="SERVICE_TYPE_P2P_WITH_SOURCE_LOOKUP" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="SERVICE_TYPE_P2MP" Value="0"/>
+                <EnumVal Name="SERVICE_TYPE_P2P" Value="1"/>
+                <EnumVal Name="SERVICE_TYPE_P2P_WITH_SOURCE_LOOKUP" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_QOS_VAR_TYPE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(75)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="PCP_DEI" Description="Empty"/>
+                <EnumVal Name="IPV4_TOS" Description="Empty"/>
+                <EnumVal Name="IPV6_TC" Description="Empty"/>
+                <EnumVal Name="MPLS_TC" Description="Empty"/>
+                <EnumVal Name="BIER_DSCP" Description="Empty"/>
+                <EnumVal Name="IPV4_TOS_ECN" Description="Empty"/>
+                <EnumVal Name="IPV6_TC_ECN" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="PCP_DEI" Value="0"/>
+                <EnumVal Name="IPV4_TOS" Value="1"/>
+                <EnumVal Name="IPV6_TC" Value="2"/>
+                <EnumVal Name="MPLS_TC" Value="3"/>
+                <EnumVal Name="BIER_DSCP" Value="4"/>
+                <EnumVal Name="IPV4_TOS_ECN" Value="5"/>
+                <EnumVal Name="IPV6_TC_ECN" Value="6"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="CTX_ADDITIONAL_HEADER_PROFILE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(76)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="CTX_AHP_NONE" Description="Empty"/>
+                <EnumVal Name="CTX_AHP_GRE_OR_GENEVE" Description="Empty"/>
+                <EnumVal Name="CTX_AHP_UDP" Description="Empty"/>
+                <EnumVal Name="CTX_AHP_VXLAN_OR_VXLAN_GPE" Description="Empty"/>
+                <EnumVal Name="CTX_MPLS_AH" Description="Empty"/>
+                <EnumVal Name="CTX_MPLS_AH_ESI" Description="Empty"/>
+                <EnumVal Name="CTX_AHP_IP" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="CTX_AHP_NONE" Value="0"/>
+                <EnumVal Name="CTX_AHP_GRE_OR_GENEVE" Value="1"/>
+                <EnumVal Name="CTX_AHP_UDP" Value="2"/>
+                <EnumVal Name="CTX_AHP_VXLAN_OR_VXLAN_GPE" Value="3"/>
+                <EnumVal Name="CTX_MPLS_AH" Value="4"/>
+                <EnumVal Name="CTX_MPLS_AH_ESI" Value="5"/>
+                <EnumVal Name="CTX_AHP_IP" Value="6"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LIF_AHP_UDP" Size="DNX_DATA.aod_sizes.AOD.sizes.value(77)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="LIF_AHP_NONE" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_UDP_SESSION_1" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_UDP_SESSION_2" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_UDP_SESSION_3" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_UDP_SESSION_4" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_UDP_SESSION_5" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_UDP_SESSION_6" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_UDP_SESSION_7" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_UDP_TUNNEL" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_UDP_ESP" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="LIF_AHP_NONE" Value="0"/>
+                <EnumVal Name="LIF_AHP_UDP_SESSION_1" Value="1"/>
+                <EnumVal Name="LIF_AHP_UDP_SESSION_2" Value="2"/>
+                <EnumVal Name="LIF_AHP_UDP_SESSION_3" Value="3"/>
+                <EnumVal Name="LIF_AHP_UDP_SESSION_4" Value="4"/>
+                <EnumVal Name="LIF_AHP_UDP_SESSION_5" Value="5"/>
+                <EnumVal Name="LIF_AHP_UDP_SESSION_6" Value="6"/>
+                <EnumVal Name="LIF_AHP_UDP_SESSION_7" Value="7"/>
+                <EnumVal Name="LIF_AHP_UDP_TUNNEL" Value="8"/>
+                <EnumVal Name="LIF_AHP_UDP_ESP" Value="9"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LIF_AHP_MPLS" Size="DNX_DATA.aod_sizes.AOD.sizes.value(78)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="LIF_AHP_NONE" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_CWOFL" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_ELOELI" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_CW" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_FL" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_CWOELOELI" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="LIF_AHP_NONE" Value="0"/>
+                <EnumVal Name="LIF_AHP_CWOFL" Value="1"/>
+                <EnumVal Name="LIF_AHP_ELOELI" Value="2"/>
+                <EnumVal Name="LIF_AHP_CW" Value="4"/>
+                <EnumVal Name="LIF_AHP_FL" Value="5"/>
+                <EnumVal Name="LIF_AHP_CWOELOELI" Value="6"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LIF_AHP_IP" Size="DNX_DATA.aod_sizes.AOD.sizes.value(79)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="LIF_AHP_NONE" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_IP_ESP" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="LIF_AHP_NONE" Value="0"/>
+                <EnumVal Name="LIF_AHP_IP_ESP" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LIF_AHP_VXLAN_VXLAN_GPE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(80)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="LIF_AHP_NONE" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_VXLAN" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_VXLAN_GPE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="LIF_AHP_NONE" Value="0"/>
+                <EnumVal Name="LIF_AHP_VXLAN" Value="1"/>
+                <EnumVal Name="LIF_AHP_VXLAN_GPE" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LIF_AHP_GRE_GENEVE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(81)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="LIF_AHP_NONE" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_GENEVE" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_GRE8_W_KEY" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_GRE8_W_KEY_TNI_FROM_ENTRY_V4" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_GRE12" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_GRE8_W_KEY_TNI_FROM_ENTRY_V6" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_GRE4" Description="Empty"/>
+                <EnumVal Name="LIF_AHP_GRE8_W_SN" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="LIF_AHP_NONE" Value="0"/>
+                <EnumVal Name="LIF_AHP_GENEVE" Value="1"/>
+                <EnumVal Name="LIF_AHP_GRE8_W_KEY" Value="2"/>
+                <EnumVal Name="LIF_AHP_GRE8_W_KEY_TNI_FROM_ENTRY_V4" Value="3"/>
+                <EnumVal Name="LIF_AHP_GRE12" Value="4"/>
+                <EnumVal Name="LIF_AHP_GRE8_W_KEY_TNI_FROM_ENTRY_V6" Value="5"/>
+                <EnumVal Name="LIF_AHP_GRE4" Value="6"/>
+                <EnumVal Name="LIF_AHP_GRE8_W_SN" Value="7"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LIF_AHP_GENERAL" Size="DNX_DATA.aod_sizes.AOD.sizes.value(82)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="LIF_AHP_NONE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="LIF_AHP_NONE" Value="0"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_PHP_TTL_MODEL" Size="DNX_DATA.aod_sizes.AOD.sizes.value(83)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="TTL_MODEL_UNIFORM" Description="Empty"/>
+                <EnumVal Name="TTL_MODEL_PIPE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="TTL_MODEL_UNIFORM" Value="0"/>
+                <EnumVal Name="TTL_MODEL_PIPE" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_ADDITIONAL_HEADER_PROFILE_STACK_ATTRIBUTES" Size="DNX_DATA.aod_sizes.AOD.sizes.value(84)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="AHS_NONE" Description="Empty"/>
+                <EnumVal Name="AHS_ESI_CW" Description="Empty"/>
+                <EnumVal Name="AHS_ESI" Description="Empty"/>
+                <EnumVal Name="AHS_CWOELOELI" Description="Empty"/>
+                <EnumVal Name="AHS_CWOFL" Description="Empty"/>
+                <EnumVal Name="AHS_ELOELI" Description="Empty"/>
+                <EnumVal Name="AHS_CW" Description="Empty"/>
+                <EnumVal Name="AHS_FL" Description="Empty"/>
+                <EnumVal Name="AHS_VXLAN_GPE" Description="Empty"/>
+                <EnumVal Name="AHS_GENEVE" Description="Empty"/>
+                <EnumVal Name="AHS_VXLAN" Description="Empty"/>
+                <EnumVal Name="AHS_GRE4" Description="Empty"/>
+                <EnumVal Name="AHS_GRE8_W_KEY" Description="Empty"/>
+                <EnumVal Name="AHS_GRE8_TNI_FROM_ENTRY_V4" Description="Empty"/>
+                <EnumVal Name="AHS_UDP" Description="Empty"/>
+                <EnumVal Name="AHS_GRE12" Description="Empty"/>
+                <EnumVal Name="AHS_GRE8_TNI_FROM_ENTRY_V6" Description="Empty"/>
+                <EnumVal Name="AHS_GRE8_W_SN" Description="Empty"/>
+                <EnumVal Name="AHS_IP_ESP" Description="Empty"/>
+                <EnumVal Name="AHS_UDP_ESP" Description="Empty"/>
+                <EnumVal Name="AHS_UDP_SESSION_1" Description="Empty"/>
+                <EnumVal Name="AHS_UDP_SESSION_2" Description="Empty"/>
+                <EnumVal Name="AHS_UDP_SESSION_3" Description="Empty"/>
+                <EnumVal Name="AHS_UDP_SESSION_4" Description="Empty"/>
+                <EnumVal Name="AHS_UDP_SESSION_5" Description="Empty"/>
+                <EnumVal Name="AHS_UDP_SESSION_6" Description="Empty"/>
+                <EnumVal Name="AHS_UDP_SESSION_7" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="AHS_NONE" Value="0"/>
+                <EnumVal Name="AHS_ESI_CW" Value="1"/>
+                <EnumVal Name="AHS_ESI" Value="2"/>
+                <EnumVal Name="AHS_CWOELOELI" Value="3"/>
+                <EnumVal Name="AHS_CWOFL" Value="4"/>
+                <EnumVal Name="AHS_ELOELI" Value="5"/>
+                <EnumVal Name="AHS_CW" Value="6"/>
+                <EnumVal Name="AHS_FL" Value="7"/>
+                <EnumVal Name="AHS_VXLAN_GPE" Value="8"/>
+                <EnumVal Name="AHS_GENEVE" Value="9"/>
+                <EnumVal Name="AHS_VXLAN" Value="10"/>
+                <EnumVal Name="AHS_GRE4" Value="11"/>
+                <EnumVal Name="AHS_GRE8_W_KEY" Value="12"/>
+                <EnumVal Name="AHS_GRE8_TNI_FROM_ENTRY_V4" Value="13"/>
+                <EnumVal Name="AHS_UDP" Value="14"/>
+                <EnumVal Name="AHS_GRE12" Value="15"/>
+                <EnumVal Name="AHS_GRE8_TNI_FROM_ENTRY_V6" Value="16"/>
+                <EnumVal Name="AHS_GRE8_W_SN" Value="17"/>
+                <EnumVal Name="AHS_IP_ESP" Value="18"/>
+                <EnumVal Name="AHS_UDP_ESP" Value="19"/>
+                <EnumVal Name="AHS_UDP_SESSION_1" Value="25"/>
+                <EnumVal Name="AHS_UDP_SESSION_2" Value="26"/>
+                <EnumVal Name="AHS_UDP_SESSION_3" Value="27"/>
+                <EnumVal Name="AHS_UDP_SESSION_4" Value="28"/>
+                <EnumVal Name="AHS_UDP_SESSION_5" Value="29"/>
+                <EnumVal Name="AHS_UDP_SESSION_6" Value="30"/>
+                <EnumVal Name="AHS_UDP_SESSION_7" Value="31"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="MY_MAC_EXEM_DA_PROFILE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(85)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="LEGACY_VRID_BITMAP_0" Description="Empty"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_1" Description="Empty"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_2" Description="Empty"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_3" Description="Empty"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_4" Description="Empty"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_5" Description="Empty"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_6" Description="Empty"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_7" Description="Empty"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_8" Description="Empty"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_9" Description="Empty"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_10" Description="Empty"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_11" Description="Empty"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_12" Description="Empty"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_13" Description="Empty"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_14" Description="Empty"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_15" Description="Empty"/>
+                <EnumVal Name="VRID_MY_MAC" Description="Empty"/>
+                <EnumVal Name="PER_PORT_MY_MAC" Description="Empty"/>
+                <EnumVal Name="PER_VSI_MULTIPLE_MY_MAC_DA_MSB_0" Description="Empty"/>
+                <EnumVal Name="PER_VSI_MULTIPLE_MY_MAC_DA_MSB_1" Description="Empty"/>
+                <EnumVal Name="VRID_MY_MAC_WITH_PROTOCOL" Description="Empty"/>
+                <EnumVal Name="PER_PORT_IGNORE_MAC" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="LEGACY_VRID_BITMAP_0" Value="0"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_1" Value="1"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_2" Value="2"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_3" Value="3"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_4" Value="4"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_5" Value="5"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_6" Value="6"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_7" Value="7"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_8" Value="8"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_9" Value="9"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_10" Value="10"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_11" Value="11"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_12" Value="12"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_13" Value="13"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_14" Value="14"/>
+                <EnumVal Name="LEGACY_VRID_BITMAP_15" Value="15"/>
+                <EnumVal Name="VRID_MY_MAC" Value="16"/>
+                <EnumVal Name="PER_PORT_MY_MAC" Value="17"/>
+                <EnumVal Name="PER_VSI_MULTIPLE_MY_MAC_DA_MSB_0" Value="18"/>
+                <EnumVal Name="PER_VSI_MULTIPLE_MY_MAC_DA_MSB_1" Value="19"/>
+                <EnumVal Name="VRID_MY_MAC_WITH_PROTOCOL" Value="20"/>
+                <EnumVal Name="PER_PORT_IGNORE_MAC" Value="21"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="VTT_MPLS_SPECIAL_LABEL_PROFILE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(86)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="IPV4_EXPLICIT_NULL" Description="Empty"/>
+                <EnumVal Name="IPV6_EXPLICIT_NULL" Description="Empty"/>
+                <EnumVal Name="ROUTER_ALERT" Description="Empty"/>
+                <EnumVal Name="ELI" Description="Empty"/>
+                <EnumVal Name="GAL" Description="Empty"/>
+                <EnumVal Name="OAM_ALERT" Description="Empty"/>
+                <EnumVal Name="INVALID_LABEL" Description="Empty"/>
+                <EnumVal Name="TUNNEL_LABEL" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="IPV4_EXPLICIT_NULL" Value="0"/>
+                <EnumVal Name="IPV6_EXPLICIT_NULL" Value="1"/>
+                <EnumVal Name="ROUTER_ALERT" Value="2"/>
+                <EnumVal Name="ELI" Value="3"/>
+                <EnumVal Name="GAL" Value="4"/>
+                <EnumVal Name="OAM_ALERT" Value="5"/>
+                <EnumVal Name="INVALID_LABEL" Value="6"/>
+                <EnumVal Name="TUNNEL_LABEL" Value="7"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="VSI_PROFILE_IVL_SVL" Size="DNX_DATA.aod_sizes.AOD.sizes.value(87)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="SVL" Description="Empty"/>
+                <EnumVal Name="IVL" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="SVL" Value="0"/>
+                <EnumVal Name="IVL" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="VSI_PROFILE_L2_V4_MC_FWD_TYPE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(88)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="V4BRIDGE" Description="Empty"/>
+                <EnumVal Name="IPV4MC" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="V4BRIDGE" Value="0"/>
+                <EnumVal Name="IPV4MC" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="VSI_PROFILE_L2_V6_MC_FWD_TYPE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(89)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="V6BRIDGE" Description="Empty"/>
+                <EnumVal Name="IPV6MC" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="V6BRIDGE" Value="0"/>
+                <EnumVal Name="IPV6MC" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LIF_VTT1_CSP_1BIT_MIM_NAMESPACE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(95)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NWK_SCOPED_ISID" Description="Empty"/>
+                <EnumVal Name="SOURCE_SCOPED_ISID" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NWK_SCOPED_ISID" Value="0"/>
+                <EnumVal Name="SOURCE_SCOPED_ISID" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LIF_VTT4_CSP_1BIT_PWE_TAG_NAMESPACE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(96)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NWK_SCOPED" Description="Empty"/>
+                <EnumVal Name="LIF_SCOPED" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NWK_SCOPED" Value="0"/>
+                <EnumVal Name="LIF_SCOPED" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LIF_VTT4_CSP_2BIT_PWE_NOF_SD_TAGS" Size="DNX_DATA.aod_sizes.AOD.sizes.value(97)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="0_SD_TAGS" Description="Empty"/>
+                <EnumVal Name="1_SD_TAGS" Description="Empty"/>
+                <EnumVal Name="2_SD_TAGS" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="0_SD_TAGS" Value="0"/>
+                <EnumVal Name="1_SD_TAGS" Value="1"/>
+                <EnumVal Name="2_SD_TAGS" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LIF_VTT4_CSP_1BIT_PWE_LEARN_NATIVE_AC_BUG_WA" Size="DNX_DATA.aod_sizes.AOD.sizes.value(98)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DISABLE" Description="Empty"/>
+                <EnumVal Name="ENABLE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="DISABLE" Value="0"/>
+                <EnumVal Name="ENABLE" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LIF_VTTX_CSP_1BIT_IPVX_GRE8_TNI_MODE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(99)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NO_TNI" Description="Empty"/>
+                <EnumVal Name="TNI_INDICATES_FORWARD_DOMAIN" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NO_TNI" Value="0"/>
+                <EnumVal Name="TNI_INDICATES_FORWARD_DOMAIN" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LIF_VTT5_CSP_1BIT_L3LIF_UC_DB_MODE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(100)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="UC_PRIVATE_PUBLIC_OPTIMIZED" Description="Empty"/>
+                <EnumVal Name="UC_PRIVATE_ONLY" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="UC_PRIVATE_PUBLIC_OPTIMIZED" Value="0"/>
+                <EnumVal Name="UC_PRIVATE_ONLY" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LIF_VTT5_CSP_1BIT_L3LIF_MC_DB_MODE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(101)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="MC_PRIVATE_PUBLIC_OPTIMIZED" Description="Empty"/>
+                <EnumVal Name="MC_PRIVATE_ONLY" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="MC_PRIVATE_PUBLIC_OPTIMIZED" Value="0"/>
+                <EnumVal Name="MC_PRIVATE_ONLY" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LIF_XXXX_CSP_1BIT_L3LIF_MPLS_NAMESPACE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(102)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="PER_PLATFORM_NAMESPACE" Description="Empty"/>
+                <EnumVal Name="PER_INTERFACE_NAMESPACE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="PER_PLATFORM_NAMESPACE" Value="0"/>
+                <EnumVal Name="PER_INTERFACE_NAMESPACE" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LIF_FWD1_CSP_1BIT_ETH_RIF_BRIDGE_FALLBACK_MODE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(103)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="IP_COMPATIBLE_MC_BRIDGE_FALLBACK_DISABLE" Description="Empty"/>
+                <EnumVal Name="IP_COMPATIBLE_MC_BRIDGE_FALLBACK_ENABLE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="IP_COMPATIBLE_MC_BRIDGE_FALLBACK_DISABLE" Value="0"/>
+                <EnumVal Name="IP_COMPATIBLE_MC_BRIDGE_FALLBACK_ENABLE" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LEARN_PAYLOAD_CONTEXT" Size="DNX_DATA.aod_sizes.AOD.sizes.value(104)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NO_LIF_OPTIMIZED" Description="Empty"/>
+                <EnumVal Name="SYMMETRIC_LIF_BASIC" Description="Empty"/>
+                <EnumVal Name="SYMMETRIC_LIF_EXTENDED" Description="Empty"/>
+                <EnumVal Name="NO_LIF_EXTENDED" Description="Empty"/>
+                <EnumVal Name="ASYMMETRIC_LIF_BASIC" Description="Empty"/>
+                <EnumVal Name="ASYMMETRIC_LIF_EXTENDED" Description="Empty"/>
+                <EnumVal Name="NO_LIF_BASIC" Description="Empty"/>
+                <EnumVal Name="SYMMETRIC_LIF_OPTIMIZED" Description="Empty"/>
+                <EnumVal Name="ASYMMETRIC_LIF_OPTIMIZED" Description="Empty"/>
+                <EnumVal Name="ASYMMETRIC_LIF_EXTENDED_EEI" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NO_LIF_OPTIMIZED" Value="0"/>
+                <EnumVal Name="SYMMETRIC_LIF_BASIC" Value="1"/>
+                <EnumVal Name="SYMMETRIC_LIF_EXTENDED" Value="2"/>
+                <EnumVal Name="NO_LIF_EXTENDED" Value="3"/>
+                <EnumVal Name="ASYMMETRIC_LIF_BASIC" Value="4"/>
+                <EnumVal Name="ASYMMETRIC_LIF_EXTENDED" Value="5"/>
+                <EnumVal Name="NO_LIF_BASIC" Value="6"/>
+                <EnumVal Name="SYMMETRIC_LIF_OPTIMIZED" Value="7"/>
+                <EnumVal Name="ASYMMETRIC_LIF_OPTIMIZED" Value="8"/>
+                <EnumVal Name="ASYMMETRIC_LIF_EXTENDED_EEI" Value="9"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="INCOMING_TAG_STRUCTURE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(105)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="UNTAGGED_1" Description="Empty"/>
+                <EnumVal Name="UNTAGGED_2" Description="Empty"/>
+                <EnumVal Name="C_C_TAG_1" Description="Empty"/>
+                <EnumVal Name="C_C_TAG_2" Description="Empty"/>
+                <EnumVal Name="S_TAG_1" Description="Empty"/>
+                <EnumVal Name="S_TAG_2" Description="Empty"/>
+                <EnumVal Name="S_TAG_3" Description="Empty"/>
+                <EnumVal Name="S_TAG_4" Description="Empty"/>
+                <EnumVal Name="C_TAG_1" Description="Empty"/>
+                <EnumVal Name="C_TAG_2" Description="Empty"/>
+                <EnumVal Name="C_TAG_3" Description="Empty"/>
+                <EnumVal Name="C_TAG_4" Description="Empty"/>
+                <EnumVal Name="C_TAG_5" Description="Empty"/>
+                <EnumVal Name="C_TAG_6" Description="Empty"/>
+                <EnumVal Name="C_TAG_7" Description="Empty"/>
+                <EnumVal Name="C_TAG_8" Description="Empty"/>
+                <EnumVal Name="S_C_TAG_1" Description="Empty"/>
+                <EnumVal Name="S_C_TAG_2" Description="Empty"/>
+                <EnumVal Name="S_C_TAG_3" Description="Empty"/>
+                <EnumVal Name="S_C_TAG_4" Description="Empty"/>
+                <EnumVal Name="S_C_TAG_5" Description="Empty"/>
+                <EnumVal Name="S_C_TAG_6" Description="Empty"/>
+                <EnumVal Name="S_C_TAG_7" Description="Empty"/>
+                <EnumVal Name="S_C_TAG_8" Description="Empty"/>
+                <EnumVal Name="S_PRIORITY_C_TAG_1" Description="Empty"/>
+                <EnumVal Name="S_PRIORITY_C_TAG_2" Description="Empty"/>
+                <EnumVal Name="S_PRIORITY_C_TAG_3" Description="Empty"/>
+                <EnumVal Name="S_PRIORITY_C_TAG_4" Description="Empty"/>
+                <EnumVal Name="S_S_TAG_1" Description="Empty"/>
+                <EnumVal Name="S_S_TAG_2" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="UNTAGGED_1" Value="0"/>
+                <EnumVal Name="UNTAGGED_2" Value="1"/>
+                <EnumVal Name="C_C_TAG_1" Value="2"/>
+                <EnumVal Name="C_C_TAG_2" Value="3"/>
+                <EnumVal Name="S_TAG_1" Value="4"/>
+                <EnumVal Name="S_TAG_2" Value="5"/>
+                <EnumVal Name="S_TAG_3" Value="6"/>
+                <EnumVal Name="S_TAG_4" Value="7"/>
+                <EnumVal Name="C_TAG_1" Value="8"/>
+                <EnumVal Name="C_TAG_2" Value="9"/>
+                <EnumVal Name="C_TAG_3" Value="10"/>
+                <EnumVal Name="C_TAG_4" Value="11"/>
+                <EnumVal Name="C_TAG_5" Value="12"/>
+                <EnumVal Name="C_TAG_6" Value="13"/>
+                <EnumVal Name="C_TAG_7" Value="14"/>
+                <EnumVal Name="C_TAG_8" Value="15"/>
+                <EnumVal Name="S_C_TAG_1" Value="16"/>
+                <EnumVal Name="S_C_TAG_2" Value="17"/>
+                <EnumVal Name="S_C_TAG_3" Value="18"/>
+                <EnumVal Name="S_C_TAG_4" Value="19"/>
+                <EnumVal Name="S_C_TAG_5" Value="20"/>
+                <EnumVal Name="S_C_TAG_6" Value="21"/>
+                <EnumVal Name="S_C_TAG_7" Value="22"/>
+                <EnumVal Name="S_C_TAG_8" Value="23"/>
+                <EnumVal Name="S_PRIORITY_C_TAG_1" Value="24"/>
+                <EnumVal Name="S_PRIORITY_C_TAG_2" Value="25"/>
+                <EnumVal Name="S_PRIORITY_C_TAG_3" Value="26"/>
+                <EnumVal Name="S_PRIORITY_C_TAG_4" Value="27"/>
+                <EnumVal Name="S_S_TAG_1" Value="28"/>
+                <EnumVal Name="S_S_TAG_2" Value="29"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="OAM_SUB_TYPE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(106)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NULL" Description="Empty"/>
+                <EnumVal Name="LOSS_MEASUREMENT" Description="Empty"/>
+                <EnumVal Name="DELAY_MEASUREMENT_1588" Description="Empty"/>
+                <EnumVal Name="DELAY_MEASUREMENT_NTP" Description="Empty"/>
+                <EnumVal Name="CCM" Description="Empty"/>
+                <EnumVal Name="LOOPBACK" Description="Empty"/>
+                <EnumVal Name="TWAMP_REFLECTOR_1ST" Description="Empty"/>
+                <EnumVal Name="TWAMP_REFLECTOR_2ND" Description="Empty"/>
+                <EnumVal Name="OAM_LEVEL_ERROR" Description="Empty"/>
+                <EnumVal Name="OAM_PASSIVE_ERROR" Description="Empty"/>
+                <EnumVal Name="RFC8321" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NULL" Value="0"/>
+                <EnumVal Name="LOSS_MEASUREMENT" Value="1"/>
+                <EnumVal Name="DELAY_MEASUREMENT_1588" Value="2"/>
+                <EnumVal Name="DELAY_MEASUREMENT_NTP" Value="3"/>
+                <EnumVal Name="CCM" Value="4"/>
+                <EnumVal Name="LOOPBACK" Value="5"/>
+                <EnumVal Name="TWAMP_REFLECTOR_1ST" Value="6"/>
+                <EnumVal Name="TWAMP_REFLECTOR_2ND" Value="7"/>
+                <EnumVal Name="OAM_LEVEL_ERROR" Value="8"/>
+                <EnumVal Name="OAM_PASSIVE_ERROR" Value="9"/>
+                <EnumVal Name="RFC8321" Value="10"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="INGRESS_MPLS_RANGE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(107)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Empty"/>
+                <EnumVal Name="EVPN_IML" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="EVPN_IML" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="PRT_QUALIFIER" Size="DNX_DATA.aod_sizes.AOD.sizes.value(108)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DEFAULT" Description="Empty"/>
+                <EnumVal Name="SET_VISIBILITY" Description="Empty"/>
+                <EnumVal Name="OAMP_INJECTION_DOWN" Description="Empty"/>
+                <EnumVal Name="OAMP_INJECTION" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="DEFAULT" Value="0"/>
+                <EnumVal Name="SET_VISIBILITY" Value="2"/>
+                <EnumVal Name="OAMP_INJECTION_DOWN" Value="6"/>
+                <EnumVal Name="OAMP_INJECTION" Value="7"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="PTC_PROFILE_VTT1" Size="DNX_DATA.aod_sizes.AOD.sizes.value(109)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DEFAULT" Description="Empty"/>
+                <EnumVal Name="RAW_MPLS" Description="Empty"/>
+                <EnumVal Name="IPSEC_MACSEC" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="DEFAULT" Value="0"/>
+                <EnumVal Name="RAW_MPLS" Value="1"/>
+                <EnumVal Name="IPSEC_MACSEC" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="PTC_PROFILE_VTT2" Size="DNX_DATA.aod_sizes.AOD.sizes.value(110)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DEFAULT" Description="Empty"/>
+                <EnumVal Name="IPSEC_MACSEC" Description="Empty"/>
+                <EnumVal Name="2ND_PASS_DROP_AND_CONTINUE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="DEFAULT" Value="0"/>
+                <EnumVal Name="IPSEC_MACSEC" Value="2"/>
+                <EnumVal Name="2ND_PASS_DROP_AND_CONTINUE" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="PTC_PROFILE_VTT3" Size="DNX_DATA.aod_sizes.AOD.sizes.value(111)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DEFAULT" Description="Empty"/>
+                <EnumVal Name="IPSEC_MACSEC" Description="Empty"/>
+                <EnumVal Name="2ND_PASS_DROP_AND_CONTINUE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="DEFAULT" Value="0"/>
+                <EnumVal Name="IPSEC_MACSEC" Value="2"/>
+                <EnumVal Name="2ND_PASS_DROP_AND_CONTINUE" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="PTC_PROFILE_VTT4" Size="DNX_DATA.aod_sizes.AOD.sizes.value(112)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DEFAULT" Description="Empty"/>
+                <EnumVal Name="IPSEC_MACSEC" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="DEFAULT" Value="0"/>
+                <EnumVal Name="IPSEC_MACSEC" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="PTC_PROFILE_VTT5" Size="DNX_DATA.aod_sizes.AOD.sizes.value(113)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DEFAULT" Description="Empty"/>
+                <EnumVal Name="IPSEC_MACSEC" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="DEFAULT" Value="0"/>
+                <EnumVal Name="IPSEC_MACSEC" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="PTC_ROUTING_ENABLE_PROFILE_VTT1" Size="DNX_DATA.aod_sizes.AOD.sizes.value(114)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DEFAULT" Description="Empty"/>
+                <EnumVal Name="ALWAYSTERMINATE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="DEFAULT" Value="0"/>
+                <EnumVal Name="ALWAYSTERMINATE" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="EGRESS_FWD_ACTION_PROFILE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(115)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DEFAULT" Description="Empty"/>
+                <EnumVal Name="DROP" Description="Empty"/>
+                <EnumVal Name="GENERAL_TRAP" Description="Empty"/>
+                <EnumVal Name="USER_TRAP_1" Description="Empty"/>
+                <EnumVal Name="USER_TRAP_2" Description="Empty"/>
+                <EnumVal Name="USER_TRAP_3" Description="Empty"/>
+                <EnumVal Name="USER_TRAP_4" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="DEFAULT" Value="0"/>
+                <EnumVal Name="DROP" Value="1"/>
+                <EnumVal Name="GENERAL_TRAP" Value="2"/>
+                <EnumVal Name="USER_TRAP_1" Value="3"/>
+                <EnumVal Name="USER_TRAP_2" Value="4"/>
+                <EnumVal Name="USER_TRAP_3" Value="5"/>
+                <EnumVal Name="USER_TRAP_4" Value="6"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="MAC_TABLE_ENTRY_EVENT_FORWARDING_PROFILE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(116)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="HW_MANAGEMENT" Description="Empty"/>
+                <EnumVal Name="CPU_MANAGEMENT" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="HW_MANAGEMENT" Value="0"/>
+                <EnumVal Name="CPU_MANAGEMENT" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="MAC_TABLE_AGING_PROFILE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(117)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="HW_MANAGEMENT" Description="Empty"/>
+                <EnumVal Name="CPU_MANAGEMENT" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="HW_MANAGEMENT" Value="0"/>
+                <EnumVal Name="CPU_MANAGEMENT" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_TRAP_CONTEXT_PORT_PROFILE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(118)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NORMAL" Description="Empty"/>
+                <EnumVal Name="DROP_ALL" Description="Empty"/>
+                <EnumVal Name="TDM_STAMP_MC_CUD" Description="Empty"/>
+                <EnumVal Name="TDM_STAMP_PORT_VAL" Description="Empty"/>
+                <EnumVal Name="TDM_STAMP_NOTHING_OR_BUILD_PTCH1" Description="Empty"/>
+                <EnumVal Name="STACKING_RIGHT_PORT" Description="Empty"/>
+                <EnumVal Name="INT_EGRESS_PORT" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NORMAL" Value="0"/>
+                <EnumVal Name="DROP_ALL" Value="1"/>
+                <EnumVal Name="TDM_STAMP_MC_CUD" Value="2"/>
+                <EnumVal Name="TDM_STAMP_PORT_VAL" Value="3"/>
+                <EnumVal Name="TDM_STAMP_NOTHING_OR_BUILD_PTCH1" Value="4"/>
+                <EnumVal Name="STACKING_RIGHT_PORT" Value="5"/>
+                <EnumVal Name="INT_EGRESS_PORT" Value="6"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_PRP2_ACE_CTXT_VALUE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(119)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NULL" Description="Empty"/>
+                <EnumVal Name="CANCEL_SYSTEM_HEADER_LIFS_ADD_DEST_PORT_BASED_LIF_LOOKUP" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NULL" Value="0"/>
+                <EnumVal Name="CANCEL_SYSTEM_HEADER_LIFS_ADD_DEST_PORT_BASED_LIF_LOOKUP" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_TERM_ACE_CTXT_VALUE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(120)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NULL" Description="Empty"/>
+                <EnumVal Name="REFLECTOR_UDP_SWAP" Description="Empty"/>
+                <EnumVal Name="IOAM_JP" Description="Empty"/>
+                <EnumVal Name="TM_TO_COE_TEMP_OR_MPLS_TRANSIT_CCM_SD" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NULL" Value="0"/>
+                <EnumVal Name="REFLECTOR_UDP_SWAP" Value="1"/>
+                <EnumVal Name="IOAM_JP" Value="2"/>
+                <EnumVal Name="TM_TO_COE_TEMP_OR_MPLS_TRANSIT_CCM_SD" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_ENCAP_1_ACE_CTXT_VALUE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(121)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NULL" Description="Empty"/>
+                <EnumVal Name="RFC8321" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NULL" Value="0"/>
+                <EnumVal Name="RFC8321" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_ENCAP_2_ACE_CTXT_VALUE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(122)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NULL" Description="Empty"/>
+                <EnumVal Name="RFC8321" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NULL" Value="0"/>
+                <EnumVal Name="RFC8321" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_TRAP_ACE_CTXT_VALUE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(123)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NULL" Description="Empty"/>
+                <EnumVal Name="RECYCLE_W_PTCH2" Description="Empty"/>
+                <EnumVal Name="OVERRIDE_DROP" Description="Empty"/>
+                <EnumVal Name="IFA_TRAP" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NULL" Value="0"/>
+                <EnumVal Name="RECYCLE_W_PTCH2" Value="1"/>
+                <EnumVal Name="OVERRIDE_DROP" Value="2"/>
+                <EnumVal Name="IFA_TRAP" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_TRAP_RCY_CMD_MAP" Size="DNX_DATA.aod_sizes.AOD.sizes.value(124)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Empty"/>
+                <EnumVal Name="RCH" Description="Empty"/>
+                <EnumVal Name="PTCH2" Description="Empty"/>
+                <EnumVal Name="FTMH" Description="Empty"/>
+                <EnumVal Name="RCHOPTCH2" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="RCH" Value="1"/>
+                <EnumVal Name="PTCH2" Value="2"/>
+                <EnumVal Name="FTMH" Value="3"/>
+                <EnumVal Name="RCHOPTCH2" Value="4"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_TRAP_FWD_RCY_CMD" Size="DNX_DATA.aod_sizes.AOD.sizes.value(125)" Print="ENUM">
+        <OneLineDescription>The Size was not specified in the ARCH file.</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DEFAULT" Description="Empty"/>
+                <EnumVal Name="EGRESS_TRAPPED" Description="Empty"/>
+                <EnumVal Name="REFLECTED" Description="Empty"/>
+                <EnumVal Name="FWD_COPY_OF_SNOOP_OR_MIRROR" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="DEFAULT" Value="0"/>
+                <EnumVal Name="EGRESS_TRAPPED" Value="1"/>
+                <EnumVal Name="REFLECTED" Value="2"/>
+                <EnumVal Name="FWD_COPY_OF_SNOOP_OR_MIRROR" Value="15"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="MPLS_EXTENDED_FORWARD_DOMAIN_TYPE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(126)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="MPLS_FWD_PER_IF" Description="Empty"/>
+                <EnumVal Name="MPLS_FWD_UA" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="MPLS_FWD_PER_IF" Value="0"/>
+                <EnumVal Name="MPLS_FWD_UA" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="IPV4_ADDITIONAL_HEADER" Size="DNX_DATA.aod_sizes.AOD.sizes.value(127)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="RAW" Description="Empty"/>
+                <EnumVal Name="GRE4" Description="Empty"/>
+                <EnumVal Name="GRE8_WITH_KEY" Description="Empty"/>
+                <EnumVal Name="GRE12_WITH_KEY_WITH_SN" Description="Empty"/>
+                <EnumVal Name="UDP" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="RAW" Value="0"/>
+                <EnumVal Name="GRE4" Value="1"/>
+                <EnumVal Name="GRE8_WITH_KEY" Value="2"/>
+                <EnumVal Name="GRE12_WITH_KEY_WITH_SN" Value="3"/>
+                <EnumVal Name="UDP" Value="4"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="IPV6_ADDITIONAL_HEADER" Size="DNX_DATA.aod_sizes.AOD.sizes.value(128)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NOT_AVAILABLE" Description="Empty"/>
+                <EnumVal Name="GRE4" Description="Empty"/>
+                <EnumVal Name="GRE8" Description="Empty"/>
+                <EnumVal Name="GRE12" Description="Empty"/>
+                <EnumVal Name="UDP" Description="Empty"/>
+                <EnumVal Name="L2TPV3" Description="Empty"/>
+                <EnumVal Name="VXLAN" Description="Empty"/>
+                <EnumVal Name="VXLAN_GPE" Description="Empty"/>
+                <EnumVal Name="ESP" Description="Empty"/>
+                <EnumVal Name="ESP_UDP" Description="Empty"/>
+                <EnumVal Name="IPV6_EH_HOP_BY_HOP" Description="Empty"/>
+                <EnumVal Name="IPV6_EH_ROUTING" Description="Empty"/>
+                <EnumVal Name="IPV6_EH_FRAGMENT" Description="Empty"/>
+                <EnumVal Name="IPV6_EH_ESP" Description="Empty"/>
+                <EnumVal Name="IPV6_EH_AUTH" Description="Empty"/>
+                <EnumVal Name="IPV6_EH_DO" Description="Empty"/>
+                <EnumVal Name="IPV6_EH_MOBILITY" Description="Empty"/>
+                <EnumVal Name="IPV6_EH_HIP" Description="Empty"/>
+                <EnumVal Name="IPV6_EH_SHIM6" Description="Empty"/>
+                <EnumVal Name="IPV6_EH_253" Description="Empty"/>
+                <EnumVal Name="IPV6_EH_254" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NOT_AVAILABLE" Value="0"/>
+                <EnumVal Name="GRE4" Value="1"/>
+                <EnumVal Name="GRE8" Value="2"/>
+                <EnumVal Name="GRE12" Value="3"/>
+                <EnumVal Name="UDP" Value="4"/>
+                <EnumVal Name="L2TPV3" Value="5"/>
+                <EnumVal Name="VXLAN" Value="6"/>
+                <EnumVal Name="VXLAN_GPE" Value="7"/>
+                <EnumVal Name="ESP" Value="8"/>
+                <EnumVal Name="ESP_UDP" Value="9"/>
+                <EnumVal Name="IPV6_EH_HOP_BY_HOP" Value="16"/>
+                <EnumVal Name="IPV6_EH_ROUTING" Value="17"/>
+                <EnumVal Name="IPV6_EH_FRAGMENT" Value="18"/>
+                <EnumVal Name="IPV6_EH_ESP" Value="19"/>
+                <EnumVal Name="IPV6_EH_AUTH" Value="20"/>
+                <EnumVal Name="IPV6_EH_DO" Value="21"/>
+                <EnumVal Name="IPV6_EH_MOBILITY" Value="22"/>
+                <EnumVal Name="IPV6_EH_HIP" Value="23"/>
+                <EnumVal Name="IPV6_EH_SHIM6" Value="24"/>
+                <EnumVal Name="IPV6_EH_253" Value="25"/>
+                <EnumVal Name="IPV6_EH_254" Value="26"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="IPV6_DIP_IDX_TYPE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(129)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="INTERMIDIATE_RESULT" Description="Empty"/>
+                <EnumVal Name="LIF_ELIGIBLE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="INTERMIDIATE_RESULT" Value="0"/>
+                <EnumVal Name="LIF_ELIGIBLE" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="IRPP_1ST_PARSER_PARSER_CONTEXT" Size="DNX_DATA.aod_sizes.AOD.sizes.value(130)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="ITMH_A1" Description="Empty"/>
+                <EnumVal Name="ETH_A1" Description="Empty"/>
+                <EnumVal Name="RCH_A1" Description="Empty"/>
+                <EnumVal Name="ITMH_JR1_A1" Description="Empty"/>
+                <EnumVal Name="ETH_JR1_A1" Description="Empty"/>
+                <EnumVal Name="RAW_MPLS_A1" Description="Empty"/>
+                <EnumVal Name="NOP" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="ITMH_A1" Value="0"/>
+                <EnumVal Name="ETH_A1" Value="1"/>
+                <EnumVal Name="RCH_A1" Value="2"/>
+                <EnumVal Name="ITMH_JR1_A1" Value="4"/>
+                <EnumVal Name="ETH_JR1_A1" Value="5"/>
+                <EnumVal Name="RAW_MPLS_A1" Value="6"/>
+                <EnumVal Name="NOP" Value="30"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="IRPP_2ND_PARSER_PARSER_CONTEXT" Size="DNX_DATA.aod_sizes.AOD.sizes.value(131)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Empty"/>
+                <EnumVal Name="ETH_B1" Description="Empty"/>
+                <EnumVal Name="IPVX_DEMUX_B1" Description="Empty"/>
+                <EnumVal Name="MPLS_SPECULATIVEOAMB1" Description="Empty"/>
+                <EnumVal Name="IPV4_NOETHB2" Description="Empty"/>
+                <EnumVal Name="IPV6_NOETHB2" Description="Empty"/>
+                <EnumVal Name="BIERMPLS64_B1" Description="Empty"/>
+                <EnumVal Name="BIERMPLS128_B1" Description="Empty"/>
+                <EnumVal Name="BIERMPLS256_B1" Description="Empty"/>
+                <EnumVal Name="BIERTI_B1" Description="Empty"/>
+                <EnumVal Name="TCP_B1" Description="Empty"/>
+                <EnumVal Name="UDP_B1" Description="Empty"/>
+                <EnumVal Name="MPLS_B1" Description="Empty"/>
+                <EnumVal Name="NOP" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="ETH_B1" Value="3"/>
+                <EnumVal Name="IPVX_DEMUX_B1" Value="4"/>
+                <EnumVal Name="MPLS_SPECULATIVEOAMB1" Value="5"/>
+                <EnumVal Name="IPV4_NOETHB2" Value="6"/>
+                <EnumVal Name="IPV6_NOETHB2" Value="7"/>
+                <EnumVal Name="BIERMPLS64_B1" Value="8"/>
+                <EnumVal Name="BIERMPLS128_B1" Value="9"/>
+                <EnumVal Name="BIERMPLS256_B1" Value="10"/>
+                <EnumVal Name="BIERTI_B1" Value="11"/>
+                <EnumVal Name="TCP_B1" Value="12"/>
+                <EnumVal Name="UDP_B1" Value="13"/>
+                <EnumVal Name="MPLS_B1" Value="14"/>
+                <EnumVal Name="NOP" Value="30"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ERPP_1ST_PARSER_PARSER_CONTEXT" Size="DNX_DATA.aod_sizes.AOD.sizes.value(132)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="MPLS_A1" Description="Empty"/>
+                <EnumVal Name="ETH_A1" Description="Empty"/>
+                <EnumVal Name="TM" Description="Empty"/>
+                <EnumVal Name="IPV4_A1" Description="Empty"/>
+                <EnumVal Name="IPV6_A1" Description="Empty"/>
+                <EnumVal Name="SRV6ENDPOINT_A1" Description="Empty"/>
+                <EnumVal Name="SRV6_BEYOND_A1" Description="Empty"/>
+                <EnumVal Name="BIER_MPLS_A1" Description="Empty"/>
+                <EnumVal Name="BIER_TI_A1" Description="Empty"/>
+                <EnumVal Name="FTMH_A1" Description="Empty"/>
+                <EnumVal Name="PPP_A" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="MPLS_A1" Value="0"/>
+                <EnumVal Name="ETH_A1" Value="1"/>
+                <EnumVal Name="TM" Value="2"/>
+                <EnumVal Name="IPV4_A1" Value="3"/>
+                <EnumVal Name="IPV6_A1" Value="4"/>
+                <EnumVal Name="SRV6ENDPOINT_A1" Value="5"/>
+                <EnumVal Name="SRV6_BEYOND_A1" Value="6"/>
+                <EnumVal Name="BIER_MPLS_A1" Value="7"/>
+                <EnumVal Name="BIER_TI_A1" Value="8"/>
+                <EnumVal Name="FTMH_A1" Value="9"/>
+                <EnumVal Name="PPP_A" Value="10"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="JR_FWD_CODE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(133)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="BRIDGE" Description="Empty"/>
+                <EnumVal Name="IPV4_UC" Description="Empty"/>
+                <EnumVal Name="IPV4_MC" Description="Empty"/>
+                <EnumVal Name="IPV6_UC" Description="Empty"/>
+                <EnumVal Name="IPV6_MC" Description="Empty"/>
+                <EnumVal Name="MPLS" Description="Empty"/>
+                <EnumVal Name="TRILL" Description="Empty"/>
+                <EnumVal Name="CPU_TRAP1" Description="Empty"/>
+                <EnumVal Name="RESERVED0" Description="Empty"/>
+                <EnumVal Name="CUSTOMER_1" Description="Empty"/>
+                <EnumVal Name="CUSTOMER_2" Description="Empty"/>
+                <EnumVal Name="SNOOP_OR_MIRROR" Description="Empty"/>
+                <EnumVal Name="RESERVED1" Description="Empty"/>
+                <EnumVal Name="RESERVED2" Description="Empty"/>
+                <EnumVal Name="RESERVED3" Description="Empty"/>
+                <EnumVal Name="TM" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BRIDGE" Value="0"/>
+                <EnumVal Name="IPV4_UC" Value="1"/>
+                <EnumVal Name="IPV4_MC" Value="2"/>
+                <EnumVal Name="IPV6_UC" Value="3"/>
+                <EnumVal Name="IPV6_MC" Value="4"/>
+                <EnumVal Name="MPLS" Value="5"/>
+                <EnumVal Name="TRILL" Value="6"/>
+                <EnumVal Name="CPU_TRAP1" Value="7"/>
+                <EnumVal Name="RESERVED0" Value="8"/>
+                <EnumVal Name="CUSTOMER_1" Value="9"/>
+                <EnumVal Name="CUSTOMER_2" Value="10"/>
+                <EnumVal Name="SNOOP_OR_MIRROR" Value="11"/>
+                <EnumVal Name="RESERVED1" Value="12"/>
+                <EnumVal Name="RESERVED2" Value="13"/>
+                <EnumVal Name="RESERVED3" Value="14"/>
+                <EnumVal Name="TM" Value="15"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="EGRESS_PARSING_CONTEXT_MAP" Size="DNX_DATA.aod_sizes.AOD.sizes.value(134)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="MPLS_A1" Description="Empty"/>
+                <EnumVal Name="ETH_A1" Description="Empty"/>
+                <EnumVal Name="TM" Description="Empty"/>
+                <EnumVal Name="IPV4_A1" Description="Empty"/>
+                <EnumVal Name="IPV6_A1" Description="Empty"/>
+                <EnumVal Name="SRV6ENDPOINT_A1" Description="Empty"/>
+                <EnumVal Name="SRV6_BEYOND_A1" Description="Empty"/>
+                <EnumVal Name="FTMH_A1" Description="Empty"/>
+                <EnumVal Name="PPP_A" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="MPLS_A1" Value="0"/>
+                <EnumVal Name="ETH_A1" Value="1"/>
+                <EnumVal Name="TM" Value="2"/>
+                <EnumVal Name="IPV4_A1" Value="3"/>
+                <EnumVal Name="IPV6_A1" Value="4"/>
+                <EnumVal Name="SRV6ENDPOINT_A1" Value="5"/>
+                <EnumVal Name="SRV6_BEYOND_A1" Value="6"/>
+                <EnumVal Name="FTMH_A1" Value="9"/>
+                <EnumVal Name="PPP_A" Value="10"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="EGRESS_PARSING_CONTEXT_MAP_JR1_MODE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(135)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="MPLS_A1" Description="Empty"/>
+                <EnumVal Name="ETH_A1" Description="Empty"/>
+                <EnumVal Name="TM" Description="Empty"/>
+                <EnumVal Name="IPV4_A1" Description="Empty"/>
+                <EnumVal Name="IPV6_A1" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="MPLS_A1" Value="0"/>
+                <EnumVal Name="ETH_A1" Value="1"/>
+                <EnumVal Name="TM" Value="2"/>
+                <EnumVal Name="IPV4_A1" Value="3"/>
+                <EnumVal Name="IPV6_A1" Value="4"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_1ST_PARSER_PARSER_CONTEXT" Size="DNX_DATA.aod_sizes.AOD.sizes.value(137)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="MPLS_A1" Description="Empty"/>
+                <EnumVal Name="ETH_A1" Description="Empty"/>
+                <EnumVal Name="TM" Description="Empty"/>
+                <EnumVal Name="IPV4_A1" Description="Empty"/>
+                <EnumVal Name="IPV6_A1" Description="Empty"/>
+                <EnumVal Name="SRV6ENDPOINT_A1" Description="Empty"/>
+                <EnumVal Name="SRV6_BEYOND_A1" Description="Empty"/>
+                <EnumVal Name="BIER_MPLS_A1" Description="Empty"/>
+                <EnumVal Name="BIER_TI_A1" Description="Empty"/>
+                <EnumVal Name="FTMH_A1" Description="Empty"/>
+                <EnumVal Name="PPP_A" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="MPLS_A1" Value="0"/>
+                <EnumVal Name="ETH_A1" Value="1"/>
+                <EnumVal Name="TM" Value="2"/>
+                <EnumVal Name="IPV4_A1" Value="3"/>
+                <EnumVal Name="IPV6_A1" Value="4"/>
+                <EnumVal Name="SRV6ENDPOINT_A1" Value="5"/>
+                <EnumVal Name="SRV6_BEYOND_A1" Value="6"/>
+                <EnumVal Name="BIER_MPLS_A1" Value="7"/>
+                <EnumVal Name="BIER_TI_A1" Value="8"/>
+                <EnumVal Name="FTMH_A1" Value="9"/>
+                <EnumVal Name="PPP_A" Value="10"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETHERNET_QUALIFIER_TPID_EXISTS" Size="DNX_DATA.aod_sizes.AOD.sizes.value(138)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Empty"/>
+                <EnumVal Name="EXIST" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="EXIST" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="IPVX_QUALIFIER_UC_OR_MC" Size="DNX_DATA.aod_sizes.AOD.sizes.value(139)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="UNICAST" Description="Empty"/>
+                <EnumVal Name="MULTICAST" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="UNICAST" Value="0"/>
+                <EnumVal Name="MULTICAST" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="FCOE_QUALIFIER_FIRST_ADDITIONAL_HEADER_TYPE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(140)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Empty"/>
+                <EnumVal Name="VFT" Description="Empty"/>
+                <EnumVal Name="ENCAPSULATION" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="VFT" Value="1"/>
+                <EnumVal Name="ENCAPSULATION" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="FCOE_QUALIFIER_FIP_OR_FCOE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(141)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="FCOE" Description="Empty"/>
+                <EnumVal Name="FIP" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="FCOE" Value="0"/>
+                <EnumVal Name="FIP" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="MPLS_QUALIFIER_LABEL_RANGE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(142)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Empty"/>
+                <EnumVal Name="IML_LABEL_RANGE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="IML_LABEL_RANGE" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="IPV4_QUALIFIER_TUNNEL_TYPE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(143)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="RAW" Description="Empty"/>
+                <EnumVal Name="GRE4" Description="Empty"/>
+                <EnumVal Name="GRE8_WITH_KEY" Description="Empty"/>
+                <EnumVal Name="GRE12" Description="Empty"/>
+                <EnumVal Name="UDP" Description="Empty"/>
+                <EnumVal Name="L2TPV3" Description="Empty"/>
+                <EnumVal Name="VXLANOUDP" Description="Empty"/>
+                <EnumVal Name="VXLAN_GPEOUDP" Description="Empty"/>
+                <EnumVal Name="GENEVEOUDP" Description="Empty"/>
+                <EnumVal Name="L2TPV3OUDP" Description="Empty"/>
+                <EnumVal Name="GRE4OUDP" Description="Empty"/>
+                <EnumVal Name="ESPOIPSEC" Description="Empty"/>
+                <EnumVal Name="ESPOIPSEC_UDP" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="RAW" Value="0"/>
+                <EnumVal Name="GRE4" Value="2"/>
+                <EnumVal Name="GRE8_WITH_KEY" Value="3"/>
+                <EnumVal Name="GRE12" Value="4"/>
+                <EnumVal Name="UDP" Value="5"/>
+                <EnumVal Name="L2TPV3" Value="6"/>
+                <EnumVal Name="VXLANOUDP" Value="7"/>
+                <EnumVal Name="VXLAN_GPEOUDP" Value="8"/>
+                <EnumVal Name="GENEVEOUDP" Value="9"/>
+                <EnumVal Name="L2TPV3OUDP" Value="10"/>
+                <EnumVal Name="GRE4OUDP" Value="11"/>
+                <EnumVal Name="ESPOIPSEC" Value="12"/>
+                <EnumVal Name="ESPOIPSEC_UDP" Value="13"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="RCH_TYPE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(144)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DROPANDCONTINUE" Description="Empty"/>
+                <EnumVal Name="EXTENCAP" Description="Empty"/>
+                <EnumVal Name="EXTTERM" Description="Empty"/>
+                <EnumVal Name="REFLECTOR" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="DROPANDCONTINUE" Value="0"/>
+                <EnumVal Name="EXTENCAP" Value="1"/>
+                <EnumVal Name="EXTTERM" Value="2"/>
+                <EnumVal Name="REFLECTOR" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_PRP2_PORT_CS_VAR" Size="DNX_DATA.aod_sizes.AOD.sizes.value(145)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="ETHERNET_TYPICAL" Description="Empty"/>
+                <EnumVal Name="CANCEL_SYSHDR_ENC" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="ETHERNET_TYPICAL" Value="0"/>
+                <EnumVal Name="CANCEL_SYSHDR_ENC" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_TERMINATION_PORT_CS_VAR" Size="DNX_DATA.aod_sizes.AOD.sizes.value(146)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="ETHERNET_TYPICAL" Description="Empty"/>
+                <EnumVal Name="OAMP" Description="Empty"/>
+                <EnumVal Name="MACT_WA_JR1_DSP_SWITCH_DEST_ENC_JR1_ARAD" Description="Empty"/>
+                <EnumVal Name="MACT_WA_JR2_DSP_CMD_TO_REFRESH" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="ETHERNET_TYPICAL" Value="0"/>
+                <EnumVal Name="OAMP" Value="1"/>
+                <EnumVal Name="MACT_WA_JR1_DSP_SWITCH_DEST_ENC_JR1_ARAD" Value="2"/>
+                <EnumVal Name="MACT_WA_JR2_DSP_CMD_TO_REFRESH" Value="4"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_FORWARD_PORT_CS_VAR" Size="DNX_DATA.aod_sizes.AOD.sizes.value(147)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="ETHERNET_TYPICAL" Description="Empty"/>
+                <EnumVal Name="MACSEC" Description="Empty"/>
+                <EnumVal Name="MACT_WA_JR1_DSP_CMD_TO_REFRESH" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="ETHERNET_TYPICAL" Value="0"/>
+                <EnumVal Name="MACSEC" Value="1"/>
+                <EnumVal Name="MACT_WA_JR1_DSP_CMD_TO_REFRESH" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="IRPP_SYSTEM_HEADER_PROFILE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(148)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="FTMH" Description="Empty"/>
+                <EnumVal Name="FTMH_TSH" Description="Empty"/>
+                <EnumVal Name="FTMH_PPH" Description="Empty"/>
+                <EnumVal Name="FTMH_TSH_PPH" Description="Empty"/>
+                <EnumVal Name="FTMH_TSH_PPH_UDH" Description="Empty"/>
+                <EnumVal Name="NO_SYSTEM_HEADERS" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="FTMH" Value="0"/>
+                <EnumVal Name="FTMH_TSH" Value="1"/>
+                <EnumVal Name="FTMH_PPH" Value="2"/>
+                <EnumVal Name="FTMH_TSH_PPH" Value="3"/>
+                <EnumVal Name="FTMH_TSH_PPH_UDH" Value="4"/>
+                <EnumVal Name="NO_SYSTEM_HEADERS" Value="5"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="UDH_BASE_UDH_DATA_TYPE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(149)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NULL" Description="Empty"/>
+                <EnumVal Name="INGRESS_EGRESS_CASCADED_ACLS" Description="Empty"/>
+                <EnumVal Name="SRV6_SEGMENT_END_POINT" Description="Empty"/>
+                <EnumVal Name="EVPN_TERMINATION_ESI_LABEL" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NULL" Value="0"/>
+                <EnumVal Name="INGRESS_EGRESS_CASCADED_ACLS" Value="1"/>
+                <EnumVal Name="SRV6_SEGMENT_END_POINT" Value="2"/>
+                <EnumVal Name="EVPN_TERMINATION_ESI_LABEL" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="UDH_DATA_TYPE_TO_DATA_SIZE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(150)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="UDH_DT_0" Description="Empty"/>
+                <EnumVal Name="UDH_DT_1_OR_UDH_DT_2_OR_UDH_DT_3" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="UDH_DT_0" Value="0"/>
+                <EnumVal Name="UDH_DT_1_OR_UDH_DT_2_OR_UDH_DT_3" Value="4"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="UDH_BASE_COMBINATIONS" Size="DNX_DATA.aod_sizes.AOD.sizes.value(151)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NULL" Description="Empty"/>
+                <EnumVal Name="1_INGRESS_EGRESS_CASCADED_ACLS" Description="Empty"/>
+                <EnumVal Name="2_INGRESS_EGRESS_CASCADED_ACLS" Description="Empty"/>
+                <EnumVal Name="4_SRV6_SEGMENT_END_POINT" Description="Empty"/>
+                <EnumVal Name="1_EVPN_TERMINATION_ESI_LABEL" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NULL" Value="0"/>
+                <EnumVal Name="1_INGRESS_EGRESS_CASCADED_ACLS" Value="1"/>
+                <EnumVal Name="2_INGRESS_EGRESS_CASCADED_ACLS" Value="5"/>
+                <EnumVal Name="4_SRV6_SEGMENT_END_POINT" Value="170"/>
+                <EnumVal Name="1_EVPN_TERMINATION_ESI_LABEL" Value="192"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="FORWARD_DOMAIN_ASSIGNMENT_MODE_ENUM" Size="DNX_DATA.aod_sizes.AOD.sizes.value(152)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="FORWARD_DOMAIN_FROM_LIF" Description="Empty"/>
+                <EnumVal Name="FORWARD_DOMAIN_FROM_VLAN" Description="Empty"/>
+                <EnumVal Name="FORWARD_DOMAIN_FROM_LOOKUP" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="FORWARD_DOMAIN_FROM_LIF" Value="0"/>
+                <EnumVal Name="FORWARD_DOMAIN_FROM_VLAN" Value="1"/>
+                <EnumVal Name="FORWARD_DOMAIN_FROM_LOOKUP" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="DIRECT_EXTRACTION_PD_RESULT_TYPE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(153)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="RESULT_NOT_FOUND" Description="Empty"/>
+                <EnumVal Name="RESULT_FOUND" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="RESULT_NOT_FOUND" Value="0"/>
+                <EnumVal Name="RESULT_FOUND" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="FORWARD_DOMAIN_MASK_PROFILE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(154)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="FROM_LIF_17_0" Description="Empty"/>
+                <EnumVal Name="FROM_LIF_17_12_FROM_PD_11_0" Description="Empty"/>
+                <EnumVal Name="FROM_PD_17_0" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="FROM_LIF_17_0" Value="0"/>
+                <EnumVal Name="FROM_LIF_17_12_FROM_PD_11_0" Value="1"/>
+                <EnumVal Name="FROM_PD_17_0" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="IRPP_NEXT_LAYER_NETWORK_DOMAIN_ENCODING_VTT_LIF_ARR" Size="DNX_DATA.aod_sizes.AOD.sizes.value(155)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Empty"/>
+                <EnumVal Name="NEXT_LAYER_NETWORK_DOMAIN_PWE_WO_SD_TAGS" Description="Empty"/>
+                <EnumVal Name="NEXT_LAYER_NETWORK_DOMAIN_TNIORVNI" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="NEXT_LAYER_NETWORK_DOMAIN_PWE_WO_SD_TAGS" Value="15859712"/>
+                <EnumVal Name="NEXT_LAYER_NETWORK_DOMAIN_TNIORVNI" Value="15925248"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ETPP_ESEM_NAME_SPACE_ENCODING_PRP_EES_ARR" Size="DNX_DATA.aod_sizes.AOD.sizes.value(156)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Empty"/>
+                <EnumVal Name="ESEM_NAME_SPACE_TNIORVNI" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="ESEM_NAME_SPACE_TNIORVNI" Value="248"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="SRV6_TERMINATION_TYPE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(165)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="USP" Description="Empty"/>
+                <EnumVal Name="PSP" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="USP" Value="0"/>
+                <EnumVal Name="PSP" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="SRV6_ENCAPSULATION" Size="DNX_DATA.aod_sizes.AOD.sizes.value(166)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NORMAL" Description="Empty"/>
+                <EnumVal Name="REDUCED" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="NORMAL" Value="0"/>
+                <EnumVal Name="REDUCED" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="TAIL_EDIT_PROFILE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(199)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DO_NOT_TAIL_EDIT" Description="Empty"/>
+                <EnumVal Name="IPT_TAIL" Description="Empty"/>
+                <EnumVal Name="IPT_UDP_GPE" Description="Empty"/>
+                <EnumVal Name="IPT_IFA" Description="Empty"/>
+                <EnumVal Name="IPT_FIRST_UDP_GPE" Description="Empty"/>
+                <EnumVal Name="IPT_LAST_UDP_GPE" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="DO_NOT_TAIL_EDIT" Value="0"/>
+                <EnumVal Name="IPT_TAIL" Value="1"/>
+                <EnumVal Name="IPT_UDP_GPE" Value="2"/>
+                <EnumVal Name="IPT_IFA" Value="3"/>
+                <EnumVal Name="IPT_FIRST_UDP_GPE" Value="4"/>
+                <EnumVal Name="IPT_LAST_UDP_GPE" Value="6"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="LLR_CS_PORT_CS_PROFILE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(200)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="TYPICAL_PORT" Description="Empty"/>
+                <EnumVal Name="PON_STC_PORT" Description="Empty"/>
+                <EnumVal Name="PON_DTC_PORT" Description="Empty"/>
+                <EnumVal Name="RAW_PORT" Description="Empty"/>
+                <EnumVal Name="802_1_BR" Description="Empty"/>
+                <EnumVal Name="SUPPORT_FRR_OPTIMIZATION" Description="Empty"/>
+                <EnumVal Name="802_1_BR_WITH_FRR_OPTIMIZATION" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="TYPICAL_PORT" Value="0"/>
+                <EnumVal Name="PON_STC_PORT" Value="1"/>
+                <EnumVal Name="PON_DTC_PORT" Value="2"/>
+                <EnumVal Name="RAW_PORT" Value="3"/>
+                <EnumVal Name="802_1_BR" Value="4"/>
+                <EnumVal Name="SUPPORT_FRR_OPTIMIZATION" Value="5"/>
+                <EnumVal Name="802_1_BR_WITH_FRR_OPTIMIZATION" Value="6"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="VTT_SAVE_CONTEXT_PROFILE" Size="DNX_DATA.aod_sizes.AOD.sizes.value(201)" Print="ENUM">
+        <OneLineDescription/>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DEFAULT" Description="Empty"/>
+                <EnumVal Name="VTT1___BRIDGE___PON_DTC_S_TAG" Description="Empty"/>
+                <EnumVal Name="VTT1___BRIDGE___PON_DTC_C_TAG" Description="Empty"/>
+                <EnumVal Name="VTT1___BRIDGE___PON_DTC_SP_C_TAG" Description="Empty"/>
+                <EnumVal Name="VTT1___BRIDGE___PON_DTC_UNTAGGED" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="DEFAULT" Value="0"/>
+                <EnumVal Name="VTT1___BRIDGE___PON_DTC_S_TAG" Value="1"/>
+                <EnumVal Name="VTT1___BRIDGE___PON_DTC_C_TAG" Value="2"/>
+                <EnumVal Name="VTT1___BRIDGE___PON_DTC_SP_C_TAG" Value="3"/>
+                <EnumVal Name="VTT1___BRIDGE___PON_DTC_UNTAGGED" Value="4"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+</FieldTypesDbCatalog>

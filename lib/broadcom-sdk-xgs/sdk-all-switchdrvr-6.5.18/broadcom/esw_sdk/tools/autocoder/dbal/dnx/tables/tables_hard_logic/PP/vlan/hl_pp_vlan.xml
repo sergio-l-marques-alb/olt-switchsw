@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="INGRESS_VLAN_MEMBERSHIP">
+        <OneLineDescription>Ingress VLAN table bitmap actions, used for VLAN membership</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VLAN_ID" Size="12"/>
+            </Key>
+            <Result>
+                <Field Name="VLAN_MEMBER_DOMAIN_BMP_LOW" Type="BITMAP"/>
+                <Field Name="VLAN_MEMBER_DOMAIN_BMP_HIGH" Type="BITMAP" Valid="(DNX_DATA.port.general.max_vlan_membership_if)/512"/>
+            </Result>
+            <TableLabels>VLAN</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="VLAN_MEMBER_DOMAIN_BMP_LOW"> 
+                    <Access>
+                        <Memory GroupName="INGRESS_VLAN_MEMBERSHIP_TABLE">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VLAN_PORT_MEMBER_LINEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBER_DOMAIN_BMP_HIGH">
+                    <Access>
+                        <Memory GroupName="INGRESS_VLAN_MEMBERSHIP_TABLE">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VLAN_PORT_MEMBER_LINEf"/>
+                            <DataOffset Formula="512"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_VLAN_MEMBERSHIP">
+        <OneLineDescription>Egress VLAN table bitmap actions, used for VLAN membership</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VLAN_ID" Size="12"/>                
+            </Key>
+            <Result>
+                <Field Name="VLAN_MEMBER_DOMAIN_BMP_LOW" Type="BITMAP"/>
+                <Field Name="VLAN_MEMBER_DOMAIN_BMP_HIGH" Type="BITMAP" Valid="(DNX_DATA.port.general.max_vlan_membership_if)/512"/>
+            </Result>
+            <TableLabels>VLAN</TableLabels>
+        </AppDbInterface>
+       <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="VLAN_MEMBER_DOMAIN_BMP_LOW">
+                    <Access>
+                        <Memory Name="ETPPB_EGRESS_MEMBERSHIPm">
+                            <HwField Name="EGRESS_MEMBERSHIP_DATAf"/>
+                        </Memory>
+                    </Access>
+               </Field>
+                <Field Name="VLAN_MEMBER_DOMAIN_BMP_HIGH">
+                    <Access>
+                        <Memory Name="ETPPB_EGRESS_MEMBERSHIPm">
+                            <HwField Name="EGRESS_MEMBERSHIP_DATAf"/>
+                            <DataOffset Formula="512"/>
+                        </Memory>
+                    </Access>
+               </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_VLAN_DOMAIN_ATTR">
+        <OneLineDescription>Table to store vlan range id and mask</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="DNX_DATA.port.general.ingress_vlan_domain_size"/>
+            </Key>
+            <Result>
+                <Field Name="PORT_VID" Type="VLAN_ID"/>
+                <Field Name="RANGE_OUTER_INDEX" Size="5" Type="VLAN_RANGE_INDEX"/>
+                <Field Name="RANGE_INNER_INDEX" Size="5" Type="VLAN_RANGE_INDEX"/>
+                <Field Name="RANGE_OUTER_MASK" Type="VLAN_RANGE_MASK"/>
+                <Field Name="RANGE_INNER_MASK" Type="VLAN_RANGE_MASK"/>
+            </Result>
+            <TableLabels>VLAN</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PORT_VID">
+                    <Access>
+                        <Memory GroupName="INGRESS_VTT_VLAN_DOMAIN_ATTRIBUTES">
+                            <HwField Name="DEFAULT_INITIAL_VIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RANGE_OUTER_INDEX">
+                    <Access>
+                        <Memory GroupName="INGRESS_VTT_VLAN_DOMAIN_ATTRIBUTES">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()"/>
+                            <HwField Name="RANGE_START_OUTER_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RANGE_INNER_INDEX">
+                    <Access>
+                        <Memory GroupName="INGRESS_VTT_VLAN_DOMAIN_ATTRIBUTES">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()"/>
+                            <HwField Name="RANGE_START_INNER_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RANGE_OUTER_MASK">
+                    <Access>
+                        <Memory GroupName="INGRESS_VTT_VLAN_DOMAIN_ATTRIBUTES">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()"/>
+                            <HwField Name="RANGE_OUTER_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RANGE_INNER_MASK">
+                    <Access>
+                        <Memory GroupName="INGRESS_VTT_VLAN_DOMAIN_ATTRIBUTES">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()"/>
+                            <HwField Name="RANGE_INNER_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="INGRESS_VLAN_RANGE_COMPRESSION_TABLE">
+        <OneLineDescription>Ingress Vlan range compression table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VLAN_ENTRY_ID" Size="5" Type="VLAN_RANGE_INDEX"/>
+                <Field Name="VLAN_RANGE_ID" Size="5" Type="VLAN_RANGE_INDEX"/>
+            </Key>
+            <Result>
+                <Field Name="OUTER_VLAN_RANGE_LOWER" Type="VLAN_ID"/>
+                <Field Name="OUTER_VLAN_RANGE_UPPER" Type="VLAN_ID"/>
+                <Field Name="INNER_VLAN_RANGE_LOWER" Type="VLAN_ID"/>
+                <Field Name="INNER_VLAN_RANGE_UPPER" Type="VLAN_ID"/>
+            </Result>
+            <TableLabels>VLAN</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OUTER_VLAN_RANGE_LOWER">
+                    <Access>
+                        <Memory GroupName="INGRESS_VTT_VLAN_RANGE_COMPRESSION_TABLE">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(VLAN_ENTRY_ID)"/>
+                            <HwField Name="VLAN_RANGE_LIMIT_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(VLAN_RANGE_ID)*24"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTER_VLAN_RANGE_UPPER">
+                    <Access>
+                        <Memory GroupName="INGRESS_VTT_VLAN_RANGE_COMPRESSION_TABLE">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(VLAN_ENTRY_ID)"/>
+                            <HwField Name="VLAN_RANGE_LIMIT_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(VLAN_RANGE_ID)*24+12"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INNER_VLAN_RANGE_LOWER">
+                    <Access>
+                        <Memory GroupName="INGRESS_VTT_VLAN_RANGE_COMPRESSION_TABLE">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(VLAN_ENTRY_ID)"/>
+                            <HwField Name="VLAN_RANGE_LIMIT_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(VLAN_RANGE_ID)*24"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INNER_VLAN_RANGE_UPPER">
+                    <Access>
+                        <Memory GroupName="INGRESS_VTT_VLAN_RANGE_COMPRESSION_TABLE">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(VLAN_ENTRY_ID)"/>
+                            <HwField Name="VLAN_RANGE_LIMIT_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(VLAN_RANGE_ID)*24+12"/>
+                        </Memory>
+                    </Access>
+                </Field>
+           </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

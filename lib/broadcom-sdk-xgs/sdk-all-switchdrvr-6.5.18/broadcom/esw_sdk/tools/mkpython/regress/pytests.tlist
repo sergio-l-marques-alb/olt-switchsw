@@ -1,0 +1,7 @@
+# List all the tests that are expected to run with regression.
+# Format : filename.testname
+# Example : l3.test1
+
+# L3 tests.
+l3.test_l3_config_1
+l3.test_l3_config_2

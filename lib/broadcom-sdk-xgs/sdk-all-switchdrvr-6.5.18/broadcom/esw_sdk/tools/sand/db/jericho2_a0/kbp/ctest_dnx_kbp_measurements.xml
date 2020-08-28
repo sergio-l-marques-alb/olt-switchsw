@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CtestKbpMeasurementsRoot xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+
+<Performance>
+    <!-- The below performance measures are experienced with KBP SDK 1.5.11. -->
+    <!-- These performance measures show expected entries per second using BCM APIs. -->
+    <SLK>
+        <ACL>
+            <Key80>
+                <Result32 Add="27000" Get="0" Delete="54000"></Result32>
+                <Result64 Add="25500" Get="0" Delete="55000"></Result64>
+                <Result128 Add="23000" Get="0" Delete="56000"></Result128>
+            </Key80>
+            <Key160>
+                <Result32 Add="25000" Get="0" Delete="53000"></Result32>
+                <Result64 Add="24000" Get="0" Delete="54000"></Result64>
+                <Result128 Add="22000" Get="0" Delete="55000"></Result128>
+            </Key160>
+            <Key320>
+                <Result32 Add="23500" Get="0" Delete="51000"></Result32>
+                <Result64 Add="22000" Get="0" Delete="52500"></Result64>
+                <Result128 Add="20000" Get="0" Delete="53500"></Result128>
+            </Key320>
+        </ACL>
+    </SLK>
+    
+    <Intel>
+        <ACL>
+            <Key80>
+                <Result32 Add="51500" Get="0" Delete="81500"></Result32>
+                <Result64 Add="48500" Get="0" Delete="83000"></Result64>
+                <Result128 Add="44500" Get="0" Delete="84500"></Result128>
+            </Key80>
+            <Key160>
+                <Result32 Add="48500" Get="0" Delete="80500"></Result32>
+                <Result64 Add="46000" Get="0" Delete="82000"></Result64>
+                <Result128 Add="42000" Get="0" Delete="82500"></Result128>
+            </Key160>
+            <Key320>
+                <Result32 Add="43500" Get="0" Delete="77000"></Result32>
+                <Result64 Add="41500" Get="0" Delete="79000"></Result64>
+                <Result128 Add="38000" Get="0" Delete="77500"></Result128>
+            </Key320>
+        </ACL>
+    </Intel>
+</Performance>
+
+<Capacity>
+    <!-- The below capacities are experienced with KBP SDK 1.5.11. -->
+    <!-- These capacity measures show the number of added entries expected. -->
+    <IPv4>
+        <Route Capacity="13601546"></Route>
+        <Host Capacity="6946377"></Host>
+        <RPF Capacity="6873738"></RPF>
+        <RPF_NO_PAYLOAD Capacity="10943991"></RPF_NO_PAYLOAD>
+        <IPMC Capacity="131073"></IPMC>
+        <IPMC_LARGE Capacity="131073"></IPMC_LARGE>
+    </IPv4>
+    <IPv6>
+        <Route Capacity="12651400"></Route>
+        <Host Capacity="6894796"></Host>
+        <RPF Capacity="6488632"></RPF>
+        <RPF_NO_PAYLOAD Capacity="7323311"></RPF_NO_PAYLOAD>
+        <IPMC Capacity="96056"></IPMC>
+        <IPMC_LARGE Capacity="131073"></IPMC_LARGE>
+    </IPv6>
+    <ACL>
+        <Key80>
+            <Result32 Capacity="380528"></Result32>
+            <Result64 Capacity="380528"></Result64>
+            <Result128 Capacity="380528"></Result128>
+        </Key80>
+        <Key160>
+            <Result32 Capacity="190064"></Result32>
+            <Result64 Capacity="190064"></Result64>
+            <Result128 Capacity="190064"></Result128>
+        </Key160>
+        <Key320>
+            <Result32 Capacity="95032"></Result32>
+            <Result64 Capacity="95032"></Result64>
+            <Result128 Capacity="95032"></Result128>
+        </Key320>
+    </ACL>
+</Capacity>
+
+</CtestKbpMeasurementsRoot>

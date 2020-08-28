@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+
+<device_data lib="dnx_data" module="esb" bsl_flag="BSL_LS_BCMDNX_EGRESSDNX">
+    <includes>
+    </includes>
+    <sub_module name="general" doc="General parameters of Egress Shared Buffers">
+        <features>
+            <feature labels="j2p_notrev" name="esb_support" doc="Indication if Egress Shared Buffers are supported for device"></feature>
+        </features>
+        <defines>
+            <define labels="j2p_notrev" name="total_nof_esb_queues" doc="Number of ESB queue IDs, each queue represents an interface (NIFs or special)"></define>
+            <define labels="j2p_notrev" name="nof_nif_eth_queues" doc="Number of ESB queue IDs that represent NIF ETH interfaces"></define>
+            <define labels="j2p_notrev" name="nof_nif_ilkn_queues" doc="Number of ESB queue IDs that represent NIF ILKN interfaces"></define>
+            <define labels="j2p_notrev" name="nof_ilkn_tdm_queues" doc="Number of ESB queue IDs dedicated for ILKN TDM interleave"></define>
+            <define labels="j2p_notrev" name="nof_flexe_queues" doc="Number of ESB queue IDs that represent FlexE interfaces"></define>
+            <define labels="j2p_notrev" name="nof_special_queues" doc="Number of ESB queue IDs that represent special interfaces"></define>
+            <define labels="j2p_notrev" name="nof_reserved_queues" doc="Number of ESB queue IDs that are reserved(not used)"></define>
+            <define labels="j2p_notrev" name="nof_fpc" doc="Number of Free Pointer Controlers"></define>
+            <define labels="j2p_notrev" name="total_nof_buffers" doc="Number of buffers"></define>
+            <define labels="j2p_notrev" name="mux_cal_len" doc="Calendar length for the ESB MUX calendar"></define>
+            <define labels="j2p_notrev" name="ilkn_credits_resolution" doc="number of credits to add for each speed resolution"></define>
+            <define labels="j2p_notrev" name="ilkn_credits_rate_resolution" doc="ilkn rate resolution (units: Mbps), for calculate the number of credits"></define>
+            <define labels="j2p_notrev" name="fpc_ptr_size" doc="size of fpc ptr"></define>
+            <define labels="j2p_notrev" name="nof_buffers_per_fpc" doc="Number of buffers per Free Pointer Controller"></define>
+        </defines>
+        <tables>
+            <table labels="j2p_notrev" name="if_esb_params" doc="Configuration parameters for ESB">
+                <key name="idx" type="int" doc="Table index"></key>
+                <value name="speed" type="int" doc="Port speed in MB"></value>
+                <value name="if_id" type="int" doc="Egress interface ID"></value>
+                <value name="queue_id" type="int" doc="Dedicated ESB queue ID"></value>
+                <value name="interleave_queue_id" type="int" doc="Dedicated ESB queue ID for interleave"></value>
+                <value name="min_gap" type="int" doc="Value of min gap for MUX access"></value>
+            </table>
+        </tables>
+        <numerics>
+            <numeric labels="j2p_notrev" name="txi_irdy_th_factor" doc="Value of a per-device parameter used to calculate the IRDY threshold"></numeric>
+            <numeric labels="j2p_notrev" name="slow_port_dedicated_queue" doc="Dedicated ESB queue ID for Slow Ports (under 10G) to be used in the MUX calendar"></numeric>
+            <numeric labels="j2p_notrev" name="flexe_l1_dest_dedicated_queue" doc="Dedicated ESB queue ID for FlexE L1 destination ports to be used in the MUX calendar"></numeric>
+        </numerics>
+    </sub_module>
+    <sub_module name="dbal"  doc="ESB DBAL defines">
+        <defines>
+            <define labels="j2p_notrev" name="pm_internal_port_size" doc="Size in bits of the port number internal to the port macro field in table for ESB queue to EGQ interface mapping"></define>
+        </defines>
+    </sub_module>
+</device_data>
+
+
+
+
+

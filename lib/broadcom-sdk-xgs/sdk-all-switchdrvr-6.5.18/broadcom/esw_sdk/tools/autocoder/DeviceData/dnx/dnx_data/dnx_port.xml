@@ -1,0 +1,253 @@
+<device_data lib="dnx_data" module="port" bsl_flag="BSL_LS_BCMDNX_PORT">
+    <includes>
+        <include>bcm/port.h</include>
+        <include>bcm_int/dnx/algo/port/algo_port_mgmt.h</include>
+        <include>soc/dnxc/dnxc_port.h</include>
+    </includes>
+
+    <!-- must be first -->
+    <sub_module name="static_add" doc="adding port statically">
+        <defines>
+            <define labels="j2p_notrev" name="default_speed_for_special_if" doc="default speed in kbps for special interfaces (tm ports excluding NIF)"></define>
+        </defines>
+        
+        <tables>
+            <!-- must be first -->
+            <table labels="j2p_notrev" name="ucode_port" doc="static port configuration">
+                <key name="port" doc="logical port"></key>
+                <value name="interface" type="bcm_port_if_t" doc="port interface"></value>
+                <value name="nof_lanes" type="int" doc="port number of lanes"></value>
+                <value name="interface_offset" type="int" doc="interface offset"></value>
+                <value name="core" type="bcm_core_t" doc="core id"></value>
+                <value name="tm_port" type="int" doc="tm port"></value>
+                <value name="channel" type="int" doc="channel id"></value>
+                <value name="is_stif" type="int" doc="true iff it is statistic interface port"></value>
+                <value name="is_kbp" type="int" doc="true iff it is kbp port"></value>
+                <value name="is_cross_connect" type="int" doc="true iff it is cross connect port"></value>
+                <value name="is_flexe_phy" type="int" doc="true iff it is FlexE physical port"></value>
+                <value name="is_ingress_interleave" type="int" doc="is interface interleaved in ingress"></value>
+                <value name="is_egress_interleave" type="int" doc="is port contain egress interleaving"></value>
+                <value name="is_tdm" type="int" doc="is TDM port"></value>
+                <value name="is_if_tdm_only" type="int" doc="is interface includes TDM ports only"></value>
+                <value name="is_if_tdm_hybrid" type="int" doc="is interface includes both TDM ports anf non TDM ports"></value>
+                <value name="sch_priority_propagation_en" type="int" doc="is sch priority propagation enabled on this port"></value>
+                <value name="num_priorities" type="int" doc="number of port priorities"></value>
+                <value name="base_q_pair" type="int" doc="should be used just in case the user need to exlictly pick the base queue pair"></value>
+                <value name="num_sch_priorities" type="int" doc="number of sch port priorities"></value>
+                <value name="base_hr" type="int" doc="should be used just in case the user need to exlictly pick the base HR"></value>
+
+            </table>
+
+            <table labels="j2p_notrev" name="speed" doc="per port speed">
+                <key name="port" doc="logical port number"></key>
+                <value name="val" type="int" doc="speed value in mbps"></value>
+            </table>
+            <table labels="j2p_notrev" name="ext_stat_speed" doc="per external kbp stat port speed">
+                <key name="ext_stat_port" doc="external device (kbp) statistics port number"></key>
+                <value name="speed" type="int" doc="speed value in mbps"></value>
+                <value name="nof_lanes" type="int" doc="port number of lanes"></value>
+            </table>
+            <table labels="j2p_notrev" name="eth_padding" doc="eth ports padding">
+                <key name="port" doc="logical port number"></key>
+                <value name="pad_size" type="int" doc="packets smaller than min size value are padded with this value"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="link_training" doc="per port link training (CL72)">
+                <key name="port" doc="logical port number"></key>
+                <value name="val" type="int" doc="Is CL72 is enabled"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="ext_stat_link_training" doc="per external kbp stat port link training (CL72)">
+                <key name="ext_stat_port" doc="external device (kbp) statistics port number"></key>
+                <value name="val" type="int" doc="Is CL72 is enabled"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="fec_type" doc="per port FEC type">
+                <key name="port" doc="logical port number"></key>
+                <value name="val" type="bcm_port_phy_fec_t" doc="FEC type"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="serdes_lane_config" doc="serdes lane configurations, related to firmware">
+                <key name="port" doc="logical port number"></key>
+                <value name="dfe" type="soc_dnxc_port_dfe_mode_t" doc="dfe filter"></value>
+                <value name="media_type" type="int" doc="media type"></value>
+                <value name="unreliable_los" type="int" doc="unreliable los"></value>
+                <value name="cl72_auto_polarity_enable" type="int" doc="cl72 auto polarity"></value>
+                <value name="cl72_restart_timeout_enable" type="int" doc="cl72 restart timeout"></value>
+                <value name="channel_mode" type="soc_dnxc_port_channel_mode_t" doc="force nr or force er"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="serdes_tx_taps" doc="PHY TX tap configuration">
+                <key name="port" doc="logical port number"></key>
+                <value name="pre" type="int" doc="Tx fir pre tap"></value>
+                <value name="main" type="int" doc="Tx fir main tap"></value>
+                <value name="post" type="int" doc="Tx fir post tap"></value>
+                <value name="pre2" type="int" doc="Tx fir pre2 tap"></value>
+                <value name="post2" type="int" doc="Tx fir post2 tap"></value>
+                <value name="post3" type="int" doc="Tx fir post3 tap"></value>
+                <value name="tx_tap_mode" type="bcm_port_phy_tx_tap_mode_t" doc="Tx fir tap mode"></value>
+                <value name="signalling_mode" type="bcm_port_phy_signalling_mode_t" doc="Signalling Mode, NRZ or PAM4"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="ext_stat_global_serdes_tx_taps" doc="PHY TX tap configuration">
+                <value name="pre" type="int" doc="Tx fir pre tap"></value>
+                <value name="main" type="int" doc="Tx fir main tap"></value>
+                <value name="post" type="int" doc="Tx fir post tap"></value>
+                <value name="pre2" type="int" doc="Tx fir pre2 tap"></value>
+                <value name="post2" type="int" doc="Tx fir post2 tap"></value>
+                <value name="post3" type="int" doc="Tx fir post3 tap"></value>
+                <value name="txfir_tap_enable" type="int" doc="TXFIR Tap Enable Enum"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="ext_stat_lane_serdes_tx_taps" doc="PHY TX tap configuration">
+                <key name="lane" doc="physical lane id"></key>
+                <value name="pre" type="int" doc="Tx fir pre tap"></value>
+                <value name="main" type="int" doc="Tx fir main tap"></value>
+                <value name="post" type="int" doc="Tx fir post tap"></value>
+                <value name="pre2" type="int" doc="Tx fir pre2 tap"></value>
+                <value name="post2" type="int" doc="Tx fir post2 tap"></value>
+                <value name="post3" type="int" doc="Tx fir post3 tap"></value>
+                <value name="txfir_tap_enable" type="int" doc="TXFIR Tap Enable Enum"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="tx_pam4_precoder" doc="is the precoding enabled on TX side">
+                <key name="port" doc="logical port number"></key>
+                <value name="val" type="uint32" doc="TX PAM4 Precoder"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="lp_tx_precoder" doc="has the link partner enabled pre-coding on its TX side. In other words - enable the decoding on my RX side.">
+                <key name="port" doc="logical port number"></key>
+                <value name="val" type="uint32" doc="Link Partner TX Precoder"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="fabric_quad_info" doc="General fabric quad info">
+                <key name="quad" doc="Quad ID"></key>
+                <value name="quad_enable" type="int" doc="Is the quad enabled"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="header_type" doc="header type information">
+                <key name="port" doc="port"></key>
+                <value name="header_type_in" type="int" doc="header type per incoming port"></value>
+                <value name="header_type_out" type="int" doc="header type per outgoing port"></value>
+                <value name="header_type" type="int" doc="header type per incoming/outgoing port"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="erp_exist" doc="Is ERP port defined in config file for the core">
+                <key name="core" doc="core"></key>
+                <value name="exist" type="int" doc="does epr exist on this core"></value>
+            </table>
+
+
+        </tables>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="fabric_fw_load_method" doc="Method of the Fabric firmware load"></numeric>
+            <numeric labels="j2p_notrev" name="fabric_fw_crc_check" doc="Enable fabric firmware CRC check."></numeric>
+            <numeric labels="j2p_notrev" name="fabric_fw_load_verify" doc="Enable fabric firmware load verification."></numeric>
+            <numeric labels="j2p_notrev" name="nif_fw_load_method" doc="Method of the Nif firmware load"></numeric>
+            <numeric labels="j2p_notrev" name="nif_fw_crc_check" doc="Enable NIF firmware CRC check."></numeric>
+            <numeric labels="j2p_notrev" name="nif_fw_load_verify" doc="Enable NIF firmware load verification."></numeric>
+        </numerics>
+
+    </sub_module>
+    
+    <sub_module name="general" doc="general ports data">
+        
+        <features>
+            <feature labels="j2p_notrev" name="unrestricted_portmod_pll" doc="should pormod PLL restriction be honored">
+            </feature>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="erp_tm_port" doc="tm port reserved for ERP"></define>
+            <define labels="j2p_notrev" name="reserved_tm_port" doc="tm port reserved for redirection of returned credits in LAG SCH"></define>
+            <define labels="j2p_notrev" name="max_nof_channels" doc="max nof channel in an interface"></define>
+            <define labels="j2p_notrev" name="fabric_phys_offset" doc="Offset for physical fabric ports"></define>
+            <define labels="j2p_notrev" name="pp_dsp_size" doc="define the size of the pp dsp (in bits)"></define>
+            <define labels="j2p_notrev" name="ingress_vlan_domain_size" doc="define the size of the ingress vlan domain (in bits)"></define>
+            <define labels="j2p_notrev" name="vlan_domain_size" doc="define the max size of vlan domain (in bits)"></define>
+            <define labels="j2p_notrev" name="ffc_instruction_size" doc="define the size of the ffc instruction (in bits)"></define>
+            <define labels="j2p_notrev" name="max_first_header_size_to_skip" doc="max number of bytes that can be skipped"></define>
+            <define labels="j2p_notrev" name="prt_ffc_width_start_offset" doc="The offset of ffc width in the PRT FFC builder"></define>
+            <define labels="j2p_notrev" name="prt_ffc_start_input_offset" doc="The offset of ffc input offset in the PRT FFC builder"></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="nof_tm_ports" doc="nof tm ports per core"></numeric>
+            <numeric labels="j2p_notrev" name="nof_tm_ports_per_fap_id" doc="nof tm ports per fap id"></numeric>
+            <numeric labels="j2p_notrev" name="nof_pp_ports" doc="nof pp ports per core"></numeric>
+            <numeric labels="j2p_notrev" name="nof_vlan_membership_if" doc="number of vlan_membership_if"></numeric>
+            <numeric labels="j2p_notrev" name="max_vlan_membership_if" doc="max value of vlan_membership_if"></numeric>
+            <numeric labels="j2p_notrev" name="fabric_port_base" doc="first fabric logical port"></numeric>
+            <numeric labels="j2p_notrev" name="pp_port_bits_size" doc="pp port size in bits"></numeric>
+            <numeric labels="j2p_notrev" name="nof_port_bits_in_pp_bus" doc="nof port bits in PP bus"></numeric>
+        </numerics>
+
+        <tables>
+            <table labels="j2p_notrev" name="prt_configuration" doc="prt configuration information">
+                <key name="index" doc="arbitrary index"></key>
+                <value name="prt_recycle_profile" type="int" doc="prt recycle profile"></value>
+                <value name="port_termination_ptc_profile" type="int" doc="port termination ptc profile"></value>
+                <value name="prt_qual_mode" type="int" doc="prt qual mode"></value>
+                <value name="layer_offset" type="int" doc="prt layer offset"></value>
+                <value name="context_select" type="int" doc="prt context select"></value>
+                <value name="kbr_valid_bitmap_4" type="int" doc="prt kbr valid bitmap 4"></value>
+                <value name="kbr_valid_bitmap_3" type="int" doc="prt kbr valid bitmap 3"></value>
+                <value name="kbr_valid_bitmap_2" type="int" doc="prt kbr valid bitmap 2"></value>
+                <value name="kbr_valid_bitmap_1" type="int" doc="prt kbr valid bitmap 1"></value>
+                <value name="ffc_5_offset" type="int" doc="prt ffc 5 offset"></value>
+                <value name="ffc_5_width" type="int" doc="prt ffc 5 width"></value>
+                <value name="ffc_5_input_offset" type="int" doc="prt ffc 5 input offset"></value>
+                <value name="ffc_4_offset" type="int" doc="prt ffc 4 offset"></value>
+                <value name="ffc_4_width" type="int" doc="prt ffc 4 width"></value>
+                <value name="ffc_4_input_offset" type="int" doc="prt ffc 4 input offset"></value>
+                <value name="ffc_3_offset" type="int" doc="prt ffc 3 offset"></value>
+                <value name="ffc_3_width" type="int" doc="prt ffc 3 width"></value>
+                <value name="ffc_3_input_offset" type="int" doc="prt ffc 3 input offset"></value>
+                <value name="ffc_2_offset" type="int" doc="prt ffc 2 offset"></value>
+                <value name="ffc_2_width" type="int" doc="prt ffc 2 width"></value>
+                <value name="ffc_2_input_offset" type="int" doc="prt ffc 2 input offset"></value>
+                <value name="ffc_1_offset" type="int" doc="prt ffc 1 offset"></value>
+                <value name="ffc_1_width" type="int" doc="prt ffc 1 width"></value>
+                <value name="ffc_1_input_offset" type="int" doc="prt ffc 1 input offset"></value>
+                <value name="ffc_0_offset" type="int" doc="prt ffc 0 offset"></value>
+                <value name="ffc_0_width" type="int" doc="prt ffc 0 width"></value>
+                <value name="ffc_0_input_offset" type="int" doc="prt ffc 0 input offset"></value>
+                <value name="src_sys_port_prt_mode" type="int" doc="src system port prt mode"></value>
+                <value name="pp_port_en" type="int" doc="pp port enable"></value>
+                <value name="tcam_mode_full_en" type="int" doc="tcam mode full enable"></value>
+            </table>
+        </tables>
+
+        <tables>
+             <table labels="j2p_notrev" name="first_header_size" doc="size of the first header that should be skipped">
+                <key name="port" doc="logical port"></key>
+                <value name="first_header_size" type="int" doc="size of the first header that should be skipped"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="egress" doc="egress related data">
+        <defines>
+            <define labels="j2p_notrev" name="nof_ifs" doc="nof egress intrfaces per core"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="imb" doc="IMB related data">
+        <tables>
+            <table labels="j2p_notrev" name="imb_type_info" doc="Information per IMB type">
+                <key name="type" doc="IMB type"></key>
+                <value name="nof_pms" type="uint32" doc="Number of PMs in IMB type"></value>
+                <value name="nof_lanes" type="uint32" doc="Number of lanes in IMB type"></value>
+                <value name="nof_lanes_in_pm" type="uint32" doc="Number of lanes in PM in IMB type"></value>
+                <value name="nof_memory_entries" type="uint32" doc="Number of memory entries in IMB type"></value>
+                <value name="rate_per_rmc_bit" type="uint32" doc="Rate per RMC weight bit in IMB type"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+</device_data>
+
+
+
+

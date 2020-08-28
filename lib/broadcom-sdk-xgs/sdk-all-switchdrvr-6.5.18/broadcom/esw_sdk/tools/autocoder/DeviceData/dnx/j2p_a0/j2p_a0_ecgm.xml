@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2p_a0" module="ecgm">
+    <sub_module name="core_resources">
+        <defines>
+            <define name="total_pds_nof_bits" value="17"></define>
+        </defines>
+    </sub_module>
+</device_data>
+

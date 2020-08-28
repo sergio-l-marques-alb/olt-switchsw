@@ -1,0 +1,66 @@
+README
+======
+
+
+mkpython regression utility
+============================
+
+This utility is used to run sample scripts under
+SDK6PyBinding/sample/ directory
+
+STEPS
+======
+
+STEP 1: Update pylist.list
+---------------------------
+All the tests to be executed are to be added to pylist.tlist.
+New tests needs to be added after unit test and committed to repository.
+
+Format : <module>.<test>
+For example, to run a test <test1> in l3.py,
+add "l3.test1" to pylist.tlist
+
+
+During regression, only the test listed in this file would be executed.
+
+
+STEP 2: Start bcm.user
+-----------------------
+Invoke bcm.user as a daemon that runs the telnet protocol on port 1234.
+./netserve -d 1234 bcm.user
+
+STEP 3: Run python test
+------------------------
+usage: run_test.py [-h] -d DEVICE -i DIP -f TFILE [-v]
+IMPORTANT : export PYTHONPATH as needed. (Refer example below)
+
+For python version 2.7:
+PYTHONPATH+=regress:SDK6PyBinding:SDK6PyBinding/build/lib.linux-x86_64-2.7 python regress/run_test.py -d "BCM56960" -i "10.131.20.151" -f "regress/pytests.tlist"
+
+For python version 3.6:
+PYTHONPATH+=regress:SDK6PyBinding:SDK6PyBinding/build/lib.linux-x86_64-3.6 python regress/run_test.py -d "BCM56960" -i "10.131.20.151" -f "regress/pytests.tlist"
+
+Only PYTHONPATH changes with python version.
+
+Command arguments:
+-d : device name.
+-i : device IP address
+-f : path to pytests.tlist
+-v : (OPTIONAL) to enable verbose.
+
+
+TEST REPORT:
+=============
+The regression framework would dump the list of passed and failed tests
+at the end of the test.
+
+**************************************
+Test report on device BCM56960
+**************************************
+Failed tests:
+    l3.fail_test
+
+Passed tests:
+    l3.test_l3_config_1
+    l3.test_l3_config_2
+

@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="ETPP_OUT_LIF_PROFILE_TABLE">
+        <OneLineDescription>includes out_lif profile properties</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OUT_LIF_PROFILE" Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_LIF_ORIENTATION" Size="3"/>
+                <Field Description="Split Horizon Filter Enable per Outlif Profile" Name="SPLIT_HORIZON_ENABLE" Size="1" Type="BOOL"/>
+                <Field Name="OAM_PRIORITY_MAP_PROFILE" Size="2"/>
+            </Result>
+            <TableLabels>L2 L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OUT_LIF_ORIENTATION">
+                    <Access>
+                        <Register Name="ETPPC_OUTLIF_ORIENTATION_MAPPINGr">
+                            <DataOffset Formula="#KEY_VALUE(OUT_LIF_PROFILE)%64*#RESULT_SIZE(OUT_LIF_ORIENTATION)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SPLIT_HORIZON_ENABLE">
+                    <Access>
+                        <Register Name="ETPPC_CFG_SPLIT_HORIZON_PER_OUTLIF_PROFILEr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_PRIORITY_MAP_PROFILE"> 
+                    <Access>
+                        <Register Name="ETPPC_CFG_PRIORITY_MAP_OAM_LIF_PROFILEr"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#RESULT_SIZE(OAM_PRIORITY_MAP_PROFILE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ERPP_OUT_LIF_PROFILE_TABLE">
+        <OneLineDescription>includes out_lif profile properties</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OUT_LIF_PROFILE" Size="4"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_LIF_ORIENTATION" Size="3"/>
+                <Field Name="OUTLIF_SAME_IF" Size="2" Type="UINT"/>
+                <Field Name="OUTLIF_MTU" Size="3" Type="UINT"/>
+                <Field Name="OUTLIF_TTL_SCOPE_INDEX"/>
+                <Field Name="ENABLE_MULTICAST_SAME_INTERFACE_FILTERS" Type="BOOL"/>
+                <Field Name="ENABLE_UC_SAME_INTERFACE_FILTERS" Type="BOOL"/>
+                <Field Description="TDM Indication Filter Enable per Outlif Profile" Name="TDM_INDICATION_ENABLE" Type="BOOL"/>
+                <Field Description="RQP Discard Filter Enable per Outlif Profile" Name="RQP_DISCARD_ENABLE" Type="BOOL"/>
+                <Field Description="Ivalid OTM Filter Enable per Outlif Profile" Name="INVALID_OTM_ENABLE" Type="BOOL"/>
+                <Field Description="DSS Stacking Filter Enable per Outlif Profile" Name="DSS_STACKING_ENABLE" Type="BOOL"/>
+                <Field Description="LAG Multicast Filter Enable per Outlif Profile" Name="LAG_MULTICAST_ENABLE" Type="BOOL"/>
+                <Field Description="Exclude Source Filter Enable per Outlif Profile" Name="EXCLUDE_SRC_ENABLE" Type="BOOL"/>
+                <Field Description="Source equals Destination Filter Enable per Outlif Profile" Name="SOURCE_EQUALS_DESTINATION_ENABLE" Type="BOOL"/>
+                <Field Description="ERPP Split Horizon Filter Enable per Outlif Profile" Name="SPLIT_HORIZON_ENABLE" Type="BOOL"/>
+                <Field Description="Acceptable Frame Type Filter Enable per Outlif Profile" Name="UNACCEPTABLE_FRAME_TYPE_ENABLE" Type="BOOL"/>
+                <Field Description="Unknown DA Filter Enable per Outlif Profile" Name="UNKNOWN_DA_ENABLE" Type="BOOL"/>
+                <Field Description="GLEM PP Filter Enable per Outlif Profile" Name="GLEM_PP_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="GLEM NON  PP Filter Enable per Outlif Profile" Name="GLEM_NON_PP_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="TTL Scoping Filter Enable per Outlif Profile" Name="TTL_SCOPING_ENABLE" Type="BOOL"/>
+                <Field Description="TTL Zero Filter Enable per Outlif Profile" Name="TTL_ZERO_ENABLE" Type="BOOL"/>
+                <Field Description="TTL One Filter Enable per Outlif Profile" Name="TTL_ONE_ENABLE" Type="BOOL"/>
+                <Field Description="MTU Ckeck Filter Enable per Outlif Profile" Name="MTU_CHECK_ENABLE" Type="BOOL"/>
+                <Field Description="IPV4  Filters Enable per Outlif Profile" Name="IPV4_FILTERS_ENABLE" Type="BOOL" Valid="DNX_DATA.dev_init.general.erpp_filters_non_separate_enablers"/>
+                <Field Description="IPV6  Filters Enable per Outlif Profile" Name="IPV6_FILTERS_ENABLE" Type="BOOL" Valid="DNX_DATA.dev_init.general.erpp_filters_non_separate_enablers"/>
+            </Result>
+            <TableLabels>L2 L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OUT_LIF_ORIENTATION">
+                    <Access>
+                        <Memory Name="ERPP_CFG_MAPPING_OUTLIF_PROFILEm">
+                            <HwField Name="OUTLIF_ORIENTATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTLIF_SAME_IF">
+                    <Access>
+                        <Memory Name="ERPP_CFG_MAPPING_OUTLIF_PROFILEm">
+                            <HwField Name="OUTLIF_SAME_IFf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTLIF_MTU">
+                    <Access>
+                        <Memory Name="ERPP_CFG_MAPPING_OUTLIF_PROFILEm">
+                            <HwField Name="OUTLIF_MTUf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTLIF_TTL_SCOPE_INDEX">
+                    <Access>
+                        <Memory Name="ERPP_CFG_MAPPING_OUTLIF_PROFILEm">
+                            <HwField Name="OUTLIF_TTL_SCOPE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ENABLE_MULTICAST_SAME_INTERFACE_FILTERS">
+                    <Access>
+                        <Memory Name="ERPP_CFG_MAPPING_OUTLIF_PROFILEm">
+                            <HwField Name="ENABLE_MULTICAST_SAME_INTERFACE_FILTERSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ENABLE_UC_SAME_INTERFACE_FILTERS">
+                    <Access>
+                        <Memory Name="ERPP_CFG_MAPPING_OUTLIF_PROFILEm">
+                            <HwField Name="OUTLIF_ENABLE_UC_SAME_INTERFACEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TDM_INDICATION_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_OUTLIF_PROFILEm">
+                            <HwField Name="CFG_TDM_DISCARD_PER_OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RQP_DISCARD_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_OUTLIF_PROFILEm">
+                            <HwField Name="CFG_RQP_DISCARD_PER_OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INVALID_OTM_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_OUTLIF_PROFILEm">
+                            <HwField Name="CFG_INVALID_OTM_PER_OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DSS_STACKING_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_OUTLIF_PROFILEm">
+                            <HwField Name="CFG_DSS_STACKING_PER_OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAG_MULTICAST_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_OUTLIF_PROFILEm">
+                            <HwField Name="CFG_LAG_MULTICAST_PER_OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXCLUDE_SRC_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_OUTLIF_PROFILEm">
+                            <HwField Name="CFG_EXCLUDE_SRC_PER_OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SOURCE_EQUALS_DESTINATION_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_OUTLIF_PROFILEm">
+                            <HwField Name="CFG_SAME_INTERFACE_PER_OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SPLIT_HORIZON_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_OUTLIF_PROFILEm">
+                            <HwField Name="CFG_SPLIT_HORIZON_PER_OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UNACCEPTABLE_FRAME_TYPE_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_OUTLIF_PROFILEm">
+                            <HwField Name="CFG_UNACCEPTABLE_FRAME_TYPE_PER_OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UNKNOWN_DA_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_OUTLIF_PROFILEm">
+                            <HwField Name="CFG_UNKNOWN_DA_PER_OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="GLEM_PP_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_OUTLIF_PROFILEm">
+                            <HwField Name="CFG_GLEM_PP_TRAP_PER_OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="GLEM_NON_PP_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_OUTLIF_PROFILEm">
+                            <HwField Name="CFG_GLEM_NON_PP_TRAP_PER_OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_SCOPING_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_OUTLIF_PROFILEm">
+                            <HwField Name="CFG_TTL_SCOPING_PER_OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_ZERO_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_OUTLIF_PROFILEm">
+                            <HwField Name="CFG_TTL_ZERO_PER_OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_ONE_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_OUTLIF_PROFILEm">
+                            <HwField Name="CFG_TTL_ONE_PER_OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MTU_CHECK_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_OUTLIF_PROFILEm">
+                            <HwField Name="CFG_MTU_VIOLATION_PER_OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0" Name="IPV4_FILTERS_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_OUTLIF_PROFILEm">
+                            <HwField Name="CFG_IPV4_FILTERS_PER_OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="IPV6_FILTERS_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_OUTLIF_PROFILEm">
+                            <HwField Name="CFG_IPV6_FILTERS_PER_OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="IPV6_FILTERS_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_OUTLIF_PROFILEm">
+                            <HwField Name="CFG_IPV6_ERR_FILTERS_PER_OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    
+    <AppDB Name="ERPP_TTL_SCOPE_TABLE">
+        <OneLineDescription>maps ttl scope per TTL scope index</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OUTLIF_TTL_SCOPE_INDEX"/>
+            </Key>
+            <Result>
+                <Field Name="TTL_SCOPE"/>
+            </Result>
+            <TableLabels>L2 L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TTL_SCOPE">
+                    <Access>
+                        <Register Name="ERPP_TTL_SCOPEr">
+                            <HwField Name="TTL_SCOPEf"/>
+                            <DataOffset Formula="#RESULT_SIZE(TTL_SCOPE)*#KEY_VALUE(OUTLIF_TTL_SCOPE_INDEX)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <!-- TM Instrumentation - -->
+    <AppDB Name="INST_SYNCED_COUNTERS_CTRL">
+        <OneLineDescription>Control configuration for instrumentation feature to CDU and ICGM</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SOURCE_TYPE"/>
+            </Key>
+            <Result>
+                <Field Description="Enables instrumentation logic" Name="ENABLE" Type="BOOL"/>
+                <Field Description="Timestamp start time" Name="START_TIME" Size="48" Type="ARRAY8"/>
+                <Field Description="Period between two pulses in ns units." Name="INTERVAL_PERIOD" Size="64" Type="ARRAY8"/>
+                <Field Description="Number of intervals in one round." Name="NOF_INTERVALS" Size="10" Type="UINT"/>
+                <Field Description="If FALSE, HW will count one round of intervals, if TRUE, HW count in cyclic mode forever" Name="IS_CONTINUOUS" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV INSTRU</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Enum="ICGM" Field="SOURCE_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ECI_BROAD_VIEW_CTRLr">
+                            <HwField Name="CGM_INSTRUMENTATION_ENABLEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="NIF" Field="SOURCE_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ECI_BROAD_VIEW_CTRLr">
+                            <HwField Name="CDU_INSTRUMENTATION_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>   
+                <Field Name="START_TIME">
+                    <Access>
+                        <KeyCondition Enum="ICGM" Field="SOURCE_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ECI_CGM_INST_CTRLr">
+                            <HwField Name="CGM_INST_START_TIMEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="NIF" Field="SOURCE_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ECI_CDU_INSTRUMENTATION_CTRLr">
+                            <HwField Name="CDU_INST_START_TIMEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="INTERVAL_PERIOD">
+                    <Access>
+                        <KeyCondition Enum="ICGM" Field="SOURCE_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ECI_CGM_INST_CTRLr">
+                            <HwField Name="CGM_INST_INTERVAL_PERIODf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="NIF" Field="SOURCE_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ECI_CDU_INSTRUMENTATION_CTRLr">
+                            <HwField Name="CDU_INST_INTERVAL_PERIODf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NOF_INTERVALS">
+                    <Access>
+                        <KeyCondition Enum="ICGM" Field="SOURCE_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ECI_CGM_INST_CTRLr">
+                            <HwField Name="CGM_INST_NOF_INTERVALSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="NIF" Field="SOURCE_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ECI_CDU_INSTRUMENTATION_CTRLr">
+                            <HwField Name="CDU_INST_NOF_INTERVALSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IS_CONTINUOUS">
+                    <Access>
+                        <KeyCondition Enum="ICGM" Field="SOURCE_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ECI_CGM_INST_CTRLr">
+                            <HwField Name="CGM_INST_OVERRIDE_MODEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="NIF" Field="SOURCE_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ECI_CDU_INSTRUMENTATION_CTRLr">
+                            <HwField Name="CDU_INST_OVERRIDE_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>           
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>         
+        
+</AppDbCatalog>

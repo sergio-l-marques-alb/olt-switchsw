@@ -1,0 +1,1460 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+-->
+
+<HwGroups xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="hw_entity_groups.xsd">
+
+
+    <Group Name="TDM_EGRESS_CONFIGURATION">
+        <OneLineDescription>System wide TDM configuration. Using 'group' since two registers are exactly the same</OneLineDescription>
+        <Registers>
+            <Register Name="ERPP_TDM_GENERAL_CONFIGURATIONr"/>
+            <Register Name="ETPPA_TDM_GENERAL_CONFIGURATIONr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_VTT_QOS_PROPAG_PROFILE_MAPPING">
+        <OneLineDescription>QOS propagation that sould be configured the same in IPPA and IPPF blockes</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_VTT_QOS_PROPAG_PROFILE_MAPPINGr"/>
+            <Register Name="IPPF_VTT_QOS_PROPAG_PROFILE_MAPPINGr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_VSI_PROFILE_ATTRIBUTES_0">
+        <OneLineDescription>VSI key format</OneLineDescription>
+        <Memories>
+            <Memory Name="IPPA_VSI_PROFILE_ATTRIBUTES_0m"/>
+            <Memory Name="IPPF_VSI_PROFILE_ATTRIBUTES_0m"/>
+        </Memories>
+    </Group>
+
+    <Group Name="INGRESS_ITPP_GENERAL_CFG">
+        <OneLineDescription>Ingress ITPP General config group</OneLineDescription>
+        <Registers>
+            <Register Name="ITPPD_ITPP_GENERAL_CFGr"/>
+            <Register Name="ITPP_ITPP_GENERAL_CFGr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="ITPP_MAPPING_FWD_INFO_TO_EN_TERM">
+        <OneLineDescription>Ingress ITPP MAppinf of FWD info to enable termination</OneLineDescription>
+        <Registers>
+            <Register Name="ITPP_MAPPING_FWD_INFO_TO_EN_TERMr"/>
+            <Register Name="ITPPD_MAPPING_FWD_INFO_TO_EN_TERMr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_VSI_PROFILE_ATTRIBUTES_1">
+        <OneLineDescription>VSI key format</OneLineDescription>
+        <Memories>
+            <Memory Name="IPPA_VSI_PROFILE_ATTRIBUTES_1m"/>
+            <Memory Name="IPPF_VSI_PROFILE_ATTRIBUTES_1m"/>
+        </Memories>
+    </Group>
+
+    <Group Name="INGRESS_LEARN_KEY_CONTEXT">
+        <OneLineDescription>Learn key context</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_LEARN_KEY_CONTEXTr"/>
+            <Register Name="IPPF_LEARN_KEY_CONTEXTr"/>
+        </Registers>
+    </Group>
+
+ 
+    <Group Name="CDUM_RX_FIFO_RANGE_RMC">
+        <OneLineDescription>Size of each logical FIFO (RMC) in the CDU.</OneLineDescription>
+        <Registers>
+            <Register Name="CDUM_RX_FIFO_RANGE_RMC_0r"/>
+            <Register Name="CDUM_RX_FIFO_RANGE_RMC_1r"/>
+            <Register Name="CDUM_RX_FIFO_RANGE_RMC_2r"/>
+            <Register Name="CDUM_RX_FIFO_RANGE_RMC_3r"/>
+            <Register Name="CDUM_RX_FIFO_RANGE_RMC_4r"/>
+            <Register Name="CDUM_RX_FIFO_RANGE_RMC_5r"/>
+            <Register Name="CDUM_RX_FIFO_RANGE_RMC_6r"/>
+            <Register Name="CDUM_RX_FIFO_RANGE_RMC_7r"/>
+            <Register Name="CDUM_RX_FIFO_RANGE_RMC_8r"/>
+            <Register Name="CDUM_RX_FIFO_RANGE_RMC_9r"/>
+            <Register Name="CDUM_RX_FIFO_RANGE_RMC_10r"/>
+            <Register Name="CDUM_RX_FIFO_RANGE_RMC_11r"/>
+            <Register Name="CDUM_RX_FIFO_RANGE_RMC_12r"/>
+            <Register Name="CDUM_RX_FIFO_RANGE_RMC_13r"/>
+            <Register Name="CDUM_RX_FIFO_RANGE_RMC_14r"/>
+            <Register Name="CDUM_RX_FIFO_RANGE_RMC_15r"/>
+        </Registers>
+    </Group>
+
+    <Group Name="ETPP_DEFAULT_SVTAG">
+        <OneLineDescription>SVTAG default value registers</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPB_DEFAULT_SVTAGr"/>
+            <Register Name="ETPPC_DEFAULT_SVTAGr"/>
+        </Registers>
+    </Group>
+
+
+    <Group Name="ETPP_SOURCE_ADRS_MAP">
+        <OneLineDescription></OneLineDescription>
+        <Memories>
+            <Memory Name="ETPPB_SOURCE_ADRS_MAP_0m"/>
+            <Memory Name="ETPPB_SOURCE_ADRS_MAP_1m"/>
+            <Memory Name="ETPPC_SOURCE_ADRS_MAPm"/>
+        </Memories>
+    </Group>
+    
+    <Group Name="ETPP_ENC_DEVICE_CONFIGS">
+        <OneLineDescription></OneLineDescription>
+        <Registers>
+            <Register Name="ETPPB_ENC_DEVICE_CONFIGSr"/>
+            <Register Name="ETPPC_ENC_DEVICE_CONFIGSr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="ETPP_ADDITIONAL_HEADERS_PROFILE_MAP">
+        <OneLineDescription>Additional Headers Profile Table</OneLineDescription>
+        <Memories>
+            <Memory Name="ETPPB_ADDITIONAL_HEADERS_PROFILE_MAPm"/>
+            <Memory Name="ETPPC_ADDITIONAL_HEADERS_PROFILE_MAPm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="EGRESS_INGRESS_TRAPPED_BY_FHEI">
+        <OneLineDescription></OneLineDescription>
+        <Registers>
+            <Register Name="ETPPA_INGRESS_TRAPPED_BY_FHEIr"/>
+            <Register Name="ERPP_INGRESS_TRAPPED_BY_FHEIr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="CDUM_MAC_RESET">
+         <OneLineDescription></OneLineDescription>
+         <Registers>
+             <Register Name="CDUM_MAC_0_RESETr"/>
+             <Register Name="CDUM_MAC_1_RESETr"/>
+         </Registers>
+     </Group>
+
+    <Group Name="CDU_MAC_RESET">
+         <OneLineDescription></OneLineDescription>
+         <Registers>
+             <Register Name="CDU_MAC_0_RESETr"/>
+             <Register Name="CDU_MAC_1_RESETr"/>
+         </Registers>
+     </Group>
+    
+    <Group Name="CLU_PM_RESET">
+         <OneLineDescription></OneLineDescription>
+         <Registers Device="J2C_A0">
+             <Register Name="CLU_PM_0_RESETNr"/>
+             <Register Name="CLU_PM_1_RESETNr"/>
+             <Register Name="CLU_PM_2_RESETNr"/>
+             <Register Name="CLU_PM_3_RESETNr"/>
+         </Registers>
+         <Registers Device="Q2A_A0 Q2A_B0">
+             <Register Name="CLU_PM_0_RESETNr"/>
+             <Register Name="CLU_PM_1_RESETNr"/>
+             <Register Name="CLU_PM_2_RESETNr"/>
+         </Registers>         
+     </Group>    
+    
+    <Group Name="CDU_RX_FIFO_RANGE_RMC">
+        <OneLineDescription>Size of each logical FIFO (RMC) in the CDU.</OneLineDescription>
+        <Registers>
+            <Register Name="CDU_RX_FIFO_RANGE_RMC_0r"/>
+            <Register Name="CDU_RX_FIFO_RANGE_RMC_1r"/>
+            <Register Name="CDU_RX_FIFO_RANGE_RMC_2r"/>
+            <Register Name="CDU_RX_FIFO_RANGE_RMC_3r"/>
+            <Register Name="CDU_RX_FIFO_RANGE_RMC_4r"/>
+            <Register Name="CDU_RX_FIFO_RANGE_RMC_5r"/>
+            <Register Name="CDU_RX_FIFO_RANGE_RMC_6r"/>
+            <Register Name="CDU_RX_FIFO_RANGE_RMC_7r"/>
+            <Register Name="CDU_RX_FIFO_RANGE_RMC_8r"/>
+            <Register Name="CDU_RX_FIFO_RANGE_RMC_9r"/>
+            <Register Name="CDU_RX_FIFO_RANGE_RMC_10r"/>
+            <Register Name="CDU_RX_FIFO_RANGE_RMC_11r"/>
+            <Register Name="CDU_RX_FIFO_RANGE_RMC_12r"/>
+            <Register Name="CDU_RX_FIFO_RANGE_RMC_13r"/>
+            <Register Name="CDU_RX_FIFO_RANGE_RMC_14r"/>
+            <Register Name="CDU_RX_FIFO_RANGE_RMC_15r"/>
+        </Registers>
+    </Group>
+
+    
+    <Group Name="CLU_RX_FIFO_RANGE_RMC">
+        <OneLineDescription>Size of each logical FIFO (RMC) in the CLU.</OneLineDescription>
+        <Registers>
+            <Register Name="CLU_RX_FIFO_RANGE_RMC_0r"/>
+            <Register Name="CLU_RX_FIFO_RANGE_RMC_1r"/>
+            <Register Name="CLU_RX_FIFO_RANGE_RMC_2r"/>
+            <Register Name="CLU_RX_FIFO_RANGE_RMC_3r"/>
+            <Register Name="CLU_RX_FIFO_RANGE_RMC_4r"/>
+            <Register Name="CLU_RX_FIFO_RANGE_RMC_5r"/>
+            <Register Name="CLU_RX_FIFO_RANGE_RMC_6r"/>
+            <Register Name="CLU_RX_FIFO_RANGE_RMC_7r"/>
+            <Register Name="CLU_RX_FIFO_RANGE_RMC_8r"/>
+            <Register Name="CLU_RX_FIFO_RANGE_RMC_9r"/>
+            <Register Name="CLU_RX_FIFO_RANGE_RMC_10r"/>
+            <Register Name="CLU_RX_FIFO_RANGE_RMC_11r"/>
+            <Register Name="CLU_RX_FIFO_RANGE_RMC_12r"/>
+            <Register Name="CLU_RX_FIFO_RANGE_RMC_13r"/>
+            <Register Name="CLU_RX_FIFO_RANGE_RMC_14r"/>
+            <Register Name="CLU_RX_FIFO_RANGE_RMC_15r"/>
+        </Registers>
+    </Group>
+
+    <Group Name="CDUM_RX_RMC_MAP">
+        <OneLineDescription>RMC map to physical lane</OneLineDescription>
+        <Registers>
+            <Register Name="CDUM_RX_RMC_0_MAPr"/>
+            <Register Name="CDUM_RX_RMC_1_MAPr"/>
+            <Register Name="CDUM_RX_RMC_2_MAPr"/>
+            <Register Name="CDUM_RX_RMC_3_MAPr"/>
+            <Register Name="CDUM_RX_RMC_4_MAPr"/>
+            <Register Name="CDUM_RX_RMC_5_MAPr"/>
+            <Register Name="CDUM_RX_RMC_6_MAPr"/>
+            <Register Name="CDUM_RX_RMC_7_MAPr"/>
+            <Register Name="CDUM_RX_RMC_8_MAPr"/>
+            <Register Name="CDUM_RX_RMC_9_MAPr"/>
+            <Register Name="CDUM_RX_RMC_10_MAPr"/>
+            <Register Name="CDUM_RX_RMC_11_MAPr"/>
+            <Register Name="CDUM_RX_RMC_12_MAPr"/>
+            <Register Name="CDUM_RX_RMC_13_MAPr"/>
+            <Register Name="CDUM_RX_RMC_14_MAPr"/>
+            <Register Name="CDUM_RX_RMC_15_MAPr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="CDU_RX_RMC_MAP">
+        <OneLineDescription>RMC map to physical lane</OneLineDescription>
+        <Registers>
+            <Register Name="CDU_RX_RMC_0_MAPr"/>
+            <Register Name="CDU_RX_RMC_1_MAPr"/>
+            <Register Name="CDU_RX_RMC_2_MAPr"/>
+            <Register Name="CDU_RX_RMC_3_MAPr"/>
+            <Register Name="CDU_RX_RMC_4_MAPr"/>
+            <Register Name="CDU_RX_RMC_5_MAPr"/>
+            <Register Name="CDU_RX_RMC_6_MAPr"/>
+            <Register Name="CDU_RX_RMC_7_MAPr"/>
+            <Register Name="CDU_RX_RMC_8_MAPr"/>
+            <Register Name="CDU_RX_RMC_9_MAPr"/>
+            <Register Name="CDU_RX_RMC_10_MAPr"/>
+            <Register Name="CDU_RX_RMC_11_MAPr"/>
+            <Register Name="CDU_RX_RMC_12_MAPr"/>
+            <Register Name="CDU_RX_RMC_13_MAPr"/>
+            <Register Name="CDU_RX_RMC_14_MAPr"/>
+            <Register Name="CDU_RX_RMC_15_MAPr"/>
+        </Registers>
+    </Group>
+
+    
+    <Group Name="CLU_RX_RMC_MAP">
+        <OneLineDescription>RMC map to physical lane</OneLineDescription>
+        <Registers>
+            <Register Name="CLU_RX_RMC_0_MAPr"/>
+            <Register Name="CLU_RX_RMC_1_MAPr"/>
+            <Register Name="CLU_RX_RMC_2_MAPr"/>
+            <Register Name="CLU_RX_RMC_3_MAPr"/>
+            <Register Name="CLU_RX_RMC_4_MAPr"/>
+            <Register Name="CLU_RX_RMC_5_MAPr"/>
+            <Register Name="CLU_RX_RMC_6_MAPr"/>
+            <Register Name="CLU_RX_RMC_7_MAPr"/>
+            <Register Name="CLU_RX_RMC_8_MAPr"/>
+            <Register Name="CLU_RX_RMC_9_MAPr"/>
+            <Register Name="CLU_RX_RMC_10_MAPr"/>
+            <Register Name="CLU_RX_RMC_11_MAPr"/>
+            <Register Name="CLU_RX_RMC_12_MAPr"/>
+            <Register Name="CLU_RX_RMC_13_MAPr"/>
+            <Register Name="CLU_RX_RMC_14_MAPr"/>
+            <Register Name="CLU_RX_RMC_15_MAPr"/>
+        </Registers>
+    </Group>
+    <Group Name="CDUM_RX_PORT_MAP_TO_RMC">
+        <OneLineDescription>CDUM Physical lane map to RMC</OneLineDescription>
+        <Registers>
+            <Register Name="CDUM_RX_PORT_0_MAP_TO_RMCr"/>
+            <Register Name="CDUM_RX_PORT_1_MAP_TO_RMCr"/>
+            <Register Name="CDUM_RX_PORT_2_MAP_TO_RMCr"/>
+            <Register Name="CDUM_RX_PORT_3_MAP_TO_RMCr"/>
+            <Register Name="CDUM_RX_PORT_4_MAP_TO_RMCr"/>
+            <Register Name="CDUM_RX_PORT_5_MAP_TO_RMCr"/>
+            <Register Name="CDUM_RX_PORT_6_MAP_TO_RMCr"/>
+            <Register Name="CDUM_RX_PORT_7_MAP_TO_RMCr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="CDU_RX_PORT_MAP_TO_RMC">
+        <OneLineDescription>CDU Physical lane map to RMC</OneLineDescription>
+        <Registers>
+            <Register Name="CDU_RX_PORT_0_MAP_TO_RMCr"/>
+            <Register Name="CDU_RX_PORT_1_MAP_TO_RMCr"/>
+            <Register Name="CDU_RX_PORT_2_MAP_TO_RMCr"/>
+            <Register Name="CDU_RX_PORT_3_MAP_TO_RMCr"/>
+            <Register Name="CDU_RX_PORT_4_MAP_TO_RMCr"/>
+            <Register Name="CDU_RX_PORT_5_MAP_TO_RMCr"/>
+            <Register Name="CDU_RX_PORT_6_MAP_TO_RMCr"/>
+            <Register Name="CDU_RX_PORT_7_MAP_TO_RMCr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="CLU_RX_PORT_MAP_TO_RMC">
+        <OneLineDescription>CLU Physical lane map to RMC</OneLineDescription>
+        <Registers Device="Q2A_A0 Q2A_B0">
+            <Register Name="CLU_RX_PORT_0_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_1_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_2_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_3_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_4_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_5_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_6_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_7_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_8_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_9_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_10_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_11_MAP_TO_RMCr"/>
+        </Registers>
+        <Registers Device="J2C_A0">
+            <Register Name="CLU_RX_PORT_0_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_1_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_2_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_3_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_4_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_5_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_6_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_7_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_8_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_9_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_10_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_11_MAP_TO_RMCr"/>        
+            <Register Name="CLU_RX_PORT_12_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_13_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_14_MAP_TO_RMCr"/>
+            <Register Name="CLU_RX_PORT_15_MAP_TO_RMCr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_LLVP_CLASSIFICATION_GROUP">
+        <OneLineDescription>Ingress LLVP classification table group</OneLineDescription>
+        <Memories>
+            <Memory Name="IPPA_VTT_LLVPm"/>
+            <Memory Name="IPPE_LLR_LLVPm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="EGRESS_CFG_INLIF_DP_PROFILE_MAP">
+        <OneLineDescription>DP INLIF Profile for Inner and Outer PCP-DEI mapping in IVE</OneLineDescription>
+        <Memories>
+            <Memory Name="ERPP_CFG_INLIF_DP_PROFILE_MAPm"/>
+            <Memory Name="ETPPA_CFG_INLIF_DP_PROFILE_MAPm"/>
+            <Memory Name="ETPPC_CFG_INLIF_DP_PROFILE_MAPm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="EGRESS_PCP_DEI_DP_MAPPING_TABLE">
+        <OneLineDescription>DP INLIF Profile for Inner and Outer PCP-DEI mapping in IVE</OneLineDescription>
+        <Memories>
+            <Memory Name="ERPP_PCP_DEI_DP_MAPPING_TABLEm"/>
+            <Memory Name="ETPPA_PCP_DEI_DP_MAPPING_TABLEm"/>
+            <Memory Name="ETPPC_PCP_DEI_DP_MAPPING_TABLEm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="INGRESS_VLAN_EDIT_COMMAND_TABLE">
+        <OneLineDescription>Ingress mapping table group to an IVEC index</OneLineDescription>
+        <Memories>
+            <Memory Name="IPPA_INGRESS_VLAN_EDIT_COMMAND_TABLE_1m"/>
+            <Memory Name="IPPF_INGRESS_VLAN_EDIT_COMMAND_TABLEm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="EGRESS_IVEC_TABLE">
+        <OneLineDescription>Egress IVE Commands table group in the ERPP and ETPP</OneLineDescription>
+        <Memories>
+            <Memory Name="ERPP_IVEC_TABLEm"/>
+            <Memory Name="ETPPA_IVEC_TABLEm"/>
+            <Memory Name="ETPPC_IVEC_TABLEm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="ETPP_VLAN_EDIT_PROFILE_MAP_TABLE">
+        <OneLineDescription>Egress EVE Commands table group in the ETPP encap stages</OneLineDescription>
+        <Memories>
+            <Memory Name="ETPPB_VLAN_EDIT_PROFILE_MAP_TABLEm"/>
+            <Memory Name="ETPPC_VLAN_EDIT_PROFILE_MAP_TABLEm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="INGRESS_VTT_VLAN_RANGE_COMPRESSION_TABLE">
+        <OneLineDescription>Ingress VTT Vlan Domain Attributes Table</OneLineDescription>
+        <Memories>
+            <Memory Name="IPPA_VLAN_RANGE_COMPRESSION_TABLE_1m"/>
+            <Memory Name="IPPF_VLAN_RANGE_COMPRESSION_TABLEm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="INGRESS_VTT_VLAN_DOMAIN_ATTRIBUTES">
+        <OneLineDescription>Ingress VTT Vlan Domain Attributes Table</OneLineDescription>
+        <Memories>
+            <Memory Name="IPPF_VTT_VLAN_DOMAIN_ATTRIBUTESm"/>
+            <Memory Name="IPPA_VTT_VLAN_DOMAIN_ATTRIBUTES_1m"/>
+        </Memories>
+    </Group>
+
+    <Group Name="EGRESS_JERICHO_COMPATIBLE_REGISTERS">
+        <OneLineDescription>Egress Jericho Compatible Registers Group</OneLineDescription>
+        <Registers>
+            <Register Name="ERPP_JERICHO_COMPATIBLE_REGISTERSr"/>
+            <Register Name="ETPPA_JERICHO_COMPATIBLE_REGISTERSr"/>
+        </Registers>
+    </Group>
+    <Group Name="INGRESS_MAP_PORT_TO_MEMBERSHIP_IF_VEC">
+        <OneLineDescription>Ingress Map port to Membership Interface Group</OneLineDescription>
+        <Memories>
+            <Memory Name="IPPA_MAP_PORT_TO_MEMBERSHIP_IF_VECm"/>
+            <Memory Name="IPPF_MAP_PORT_TO_MEMBERSHIP_IF_VECm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="EGRESS_SYSTEM_HEADERS_CG_1">
+        <OneLineDescription>Egress System Headers CS Group</OneLineDescription>
+        <Registers>
+            <Register Name="ERPP_SYSTEM_HEADERS_CG_1r"/>
+            <Register Name="ETPPA_SYSTEM_HEADERS_CG_1r"/>
+        </Registers>
+    </Group>
+
+    <Group Name="EGRESS_PPH_BASE_FIELDS_CG_2">
+        <OneLineDescription>Egress PPH Base Fields CG Group</OneLineDescription>
+        <Registers>
+            <Register Name="ERPP_PPH_BASE_FIELDS_CG_2r"/>
+            <Register Name="ETPPA_PPH_BASE_FIELDS_CG_2r"/>
+        </Registers>
+    </Group>
+
+    <Group Name="EGRESS_DEVICE_CFG_PARSER_ENABLERS">
+        <OneLineDescription>Egress PPH Base Fields CS Group</OneLineDescription>
+        <Registers>
+            <Register Name="ERPP_DEVICE_CFG_PARSER_ENABLERSr"/>
+            <Register Name="ETPPA_DEVICE_CFG_PARSER_ENABLERSr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_VLAN_MEMBERSHIP_TABLE">
+        <OneLineDescription>Ingress VLAN Member Domain Bitmap Group</OneLineDescription>
+        <Memories>
+            <Memory Name="IPPA_VLAN_MEMBERSHIP_TABLE_1m"/>
+            <Memory Name="IPPF_VLAN_MEMBERSHIP_TABLEm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="INGRESS_INITIAL_PCP_DEI_MAP_TYPE">
+        <OneLineDescription>Ingress VLAN edit PCP DEI initial type</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_INITIAL_PCP_DEI_MAP_TYPEr"/>
+            <Register Name="IPPF_INITIAL_PCP_DEI_MAP_TYPEr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_VLAN_EDIT_PCP_DEI_MAP">
+        <OneLineDescription>Ingress VLAN PCP DEI explicit map</OneLineDescription>
+        <Memories>
+            <Memory Name="IPPA_VLAN_EDIT_PCP_DEI_MAPm"/>
+            <Memory Name="IPPF_VLAN_EDIT_PCP_DEI_MAPm"/>
+        </Memories>
+    </Group>
+
+     <Group Name="EGRESS_UTILITY_REGS">
+        <OneLineDescription>Egress PPH Base Fields CS Group</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPA_UTILITY_REGSr"/>
+            <Register Name="ERPP_UTILITY_REGSr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="EGRESS_LIF_EXTENSION_FORMAT_CFG">
+        <OneLineDescription>Egress Table for Configuring the PPH Outlif Extensions</OneLineDescription>
+        <Memories>
+            <Memory Name="ERPP_LIF_EXTENSION_FORMAT_CFGm"/>
+            <Memory Name="ETPPA_LIF_EXTENSION_FORMAT_CFGm"/>
+        </Memories>
+    </Group>
+
+   <Group Name="GLOBAL_TPID_0_1_REGS">
+        <OneLineDescription>Global TPID 0 and 1 registers</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPB_REG_00E8r"/>
+            <Register Name="ETPPA_REG_00E8r"/>
+            <Register Name="ETPPC_REG_00E8r"/>
+            <Register Name="ERPP_REG_00E8r"/>
+            <Register Name="ECI_FAP_GLOBAL_PP_2r"/>
+        </Registers>
+    </Group>
+    <Group Name="GLOBAL_TPID_2_3_REGS">
+        <OneLineDescription>Global TPID 2 and 3 registers</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPB_REG_00E9r"/>
+            <Register Name="ETPPA_REG_00E9r"/>
+            <Register Name="ETPPC_REG_00E9r"/>
+            <Register Name="ERPP_REG_00E9r"/>
+            <Register Name="ECI_FAP_GLOBAL_PP_3r"/>
+        </Registers>
+    </Group>
+    <Group Name="GLOBAL_TPID_4_5_REGS">
+        <OneLineDescription>Global TPID 4 and 5 registers</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPB_REG_00F1r"/>
+            <Register Name="ETPPA_REG_00F1r"/>
+            <Register Name="ETPPC_REG_00F1r"/>
+            <Register Name="ERPP_REG_00F1r"/>
+            <Register Name="ECI_FAP_GLOBAL_PP_11r"/>
+        </Registers>
+    </Group>
+    <Group Name="GLOBAL_TPID_6_REGS">
+        <OneLineDescription>Global TPID 6 registers</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPB_REG_00F2r"/>
+            <Register Name="ETPPA_REG_00F2r"/>
+            <Register Name="ETPPC_REG_00F2r"/>
+            <Register Name="ERPP_REG_00F2r"/>
+            <Register Name="ECI_FAP_GLOBAL_PP_12r"/>
+        </Registers>
+    </Group>
+    <Group Name="ETPP_CFG_LAYER_PROTOCOL_MPLS">
+        <OneLineDescription>MPLS layer protocol</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPA_CFG_LAYER_PROTOCOL_MPLSr"/>
+            <Register Name="ETPPC_CFG_LAYER_PROTOCOL_MPLSr"/>
+        </Registers>
+    </Group>
+    <Group Name="ETPP_CFG_LAYER_PROTOCOL_IPV4">
+        <OneLineDescription>IPV4 layer protocol</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPA_CFG_LAYER_PROTOCOL_IPV4r"/>
+            <Register Name="ETPPC_CFG_LAYER_PROTOCOL_IPV4r"/>
+        </Registers>
+    </Group>
+    <Group Name="ETPP_CFG_LAYER_PROTOCOL_IPV6">
+        <OneLineDescription>IPV6 layer protocol</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPA_CFG_LAYER_PROTOCOL_IPV6r"/>
+            <Register Name="ETPPC_CFG_LAYER_PROTOCOL_IPV6r"/>
+        </Registers>
+    </Group>
+    <Group Name="INGRESS_VTT_TRAP_STRENGTHS_3">
+        <OneLineDescription>Ingress vtt traps action profile #3</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_VTT_TRAP_STRENGTHS_3r"/>
+            <Register Name="IPPF_VTT_TRAP_STRENGTHS_3r"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_VTT_TRAP_STRENGTHS_4">
+        <OneLineDescription>Ingress vtt traps action profile #4</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_VTT_TRAP_STRENGTHS_4r"/>
+            <Register Name="IPPF_VTT_TRAP_STRENGTHS_4r"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_VTT_TRAP_STRENGTHS_5">
+        <OneLineDescription>Ingress vtt traps action profile #5</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_VTT_TRAP_STRENGTHS_5r"/>
+            <Register Name="IPPF_VTT_TRAP_STRENGTHS_5r"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_VTT_TRAP_STRENGTHS_6">
+        <OneLineDescription>Ingress vtt traps action profile #6</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_VTT_TRAP_STRENGTHS_6r"/>
+            <Register Name="IPPF_VTT_TRAP_STRENGTHS_6r"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_VTT_TRAP_STRENGTHS_7">
+        <OneLineDescription>Ingress vtt traps action profile #7</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_VTT_TRAP_STRENGTHS_7r"/>
+            <Register Name="IPPF_VTT_TRAP_STRENGTHS_7r"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_VTT_TRAP_STRENGTHS_8">
+        <OneLineDescription>Ingress vtt traps action profile #8</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_VTT_TRAP_STRENGTHS_8r"/>
+            <Register Name="IPPF_VTT_TRAP_STRENGTHS_8r"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_VTT_ACTION_PROFILE_ACCEPTABLE_FRAME_TYPES">
+        <OneLineDescription>Ingress vtt acceptable frame types action profiles</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_VTT_ACTION_PROFILE_ACCEPTABLE_FRAME_TYPESr"/>
+            <Register Name="IPPF_VTT_ACTION_PROFILE_ACCEPTABLE_FRAME_TYPESr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="ETPP_CFG_PIPE_MAPPED_TTL_VARIABLE_MAP">
+        <OneLineDescription>Pipe Mapped TTL_Variable(8b), mapped by TTL_Idx(5b)</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPB_CFG_PIPE_MAPPED_TTL_VARIABLE_MAPr"/>
+            <Register Name="ETPPC_CFG_PIPE_MAPPED_TTL_VARIABLE_MAPr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="ETPP_CFG_TTL_MODEL_PIPE_MAP">
+        <OneLineDescription>Mapped by TTL_Model(2b)</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPB_CFG_TTL_MODEL_PIPE_MAPr"/>
+            <Register Name="ETPPC_CFG_TTL_MODEL_PIPE_MAPr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="ETPP_QOS_DP_MAP">
+        <OneLineDescription>Egress fwd network qos table</OneLineDescription>
+        <Memories>
+            <Memory Name="ETPPB_QOS_DP_MAPm"/>
+            <Memory Name="ETPPC_QOS_DP_MAPm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="ETPP_NEW_QOS_MAP">
+        <OneLineDescription>Egress encap network qos table</OneLineDescription>
+        <Memories>
+            <Memory Name="ETPPB_NEW_QOS_MAPm"/>
+            <Memory Name="ETPPC_NEW_QOS_MAPm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="ETPP_ENC_QOS_VAR_TYPE_MAPPING">
+        <OneLineDescription>Egress encap qos var type table</OneLineDescription>
+        <Memories>
+            <Memory Name="ETPPC_ENC_1_QOS_VAR_TYPE_MAPPING_TABLEm"/>
+            <Memory Name="ETPPB_ENC_2_QOS_VAR_TYPE_MAPPING_TABLEm"/>
+            <Memory Name="ETPPB_ENC_3_QOS_VAR_TYPE_MAPPING_TABLEm"/>
+            <Memory Name="ETPPB_ENC_4_QOS_VAR_TYPE_MAPPING_TABLEm"/>
+            <Memory Name="ETPPB_ENC_5_QOS_VAR_TYPE_MAPPING_TABLEm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="ETPP_CFG_MAP_FWD_LAYER_PROTOCOL">
+        <OneLineDescription>Egress encap network qos table</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPA_CFG_MAP_FWD_LAYER_PROTOCOLr"/>
+            <Register Name="ETPPC_CFG_MAP_FWD_LAYER_PROTOCOLr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="ETPP_CFG_REMARK_PROTOCOL_PROFILE">
+        <OneLineDescription>Egress encap network qos table</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPA_CFG_REMARK_PROTOCOL_PROFILEr"/>
+            <Register Name="ETPPC_CFG_REMARK_PROTOCOL_PROFILEr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="ETPP_LAYER_NWK_QOS_TABLE">
+        <OneLineDescription>Egress encap network qos table</OneLineDescription>
+        <Memories>
+            <Memory Name="ETPPA_LAYER_NWK_QOS_TABLEm"/>
+            <Memory Name="ETPPC_LAYER_NWK_QOS_TABLEm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="ETPP_CFG_MAP_REMARK_PROFILE_QOS_VAR">
+        <OneLineDescription>Remark Profile Mapping for QOS Var Mapping procedure:
+                            mapping 5 bit remark profile to 5 bit value</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPB_CFG_MAP_REMARK_PROFILE_QOS_VARr"/>
+            <Register Name="ETPPC_CFG_MAP_REMARK_PROFILE_QOS_VARr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="ETPP_CFG_MAP_REMARK_PROFILE_QOS_DP">
+        <OneLineDescription>Remark Profile Mapping for QOS DP Mapping procedure:
+                            mapping 5 bit remark profile to 5 bit value</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPB_CFG_MAP_REMARK_PROFILE_QOS_DPr"/>
+            <Register Name="ETPPC_CFG_MAP_REMARK_PROFILE_QOS_DPr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="ETPP_QOS_MODEL_MAPPING_TABLE">
+        <OneLineDescription>Variables mapped by QoS-Model(3b), Used by ENC_FWD</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPB_QOS_MODEL_MAPPING_TABLEr"/>
+            <Register Name="ETPPC_QOS_MODEL_MAPPING_TABLEr"/>
+        </Registers>
+    </Group>
+
+
+    <Group Name="ETPP_NWK_QOS_IDX_MAP">
+        <OneLineDescription>Egress encap network qos table</OneLineDescription>
+        <Memories>
+            <Memory Name="ETPPB_NWK_QOS_IDX_MAPm"/>
+            <Memory Name="ETPPC_NWK_QOS_IDX_MAPm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="INGRESS_TERMINATION_PROFILE_TABLE">
+        <OneLineDescription>Ingress Termination Profile Table</OneLineDescription>
+        <Memories>
+            <Memory Name="IPPF_TERMINATION_PROFILE_TABLEm"/>
+            <Memory Name="IPPA_TERMINATION_PROFILE_TABLEm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="INGRESS_CFG_PROTOCOL_IS_ETH">
+        <OneLineDescription>Ingress Configuration Protocol Is Ethernet profile</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_CFG_PROTOCOL_IS_ETHr"/>
+            <Register Name="IPPF_CFG_PROTOCOL_IS_ETHr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_CFG_PROTOCOL_IS_IPV4">
+        <OneLineDescription>Ingress Configuration Protocol Is Ipv4 profile</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_CFG_PROTOCOL_IS_IPV4r"/>
+            <Register Name="IPPF_CFG_PROTOCOL_IS_IPV4r"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_CFG_PROTOCOL_IS_IPV6">
+        <OneLineDescription>Ingress Configuration Protocol Is Ipv6 profile</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_CFG_PROTOCOL_IS_IPV6r"/>
+            <Register Name="IPPF_CFG_PROTOCOL_IS_IPV6r"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_CFG_PROTOCOL_IS_MPLS">
+        <OneLineDescription>Ingress Configuration Protocol Is MPLS profile</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_CFG_PROTOCOL_IS_MPLSr"/>
+            <Register Name="IPPF_CFG_PROTOCOL_IS_MPLSr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_CFG_PROTOCOL_IS_MAC_IN_MAC">
+        <OneLineDescription>Ingress Configuration Protocol Is MiM profile</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_CFG_PROTOCOL_IS_MAC_IN_MACr"/>
+            <Register Name="IPPF_CFG_PROTOCOL_IS_MAC_IN_MACr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_VTT_ETHERNET_TERMINATION_ACTION">
+        <OneLineDescription>Ingress Ethernet Termination Action</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_VTT_ETHERNET_TERMINATION_ACTIONr"/>
+            <Register Name="IPPF_VTT_ETHERNET_TERMINATION_ACTIONr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="CDUM_RX_RMC_PRD_THRESHOLDS">
+        <OneLineDescription>PRD Thresholds per RMC</OneLineDescription>
+        <Registers>
+            <Register Name="CDUM_RX_RMC_0_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDUM_RX_RMC_1_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDUM_RX_RMC_2_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDUM_RX_RMC_3_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDUM_RX_RMC_4_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDUM_RX_RMC_5_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDUM_RX_RMC_6_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDUM_RX_RMC_7_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDUM_RX_RMC_8_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDUM_RX_RMC_9_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDUM_RX_RMC_10_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDUM_RX_RMC_11_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDUM_RX_RMC_12_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDUM_RX_RMC_13_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDUM_RX_RMC_14_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDUM_RX_RMC_15_PRD_THRESHOLDS_CONFIGr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="CDU_RX_RMC_PRD_THRESHOLDS">
+        <OneLineDescription>PRD Thresholds per RMC</OneLineDescription>
+        <Registers>
+            <Register Name="CDU_RX_RMC_0_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDU_RX_RMC_1_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDU_RX_RMC_2_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDU_RX_RMC_3_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDU_RX_RMC_4_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDU_RX_RMC_5_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDU_RX_RMC_6_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDU_RX_RMC_7_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDU_RX_RMC_8_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDU_RX_RMC_9_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDU_RX_RMC_10_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDU_RX_RMC_11_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDU_RX_RMC_12_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDU_RX_RMC_13_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDU_RX_RMC_14_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CDU_RX_RMC_15_PRD_THRESHOLDS_CONFIGr"/>
+        </Registers>
+    </Group>
+    <Group Name="CLU_RX_RMC_PRD_THRESHOLDS">
+        <OneLineDescription>PRD Thresholds per RMC</OneLineDescription>
+        <Registers>
+            <Register Name="CLU_RX_RMC_0_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CLU_RX_RMC_1_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CLU_RX_RMC_2_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CLU_RX_RMC_3_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CLU_RX_RMC_4_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CLU_RX_RMC_5_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CLU_RX_RMC_6_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CLU_RX_RMC_7_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CLU_RX_RMC_8_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CLU_RX_RMC_9_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CLU_RX_RMC_10_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CLU_RX_RMC_11_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CLU_RX_RMC_12_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CLU_RX_RMC_13_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CLU_RX_RMC_14_PRD_THRESHOLDS_CONFIGr"/>
+            <Register Name="CLU_RX_RMC_15_PRD_THRESHOLDS_CONFIGr"/>
+        </Registers>
+    </Group>
+    <Group Name="ILU_RX_HRF_PRD_THRESHOLDS">
+        <OneLineDescription>PRD Thresholds per HRF</OneLineDescription>
+        <Registers>
+            <Register Name="ILU_HRF_RX_PRD_THRESHOLDS_CONFIG_0r"/>
+            <Register Name="ILU_HRF_RX_PRD_THRESHOLDS_CONFIG_1r"/>
+        </Registers>
+    </Group>                            
+    <Group Name="CLU_RX_PORT_MAP_TO_PARSER_PROFILE">
+        <OneLineDescription>PRD Port Profile mapping</OneLineDescription>
+        <Registers Device="J2C_A0">
+            <Register Name="CLU_RX_PORT_0_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_1_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_2_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_3_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_4_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_5_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_6_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_7_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_8_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_9_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_10_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_11_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_12_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_13_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_14_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_15_MAP_TO_PARSER_PROFILEr"/>
+        </Registers>
+        <Registers Device="Q2A_A0 Q2A_B0">
+            <Register Name="CLU_RX_PORT_0_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_1_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_2_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_3_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_4_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_5_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_6_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_7_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_8_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_9_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_10_MAP_TO_PARSER_PROFILEr"/>
+            <Register Name="CLU_RX_PORT_11_MAP_TO_PARSER_PROFILEr"/>
+        </Registers>
+    </Group>
+    <Group Name="CDUM_PARSER_SOFT_STAGE_TCAM">
+        <OneLineDescription>PRD Soft Stage TCAM</OneLineDescription>
+        <Registers>
+            <Register Name="CDUM_PARSER_SOFT_TCAM_0_TO_7r"/>
+            <Register Name="CDUM_PARSER_SOFT_TCAM_8_TO_15r"/>
+            <Register Name="CDUM_PARSER_SOFT_TCAM_16_TO_23r"/>
+            <Register Name="CDUM_PARSER_SOFT_TCAM_24_TO_31r"/>
+        </Registers>
+    </Group>
+
+    <Group Name="CDU_PARSER_SOFT_STAGE_TCAM">
+        <OneLineDescription>PRD Soft Stage TCAM</OneLineDescription>
+        <Registers>
+            <Register Name="CDU_PARSER_SOFT_TCAM_0_TO_7r"/>
+            <Register Name="CDU_PARSER_SOFT_TCAM_8_TO_15r"/>
+            <Register Name="CDU_PARSER_SOFT_TCAM_16_TO_23r"/>
+            <Register Name="CDU_PARSER_SOFT_TCAM_24_TO_31r"/>
+        </Registers>
+    </Group>
+
+    <Group Name="CLU_PARSER_SOFT_STAGE_TCAM">
+        <OneLineDescription>PRD Soft Stage TCAM</OneLineDescription>
+        <Registers>
+            <Register Name="CLU_PARSER_SOFT_TCAM_0_TO_7r"/>
+            <Register Name="CLU_PARSER_SOFT_TCAM_8_TO_15r"/>
+            <Register Name="CLU_PARSER_SOFT_TCAM_16_TO_23r"/>
+            <Register Name="CLU_PARSER_SOFT_TCAM_24_TO_31r"/>
+        </Registers>
+    </Group>
+    <Group Name="FEU_PARSER_SOFT_STAGE_TCAM">
+        <OneLineDescription>PRD Soft Stage TCAM</OneLineDescription>
+        <Registers>
+            <Register Name="FPRD_PARSER_SOFT_TCAM_0_TO_7r"/>
+            <Register Name="FPRD_PARSER_SOFT_TCAM_8_TO_15r"/>
+            <Register Name="FPRD_PARSER_SOFT_TCAM_16_TO_23r"/>
+            <Register Name="FPRD_PARSER_SOFT_TCAM_24_TO_31r"/>
+        </Registers>
+    </Group> 
+    
+    <Group Name="ILU_PARSER_SOFT_STAGE_TCAM">
+        <OneLineDescription>PRD Soft Stage TCAM</OneLineDescription>
+        <Registers>
+            <Register Name="ILU_PARSER_SOFT_TCAM_0_TO_7r"/>
+            <Register Name="ILU_PARSER_SOFT_TCAM_8_TO_15r"/>
+            <Register Name="ILU_PARSER_SOFT_TCAM_16_TO_23r"/>
+            <Register Name="ILU_PARSER_SOFT_TCAM_24_TO_31r"/>
+        </Registers>
+    </Group>                
+                            
+    <Group Name="ETPP_ETHERNET_FWD_CODE">
+        <OneLineDescription>Ethernet FWD Code</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPA_ETHERNET_FWD_CODEr"/>
+            <Register Name="ETPPC_ETHERNET_FWD_CODEr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="ETPP_SIT_PROFILE_MAP_TABLE">
+        <OneLineDescription>Ingress VLAN membership if attributes</OneLineDescription>
+        <Memories>
+            <Memory Name="ETPPB_SIT_PROFILE_MAP_TABLEm"/>
+            <Memory Name="ETPPC_SIT_PROFILE_MAP_TABLEm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="INGRESS_VLAN_MEMBERSHIP_IF_ATTR">
+        <OneLineDescription>Ingress VLAN membership if attributes</OneLineDescription>
+        <Memories>
+            <Memory Name="IPPA_VLAN_MEMBERSHIP_IF_ATTRm"/>
+            <Memory Name="IPPF_VLAN_MEMBERSHIP_IF_ATTRm"/>
+        </Memories>
+    </Group>
+    <Group Name="INGRESS_MAP_PORT_TO_LEARN_LIF_VEC">
+        <OneLineDescription>Ingress enabler per port for learning LIF-ID in MACT</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_MAP_PORT_TO_LEARN_LIF_VECr"/>
+            <Register Name="IPPF_MAP_PORT_TO_LEARN_LIF_VECr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_MAP_PORT_TO_LEARN_LIF_VEC_LOW">
+        <OneLineDescription>Ingress enabler per port for learning LIF-ID in MACT</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_MAP_PORT_TO_LEARN_LIF_VEC_LSBr"/>
+            <Register Name="IPPF_MAP_PORT_TO_LEARN_LIF_VEC_LSBr"/>
+        </Registers>
+    </Group>
+    <Group Name="INGRESS_MAP_PORT_TO_LEARN_LIF_VEC_HIGH">
+        <OneLineDescription>Ingress enabler per port for learning LIF-ID in MACT</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_MAP_PORT_TO_LEARN_LIF_VEC_MSBr"/>
+            <Register Name="IPPF_MAP_PORT_TO_LEARN_LIF_VEC_MSBr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="ETPP_CURRENT_NEXT_PROTOCOL_MAP">
+        <OneLineDescription>Egress Current Next Protocol Map</OneLineDescription>
+        <Memories>
+            <Memory Name="ETPPB_CURRENT_NEXT_PROTOCOL_MAPm"/>
+            <Memory Name="ETPPC_CURRENT_NEXT_PROTOCOL_MAPm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="ETTP_MAIN_HEADER_MAP_TABLE">
+        <OneLineDescription>VSI key format</OneLineDescription>
+        <Memories>
+            <Memory Name="ETPPC_MAIN_HEADER_MAP_TABLEm"/>
+            <Memory Name="ETPPB_MAIN_HEADER_MAP_TABLEm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_0">
+        <OneLineDescription>VSI key format</OneLineDescription>
+        <Memories>
+            <Memory Name="ETPPC_ADDITIONAL_HEADERS_MAP_TABLE_0m"/>
+            <Memory Name="ETPPB_ADDITIONAL_HEADERS_MAP_TABLE_0m"/>
+        </Memories>
+    </Group>
+
+    <Group Name="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_1">
+        <OneLineDescription>VSI key format</OneLineDescription>
+        <Memories>
+            <Memory Name="ETPPC_ADDITIONAL_HEADERS_MAP_TABLE_1m"/>
+            <Memory Name="ETPPB_ADDITIONAL_HEADERS_MAP_TABLE_1m"/>
+        </Memories>
+    </Group>
+
+    <Group Name="ETPP_FORWARD_CODE_IPV4_OR_IPV6">
+        <OneLineDescription>ETPP Forward code is IPV4 or IPV6</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPB_CFG_FORWARD_CODE_IPV4_OR_IPV6r"/>
+            <Register Name="ETPPC_CFG_FORWARD_CODE_IPV4_OR_IPV6r"/>
+        </Registers>
+    </Group>
+
+    <Group Name="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_2">
+        <OneLineDescription>VSI key format</OneLineDescription>
+        <Memories>
+            <Memory Name="ETPPC_ADDITIONAL_HEADERS_MAP_TABLE_2m"/>
+            <Memory Name="ETPPB_ADDITIONAL_HEADERS_MAP_TABLE_2m"/>
+        </Memories>
+    </Group>
+
+    <Group Name="ETPP_CFG_FWD_MAP_PROTOCOL_QOS">
+        <OneLineDescription>egress qos protocal</OneLineDescription>
+        <Memories>
+            <Memory Name="ETPPC_CFG_FWD_MAP_PROTOCOL_QOSm"/>
+            <Memory Name="ETPPC_CFG_ENC_MAP_PROTOCOL_QOSm"/>
+            <Memory Name="ETPPB_CFG_ENC_MAP_PROTOCOL_QOSm"/>
+        </Memories>
+    </Group>
+    <Group Name="INGRESS_VTT_SPECIAL_LABELS_PROFILE">
+        <OneLineDescription>MPLS special labels termination attributes</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_VTT_SPECIAL_LABELS_PROFILEr"/>
+            <Register Name="IPPF_VTT_SPECIAL_LABELS_PROFILEr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES">
+        <OneLineDescription>MPLS special labels termination attributes</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_MPLS_SPECIAL_LABEL_ATTRIBUTESr"/>
+            <Register Name="IPPF_MPLS_SPECIAL_LABEL_ATTRIBUTESr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="ETPP_CFG_MPLS_CONTROL_WORD">
+        <OneLineDescription>MPLS control word register</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPB_CFG_MPLS_CONTROL_WORDr"/>
+            <Register Name="ETPPC_CFG_MPLS_CONTROL_WORDr"/>
+        </Registers>
+    </Group>
+    <Group Name="INGRESS_CS_INLIF_PROFILE_MAP_LSB">
+        <OneLineDescription>Context selection profile for inLIFs register</OneLineDescription>
+        <Registers>
+            <Register Name="IPPF_CS_INLIF_PROFILE_MAP_LSBr"/>
+            <Register Name="IPPA_CS_INLIF_PROFILE_MAP_LSBr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_FWD_DOMAIN_CS_PROFILE_MAP">
+        <OneLineDescription>Forward Domain Context Selection Profile</OneLineDescription>
+        <Memories>
+            <Memory Name="IPPA_FWD_DOMAIN_CS_PROFILE_MAPm"/>
+            <Memory Name="IPPF_FWD_DOMAIN_CS_PROFILE_MAPm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="INGRESS_CS_INLIF_PROFILE_MAP_MSB">
+        <OneLineDescription>Context selection profile for inLIFs register</OneLineDescription>
+        <Registers>
+            <Register Name="IPPF_CS_INLIF_PROFILE_MAP_MSBr"/>
+            <Register Name="IPPA_CS_INLIF_PROFILE_MAP_MSBr"/>
+        </Registers>
+    </Group>
+    <Group Name="INGRESS_LIF_PROFILE_ATTRIBUTES_1">
+        <OneLineDescription>InLIF profile attribute of da_not_found_destination_profile</OneLineDescription>
+        <Memories>
+            <Memory Name="IPPA_LIF_PROFILE_ATTRIBUTES_1m"/>
+            <Memory Name="IPPF_LIF_PROFILE_ATTRIBUTES_1m"/>
+        </Memories>
+    </Group>
+
+    <Group Name="ITPP_SNIFF_SYS_HEADER_INFO">
+        <OneLineDescription>Sniff system header info</OneLineDescription>
+        <Memories>
+            <Memory Name="ITPP_SNIFF_SYS_HEADER_INFOm"/>
+            <Memory Name="ITPPD_SNIFF_SYS_HEADER_INFOm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="MAPPING_QUEUE_TYPE_TO_SNIFF_PACKET">
+        <OneLineDescription>Sniff system header info</OneLineDescription>
+        <Registers>
+            <Register Name="ITPP_MAPPING_QUEUE_TYPE_TO_SNIFF_PACKETr"/>
+            <Register Name="ITPPD_MAPPING_QUEUE_TYPE_TO_SNIFF_PACKETr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="ECI_FAP_GLOBAL_SYS_HEADER_CFG">
+      <OneLineDescription>Temp since ECI not working. Should be replaced once ECI is working.
+        FAP Global System Header Configuration Group</OneLineDescription>
+            <Registers>
+               <Register Name="ECI_FAP_GLOBAL_SYS_HEADER_CFGr"/>
+               <Register Name="ERPP_REG_00C6r"/>
+               <Register Name="ETPPA_REG_00C6r"/>
+               <Register Name="ETPPB_REG_00C6r"/>
+               <Register Name="ETPPC_REG_00C6r"/>
+               <Register Name="IPPD_REG_00C6r"/>
+               <Register Name="IPT_REG_00C6r"/>
+               <Register Name="IRE_REG_00C6r"/>
+               <Register Name="ITPP_REG_00C6r"/>
+               <Register Name="ITPPD_REG_00C6r"/>
+               <Register Name="OAMP_REG_00C6r"/>
+               <Register Name="RQP_REG_00C6r"/>
+               <Register Name="DDP_REG_00C6r"/>
+            </Registers>
+    </Group>
+
+    <Group Name="OAMP_PE_PROG_TCAM">
+        <OneLineDescription>TCAM memory</OneLineDescription>
+        <Memories>
+            <Memory Name="OAMP_PE_0_PROG_TCAMm"/>
+            <Memory Name="OAMP_PE_1_PROG_TCAMm"/>
+        </Memories>
+    </Group>
+    
+    <Group Name="OAMP_PE_GEN_MEM">
+        <OneLineDescription>OAMP PE General memory</OneLineDescription>
+        <Memories>
+            <Memory Name="OAMP_PE_GEN_MEMm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="INGRESS_VD_TO_VLAN_CLASSIFICATION_PROFILE">
+        <OneLineDescription>Ingress Vlan Domain to VLAN classification profile</OneLineDescription>
+        <Memories>
+            <Memory Name="IPPA_VD_TO_VLAN_CLASSIFICATION_PROFILEm"/>
+            <Memory Name="IPPF_VD_TO_VLAN_CLASSIFICATION_PROFILEm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="INGRESS_VRID_MY_MAC_TCAM">
+        <OneLineDescription>Ingress multiple My Mac TCAM Table</OneLineDescription>
+        <Memories>
+            <Memory Name="IPPF_VRID_MY_MAC_TCAMm"/>
+            <Memory Name="IPPA_VRID_MY_MAC_TCAM_1m"/>
+        </Memories>
+    </Group>
+
+    <Group Name="INGRESS_MAP_VRID_TO_IP_VERSION">
+        <OneLineDescription>Ingress multiple My Mac protocol layer to group map</OneLineDescription>
+        <Registers>
+            <Register Name="IPPF_MAP_VRID_TO_IP_VERSIONr"/>
+            <Register Name="IPPA_MAP_VRID_TO_IP_VERSIONr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_VRID_MY_MAC_MAPPING">
+        <OneLineDescription>Ingress multiple My Mac protocol layer to group map</OneLineDescription>
+        <Memories>
+            <Memory Name="IPPF_VRID_MY_MAC_MAPPINGm"/>
+            <Memory Name="IPPA_VRID_MY_MAC_MAPPING_1m"/>
+        </Memories>
+    </Group>
+
+    <Group Name="EGRESS_CFG_FHEI_UPPER_LAYER_TYPE_MAP">
+      <OneLineDescription>JR MODE PHP UPPER LAYER TYPE MAPPING TABLE</OneLineDescription>
+         <Memories>
+            <Memory Name="ERPP_CFG_FHEI_UPPER_LAYER_TYPE_MAPm"/>
+            <Memory Name="ETPPA_CFG_FHEI_UPPER_LAYER_TYPE_MAPm"/>
+         </Memories>
+    </Group>
+
+    <Group Name="EGRESS_CFG_INLIF_PROFILE_MAPPED_IN_JERICHO_MODE">
+        <OneLineDescription>Egress in LIF profile remapping table in JR mode</OneLineDescription>
+        <Memories>
+            <Memory Name="ERPP_CFG_INLIF_PROFILE_MAPPED_IN_JERICHO_MODEm"/>
+            <Memory Name="ETPPA_CFG_INLIF_PROFILE_MAPPED_IN_JERICHO_MODEm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="EGRESS_PARSING_START_TYPE_MAPPING_TABLE">
+        <OneLineDescription>Ingress VLAN membership if attributes</OneLineDescription>
+        <Memories>
+            <Memory Name="ERPP_PARSING_START_TYPE_MAPPING_TABLEm"/>
+            <Memory Name="ETPPA_PARSING_START_TYPE_MAPPING_TABLEm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="EGRESS_FHEI_MPLS_COMMAND">
+        <OneLineDescription>Egress FHEI mpls command table</OneLineDescription>
+        <Registers>
+            <Register Name="ERPP_FHEI_MPLS_COMMANDr"/>
+            <Register Name="ETPPA_FHEI_MPLS_COMMANDr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="EGRESS_CFG_FHEI_MODEL">
+        <OneLineDescription>Egress FHEI model</OneLineDescription>
+        <Registers>
+            <Register Name="ERPP_CFG_FHEI_MODELr"/>
+            <Register Name="ETPPA_CFG_FHEI_MODELr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="EGRESS_FWD_LAYER_ADDITIONAL_INFO_TO_IP_MC_ELIGIBLE_MAPPING">
+        <OneLineDescription>Egress FWD Layer Additional INFO to IP MC Eligible Mapping</OneLineDescription>
+        <Registers>
+            <Register Name="ETPPA_FWD_LAYER_ADDITIONAL_INFO_TO_IP_MC_ELIGIBLE_MAPPINGr"/>
+            <Register Name="ERPP_FWD_LAYER_ADDITIONAL_INFO_TO_IP_MC_ELIGIBLE_MAPPINGr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="EGRESS_FHEI_MPLS_UPPER_LAYER_PROTOCOL_TO_PES_MAPPING_TABLE">
+        <OneLineDescription>Mapping FHEI Upper Layer Protocol(5b) to PES Access1 parsing context (5b).</OneLineDescription>
+        <Memories>
+            <Memory Name="ETPPA_FHEI_MPLS_UPPER_LAYER_PROTOCOL_TO_PES_MAPPING_TABLEm"/>
+            <Memory Name="ERPP_FHEI_MPLS_UPPER_LAYER_PROTOCOL_TO_PES_MAPPING_TABLEm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="ETPP_MTU_MAP_TABLE">
+        <OneLineDescription>Mapping MTU profile</OneLineDescription>
+        <Memories>
+            <Memory Name="ETPPB_MTU_MAP_TABLEm"/>
+            <Memory Name="ETPPC_MTU_MAP_TABLEm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="ETPP_PROTOCOL_TYPE_COMPRESSED_MAP">
+        <OneLineDescription>Mapping FWD Layer types to Compressed</OneLineDescription>
+        <Memories>
+            <Memory Name="ETPPB_PROTOCOL_TYPE_COMPRESSED_MAPm"/>
+            <Memory Name="ETPPC_PROTOCOL_TYPE_COMPRESSED_MAPm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="EGRESS_ACCEPTABLE_FRAME_TYPE_TABLE">
+        <OneLineDescription>Egress acceptable frame table to mark which frame types are acceptable.</OneLineDescription>
+        <Memories>
+            <Memory Name="ERPP_ACCEPTABLE_FRAME_TYPE_TABLEm"/>
+            <Memory Name="ETPPA_ACCEPTABLE_FRAME_TYPE_TABLEm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="INGRESS_LIF_TRAPS">
+        <OneLineDescription>Ingress LIF traps table</OneLineDescription>
+        <Registers>
+            <Register Name="IPPF_LIF_TRAPSr"/>
+            <Register Name="IPPA_LIF_TRAPSr"/>
+        </Registers>
+    </Group>
+
+    <Group Name="INGRESS_ETHERNET_TRAPS">
+        <OneLineDescription>Ingress Ethernet traps table</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_ETHERNET_TRAPr"/>
+            <Register Name="IPPF_ETHERNET_TRAPr"/>
+        </Registers>
+    </Group>    
+
+    <Group Name="INGRESS_ETHERNET_TRAP_ACTION_PROFILE_VECTOR">
+        <OneLineDescription>Ingress layer protocol to ethernet-trap-idx map</OneLineDescription>
+        <Registers>
+            <Register Name="IPPA_ETHERNET_TRAP_ACTION_PROFILE_VECTORr"/>
+            <Register Name="IPPF_ETHERNET_TRAP_ACTION_PROFILE_VECTORr"/>
+        </Registers>
+    </Group>    
+    
+    <Group Name="MAP_STATISTIC_OBJECT_TABLE">
+        <OneLineDescription>Configure statistic objects mapping Table</OneLineDescription>
+        <Memories>
+            <Memory Name="IPPC_MAP_STATISTIC_OBJECTm"/>
+            <Memory Name="IPPD_MAP_STATISTIC_OBJECTm"/>
+        </Memories>
+    </Group>
+    
+    <Group Name="INGRESS_VTT_MPLS_LABEL_RANGE_PROFILE">
+        <OneLineDescription>Configure MPLS label range qualifier and coupling</OneLineDescription>
+        <Registers>
+                <Register Name="IPPA_VTT_MPLS_LABEL_RANGE_PROFILEr"/>
+                <Register Name="IPPF_VTT_MPLS_LABEL_RANGE_PROFILEr"/>
+        </Registers>
+    </Group>
+    <Group Name="INGRESS_VTT_MPLS_LABEL_RANGE_TABLE">
+        <OneLineDescription>Configure MPLS label range qualifier and coupling</OneLineDescription>
+        <Memories>
+                <Memory Name="IPPA_VTT_MPLS_LABEL_RANGE_TABLEm"/>
+                <Memory Name="IPPF_VTT_MPLS_LABEL_RANGE_TABLEm"/>
+        </Memories>
+    </Group>
+
+    <Group Name="INGRESS_STATISTICS_INFO">
+        <OneLineDescription>Base statistics metadata value</OneLineDescription>
+        <Registers>
+                <Register Name="IPPA_STATISTICS_INFOr"/>
+                <Register Name="IPPF_STATISTICS_INFOr"/>
+        </Registers>
+    </Group>
+    
+    <Group Name="INGRESS_STAT_OBJ_PROFILE_ATTR">
+        <OneLineDescription>Ingress statistics objects profile</OneLineDescription>
+        <Registers>
+                <Register Name="IPPA_STAT_OBJ_PROFILE_ATTRr"/>
+                <Register Name="IPPF_STAT_OBJ_PROFILE_ATTRr"/>
+        </Registers>
+    </Group>  
+
+    <Group Name="FABRIC_MESH_TOPOLOGY_LINKS_STATUS_INFO">
+        <OneLineDescription>Mesh Topology links status</OneLineDescription>
+        <Registers Device="JR2_A0 JR2_B0">
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_38r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_39r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_40r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_41r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_42r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_43r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_44r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_45r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_46r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_47r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_48r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_49r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_50r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_51r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_52r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_53r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_54r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_55r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_56r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_57r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_58r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_59r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_60r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_61r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_62r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_63r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_64r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_65r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_66r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_67r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_68r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_69r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_70r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_71r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_72r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_73r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_74r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_75r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_76r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_77r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_78r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_79r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_80r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_81r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_82r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_83r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_84r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_85r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_86r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_87r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_88r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_89r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_90r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_91r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_92r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_93r"/>
+        </Registers>
+        <Registers Device="J2C_A0">
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_38r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_39r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_40r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_41r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_42r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_43r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_44r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_45r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_46r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_47r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_48r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_49r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_50r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_51r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_52r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_53r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_54r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_55r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_56r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_57r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_58r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_59r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_60r"/>
+                <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_61r"/>
+        </Registers>
+    </Group>  
+
+    <Group Name="VTT_MPLS_PREPROCESSING_BOS_OR_TTL_TRAP">
+        <OneLineDescription>VTT MPLS Preprocessing TTL or BOS trap configuarion</OneLineDescription>
+        <Registers>
+                <Register Name="IPPA_VTT_MPLS_PREPROCESSING_BOS_OR_TTL_TRAPr"/>
+                <Register Name="IPPF_VTT_MPLS_PREPROCESSING_BOS_OR_TTL_TRAPr"/>
+        </Registers>
+    </Group>   
+
+    <Group Name="FABRIC_DTQ_BASE_ADDRESS">
+        <OneLineDescription>DTQs base address</OneLineDescription>
+        <Registers>
+                <Register Name="FDT_DTQ_BADDR_0r"/>
+                <Register Name="FDT_DTQ_BADDR_1r"/>
+                <Register Name="FDT_DTQ_BADDR_2r"/>
+                <Register Name="FDT_DTQ_BADDR_3r"/>
+                <Register Name="FDT_DTQ_BADDR_4r"/>
+                <Register Name="FDT_DTQ_BADDR_5r"/>
+        </Registers>
+    </Group>    
+    <Group Name="SCH_IF_CALENDAR">
+        <OneLineDescription>Scheduler interface calendars</OneLineDescription>
+        <Memories Device="JR2_A0 JR2_B0">
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_0m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_1m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_2m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_3m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_4m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_5m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_6m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_7m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_8m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_9m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_10m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_11m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_12m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_13m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_14m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_15m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_16m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_17m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_18m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_19m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_20m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_21m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_22m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_23m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_24m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_25m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_26m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_27m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_28m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_29m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_30m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_31m"/>
+        </Memories>
+        <Memories>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_0m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_1m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_2m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_3m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_4m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_5m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_6m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_7m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_8m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_9m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_10m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_11m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_12m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_13m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_14m"/>
+                <Memory Name="SCH_SCHEDULER_CREDIT_GENERATION_CALENDAR_CAL_15m"/>
+        </Memories>
+    </Group>
+
+</HwGroups>
+

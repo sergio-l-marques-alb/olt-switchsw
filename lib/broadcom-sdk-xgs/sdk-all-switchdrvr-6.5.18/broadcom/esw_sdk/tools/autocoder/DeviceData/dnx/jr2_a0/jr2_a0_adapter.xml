@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="adapter">
+
+    <includes>
+        <include>src/bcm/dnx/rx/auto_generated/rx_internal_jr2_a0.h</include>
+   </includes>
+
+    <sub_module name="tx">
+        <numerics>
+            <numeric name="loopback_enable" value="0">
+                <property name="adapter_loopback_enable" official="false" method="enable" extern="false">
+                    <doc>
+                        Use loopback in the adapter server when receiving packets.
+                        Default: 0
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+    </sub_module>
+
+    <sub_module name="rx">
+        <numerics>
+                    <numeric name="packet_header_signal_id" value="PACKET_HEADER_SIGNAL_ID_JR2_A0"/>
+        </numerics>
+        <numerics>
+                    <numeric name="constant_header_size" value="16"/>
+        </numerics>     
+    </sub_module>
+
+    <sub_module name="general">
+        <numerics>
+            <numeric name="lib_ver" value="2"/>
+        </numerics>
+    </sub_module>
+
+    <sub_module name="reg_mem_access">
+        <numerics>
+            <numeric name="do_collect_enable" value="0" init_only="1">
+                <property name="adapter_do_collect_enable" official="false" method="enable" extern="false">
+                    <doc>
+                        Use do_collect in adapter to collect writes into one bulk write.
+                        Default: 0
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+    </sub_module>
+</device_data>

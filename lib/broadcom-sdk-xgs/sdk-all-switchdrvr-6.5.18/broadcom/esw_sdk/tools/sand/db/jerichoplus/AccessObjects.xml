@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<top type="jerichoplus">
+    <registers>
+        <reg name="EGQ_INDIRECT_WR_MASK" no_read="1"/>
+    </registers>
+    <memories>
+ </memories>
+</top>

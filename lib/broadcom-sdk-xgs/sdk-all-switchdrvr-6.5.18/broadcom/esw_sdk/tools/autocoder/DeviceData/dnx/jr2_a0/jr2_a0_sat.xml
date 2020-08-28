@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="sat">
+    <sub_module name="general">
+        <features>
+        </features>
+        <defines>
+            <define name="granularity" doc="granularity (64kbits per sec) " value="64000"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    <sub_module name="generator">
+        <features>
+        </features>
+        <defines>
+            <define name="nof_evc_ids" doc="Number of EVC IDs" value="8"></define>
+            <define name="nof_gtf_ids" doc="Number of GTF IDs" value="64"></define>
+            <define name="gtf_pkt_header_entries" doc="Gtf packet header entries" value="32"></define>
+            <define name="gtf_pkt_header_max_length" doc="SAT GTF packet header max length" value="128"></define>
+            <define name="gtf_pkt_length_max_patn" doc="SAT GTF packet length max pattern" value="7"></define>
+            <define name="gtf_max_seq_period" doc="SAT GTF max sequence period" value="4"></define>
+            <define name="gtf_stamp_max_inc_step" doc="SAT GTF stamp max increment step" value="127"></define>
+            <define name="gtf_stamp_max_inc_period" doc="SAT GTF stamp max increment period" value="3"></define>
+            <define name="gtf_bw_max_value" doc="GTF max bandwidth,MAX_CREDITS_EXP is 16,so max bw:((0xffff shif-left 15)*1000)/8)" value="17179607"></define>
+            <define name="gtf_rate_max" doc="GTF max rate (400Gbis)" value="400000000"></define>
+            <define name="gtf_pps_rate_max" doc="GTF max pps rate (500Mpps)" value="500000000"></define>
+            <define name="gtf_pkt_len_patten_size" doc="Packet length pattern size" value="96"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    <sub_module name="collector">
+        <features>
+        </features>
+        <defines>
+            <define name="nof_ctf_ids" doc="Number of CTF IDs" value="128"></define>
+            <define name="nof_oam_ids" doc="Number of OAM IDs" value="64"></define>
+            <define name="mef_payload_offset" doc="SAT MEF payload offset" value="41"></define>
+            <define name="mef_seq_num_offset" doc="SAT MEF seq num offset" value="30"></define>
+            <define name="mef_time_stamp_offset" doc="SAT MEF time stamp offset" value="0"></define>
+            <define name="mef_crc_byte_offset" doc="SAT MEF crc byte offset" value="20"></define>
+            <define name="y1731_payload_offset" doc="SAT Y1731 payload offset" value="0"></define>
+            <define name="y1731_seq_num_offset" doc="SAT Y1731 seq num offset" value="0"></define>
+            <define name="y1731_time_stamp_offset" doc="SAT Y1731 time stamp offset" value="22"></define>
+            <define name="y1731_crc_byte_offset" doc="SAT Y1731 crc byte offset" value="20"></define>
+            <define name="ctf_bins_limit_entries" doc="ctf bins limit entries" value="9"></define>
+            <define name="trap_id_entries" doc="Trap id entries" value="3"></define>
+            <define name="trap_data_entries" doc="Trap data entries" value="64"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    <sub_module name="rx_flow_param">
+        <features>
+           <feature name="natural_id" value="1"></feature>
+           <feature name="odd_even_id" value="0"></feature>
+        </features>
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="tx_flow_param">
+        <features>
+           <feature name="seq_number_wrap_around" value="0"></feature>
+        </features>
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    
+</device_data>
+
+
+

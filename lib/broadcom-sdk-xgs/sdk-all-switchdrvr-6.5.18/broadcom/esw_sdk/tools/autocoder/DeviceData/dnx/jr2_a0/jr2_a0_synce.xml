@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="synce">
+    <includes>
+        <include>bcm/port.h</include>
+        <include>soc/mcm/allenum.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_nif.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_fabric.h</include>
+    </includes>
+
+    <sub_module name="general">
+        <defines>
+            <define name="nof_plls" value="2"></define>
+            <define name="nif_div_min" value="2"></define>
+            <define name="nif_div_max" value="2"></define>
+            <define name="fabric_div_min" value="2"></define>
+            <define name="fabric_div_max" value="16"></define>
+            <define name="nof_clk_blocks" value="DATA(nif, eth, cdu_nof)"></define>
+            <define name="nof_fabric_clk_blocks" value="DATA(fabric, blocks, nof_instances_fsrd)"></define>
+        </defines>
+ 
+        <numerics>
+            <numeric name="output_clk_mode" value="0">
+                <property name="sync_eth_mode" method="direct_map">
+                    <map name="TWO_DIFF_CLK" value="0"></map>
+                    <map name="TWO_CLK_AND_VALID" value="1"></map>
+                    <doc>
+                        Synchronous Ethernet Signal Mode.
+                        TWO_DIFF_CLK: Two differential outputs;
+                        TWO_CLK_AND_VALID: Recovered clock accompanied by a valid indication, two clk+valid outputs.
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <features>
+        </features>
+ 
+        <tables>
+            <table name="cfg">
+                <key name="synce_index" size="2"></key>
+                <value name="source_clock_port" default="-1">
+                    <property name="sync_eth_clk_to_port_id_clk" method="suffix_range" suffix="" range_min="0" range_max="DATA(port,general,fabric_port_base) + DATA(fabric,links,nof_links)">
+                        <doc>
+                            Specify the logical port number that will drive the recovered clock.
+                        </doc>
+                    </property>
+                </value>
+                <value name="squelch_enable" default="1">
+                    <property name="sync_eth_clk_squelch_enable" method="suffix_enable" suffix="clk_">
+                        <doc>
+                            Enable or Disable SyncE auto squelch mode.
+                        </doc>
+                    </property>
+                </value>
+                <value name="output_clock_sel" default="2">
+                    <property name="sync_eth_clk_divider" method="suffix_range" suffix="clk" range_min="2" range_max="16">
+                        <doc>
+                            Select the SyncE output clock
+                                For NIF synce, the values are as follows.
+                                2: 25Mhz
+                                For Fabric SyncE, it is the output clock divider, range [2, 16].
+                        </doc>
+                    </property>
+                </value>
+            </table>
+            <table name="nmg_chain_map">
+                <key name="ethu_index" size="DATA(nif,eth,ethu_nof)"></key> 
+                <value name="chain_id" default="0"></value>
+                <entries>
+                </entries>
+            </table>
+        </tables>
+
+        <features>
+            <feature name="synce_no_sdm_mode" value="1"></feature>
+            <feature name="synce_nmg_chain_select" value="0"></feature>
+        </features>
+    </sub_module>
+</device_data>

@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="srv6">
+   
+    <sub_module name="termination">
+        <defines>
+            <define name = "max_nof_terminated_sids_psp"          value="5"></define>
+        </defines>
+    </sub_module>    
+    
+</device_data>

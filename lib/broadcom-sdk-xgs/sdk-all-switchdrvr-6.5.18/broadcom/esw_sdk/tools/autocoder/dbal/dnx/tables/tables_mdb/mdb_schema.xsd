@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+           elementFormDefault="qualified">
+    <xs:include schemaLocation="../table_schema.xsd" />
+    <xs:include schemaLocation="../../dbal_types_definition.xsd" />    
+
+    <xs:element name="AppDbCatalog">
+    <xs:complexType>
+    <xs:sequence>
+        <xs:element name="GeneralInfo" type="GeneralInfoType" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="AppDB" maxOccurs="unbounded">
+        <xs:complexType>
+        <xs:complexContent>
+        <xs:extension base="AppDBCommon">
+        <xs:sequence>
+            <!-- Physical Mapping -->
+            <xs:element name="AppToPhyDbMapping" type="mdbAppToPhyDbMapping" minOccurs="1" maxOccurs="1"/>            
+        </xs:sequence>
+        </xs:extension>
+        </xs:complexContent>
+        </xs:complexType>
+        </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    </xs:element>
+    
+    
+    <!-- app to phy db mapping for mdb tables  -->
+    <xs:complexType name="mdbAppToPhyDbMapping">
+    <xs:complexContent>
+    <xs:extension base="AppToPhyDBMappingCommon">    
+    <xs:sequence>
+        <xs:element name="PhyDb" type="PhyDbType" minOccurs="1" maxOccurs="1"/>
+        <xs:element name="Stage" type="TcamDbStageType" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="AppDbId" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+                <xs:attributeGroup ref="AppDbAttr"/>
+            </xs:complexType>
+        </xs:element>
+        <xs:choice>
+            <xs:element name="ReferenceField" type="RefernceFieldType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="MultipleResultsMapping" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+            <xs:complexContent>
+            <xs:extension base="MultipleResultsMappingType">
+                <xs:attributeGroup ref="MapResTypeToSwAttr"/>
+            </xs:extension>
+            </xs:complexContent>
+            </xs:complexType>
+            </xs:element>
+        </xs:choice>
+    </xs:sequence>
+    </xs:extension>
+    </xs:complexContent>
+    </xs:complexType>
+            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+</xs:schema>

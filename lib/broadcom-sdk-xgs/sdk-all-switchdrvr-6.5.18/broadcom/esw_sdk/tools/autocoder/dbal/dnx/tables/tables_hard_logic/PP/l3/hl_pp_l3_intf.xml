@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="MAC_SOURCE_ADDRESS">
+        <OneLineDescription>Source address table for ethernet</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SOURCE_ADDRESS_INDEX" Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="SOURCE_ADDRESS" Offset="10" Size="38" Type="L2_MAC"/>
+            </Result>
+            <TableLabels>L3 L3_IF_RIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SOURCE_ADDRESS">
+                    <Access>
+            <KeyCondition Field="SOURCE_ADDRESS_INDEX" Type="IS_EVEN"/>
+                        <Memory GroupName="ETPP_SOURCE_ADRS_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/2"/>
+                            <HwField Name="SOURCE_ADDRESSf"/>
+                            <DataOffset Formula="10"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                <KeyCondition Field="SOURCE_ADDRESS_INDEX" Type="IS_ODD"/>
+                        <Memory GroupName="ETPP_SOURCE_ADRS_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/2"/>
+                            <HwField Name="SOURCE_ADDRESSf"/>
+                            <DataOffset Formula="74"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MAC_SOURCE_ADDRESS_DUAL_HOMING">
+        <OneLineDescription>Source address dual homing table for ethernet</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SOURCE_ADDRESS_INDEX" Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="SOURCE_ADDRESS" Offset="16" Size="32" Type="L2_MAC"/>
+            </Result>
+            <TableLabels>L3 L3_IF_RIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SOURCE_ADDRESS">
+                    <Access>
+            <KeyCondition Field="SOURCE_ADDRESS_INDEX" Type="IS_EVEN"/>
+                        <Memory GroupName="ETPP_SOURCE_ADRS_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/2"/>
+                            <HwField Name="SOURCE_ADDRESSf"/>
+                            <DataOffset Formula="16"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                <KeyCondition Field="SOURCE_ADDRESS_INDEX" Type="IS_ODD"/>
+                        <Memory GroupName="ETPP_SOURCE_ADRS_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/2"/>
+                            <HwField Name="SOURCE_ADDRESSf"/>
+                            <DataOffset Formula="80"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+
+    <AppDB Name="MAC_SOURCE_ADDRESS_FULL">
+        <OneLineDescription>Source address table for ethernet, value is full mac</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SOURCE_ADDRESS_INDEX" Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="SOURCE_ADDRESS" Size="48" Type="L2_MAC"/>
+            </Result>
+            <TableLabels>L3 L3_IF_RIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SOURCE_ADDRESS">
+                    <Access>
+            <KeyCondition Field="SOURCE_ADDRESS_INDEX" Type="IS_EVEN"/>
+                        <Memory GroupName="ETPP_SOURCE_ADRS_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/2"/>
+                            <HwField Name="SOURCE_ADDRESSf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                <KeyCondition Field="SOURCE_ADDRESS_INDEX" Type="IS_ODD"/>
+                        <Memory GroupName="ETPP_SOURCE_ADRS_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/2"/>
+                            <HwField Name="SOURCE_ADDRESSf"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="L3_MY_MAC_DA_PREFIXES">
+        <OneLineDescription>Holds all the MyMac prefixes (38b).</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MY_MAC_INDEX" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="L2_MAC" Offset="10" Size="38"/>
+            </Result>
+            <TableLabels>L3 L3_IF_RIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="L2_MAC">
+                    <Access>
+                        <Memory Name="IPPA_MAP_VSI_MAC_PREFIX_TO_DA_MSB_1m"> 
+                            <HwField Name="DA_MSB_BITSf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="IPPF_MAP_VSI_MAC_PREFIX_TO_DA_MSBm"> 
+                            <HwField Name="DA_MSB_BITSf"/>
+                        </Memory>
+                    </Access>
+                </Field>              
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

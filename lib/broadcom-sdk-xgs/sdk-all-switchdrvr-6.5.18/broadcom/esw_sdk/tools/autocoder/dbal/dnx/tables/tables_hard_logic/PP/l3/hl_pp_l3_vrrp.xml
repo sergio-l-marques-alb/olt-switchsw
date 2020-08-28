@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="L3_VRRP_PROTOCOL_GROUP">
+        <OneLineDescription>Porotocl groups for VRRP mechanism</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="LAYER_TYPES"/>
+            </Key>
+            <Result>
+                <Field Name="VRRP_GROUP_ID"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VRRP_GROUP_ID">
+                    <Access>
+                        <Register GroupName="INGRESS_MAP_VRID_TO_IP_VERSION">
+                            <HwField Name="MAP_VRID_TO_IP_VERSION_DATAf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="L3_VRRP_EXEM_DA_PROFILE_CONFIG">
+        <OneLineDescription>Porotocl groups for VRRP mechanism</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VRRP_DA_PROFILE"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="VRRP_FFC_INSTRUCTION" NofInstances="6" Size="19" Type="UINT"/>
+                <Field Name="VRRP_KBR_VALID" NofInstances="6" Type="BOOL"/>
+                <Field Name="VRRP_KEY_GEN_VAR" Size="8" Type="UINT"/>
+                <Field Name="EXEM_VRRP_APP_DB_ID" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="VRRP_FFC_INSTRUCTION">
+                    <Access instanceIndex="ALL">
+                        <Memory GroupName="INGRESS_VRID_MY_MAC_MAPPING">
+                            <HwField Name="FFC_INSTRUCTIONSf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(VRRP_FFC_INSTRUCTION)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VRRP_KBR_VALID">
+                    <Access instanceIndex="ALL">
+                        <Memory GroupName="INGRESS_VRID_MY_MAC_MAPPING">
+                            <HwField Name="KBR_VALID_BITMAPSf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VRRP_KEY_GEN_VAR">
+                    <Access>
+                        <Memory GroupName="INGRESS_VRID_MY_MAC_MAPPING">
+                            <HwField Name="VRID_MY_MAC_KEY_GEN_VARf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXEM_VRRP_APP_DB_ID">
+                    <Access>
+                        <Memory GroupName="INGRESS_VRID_MY_MAC_MAPPING">
+                            <HwField Name="VRID_MY_MAC_APP_DBf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="L3_VRRP_TCAM">
+        <OneLineDescription>VRRP TCAM table, results in da profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_DIRECT">
+            <Key>
+                <Field Name="DA" Size="48" Type="L2_MAC"/>
+                <Field Name="VRRP_GROUP_ID"/>
+            </Key>
+            <Result>
+                <Field Name="VRRP_DA_PROFILE"/>
+                <Field Name="VALID" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMappingTcam>
+                <Type Name="KEY"> <!-- all key fields are packed together and connected from the same offset -->
+                    <Access>
+                        <Memory GroupName="INGRESS_VRID_MY_MAC_TCAM">
+                            <HwField Name="KEYf"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="KEY_MASK">
+                    <Access> <!-- all key masked fields are packed together and connected from the same offset -->
+                        <Memory GroupName="INGRESS_VRID_MY_MAC_TCAM">
+                            <HwField Name="MASKf"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="RESULT">
+                    <Access> <!-- all result fields are packed together and connected from the same offset -->
+                        <Memory GroupName="INGRESS_VRID_MY_MAC_TCAM">
+                            <HwField Name="INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

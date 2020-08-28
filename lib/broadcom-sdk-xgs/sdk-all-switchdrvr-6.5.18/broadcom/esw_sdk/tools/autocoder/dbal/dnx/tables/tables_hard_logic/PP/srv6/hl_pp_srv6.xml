@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="SRV6_GLOBAL_CONFIGURATION">
+        <OneLineDescription>Global configuration for SRv6 Packets.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="SRV6_EXTENSION_HEADER_TYPE" Type="IPV6_EXTENSION_HEADER_TYPE"/>
+                <Field Name="IPV6_ETHERTYPE" Type="ETHERTYPE"/>
+                <Field Name="SRV6_MIN_PACKET_SIZE" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SRV6_EXTENSION_HEADER_TYPE">
+                    <Access>
+                        <Register Name="IRE_IPV6_SR_CONFIGURATIONr"> 
+                            <HwField Name="NH_SRH_HDRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_ETHERTYPE">
+                    <Access>
+                        <Register Name="IRE_IPV6_SR_CONFIGURATIONr"> 
+                            <HwField Name="IPV6_CODEf"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="SRV6_MIN_PACKET_SIZE">
+                    <Access>
+                        <Register Name="IRE_IPV6_SR_CONFIGURATIONr"> 
+                            <HwField Name="IPV6_SR_MIN_PACKET_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="OAMP_INIT_BFD_CFG">
+        <OneLineDescription>Init OAMP BFD Configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Control Word(G-ACH) configuration for PWE TX packets. ACH header follows immediately after PW label or after GAL label(VCCV Type 4). First nibble is hardcoded to 0001b to indicate a channel associated with PW. Version and Reserved fields are set to 0 and channel type is set with value representing the type of MPLS/MPLS-TP channel." Name="G_ACH_HEADER" NofInstances="4" Size="32" Type="ACH_HEADER"/>
+                <Field Description="Static BFD PWE Router Alert configuration" Name="PWE_ROUTER_ALERT" Type="MPLS_HEADER"/>
+                <Field Description="GACH channel type configuration for RX packets. This configuration is used when validating the incoming packets' G-ACH channel types. If there is a mismatch with the channel type configured here, channel_type_mismatch indication is sent to CPU." Name="GACH_CHAN_TYPE" Type="CHANNEL_TYPE"/>
+            </Result>
+            <TableLabels>BFD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="G_ACH_HEADER">
+                    <Access instanceIndex="0">
+                        <Register Name="OAMP_BFD_PWE_CW_0r">
+                            <HwField Name="BFD_PWE_CW_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="OAMP_BFD_PWE_CW_1r">
+                            <HwField Name="BFD_PWE_CW_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="OAMP_BFD_PWE_CW_2r">
+                            <HwField Name="BFD_PWE_CW_2f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="OAMP_BFD_PWE_CW_3r">
+                            <HwField Name="BFD_PWE_CW_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PWE_ROUTER_ALERT">
+                    <Access>
+                        <Register Name="OAMP_BFD_PWE_ROUTER_ALERTr">
+                            <HwField Name="BFD_PWE_ROUTER_ALERTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GACH_CHAN_TYPE">
+                    <Access>
+                        <Register Name="OAMP_GACH_CHAN_TYPESr">
+                            <HwField Name="BFD_GACH_CHAN_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="BFD_GENERAL_CONFIGURATION">
+        <OneLineDescription>Configuration needed to initialize BFD support</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="BFD_YOUR_DISCR_RANGE_MIN"/>
+                <Field Name="BFD_YOUR_DISCR_RANGE_MAX"/>
+                <Field Name="BFD_YOUR_DISC_LIF_INVALID" Size="22" Type="UINT"/>
+                <Field Name="BFD_YOUR_DISC_LIF_NULL" Size="22" Type="UINT"/>
+            </Result>
+            <TableLabels>BFD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Register Name="IPPB_OAM_BFD_YOUR_DISCR_TO_LIF_CFGr"/>
+                    </Access>
+                </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="OAMP_BFD_CONFIGURATION">
+        <OneLineDescription>Configuration needed to initialize accelerated BFD support</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="My discriminator=[this field]+[OAM_ID]&gt;" Name="OAMP_BFD_MY_DISCR_RANGE_START" Type="UINT"/>
+                <Field Name="OAMP_BFD_IPV4_UDP_SPORT" Type="L4_SRC_PORT"/>
+                <Field Name="OAMP_BFD_MPLS_UDP_SPORT" Type="L4_SRC_PORT"/>
+                <Field Description="BFD version" Name="OAMP_BFD_VERSION" Permission="READONLY" Type="UINT"/>
+                <Field Description="BFD packet length" Name="OAMP_BFD_LENGTH" Permission="READONLY" Type="UINT"/>
+                <Field Description="minimum interval between received BFD Echo packets that this system is capable of supporting" Name="OAMP_BFD_REQ_MIN_ECHO_RX_INTERVAL" Type="UINT"/>
+            </Result>
+            <TableLabels>BFD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OAMP_BFD_MY_DISCR_RANGE_START">
+                    <Access>
+                        <Register Name="OAMP_BFD_MY_DISCRIMINATOR_RANGE_STARTr">
+                            <HwField Name="BFD_MY_DISCRIMINATOR_RANGE_STARTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAMP_BFD_IPV4_UDP_SPORT">
+                    <Access>
+                        <Register Name="OAMP_BFD_IPV4_UDP_SPORTr">
+                            <HwField Name="BFD_IPV4_UDP_SPORTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAMP_BFD_MPLS_UDP_SPORT">
+                    <Access>
+                        <Register Name="OAMP_BFD_MPLS_UDP_SPORTr">
+                            <HwField Name="BFD_MPLS_UDP_SPORTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAMP_BFD_VERSION">
+                    <Access>
+                        <Register Name="OAMP_BFD_PDU_STATIC_REGISTERr">
+                            <HwField Name="BFD_VERSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAMP_BFD_LENGTH">
+                    <Access>
+                        <Register Name="OAMP_BFD_PDU_STATIC_REGISTERr">
+                            <HwField Name="BFD_LENGTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAMP_BFD_REQ_MIN_ECHO_RX_INTERVAL">
+                    <Access>
+                        <Register Name="OAMP_BFD_PDU_STATIC_REGISTERr">
+                            <HwField Name="BFD_REQ_MIN_ECHO_RX_INTERVALf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="BFD_DEST_IP">
+        <OneLineDescription>List of BFD Destination IPs for both v4 and v6</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="BFD_DIP_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Description="Can also be IPV4 address with standard conversion" Name="DIP" Type="IPV6"/>
+                <Field Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>BFD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Memory Name="IPPB_MY_BFD_DIPm"/>
+                    </Access>
+                </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAMP_BFD_TX_RATES">
+        <OneLineDescription>Configurable Tx rates that can be referenced by accelerated endpoints</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="BFD_TX_RATE_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="TX_RATE_VALUE" Size="10" Type="UINT"/>
+            </Result>
+            <TableLabels>BFD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TX_RATE_VALUE">
+                    <Access>
+                        <Register Name="OAMP_BFD_TX_RATEr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAMP_BFD_REQ_INTERVALS">
+        <OneLineDescription>Configurable required intervals that can be referenced by MPLS/PWE TTL/EXP profiles</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="REQ_INT_INDEX" Type="MIN_INTERVAL_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Description="BFD desired Tx/required Rx ninimum interval (microsecs)" Name="REQ_INT_VALUE" Type="UINT"/>
+            </Result>
+            <TableLabels>BFD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="REQ_INT_VALUE">
+                    <Access>
+                        <Register Name="OAMP_BFD_REQ_INTERVAL_POINTERr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAMP_BFD_DIAG_PROFILE">
+        <OneLineDescription>Profiles containing the possible values of the BFD Diag field</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="BFD_DIAG_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Description="Diag field for BFD Tx packets" Name="DIAG_VALUE" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>BFD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DIAG_VALUE">
+                    <Access>
+                        <Register Name="OAMP_BFD_DIAG_PROFILEr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAMP_BFD_FLAGS_PROFILE">
+        <OneLineDescription>Profiles containing the possible values of the BFD Diag field</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="BFD_FLAGS_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="FLAGS_VALUE" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>BFD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FLAGS_VALUE">
+                    <Access>
+                        <Register Name="OAMP_BFD_FLAGS_PROFILEr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAMP_BFD_IPV4_SRC_ADDR_SELECT">
+        <OneLineDescription>Profiles for IPv4 source IP, used by accelerated BFD endpoints</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="BFD_SRC_IP_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="IPV4_SIP" Type="IPV4"/>
+            </Result>
+            <TableLabels>BFD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IPV4_SIP">
+                    <Access>
+                        <Register Name="OAMP_IPV4_SRC_ADDR_SELECTr">
+                            <ArrayOffset Formula="#KEY_VALUE(BFD_SRC_IP_PROFILE)"/>
+                            <HwField Name="IPV4_SRC_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAMP_BFD_IPV4_TOS_TTL_SELECT">
+        <OneLineDescription>Profiles of value pairs TOS and TTL, used by accelerated BFD endpoints</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IP_TTL_TOS_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="IPV4_TTL_VALUE" Type="TTL"/>
+                <Field Name="IPV4_TOS_VALUE" Type="TOS"/>
+            </Result>
+            <TableLabels>BFD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IPV4_TTL_VALUE">
+                    <Access>
+                        <Register Name="OAMP_IPV4_TOS_TTL_SELECTr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_TOS_VALUE">
+                    <Access>
+                        <Register Name="OAMP_IPV4_TOS_TTL_SELECTr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+8"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="BFD_MY_DIP_DESTINATION">
+        <OneLineDescription>Configuration needed to initialize BFD support</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="MY_DIP_DESTINATION" Type="DESTINATION"/>
+             </Result>
+            <TableLabels>BFD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Register Name="IPPB_MY_BFD_DIP_DESTINATIONr"/>
+                    </Access>
+                </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

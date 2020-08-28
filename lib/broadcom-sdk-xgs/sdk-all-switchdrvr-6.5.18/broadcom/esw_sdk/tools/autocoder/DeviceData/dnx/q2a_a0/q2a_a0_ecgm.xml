@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0" module="ecgm">
+    <sub_module name="core_resources">
+        <defines>
+            <define name="total_pds" value="16000"></define>
+            <define name="total_pds_nof_bits" value="15"></define>
+            <define name="total_dbs" value="10000"></define>
+            <define name="total_dbs_nof_bits" value="14"></define>
+            <define name="max_core_bandwidth_Mbps" value="1200000"></define>                    
+        </defines>
+    </sub_module>        
+    <sub_module name="port_resources">
+        <defines>
+            <define name="max_nof_ports" value="130"></define>        
+        </defines>
+        <numerics>
+        </numerics>
+        <tables>
+        </tables>
+    </sub_module>        
+    <sub_module name="info" doc="Ingress congestion info">
+        <defines>
+             <define name="nof_bits_in_pd_count" value="15"></define>
+        </defines>
+    </sub_module>
+</device_data>
+

@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="bfd">
+
+    <sub_module name="general">
+
+        <features>
+            <feature name="configurable_single_hop_tos" value="0"></feature>
+            <feature name="extended_sip_support" value="0"></feature>
+        </features>
+
+        <defines>
+            <define name="nof_bits_bfd_endpoints" value="16"></define>
+        </defines>
+        <defines>
+            <define name="nof_endpoints" value="0x10000"></define>
+        </defines>
+        <defines>
+            <define name="nof_dips_for_bfd_multihop" value="16"></define>
+        </defines>
+        <defines>
+            <define name="nof_bits_dips_for_bfd_multihop" value="4"></define>
+        </defines>
+        <defines>
+            <define name="nof_bfd_server_trap_codes" value="3"></define>
+        </defines>
+        <defines>
+            <define name="nof_bits_bfd_server_trap_codes" value="2"></define>
+        </defines>
+        <defines>
+            <define name="rmep_index_db_ipv4_const" value="0"></define>
+        </defines>
+        <defines>
+            <define name="rmep_index_db_mpls_const" value="1"></define>
+        </defines>
+        <defines>
+            <define name="rmep_index_db_pwe_const" value="2"></define>
+        </defines>
+        <defines>
+            <define name="nof_req_int_profiles" value="8"></define>
+        </defines>
+        <defines>
+            <define name="nof_bits_your_discr_to_lif" value="18"></define>
+        </defines>
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+    <sub_module name="hw_bug" doc="BFD related Hw bugs">
+
+        <features>
+            <feature name="detect_multiplier_limitation" value="1"></feature>
+        </features>
+
+         <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    
+</device_data>
+
+
+

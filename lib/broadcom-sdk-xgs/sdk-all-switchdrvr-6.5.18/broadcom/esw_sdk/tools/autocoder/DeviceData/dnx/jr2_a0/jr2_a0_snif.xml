@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="snif">
+
+    <sub_module name="general">
+    
+        <defines>    
+            <define name="cud_type" value="2"></define>
+        </defines>        
+        
+    </sub_module>
+    
+    <sub_module name="ingress">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="nof_profiles" value="32"></define>
+            <define name="mirror_nof_profiles" value="16"></define>
+            <define name="mirror_nof_vlan_profiles" value="6"></define>
+            <define name="mirror_default_tagged_profile" value="6"></define>
+            <define name="mirror_untagged_profiles" value="7"></define>
+            <define name="prob_max_val" value="0xffffff"></define>
+            <define name="crop_size" value="256"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="keep_orig_dest_on_dsp_ext" value="0">
+                <property name="mirror_stamp_sys_on_dsp_ext" method="enable">
+                    <doc>
+                        stamping destination on FTM dsp extension
+                    </doc>
+                </property>
+            </numeric>            
+        </numerics>
+        
+    </sub_module>
+
+    <sub_module name="egress">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="mirror_snoop_nof_profiles" value="8"></define>
+            <define name="mirror_nof_vlan_profiles" value="7"></define>
+            <define name="mirror_default_profile" value="7"></define>
+            <define name="prob_max_val" value="-1"></define>
+            <define name="crop_size" value="128"></define>
+        </defines>
+
+        <tables>                       
+        </tables>
+         
+    </sub_module>
+</device_data>
+
+
+

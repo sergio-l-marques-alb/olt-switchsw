@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="KBP_OPCODE_MAPPING">
+        <OneLineDescription>Indicates the mapping of iFWD2 and ACL contexts to KBP Opcode ID </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FWD2_CONTEXT_ID"/>
+                <Field Name="ACL_CONTEXT"/>
+            </Key>
+            <Result>
+                <Field Name="KBP_OPCODE_ID"/>
+            </Result>
+            <TableLabels>KBP KBP_MNGM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="KBP_OPCODE_ID">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPB_ELK_OPCODE_MAPPING_MEMm">
+                            <HwField Name="OPCODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KBP_FORWARD_RESULT_SIZE">
+        <OneLineDescription>kbp opcode to result size table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="KBP_OPCODE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="KBP_FWD_RESULT_SIZE" Size="7" Type="UINT"/>
+            </Result>
+            <TableLabels>KBP KBP_MNGM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="KBP_FWD_RESULT_SIZE">
+                    <Access>
+                        <Register Name="IPPB_ELK_FWD_RESULT_SIZE_MAPr">
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/64"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()%64*#RESULT_SIZE(KBP_FWD_RESULT_SIZE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

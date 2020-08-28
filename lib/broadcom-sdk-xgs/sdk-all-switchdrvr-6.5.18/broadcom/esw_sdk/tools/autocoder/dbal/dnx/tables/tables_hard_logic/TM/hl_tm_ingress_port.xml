@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="CPU_CHANNEL_TO_CORE_TABLE" Valid="DNX_DATA.device.general.multi_core">
+        <OneLineDescription>This table contains mapping from CPU channel to core id.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CPU_CHANNEL" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="CORE"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CORE">
+                    <Access>
+                        <Register Name="ECI_CPU_CHANNEL_PIPE_MAPr">
+                            <HwField Name="CPU_CHANNEL_PIPE_MAPf"/>
+                             <DataOffset Formula="#KEY_VALUE(CPU_CHANNEL)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+
+    <AppDB Name="IRE_ILKN_SOP_CTRL" Valid="DNX_DATA.nif.ilkn.is_ilu_supported">
+        <OneLineDescription>Control the ILKN SOP from NIF to IRE.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ILKN_CORE_ID"/>
+                <Field Name="ILKN_PORT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Disable 144B SOP size check" Name="DISABLE_144B_CHECK" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="J2C_A0" Name="DISABLE_144B_CHECK">
+                    <Access>
+                        <Register Name="IRE_IRE_REGISTER_0r">
+                            <DataOffset Formula="#KEY_VALUE(ILKN_CORE_ID)*dnx_data_nif.ilkn.ilkn_unit_if_nof_get(unit)+#KEY_VALUE(ILKN_PORT_ID)+128"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="Q2A_A0 Q2A_B0" Name="DISABLE_144B_CHECK">
+                    <Access>
+                        <Register Name="IRE_IRE_REGISTER_0r">
+                            <DataOffset Formula="#KEY_VALUE(ILKN_CORE_ID)*dnx_data_nif.ilkn.ilkn_unit_if_nof_get(unit)+#KEY_VALUE(ILKN_PORT_ID)+52"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

@@ -1,0 +1,2789 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="ERPP_FORWARD_CODE_SELECTION">
+        <OneLineDescription>ERPP Forwarding Context Selection TCAM Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="INDEX" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="FAI" Type="FORWARDING_ADDITIONAL_INFO"/>
+                <Field Name="FWD_LAYER_TYPE" Type="LAYER_TYPES"/>
+                <Field Name="TM_ACTION_TYPE"/>
+                <Field Name="FWD_CODE_PORT_PROFILE" Type="EGRESS_FWD_CODE_PORT_PROFILE"/>
+                <Field Description="If true, the packet is TDM" Name="IS_TDM" Type="BOOL"/>
+                <Field Description="If true, the packet is Applet" Name="IS_APPLET"/>
+                <Field Name="FWD_LAYER_QUALIFIER" Type="LAYER_QUALIFIER"/>
+                <Field Description="If true, the packet is trapped by FHEI Type" Name="INGRESS_TRAPPED" Type="BOOL"/>
+                <Field Description="Forwarding Layer Additional Info Mask" Name="FAI_MASK" Size="4" Type="UINT"/>
+                <Field Description="Mask For Forwarding Layer Type" Name="FWD_LAYER_TYPE_MASK" Size="5" Type="UINT"/>
+                <Field Description="TM Action Type Mask" Name="TM_ACTION_TYPE_MASK" Size="2" Type="UINT"/>
+                <Field Description="Forwarding Code Port Profile Mask" Name="FWD_CODE_PORT_PROFILE_MASK" Size="2" Type="UINT"/>
+                <Field Description="TDM Mask Fields" Name="IS_TDM_MASK" Type="BOOL"/>
+                <Field Description="Applet Mask Fields" Name="IS_APPLET_MASK" Type="BOOL"/>
+                <Field Description="Forward Layer Qualifier Mask" Name="FWD_LAYER_QUALIFIER_MASK" Size="16" Type="UINT"/>
+                <Field Description="Ingress trapped by FHEI Type mask" Name="INGRESS_TRAPPED_MASK" Type="BOOL"/>
+                <Field Name="EGRESS_FWD_CODE"/>
+                <Field Description="If true, the HW table entry is Valid" Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FAI">
+                    <Access>
+                        <Memory Name="ERPP_FWD_CONTEXT_SELECTION_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_FORWARDING_LAYER_ADDITIONAL_INFOf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_LAYER_TYPE">
+                    <Access>
+                        <Memory Name="ERPP_FWD_CONTEXT_SELECTION_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FWD_LAYER_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TM_ACTION_TYPE">
+                    <Access>
+                        <Memory Name="ERPP_FWD_CONTEXT_SELECTION_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FTMH_TM_ACTION_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_CODE_PORT_PROFILE">
+                    <Access>
+                        <Memory Name="ERPP_FWD_CONTEXT_SELECTION_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FWD_CODE_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_TDM">
+                    <Access>
+                        <Memory Name="ERPP_FWD_CONTEXT_SELECTION_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IS_TDMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_APPLET">
+                    <Access>
+                        <Memory Name="ERPP_FWD_CONTEXT_SELECTION_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IS_APPLETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_LAYER_QUALIFIER">
+                    <Access>
+                        <Memory Name="ERPP_FWD_CONTEXT_SELECTION_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FWD_LAYER_QUALIFIERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INGRESS_TRAPPED">
+                    <Access>
+                        <Memory Name="ERPP_FWD_CONTEXT_SELECTION_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="INGRESS_TRAPPED_BY_FHEI_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FAI_MASK">
+                    <Access>
+                        <Memory Name="ERPP_FWD_CONTEXT_SELECTION_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_FORWARDING_LAYER_ADDITIONAL_INFO_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="FWD_LAYER_TYPE_MASK">
+                    <Access>
+                        <Memory Name="ERPP_FWD_CONTEXT_SELECTION_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FWD_LAYER_TYPE_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TM_ACTION_TYPE_MASK">
+                    <Access>
+                        <Memory Name="ERPP_FWD_CONTEXT_SELECTION_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FTMH_TM_ACTION_TYPE_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_CODE_PORT_PROFILE_MASK">
+                    <Access>
+                        <Memory Name="ERPP_FWD_CONTEXT_SELECTION_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FWD_CODE_PORT_PROFILE_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_TDM_MASK">
+                    <Access>
+                        <Memory Name="ERPP_FWD_CONTEXT_SELECTION_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IS_TDM_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_APPLET_MASK">
+                    <Access>
+                        <Memory Name="ERPP_FWD_CONTEXT_SELECTION_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IS_APPLET_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_LAYER_QUALIFIER_MASK">
+                    <Access>
+                        <Memory Name="ERPP_FWD_CONTEXT_SELECTION_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FWD_LAYER_QUALIFIER_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INGRESS_TRAPPED_MASK">
+                    <Access>
+                        <Memory Name="ERPP_FWD_CONTEXT_SELECTION_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="INGRESS_TRAPPED_BY_FHEI_TYPE_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_FWD_CODE">
+                    <Access>
+                        <Memory Name="ERPP_FWD_CONTEXT_SELECTION_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PROGRAMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VALID">
+                    <Access>
+                        <Memory Name="ERPP_FWD_CONTEXT_SELECTION_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="ETPP_FORWARD_CODE_SELECTION">
+        <OneLineDescription>ETPP Forwarding Context Selection TCAM Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="INDEX" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="FAI" Type="FORWARDING_ADDITIONAL_INFO"/>
+                <Field Name="FWD_LAYER_TYPE" Type="LAYER_TYPES"/>
+                <Field Name="TM_ACTION_TYPE"/>
+                <Field Name="FWD_CODE_PORT_PROFILE" Type="EGRESS_FWD_CODE_PORT_PROFILE"/>
+                <Field Description="If true, the packet is TDM" Name="IS_TDM" Type="BOOL"/>
+                <Field Description="If true, the packet is Applet" Name="IS_APPLET"/>
+                <Field Name="FWD_LAYER_QUALIFIER" Type="LAYER_QUALIFIER"/>
+                <Field Description="Ace_Context_value[1:0]" Name="ACE_VALUE"/>
+                <Field Description="If true, the packet is trapped by FHEI Type" Name="INGRESS_TRAPPED" Type="BOOL"/>
+                <Field Description="Forwarding Layer Additional Info Mask" Name="FAI_MASK" Size="4" Type="UINT"/>
+                <Field Description="Mask For Forwarding Layer Type" Name="FWD_LAYER_TYPE_MASK" Size="5" Type="UINT"/>
+                <Field Description="TM Action Type Mask" Name="TM_ACTION_TYPE_MASK" Size="2" Type="UINT"/>
+                <Field Description="Forwarding Code Port Profile Mask" Name="FWD_CODE_PORT_PROFILE_MASK" Size="2" Type="UINT"/>
+                <Field Description="TDM Mask Fields" Name="IS_TDM_MASK" Type="BOOL"/>
+                <Field Description="Applet Mask Fields" Name="IS_APPLET_MASK" Type="BOOL"/>
+                <Field Description="Forward Layer Qualifier Mask" Name="FWD_LAYER_QUALIFIER_MASK" Size="16" Type="UINT"/>
+                <Field Description="Ace Value Field Mask" Name="ACE_VALUE_MASK" Size="2" Type="UINT"/>
+                <Field Description="Ingress trapped by FHEI Type mask" Name="INGRESS_TRAPPED_MASK" Type="BOOL"/>
+                <Field Name="EGRESS_FWD_CODE"/>
+                <Field Description="If true, the HW table entry is Valid" Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FAI">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FORWARD_LAYER_ADDITIONAL_INFOf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_LAYER_TYPE">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FORWARD_LAYER_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TM_ACTION_TYPE">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FTMH_TM_ACTION_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_CODE_PORT_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FORWARD_CODE_PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_TDM">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IS_TDMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_APPLET">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IS_APPLETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_LAYER_QUALIFIER">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FORWARD_LAYER_QUALIFIERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ACE_VALUE">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm"> 
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ACE_VALUEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INGRESS_TRAPPED">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="INGRESS_TRAPPED_BY_FHEI_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FAI_MASK">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FORWARD_LAYER_ADDITIONAL_INFO_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="FWD_LAYER_TYPE_MASK">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FORWARD_LAYER_TYPE_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TM_ACTION_TYPE_MASK">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FTMH_TM_ACTION_TYPE_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_CODE_PORT_PROFILE_MASK">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FORWARD_CONTEXT_PORT_PROFILE_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_TDM_MASK">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IS_TDM_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_APPLET_MASK">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IS_APPLET_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_LAYER_QUALIFIER_MASK">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FORWARD_LAYER_QUALIFIER_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ACE_VALUE_MASK">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ACE_VALUE_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INGRESS_TRAPPED_MASK">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="INGRESS_TRAPPED_BY_FHEI_TYPE_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_FWD_CODE">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FORWARD_CONTEXTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VALID">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FWD_CODE_CAMm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FORWARD_CONTEXT_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_PER_FORWARD_CODE">
+        <OneLineDescription>A configuration table for Egress Forward Code general configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FORWARD_CODE" Type="EGRESS_FWD_CODE"/>
+            </Key>
+            <Result>
+                <Field Description="Enable forwarding header termination" Name="TERMINATION_ENABLE" Type="BOOL"/>
+                <Field Description="Forward code that supports Ethernet processing" Name="PROTOCOL_ETHERNET_ENABLE" Type="BOOL"/>
+                <Field Description="Forward code that supports IPv4 UC processing" Name="PROTOCOL_IPV4_UC_ENABLE" Type="BOOL"/>
+                <Field Description="Forward code that supports IPv4 MC processing" Name="PROTOCOL_IPV4_MC_ENABLE" Type="BOOL"/>
+                <Field Description="Forward code that supports IPv6 processing" Name="PROTOCOL_IPV6_UC_ENABLE" Type="BOOL"/>
+                <Field Description="Forward code that supports IPv6 processing" Name="PROTOCOL_IPV6_MC_ENABLE" Type="BOOL"/>
+                <Field Description="Forward code that supports MPLS processing" Name="PROTOCOL_MPLS_ENABLE" Type="BOOL"/>
+                <Field Description="Forward code that supports stp state filter" Name="STP_ENABLE"/>
+                <Field Description="Enable CFG Egress Membership Filter per Forward Code" Name="VLAN_MEMBERSHIP_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Enable acceptable frame type per Forward Code" Name="ACCEPTABLE_FRAME_TYPE_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Enable split horizon per Forward Code" Name="SPLIT_HORIZON_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Enable learning per Forward Code" Name="LEARN_ENABLE_PER_FWD_CONTEXT" Size="1" Type="BOOL"/>
+                <Field Description="Enabled in case that Forward Context is PP" Name="FWD_CONTEXT_IS_PP_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Forward Code is Ipv4 or Ipv6" Name="FORWARD_CODE_IPV4_OR_IPV6" Type="BOOL"/>
+            </Result>
+            
+        <TableLabels/>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TERMINATION_ENABLE">
+                    <Access>
+                        <Register Name="ETPPC_CFG_TERMINATION_FWD_CODE_ENr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PROTOCOL_ETHERNET_ENABLE">
+                    <Access>
+                        <Register GroupName="ETPP_ETHERNET_FWD_CODE">
+                            <HwField Name="ETHERNET_FWD_CODEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ERPP_CFG_ETHERNET_FWD_CONTEXTr">
+                            <HwField Name="CFG_ETHERNET_FWD_CONTEXTf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                 </Field>
+                <Field Name="PROTOCOL_IPV4_UC_ENABLE">
+                    <Access>
+                        <Register Name="ETPPC_IPV4_UC_FWD_CODEr">
+                            <HwField Name="IPV4_UC_FWD_CODEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ERPP_CFG_IPV4_UC_FWD_CONTEXTr">
+                            <HwField Name="CFG_IPV4_UC_FWD_CONTEXTf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                 </Field>
+                <Field Name="PROTOCOL_IPV4_MC_ENABLE">
+                    <Access>
+                        <Register Name="ETPPC_IPV4_MC_FWD_CODEr">
+                            <HwField Name="IPV4_MC_FWD_CODEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ERPP_CFG_IPV4_MC_FWD_CONTEXTr">
+                            <HwField Name="CFG_IPV4_MC_FWD_CONTEXTf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                 </Field>
+                <Field Name="PROTOCOL_IPV6_UC_ENABLE">
+                    <Access>
+                        <Register Name="ETPPC_IPV6_UC_FWD_CODEr">
+                            <HwField Name="IPV6_UC_FWD_CODEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ERPP_CFG_IPV6_UC_FWD_CONTEXTr">
+                            <HwField Name="CFG_IPV6_UC_FWD_CONTEXTf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                 </Field>
+                <Field Name="PROTOCOL_IPV6_MC_ENABLE">
+                    <Access>
+                        <Register Name="ETPPC_IPV6_MC_FWD_CODEr">
+                            <HwField Name="IPV6_MC_FWD_CODEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ERPP_CFG_IPV6_MC_FWD_CONTEXTr">
+                            <HwField Name="CFG_IPV6_MC_FWD_CONTEXTf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                 </Field>
+                <Field Name="PROTOCOL_MPLS_ENABLE">
+                    <Access>
+                        <Register Name="ETPPC_MPLS_FWD_CODEr">
+                            <HwField Name="MPLS_FWD_CODEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                 <Field Name="STP_ENABLE">
+                    <Access>
+                        <Register Name="ETPPB_CFG_STP_STATE_PER_FWD_CODEr">
+                            <HwField Name="CFG_STP_STATE_PER_FWD_CODEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                 </Field>
+                 <Field Name="VLAN_MEMBERSHIP_ENABLE">
+                    <Access>
+                        <Register Name="ETPPB_CFG_MEMBERSHIP_PER_FWD_CODEr">
+                            <HwField Name="CFG_MEMBERSHIP_PER_FWD_CODEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                 </Field>
+                 <Field Name="ACCEPTABLE_FRAME_TYPE_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_CFG_ACCEPTABLE_FRAME_TYPE_PER_FWD_CODEr">
+                            <HwField Name="ACCEPTABLE_FRAME_TYPE_PER_FWD_CODE_ENf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                 </Field>
+                 <Field Name="SPLIT_HORIZON_ENABLE">
+                    <Access>
+                        <Register Name="ETPPC_CFG_SPLIT_HORIZON_PER_FWD_CODEr">
+                            <HwField Name="CFG_SPLIT_HORIZON_PER_FWD_CODEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                 </Field>
+                 <Field Name="LEARN_ENABLE_PER_FWD_CONTEXT">
+                    <Access>
+                        <Register Name="ERPP_CFG_LEARN_EN_PER_FWD_CONTEXTr">
+                            <HwField Name="CFG_LEARN_EN_PER_FWD_CONTEXTf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                 </Field>
+                 <Field Name="FWD_CONTEXT_IS_PP_ENABLE">
+                    <Access>
+                        <Register Name="ERPP_FWD_CONTEXT_IS_PPr">
+                            <HwField Name="FWD_CONTEXT_IS_PPf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                 </Field>
+                <Field Name="FORWARD_CODE_IPV4_OR_IPV6">
+                     <Access>
+                         <Register GroupName="ETPP_FORWARD_CODE_IPV4_OR_IPV6">
+                             <HwField Name="CFG_FORWARD_CODE_IPV4_OR_IPV6f"/>
+                             <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                         </Register>
+                     </Access>
+                 </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="EGRESS_ETPP_GLOBAL">
+        <OneLineDescription>Egress General Configuration Table to enable/disable logics in the design</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable logic - Dsp Resolution" Name="DSP_RESOLUTION_ENABLE" Type="BOOL"/>
+                <Field Description="Enable logic - IP MC Should Be Bridge" Name="IP_MC_SHOULD_BE_BRIDGE_ENABLE" Type="BOOL"/>
+                <Field Description="Enable logic - IVE" Name="IVE_ENABLE" Type="BOOL"/>
+                <Field Description="Enable logic - Filters" Name="FILTERS_ENABLE" Type="BOOL"/>
+                <Field Description="Enable logic - Fwd Code" Name="FWD_CODE_ENABLE" Type="BOOL"/>
+                <Field Description="Enable logic - NWK QoS" Name="NWK_QOS_ENABLE" Type="BOOL"/>
+                <Field Description="Enable logic - SNIFF Expansion" Name="SNIFF_EXPANSION_ENABLE" Type="BOOL"/>
+                <Field Description="Enable logic - Forwarding Profile" Name="FORWARDING_PROFILE_ENABLE" Type="BOOL"/>
+                <Field Description="Enable logic - Memory Software Errors" Name="MEM_SOFT_ERR_ENABLE" Type="BOOL"/>
+                <Field Description="Enable logic - ACE" Name="ACE_ENABLE" Type="BOOL"/>
+                <Field Description="Enable logic - CoS Remapping" Name="COS_REMAPPING_ENABLE" Type="BOOL"/>
+                <Field Description="Enable logic - DSP Processing" Name="DSP_PROCESSING_ENABLE" Type="BOOL"/>
+                <Field Description="Enable logic - J2j2 FHEI" Name="JR_TO_J2_FHEI_ENABLE" Type="BOOL"/>
+                <Field Description="Enable logic - J2j2 Inlif Profile" Name="INLIF_PROFILE_ENABLE" Type="BOOL"/>
+                <Field Description="Enable logic - J2j2 TTL" Name="JR_TO_J2_TTL_ENABLE" Type="BOOL"/>
+                <Field Description="Enable logic - Final Pointer Resolution" Name="FINAL_PTR_RESOLUTION_ENABLE" Type="BOOL"/>
+                <Field Description="Enable logic - PRP Pema Context" Name="PRP_PEMA_CONTEXT_ENABLE" Type="BOOL"/>
+                <Field Description="Must enabled fields to make ETPP functional" Name="ETPP_ENABLE" Type="BOOL"/>
+                <Field Description="When source idx is invalid, the field is used as the msb of source_idx." Name="SOURCE_IDX_MSB" Type="BOOL"/>
+                <Field Name="VLAN_MEMERBSHIP_FILTER_MODE"/>
+                <Field Description="Bypass Stamp Ftmh Enable" Name="BYPASS_STAMP_FTMH_ENABLE" Type="BOOL"/>
+                <Field Description="When set, ETPP Latency is fixed and set to a configurable value." Name="ETPP_FIXED_LATENCY_EN" Type="BOOL"/>
+                <Field Description="If FixedLatencyEn is set, this value will set the latency" Name="ETPP_FIXED_LATENCY" Size="10" Type="UINT"/>
+                <Field Name="MTU_ENABLE" Type="BOOL"/>
+                <Field Description="The offset in bytes of the Network headers from the end of system headers" Name="NETWORK_OFFSET" Size="5" Type="UINT"/>
+                <Field Description="IN_LIF null value in egress pipeline" Name="CFG_IN_LIF_NULL_VALUE" Size="22" Type="UINT"/>
+                <Field Description="Device CFG for Packet Size Compensation" Name="GENERAL_PACKET_SIZE_COMPENSATION" Size="14" Type="UINT" Valid="DNX_DATA.dev_init.general.etpp_compensate_crc_size"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DSP_RESOLUTION_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_PRP_CONTEXT_ENABLERSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CFG_DSP_RESOLUTION_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IP_MC_SHOULD_BE_BRIDGE_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_PRP_CONTEXT_ENABLERSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CFG_IP_MC_SHOULD_BE_BRIDGE_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IVE_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_PRP_CONTEXT_ENABLERSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CFG_IVE_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FILTERS_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_PRP_CONTEXT_ENABLERSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CFG_FILTERS_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FWD_CODE_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_PRP_CONTEXT_ENABLERSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CFG_FWD_CODE_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NWK_QOS_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_PRP_CONTEXT_ENABLERSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CFG_NWK_QOS_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SNIFF_EXPANSION_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_PRP_CONTEXT_ENABLERSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CFG_SNIFF_EXPANSION_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FORWARDING_PROFILE_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_PRP_CONTEXT_ENABLERSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CFG_FORWARDING_PROFILE_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MEM_SOFT_ERR_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_PRP_CONTEXT_ENABLERSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CFG_MEM_SOFT_ERR_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ACE_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_PRP_CONTEXT_ENABLERSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CFG_ACE_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COS_REMAPPING_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_PRP_CONTEXT_ENABLERSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CFG_COS_REMAPPING_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DSP_PROCESSING_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_PRP_CONTEXT_ENABLERSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CFG_DSP_PROCESSING_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_TO_J2_FHEI_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_PRP_CONTEXT_ENABLERSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CFG_J_2J2_FHEI_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="INLIF_PROFILE_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_PRP_CONTEXT_ENABLERSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CFG_INLIF_PROFILE_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JR_TO_J2_TTL_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_PRP_CONTEXT_ENABLERSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CFG_J_2J2_TTL_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FINAL_PTR_RESOLUTION_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_PRP_CONTEXT_ENABLERSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CFG_FINAL_PTR_RESOLUTION_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PRP_PEMA_CONTEXT_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_PRP_CONTEXT_ENABLERSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CFG_PRP_PEMA_CONTEXT_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ETPP_ENABLE">
+                    <Access>
+                        <Register Name="ETPPB_DEVICE_CFG_TRAP_FUNCTIONS_ENABLEr">
+                            <HwField Name="DEVICE_CFG_TRAP_SOP_FIFO_ENABLEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ETPPB_DEVICE_CFG_TRAP_FUNCTIONS_ENABLEr">
+                            <HwField Name="DEVICE_CFG_TRAP_BYPASS_FIFO_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SOURCE_IDX_MSB">
+                     <Access>
+                         <Register GroupName="ETPP_ENC_DEVICE_CONFIGS">
+                             <HwField Name="CFG_SOURCE_IDX_MAC_PREFIXf"/>
+                         </Register>
+                     </Access>
+                 </Field>
+                 <Field Name="VLAN_MEMERBSHIP_FILTER_MODE">
+                     <Access>
+                         <Register GroupName="ETPP_ENC_DEVICE_CONFIGS">
+                             <HwField Name="CFG_VLAN_MEMBERSHIP_FILTER_MODEf"/>
+                         </Register>
+                     </Access>
+                 </Field>
+                 <Field Name="BYPASS_STAMP_FTMH_ENABLE">
+                     <Access>
+                         <Register Name="ETPPA_BYPASS_STAMP_FTMH_ENABLEr">
+                             <HwField Name="BYPASS_STAMP_FTMH_ENABLEf"/>
+                         </Register>
+                     </Access>
+                 </Field>
+                <Field Name="ETPP_FIXED_LATENCY_EN">
+                     <Access>
+                         <Register Name="ETPPA_ETPP_LATENCY_SETTINGSr">
+                             <HwField Name="ETPP_FIXED_LATENCY_ENf"/>
+                         </Register>
+                     </Access>
+                 </Field>
+                 <Field Name="ETPP_FIXED_LATENCY">
+                     <Access>
+                         <Register Name="ETPPA_ETPP_LATENCY_SETTINGSr">
+                             <HwField Name="ETPP_FIXED_LATENCYf"/>
+                         </Register>
+                     </Access>
+                 </Field>
+                 <Field Name="MTU_ENABLE">
+                    <Access>
+                        <Register Name="ETPPB_DEVICE_CFG_PORT_MTU_ENr">
+                            <HwField Name="DEVICE_CFG_PORT_MTU_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                 <Field Name="NETWORK_OFFSET">
+                    <Access>
+                        <Register Name="ETPPC_JERICHO_COMPATIBLE_REGISTERSr">
+                            <HwField Name="NETWORK_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="CFG_IN_LIF_NULL_VALUE">
+                    <Access>
+                        <Register Name="ECI_FAP_GLOBAL_PP_10r">
+                            <HwField Name="CFG_LIF_NULL_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="CFG_IN_LIF_NULL_VALUE">
+                    <Access>
+                        <Register Name="ERPP_CFG_IN_LIF_NULL_VALUEr">
+                            <HwField Name="CFG_IN_LIF_NULL_VALUEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ETPPA_CFG_IN_LIF_NULL_VALUEr">
+                            <HwField Name="CFG_IN_LIF_NULL_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="Q2A_A0 Q2A_B0 J2P_A0" Name="GENERAL_PACKET_SIZE_COMPENSATION">
+                    <Access>
+                        <Register Name="ETPPB_CFG_GENERAL_PACKET_SIZE_COMPENSATIONr">
+                            <HwField Name="CFG_GENERAL_PACKET_SIZE_COMPENSATIONf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ETPPC_CFG_GENERAL_PACKET_SIZE_COMPENSATIONr">
+                            <HwField Name="CFG_GENERAL_PACKET_SIZE_COMPENSATIONf"/>
+                        </Register>
+                    </Access>
+                </Field> 
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_PARSER_GLOBAL">
+        <OneLineDescription>Egress Parser Global Configurations Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="0=ERPP, 1=ETPP" Name="BLOCK_IS_ETPP" Type="BOOL"/>
+                <Field Description="0=ERPP, 1=ETPP" Name="BLOCK_IS_ETPP_INV" Type="BOOL_INV"/>
+                <!--"BLOCK_IS_ETPP_INV" field will be removed once DBAL team integrate inverse field access per table -->
+                <Field Name="SYSTEM_HEADERS_MODE"/>
+                <Field Description="Forward code for FHEI MPLS in Jericho compatible mode" Name="JERICHO_FORWARD_CODE_FOR_MPLS" Size="4" Type="UINT"/>
+                <Field Description="FHEI size for MPLS POP headers in Jericho Mode" Name="JERICHO_FHEI_SIZE_FOR_MPLS_POP" Size="2" Type="UINT"/>
+                <Field Description="Constant offset relative to calculated Qualifier+Layer offset" Name="LB_KEY_EXT_CG_1_OFFSET" Size="5" Type="UINT"/>
+                <Field Description="PSG header index (0 to 4)" Name="LB_KEY_EXT_CG_1_HEADER_IDX" Size="4" Type="UINT"/>                
+                <Field Description="PSG Layer index (0 to 3)" Name="LB_KEY_EXT_CG_1_LAYER_IDX" Size="4" Type="UINT"/>
+                <Field Description="Mapped size of LB Key Extension (3b to 5b)" Name="LB_KEY_EXT_CG_1_MAPPED_SIZE" Size="40" Type="ARRAY8"/>
+                <Field Description="Constant offset relative to calculated Qualifier+Layer offset" Name="TM_EXT_CG_1_OFFSET" Size="5" Type="UINT"/>
+                <Field Description="PSG header index (0 to 4)" Name="TM_EXT_CG_1_HEADER_IDX" Size="4" Type="UINT"/>
+                <Field Description="PSG Layer index (0 to 3)" Name="TM_EXT_CG_1_LAYER_IDX" Size="4" Type="UINT"/>
+                <Field Description="Copied size to container from calculated header offset" Name="TM_EXT_CG_1_SIZE" Size="5" Type="UINT"/>
+                <Field Description="Constant offset relative to calculated Qualifier+Layer offset" Name="STACKING_EXT_CG_1_OFFSET" Size="5" Type="UINT"/>
+                <Field Description="PSG header index (0 to 4)" Name="STACKING_EXT_CG_1_HEADER_IDX" Size="4" Type="UINT"/>
+                <Field Description="PSG Layer index (0 to 3)" Name="STACKING_EXT_CG_1_LAYER_IDX" Size="4" Type="UINT"/>
+                <Field Description="Mapped size of Stacking Ext (3b to 5b)" Name="STACKING_EXT_CG_1_MAPPED_SIZE" Size="40" Type="ARRAY8"/>
+                <Field Description="Constant offset relative to calculated Qualifier+Layer offset" Name="BIER_EXT_CG_1_OFFSET" Size="5" Type="UINT"/>
+                <Field Description="PSG header index (0 to 4)" Name="BIER_EXT_CG_1_HEADER_IDX" Size="4" Type="UINT"/>
+                <Field Description="PSG Layer index (0 to 3)" Name="BIER_EXT_CG_1_LAYER_IDX" Size="4" Type="UINT"/>
+                <Field Description="Copied size to container from calculated header offset" Name="BIER_EXT_CG_1_SIZE" Size="5" Type="UINT"/>
+                <Field Description="Constant offset relative to calculated Qualifier+Layer offset" Name="APPLICATION_SPECIFIC_EXT_CG_1_OFFSET" Size="5" Type="UINT"/>
+                <Field Description="PSG header index (0 to 4)" Name="APPLICATION_SPECIFIC_EXT_CG_1_HEADER_IDX" Size="4" Type="UINT"/>
+                <Field Description="PSG Layer index (0 to 3)" Name="APPLICATION_SPECIFIC_EXT_CG_1_LAYER_IDX" Size="4" Type="UINT"/>
+                <Field Description="Copied size to container from calculated header offset" Name="APPLICATION_SPECIFIC_EXT_CG_1_SIZE" Size="5" Type="UINT"/>
+                <Field Description="Constant offset relative to calculated Qualifier+Layer offset" Name="TSH_CG_1_OFFSET" Size="5" Type="UINT"/>
+                <Field Description="PSG header index (0 to 4)" Name="TSH_CG_1_HEADER_IDX" Size="4" Type="UINT"/>
+                <Field Description="PSG Layer index (0 to 3)" Name="TSH_CG_1_LAYER_IDX" Size="4" Type="UINT"/>
+                <Field Description="Copied size to container from calculated header offset" Name="TSH_CG_1_SIZE" Size="5" Type="UINT"/>
+                <Field Description="Constant offset relative to calculated Qualifier+Layer offset" Name="PPH_BASE_CG_1_OFFSET" Size="5" Type="UINT"/>
+                <Field Description="PSG header index (0 to 4)" Name="PPH_BASE_CG_1_HEADER_IDX" Size="4" Type="UINT"/>
+                <Field Description="PSG Layer index (0 to 3)" Name="PPH_BASE_CG_1_LAYER_IDX" Size="4" Type="UINT"/>
+                <Field Description="Copied size to container from calculated header offset" Name="PPH_BASE_CG_1_SIZE" Size="5" Type="UINT"/>
+                <Field Description="Constant offset relative to calculated Qualifier+Layer offset" Name="FHEI_EXT_CG_1_OFFSET" Size="5" Type="UINT"/>
+                <Field Description="PSG header index (0 to 4)" Name="FHEI_EXT_CG_1_HEADER_IDX" Size="4" Type="UINT"/>
+                <Field Description="PSG Layer index (0 to 3)" Name="FHEI_EXT_CG_1_LAYER_IDX" Size="4" Type="UINT"/>
+                <Field Description="Copied size to container from calculated header offset" Name="FHEI_EXT_CG_1_SIZE" Size="5" Type="UINT"/>
+                <Field Description="Constant offset relative to calculated Qualifier+Layer offset" Name="LIF_EXT_CG_1_OFFSET" Size="5" Type="UINT"/>
+                <Field Description="PSG header index (0 to 4)" Name="LIF_EXT_CG_1_HEADER_IDX" Size="4" Type="UINT"/>
+                <Field Description="PSG Layer index (0 to 3)" Name="LIF_EXT_CG_1_LAYER_IDX" Size="4" Type="UINT"/>
+                <Field Description="Copied size to container from calculated header offset" Name="LIF_EXT_CG_1_SIZE" Size="5" Type="UINT"/>
+                <Field Description="Constant offset relative to calculated Qualifier+Layer offset" Name="LEARN_EXT_CG_1_OFFSET" Size="5" Type="UINT"/>
+                <Field Description="PSG header index (0 to 4)" Name="LEARN_EXT_CG_1_HEADER_IDX" Size="4" Type="UINT"/>
+                <Field Description="PSG Layer index (0 to 3)" Name="LEARN_EXT_CG_1_LAYER_IDX" Size="4" Type="UINT"/>
+                <Field Description="Copied size to container from calculated header offset" Name="LEARN_EXT_CG_1_SIZE" Size="5" Type="UINT"/>
+                <Field Description="Constant offset relative to calculated Qualifier+Layer offset" Name="UDH_BASE_CG_1_OFFSET" Size="5" Type="UINT"/>
+                <Field Description="PSG header index (0 to 4)" Name="UDH_BASE_CG_1_HEADER_IDX" Size="4" Type="UINT"/>
+                <Field Description="PSG Layer index (0 to 3)" Name="UDH_BASE_CG_1_LAYER_IDX" Size="4" Type="UINT"/>
+                <Field Description="Copied size to container from calculated header offset" Name="UDH_BASE_CG_1_SIZE" Size="5" Type="UINT"/>
+                <Field Description="Constant offset relative to calculated Qualifier+Layer offset" Name="UDH_DATA_CG_1_OFFSET" Size="5" Type="UINT"/>
+                <Field Description="PSG header index (0 to 4)" Name="UDH_DATA_CG_1_HEADER_IDX" Size="4" Type="UINT"/>
+                <Field Description="PSG Layer index (0 to 3)" Name="UDH_DATA_CG_1_LAYER_IDX" Size="4" Type="UINT"/>
+                <Field Description="Copied size to container from calculated header offset" Name="UDH_DATA_CG_1_SIZE" Size="5" Type="UINT"/>
+                <Field Description="Offset in bits to field from PPH header's LSB to the field's LSB" Name="PPH_LEARN_EXT_PRESENT_CG_2_INNER_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Width in bits of the copied field" Name="PPH_LEARN_EXT_PRESENT_CG_2_WIDTH" Size="8" Type="UINT"/>
+                <Field Description="Offset in bits to field from PPH header's LSB to the field's LSB" Name="PPH_FHEI_SIZE_CG_2_INNER_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Width in bits of the copied field" Name="PPH_FHEI_SIZE_CG_2_WIDTH" Size="8" Type="UINT"/>
+                <Field Description="Offset in bits to field from PPH header's LSB to the field's LSB" Name="PPH_LIF_EXT_TYPE_CG_2_INNER_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Width in bits of the copied field" Name="PPH_LIF_EXT_TYPE_CG_2_WIDTH" Size="8" Type="UINT"/>
+                <Field Description="Offset in bits to field from PPH header's LSB to the field's LSB" Name="PPH_PARSING_START_OFFSET_CG_2_INNER_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Width in bits of the copied field" Name="PPH_PARSING_START_OFFSET_CG_2_WIDTH" Size="8" Type="UINT"/>
+                <Field Description="Offset in bits to field from PPH header's LSB to the field's LSB" Name="PPH_PARSING_START_TYPE_CG_2_INNER_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Width in bits of the copied field" Name="PPH_PARSING_START_TYPE_CG_2_WIDTH" Size="8" Type="UINT"/>
+                <Field Description="Offset in bits to field from PPH header's LSB to the field's LSB" Name="PPH_FWD_LAYER_INDEX_CG_2_INNER_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Width in bits of the copied field" Name="PPH_FWD_LAYER_INDEX_CG_2_WIDTH" Size="8" Type="UINT"/>
+                <Field Description="Offset in bits to field from PPH header's LSB to the field's LSB" Name="PPH_FWD_LAYER_ADD_INFO_CG_2_INNER_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Width in bits of the copied field" Name="PPH_FORWARDING_LAYER_ADD_INFO_CG_2_WIDTH" Size="8" Type="UINT"/>
+                <Field Description="Offset in bits to field from PPH header's LSB to the field's LSB" Name="PPH_FORWARDING_STRENGTH_CG_2_INNER_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Width in bits of the copied field" Name="PPH_FORWARDING_STRENGTH_CG_2_WIDTH" Size="8" Type="UINT"/>
+                <Field Description="Offset in bits to field from PPH header's LSB to the field's LSB" Name="PPH_IN_LIF_PROFILE_CG_2_INNER_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Width in bits of the copied field" Name="PPH_IN_LIF_PROFILE_CG_2_WIDTH" Size="8" Type="UINT"/>
+                <Field Description="Offset in bits to field from PPH header's LSB to the field's LSB" Name="PPH_FORWARD_DOMAIN_CG_2_INNER_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Width in bits of the copied field" Name="PPH_FORWARD_DOMAIN_CG_2_WIDTH" Size="8" Type="UINT"/>
+                <Field Description="Offset in bits to field from PPH header's LSB to the field's LSB" Name="PPH_IN_LIF_CG_2_INNER_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Width in bits of the copied field" Name="PPH_IN_LIF_CG_2_WIDTH" Size="8" Type="UINT"/>
+                <Field Description="Offset in bits to field from PPH header's LSB to the field's LSB" Name="PPH_NWK_QOS_CG_2_INNER_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Width in bits of the copied field" Name="PPH_NWK_QOS_CG_2_WIDTH" Size="8" Type="UINT"/>
+                <Field Description="Offset in bits to field from PPH header's LSB to the field's LSB" Name="PPH_TTL_CG_2_INNER_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Width in bits of the copied field" Name="PPH_TTL_CG_2_WIDTH" Size="8" Type="UINT"/>
+                <Field Description="Offset in bits to field from PPH header's LSB to the field's LSB" Name="PPH_VALUE_1_CG_2_INNER_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Width in bits of the copied field" Name="PPH_VALUE_1_CG_2_WIDTH" Size="8" Type="UINT"/>
+                <Field Description="Offset in bits to field from PPH header's LSB to the field's LSB" Name="PPH_VALUE_2_CG_2_INNER_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Width in bits of the copied field" Name="PPH_VALUE_2_CG_2_WIDTH" Size="8" Type="UINT"/>
+                <Field Description="Offset in bits to field from PPH header's LSB to the field's LSB" Name="PPH_END_OF_PACKET_EDITING_CG_2_INNER_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Width in bits of the copied field" Name="PPH_END_OF_PACKET_EDITING_CG_2_WIDTH" Size="8" Type="UINT"/>
+                <Field Description="Enables Stacking-Ptr resolve and PPMC ;Enables FTMH Mux fields edit access;Enables the access to the PPMC" Name="PRE_PSG_LOGIC_ENABLE" Type="BOOL"/>
+                <Field Description="Enables system headers containers editing;Enables PPH Base fields editing;Enables system headers size calculation " Name="CG_LOGIC_ENABLE" Type="BOOL"/>
+                <Field Description="Enables the access to the PPMC" Name="PPMC_ACCESS_ENABLE" Type="BOOL"/>
+                <Field Description="if 0 use cfg_lif_null_value" Name="NO_GLEM_ACCESS_USE_GLOBAL_OUTLIF" Type="BOOL"/>
+                <Field Description="How many crc bytes are removed" Name="FTMH_PACKET_SIZE_REMOVE_CRC" Size="14" Type="UINT" Valid="DNX_DATA.dev_init.general.remove_crc_bytes_capability"/>
+                <Field Description="Compensate fabric CRC size for ERPP statistics" Name="FTMH_CRC_COMPENSATION" Size="7" Type="UINT"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="BLOCK_IS_ETPP">
+                    <Access>
+                        <Register Name="ETPPA_UTILITY_REGSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="BLOCK_IS_ETPPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BLOCK_IS_ETPP_INV">
+                    <Access>
+                        <Register Name="ERPP_UTILITY_REGSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="BLOCK_IS_ETPPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SYSTEM_HEADERS_MODE">
+                    <Access>
+                        <Register GroupName="ECI_FAP_GLOBAL_SYS_HEADER_CFG">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="SYSTEM_HEADERS_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JERICHO_FORWARD_CODE_FOR_MPLS">
+                    <Access>
+                        <Register GroupName="EGRESS_JERICHO_COMPATIBLE_REGISTERS">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="JERICHO_FORWARD_CODE_FOR_MPLSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="JERICHO_FHEI_SIZE_FOR_MPLS_POP">
+                    <Access>
+                        <Register GroupName="EGRESS_JERICHO_COMPATIBLE_REGISTERS">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="JERICHO_FHEI_SIZE_FOR_MPLS_POPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LB_KEY_EXT_CG_1_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LB_KEY_EXT_CG_1_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LB_KEY_EXT_CG_1_HEADER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LB_KEY_EXT_CG_1_HEADER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LB_KEY_EXT_CG_1_LAYER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LB_KEY_EXT_CG_1_LAYER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LB_KEY_EXT_CG_1_MAPPED_SIZE">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LB_KEY_EXT_CG_1_MAPPED_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TM_EXT_CG_1_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TM_EXT_CG_1_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TM_EXT_CG_1_HEADER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TM_EXT_CG_1_HEADER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TM_EXT_CG_1_LAYER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TM_EXT_CG_1_LAYER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TM_EXT_CG_1_SIZE">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TM_EXT_CG_1_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STACKING_EXT_CG_1_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="STACKING_EXT_CG_1_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+               <Field Name="STACKING_EXT_CG_1_HEADER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="STACKING_EXT_CG_1_HEADER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STACKING_EXT_CG_1_LAYER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="STACKING_EXT_CG_1_LAYER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STACKING_EXT_CG_1_MAPPED_SIZE">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="STACKING_EXT_CG_1_MAPPED_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BIER_EXT_CG_1_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="BIER_EXT_CG_1_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BIER_EXT_CG_1_HEADER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="BIER_EXT_CG_1_HEADER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BIER_EXT_CG_1_LAYER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="BIER_EXT_CG_1_LAYER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BIER_EXT_CG_1_SIZE">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="BIER_EXT_CG_1_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="APPLICATION_SPECIFIC_EXT_CG_1_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="APPLICATION_SPECIFIC_EXT_CG_1_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="APPLICATION_SPECIFIC_EXT_CG_1_HEADER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="APPLICATION_SPECIFIC_EXT_CG_1_HEADER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="APPLICATION_SPECIFIC_EXT_CG_1_LAYER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="APPLICATION_SPECIFIC_EXT_CG_1_LAYER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="APPLICATION_SPECIFIC_EXT_CG_1_SIZE">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="APPLICATION_SPECIFIC_EXT_CG_1_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSH_CG_1_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TSH_CG_1_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSH_CG_1_HEADER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TSH_CG_1_HEADER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSH_CG_1_LAYER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TSH_CG_1_LAYER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSH_CG_1_SIZE">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TSH_CG_1_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_BASE_CG_1_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_BASE_CG_1_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_BASE_CG_1_HEADER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_BASE_CG_1_HEADER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+               <Field Name="PPH_BASE_CG_1_LAYER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_BASE_CG_1_LAYER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_BASE_CG_1_SIZE">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_BASE_CG_1_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FHEI_EXT_CG_1_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FHEI_EXT_CG_1_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FHEI_EXT_CG_1_HEADER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FHEI_EXT_CG_1_HEADER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FHEI_EXT_CG_1_LAYER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FHEI_EXT_CG_1_LAYER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FHEI_EXT_CG_1_SIZE">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FHEI_EXT_CG_1_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LIF_EXT_CG_1_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LIF_EXT_CG_1_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LIF_EXT_CG_1_HEADER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LIF_EXT_CG_1_HEADER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LIF_EXT_CG_1_LAYER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LIF_EXT_CG_1_LAYER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LIF_EXT_CG_1_SIZE">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LIF_EXT_CG_1_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEARN_EXT_CG_1_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LEARN_EXT_CG_1_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEARN_EXT_CG_1_HEADER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LEARN_EXT_CG_1_HEADER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEARN_EXT_CG_1_LAYER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LEARN_EXT_CG_1_LAYER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEARN_EXT_CG_1_SIZE">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LEARN_EXT_CG_1_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="UDH_BASE_CG_1_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UDH_BASE_CG_1_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="UDH_BASE_CG_1_HEADER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UDH_BASE_CG_1_HEADER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="UDH_BASE_CG_1_LAYER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UDH_BASE_CG_1_LAYER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="UDH_BASE_CG_1_SIZE">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UDH_BASE_CG_1_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="UDH_DATA_CG_1_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UDH_DATA_CG_1_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="UDH_DATA_CG_1_HEADER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UDH_DATA_CG_1_HEADER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="UDH_DATA_CG_1_LAYER_IDX">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UDH_DATA_CG_1_LAYER_IDXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="UDH_DATA_CG_1_SIZE">
+                    <Access>
+                        <Register GroupName="EGRESS_SYSTEM_HEADERS_CG_1">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UDH_DATA_CG_1_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_LEARN_EXT_PRESENT_CG_2_INNER_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_LEARN_EXT_PRESENT_CG_2_INNER_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_LEARN_EXT_PRESENT_CG_2_WIDTH">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_LEARN_EXT_PRESENT_CG_2_WIDTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_FHEI_SIZE_CG_2_INNER_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_FHEI_SIZE_CG_2_INNER_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_FHEI_SIZE_CG_2_WIDTH">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_FHEI_SIZE_CG_2_WIDTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_LIF_EXT_TYPE_CG_2_INNER_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_LIF_EXT_TYPE_CG_2_INNER_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_LIF_EXT_TYPE_CG_2_WIDTH">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_LIF_EXT_TYPE_CG_2_WIDTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_PARSING_START_OFFSET_CG_2_INNER_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_PARSING_START_OFFSET_CG_2_INNER_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_PARSING_START_OFFSET_CG_2_WIDTH">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_PARSING_START_OFFSET_CG_2_WIDTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_PARSING_START_TYPE_CG_2_INNER_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_PARSING_START_TYPE_CG_2_INNER_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_PARSING_START_TYPE_CG_2_WIDTH">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_PARSING_START_TYPE_CG_2_WIDTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_FWD_LAYER_INDEX_CG_2_INNER_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_FWD_LAYER_INDEX_CG_2_INNER_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_FWD_LAYER_INDEX_CG_2_WIDTH">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_FWD_LAYER_INDEX_CG_2_WIDTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_FWD_LAYER_ADD_INFO_CG_2_INNER_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_FORWARDING_LAYER_ADDITIONAL_INFO_CG_2_INNER_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_FORWARDING_LAYER_ADD_INFO_CG_2_WIDTH">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_FORWARDING_LAYER_ADDITIONAL_INFO_CG_2_WIDTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_FORWARDING_STRENGTH_CG_2_INNER_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_FORWARDING_STRENGTH_CG_2_INNER_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_FORWARDING_STRENGTH_CG_2_WIDTH">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_FORWARDING_STRENGTH_CG_2_WIDTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_IN_LIF_PROFILE_CG_2_INNER_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_IN_LIF_PROFILE_CG_2_INNER_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_IN_LIF_PROFILE_CG_2_WIDTH">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_IN_LIF_PROFILE_CG_2_WIDTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_FORWARD_DOMAIN_CG_2_INNER_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_FORWARD_DOMAIN_CG_2_INNER_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_FORWARD_DOMAIN_CG_2_WIDTH">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_FORWARD_DOMAIN_CG_2_WIDTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_IN_LIF_CG_2_INNER_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_IN_LIF_CG_2_INNER_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_IN_LIF_CG_2_WIDTH">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_IN_LIF_CG_2_WIDTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_NWK_QOS_CG_2_INNER_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_NWK_QOS_CG_2_INNER_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_NWK_QOS_CG_2_WIDTH">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_NWK_QOS_CG_2_WIDTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_TTL_CG_2_INNER_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_TTL_CG_2_INNER_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_TTL_CG_2_WIDTH">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_TTL_CG_2_WIDTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_VALUE_1_CG_2_INNER_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_PPH_VALUE_1_CG_2_INNER_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_VALUE_1_CG_2_WIDTH">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_PPH_VALUE_1_CG_2_WIDTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_VALUE_2_CG_2_INNER_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_PPH_VALUE_2_CG_2_INNER_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_VALUE_2_CG_2_WIDTH">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_PPH_VALUE_2_CG_2_WIDTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_END_OF_PACKET_EDITING_CG_2_INNER_OFFSET">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_END_OF_PACKET_EDITING_CG_2_INNER_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PPH_END_OF_PACKET_EDITING_CG_2_WIDTH">
+                    <Access>
+                        <Register GroupName="EGRESS_PPH_BASE_FIELDS_CG_2">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPH_END_OF_PACKET_EDITING_CG_2_WIDTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PRE_PSG_LOGIC_ENABLE">
+                    <Access>
+                        <Register GroupName="EGRESS_DEVICE_CFG_PARSER_ENABLERS">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PRE_PSG_LOGIC_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CG_LOGIC_ENABLE">
+                    <Access>
+                        <Register GroupName="EGRESS_DEVICE_CFG_PARSER_ENABLERS">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CG_LOGIC_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                
+                <Field Name="PPMC_ACCESS_ENABLE">
+                    <Access>
+                        <Register GroupName="EGRESS_DEVICE_CFG_PARSER_ENABLERS">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PPMC_ACCESS_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>   
+                       
+                <Field Name="NO_GLEM_ACCESS_USE_GLOBAL_OUTLIF">
+                    <Access>
+                        <Register Name="ERPP_CFG_GLEM_VALID_AND_NOT_FOUNDr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="NO_GLEM_ACCESS_USE_GLOBAL_OUTLIFf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="FTMH_PACKET_SIZE_REMOVE_CRC">
+                    <Access>
+                        <Register Name="ETPPA_UTILITY_REGSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FTMH_PACKET_SIZE_REMOVE_CRCf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ERPP_UTILITY_REGSr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FTMH_PACKET_SIZE_REMOVE_CRCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FTMH_CRC_COMPENSATION">
+                    <Access>
+                        <Register Name="ERPP_DEVICE_CFG_BTRr">
+                            <HwField Name="DEVICE_CFG_BTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_SELECTED_GLOBAL_OUTLIFS">
+        <OneLineDescription>A configuration table for the Selected OutLif</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="INDEX" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Decision for OutLif 0" Name="OUTLIF_0_DECISION" Type="BOOL"/>
+                <Field Description="Decision for OutLif 1" Name="OUTLIF_1_DECISION" Size="2" Type="UINT"/>
+                <Field Description="Decision for OutLif 2" Name="OUTLIF_2_DECISION" Size="2" Type="UINT"/>
+                <Field Description="Decision for OutLif 3" Name="OUTLIF_3_DECISION" Size="2" Type="UINT"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OUTLIF_0_DECISION">
+                    <Access>
+                        <Register Name="ETPPA_CFG_OUTLIF_SELECTEDr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_OUTLIF_SELECTEDm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OUTLIF_0_DECISIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTLIF_1_DECISION">
+                    <Access>
+                        <Register Name="ETPPA_CFG_OUTLIF_SELECTEDr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+#RESULT_SIZE(OUTLIF_0_DECISION)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_OUTLIF_SELECTEDm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OUTLIF_1_DECISIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTLIF_2_DECISION">
+                    <Access>
+                        <Register Name="ETPPA_CFG_OUTLIF_SELECTEDr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+#RESULT_SIZE(OUTLIF_0_DECISION)+#RESULT_SIZE(OUTLIF_1_DECISION)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_OUTLIF_SELECTEDm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OUTLIF_2_DECISIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTLIF_3_DECISION">
+                    <Access>
+                        <Register Name="ETPPA_CFG_OUTLIF_SELECTEDr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+#RESULT_SIZE(OUTLIF_0_DECISION)+#RESULT_SIZE(OUTLIF_1_DECISION)+#RESULT_SIZE(OUTLIF_2_DECISION)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_CFG_OUTLIF_SELECTEDm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OUTLIF_3_DECISIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="EGRESS_SYSTEM_HEADERS_LIF_EXTENSION">
+        <OneLineDescription>A configuration table for the ARR</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="LIF_EXTENSION_TYPE"/>
+            </Key>
+            <Result>
+                <Field Description="Outlif Extension 1 Configuration Value" Name="OUTLIF_EXTENSION_1_CONFIG" Size="12" Type="UINT"/>
+                <Field Description="Outlif Extension 2 Configuration Value" Name="OUTLIF_EXTENSION_2_CONFIG" Size="12" Type="UINT"/>
+                <Field Description="Outlif Extension 3 Configuration Value" Name="OUTLIF_EXTENSION_3_CONFIG" Size="12" Type="UINT"/>
+                <Field Description="Inlif Extension 1 Configuration Value" Name="INLIF_EXTENSION_1_CONFIG" Size="12" Type="UINT"/>
+                <Field Description="Inlif Extension Profile 1 Configuration Value" Name="INLIF_EXTENSION_1_PROFILE_CONFIG" Size="11" Type="UINT"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="OUTLIF_EXTENSION_1_CONFIG"> 
+                    <Access>
+                        <Memory GroupName="EGRESS_LIF_EXTENSION_FORMAT_CFG"> 
+                            <HwField Name="OUTLIF_EXT_1_CONFIGf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTLIF_EXTENSION_2_CONFIG"> 
+                    <Access>
+                        <Memory GroupName="EGRESS_LIF_EXTENSION_FORMAT_CFG"> 
+                            <HwField Name="OUTLIF_EXT_2_CONFIGf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTLIF_EXTENSION_3_CONFIG"> 
+                    <Access>
+                        <Memory GroupName="EGRESS_LIF_EXTENSION_FORMAT_CFG"> 
+                            <HwField Name="OUTLIF_EXT_3_CONFIGf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INLIF_EXTENSION_1_CONFIG"> 
+                    <Access>
+                        <Memory GroupName="EGRESS_LIF_EXTENSION_FORMAT_CFG"> 
+                            <HwField Name="INLIF_EXT_1_CONFIGf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INLIF_EXTENSION_1_PROFILE_CONFIG"> 
+                    <Access>
+                        <Memory GroupName="EGRESS_LIF_EXTENSION_FORMAT_CFG"> 
+                            <HwField Name="INLIF_EXT_1_PROFILE_CONFIGf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_EEDB_TYPE_VSD_ENABLE">
+        <OneLineDescription>A configuration table for EES Type per VSD Lookup</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="EEDB_TYPE_VSD_ENABLE"/>
+            </Key>
+            <Result>
+                <Field Description="Enable VSD lookup" Name="VSD_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VSD_ENABLE">
+                    <Access>
+                        <Register Name="ETPPC_CFG_EES_TYPE_VALID_FOR_VSDr">
+                            <HwField Name="CFG_EES_TYPE_VALID_FOR_VSDf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register> 
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="EGRESS_EEDB_TYPE_SVTAG_ENABLE" Valid="DNX_DATA.switch.svtag.supported">
+        <OneLineDescription>A configuration table for EES Type per SVTAG indication</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="EEDB_TYPE_SVTAG_ENABLE"/>
+            </Key>
+            <Result>
+                <Field Description="Enable SVTAG Indication" Name="SVTAG_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SVTAG_ENABLE">
+                    <Access>
+                        <Register Name="ETPPB_ETPS_TYPE_IS_MACSECr">
+                            <HwField Name="ETPS_TYPE_IS_MACSECf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register> 
+                    </Access>
+                    <Access>
+                        <Register Name="ETPPC_ETPS_TYPE_IS_MACSECr">
+                            <HwField Name="ETPS_TYPE_IS_MACSECf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register> 
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="EGRESS_PER_LAYER_PROTOCOL">
+        <OneLineDescription>Egress Parser Protocols Configurations Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="LAYER_TYPES"/>
+            </Key>
+            <Result>
+                <Field Name="PROTOCOL_IPV4_ENABLE" Type="BOOL"/>
+                <Field Name="PROTOCOL_IPV6_ENABLE" Type="BOOL"/>
+                <Field Name="PROTOCOL_MPLS_ENABLE" Type="BOOL"/>
+                <Field Name="PROTOCOL_OAM_ENABLE" Type="BOOL"/>
+                <Field Name="PROTOCOL_TCP_ENABLE" Type="BOOL"/>
+                <Field Name="PROTOCOL_UDP_ENABLE" Type="BOOL"/>
+                <Field Name="ERPP_1ST_PARSER_PARSER_CONTEXT"/>
+                <Field Name="EGRESS_PARSING_CONTEXT" Type="ERPP_1ST_PARSER_PARSER_CONTEXT"/>
+            </Result>
+            <TableLabels>OAM L2 L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PROTOCOL_IPV4_ENABLE">
+                    <Access>
+                        <Register GroupName="ETPP_CFG_LAYER_PROTOCOL_IPV4">
+                            <HwField Name="CFG_LAYER_PROTOCOL_IPV4f"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="PROTOCOL_IPV6_ENABLE">
+                    <Access>
+                        <Register GroupName="ETPP_CFG_LAYER_PROTOCOL_IPV6">
+                            <HwField Name="CFG_LAYER_PROTOCOL_IPV6f"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="PROTOCOL_MPLS_ENABLE">
+                    <Access>
+                        <Register GroupName="ETPP_CFG_LAYER_PROTOCOL_MPLS">
+                            <HwField Name="CFG_LAYER_PROTOCOL_MPLSf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="PROTOCOL_OAM_ENABLE">
+                    <Access>
+                        <Register Name="ETPPC_CFG_LAYER_PROTOCOL_OAMr">
+                            <HwField Name="CFG_LAYER_PROTOCOL_OAMf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="PROTOCOL_TCP_ENABLE">
+                    <Access>
+                        <Register Name="ERPP_CFG_PROTOCOL_IS_TCPr">
+                            <HwField Name="CFG_PROTOCOL_IS_TCPf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="PROTOCOL_UDP_ENABLE">
+                    <Access>
+                        <Register Name="ERPP_CFG_PROTOCOL_IS_UDPr">
+                            <HwField Name="CFG_PROTOCOL_IS_UDPf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ERPP_1ST_PARSER_PARSER_CONTEXT">
+                    <Access>
+                        <Memory GroupName="EGRESS_PARSING_START_TYPE_MAPPING_TABLE">
+                            <HwField Name="PARSING_START_TYPE_MAPPING_TABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_PARSING_CONTEXT">
+                    <Access>
+                        <Memory GroupName="EGRESS_FHEI_MPLS_UPPER_LAYER_PROTOCOL_TO_PES_MAPPING_TABLE">
+                            <HwField Name="FHEI_MPLS_UPPER_LAYER_PROTOCOL_TO_PES_MAPPING_TABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_PARSING_CONTEXT_MAP_JR1_MODE">
+        <OneLineDescription>Egress Parser Protocols Configurations Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="JR_FWD_CODE"/>
+            </Key>
+            <Result>
+                <Field Name="ERPP_1ST_PARSER_PARSER_CONTEXT"/>
+            </Result>
+            <TableLabels>OAM L2 L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ERPP_1ST_PARSER_PARSER_CONTEXT">
+                    <Access>
+                        <Memory GroupName="EGRESS_PARSING_START_TYPE_MAPPING_TABLE">
+                            <HwField Name="PARSING_START_TYPE_MAPPING_TABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_EEDB_GLOBAL">
+        <OneLineDescription>Egress EEDB General Configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Number of RIFs" Name="NOF_RIFS" Size="18" Type="UINT"/>
+                <Field Name="LOCAL_OUTLIF_SIZE_IN_BITS" Size="5" Type="UINT"/>
+                <Field Name="OUTLIF_PROFILE_SIZE_IN_BITS" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="NOF_RIFS">
+                    <Access>
+                        <Register Name="ETPPA_CFG_RIF_MAX_VALUEr">
+                            <HwField Name="CFG_RIF_MAX_VALUEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ETPPA_OUTRIF_MAX_VALUEr">
+                            <HwField Name="OUTRIF_MAX_VALUEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ERPP_CFG_OUTRIF_MAX_VALUEr">
+                            <HwField Name="CFG_OUTRIF_MAX_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LOCAL_OUTLIF_SIZE_IN_BITS">
+                    <Access>
+                        <Register Name="ERPP_CFG_LOCAL_OUTLIF_WIDTHr">
+                            <HwField Name="CFG_LOCAL_OUTLIF_WIDTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OUTLIF_PROFILE_SIZE_IN_BITS">
+                    <Access>
+                        <Register Name="ERPP_CFG_OUTLIF_PROFILE_WIDTHr">
+                            <HwField Name="CFG_OUTLIF_PROFILE_WIDTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_SYSTEM_HEADER_GENERATION_TABLE">
+        <OneLineDescription>A configuration table for the System Headers Generation</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SYS_HDR_GENERATION_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Description="System Header bytes to add" Name="BYTES_TO_ADD" Size="6" Type="UINT"/>
+            </Result>
+            
+        <TableLabels/>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="BYTES_TO_ADD">
+                    <Access>
+                        <Register Name="ETPPB_CFG_TRAP_BYTES_TO_ADDr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+     <AppDB Name="EGRESS_GLOBAL_INLIF_RESOLUTION">
+         <OneLineDescription>A configuration table Global Inlif resolution</OneLineDescription>
+         <AccessMethod>HARD_LOGIC</AccessMethod>
+         <Maturity Level="HIGH"/>
+         <AppDbInterface Type="DIRECT">
+             <Key>
+                 <Field Name="SYSTEM_HEADERS_MODE" Size="1"/>
+                 <Field Description="If true the forwarding code is IPVX MC" Name="IS_FORWARD_CODE_IPVX_MC" Type="BOOL"/>
+             </Key>
+             <Result>
+                 <Field Name="INLIF_DECISION_0"/>
+                 <Field Name="INLIF_DECISION_1"/>
+             </Result>
+             <TableLabels>L2 L3 MPLS</TableLabels>
+         </AppDbInterface>
+         <AppToPhyDbMapping>
+             <CoreMode Mode="SBC"/>
+             <FieldMapping>
+                 <Field Name="INLIF_DECISION_0">
+                     <Access>
+                         <KeyCondition Type="IS_EVEN"/>
+                         <Register Name="ETPPA_CFG_INLIF_SELECTEDr">
+                             <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+#FULL_RESULT_SIZE()"/>
+                         </Register>
+                     </Access>
+                     <Access>
+                         <KeyCondition Type="IS_ODD"/>
+                         <Register Name="ETPPA_CFG_INLIF_SELECTEDr">
+                             <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()-#FULL_RESULT_SIZE()"/>
+                         </Register>
+                     </Access>
+                     <Access>
+                         <KeyCondition Type="IS_EVEN"/>
+                         <Memory Name="ERPP_CFG_INLIF_SELECTEDm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+1"/>
+                            <HwField Name="INLIF_0_DECISIONf"/>
+                         </Memory>
+                     </Access>
+                     <Access>
+                         <KeyCondition Type="IS_ODD"/>
+                         <Memory Name="ERPP_CFG_INLIF_SELECTEDm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()-1"/>
+                            <HwField Name="INLIF_0_DECISIONf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="INLIF_DECISION_1">
+                     <Access>
+                         <KeyCondition Type="IS_EVEN"/>
+                         <Register Name="ETPPA_CFG_INLIF_SELECTEDr">
+                             <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+#FULL_RESULT_SIZE()+#RESULT_SIZE(INLIF_DECISION_0)"/>
+                         </Register>
+                     </Access>
+                     <Access>
+                         <KeyCondition Type="IS_ODD"/>
+                         <Register Name="ETPPA_CFG_INLIF_SELECTEDr">
+                             <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()-#FULL_RESULT_SIZE()+#RESULT_SIZE(INLIF_DECISION_0)"/>
+                         </Register>
+                     </Access>
+                     <Access>
+                         <KeyCondition Type="IS_EVEN"/>
+                         <Memory Name="ERPP_CFG_INLIF_SELECTEDm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+1"/>
+                            <HwField Name="INLIF_1_DECISIONf"/>
+                         </Memory>
+                     </Access>
+                     <Access>
+                         <KeyCondition Type="IS_ODD"/>
+                         <Memory Name="ERPP_CFG_INLIF_SELECTEDm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()-1"/>
+                            <HwField Name="INLIF_1_DECISIONf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+             </FieldMapping>
+         </AppToPhyDbMapping>
+     </AppDB>
+
+    <AppDB Name="EGRESS_TUNNEL_ADD_HEADERS_PROF_MPLS_MAP">
+         <OneLineDescription>A configuration table for MPLS contexts for the Additional Headers Profile</OneLineDescription>
+         <AccessMethod>HARD_LOGIC</AccessMethod>
+         <Maturity Level="HIGH"/>
+         <AppDbInterface Type="DIRECT">
+             <Key>
+                 <Field Name="CTX_ADDITIONAL_HEADER_PROFILE"/>
+                 <Field Name="LIF_AHP_MPLS"/>
+             </Key>
+             <Result>
+                 <Field Name="ETPP_ADDITIONAL_HEADER_PROFILE_STACK_ATTRIBUTES"/>
+             </Result>
+             <TableLabels>L3 MPLS</TableLabels>
+         </AppDbInterface>
+         <AppToPhyDbMapping> 
+             <CoreMode Mode="SBC"/> 
+             <FieldMapping>
+                 <Field Name="ETPP_ADDITIONAL_HEADER_PROFILE_STACK_ATTRIBUTES"> 
+                     <Access>
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_PROFILE_MAP">
+                            <HwField Name="ADDITIONAL_HEADERS_PROFILEf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+             </FieldMapping>
+         </AppToPhyDbMapping>
+     </AppDB>
+
+    <AppDB Name="EGRESS_TUNNEL_ADD_HEADERS_PROF_UDP_MAP">
+         <OneLineDescription>A configuration table for UDP contexts for the Additional Headers Profile</OneLineDescription>
+         <AccessMethod>HARD_LOGIC</AccessMethod>
+         <Maturity Level="HIGH"/>
+         <AppDbInterface Type="DIRECT">
+             <Key>
+                 <Field ConstValue="CTX_AHP_UDP" Name="CTX_ADDITIONAL_HEADER_PROFILE"/>
+                 <Field Name="LIF_AHP_UDP"/>
+             </Key>
+             <Result>
+                 <Field Name="ETPP_ADDITIONAL_HEADER_PROFILE_STACK_ATTRIBUTES"/>
+             </Result>
+             <TableLabels>L3 MPLS</TableLabels>
+         </AppDbInterface>
+         <AppToPhyDbMapping> 
+             <CoreMode Mode="SBC"/> 
+             <FieldMapping>
+                 <Field Name="ETPP_ADDITIONAL_HEADER_PROFILE_STACK_ATTRIBUTES"> 
+                     <Access>
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_PROFILE_MAP">
+                            <HwField Name="ADDITIONAL_HEADERS_PROFILEf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+             </FieldMapping>
+         </AppToPhyDbMapping>
+     </AppDB>
+
+    <AppDB Name="EGRESS_TUNNEL_ADD_HEADERS_PROF_GRE_GENEVE_MAP">
+         <OneLineDescription>A configuration table for GRE/GENEVE contexts for the Additional Headers Profile</OneLineDescription>
+         <AccessMethod>HARD_LOGIC</AccessMethod>
+         <Maturity Level="HIGH"/>
+         <AppDbInterface Type="DIRECT">
+             <Key>
+                 <Field ConstValue="CTX_AHP_GRE_OR_GENEVE" Name="CTX_ADDITIONAL_HEADER_PROFILE"/>
+                 <Field Name="LIF_AHP_GRE_GENEVE"/>
+             </Key>
+             <Result>
+                 <Field Name="ETPP_ADDITIONAL_HEADER_PROFILE_STACK_ATTRIBUTES"/>
+             </Result>
+             <TableLabels>L3 MPLS</TableLabels>
+         </AppDbInterface>
+         <AppToPhyDbMapping> 
+             <CoreMode Mode="SBC"/> 
+             <FieldMapping>
+                 <Field Name="ETPP_ADDITIONAL_HEADER_PROFILE_STACK_ATTRIBUTES"> 
+                     <Access>
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_PROFILE_MAP">
+                            <HwField Name="ADDITIONAL_HEADERS_PROFILEf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+             </FieldMapping>
+         </AppToPhyDbMapping>
+     </AppDB>
+
+    <AppDB Name="EGRESS_TUNNEL_ADD_HEADERS_PROF_VXLAN_MAP">
+         <OneLineDescription>A configuration table for VxLAN and VxLAN_GPE contexts for the Additional Headers Profile</OneLineDescription>
+         <AccessMethod>HARD_LOGIC</AccessMethod>
+         <Maturity Level="HIGH"/>
+         <AppDbInterface Type="DIRECT">
+             <Key>
+                 <Field ConstValue="CTX_AHP_VXLAN_OR_VXLAN_GPE" Name="CTX_ADDITIONAL_HEADER_PROFILE"/>
+                 <Field Name="LIF_AHP_VXLAN_VXLAN_GPE"/>
+             </Key>
+             <Result>
+                 <Field Name="ETPP_ADDITIONAL_HEADER_PROFILE_STACK_ATTRIBUTES"/>
+             </Result>
+             <TableLabels>L3 MPLS</TableLabels>
+         </AppDbInterface>
+         <AppToPhyDbMapping> 
+             <CoreMode Mode="SBC"/> 
+             <FieldMapping>
+                 <Field Name="ETPP_ADDITIONAL_HEADER_PROFILE_STACK_ATTRIBUTES"> 
+                     <Access>
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_PROFILE_MAP">
+                            <HwField Name="ADDITIONAL_HEADERS_PROFILEf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+             </FieldMapping>
+         </AppToPhyDbMapping>
+     </AppDB>
+
+    <AppDB Name="EGRESS_CURRENT_NEXT_PROTOCOL_MAP_TABLE">
+         <OneLineDescription>A configuration table for Current Next Protocol</OneLineDescription>
+         <AccessMethod>HARD_LOGIC</AccessMethod>
+         <Maturity Level="HIGH"/>
+         <AppDbInterface Type="DIRECT">
+             <Key>
+                 <Field Name="CURRENT_PROTOCOL_TYPE"/>
+                 <Field Name="NEXT_PROTOCOL_NAMESPACE" Type="ETPP_NEXT_PROTOCOL_NAMESPACE"/>
+             </Key>
+             <Result>
+                 <Field Name="CURRENT_NEXT_PROTOCOL"/>
+             </Result>
+             <TableLabels>L3 MPLS</TableLabels>
+         </AppDbInterface>
+         <AppToPhyDbMapping> 
+             <CoreMode Mode="SBC"/> 
+             <FieldMapping>
+                 <Field Name="CURRENT_NEXT_PROTOCOL"> 
+                     <Access>
+                         <Memory GroupName="ETPP_CURRENT_NEXT_PROTOCOL_MAP">
+                            <HwField Name="CURRENT_NEXT_PROTOCOLf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+             </FieldMapping>
+         </AppToPhyDbMapping>
+     </AppDB>
+     
+     <AppDB Name="EGRESS_ESEM_GLOBAL">
+         <OneLineDescription>A configuration table for ESEM general configuration</OneLineDescription>
+         <AccessMethod>HARD_LOGIC</AccessMethod>
+         <Maturity Level="HIGH"/>
+         <AppDbInterface Type="DIRECT">
+             <Key>
+                 <Field Name="EEDB_TYPE_EM_BUSTER"/>
+             </Key>
+             <Result>
+                 <Field Name="EM_BUSTER_ENABLE" Size="1" Type="BOOL"/>
+             </Result>
+             <TableLabels>L3</TableLabels>
+         </AppDbInterface>
+         <AppToPhyDbMapping>
+             <CoreMode Mode="SBC"/>
+             <FieldMapping>
+                 <Field Name="EM_BUSTER_ENABLE">
+                     <Access>
+                         <Register Name="ETPPC_CFG_ENTRY_IS_EM_BUSTERr">
+                             <HwField Name="CFG_ENTRY_IS_EM_BUSTERf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                         </Register>
+                     </Access>
+                 </Field>
+             </FieldMapping>
+         </AppToPhyDbMapping>
+     </AppDB>
+     
+    <AppDB Name="EGRESS_ADDITIONAL_HEADERS_MAP_TABLE">
+         <OneLineDescription>A configuration table for the Egress Main and Additional Headers Mapping</OneLineDescription>
+         <AccessMethod>HARD_LOGIC</AccessMethod>
+         <Maturity Level="HIGH"/>
+         <AppDbInterface Type="DIRECT">
+             <Key>
+                 <Field Name="ETPP_ADDITIONAL_HEADER_PROFILE_STACK_ATTRIBUTES"/>
+             </Key>
+             <Result>
+                 <Field Description="Enable starting of the next protocol" Name="START_CURRENT_NEXT_PROTOCOL_ENABLE" NofInstances="4" Size="1" Type="BOOL"/>
+                 <Field Description="Next Protocol Information" Name="START_CURRENT_NEXT_PROTOCOL" NofInstances="4" Size="16" Type="UINT"/>
+                 <Field Description="Enable additional Header packet size" Name="ADDITIONAL_HEADERS_PACKET_SIZE_ENABLE" NofInstances="4" Size="1" Type="BOOL"/>
+                 <Field Description="Additional Header Packet Size in bytes" Name="ADDITIONAL_HEADERS_PACKET_SIZE" NofInstances="4" Size="8" Type="UINT"/>
+                 <Field Name="ADDITIONAL_HEADER_SPECIFIC_INFORMATION" NofInstances="3" Size="39"/>
+             </Result>
+             <TableLabels>L3</TableLabels>
+         </AppDbInterface>
+         <AppToPhyDbMapping>
+             <CoreMode Mode="SBC"/>
+             <FieldMapping>
+                 <Field Name="START_CURRENT_NEXT_PROTOCOL_ENABLE">
+                     <Access instanceIndex="0">
+                         <Memory GroupName="ETTP_MAIN_HEADER_MAP_TABLE">
+                             <HwField Name="SET_START_CURRENT_NEXT_PROTOCOLf"/>
+                         </Memory>
+                     </Access>
+                     <Access instanceIndex="1">
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_0">
+                             <HwField Name="SET_START_CURRENT_NEXT_PROTOCOLf"/>
+                         </Memory>
+                     </Access>
+                     <Access instanceIndex="2">
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_1">
+                             <HwField Name="SET_START_CURRENT_NEXT_PROTOCOLf"/>
+                         </Memory>
+                     </Access>
+                     <Access instanceIndex="3">
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_2">
+                             <HwField Name="SET_START_CURRENT_NEXT_PROTOCOLf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="START_CURRENT_NEXT_PROTOCOL">
+                     <Access instanceIndex="0">
+                         <Memory GroupName="ETTP_MAIN_HEADER_MAP_TABLE">
+                             <HwField Name="START_CURRENT_NEXT_PROTOCOLf"/>
+                         </Memory>
+                     </Access>
+                     <Access instanceIndex="1">
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_0">
+                             <HwField Name="START_CURRENT_NEXT_PROTOCOLf"/>
+                         </Memory>
+                     </Access>
+                     <Access instanceIndex="2">
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_1">
+                             <HwField Name="START_CURRENT_NEXT_PROTOCOLf"/>
+                         </Memory>
+                     </Access>
+                     <Access instanceIndex="3">
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_2">
+                             <HwField Name="START_CURRENT_NEXT_PROTOCOLf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="ADDITIONAL_HEADERS_PACKET_SIZE_ENABLE">
+                     <Access instanceIndex="0">
+                         <Memory GroupName="ETTP_MAIN_HEADER_MAP_TABLE">
+                             <HwField Name="ADD_ADITIONAL_HEADERS_PACKET_SIZEf"/>
+                         </Memory>
+                     </Access>
+                     <Access instanceIndex="1">
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_0">
+                             <HwField Name="ADD_ADITIONAL_HEADERS_PACKET_SIZEf"/>
+                         </Memory>
+                     </Access>
+                     <Access instanceIndex="2">
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_1">
+                             <HwField Name="ADD_ADITIONAL_HEADERS_PACKET_SIZEf"/>
+                         </Memory>
+                     </Access>
+                     <Access instanceIndex="3">
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_2">
+                             <HwField Name="ADD_ADITIONAL_HEADERS_PACKET_SIZEf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="ADDITIONAL_HEADERS_PACKET_SIZE">
+                     <Access instanceIndex="0">
+                         <Memory GroupName="ETTP_MAIN_HEADER_MAP_TABLE">
+                             <HwField Name="ADDITIONAL_HEADERS_PACKET_SIZE_IN_BYTESf"/>
+                         </Memory>
+                     </Access>
+                     <Access instanceIndex="1">
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_0">
+                             <HwField Name="ADDITIONAL_HEADERS_PACKET_SIZE_IN_BYTESf"/>
+                         </Memory>
+                     </Access>
+                     <Access instanceIndex="2">
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_1">
+                             <HwField Name="ADDITIONAL_HEADERS_PACKET_SIZE_IN_BYTESf"/>
+                         </Memory>
+                     </Access>
+                     <Access instanceIndex="3">
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_2">
+                             <HwField Name="ADDITIONAL_HEADERS_PACKET_SIZE_IN_BYTESf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="ADDITIONAL_HEADER_SPECIFIC_INFORMATION">
+                     <Access Size="35" instanceIndex="0">
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_0">
+                             <HwField Name="PROTOCOL_SPECIFIC_INFORMATIONf"/>
+                         </Memory>
+                     </Access>                 
+                     <Access Offset="35" Size="4" instanceIndex="0">
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_0">
+                             <HwField Name="ADDITIONAL_HEADERS_TYPEf"/>
+                         </Memory>
+                     </Access>
+                     <Access Size="35" instanceIndex="1">
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_1">
+                             <HwField Name="PROTOCOL_SPECIFIC_INFORMATIONf"/>
+                         </Memory>
+                     </Access>                     
+                     <Access Offset="35" Size="4" instanceIndex="1">
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_1">
+                             <HwField Name="ADDITIONAL_HEADERS_TYPEf"/>
+                         </Memory>
+                     </Access>
+                     <Access Size="35" instanceIndex="2">
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_2">
+                             <HwField Name="PROTOCOL_SPECIFIC_INFORMATIONf"/>
+                         </Memory>
+                     </Access>                     
+                     <Access Offset="35" Size="4" instanceIndex="2">
+                         <Memory GroupName="ETPP_ADDITIONAL_HEADERS_MAP_TABLE_2">
+                             <HwField Name="ADDITIONAL_HEADERS_TYPEf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+             </FieldMapping>
+         </AppToPhyDbMapping>
+     </AppDB>
+
+    <AppDB Name="EGRESS_FORWARDING_ADDITIONAL_INFO">
+        <OneLineDescription>Egress forwarding additional info (FAI) configuration table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FORWARDING_ADDITIONAL_INFO"/>
+            </Key>
+            <Result>
+                <Field Description="Specify if value eligible for ipmc fallback to bridge" Name="IPMC_ELIGIBLE_MAPPING" Type="BOOL"/>
+                <Field Description="Forwarding layer plus one header remark ingress profile" Name="FWD_PLUS_1_REMARK_INGRESS_PROFILE" Size="2" Type="QOS_FORWARD_P1_REMARK_PROFILE"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IPMC_ELIGIBLE_MAPPING">
+                    <Access>
+                        <Register GroupName="EGRESS_FWD_LAYER_ADDITIONAL_INFO_TO_IP_MC_ELIGIBLE_MAPPING">
+                            <HwField Name="FWD_LAYER_ADDITIONAL_INFO_TO_IP_MC_ELIGIBLE_MAPPINGf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FWD_PLUS_1_REMARK_INGRESS_PROFILE">
+                    <Access>
+                        <Register Name="ETPPC_CFG_MAP_FWD_PLUS_1_REMARK_PROFILEr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#RESULT_SIZE(FWD_PLUS_1_REMARK_INGRESS_PROFILE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_SAME_INTERFACE_FILTER">
+        <OneLineDescription>Same interface filtering table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FWD_CONTEXT_SAME_INTERFACE_FILTER" Size="2"/>
+                <Field Name="OUT_LIF_SAME_INTERFACE_FILTER" Size="2"/>
+                <Field Description="Indicates the inlif is equal to the outlif" Name="LIFS_EQUAL" Type="BOOL"/>
+                <Field Description="Indicates the outlif is Port" Name="OUTLIF_IS_PORT" Type="BOOL"/>
+                <Field Description="Indicates the inlif is Port" Name="INLIF_IS_PORT" Type="BOOL"/>
+                <Field Description="Indicates the source and destination ports are equal" Name="SYS_PORT_EQUAL" Type="BOOL"/>
+                <Field Name="IN_LIF_SAME_INTERFACE_FILTER" Size="2"/>
+            </Key>
+            <Result>
+                <Field Description="Same interface filter is being enabled" Name="SAME_INTERFACE_FILTER_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>PP_PORT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+          <CoreMode Mode="SBC"/>
+          <FieldMapping>
+                <Field Name="SAME_INTERFACE_FILTER_ENABLE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_SAME_INTERFACE_FILTERm">
+                              <EntryOffset Formula="#FULL_KEY_VALUE()/32"/>
+                              <HwField Name="CFG_SAME_INTERFACE_FILTERf"/>
+                              <DataOffset Formula="#FULL_KEY_VALUE()%32"/>
+                        </Memory>
+                     </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ERPP_FWD_CONTEXT">
+         <OneLineDescription>Forward Context Mapping - it maps the the fwd_context to same_if_filter and mtu_profile</OneLineDescription>
+         <AccessMethod>HARD_LOGIC</AccessMethod>
+         <Maturity Level="HIGH"/>
+         <AppDbInterface Type="DIRECT">
+             <Key>
+                 <Field Name="EGRESS_FWD_CODE"/>
+             </Key>
+             <Result>
+                 <Field Name="FWD_CONTEXT_SAME_INTERFACE_FILTER"/>
+                 <Field Description="Used to map the MTU Profile per fwd context" Name="MTU_PROFILE" Size="3"/>
+                 <Field Description="It use to map the fwd_context to inlif_profile in J-Mode" Name="IN_LIF_PROFILE_JER_MODE" Size="3" Type="UINT"/>
+                 <!-- <Field Name="TRAP_ACTION_PROFILE"/> -->
+             </Result>
+             <TableLabels>L3</TableLabels>
+         </AppDbInterface>
+         <AppToPhyDbMapping>
+             <CoreMode Mode="SBC"/>
+             <FieldMapping>
+                 <Field Name="FWD_CONTEXT_SAME_INTERFACE_FILTER">
+                     <Access>
+                         <Memory Name="ERPP_CFG_MAPPING_FWD_CONTEXTm">
+                             <HwField Name="SAME_IF_FILTERf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="MTU_PROFILE">
+                     <Access>
+                         <Memory Name="ERPP_CFG_MAPPING_FWD_CONTEXTm">
+                             <HwField Name="MTU_PROFILEf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="IN_LIF_PROFILE_JER_MODE">
+                     <Access>
+                         <Memory Name="ERPP_CFG_MAPPING_FWD_CONTEXTm">
+                             <HwField Name="INLIF_PROFILE_MAPf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+             </FieldMapping>
+         </AppToPhyDbMapping>
+     </AppDB>
+
+    <AppDB Name="ERPP_FWD_CONTEXT_FILTER">
+         <OneLineDescription>ERPP Filter per Forwarding Context Table</OneLineDescription>
+         <AccessMethod>HARD_LOGIC</AccessMethod>
+         <Maturity Level="HIGH"/>
+         <AppDbInterface Type="DIRECT">
+             <Key>
+                 <Field Name="EGRESS_FWD_CODE"/>
+             </Key>
+             <Result>
+                 <Field Description="Enable TDM Indication per fwd context" Name="TDM_DISCARD" Type="BOOL"/>
+                 <Field Description="Enable RQP Discard per fwd context" Name="RQP_DISCARD" Type="BOOL"/>
+                 <Field Description="Enable Invalid OTM per fwd context" Name="INVALID_OTM" Type="BOOL"/>
+                 <Field Description="Enable DSS Stacking per fwd context" Name="DSS_STACKING" Type="BOOL"/>
+                 <Field Description="Enable LAG Multicast per fwd context" Name="LAG_MULTICAST" Type="BOOL"/>
+                 <Field Description="Enable Exclude Src per fwd context" Name="EXCLUDE_SRC" Type="BOOL"/>
+                 <Field Description="Enable Same interface per fwd context" Name="SAME_INTERFACE" Type="BOOL"/>
+                 <Field Description="Enable Unacceptable frame type per fwd context" Name="UNACCEPTABLE_FRAME_TYPE" Type="BOOL"/>
+                 <Field Description="Enable Unknown DA per fwd context" Name="UNKNOWN_DA" Type="BOOL"/>
+                 <Field Description="Enable Split Horizon per fwd context" Name="SPLIT_HORIZON" Type="BOOL"/>
+                 <Field Description="Enable GLEM PP Trap per fwd context" Name="GLEM_PP_TRAP" Type="BOOL"/>
+                 <Field Description="Enable GLEM NON PP Trap per fwd context" Name="GLEM_NON_PP_TRAP" Type="BOOL"/>
+                 <Field Description="Enable TTL Scoping per fwd context" Name="TTL_SCOPING" Type="BOOL"/>
+                 <Field Description="Enable TTL Zero per fwd context" Name="TTL_ZERO" Type="BOOL"/>
+                 <Field Description="Enable TTL One per fwd context" Name="TTL_ONE" Type="BOOL"/>
+                 <Field Description="Enable MTU Violation per fwd context" Name="MTU_VIOLATION" Type="BOOL"/>
+                 <Field Description="Enable IPV4 Filters per fwd context" Name="IPV4_FILTERS" Type="BOOL" Valid="DNX_DATA.dev_init.general.erpp_filters_non_separate_enablers"/>
+                 <Field Description="Enable IPV6 Filters per fwd context" Name="IPV6_FILTERS" Type="BOOL" Valid="DNX_DATA.dev_init.general.erpp_filters_non_separate_enablers"/>
+                 <Field Description="Enable Layer 4 Filters per fwd context" Name="LAYER_4_FILTERS" Type="BOOL" Valid="DNX_DATA.dev_init.general.erpp_filters_non_separate_enablers"/>
+             </Result>
+             <TableLabels>L3</TableLabels>
+         </AppDbInterface>
+         <AppToPhyDbMapping>
+             <CoreMode Mode="SBC"/>
+             <FieldMapping>
+                 <Field Name="TDM_DISCARD">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_TDM_DISCARD_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="RQP_DISCARD">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_RQP_DISCARD_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="INVALID_OTM">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_INVALID_OTM_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="DSS_STACKING">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_DSS_STACKING_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="LAG_MULTICAST">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_LAG_MULTICAST_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="EXCLUDE_SRC">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_EXCLUDE_SRC_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="SAME_INTERFACE">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_SAME_INTERFACE_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="UNACCEPTABLE_FRAME_TYPE">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_UNACCEPTABLE_FRAME_TYPE_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="UNKNOWN_DA">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_UNKNOWN_DA_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="SPLIT_HORIZON">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_SPLIT_HORIZON_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="GLEM_PP_TRAP">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_GLEM_PP_TRAP_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="GLEM_NON_PP_TRAP">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_GLEM_NON_PP_TRAP_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="TTL_SCOPING">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_TTL_SCOPING_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="TTL_ZERO">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_TTL_ZERO_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="TTL_ONE">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_TTL_ONE_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Name="MTU_VIOLATION">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_MTU_VIOLATION_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0" Name="IPV4_FILTERS">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_IPV4_FILTERS_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Device="JR2_A0 JR2_B0" Name="IPV6_FILTERS">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_IPV6_FILTERS_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="IPV6_FILTERS">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_IPV6_ERR_FILTERS_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+                 <Field Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0" Name="LAYER_4_FILTERS">
+                     <Access>
+                         <Memory Name="ERPP_CFG_ENABLE_FILTER_PER_FWD_CONTEXTm">
+                             <HwField Name="CFG_LAYER_4_FILTERS_PER_FWD_CONTEXTf"/>
+                         </Memory>
+                     </Access>
+                 </Field>
+             </FieldMapping>
+         </AppToPhyDbMapping>
+     </AppDB>
+
+    <AppDB Name="EGRESS_INGRESS_TRAPPED_BY_FHEI">
+        <OneLineDescription>Egress Ingress Trapped by FHEI</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FHEI_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="INGRESS_TRAPPED_BY_FHEI_TYPE" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INGRESS_TRAPPED_BY_FHEI_TYPE">
+                    <Access>
+                        <Register GroupName="EGRESS_INGRESS_TRAPPED_BY_FHEI">
+                            <HwField Name="INGRESS_TRAPPED_BY_FHEIf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

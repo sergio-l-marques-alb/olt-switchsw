@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="fc" bsl_flag="BSL_LS_SOCDNX_GENERAL">
+
+     <includes>
+        <include>bcm_int/dnx/cosq/flow_control/cosq_fc.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_nif.h</include>
+        <include>soc/dnx/intr/auto_generated/q2a/q2a_intr.h</include>
+    </includes>
+
+    <sub_module name="general"  doc="Flow Control general configurations.">
+        <defines>
+            <define name="nof_glb_rsc" value="14"></define>
+            <define name="nof_gen_bmps" value="32"></define>
+            <define name="nof_af_nif_indications" value="DATA(nif,phys,nof_phys)"></define>
+            <!-- Shoud be 52 NIF + 8 FLEXE + 4 CMIC, but NIF DNX Data not ready yet -->
+            <define name="nof_cal_llfcs" value="64"></define>
+            <define name="nof_entries_qmlf" value="16383"></define>
+        </defines>
+        <features>
+            <feature name="fc_to_nif_status" value="1"></feature>
+            <feature name="ilu_fc_status" value="1"></feature>
+            <feature name="inb_ilkn_rx_status" value="1"></feature>
+            <feature name="glb_res_lp_to_llfc" value="1"></feature>
+            <feature name="vsqd_to_llfc_pfc" value="1"></feature>
+            <feature name="oob_tx_reset" value="0"></feature>
+            <feature name="additional_enablers" value="1"></feature>
+            <feature name="ilkn_inb_llfc" value="1"></feature>
+            <feature name="flexe_flow_control" value="1"></feature>
+            <feature name="glb_rsc_oob_en" value="0"></feature>
+            <feature name="cat2_oob_en" value="0"></feature>
+            <feature name="pfc_rec_cdu_shift" value="0"></feature>
+            <feature name="pfc_status_regs_double_read" value="0"></feature>
+            <feature name="ilkn_oob_fast_llfc" value="0"></feature>
+            <feature name="pp_inb_enable" value="1"></feature>
+            <feature name="fc_from_llfc_vsq_status_sel" value="1"></feature>
+            <feature name="if_2_cfc_enablers" value="0"></feature>
+            <feature name="ilkn_oob_en" value="1"></feature>
+            <feature name="ilkn_polarity_set" value="1"></feature>
+        </features>
+    </sub_module>
+
+    <sub_module name="coe"  doc="Flow Control COE general configurations.">
+        <defines>
+            <define name="nof_coe_cal_instances" value="1"></define>
+            <define name="nof_supported_vlan_ids" value="4096"></define>
+            <define name="nof_coe_vid_mask_width" value="10"></define>
+            <define name="nof_coe_vid_right_shift_width" value="4"></define>
+            <define name="max_coe_ticks" value="1048575"></define>
+        </defines>
+        <tables>
+            <table name="calender_length">
+                <key name="cal_id" size="1"></key>
+                <value name="len" default="256">
+                    <property name="fc_coe_calender_length" skip_is_active_check="true" method="port_range" range_min="1" range_max="256">
+                        <doc>
+                            Flow Control COE RX calender length.
+                        </doc>
+                    </property>
+                </value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="inband"  doc="Flow Control inband general configurations.">
+        <tables>
+            <table name="calender_length">
+                <key name="ilkn_id" size="4"></key>
+                <value name="tx" default="256"></value>
+                <value name="rx" default="256"></value>
+                    <property name="fc_inband_intlkn_calender_length" method="custom">
+                        <doc>
+                            Flow Control In-Band TX calender length.
+                        </doc>
+                    </property>
+            </table>
+            <table name="port">
+                <key name="ilkn_id" size="4"></key>
+                <value name="mode" default="DNX_FC_CAL_MODE_DISABLE">
+                    <property name="fc_inband_intlkn_mode" skip_is_active_check="true" method="port_direct_map">
+                        <map name="0" value="DNX_FC_CAL_MODE_DISABLE"></map>
+                        <map name="1" value="DNX_FC_CAL_MODE_RX_ENABLE"></map>
+                        <map name="2" value="DNX_FC_CAL_MODE_TX_ENABLE"></map>
+                        <map name="3" value="DNX_FC_CAL_MODE_TX_RX_ENABLE"></map>
+                        <doc>
+                            Flow Control InBand(interlaken) port mode. Values:
+                            0x0 for disable, 0x1 for RX, 0x2 for TX, 0x3 for both
+                        </doc>
+                    </property>
+                </value>
+                <value name="llfc_mode" default="DNX_FC_CAL_MODE_DISABLE">
+                    <property name="fc_inband_intlkn_calender_llfc_mode" skip_is_active_check="true" method="port_direct_map">
+                        <map name="0" value="DNX_FC_INB_ILKN_CAL_LLFC_MODE_DISABLE"></map>
+                        <map name="1" value="DNX_FC_INB_ILKN_CAL_LLFC_MODE_CH_0_ONLY"></map>
+                        <map name="2" value="DNX_FC_INB_ILKN_CAL_LLFC_MODE_EVERY_16_CH"></map>
+                        <doc>
+                            Flow Control Inband ILKN LLFC mode. Values:
+                            0x0 for disable, 0x1 for channel 0 only, 0x2 for every 16th channel
+                        </doc>
+                    </property>
+                </value>
+            </table>
+        </tables>
+        <defines>
+            <define name="nof_inband_intlkn_cal_instances" value="DATA(nif,ilkn,ilkn_if_nof)"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="pfc_deadlock"  doc="PFC Deadlock detection and recovery.">
+        <numerics>
+            <numeric name="cdum_intr_id" value="Q2A_INT_LAST"></numeric>
+            <numeric name="cdu_intr_id" value="Q2A_INT_CDU_PFC_DEADLOCK_BREAKING_MECHANISM_INT"></numeric>
+            <numeric name="clu_intr_id" value="Q2A_INT_CLU_PFC_DEADLOCK_BREAKING_MECHANISM_INT"></numeric>
+        </numerics>
+    </sub_module>
+</device_data>

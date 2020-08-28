@@ -1,0 +1,929 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="SYSTEM_CFG">
+        <OneLineDescription>System configuration per core</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE"/>
+            </Key>
+            <Result>
+                <Field Name="FAP_ID" NofInstances="DNX_DATA.device.general.max_nof_fap_ids_per_core"/>
+                <Field Name="FAP_INDEX" NofInstances="DNX_DATA.device.general.max_nof_fap_ids_per_core" Size="2" Type="UINT" Valid="DNX_DATA.device.general.max_nof_fap_ids_per_core-1"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0 J2P_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FAP_ID">
+                    <Access>
+                        <KeyCondition Field="CORE" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_2r">
+                            <HwField Name="DEV_ID_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CORE" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_2r">
+                            <HwField Name="DEV_ID_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FAP_ID">
+                    <Access instanceIndex="0">
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_2r">
+                            <HwField Name="DEV_ID_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_2r">
+                            <HwField Name="DEV_ID_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_4r">
+                            <HwField Name="DEV_ID_2f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_4r">
+                            <HwField Name="DEV_ID_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FAP_INDEX">
+                    <Access instanceIndex="ALL">
+                        <Register Name="FDA_DEST_ID_2_PORT_EXT_CONFIGr">
+                            <DataOffset Formula="2*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="Q2A_A0 Q2A_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FAP_ID">
+                    <Access>
+                        <KeyCondition Field="CORE" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_2r">
+                            <HwField Name="DEV_ID_0f"/>
+                        </Register>
+                    </Access>                    
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="SYSTEM_CFG_INIT">
+        <OneLineDescription>System configuration per core</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE"/>
+            </Key>
+            <Result>
+                <Field Name="FAP_ID"/>
+                <Field Name="FAP_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.device.general.max_nof_fap_ids_per_core-1"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0 J2P_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FAP_ID">
+                    <Access>
+                        <KeyCondition Field="CORE" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_2r">
+                            <HwField Name="DEV_ID_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CORE" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_2r">
+                            <HwField Name="DEV_ID_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FAP_ID">
+                    <Access>
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_2r">
+                            <HwField Name="DEV_ID_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_2r">
+                            <HwField Name="DEV_ID_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_4r">
+                            <HwField Name="DEV_ID_2f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_4r">
+                            <HwField Name="DEV_ID_3f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FDT_TDM_CONFIGURATIONr">
+                            <HwField Name="TDM_SOURCE_FAP_IDf"/>
+                        </Register>
+                    </Access>
+                 </Field>
+                <Field Name="FAP_INDEX">
+                    <Access>
+                        <Register Name="FDA_DEST_ID_2_PORT_EXT_CONFIGr">
+                            <HwField Name="DEST_2_PORT_ID_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FDA_DEST_ID_2_PORT_EXT_CONFIGr">
+                            <HwField Name="DEST_2_PORT_ID_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FDA_DEST_ID_2_PORT_EXT_CONFIGr">
+                            <HwField Name="DEST_2_PORT_ID_2f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FDA_DEST_ID_2_PORT_EXT_CONFIGr">
+                            <HwField Name="DEST_2_PORT_ID_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="Q2A_A0 Q2A_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FAP_ID">
+                    <Access>
+                        <KeyCondition Field="CORE" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_2r">
+                            <HwField Name="DEV_ID_0f"/>
+                        </Register>
+                    </Access>                    
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="SYSTEM_SYSPORT_MODPORT_MAP">
+        <OneLineDescription>Map destination system port to destination fap id and FTMH PP DSP</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="DST_SYS_PORT_ID" Size="15" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="FAP_ID"/>
+                <Field Name="FTMH_PP_DSP"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="FAP_ID">
+                    <Access>
+                        <Memory Name="IPS_SPMm">
+                            <EntryOffset Formula="#KEY_VALUE(DST_SYS_PORT_ID)"/>
+                            <HwField Name="DST_FAPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FTMH_PP_DSP">
+                    <Access>
+                        <Memory Name="IPS_SPMm">
+                            <EntryOffset Formula="#KEY_VALUE(DST_SYS_PORT_ID)"/>
+                            <HwField Name="PP_DSPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SYSTEM_PP_DSP_MAPPING">
+        <OneLineDescription>Map pp-dsp to tm, pp and system port</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="PP_DSP" Type="DSP"/>
+            </Key>
+            <Result>
+                <Field Name="TM_PORT"/>
+                <Field Name="PP_PORT"/>
+                <Field Name="SYSTEM_PORT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="PP_PORT">
+                    <Access>
+                        <Memory Name="ERPP_PRP_PP_DSP_PTR_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_DSP)"/>
+                            <HwField Name="OUT_PP_PORTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_TM_PP_DSP_PTR_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_DSP)"/>
+                            <HwField Name="OUT_PP_PORTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPA_DSP_DATA_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_DSP)"/>
+                            <HwField Name="OUT_PP_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SYSTEM_PORT">
+                    <Access>
+                        <Memory Name="ETPPA_DSP_DATA_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_DSP)"/>
+                            <HwField Name="DST_SYS_PORTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_TM_PP_DSP_PTR_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_DSP)"/>
+                            <HwField Name="DST_SYS_PORTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PRP_PP_DSP_PTR_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_DSP)"/>
+                            <HwField Name="DST_SYS_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TM_PORT">
+                    <Access>
+                        <Memory Name="ETPPA_DSP_DATA_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_DSP)"/>
+                            <HwField Name="OUT_TM_PORTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_TM_PP_DSP_PTR_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_DSP)"/>
+                            <HwField Name="OUT_TM_PORTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_PRP_PP_DSP_PTR_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_DSP)"/>
+                            <HwField Name="OUT_TM_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SYSTEM_CLOS_DQCQ_MAP" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Map a packet to DQCQ context according to FAP-ID. 
+Local-0 if:
+(DestDev | MASK_LOCAL_0) == (FAP_ID_LOCAL_0| MASK_LOCAL_0) 
+Local-1 if:
+(DestDev | MASK_LOCAL_1) == (FAP_ID_LOCAL_1| MASK_LOCAL_1)
+else:
+fabric   
+        </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.device.general.max_nof_fap_ids_per_core-1" Name="LOCAL_INDX" Size="DNX_DATA.device.general.fap_ids_per_core_bits" Type="UINT"/>
+                <Field Name="CORE"/>
+            
+            </Key>
+            <Result>
+                <Field Name="FAP_ID_LOCAL" Size="11" Type="UINT"/>
+                <Field Name="MASK_LOCAL" Size="11" Type="UINT" Valid="DNX_DATA.device.general.multi_core"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FAP_ID_LOCAL">
+                    <Access>
+                        <Register Name="IPS_DEV_ID_TO_CONTEXT_MAPr">
+                            <HwField Name="DEV_ID_TO_CONTEXT_MAPf"/>
+                            <DataOffset Formula="0+32*#KEY_VALUE(CORE)*dnx_data_device.general.fap_ids_per_core_bits_get(unit)+32*#KEY_VALUE(LOCAL_INDX)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="IPS_DEV_ID_TO_CONTEXT_MAPr">
+                            <HwField Name="DEV_ID_TO_CONTEXT_MAPf"/>
+                            <DataOffset Formula="16+32*#KEY_VALUE(CORE)*dnx_data_device.general.fap_ids_per_core_bits_get(unit)+32*#KEY_VALUE(LOCAL_INDX)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MASK_LOCAL">
+                    <Access>
+                        <Register Name="IPS_DEV_ID_MASKr">
+                            <DataOffset Formula="11*#KEY_VALUE(CORE)*dnx_data_device.general.fap_ids_per_core_bits_get(unit)+11*#KEY_VALUE(LOCAL_INDX)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FAP_ID_LOCAL">
+                    <Access>
+                        <Register Name="IPS_DEV_ID_TO_CONTEXT_MAPr">
+                            <HwField Name="DEV_ID_TO_CONTEXT_MAPf"/>
+                            <DataOffset Formula="16*#KEY_VALUE(CORE)*dnx_data_device.general.fap_ids_per_core_bits_get(unit)+16*#KEY_VALUE(LOCAL_INDX)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="SYSTEM_MESH_DQCQ_MAP" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Map a packet to DQCQ context according to FAP-ID</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="4 LSBs in FAP-ID" Name="FAP_ID_LSB" Size="4" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="SYSTEM_MESH_CONTEXT" Size="3"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SYSTEM_MESH_CONTEXT">
+                    <Access>
+                        <Register Name="IPS_DEV_ID_TO_CONTEXT_MAPr">
+                            <HwField Name="DEV_ID_TO_CONTEXT_MAPf"/>
+                            <DataOffset Formula="#KEY_VALUE(FAP_ID_LSB)*4"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+
+    <AppDB Name="SYSTEM_TRAFFIC_ENABLER">
+        <OneLineDescription>Enable/disable device level traffic per stage</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SYSTEM_TRAFFIC_STAGE"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Enum="IRE" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="IRE_DYNAMIC_CONFIGURATIONr">
+                            <HwField Name="ENABLE_DATA_PATHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SPB" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="SPB_DYNAMIC_CONFIGURATIONr">
+                            <HwField Name="ENABLE_DATA_PATHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="CGM" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="CGM_ENABLERSr">
+                            <HwField Name="ENQ_ENf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="CGM" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="CGM_ENABLERSr">
+                            <HwField Name="DEQ_TO_FABRIC_ENf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="CGM" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="CGM_ENABLERSr">
+                            <HwField Name="DEQ_TO_DRAM_ENf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="CGM" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="CGM_ENABLERSr">
+                            <HwField Name="QM_RPRT_ENf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="CGM" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="CGM_ENABLERSr">
+                            <HwField Name="QM_RPRT_ENf"/>
+                            <DataOffset Formula="1"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="CGM" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="CGM_ENABLERSr">
+                            <HwField Name="LOW_PRIORITY_INT_ENf"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="EGQ" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="RQP_GENERAL_RQP_DEBUG_CONFIGr">
+                            <HwField Name="DBG_FDA_STOPf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="SCH_FSM_PROCESS" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="SCH_SCHEDULER_CONFIGURATION_REGISTERr">
+                            <HwField Name="DISABLE_FABRIC_MSGSf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="SCH_CREDIT_GENERATION" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="SCH_DVS_CONFIGr">
+                            <HwField Name="FORCE_PAUSEf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0" Name="ENABLE">
+                    <Access>
+                        <KeyCondition Enum="CGM" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="CGM_ENABLERSr">
+                            <HwField Name="RRP_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="ENABLE">
+                    <Access>
+                        <KeyCondition Enum="CGM" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="CGM_ENABLERSr">
+                            <HwField Name="TAR_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="Q2A_A0 Q2A_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Enum="IRE" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="IRE_DYNAMIC_CONFIGURATIONr">
+                            <HwField Name="ENABLE_DATA_PATHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SPB" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="SPB_DYNAMIC_CONFIGURATIONr">
+                            <HwField Name="ENABLE_DATA_PATHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="CGM" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="CGM_ENABLERSr">
+                            <HwField Name="RRP_ENf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="CGM" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="CGM_ENABLERSr">
+                            <HwField Name="ENQ_ENf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="CGM" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="CGM_ENABLERSr">
+                            <HwField Name="DEQ_TO_FABRIC_ENf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="CGM" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="CGM_ENABLERSr">
+                            <HwField Name="DEQ_TO_DRAM_ENf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="CGM" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="CGM_ENABLERSr">
+                            <HwField Name="QM_RPRT_ENf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="CGM" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="CGM_ENABLERSr">
+                            <HwField Name="QM_RPRT_ENf"/>
+                            <DataOffset Formula="1"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="CGM" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="CGM_ENABLERSr">
+                            <HwField Name="LOW_PRIORITY_INT_ENf"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="EGQ" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="RQP_GENERAL_RQP_DEBUG_CONFIGr">
+                            <HwField Name="DBG_PRP_STOPf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="SCH_FSM_PROCESS" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="SCH_SCHEDULER_CONFIGURATION_REGISTERr">
+                            <HwField Name="DISABLE_FABRIC_MSGSf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="SCH_CREDIT_GENERATION" Field="SYSTEM_TRAFFIC_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="SCH_DVS_CONFIGr">
+                            <HwField Name="FORCE_PAUSEf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>        
+    </AppDB>
+
+    <AppDB Name="SYSTEM_MODULE_MAX_BASE_INDEX" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Set maximum module id in the system by setting maximum base index</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Maximum base index that represents the maximum FAP ID in the system [MaxFapID=(MAX_BASE_INDEX+1)*32-1]" Name="MAX_BASE_INDEX" Size="6" Type="UINT"/>
+                <Field Description="Maximum base index that represents the maximum FAP ID for multicast traffic in the system [MaxMCFapID=(MAX_BASE_INDEX_MC+1)*32-1]" Name="MAX_BASE_INDEX_MC" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STACK</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MAX_BASE_INDEX">
+                    <Access>
+                        <Register Name="RTP_MAXIMUM_BASE_INDEXr">
+                            <HwField Name="MAX_BIf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MAX_BASE_INDEX_MC">
+                    <Access>
+                        <Register Name="RTP_MULTICAST_DISTRIBUTION_CONFIGURATIONr">
+                            <HwField Name="MAX_ALRC_BASE_INDEXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SYSTEM_MODULE_MC_FAP_ID_EXCLUDE" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Exclude specific FAP IDs from multicast list</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <!-- There is limited number of faps that can be specifically excluded -->
+                <Field Description="Index of the excluded fap in the specifically excluded list" Name="INDEX" Size="4" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="The module id to exclude" Name="FAP_ID"/>
+                <Field Description="Is fap id excluded" Name="IS_EXCLUDED" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STACK</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FAP_ID">
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_0r">
+                            <HwField Name="EXCLUDE_DEST_ID_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_1r">
+                            <HwField Name="EXCLUDE_DEST_ID_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_2r">
+                            <HwField Name="EXCLUDE_DEST_ID_2f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_3r">
+                            <HwField Name="EXCLUDE_DEST_ID_3f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="4"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_4r">
+                            <HwField Name="EXCLUDE_DEST_ID_4f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="5"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_5r">
+                            <HwField Name="EXCLUDE_DEST_ID_5f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="6"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_6r">
+                            <HwField Name="EXCLUDE_DEST_ID_6f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="7"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_7r">
+                            <HwField Name="EXCLUDE_DEST_ID_7f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="8"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_8r">
+                            <HwField Name="EXCLUDE_DEST_ID_8f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="9"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_9r">
+                            <HwField Name="EXCLUDE_DEST_ID_9f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="10"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_10r">
+                            <HwField Name="EXCLUDE_DEST_ID_10f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="11"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_11r">
+                            <HwField Name="EXCLUDE_DEST_ID_11f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="12"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_12r">
+                            <HwField Name="EXCLUDE_DEST_ID_12f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="13"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_13r">
+                            <HwField Name="EXCLUDE_DEST_ID_13f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="14"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_14r">
+                            <HwField Name="EXCLUDE_DEST_ID_14f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="15"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_15r">
+                            <HwField Name="EXCLUDE_DEST_ID_15f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IS_EXCLUDED">
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_0r">
+                            <HwField Name="VALID_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_1r">
+                            <HwField Name="VALID_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_2r">
+                            <HwField Name="VALID_2f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_3r">
+                            <HwField Name="VALID_3f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="4"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_4r">
+                            <HwField Name="VALID_4f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="5"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_5r">
+                            <HwField Name="VALID_5f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="6"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_6r">
+                            <HwField Name="VALID_6f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="7"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_7r">
+                            <HwField Name="VALID_7f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="8"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_8r">
+                            <HwField Name="VALID_8f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="9"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_9r">
+                            <HwField Name="VALID_9f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="10"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_10r">
+                            <HwField Name="VALID_10f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="11"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_11r">
+                            <HwField Name="VALID_11f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="12"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_12r">
+                            <HwField Name="VALID_12f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="13"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_13r">
+                            <HwField Name="VALID_13f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="14"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_14r">
+                            <HwField Name="VALID_14f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="INDEX" Type="EQUAL_TO" Value="15"/>
+                        <Register Name="RTP_EXCLUDE_DEST_ID_FOR_MC_LINKS_15r">
+                            <HwField Name="VALID_15f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SYSTEM_CPU_CHANNEL_CONFIGURATION">
+        <OneLineDescription>CPU channel for packets</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Selection of CPU channel source" Name="CPU_CHANNEL_SELECT" Size="2" Type="UINT"/>
+                <Field Description="CPU channel value for packets without module header" Name="CPU_CHANNEL" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CPU_CHANNEL_SELECT">
+                    <Access>
+                        <Register Name="ECI_CPU_CHANNEL_CONFIGURATIONr">
+                            <HwField Name="CPU_CHANNEL_SELECTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CPU_CHANNEL">
+                    <Access>
+                        <Register Name="ECI_CPU_CHANNEL_CONFIGURATIONr">
+                            <HwField Name="CPU_CHANNELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+      <AppDB Name="CORE_CLOCK_KHZ">
+        <OneLineDescription>holding the core clock of the device, according to ECI_POWERUP_CONFIG register</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="CPU_OVERRIDE" Type="BOOL"/>
+                <Field Description="ndiv" Name="NDIV" Permission="READONLY" Size="10" Type="UINT"/>
+                <Field Description="mdiv" Name="MDIV" Permission="READONLY" Size="10" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+       <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CPU_OVERRIDE">
+                    <Access>
+                        <Register Name="ECI_RESERVED_21r">
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NDIV">
+                    <Access>
+                        <Register Name="ECI_POWERUP_CONFIGr">
+                            <DataOffset Formula="14"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MDIV">
+                    <Access>
+                        <Register Name="ECI_POWERUP_CONFIGr">
+                           <DataOffset Formula="24"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>   
+</AppDbCatalog>

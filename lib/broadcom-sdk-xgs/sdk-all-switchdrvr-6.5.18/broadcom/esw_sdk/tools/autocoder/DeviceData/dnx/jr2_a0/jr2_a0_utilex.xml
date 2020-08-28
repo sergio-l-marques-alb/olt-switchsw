@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0" module="utilex">
+    <sub_module name="common">
+        <features>
+        </features>
+        
+        <defines>
+            <define name="max_nof_dss_per_core" value="500"></define>
+            <define name="max_nof_hashs_per_core" value="200"></define>
+            <define name="max_nof_lists_per_core" value="200"></define>
+            <define name="max_nof_multis_per_core" value="200"></define>
+            <define name="max_nof_res_tag_bitmaps_per_core" value="800"></define>
+            <define name="max_nof_defragmented_chunks_per_core" value="4"></define>
+        </defines > 
+    
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

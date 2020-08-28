@@ -1,0 +1,314 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2p_a0" module="dev_init">
+    <includes>
+        <include>bcm_int/dnx/spb/spb.h</include>
+        <include>bcm_int/dnx/init/init_custom_funcs.h</include>
+    </includes>
+
+    <sub_module name="mem">
+        <numerics>
+        </numerics>
+
+        <tables>
+            <table name="default" mode="sequential">
+                <key name="index"></key>
+                <value name="mem" default="INVALIDr"></value>
+                <value name="mode" default="dnx_init_mem_default_mode_zero"></value>
+                <value name="default_get_cb" default="NULL"></value>
+                <value name="field" default="INVALIDf"></value>
+                <entries>
+                    <entry mem="IPS_SPMm" mode="dnx_init_mem_default_mode_all_ones"></entry>
+                    <entry mem="MTM_EGR_BITMAP_MAPPING_TABLE_Am" mode="dnx_init_mem_default_mode_index" field="PP_DSPf"></entry>
+                    <entry mem="MTM_EGR_BITMAP_MAPPING_TABLE_Bm" mode="dnx_init_mem_default_mode_index" field="PP_DSPf"></entry>
+                    <entry mem="ERPP_PRP_PP_DSP_PTR_TABLEm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_erpp_prp_pp_dsp_ptr_table_get"></entry>
+                    <entry mem="ERPP_TM_PP_DSP_PTR_TABLEm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_erpp_tm_pp_dsp_ptr_table_get"></entry>
+                    <entry mem="ETPPA_DSP_DATA_TABLEm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_etppa_dsp_data_table_get"></entry>
+                    <!-- Removed memory for J2P -->
+                    <!-- <entry mem="IPS_FMS_BYPASSm" mode="dnx_init_mem_default_mode_all_ones" field="FMS_BYPASS_BMPf"></entry>  -->
+                    <entry mem="CGM_REP_CMD_FIFO_OCCUPANCY_RJCT_THm" mode="dnx_init_mem_default_mode_all_ones"></entry>
+                    <entry mem="SPB_CONTEXT_MRUm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_spb_context_mru_default_get_f" ></entry>
+                    <entry mem="EPNI_ALIGNER_MIRR_QP_TO_CHANNEL_MAPm" mode="dnx_init_mem_default_mode_all_ones" field="CHANNELf"></entry>
+                    <entry mem="SCH_FLOW_TO_FIP_MAPPING_FFMm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_sch_flow_to_fip_mapping_default_get"></entry>
+                    <entry mem="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm" mode="dnx_init_mem_default_mode_all_ones" field="CFG_SAME_INTERFACE_PER_PORTf"></entry>
+                    <entry mem="ETPPB_VID_MIRROR_PROFILE_TABLEm" mode="dnx_init_mem_default_mode_all_ones" field="OUT_PORT_MIRROR_PROFILEf"></entry>
+                    <entry mem="SCH_SHAPER_DESCRIPTOR_MEMORY_STATIC_SHDSm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_sch_shaper_descr_default_get"></entry>
+                    <entry mem="SCH_FLOW_DESCRIPTOR_MEMORY_STATIC_FDMSm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_sch_flow_descr_default_get"></entry>
+                    <entry mem="IPT_PCP_CFGm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_fabric_pcp_default_get"></entry>
+                    <entry mem="SCH_SLOW_SCALE_A_SSAm" mode="dnx_init_mem_default_mode_all_ones" field="MAX_BUCKETf"></entry>
+                    <entry mem="SCH_SLOW_SCALE_B_SSBm" mode="dnx_init_mem_default_mode_all_ones" field="MAX_BUCKETf"></entry>
+                    <entry mem="IPPE_PINFO_LLRm" mode="dnx_init_mem_default_mode_all_ones" field="RECYCLE_PROFILE_ENABLEf"></entry>
+                    <entry mem="MTM_MCDBm" mode="dnx_init_mem_default_mode_all_ones"></entry>
+                    <entry mem="SCH_CIR_SHAPER_CALENDAR_CSCm" mode="dnx_init_mem_default_mode_index" field="PG_NUMf"></entry>
+                    <entry mem="SCH_RESERVED_51m" mode="dnx_init_mem_default_mode_index" field="HR_NUMf"></entry> <!-- Should be "SCH_PIR_SHAPER_CALENDAR_PSCm" -->
+                    <entry mem="SCH_PORT_SCHEDULER_WEIGHTS_PSWm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_sch_port_schduler_weights_psw_default_get" ></entry>
+                    <entry mem="IPPD_DESTINATION_STATUSm" mode="dnx_init_mem_default_mode_all_ones"></entry>
+                    <entry mem="IPS_QSPMm" mode="dnx_init_mem_default_mode_all_ones" field="SYSTEM_PORTf"></entry>
+                    <entry mem="CGM_IPP_MAPm" mode="dnx_init_mem_default_mode_all_ones" field="NIF_PORTf"></entry>
+                    <entry mem="IPPC_FES_2ND_INSTRUCTIONm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_ippc_fes_2nd_instruction_default_get"></entry>
+                    <entry mem="IPPD_FES_2ND_INSTRUCTIONm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_ippd_fes_2nd_instruction_default_get"></entry>
+                    <entry mem="ERPP_FES_2ND_INSTRUCTIONm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_erpp_fes_2nd_instruction_default_get"></entry>
+                    <entry mem="ETPPA_PRP_FES_PROGRAM_TABLEm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_etppa_prp_fes_program_table_default_get"></entry>
+                    <entry mem="IPPC_FEM_BIT_SELECTm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_ippc_fem_bit_select_default_get"></entry>
+                    <entry mem="IPPC_FEM_MAP_INDEX_TABLEm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_ippc_fem_map_index_table_default_get"></entry>
+                    <entry mem="TCAM_TCAM_BANK_COMMANDm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_tcam_tcam_bank_command_default_get"></entry>
+                    <entry mem="TCAM_TCAM_ACTIONm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_tcam_tcam_action_default_get"></entry>
+                    <entry mem="TCAM_TCAM_ACTION_SMALLm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_tcam_tcam_action_small_default_get"></entry>
+                    
+                     
+                    <!-- Skip since TCAM_BANK are not standard memories -->
+                    <entry mem="ERPP_EPMFCS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPA_VTDCS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPA_VTECS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPB_FLPACS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPB_FLPBCS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPC_PMFACSA_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPC_PMFACSB_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPD_PMFBCS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPE_LLRCS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPE_PRTCAM_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPF_VTACS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPF_VTBCS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPF_VTCCS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="TCAM_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    
+                    <!--  interfaces - skip -->
+                    <entry mem="SPEED_ID_TABLEm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="SPEED_PRIORITY_MAP_TBLm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="OCB_OCB_CPU_ACCESSm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="DQM_BDMm" mode="dnx_init_mem_default_mode_none"></entry>
+                    
+                   
+                </entries>
+            </table>
+        </tables>
+
+    </sub_module>
+
+        <sub_module name="general">
+        <numerics>
+            <numeric name="access_only" value="0">
+                <property name="custom_feature" method="suffix_enable" suffix="access_only">
+                    <doc>
+                        Set to boot with access only.
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+        <features>
+             <feature name="data_path_hw" value="0"></feature>
+             <feature name="remove_crc_bytes" value="0"></feature>
+             <feature name="remove_crc_bytes_capability" value="1"></feature>
+             <feature name="erpp_compensate_crc_size" value="0"></feature>
+             <feature name="etpp_compensate_crc_size" value="1"></feature>
+             <!-- FIXME SDK-173446 J2P:Tail editing feature changes-->
+             <feature name="tail_editing_enable" value="0"></feature>
+             <feature name="tail_editing_append_enable" value="1"></feature>
+             <feature name="tail_editing_truncate_enable" value="1"></feature>
+             <!-- FIXME SDK-173448 J2P: revisit the packet size compensation in Term block-->
+             <feature name="packet_size_compensation_term" value="0"></feature>
+             <feature name="current_packet_size_compensation_term" value="1"></feature>
+             <!-- FIXME SDK-172107 JR2P: Ipv4/Ipv6 and L4 filters update in ERPP-->
+             <feature name="erpp_filters_non_separate_enablers" value="0"></feature>
+             <feature name="etppa_bypass_stamp_ftmh_enable" value="1"></feature>
+             <feature name="l4_protocol_fields_config_enable" value="1"></feature>
+             <feature name="da_type_map_enable" value="1"></feature>
+             <feature name="ecologic_support" value="1"></feature>
+             <feature name="context_selection_index_valid" value="1"></feature>
+             <feature name="network_header_termination" value="1"></feature>
+             <feature name="network_offset_for_system_headers_valid" value="1"></feature>
+        </features>
+
+        <defines>
+        </defines>
+    </sub_module>
+
+    <sub_module name="ha">
+        <numerics>
+            <numeric name="warmboot_support" value="0">
+                <property name="warmboot_support" method="direct_map">
+                    <map name="on" value="1"></map>
+                    <map name="off" value="0"></map>
+                    <doc>Specify if WarmBoot is supported</doc>
+                </property>
+            </numeric>
+
+            <numeric name="sw_state_max_size" value="0">
+                <property name="sw_state_max_size" method="range" range_min="0" range_max="1000000000">
+                    <doc>
+                        Configures the size of memory to be pre allocated for sw state.
+                        The valid range is 0-1000000000 (i.e up to 1TB).
+                    </doc>
+                </property>
+            </numeric>
+
+            <numeric name="stable_location" value="1">
+                <property name="stable_location" method="range" range_min="0" range_max="5">
+                    <doc>
+                        Specify the stable cache option for Warm Boot operations.
+                    </doc>
+                </property>
+            </numeric>
+
+            <numeric name="stable_size" value="0">
+                <property name="stable_size" method="range" range_min="0" range_max="1000000000">
+                    <doc>
+                        Specify the stable cache size in bytes used for Warm boot operations.
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+            <table name="stable_filename">
+                <value name="val" default="NULL">
+                    <property name="stable_filename" method="str" >
+                        <doc>file system will be used to save the stable cache data with this filename</doc>
+                    </property>
+                </value>
+            </table>
+        </tables>
+    </sub_module>
+
+<sub_module name="context">
+        <features>
+             <feature name="context_selection_profile" value="1"></feature>
+             <feature name="oam_sub_type_in_context_selection" value="1"></feature>
+             <feature name="int_profile_in_context_selection" value="1"></feature>
+        </features>
+
+        <defines>
+             <define name="forwarding_context_selection_mask_offset" value="39"></define>
+             <define name="forwarding_context_selection_result_offset" value="78"></define>
+             <define name="termination_context_selection_mask_offset" value="50"></define>
+             <define name="termination_context_selection_result_offset" value="100"></define>
+             <define name="trap_context_selection_mask_offset" value="31"></define>
+             <define name="trap_context_selection_result_offset" value="62"></define>
+             <define name="fwd_reycle_priority_size" value="1"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="shadow">
+        <tables>
+            <table name="uncacheable_mem" mode="sequential">
+                <!-- key size must change if entries changed -->
+                <key name="index"></key>
+                <value name="mem" default="INVALIDm"></value>
+                <entries>
+                    <!-- Below memory not real memory Below-->
+                    <entry mem="CDPORT_TSC_UCMEM_DATAm"></entry>
+                    <entry mem="FSRD_FSRD_PROM_MEMm"></entry>
+                    <entry mem="ILE_PORT_0_CPU_ACCESSm"></entry>
+                    <entry mem="ILE_PORT_1_CPU_ACCESSm"></entry>
+                    <entry mem="IPPF_LEARN_PAYLOAD_CONTEXT_MAPPINGm"></entry>
+                    <entry mem="SCH_SCHEDULER_INITm"></entry>
+                    <!-- ErppDebugUnit and IppfDebugUnit memory -->
+                    <entry mem="ERPP_ERPP_DEBUG_UNITm"></entry>
+                    <entry mem="ETPPA_ETPPA_DEBUG_UNITm"></entry>
+                    <entry mem="ETPPB_ETPPB_DEBUG_UNITm"></entry>
+                    <entry mem="ETPPC_ETPPC_DEBUG_UNITm"></entry>
+                    <entry mem="IPPA_IPPA_DEBUG_UNITm"></entry>
+                    <entry mem="IPPB_IPPB_DEBUG_UNITm"></entry>
+                    <entry mem="IPPC_IPPC_DEBUG_UNITm"></entry>
+                    <entry mem="IPPD_IPPD_DEBUG_UNITm"></entry>
+                    <entry mem="IPPE_IPPE_DEBUG_UNITm"></entry>
+                    <entry mem="IPPF_IPPF_DEBUG_UNITm"></entry>
+
+                    <!-- CDPORT block execluded -->
+                    <entry mem="RX_LKUP_1588_MEM_400Gm"></entry>
+                    <entry mem="RX_LKUP_1588_MEM_MPP0m"></entry>
+                    <entry mem="RX_LKUP_1588_MEM_MPP1m"></entry>
+                    <entry mem="SPEED_ID_TABLEm"></entry>
+                    <entry mem="SPEED_PRIORITY_MAP_TBLm"></entry>
+                    <entry mem="TX_LKUP_1588_MEM_400Gm"></entry>
+                    <entry mem="TX_LKUP_1588_MEM_MPP0m"></entry>
+                    <entry mem="TX_LKUP_1588_MEM_MPP1m"></entry>
+                    <entry mem="UM_TABLEm"></entry>
+                    <entry mem="AM_TABLEm"></entry>
+                    <!-- memory which entries length < 64, need check -->
+
+                    <!-- memory with TCAM_BANK is not real memory -->
+                    <entry mem="MDB_ARM_KAPS_TCMm"></entry>
+
+                    <!-- TCAM bank related memory not real memory, those tables provide access to the TCAM banks through read/write commands -->
+                    <entry mem="ERPP_EPMFCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPA_VTDCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPA_VTECS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPB_FLPACS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPB_FLPBCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPC_PMFACSA_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPC_PMFACSB_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPD_PMFBCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPE_LLRCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPE_PRTCAM_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPF_VTACS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPF_VTBCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPF_VTCCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="TCAM_TCAM_BANK_COMMANDm"></entry>
+
+                    <entry mem="ERPP_EPMFCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPA_VTDCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPA_VTECS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPB_FLPACS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPB_FLPBCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPC_PMFACSA_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPC_PMFACSB_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPD_PMFBCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPE_LLRCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPE_PRTCAM_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPF_VTACS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPF_VTBCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPF_VTCCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="TCAM_TCAM_BANK_REPLYm"></entry>
+
+                    <entry mem="ERPP_EPMFCS_TCAM_BANKm"></entry>
+                    <entry mem="IPPA_VTDCS_TCAM_BANKm"></entry>
+                    <entry mem="IPPA_VTECS_TCAM_BANKm"></entry>
+                    <entry mem="IPPB_FLPACS_TCAM_BANKm"></entry>
+                    <entry mem="IPPB_FLPBCS_TCAM_BANKm"></entry>
+                    <entry mem="IPPC_PMFACSA_TCAM_BANKm"></entry>
+                    <entry mem="IPPC_PMFACSB_TCAM_BANKm"></entry>
+                    <entry mem="IPPD_PMFBCS_TCAM_BANKm"></entry>
+                    <entry mem="IPPE_LLRCS_TCAM_BANKm"></entry>
+                    <entry mem="IPPE_PRTCAM_TCAM_BANKm"></entry>
+                    <entry mem="IPPF_VTACS_TCAM_BANKm"></entry>
+                    <entry mem="IPPF_VTBCS_TCAM_BANKm"></entry>
+                    <entry mem="IPPF_VTCCS_TCAM_BANKm"></entry>
+                    <entry mem="TCAM_TCAM_BANKm"></entry>
+                    <!-- Not real memory -->
+                    <entry mem="SCH_TOKEN_MEMORY_CONTROLLER_TMCm"></entry>
+                    <entry mem="MDB_ARM_MEM_0m"></entry>
+                    <entry mem="MDB_ISEM_1m"></entry>
+                    <entry mem="MDB_ISEM_2m"></entry>
+                    <entry mem="MDB_ISEM_3m"></entry>
+                    <entry mem="MDB_IOEM_0m"></entry>
+                    <entry mem="MDB_IOEM_1m"></entry>
+                    <entry mem="MDB_MC_IDm"></entry>
+                    <entry mem="MDB_GLEM_0m"></entry>
+                    <entry mem="MDB_GLEM_1m"></entry>
+                    <entry mem="MDB_EOEM_0m"></entry>
+                    <entry mem="MDB_EOEM_1m"></entry>
+                    <entry mem="EVNT_ASSIGNED_CMIC_ENGINE_TABLEm"></entry>
+                    <entry mem="EVNT_SPACE_REGIONSm"></entry>
+                    <entry mem="EVNT_CMIC_ENG_PROPERTIESm"></entry>
+
+                    <!-- some field represent OAMP status, dynamic -->
+                    <entry mem="OAMP_MEP_DBm"></entry>
+                    <entry mem="OAMP_RMEP_DBm"></entry>
+                    <entry mem="MDB_ESEMm"></entry>
+                    <entry mem="MDB_EXEM_1m"></entry>
+                    <entry mem="MDB_EXEM_2m"></entry>
+                    <entry mem="MDB_RMEPm"></entry>
+                    <!-- port statistics -->
+                    <entry mem="IPPC_PER_PORT_STATISTICSm"></entry>
+                    <!-- others -->
+                    <entry mem="SCH_RESERVED_54m"></entry>
+                    <entry mem="SCH_RESERVED_37m"></entry>
+                    <entry mem="ETPPC_LATENCY_TABLEm"></entry>
+                    <!-- OAMP_RXP_R_MEP_INDEX_FIFOm wrongly marked static -->
+                    <entry mem="OAMP_RXP_R_MEP_INDEX_FIFOm"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+</device_data>

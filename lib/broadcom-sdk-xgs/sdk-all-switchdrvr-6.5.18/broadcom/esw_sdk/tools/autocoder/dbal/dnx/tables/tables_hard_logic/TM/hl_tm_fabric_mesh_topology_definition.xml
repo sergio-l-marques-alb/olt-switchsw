@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="FABRIC_MESH_TOPOLOGY_INIT" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Mesh Topology init configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="mesh init" Name="MESH_INIT" Size="4" Type="UINT"/>
+                <Field Description="mesh config 1" Name="MESH_CONFIG_1" Size="4" Type="UINT"/>
+                <Field Description="mesh config 2" Name="MESH_CONFIG_2" Size="4" Type="UINT"/>
+                <Field Description="mesh config 3" Name="MESH_CONFIG_3" Size="4" Type="UINT"/>
+                <Field Description="multi fap 3" Name="MULTI_FAP_3" Type="BOOL"/>
+                <Field Description="sys config 1" Name="SYS_CONFIG_1" Size="19" Type="UINT"/>
+                <Field Description="sys config 2" Name="SYS_CONFIG_2" Size="4" Type="UINT"/>
+                <Field Description="fast config 1" Name="FAST_CONFIG_1" Size="3" Type="UINT"/>
+                <Field Description="fast config 2" Name="FAST_CONFIG_2" Size="5" Type="UINT"/>
+                <Field Description="filter enable" Name="FILTER_ENABLE" Type="BOOL"/>
+                <Field Description="filter th" Name="FILTER_TH" Size="19" Type="UINT"/>
+                <Field Description="filter dc" Name="FILTER_DC" Size="19" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MESH_INIT">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_INITr">
+                            <HwField Name="INITf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MESH_CONFIG_1">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_INITr">
+                            <HwField Name="CONFIG_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MESH_CONFIG_2">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_INITr">
+                            <HwField Name="CONFIG_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MESH_CONFIG_3">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_INITr">
+                            <HwField Name="CONFIG_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MULTI_FAP_3">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_MESH_TOPOLOGYr">
+                            <HwField Name="MULTI_FAP_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SYS_CONFIG_1">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_SYS_CONFIG_2r">
+                            <HwField Name="SYS_CONFIG_21f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SYS_CONFIG_2">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_SYS_CONFIG_2r">
+                            <HwField Name="SYS_CONFIG_22f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FAST_CONFIG_1">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_34r">
+                            <HwField Name="AUTO_DOC_NAME_35f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FAST_CONFIG_2">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_34r">
+                            <HwField Name="AUTO_DOC_NAME_36f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FILTER_ENABLE">
+                    <Access>
+                        <Register Name="FDR_AUTO_DOC_NAME_15r">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FDR_AUTO_DOC_NAME_15r">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FDR_AUTO_DOC_NAME_15r">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FILTER_TH">
+                    <Access>
+                        <Register Name="FDR_AUTO_DOC_NAME_15r">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="FIELD_1_19f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FDR_AUTO_DOC_NAME_15r">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="FIELD_1_19f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FDR_AUTO_DOC_NAME_15r">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="FIELD_1_19f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FILTER_DC">
+                    <Access>
+                        <Register Name="FDR_AUTO_DOC_NAME_15r">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="FIELD_20_38f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FDR_AUTO_DOC_NAME_15r">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="FIELD_20_38f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FDR_AUTO_DOC_NAME_15r">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="FIELD_20_38f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_MESH_TOPOLOGY" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Mesh Topology configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Threshold" Name="THRESHOLD" Size="8" Type="UINT"/>
+                <Field Description="Fast" Name="FAST" Size="1" Type="BOOL"/>
+                <Field Description="Config_5" Name="CONFIG_5" Size="3" Type="UINT"/>
+                <Field Description="Config_6" Name="CONFIG_6" Size="1" Type="BOOL"/>
+                <Field Description="Is single FAP" Name="IS_SINGLE_FAP" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="THRESHOLD">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_THRESHOLDSr">
+                            <HwField Name="THRESHOLD_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FAST">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_34r">
+                            <HwField Name="AUTO_DOC_NAME_37f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CONFIG_5">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_MESH_TOPOLOGYr">
+                            <HwField Name="CONFIG_5f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CONFIG_6">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_MESH_TOPOLOGYr">
+                            <HwField Name="CONFIG_6f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IS_SINGLE_FAP">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_MESH_TOPOLOGYr">
+                            <HwField Name="STAN_ALNf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_MESH_TOPOLOGYr">
+                            <HwField Name="MULTI_FAP_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_MESH_TOPOLOGY_LINKS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Mesh Topology links configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Link id" Name="FABRIC_LINK" Type="FABRIC_LINK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Mode 0" Name="MODE_0" Type="BOOL"/>
+                <Field Description="Mode 1" Name="MODE_1" Type="BOOL"/>
+                <Field Description="Mode 2" Name="MODE_2" Type="BOOL"/>
+                <Field Description="Enable" Name="ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MODE_0">
+                    <Access>
+                        <Register Name="FMAC_LINK_TOPO_MODE_REG_0r">
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="LINK_TOPO_MODE_0f"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MODE_1">
+                    <Access>
+                        <Register Name="FMAC_LINK_TOPO_MODE_REG_0r">
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="LINK_TOPO_MODE_1f"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MODE_2">
+                    <Access>
+                        <Register Name="FMAC_LINK_TOPO_MODE_REG_2r">
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="LINK_TOPO_MODE_2f"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_20r">
+                            <HwField Name="AUTO_DOC_NAME_21f"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_LINK)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_MESH_TOPOLOGY_STATUS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Mesh Topology status</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="indication 1" Name="INDICATION_1" Permission="TRIGGER" Type="BOOL"/>
+                <Field Description="indication 2" Name="INDICATION_2" Permission="TRIGGER" Type="BOOL"/>
+                <Field Description="rx control cells type1" Name="RX_CONTROL_CELLS_TYPE1" Permission="READONLY" Size="16" Type="UINT"/>
+                <Field Description="rx control cells type2" Name="RX_CONTROL_CELLS_TYPE2" Permission="READONLY" Size="16" Type="UINT"/>
+                <Field Description="indication 3" Name="INDICATION_3" Permission="READONLY" Type="BOOL"/>
+                <Field Description="indication 4" Name="INDICATION_4" Permission="READONLY" Type="BOOL"/>
+                <Field Description="control cells type3" Name="CONTROL_CELLS_TYPE3" Permission="READONLY" Size="14" Type="UINT"/>
+                <Field Description="status 1" Name="STATUS_1" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="status 1 id1" Name="STATUS_1_ID1" Permission="READONLY" Size="7" Type="UINT"/>
+                <Field Description="status 1 id2" Name="STATUS_1_ID2" Permission="READONLY" Size="11" Type="UINT"/>
+                <Field Description="status 2" Name="STATUS_2" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="status 2 id1" Name="STATUS_2_ID1" Permission="READONLY" Size="DNX_DATA.fabric.dbal.mesh_topology_status_2_id1_bits_nof" Type="UINT"/>
+                <Field Description="status 2 id2" Name="STATUS_2_ID2" Permission="READONLY" Size="11" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INDICATION_1">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_MESH_INTERRUPTSr">
+                            <HwField Name="INTERRUPT_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="INDICATION_2">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_MESH_INTERRUPTSr">
+                            <HwField Name="INTERRUPT_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_CONTROL_CELLS_TYPE1">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_FAP_DETECT_CTRL_CELLS_CNTr">
+                            <HwField Name="RCV_CTL_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_CONTROL_CELLS_TYPE2">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_FAP_DETECT_CTRL_CELLS_CNTr">
+                            <HwField Name="RCV_CTL_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="INDICATION_3">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_MESH_STATUSESr">
+                            <HwField Name="MESH_STATUS_4f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="INDICATION_4">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_MESH_STATUSESr">
+                            <HwField Name="MESH_STATUS_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CONTROL_CELLS_TYPE3">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_MESH_STATUSESr">
+                            <HwField Name="MESH_STATUS_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STATUS_1">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_STATUS_2r">
+                            <HwField Name="STATUS_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STATUS_1_ID1">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_STATUS_2r">
+                            <HwField Name="AUTO_DOC_NAME_98f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STATUS_1_ID2">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_STATUS_2r">
+                            <HwField Name="AUTO_DOC_NAME_99f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STATUS_2">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_100r">
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2P_A0" Name="STATUS_2_ID1">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_100r">
+                            <HwField Name="FIELD_32_38f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="STATUS_2_ID1">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_100r">
+                            <HwField Name="FIELD_32_37f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2P_A0" Name="STATUS_2_ID2">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_100r">
+                            <HwField Name="FIELD_39_49f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="STATUS_2_ID2">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_AUTO_DOC_NAME_100r">
+                            <HwField Name="FIELD_38_48f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_MESH_TOPOLOGY_LINKS_STATUS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Mesh Topology links status</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Link id" Name="FABRIC_LINK" Type="FABRIC_LINK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="value" Name="LINK_STATUS_VALUE" Permission="READONLY" Size="15" Type="UINT"/>
+                <Field Description="is valid" Name="LINK_STATUS_IS_VALID" Permission="READONLY" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LINK_STATUS_VALUE">
+                    <Access>
+                        <Register GroupName="FABRIC_MESH_TOPOLOGY_LINKS_STATUS_INFO">
+                            <GroupOffset Formula="#KEY_VALUE(FABRIC_LINK)/2"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_LINK)%2*#RESULT_SIZE(LINK_STATUS_VALUE)+#KEY_VALUE(FABRIC_LINK)%2*#RESULT_SIZE(LINK_STATUS_IS_VALID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LINK_STATUS_IS_VALID">
+                    <Access>
+                        <Register GroupName="FABRIC_MESH_TOPOLOGY_LINKS_STATUS_INFO">
+                            <GroupOffset Formula="#KEY_VALUE(FABRIC_LINK)/2"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_LINK)%2*#RESULT_SIZE(LINK_STATUS_VALUE)+#KEY_VALUE(FABRIC_LINK)%2*#RESULT_SIZE(LINK_STATUS_IS_VALID)+#RESULT_SIZE(LINK_STATUS_VALUE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

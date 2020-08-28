@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<top>
+    <signal-structures>
+        <structure name="Layer_Records" size="232" array="8" start="0" expansion="IPP_Layer_Record"/>
+        <structure name="Layer_Offsets" size="64" array="8" start="0"/>
+        <structure name="Layer_Protocols" size="40">
+            <field name="0" bits="4:0" resolution="Layer_Protocols_Definitions"/>
+            <field name="1" bits="9:5"  expansion="Dynamic">
+                <option expansion="FTMH_Resolution"  Layer_Protocols.0="LAYER_TYPES_INGRESS_SCTP_EGRESS_FTMH"/>
+                <option expansion="ITMH_Resolution"  Layer_Protocols.0="LAYER_TYPES_ITMH_VAL"/>
+                <option expansion="ITMH_J1_Resolution"  Layer_Protocols.0="LAYER_TYPES_ITMH_J1_VAL"/>
+                <option expansion="Main_Resolution"/>
+            </field>
+            <field name="2" bits="14:10"  expansion="Dynamic">
+                <option expansion="FTMH_Resolution"  Layer_Protocols.0="LAYER_TYPES_INGRESS_SCTP_EGRESS_FTMH"/>
+                <option expansion="ITMH_Resolution"  Layer_Protocols.0="LAYER_TYPES_ITMH_VAL"/>
+                <option expansion="ITMH_J1_Resolution"  Layer_Protocols.0="LAYER_TYPES_ITMH_J1_VAL"/>
+                <option expansion="Main_Resolution"/>
+            </field>
+            <field name="3" bits="19:15"  expansion="Dynamic">
+                <option expansion="FTMH_Resolution"  Layer_Protocols.0="LAYER_TYPES_INGRESS_SCTP_EGRESS_FTMH"/>
+                <option expansion="ITMH_Resolution"  Layer_Protocols.0="LAYER_TYPES_ITMH_VAL"/>
+                <option expansion="ITMH_J1_Resolution"  Layer_Protocols.0="LAYER_TYPES_ITMH_J1_VAL"/>
+                <option expansion="Main_Resolution"/>
+            </field>
+            <field name="4" bits="24:20"  expansion="Dynamic">
+                <option expansion="FTMH_Resolution"  Layer_Protocols.0="LAYER_TYPES_INGRESS_SCTP_EGRESS_FTMH"/>
+                <option expansion="ITMH_Resolution"  Layer_Protocols.0="LAYER_TYPES_ITMH_VAL"/>
+                <option expansion="ITMH_J1_Resolution"  Layer_Protocols.0="LAYER_TYPES_ITMH_J1_VAL"/>
+                <option expansion="Main_Resolution"/>
+            </field>
+            <field name="5" bits="29:25"  expansion="Dynamic">
+                <option expansion="FTMH_Resolution"  Layer_Protocols.0="LAYER_TYPES_INGRESS_SCTP_EGRESS_FTMH"/>
+                <option expansion="ITMH_Resolution"  Layer_Protocols.0="LAYER_TYPES_ITMH_VAL"/>
+                <option expansion="ITMH_J1_Resolution"  Layer_Protocols.0="LAYER_TYPES_ITMH_J1_VAL"/>
+                <option expansion="Main_Resolution"/>
+            </field>            
+            <field name="6" bits="34:30"  expansion="Dynamic">
+                <option expansion="FTMH_Resolution"  Layer_Protocols.0="LAYER_TYPES_INGRESS_SCTP_EGRESS_FTMH"/>
+                <option expansion="ITMH_Resolution"  Layer_Protocols.0="LAYER_TYPES_ITMH_VAL"/>
+                <option expansion="ITMH_J1_Resolution"  Layer_Protocols.0="LAYER_TYPES_ITMH_J1_VAL"/>
+                <option expansion="Main_Resolution"/>
+            </field>
+            <field name="7" bits="39:35"  expansion="Dynamic">
+                <option expansion="FTMH_Resolution"  Layer_Protocols.0="LAYER_TYPES_INGRESS_SCTP_EGRESS_FTMH"/>
+                <option expansion="ITMH_Resolution"  Layer_Protocols.0="LAYER_TYPES_ITMH_VAL"/>
+                <option expansion="ITMH_J1_Resolution"  Layer_Protocols.0="LAYER_TYPES_ITMH_J1_VAL"/>
+                <option expansion="Main_Resolution"/>
+            </field>            
+        </structure>        
+        <structure name="Layer_Qualifiers" size="128">
+            <field name="0" bits="15:0"  expansion="Dynamic">
+                <option expansion="ETH_Qualifier" Layer_Protocols.0="LAYER_TYPES_Ethernet"/>
+                <option expansion="IPv4_Qualifier" Layer_Protocols.0="LAYER_TYPES_IPv4"/>
+                <option expansion="IPv6_Qualifier" Layer_Protocols.0="LAYER_TYPES_IPv6"/>
+                <option expansion="MPLS_Qualifier" Layer_Protocols.0="LAYER_TYPES_MPLS"/>
+                <option expansion="BIER_TI_Qualifier" Layer_Protocols.0="LAYER_TYPES_BIER_TI"/>
+                <option expansion="BIER_MPLS_Qualifier" Layer_Protocols.0="LAYER_TYPES_BIER_MPLS"/>
+                <option expansion="FCoE_Qualifier" Layer_Protocols.0="LAYER_TYPES_FCoE"/>
+                <option expansion="ITMH_Qualifier" Layer_Protocols.0="LAYER_TYPES_ITMH_VAL"/>  
+            </field>
+            <field name="1" bits="31:16"  expansion="Dynamic">
+                <option expansion="ETH_Qualifier" Layer_Protocols.1="LAYER_TYPES_Ethernet"/>
+                <option expansion="IPv4_Qualifier" Layer_Protocols.1="LAYER_TYPES_IPv4"/>
+                <option expansion="IPv6_Qualifier" Layer_Protocols.1="LAYER_TYPES_IPv6"/>
+                <option expansion="MPLS_Qualifier" Layer_Protocols.1="LAYER_TYPES_MPLS"/>
+                <option expansion="BIER_TI_Qualifier" Layer_Protocols.1="LAYER_TYPES_BIER_TI"/>
+                <option expansion="BIER_MPLS_Qualifier" Layer_Protocols.1="LAYER_TYPES_BIER_MPLS"/>
+                <option expansion="FCoE_Qualifier" Layer_Protocols.1="LAYER_TYPES_FCoE"/>
+                <option expansion="ITMH_Qualifier" Layer_Protocols.1="LAYER_TYPES_ITMH_VAL"/>  
+            </field>
+            <field name="2" bits="47:32"  expansion="Dynamic">
+                <option expansion="ETH_Qualifier" Layer_Protocols.2="LAYER_TYPES_Ethernet"/>
+                <option expansion="IPv4_Qualifier" Layer_Protocols.2="LAYER_TYPES_IPv4"/>
+                <option expansion="IPv6_Qualifier" Layer_Protocols.2="LAYER_TYPES_IPv6"/>
+                <option expansion="MPLS_Qualifier" Layer_Protocols.2="LAYER_TYPES_MPLS"/>
+                <option expansion="BIER_TI_Qualifier" Layer_Protocols.2="LAYER_TYPES_BIER_TI"/>
+                <option expansion="BIER_MPLS_Qualifier" Layer_Protocols.2="LAYER_TYPES_BIER_MPLS"/>
+                <option expansion="FCoE_Qualifier" Layer_Protocols.2="LAYER_TYPES_FCoE"/>
+                <option expansion="ITMH_Qualifier" Layer_Protocols.2="LAYER_TYPES_ITMH_VAL"/>  
+            </field>
+            <field name="3" bits="63:48"  expansion="Dynamic">
+                <option expansion="ETH_Qualifier" Layer_Protocols.3="LAYER_TYPES_Ethernet"/>
+                <option expansion="IPv4_Qualifier" Layer_Protocols.3="LAYER_TYPES_IPv4"/>
+                <option expansion="IPv6_Qualifier" Layer_Protocols.3="LAYER_TYPES_IPv6"/>
+                <option expansion="MPLS_Qualifier" Layer_Protocols.3="LAYER_TYPES_MPLS"/>
+                <option expansion="BIER_TI_Qualifier" Layer_Protocols.3="LAYER_TYPES_BIER_TI"/>
+                <option expansion="BIER_MPLS_Qualifier" Layer_Protocols.3="LAYER_TYPES_BIER_MPLS"/>
+                <option expansion="FCoE_Qualifier" Layer_Protocols.3="LAYER_TYPES_FCoE"/>
+                <option expansion="ITMH_Qualifier" Layer_Protocols.3="LAYER_TYPES_ITMH_VAL"/>  
+            </field>
+            <field name="4" bits="79:64"  expansion="Dynamic">
+                <option expansion="ETH_Qualifier" Layer_Protocols.4="LAYER_TYPES_Ethernet"/>
+                <option expansion="IPv4_Qualifier" Layer_Protocols.4="LAYER_TYPES_IPv4"/>
+                <option expansion="IPv6_Qualifier" Layer_Protocols.4="LAYER_TYPES_IPv6"/>
+                <option expansion="MPLS_Qualifier" Layer_Protocols.4="LAYER_TYPES_MPLS"/>
+                <option expansion="BIER_TI_Qualifier" Layer_Protocols.4="LAYER_TYPES_BIER_TI"/>
+                <option expansion="BIER_MPLS_Qualifier" Layer_Protocols.4="LAYER_TYPES_BIER_MPLS"/>
+                <option expansion="FCoE_Qualifier" Layer_Protocols.4="LAYER_TYPES_FCoE"/>
+                <option expansion="ITMH_Qualifier" Layer_Protocols.4="LAYER_TYPES_ITMH_VAL"/>
+            </field>
+            <field name="5" bits="95:80"  expansion="Dynamic">
+                <option expansion="ETH_Qualifier" Layer_Protocols.5="LAYER_TYPES_Ethernet"/>
+                <option expansion="IPv4_Qualifier" Layer_Protocols.5="LAYER_TYPES_IPv4"/>
+                <option expansion="IPv6_Qualifier" Layer_Protocols.5="LAYER_TYPES_IPv6"/>
+                <option expansion="MPLS_Qualifier" Layer_Protocols.5="LAYER_TYPES_MPLS"/>
+                <option expansion="BIER_TI_Qualifier" Layer_Protocols.5="LAYER_TYPES_BIER_TI"/>
+                <option expansion="BIER_MPLS_Qualifier" Layer_Protocols.5="LAYER_TYPES_BIER_MPLS"/>
+                <option expansion="FCoE_Qualifier" Layer_Protocols.5="LAYER_TYPES_FCoE"/>
+                <option expansion="ITMH_Qualifier" Layer_Protocols.5="LAYER_TYPES_ITMH_VAL"/>  
+            </field>
+            <field name="6" bits="111:96"  expansion="Dynamic">
+                <option expansion="ETH_Qualifier" Layer_Protocols.6="LAYER_TYPES_Ethernet"/>
+                <option expansion="IPv4_Qualifier" Layer_Protocols.6="LAYER_TYPES_IPv4"/>
+                <option expansion="IPv6_Qualifier" Layer_Protocols.6="LAYER_TYPES_IPv6"/>
+                <option expansion="MPLS_Qualifier" Layer_Protocols.6="LAYER_TYPES_MPLS"/>
+                <option expansion="BIER_TI_Qualifier" Layer_Protocols.6="LAYER_TYPES_BIER_TI"/>
+                <option expansion="BIER_MPLS_Qualifier" Layer_Protocols.6="LAYER_TYPES_BIER_MPLS"/>
+                <option expansion="FCoE_Qualifier" Layer_Protocols.6="LAYER_TYPES_FCoE"/>
+                <option expansion="ITMH_Qualifier" Layer_Protocols.6="LAYER_TYPES_ITMH_VAL"/>
+            </field>
+            <field name="7" bits="127:112"  expansion="Dynamic">
+                <option expansion="ETH_Qualifier" Layer_Protocols.7="LAYER_TYPES_Ethernet"/>
+                <option expansion="IPv4_Qualifier" Layer_Protocols.7="LAYER_TYPES_IPv4"/>
+                <option expansion="IPv6_Qualifier" Layer_Protocols.7="LAYER_TYPES_IPv6"/>
+                <option expansion="MPLS_Qualifier" Layer_Protocols.7="LAYER_TYPES_MPLS"/>
+                <option expansion="BIER_TI_Qualifier" Layer_Protocols.7="LAYER_TYPES_BIER_TI"/>
+                <option expansion="BIER_MPLS_Qualifier" Layer_Protocols.7="LAYER_TYPES_BIER_MPLS"/>
+                <option expansion="FCoE_Qualifier" Layer_Protocols.7="LAYER_TYPES_FCoE"/>
+                <option expansion="ITMH_Qualifier" Layer_Protocols.7="LAYER_TYPES_ITMH_VAL"/>
+            </field>                        
+        </structure>
+        <structure name="EPP_Layer_Protocols" size="25">
+            <field name="0" bits="4:0" resolution="Layer_Protocols_Definitions"/>
+            <field name="1" bits="9:5"  expansion="Dynamic">
+                <option expansion="FTMH_Resolution"  EPP_Layer_Protocols.0="LAYER_TYPES_INGRESS_SCTP_EGRESS_FTMH"/>
+                <option expansion="ITMH_Resolution"  EPP_Layer_Protocols.0="LAYER_TYPES_ITMH_VAL"/>
+                <option expansion="ITMH_J1_Resolution"  EPP_Layer_Protocols.0="LAYER_TYPES_ITMH_J1_VAL"/>
+                <option expansion="Main_Resolution"/>
+            </field>
+            <field name="2" bits="14:10"  expansion="Dynamic">
+                <option expansion="FTMH_Resolution"  EPP_Layer_Protocols.0="LAYER_TYPES_INGRESS_SCTP_EGRESS_FTMH"/>
+                <option expansion="ITMH_Resolution"  EPP_Layer_Protocols.0="LAYER_TYPES_ITMH_VAL"/>
+                <option expansion="ITMH_J1_Resolution"  EPP_Layer_Protocols.0="LAYER_TYPES_ITMH_J1_VAL"/>
+                <option expansion="Main_Resolution"/>
+            </field>
+            <field name="3" bits="19:15"  expansion="Dynamic">
+                <option expansion="FTMH_Resolution"  EPP_Layer_Protocols.0="LAYER_TYPES_INGRESS_SCTP_EGRESS_FTMH"/>
+                <option expansion="ITMH_Resolution"  EPP_Layer_Protocols.0="LAYER_TYPES_ITMH_VAL"/>
+                <option expansion="ITMH_J1_Resolution"  EPP_Layer_Protocols.0="LAYER_TYPES_ITMH_J1_VAL"/>
+                <option expansion="Main_Resolution"/>
+            </field>
+            <field name="4" bits="24:20"  expansion="Dynamic">
+                <option expansion="FTMH_Resolution"  EPP_Layer_Protocols.0="LAYER_TYPES_INGRESS_SCTP_EGRESS_FTMH"/>
+                <option expansion="ITMH_Resolution"  EPP_Layer_Protocols.0="LAYER_TYPES_ITMH_VAL"/>
+                <option expansion="ITMH_J1_Resolution"  EPP_Layer_Protocols.0="LAYER_TYPES_ITMH_J1_VAL"/>
+                <option expansion="Main_Resolution"/>
+            </field>        
+        </structure>
+        <structure name="EPP_Layer_Offsets" size="45" array="5" start="0"/>
+        <structure name="EPP_Layer_Qualifiers" size="80">
+            <field name="0" bits="15:0"  expansion="Dynamic">
+                <option expansion="ETH_Qualifier" EPP_Layer_Protocols.0="LAYER_TYPES_Ethernet"/>
+                <option expansion="IPv4_Qualifier" EPP_Layer_Protocols.0="LAYER_TYPES_IPv4"/>
+                <option expansion="IPv6_Qualifier" EPP_Layer_Protocols.0="LAYER_TYPES_IPv6"/>
+                <option expansion="MPLS_Qualifier" EPP_Layer_Protocols.0="LAYER_TYPES_MPLS"/>
+                <option expansion="BIER_TI_Qualifier" EPP_Layer_Protocols.0="LAYER_TYPES_BIER_TI"/>
+                <option expansion="BIER_MPLS_Qualifier" EPP_Layer_Protocols.0="LAYER_TYPES_BIER_MPLS"/>
+                <option expansion="FCoE_Qualifier" EPP_Layer_Protocols.0="LAYER_TYPES_FCoE"/>
+            </field>            
+            <field name="1" bits="31:16"  expansion="Dynamic">
+                <option expansion="ETH_Qualifier" EPP_Layer_Protocols.1="LAYER_TYPES_Ethernet"/>
+                <option expansion="IPv4_Qualifier" EPP_Layer_Protocols.1="LAYER_TYPES_IPv4"/>
+                <option expansion="IPv6_Qualifier" EPP_Layer_Protocols.1="LAYER_TYPES_IPv6"/>
+                <option expansion="MPLS_Qualifier" EPP_Layer_Protocols.1="LAYER_TYPES_MPLS"/>
+                <option expansion="BIER_TI_Qualifier" EPP_Layer_Protocols.1="LAYER_TYPES_BIER_TI"/>
+                <option expansion="BIER_MPLS_Qualifier" EPP_Layer_Protocols.1="LAYER_TYPES_BIER_MPLS"/>
+                <option expansion="FCoE_Qualifier" EPP_Layer_Protocols.1="LAYER_TYPES_FCoE"/>
+            </field> 
+            <field name="2" bits="47:32"  expansion="Dynamic">
+                <option expansion="ETH_Qualifier" EPP_Layer_Protocols.2="LAYER_TYPES_Ethernet"/>
+                <option expansion="IPv4_Qualifier" EPP_Layer_Protocols.2="LAYER_TYPES_IPv4"/>
+                <option expansion="IPv6_Qualifier" EPP_Layer_Protocols.2="LAYER_TYPES_IPv6"/>
+                <option expansion="MPLS_Qualifier" EPP_Layer_Protocols.2="LAYER_TYPES_MPLS"/>
+                <option expansion="BIER_TI_Qualifier" EPP_Layer_Protocols.2="LAYER_TYPES_BIER_TI"/>
+                <option expansion="BIER_MPLS_Qualifier" EPP_Layer_Protocols.2="LAYER_TYPES_BIER_MPLS"/>
+                <option expansion="FCoE_Qualifier" EPP_Layer_Protocols.2="LAYER_TYPES_FCoE"/>
+            </field>            
+            <field name="3" bits="63:48"  expansion="Dynamic">
+                <option expansion="ETH_Qualifier" EPP_Layer_Protocols.3="LAYER_TYPES_Ethernet"/>
+                <option expansion="IPv4_Qualifier" EPP_Layer_Protocols.3="LAYER_TYPES_IPv4"/>
+                <option expansion="IPv6_Qualifier" EPP_Layer_Protocols.3="LAYER_TYPES_IPv6"/>
+                <option expansion="MPLS_Qualifier" EPP_Layer_Protocols.3="LAYER_TYPES_MPLS"/>
+                <option expansion="BIER_TI_Qualifier" EPP_Layer_Protocols.3="LAYER_TYPES_BIER_TI"/>
+                <option expansion="BIER_MPLS_Qualifier" EPP_Layer_Protocols.3="LAYER_TYPES_BIER_MPLS"/>
+                <option expansion="FCoE_Qualifier" EPP_Layer_Protocols.3="LAYER_TYPES_FCoE"/>
+            </field>                        
+            <field name="4" bits="79:64"  expansion="Dynamic">
+                <option expansion="ETH_Qualifier" EPP_Layer_Protocols.4="LAYER_TYPES_Ethernet"/>
+                <option expansion="IPv4_Qualifier" EPP_Layer_Protocols.4="LAYER_TYPES_IPv4"/>
+                <option expansion="IPv6_Qualifier" EPP_Layer_Protocols.4="LAYER_TYPES_IPv6"/>
+                <option expansion="MPLS_Qualifier" EPP_Layer_Protocols.4="LAYER_TYPES_MPLS"/>
+                <option expansion="BIER_TI_Qualifier" EPP_Layer_Protocols.4="LAYER_TYPES_BIER_TI"/>
+                <option expansion="BIER_MPLS_Qualifier" EPP_Layer_Protocols.4="LAYER_TYPES_BIER_MPLS"/>
+                <option expansion="FCoE_Qualifier" EPP_Layer_Protocols.4="LAYER_TYPES_FCoE"/>
+            </field>                        
+        </structure>
+        <structure name="FTMH_Resolution" size="5" resolution="FTMH_Layer_Protocols_Definitions"/>
+        <structure name="ITMH_Resolution" size="5" resolution="ITMH_Layer_Protocols_Definitions"/>
+        <structure name="ITMH_J1_Resolution" size="5" resolution="ITMH_J1_Layer_Protocols_Definitions"/>
+        <structure name="Main_Resolution" size="5" resolution="Layer_Protocols_Definitions"/>            
+        <structure name="IPP_Layer_Record" size="29">
+            <field name="Offset" bits="7:0"/>
+            <field name="Qualifier" bits="23:8"/>
+            <field name="Protocol" bits="28:24"/>
+        </structure>
+        <structure name="EPP_Layer_Record" size="28">
+            <field name="Offset" bits="6:0"/>
+            <field name="Qualifier" bits="22:7"/>
+            <field name="Protocol" bits="27:23"/>
+        </structure>
+        <structure name="ETH_Qualifier" size="16">
+            <field name="is_da_mc" bits="0:0"/>
+            <field name="is_da_bc" bits="1:1"/>
+            <field name="1st_tpid_exist" bits="2:2"/>
+            <field name="1st_tpid_index" bits="5:3"/>
+            <field name="2nd_tpid_exist" bits="6:6"/>
+            <field name="2nd_tpid_index" bits="9:7"/>
+            <field name="3rd_tpid_exist" bits="10:10"/>
+            <field name="3rd_tpid_index" bits="13:11"/>
+            <field name="reserved" bits="15:14"/>
+        </structure>
+        <structure name="IPP_Eth_Layer_Record" size="29">
+            <field name="Offset" bits="7:0"/>
+            <field name="Qualifier" bits="23:8" expansion="ETH_Qualifier"/>
+            <field name="Protocol" bits="28:24"/>
+        </structure>
+        <structure name="EPP_Eth_Layer_Record" size="28">
+            <field name="Offset" bits="6:0"/>
+            <field name="Qualifier" bits="22:7" expansion="ETH_Qualifier"/>
+            <field name="Protocol" bits="27:23"/>
+        </structure>
+        <structure name="IPv4_Qualifier" size="16">
+            <field name="is_mc" bits="0:0"/>
+            <field name="has_option" bits="1:1"/>
+            <field name="is_fragmented" bits="2:2"/>
+            <field name="is_1st_fragment" bits="3:3"/>
+            <field name="1st_add_header_exist" bits="4:4"/>
+            <field name="ipv4_1st_add_header" bits="8:5"/>
+            <field name="2nd_add_header_exists" bits="9:9"/>
+            <field name="tunnel_type" bits="13:10"/>
+            <field name="reserved" bits="15:14"/>
+        </structure>
+        <structure name="IPP_IPv4_Layer_Record" size="29">
+            <field name="Offset" bits="7:0"/>
+            <field name="Qualifier" bits="23:8" expansion="IPv4_Qualifier"/>
+            <field name="Protocol" bits="28:24"/>
+        </structure>
+        <structure name="EPP_IPv4_Layer_Record" size="28">
+            <field name="Offset" bits="6:0"/>
+            <field name="Qualifier" bits="22:7" expansion="IPv4_Qualifier"/>
+            <field name="Protocol" bits="27:23"/>
+        </structure>
+        <structure name="IPv6_Qualifier" size="16">
+            <field name="is_mc" bits="0:0"/>
+            <field name="1st_add_header_exist" bits="1:1"/>
+            <field name="ipv6_1st_add_header" bits="6:2"/>
+            <field name="fragment_is_first" bits="7:7"/>
+        </structure>
+        <structure name="IPP_IPv6_Layer_Record" size="29">
+            <field name="Offset" bits="7:0"/>
+            <field name="Qualifier" bits="23:8" expansion="IPv6_Qualifier"/>
+            <field name="Protocol" bits="28:24"/>
+        </structure>
+        <structure name="EPP_IPv6_Layer_Record" size="28">
+            <field name="Offset" bits="6:0"/>
+            <field name="Qualifier" bits="22:7" expansion="IPv6_Qualifier"/>
+            <field name="Protocol" bits="27:23"/>
+        </structure>
+        <structure name="SRv6_EP_Qualifier" size="16">
+            <field name="segment_left_minus_one" bits="7:0"/>
+            <field name="reserved" bits="15:8"/>
+        </structure>
+        <structure name="IPP_SRv6_EP_Layer_Record" size="29">
+            <field name="Offset" bits="7:0"/>
+            <field name="Qualifier" bits="23:8" expansion="SRv6_EP_Qualifier"/>
+            <field name="Protocol" bits="28:24"/>
+        </structure>
+        <structure name="EPP_SRv6_EP_Layer_Record" size="28">
+            <field name="Offset" bits="6:0"/>
+            <field name="Qualifier" bits="22:7" expansion="SRv6_EP_Qualifier"/>
+            <field name="Protocol" bits="27:23"/>
+        </structure>
+        <structure name="MPLS_Qualifier" size="16" from="IParser">
+            <field name="nof_labels" bits="3:0"/>
+            <field name="reserved" bits="15:4"/>
+        </structure>
+        <structure name="MPLS_Qualifier" size="16" from="LLR">
+            <field name="nof_labels" bits="3:0"/>
+            <field name="reserved" bits="15:4"/>
+        </structure>
+        <structure name="MPLS_Qualifier" size="16" from="VTT1">
+            <field name="nof_labels" bits="3:0"/>
+            <field name="reserved" bits="15:4"/>
+        </structure>
+        <structure name="MPLS_Qualifier" size="16" block="ETPP">
+            <field name="nof_labels" bits="3:0"/>
+            <field name="reserved" bits="15:4"/>
+        </structure>
+        <structure name="MPLS_Qualifier" size="16" block="ERPP">
+            <field name="nof_labels" bits="3:0"/>
+            <field name="reserved" bits="15:4"/>
+        </structure>
+        <structure name="MPLS_Qualifier" size="16">
+            <field name="Special-Label-Before/After-Tunnel-Profile_0" bits="2:0"/>
+            <field name="Special-Label-Before/After-Tunnel-Profile_1" bits="5:3"/>
+            <field name="Special-Label-Before/After-Tunnel-Profile_2" bits="8:6"/>
+            <field name="Special-Label-Before/After-Tunnel-Profile_3" bits="11:9"/>
+            <field name="Range-Qualifier/Reserved" bits="15:12"/>
+        </structure>
+        <structure name="IPP_MPLS_Layer_Record" size="29">
+            <field name="Offset" bits="7:0"/>
+            <field name="Qualifier" bits="23:8" expansion="MPLS_Qualifier"/>
+            <field name="Protocol" bits="28:24"/>
+        </structure>
+        <structure name="EPP_MPLS_Layer_Record" size="28">
+            <field name="Offset" bits="6:0"/>
+            <field name="Qualifier" bits="22:7" expansion="MPLS_Qualifier"/>
+            <field name="Protocol" bits="27:23"/>
+        </structure>
+        <structure name="BIER_TI_Qualifier" size="16">
+            <field name="BitStringLength" bits="3:0"/>
+            <field name="reserved" bits="15:4"/>
+        </structure>
+        <structure name="IPP_BIER_TI_Layer_Record" size="29">
+            <field name="Offset" bits="7:0"/>
+            <field name="Qualifier" bits="23:8" expansion="BIER_TI_Qualifier"/>
+            <field name="Protocol" bits="28:24"/>
+        </structure>
+        <structure name="EPP_BIER_TI_Layer_Record" size="28">
+            <field name="Offset" bits="6:0"/>
+            <field name="Qualifier" bits="22:7" expansion="BIER_TI_Qualifier"/>
+            <field name="Protocol" bits="27:23"/>
+        </structure>
+        <structure name="BIER_MPLS_Qualifier" size="16">
+            <field name="BitStringLength" bits="3:0"/>
+            <field name="reserved" bits="15:4"/>
+        </structure>
+        <structure name="IPP_BIER_MPLS_Layer_Record" size="29">
+            <field name="Offset" bits="7:0"/>
+            <field name="Qualifier" bits="23:8" expansion="BIER_MPLS_Qualifier"/>
+            <field name="Protocol" bits="28:24"/>
+        </structure>
+        <structure name="EPP_BIER_MPLS_Layer_Record" size="28">
+            <field name="Offset" bits="6:0"/>
+            <field name="Qualifier" bits="22:7" expansion="BIER_MPLS_Qualifier"/>
+            <field name="Protocol" bits="27:23"/>
+        </structure>
+        <structure name="FCoE_Qualifier" size="16">
+            <field name="is_fip" bits="0:0"/>
+            <field name="is_encap" bits="1:1"/>
+            <field name="vft_exist" bits="2:2"/>
+            <field name="reserved" bits="15:3"/>
+        </structure>
+        <structure name="IPP_FCoE_Layer_Record" size="29">
+            <field name="Offset" bits="7:0"/>
+            <field name="Qualifier" bits="23:8" expansion="FCoE_Qualifier"/>
+            <field name="Protocol" bits="28:24"/>
+        </structure>
+        <structure name="EPP_FCoE_Layer_Record" size="28">
+            <field name="Offset" bits="6:0"/>
+            <field name="Qualifier" bits="22:7" expansion="FCoE_Qualifier"/>
+            <field name="Protocol" bits="27:23"/>
+        </structure>
+        <structure name="ITMH_Qualifier" size="16">
+            <field name="PPH_Type" bits="1:0"/>
+            <field name="Injected_ASE_Present" bits="2:2"/>            
+        </structure>
+        <structure name="IPP_ITMH_Layer_Record" size="29">
+            <field name="Offset" bits="7:0"/>
+            <field name="Qualifier" bits="23:8" expansion="ITMH_Qualifier"/>
+            <field name="Protocol" bits="28:24"/>
+        </structure>
+        <structure name="EPP_ITMH_Layer_Record" size="28">
+            <field name="Offset" bits="6:0"/>
+            <field name="Qualifier" bits="22:7" expansion="ITMH_Qualifier"/>
+            <field name="Protocol" bits="27:23"/>
+        </structure>
+    </signal-structures>
+    <signal-params>
+        <signal name="ipv4_1st_add_header" size="5" dbal="IPV4_1ST_ADD_HEADER"/>
+        <signal name="ipv6_1st_add_header" size="5" dbal="IPV6_1ST_ADD_HEADER"/>
+        <signal name="ipv6_2nd_add_header" size="5" dbal="IPV6_2ND_ADD_HEADER"/>
+        <signal name="tunnel_type" size="4" dbal="IPV4_TUNNEL_TYPE"/>
+        <signal name="Layer_Protocols_Definitions" size="5" dbal="LAYER_TYPES"/>
+        <signal name="ITMH_Layer_Protocols_Definitions" size="5" dbal="LAYER_TYPES_ITMH"/>
+        <signal name="ITMH_J1_Layer_Protocols_Definitions" size="5" dbal="LAYER_TYPES_ITMH_JR1"/>
+        <signal name="FTMH_Layer_Protocols_Definitions" size="5" dbal="LAYER_TYPES_FTMH"/>        
+    </signal-params>
+</top>

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_b0" module="dev_init">
+    <includes>
+        <include>bcm_int/dnx/spb/spb.h</include>
+        <include>bcm_int/dnx/init/init.h</include>
+        <include>bcm_int/dnx/init/init_custom_funcs.h</include>
+        <include>shared/utilex/utilex_time_analyzer.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_fc.h</include>
+    </includes>
+
+    <sub_module name="general">
+
+        <features>
+             <feature name="network_header_termination" value="1"></feature>
+        </features>
+    </sub_module>
+    
+</device_data>

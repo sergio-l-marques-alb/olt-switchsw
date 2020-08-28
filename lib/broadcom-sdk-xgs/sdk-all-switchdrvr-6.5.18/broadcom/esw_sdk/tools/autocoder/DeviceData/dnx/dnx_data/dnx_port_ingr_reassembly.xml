@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="ingr_reassembly" bsl_flag="BSL_LS_BCMDNX_PORT">
+    <includes>
+        <include>bcm_int/dnx/algo/port/algo_port_mgmt.h</include>
+    </includes>
+
+    <sub_module name="context" doc="Ingress context data">
+        
+         <features>
+            <feature labels="j2p_notrev" name="rcy_interleaving_between_priorities" doc="RCY interleaving between priorities"></feature>     
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="nof_contexts" doc="Number of ingress reassembly contexts per core"></define>
+            <define labels="j2p_notrev" name="invalid_context" doc="Invalid reassembly context"></define>
+        </defines>       
+        
+        <tables>
+            <table labels="j2p_notrev" name="context_map" doc="Context Map configuration information per port type ">
+                <key name="port_type" doc="interface type"></key>
+                <value name="start_index" type="uint32" doc="index of start of specific interface type in reassembly table"></value>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="ilkn" doc="Interlaken data">
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="set if device supports ILKN ports (not including ELK)"></feature>
+        </features>
+        
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+    </sub_module>
+
+    <sub_module name="rcy" doc="Recycle data">
+
+        <defines>
+        <define labels="j2p_notrev" name="nof_interfaces" doc="Number of RCY interfaces per core"></define>    
+        </defines>      
+      
+    </sub_module>
+
+    <sub_module name="priority" doc="information about priorities">
+        <features>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="nif_eth_priorities_nof" doc="Number of priorities for NIF ETH port"></define>
+            <define labels="j2p_notrev" name="mirror_priorities_nof" doc="Number of priorities for mirror channel"></define>
+            <define labels="j2p_notrev" name="rcy_priorities_nof" doc="Number of priorities (groups) for RCY interface"></define>
+            <define labels="j2p_notrev" name="priorities_nof" doc="Number of priorities (groups) for any interface type"></define>
+            <define labels="j2p_notrev" name="cgm_priorities_nof" doc="Number of priorities (groups) for any interface type as considered by CGM module"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+        <tables>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="dbal" doc="information required for dbal">
+        
+         <defines>
+            <define labels="j2p_notrev" name="reassembly_context_bits" doc="number of bits in reassembly context"></define>
+
+            <define labels="j2p_notrev" name="interface_bits" doc="number of bits in ingress reassembly interface ID"></define>
+            <define labels="j2p_notrev" name="interface_max" doc="maximal ingress reassembly interface ID"></define>
+
+            <define labels="j2p_notrev" name="context_map_base_address_bits" doc="number of bits in context_map_base_address"></define>
+            <define labels="j2p_notrev" name="context_map_base_address_max" doc="maximal value of context_map_base_address"></define>
+
+            <define labels="j2p_notrev" name="interleaved_interface_bits" doc="number of bits in interleaved interface ID"></define>
+            <!-- FIXME SDK-146622: should use NIF definition of max ilkn interface ID -->
+            <define labels="j2p_notrev" name="interleaved_interface_max" doc="maximal interleaved interface ID"></define>
+        </defines>
+
+    </sub_module>
+
+</device_data>
+
+
+
+

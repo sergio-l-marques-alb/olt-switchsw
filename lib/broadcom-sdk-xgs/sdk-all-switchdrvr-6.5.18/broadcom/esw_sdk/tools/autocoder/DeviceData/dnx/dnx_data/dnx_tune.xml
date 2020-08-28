@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="tune" bsl_flag="BSL_LS_BCMDNX_INITSEQDNX">
+    <sub_module name="ecgm" doc="ECGM tune data">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="core_flow_control_percentage_ratio" doc="ratio used for core/interface resources flow control thresholds calculations. (percentage units)"></define>
+            <define name="port_uc_flow_control_min_divider" doc="divider factor for uc flow control minimum calculation per port and queue"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+        <tables>  
+            <table name="port_dp_ratio" doc="ration per dp used for thresholds calculations">
+                <key name="dp" doc="table index"></key>
+                <value name="percentage_ratio" type="int" doc="ratio in percentage, for thresholds calculation per dp (examples to valid values: 100 / 50 / 10)"></value>
+            </table>
+        </tables>   
+    </sub_module>
+    
+    <sub_module name="iqs" doc="IQS tune data">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="credit_resolution_up_th" doc="[Byte]. threshold over the delayed size (2 * fabric_delay * port rate) to move to the higher credit resolution"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="fabric_delay" doc="[nano-sec] credit ingress to egress delay"></numeric>
+            <numeric name="fabric_multicast_delay" doc="[nano-sec] credit delay for fmqs"></numeric>
+            <numeric name="fmq_max_rate" doc="[Gbps] fmq credit generator rate"/>
+        </numerics>        
+        
+        <tables>
+            <table name="bw_level_rate" doc="stores the read weight profiles that should configured to HW">
+                <key name="bw_level" doc="bandwidth level"></key>
+                <value name="max" type="uint32" doc="max rate for bandwidth level"></value>
+                <value name="min" type="uint32" doc="min rate for bandwidth level"></value>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="fabric" doc="fabric tune data">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="cgm_llfc_pipe_th" doc="threshold for bcmFabricCgmLlfcPipeTh"></define>
+            <define name="cgm_drop_fabric_class_th" doc="threshold for bcmFabricCgmDropFabricClassTh"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+    </sub_module>
+    
+
+</device_data>
+
+
+
+

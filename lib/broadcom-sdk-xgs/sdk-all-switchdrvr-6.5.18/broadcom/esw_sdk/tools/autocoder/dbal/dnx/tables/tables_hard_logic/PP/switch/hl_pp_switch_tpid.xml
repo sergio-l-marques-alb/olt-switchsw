@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="GLOBAL_TPID">
+        <OneLineDescription>Global TPID table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="6" Name="TPID_INDEX"/>
+            </Key>
+            <Result>
+                <Field Name="TPID_VALUE" Type="TPID"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TPID_VALUE">
+                    <Access>
+                        <KeyCondition Field="TPID_INDEX" Type="EQUAL_TO" Value="0"/>
+                        <Register GroupName="GLOBAL_TPID_0_1_REGS">
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="TPID_INDEX" Type="EQUAL_TO" Value="1"/>
+                        <Register GroupName="GLOBAL_TPID_0_1_REGS">
+                            <DataOffset Formula="16"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="TPID_INDEX" Type="EQUAL_TO" Value="2"/>
+                        <Register GroupName="GLOBAL_TPID_2_3_REGS">
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="TPID_INDEX" Type="EQUAL_TO" Value="3"/>
+                        <Register GroupName="GLOBAL_TPID_2_3_REGS">
+                            <DataOffset Formula="16"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="TPID_INDEX" Type="EQUAL_TO" Value="4"/>
+                        <Register GroupName="GLOBAL_TPID_4_5_REGS">
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="TPID_INDEX" Type="EQUAL_TO" Value="5"/>
+                        <Register GroupName="GLOBAL_TPID_4_5_REGS">
+                            <DataOffset Formula="16"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="TPID_INDEX" Type="EQUAL_TO" Value="6"/>
+                        <Register GroupName="GLOBAL_TPID_6_REGS">
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+</AppDbCatalog>

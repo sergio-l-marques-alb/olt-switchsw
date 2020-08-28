@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Pure SW Logical Tables:
+    This xml contains the pure sw logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="sw_state_schema.xsd">
+
+    <AppDB Name="ETH">
+        <OneLineDescription>Pure SW table - container to define Packet Header field IDs</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="LOW" Jira="SDK-119629"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MAC_DST" Type="L2_MAC"/>
+                <Field Name="MAC_SRC" Type="L2_MAC"/>
+                <Field Name="ETHERTYPE"/>
+            </Key>
+            <Result><Field Name="UINT"/></Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping><CoreMode Mode="SBC"/></AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="VLAN">
+        <OneLineDescription>Pure SW table - container to define Packet Header field IDs</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="LOW" Jira="SDK-119629"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VLAN_TPID" Type="TPID"/>
+                <Field Name="VLAN_ID"/>
+                <Field Name="VLAN_PRI" Size="3" Type="UINT"/>
+                <Field Name="VLAN_CFI" Size="1" Type="BOOL"/>
+                <Field Name="VLAN_PRI_CFI" Size="4" Type="UINT"/>
+            </Key>
+            <Result><Field Name="UINT"/></Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping><CoreMode Mode="SBC"/></AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MPLS">
+        <OneLineDescription>Pure SW table - container to define Packet Header field IDs</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="LOW" Jira="SDK-119629"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MPLS_LABEL"/>
+                <Field Name="MPLS_TC" Type="TC"/>
+                <Field Name="MPLS_BOS" Type="BOS"/>
+                <Field Name="MPLS_TTL" Type="TTL"/>
+            </Key>
+            <Result><Field Name="UINT"/></Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping><CoreMode Mode="SBC"/></AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ARP_PROTO">
+        <OneLineDescription>Pure SW table - container to define Packet Header field IDs</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="LOW" Jira="SDK-119629"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ARP_OPCODE" Size="16" Type="UINT"/>
+                <Field Name="ARP_SENDER_IP" Type="IPV4"/>
+                <Field Name="ARP_TARGET_IP" Type="IPV4"/>
+            </Key>
+            <Result><Field Name="UINT"/></Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping><CoreMode Mode="SBC"/></AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPV4">
+        <OneLineDescription>Pure SW table - container to define Packet Header field IDs</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="LOW" Jira="SDK-119629"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IPV4_TOS"/>
+                <Field Name="IPV4_DSCP"/>
+                <Field Name="IPV4_ECN"/>
+                <Field Name="IPV4_FLAGS"/>
+                <Field Name="IPV4_TTL" Type="TTL"/>
+                <Field Name="IPV4_PROTOCOL" Type="IP_PROTOCOL"/>
+                <Field Name="IPV4_SIP" Type="IPV4"/>
+                <Field Name="IPV4_DIP" Type="IPV4"/>
+            </Key>
+            <Result><Field Name="UINT"/></Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping><CoreMode Mode="SBC"/></AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="IPV6">
+        <OneLineDescription>Pure SW table - container to define Packet Header field IDs</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="LOW" Jira="SDK-119629"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IPV6_SIP" Type="IPV6"/>
+                <Field Name="IPV6_DIP" Type="IPV6"/>
+                <Field Name="IPV6_SIP_LOW" Size="64" Type="IPV6"/>
+                <Field Name="IPV6_SIP_HIGH" Size="64" Type="IPV6"/>
+                <Field Name="IPV6_DIP_LOW" Size="64" Type="IPV6"/>
+                <Field Name="IPV6_DIP_HIGH" Size="64" Type="IPV6"/>
+                <Field Name="IPV6_TC" Type="IPV6_TOS"/>
+                <Field Name="IPV6_FLOW_LABEL"/>
+                <Field Name="IPV6_NEXT_HEADER" Type="IP_PROTOCOL"/>
+                <Field Name="IPV6_HOP_LIMIT"/>
+            </Key>
+            <Result><Field Name="UINT"/></Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping><CoreMode Mode="SBC"/></AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="L4">
+        <OneLineDescription>Pure SW table - container to define Packet Header field IDs</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="LOW" Jira="SDK-119629"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="L4_SRC_PORT"/>
+                <Field Name="L4_DST_PORT"/>
+                <Field Name="TCP_CTL"/>
+            </Key>
+            <Result><Field Name="UINT"/></Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping><CoreMode Mode="SBC"/></AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>
+

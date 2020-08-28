@@ -1,0 +1,135 @@
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Examples Results</title>
+        <style>
+              body {font-family: Arial;}
+              h1 {font-size: 18pt; font-weight: bold;}
+              h2 {font-size: 16pt; font-weight: bold;}
+              h3 {font-size: 14pt; font-weight: bold;}
+              h4 {font-size: 12pt; font-weight: bold;}
+              h5 {font-size: 11pt; font-weight: bold;}
+              p {font-size: 10pt;}
+              th {font-size: 9pt; font-weight: bold;}
+              td {font-size: 9pt;}
+        </style>
+    </head>
+    <body>
+        </p><a name="tocLink">
+            <h1><font color="CC092F">Table of Contents</font></h1></a>
+            <table style="width:30%" border="1" cellpadding="5">
+                <tr bgcolor="#D0D0CE">
+                    <th>#</th>
+                    <th>Commands</th>
+                </tr>
+                <tr>
+                    <td>0.</td>
+                    <td><a href="#LIF LocalOutLIF PHASE DuMP phase=1">LIF LocalOutLIF PHASE DuMP phase=1</a></td>
+                </tr>
+                <tr>
+                    <td>1.</td>
+                    <td><a href="#LIF LocalOutLIF DuMP">LIF LocalOutLIF DuMP</a></td>
+                </tr>
+                <tr>
+                    <td>2.</td>
+                    <td><a href="#LIF LocalOutLIF CouNT phase=8">LIF LocalOutLIF CouNT phase=8</a></td>
+                </tr>
+                <tr>
+                    <td>3.</td>
+                    <td><a href="#LIF LocalOutLIF CouNT table=EEDB_OAM_REFLECTOR">LIF LocalOutLIF CouNT table=EEDB_OAM_REFLECTOR</a></td>
+                </tr>
+                <tr>
+                    <td>4.</td>
+                    <td><a href="#LIF LocalOutLIF CouNT phase=8 table=EEDB_OAM_REFLECTOR">LIF LocalOutLIF CouNT phase=8 table=EEDB_OAM_REFLECTOR</a></td>
+                </tr>
+                <tr>
+                    <td>5.</td>
+                    <td><a href="#LIF LocalOutLIF SIMulate Max_Alloc table=EEDB_ARP result_type=ETPS_ARP phase=7 ll_exists">LIF LocalOutLIF SIMulate Max_Alloc table=EEDB_ARP result_type=ETPS_ARP phase=7 ll_exists</a></td>
+                </tr>
+                <tr>
+                    <td>6.</td>
+                    <td><a href="#LIF LocalOutLIF SIMulate Alloc_Combinations Add table=mpls_tunnel result_type=etps_mpls_1 phase=7 ll_exists num_lifs=1">LIF LocalOutLIF SIMulate Alloc_Combinations Add table=mpls_tunnel result_type=etps_mpls_1 phase=7 ll_exists num_lifs=1</a></td>
+                </tr>
+                <tr>
+                    <td>7.</td>
+                    <td><a href="#LIF LocalOutLIF SIMulate Alloc_Combinations Get table=mpls_tunnel result_type=etps_mpls_1 phase=7 ll_exists">LIF LocalOutLIF SIMulate Alloc_Combinations Get table=mpls_tunnel result_type=etps_mpls_1 phase=7 ll_exists</a></td>
+                </tr>
+                <tr>
+                    <td>8.</td>
+                    <td><a href="#LIF LocalOutLIF SIMulate Alloc_Combinations DeLeTe table=mpls_tunnel result_type=etps_mpls_1 phase=7 ll_exists">LIF LocalOutLIF SIMulate Alloc_Combinations DeLeTe table=mpls_tunnel result_type=etps_mpls_1 phase=7 ll_exists</a></td>
+                </tr>
+                <tr>
+                    <td>9.</td>
+                    <td><a href="#LIF LocalOutLIF SIMulate Alloc_Combinations CLear">LIF LocalOutLIF SIMulate Alloc_Combinations CLear</a></td>
+                </tr>
+                <tr>
+                    <td>10.</td>
+                    <td><a href="#LIF LocalOutLIF SIMulate Alloc_Combinations StaTuS">LIF LocalOutLIF SIMulate Alloc_Combinations StaTuS</a></td>
+                </tr>
+                <tr>
+                    <td>11.</td>
+                    <td><a href="#LIF LocalOutLIF SIMulate Alloc_Combinations RUN">LIF LocalOutLIF SIMulate Alloc_Combinations RUN</a></td>
+                </tr>
+            </table>
+        <h5><a name="LIF LocalOutLIF PHASE DuMP phase=1">LIF LocalOutLIF PHASE DuMP phase=1</a></h5>
+        <textarea cols='180' rows='11' >===================================================================================================================================================&#13;&#10;|                                                                       Phase 1 - outlif banks summary                                            |&#13;&#10;|   EEDB banks mapped available to phase 1: {24-27}                                                                                               |&#13;&#10;|   EEDB banks in range taken by other phases: { }                                                                                                |&#13;&#10;|   Cluster mapped outlif banks available to phase 1: {0-3}                                                                                       |&#13;&#10;|   Cluster mapped outlif banks taken by other phases: { }                                                                                        |&#13;&#10;===================================================================================================================================================&#13;&#10;| Outlif bank | Free entries/total entries in bank | HW association | LL in use | EEDB bank index for LL | Granularity | EEDB banks used for data |&#13;&#10;===================================================================================================================================================&#13;&#10;| 0           | 8192/8192                          | Cluster        | FALSE     | NA                     | 60          |                          |&#13;&#10;===================================================================================================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="LIF LocalOutLIF DuMP">LIF LocalOutLIF DuMP</a></h5>
+        <textarea cols='180' rows='12' >=======================================================================================================================================================&#13;&#10;|                                                                                Outlif banks summary                                                 |&#13;&#10;|   Total number of free cluster outlif banks: 8                                                                                                      |&#13;&#10;|   Total number of free EEDB outlif banks: 0                                                                                                         |&#13;&#10;|   Total number of not assigned EEDB outlif banks: 54                                                                                                |&#13;&#10;=======================================================================================================================================================&#13;&#10;| Outlif bank | Free entries/total entries | HW association | Logical phase | LL in use | EEDB bank LL index | Granularity | EEDB banks used for data |&#13;&#10;=======================================================================================================================================================&#13;&#10;| 0           | 8192/8192                  | Cluster        | 1             | FALSE     | NA                 | 60          | NA                       |&#13;&#10;-------------------------------------------------------------------------------------------------------------------------------------------------------&#13;&#10;| 4           | 8191/8192                  | Cluster        | 8             | FALSE     | NA                 | 60          | NA                       |&#13;&#10;=======================================================================================================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="LIF LocalOutLIF CouNT phase=8">LIF LocalOutLIF CouNT phase=8</a></h5>
+        <textarea cols='180' rows='7' >============================================================================&#13;&#10;|                       local outlifs counter status                       |&#13;&#10;============================================================================&#13;&#10;| Logical phase | DBAL Table         | Result type        | Num of entries |&#13;&#10;============================================================================&#13;&#10;| 8             | EEDB_OAM_REFLECTOR | ETPS_REFLECTOR_OAM | 1              |&#13;&#10;============================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="LIF LocalOutLIF CouNT table=EEDB_OAM_REFLECTOR">LIF LocalOutLIF CouNT table=EEDB_OAM_REFLECTOR</a></h5>
+        <textarea cols='180' rows='7' >============================================================================&#13;&#10;|                       local outlifs counter status                       |&#13;&#10;============================================================================&#13;&#10;| Logical phase | DBAL Table         | Result type        | Num of entries |&#13;&#10;============================================================================&#13;&#10;| 8             | EEDB_OAM_REFLECTOR | ETPS_REFLECTOR_OAM | 1              |&#13;&#10;============================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="LIF LocalOutLIF CouNT phase=8 table=EEDB_OAM_REFLECTOR">LIF LocalOutLIF CouNT phase=8 table=EEDB_OAM_REFLECTOR</a></h5>
+        <textarea cols='180' rows='7' >============================================================================&#13;&#10;|                       local outlifs counter status                       |&#13;&#10;============================================================================&#13;&#10;| Logical phase | DBAL Table         | Result type        | Num of entries |&#13;&#10;============================================================================&#13;&#10;| 8             | EEDB_OAM_REFLECTOR | ETPS_REFLECTOR_OAM | 1              |&#13;&#10;============================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="LIF LocalOutLIF SIMulate Max_Alloc table=EEDB_ARP result_type=ETPS_ARP phase=7 ll_exists">LIF LocalOutLIF SIMulate Max_Alloc table=EEDB_ARP result_type=ETPS_ARP phase=7 ll_exists</a></h5>
+        <textarea cols='180' rows='1' >Allocation simulation result: 20480 possible lifs </textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="LIF LocalOutLIF SIMulate Alloc_Combinations Add table=mpls_tunnel result_type=etps_mpls_1 phase=7 ll_exists num_lifs=1">LIF LocalOutLIF SIMulate Alloc_Combinations Add table=mpls_tunnel result_type=etps_mpls_1 phase=7 ll_exists num_lifs=1</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="LIF LocalOutLIF SIMulate Alloc_Combinations Get table=mpls_tunnel result_type=etps_mpls_1 phase=7 ll_exists">LIF LocalOutLIF SIMulate Alloc_Combinations Get table=mpls_tunnel result_type=etps_mpls_1 phase=7 ll_exists</a></h5>
+        <textarea cols='180' rows='1' >Allocation simulation: Nof requested lifs for requested combination: 1</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="LIF LocalOutLIF SIMulate Alloc_Combinations DeLeTe table=mpls_tunnel result_type=etps_mpls_1 phase=7 ll_exists">LIF LocalOutLIF SIMulate Alloc_Combinations DeLeTe table=mpls_tunnel result_type=etps_mpls_1 phase=7 ll_exists</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="LIF LocalOutLIF SIMulate Alloc_Combinations CLear">LIF LocalOutLIF SIMulate Alloc_Combinations CLear</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="LIF LocalOutLIF SIMulate Alloc_Combinations StaTuS">LIF LocalOutLIF SIMulate Alloc_Combinations StaTuS</a></h5>
+        <textarea cols='180' rows='1' >No current combinations</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="LIF LocalOutLIF SIMulate Alloc_Combinations RUN">LIF LocalOutLIF SIMulate Alloc_Combinations RUN</a></h5>
+        <textarea cols='180' rows='1' >Allocation simulation: No entries in LOCAL_OUT_LIF_SIMULATION table</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+    </body>
+</html>

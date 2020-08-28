@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_b0" module="device">
+    <sub_module name="general">
+        
+        <numerics>
+            <numeric name="device_id" value="0x8480"></numeric>
+        </numerics>
+
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>
+

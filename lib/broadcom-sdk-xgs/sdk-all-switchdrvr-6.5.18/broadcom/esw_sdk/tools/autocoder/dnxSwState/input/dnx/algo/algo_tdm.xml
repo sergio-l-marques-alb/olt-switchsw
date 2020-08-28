@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<access_module name="algo_tdm">
+
+    <dependencies>
+    </dependencies>
+
+    <includes>
+        <include name="bcm_int/dnx/algo/algo_tdm.h" inH="true"/>
+    </includes>
+
+    <typedefs>
+    </typedefs>
+
+    <definitions>
+    </definitions>
+
+    <enums>
+    </enums>
+
+    <structs>
+
+    <struct name="algo_tdm_sw_state_t" instance="algo_tdm_db" doc="TDM related sw state">
+        <param name="ingress_context" type="dnx_algo_res_t" doc="TDM Ingress Context ID"
+               label="remove= allocate_several, free_several, clear, dump_info_get,
+                nof_allocated_elements_in_range_get, advanced_algorithm_info_set, advanced_algorithm_info_get"></param>
+        <param name="link_mask" type="dnx_algo_template_t" data_type="dnx_tdm_link_mask_t"
+               print_cb="dnx_tdm_link_mask_print_cb" doc="TDM Link Mask for direct routing"
+               label="remove= profile_get, free_all, dump_info_get, advanced_algorithm_info_set"/>
+    </struct>
+
+    </structs>
+
+</access_module>

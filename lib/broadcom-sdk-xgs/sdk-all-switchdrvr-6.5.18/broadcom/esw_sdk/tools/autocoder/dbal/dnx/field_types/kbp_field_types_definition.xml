@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Fields Types DB:
+    This xml contains the fields types DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+    According to:d88547d
+    DB Rules:
+    *********
+-->
+
+<FieldTypesDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="field_types_schema.xsd">
+
+<!-- Basic Types, unique with printing types -->
+
+    <FieldType Name="KBP_KEY_FIELD_TYPE" Size="3" Print="ENUM">
+        <OneLineDescription>Possible key field types for KBP</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="INVALID"  Description="Key type INVALID"/>
+                <EnumVal Name="PREFIX"   Description="equal to KBP_KEY_FIELD_PREFIX"/>
+                <EnumVal Name="EM"       Description="equal to KBP_KEY_FIELD_EM"/>
+                <EnumVal Name="RANGE"    Description="Key type RANGE"/>
+                <EnumVal Name="TERNARY"  Description="Key type TERNARY"/>
+                <EnumVal Name="HOLE"     Description="Key type HOLE"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+	<FieldType Name="ALGO_MODE" Size="3" Print="ENUM">
+        <OneLineDescription>KBP DB algo mode, values are according to KBP values (valid only for TCAM DBs)</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NON_ALGO"           Description="Non-algorithmic mode"/>
+                <EnumVal Name="POWER_CTRL"         Description="Algorithmic power controlled"/>
+                <EnumVal Name="POWER_CTRL_ADVANCE" Description="Algorithmic advanced power controlled"/>
+                <EnumVal Name="NET_ACL"            Description="Utilizes DBA and UDA resources and improves capacity and power"/>
+                <EnumVal Name="DEFAULT"            Description="Default algo mode - equals to power controlled"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="KBP_RESULT_LOCATION" Size="1" Print="UINT32">
+        <OneLineDescription>Possible KBP result locations</OneLineDescription>
+        <FieldDbInterface>
+            <FieldDefines>
+                <Define Name="FWD"  Value="0"   Description="Forwarding result"/>
+                <Define Name="RPF"  Value="1"   Description="RPF result"/>
+            </FieldDefines>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="KBP_DEVICE_STATUS" Size="4" Print="ENUM">
+        <OneLineDescription> KBP status of the device</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="BEFORE_INIT"     Description="Noting "/>
+                <EnumVal Name="FWD_CONFIG_DONE" Description="Reading FWD XML input and setting SW data"/>
+                <EnumVal Name="INIT_DONE"       Description="Device init"/>
+                <EnumVal Name="CONFIG_UPDATED"  Description="SW data updated after device lock"/>
+                <EnumVal Name="SYNC_IN_PROCESS" Description="KBP sync in process"/>
+                <EnumVal Name="WB_IN_PROCESS"   Description="KBP WB in in process"/>
+                <EnumVal Name="LOCKED"          Description="sync all Info SW DB to KBP finished"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="KBP_KBR_IDX" Size="2" Print="ENUM">
+        <OneLineDescription> Index for the KBP Key </OneLineDescription>
+        <FieldDbInterface>
+             <EnumValues>
+                <EnumVal Name="KEY_0" Description="First KBP Key" />
+                <EnumVal Name="KEY_1" Description="Second KBP Key" />
+                <EnumVal Name="KEY_2" Description="Third KBP Key" />
+                <EnumVal Name="KEY_3" Description="Fourth KBP Key" />
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="KBP_LOOKUP_TYPE" Size="3" Print="ENUM">
+        <OneLineDescription> Type of the KBP lookup </OneLineDescription>
+        <FieldDbInterface>
+             <EnumValues>
+                <EnumVal Name="FREE"        Description="Unused KBP lookup" />
+                <EnumVal Name="FWD"         Description="KBP FWD lookup" />
+                <EnumVal Name="RPF"         Description="KBP RPF lookup" />
+                <EnumVal Name="FWD_PUBLIC"  Description="KBP FWD public lookup" />
+                <EnumVal Name="RPF_PUBLIC"  Description="KBP RPF public lookup" />
+                <EnumVal Name="ACL"         Description="KBP ACL lookup" />
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="KBP_DEVICE_MODE" Size="2" Print="ENUM">
+        <OneLineDescription> KBP device connect mode </OneLineDescription>
+        <FieldDbInterface>
+             <EnumValues>
+                <EnumVal Name="SINGLE"      Description="Single Host Dual Port" />
+                <EnumVal Name="DUAL_SHARED" Description="Dual Host Quad Port Shared" />
+                <EnumVal Name="DUAL_SMT"    Description="Dual Host Quad Port SMT" />
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+	<FieldType Name="KBP_OPCODE_ID" Size="8" Print="UINT32">
+        <OneLineDescription>KBP opcode </OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ValueRestricts>
+               <MinValue Value="1"/>
+               <MaxValue Value="201"/>
+            </ValueRestricts>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+</FieldTypesDbCatalog>
+

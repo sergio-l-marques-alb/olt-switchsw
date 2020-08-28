@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="INGR_REASSEMBLY_PORT_TO_CONTEXT_MAP_BASE_ADDRESS_TABLE">
+        <OneLineDescription>This table contains mappig from port to base address in REGULAR_CONTEXT_MAP_TABLE.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.ingr_reassembly.dbal.interface_max" Name="INGRESS_REASSEMBLY_INTERFACE" Size="DNX_DATA.ingr_reassembly.dbal.interface_bits" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="REASSEMBLY_CONTEXT_MAP_BASE_ADDRESS" Size="DNX_DATA.ingr_reassembly.dbal.context_map_base_address_bits" Type="UINT"/>
+                <Field Name="IS_INTERLEAVED" Size="1" Type="BOOL"/>
+                <Field MaxValue="DNX_DATA.ingr_reassembly.dbal.interleaved_interface_max" Name="INTERLEAVED_INTERFACE_ID" Size="DNX_DATA.ingr_reassembly.dbal.interleaved_interface_bits" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="REASSEMBLY_CONTEXT_MAP_BASE_ADDRESS">
+                    <Access>
+                        <Memory Name="IRE_PORT_TO_BASE_ADDRESS_MAPm">
+                            <HwField Name="CTXT_MAP_BASE_ADDRESSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_INTERLEAVED">
+                    <Access>
+                        <Memory Name="IRE_PORT_TO_BASE_ADDRESS_MAPm">
+                            <HwField Name="NIF_PORT_IS_CHANNELIZEDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INTERLEAVED_INTERFACE_ID">
+                    <Access>
+                        <Memory Name="IRE_PORT_TO_BASE_ADDRESS_MAPm">
+                            <HwField Name="NIF_PORT_TO_CTXT_BIT_MAP_ADDRESSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                </FieldMapping>
+        </AppToPhyDbMapping>
+
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="REASSEMBLY_CONTEXT_MAP_BASE_ADDRESS">
+                    <Access>
+                        <Memory Name="IRE_NIF_PORT_ATTRm">
+                            <HwField Name="CTXT_MAP_BASE_ADDRESSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+
+                <Field Name="IS_INTERLEAVED">
+                    <Access>
+                        <Memory Name="IRE_NIF_PORT_ATTRm">
+                            <HwField Name="NIF_PORT_IS_CHANNELIZEDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+
+                <Field Name="INTERLEAVED_INTERFACE_ID">
+                    <Access>
+                        <Memory Name="IRE_NIF_PORT_ATTRm">
+                            <HwField Name="NIF_PORT_TO_CTXT_BIT_MAP_ADDRESSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGR_REASSEMBLY_CONTEXT_MAP_TABLE">
+        <OneLineDescription>This table contains reassembly and port termination context.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.ingr_reassembly.dbal.context_map_base_address_max+3" Name="REASSEMBLY_CONTEXT_MAP_OFFSET_EXT" Size="DNX_DATA.ingr_reassembly.dbal.context_map_base_address_bits+1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="REASSEMBLY_CONTEXT"/>
+                <Field Name="PORT_TERMINATION_CONTEXT" Type="TM_PORT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="REASSEMBLY_CONTEXT">
+                    <Access>
+                        <KeyCondition Field="REASSEMBLY_CONTEXT_MAP_OFFSET_EXT" Type="LOWER_THAN" Value="DNX_DATA.ingr_reassembly.dbal.context_map_base_address_max+1"/>
+                        <Memory Name="IRE_CTXT_MAPm">
+                            <HwField Name="REASSEMBLY_CONTEXTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <!-- OLP_OFFSET -->
+                        <KeyCondition Field="REASSEMBLY_CONTEXT_MAP_OFFSET_EXT" Type="EQUAL_TO" Value="DNX_DATA.ingr_reassembly.dbal.context_map_base_address_max+1"/>
+                        <Register Name="IRE_OLP_REASSEMBLY_CONTEXT_CONFIGURATIONr">
+                            <HwField Name="OLP_REASSEMBLY_CONTEXTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <!-- OAMP_OFFSET -->
+                        <KeyCondition Field="REASSEMBLY_CONTEXT_MAP_OFFSET_EXT" Type="EQUAL_TO" Value="DNX_DATA.ingr_reassembly.dbal.context_map_base_address_max+2"/>
+                        <Register Name="IRE_OAMP_REASSEMBLY_CONTEXT_CONFIGURATIONr">
+                            <HwField Name="OAMP_REASSEMBLY_CONTEXTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <!-- EVENTOR_OFFSET -->
+                        <KeyCondition Field="REASSEMBLY_CONTEXT_MAP_OFFSET_EXT" Type="EQUAL_TO" Value="DNX_DATA.ingr_reassembly.dbal.context_map_base_address_max+3"/>
+                        <Register Name="IRE_EVENTOR_REASSEMBLY_CONTEXT_CONFIGURATIONr">
+                            <HwField Name="EVENTOR_REASSEMBLY_CONTEXTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PORT_TERMINATION_CONTEXT">
+                    <Access>
+                        <KeyCondition Field="REASSEMBLY_CONTEXT_MAP_OFFSET_EXT" Type="LOWER_THAN" Value="DNX_DATA.ingr_reassembly.dbal.context_map_base_address_max+1"/>
+                        <Memory Name="IRE_CTXT_MAPm">
+                            <HwField Name="PORT_TERMINATION_CONTEXTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <!-- OLP_OFFSET -->
+                        <KeyCondition Field="REASSEMBLY_CONTEXT_MAP_OFFSET_EXT" Type="EQUAL_TO" Value="DNX_DATA.ingr_reassembly.dbal.context_map_base_address_max+1"/>
+                        <Register Name="IRE_OLP_REASSEMBLY_CONTEXT_CONFIGURATIONr">
+                            <HwField Name="OLP_PORT_TERMINATION_CONTEXTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <!-- OAMP_OFFSET -->
+                        <KeyCondition Field="REASSEMBLY_CONTEXT_MAP_OFFSET_EXT" Type="EQUAL_TO" Value="DNX_DATA.ingr_reassembly.dbal.context_map_base_address_max+2"/>
+                        <Register Name="IRE_OAMP_REASSEMBLY_CONTEXT_CONFIGURATIONr">
+                            <HwField Name="OAMP_PORT_TERMINATION_CONTEXTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <!--  EVENTOR_OFFSET -->
+                        <KeyCondition Field="REASSEMBLY_CONTEXT_MAP_OFFSET_EXT" Type="EQUAL_TO" Value="DNX_DATA.ingr_reassembly.dbal.context_map_base_address_max+3"/>
+                        <Register Name="IRE_EVENTOR_REASSEMBLY_CONTEXT_CONFIGURATIONr">
+                            <HwField Name="EVENTOR_PORT_TERMINATION_CONTEXTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGR_REASSEMBLY_INTERLEAVED_REASSEMBLY_CONTEXT_BITMAP" Valid="DNX_DATA.ingr_reassembly.ilkn.is_supported">
+        <OneLineDescription>This table contains bitmap of allocated reassembly contexts per NIF port for interleaved interfaces.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.ingr_reassembly.dbal.interleaved_interface_max" Name="INTERLEAVED_INTERFACE_ID" Size="DNX_DATA.ingr_reassembly.dbal.interleaved_interface_bits" Type="UINT"/>
+                <Field Name="REASSEMBLY_CONTEXT"/>
+            </Key>
+            <Result>
+                <Field Name="ACTIVE"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ACTIVE">
+                    <Access>
+                        <Memory Name="IRE_NIF_PORT_TO_CTXT_BIT_MAPm">
+                             <EntryOffset Formula="#KEY_VALUE(INTERLEAVED_INTERFACE_ID)"/>
+                            <HwField Name="CONTEXTS_BIT_MAPPINGf"/>
+                             <DataOffset Formula="#KEY_VALUE(REASSEMBLY_CONTEXT)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGR_REASSEMBLY_SPECIAL_INTERFACE_BASE_ADDRESS">
+        <OneLineDescription>This table contains base address to context table for non NIF interfaces.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MinValue="1" Name="REASSEMBLY_SPECIAL_INTERFACE_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="REASSEMBLY_CONTEXT_MAP_BASE_ADDRESS" Size="DNX_DATA.ingr_reassembly.dbal.context_map_base_address_bits" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="REASSEMBLY_CONTEXT_MAP_BASE_ADDRESS">
+                    <Access>
+                        <KeyCondition Enum="MIRROR_LOSSLESS" Field="REASSEMBLY_SPECIAL_INTERFACE_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IRE_INTERFACE_BASE_ADDR_CONFIGURATIONr">
+                            <HwField Name="INTERFACE_EGQ_PRI_0_BASE_ADDRf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MIRROR_HIGH_PRIORTY" Field="REASSEMBLY_SPECIAL_INTERFACE_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IRE_INTERFACE_BASE_ADDR_CONFIGURATIONr">
+                            <HwField Name="INTERFACE_EGQ_PRI_1_BASE_ADDRf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MIRROR_LOW_PRIORTY" Field="REASSEMBLY_SPECIAL_INTERFACE_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IRE_INTERFACE_BASE_ADDR_CONFIGURATIONr">
+                            <HwField Name="INTERFACE_EGQ_PRI_2_BASE_ADDRf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="RCY" Field="REASSEMBLY_SPECIAL_INTERFACE_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IRE_INTERFACE_BASE_ADDR_CONFIGURATIONr">
+                            <HwField Name="INTERFACE_EGQ_PRI_3_BASE_ADDRf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="CPU" Field="REASSEMBLY_SPECIAL_INTERFACE_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IRE_INTERFACE_BASE_ADDR_CONFIGURATIONr">
+                            <HwField Name="INTERFACE_CPU_BASE_ADDRf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SAT" Field="REASSEMBLY_SPECIAL_INTERFACE_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IRE_INTERFACE_BASE_ADDR_CONFIGURATIONr">
+                            <HwField Name="INTERFACE_SAT_BASE_ADDRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="JR2_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="REASSEMBLY_CONTEXT_MAP_BASE_ADDRESS">
+                    <Access>
+                        <Memory Name="IRE_PORT_TO_BASE_ADDRESS_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(REASSEMBLY_SPECIAL_INTERFACE_TYPE)"/>
+                            <HwField Name="CTXT_MAP_BASE_ADDRESSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGR_REASSEMBLY_BAD_REASSEMBLY_CONTEXT">
+        <OneLineDescription>This table contains configuration of bad reassembly context.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="VALID" Type="BOOL"/>
+                <Field Name="REASSEMBLY_CONTEXT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VALID">
+                    <Access>
+                        <Register Name="IRE_STATIC_CONFIGURATIONr">
+                            <HwField Name="BAD_REASSEMBLY_CONTEXT_VALIDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="REASSEMBLY_CONTEXT">
+                    <Access>
+                        <Register Name="IRE_STATIC_CONFIGURATIONr">
+                            <HwField Name="BAD_REASSEMBLY_CONTEXTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGR_REASSEMBLY_IRE_COUNTER">
+        <OneLineDescription>Ingress IRE Counter Information</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+           </Key>
+            <Result>
+                <Field Name="NIF_PACKET_COUNTER" Permission="READONLY" Size="64" Type="ARRAY32"/>
+                <Field Name="RCYH_PACKET_COUNTER" Permission="READONLY" Size="64" Type="ARRAY32"/>
+                <Field Name="RCYL_PACKET_COUNTER" Permission="READONLY" Size="64" Type="ARRAY32"/>
+                <Field Name="CPU_PACKET_COUNTER" Permission="READONLY" Size="64" Type="ARRAY32"/>
+                <Field Name="OLP_PACKET_COUNTER" Permission="READONLY" Size="64" Type="ARRAY32"/>
+                <Field Name="OAMP_PACKET_COUNTER" Permission="READONLY" Size="64" Type="ARRAY32"/>
+                <Field Name="REGISTER_INTERFACE_PACKET_COUNTER" Permission="READONLY" Size="64" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="NIF_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="IRE_NIF_PACKET_COUNTERr">
+                             <HwField Name="NIF_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RCYH_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="IRE_RCYH_PACKET_COUNTERr">
+                             <HwField Name="RCYH_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RCYL_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="IRE_RCYL_PACKET_COUNTERr">
+                             <HwField Name="RCYL_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CPU_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="IRE_CPU_PACKET_COUNTERr">
+                             <HwField Name="CPU_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OLP_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="IRE_OLP_PACKET_COUNTERr">
+                             <HwField Name="OLP_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAMP_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="IRE_OAMP_PACKET_COUNTERr">
+                             <HwField Name="OAMP_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="REGISTER_INTERFACE_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="IRE_REGISTER_INTERFACE_PACKET_COUNTERr">
+                             <HwField Name="REGISTER_INTERFACE_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB> 
+
+</AppDbCatalog>

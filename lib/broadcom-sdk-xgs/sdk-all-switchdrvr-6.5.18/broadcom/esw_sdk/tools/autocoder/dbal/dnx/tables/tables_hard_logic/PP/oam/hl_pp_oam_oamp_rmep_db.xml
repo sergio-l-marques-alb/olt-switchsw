@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+    <AppDB Name="OAMP_RMEP_DB">
+        <OneLineDescription>OAMP MEP DB entries in multiple formats</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="RMEP_INDEX"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Description="RMEP Ethernet OAM FULL Entry." Name="RESULT_TYPE" Size="2" Value="OAM_SELF_CONTAINED"/>
+                    <Field Description="Last time of CCM packet arriving" Name="LAST_LIFETIME_STAMP" Permission="TRIGGER" Type="LIFETIME"/>
+                    <Field Description="Indication that Last Lifetime is valid" Name="LAST_LIFETIME_STAMP_VALID" Permission="TRIGGER" Type="BOOL"/>
+                    <Field Name="LOC"/>
+                    <Field Name="ETH_INTERFACE_STATE"/>
+                    <Field Name="ETH_PORT_STATE"/>
+                    <Field Name="RDI_RECEIVED"/>
+                    <Field Description="Maximal time indication that can pass with no CCM or BFD packet from this MEP. After this LoC interrupt occur. " Name="LIFETIME"/>
+                    <Field Name="LIFETIME_UNITS"/>
+                    <Field Name="LOC_CLEAR_LIMIT"/>
+                    <Field Name="LOC_CLEAR_ENABLE"/>
+                    <Field Name="PUNT_PROFILE"/>
+                    <Field Name="OAM_ID"/>
+                    <Field Name="PUNT_GOOD_PROFILE"/>
+                    <Field Name="PUNT_NEXT_GOOD_PACKET"/>
+                </Result>
+                <Result>
+                    <Field Description="RMEP BFD FULL Entry." Name="RESULT_TYPE" Size="2" Value="BFD_SELF_CONTAINED"/>
+                    <Field Description="Last time of BFD packet arriving" Name="LAST_LIFETIME_STAMP" Permission="TRIGGER" Type="LIFETIME"/>
+                    <Field Description="Indication that Last Lifetime is valid" Name="LAST_LIFETIME_STAMP_VALID" Permission="TRIGGER" Type="BOOL"/>
+                    <Field Name="LOC"/>
+                    <Field Name="BFD_FLAGS_PROFILE"/>
+                    <Field Name="BFD_STATE"/>
+                    <Field Name="BFD_DIAG_PROFILE"/>
+                    <Field Name="DETECT_MULT"/>
+                    <Field Name="RDI_RECEIVED"/>
+                    <Field Description="Maximal time indication that can pass with no CCM or BFD packet from this MEP. After this LoC interrupt occur. " Name="LIFETIME"/>
+                    <Field Name="LIFETIME_UNITS"/>
+                    <Field Name="LOC_CLEAR_LIMIT"/>
+                    <Field Name="LOC_CLEAR_ENABLE"/>
+                    <Field Name="PUNT_PROFILE"/>
+                    <Field Name="OAM_ID"/>
+                    <Field Name="PUNT_GOOD_PROFILE"/>
+                    <Field Name="PUNT_NEXT_GOOD_PACKET"/>
+                </Result>
+                <Result>
+                    <Field Description="RMEP Ethernet OAM Dynamic Entry(half)." Name="RESULT_TYPE" Size="2" Value="OAM_OFFLOADED"/>
+                    <Field Description="Last time of CCM packet arriving" Name="LAST_LIFETIME_STAMP" Permission="TRIGGER" Type="LIFETIME"/>
+                    <Field Description="Indication that Last Lifetime is valid" Name="LAST_LIFETIME_STAMP_VALID" Permission="TRIGGER" Type="BOOL"/>
+                    <Field Name="LOC"/>
+                    <Field Name="ETH_INTERFACE_STATE"/>
+                    <Field Name="ETH_PORT_STATE"/>
+                    <Field Name="RDI_RECEIVED"/>
+                    <Field Name="PUNT_NEXT_GOOD_PACKET"/>
+                </Result>
+                <Result>
+                    <Field Description="RMEP BFD Dynamic Entry(half)." Name="RESULT_TYPE" Size="2" Value="BFD_OFFLOADED"/>
+                    <Field Description="Last time of BFD packet arriving" Name="LAST_LIFETIME_STAMP" Permission="TRIGGER" Type="LIFETIME"/>
+                    <Field Description="Indication that Last Lifetime is valid" Name="LAST_LIFETIME_STAMP_VALID" Permission="TRIGGER" Type="BOOL"/>
+                    <Field Name="LOC"/>
+                    <Field Name="BFD_FLAGS_PROFILE"/>
+                    <Field Name="BFD_STATE"/>
+                    <Field Name="BFD_DIAG_PROFILE"/>
+                    <Field Name="DETECT_MULT"/>
+                    <Field Name="RDI_RECEIVED"/>
+                    <Field Name="PUNT_NEXT_GOOD_PACKET"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <MultipleResultsMapping>
+                <Result LogicalValue="OAM_SELF_CONTAINED" Value="0"/>
+                <Result LogicalValue="BFD_SELF_CONTAINED" Value="1"/>
+                <Result LogicalValue="OAM_OFFLOADED" Value="2"/>
+                <Result LogicalValue="BFD_OFFLOADED" Value="3"/>
+            </MultipleResultsMapping>
+            <FieldMapping ResultType="OAM_SELF_CONTAINED">
+                <Field Name="RESULT_TYPE">
+                    <Access Offset="0" Size="2">
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>
+                <Field Name="LAST_LIFETIME_STAMP">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                                <HwField Name="LAST_CCM_LIFETIMEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAST_LIFETIME_STAMP_VALID">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="LAST_CCM_LIFETIME_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LOC">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="LOCf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ETH_INTERFACE_STATE">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="REMOTE_STATEf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ETH_PORT_STATE">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="REMOTE_STATEf"/>
+                            <DataOffset Formula="#RESULT_SIZE(ETH_INTERFACE_STATE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RDI_RECEIVED">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="RDI_RECEIVEDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIFETIME">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DB_EXTERNALm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+1"/>
+                            <HwField Name="LIFETIMEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIFETIME_UNITS">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DB_EXTERNALm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+1"/>
+                            <HwField Name="LIFETIME_UNITSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LOC_CLEAR_LIMIT">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DB_EXTERNALm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+1"/>
+                            <HwField Name="LOC_CLEAR_LIMTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LOC_CLEAR_ENABLE">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DB_EXTERNALm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+1"/>
+                            <HwField Name="LOC_CLEAR_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PUNT_PROFILE">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DB_EXTERNALm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+1"/>
+                            <HwField Name="PUNT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_ID">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DB_EXTERNALm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+1"/>
+                            <HwField Name="MEP_DB_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PUNT_GOOD_PROFILE">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DB_EXTERNALm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+1"/>
+                            <HwField Name="PUNT_GOOD_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PUNT_NEXT_GOOD_PACKET">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="PUNT_NEXT_GOOD_PACKETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="BFD_SELF_CONTAINED">
+                <Field Name="RESULT_TYPE">
+                    <Access Offset="0" Size="2">
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>
+                <Field Name="LAST_LIFETIME_STAMP">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                                <HwField Name="LAST_CCM_LIFETIMEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAST_LIFETIME_STAMP_VALID">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="LAST_CCM_LIFETIME_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LOC">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="LOCf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BFD_FLAGS_PROFILE">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="REMOTE_STATEf"/>
+                            <DataOffset Formula="#RESULT_SIZE(BFD_DIAG_PROFILE)+#RESULT_SIZE(BFD_STATE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BFD_STATE">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="REMOTE_STATEf"/>
+                            <DataOffset Formula="#RESULT_SIZE(BFD_DIAG_PROFILE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BFD_DIAG_PROFILE">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="REMOTE_STATEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DETECT_MULT">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="REMOTE_STATEf"/>
+                            <DataOffset Formula="#RESULT_SIZE(BFD_FLAGS_PROFILE)+#RESULT_SIZE(BFD_STATE)+#RESULT_SIZE(BFD_DIAG_PROFILE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RDI_RECEIVED">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="RDI_RECEIVEDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIFETIME">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DB_EXTERNALm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+1"/>
+                            <HwField Name="LIFETIMEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIFETIME_UNITS">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DB_EXTERNALm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+1"/>
+                            <HwField Name="LIFETIME_UNITSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LOC_CLEAR_LIMIT">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DB_EXTERNALm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+1"/>
+                            <HwField Name="LOC_CLEAR_LIMTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LOC_CLEAR_ENABLE">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DB_EXTERNALm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+1"/>
+                            <HwField Name="LOC_CLEAR_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PUNT_PROFILE">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DB_EXTERNALm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+1"/>
+                            <HwField Name="PUNT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_ID">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DB_EXTERNALm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+1"/>
+                            <HwField Name="MEP_DB_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PUNT_GOOD_PROFILE">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DB_EXTERNALm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+1"/>
+                            <HwField Name="PUNT_GOOD_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PUNT_NEXT_GOOD_PACKET">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="PUNT_NEXT_GOOD_PACKETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="OAM_OFFLOADED">
+                <Field Name="RESULT_TYPE">
+                    <Access Offset="0" Size="2">
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>
+                <Field Name="LAST_LIFETIME_STAMP">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                                <HwField Name="LAST_CCM_LIFETIMEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAST_LIFETIME_STAMP_VALID">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="LAST_CCM_LIFETIME_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LOC">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="LOCf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ETH_INTERFACE_STATE">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="REMOTE_STATEf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ETH_PORT_STATE">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="REMOTE_STATEf"/>
+                            <DataOffset Formula="#RESULT_SIZE(ETH_INTERFACE_STATE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RDI_RECEIVED">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="RDI_RECEIVEDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PUNT_NEXT_GOOD_PACKET">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="PUNT_NEXT_GOOD_PACKETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+            <FieldMapping ResultType="BFD_OFFLOADED">
+                <Field Name="RESULT_TYPE">
+                    <Access Offset="0" Size="2">
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>
+                <Field Name="LAST_LIFETIME_STAMP">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                                <HwField Name="LAST_CCM_LIFETIMEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAST_LIFETIME_STAMP_VALID">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="LAST_CCM_LIFETIME_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LOC">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="LOCf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BFD_FLAGS_PROFILE">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="REMOTE_STATEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BFD_STATE">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="REMOTE_STATEf"/>
+                            <DataOffset Formula="#RESULT_SIZE(BFD_FLAGS_PROFILE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BFD_DIAG_PROFILE">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="REMOTE_STATEf"/>
+                            <DataOffset Formula="#RESULT_SIZE(BFD_FLAGS_PROFILE)+#RESULT_SIZE(BFD_STATE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DETECT_MULT">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="REMOTE_STATEf"/>
+                            <DataOffset Formula="#RESULT_SIZE(BFD_FLAGS_PROFILE)+#RESULT_SIZE(BFD_STATE)+#RESULT_SIZE(BFD_DIAG_PROFILE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RDI_RECEIVED">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="RDI_RECEIVEDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PUNT_NEXT_GOOD_PACKET">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_DATABASEm">
+                            <HwField Name="PUNT_NEXT_GOOD_PACKETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAM_PUNT_PROFILE_TBL">
+        <OneLineDescription>Profile table for handling of OAMP events to punt packets</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PUNT_PROFILE"/>
+            </Key>
+                <Result>
+                    <Field Description="Rate of sampling packets to CPU. values ranges from 0 to 7 representing the number of packets (with events) required to be received before sampling a packet." Name="PROFILE_PUNT_RATE" Size="3" Type="UINT"/>
+                    <Field Description="Enable/disable sampling of packets to CPU" Name="PROFILE_PUNT_ENABLE" Size="1" Type="BOOL"/>
+                    <Field Name="PROFILE_RX_STATE_UPDATE_EN" Size="2"/>
+                    <Field Name="PROFILE_SCAN_STATE_UPDATE_EN" Size="2"/>
+                    <Field Description="Enable/disable of updating of RDI in the MEP DB when LOC is detected" Name="PROFILE_MEP_RDI_UPDATE_LOC_EN" Size="1" Type="BOOL"/>
+                    <Field Description="Enable/disable of updating of RDI in the MEP DB when LOC is cleared" Name="PROFILE_MEP_RDI_UPDATE_LOC_CLEAR_EN" Size="1" Type="BOOL"/>
+                    <Field Description="Enable/disable of updating the MEP DB RDI indication by copying the RDI indication from the received valid CCM packet" Name="PROFILE_MEP_RDI_UPDATE_RX_EN" Size="1" Type="BOOL"/>
+                </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PROFILE_PUNT_RATE"> 
+                    <Access>
+                        <Register Name="OAMP_PUNT_EVENT_HENDLINGr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(PUNT_PROFILE)"/>
+                            <HwField Name="PROFILE_N_PUNT_RATEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PROFILE_PUNT_ENABLE"> 
+                    <Access>
+                        <Register Name="OAMP_PUNT_EVENT_HENDLINGr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(PUNT_PROFILE)"/>
+                            <HwField Name="PROFILE_N_PUNT_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PROFILE_RX_STATE_UPDATE_EN"> 
+                    <Access>
+                        <Register Name="OAMP_PUNT_EVENT_HENDLINGr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(PUNT_PROFILE)"/>
+                            <HwField Name="PROFILE_N_RX_STATE_UPDATE_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PROFILE_SCAN_STATE_UPDATE_EN"> 
+                    <Access>
+                        <Register Name="OAMP_PUNT_EVENT_HENDLINGr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(PUNT_PROFILE)"/>
+                            <HwField Name="PROFILE_N_SCAN_STATE_UPDATE_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PROFILE_MEP_RDI_UPDATE_LOC_EN"> 
+                    <Access>
+                        <Register Name="OAMP_PUNT_EVENT_HENDLINGr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(PUNT_PROFILE)"/>
+                            <HwField Name="PROFILE_N_MEP_RDI_UPDATE_LOC_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PROFILE_MEP_RDI_UPDATE_LOC_CLEAR_EN"> 
+                    <Access>
+                        <Register Name="OAMP_PUNT_EVENT_HENDLINGr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(PUNT_PROFILE)"/>
+                            <HwField Name="PROFILE_N_MEP_RDI_UPDATE_LOC_CLEAR_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PROFILE_MEP_RDI_UPDATE_RX_EN"> 
+                    <Access>
+                        <Register Name="OAMP_PUNT_EVENT_HENDLINGr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(PUNT_PROFILE)"/>
+                            <HwField Name="PROFILE_N_MEP_RDI_UPDATE_RX_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

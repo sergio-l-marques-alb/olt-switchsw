@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="SIT_EGRESS_PROFILE_TABLE">
+    <OneLineDescription>Sub interface tag(SIT) infomation table, indexed by per port SIT Profile</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="SIT_PROFILE" Size="3"/>                               
+      </Key>
+      <Result>
+        <Field Name="SIT_TAG_TYPE"/>
+        <Field Name="SIT_TPID" Size="16" Type="TPID"/>
+        <Field Name="SIT_PCP_DEI_SRC"/>
+        <Field Name="SIT_VID_SRC"/>
+      </Result>
+      <TableLabels>SIT</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+      <CoreMode Mode="SBC"/>
+      <FieldMapping>
+        <Field Name="SIT_TAG_TYPE">
+          <Access>
+            <Memory GroupName="ETPP_SIT_PROFILE_MAP_TABLE">
+              <HwField Name="TAG_TYPEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="SIT_TPID">
+          <Access>
+            <Memory GroupName="ETPP_SIT_PROFILE_MAP_TABLE">
+              <HwField Name="TPIDf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="SIT_PCP_DEI_SRC">
+          <Access>
+            <Memory GroupName="ETPP_SIT_PROFILE_MAP_TABLE">
+              <HwField Name="PCP_DEI_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="SIT_VID_SRC">
+          <Access>
+            <Memory GroupName="ETPP_SIT_PROFILE_MAP_TABLE">
+              <HwField Name="VID_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+    <AppDB Name="SIT_INGRESS_GENERAL_CONFIGURATION">
+    <OneLineDescription>Tag swap TPID configuration,used for tag identification and swapping</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="DIRECT">
+        <Key>
+        </Key>
+        <Result>
+            <Field Description="Offset of TPID" Name="SWAP_TPID_OFFSET" NofInstances="2" Size="5" Type="UINT"/>
+            <Field Description="Value of TPID." Name="SWAP_TPID" NofInstances="2" Size="16" Type="TPID"/>
+            <Field Description="Mask for TPID" Name="SWAP_TPID_MASK" NofInstances="2" Size="16" Type="UINT"/>            
+            <Field Description="Offset of swap TPID ." Name="GLOBAL_SWAP_TPID_OFFSET" Size="5" Type="UINT"/>
+            <Field Description="Size of swap TPID: 0x0-4B,0x1-6B,0x2-8B,0x3-10B." Name="GLOBAL_SWAP_TPID_SIZE" Size="2" Type="SIT_TAG_SWAP_SIZE"/>
+            <Field Description="Size of TPID: 0x0-4B,0x1-6B,0x2-8B,0x3-10B.." Name="SWAP_TPID_SIZE" NofInstances="2" Size="2" Type="SIT_TAG_SWAP_SIZE"/>
+            </Result>
+        <TableLabels>SIT</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping> 
+        <CoreMode Mode="SBC"/>
+        <FieldMapping>
+            <Field Name="SWAP_TPID_OFFSET">
+                    <Access instanceIndex="0">
+                        <Register Name="IRE_TAG_SWAP_CONFIGURATIONr">
+                            <HwField Name="TAG_SWAP_OFFSET_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="IRE_TAG_SWAP_CONFIGURATIONr">
+                            <HwField Name="TAG_SWAP_OFFSET_1f"/>
+                        </Register>
+                    </Access>
+            </Field>
+            <Field Name="SWAP_TPID">
+                    <Access instanceIndex="0">
+                        <Register Name="IRE_TAG_SWAP_CONFIGURATIONr">
+                            <HwField Name="TAG_SWAP_TPID_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="IRE_TAG_SWAP_CONFIGURATIONr">
+                            <HwField Name="TAG_SWAP_TPID_1f"/>
+                        </Register>
+                    </Access>
+            </Field>
+            <Field Name="SWAP_TPID_MASK">
+                    <Access instanceIndex="0">
+                        <Register Name="IRE_TAG_SWAP_CONFIGURATIONr">
+                            <HwField Name="TPID_0_TAG_SWAP_MASKf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="IRE_TAG_SWAP_CONFIGURATIONr">
+                            <HwField Name="TPID_1_TAG_SWAP_MASKf"/>
+                        </Register>
+                    </Access>
+            </Field>
+            <Field Name="SWAP_TPID_SIZE">
+                    <Access instanceIndex="0">
+                        <Register Name="IRE_TAG_SWAP_CONFIGURATIONr">
+                            <HwField Name="TPID_0_TAG_SWAP_SIZEf"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="IRE_TAG_SWAP_CONFIGURATIONr">
+                            <HwField Name="TPID_1_TAG_SWAP_SIZEf"/>
+                        </Register>
+                    </Access>
+            </Field>
+
+            <Field Name="GLOBAL_SWAP_TPID_OFFSET">
+                <Access>
+                    <Register Name="IRE_TAG_SWAP_CONFIGURATIONr"> 
+                        <HwField Name="GLOBAL_TAG_SWAP_OFFSETf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="GLOBAL_SWAP_TPID_SIZE">
+                <Access>
+                    <Register Name="IRE_TAG_SWAP_CONFIGURATIONr"> 
+                        <HwField Name="GLOBAL_TAG_SWAP_SIZEf"/>
+                    </Register>
+                </Access>
+            </Field>
+            </FieldMapping>
+    </AppToPhyDbMapping>
+</AppDB>
+
+
+</AppDbCatalog>

@@ -1,0 +1,228 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="ingr_congestion" bsl_flag="BSL_LS_BCMDNX_COSQ">
+    <includes>
+    </includes>
+
+    <sub_module name="config" doc="Ingress congestion configuration">
+        
+        <features>
+             <feature labels="j2p_notrev" name="pp_port_by_reassembly_overwrite" doc="Is PP port in CGM overwritten by Reassembly"></feature>
+             <feature labels="j2p_notrev" name="inband_telemetry_ftmh_extension_eco_fix" doc="Is inband telemetry FTMH extension issue fixed by ECO"></feature>
+        </features>
+        
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="guarantee_mode" doc="guarantee mode"></numeric>
+            <numeric labels="j2p_notrev" name="wred_packet_size" doc="max packet size used in WRED parameters computation"></numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="info" doc="Ingress congestion info">
+        <features>
+             <feature labels="j2p_notrev" name="soft_dram_block_supported" doc="Soft DRAM block state supported"></feature>
+             <feature labels="j2p_notrev" name="latency_based_admission" doc="Is latency based admission supported"></feature>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="threshold_granularity" doc="Granularity (non bytes) thresholds are written to HW with"></define>
+            <define labels="j2p_notrev" name="words_resolution" doc="Size of each HW word in bytes"></define>
+            <define labels="j2p_notrev" name="bytes_threshold_granularity" doc="Granularity bytes thresholds are written to HW with"></define>
+            <define labels="j2p_notrev" name="nof_dropped_reasons_cgm" doc="number of reasons for the dropped packets in CGM"></define>
+            <define labels="j2p_notrev" name="wred_max_gain" doc="maximal allowed value of gain for WRED"></define>
+            <define labels="j2p_notrev" name="wred_granularity" doc="granularity of WRED parameters for coefficient calculation"></define>
+            <define labels="j2p_notrev" name="nof_pds_in_pdb" doc="number of SRAM PDs in PDB"></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="max_sram_pdbs" doc="Maximal number of SRAM PDBS"></numeric>
+            <numeric labels="j2p_notrev" name="max_dram_bdbs" doc="Maximal number of DRAM BDBS"></numeric>
+        </numerics>        
+        
+        <tables>
+            <table labels="j2p_notrev" name="resource" doc="Resource Size - per resource">
+                <key name="type" doc="resource type"></key>
+                <value name="max" type="uint32" doc="Maximal resource size"></value>
+                <value name="hw_resolution_max" type="uint32" doc="Maximal resource size in HW granularity"></value>
+                <value name="hw_resolution_nof_bits" type="uint32" doc="Maximal nf bits to describe resource size in HW granularity"></value>
+                <value name="fadt_alpha_min" type="int" doc="fadt alpha min value per resource type"></value>
+                <value name="fadt_alpha_max" type="int" doc="fadt alpha max value per resource type"></value>
+            </table>
+            
+            <table labels="j2p_notrev" name="dp_free_res_presentage_drop" doc="Amount of free resource precntage to cause drop per DP">
+                <key name="dp" doc="DP (0-3). 0=Green, 1=Yellow, 2=Red, 3=Black"></key>
+                <value name="drop_precentage" type="uint32" doc="precentage of free resources to cause drop"></value>
+            </table>
+            
+            <table labels="j2p_notrev" name="admission_preferences" doc="admission preferences (admit/guaranteed) per DP.">
+                <key name="dp" doc="DP (0-3). 0=Green, 1=Yellow, 2=Red, 3=Black"></key>
+                <value name="is_guarantee_over_admit" type="uint32" doc="if set, than in case statistic admission tests fail (for example WRED), but the queue level is within the guaranteed, it will enter."></value>
+            </table>
+
+        </tables>
+    </sub_module>
+
+    <sub_module name="fadt_tail_drop" doc="FADT tail drop thresholds and related sizes">
+        <numerics>
+            <numeric labels="j2p_notrev" name="default_max_size_byte_threshold_for_ocb_only" doc="Default for max size threshold for byte resource when rate class is OCB only" />
+        </numerics>
+    </sub_module>
+
+    <sub_module name="dram_bound" doc="dram bound thresholds and related sizes">
+        <defines>
+            <define labels="j2p_notrev" name="fadt_alpha_min" doc="min value for fadt dram thresholds"/>
+            <define labels="j2p_notrev" name="fadt_alpha_max" doc="max value for fadt dram thresholds"/>
+        </defines> 
+        <tables>
+            <table labels="j2p_notrev" name="resource" doc="DRAM Resource info per resource">
+                <key name="type" doc="resource type"></key>
+                <value name="max" type="uint32" doc="Maximal resource size"></value>
+                <value name="is_resource_range" type="int" doc="if set, FADT threshold algorithm for the resource type is limited to a specific free resources range"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="voq" doc="VOQ info">
+        <defines>
+            <define labels="j2p_notrev" name="nof_rate_class" doc="number of VOQ rate classes"/>
+            <define labels="j2p_notrev" name="rate_class_nof_bits" doc="number of bits in VOQ rate class"/>
+            <define labels="j2p_notrev" name="nof_compensation_profiles" doc="number of VOQ compensation profiles. used for voq compensation calculation"/>
+            <define labels="j2p_notrev" name="default_compensation" doc="set to eth compensation (Preamable + IFG + CRC)"></define>
+            <define labels="j2p_notrev" name="latency_bins" doc="number of latency admission VOQ ranges"></define>
+        </defines>    
+    </sub_module>
+
+    <sub_module name="vsq" doc="VSQ info">
+        
+        <features>
+            <feature name="size_watermark_support" doc="support for VSQ size watermark retrieval"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="vsq_rate_class_nof" doc="Number of VSQ rate classes"></define>        
+            <define labels="j2p_notrev" name="vsq_a_rate_class_nof" doc="Number of VSQ-A rate classes"></define>    
+
+            <define labels="j2p_notrev" name="vsq_a_nof" doc="Number of VSQ-A"></define>        
+            <define labels="j2p_notrev" name="vsq_b_nof" doc="Number of VSQ-B"></define>        
+            <define labels="j2p_notrev" name="vsq_c_nof" doc="Number of VSQ-C"></define>        
+            <define labels="j2p_notrev" name="vsq_d_nof" doc="Number of VSQ-D"></define>        
+            <define labels="j2p_notrev" name="vsq_e_nof" doc="Number of VSQ-E"></define>        
+            <define labels="j2p_notrev" name="vsq_e_hw_nof" doc="Number of VSQ-E in HW, including reserved VSQ-E"></define>
+            <define labels="j2p_notrev" name="vsq_f_nof" doc="Number of VSQ-F"></define>
+            <define labels="j2p_notrev" name="vsq_f_hw_nof" doc="Number of VSQ-F in HW, including reserved VSQ-F"></define>    
+                    
+            <define labels="j2p_notrev" name="nif_vsq_e_nof" doc="Number of VSQ-E on NIF ports" ></define>
+            <define labels="j2p_notrev" name="non_nif_vsq_f_nof" doc="Number of VSQ-F on non NIF ports" ></define>
+
+            <define labels="j2p_notrev" name="pool_nof" doc="Number of resource pools"></define>
+            <define labels="j2p_notrev" name="connection_class_nof" doc="Number of connection classes"></define>
+            <define labels="j2p_notrev" name="tc_pg_profile_nof" doc="Number of tc->pg profiles"></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="vsq_e_default" doc="Default mapping of VSQ-E"></numeric>        
+            <numeric labels="j2p_notrev" name="vsq_f_default" doc="Default mapping of VSQ-F"></numeric>
+        </numerics>
+
+        <tables>
+            <table labels="j2p_notrev" name="info" doc="General VSQ info">
+                <key name="vsq_group" doc="vsq_group id as in enum SOC_DNX_ITM_VSQ_GROUP."></key>
+                <value name="nof" type="uint32" doc="Number of VSQs in this group."></value>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="init" doc="init info">
+        <defines>
+            <define labels="j2p_notrev" name="fifo_size" doc="size of each tar fifo"></define>        
+        </defines>
+
+        <tables>
+            <table labels="j2p_notrev" name="vsq_words_rjct_map" doc="initialization info for VSQ words reject map - defines combinations which should be turn on">
+                <key name="index" doc="arbitrary index"></key>
+                <value name="is_total_shared_blocked" type="uint32" doc="is total shared blocked"></value>
+                <value name="is_port_pg_shared_blocked" type="uint32" doc="is port pg shared blocked"></value>
+                <value name="is_total_headroom_blocked" type="uint32" doc="is total headroom blocked"></value>
+                <value name="is_port_pg_headroom_blocked" type="uint32" doc="is port pg headroom blocked"></value>
+                <value name="is_voq_in_guaranteed" type="uint32" doc="is voq in guaranteed"></value>
+                <value name="vsq_guaranteed_status" type="uint32" doc="vsq guaranteed status"></value>
+            </table>
+            <table labels="j2p_notrev" name="vsq_sram_rjct_map" doc="initialization info for VSQ SRAM reject map - defines combinations which should be turn on">
+                <key name="index" doc="arbitrary index"></key>
+                <value name="is_total_shared_blocked" type="uint32" doc="is total shared blocked"></value>
+                <value name="is_port_pg_shared_blocked" type="uint32" doc="is port pg shared blocked"></value>
+                <value name="is_headroom_extension_blocked" type="uint32" doc="is headroom extension blocked"></value>
+                <value name="is_total_headroom_blocked" type="uint32" doc="is total headroom blocked"></value>
+                <value name="is_port_headroom_blocked" type="uint32" doc="is port headroom blocked"></value>
+                <value name="is_pg_headroom_blocked" type="uint32" doc="is PG headroom blocked"></value>
+                <value name="is_voq_in_guaranteed" type="uint32" doc="is voq in guaranteed"></value>
+                <value name="vsq_guaranteed_status" type="uint32" doc="vsq guaranteed status"></value>
+            </table>
+            <table labels="j2p_notrev" name="dp_global_sram_buffer_drop" doc="Amount of free sram buffer resource to cause drop per DP">
+                <key name="dp" doc="DP (0-3)."></key>
+                <value name="set_threshold" type="uint32" doc="Amount of free sram buffer resource to set the drop (to support hysteresis)"></value>
+                <value name="clear_threshold" type="uint32" doc="Amount of free sram buffer resource to clear the drop (to support hysteresis)"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="dp_global_sram_pdb_drop" doc="Amount of free sram pdb resource to cause drop per DP">
+                <key name="dp" doc="DP (0-3)."></key>
+                <value name="set_threshold" type="uint32" doc="Amount of free sram pdb resource to set the drop (to support hysteresis)"></value>
+                <value name="clear_threshold" type="uint32" doc="Amount of free sram pdb resource to clear the drop (to support hysteresis)"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="dp_global_dram_bdb_drop" doc="Amount of free dram bdb resource to cause drop per DP">
+                <key name="dp" doc="DP (0-3)."></key>
+                <value name="set_threshold" type="uint32" doc="Amount of free dram bdb resource to set the drop (to support hysteresis)"></value>
+                <value name="clear_threshold" type="uint32" doc="Amount of free dram bdb resource to clear the drop (to support hysteresis)"></value>
+            </table>
+            <table labels="j2p_notrev" name="equivalent_global_drop" doc="Equavalent amount per VOQ resource to per-DP global drop (not configurable by user)">
+                <key name="type" doc="VOQ resource" ></key>
+                <value name="drop" type="uint32" doc="Equavalent amount in VOQ resource to per-DP global drop (not configurable by user) "></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="dbal" doc="dbal info">
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="admission_test_nof" doc="Number of admission test"></numeric>
+            <numeric labels="j2p_notrev" name="dram_bdbs_th_nof_bits" doc="Number of bits dram bdbs set/clear threshold"></numeric>
+            <numeric labels="j2p_notrev" name="sram_pdbs_th_nof_bits" doc="Number of bits sram pdbs set/clear threshold"></numeric>
+            <numeric labels="j2p_notrev" name="sram_buffer_th_nof_bits" doc="Number of bits sram buffer set/clear threshold"></numeric>
+            <numeric labels="j2p_notrev" name="sram_buffer_free_th_nof_bits" doc="Number of bits sram buffer set/clear threshold for reaching full size of the resource"></numeric>
+            <numeric labels="j2p_notrev" name="sram_pds_th_nof_bits" doc="Number of bits sram PDs set/clear threshold"></numeric>
+            <numeric labels="j2p_notrev" name="total_bytes_th_nof_bits" doc="Number of bits total bytes set/clear threshold"></numeric>
+            <numeric labels="j2p_notrev" name="dram_bdbs_nof_bits" doc="Number of bits for dram bdbs"></numeric>
+            <numeric labels="j2p_notrev" name="sram_pdbs_nof_bits" doc="Number of bits for sram pdbs"></numeric>
+            <numeric labels="j2p_notrev" name="sram_buffer_nof_bits" doc="Number of bits for sram buffer"></numeric>
+        </numerics>
+
+        <tables>
+            <table labels="j2p_notrev" name="admission_bits_mapping" doc="Mapping of bits in addmission mask">
+                <key name="rjct_bit" doc="admission bit - defined by dnx_ingress_congestion_reject_bit_e"></key>
+                <value name="index" type="int" doc="the offset of the bit in the mask"></value>
+            </table>
+        </tables>
+
+    </sub_module>
+    
+    <sub_module name="mirror_on_drop" doc="mirror on drop feature">
+        <defines>
+            <define labels="j2p_notrev" name="nof_groups" doc="number of drop groups"></define>
+            <define labels="j2p_notrev" name="aging_clocks_resolution" doc="resolution of aging clock cycles"></define>                    
+        </defines>
+        
+        <features>
+             <feature labels="j2p_notrev" name="is_supported" doc="Indication whether mirror on drop feature is supported"></feature>
+        </features>
+    </sub_module>
+
+</device_data>
+
+
+
+

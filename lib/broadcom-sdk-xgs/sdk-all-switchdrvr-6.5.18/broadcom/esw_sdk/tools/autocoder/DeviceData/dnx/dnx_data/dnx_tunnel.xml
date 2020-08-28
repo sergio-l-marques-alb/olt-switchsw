@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="tunnel" bsl_flag="BSL_LS_BCMDNX_TUNNEL">
+    
+     <sub_module name="general" doc="general tunnel information">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name = "esem_cmd_arr_prefix_gre_any_ipv4"         doc = "The ESEM command ARR prefix of an GRE ANY IPv4"></define>
+            <define name = "esem_cmd_arr_prefix_vxlan_gpe"            doc = "The ESEM command ARR prefix of VXLAN GPE"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+        <tables>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="ipv6" doc="IPV6 tunnel data">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name = "nof_terminated_sips"         doc = "Number of ipv6 tunnel sip profile id"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+        <tables>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="udp" doc="UDP tunnels data.">
+        <defines>
+            <define name = "nof_udp_ports_profiles" doc="Number of udp ports profiles in the additional header profiles table."></define>
+            <define name = "first_udp_ports_profile" doc="Lowest udp ports profiles in the additional header profiles table that's not the 
+default profile."></define>
+        </defines>
+    </sub_module>
+
+
+    
+</device_data>
+
+
+
+

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2p_a0"  module="esem">
+
+    <sub_module name="access_cmd">
+        <defines>
+            <define name="app_di_id_size_in_bits" value="4"/>
+        </defines>
+    </sub_module>
+
+    <sub_module name="hw_bug" doc="ESEM related Hw bugs">
+
+        <features>
+            <feature name="etps_properties_assignment" value="0"></feature>
+            <feature name="key_with_sspa_contains_member_id" value="0"></feature>
+        </features>
+
+    </sub_module>
+</device_data>

@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0" module="multicast">
+    <includes>
+        <include>bcm_int/dnx/algo/multicast/algo_multicast.h</include>
+    </includes>
+    
+    <sub_module name="params" doc="default values for different multicast groups">
+        <defines>
+            <define name="mcdb_block_size" value="4096"></define>
+            <define name="nof_mcdb_entries" value="4096*16"></define>
+        </defines>  
+    </sub_module>
+
+</device_data>
+

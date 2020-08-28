@@ -1,0 +1,1175 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+   
+     <AppDB Name="STIF_QSIZE_INIT">
+        <OneLineDescription>This table initiate the STIF queue size mode per source</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="STIF_QSIZE_SOURCE"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="STIF_QSIZE_INIT" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STIF_QSIZE_INIT">
+                    <Access>
+                        <Register Name="SIF_INITr">
+                            <HwField Name="STAT_IF_QSIZE_INPUT_INITf"/>
+                            <DataOffset Formula="#KEY_VALUE(STIF_QSIZE_SOURCE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="STIF_QSIZE_CONFIG">
+        <OneLineDescription>This table configures the STIF queue size flow control low/high</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Two valid source for flow control - enq and deq (internal and external)" MaxValue="3" Name="STIF_QSIZE_SOURCE"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="STIF_QSIZE_FC_LOW" Size="8" Type="UINT"/>
+                <Field Name="STIF_QSIZE_FC_HIGH" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STIF_QSIZE_FC_LOW">
+                    <Access>
+                        <Register Name="SIF_ST_Q_SIZE_INPUT_PORT_FC_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(STIF_QSIZE_SOURCE)"/>
+                            <HwField Name="ST_Q_SIZE_INPUT_PORT_N_FC_LOWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_QSIZE_FC_HIGH">
+                    <Access>
+                        <Register Name="SIF_ST_Q_SIZE_INPUT_PORT_FC_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(STIF_QSIZE_SOURCE)"/>
+                            <HwField Name="ST_Q_SIZE_INPUT_PORT_N_FC_HIGHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="STIF_QSIZE_SCRUBBER_CONFIG">
+        <OneLineDescription>This table initiate and configure the STIF queue size scrubber configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="STIF_QSIZE_INT_SCRB_MIN_PERIOD" Size="16" Type="UINT"/>
+                <Field Name="STIF_QSIZE_INT_SCRB_MAX_PERIOD" Size="16" Type="UINT"/>
+                <Field Name="STIF_QSIZE_EXT_SCRB_MIN_PERIOD" Size="16" Type="UINT" Valid="DNX_DATA.device.general.nof_cores-1"/>
+                <Field Name="STIF_QSIZE_EXT_SCRB_MAX_PERIOD" Size="16" Type="UINT" Valid="DNX_DATA.device.general.nof_cores-1"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STIF_QSIZE_INT_SCRB_MIN_PERIOD">
+                    <Access>
+                        <Register Name="SIF_ST_QSIZE_SETTINGSr">
+                            <HwField Name="INT_ST_QSIZE_SCRB_MIN_PRDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_QSIZE_INT_SCRB_MAX_PERIOD">
+                    <Access>
+                        <Register Name="SIF_ST_QSIZE_SETTINGSr">
+                            <HwField Name="INT_ST_QSIZE_SCRB_MAX_PRDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="STIF_QSIZE_EXT_SCRB_MIN_PERIOD">
+                    <Access>
+                        <Register Name="SIF_ST_QSIZE_SETTINGSr">
+                            <HwField Name="EXT_ST_QSIZE_SCRB_MIN_PRDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="STIF_QSIZE_EXT_SCRB_MAX_PERIOD">
+                    <Access>
+                        <Register Name="SIF_ST_QSIZE_SETTINGSr">
+                            <HwField Name="EXT_ST_QSIZE_SCRB_MAX_PRDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="STIF_BILLING_CONFIG">
+        <OneLineDescription>This table initiate and configure the STIF billing mode</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="STIF_BILLING_SOURCE"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="STIF_BILLING_INIT" Type="BOOL"/>
+                <Field Name="STIF_BILLING_REPORT_SIZE"/>
+                <Field Name="STIF_BILLING_FC_LOW" Size="10" Type="UINT"/>
+                <Field Name="STIF_BILLING_FC_HIGH" Size="10" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STIF_BILLING_INIT">
+                    <Access>
+                        <Register Name="SIF_INITr">
+                            <HwField Name="STAT_IF_BILLING_INPUT_INITf"/>
+                            <DataOffset Formula="#KEY_VALUE(STIF_BILLING_SOURCE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_BILLING_REPORT_SIZE">
+                    <Access>
+                        <Register Name="SIF_ST_BILL_INPUT_PORT_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(STIF_BILLING_SOURCE)"/>
+                            <HwField Name="ST_BILL_INPUT_PORT_N_RPRT_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_BILLING_FC_LOW">
+                    <Access>
+                        <Register Name="SIF_ST_BILL_INPUT_PORT_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(STIF_BILLING_SOURCE)"/>
+                            <HwField Name="ST_BILL_INPUT_PORT_N_FC_LOWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_BILLING_FC_HIGH">
+                    <Access>
+                        <Register Name="SIF_ST_BILL_INPUT_PORT_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(STIF_BILLING_SOURCE)"/>
+                            <HwField Name="ST_BILL_INPUT_PORT_N_FC_HIGHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="STIF_INSTANCE_CONFIG">
+        <OneLineDescription>This table configure the settings of the given STIF port instance</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="STIF_INSTANCE"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="STIF_INSTANCE_ENABLE" Type="BOOL"/>
+                <Field Name="STIF_INSTANCE_PORT_ENABLE" Type="BOOL"/>
+                <Field Name="STIF_INSTANCE_PORT_CREDITS_RESET" Type="BOOL"/>
+                <Field Name="STIF_INSTANCE_PORT_CREDITS_VALUE" Size="16" Type="UINT"/>
+                <Field Name="STIF_INSTANCE_OUTPUT_HG_2_MODE_ENABLE" Type="BOOL"/>
+                <Field Name="STIF_INSTANCE_OUTPUT_IS_QSIZE" Type="BOOL"/>
+                <Field Name="STIF_INSTANCE_OUTPUT_EMPTY_RPRT" Size="96" Type="ARRAY8"/>
+                <Field Name="STIF_INSTANCE_OUTPUT_EMPTY_RPRT_PERIOD" Size="24" Type="UINT"/>
+                <Field Name="STIF_INSTANCE_OUTPUT_EMPTY_RPRT_SIZE" Size="4" Type="UINT"/>
+                <Field Name="STIF_INSTANCE_OUTPUT_HG_2_PREAMB" Size="8" Type="UINT"/>
+                <Field Name="STIF_INSTANCE_OUTPUT_PACKET_SIZE" Size="11" Type="UINT"/>
+                <Field Name="STIF_INSTANCE_OUTPUT_INT_QSIZE_RPRT_PERIOD" Size="16" Type="UINT"/>
+                <Field Name="STIF_INSTANCE_OUTPUT_EXT_QSIZE_RPRT_PERIOD" Size="16" Type="UINT" Valid="DNX_DATA.device.general.nof_cores-1"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STIF_INSTANCE_ENABLE">
+                    <Access>
+                        <Register Name="SIF_INITr">
+                            <HwField Name="STAT_IF_INIT_PORTf"/>
+                            <DataOffset Formula="#KEY_VALUE(STIF_INSTANCE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_INSTANCE_PORT_ENABLE">
+                    <Access>
+                        <Register Name="NMG_SIF_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(STIF_INSTANCE)"/>
+                            <HwField Name="SIF_PORT_N_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_INSTANCE_PORT_CREDITS_RESET">
+                    <Access>
+                        <Register Name="NMG_SIF_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(STIF_INSTANCE)"/>
+                            <HwField Name="SIF_PORT_N_RESET_PORT_CREDITSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_INSTANCE_PORT_CREDITS_VALUE">
+                    <Access>
+                        <Register Name="NMG_SIF_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(STIF_INSTANCE)"/>
+                            <HwField Name="SIF_PORT_N_RESET_PORT_CREDITS_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_INSTANCE_OUTPUT_HG_2_MODE_ENABLE">
+                    <Access>
+                        <Register Name="SIF_ST_PORT_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(STIF_INSTANCE)"/>
+                            <HwField Name="ST_PORT_OUTPUT_N_HG_2_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_INSTANCE_OUTPUT_IS_QSIZE">
+                    <Access>
+                        <Register Name="SIF_ST_PORT_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(STIF_INSTANCE)"/>
+                            <HwField Name="ST_PORT_OUTPUT_N_IS_QSIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_INSTANCE_OUTPUT_EMPTY_RPRT">
+                    <Access>
+                        <Register Name="SIF_ST_PORT_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(STIF_INSTANCE)"/>
+                            <HwField Name="ST_PORT_OUTPUT_N_EMPTY_RPRTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_INSTANCE_OUTPUT_EMPTY_RPRT_PERIOD">
+                    <Access>
+                        <Register Name="SIF_ST_PORT_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(STIF_INSTANCE)"/>
+                            <HwField Name="ST_PORT_OUTPUT_N_EMPTY_RPRT_PRDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_INSTANCE_OUTPUT_EMPTY_RPRT_SIZE">
+                    <Access>
+                        <Register Name="SIF_ST_PORT_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(STIF_INSTANCE)"/>
+                            <HwField Name="ST_PORT_OUTPUT_N_EMPTY_RPRT_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_INSTANCE_OUTPUT_HG_2_PREAMB">
+                    <Access>
+                        <Register Name="SIF_ST_PORT_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(STIF_INSTANCE)"/>
+                            <HwField Name="ST_PORT_OUTPUT_N_HG_2_PREAMBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_INSTANCE_OUTPUT_PACKET_SIZE">
+                    <Access>
+                        <Register Name="SIF_ST_PORT_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(STIF_INSTANCE)"/>
+                            <HwField Name="ST_PORT_OUTPUT_N_PACKET_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_INSTANCE_OUTPUT_INT_QSIZE_RPRT_PERIOD">
+                    <Access>
+                        <Register Name="SIF_ST_PORT_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(STIF_INSTANCE)"/>
+                            <HwField Name="ST_PORT_OUTPUT_N_INT_QSIZE_RPRT_PRDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="STIF_INSTANCE_OUTPUT_EXT_QSIZE_RPRT_PERIOD">
+                    <Access>
+                        <Register Name="SIF_ST_PORT_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(STIF_INSTANCE)"/>
+                            <HwField Name="ST_PORT_OUTPUT_N_EXT_QSIZE_RPRT_PRDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="STIF_ACTIVE_QSIZE_SOURCE_PER_PORT">
+        <OneLineDescription>This table presents a bitmap of active sources per port</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="STIF_QSIZE_SOURCE"/>
+                <Field Name="STIF_INSTANCE"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="STIF_SOURCE_IS_ACTIVE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STIF_SOURCE_IS_ACTIVE">
+                    <Access>
+                        <Register Name="SIF_ST_PORT_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(STIF_INSTANCE)"/>
+                            <HwField Name="ST_PORT_MUX_N_ACTIVE_INPUTS_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(STIF_QSIZE_SOURCE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="STIF_ACTIVE_BILLING_SOURCE_PER_PORT">
+        <OneLineDescription>This table presents a bitmap of active sources per port</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="STIF_BILLING_SOURCE"/>
+                <Field Name="STIF_INSTANCE"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="STIF_SOURCE_IS_ACTIVE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STIF_SOURCE_IS_ACTIVE">
+                    <Access>
+                        <Register Name="SIF_ST_PORT_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(STIF_INSTANCE)"/>
+                            <HwField Name="ST_PORT_MUX_N_ACTIVE_INPUTS_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(STIF_BILLING_SOURCE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="STIF_ENABLERS">
+        <OneLineDescription>This table enables the STIF</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="STIF_INIT" Type="BOOL"/>
+                <Field Name="STIF_DATA_PATH_EN" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STIF_INIT">
+                    <Access>
+                        <Register Name="SIF_INITr">
+                            <HwField Name="STAT_IF_INITf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_DATA_PATH_EN">
+                    <Access>
+                        <Register Name="SIF_ENABLERSr">
+                            <HwField Name="DATA_PATH_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="STIF_CGM_SCRUBBER_SETTINGS">
+        <OneLineDescription>This table configures STIF CGM scrubber settings</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="STIF_CGM_SCRUB_EN" Type="BOOL"/>
+                <Field Name="STIF_CGM_SCRUB_USE_EXT_CORE" Type="BOOL" Valid="DNX_DATA.device.general.nof_cores-1"/>
+                <Field Name="STIF_CGM_SCRUB_QUEUE_RANGE_LOW" Size="DNX_DATA.ipq.queues.queue_id_bits" Type="UINT"/>
+                <Field Name="STIF_CGM_SCRUB_QUEUE_RANGE_HIGH" Size="DNX_DATA.ipq.queues.queue_id_bits" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STIF_CGM_SCRUB_EN">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_SCRB_SETTINGSr">
+                            <HwField Name="EXT_STAT_SCRB_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="STIF_CGM_SCRUB_USE_EXT_CORE">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_SCRB_SETTINGSr">
+                            <HwField Name="EXT_STAT_SCRB_USE_EXT_COREf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_SCRUB_QUEUE_RANGE_LOW">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_SCRB_SETTINGSr">
+                            <HwField Name="EXT_STAT_SCRB_QNUM_LOWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_SCRUB_QUEUE_RANGE_HIGH">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_SCRB_SETTINGSr">
+                            <HwField Name="EXT_STAT_SCRB_QNUM_HIGHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="STIF_CGM_SCRUBBER_THRESHOLDS">
+        <OneLineDescription>This table configures STIF CGM scrubber thresholds intervals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="14" Name="SCRUBBER_LIMIT" Size="4" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="SRAM_BUFFERS_TH" Size="DNX_DATA.ingr_congestion.dbal.sram_buffer_th_nof_bits" Type="UINT"/>
+                <Field Name="SRAM_PDBS_TH" Size="DNX_DATA.ingr_congestion.dbal.sram_pdbs_th_nof_bits" Type="UINT"/>
+                <Field Name="DRAM_BDBS_TH" Size="DNX_DATA.ingr_congestion.dbal.dram_bdbs_th_nof_bits" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SRAM_BUFFERS_TH">
+                    <Access>
+                        <Memory Name="CGM_STAT_SCRB_THm">
+                            <EntryOffset Formula="#KEY_VALUE(SCRUBBER_LIMIT)"/>
+                            <HwField Name="SRAM_BUFFERSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_PDBS_TH">
+                    <Access>
+                        <Memory Name="CGM_STAT_SCRB_THm">
+                            <EntryOffset Formula="#KEY_VALUE(SCRUBBER_LIMIT)"/>
+                            <HwField Name="SRAM_PDBSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_BDBS_TH">
+                    <Access>
+                        <Memory Name="CGM_STAT_SCRB_THm">
+                            <EntryOffset Formula="#KEY_VALUE(SCRUBBER_LIMIT)"/>
+                            <HwField Name="DRAM_BDBSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="STIF_CGM_QSIZE_SETTINGS">
+        <OneLineDescription>This table configures STIF CGM qsize settings</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="1'b0 - report SRAM Qsize, 1'b1 - report combined Qsize (SRAM + DRAM)" Name="QSIZE_REPORT_SEL" Type="BOOL"/>
+                <Field Name="QNUM_FILTER_LOW_THRESHOLD_0" Size="DNX_DATA.ipq.queues.queue_id_bits" Type="UINT"/>
+                <Field Name="QNUM_FILTER_HIGH_THRESHOLD_0" Size="DNX_DATA.ipq.queues.queue_id_bits" Type="UINT"/>
+                <Field Name="QNUM_FILTER_LOW_THRESHOLD_1" Size="DNX_DATA.ipq.queues.queue_id_bits" Type="UINT"/>
+                <Field Name="QNUM_FILTER_HIGH_THRESHOLD_1" Size="DNX_DATA.ipq.queues.queue_id_bits" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="QSIZE_REPORT_SEL">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_SETTINGSr">
+                            <HwField Name="EXT_STAT_QSIZE_RPRT_QSIZE_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="QNUM_FILTER_LOW_THRESHOLD_0">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_QNUM_RANGE_FILTERr">
+                            <HwField Name="EXT_STAT_QNUM_FILTER_LOW_TH_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="QNUM_FILTER_HIGH_THRESHOLD_0">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_QNUM_RANGE_FILTERr">
+                            <HwField Name="EXT_STAT_QNUM_FILTER_HIGH_TH_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="QNUM_FILTER_LOW_THRESHOLD_1">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_QNUM_RANGE_FILTERr">
+                            <HwField Name="EXT_STAT_QNUM_FILTER_LOW_TH_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="QNUM_FILTER_HIGH_THRESHOLD_1">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_QNUM_RANGE_FILTERr">
+                            <HwField Name="EXT_STAT_QNUM_FILTER_HIGH_TH_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="STIF_CGM_BILLING_SETTINGS">
+        <OneLineDescription>This table configures STIF CGM billing settings</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="STIF_CGM_BILL_MC_ONCE" Type="BOOL"/>
+                <Field Name="STIF_CGM_BILL_TC_SEL" Size="2" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_VALID_OBJ_NUM" Size="3" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_ENQ_REPORT_SIZE" Size="2" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_DEQ_REPORT_SIZE" Size="2" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_HDR_CMP_MASK" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STIF_CGM_BILL_MC_ONCE">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_SETTINGSr">
+                            <HwField Name="EXT_STAT_BILL_MC_ONCEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_TC_SEL">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_SETTINGSr">
+                            <HwField Name="EXT_STAT_BILL_TC_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_VALID_OBJ_NUM">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_SETTINGSr">
+                            <HwField Name="EXT_STAT_BILL_VALID_OBJ_NUMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_ENQ_REPORT_SIZE">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_SETTINGSr">
+                            <HwField Name="EXT_STAT_BILL_ENQ_RPRT_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_DEQ_REPORT_SIZE">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_SETTINGSr">
+                            <HwField Name="EXT_STAT_BILL_DEQ_RPRT_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_HDR_CMP_MASK">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_SETTINGSr">
+                            <HwField Name="EXT_STAT_BILL_HDR_CMP_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="STIF_CGM_BILLING_STAMP">
+        <OneLineDescription>This table configures STIF CGM stamp - shift and mask for each attribute of the record</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="STIF_CGM_BILL_RJCT_MASK" Type="BOOL"/>
+                <Field Name="STIF_CGM_BILL_RJCT_SHIFT" Size="6" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_RJCT_REASON_MASK" Size="3" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_RJCT_REASON_SHIFT" Size="6" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_TC_MASK" Size="3" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_TC_SHIFT" Size="6" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_IN_DP_MASK" Size="2" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_IN_DP_SHIFT" Size="6" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_FINAL_DP_MASK" Size="2" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_FINAL_DP_SHIFT" Size="6" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_OBJ_0_DP_VALID_MASK" Type="BOOL"/>
+                <Field Name="STIF_CGM_BILL_OBJ_0_DP_VALID_SHIFT" Size="6" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_OBJ_0_DP_MASK" Size="2" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_OBJ_0_DP_SHIFT" Size="6" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_OBJ_1_DP_VALID_MASK" Type="BOOL"/>
+                <Field Name="STIF_CGM_BILL_OBJ_1_DP_VALID_SHIFT" Size="6" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_OBJ_1_DP_MASK" Size="2" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_OBJ_1_DP_SHIFT" Size="6" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_OBJ_2_DP_VALID_MASK" Type="BOOL"/>
+                <Field Name="STIF_CGM_BILL_OBJ_2_DP_VALID_SHIFT" Size="6" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_OBJ_2_DP_MASK" Size="2" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_OBJ_2_DP_SHIFT" Size="6" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_OP_CODE_MASK" Size="8" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_OP_CODE_SHIFT" Size="6" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_PP_META_DATA_MASK" Size="16" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_PP_META_DATA_SHIFT" Size="6" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_CORE_ID_MASK" Type="BOOL" Valid="DNX_DATA.device.general.nof_cores-1"/>
+                <Field Name="STIF_CGM_BILL_CORE_ID_SHIFT" Size="6" Type="UINT" Valid="DNX_DATA.device.general.nof_cores-1"/>
+                <Field Name="STIF_CGM_BILL_QNUM_MASK" Size="16" Type="UINT"/>
+                <Field Name="STIF_CGM_BILL_QNUM_SHIFT" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>  <!-- Jr2B0 and above -->
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STIF_CGM_BILL_RJCT_MASK">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_RJCT_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_RJCT_SHIFT">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_RJCT_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_RJCT_REASON_MASK">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_RJCT_REASON_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_RJCT_REASON_SHIFT">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_RJCT_REASON_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_TC_MASK">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_TC_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_TC_SHIFT">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_TC_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_IN_DP_MASK">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_IN_DP_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_IN_DP_SHIFT">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_IN_DP_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_FINAL_DP_MASK">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_FINAL_DP_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_FINAL_DP_SHIFT">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_FINAL_DP_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_OBJ_0_DP_VALID_MASK">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_OBJ_0_DP_VALID_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_OBJ_0_DP_VALID_SHIFT">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_OBJ_0_DP_VALID_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_OBJ_0_DP_MASK">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_OBJ_0_DP_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_OBJ_0_DP_SHIFT">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_OBJ_0_DP_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_OBJ_1_DP_VALID_MASK">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_OBJ_1_DP_VALID_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_OBJ_1_DP_VALID_SHIFT">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_OBJ_1_DP_VALID_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_OBJ_1_DP_MASK">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_OBJ_1_DP_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_OBJ_1_DP_SHIFT">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_OBJ_1_DP_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_OBJ_2_DP_VALID_MASK">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_OBJ_2_DP_VALID_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_OBJ_2_DP_VALID_SHIFT">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_OBJ_2_DP_VALID_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_OBJ_2_DP_MASK">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_OBJ_2_DP_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_OBJ_2_DP_SHIFT">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_OBJ_2_DP_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_OP_CODE_MASK">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_OP_CODE_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_OP_CODE_SHIFT">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_OP_CODE_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_PP_META_DATA_MASK">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_PP_META_DATA_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_PP_META_DATA_SHIFT">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_PP_META_DATA_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_CORE_ID_MASK">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_CORE_ID_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_CORE_ID_SHIFT">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_CORE_ID_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_QNUM_MASK">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_QNUM_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_CGM_BILL_QNUM_SHIFT">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_STAMPr">
+                            <HwField Name="EXT_STAT_BILL_STAMP_QNUM_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="STIF_ETPP_SETTINGS">
+        <OneLineDescription>This table is related to STIF ETPP settings</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="From where the statistic bus arrived" Name="STIF_ETPP_BUS_IDENTIFIER" Size="2" Type="UINT"/>
+                <Field Description="External statistic enabler in trap forward action table" Name="STIF_ETPP_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STIF_ETPP_BUS_IDENTIFIER">
+                    <Access>
+                        <Register Name="ETPPB_CFG_EXTERNAL_STATISTICS_IDENTIFIERr">
+                            <HwField Name="CFG_EXTERNAL_STATISTICS_IDENTIFIERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_ETPP_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="EXTERNAL_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="STIF_ETPP_REPORT">
+        <OneLineDescription>This table configures STIF ETPP report and metadata - shift</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="STIF_ETPP_OPCODE_SIZE" Size="2" Type="UINT"/>
+                <Field Name="STIF_ETPP_OPCODE_SHIFT" Size="7" Type="UINT"/>
+                <Field Name="STIF_ETPP_METADATA_SHIFT" Size="7" Type="UINT"/>
+                <Field Name="STIF_ETPP_PACKET_SIZE_SHIFT" Size="7" Type="UINT"/>
+                <Field Name="STIF_ETPP_OBJ_0_DP_SHIFT" Size="7" Type="UINT"/>
+                <Field Name="STIF_ETPP_OBJ_1_DP_SHIFT" Size="7" Type="UINT"/>
+                <Field Name="STIF_ETPP_OBJ_2_DP_SHIFT" Size="7" Type="UINT"/>
+                <Field Name="STIF_ETPP_OBJ_3_DP_SHIFT" Size="7" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STIF_ETPP_OPCODE_SIZE">
+                    <Access>
+                        <Register Name="ETPPB_CFG_EXTERNAL_STATISTICS_OPCODE_SIZEr">
+                            <HwField Name="CFG_EXTERNAL_STATISTICS_OPCODE_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_ETPP_OPCODE_SHIFT">
+                    <Access>
+                        <Register Name="ETPPB_CFG_TRAP_EXTERNAL_STATISTICS_OPCODE_SHIFTr">
+                            <HwField Name="CFG_TRAP_EXTERNAL_STATISTICS_OPCODE_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_ETPP_METADATA_SHIFT">
+                    <Access>
+                        <Register Name="ETPPB_CFG_TRAP_EXTERNAL_STATISTICS_METADATA_SHIFTr">
+                            <HwField Name="CFG_TRAP_EXTERNAL_STATISTICS_METADATA_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_ETPP_PACKET_SIZE_SHIFT">
+                    <Access>
+                        <Register Name="ETPPB_CFG_TRAP_EXTERNAL_STATISTICS_PACKET_SIZE_SHIFTr">
+                            <HwField Name="CFG_TRAP_EXTERNAL_STATISTICS_PACKET_SIZE_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_ETPP_OBJ_0_DP_SHIFT">
+                    <Access>
+                        <Register Name="ETPPB_CFG_TRAP_EXTERNAL_STATISTICS_OBJ_0_SHIFTr">
+                            <HwField Name="CFG_TRAP_EXTERNAL_STATISTICS_OBJ_0_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_ETPP_OBJ_1_DP_SHIFT">
+                    <Access>
+                        <Register Name="ETPPB_CFG_TRAP_EXTERNAL_STATISTICS_OBJ_1_SHIFTr">
+                            <HwField Name="CFG_TRAP_EXTERNAL_STATISTICS_OBJ_1_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_ETPP_OBJ_2_DP_SHIFT">
+                    <Access>
+                        <Register Name="ETPPB_CFG_TRAP_EXTERNAL_STATISTICS_OBJ_2_SHIFTr">
+                            <HwField Name="CFG_TRAP_EXTERNAL_STATISTICS_OBJ_2_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STIF_ETPP_OBJ_3_DP_SHIFT">
+                    <Access>
+                        <Register Name="ETPPB_CFG_TRAP_EXTERNAL_STATISTICS_OBJ_3_SHIFTr">
+                            <HwField Name="CFG_TRAP_EXTERNAL_STATISTICS_OBJ_3_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="STIF_ETPP_METADATA">
+        <OneLineDescription>This table configures STIF ETPP metadata fields shift</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="STIF_BILLING_REPORT_METADATA_ELEMENT"/>
+            </Key>
+            <Result>
+                <Field Name="SHIFT_VALUE" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SHIFT_VALUE">
+                    <Access>
+                        <KeyCondition Enum="MC" Field="STIF_BILLING_REPORT_METADATA_ELEMENT" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_MC_EXTERNAL_SHIFTr">
+                            <HwField Name="CFG_TRAP_MC_EXTERNAL_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="PP_DROP_REASON" Field="STIF_BILLING_REPORT_METADATA_ELEMENT" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_DROP_EXTERNAL_SHIFTr">
+                            <HwField Name="CFG_TRAP_DROP_EXTERNAL_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="CORE" Field="STIF_BILLING_REPORT_METADATA_ELEMENT" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_PORT_EXTERNAL_SHIFTr">
+                            <HwField Name="CFG_TRAP_PORT_EXTERNAL_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ECN" Field="STIF_BILLING_REPORT_METADATA_ELEMENT" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_ECN_EXTERNAL_SHIFTr">
+                            <HwField Name="CFG_TRAP_ECN_EXTERNAL_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TC" Field="STIF_BILLING_REPORT_METADATA_ELEMENT" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_TC_EXTERNAL_SHIFTr">
+                            <HwField Name="CFG_TRAP_TC_EXTERNAL_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="DP" Field="STIF_BILLING_REPORT_METADATA_ELEMENT" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_DP_EXTERNAL_SHIFTr">
+                            <HwField Name="CFG_TRAP_DP_EXTERNAL_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="OBJ_0" Field="STIF_BILLING_REPORT_METADATA_ELEMENT" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_OBJ_6_SHIFTr">
+                            <HwField Name="CFG_TRAP_OBJ_6_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="OBJ_1" Field="STIF_BILLING_REPORT_METADATA_ELEMENT" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_OBJ_7_SHIFTr">
+                            <HwField Name="CFG_TRAP_OBJ_7_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="OBJ_2" Field="STIF_BILLING_REPORT_METADATA_ELEMENT" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_OBJ_8_SHIFTr">
+                            <HwField Name="CFG_TRAP_OBJ_8_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="OBJ_3" Field="STIF_BILLING_REPORT_METADATA_ELEMENT" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_OBJ_9_SHIFTr">
+                            <HwField Name="CFG_TRAP_OBJ_9_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="STIF_COMPENSATION_MASKS">
+        <OneLineDescription>This table configures the activation of STIF header compensation masks </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="STIF_MASK_HEADER_DELTA"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE_COMPENSATION" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ENABLE_COMPENSATION">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_SETTINGSr">
+                            <HwField Name="EXT_STAT_BILL_HDR_CMP_MASKf"/>
+                            <DataOffset Formula="#KEY_VALUE(STIF_MASK_HEADER_DELTA)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="STIF_CGM_FILTER_MASK">
+        <OneLineDescription>This table configures STIF CGM billing settings</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Description="Filter group id" Name="FILTER_GROUP_ID" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="FILTER_MASK_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="FILTER_MASK_ENABLE">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_SETTINGSr">
+                            <HwField Name="EXT_STAT_BILL_RJCT_FILTER_MASKf"/>
+                            <DataOffset Formula="#KEY_VALUE(FILTER_GROUP_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="STIF_ETPP_CORE_ID" Valid="DNX_DATA.device.general.nof_cores-1">
+        <!-- FIXME SDK-177343 Valid="DNX_DATA.stif.report.etpp_core_in_portmetadata"-->
+        <OneLineDescription>This table configures STIF ETPP core id report element</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="PP_PORT"/>
+            </Key>
+            <Result>
+                <Field Name="CORE"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CORE">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_PER_PP_PORT_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_PORT)"/>
+                            <HwField Name="PORT_METADATA_VARIABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

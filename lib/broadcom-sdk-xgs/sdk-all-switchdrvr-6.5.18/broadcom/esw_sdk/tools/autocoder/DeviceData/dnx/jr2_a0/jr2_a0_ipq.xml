@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="ipq">
+
+    <includes>
+        <include>shared/utilex/utilex_integer_arithmetic.h</include>
+    </includes>
+
+    <sub_module name="queues">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="nof_queues" value="64*1024"></define>
+            <define name="min_bundle_size" value="4"></define>
+            <define name="fmq_bundle_size" value="4"></define>
+
+            <define name="voq_offset_bits" value="3"></define>
+            <define name="queue_id_bits" value="16"></define>
+            <define name="min_bundle_size_bits" value="2"></define>
+            <define name="tc_profile_from_tm_command_nof_bits" value="0"></define>
+            <define name="flow_quartet_nof_bits" value="16"></define>
+        </defines>
+
+        <numerics>
+            <!-- invalid queue id = (1 << DATA(ipq,queues,queue_id_bits) - 1) 
+            this calculation should fit both when number of queues match the number of bits and when not. -->
+            <numeric name="invalid_queue" value="utilex_power_of_2(DATA(ipq,queues,queue_id_bits)) - 1"></numeric> 
+        </numerics>
+
+        <tables>   
+        </tables>
+         
+    </sub_module>
+
+    <sub_module name="regions">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="nof_queues" value="2048"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>   
+    <sub_module name="tc_map" doc="TC map info">
+
+        <features>
+        </features>
+        
+        <defines>
+            <define name="nof_voq_flow_profiles" value="4"></define>
+            <define name="voq_flow_profiles_bits" value="2"></define>
+            <define name="default_voq_flow_profile_idx" value="0"></define>
+            <define name="nof_sysport_profiles" value="4"></define>
+            <define name="default_sysport_profile_idx" value="0"></define>
+            <define name="voq_resolution_type_max_value" value="8"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+        
+        <tables>
+        </tables>
+        
+    </sub_module>
+</device_data>
+
+
+

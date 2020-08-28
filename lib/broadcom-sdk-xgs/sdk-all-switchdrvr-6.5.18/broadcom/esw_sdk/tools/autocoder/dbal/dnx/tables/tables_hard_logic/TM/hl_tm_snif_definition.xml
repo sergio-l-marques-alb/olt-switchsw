@@ -1,0 +1,2049 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="SNIF_COMMAND_TABLE">
+        <OneLineDescription>This table reprsents all the TM attributes of a snif command(profile)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SNIF_COMMAND_ID"/>
+                <Field Name="SNIF_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="DESTINATION"/>
+                <Field Name="LAG_LB_KEY_OW" Type="BOOL"/>
+                <Field Name="LAG_LB_KEY"/>
+                <Field Name="TC_OW" Type="BOOL"/>
+                <Field Name="TC"/>
+                <Field Name="DP_OW" Type="BOOL"/>
+                <Field Name="DP"/>
+                <Field Name="CROP_ENABLE" Type="BOOL"/>
+                <Field Name="DROP_SNIFF_IF_FWD_DROPPED" Type="BOOL"/>
+                <Field Name="DROP_FWD_IF_SNIFF_DROPPED" Type="BOOL"/>
+                <Field Name="IN_PP_PORT_OW" Type="BOOL"/>
+                <Field Name="IN_PP_PORT" Type="PP_PORT"/>
+                <Field Name="ST_VSQ_PTR_OW" Type="BOOL"/>
+                <Field Name="ST_VSQ_PTR"/>
+                <Field Name="ADMIT_PROFILE_OW" Type="BOOL"/>
+                <Field Name="ADMIT_PROFILE" Size="3" Type="UINT"/>
+                <Field Name="SNIF_PROBABILITY" Size="24" Type="UINT"/>
+                <Field Name="CUD_TYPE" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DESTINATION">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="DESTINATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAG_LB_KEY_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="LAG_LB_KEY_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAG_LB_KEY">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="LAG_LB_KEYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TC_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="TC_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TC">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="TCf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DP_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="DP_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="EGR_DP_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DP">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="DPf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="EGR_DPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CROP_ENABLE">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="CROPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DROP_SNIFF_IF_FWD_DROPPED">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="STRENGTHf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DROP_FWD_IF_SNIFF_DROPPED">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="STRENGTHf"/>
+                            <DataOffset Formula="1"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IN_PP_PORT_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="IN_PP_PORT_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IN_PP_PORT">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="IN_PP_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ST_VSQ_PTR_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="ST_VSQ_PTR_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ST_VSQ_PTR">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="ST_VSQ_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ADMIT_PROFILE_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="ADMT_PROFILE_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ADMIT_PROFILE">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="ADMT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SNIF_PROBABILITY">
+                    <Access>
+                        <KeyCondition Enum="SNOOP" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPD_SNP_ACT_PROBABILITYm">
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="SAMPLING_PROBABILITYf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MIRROR" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPD_MRR_ACT_PROBABILITYm">
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="SAMPLING_PROBABILITYf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="STATISTICAL_SAMPLE" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPD_STATISTICAL_SAMPLE_ACT_PROBABILITYm">
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="SAMPLING_PROBABILITYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CUD_TYPE">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SNIF_COUNTING_TABLE">
+        <OneLineDescription>This table reprsents all the counting attributes of a snif command(profile)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="SNIF_COMMAND_ID"/>
+                <Field Name="SNIF_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="EXT_STAT_DATA_VALID_OW" Type="BOOL"/>
+                <Field Name="EXT_STAT_DATA_VALID" Type="BOOL"/>
+                <Field Name="EXT_STAT_DATA_OPCODE_OW" Type="BOOL"/>
+                <Field Name="EXT_STAT_DATA_OPCODE" NofInstances="4" Size="2" Type="UINT"/>
+                <Field Name="EXT_STAT_DATA_OW" Type="BOOL"/>
+                <Field Name="EXT_STAT_DATA_ID" NofInstances="4" Size="20" Type="UINT"/>
+                <Field Name="INT_STAT_OBJ_VALID_OW" NofInstances="10" Type="BOOL"/>
+                <Field Name="INT_STAT_OBJ_VALID" NofInstances="10" Type="BOOL"/>
+                <Field Name="INT_STAT_OBJ_ID_OW" NofInstances="10" Type="BOOL"/>
+                <Field Name="INT_STAT_OBJ_ID" NofInstances="10" Type="STAT_OBJECT_ID"/>
+                <Field Name="INT_STAT_OBJ_TYPE_OW" NofInstances="10" Type="BOOL"/>
+                <Field Name="INT_STAT_OBJ_TYPE" NofInstances="10" Size="2" Type="UINT"/>
+                <Field Name="INT_STAT_OBJ_META_DATA_OW" Type="BOOL"/>
+                <Field Name="INT_STAT_OBJ_META_DATA" Size="16" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="EXT_STAT_DATA_VALID_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="EXT_STAT_DATA_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXT_STAT_DATA_VALID">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="EXT_STAT_DATA_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXT_STAT_DATA_OPCODE_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="EXT_STAT_DATA_OPCODE_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXT_STAT_DATA_OPCODE">
+                    <Access instanceIndex="0">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="EXT_STAT_DATA_OPCODEf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="EXT_STAT_DATA_OPCODEf"/>
+                            <DataOffset Formula="2"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="EXT_STAT_DATA_OPCODEf"/>
+                            <DataOffset Formula="4"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="EXT_STAT_DATA_OPCODEf"/>
+                            <DataOffset Formula="6"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXT_STAT_DATA_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="EXT_STAT_DATA_DATA_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXT_STAT_DATA_ID">
+                    <Access instanceIndex="0">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="EXT_STAT_DATA_DATAf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="EXT_STAT_DATA_DATAf"/>
+                            <DataOffset Formula="20"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="EXT_STAT_DATA_DATAf"/>
+                            <DataOffset Formula="40"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="EXT_STAT_DATA_DATAf"/>
+                            <DataOffset Formula="60"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INT_STAT_OBJ_VALID_OW">
+                    <Access instanceIndex="0">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_0_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_1_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_2_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_3_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_4_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_5_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_6_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_7_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="8">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_8_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="9">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_9_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INT_STAT_OBJ_VALID">
+                    <Access instanceIndex="0">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_0_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_1_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_2_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_3_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_4_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_5_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_6_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_7_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="8">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_8_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="9">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_9_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INT_STAT_OBJ_ID_OW">
+                    <Access instanceIndex="0">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_0_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_1_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_2_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_3_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_4_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_5_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_6_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_7_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="8">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_8_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="9">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_9_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INT_STAT_OBJ_ID">
+                    <Access instanceIndex="0">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_0_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_1_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_2_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_3_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_4_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_5_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_6_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_7_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="8">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_8_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="9">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_9_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INT_STAT_OBJ_TYPE_OW">
+                    <Access instanceIndex="0">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_0_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_1_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_2_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_3_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_4_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_5_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_6_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_7_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="8">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_8_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="9">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_9_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INT_STAT_OBJ_TYPE">
+                    <Access instanceIndex="0">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_0_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_1_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_2_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_3_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_4_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_5_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_6_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_7_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="8">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_8_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="9">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_9_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INT_STAT_OBJ_META_DATA_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_OBJ_META_DATA_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INT_STAT_OBJ_META_DATA">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="INT_STAT_OBJ_META_DATAf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SNIF_INGRESS_MIRROR_VID_PROFILE_TABLE">
+                    <!--FIXME: SDK-112205 JR2 DBAL - register aliasing-->
+        <OneLineDescription>This table reprsents the VIDs for ingress mirror(profile)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="5" MinValue="0" Name="VID_PROFILE" Size="6" Type="UINT"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="VLAN_ID"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="VLAN_ID">
+                    <Access>
+                        <KeyCondition Field="VID_PROFILE" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="IPPE_LL_MIRROR_VID_01r">
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="VID_PROFILE" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="IPPE_LL_MIRROR_VID_01r">
+                            <DataOffset Formula="12"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="VID_PROFILE" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="IPPE_LL_MIRROR_VID_23r">
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="VID_PROFILE" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="IPPE_LL_MIRROR_VID_23r">
+                            <DataOffset Formula="12"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="VID_PROFILE" Type="EQUAL_TO" Value="4"/>
+                        <Register Name="IPPE_LL_MIRROR_VID_45r">
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="VID_PROFILE" Type="EQUAL_TO" Value="5"/>
+                        <Register Name="IPPE_LL_MIRROR_VID_45r">
+                            <DataOffset Formula="12"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SNIF_INGRESS_MIRROR_RULE_TABLE">
+        <OneLineDescription>This table reprsents the pp port + VID mapping to ingress mirror profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT"/>
+                <Field Name="VID_PROFILE" Size="3" Type="UINT"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="MIRROR_PROFILE" Size="4" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0 J2P_A0" Name="MIRROR_PROFILE">
+                    <Access>
+                        <Memory Name="IPPE_LL_MIRROR_PROFILEm">
+                            <EntryOffset Formula="#KEY_VALUE(VID_PROFILE)*dnx_data_port.general.nof_pp_ports_get(unit)+#KEY_VALUE(PP_PORT)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="Q2A_A0 Q2A_B0 J2C_A0" Name="MIRROR_PROFILE">
+                    <Access>
+                        <Memory Name="IPPE_LL_MIRROR_PROFILEm">
+                            <EntryOffset Formula="#KEY_VALUE(VID_PROFILE)*1024+#KEY_VALUE(PP_PORT)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SNIF_EGRESS_COMMAND_TABLE">
+                    <!--FIXME: SDK-112205 JR2 DBAL - register aliasing-->
+        <OneLineDescription>This table reprsents all the TM attributes of a egress snif command(profile)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="7" MinValue="0" Name="SNIF_COMMAND_ID"/>
+                <Field MaxValue="1" MinValue="0" Name="SNIF_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL"/>
+                <Field Name="SNIF_EGRESS_PROBABILITY" Type="UINT"/>
+                <Field Name="SNIF_RCY_PRIORITY" Type="BOOL"/>
+                <Field Name="SNIF_APPEND_ORIG_HEADERS" Type="BOOL"/>
+                <Field Name="SNIF_CROP_ENABLE" Type="BOOL"/>
+                <Field Name="SNIF_RCY_CMD" Size="4" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Enum="SNOOP" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_SNOOP_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*41+0"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MIRROR" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_MIRROR_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*41+0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SNIF_EGRESS_PROBABILITY">
+                    <Access>
+                        <KeyCondition Enum="SNOOP" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_SNOOP_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*41+1"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MIRROR" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_MIRROR_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*41+1"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SNIF_RCY_PRIORITY">
+                    <Access>
+                        <KeyCondition Enum="SNOOP" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_SNOOP_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*41+33"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MIRROR" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_MIRROR_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*41+33"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SNIF_APPEND_ORIG_HEADERS">
+                    <Access>
+                        <KeyCondition Enum="SNOOP" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_SNOOP_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*41+36"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MIRROR" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_MIRROR_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*41+36"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SNIF_CROP_ENABLE">
+                    <Access>
+                        <KeyCondition Enum="SNOOP" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_SNOOP_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*41+35"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MIRROR" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_MIRROR_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*41+35"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SNIF_RCY_CMD">
+                    <Access>
+                        <KeyCondition Enum="SNOOP" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_SNOOP_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*41+37"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MIRROR" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_MIRROR_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*41+37"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2P_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Enum="SNOOP" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_SNOOP_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*40+0"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MIRROR" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_MIRROR_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*40+0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SNIF_EGRESS_PROBABILITY">
+                    <Access>
+                        <KeyCondition Enum="SNOOP" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_SNOOP_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*40+1"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MIRROR" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_MIRROR_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*40+1"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SNIF_RCY_PRIORITY">
+                    <Access>
+                        <KeyCondition Enum="SNOOP" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_SNOOP_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*40+33"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MIRROR" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_MIRROR_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*40+33"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SNIF_APPEND_ORIG_HEADERS">
+                    <Access>
+                        <KeyCondition Enum="SNOOP" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_SNOOP_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*40+35"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MIRROR" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_MIRROR_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*40+35"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SNIF_CROP_ENABLE">
+                    <Access>
+                        <KeyCondition Enum="SNOOP" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_SNOOP_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*40+34"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MIRROR" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_MIRROR_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*40+34"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SNIF_RCY_CMD">
+                    <Access>
+                        <KeyCondition Enum="SNOOP" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_SNOOP_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*40+36"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MIRROR" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_MIRROR_ACTION_TABLEr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*40+36"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SNIF_EGRESS_SNOOP_STRENGTH_TABLE">
+                    <!--FIXME: SDK-112205 JR2 DBAL - register aliasing-->
+        <OneLineDescription>This table reprsents all the strenght of a egress snoop command(profile)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SNIF_COMMAND_ID" Size="3"/>
+            </Key>
+            <Result>
+                <Field Name="STRENGTH" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="STRENGTH">
+                    <Access>
+                        <Register Name="IPPE_RECYC_SNP_PROFILE_MAPPINGr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)*12+9"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SNIF_EGRESS_MIRROR_VID_PROFILE_TABLE">
+                    <!--FIXME: SDK-112205 JR2 DBAL - register aliasing-->
+        <OneLineDescription>This table reprsents the VIDs for egress mirror(profile)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="6" MinValue="0" Name="VID_PROFILE" Size="4" Type="UINT"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="VLAN_ID"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="VLAN_ID">
+                    <Access>
+                        <Register Name="ETPPB_CFG_VIDr">
+                            <DataOffset Formula="#KEY_VALUE(VID_PROFILE)*12"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SNIF_EGRESS_PORT_TO_RCY_CHANNEL_MAP_TABLE">
+        <OneLineDescription>This table reprsents the pp port recycle channel ID</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="QPAIR"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="CHANNEL_ID"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CHANNEL_ID">
+                    <Access>
+                        <Memory Name="EPNI_ALIGNER_MIRR_QP_TO_CHANNEL_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>
+                            <HwField Name="CHANNELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SNIF_EGRESS_MIRROR_RULE_TABLE">
+                    <!--FIXME: SDK-112205 JR2 DBAL - register aliasing-->
+        <OneLineDescription>This table reprsents the pp port + VID mapping to egress mirror profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT"/>
+                <Field Name="VID_PROFILE" Size="3" Type="UINT"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="MIRROR_PROFILE" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MIRROR_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPB_VID_MIRROR_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_PORT)"/>
+                            <DataOffset Formula="#KEY_VALUE(VID_PROFILE)*3"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SNIF_SYSTEM_HEADER_TABLE">
+        <OneLineDescription>in this table there are overlapping field mapping FTMH header construction for snif packet</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SNIF_COMMAND_ID"/>
+                <Field Name="SNIF_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="DSP_EXT_DESTINATION" Type="DESTINATION"/>
+                <Field Name="DSP_EXT_DESTINATION_STAMP_EN" Type="BOOL"/>
+                <Field Name="REMOVE_SYSTEM_HEADERS" Type="BOOL"/>
+                <Field Name="KEEP_INCOMING_SYSTEM_HEADRS" Type="BOOL"/>
+                <Field Name="SNIFF_APPEND_MODE" Type="BOOL"/>
+                <Field Name="TM_ACTION_TYPE"/>
+                <Field Name="TM_ACTION_TYPE_MASK" Size="2" Type="UINT"/>
+                <Field Name="IS_MC" Type="BOOL"/>
+                <Field Name="IS_MC_MASK" Type="BOOL"/>
+                <Field Name="MC_OUTLIF" Type="CUD"/>
+                <Field Name="MC_OUTLIF_MASK" Type="CUD"/>
+                <Field Name="OUTBOUND_MIRR_DISABLE" Type="BOOL"/>
+                <Field Name="OUTBOUND_MIRR_DISABLE_MASK" Type="BOOL"/>
+                <Field Name="TC"/>
+                <Field Name="TC_MASK" Type="TC"/>
+                <Field Name="ECN_ENABLE" Type="BOOL"/>
+                <Field Name="ECN_ENABLE_MASK" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DSP_EXT_DESTINATION">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="TM_DESTINATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DSP_EXT_DESTINATION_STAMP_EN">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="TM_DESTINATION_STAMP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REMOVE_SYSTEM_HEADERS">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="REMOVE_SYSTEM_HEADERSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="KEEP_INCOMING_SYSTEM_HEADRS">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="KEEP_INCOMING_SYSTEM_HEADRSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SNIFF_APPEND_MODE">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="SNIFF_APPEND_MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TM_ACTION_TYPE">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_DATAf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh.tm_action_type_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TM_ACTION_TYPE_MASK">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_SELECTf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh.tm_action_type_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_MC">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_DATAf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh.tm_action_is_mc_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_MC_MASK">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_SELECTf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh.tm_action_is_mc_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MC_OUTLIF">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_DATAf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh.outlif_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MC_OUTLIF_MASK">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_SELECTf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh.outlif_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTBOUND_MIRR_DISABLE">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_DATAf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh.tm_profile_offset_get(unit)+1"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTBOUND_MIRR_DISABLE_MASK">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_SELECTf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh.tm_profile_offset_get(unit)+1"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TC">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_DATAf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh.traffic_class_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TC_MASK">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_SELECTf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh.traffic_class_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ECN_ENABLE">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_DATAf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh.ecn_enable_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ECN_ENABLE_MASK">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_SELECTf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh.ecn_enable_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SNIF_NEW_SYSTEM_HEADER_TABLE">
+        <OneLineDescription>New system header construction for snif packet</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SNIF_COMMAND_ID"/>
+                <Field Name="SNIF_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="NEW_SYSTEM_HEADER" Size="448" Type="ARRAY32"/>
+                <Field Name="HEADER_SIZE" Size="7"/>
+                <Field Name="FTMH_STACKING_EXT_OFFSET" Size="7" Type="UINT"/>
+                <Field Name="APPLICATION_EXT_STAMP_EN" Type="BOOL"/>
+                <Field Name="APPLICATION_EXT_OFFSET" Size="7" Type="UINT"/>
+                <Field Name="APP_EXT_TYPE" Type="FTMH_APP_SPECIFIC_EXT_TYPE"/>
+                <Field Name="TSH_STAMP_EN" Type="BOOL"/>
+                <Field Name="TSH_HDR_OFFSET" Size="7" Type="UINT"/>
+                <Field Name="PPH_FHEI_STAMP_EN" Type="BOOL"/>
+                <Field Name="PPH_FHEI_EXT_OFFSET" Size="7" Type="UINT"/>
+                <Field Name="ITPP_DELTA_OW" Type="BOOL"/>
+                <Field Name="ITPP_DELTA" Size="8"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="NEW_SYSTEM_HEADER">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="NEW_SYSTEM_HEADERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="HEADER_SIZE">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="HEADER_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FTMH_STACKING_EXT_OFFSET">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_STACKING_EXT_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="APPLICATION_EXT_STAMP_EN">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="APPLICATION_EXT_STAMP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="APPLICATION_EXT_OFFSET">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="APPLICATION_EXT_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="APP_EXT_TYPE">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="APP_EXT_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TSH_STAMP_EN">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="TSH_STAMP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TSH_HDR_OFFSET">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="TSH_HDR_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PPH_FHEI_STAMP_EN">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="PPH_FHEI_STAMP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PPH_FHEI_EXT_OFFSET">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="PPH_FHEI_EXT_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ITPP_DELTA_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="ITPP_DELTA_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ITPP_DELTA">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset Formula="#KEY_VALUE(SNIF_TYPE)"/>
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_COMMAND_ID)"/>
+                            <HwField Name="ITPP_DELTAf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SNIF_SYSTEM_HEADER_TABLE_LEGACY">
+        <OneLineDescription>Jericho FTMH header construction for snif packet</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SNIF_COMMAND_ID"/>
+                <Field Name="SNIF_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="TM_ACTION_TYPE"/>
+                <Field Name="TM_ACTION_TYPE_MASK" Size="2" Type="UINT"/>
+                <Field Name="IS_MC" Type="BOOL"/>
+                <Field Name="IS_MC_MASK" Type="BOOL"/>
+                <Field Name="MC_OUTLIF" Size="19" Type="CUD"/>
+                <Field Name="MC_OUTLIF_MASK" Size="19" Type="CUD"/>
+                <Field Name="OUTBOUND_MIRR_DISABLE" Type="BOOL"/>
+                <Field Name="OUTBOUND_MIRR_DISABLE_MASK" Type="BOOL"/>
+                <Field Name="TC"/>
+                <Field Name="TC_MASK" Type="TC"/>
+                <Field Name="ECN_ENABLE" Type="BOOL"/>
+                <Field Name="ECN_ENABLE_MASK" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TM_ACTION_TYPE">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_DATAf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh_legacy.tm_action_type_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TM_ACTION_TYPE_MASK">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_SELECTf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh_legacy.tm_action_type_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_MC">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_DATAf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh_legacy.tm_action_is_mc_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_MC_MASK">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_SELECTf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh_legacy.tm_action_is_mc_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MC_OUTLIF">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_DATAf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh_legacy.outlif_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MC_OUTLIF_MASK">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_SELECTf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh_legacy.outlif_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTBOUND_MIRR_DISABLE">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_DATAf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh_legacy.outbound_mirr_disable_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTBOUND_MIRR_DISABLE_MASK">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_SELECTf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh_legacy.outbound_mirr_disable_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TC">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_DATAf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh_legacy.traffic_class_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TC_MASK">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_SELECTf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh_legacy.traffic_class_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ECN_ENABLE">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_DATAf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh_legacy.ecn_enable_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ECN_ENABLE_MASK">
+                    <Access>
+                        <Memory GroupName="ITPP_SNIFF_SYS_HEADER_INFO">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()+32"/>
+                            <HwField Name="FTMH_BASE_SELECTf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh_legacy.ecn_enable_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SNIF_MIRR_PROFILE_TO_CODE_MAP">
+                    <!--FIXME: SDK-112205 JR2 DBAL - register aliasing-->
+        <OneLineDescription>Mapping from mirror rule profile id to code</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MIRROR_PROFILE_ID" Size="4" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="MIRROR_CODE"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MIRROR_CODE">
+                    <Access>
+                        <Register Name="IPPE_MIRROR_PROFILE_MAPPINGr">
+                            <DataOffset Formula="#KEY_VALUE(MIRROR_PROFILE_ID)*9"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SNIF_CODE_TO_PROFILE_MAP">
+                    <!--FIXME: SDK-112205 JR2 DBAL - register aliasing-->
+        <OneLineDescription>Mapping from mirror rule profile id to code</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SNIF_CODE" Size="9" Type="UINT"/>
+                <Field Name="SNIF_TYPE"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="SNIF_COMMAND_ID"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="SNIF_COMMAND_ID">
+                    <Access>
+                        <KeyCondition Enum="SNOOP" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPD_SNP_CODE_TO_CMDm">
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_CODE)"/>
+                            <HwField Name="SNOOP_COMMANDf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MIRROR" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPD_MIRROR_CODE_TO_CMDm">
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_CODE)"/>
+                            <HwField Name="MIRROR_COMMANDf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="STATISTICAL_SAMPLE" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPD_STAT_SAMPLE_CODE_TO_CMDm">
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_CODE)"/>
+                            <HwField Name="STAT_SAMPLING_COMMANDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="SNIF_COMMAND_ID">
+                    <Access>
+                        <KeyCondition Enum="SNOOP" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPD_SNP_CODE_TO_CMDm">
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_CODE)"/>
+                            <HwField Name="SNOOP_CODEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MIRROR" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPD_MIRROR_CODE_TO_CMDm">
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_CODE)"/>
+                            <HwField Name="MIRROR_CODEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="STATISTICAL_SAMPLE" Field="SNIF_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPD_STAT_SAMPLE_CODE_TO_CMDm">
+                            <EntryOffset Formula="#KEY_VALUE(SNIF_CODE)"/>
+                            <HwField Name="STAT_SAMPLE_CODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SNIF_RCY_CMD_MAP">
+                    <!--FIXME: SDK-112205 JR2 DBAL - register aliasing-->
+        <OneLineDescription>Mapping recycle command to mirror/snoop code</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="RECYCLE_COMMAND_ID"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="MIRROR_CODE"/>
+                <Field Name="RCY_SNOOP_CODE" Type="SNOOP_CODE"/>
+                <Field Name="RCY_SNOOP_STRENGTH" Size="2" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MIRROR_CODE">
+                    <Access>
+                        <Register Name="IPPE_RECYC_MRR_PROFILE_MAPPINGr">
+                            <DataOffset Formula="#KEY_VALUE(RECYCLE_COMMAND_ID)*9"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RCY_SNOOP_CODE">
+                    <Access>
+                        <Register Name="IPPE_RECYC_SNP_PROFILE_MAPPINGr">
+                            <DataOffset Formula="#KEY_VALUE(RECYCLE_COMMAND_ID)*12"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RCY_SNOOP_STRENGTH">
+                    <Access>
+                        <Register Name="IPPE_RECYC_SNP_PROFILE_MAPPINGr">
+                            <DataOffset Formula="#KEY_VALUE(RECYCLE_COMMAND_ID)*12+9"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TM_ACTION_TYPE_TO_SNIF_MAPPING">
+        <OneLineDescription>Mapping tm action type to snif</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TM_ACTION_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="IS_SNIF" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_SNIF">
+                    <Access>
+                        <Register GroupName="MAPPING_QUEUE_TYPE_TO_SNIFF_PACKET">
+                            <HwField Name="SNIFF_BITMAP_TABLEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SNIF_MIRROR_ON_DROP_COMMAND" Valid="DNX_DATA.ingr_congestion.mirror_on_drop.is_supported">
+        <OneLineDescription>This table reprsents all the TM attributes of a snif command(profile)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="VOQ"/>
+                <Field Name="SNIF_COMMAND_ID"/>
+                <Field Name="REMOVE_SYSTEM_HEADERS" Type="BOOL"/>
+                <Field Name="CROP_ENABLE" Type="BOOL"/>
+                <Field Name="CUD_TYPE" Size="3" Type="UINT"/>
+                <Field Name="TM_ACTION_TYPE"/>
+                <Field Name="TC_OW" Type="BOOL"/>
+                <Field Name="TC"/>
+                <Field Name="DP_OW" Type="BOOL"/>
+                <Field Name="DP"/>
+                <Field Name="IN_PP_PORT_OW" Type="BOOL"/>
+                <Field Name="IN_PP_PORT" Type="PP_PORT"/>
+                <Field Name="ST_VSQ_PTR_OW" Type="BOOL"/>
+                <Field Name="ST_VSQ_PTR"/>
+                <Field Name="ADMIT_PROFILE_OW" Type="BOOL"/>
+                <Field Name="ADMIT_PROFILE" Size="3" Type="UINT"/>
+                <Field Name="ITPP_DELTA" Size="8"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VOQ">
+                    <Access>
+                        <Register Name="CGM_MIRROR_RJCT_ACTIONr">
+                            <HwField Name="MIRROR_RJCT_ACTION_QNUMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SNIF_COMMAND_ID">
+                    <Access>
+                        <Register Name="CGM_MIRROR_RJCT_ACTIONr">
+                            <HwField Name="MIRROR_RJCT_ACTION_CMDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="REMOVE_SYSTEM_HEADERS">
+                    <Access>
+                        <Register Name="CGM_MIRROR_RJCT_ACTIONr">
+                            <HwField Name="MIRROR_RJCT_ACTION_REMOVE_SYSTEM_HEADERSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CROP_ENABLE">
+                    <Access>
+                        <Register Name="CGM_MIRROR_RJCT_ACTIONr">
+                            <HwField Name="MIRROR_RJCT_ACTION_CROPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CUD_TYPE">
+                    <Access>
+                        <Register Name="CGM_MIRROR_RJCT_ACTIONr">
+                            <HwField Name="MIRROR_RJCT_ACTION_CUD_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TM_ACTION_TYPE">
+                    <Access>
+                        <Register Name="CGM_MIRROR_RJCT_ACTIONr">
+                            <HwField Name="MIRROR_RJCT_ACTION_ACTION_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TC_OW">
+                    <Access>
+                        <Register Name="CGM_MIRROR_RJCT_ACTIONr">
+                            <HwField Name="MIRROR_RJCT_ACTION_TC_OWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TC">
+                    <Access>
+                        <Register Name="CGM_MIRROR_RJCT_ACTIONr">
+                            <HwField Name="MIRROR_RJCT_ACTION_TCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DP_OW">
+                    <Access>
+                        <Register Name="CGM_MIRROR_RJCT_ACTIONr">
+                            <HwField Name="MIRROR_RJCT_ACTION_DP_OWf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="CGM_MIRROR_RJCT_ACTIONr">
+                            <HwField Name="MIRROR_RJCT_ACTION_EGR_DP_OWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DP">
+                    <Access>
+                        <Register Name="CGM_MIRROR_RJCT_ACTIONr">
+                            <HwField Name="MIRROR_RJCT_ACTION_DPf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="CGM_MIRROR_RJCT_ACTIONr">
+                            <HwField Name="MIRROR_RJCT_ACTION_EGR_DPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IN_PP_PORT_OW">
+                    <Access>
+                        <Register Name="CGM_MIRROR_RJCT_ACTIONr">
+                            <HwField Name="MIRROR_RJCT_ACTION_IN_PP_PORT_OWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IN_PP_PORT">
+                    <Access>
+                        <Register Name="CGM_MIRROR_RJCT_ACTIONr">
+                            <HwField Name="MIRROR_RJCT_ACTION_IN_PP_PORTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ST_VSQ_PTR_OW">
+                    <Access>
+                        <Register Name="CGM_MIRROR_RJCT_ACTIONr">
+                            <HwField Name="MIRROR_RJCT_ACTION_ST_VSQ_PTR_OWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ST_VSQ_PTR">
+                    <Access>
+                        <Register Name="CGM_MIRROR_RJCT_ACTIONr">
+                            <HwField Name="MIRROR_RJCT_ACTION_ST_VSQ_PTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ADMIT_PROFILE_OW">
+                    <Access>
+                        <Register Name="CGM_MIRROR_RJCT_ACTIONr">
+                            <HwField Name="MIRROR_RJCT_ACTION_PP_ADMT_PROFILE_OWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ADMIT_PROFILE">
+                    <Access>
+                        <Register Name="CGM_MIRROR_RJCT_ACTIONr">
+                            <HwField Name="MIRROR_RJCT_ACTION_PP_ADMT_PROFILEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ITPP_DELTA">
+                    <Access>
+                        <Register Name="CGM_MIRROR_RJCT_ACTIONr">
+                            <HwField Name="MIRROR_RJCT_ACTION_ITPP_DELTAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SNIF_EGRESS_INIT_PROBABILITY" Valid="DNX_DATA.snif.egress.probability_sample">
+        <OneLineDescription>This table defines the seed for SNIF LFSR random value generator</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="MIRROR_INIT_PROBABILITY" Type="UINT"/>
+                <Field Name="SNOOP_INIT_PROBABILITY" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MIRROR_INIT_PROBABILITY">
+                    <Access>
+                        <Register Name="ETPPB_CFG_INIT_PROBABILITY_VALUEr">
+                            <HwField Name="CFG_INIT_MIRROR_PROBABILITY_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SNOOP_INIT_PROBABILITY">
+                    <Access>
+                        <Register Name="ETPPB_CFG_INIT_PROBABILITY_VALUEr">
+                            <HwField Name="CFG_INIT_SNOOP_PROBABILITY_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

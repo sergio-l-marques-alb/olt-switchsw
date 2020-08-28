@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_b0" module="bier">
+    <includes>
+    </includes>
+
+    <sub_module name="params" doc="bier parameters">
+         <defines>
+            <define name="ingress_bfr_pos_msb_start" value="1"></define>
+        </defines>
+    </sub_module>
+</device_data>
+

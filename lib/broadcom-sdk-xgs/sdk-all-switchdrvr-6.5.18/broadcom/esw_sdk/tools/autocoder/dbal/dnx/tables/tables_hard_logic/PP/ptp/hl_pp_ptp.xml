@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+   <AppDB Name="PTP_IEEE_1588_IDENTIFICATION">
+        <OneLineDescription>IEEE1588-protocol identification TCAM</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_DIRECT">
+            <Key>
+                <Field Name="FORWARDING_TYPE_0" Type="LAYER_TYPES"/>
+                <Field Name="FORWARDING_TYPE_1" Type="LAYER_TYPES"/>
+                <Field Name="FORWARDING_TYPE_2" Type="LAYER_TYPES"/>
+                <Field Name="FORWARDING_TYPE_3" Type="LAYER_TYPES"/>
+                <Field Name="FORWARDING_TYPE_4" Type="LAYER_TYPES"/>
+                <Field Name="FORWARDING_TYPE_5" Type="LAYER_TYPES"/>
+                <Field Name="FORWARDING_TYPE_6" Type="LAYER_TYPES"/>
+                <Field Name="FORWARDING_TYPE_7" Type="LAYER_TYPES"/>                
+            </Key>
+            <Result>       
+                <Field Name="PACKET_IS_IEEE_1588" Type="BOOL"/>
+                <Field Name="NONE_UDP_ENCAPSULATION" Type="BOOL"/>
+                <!-- defines the 1588 header offset as follow: layer_offsets[header_index + fwd_layer_index+1]. see FLP spec for details. -->
+                <Field Name="HEADER_INDEX" Size="3" Type="UINT"/>
+                <Field Name="VALID" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>PTP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMappingTcam>
+                <Type Name="KEY"> <!-- all key fields are packed together and connected from the same offset -->
+                    <Access>
+                        <Memory Name="IPPB_IEEE_1588_IDENTIFICATION_CAMm"> 
+                            <HwField Name="KEYf"/>
+                        </Memory>
+                    </Access>                   
+                </Type>
+                <Type Name="KEY_MASK"> 
+                    <Access> <!-- all key masked fields are packed together and connected from the same offset -->
+                        <Memory Name="IPPB_IEEE_1588_IDENTIFICATION_CAMm"> 
+                            <DataOffset Formula="40"/>
+                        </Memory>
+                    </Access>  
+                </Type>
+                <Type Name="RESULT"> 
+                    <Access> <!-- all result fields are packed together and connected from the same offset -->
+                        <Memory Name="IPPB_IEEE_1588_IDENTIFICATION_CAMm"> 
+                            <HwField Name="PROGRAMf"/>
+                        </Memory>
+                    </Access>
+                </Type>                     
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>  
+    
+    <AppDB Name="PTP_1588_EGRESS_TP_COMMAND">
+        <OneLineDescription>This table etpp 1588 parameters according to tp command</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TP_COMMAND" Type="PTP_TP_COMMAND"/>
+            </Key>
+            <Result>
+                <Field Name="TX_STAMP_CF" Type="BOOL"/>
+                <Field Name="RECORD_TS" Type="BOOL"/>
+                <Field Name="RX_STAMP" Type="BOOL"/>
+            </Result>
+            <TableLabels>PTP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TX_STAMP_CF">
+                    <Access>
+                        <Register Name="ETPPB_CFG_IEEE_1588_TX_STAMP_CFr">
+                            <HwField Name="CFG_IEEE_1588_TX_STAMP_CFf"/>
+                            <DataOffset Formula="#KEY_VALUE(TP_COMMAND)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RECORD_TS">
+                    <Access>
+                        <Register Name="ETPPB_CFG_IEEE_1588_RECORD_TSr">
+                            <HwField Name="CFG_IEEE_1588_RECORD_TSf"/>
+                            <DataOffset Formula="#KEY_VALUE(TP_COMMAND)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_STAMP">
+                    <Access>
+                        <Register Name="ETPPC_CFG_IEEE_1588_RX_STAMPr">
+                            <HwField Name="CFG_IEEE_1588_RX_STAMPf"/>
+                            <DataOffset Formula="#KEY_VALUE(TP_COMMAND)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="PTP_1588_PORT_PROPERTIES">
+        <OneLineDescription>This table set general properties related to ptp 1588 </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PORT" Type="PP_PORT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!-- field is 32. only 28 bits are valid. since we multiply by 4, only 26 is valid -->
+                <Field Name="INGRESS_P2P_DELAY" Size="26" Type="UINT"/>
+                <!-- set when external mac exist, TRUE means that Rx timestamp is reset. relevant for J1 systemHeader mode -->
+                <Field Name="RESET_TIME_STAMP" Type="BOOL"/>
+                <!-- set when external mac exist, TRUE means that Rx timestamp is not consider for CF calc. relevant for J2 systemHeader mode -->                
+                <Field Name="USE_INGRESS_TIME_STAMP" Type="BOOL"/>
+                <Field Name="EXTERNAL_BRCM_MAC" Type="BOOL"/>
+                <Field Name="IEEE_1588_MAC_ENABLE" Type="BOOL"/>
+                <Field Name="IEEE_1588_PROFILE" Size="2" Type="UINT"/>                
+            </Result>
+            <TableLabels>PTP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="INGRESS_P2P_DELAY">
+                    <Access>
+                        <Memory Name="IPPD_LBP_PP_PORT_INFOm">
+                            <EntryOffset Formula="#KEY_VALUE(PORT)"/>                     
+                            <HwField Name="INGRESS_P2P_DELAYf"/>
+                            <!-- delay in 1/4 nano-seconds units. SDK set it in nanoseconds units.  -->
+                            <DataOffset Formula="2"/>
+                        </Memory>                    
+                    </Access>
+                </Field>
+                <Field Name="RESET_TIME_STAMP">
+                    <Access>
+                        <Memory Name="IPPD_LBP_PP_PORT_INFOm">
+                            <EntryOffset Formula="#KEY_VALUE(PORT)"/>                     
+                            <HwField Name="RESET_TIME_STAMPf"/>
+                        </Memory>                    
+                    </Access>
+                </Field>
+                <Field Name="USE_INGRESS_TIME_STAMP">
+                    <Access>
+                        <Memory Name="IPPD_LBP_PP_PORT_INFOm">
+                            <EntryOffset Formula="#KEY_VALUE(PORT)"/>                     
+                            <HwField Name="USE_INGRESS_TIME_STAMPf"/>
+                        </Memory>                    
+                    </Access>
+                </Field>
+                <Field Name="EXTERNAL_BRCM_MAC">
+                    <Access>
+                        <Memory Name="IPPD_LBP_PP_PORT_INFOm">
+                            <EntryOffset Formula="#KEY_VALUE(PORT)"/>                     
+                            <HwField Name="EXTERNAL_BRCM_MACf"/>
+                        </Memory>                    
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2P_A0" Name="IEEE_1588_MAC_ENABLE">
+                    <Access>
+                        <Register Name="ETPPB_CFG_IEEE_1588_MAC_ENABLEr">
+                            <HwField Name="CFG_IEEE_1588_MAC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(PORT)"/>
+                        </Register>                    
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="IEEE_1588_MAC_ENABLE">
+                    <Access>
+                        <Register Name="ETPPB_CFG_IEEE_1588_MAC_ENABLEr">
+                            <ArrayOffset Formula="#KEY_VALUE(PORT)/256"/>
+                            <HwField Name="CFG_IEEE_1588_MAC_ENABLE_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(PORT)%256"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IEEE_1588_PROFILE">
+                    <Access>
+                        <Memory Name="IPPB_PINFO_FLP_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(PORT)"/>              
+                            <HwField Name="IEEE_1588_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PTP_1588_GLOBAL_CONFIG">
+        <OneLineDescription>This tablehandle global configurtion related to ptp 1588 </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="UDP_CHECKSUM_ENABLE" Type="BOOL"/>
+                <Field Name="TS_OFFSET" Size="9" Type="UINT"/>
+            </Result>
+            <TableLabels>PTP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="UDP_CHECKSUM_ENABLE">
+                    <Access>
+                        <Register Name="ETPPC_DEVICE_CFG_TS_UDP_ENCAPr">
+                            <HwField Name="DEVICE_CFG_TS_UDP_ENCAPf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ETPPB_CFG_TS_UDP_ENCAPr">
+                            <HwField Name="CFG_TS_UDP_ENCAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TS_OFFSET">
+                    <Access>
+                        <Register Name="ETPPB_CFG_IEEE_1588_TS_OFFSET_FIXr">
+                            <HwField Name="CFG_IEEE_1588_TS_OFFSET_FIXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+   <AppDB Name="PTP_1588_ACTION">
+        <OneLineDescription>This table set the ingress action table for Ieee 1588 protocol </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <!-- one bit "flag-field-9" from 1588 packet header, indicates if follow-up meesage should arrive (two_step) -->
+                <Field Name="IS_TWO_STEP" Type="BOOL"/>
+                <Field Name="MESSAGE_TYPE" Type="PTP_1588_MSG_TYPE"/>
+                <!-- Hard logic enum indicates on specific destination address/port. see FLP spec for details " -->
+                <Field Name="ADDRESS" Size="2" Type="UINT"/>
+                <Field Name="NONE_UDP_ENCAPSULATION" Type="BOOL"/>
+                <Field Name="PORT_PROFILE" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="UPDATE_TIME_STAMP_COMPENSATION" Type="BOOL"/>
+                <Field Name="TP_COMMAND" Type="PTP_TP_COMMAND"/>
+                <Field Name="ACTION_INDEX" Size="3" Type="UINT"/>
+                <Field Name="CODE_INDEX" Size="3" Type="UINT" Valid="DNX_DATA.ptp.general.has_trap_code_offset"/>
+
+            </Result>
+            <TableLabels>PTP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="UPDATE_TIME_STAMP_COMPENSATION">
+                    <Access>
+                        <Memory Name="IPPB_IEEE_1588_ACTIONm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%256"/>
+                            <HwField Name="UPDATE_TIME_STAMPf"/>
+                            <DataOffset Formula="#KEY_VALUE(PORT_PROFILE)*6"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="UPDATE_TIME_STAMP_COMPENSATION">
+                    <Access>
+                        <Memory Name="IPPB_IEEE_1588_ACTIONm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%256"/>
+                            <HwField Name="UPDATE_TIME_STAMPf"/>
+                            <DataOffset Formula="#KEY_VALUE(PORT_PROFILE)*9"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="TP_COMMAND">
+                    <Access>
+                        <Memory Name="IPPB_IEEE_1588_ACTIONm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%256"/>
+                            <HwField Name="UPDATE_COMMANDf"/>
+                            <DataOffset Formula="#KEY_VALUE(PORT_PROFILE)*6"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="TP_COMMAND">
+                    <Access>
+                        <Memory Name="IPPB_IEEE_1588_ACTIONm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%256"/>
+                            <HwField Name="UPDATE_COMMANDf"/>
+                            <DataOffset Formula="#KEY_VALUE(PORT_PROFILE)*9"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="ACTION_INDEX">
+                    <Access>
+                        <Memory Name="IPPB_IEEE_1588_ACTIONm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%256"/>
+                            <HwField Name="ACTION_INDEXf"/>
+                            <DataOffset Formula="#KEY_VALUE(PORT_PROFILE)*6"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="ACTION_INDEX">
+                    <Access>
+                        <Memory Name="IPPB_IEEE_1588_ACTIONm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%256"/>
+                            <HwField Name="ACTION_INDEXf"/>
+                            <DataOffset Formula="#KEY_VALUE(PORT_PROFILE)*9"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="CODE_INDEX">
+                    <Access>
+                        <Memory Name="IPPB_IEEE_1588_ACTIONm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%256"/>
+                            <HwField Name="CODE_INDEXf"/>
+                            <DataOffset Formula="#KEY_VALUE(PORT_PROFILE)*9"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

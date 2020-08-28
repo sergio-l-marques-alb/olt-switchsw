@@ -1,0 +1,356 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0" module="headers">
+    <includes>
+    </includes>
+    
+    <sub_module name="ftmh" doc="ftmh header parameters">
+         <defines>
+            <define name="packet_size_offset"  value="66"></define>
+            <define name="traffic_class_offset"  value="63"></define>
+            <define name="src_sys_port_aggregate_offset"  value="47"></define>
+            <define name="pp_dsp_offset"  value="39"></define>
+            <define name="drop_precedence_offset"  value="37"></define>
+            <define name="tm_action_type_offset"  value="35"></define>
+            <define name="tm_action_is_mc_offset"  value="34"></define>
+            <define name="outlif_offset"  value="12"></define>
+            <define name="cni_offset"  value="11"></define>
+            <define name="ecn_enable_offset"  value="10"></define>
+            <define name="tm_profile_offset"  value="8"></define>
+            <define name="visibility_offset"  value="7"></define>
+            <define name="tsh_en_offset"  value="6"></define>
+            <define name="internal_header_en_offset"  value="5"></define>
+            <define name="tm_dest_ext_present_offset"  value="4"></define>
+            <define name="ase_present_offset"  value="3"></define>
+            <define name="flow_id_ext_present_offset"  value="2"></define>
+            <define name="bier_bfr_ext_present_offset"  value="1"></define>
+            <define name="stack_route_history_bmp_offset"  value="3"></define>
+            <define name="tm_dst_offset"  value="0"></define>
+            <define name="observation_info_offset"  value="42"></define>
+            <define name="destination_offset"  value="20"></define>
+            <define name="src_sysport_offset"  value="4"></define>
+            <define name="trajectory_trace_type_offset"  value="0"></define>
+            <define name="port_offset" value="32"></define>
+            <define name="direction_offset" value="31"></define>
+            <define name="session_id_offset" value="21"></define>
+            <define name="truncated_offset" value="20"></define>
+            <define name="en_offset" value="18"></define>
+            <define name="cos_offset" value="15"></define>
+            <define name="vlan_offset" value="3"></define>
+            <define name="erspan_type_offset" value="0"></define>
+            <define name="flow_id_offset" value="4"></define>
+            <define name="flow_profile_offset" value="0"></define>
+            <define name="int_profile_offset" value="40"></define>
+            <define name="int_type_offset" value="0"></define>
+            <define name="packet_size_bits"  value="14"></define>
+            <define name="traffic_class_bits"  value="3"></define>
+            <define name="src_sys_port_aggregate_bits"  value="16"></define>
+            <define name="pp_dsp_bits"  value="8"></define>
+            <define name="drop_precedence_bits"  value="2"></define>
+            <define name="tm_action_type_bits"  value="2"></define>
+            <define name="tm_action_is_mc_bits"  value="1"></define>
+            <define name="outlif_bits"  value="22"></define>
+            <define name="cni_bits"  value="1"></define>
+            <define name="ecn_enable_bits"  value="1"></define>
+            <define name="tm_profile_bits"  value="2"></define>
+            <define name="visibility_bits"  value="1"></define>
+            <define name="tsh_en_bits"  value="1"></define>
+            <define name="internal_header_en_bits"  value="1"></define>
+            <define name="tm_dest_ext_present_bits"  value="1"></define>
+            <define name="ase_present_bits"  value="1"></define>
+            <define name="flow_id_ext_present_bits"  value="1"></define>
+            <define name="bier_bfr_ext_present_bits"  value="1"></define>
+            <define name="tm_dst_bits"  value="21"></define>
+            <define name="observation_info_bits"  value="6"></define>
+            <define name="destination_bits"  value="22"></define>
+            <define name="src_sysport_bits"  value="16"></define>
+            <define name="trajectory_trace_type_bits"  value="4"></define>
+            <define name="port_bits" value="16"></define>
+            <define name="direction_bits" value="1"></define>
+            <define name="session_id_bits" value="10"></define>
+            <define name="truncated_bits" value="1"></define>
+            <define name="en_bits" value="2"></define>
+            <define name="cos_bits" value="3"></define>
+            <define name="vlan_bits" value="12"></define>
+            <define name="erspan_type_bits" value="3"></define>
+            <define name="flow_id_bits" value="20"></define>
+            <define name="flow_profile_bits" value="4"></define>
+            <define name="base_header_size"  value="10"></define>
+            <define name="ase_header_size"  value="6"></define>
+            <define name="tm_dst_size"  value="3"></define>
+            <define name="flow_id_header_size" value="3"></define>
+            <define name="int_profile_bits" value="8"></define>
+            <define name="int_type_bits" value="4"></define>
+        </defines>
+        <numerics>
+            <numeric name="add_dsp_ext" value="0">
+                <property name="ftmh_dsp_extension_add" method="enable">
+                    <doc>
+                        adding dsp extension for the ftmh
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+    </sub_module>
+
+    <sub_module name="tsh" doc="tsh header parameters">
+        <defines>
+            <define name="base_header_size" value="4"></define>
+        </defines>
+    </sub_module>
+    <sub_module name="otsh" doc="otsh header parameters in legacy device">
+        <defines>
+            <define name="base_header_size" value="6"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="optimized_ftmh" doc="optimized ftmh header parameters">
+        <defines>
+            <define name="base_header_size" value="4"/>
+            <define name="packet_size_7_0_offset" value="24"/>
+            <define name="tm_action_is_mc_offset"  value="23"/>
+            <define name="packet_size_8_offset" value="22"/>
+            <define name="user_defined_offset" value="19"/>
+            <define name="fap_id_offset" value="8"/>
+            <define name="pp_dsp_or_mc_id_offset" value="0"/>
+        </defines>
+    </sub_module>
+
+    <sub_module name="internal" doc="internal header parameters">
+         <defines>
+            <define name="parsing_start_type_offset" value="1"></define>
+            <define name="parsing_start_type_bits" value="5"></define>
+            <define name="lif_ext_type_offset" value="13"></define>
+            <define name="lif_ext_type_bits" value="3"></define>
+            <define name="fai_offset" value="86"></define>
+            <define name="fai_bits" value="4"></define>
+            <define name="tail_edit_offset" value="83"></define>
+            <define name="tail_edit_bits" value="3"></define>
+            <define name="forward_domain_offset" value="57"></define>
+            <define name="forward_domain_bits" value="18"></define>
+            <define name="inlif_offset" value="35"></define>
+            <define name="inlif_bits" value="22"></define>
+            <define name="fhei_size" value="5"></define>
+            <define name="fhei_size_sz0" value="3"></define>
+            <define name="fhei_size_sz1" value="5"></define>
+            <define name="fhei_size_sz2" value="8"></define>
+            <define name="fhei_size_offset" value="16"></define>
+            <define name="fhei_size_bits" value="2"></define>
+            <define name="learning_ext_present_offset" value="18"></define>
+            <define name="learning_ext_present_bits" value="1"></define>
+            <define name="learning_ext_size" value="19"></define>
+            <define name="ttl_offset" value="19"></define>
+            <define name="ttl_bits" value="8"></define>
+            <define name="eth_rm_fli_offset" value="90"></define>
+            <define name="eth_rm_fli_bits" value="3"></define>          
+            <define name="eth_rm_pso_offset" value="6"></define>
+            <define name="eth_rm_pso_bits" value="7"></define>
+         </defines>
+    </sub_module>
+    
+    <sub_module name="internal_legacy" doc="internal header parameters in legacy device">
+         <defines>
+            <define name="fhei_size" value="5"></define>
+            <define name="fhei_size_sz0" value="3"></define>
+            <define name="fhei_size_sz1" value="5"></define>
+            <define name="fhei_size_sz2" value="8"></define>
+            <define name="inlif_inrif_offset" value="0"></define>
+            <define name="inlif_inrif_bits" value="18"></define>
+            <define name="unknown_address_offset" value="35"></define>
+            <define name="unknown_address_bits" value="1"></define>
+            <define name="forwarding_header_offset_offset" value="41"></define>
+            <define name="forwarding_header_offset_bits" value="7"></define>
+            <define name="forward_code_offset" value="48"></define>
+            <define name="forward_code_bits" value="4"></define>
+            <define name="fhei_size_offset" value="52"></define>
+            <define name="fhei_size_bits" value="2"></define>
+            <define name="learning_ext_present_offset" value="54"></define>
+            <define name="learning_ext_present_bits" value="1"></define>
+            <define name="learning_ext_size" value="40"></define>
+            <define name="eei_ext_present_offset" value="55"></define>
+            <define name="eei_ext_present_bits" value="1"></define>
+         </defines>
+    </sub_module>
+
+    <sub_module name="fhei_sz1_trap_sniff" doc="fhei header parameters of fhei_size sz1, fhei_type trap or sniff">
+         <defines>
+            <define name="fhei_type_offset" value="0"></define>
+            <define name="fhei_type_bits" value="4"></define>
+            <define name="code_offset" value="4"></define>
+            <define name="code_bits" value="9"></define>
+            <define name="qualifier_offset" value="13"></define>
+            <define name="qualifier_bits" value="27"></define>
+         </defines>
+    </sub_module>
+    
+    <sub_module name="fhei_trap_sniff_legacy" doc="fhei header parameters of type trap or sniff in legacy devices">
+         <defines>
+            <define name="code_offset" value="0"></define>
+            <define name="code_bits" value="8"></define>
+            <define name="qualifier_offset" value="8"></define>
+            <define name="qualifier_bits" value="16"></define>
+         </defines>
+    </sub_module>
+
+    <sub_module name="udh" doc="udh header parameters">
+         <defines>
+            <define name="data_type0_offset" value="6"></define>
+            <define name="data_type1_offset" value="4"></define>
+            <define name="data_type2_offset" value="2"></define>
+            <define name="data_type3_offset" value="0"></define>
+            <define name="data_offset" value="0"></define>
+            <define name="data_type0_bits" value="2"></define>
+            <define name="data_type1_bits" value="2"></define>
+            <define name="data_type2_bits" value="2"></define>
+            <define name="data_type3_bits" value="2"></define>
+            <define name="data_bits" value="16"></define>
+            <define name="base_size" value="1"></define>
+         </defines>
+    </sub_module>
+
+    <sub_module name="ftmh_legacy" doc="ftmh legacy header parameters">
+         <defines>
+            <define name="packet_size_offset"  value="58"></define>
+            <define name="traffic_class_offset"  value="55"></define>
+            <define name="src_sys_port_aggregate_offset"  value="39"></define>
+            <define name="pp_dsp_offset"  value="31"></define>
+            <define name="drop_precedence_offset"  value="29"></define>
+            <define name="tm_action_type_offset"  value="27"></define>
+            <define name="otsh_en_offset"  value="26"></define>
+            <define name="internal_header_en_offset"  value="25"></define>
+            <define name="outbound_mirr_disable_offset"  value="24"></define>
+            <define name="tm_action_is_mc_offset"  value="23"></define>
+            <define name="outlif_offset"  value="4"></define>
+            <define name="dsp_ext_present_offset"  value="3"></define>
+            <define name="cni_offset"  value="2"></define>
+            <define name="ecn_enable_offset"  value="1"></define>
+            <define name="exclude_source_offset"  value="0"></define>
+            <define name="dsp_ext_header_offset"  value="0"></define>
+            <define name="stack_route_history_bmp_offset"  value="0"></define>
+            <define name="packet_size_bits"  value="14"></define>
+            <define name="traffic_class_bits"  value="3"></define>
+            <define name="src_sys_port_aggregate_bits"  value="16"></define>
+            <define name="pp_dsp_bits"  value="8"></define>
+            <define name="drop_precedence_bits"  value="2"></define>
+            <define name="tm_action_type_bits"  value="2"></define>
+            <define name="otsh_en_bits"  value="1"></define>
+            <define name="internal_header_en_bits"  value="1"></define>
+            <define name="outbound_mirr_disable_bits"  value="1"></define>
+            <define name="tm_action_is_mc_bits"  value="1"></define>
+            <define name="outlif_bits"  value="19"></define>
+            <define name="dsp_ext_present_bits"  value="1"></define>
+            <define name="cni_bits"  value="1"></define>
+            <define name="ecn_enable_bits"  value="1"></define>
+            <define name="exclude_source_bits"  value="1"></define>
+            <define name="dsp_ext_header_bits"  value="16"></define>
+            <define name="base_header_size"  value="9"></define>
+            <define name="dsp_ext_header_size"  value="2"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="otsh_legacy" doc="otsh legacy header parameters">
+         <defines>
+            <define name="type_offset"  value="46"></define>
+            <define name="type_bits"  value="2"></define>
+            <define name="oam_sub_type_offset"  value="43"></define>
+            <define name="oam_sub_type_bits"  value="3"></define>
+            <define name="mep_type_offset"  value="42"></define>
+            <define name="mep_type_bits"  value="1"></define>
+            <define name="tp_command_offset"  value="43"></define>
+            <define name="tp_command_bits"  value="3"></define>
+            <define name="ts_encapsulation_offset"  value="42"></define>
+            <define name="ts_encapsulation_bits"  value="1"></define>
+            <define name="oam_ts_data_0_offset"  value="40"></define>
+            <define name="oam_ts_data_0_bits"  value="2"></define>
+            <define name="oam_ts_data_1_offset"  value="8"></define>
+            <define name="oam_ts_data_1_bits"  value="32"></define>
+            <define name="offset_offset"  value="0"></define>
+            <define name="offset_bits"  value="8"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="system_headers" doc="system headers">
+        <defines>
+                <define name="system_headers_mode_jericho"  value="0"></define>
+                <define name="system_headers_mode_jericho2"  value="1"></define>
+                <define name="crc_size_counted_in_pkt_len" value="2"></define>
+        </defines>
+        <numerics>
+                <numeric name="system_headers_mode" value="1">
+                <property name="system_headers_mode" method="enable">
+                    <doc>
+                            System headers mode that the device supports, possible values:
+                            0x0 - Jericho-mode - used for Jericho/QMX/QAX/QUX mode
+                            0x1 - Jericho2-mode - 0x1 used for Jericho 2 mode
+                            Default: 0x1.
+                    </doc>
+                </property>
+                </numeric>
+                <numeric name="jr_mode_ftmh_lb_key_ext_mode" value="0">
+                <property name="system_ftmh_load_balancing_ext_mode" method="direct_map">
+                    <map name="DISABLED" value="0"></map>
+                    <map name="ENABLED" value="1"></map>
+                    <doc>
+                            ftmh load balance key extensiton mode in JR mode:
+                            DISABLED - FTMH load balancing extension is disabled
+                            ENABLED -  FTMH load balancing extension is enabled.
+                            Default: DISABLED
+                    </doc>
+                </property>
+                </numeric>
+                <numeric name="jr_mode_ftmh_stacking_ext_mode" value="0">
+                    <property name="stacking_extension_enable" method="enable">
+                        <doc>
+                            ftmh stacking extension mode in JR sys-headers mode:
+                            0x0 - FTMH stacking extension is disabled
+                            0x1 - FTMH stacking extension is enabled
+                            Defaule: DISABLED
+                        </doc>
+                    </property>
+                </numeric>
+                <numeric name="udh_base_size" value="8">
+                <property name="system_headers_mode" method="direct_map">
+                    <map name="1" value="8"></map>
+                    <map name="0" value="0"></map>
+                    <doc>
+                            UDH Base header 
+                            JR2 mode - Standard UDH Base with 1B
+                            JR1 mode - No UDH Base header.
+                            Default: JR2 mode
+                    </doc>
+                </property>
+                </numeric>
+        </numerics>
+    </sub_module>
+
+    <sub_module name="otmh" doc="Outgoing TM header">
+        <features>
+            <feature name="otmh_enable" value="0">
+            </feature>
+        </features>
+    </sub_module>
+    <sub_module name="pph" doc="Packet processing header">
+        <defines>
+            <define name="pph_vsi_selection_size"  value="3"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="general" doc="General attribute">
+        <features>
+            <feature name="fwd_header_offset_calc_with_egress_pars_idx" value="0">
+            </feature>
+            <feature name="jericho_mode_sys_header_is_supported" value="1">
+            </feature>
+        </features>
+    </sub_module>
+    
+    <sub_module name="hw_bug" doc="Bugs related to system header construction">
+        <features>
+            <feature name="fhei_mpls_cmd_from_eei"                        value="0"></feature>
+            <feature name="unknown_address"                               value="0"></feature>
+        </features>
+        <defines>
+            <define name="fhei_mpls_swap_remark_profile_size"             value="5"></define>
+        </defines>
+    </sub_module>
+</device_data>
+

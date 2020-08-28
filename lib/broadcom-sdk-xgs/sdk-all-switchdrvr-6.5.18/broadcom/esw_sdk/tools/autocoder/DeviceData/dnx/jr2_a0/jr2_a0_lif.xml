@@ -1,0 +1,214 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0" module="lif">
+    <includes>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_device.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_mdb.h</include>
+    </includes>
+    <sub_module name="global_lif">
+        <features>
+            <feature name="prevent_tunnel_update_rif" value="0"></feature>
+        </features>
+
+        <defines>
+            <define name="use_mdb_size" value="1"></define> 
+            <define name="nof_global_l2_gport_lifs" value="0x100000"></define>
+            <define name="glem_rif_optimization_enabled" value="0"></define>
+            <define name="wa_null_lif" value="1"></define>
+        </defines > 
+
+
+        <numerics>
+            <numeric name="nof_global_out_lifs" value="DATA(lif,global_lif,nof_global_in_lifs)"></numeric>
+
+             <numeric name="nof_global_in_lifs" value="0x300000">
+                <property name="system_headers_mode" method="direct_map">
+                    <map name="0" value="0x40000"></map>
+                    <map name="1" value="0x300000"></map>
+                    <doc>NULL</doc><!--  not required - soc property already defined by a different data -->
+<!--                     
+                            The number of global lifs depends on the system headers mode.
+                            0x0 - Jericho-mode - up to 256k global lifs.
+                            0x1 - Jericho2-mode - up to 3M global lifs.
+                            Default: 0x1.
+-->
+                </property>
+            </numeric>
+            <numeric name="egress_in_lif_null_value" value="0x0">
+                <property name="system_headers_mode" method="direct_map">
+                    <map name="0" value="0x0"></map>
+                    <map name="1" value="0x0"></map>
+                    <doc>IN_LIF null value in egress stage</doc>
+                </property>
+            </numeric>
+        </numerics>
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="out_lif">
+        <features>
+        </features>
+
+        <numerics>
+            <numeric name="outlif_pointer_size" value="19">
+                <property name="outlif_nof_bits"  method="direct_map">
+                    <map name="19" value="19"></map>
+                    <map name="20" value="20"></map>
+                    <doc>NULL</doc>
+                </property>
+            </numeric>
+            
+            <numeric name="local_outlif_width" value="19">
+                <property name="outlif_nof_bits"  method="direct_map">
+                    <map name="19" value="19"></map>
+                    <map name="20" value="20"></map>
+                    <doc>DATA(lif,out_lif,outlif_pointer_size)</doc>
+                </property>
+            </numeric>
+
+            <numeric name="allocation_bank_size" value="8192">
+                <property name="outlif_nof_bits"  method="direct_map">
+                    <map name="19" value="8192"></map>
+                    <map name="20" value="16384"></map>
+                    <doc>8192 + (DATA(lif,out_lif,outlif_pointer_size)-19)*8192</doc>
+                </property>
+            </numeric>
+
+            <numeric name="nof_local_out_lifs" value="0x80000">
+                <property name="outlif_nof_bits"  method="direct_map">
+                    <map name="19" value="0x80000"></map>
+                    <map name="20" value="0x100000"></map>
+                    <doc>1 &lt;&lt; DATA(lif,out_lif,outlif_pointer_size)</doc>
+                </property>
+            </numeric>
+            
+            <numeric name="physical_bank_size" value="0x1000">
+                <property name="outlif_nof_bits"  method="direct_map">
+                    <map name="19" value="0x1000"></map>
+                    <map name="20" value="0x2000"></map>
+                    <doc>1 &lt;&lt; (DATA(lif,out_lif,outlif_pointer_size) - DATA(lif,out_lif,physical_bank_pointer_size))</doc>
+                </property>
+            </numeric>
+            
+            <numeric name="outlif_profile_width" value="1">
+                <property name="outlif_nof_bits"  method="direct_map">
+                    <map name="19" value="1"></map>
+                    <map name="20" value="0"></map>
+                    <doc>DATA(lif,out_lif,glem_result)-DATA(lif,out_lif,local_outlif_width)</doc>
+                </property>
+            </numeric>
+            
+        </numerics>
+        <defines>
+            <define name="nof_out_lif_profiles" value="64"></define>
+            <define name="nof_erpp_out_lif_profiles" value="8"></define>
+            <define name="nof_out_lif_outgoing_orientation" value="8"></define>
+            <define name="glem_result" value="20"></define>
+            <define name="outrif_profile_width" value="4"></define>
+            <define name="physical_bank_pointer_size" value="7"></define>
+            <define name="nof_outlifs_in_eedb_banks" value="DATA(mdb,dh,nof_rows_in_eedb_bank)*DATA(mdb,eedb,nof_eedb_banks)*2" doc="This number is an educated guess based on address granularity being 60b."></define>
+            <define name="outlif_eedb_banks_pointer_size" value="19"></define>
+        </defines >
+
+        <tables>
+            <table name="logical_to_physical_phase_map">
+                <key name="logical_phase" size="9"></key>
+                <value name="physical_phase" default="-1">
+                    <property name="outlif_logical_to_physical_phase_map" method="suffix_direct_map" suffix="">
+                        <map name="XL" value="0"></map>
+                        <map name="L1" value="2"></map>
+                        <map name="L2" value="4"></map>
+                        <map name="M1" value="6"></map>
+                        <map name="M2" value="7"></map>
+                        <map name="M3" value="5"></map>
+                        <map name="S1" value="3"></map>
+                        <map name="S2" value="1"></map>
+                        <doc>
+                            Map outlif logical phase to physical phase.
+                            The suffix for this property is the logical phase, and the value is the physical phase. 
+                            Every logical phase and every physical phase must be configured.
+                        </doc>
+                    </property>
+                </value>
+            </table>
+            
+        </tables>
+    </sub_module>
+
+    <sub_module name="in_lif">
+        <features>
+            <feature name="mapped_in_lif_profile" value="0"></feature>
+            <feature name="in_lif_profile_iop_mode" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="inlif_index_bit_size" value="60" doc="This is the size of a single index in the inlif table. Divide the entry
+bit size by this to get its size in indexes."></define>
+            <define name="inlif_minimum_index_size" value="2"></define>
+            <define name="inlif_resource_tag_size" value="6" doc ="The size of the inlif resource's n-packs. In JR2, we have entries
+                                                        of size 2 and 3, so the packs' size is 6."></define>
+            <define name="nof_in_lif_profiles" doc="Number of in_lif_profiles." value="256"></define>
+            <define name="nof_used_in_lif_profile_bits" doc="Number of used in_lif_profile bits out of 8" value="7"></define>
+            <define name="nof_used_eth_rif_profile_bits" doc="Number of used eth_rif_profile bits." value="7"></define>
+            <define name="nof_in_lif_incoming_orientation" doc="Number of possible in_lif profile incoming orientation groups." value="8"></define>
+            <define name="nof_eth_rif_profiles" doc="Number of eth_rif_profiles." value="128"></define>
+            <define name="nof_da_not_found_destination_profiles" doc="Number of da_not_found_destination profiles." value="4"></define>
+            <define name="default_da_not_found_destination_profile" doc="Default da_not_found_destination profile." value="0"></define>
+            <define name="drop_in_lif" doc="local in_lif id performing trap with drop action." value="0"></define>
+            <define name="mc_bridge_fallback_per_lif_profile" doc="Disable the MC bridge fallback based on LIF profile" value="0"></define>
+        </defines >
+
+
+        <numerics>
+            <numeric name="in_lif_profile_allocate_indexed_mode" value="0">
+                    <property name="in_lif_profile_allocate" official="false" method="suffix_range" range_min="0" range_max="2" suffix="indexed_mode">
+                        <doc>number of values needed for property indexed_mode in in_lif_profile</doc>
+                    </property>
+            </numeric>
+            <numeric name="in_lif_profile_allocate_orientation" value="4">
+                    <property name="in_lif_profile_egress_allocate" official="false" method="suffix_range" range_min="0" range_max="8" suffix="orientation">
+                        <doc>number of values needed for egress property in_lif_orientation in in_lif_profile</doc>
+                    </property>
+            </numeric>
+            <numeric name="in_lif_profile_allocate_policer_inner_dp" value="0">
+                    <property name="in_lif_profile_egress_allocate" official="false" method="suffix_range" range_min="0" range_max="4" suffix="policer_inner_dp">
+                        <doc>number of values needed for egress property ive_inner_qos_dp_profile in in_lif_profile</doc>
+                    </property>
+            </numeric>
+            <numeric name="in_lif_profile_allocate_policer_outer_dp" value="0">
+                    <property name="in_lif_profile_egress_allocate" official="false" method="suffix_range" range_min="0" range_max="4" suffix="policer_outer_dp">
+                        <doc>number of values needed for egress property ive_outer_qos_dp_profile in in_lif_profile</doc>
+                    </property>
+            </numeric>
+            <numeric name="in_lif_profile_allocate_same_interface_mode" value="0">
+                    <property name="in_lif_profile_egress_allocate" official="false" method="suffix_range" range_min="0" range_max="3" suffix="same_interface_mode">
+                        <doc>number of values needed for egress property same_interface_mode in in_lif_profile</doc>
+                    </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="lif_table_manager">
+        <features>
+        </features>
+
+        <defines>
+            <define name="max_nof_lif_tables" value="100" doc="Maximal number of logical lif tables (inlif + outlif)"></define>
+            <define name="max_nof_result_types" value="30" doc="Maximal number of result types in lif table"></define>
+            <define name="max_fields_per_result_type" value="64" doc="Maximal number of fields for one result types in lif table"></define>
+            <define name="max_fields_per_table" value="64" doc="Maximal number of fields in a lif table"></define>
+        </defines >
+    </sub_module>
+
+    <sub_module name="hw_bug">
+        <features>
+            <feature name="iop_mode_outlif_selection" value="1"></feature>
+            <feature name="iop_mode_orientation_selection" value="1"></feature>
+        </features>
+
+    </sub_module>
+    
+</device_data>

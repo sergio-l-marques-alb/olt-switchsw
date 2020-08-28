@@ -1,0 +1,176 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="l2" bsl_flag="BSL_LS_BCMDNX_L2">
+    <sub_module name="general" doc="General L2 properties">
+        <features>
+            <feature name="learning_use_insert_cmd" doc="If set, learn events to MACT will be generated with INSERT command"></feature>
+            <feature name="ivl_feature_support" doc="IVL is not supported due to VTT1 No PEM resource"></feature>
+        </features>
+
+        <defines>
+            <define name="vsi_offset_shift" doc="Workaround for VSI location in MACT entry"/>
+            <define name="lif_offset_shift" doc="Workaround for LIF location in MACT entry"/>
+        </defines>
+
+        <numerics>
+            <numeric name="l2_learn_limit_mode" doc="MACT learning limit mode"/>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="hw_bug" doc="L2 related HW bugs">
+        <features>
+        <feature name="age_out_and_refresh_profile_selection" doc="Age out and refresh distribution is always taken from the default profile"></feature>
+        <feature name="age_machine_pause_after_flush" doc="Age machine stops working after flush runs"></feature>
+        <feature name="age_state_not_updated" doc="Age state of l2 entries is not updated"></feature>
+        <feature name="appdb_id_for_olp" doc="AppDB ID is wrongly taken from the 4 MSBs like in Jericho"></feature>     
+        <feature name="eth_qual_is_mc" doc="Parser Ethernet qualifier is_mc is set correctly"></feature>
+        <feature name="bc_same_as_unknown_mc" doc="Destination of BC packets should be the same as unknown-MC packets"></feature>
+        <feature name="fid_mgmt_ecc_error" doc="Bug in ecc calculation in the MACT"></feature>      
+        <feature name="wrong_limit_interrupt_handling" doc="No interrupt is raised for fid limit cross"></feature>              
+        <feature name="transplant_instead_of_refresh" doc="Transplant event is created instead of refresh event"></feature>
+        <feature name="static_mac_age_out" doc="Static mac entries age out and deleted"></feature>
+        <feature name="vmv_for_limit_in_wrong_location" doc="For limit check the vmv is taken from the wrong side of the mdb entry"></feature>
+        <feature name="learn_limit" doc="L2 limit causes supression of events related to existing entries (eg transplant/refresh)"></feature>
+        <feature name="limit_per_lif_counters" doc="Counters are not updated correctly in limit per LIF mode. Delete from host fails to update the correct counter (HWJERICHO2-2023)"></feature>
+        <feature name="learn_events_wrong_command" doc="LEL generates learn events with INSERT command instead of LEARN (HWJERICHO2-2617)"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="vsi" doc="VSI data">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_vsi_aging_profiles" doc="Number of VSI aging profiles"/>
+            <define name="nof_event_forwarding_profiles" doc="Number of event forwarding profiles"/>
+            <define name="nof_vsi_learning_profiles" doc="Number of VSI learning profiles"/>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="vlan_domain" doc="vlan domain">
+        <features>
+        </features>
+        
+        <defines>
+            <define name = "nof_vlan_domains" doc="Number of supported vlan domains"/>
+            <define name = "nof_bits_next_layer_network_domain" doc="Number of bits for next layer network domain"/>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="dma" doc="dma">
+        <features>
+        </features>
+
+        <defines>
+            <define name = "flush_nof_dma_entries" doc="Number of flush DMA entries that the host can hold"/>
+            <define name = "flush_db_nof_dma_rules" doc="Number of flush DMA rules"/>
+            <define name = "flush_db_nof_dma_rules_per_table" doc="Number of flush DMA rules in a table"/>
+            <define name = "flush_db_rule_size" doc="Size in bytes of a flush DB rule"/>
+            <define name = "flush_db_data_size" doc="Size in bytes of a flush DB action data"/>
+            <define name = "flush_group_size" doc="the size of flush group field"/>
+        </defines>
+
+        <numerics>
+            <numeric name="learning_fifo_dma_buffer_size" doc="learning fifo dma buffer size in bytes"/>
+            <numeric name="learning_fifo_dma_timeout" doc="learning fifo dma timeout in microseconds"/>
+            <numeric name="learning_fifo_dma_threshold" doc="learning fifo dma threshold"/>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="age_and_flush_machine" doc="Scan machine used for flush and age operations.">
+        <features>
+        </features>
+
+        <defines>
+            <define name="max_age_states" doc="The maximal NOF age states that an entry can have before aging out."/>
+        </defines>
+
+        <numerics>         
+        </numerics>
+
+        <tables>
+            <table name="filter_rules" doc="Holds flush filter rules">                
+                <value name="table_name" type="soc_mem_t" doc="memory name"/>
+                <value name="valid" type="soc_field_t" doc="1 means rule is valid and should be used. 0 rule should not be checked."/>
+                <value name="entry_mask" type="soc_field_t" doc="Filter rule for entry mask. 1 is don't care and 0 means compare."/>
+                <value name="entry_filter" type="soc_field_t" doc="Filter rule for entry."/>
+                <value name="src_mask" type="soc_field_t" doc="Filter rule for src mask."/>
+                <value name="src_filter" type="soc_field_t" doc="Filter rule for src."/>
+                <value name="appdb_id_mask" type="soc_field_t" doc="Filter rule for appdb id mask."/>
+                <value name="appdb_id_filter" type="soc_field_t" doc="Filter rule for appdb id."/>
+                <value name="accessed_mask" type="soc_field_t" doc="Filter rule for accessed mask."/>
+                <value name="accessed_filter" type="soc_field_t" doc="Filter rule for accessed bit."/>   
+            </table>
+
+            <table name="data_rules" doc="Holds flush data for updates">                
+                <value name="table_name" type="soc_mem_t" doc="memory name"/>
+                <value name="command" type="soc_field_t" doc="command type. 0-clear hit, 1-get, 2-delete, 3-transplant"/>
+                <value name="payload_mask" type="soc_field_t" doc="Mask for the payload in transplant action."/>
+                <value name="payload" type="soc_field_t" doc="Payload for transplant action."/>                
+            </table>
+
+            <table name="flush" doc="Flush machine related HW">                                
+                <value name="flush_pulse" type="soc_reg_t" doc="Pulse the flush machine to start scanning."/>
+                <value name="traverse_thread_priority" type="uint32" doc="L2 flush match traverse non-blocking thread priority."/>
+            </table>
+
+            <table name="age" doc="Age machine related HW">                
+                <value name="age_config" type="soc_reg_t" doc="Age configuration register"/>
+                <value name="disable_aging" type="soc_field_t" doc="Disable aging."/>
+                <value name="scan_pulse" type="soc_reg_t" doc="Pulse the scan machine to start scanning."/>                
+            </table>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="olp" doc="Data for OLP configuration">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="lpkgv_shift" doc="Learn_Payload_Key_Gen_Var shift in learn payload msb"/>
+            <define name="lpkgv_mask" doc="Learn_Payload_Key_Gen_Var mask in learn payload msb"/>
+            <define name="lpkgv_with_outlif" doc="Learn_Payload_Key_Gen_Var for outlif is valid in learn payload"/>
+            <define name="lpkgv_wo_outlif" doc="Learn_Payload_Key_Gen_Var for outlif is invalid in learn payload"/>
+            <define name="destination_offset" doc="destination offset in learn payload"/>
+            <define name="outlif_offset" doc="outlif offset in learn payload"/>
+            <define name="eei_offset" doc="eei offset in learn payload"/>
+            <define name="fec_offset" doc="fec offset in learn payload"/>
+            <define name="jr_mode_enhanced_performance_enable" doc="Enhance performance in jr mode"/>
+        </defines>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

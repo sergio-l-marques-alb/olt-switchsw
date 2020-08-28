@@ -1,0 +1,1489 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <!-- Credit Request -->
+
+    <AppDB Name="IQS_CREDIT_REQUEST_PROFILE_MAP">
+        <OneLineDescription>Mapping Queue to credit request profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="ingress queue id (base + offset)" Name="QUEUE_ID" Type="VOQ"/>
+            </Key>
+            <Result>
+                <Field Description="credit request profile" Name="PROFILE_ID" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PROFILE_ID">
+                    <Access>
+                        <Memory Name="IPS_QTYPEm">
+                            <EntryOffset Formula="#KEY_VALUE(QUEUE_ID)/8"/>
+                            <HwField Name="QTYPE_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(QUEUE_ID)%8*5"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IQS_CREDIT_REQUEST_PROFILE_GENERAL_CONFIG">
+        <OneLineDescription>Mapping Queue to credit request profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="credit request profile" Name="PROFILE_ID" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="allow to burst of packtes sent each time" Name="IS_LOW_DELAY" Size="1" Type="UINT"/>
+                <Field Description="packets will be sent to high priority DQCQ" Name="IS_HIGH_PRIORITY" Size="1" Type="UINT" Valid="!DNX_DATA.iqs.dqcq.8_priorities"/>
+                <Field Description="High bandwidth queue, increase max dequeue commands, extra credits, queue read weight" Name="BW_LEVEL" Size="2" Type="UINT"/>
+                <Field Description="OCB only queues" Name="IS_OCB_ONLY" Size="1" Type="BOOL"/>
+                <Field Description="resolution of credit balance maintained by the HW" Name="CREDIT_BALANCE_RESOLUTION" Type="IQS_CREDIT_BALANCE_RESOLUTION"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_LOW_DELAY">
+                    <Access>
+                        <Register Name="IPS_MULT_PKT_DEQ_SETTINGSr">
+                            <HwField Name="MUL_PKT_DEQ_ENf"/>
+                            <DataOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="IS_HIGH_PRIORITY">
+                    <Access>
+                        <Register Name="IPS_QUEUE_IS_HIGH_PRIORITYr">
+                            <HwField Name="QUEUE_IS_HIGH_PRIORITYf"/>
+                            <DataOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BW_LEVEL">
+                    <Access>
+                        <Register Name="IPS_DQM_MAX_DEQ_CMD_CRDT_SELr">
+                            <HwField Name="DQM_MAX_DEQ_CMD_CRDT_SELf"/>
+                            <DataOffset Formula="#KEY_VALUE(PROFILE_ID)*2"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="IPS_SQM_MAX_DEQ_CMD_CRDT_SELr">
+                            <HwField Name="SQM_MAX_DEQ_CMD_CRDT_SELf"/>
+                            <DataOffset Formula="#KEY_VALUE(PROFILE_ID)*2"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IS_OCB_ONLY">
+                    <Access>
+                        <Register Name="IPS_QUEUE_IS_OCB_ONLYr">
+                            <HwField Name="QUEUE_IS_OCB_ONLYf"/>
+                            <DataOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CREDIT_BALANCE_RESOLUTION">
+                    <Access>
+                        <Register Name="IPS_CREDIT_BALANCE_RESOLUTION_REGISTERr">
+                            <HwField Name="CREDIT_BALANCE_RESOLUTIONf"/>
+                            <DataOffset Formula="#KEY_VALUE(PROFILE_ID)*2"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="IQS_QUEUE_TO_PRIORITY_MAP" Valid="DNX_DATA.iqs.dqcq.8_priorities">
+        <OneLineDescription>Select the priority per queue</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VOQ"/>
+            </Key>
+            <Result>
+                <Field Description="Select a priority for the VOQ" Name="PRIORITY" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PRIORITY">
+                    <Access>
+                        <Memory Name="IPS_QPRIORITYm">
+                            <EntryOffset Formula="#KEY_VALUE(VOQ)/16"/>
+                            <DataOffset Formula="#KEY_VALUE(VOQ)%16*3"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="IQS_PRIORITY_IS_HIGH" Valid="DNX_DATA.iqs.dqcq.8_priorities">
+        <OneLineDescription>for each priority, set if its high or low</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Priority index" Name="PRIORITY" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="IS_HIGH" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_HIGH">
+                    <Access>
+                        <Register Name="IPS_QPRIORITY_IS_HIGHr">
+                            <DataOffset Formula="#KEY_VALUE(PRIORITY)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IQS_CREDIT_REQUEST_PUSH_QUEUE">
+        <OneLineDescription>Select the profile ID that will be used for push queue</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Select profile ID for push queues" Name="PROFILE_ID" Size="5" Type="UINT"/>
+                <Field Description="Enable / Disable Selection" Name="ENABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PROFILE_ID">
+                    <Access>
+                        <Register Name="IPS_PUSH_QUEUE_TYPES_CONFIGr">
+                            <HwField Name="PUSH_QUEUE_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="IPS_PUSH_QUEUE_TYPES_CONFIGr">
+                            <HwField Name="PUSH_QUEUE_TYPE_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+   <AppDB Name="IQS_CREDIT_REQUEST_SATISFIED_THRESHOLDS">
+        <OneLineDescription>Select the profile ID that will be used for push queue</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Credit Request Profile ID" Name="PROFILE_ID" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="When the Credit Balance is bigger than the threshold, the device sends OFF message to the scheduler. Resolution in CBR" Name="BACKOFF_ENTER" Size="18" Type="UINT"/>
+                <Field Description="Hysteresis value for to the backoff enter threshold." Name="BACKOFF_EXIT" Size="18" Type="UINT"/>
+                <Field Description="When the (Credit Balance - Queue Size) is bigger than this threshold the device sends OFF message to the scheduler.Resolution in CBR" Name="BACKLOG_ENTER" Size="18" Type="UINT"/>
+                <Field Description="Hysteresis value for to the backlog enter threshold." Name="BACKLOG_EXIT" Size="18" Type="UINT"/>
+                <Field Description="When the Credit Balance is bigger than the threshold, the device sends SLOW message to the scheduler. Resolution in CBR" Name="BACKSLOW_ENTER" Size="18" Type="UINT"/>
+                <Field Description="Hysteresis value for to the backslow enter threshold." Name="BACKSLOW_EXIT" Size="18" Type="UINT"/>
+                <Field Description="When Queue Size ==0 and Credit Balance is bigger than this threshold the device sends OFF message to the scheduler.Resolution in CBR" Name="EMPTY_QUEUE" Size="17" Type="UINT"/>
+                <Field Description="Sign (negative or postive) of the threshold" Name="EMPTY_QUEUE_SIGN" Size="1" Type="UINT"/>
+                <Field Description="The maximum credits an empty queue can accumulate. Resolution in bytes.Resolution in CBR" Name="EMPTY_QUEUE_MAX" Size="17" Type="UINT"/>
+                <Field Description="Sign (negative or postive) of the threshold" Name="EMPTY_QUEUE_MAX_SIGN" Size="1" Type="UINT"/>
+                <Field Description=". This indication permits the credit balance of an empty queue to exceed configured Exceed Max Empty Queue Credit Balance up to (Credit Value minus 1), when a credit is received. Resolution in CBR" Name="EMPTY_QUEUE_EXCEED" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="BACKOFF_ENTER">
+                    <Access>
+                        <Memory Name="IPS_CRBAL_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="BACKOFF_ENTER_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BACKOFF_EXIT">
+                    <Access>
+                        <Memory Name="IPS_CRBAL_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="BACKOFF_EXIT_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BACKLOG_ENTER">
+                    <Access>
+                        <Memory Name="IPS_CRBAL_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="BACKLOG_ENTER_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BACKLOG_EXIT">
+                    <Access>
+                        <Memory Name="IPS_CRBAL_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="BACKLOG_EXIT_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BACKSLOW_ENTER">
+                    <Access>
+                        <Memory Name="IPS_CRBAL_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="BACKSLOW_ENTER_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BACKSLOW_EXIT">
+                    <Access>
+                        <Memory Name="IPS_CRBAL_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="BACKSLOW_EXIT_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EMPTY_QUEUE">
+                    <Access>
+                        <Memory Name="IPS_EMPTY_Q_CRBAL_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="SATISFIED_CRBALf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EMPTY_QUEUE_SIGN">
+                    <Access>
+                        <Memory Name="IPS_EMPTY_Q_CRBAL_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="SATISFIED_CRBAL_SIGNf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EMPTY_QUEUE_MAX">
+                    <Access>
+                        <Memory Name="IPS_EMPTY_Q_CRBAL_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="MAX_EMPTY_Q_CRBALf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EMPTY_QUEUE_MAX_SIGN">
+                    <Access>
+                        <Memory Name="IPS_EMPTY_Q_CRBAL_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="MAX_EMPTY_Q_CRBAL_SIGNf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EMPTY_QUEUE_EXCEED">
+                    <Access>
+                        <Memory Name="IPS_EMPTY_Q_CRBAL_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="EXCEED_MAX_EMPTY_Q_CRBALf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+   <AppDB Name="IQS_CREDIT_REQUEST_HUNGRY_THRESHOLDS">
+        <OneLineDescription>Select the profile ID that will be used for push queue</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Credit Request Profile ID" Name="PROFILE_ID" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="N*(1 SHL HungryMult+4) up, or (N*(1 SHL HungryMult+4) - (1 SHL (HungryMult+3)) down, a new FSM is generated.0 disables this mechanism." Name="MULT" Size="4" Type="UINT"/>
+                <Field Description="When (Queue Size - Credit Balance) is bigger than this threshold and the Current Status is OFF, the Status will be changed to SLOW. Resolution in CBR." Name="OFF_TO_SLOW" Size="18" Type="UINT"/>
+                <Field Description="Sign (negative or postive of the threshold" Name="OFF_TO_SLOW_SIGN" Size="1" Type="UINT"/>
+                <Field Description="When (Queue Size - Credit Balance) is bigger than this threshold and the Current Status is OFF, the Status will be changed to NORMAL. Resolution is in CBR." Name="OFF_TO_NORM" Size="18" Type="UINT"/>
+                <Field Description="Sign (negative or postive of the threshold" Name="OFF_TO_NORM_SIGN" Size="1" Type="UINT"/>
+                <Field Description="When (Queue Size - Credit Balance) is bigger than this threshold and the Current Status is SLOW, the Status will be changed to NORMAL. Resolution is in CBR." Name="SLOW_TO_NORM" Size="18" Type="UINT"/>
+                <Field Description="Sign (negative or postive of the threshold" Name="SLOW_TO_NORM_SIGN" Size="1" Type="UINT"/>
+                <Field Description="When (Queue Size - Credit Balance) is smaller than this threshold and the Current Status is NOTMAL, the Status will be changed to SLOW. Resolution is in CBR." Name="NORM_TO_SLOW" Size="18" Type="UINT"/>
+                <Field Description="Sign (negative or postive of the threshold" Name="NORM_TO_SLOW_SIGN" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MULT">
+                    <Access>
+                        <Memory Name="IPS_QSIZE_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="FSM_TH_MULf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OFF_TO_SLOW">
+                    <Access>
+                        <Memory Name="IPS_QSIZE_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="OFF_TO_SLOW_MSG_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OFF_TO_SLOW_SIGN">
+                    <Access>
+                        <Memory Name="IPS_QSIZE_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="OFF_TO_SLOW_MSG_TH_SIGNf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OFF_TO_NORM">
+                    <Access>
+                        <Memory Name="IPS_QSIZE_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="OFF_TO_NORM_MSG_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OFF_TO_NORM_SIGN">
+                    <Access>
+                        <Memory Name="IPS_QSIZE_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="OFF_TO_NORM_MSG_TH_SIGNf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SLOW_TO_NORM">
+                    <Access>
+                        <Memory Name="IPS_QSIZE_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="SLOW_TO_NORM_MSG_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SLOW_TO_NORM_SIGN">
+                    <Access>
+                        <Memory Name="IPS_QSIZE_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="SLOW_TO_NORM_MSG_TH_SIGNf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NORM_TO_SLOW">
+                    <Access>
+                        <Memory Name="IPS_QSIZE_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="NORM_TO_SLOW_MSG_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NORM_TO_SLOW_SIGN">
+                    <Access>
+                        <Memory Name="IPS_QSIZE_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="NORM_TO_SLOW_MSG_TH_SIGNf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+   <AppDB Name="IQS_CREDIT_REQUEST_SLOW_FACTOR_UP">
+        <OneLineDescription>Slow factor thresholds up</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Credit Request Profile ID" Name="PROFILE_ID" Size="5" Type="UINT"/>
+                <Field Description="Source Slow level to change. From 0 to 6" MaxValue="6" Name="SRC_SLOW_LEVEL" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="If the queue side pass this threshold slow level is increased. 256B resolution" Name="SLOW_FACTOR_UP" Size="12" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SLOW_FACTOR_UP">
+                    <Access>
+                        <Memory Name="IPS_SLOW_FACTOR_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <DataOffset Formula="#KEY_VALUE(SRC_SLOW_LEVEL)*12"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IQS_CREDIT_REQUEST_SLOW_FACTOR_DOWN">
+        <OneLineDescription>Slow factor thresholds down</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Credit Request Profile ID" Name="PROFILE_ID" Size="5" Type="UINT"/>
+                <Field Description="Destination Slow level to change. From 0 to 6" MaxValue="6" Name="DEST_SLOW_LEVEL" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="If the queue side pass this threshold slow level is decreased to DST_SLOW_LEVEL. 256B resolution" Name="SLOW_FACTOR_DOWN" Size="12" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SLOW_FACTOR_DOWN">
+                    <Access>
+                        <Memory Name="IPS_SLOW_FACTOR_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <DataOffset Formula="#KEY_VALUE(DEST_SLOW_LEVEL)*12+84"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IQS_CREDIT_MAX_DEQ_CMDS">
+        <OneLineDescription>max dequeue commands allowed per bandwidth level X active queues  from sram/dram to fabric</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="BW_LEVEL" Size="2" Type="UINT"/>
+                <Field Name="ACTIVE_QUEUES" Type="IQS_ACTIVE_QUEUES"/>
+            </Key>
+            <Result>
+                <Field Description="threshold per status of active queues. 256B resolution. A value of 0 means a single packet is to be dequeued at maximum." Name="MAX_DEQ_CMD" Size="9" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MAX_DEQ_CMD">
+                    <Access>
+                        <Register Name="IPS_SQM_MAX_DEQ_CMD_CRDTr">
+                            <DataOffset Formula="#KEY_VALUE(ACTIVE_QUEUES)*9+#KEY_VALUE(BW_LEVEL)*36"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="IPS_DQM_MAX_DEQ_CMD_CRDTr">
+                            <DataOffset Formula="#KEY_VALUE(ACTIVE_QUEUES)*9+#KEY_VALUE(BW_LEVEL)*36"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IQS_CREDIT_S2D_MAX_DEQ_CMDS">
+        <OneLineDescription>max dequeue commands allowed per bandwidth level X active queues for sram to dram </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="BW_LEVEL" Size="2" Type="UINT"/>
+                <Field Name="ACTIVE_QUEUES" Type="IQS_ACTIVE_QUEUES"/>
+            </Key>
+            <Result>
+                <Field Description="threshold per status of active queues. 256B resolution. A value of 0 means a single packet is to be dequeued at maximum." Name="MAX_DEQ_CMD" Size="9" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MAX_DEQ_CMD">
+                    <Access>
+                        <Register Name="IPS_SRAM_TO_DRAM_MAX_DEQ_CMD_CRDTr">
+                            <DataOffset Formula="#KEY_VALUE(ACTIVE_QUEUES)*9+#KEY_VALUE(BW_LEVEL)*36"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IQS_CREDIT_DEQ_PARAMS">
+        <OneLineDescription>max dequeue commands allowed per bandwidth level X active queues </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="BW_LEVEL" Size="2" Type="UINT"/>
+                <Field Description="credit balance MSB, taking into account credit balance resolution" Name="CREDIT_BALANCE_MSB" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="queue read weight profile for SRAM" Name="SRAM_READ_WEIGHT_PROFILE" Size="3" Type="UINT"/>
+                <Field Description="queue read weight profile for SRAM to DRAM" Name="S2D_READ_WEIGHT_PROFILE" Size="3" Type="UINT"/>
+                <Field Description="queue read weight profile for DRAM" Name="DRAM_READ_WEIGHT_PROFILE" Size="3" Type="UINT"/>
+                <Field Description="Number of extra credits allowed in dequeue command (1KB resolution)" Name="SRAM_DEQ_EXTRA_CREDITS" Size="4" Type="UINT"/>
+                <Field Description="Number of extra credits allowed in dequeue command (1KB resolution)" Name="S2D_DEQ_EXTRA_CREDITS" Size="4" Type="UINT"/>
+                <Field Description="Extra credit LFSR mask" Name="SRAM_DEQ_EXTRA_CREDITS_LFSR" Size="4" Type="UINT"/>
+                <Field Description="Extra credit LFSR mask" Name="S2D_DEQ_EXTRA_CREDITS_LFSR" Size="4" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SRAM_READ_WEIGHT_PROFILE">
+                    <Access>
+                        <Memory Name="IPS_SQM_DEQ_CMD_PRMSm">
+                            <EntryOffset Formula="#KEY_VALUE(CREDIT_BALANCE_MSB)*4+#KEY_VALUE(BW_LEVEL)"/>
+                            <HwField Name="READ_WEIGHT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="S2D_READ_WEIGHT_PROFILE">
+                    <Access>
+                        <Memory Name="IPS_SQM_DEQ_CMD_PRMSm">
+                            <EntryOffset Formula="128+#KEY_VALUE(CREDIT_BALANCE_MSB)*4+#KEY_VALUE(BW_LEVEL)"/>
+                            <HwField Name="READ_WEIGHT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_READ_WEIGHT_PROFILE">
+                    <Access>
+                        <Memory Name="IPS_DQM_DEQ_CMD_PRMSm">
+                            <EntryOffset Formula="#KEY_VALUE(CREDIT_BALANCE_MSB)*4+#KEY_VALUE(BW_LEVEL)"/>
+                            <HwField Name="READ_WEIGHT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_DEQ_EXTRA_CREDITS">
+                    <Access>
+                        <Memory Name="IPS_SQM_DEQ_CMD_PRMSm">
+                            <EntryOffset Formula="#KEY_VALUE(CREDIT_BALANCE_MSB)*4+#KEY_VALUE(BW_LEVEL)"/>
+                            <HwField Name="EXTRA_CREDITSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="S2D_DEQ_EXTRA_CREDITS">
+                    <Access>
+                        <Memory Name="IPS_SQM_DEQ_CMD_PRMSm">
+                            <EntryOffset Formula="128+#KEY_VALUE(CREDIT_BALANCE_MSB)*4+#KEY_VALUE(BW_LEVEL)"/>
+                            <HwField Name="EXTRA_CREDITSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_DEQ_EXTRA_CREDITS_LFSR">
+                    <Access>
+                        <Memory Name="IPS_SQM_DEQ_CMD_PRMSm">
+                            <EntryOffset Formula="#KEY_VALUE(CREDIT_BALANCE_MSB)*4+#KEY_VALUE(BW_LEVEL)"/>
+                            <HwField Name="EXTRA_CREDITS_LFSR_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="S2D_DEQ_EXTRA_CREDITS_LFSR">
+                    <Access>
+                        <Memory Name="IPS_SQM_DEQ_CMD_PRMSm">
+                            <EntryOffset Formula="128+#KEY_VALUE(CREDIT_BALANCE_MSB)*4+#KEY_VALUE(BW_LEVEL)"/>
+                            <HwField Name="EXTRA_CREDITS_LFSR_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IQS_CREDIT_REQUEST_QUEUE_READ_WEIGHT_PROFILE">
+        <OneLineDescription>max dequeue commands allowed per bandwidth level X active queues </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Queue read weight profile" Name="PROFILE_ID" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="SQM Queue read weight" Name="SQM_READ_WEIGHT" Size="5" Type="UINT"/>
+                <Field Description="DQM Queue read weight" Name="DQM_READ_WEIGHT" Size="5" Type="UINT"/>                
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SQM_READ_WEIGHT">
+                    <Access>
+                        <Memory Name="IPS_SQM_DEQ_CMD_READ_WEIGHT_PROFILE_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="READ_WEIGHTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DQM_READ_WEIGHT">
+                    <Access>
+                        <Memory Name="IPS_DQM_DEQ_CMD_READ_WEIGHT_PROFILE_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="READ_WEIGHTf"/>
+                        </Memory>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IQS_CREDIT_REQUEST_LOW_DELAY">
+        <OneLineDescription>Set low delay values</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="if IS_LOW_DELAY is set the queue may send up to DEQUEUE_BYTES on a DEQ command for queue using the stored credits. Resolution is 64B." Name="DEQUEUE_BYTES" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DEQUEUE_BYTES">
+                    <Access>
+                        <Register Name="IPS_MULT_PKT_DEQ_SETTINGSr">
+                            <HwField Name="MUL_PKT_DEQ_BYTESf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="IQS_CREDIT_REQUEST_FMQ_TH" Valid="!DNX_DATA.iqs.dqcq.8_priorities">
+        <OneLineDescription>Occupancy thresholds for FMQ</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="credit resolution, flow control on if this threholds crossed" Name="CREDIT_ON_TH" Size="13" Type="UINT"/>
+                <Field Description="credit resolution, flow control off if this threholds crossed" Name="CREDIT_OFF_TH" Size="13" Type="UINT"/>
+                <Field Description="bytes resolution, flow control on if this threholds crossed" Name="BYTE_ON_TH" Size="21" Type="UINT"/>
+                <Field Description="bytes resolution, flow control on if this threholds crossed" Name="BYTE_OFF_TH" Size="21" Type="UINT"/>
+                <Field Description="EIR credit resolution, flow control on if this threholds crossed" Name="EIR_CREDIT_ON_TH" Size="13" Type="UINT"/>
+                <Field Description="EIR credit resolution, flow control off if this threholds crossed" Name="EIR_CREDIT_OFF_TH" Size="13" Type="UINT"/>
+                <Field Description="EIR bytes resolution, flow control on if this threholds crossed" Name="EIR_BYTE_ON_TH" Size="21" Type="UINT"/>
+                <Field Description="EIR bytes resolution, flow control on if this threholds crossed" Name="EIR_BYTE_OFF_TH" Size="21" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CREDIT_ON_TH">
+                    <Access>
+                        <Register Name="IPS_DQCQ_FMC_FC_THr">
+                            <HwField Name="DQCQ_FMC_FC_SET_TH_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CREDIT_OFF_TH">
+                    <Access>
+                        <Register Name="IPS_DQCQ_FMC_FC_THr">
+                            <HwField Name="DQCQ_FMC_FC_CLR_TH_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BYTE_ON_TH">
+                    <Access>
+                        <Register Name="IPS_FMC_FC_BYTES_THr">
+                            <HwField Name="DQCQ_FMC_FC_SET_BYTES_TH_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BYTE_OFF_TH">
+                    <Access>
+                        <Register Name="IPS_FMC_FC_BYTES_THr">
+                            <HwField Name="DQCQ_FMC_FC_CLR_BYTES_TH_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EIR_CREDIT_ON_TH">
+                    <Access>
+                        <Register Name="IPS_DQCQ_EIR_FC_THr">
+                            <HwField Name="DQCQ_EIR_FC_SET_TH_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EIR_CREDIT_OFF_TH">
+                    <Access>
+                        <Register Name="IPS_DQCQ_EIR_FC_THr">
+                            <HwField Name="DQCQ_EIR_FC_CLR_TH_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EIR_BYTE_ON_TH">
+                    <Access>
+                        <Register Name="IPS_DQCQ_EIR_FC_BYTES_THr">
+                            <HwField Name="DQCQ_EIR_FC_SET_BYTES_TH_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EIR_BYTE_OFF_TH">
+                    <Access>
+                        <Register Name="IPS_DQCQ_EIR_FC_BYTES_THr">
+                            <HwField Name="DQCQ_EIR_FC_CLR_BYTES_TH_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <!-- Credit Watchdog -->
+    <AppDB Name="IQS_CREDIT_WATCHDOG_COMMON">
+        <OneLineDescription>Set watchdog attributes common to all credit profiles</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Queue range to apply watchdog mechanism on." Name="FIRST_QUEUE" Type="VOQ"/>
+                <Field Description="Queue range to apply watchdog mechanism on." Name="LAST_QUEUE" Type="VOQ"/>
+                <Field Description="Defines the period in clocks in which a token bucket is incremented." Name="FSM_SHAPER" Size="11" Type="UINT"/>
+                <Field Description="the min number of clocks that must elapse between full scans, in clocks, is MIN_CYCLE_PERIOD * 2048. " Name="MIN_CYCLE_PERIOD" Size="15" Type="UINT"/>
+                <Field Description="number of cycles for retransmit" Name="CYCLES_FOR_RETRANSMIT" Type="IQS_WATCHDOG_CYCLES"/>
+                <Field Description="enable mantissa-exponnet configuration for delete threshold" Name="ENABLE_EXP_MODE" Size="1" Type="BOOL"/>
+                <Field Description="Enable chicken bit fix dram bug" Name="ENABLE_DRAM_DELETE_FIX_HW" Size="1" Type="BOOL" Valid="DNX_DATA.iqs.credit.dram_delete_fix_hw"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIRST_QUEUE">
+                    <Access>
+                        <Register Name="IPS_CRDT_WD_SCAN_RANGEr">
+                            <HwField Name="CRDT_WD_START_QNUMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LAST_QUEUE">
+                    <Access>
+                        <Register Name="IPS_CRDT_WD_SCAN_RANGEr">
+                            <HwField Name="CRDT_WD_END_QNUMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FSM_SHAPER">
+                    <Access>
+                        <Register Name="IPS_CREDIT_WATCHDOG_CONFIGURATIONr">
+                            <HwField Name="CRDT_WD_MAX_FLOW_MSG_GEN_RATEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIN_CYCLE_PERIOD">
+                    <Access>
+                        <Register Name="IPS_CREDIT_WATCHDOG_CONFIGURATIONr">
+                            <HwField Name="CRDT_WD_MIN_SCAN_CYCLE_PERIODf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CYCLES_FOR_RETRANSMIT">
+                    <Access>
+                        <Register Name="IPS_CREDIT_WATCHDOG_CONFIGURATIONr">
+                            <HwField Name="CRDT_WD_FSM_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENABLE_EXP_MODE">
+                    <Access>
+                        <Register Name="IPS_CREDIT_WATCHDOG_CONFIGURATIONr">
+                            <HwField Name="CRDT_WD_DELETE_Q_EXP_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                 <Field Name="ENABLE_DRAM_DELETE_FIX_HW">
+                    <Access>
+                        <Register Name="DQM_RESERVED_SPARE_2r">
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+
+    <AppDB Name="IQS_CREDIT_WATCHDOG_PROFILE">
+        <OneLineDescription>Set credit watchdog threhlds per profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Credit Request Profile ID" Name="PROFILE_ID" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Maximal elapsed WD iterations since last credit was received until moved to delete state." Name="DELETE_EXP" Size="4" Type="UINT"/>
+                <Field Description="Maximal elapsed WD iterations since last credit was received until moved to delete state." Name="DELETE_MANT" Size="4" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DELETE_EXP">
+                    <Access>
+                        <Memory Name="IPS_CRDT_WD_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="STATUS_MSG_GEN_PERIODf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DELETE_MANT">
+                    <Access>
+                        <Memory Name="IPS_CRDT_WD_THm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="DELETE_Q_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <!-- Credit Worth -->
+    <AppDB Name="IQS_CREDIT_WORTH_CONFIG">
+        <OneLineDescription>Basic configuratiob of Credit worth</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable configuring credit worth per FAP ID" Name="ENABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="IPS_CREDIT_VALUE_CONFIGr">
+                            <HwField Name="CRDT_VALUE_SEL_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IQS_CREDIT_WORTH">
+        <OneLineDescription>Set credit worth for each group</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Credit worth group" Name="CREDIT_WORTH_GROUP_ID" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Credit value of group" Name="CREDIT_WORTH" Size="13" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CREDIT_WORTH">
+                    <Access>
+                        <KeyCondition Field="CREDIT_WORTH_GROUP_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="IPS_CREDIT_CONFIGr">
+                            <HwField Name="CREDIT_VALUE_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CREDIT_WORTH_GROUP_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="IPS_CREDIT_CONFIGr">
+                            <HwField Name="CREDIT_VALUE_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="IQS_CREDIT_WORTH_GROUPS">
+        <OneLineDescription>Set mapping of FAP-ID to credit worth groups</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="destination FAP-ID" Name="FAP_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Credit worth group" Name="CREDIT_WORTH_GROUP_ID" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CREDIT_WORTH_GROUP_ID">
+                    <Access>
+                        <Memory Name="IPS_CRDT_VALUE_SELm">
+                            <EntryOffset Formula="#KEY_VALUE(FAP_ID)/16"/>
+                            <HwField Name="CRDT_VALUE_BMPf"/>
+                            <DataOffset Formula="#KEY_VALUE(FAP_ID)%16"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <!-- FSM Reorder -->
+    <AppDB Name="IQS_FSM_REORDER_CONFIG" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Basic configuration of FSM reorder</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable configuring mode per destination FAP-ID" Name="PER_FAP_ENABLE" Size="1" Type="UINT"/>
+                <Field Description="Set aging threshold. Old entries are invalidated after a configurable number of Idle cycles." Name="AGING_TIMER" Size="4" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PER_FAP_ENABLE">
+                    <Access>
+                         <Register Name="IPS_FMS_PARAMETERSr">
+                            <HwField Name="FMS_ENABLE_BYPf"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                         <Register Name="FCR_EFMS_CONFIGURATIONr">
+                            <HwField Name="EFMS_BYPASS_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="AGING_TIMER">
+                    <Access>
+                         <Register Name="FCR_EFMS_CONFIGURATIONr">
+                            <HwField Name="EFMS_AGING_TIMERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IQS_FSM_REORDER_FAP_MODE" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Basic configuration of FSM reorder</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="destination FAP-ID" Name="FAP_ID"/>
+            </Key>
+            <Result>
+                <Field Description="1 for sequential mode, 0 for delayed" Name="IS_SEQ" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_SEQ">
+                    <Access>
+                         <Memory Name="IPS_FMS_BYPASSm">
+                            <EntryOffset Formula="#KEY_VALUE(FAP_ID)/16"/>
+                            <HwField Name="FMS_BYPASS_BMPf"/>
+                            <DataOffset Formula="#KEY_VALUE(FAP_ID)%16"/>
+                        </Memory>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                         <Memory Name="FCR_EFMS_SOURCE_PIPEm">
+                            <EntryOffset Formula="#KEY_VALUE(FAP_ID)/8"/>
+                            <HwField Name="DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(FAP_ID)%8"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <!-- Debug -->
+    <AppDB Name="IQS_DEBUG_AUTO_CREDIT">
+        <OneLineDescription>Set auto credit for range of queues</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Min queue" Name="QUEUE_MIN" Type="VOQ"/>
+                <Field Description="Max queue" Name="QUEUE_MAX" Type="VOQ"/>
+                <Field Description="auto credit mechanism rate" Name="RATE" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="QUEUE_MIN">
+                    <Access>
+                         <Register Name="IPS_AUTO_CREDIT_MECHANISM_RANGEr">
+                            <HwField Name="AUTO_CRDT_FIRST_QUEUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="QUEUE_MAX">
+                    <Access>
+                         <Register Name="IPS_AUTO_CREDIT_MECHANISM_RANGEr">
+                            <HwField Name="AUTO_CRDT_LAST_QUEUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RATE">
+                    <Access>
+                         <Register Name="IPS_AUTO_CREDIT_MECHANISM_RATEr">
+                            <HwField Name="AUTO_CRDT_RATEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <!-- IPS DQCQ FC to DQM/SQM -->
+    <AppDB Name="IQS_DQCQ_FLOW_CONTROL_MASK">
+        <OneLineDescription>Enable/disable IPS flow control to DQM/SQM (QM)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable SRAM TO DRAM FC" Name="SRAM_TO_DRAM" Size="DNX_DATA.iqs.dqcq.nof_priorities" Type="UINT"/>
+                <Field Description="Enable SRAM DELETE FC" Name="SRAM_DELETE" Size="1" Type="UINT"/>
+                <Field Description="Enable DRAM DELETE FC" Name="DRAM_DELETE" Size="1" Type="UINT"/>
+                <Field Description="Enable OCB only FC" Name="OCB_ONLY" Size="DNX_DATA.iqs.dqcq.max_nof_contexts" Type="UINT"/>
+                <Field Description="Enable SRAM FC" Name="SRAM" Size="DNX_DATA.iqs.dqcq.max_nof_contexts*DNX_DATA.iqs.dqcq.nof_priorities" Type="UINT"/>
+                <Field Description="Enable MIXED SRAM FC" Name="MIXED_SRAM" Size="DNX_DATA.iqs.dqcq.max_nof_contexts*DNX_DATA.iqs.dqcq.nof_priorities" Type="UINT"/>
+                <Field Description="Enable MIXED SRAM FC" Name="MIXED_DRAM" Size="DNX_DATA.iqs.dqcq.max_nof_contexts*DNX_DATA.iqs.dqcq.nof_priorities" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SRAM_TO_DRAM">
+                    <Access>
+                         <Register Name="IPS_AUTO_DOC_NAME_31r">
+                            <HwField Name="AUTO_DOC_NAME_32f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_DELETE">
+                    <Access>
+                         <Register Name="IPS_AUTO_DOC_NAME_31r">
+                            <HwField Name="AUTO_DOC_NAME_33f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_DELETE">
+                    <Access>
+                         <Register Name="IPS_AUTO_DOC_NAME_31r">
+                            <HwField Name="AUTO_DOC_NAME_34f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OCB_ONLY">
+                    <Access>
+                         <Register Name="IPS_AUTO_DOC_NAME_31r">
+                            <HwField Name="AUTO_DOC_NAME_35f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM">
+                    <Access>
+                         <Register Name="IPS_AUTO_DOC_NAME_31r">
+                            <HwField Name="AUTO_DOC_NAME_36f"/>
+                        </Register>
+                    </Access>
+                </Field>   
+                <Field Name="MIXED_SRAM">
+                    <Access>
+                         <Register Name="IPS_AUTO_DOC_NAME_31r">
+                            <HwField Name="AUTO_DOC_NAME_37f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIXED_DRAM">
+                    <Access>
+                         <Register Name="IPS_AUTO_DOC_NAME_31r">
+                            <HwField Name="AUTO_DOC_NAME_38f"/>
+                        </Register>
+                    </Access>
+                </Field>                                                                    
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SRAM_TO_DRAM">
+                    <Access>
+                         <Register Name="IPS_AUTO_DOC_NAME_33r">
+                            <HwField Name="AUTO_DOC_NAME_38f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_DELETE">
+                    <Access>
+                         <Register Name="IPS_AUTO_DOC_NAME_33r">
+                            <HwField Name="AUTO_DOC_NAME_39f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_DELETE">
+                    <Access>
+                         <Register Name="IPS_AUTO_DOC_NAME_33r">
+                            <HwField Name="AUTO_DOC_NAME_40f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OCB_ONLY">
+                    <Access>
+                         <Register Name="IPS_AUTO_DOC_NAME_33r">
+                            <HwField Name="AUTO_DOC_NAME_34f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM">
+                    <Access>
+                         <Register Name="IPS_AUTO_DOC_NAME_33r">
+                            <HwField Name="AUTO_DOC_NAME_35f"/>
+                        </Register>
+                    </Access>
+                </Field>   
+                <Field Name="MIXED_SRAM">
+                    <Access>
+                         <Register Name="IPS_AUTO_DOC_NAME_33r">
+                            <HwField Name="AUTO_DOC_NAME_36f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIXED_DRAM">
+                    <Access>
+                         <Register Name="IPS_AUTO_DOC_NAME_33r">
+                            <HwField Name="AUTO_DOC_NAME_37f"/>
+                        </Register>
+                    </Access>
+                </Field>                                                                    
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="Q2A_A0 Q2A_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SRAM_TO_DRAM">
+                    <Access>
+                         <Register Name="IPS_REG_0219r">
+                            <HwField Name="FIELD_25_32f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_DELETE">
+                    <Access>
+                         <Register Name="IPS_REG_0219r">
+                            <HwField Name="FIELD_33_33f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_DELETE">
+                    <Access>
+                         <Register Name="IPS_REG_0219r">
+                            <HwField Name="FIELD_34_34f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OCB_ONLY">
+                    <Access>
+                         <Register Name="IPS_REG_0219r">
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM">
+                    <Access>
+                         <Register Name="IPS_REG_0219r">
+                            <HwField Name="FIELD_1_8f"/>
+                        </Register>
+                    </Access>
+                </Field>   
+                <Field Name="MIXED_SRAM">
+                    <Access>
+                         <Register Name="IPS_REG_0219r">
+                            <HwField Name="FIELD_9_16f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIXED_DRAM">
+                    <Access>
+                         <Register Name="IPS_REG_0219r">
+                            <HwField Name="FIELD_17_24f"/>
+                        </Register>
+                    </Access>
+                </Field>                                                                    
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+    
+    <AppDB Name="IQS_VOQ_STATE_INFO">  
+        <OneLineDescription>Table to retrieve several queue state signals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="VOQ"/>
+            </Key>
+            <Result>
+                <Field Name="QUEUE_CREDIT_REQUEST_STATE" Permission="READONLY"/>
+                <Field Name="QUEUE_CREDIT_BALANCE" Permission="READONLY" Size="18" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="QUEUE_CREDIT_REQUEST_STATE">
+                    <Access>
+                        <Memory Name="IPS_AUTO_DOC_NAME_55m">
+                            <HwField Name="ITEM_0_1f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QUEUE_CREDIT_BALANCE">
+                    <Access>
+                        <Memory Name="IPS_AUTO_DOC_NAME_55m">
+                            <HwField Name="ITEM_14_31f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="QUEUE_CREDIT_REQUEST_STATE">
+                    <Access>
+                        <Memory Name="IPS_AUTO_DOC_NAME_59m">
+                            <HwField Name="ITEM_0_1f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QUEUE_CREDIT_BALANCE">
+                    <Access>
+                        <Memory Name="IPS_AUTO_DOC_NAME_59m">
+                            <HwField Name="ITEM_14_31f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="Q2A_A0 Q2A_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="QUEUE_CREDIT_REQUEST_STATE">
+                    <Access>
+                        <Memory Name="IPS_MEM_2E8000m">
+                            <HwField Name="ITEM_0_1f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QUEUE_CREDIT_BALANCE">
+                    <Access>
+                        <Memory Name="IPS_MEM_2E8000m">
+                            <HwField Name="ITEM_14_31f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IQS_GENERAL_CONFIGURATION">  
+        <OneLineDescription>IQS General configurations and enables.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="discards all CGM reports from SQM/DQM (Enqueue and Dequeue)." Name="DISCARD_CGM_REPORTS" Type="BOOL"/>
+                <Field Description="discards all incoming credits from the FCR." Name="DISCARD_CREDITS" Type="BOOL"/>
+                <Field Description="dont generate flow status messages towards the Egress Scheduler." Name="DISABLE_STATUS_MSG_GEN" Type="BOOL"/>
+                <Field Description="dont send Dequeue commands to SQM and DQM." Name="DISABLE_DEQ_CMDS" Type="BOOL"/>
+                <Field Description="use max RED-index between CGM /EGR Sch. otherwise always uses EGR-Sch number. relevant for system red" Name="USE_MAX_LOCAL_RED_IDX" Type="BOOL"/>
+                <Field Description="send a flow status message when the maximum queue size received on an incoming credit is smaller than the local RED index. used for system RED" Name="SEND_FSM_ON_MAX_LOCAL_RED_IDX" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DISCARD_CGM_REPORTS">
+                    <Access>
+                        <Register Name="IPS_IPS_GENERAL_CONFIGURATIONSr">
+                            <HwField Name="DISCARD_ALL_QM_MSGf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DISCARD_CREDITS">
+                    <Access>
+                        <Register Name="IPS_IPS_GENERAL_CONFIGURATIONSr">
+                            <HwField Name="DISCARD_ALL_CRDTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DISABLE_STATUS_MSG_GEN">
+                    <Access>
+                        <Register Name="IPS_IPS_GENERAL_CONFIGURATIONSr">
+                            <HwField Name="DISABLE_STATUS_MSG_GENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DISABLE_DEQ_CMDS">
+                    <Access>
+                        <Register Name="IPS_IPS_GENERAL_CONFIGURATIONSr">
+                            <HwField Name="DIS_DEQ_CMDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="USE_MAX_LOCAL_RED_IDX">
+                    <Access>
+                        <Register Name="IPS_IPS_GENERAL_CONFIGURATIONSr">
+                            <HwField Name="UPDATE_MAX_QSIZE_FROM_LOCALf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SEND_FSM_ON_MAX_LOCAL_RED_IDX">
+                    <Access>
+                        <Register Name="IPS_IPS_GENERAL_CONFIGURATIONSr">
+                            <HwField Name="SEND_FSM_FOR_BIGGER_MAX_QUEUE_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="IQS_SRAM_TO_FABRIC_CRDT_LFSR_THR">  
+        <OneLineDescription>Table to set LFSR threshold on credits for dequeue from SRAM to fabric. per BW level (DEQ-Command-Profile)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="BW_LEVEL" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="LFSR_THR" Size="9" Type="UINT"/>
+                <Field Name="LFSR_MASK" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LFSR_THR">
+                    <Access>
+                         <Register Name="IPS_DEQ_CMD_SRAM_TO_FABRIC_CRDT_ADJUSTr">
+                            <DataOffset Formula="#KEY_VALUE(BW_LEVEL)*17"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LFSR_MASK">
+                    <Access>
+                        <Register Name="IPS_DEQ_CMD_SRAM_TO_FABRIC_CRDT_ADJUSTr">
+                            <DataOffset Formula="#KEY_VALUE(BW_LEVEL)*17+9"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="IQS_QUEUE_FLUSH_ATTRIBUTES">  
+        <OneLineDescription>Table to flush a specific queue</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Queue number for operation.should be set before the other fields" Name="VOQ"/>
+                <Field Description="trigger to flush the queue" Name="FLUSH_TRIGGER" Permission="TRIGGER" Type="BOOL"/>
+                <Field Description="indication to move the specified queue to Delete DQCQ" Name="IS_DEL_DQCQ" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VOQ">
+                    <Access>
+                         <Register Name="IPS_MANUAL_OPERATION_QNUMr">
+                            <HwField Name="MANUAL_OPERATION_QNUMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FLUSH_TRIGGER">
+                    <Access>
+                        <Register Name="IPS_MANUAL_QUEUE_OPERATIONr">
+                            <HwField Name="MANUAL_FLUSH_TRIGGERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IS_DEL_DQCQ">
+                    <Access>
+                        <Register Name="IPS_MANUAL_QUEUE_OPERATIONr">
+                            <HwField Name="MANUAL_DEL_DQCQf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

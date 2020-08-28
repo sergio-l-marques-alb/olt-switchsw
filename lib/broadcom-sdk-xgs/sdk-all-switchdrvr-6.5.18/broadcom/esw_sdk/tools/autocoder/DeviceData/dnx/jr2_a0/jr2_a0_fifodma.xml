@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="fifodma">
+    <includes>
+        <include>soc/dnx/dnx_fifodma.h</include>
+    </includes>
+    <sub_module name="general">
+        <defines>
+            <define name="nof_fifodma_channels" value="12"></define>
+            <define name="min_nof_host_entries" value="64"></define>
+            <define name="max_nof_host_entries" value="16384"></define>
+        </defines>
+        <tables>
+            <table name="fifodma_map">
+                <key name="fifodma_source" size="DATA(fifodma, general, nof_fifodma_channels)"></key>
+                <value name="fifodma_channel" default="-1"></value>
+                <entries>
+                    <entry fifodma_source="soc_dnx_fifodma_src_oam_event" fifodma_channel="0"></entry>
+                    <entry fifodma_source="soc_dnx_fifodma_src_oam_status" fifodma_channel="1"></entry>
+                    <entry fifodma_source="soc_dnx_fifodma_src_olp" fifodma_channel="2"></entry>
+                    <entry fifodma_source="soc_dnx_fifodma_src_crps0_dma0" fifodma_channel="3"></entry>
+                    <entry fifodma_source="soc_dnx_fifodma_src_crps0_dma1" fifodma_channel="4"></entry>
+                    <entry fifodma_source="soc_dnx_fifodma_src_crps1_dma0" fifodma_channel="5"></entry>
+                    <entry fifodma_source="soc_dnx_fifodma_src_crps1_dma1" fifodma_channel="6"></entry>
+                    <entry fifodma_source="soc_dnx_fifodma_src_event_fifo" fifodma_channel="7"></entry>
+                    <entry fifodma_source="soc_dnx_fifodma_src_8_reserved" fifodma_channel="8"></entry>
+                    <entry fifodma_source="soc_dnx_fifodma_src_9_reserved" fifodma_channel="9"></entry>
+                    <entry fifodma_source="soc_dnx_fifodma_src_10_reserved" fifodma_channel="10"></entry>
+                    <entry fifodma_source="soc_dnx_fifodma_src_11_reserved" fifodma_channel="11"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+</device_data>

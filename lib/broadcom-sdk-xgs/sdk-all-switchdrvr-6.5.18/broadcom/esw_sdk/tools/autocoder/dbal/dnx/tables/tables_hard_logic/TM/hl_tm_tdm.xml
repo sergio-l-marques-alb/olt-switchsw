@@ -1,0 +1,688 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+    <AppDB Name="TDM_STREAM_CONFIGURATION" Valid="DNX_DATA.tdm.params.is_supported">
+        <OneLineDescription>Configures TDM stream ID generation</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.ingr_reassembly.dbal.interface_max" Name="INGRESS_REASSEMBLY_INTERFACE" Size="DNX_DATA.ingr_reassembly.dbal.interface_bits" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="MAP_BASE" Size="DNX_DATA.tdm.params.context_map_base_size" Type="UINT"/>
+                <Field MaxValue="DNX_DATA.tdm.params.sid_size" MinValue="DNX_DATA.tdm.params.sid_min_size" Name="SID_BITS_SIZE" Size="4" Type="UINT"/>
+                <Field Description="From start of packet, offset in bytes" MaxValue="DNX_DATA.tdm.params.sid_offset_nof-1" Name="SID_BYTES_OFFSET" Size="DNX_DATA.tdm.params.sid_offset_size" Type="UINT"/>
+                <Field Description="Number of bits to shift right  the extracted field at SID_BYTES_OFFSET" Name="SID_BITS_SHIFT" Size="4" Type="UINT"/>
+                <Field Name="SID_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV TDM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MAP_BASE">
+                    <Access>
+                        <Memory Name="IRE_NIF_TDM_PORT_ATTRm">
+                            <HwField Name="CTXT_MAP_BASE_ADDRESSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SID_BITS_SIZE">
+                    <Access>
+                        <Memory Name="IRE_NIF_TDM_PORT_ATTRm">
+                            <HwField Name="SOURCE_ID_BITS_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SID_BYTES_OFFSET">
+                    <Access>
+                        <Memory Name="IRE_NIF_TDM_PORT_ATTRm">
+                            <HwField Name="SOURCE_ID_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SID_BITS_SHIFT">
+                    <Access>
+                        <Memory Name="IRE_NIF_TDM_PORT_ATTRm">
+                            <HwField Name="SOURCE_ID_SHIFTf"/>
+                        </Memory>
+                    </Access>
+                </Field>                
+                <Field Name="SID_ENABLE">
+                    <Access>
+                        <Memory Name="IRE_NIF_TDM_PORT_ATTRm">
+                            <HwField Name="SOURCE_ID_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TDM_CONTEXT_MAP" Valid="DNX_DATA.tdm.params.is_supported">
+        <OneLineDescription>Configures TDM stream ID generation</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.tdm.params.nof_stream_ids-1" Name="TDM_STREAM_ID" Size="DNX_DATA.tdm.params.sid_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TDM_CONTEXT_ID" Size="DNX_DATA.tdm.params.context_size" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV TDM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TDM_CONTEXT_ID">
+                    <Access>
+                        <Memory Name="IRE_NIF_TDM_CTXT_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(TDM_STREAM_ID)"/>
+                            <HwField Name="TDM_CONTEXTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TDM_CONTEXT_CONFIG" Valid="DNX_DATA.tdm.params.is_supported">
+        <OneLineDescription>Configures TDM stream ID generation</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TDM_CONTEXT_ID" Size="DNX_DATA.tdm.params.context_size" Type="UINT"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="STANDARD_FTMH"/>
+                    <Field Name="PREPEND_FTMH" Type="BOOL"/>
+                    <Field Name="STAMP_SID" Type="BOOL"/>
+                    <Field Name="TDM_LINK_MASK_ID" Size="DNX_DATA.tdm.params.link_mask_size" Type="UINT" Valid="DNX_DATA.fabric.general.is_supported"/>
+                    <Field Name="USER_DEFINED_DATA" Size="38" Type="ARRAY8"/>
+                    <Field Name="IS_MC" Type="BOOL"/>
+                    <Field Name="MC_ID"/>
+                    <Field Name="MOD_PORT"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="STANDARD_FTMH_J1"/>
+                    <Field Name="PREPEND_FTMH" Type="BOOL"/>
+                    <Field Name="STAMP_SID" Type="BOOL"/>
+                    <Field Name="TDM_LINK_MASK_ID" Size="DNX_DATA.tdm.params.link_mask_size" Type="UINT" Valid="DNX_DATA.fabric.general.is_supported"/>
+                    <Field Name="USER_DEFINED_DATA" Size="30" Type="ARRAY8"/>
+                    <Field Name="IS_MC" Type="BOOL"/>
+                    <Field Name="MC_ID"/>
+                    <Field Name="MOD_PORT"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="OPTIMIZED_FTMH"/>
+                    <Field Name="PREPEND_FTMH" Type="BOOL"/>
+                    <Field Name="STAMP_SID" Type="BOOL"/>
+                    <Field Name="TDM_LINK_MASK_ID" Size="DNX_DATA.tdm.params.link_mask_size" Type="UINT" Valid="DNX_DATA.fabric.general.is_supported"/>
+                    <Field Name="TDM_DESTINATION"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>J2P_NOTREV TDM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <MultipleResultsMapping>
+                <Result LogicalValue="STANDARD_FTMH" Value="1"/>
+                <Result LogicalValue="STANDARD_FTMH_J1" Value="2"/>
+                <Result LogicalValue="OPTIMIZED_FTMH" Value="3"/>
+            </MultipleResultsMapping>
+            <FieldMapping ResultType="STANDARD_FTMH">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>
+                <Field Name="PREPEND_FTMH">
+                    <Access>
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STAMP_SID">
+                    <Access>
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="STAMP_MCID_WITH_SIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TDM_LINK_MASK_ID">
+                    <Access>
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="LINK_MASK_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="USER_DEFINED_DATA">
+                    <Access Offset="0" Size="12">
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="HEADERf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                    <Access Offset="12" Size="3">
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="HEADERf"/>
+                            <DataOffset Formula="31"/>
+                        </Memory>
+                    </Access>
+                    <Access Offset="15" Size="4">
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="HEADERf"/>
+                            <DataOffset Formula="35"/>
+                        </Memory>
+                    </Access>
+                    <Access Offset="19" Size="19">
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="HEADERf"/>
+                            <DataOffset Formula="47"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_MC">
+                    <Access>
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="HEADERf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh.tm_action_is_mc_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MC_ID">
+                    <Access>
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="HEADERf"/>
+<!-- MC_ID shared ftmh location with outlif -->
+                            <DataOffset Formula="dnx_data_headers.ftmh.outlif_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MOD_PORT">
+                    <Access Offset="8" Size="11">
+<!-- This is actually FAP_ID, which  is set on packet_size field until fabric, which then overwrite it with size -->
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="HEADERf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh.packet_size_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                    <Access Offset="0" Size="8">
+<!-- This is actually PP_DSP -->
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="HEADERf"/>
+                            <DataOffset Formula="dnx_data_headers.ftmh.pp_dsp_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="STANDARD_FTMH_J1">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>
+                <Field Name="PREPEND_FTMH">
+                    <Access>
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STAMP_SID">
+                    <Access>
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="STAMP_MCID_WITH_SIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TDM_LINK_MASK_ID">
+                    <Access>
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="LINK_MASK_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+<!--  J1 FTMH is placed on HEADER field MSB - so 80 - 72 = 8b offset -->
+                <Field Name="USER_DEFINED_DATA">
+                    <Access Offset="0" Size="4">
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="HEADERf"/>
+                            <DataOffset Formula="8+0"/>
+                        </Memory>
+                    </Access>
+                    <Access Offset="4" Size="7">
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="HEADERf"/>
+                            <DataOffset Formula="8+24"/>
+                        </Memory>
+                    </Access>
+                    <Access Offset="11" Size="19">
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="HEADERf"/>
+                            <DataOffset Formula="8+39"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_MC">
+                    <Access>
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="HEADERf"/>
+                            <DataOffset Formula="8+dnx_data_headers.ftmh_legacy.tm_action_is_mc_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MC_ID">
+                    <Access>
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="HEADERf"/>
+                            <DataOffset Formula="8+dnx_data_headers.ftmh_legacy.outlif_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MOD_PORT">
+                    <Access Offset="8" Size="11">
+<!-- This is actually FAP_ID, which  is set on packet_size field until fabric, which then overwrite it with size -->
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="HEADERf"/>
+                            <DataOffset Formula="8+dnx_data_headers.ftmh_legacy.packet_size_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                    <Access Offset="0" Size="8">
+<!-- This is actually PP_DSP -->
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="HEADERf"/>
+                            <DataOffset Formula="8+dnx_data_headers.ftmh_legacy.pp_dsp_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="OPTIMIZED_FTMH">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>
+                <Field Name="PREPEND_FTMH">
+                    <Access>
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STAMP_SID">
+                    <Access>
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="STAMP_MCID_WITH_SIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TDM_LINK_MASK_ID">
+                    <Access>
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="LINK_MASK_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+<!--  Optimized FTMH is placed on HEADER field MSB - so 80 - 32 = 48b offset -->
+                <Field Name="TDM_DESTINATION">
+                    <Access Offset="19" Size="1">
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="HEADERf"/>
+                            <DataOffset Formula="48+dnx_data_headers.optimized_ftmh.tm_action_is_mc_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                    <Access Offset="0" Size="19">
+                        <Memory Name="IRE_TDM_CONFIGm">
+                            <HwField Name="HEADERf"/>
+                            <DataOffset Formula="48+dnx_data_headers.optimized_ftmh.pp_dsp_or_mc_id_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TDM_DIRECT_LINKS" Valid="DNX_DATA.tdm.params.is_supported*DNX_DATA.fabric.general.is_supported*DNX_DATA.fabric.links.nof_links">
+        <OneLineDescription>Configures TDM stream ID generation</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                 <Field MaxValue="DNX_DATA.tdm.params.link_mask_nof-1" Name="TDM_LINK_MASK_ID" Size="DNX_DATA.tdm.params.link_mask_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Writing 1 to bit n, enables output link n" Name="LINK_MASK_DATA" Size="DNX_DATA.fabric.links.nof_links" Type="BITMAP"/>
+            </Result>
+            <TableLabels>J2P_NOTREV TDM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LINK_MASK_DATA">
+                    <Access>
+                        <Memory Name="FDT_IRE_TDM_MASKSm">
+                            <EntryOffset Formula="#KEY_VALUE(TDM_LINK_MASK_ID)"/>
+                            <HwField Name="LINKS_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="LINK_BITMAP_CONFIGURATION" Valid="DNX_DATA.tdm.params.is_supported*DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Handling of link bitmap from RTP. Enable/disable link masks</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable masking the RTP for the bitmap of all reachable destinations for TDM traffic (from IRE)." Name="ENABLE_MASKING_OF_TDM" Size="1" Type="UINT"/>
+                <Field Description="Enable masking the RTP for the bitmap of all reachable destinations for non-TDM traffic (from IPT)." Name="ENABLE_MASKING_OF_NON_TDM" Size="1" Type="UINT"/>
+                <Field Description="Handling of mask pointer from IRE for TDM packets. 0: Use only RTP reachable bitmap.                       1: Reserved. 2: Use RTP reachable bitmap and mask with IreTDMMask memory reply.                       3: Use RTP link-integrity bitmap and mask with IreTDMMask memory reply." Name="TDM_MASK_MODE" Size="2" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV TDM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE_MASKING_OF_TDM">
+                    <Access>
+                        <Register Name="FDT_LINK_BITMAP_CONFIGURATIONr"> 
+                            <HwField Name="MASK_TDM_BMPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENABLE_MASKING_OF_NON_TDM">
+                    <Access>
+                        <Register Name="FDT_LINK_BITMAP_CONFIGURATIONr"> 
+                            <HwField Name="MASK_NON_TDM_BMPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TDM_MASK_MODE">
+                    <Access>
+                        <Register Name="FDT_LINK_BITMAP_CONFIGURATIONr"> 
+                            <HwField Name="IRE_TDM_MASK_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="TDM_PACKET_COUNTER" Valid="DNX_DATA.tdm.params.is_supported">
+        <OneLineDescription>Counters related to operation of TDM on ingress.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Number of TDM packets received in WSL and sent to TDM." Name="TDM_PACKET_COUNTER" Permission="READONLY" Size="64" Type="ARRAY32"/>
+                <Field Description="Number of TDM packets received in WSL and dropped due to blocked context." Name="TDM_DROPPED_PACKET_COUNTER" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="Number of erroneous TDM packets (dropped)." Name="ERR_TDM_PACKET_COUNTER" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="Number of TDM packets sent to FDT (on J2C) or to EGQ (Q2A)." Name="FDT_EGQ_TDM_PACKET_COUNTER" Permission="READONLY" Size="64" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV TDM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TDM_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="IRE_TDM_PACKET_COUNTERr"> 
+                            <HwField Name="TDM_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TDM_DROPPED_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="IRE_TDM_PACKET_COUNTERr"> 
+                            <HwField Name="TDM_DROPPED_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ERR_TDM_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="IRE_TDM_PACKET_COUNTERr"> 
+                            <HwField Name="ERR_TDM_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="Q2A_A0 Q2A_B0" Name="FDT_EGQ_TDM_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="IRE_TDM_PACKET_COUNTERr"> 
+                            <HwField Name="EGQ_TDM_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="FDT_EGQ_TDM_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="IRE_TDM_PACKET_COUNTERr"> 
+                            <HwField Name="FDT_TDM_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="TDM_FULL_PACKET_MODE" Valid="DNX_DATA.tdm.params.is_supported">
+        <OneLineDescription>Control of multicast replicator. If set then there is no interleaving but only one line of MCDB is processed.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Flag. If set, only one line of MCDB is processed in case of 'is_tdm' but there is no interleaving of replicator engines." Name="FULL_PACKET_MODE" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV TDM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FULL_PACKET_MODE">
+                    <Access>
+                        <Register Name="MTM_EGR_TDM_FULL_PACKET_MODEr"> 
+                            <HwField Name="EGR_TDM_FULL_PACKET_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="TDM_CONTEXT_DROP" Valid="DNX_DATA.tdm.params.is_supported">
+        <OneLineDescription>Configures TDM stream ID generation</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable/Disable drop for first 512 contexts" Name="CONTEXT_DROP_LSB" Type="ARRAY32"/>
+                <Field Description="Enable/Disable drop for last 512 contexts" Name="CONTEXT_DROP_MSB" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV TDM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CONTEXT_DROP_LSB">
+                    <Access>
+                        <Register Name="IRE_TDM_CONTEXT_DROP_LSBr">
+                            <HwField Name="TDM_CONTEXT_DROP_LSBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CONTEXT_DROP_MSB">
+                    <Access>
+                        <Register Name="IRE_TDM_CONTEXT_DROP_MSBr">
+                            <HwField Name="TDM_CONTEXT_DROP_MSBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="TDM_CONFIGURATION">
+        <OneLineDescription>Configures Global TDM properties</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="TDM_EGRESS_MODE" Type="BOOL"/>
+                <Field Name="TDM_MIN_SIZE" Size="DNX_DATA.tdm.params.pkt_size_size" Type="UINT" Valid="DNX_DATA.tdm.params.is_supported"/>
+                <Field Name="TDM_MAX_SIZE" Size="DNX_DATA.tdm.params.pkt_size_size" Type="UINT" Valid="DNX_DATA.tdm.params.is_supported"/>
+                <Field Name="TDM_FTMH_OPTIMIZED" Type="BOOL" Valid="DNX_DATA.tdm.params.is_supported"/>
+                <Field Name="TDM_GLOBAL_SID_OFFSET" Size="DNX_DATA.tdm.params.global_sid_offset_size" Type="UINT" Valid="DNX_DATA.tdm.params.is_supported"/>
+                <Field Name="TDM_PACKET_TC" Type="TC" Valid="DNX_DATA.tdm.params.is_supported"/>
+                <Field Name="TDM_PACKET_DP" Type="DP" Valid="DNX_DATA.tdm.params.is_supported"/>
+            </Result>
+            <TableLabels>J2P_NOTREV TDM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TDM_EGRESS_MODE">
+                    <Access>
+                         <!-- 
+                             Fields from ERPP_TDM_GENERAL_CONFIGURATIONr, ETPPA_TDM_GENERAL_CONFIGURATIONr
+                             They are 'grouped' under the name TDM_EGRESS_CONFIGURATION
+                         -->
+                        <Register GroupName="TDM_EGRESS_CONFIGURATION">
+                            <HwField Name="EGRESS_TDM_MODEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="RQP_TDM_GENERAL_CONFIGURATIONr">
+                            <HwField Name="EGRESS_TDM_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TDM_MIN_SIZE">
+                    <Access>
+                        <Register Name="IRE_TDM_CONFIGURATIONSr">
+                            <HwField Name="TDM_MIN_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="Q2A_A0 Q2A_B0" Name="TDM_MAX_SIZE">
+                    <Access>
+                        <Register Name="IRE_TDM_CONFIGURATIONSr">
+                            <HwField Name="TDM_MAX_SIZEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="RQP_GENERAL_RQP_DEBUG_CONFIGr">
+                            <HwField Name="MAX_TDM_PACKET_SIZE_FILTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="TDM_MAX_SIZE">
+                    <Access>
+                        <Register Name="IRE_TDM_CONFIGURATIONSr">
+                            <HwField Name="TDM_MAX_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TDM_FTMH_OPTIMIZED">
+                    <Access>
+                        <Register Name="IRE_TDM_CONFIGURATIONSr">
+                            <HwField Name="TDM_FTMH_OPTIMIZEDf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="RQP_TDM_GENERAL_CONFIGURATIONr">
+                            <HwField Name="TDM_OPTIMIZED_FTMHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register GroupName="TDM_EGRESS_CONFIGURATION">
+                            <HwField Name="OPTIMIZED_FTMH_TDM_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TDM_GLOBAL_SID_OFFSET">
+                    <Access>
+                        <Register Name="IRE_TDM_CONFIGURATIONSr">
+                            <HwField Name="TDM_GLOBAL_SID_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TDM_PACKET_TC">
+                    <Access>
+                        <Register GroupName="TDM_EGRESS_CONFIGURATION">
+                            <HwField Name="TDM_PKT_TCf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="RQP_TDM_GENERAL_CONFIGURATIONr">
+                            <HwField Name="TDM_PKT_TCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TDM_PACKET_DP">
+                    <Access>
+                        <Register GroupName="TDM_EGRESS_CONFIGURATION">
+                            <HwField Name="TDM_PKT_DPf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="RQP_TDM_GENERAL_CONFIGURATIONr">
+                            <HwField Name="TDM_PKT_DPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TDM_CPU_CONTEXT_MAP" Valid="DNX_DATA.tdm.params.is_supported">
+        <OneLineDescription>This table contains TDM contexts per CPU Channels</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <!-- Support CPU ports only
+                     When TDM reassembly context for NIF ports is added to HW, need to place CPU IDs after last NIF port
+                 -->
+                <Field Name="CPU_CHANNEL" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TDM_CONTEXT" Size="9" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV TDM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="TDM_CONTEXT">
+                    <Access>
+                        <Memory Name="IRE_CPU_TDM_CTXT_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(CPU_CHANNEL)"/>
+                            <HwField Name="TDM_CONTEXTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

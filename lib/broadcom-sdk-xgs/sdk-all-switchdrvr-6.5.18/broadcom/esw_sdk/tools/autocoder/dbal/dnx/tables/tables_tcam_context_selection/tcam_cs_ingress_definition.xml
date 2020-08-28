@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    *********************************************************************
+    DBAL TCAM_CS Logical Tables:
+    This xml contains the TCAM Context Selection logical DB for the DBAL.
+    The data is loaded to the device during init process
+    *********************************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="./tcam_cs_schema.xsd">
+
+    <AppDB Name="PRT_VIRTUAL_PORT_TCAM">
+        <OneLineDescription>This is logical table of PRT port info selection - this table is built to support half mode, in full mode configuration</OneLineDescription>
+        <AccessMethod>TCAM_CS</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_BY_ID">
+            <Key>
+                <Field Name="PRT_KBR_INFO_HALF"/>
+            </Key>
+            <Result>
+                <Field Name="PP_PORT"/>
+                <Field Name="SOURCE_SYSTEM_PORT" Type="SYSTEM_PORT"/>
+            </Result>
+            <TableLabels>PP_PORT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <TcamCsDb>PRT</TcamCsDb>
+            <FieldMappingTcam>
+                <Type Name="RESULT">
+                    <Access>
+                        <Memory Name="IPPE_VIRTUAL_PORT_ADm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="LLR_CONTEXT_SELECTION">
+        <OneLineDescription>This is logical table of VT1 Context selection</OneLineDescription>
+        <AccessMethod>TCAM_CS</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_BY_ID">
+            <Key>
+                <Field Name="LLR_CS_PORT_CS_PROFILE"/>
+                <Field Name="INCOMING_TAG_STRUCTURE"/>
+                <Field Name="PORT_TERMINATION_PTC_PROFILE"/>
+                <Field Name="LAYER_QUALIFIER_NEXT_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_NEXT_LAYER" Type="LAYER_TYPES"/>
+                <Field Name="LAYER_QUALIFIER_CURRENT_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_CURRENT_LAYER" Type="LAYER_TYPES"/>
+                <Field Name="PRT_QUALIFIER"/>
+            </Key>
+            <Result>
+                <Field Name="VT1_CONTEXT_ID"/>
+                <Field Name="CONTEXT_VALID"  Type="BOOL"/>
+                <Field Name="NASID" />
+                <Field Name="NASID_VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <TcamCsDb>LLR</TcamCsDb>
+            <FieldMappingTcam>
+                <Type Name="RESULT">
+                    <Access>
+                        <Memory Name="IPPE_LLRCS_ACTIONm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="VT1_CONTEXT_SELECTION">
+        <OneLineDescription>This is logical table of VT2 Context selection</OneLineDescription>
+        <AccessMethod>TCAM_CS</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_BY_ID">
+            <Key>
+                 <Field Name="CURRENT_CONTEXT_PROFILE" Type="CONTEXT_PROFILE"/>
+                 <Field Name="SAVED_CONTEXT_PROFILE"/>
+                 <Field Name="VT1_PEM_CS_VAR" Size="72" Type="ARRAY32"/>
+                 <Field Name="CORRECT_SPECULATIVE_PARSING" Type="BOOL" Description="Enabled if Initial speculate parser equal to actual second stage parsing."/>
+                 <Field Name="FORWARDING_DOMAIN_IS_ZERO" Type="BOOL" Description="Enabled if forwarding domain is zero."/>
+                 <Field Name="EXEM_VRID_MY_MAC_TYPE" Size="2" Type="UINT" Description="EXEM VRID My_MAC type"/>
+                 <Field Name="IS_MY_MAC_VRID" Type="IS_MY_MAC"/>
+                 <Field Name="IS_MY_MAC_VSI" Type="IS_MY_MAC"/>
+                 <Field Name="IS_MY_B_MAC_UC" Type="IS_MY_MAC"/>
+                 <Field Name="IS_MY_B_MAC_MC" Type="IS_MY_MAC"/>
+                 <Field Name="IS_MY_MAC"/>
+                 <Field Name="IS_COMPATIBLE_MULTICAST" Type="PACKET_IS_COMPATIBLE_MC"/>
+                 <Field Name="LIF_SERVICE_TYPE" Type="VTT_LIF_SERVICE_TYPE"/>
+                 <Field Name="INGRESS_TRAP_CODE"  Type="INGRESS_TRAP_ID"/>
+                 <Field Name="IS_LAYER_TERMINATION"/>
+                 <Field Name="FORWARDING_DOMAIN_CS_PROFILE" Size="4" Type="UINT" Description="Forwarding domain CS profile"/>
+                 <Field Name="FWD_LAYER_INDEX" Size="3" Description="Parser Forward layer index"/>
+                 <Field Name="USER_DEFINE_5_0_MSB"  Size="6" Type="UINT" Description="user defined"/>
+                 <Field Name="PREVIOUS_LIF_CS_PROFILE" Type="CS_IN_LIF_VTT_PROFILE"/>
+                 <Field Name="LAST_LIF_CS_PROFILE" Type="CS_IN_LIF_VTT_PROFILE"/>
+                 <Field Name="INCOMING_TAG_STRUCTURE"/>
+                 <Field Name="PORT_TERMINATION_PTC_PROFILE"/>
+                 <Field Name="LAYER_QUALIFIER_NEXT_LAYER" Type="LAYER_QUALIFIER"/>
+                 <Field Name="LAYER_TYPE_NEXT_LAYER" Type="LAYER_TYPES"/>
+                 <Field Name="LAYER_QUALIFIER_CURRENT_LAYER" Type="LAYER_QUALIFIER"/>
+                 <Field Name="LAYER_TYPE_CURRENT_LAYER" Type="LAYER_TYPES"/>
+                 <Field Name="LAYER_QUALIFIER_PREVIOUS_LAYER" Type="LAYER_QUALIFIER"/>
+                 <Field Name="LAYER_TYPE_PREVIOUS_LAYER" Type="LAYER_TYPES"/>
+            </Key>
+            <Result>
+                <Field Name="VT2_CONTEXT_ID"/>
+                <Field Name="CONTEXT_VALID" Type="BOOL"/>
+                <Field Name="NASID"/>
+                <Field Name="NASID_VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <TcamCsDb>VT1</TcamCsDb>
+            <FieldMappingTcam>
+                <Type Name="RESULT">
+                    <Access>
+                        <Memory Name="IPPF_VTACS_ACTIONm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="VT2_CONTEXT_SELECTION">
+        <OneLineDescription>This is logical table of VT3 Context selection</OneLineDescription>
+        <AccessMethod>TCAM_CS</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_BY_ID">
+            <Key>
+                <Field Name="CURRENT_CONTEXT_PROFILE" Type="CONTEXT_PROFILE"/>
+                <Field Name="SAVED_CONTEXT_PROFILE"/>
+                <Field Name="VT1_PEM_CS_VAR" Size="72" Type="ARRAY32"/>
+                <Field Name="CORRECT_SPECULATIVE_PARSING" Type="BOOL" Description="Enabled if Initial speculate parser equal to actual second stage parsing."/>
+                <Field Name="FORWARDING_DOMAIN_IS_ZERO" Type="BOOL" Description="Enabled if forwarding domain is zero."/>
+                <Field Name="EXEM_VRID_MY_MAC_TYPE" Size="2" Type="UINT" Description="EXEM VRID My_MAC type"/>
+                <Field Name="IS_MY_MAC_VRID" Type="IS_MY_MAC"/>
+                <Field Name="IS_MY_MAC_VSI" Type="IS_MY_MAC"/>
+                <Field Name="IS_MY_B_MAC_UC" Type="IS_MY_MAC"/>
+                <Field Name="IS_MY_B_MAC_MC" Type="IS_MY_MAC"/>
+                <Field Name="IS_MY_MAC"/>
+                <Field Name="IS_COMPATIBLE_MULTICAST" Type="PACKET_IS_COMPATIBLE_MC"/>
+                <Field Name="LIF_SERVICE_TYPE" Type="VTT_LIF_SERVICE_TYPE"/>
+                <Field Name="INGRESS_TRAP_CODE"  Type="INGRESS_TRAP_ID"/>
+                <Field Name="IS_LAYER_TERMINATION"/>
+                <Field Name="FORWARDING_DOMAIN_CS_PROFILE" Size="4" Type="UINT" Description="Forwarding domain CS profile"/>
+                <Field Name="FWD_LAYER_INDEX" Size="3" Description="Parser Forward layer index"/>
+                <Field Name="USER_DEFINE_5_0_MSB"  Size="6" Type="UINT" Description="user defined"/>
+                <Field Name="PREVIOUS_LIF_CS_PROFILE" Type="CS_IN_LIF_VTT_PROFILE"/>
+                <Field Name="LAST_LIF_CS_PROFILE" Type="CS_IN_LIF_VTT_PROFILE"/>
+                <Field Name="INCOMING_TAG_STRUCTURE"/>
+                <Field Name="PORT_TERMINATION_PTC_PROFILE"/>
+                <Field Name="LAYER_QUALIFIER_NEXT_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_NEXT_LAYER" Type="LAYER_TYPES"/>
+                <Field Name="LAYER_QUALIFIER_CURRENT_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_CURRENT_LAYER" Type="LAYER_TYPES"/>
+                <Field Name="LAYER_QUALIFIER_PREVIOUS_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_PREVIOUS_LAYER" Type="LAYER_TYPES"/>
+            </Key>
+            <Result>
+                <Field Name="VT3_CONTEXT_ID"/>
+                <Field Name="CONTEXT_VALID" Type="BOOL"/>
+                <Field Name="NASID"/>
+                <Field Name="NASID_VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <TcamCsDb>VT2</TcamCsDb>
+            <FieldMappingTcam>
+                <Type Name="RESULT">
+                    <Access>
+                        <Memory Name="IPPF_VTBCS_ACTIONm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="VT3_CONTEXT_SELECTION">
+        <OneLineDescription>This is logical table of VT4 Context selection</OneLineDescription>
+        <AccessMethod>TCAM_CS</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_BY_ID">
+            <Key>
+                <Field Name="CURRENT_CONTEXT_PROFILE" Type="CONTEXT_PROFILE"/>
+                <Field Name="SAVED_CONTEXT_PROFILE"/>
+                <Field Name="VT1_PEM_CS_VAR" Size="72" Type="ARRAY32"/>
+                <Field Name="CORRECT_SPECULATIVE_PARSING" Type="BOOL" Description="Enabled if Initial speculate parser equal to actual second stage parsing."/>
+                <Field Name="FORWARDING_DOMAIN_IS_ZERO" Type="BOOL" Description="Enabled if forwarding domain is zero."/>
+                <Field Name="EXEM_VRID_MY_MAC_TYPE" Size="2" Type="UINT" Description="EXEM VRID My_MAC type"/>
+                <Field Name="IS_MY_MAC_VRID" Type="IS_MY_MAC"/>
+                <Field Name="IS_MY_MAC_VSI" Type="IS_MY_MAC"/>
+                <Field Name="IS_MY_B_MAC_UC" Type="IS_MY_MAC"/>
+                <Field Name="IS_MY_B_MAC_MC" Type="IS_MY_MAC"/>
+                <Field Name="IS_MY_MAC"/>
+                <Field Name="IS_COMPATIBLE_MULTICAST" Type="PACKET_IS_COMPATIBLE_MC"/>
+                <Field Name="LIF_SERVICE_TYPE" Type="VTT_LIF_SERVICE_TYPE"/>
+                <Field Name="INGRESS_TRAP_CODE"  Type="INGRESS_TRAP_ID"/>
+                <Field Name="IS_LAYER_TERMINATION"/>
+                <Field Name="FORWARDING_DOMAIN_CS_PROFILE" Size="4" Type="UINT" Description="Forwarding domain CS profile"/>
+                <Field Name="FWD_LAYER_INDEX" Size="3" Description="Parser Forward layer index"/>
+                <Field Name="USER_DEFINE_5_0_MSB"  Size="6" Type="UINT" Description="user defined"/>
+                <Field Name="PREVIOUS_LIF_CS_PROFILE" Type="CS_IN_LIF_VTT_PROFILE"/>
+                <Field Name="LAST_LIF_CS_PROFILE" Type="CS_IN_LIF_VTT_PROFILE"/>
+                <Field Name="INCOMING_TAG_STRUCTURE"/>
+                <Field Name="PORT_TERMINATION_PTC_PROFILE"/>
+                <Field Name="LAYER_QUALIFIER_NEXT_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_NEXT_LAYER" Type="LAYER_TYPES"/>
+                <Field Name="LAYER_QUALIFIER_CURRENT_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_CURRENT_LAYER" Type="LAYER_TYPES"/>
+                <Field Name="LAYER_QUALIFIER_PREVIOUS_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_PREVIOUS_LAYER" Type="LAYER_TYPES"/>
+            </Key>
+            <Result>
+                <Field Name="VT4_CONTEXT_ID"/>
+                <Field Name="CONTEXT_VALID" Type="BOOL"/>
+                <Field Name="NASID"/>
+                <Field Name="NASID_VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <TcamCsDb>VT3</TcamCsDb>
+            <FieldMappingTcam>
+                <Type Name="RESULT">
+                    <Access>
+                        <Memory Name="IPPF_VTCCS_ACTIONm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="VT4_CONTEXT_SELECTION">
+        <OneLineDescription>This is logical table of VT5 Context selection</OneLineDescription>
+        <AccessMethod>TCAM_CS</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_BY_ID">
+            <Key>
+                <Field Name="CURRENT_CONTEXT_PROFILE" Type="CONTEXT_PROFILE"/>
+                <Field Name="SAVED_CONTEXT_PROFILE"/>
+                <Field Name="VT1_PEM_CS_VAR" Size="72" Type="ARRAY32"/>
+                <Field Name="CORRECT_SPECULATIVE_PARSING" Type="BOOL" Description="Enabled if Initial speculate parser equal to actual second stage parsing."/>
+                <Field Name="FORWARDING_DOMAIN_IS_ZERO" Type="BOOL" Description="Enabled if forwarding domain is zero."/>
+                <Field Name="EXEM_VRID_MY_MAC_TYPE" Size="2" Type="UINT" Description="EXEM VRID My_MAC type"/>
+                <Field Name="IS_MY_MAC_VRID" Type="IS_MY_MAC"/>
+                <Field Name="IS_MY_MAC_VSI" Type="IS_MY_MAC"/>
+                <Field Name="IS_MY_B_MAC_UC" Type="IS_MY_MAC"/>
+                <Field Name="IS_MY_B_MAC_MC" Type="IS_MY_MAC"/>
+                <Field Name="IS_MY_MAC"/>
+                <Field Name="IS_COMPATIBLE_MULTICAST" Type="PACKET_IS_COMPATIBLE_MC"/>
+                <Field Name="LIF_SERVICE_TYPE" Type="VTT_LIF_SERVICE_TYPE"/>
+                <Field Name="INGRESS_TRAP_CODE"  Type="INGRESS_TRAP_ID"/>
+                <Field Name="IS_LAYER_TERMINATION"/>
+                <Field Name="FORWARDING_DOMAIN_CS_PROFILE" Size="4" Type="UINT" Description="Forwarding domain CS profile"/>
+                <Field Name="FWD_LAYER_INDEX" Size="3" Description="Parser Forward layer index"/>
+                <Field Name="USER_DEFINE_5_0_MSB"  Size="6" Type="UINT" Description="user defined"/>
+                <Field Name="PREVIOUS_LIF_CS_PROFILE" Type="CS_IN_LIF_VTT_PROFILE"/>
+                <Field Name="LAST_LIF_CS_PROFILE" Type="CS_IN_LIF_VTT_PROFILE"/>
+                <Field Name="INCOMING_TAG_STRUCTURE"/>
+                <Field Name="PORT_TERMINATION_PTC_PROFILE"/>
+                <Field Name="LAYER_QUALIFIER_NEXT_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_NEXT_LAYER" Type="LAYER_TYPES"/>
+                <Field Name="LAYER_QUALIFIER_CURRENT_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_CURRENT_LAYER" Type="LAYER_TYPES"/>
+                <Field Name="LAYER_QUALIFIER_PREVIOUS_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_PREVIOUS_LAYER" Type="LAYER_TYPES"/>
+            </Key>
+            <Result>
+                <Field Name="VT5_CONTEXT_ID"/>
+                <Field Name="CONTEXT_VALID" Type="BOOL"/>
+                <Field Name="NASID"/>
+                <Field Name="NASID_VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <TcamCsDb>VT4</TcamCsDb>
+            <FieldMappingTcam>
+                <Type Name="RESULT">
+                    <Access>
+                        <Memory Name="IPPA_VTDCS_ACTIONm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+   <AppDB Name="VT5_CONTEXT_SELECTION">
+        <OneLineDescription>This is logical table of FWD1 Context selection</OneLineDescription>
+        <AccessMethod>TCAM_CS</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_BY_ID">
+            <Key>
+                <Field Name="CURRENT_CONTEXT_PROFILE" Type="CONTEXT_PROFILE"/>
+                <Field Name="SAVED_CONTEXT_PROFILE"/>
+                <Field Name="VT1_PEM_CS_VAR" Size="72" Type="ARRAY32"/>
+                <Field Name="CORRECT_SPECULATIVE_PARSING" Type="BOOL" Description="Enabled if Initial speculate parser equal to actual second stage parsing."/>
+                <Field Name="FORWARDING_DOMAIN_IS_ZERO" Type="BOOL" Description="Enabled if forwarding domain is zero."/>
+                <Field Name="EXEM_VRID_MY_MAC_TYPE" Size="2" Type="UINT" Description="EXEM VRID My_MAC type"/>
+                <Field Name="IS_MY_MAC_VRID" Type="IS_MY_MAC"/>
+                <Field Name="IS_MY_MAC_VSI" Type="IS_MY_MAC"/>
+                <Field Name="IS_MY_B_MAC_UC" Type="IS_MY_MAC"/>
+                <Field Name="IS_MY_B_MAC_MC" Type="IS_MY_MAC"/>
+                <Field Name="IS_MY_MAC"/>
+                <Field Name="IS_COMPATIBLE_MULTICAST" Type="PACKET_IS_COMPATIBLE_MC"/>
+                <Field Name="LIF_SERVICE_TYPE" Type="VTT_LIF_SERVICE_TYPE"/>
+                <Field Name="INGRESS_TRAP_CODE"  Type="INGRESS_TRAP_ID"/>
+                <Field Name="IS_LAYER_TERMINATION"/>
+                <Field Name="FORWARDING_DOMAIN_CS_PROFILE" Size="4" Type="UINT" Description="Forwarding domain CS profile"/>
+                <Field Name="FWD_LAYER_INDEX" Size="3" Description="Parser Forward layer index"/>
+                <Field Name="USER_DEFINE_5_0_MSB"  Size="6" Type="UINT" Description="user defined"/>
+                <Field Name="PREVIOUS_LIF_CS_PROFILE" Type="CS_IN_LIF_VTT_PROFILE"/>
+                <Field Name="LAST_LIF_CS_PROFILE" Type="CS_IN_LIF_VTT_PROFILE"/>
+                <Field Name="INCOMING_TAG_STRUCTURE"/>
+                <Field Name="PORT_TERMINATION_PTC_PROFILE"/>
+                <Field Name="LAYER_QUALIFIER_NEXT_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_NEXT_LAYER" Type="LAYER_TYPES"/>
+                <Field Name="LAYER_QUALIFIER_CURRENT_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_CURRENT_LAYER" Type="LAYER_TYPES"/>
+                <Field Name="LAYER_QUALIFIER_PREVIOUS_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_PREVIOUS_LAYER" Type="LAYER_TYPES"/>
+            </Key>
+            <Result>
+                <Field Name="FWD1_CONTEXT_ID"/>
+                <Field Name="CONTEXT_VALID" Type="BOOL"/>
+                <Field Name="NASID"/>
+                <Field Name="NASID_VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <TcamCsDb>VT5</TcamCsDb>
+            <FieldMappingTcam>
+                <Type Name="RESULT">
+                    <Access>
+                        <Memory Name="IPPA_VTECS_ACTIONm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FWD1_CONTEXT_SELECTION">
+        <OneLineDescription>This is logical table of FWD2 Context selection</OneLineDescription>
+        <AccessMethod>TCAM_CS</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_BY_ID">
+            <Key>
+                <Field Name="CURRENT_CONTEXT_PROFILE" Type="CONTEXT_PROFILE"/>
+                <Field Name="SAVED_CONTEXT_PROFILE"/>
+                <Field Name="LAYER_QUALIFIER_CURRENT_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_CURRENT_LAYER" Type="LAYER_TYPES"/>
+                <Field Name="LAYER_QUALIFIER_NEXT_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_NEXT_LAYER" Type="LAYER_TYPES"/>
+                <Field Name="LAYER_QUALIFIER_PREVIOUS_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_PREVIOUS_LAYER" Type="LAYER_TYPES"/>
+                <Field Name="FWD_LAYER_INDEX" Size="3" Description="Parser Forward layer index"/>
+                <Field Name="FWD_DOMAIN_PROFILE"/>
+                <Field Name="IS_COMPATIBLE_MULTICAST" Type="PACKET_IS_COMPATIBLE_MC"/>
+                <Field Name="FLPA_PD_RPF_HIT" Size="1" Type="BOOL" Description="Enabled if there is FLPA PD RPF hit."/>
+                <Field Name="FLPA_PD_FWD_HIT" Size="1" Type="BOOL" Description="Enabled if there is FLPA PD FWD hit."/>
+                <Field Name="DUMMY_EGW_STATUS" Size="1" Type="UINT" Description="EGW interface."/>
+                <Field Name="INGRESS_TRAP_CODE"  Type="INGRESS_TRAP_ID"/>
+                <Field Name="LAST_LIF_CS_PROFILE" Type="CS_IN_LIF_VTT_PROFILE"/>
+                <Field Name="PREVIOUS_LIF_CS_PROFILE" Type="CS_IN_LIF_VTT_PROFILE"/>
+                <Field Name="INCOMING_TAG_STRUCTURE"/>
+                <Field Name="LIF_SERVICE_TYPE" Type="VTT_LIF_SERVICE_TYPE"/>
+                <Field Name="OAM_CS_PROFILE" Size="6" Type="UINT" Description="OAM Context selection profile"/>
+                <Field Name="PP_PORT_PROFILE" Size="5" Type="UINT" Description="PP port profile"/>
+                <Field Name="PORT_TERMINATION_PTC_PROFILE"/>
+                <Field Name="VT1_PEM_CS_VAR" Size="68" Type="ARRAY32"/>
+            </Key>
+            <Result>
+                <Field Name="FWD2_CONTEXT_ID" />
+                <Field Name="CONTEXT_VALID" Type="BOOL"/>
+                <Field Name="NASID"/>
+                <Field Name="NASID_VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <TcamCsDb>FWD1</TcamCsDb>
+            <FieldMappingTcam>
+                <Type Name="RESULT">
+                    <Access>
+                        <Memory Name="IPPB_FLPACS_ACTIONm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FWD2_ACL_CONTEXT_SELECTION">
+        <OneLineDescription>This is logical table of FWD2 ACL Context selection</OneLineDescription>
+        <AccessMethod>TCAM_CS</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_BY_ID">
+            <Key>
+                <Field Name="CURRENT_CONTEXT_PROFILE" Type="CONTEXT_PROFILE"/>
+                <Field Name="SAVED_CONTEXT_PROFILE"/>
+                <Field Name="LAYER_QUALIFIER_CURRENT_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_CURRENT_LAYER" Type="LAYER_TYPES"/>
+                <Field Name="LAYER_QUALIFIER_NEXT_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_NEXT_LAYER" Type="LAYER_TYPES"/>
+                <Field Name="LAYER_QUALIFIER_PREVIOUS_LAYER" Type="LAYER_QUALIFIER"/>
+                <Field Name="LAYER_TYPE_PREVIOUS_LAYER" Type="LAYER_TYPES"/>
+                <Field Name="FWD_LAYER_INDEX" Size="3"/>
+                <Field Name="FWD_DOMAIN_PROFILE"/>
+                <Field Name="IS_COMPATIBLE_MULTICAST" Type="PACKET_IS_COMPATIBLE_MC"/>
+                <Field Name="FLPA_PD_RPF_HIT" Size="1" Type="BOOL" Description="Enabled if there is FLPA PD RPF hit."/>
+                <Field Name="FLPA_PD_FWD_HIT" Size="1" Type="BOOL" Description="Enabled if there is FLPA PD FWD hit."/>
+                <Field Name="DUMMY_EGW_STATUS" Size="1" Type="UINT" Description="EGW interface."/>
+                <Field Name="INGRESS_TRAP_CODE"  Type="INGRESS_TRAP_ID"/>
+                <Field Name="LAST_LIF_CS_PROFILE" Type="CS_IN_LIF_VTT_PROFILE"/>
+                <Field Name="PREVIOUS_LIF_CS_PROFILE" Type="CS_IN_LIF_VTT_PROFILE"/>
+                <Field Name="INCOMING_TAG_STRUCTURE"/>
+                <Field Name="LIF_SERVICE_TYPE" Type="VTT_LIF_SERVICE_TYPE"/>
+                <Field Name="OAM_CS_PROFILE" Size="6" Type="UINT" Description="OAM Context selection profile"/>
+                <Field Name="PP_PORT_PROFILE" Size="5" Type="UINT" Description="PP port profile"/>
+                <Field Name="PORT_TERMINATION_PTC_PROFILE"/>
+                <Field Name="FWD2_CONTEXT_ID" Size="6"/>
+                <Field Name="VT2_PEM_CS_VAR" Size="62" Type="ARRAY32"/>
+            </Key>
+            <Result>
+                <Field Name="FIELD_PMF_CTX_ID"/>
+                <Field Name="FIELD_PMF_CTX_ID_VALID"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <TcamCsDb>FWD2</TcamCsDb>
+            <FieldMappingTcam>
+                <Type Name="RESULT">
+                    <Access>
+                        <Memory Name="IPPB_FLPBCS_ACTIONm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

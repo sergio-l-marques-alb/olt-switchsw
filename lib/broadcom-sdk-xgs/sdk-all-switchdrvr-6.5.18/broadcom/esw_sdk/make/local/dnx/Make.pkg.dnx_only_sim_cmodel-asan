@@ -1,0 +1,63 @@
+#
+# $Copyright: (c) 2019 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Original:
+#  FEATURE_LIST := CINT BSAFE ATPTRANS_SOCKET L3 I2C MEM_SCAN EDITLINE TELNET DRIVERS CHASSIS TEST BCM_SAL_PROFILE RCPU DUNE_UI INTR APIMODE PTP KBP
+# For Adaper, interrupts are not implemented so take INTR out
+#
+FEATURE_LIST := CINT CTEST BSAFE ATPTRANS_SOCKET L3 I2C MEM_SCAN EDITLINE TELNET DRIVERS CHASSIS TEST BCM_SAL_PROFILE RCPU DUNE_UI APIMODE PTP KBP
+
+DL_ENABLE=TRUE
+
+DEBUG_CFLAGS  = -Wdeclaration-after-statement
+DEBUG_CFLAGS += -Wno-psabi
+DEBUG_CFLAGS += -Wno-unused-but-set-variable
+DEBUG_CFLAGS += -Wno-implicit-function-declaration
+DEBUG_CFLAGS += -Wno-misleading-indentation
+DEBUG_CFLAGS += -Wno-unused-const-variable
+DEBUG_CFLAGS += -Wno-sizeof-array-argument
+DEBUG_CFLAGS += -Wno-int-in-bool-context
+DEBUG_CFLAGS += -Wno-format-extra-args
+
+ifneq ($(DEBUG_OPTIMIZE),FALSE)
+DEBUG_CFLAGS += -Wuninitialized -O
+endif
+
+BCM_PTL_SPT=1
+
+#
+# This is for 'DNX only' compilation. Take DPP and DFE out.
+#
+# ALL_DPP_CHIPS = 1
+# ALL_DFE_CHIPS = 1
+ALL_DNX_CHIPS = 1
+
+CFGFLAGS += -DBCM_WARM_BOOT_SUPPORT
+CFGFLAGS += -DBCM_WARM_BOOT_API_TEST_AUTOSYNC
+CFGFLAGS += -DBCM_WARM_BOOT_API_TEST
+CFGFLAGS += -DBCM_WARM_BOOT_SUPPORT_SW_DUMP
+CFGFLAGS += -DBCM_EASY_RELOAD_WB_COMPAT_SUPPORT
+CFGFLAGS += -DBCM_CONTROL_API_TRACKING
+CFGFLAGS += -DSCACHE_CRC_CHECK
+CFGFLAGS += -DADAPTER_SERVER_MODE
+CFGFLAGS += -DINCLUDE_AUTOCOMPLETE
+CFGFLAGS += -DCOMPILER_OVERRIDE_NO_INLINE
+
+# This flags are needed for Address sanitizer
+CFGFLAGS += -fsanitize=address -fsanitize-recover=address -fno-omit-frame-pointer
+LDFLAGS  += -lasan
+
+CFGFLAGS += -DCINT_CONFIG_INCLUDE_LONGLONGS -std=gnu99 -DSAND_PEDANTIC
+
+KBP_DEVICE := KBP_ALG
+
+VENDOR_LIST= DNX BROADCOM
+
+override SBX_CHIPS=
+
+export GCCVER=7.1.0
+HCC=/tools/bin/gcc
+$(info $(shell GCCVER=$(GCCVER) $(HCC) --version))
+
+FEATURE_LIST+=TCL

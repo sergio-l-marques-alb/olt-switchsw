@@ -1,0 +1,581 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="FIELD_PMF_A_SELECT_KEY_N_FES">
+        <OneLineDescription>This table determines the key-select plus 32 FESes given PMF program</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIELD_PMF_CTX_ID"/>
+                <Field Name="FIELD_FES_ID" Size="5"/>
+            </Key>
+            <Result>
+                <Field Name="FIELD_PMF_A_FES_KEY_SELECT"/>
+                <Field Name="FIELD_FES_PGM_ID"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIELD_PMF_A_FES_KEY_SELECT">
+                    <Access>
+                        <Memory Name="IPPC_PMF_FES_PROGRAMm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <DataOffset Formula="dnx_data_field.base_ipmf1.fes_instruction_size_get(unit)*#KEY_VALUE(FIELD_FES_ID)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_PGM_ID">
+                    <Access>
+                        <Memory Name="IPPC_PMF_FES_PROGRAMm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <DataOffset Formula="dnx_data_field.base_ipmf1.fes_instruction_size_get(unit)*#KEY_VALUE(FIELD_FES_ID)+dnx_data_field.base_ipmf1.fes_pgm_id_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_PMF_A_FES_2ND_INSTRUCTION">
+        <OneLineDescription>This table determines the set of operations to be taken by selected FES on PMF A</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIELD_FES_ID" Size="5"/>
+                <Field Name="FIELD_FES_PGM_ID"/>
+                <Field Name="FIELD_PMF_FES_DATA_2MSB"/>
+            </Key>
+            <Result>
+                <Field Name="IPMF1_ACTION"/>
+                <Field Name="FIELD_FES_INVALID_BITS"/>
+                <Field Name="FIELD_FES_SHIFT" Size="6"/>
+                <Field Name="FIELD_FES_TYPE"/>
+                <Field Name="FIELD_FES_POLARITY"/>
+                <Field Name="FIELD_FES_CHOSEN_MASK" Size="2"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IPMF1_ACTION">
+                    <Access>
+                        <Memory Name="IPPC_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_ipmf1.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_ipmf1.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="ACTION_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_INVALID_BITS">
+                    <Access>
+                        <Memory Name="IPPC_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_ipmf1.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_ipmf1.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="VALID_BITSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_SHIFT">
+                    <Access>
+                        <Memory Name="IPPC_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_ipmf1.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_ipmf1.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="SHIFTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_TYPE">
+                    <Access>
+                        <Memory Name="IPPC_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_ipmf1.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_ipmf1.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_POLARITY">
+                    <Access>
+                        <Memory Name="IPPC_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_ipmf1.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_ipmf1.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="POLARITYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="FIELD_FES_CHOSEN_MASK">
+                    <Access>
+                        <Memory Name="IPPC_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_ipmf1.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_ipmf1.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="INITIAL_VALUE_SELECTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="FIELD_FES_CHOSEN_MASK">
+                    <Access>
+                        <Memory Name="IPPC_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_ipmf1.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_ipmf1.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="INIAL_VALUE_SELECTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_PMF_A_EFES_ACTION_MASK">
+        <OneLineDescription>This table determines the set of masks applied to the action selected per FES on PMF A</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIELD_FES_ID" Size="5"/>
+                <Field Name="FIELD_FES_MASK_ID" Size="2"/>
+            </Key>
+            <Result>
+                <Field Name="FIELD_FES_ACTION_MASK"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIELD_FES_ACTION_MASK">
+                    <Access>
+                        <Memory Name="IPPC_EFES_ACTION_MASKm">
+                            <ArrayOffset Formula="dnx_data_field.base_ipmf1.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_FES_MASK_ID)"/>
+                            <HwField Name="ACTION_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_PMF_B_SELECT_KEY_N_FES">
+        <OneLineDescription>This table determines the key-select plus 16 FESes given PMF program</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIELD_PMF_CTX_ID"/>
+                <Field Name="FIELD_FES_ID" Size="4"/>
+            </Key>
+            <Result>
+                <Field Name="FIELD_PMF_B_FES_KEY_SELECT"/>
+                <Field Name="FIELD_FES_PGM_ID"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIELD_PMF_B_FES_KEY_SELECT">
+                    <Access>
+                        <Memory Name="IPPD_PMF_FES_PROGRAMm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <DataOffset Formula="dnx_data_field.base_ipmf3.fes_instruction_size_get(unit)*#KEY_VALUE(FIELD_FES_ID)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_PGM_ID">
+                    <Access>
+                        <Memory Name="IPPD_PMF_FES_PROGRAMm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <DataOffset Formula="dnx_data_field.base_ipmf3.fes_instruction_size_get(unit)*#KEY_VALUE(FIELD_FES_ID)+dnx_data_field.base_ipmf3.fes_pgm_id_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_PMF_B_FES_2ND_INSTRUCTION">
+        <OneLineDescription>This table determines the set of operations to be taken by selected FES on PMF B</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIELD_FES_ID" Size="4"/>
+                <Field Name="FIELD_FES_PGM_ID"/>
+                <Field Name="FIELD_PMF_FES_DATA_2MSB"/>
+            </Key>
+            <Result>
+                <Field Name="IPMF3_ACTION"/>
+                <Field Name="FIELD_FES_INVALID_BITS"/>
+                <Field Name="FIELD_FES_SHIFT" Size="6"/>
+                <Field Name="FIELD_FES_TYPE"/>
+                <Field Name="FIELD_FES_POLARITY"/>
+                <Field Name="FIELD_FES_CHOSEN_MASK" Size="2"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IPMF3_ACTION">
+                    <Access>
+                        <Memory Name="IPPD_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_ipmf3.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_ipmf3.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="ACTION_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_INVALID_BITS">
+                    <Access>
+                        <Memory Name="IPPD_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_ipmf3.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_ipmf3.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="VALID_BITSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_SHIFT">
+                    <Access>
+                        <Memory Name="IPPD_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_ipmf3.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_ipmf3.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="SHIFTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_TYPE">
+                    <Access>
+                        <Memory Name="IPPD_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_ipmf3.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_ipmf3.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_POLARITY">
+                    <Access>
+                        <Memory Name="IPPD_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_ipmf3.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_ipmf3.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="POLARITYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="FIELD_FES_CHOSEN_MASK">
+                    <Access>
+                        <Memory Name="IPPD_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_ipmf3.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_ipmf3.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="INITIAL_VALUE_SELECTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="FIELD_FES_CHOSEN_MASK">
+                    <Access>
+                        <Memory Name="IPPD_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_ipmf3.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_ipmf3.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="INIAL_VALUE_SELECTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_PMF_B_EFES_ACTION_MASK">
+        <OneLineDescription>This table determines the set of masks applied to the action selected per FES on PMF B</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIELD_FES_ID" Size="4"/>
+                <Field Name="FIELD_FES_MASK_ID" Size="2"/>
+            </Key>
+            <Result>
+                <Field Name="FIELD_FES_ACTION_MASK"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIELD_FES_ACTION_MASK">
+                    <Access>
+                        <Memory Name="IPPD_EFES_ACTION_MASKm">
+                            <ArrayOffset Formula="dnx_data_field.base_ipmf3.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_FES_MASK_ID)"/>
+                            <HwField Name="ACTION_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_E_PMF_SELECT_KEY_N_FES">
+        <OneLineDescription>This table determines the key-select plus 12 FESes given PMF program</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIELD_PMF_CTX_ID"/>
+                <Field MaxValue="11" Name="FIELD_FES_ID" Size="4"/>
+            </Key>
+            <Result>
+                <Field Name="FIELD_E_PMF_FES_KEY_SELECT"/>
+                <Field Name="FIELD_FES_PGM_ID"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIELD_E_PMF_FES_KEY_SELECT">
+                    <Access>
+                        <Memory Name="ERPP_PMF_FES_PROGRAMm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <DataOffset Formula="dnx_data_field.base_epmf.fes_instruction_size_get(unit)*#KEY_VALUE(FIELD_FES_ID)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_PGM_ID">
+                    <Access>
+                        <Memory Name="ERPP_PMF_FES_PROGRAMm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <DataOffset Formula="dnx_data_field.base_epmf.fes_instruction_size_get(unit)*#KEY_VALUE(FIELD_FES_ID)+dnx_data_field.base_epmf.fes_pgm_id_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_E_PMF_FES_2ND_INSTRUCTION">
+        <OneLineDescription>This table determines the set of operations to be taken by selected FES on E PMF</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="11" Name="FIELD_FES_ID" Size="4"/>
+                <Field Name="FIELD_FES_PGM_ID"/>
+                <Field Name="FIELD_PMF_FES_DATA_2MSB"/>
+            </Key>
+            <Result>
+                <Field Name="EPMF_ACTION"/>
+                <Field Name="FIELD_FES_INVALID_BITS"/>
+                <Field Name="FIELD_FES_SHIFT" Size="6"/>
+                <Field Name="FIELD_FES_TYPE"/>
+                <Field Name="FIELD_FES_POLARITY"/>
+                <Field Name="FIELD_FES_CHOSEN_MASK" Size="2"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="EPMF_ACTION">
+                    <Access>
+                        <Memory Name="ERPP_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_epmf.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_epmf.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="ACTION_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_INVALID_BITS">
+                    <Access>
+                        <Memory Name="ERPP_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_epmf.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_epmf.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="VALID_BITSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_SHIFT">
+                    <Access>
+                        <Memory Name="ERPP_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_epmf.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_epmf.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="SHIFTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_TYPE">
+                    <Access>
+                        <Memory Name="ERPP_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_epmf.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_epmf.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_POLARITY">
+                    <Access>
+                        <Memory Name="ERPP_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_epmf.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_epmf.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="POLARITYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_CHOSEN_MASK">
+                    <Access>
+                        <Memory Name="ERPP_FES_2ND_INSTRUCTIONm">
+                            <ArrayOffset Formula="dnx_data_field.base_epmf.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_FES_DATA_2MSB)*dnx_data_field.base_epmf.nof_fes_programs_get(unit)+#KEY_VALUE(FIELD_FES_PGM_ID)"/>
+                            <HwField Name="INIAL_VALUE_SELECTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_E_PMF_EFES_ACTION_MASK">
+        <OneLineDescription>This table determines the set of masks applied to the action selected per FES on PMF B</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="11" Name="FIELD_FES_ID" Size="4"/>
+                <Field Name="FIELD_FES_MASK_ID" Size="2"/>
+            </Key>
+            <Result>
+                <Field Name="FIELD_FES_ACTION_MASK"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIELD_FES_ACTION_MASK">
+                    <Access>
+                        <Memory Name="ERPP_EFES_ACTION_MASKm">
+                            <ArrayOffset Formula="dnx_data_field.base_epmf.nof_fes_instruction_per_context_get(unit)-1-#KEY_VALUE(FIELD_FES_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_FES_MASK_ID)"/>
+                            <HwField Name="ACTION_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_ACE_FES_PROGRAM_TABLE">
+        <OneLineDescription>This table determines the set of operations to be taken by selected FES on ACE ACR</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIELD_ACE_RESULT_TYPE"/>
+                <Field Name="FIELD_FES_ID" Size="3"/>
+            </Key>
+            <Result>
+                <Field Name="ACE_ACTION" Size="6"/>
+                <Field Name="FIELD_FES_INVALID_BITS"/>
+                <Field MaxValue="109" Name="FIELD_FES_SHIFT" Size="7"/>
+                <Field Name="FIELD_FES_TYPE"/>
+                <Field Name="FIELD_FES_POLARITY"/>
+                <Field Name="FIELD_FES_CHOSEN_MASK" Size="1"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIELD_FES_POLARITY">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FES_PROGRAM_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_ACE_RESULT_TYPE)"/>
+                            <DataOffset Formula="dnx_data_field.ace.fes_instruction_size_get(unit)*#KEY_VALUE(FIELD_FES_ID)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_SHIFT">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FES_PROGRAM_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_ACE_RESULT_TYPE)"/>
+                            <DataOffset Formula="dnx_data_field.ace.fes_instruction_size_get(unit)*#KEY_VALUE(FIELD_FES_ID)+dnx_data_field.ace.fes_shift_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_INVALID_BITS">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FES_PROGRAM_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_ACE_RESULT_TYPE)"/>
+                            <DataOffset Formula="dnx_data_field.ace.fes_instruction_size_get(unit)*#KEY_VALUE(FIELD_FES_ID)+dnx_data_field.ace.fes_invalid_bits_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_TYPE">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FES_PROGRAM_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_ACE_RESULT_TYPE)"/>
+                            <DataOffset Formula="dnx_data_field.ace.fes_instruction_size_get(unit)*#KEY_VALUE(FIELD_FES_ID)+dnx_data_field.ace.fes_type_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ACE_ACTION">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FES_PROGRAM_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_ACE_RESULT_TYPE)"/>
+                            <DataOffset Formula="dnx_data_field.ace.fes_instruction_size_get(unit)*#KEY_VALUE(FIELD_FES_ID)+dnx_data_field.ace.fes_ace_action_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_FES_CHOSEN_MASK">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FES_PROGRAM_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_ACE_RESULT_TYPE)"/>
+                            <DataOffset Formula="dnx_data_field.ace.fes_instruction_size_get(unit)*#KEY_VALUE(FIELD_FES_ID)+dnx_data_field.ace.fes_chosen_mask_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_ACE_EFES_ACTION_MASK">
+        <OneLineDescription>This table determines the set of masks applied to the action selected per FES on the ACE ACR</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIELD_FES_ID" Size="3"/>
+                <Field Name="FIELD_FES_MASK_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="FIELD_FES_ACTION_MASK"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIELD_FES_ACTION_MASK">
+                    <Access>
+                        <Memory Name="ETPPA_PRP_FES_MASK_BITS_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_FES_ID)"/>
+                            <DataOffset Formula="#KEY_VALUE(FIELD_FES_MASK_ID)*dnx_data_field.ace.nof_bits_in_fes_action_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

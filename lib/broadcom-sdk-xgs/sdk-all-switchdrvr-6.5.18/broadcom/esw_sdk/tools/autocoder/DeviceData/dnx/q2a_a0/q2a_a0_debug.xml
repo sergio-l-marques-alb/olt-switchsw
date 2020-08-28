@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0" module="debug">
+    <includes>
+        <include>soc/dnx/dbal/auto_generated/dbal_defines_fields.h</include>
+    </includes>
+
+    <sub_module name="mem">
+        <tables>
+            <table name="params">
+                <key name="block" size="DBAL_NOF_ENUM_PP_ASIC_BLOCK_VALUES"/>
+                <value name="valid" default="0"/>
+                <value name="line_nof" default="0"/>
+                <value name="width" default="0"/>
+                <entries>
+                    <entry block="DBAL_ENUM_FVAL_PP_ASIC_BLOCK_IPPA"  valid="1" line_nof="10" width="1513"/>
+                    <entry block="DBAL_ENUM_FVAL_PP_ASIC_BLOCK_IPPB"  valid="1" line_nof="43" width="1870"/>
+                    <entry block="DBAL_ENUM_FVAL_PP_ASIC_BLOCK_IPPC"  valid="1" line_nof="5"  width="1893"/>
+                    <entry block="DBAL_ENUM_FVAL_PP_ASIC_BLOCK_IPPD"  valid="1" line_nof="18" width="2381"/>
+                    <entry block="DBAL_ENUM_FVAL_PP_ASIC_BLOCK_IPPE"  valid="1" line_nof="4"  width="1231"/>
+                    <entry block="DBAL_ENUM_FVAL_PP_ASIC_BLOCK_IPPF"  valid="1" line_nof="21" width="1513"/>
+                    <entry block="DBAL_ENUM_FVAL_PP_ASIC_BLOCK_ERPP"  valid="1" line_nof="17" width="1152"/>
+                    <entry block="DBAL_ENUM_FVAL_PP_ASIC_BLOCK_ETPPA" valid="1" line_nof="6"  width="1152"/>
+                    <entry block="DBAL_ENUM_FVAL_PP_ASIC_BLOCK_ETPPB" valid="1" line_nof="8"  width="1301"/>
+                    <entry block="DBAL_ENUM_FVAL_PP_ASIC_BLOCK_ETPPC" valid="1" line_nof="10" width="2254"/>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="hw_bug">
+        <defines>
+        </defines>
+        <features>
+             <feature name="no_hit_bit_on_mdb_access" value="0"></feature>
+             <feature name="iparser_signals_valid" value="1"></feature>
+             <feature name="pem_vt_init_fix" value="0"></feature>
+             <feature name="fwd_action_signals_from_lbp_valid" value="1"></feature>
+        </features>
+    </sub_module>
+
+    <sub_module name="kleap">
+        <defines>
+            <define name="fwd1_gen_data_size" value="2743"></define>
+            <define name="fwd2_gen_data_size" value="3175"></define>
+        </defines>
+    </sub_module>
+    <sub_module name="general" doc="general inforamtion">
+        <defines>
+            <define name="global_visibility" value="1"></define>
+        </defines>
+    </sub_module>
+</device_data>

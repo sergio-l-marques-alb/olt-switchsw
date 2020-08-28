@@ -1,0 +1,597 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="MPLS_PHP_MAP_FIRST_NIBBLE">
+        <OneLineDescription>Mapping first IP nibble to nibble index</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIRST_NIBBLE" Size="4" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="FIRST_NIBBLE_INDEX" Size="2"/> 
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIRST_NIBBLE_INDEX">
+                    <Access>
+                        <Register Name="ETPPC_CFG_MAP_FIRST_NIBBLEr">
+                          <DataOffset Formula="#FULL_KEY_VALUE()*2"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MPLS_PHP_MAP_FWD_CODE">
+        <OneLineDescription>Mapping nibble index with is_mc into forwarding code</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IS_MC" Type="BOOL"/>
+                <Field Name="FIRST_NIBBLE_INDEX" Size="2"/>
+            </Key>
+            <Result>
+                <Field Name="FORWARD_CODE" Type="EGRESS_FWD_CODE"/>
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FORWARD_CODE">
+                    <Access>
+                        <Register Name="ETPPC_PHP_MAP_FWD_CODEr">
+                            <DataOffset Formula="#KEY_VALUE(IS_MC)*4*6+#KEY_VALUE(FIRST_NIBBLE_INDEX)*6"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="INGRESS_MPLS_TERMINATION_PROFILE">
+        <OneLineDescription>Ingress MPLS Termination Profile Configuration Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MPLS_TERMINATION_PROFILE" Type="TERMINATION_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="TTL_EXP_LABEL_INDEX"/>
+                <Field Description="Reject TTL 0" Name="REJECT_TTL_0" Type="BOOL"/>
+                <Field Description="Reject TTL 1" Name="REJECT_TTL_1" Type="BOOL"/>
+                <Field Description="If valid Control Word is present" Name="HAS_CW" Type="BOOL"/>
+                <Field Name="LABELS_TO_TERMINATE"/>
+                <Field Description="Enables MPLS Unexpected BOS, MPLS Unexpectes No BOS actions" Name="CHECK_BOS" Type="BOOL"/>
+                <Field Description="Enables BOS check" Name="EXPECT_BOS" Type="BOOL"/>
+             </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TTL_EXP_LABEL_INDEX">
+                    <Access>
+                        <Memory GroupName="INGRESS_TERMINATION_PROFILE_TABLE">
+                            <HwField Name="TTL_EXP_LABEL_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REJECT_TTL_0">
+                    <Access>
+                        <Memory GroupName="INGRESS_TERMINATION_PROFILE_TABLE">
+                            <HwField Name="REJECT_TTL_0f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REJECT_TTL_1">
+                    <Access>
+                        <Memory GroupName="INGRESS_TERMINATION_PROFILE_TABLE">
+                            <HwField Name="REJECT_TTL_1f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="HAS_CW">
+                    <Access>
+                        <Memory GroupName="INGRESS_TERMINATION_PROFILE_TABLE">
+                            <HwField Name="HAS_CWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LABELS_TO_TERMINATE">
+                    <Access>
+                        <Memory GroupName="INGRESS_TERMINATION_PROFILE_TABLE">
+                            <HwField Name="LABELS_TO_TERMINATEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CHECK_BOS">
+                    <Access>
+                        <Memory GroupName="INGRESS_TERMINATION_PROFILE_TABLE">
+                            <HwField Name="CHECK_BOSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXPECT_BOS">
+                    <Access>
+                        <Memory GroupName="INGRESS_TERMINATION_PROFILE_TABLE">
+                            <HwField Name="EXPECT_BOSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MPLS_GENERAL_CONFIGURATION">
+        <OneLineDescription>MPLS General Configuration Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="MPLS_ENCAP_CONTROL_WORD" Type="UINT"/>
+                <Field Description="MPLS Type Pop = DBAL_FIELD_FHEI_MPLS_TYPE_POP" Name="FHEI_MPLS_TYPE_POP" Size="4" Type="UINT"/>
+                <Field Description="Indicates, whether the block is ETPP or not" Name="BLOCK_IS_ETPP" Type="BOOL"/>
+                <Field Name="FHEI_MPLS_POP_CMD" Type="FHEI_MPLS_COMMAND"/>                
+                <Field Name="FHEI_MPLS_SWAP_CMD" Type="FHEI_MPLS_COMMAND"/>
+             </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MPLS_ENCAP_CONTROL_WORD">
+                    <Access>
+                        <Register GroupName="ETPP_CFG_MPLS_CONTROL_WORD">
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FHEI_MPLS_TYPE_POP">
+                    <Access>
+                        <Register Name="ERPP_UTILITY_REGSr">
+                            <HwField Name="FHEI_MPLS_TYPE_POPf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ETPPA_UTILITY_REGSr">
+                            <HwField Name="FHEI_MPLS_TYPE_POPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BLOCK_IS_ETPP">
+                    <Access>
+                        <Register Name="ETPPA_UTILITY_REGSr">
+                            <HwField Name="BLOCK_IS_ETPPf"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                        <Register Name="ERPP_UTILITY_REGSr">
+                            <HwField Name="BLOCK_IS_ETPPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FHEI_MPLS_POP_CMD">
+                    <Access>
+                        <Register Name="IPPD_LBP_GENERAL_CONFIG_1r">
+                            <HwField Name="MPLS_POP_COMMANDf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register GroupName="EGRESS_FHEI_MPLS_COMMAND">
+                            <HwField Name="FHEI_MPLS_COMMAND_POPf"/>
+                        </Register>
+                    </Access>
+        </Field>
+                <Field Name="FHEI_MPLS_SWAP_CMD">
+                    <Access>
+                        <Register Name="IPPD_LBP_GENERAL_CONFIG_1r">
+                            <HwField Name="MPLS_SWAP_COMMANDf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register GroupName="EGRESS_FHEI_MPLS_COMMAND">
+                            <HwField Name="FHEI_MPLS_COMMAND_SWAPf"/>
+                        </Register>
+                    </Access>
+        </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="MPLS_SPECIAL_LABEL_PROFILE_MAP">
+        <OneLineDescription>Maps MPLS special label and BOS to label profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="BOS"/>
+                <Field Description="lsb nible" Name="MPLS_LABEL_NIBBLE" Size="4" Type="MPLS_LABEL"/>
+            </Key>
+            <Result>
+                <Field Name="MPLS_SPECIAL_LABEL_PROFILE" Type="VTT_MPLS_SPECIAL_LABEL_PROFILE"/>
+             </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MPLS_SPECIAL_LABEL_PROFILE">
+                    <Access>
+                        <Register GroupName="INGRESS_VTT_SPECIAL_LABELS_PROFILE">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="MPLS_SPECIAL_LABEL_PROFILE_ATTRIBUTES">
+        <OneLineDescription>Maps MPLS special label and BOS to label profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="5" Name="MPLS_SPECIAL_LABEL_PROFILE" Type="VTT_MPLS_SPECIAL_LABEL_PROFILE"/>
+                </Key>
+            <Result>                
+                <Field Name="LABELS_TO_TERMINATE"/>
+                <Field Description="is special label before tunnel" Name="BEFORE_TUNNEL" Size="1" Type="BOOL"/>
+                <Field Description="is special label after tunnel" Name="AFTER_TUNNEL" Size="1" Type="BOOL"/>
+                <Field Name="PHB_COMPARE_STRENGTH" Size="2" Type="QOS_PROPAG_STRENGTH"/>
+                <Field Name="RM_COMPARE_STRENGTH" Size="2" Type="QOS_PROPAG_STRENGTH"/>
+                <Field Name="ECN_COMPARE_STRENGTH" Size="2" Type="QOS_PROPAG_STRENGTH"/>
+                <Field Name="TTL_COMPARE_STRENGTH" Size="2" Type="QOS_PROPAG_STRENGTH"/>
+                <Field Name="PHB_PROPAGATION_STRENGTH" Size="2" Type="QOS_PROPAG_STRENGTH"/>
+                <Field Name="RM_PROPAGATION_STRENGTH" Size="2" Type="QOS_PROPAG_STRENGTH"/>
+                <Field Name="ECN_PROPAGATION_STRENGTH" Size="2" Type="QOS_PROPAG_STRENGTH"/>
+                <Field Name="TTL_PROPAGATION_STRENGTH" Size="2" Type="QOS_PROPAG_STRENGTH"/>
+                <Field Name="QOS_MAPPING_PROFILE" Size="10" Type="QOS_PROFILE"/>
+                <Field Name="ECN_MAPPING_PROFILE" Size="2"/>
+                <Field Name="FORCE_NEXT_PARSER_CONTEXT_ENABLE" Size="1" Type="BOOL"/>
+                <Field Name="FORCE_NEXT_PARSER_CONTEXT_VALUE" Size="5" Type="IRPP_2ND_PARSER_PARSER_CONTEXT"/>
+                <Field Name="FORCE_HAS_CW" Size="1" Type="BOOL"/>
+                <Field Name="FORCE_IS_OAM" Size="1" Type="BOOL"/>
+                <Field Name="CHECK_BOS" Size="1" Type="BOOL"/>
+                <Field Name="EXPECTED_BOS" Size="1" Type="BOOL"/>
+                <Field Name="CHECK_TTL" Size="1" Type="BOOL"/>
+                <Field Name="EXPECTED_TTL" Type="TTL"/>
+             </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LABELS_TO_TERMINATE"> 
+                    <Access>
+                    <!--FIXME: SDK-112205 JR2 DBAL - register aliasing-->
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BEFORE_TUNNEL"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+2"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="AFTER_TUNNEL"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+3"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PHB_COMPARE_STRENGTH"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+4"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RM_COMPARE_STRENGTH"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+6"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ECN_COMPARE_STRENGTH"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+8"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TTL_COMPARE_STRENGTH"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+10"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PHB_PROPAGATION_STRENGTH"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+12"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RM_PROPAGATION_STRENGTH"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+14"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ECN_PROPAGATION_STRENGTH"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+16"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TTL_PROPAGATION_STRENGTH"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+18"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="QOS_MAPPING_PROFILE"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+20"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ECN_MAPPING_PROFILE"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+30"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FORCE_NEXT_PARSER_CONTEXT_ENABLE"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+32"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FORCE_NEXT_PARSER_CONTEXT_VALUE"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+33"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FORCE_HAS_CW"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+38"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FORCE_IS_OAM"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+39"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CHECK_BOS"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+40"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EXPECTED_BOS"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+41"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CHECK_TTL"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+42"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EXPECTED_TTL"> 
+                    <Access>
+                        <Register GroupName="INGRESS_MPLS_SPECIAL_LABEL_ATTRIBUTES"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+43"/>
+                        </Register>
+                    </Access>
+                </Field>
+
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="EGRESS_MPLS_FHEI_TO_EES_RESOLUTION">
+        <OneLineDescription>MPLS Configuration for FHEI to EES Resolution</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="MPLS POP Result Type" Name="FHEI_MPLS_POP_TYPE" Size="DNX_DATA.mpls.general.fhei_mps_type_nof_bits" Type="UINT"/>
+                <Field Description="MPLS SWAP Result Type" Name="FHEI_MPLS_SWAP_TYPE" Size="DNX_DATA.mpls.general.fhei_mps_type_nof_bits" Type="UINT"/>
+                <Field Description="FHEI TTL Model Map" Name="FHEI_POP_TTL_MODEL" NofInstances="4" Type="TTL_MODE"/>
+                <Field Description="FHEI QOS Model Map" Name="FHEI_POP_QOS_MODEL" NofInstances="4" Type="QOS_DP_SELECT"/>
+                <Field Description="FHEI Remark Profile Map per mpls command" Name="FHEI_SWAP_REMARK" NofInstances="16" Type="REMARK_PROFILE"/>
+             </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FHEI_MPLS_POP_TYPE">
+                    <Access>
+                        <Register Name="ETPPA_CFG_FHEI_MPLS_POP_TYPEr">
+                             <HwField Name="CFG_FHEI_MPLS_POP_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FHEI_MPLS_SWAP_TYPE">
+                    <Access>
+                        <Register Name="ETPPA_CFG_FHEI_MPLS_SWAP_TYPEr">
+                             <HwField Name="CFG_FHEI_MPLS_SWAP_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FHEI_POP_TTL_MODEL">
+                    <Access instanceIndex="ALL">
+                        <Register Name="ETPPA_CFG_FHEI_TTL_MODEL_MAPr">
+                             <HwField Name="CFG_FHEI_TTL_MODEL_MAPf"/>
+                             <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(FHEI_POP_TTL_MODEL)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FHEI_POP_QOS_MODEL">
+                    <Access instanceIndex="ALL">
+                        <Register Name="ETPPA_CFG_FHEI_QOS_MODEL_MAPr">
+                             <HwField Name="CFG_FHEI_QOS_MODEL_MAPf"/>
+                             <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(FHEI_POP_QOS_MODEL)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FHEI_SWAP_REMARK">
+                    <Access instanceIndex="ALL">
+                        <Register Name="ETPPA_CFG_FHEI_MPLS_SWAP_REMARK_MAPr">
+                             <HwField Name="CFG_FHEI_MPLS_SWAP_REMARK_MAPf"/>
+                             <DataOffset Formula="#INSTANCE_IDX()*dnx_data_headers.hw_bug.fhei_mpls_swap_remark_profile_size_get(unit)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_MPLS_EES_TO_FHEI_RESOLUTION">
+        <OneLineDescription>For each EEI identifier decide if a FHEI should be created instead of EEI and determine it's type and size.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="EEI_IDENTIFIER"/>
+            </Key>
+            <Result>
+                <Field Description="Create FHEI or EEI" Name="CREATE_FHEI_INSTEAD_OF_EEI" Type="BOOL"/>
+                <Field Name="FHEI_TYPE"/>
+                <Field Name="FHEI_SIZE"/>
+             </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CREATE_FHEI_INSTEAD_OF_EEI">
+                    <Access>
+                        <Memory Name="IPPD_PPH_ATTRIBUTES_BY_EEIm">
+                             <HwField Name="CREATE_FHEI_INSTEAD_OF_EEIf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FHEI_TYPE">
+                    <Access>
+                        <Memory Name="IPPD_PPH_ATTRIBUTES_BY_EEIm">
+                             <HwField Name="FHEI_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FHEI_SIZE">
+                    <Access>
+                        <Memory Name="IPPD_PPH_ATTRIBUTES_BY_EEIm">
+                             <HwField Name="FHEI_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MPLS_LABEL_RANGE_PROPERTIES">
+        <OneLineDescription>Define MPLS label range matching and properties.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="RANGE_PROFILE" Size="DNX_DATA.mpls.general.log_nof_mpls_range_elements" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="MPLS_LABEL_LOW" Type="MPLS_LABEL"/>
+                <Field Name="MPLS_LABEL_HIGH" Type="MPLS_LABEL"/>
+                <Field Name="INGRESS_MPLS_RANGE"/>
+                <Field Name="BOS_VALUE" Type="BOOL"/>
+                <Field Name="BOS_MASK" Type="BOOL"/>
+             </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MPLS_LABEL_LOW">
+                    <Access>
+                        <Memory GroupName="INGRESS_VTT_MPLS_LABEL_RANGE_TABLE">
+                                <HwField Name="RANGE_MINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MPLS_LABEL_HIGH">
+                    <Access>
+                        <Memory GroupName="INGRESS_VTT_MPLS_LABEL_RANGE_TABLE">
+                                <HwField Name="RANGE_MAXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INGRESS_MPLS_RANGE">
+                    <Access>
+                        <Register GroupName="INGRESS_VTT_MPLS_LABEL_RANGE_PROFILE">
+                                <HwField Name="VTT_LABEL_RANGE_PROFILES_DATAf"/>
+                                <DataOffset Formula="#FULL_KEY_VALUE()*8"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BOS_VALUE">
+                    <Access>
+                        <Memory GroupName="INGRESS_VTT_MPLS_LABEL_RANGE_TABLE">
+                                <HwField Name="BOS_VALUEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BOS_MASK">
+                    <Access>
+                        <Memory GroupName="INGRESS_VTT_MPLS_LABEL_RANGE_TABLE">
+                                <HwField Name="BOS_VALUE_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

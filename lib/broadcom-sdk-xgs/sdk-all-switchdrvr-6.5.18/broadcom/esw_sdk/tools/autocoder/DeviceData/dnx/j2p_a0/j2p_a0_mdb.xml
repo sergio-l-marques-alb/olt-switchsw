@@ -1,0 +1,875 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2p_a0"  module="mdb">
+
+    <sub_module name ="global">
+    
+        <features>      
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+   <sub_module name="dh">
+
+        <features>
+            <feature name="bpu_setup_extended_support" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="has_dhc_type_blocks" value="0"></define>
+            <define name="max_nof_cluster_interfaces" value="10"></define>
+            <define name="bpu_setup_bb_connected" value="16"></define>
+            <define name="bpu_setup_size_120_240_120" value="8"></define>
+            <define name="bpu_setup_size_480_odd" value="5"></define>
+            <define name="bpu_setup_size_480" value="4"></define>
+            <define name="bpu_setup_size_360_120" value="7"></define>
+            <define name="bpu_setup_size_120_360" value="6"></define>
+            <define name="bpu_setup_size_240_240" value="3"></define>
+            <define name="bpu_setup_size_120_120_240" value="1"></define>
+            <define name="bpu_setup_size_240_120_120" value="2"></define>
+            <define name="bpu_setup_size_120_120_120_120" value="0"></define> 
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        
+            <table name="dh_info">
+                <key name="mdb_table_id" size="DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></key>
+                <value name="table_macro_interface_mapping" default="0"></value>
+                <value name="cluster_if_offsets_values" default="0"></value>
+                <value name="if_cluster_offsets_values" default="0"></value>
+                <value name="row_width" default="0"></value>
+                <value name="dh_in_width" default="0"></value>
+                <value name="dh_out_width" default="0"></value>
+                <value name="two_ways_connectivity_bm" default="0"></value>
+                <entries>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_1" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0x1, 0xF, 0xF, 0x3" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="35" dh_out_width="24" two_ways_connectivity_bm="0x20000"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_1" table_macro_interface_mapping="0x0, 0xF, 0xF, 0xF, 0x1, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06" row_width="2*DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="180" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IVSI" table_macro_interface_mapping="0xF, 0x0, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x1, 0x2, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x03" row_width="2*DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="90" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_2" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0x1, 0x2, 0xF, 0xF, 0xF, 0x3, 0xF, 0x4" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x01" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="75" dh_out_width="24" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_2" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0x0, 0xF, 0xF, 0x1, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x2, 0x3, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x0a, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x04, 0x00, 0x06" row_width="2*DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="180" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_3" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0x1, 0x2, 0xF, 0xF, 0xF, 0xF, 0x3, 0x4" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x0a, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="75" dh_out_width="24" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_3" table_macro_interface_mapping="0xF, 0x0, 0x1, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x2, 0x3, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x0a, 0x00" if_cluster_offsets_values="0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x01, 0x06" row_width="2*DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="180" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM" table_macro_interface_mapping="0xF, 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xB" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x13" if_cluster_offsets_values="0x00, 0x09, 0x06, 0x00, 0x0c, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04" row_width="2*DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="147" dh_out_width="120" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ADS_1" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0xF, 0x1, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x2, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x13, 0x00, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="120" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ADS_2" table_macro_interface_mapping="0x0, 0xF, 0xF, 0xF, 0xF, 0x1, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x06, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="120" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_1" table_macro_interface_mapping="0xF, 0xF, 0xF, 0x0, 0x1, 0xF, 0xF, 0x2, 0x3, 0x4, 0x5, 0x6, 0xF, 0x7, 0x8, 0x9, 0xF, 0xF, 0xA, 0xB, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x13, 0x13, 0x00, 0x00, 0x13, 0x13, 0x13, 0x13, 0x13, 0x00, 0x14, 0x14, 0x00, 0x00, 0x00, 0x0a, 0x0a, 0x14" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x04, 0x10, 0x00, 0x00, 0x0e, 0x04, 0x04, 0x04, 0x04, 0x00, 0x02, 0x06, 0x00, 0x00, 0x00, 0x10, 0x07, 0x01" row_width="4*DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="160" dh_out_width="30" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_2" table_macro_interface_mapping="0xF, 0x0, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x1, 0x2, 0xF, 0xF, 0xF, 0xF, 0x3, 0x4, 0xF, 0x5, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x27, 0x27, 0x00, 0x00, 0x00, 0x00, 0x28, 0x14, 0x00, 0x0a, 0x00, 0x00, 0x14" if_cluster_offsets_values="0x00, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x05, 0x00, 0x00, 0x00, 0x00, 0x07, 0x01, 0x00, 0x0b, 0x00, 0x00, 0x01" row_width="4*DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="160" dh_out_width="30" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IOEM_0" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0x1, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x2" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x14, 0x28, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="19" dh_out_width="48" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IOEM_1" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0x1, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x2" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x17, 0x2b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="19" dh_out_width="48" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_MAP" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0xF, 0xF, 0xF, 0xF, 0xF, 0x1, 0xF, 0xF, 0xF, 0x2, 0xF, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1a, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x04" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="120" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_1" table_macro_interface_mapping="0x0, 0x1, 0xF, 0xF, 0x2, 0xF, 0x3, 0x4, 0xF, 0xF, 0x5, 0x6, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x27, 0x00, 0x00, 0x27, 0x00, 0x13, 0x27, 0x00, 0x00, 0x27, 0x27, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x0a, 0x0e, 0x00, 0x00, 0x11, 0x00, 0x08, 0x0f, 0x00, 0x00, 0x05, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05" row_width="2*DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="150" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_2" table_macro_interface_mapping="0x0, 0x1, 0x2, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x3, 0xF, 0xF, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x27, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x0f, 0x13, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x05" row_width="2*DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="150" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_3" table_macro_interface_mapping="0xF, 0xF, 0x0, 0xF, 0xF, 0xF, 0xF, 0x1, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x13, 0x00, 0x00, 0x00, 0x00, 0x27, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05" row_width="2*DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="150" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_MC_ID" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x1, 0x2" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1e, 0x02" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x04" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="11" dh_out_width="110" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_GLEM_0" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0x2, 0xF, 0xF, 0x3" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x1e, 0x00, 0x00, 0x02" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x0c, 0x00, 0x00, 0x01" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="11" dh_out_width="24" two_ways_connectivity_bm="0x10000"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_GLEM_1" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0x2, 0xF, 0xF, 0x3" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x20, 0x00, 0x00, 0x02" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0x0d, 0x00, 0x00, 0x01" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="11" dh_out_width="24" two_ways_connectivity_bm="0x10000"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_1_LL" table_macro_interface_mapping="0xF, 0xF, 0xF, 0x0, 0xF, 0xF, 0x1, 0xF, 0x2, 0xF, 0xF, 0xF, 0xF, 0xF, 0x3, 0x4, 0x5, 0xF, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="0" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_1_DATA" table_macro_interface_mapping="0xF, 0xF, 0xF, 0x0, 0xF, 0xF, 0x1, 0xF, 0x2, 0xF, 0xF, 0xF, 0xF, 0xF, 0x3, 0x4, 0x5, 0xF, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="0" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_2_LL" table_macro_interface_mapping="0xF, 0xF, 0xF, 0x0, 0xF, 0xF, 0x1, 0xF, 0x2, 0xF, 0xF, 0xF, 0xF, 0xF, 0x3, 0x4, 0x5, 0xF, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="0" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_2_DATA" table_macro_interface_mapping="0xF, 0xF, 0xF, 0x0, 0xF, 0xF, 0x1, 0xF, 0x2, 0xF, 0xF, 0xF, 0xF, 0xF, 0x3, 0x4, 0x5, 0xF, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="0" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_1_2_DATA" table_macro_interface_mapping="0xF, 0xF, 0xF, 0x0, 0xF, 0xF, 0x1, 0xF, 0x2, 0xF, 0xF, 0xF, 0xF, 0xF, 0x3, 0x4, 0x5, 0xF, 0xF, 0xF, 0x6" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x27, 0x00, 0x00, 0x13, 0x00, 0x3b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3c, 0x28, 0x0d, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x0d, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x07, 0x09, 0x00, 0x00, 0x00, 0x04" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="120" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_3_LL" table_macro_interface_mapping="0xF, 0xF, 0xF, 0x0, 0xF, 0x1, 0xF, 0xF, 0x2, 0x3, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x4, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="0" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_3_DATA" table_macro_interface_mapping="0xF, 0xF, 0xF, 0x0, 0xF, 0x1, 0xF, 0xF, 0x2, 0x3, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x4, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="0" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_4_LL" table_macro_interface_mapping="0xF, 0xF, 0xF, 0x0, 0xF, 0x1, 0xF, 0xF, 0x2, 0x3, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x4, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="0" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_4_DATA" table_macro_interface_mapping="0xF, 0xF, 0xF, 0x0, 0xF, 0x1, 0xF, 0xF, 0x2, 0x3, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x4, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="0" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_3_4_DATA" table_macro_interface_mapping="0xF, 0xF, 0xF, 0x0, 0xF, 0x1, 0xF, 0xF, 0x2, 0x3, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x4, 0xF, 0xF, 0x5" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x27, 0x00, 0x13, 0x00, 0x00, 0x3b, 0x3b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x22, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x09, 0x00, 0x0c, 0x00, 0x00, 0x0a, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0e, 0x00, 0x00, 0x04" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="120" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_5_LL" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x1, 0xF, 0x2, 0x3, 0xF, 0xF, 0x4, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="0" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_5_DATA" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x1, 0xF, 0x2, 0x3, 0xF, 0xF, 0x4, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="0" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_6_LL" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x1, 0xF, 0x2, 0x3, 0xF, 0xF, 0x4, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="0" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_6_DATA" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x1, 0xF, 0x2, 0x3, 0xF, 0xF, 0x4, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="0" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_5_6_DATA" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x1, 0xF, 0x2, 0x3, 0xF, 0xF, 0x4, 0xF, 0x5" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1c, 0x00, 0x3c, 0x28, 0x00, 0x00, 0x1e, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0e, 0x00, 0x0c, 0x0b, 0x00, 0x00, 0x11, 0x00, 0x04" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="120" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_7_LL" table_macro_interface_mapping="0xF, 0xF, 0xF, 0x0, 0xF, 0x1, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x2, 0xF, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="0" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_7_DATA" table_macro_interface_mapping="0xF, 0xF, 0xF, 0x0, 0xF, 0x1, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x2, 0xF, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="0" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_8_LL" table_macro_interface_mapping="0xF, 0xF, 0xF, 0x0, 0xF, 0x1, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x2, 0xF, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="0" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_8_DATA" table_macro_interface_mapping="0xF, 0xF, 0xF, 0x0, 0xF, 0x1, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x2, 0xF, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="0" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_7_8_DATA" table_macro_interface_mapping="0xF, 0xF, 0xF, 0x0, 0xF, 0x1, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x2, 0xF, 0xF, 0xF, 0x3" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x27, 0x00, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0d, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x0d, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0d, 0x00, 0x00, 0x00, 0x04" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="120" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EOEM_0" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0xF, 0x1, 0xF, 0x2, 0xF, 0x3, 0x4" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2e, 0x00, 0x28, 0x00, 0x22, 0x00, 0x20, 0x03" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0x00, 0x0f, 0x00, 0x12, 0x00, 0x0c, 0x02" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="19" dh_out_width="48" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EOEM_1" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0xF, 0x1, 0xF, 0x2, 0xF, 0x3, 0x4" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x31, 0x00, 0x2b, 0x00, 0x25, 0x00, 0x23, 0x03" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x00, 0x11, 0x00, 0x14, 0x00, 0x0e, 0x02" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="19" dh_out_width="48" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ESEM" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0x1, 0xF, 0xF, 0xF, 0x2, 0xF, 0xF, 0xF, 0xF, 0xF, 0x3, 0x5" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3b, 0x3b, 0x00, 0x00, 0x00, 0x34, 0x00, 0x00, 0x00, 0x00, 0x00, 0x26, 0x05" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0e, 0x0a, 0x00, 0x00, 0x00, 0x0b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x03" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="35" dh_out_width="90" two_ways_connectivity_bm="0x80000"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EVSI" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0xF, 0xF, 0xF, 0xF, 0x1, 0xF, 0xF, 0xF, 0xF" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x27, 0x00, 0x00, 0x00, 0x00, 0x0d, 0x00, 0x00, 0x00, 0x00" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x11, 0x00, 0x00, 0x00, 0x01" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="0" dh_out_width="30" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_1" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0xF, 0xF, 0xF, 0x1, 0x2, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x3" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x13, 0x00, 0x00, 0x00, 0x27, 0x27, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x11, 0x00, 0x00, 0x00, 0x0a, 0x0b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="67" dh_out_width="60" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_2" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0xF, 0xF, 0xF, 0x1, 0x2, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x3" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1c, 0x00, 0x00, 0x00, 0x30, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x13, 0x00, 0x00, 0x00, 0x0c, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="67" dh_out_width="60" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_3" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0x0, 0xF, 0x1, 0xF, 0xF, 0x2, 0x3, 0x4, 0xF, 0xF, 0xF, 0x5, 0xF, 0xF, 0xF, 0xF, 0x6" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x27, 0x00, 0x25, 0x00, 0x00, 0x40, 0x39, 0x39, 0x00, 0x00, 0x00, 0x2e, 0x00, 0x00, 0x00, 0x00, 0x09" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x15, 0x00, 0x00, 0x0d, 0x0e, 0x0f, 0x00, 0x00, 0x00, 0x13, 0x00, 0x00, 0x00, 0x00, 0x02" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="67" dh_out_width="60" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_4" table_macro_interface_mapping="0x0, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x1, 0xF, 0xF, 0xF, 0xF, 0xF, 0x2, 0xF, 0x3" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1e, 0x00, 0x13" if_cluster_offsets_values="0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x02" row_width="2*DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="147" dh_out_width="60" two_ways_connectivity_bm="0x0"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_RMEP" table_macro_interface_mapping="0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0xF, 0x0, 0xF, 0xF, 0xF, 0x1, 0xF, 0xF, 0xF, 0x2" cluster_if_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2f, 0x00, 0x00, 0x00, 0x0d, 0x00, 0x00, 0x00, 0x06" if_cluster_offsets_values="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00, 0x04" row_width="DATA(mdb,dh,cluster_row_width_bits)" dh_in_width="43" dh_out_width="110" two_ways_connectivity_bm="0x0"></entry>
+                </entries>
+            </table>
+            
+            <table name="table_way_to_macro_mapping">
+                <key name="mdb_table_id" size="DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></key>
+                <value name="table_way_to_macro_mapping" default="DNX_DATA_MAX_MDB_DH_NOF_MACROES_TYPE_A + DNX_DATA_MAX_MDB_DH_NOF_MACROES_TYPE_B"></value>
+                <entries>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_1" table_way_to_macro_mapping="16, 17, 17, 20, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_1" table_way_to_macro_mapping="0, 4, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IVSI" table_way_to_macro_mapping="1, 17, 18, 20, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_2" table_way_to_macro_mapping="12, 13, 14, 18, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_2" table_way_to_macro_mapping="4, 7, 17, 18, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_3" table_way_to_macro_mapping="12, 13, 14, 19, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_3" table_way_to_macro_mapping="1, 2, 18, 19, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM" table_way_to_macro_mapping="1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ADS_1" table_way_to_macro_mapping="5, 7, 14, 20, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ADS_2" table_way_to_macro_mapping="0, 5, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_1" table_way_to_macro_mapping="3, 4, 7, 8, 9, 10, 11, 13, 14, 15, 18, 19"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_2" table_way_to_macro_mapping="1, 8, 9, 14, 15, 17, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IOEM_0" table_way_to_macro_mapping="12, 13, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IOEM_1" table_way_to_macro_mapping="12, 13, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_MAP" table_way_to_macro_mapping="6, 12, 16, 20, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_1" table_way_to_macro_mapping="0, 1, 4, 6, 7, 10, 11, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_2" table_way_to_macro_mapping="0, 1, 2, 15, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_3" table_way_to_macro_mapping="2, 7, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_MC_ID" table_way_to_macro_mapping="12, 19, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_GLEM_0" table_way_to_macro_mapping="16, 16, 17, 20, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_GLEM_1" table_way_to_macro_mapping="16, 16, 17, 20, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_1_2_DATA" table_way_to_macro_mapping="3, 6, 8, 14, 15, 16, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_3_4_DATA" table_way_to_macro_mapping="3, 5, 8, 9, 17, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_5_6_DATA" table_way_to_macro_mapping="5, 12, 14, 15, 18, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_7_8_DATA" table_way_to_macro_mapping="3, 5, 16, 20, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EOEM_0" table_way_to_macro_mapping="13, 15, 17, 19, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EOEM_1" table_way_to_macro_mapping="13, 15, 17, 19, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ESEM" table_way_to_macro_mapping="8, 9, 13, 19, 19, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EVSI" table_way_to_macro_mapping="11, 16, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_1" table_way_to_macro_mapping="6, 10, 11, 20, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_2" table_way_to_macro_mapping="6, 10, 11, 20, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_3" table_way_to_macro_mapping="4, 6, 9, 10, 11, 15, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_4" table_way_to_macro_mapping="0, 12, 18, 20, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                    <entry mdb_table_id="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_RMEP" table_way_to_macro_mapping="12, 16, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20"></entry>
+                </entries>
+            </table>
+            
+            <table name="macro_interface_mapping">
+                <key name="global_macro_index" size="DATA(mdb, dh, total_nof_macroes)"></key>
+                <value name="interfaces" default="DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></value>
+                <entries>
+                    <entry global_macro_index="0" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ADS_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_4, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></entry>
+                    <entry global_macro_index="1" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IVSI, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_3, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_2, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></entry>
+                    <entry global_macro_index="2" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_3, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_3, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></entry>
+                    <entry global_macro_index="3" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_1_2_DATA, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_3_4_DATA, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_7_8_DATA, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></entry>
+                    <entry global_macro_index="4" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_3, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></entry>
+                    <entry global_macro_index="5" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ADS_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ADS_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_3_4_DATA, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_5_6_DATA, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_7_8_DATA, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></entry>
+                    <entry global_macro_index="6" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_MAP, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_1_2_DATA, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_3, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></entry>
+                    <entry global_macro_index="7" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ADS_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_3, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></entry>
+                    <entry global_macro_index="8" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_1_2_DATA, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_3_4_DATA, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ESEM, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></entry>
+                    <entry global_macro_index="9" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_3_4_DATA, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ESEM, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_3, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></entry>
+                    <entry global_macro_index="10" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_3, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></entry>
+                    <entry global_macro_index="11" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EVSI, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_3, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></entry>
+                    <entry global_macro_index="12" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_3, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IOEM_0, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IOEM_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_MAP, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_MC_ID, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_5_6_DATA, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_4, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_RMEP, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></entry>
+                    <entry global_macro_index="13" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_3, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IOEM_0, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IOEM_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EOEM_0, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EOEM_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ESEM, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></entry>
+                    <entry global_macro_index="14" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_3, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ADS_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_1_2_DATA, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_5_6_DATA, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></entry>
+                    <entry global_macro_index="15" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_1_2_DATA, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_5_6_DATA, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EOEM_0, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EOEM_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_3, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></entry>
+                    <entry global_macro_index="16" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_MAP, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_GLEM_0, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_GLEM_0, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_GLEM_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_GLEM_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_1_2_DATA, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_7_8_DATA, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EVSI, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_RMEP"></entry>
+                    <entry global_macro_index="17" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IVSI, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_GLEM_0, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_GLEM_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_3_4_DATA, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EOEM_0, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EOEM_1"></entry>
+                    <entry global_macro_index="18" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IVSI, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_2, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_3, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_5_6_DATA, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_4, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></entry>
+                    <entry global_macro_index="19" interfaces="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_3, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_3, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_MC_ID, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EOEM_0, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EOEM_1, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ESEM, DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ESEM, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES, DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></entry>
+                </entries>
+            </table>
+            
+            <table name="block_info">
+                <key name="global_macro_index" size="DATA(mdb, dh, total_nof_macroes)"></key>
+                <value name="block_type" default="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_NONE"></value>
+                <value name="block_index" default="INVALIDm"></value>
+                <entries>
+                    <entry global_macro_index="0" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHB" block_index="0" ></entry>
+                    <entry global_macro_index="1" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHB" block_index="2" ></entry>
+                    <entry global_macro_index="2" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHB" block_index="3" ></entry>
+                    <entry global_macro_index="3" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHB" block_index="1" ></entry>
+                    <entry global_macro_index="4" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHB" block_index="2" ></entry>
+                    <entry global_macro_index="5" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHB" block_index="1" ></entry>
+                    <entry global_macro_index="6" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHB" block_index="0" ></entry>
+                    <entry global_macro_index="7" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHB" block_index="3" ></entry>
+                    <entry global_macro_index="8" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHA" block_index="2" ></entry>
+                    <entry global_macro_index="9" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHA" block_index="3" ></entry>
+                    <entry global_macro_index="10" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHA" block_index="0" ></entry>
+                    <entry global_macro_index="11" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHA" block_index="1" ></entry>
+                    <entry global_macro_index="12" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHB" block_index="0" ></entry>
+                    <entry global_macro_index="13" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHB" block_index="1" ></entry>
+                    <entry global_macro_index="14" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHB" block_index="2" ></entry>
+                    <entry global_macro_index="15" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHB" block_index="3" ></entry>
+                    <entry global_macro_index="16" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHA" block_index="1" ></entry>
+                    <entry global_macro_index="17" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHA" block_index="3" ></entry>
+                    <entry global_macro_index="18" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHA" block_index="0" ></entry>
+                    <entry global_macro_index="19" block_type="DBAL_ENUM_FVAL_MDB_BLOCK_TYPES_DDHA" block_index="2" ></entry>
+                </entries>
+            </table> 
+            
+            <table name="entry_banks_info">
+                <key name="global_macro_index" size="DATA(mdb, dh, total_nof_macroes)"></key>
+                <value name="entry_bank" default="INVALIDm"></value>
+                <value name="overflow_reg" default="INVALIDm"></value>
+                <value name="abk_bank_a" default="INVALIDm"></value>
+                <value name="abk_bank_b" default="INVALIDm"></value>
+                <entries>
+                    <entry global_macro_index="0" entry_bank="DDHB_MACRO_0_ENTRY_BANKm" overflow_reg="DDHB_REG_0135r" abk_bank_a="DDHB_MACRO_0_ABK_BANK_Am" abk_bank_b="DDHB_MACRO_0_ABK_BANK_Bm" ></entry>
+                    <entry global_macro_index="1" entry_bank="DDHB_MACRO_0_ENTRY_BANKm" overflow_reg="DDHB_REG_0135r" abk_bank_a="DDHB_MACRO_0_ABK_BANK_Am" abk_bank_b="DDHB_MACRO_0_ABK_BANK_Bm" ></entry>
+                    <entry global_macro_index="2" entry_bank="DDHB_MACRO_0_ENTRY_BANKm" overflow_reg="DDHB_REG_0135r" abk_bank_a="DDHB_MACRO_0_ABK_BANK_Am" abk_bank_b="DDHB_MACRO_0_ABK_BANK_Bm" ></entry>
+                    <entry global_macro_index="3" entry_bank="DDHB_MACRO_0_ENTRY_BANKm" overflow_reg="DDHB_REG_0135r" abk_bank_a="DDHB_MACRO_0_ABK_BANK_Am" abk_bank_b="DDHB_MACRO_0_ABK_BANK_Bm" ></entry>
+                    <entry global_macro_index="4" entry_bank="DDHB_MACRO_1_ENTRY_BANKm" overflow_reg="DDHB_REG_0235r" abk_bank_a="DDHB_MACRO_1_ABK_BANK_Am" abk_bank_b="DDHB_MACRO_1_ABK_BANK_Bm" ></entry>
+                    <entry global_macro_index="5" entry_bank="DDHB_MACRO_1_ENTRY_BANKm" overflow_reg="DDHB_REG_0235r" abk_bank_a="DDHB_MACRO_1_ABK_BANK_Am" abk_bank_b="DDHB_MACRO_1_ABK_BANK_Bm" ></entry>
+                    <entry global_macro_index="6" entry_bank="DDHB_MACRO_1_ENTRY_BANKm" overflow_reg="DDHB_REG_0235r" abk_bank_a="DDHB_MACRO_1_ABK_BANK_Am" abk_bank_b="DDHB_MACRO_1_ABK_BANK_Bm" ></entry>
+                    <entry global_macro_index="7" entry_bank="DDHB_MACRO_1_ENTRY_BANKm" overflow_reg="DDHB_REG_0235r" abk_bank_a="DDHB_MACRO_1_ABK_BANK_Am" abk_bank_b="DDHB_MACRO_1_ABK_BANK_Bm" ></entry>
+                    <entry global_macro_index="8" entry_bank="DDHA_MACRO_0_ENTRY_BANKm" overflow_reg="DDHA_REG_0134r" abk_bank_a="DDHA_MACRO_0_ABK_BANK_Am" abk_bank_b="DDHA_MACRO_0_ABK_BANK_Bm" ></entry>
+                    <entry global_macro_index="9" entry_bank="DDHA_MACRO_0_ENTRY_BANKm" overflow_reg="DDHA_REG_0134r" abk_bank_a="DDHA_MACRO_0_ABK_BANK_Am" abk_bank_b="DDHA_MACRO_0_ABK_BANK_Bm" ></entry>
+                    <entry global_macro_index="10" entry_bank="DDHA_MACRO_0_ENTRY_BANKm" overflow_reg="DDHA_REG_0134r" abk_bank_a="DDHA_MACRO_0_ABK_BANK_Am" abk_bank_b="DDHA_MACRO_0_ABK_BANK_Bm" ></entry>
+                    <entry global_macro_index="11" entry_bank="DDHA_MACRO_0_ENTRY_BANKm" overflow_reg="DDHA_REG_0134r" abk_bank_a="DDHA_MACRO_0_ABK_BANK_Am" abk_bank_b="DDHA_MACRO_0_ABK_BANK_Bm" ></entry>
+                    <entry global_macro_index="12" entry_bank="DDHB_MACRO_2_ENTRY_BANKm" overflow_reg="DDHB_REG_0335r" abk_bank_a="DDHB_MACRO_2_ABK_BANK_Am" abk_bank_b="DDHB_MACRO_2_ABK_BANK_Bm" ></entry>
+                    <entry global_macro_index="13" entry_bank="DDHB_MACRO_2_ENTRY_BANKm" overflow_reg="DDHB_REG_0335r" abk_bank_a="DDHB_MACRO_2_ABK_BANK_Am" abk_bank_b="DDHB_MACRO_2_ABK_BANK_Bm" ></entry>
+                    <entry global_macro_index="14" entry_bank="DDHB_MACRO_2_ENTRY_BANKm" overflow_reg="DDHB_REG_0335r" abk_bank_a="DDHB_MACRO_2_ABK_BANK_Am" abk_bank_b="DDHB_MACRO_2_ABK_BANK_Bm" ></entry>
+                    <entry global_macro_index="15" entry_bank="DDHB_MACRO_2_ENTRY_BANKm" overflow_reg="DDHB_REG_0335r" abk_bank_a="DDHB_MACRO_2_ABK_BANK_Am" abk_bank_b="DDHB_MACRO_2_ABK_BANK_Bm" ></entry>
+                    <entry global_macro_index="16" entry_bank="DDHA_MACRO_1_ENTRY_BANKm" overflow_reg="DDHB_REG_0235r" abk_bank_a="DDHA_MACRO_1_ABK_BANK_Am" abk_bank_b="DDHA_MACRO_1_ABK_BANK_Bm" ></entry>
+                    <entry global_macro_index="17" entry_bank="DDHA_MACRO_1_ENTRY_BANKm" overflow_reg="DDHB_REG_0235r" abk_bank_a="DDHA_MACRO_1_ABK_BANK_Am" abk_bank_b="DDHA_MACRO_1_ABK_BANK_Bm" ></entry>
+                    <entry global_macro_index="18" entry_bank="DDHA_MACRO_1_ENTRY_BANKm" overflow_reg="DDHB_REG_0235r" abk_bank_a="DDHA_MACRO_1_ABK_BANK_Am" abk_bank_b="DDHA_MACRO_1_ABK_BANK_Bm" ></entry>
+                    <entry global_macro_index="19" entry_bank="DDHA_MACRO_1_ENTRY_BANKm" overflow_reg="DDHB_REG_0235r" abk_bank_a="DDHA_MACRO_1_ABK_BANK_Am" abk_bank_b="DDHA_MACRO_1_ABK_BANK_Bm" ></entry>
+                </entries>
+            </table>
+
+            <table name="mdb_1_info">
+                <key name="global_macro_index" size="DATA(mdb, dh, total_nof_macroes)"></key>
+                <value name="dbal_table" default="DBAL_TABLE_EMPTY"></value>
+                <value name="mdb_item_2_field_size" default="0"></value>
+                <value name="mdb_item_3_array_size" default="0"></value>
+                <value name="mdb_item_4_field_size" default="0"></value>
+                <entries>
+                    <entry global_macro_index="0" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_0" mdb_item_2_field_size="3" mdb_item_3_array_size="6" mdb_item_4_field_size="6" ></entry>
+                    <entry global_macro_index="1" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_1" mdb_item_2_field_size="3" mdb_item_3_array_size="6" mdb_item_4_field_size="6" ></entry>
+                    <entry global_macro_index="2" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_2" mdb_item_2_field_size="3" mdb_item_3_array_size="6" mdb_item_4_field_size="6" ></entry>
+                    <entry global_macro_index="3" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_3" mdb_item_2_field_size="3" mdb_item_3_array_size="6" mdb_item_4_field_size="6" ></entry>
+                    <entry global_macro_index="4" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_4" mdb_item_2_field_size="3" mdb_item_3_array_size="7" mdb_item_4_field_size="6" ></entry>
+                    <entry global_macro_index="5" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_5" mdb_item_2_field_size="3" mdb_item_3_array_size="7" mdb_item_4_field_size="6" ></entry>
+                    <entry global_macro_index="6" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_6" mdb_item_2_field_size="3" mdb_item_3_array_size="7" mdb_item_4_field_size="6" ></entry>
+                    <entry global_macro_index="7" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_7" mdb_item_2_field_size="3" mdb_item_3_array_size="7" mdb_item_4_field_size="6" ></entry>
+                    <entry global_macro_index="8" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_8" mdb_item_2_field_size="3" mdb_item_3_array_size="7" mdb_item_4_field_size="7" ></entry>
+                    <entry global_macro_index="9" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_9" mdb_item_2_field_size="3" mdb_item_3_array_size="7" mdb_item_4_field_size="7" ></entry>
+                    <entry global_macro_index="10" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_10" mdb_item_2_field_size="3" mdb_item_3_array_size="7" mdb_item_4_field_size="7" ></entry>
+                    <entry global_macro_index="11" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_11" mdb_item_2_field_size="3" mdb_item_3_array_size="7" mdb_item_4_field_size="7" ></entry>
+                    <entry global_macro_index="12" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_12" mdb_item_2_field_size="4" mdb_item_3_array_size="9" mdb_item_4_field_size="6" ></entry>
+                    <entry global_macro_index="13" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_13" mdb_item_2_field_size="4" mdb_item_3_array_size="9" mdb_item_4_field_size="6" ></entry>
+                    <entry global_macro_index="14" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_14" mdb_item_2_field_size="4" mdb_item_3_array_size="9" mdb_item_4_field_size="6" ></entry>
+                    <entry global_macro_index="15" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_15" mdb_item_2_field_size="4" mdb_item_3_array_size="9" mdb_item_4_field_size="6" ></entry>
+                    <entry global_macro_index="16" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_16" mdb_item_2_field_size="4" mdb_item_3_array_size="10" mdb_item_4_field_size="6" ></entry>
+                    <entry global_macro_index="17" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_17" mdb_item_2_field_size="4" mdb_item_3_array_size="10" mdb_item_4_field_size="6" ></entry>
+                    <entry global_macro_index="18" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_18" mdb_item_2_field_size="4" mdb_item_3_array_size="10" mdb_item_4_field_size="6" ></entry>
+                    <entry global_macro_index="19" dbal_table="DBAL_TABLE_MDB_1_GLOBAL_INDEX_19" mdb_item_2_field_size="4" mdb_item_3_array_size="10" mdb_item_4_field_size="6" ></entry>
+                </entries>
+            </table>
+            
+            <table name="mdb_2_info">
+                <key name="global_macro_index" size="DATA(mdb, dh, total_nof_macroes)"></key>
+                <value name="dbal_table" default="DBAL_TABLE_EMPTY"></value>
+                <value name="mdb_item_1_field_size" default="0"></value>
+                <entries>
+                    <entry global_macro_index="0" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_0" mdb_item_1_field_size="5" ></entry>
+                    <entry global_macro_index="1" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_1" mdb_item_1_field_size="5" ></entry>
+                    <entry global_macro_index="2" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_2" mdb_item_1_field_size="5" ></entry>
+                    <entry global_macro_index="3" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_3" mdb_item_1_field_size="5" ></entry>
+                    <entry global_macro_index="4" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_4" mdb_item_1_field_size="5" ></entry>
+                    <entry global_macro_index="5" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_5" mdb_item_1_field_size="5" ></entry>
+                    <entry global_macro_index="6" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_6" mdb_item_1_field_size="5" ></entry>
+                    <entry global_macro_index="7" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_7" mdb_item_1_field_size="5" ></entry>
+                    <entry global_macro_index="8" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_8" mdb_item_1_field_size="5" ></entry>
+                    <entry global_macro_index="9" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_9" mdb_item_1_field_size="5" ></entry>
+                    <entry global_macro_index="10" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_10" mdb_item_1_field_size="5" ></entry>
+                    <entry global_macro_index="11" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_11" mdb_item_1_field_size="5" ></entry>
+                    <entry global_macro_index="12" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_12" mdb_item_1_field_size="5" ></entry>
+                    <entry global_macro_index="13" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_13" mdb_item_1_field_size="5" ></entry>
+                    <entry global_macro_index="14" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_14" mdb_item_1_field_size="5" ></entry>
+                    <entry global_macro_index="15" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_15" mdb_item_1_field_size="5" ></entry>
+                    <entry global_macro_index="16" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_16" mdb_item_1_field_size="5" ></entry>
+                    <entry global_macro_index="17" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_17" mdb_item_1_field_size="5" ></entry>
+                    <entry global_macro_index="18" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_18" mdb_item_1_field_size="5" ></entry>
+                    <entry global_macro_index="19" dbal_table="DBAL_TABLE_MDB_2_GLOBAL_INDEX_19" mdb_item_1_field_size="5" ></entry>
+                </entries>
+            </table>
+            
+
+            <table name="mdb_3_info">
+                <key name="global_macro_index" size="DATA(mdb, dh, total_nof_macroes)"></key>
+                <value name="dbal_table" default="DBAL_TABLE_EMPTY"></value>
+                <value name="mdb_item_0_array_size" default="0"></value>
+                <entries>
+                    <entry global_macro_index="0" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_0" mdb_item_0_array_size="24" ></entry>
+                    <entry global_macro_index="1" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_1" mdb_item_0_array_size="24" ></entry>
+                    <entry global_macro_index="2" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_2" mdb_item_0_array_size="24" ></entry>
+                    <entry global_macro_index="3" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_3" mdb_item_0_array_size="24" ></entry>
+                    <entry global_macro_index="4" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_4" mdb_item_0_array_size="25" ></entry>
+                    <entry global_macro_index="5" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_5" mdb_item_0_array_size="25" ></entry>
+                    <entry global_macro_index="6" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_6" mdb_item_0_array_size="25" ></entry>
+                    <entry global_macro_index="7" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_7" mdb_item_0_array_size="25" ></entry>
+                    <entry global_macro_index="8" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_8" mdb_item_0_array_size="17" ></entry>
+                    <entry global_macro_index="9" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_9" mdb_item_0_array_size="17" ></entry>
+                    <entry global_macro_index="10" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_10" mdb_item_0_array_size="17" ></entry>
+                    <entry global_macro_index="11" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_11" mdb_item_0_array_size="17" ></entry>
+                    <entry global_macro_index="12" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_12" mdb_item_0_array_size="24" ></entry>
+                    <entry global_macro_index="13" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_13" mdb_item_0_array_size="24" ></entry>
+                    <entry global_macro_index="14" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_14" mdb_item_0_array_size="24" ></entry>
+                    <entry global_macro_index="15" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_15" mdb_item_0_array_size="24" ></entry>
+                    <entry global_macro_index="16" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_16" mdb_item_0_array_size="23" ></entry>
+                    <entry global_macro_index="17" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_17" mdb_item_0_array_size="23" ></entry>
+                    <entry global_macro_index="18" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_18" mdb_item_0_array_size="23" ></entry>
+                    <entry global_macro_index="19" dbal_table="DBAL_TABLE_MDB_3_GLOBAL_INDEX_19" mdb_item_0_array_size="23" ></entry>
+                </entries>
+            </table>
+
+
+
+
+
+
+            
+
+        </tables>
+
+    </sub_module>
+    
+    <sub_module name="pdbs">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="table_mdb_9_mdb_item_1_array_size" value="64"></define>
+            <define name="table_mdb_9_mdb_item_2_array_size" value="64"></define>
+            <define name="table_mdb_9_mdb_item_3_array_size" value="64"></define>
+            <define name="table_mdb_40_mdb_item_0_array_size" value="128"></define>
+            <define name="table_mdb_dynamic_memory_access_memory_access_field_size" value="74"></define>
+            <define name="table_mdb_mact_dynamic_memory_access_memory_access_field_size" value="3"></define>
+            <define name="table_mdb_kaps_dynamic_memory_access_sbc_memory_access_field_size" value="0"></define>
+            <define name="table_mdb_kaps_dynamic_memory_access_dpc_memory_access_field_size" value="22"></define>
+            <define name="table_mdb_ddha_dynamic_memory_access_sbc_memory_access_field_size" value="0"></define>
+            <define name="table_mdb_ddha_dynamic_memory_access_dpc_memory_access_field_size" value="12"></define>
+            <define name="table_mdb_ddhb_dynamic_memory_access_memory_access_field_size" value="18"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>            
+            <table name="mdb_11_info">
+                <key name="mdb_table" size="DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></key>
+                <value name="dbal_table" default="DBAL_TABLE_EMPTY"></value>
+                <value name="mdb_item_0_array_size" default="0"></value>
+                <value name="mdb_item_0_field_size" default="0"></value>
+                <value name="mdb_item_1_field_size" default="0"></value>
+                <value name="mdb_item_3_array_size" default="0"></value>
+                <value name="mdb_item_3_field_size" default="0"></value>
+                <value name="mdb_item_4_array_size" default="0"></value>
+                <value name="mdb_item_4_field_size" default="0"></value>
+                <entries>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_1" dbal_table="DBAL_TABLE_MDB_11_INLIF_1" mdb_item_0_array_size="16" mdb_item_0_field_size="1" mdb_item_1_field_size="3" mdb_item_3_array_size="1" mdb_item_3_field_size="3" mdb_item_4_array_size="1" mdb_item_4_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IVSI" dbal_table="DBAL_TABLE_MDB_11_IVSI" mdb_item_0_array_size="16" mdb_item_0_field_size="2" mdb_item_1_field_size="3" mdb_item_3_array_size="1" mdb_item_3_field_size="3" mdb_item_4_array_size="1" mdb_item_4_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_2" dbal_table="DBAL_TABLE_MDB_11_INLIF_2" mdb_item_0_array_size="16" mdb_item_0_field_size="2" mdb_item_1_field_size="3" mdb_item_3_array_size="1" mdb_item_3_field_size="3" mdb_item_4_array_size="1" mdb_item_4_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_3" dbal_table="DBAL_TABLE_MDB_11_INLIF_3" mdb_item_0_array_size="16" mdb_item_0_field_size="2" mdb_item_1_field_size="3" mdb_item_3_array_size="1" mdb_item_3_field_size="3" mdb_item_4_array_size="1" mdb_item_4_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ADS_1" dbal_table="DBAL_TABLE_MDB_11_ADS_1" mdb_item_0_array_size="8" mdb_item_0_field_size="2" mdb_item_1_field_size="3" mdb_item_3_array_size="1" mdb_item_3_field_size="3" mdb_item_4_array_size="1" mdb_item_4_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ADS_2" dbal_table="DBAL_TABLE_MDB_11_ADS_2" mdb_item_0_array_size="8" mdb_item_0_field_size="1" mdb_item_1_field_size="3" mdb_item_3_array_size="1" mdb_item_3_field_size="3" mdb_item_4_array_size="1" mdb_item_4_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_MAP" dbal_table="DBAL_TABLE_MDB_11_MAP" mdb_item_0_array_size="16" mdb_item_0_field_size="2" mdb_item_1_field_size="3" mdb_item_3_array_size="1" mdb_item_3_field_size="3" mdb_item_4_array_size="1" mdb_item_4_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_1" dbal_table="DBAL_TABLE_MDB_11_FEC_1" mdb_item_0_array_size="32" mdb_item_0_field_size="3" mdb_item_1_field_size="3" mdb_item_3_array_size="1" mdb_item_3_field_size="3" mdb_item_4_array_size="1" mdb_item_4_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_2" dbal_table="DBAL_TABLE_MDB_11_FEC_2" mdb_item_0_array_size="32" mdb_item_0_field_size="2" mdb_item_1_field_size="3" mdb_item_3_array_size="1" mdb_item_3_field_size="3" mdb_item_4_array_size="1" mdb_item_4_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_3" dbal_table="DBAL_TABLE_MDB_11_FEC_3" mdb_item_0_array_size="32" mdb_item_0_field_size="1" mdb_item_1_field_size="3" mdb_item_3_array_size="1" mdb_item_3_field_size="3" mdb_item_4_array_size="1" mdb_item_4_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_1_LL" dbal_table="DBAL_TABLE_MDB_11_LL_1" mdb_item_0_array_size="64" mdb_item_0_field_size="1" mdb_item_1_field_size="3" mdb_item_3_array_size="1" mdb_item_3_field_size="3" mdb_item_4_array_size="1" mdb_item_4_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_1_2_DATA" dbal_table="DBAL_TABLE_MDB_11_EEDB_1" mdb_item_0_array_size="128" mdb_item_0_field_size="3" mdb_item_1_field_size="3" mdb_item_3_array_size="2" mdb_item_3_field_size="3" mdb_item_4_array_size="2" mdb_item_4_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_3_LL" dbal_table="DBAL_TABLE_MDB_11_LL_2" mdb_item_0_array_size="64" mdb_item_0_field_size="1" mdb_item_1_field_size="3" mdb_item_3_array_size="1" mdb_item_3_field_size="3" mdb_item_4_array_size="1" mdb_item_4_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_3_4_DATA" dbal_table="DBAL_TABLE_MDB_11_EEDB_2" mdb_item_0_array_size="128" mdb_item_0_field_size="3" mdb_item_1_field_size="3" mdb_item_3_array_size="2" mdb_item_3_field_size="3" mdb_item_4_array_size="2" mdb_item_4_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_5_LL" dbal_table="DBAL_TABLE_MDB_11_LL_3" mdb_item_0_array_size="64" mdb_item_0_field_size="1" mdb_item_1_field_size="3" mdb_item_3_array_size="1" mdb_item_3_field_size="3" mdb_item_4_array_size="1" mdb_item_4_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_5_6_DATA" dbal_table="DBAL_TABLE_MDB_11_EEDB_3" mdb_item_0_array_size="128" mdb_item_0_field_size="3" mdb_item_1_field_size="3" mdb_item_3_array_size="2" mdb_item_3_field_size="3" mdb_item_4_array_size="2" mdb_item_4_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_7_LL" dbal_table="DBAL_TABLE_MDB_11_LL_4" mdb_item_0_array_size="64" mdb_item_0_field_size="1" mdb_item_1_field_size="3" mdb_item_3_array_size="1" mdb_item_3_field_size="3" mdb_item_4_array_size="1" mdb_item_4_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_7_8_DATA" dbal_table="DBAL_TABLE_MDB_11_EEDB_4" mdb_item_0_array_size="128" mdb_item_0_field_size="2" mdb_item_1_field_size="3" mdb_item_3_array_size="2" mdb_item_3_field_size="3" mdb_item_4_array_size="2" mdb_item_4_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EVSI" dbal_table="DBAL_TABLE_MDB_11_EVSI" mdb_item_0_array_size="16" mdb_item_0_field_size="1" mdb_item_1_field_size="3" mdb_item_3_array_size="1" mdb_item_3_field_size="3" mdb_item_4_array_size="1" mdb_item_4_field_size="3" ></entry>
+                </entries>
+            </table>
+
+            <table name="mdb_26_info">
+                <key name="mdb_table" size="DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></key>
+                <value name="dbal_table" default="0"></value>
+                <value name="mdb_item_0_field_size" default="0"></value>
+                <value name="mdb_item_1_field_size" default="0"></value>
+                <entries>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_1" dbal_table="DBAL_TABLE_MDB_26_ISEM_1" mdb_item_0_field_size="3" mdb_item_1_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_1" dbal_table="DBAL_TABLE_MDB_26_INLIF_1" mdb_item_0_field_size="2" mdb_item_1_field_size="2" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IVSI" dbal_table="DBAL_TABLE_MDB_26_IVSI" mdb_item_0_field_size="3" mdb_item_1_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_2" dbal_table="DBAL_TABLE_MDB_26_ISEM_2" mdb_item_0_field_size="4" mdb_item_1_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_2" dbal_table="DBAL_TABLE_MDB_26_INLIF_2" mdb_item_0_field_size="4" mdb_item_1_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_3" dbal_table="DBAL_TABLE_MDB_26_ISEM_3" mdb_item_0_field_size="4" mdb_item_1_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_INLIF_3" dbal_table="DBAL_TABLE_MDB_26_INLIF_3" mdb_item_0_field_size="4" mdb_item_1_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM" dbal_table="DBAL_TABLE_MDB_26_LEM" mdb_item_0_field_size="11" mdb_item_1_field_size="11" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ADS_1" dbal_table="DBAL_TABLE_MDB_26_ADS_1" mdb_item_0_field_size="3" mdb_item_1_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ADS_2" dbal_table="DBAL_TABLE_MDB_26_ADS_2" mdb_item_0_field_size="2" mdb_item_1_field_size="2" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_1" dbal_table="DBAL_TABLE_MDB_26_KAPS_1" mdb_item_0_field_size="12" mdb_item_1_field_size="12" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_BIG_KAPS_BB_2" dbal_table="DBAL_TABLE_MDB_26_KAPS_2" mdb_item_0_field_size="6" mdb_item_1_field_size="6" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IOEM_0" dbal_table="DBAL_TABLE_MDB_26_IOEM_0" mdb_item_0_field_size="2" mdb_item_1_field_size="2" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IOEM_1" dbal_table="DBAL_TABLE_MDB_26_IOEM_1" mdb_item_0_field_size="2" mdb_item_1_field_size="2" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_MAP" dbal_table="DBAL_TABLE_MDB_26_MAP" mdb_item_0_field_size="3" mdb_item_1_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_1" dbal_table="DBAL_TABLE_MDB_26_FEC_1" mdb_item_0_field_size="7" mdb_item_1_field_size="7" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_2" dbal_table="DBAL_TABLE_MDB_26_FEC_2" mdb_item_0_field_size="4" mdb_item_1_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_3" dbal_table="DBAL_TABLE_MDB_26_FEC_3" mdb_item_0_field_size="2" mdb_item_1_field_size="2" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_MC_ID" dbal_table="DBAL_TABLE_MDB_26_MC_ID" mdb_item_0_field_size="2" mdb_item_1_field_size="2" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_GLEM_0" dbal_table="DBAL_TABLE_MDB_26_GLEM_0" mdb_item_0_field_size="3" mdb_item_1_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_GLEM_1" dbal_table="DBAL_TABLE_MDB_26_GLEM_1" mdb_item_0_field_size="3" mdb_item_1_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_1_2_DATA" dbal_table="DBAL_TABLE_MDB_26_EEDB_1" mdb_item_0_field_size="7" mdb_item_1_field_size="7" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_3_4_DATA" dbal_table="DBAL_TABLE_MDB_26_EEDB_2" mdb_item_0_field_size="6" mdb_item_1_field_size="6" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_5_6_DATA" dbal_table="DBAL_TABLE_MDB_26_EEDB_3" mdb_item_0_field_size="6" mdb_item_1_field_size="6" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EEDB_7_8_DATA" dbal_table="DBAL_TABLE_MDB_26_EEDB_4" mdb_item_0_field_size="4" mdb_item_1_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EOEM_0" dbal_table="DBAL_TABLE_MDB_26_EOEM_0" mdb_item_0_field_size="4" mdb_item_1_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EOEM_1" dbal_table="DBAL_TABLE_MDB_26_EOEM_1" mdb_item_0_field_size="4" mdb_item_1_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ESEM" dbal_table="DBAL_TABLE_MDB_26_ESEM" mdb_item_0_field_size="5" mdb_item_1_field_size="5" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EVSI" dbal_table="DBAL_TABLE_MDB_26_EVSI" mdb_item_0_field_size="2" mdb_item_1_field_size="2" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_1" dbal_table="DBAL_TABLE_MDB_26_EXEM_1" mdb_item_0_field_size="3" mdb_item_1_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_2" dbal_table="DBAL_TABLE_MDB_26_EXEM_2" mdb_item_0_field_size="3" mdb_item_1_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_3" dbal_table="DBAL_TABLE_MDB_26_EXEM_3" mdb_item_0_field_size="6" mdb_item_1_field_size="6" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_4" dbal_table="DBAL_TABLE_MDB_26_EXEM_4" mdb_item_0_field_size="3" mdb_item_1_field_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_RMEP" dbal_table="DBAL_TABLE_MDB_26_RMEP" mdb_item_0_field_size="2" mdb_item_1_field_size="2" ></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+        
+    <sub_module name="em">
+
+        <features>
+            <feature name="entry_type_parser" value="0"></feature>
+        </features>
+
+        <defines>
+            <define name="age_support_per_entry_size_ratio" value="1"></define>
+            <define name="defragmentation_priority_supported" value="0"></define>
+            <define name="disable_cuckoo_loop_detection_support" value="1"></define>
+            <define name="disable_cuckoo_hit_bit_sync" value="1"></define>
+            <define name="age_profile_per_ratio_support" value="1"></define>
+            <define name="flex_mag_supported" value="1"></define>
+            <define name="flex_fully_supported" value="1"></define>
+            <define name="extra_vmv_shift_registers" value="1"></define>
+            <define name="flush_max_supported_payload" value="80"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        
+            <table name="em_info">
+                <key name="dbal_id" size="DBAL_NOF_PHYSICAL_TABLES"></key>
+                <value name="tid_size" default="0"></value>
+                <value name="em_interface" default="INVALIDm"></value>
+                <value name="age_mem" default="INVALIDm"></value>
+                <value name="age_ovf_cam_mem" default="INVALIDm"></value>
+                <value name="status_reg" default="INVALIDr"></value>
+                <value name="interrupt_field" default="INVALIDf"></value>
+                <value name="step_table_size" default="0"></value>
+                <value name="ovf_cam_size" default="0"></value>
+                <entries>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_ISEM_1" tid_size="6" em_interface="MDB_ISEM_1m" status_reg="MDB_REG_117r" interrupt_field="FIELD_1_1f" step_table_size="1024" ovf_cam_size="8" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_ISEM_2" tid_size="6" em_interface="MDB_ISEM_2m" status_reg="MDB_REG_140r" interrupt_field="FIELD_2_2f" step_table_size="1024" ovf_cam_size="8" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_ISEM_3" tid_size="6" em_interface="MDB_ISEM_3m" status_reg="MDB_REG_163r" interrupt_field="FIELD_3_3f" step_table_size="1024" ovf_cam_size="8" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_LEM" tid_size="6" em_interface="MDB_LEMm" age_mem="MDB_MEM_0200000m" age_ovf_cam_mem="MDB_MEM_21000m" status_reg="MDB_REG_217r" interrupt_field="FIELD_4_4f" step_table_size="2048" ovf_cam_size="8" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_IOEM_1" tid_size="6" em_interface="MDB_IOEM_0m" status_reg="MDB_REG_256r" interrupt_field="FIELD_5_5f" step_table_size="512" ovf_cam_size="8" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_IOEM_2" tid_size="6" em_interface="MDB_IOEM_1m" status_reg="MDB_REG_275r" interrupt_field="FIELD_6_6f" step_table_size="512" ovf_cam_size="8" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_PPMC" tid_size="2" em_interface="MDB_MC_IDm" status_reg="MDB_REG_301r" interrupt_field="FIELD_7_7f" step_table_size="512" ovf_cam_size="8" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_GLEM_1" tid_size="2" em_interface="MDB_GLEM_0m" status_reg="MDB_REG_323r" interrupt_field="FIELD_8_8f" step_table_size="512" ovf_cam_size="8" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_GLEM_2" tid_size="2" em_interface="MDB_GLEM_1m" status_reg="MDB_REG_341r" interrupt_field="FIELD_9_9f" step_table_size="512" ovf_cam_size="8" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_EOEM_1" tid_size="6" em_interface="MDB_EOEM_0m" status_reg="MDB_REG_368r" interrupt_field="FIELD_10_10f" step_table_size="512" ovf_cam_size="8" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_EOEM_2" tid_size="6" em_interface="MDB_EOEM_1m" status_reg="MDB_REG_387r" interrupt_field="FIELD_11_11f" step_table_size="512" ovf_cam_size="8" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_ESEM" tid_size="6" em_interface="MDB_ESEMm" status_reg="MDB_REG_415r" interrupt_field="FIELD_12_12f" step_table_size="512" ovf_cam_size="8" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_SEXEM_1" tid_size="6" em_interface="MDB_EXEM_1m" status_reg="MDB_REG_438r" interrupt_field="FIELD_13_13f" step_table_size="512" ovf_cam_size="8" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_SEXEM_2" tid_size="6" em_interface="MDB_EXEM_2m" status_reg="MDB_REG_461r" interrupt_field="FIELD_14_14f" step_table_size="512" ovf_cam_size="8" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_SEXEM_3" tid_size="6" em_interface="MDB_EXEM_3m"  age_mem="MDB_MEM_210000m" age_ovf_cam_mem="MDB_MEM_80000m" status_reg="MDB_REG_519r" interrupt_field="FIELD_15_15f" step_table_size="512" ovf_cam_size="8" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_LEXEM" tid_size="6" em_interface="MDB_EXEM_4m"  age_mem="MDB_MEM_220000m" age_ovf_cam_mem="MDB_MEM_89000m" status_reg="MDB_REG_573r" interrupt_field="FIELD_16_16f" step_table_size="512" ovf_cam_size="8" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_RMEP_EM" tid_size="3" em_interface="MDB_RMEPm" status_reg="MDB_REG_599r" interrupt_field="FIELD_17_17f" step_table_size="512" ovf_cam_size="8" ></entry>
+                </entries>
+            </table>
+        
+            <table name="step_table_pdb_max_depth">
+                <key name="dbal_id" size="DBAL_NOF_PHYSICAL_TABLES"></key>
+                <value name="max_depth" default="16"></value>
+                 <entries>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_GLEM_1" max_depth="8"></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_GLEM_2" max_depth="8"></entry>
+                 </entries>
+            </table>
+            
+            <table name="mdb_15_info">
+                <key name="mdb_table" size="DBAL_NOF_PHYSICAL_TABLES"></key>
+                <value name="dbal_table" default="0"></value>
+                <value name="mdb_item_5_field_size" default="0"></value>
+                <entries>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ISEM_1" dbal_table="DBAL_TABLE_MDB_15_ISEM_1" mdb_item_5_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ISEM_2" dbal_table="DBAL_TABLE_MDB_15_ISEM_2" mdb_item_5_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ISEM_3" dbal_table="DBAL_TABLE_MDB_15_ISEM_3" mdb_item_5_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_LEM" dbal_table="DBAL_TABLE_MDB_15_LEM" mdb_item_5_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_IOEM_1" dbal_table="DBAL_TABLE_MDB_15_IOEM_0" mdb_item_5_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_IOEM_2" dbal_table="DBAL_TABLE_MDB_15_IOEM_1" mdb_item_5_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_PPMC" dbal_table="DBAL_TABLE_MDB_15_MC_ID" mdb_item_5_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_GLEM_1" dbal_table="DBAL_TABLE_MDB_15_GLEM_0" mdb_item_5_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_GLEM_2" dbal_table="DBAL_TABLE_MDB_15_GLEM_1" mdb_item_5_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_EOEM_1" dbal_table="DBAL_TABLE_MDB_15_EOEM_0" mdb_item_5_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_EOEM_2" dbal_table="DBAL_TABLE_MDB_15_EOEM_1" mdb_item_5_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ESEM" dbal_table="DBAL_TABLE_MDB_15_ESEM" mdb_item_5_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_SEXEM_1" dbal_table="DBAL_TABLE_MDB_15_EXEM_1" mdb_item_5_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_SEXEM_2" dbal_table="DBAL_TABLE_MDB_15_EXEM_2" mdb_item_5_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_SEXEM_3" dbal_table="DBAL_TABLE_MDB_15_EXEM_3" mdb_item_5_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_LEXEM" dbal_table="DBAL_TABLE_MDB_15_EXEM_4" mdb_item_5_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_RMEP_EM" dbal_table="DBAL_TABLE_MDB_15_RMEP" mdb_item_5_field_size="4" ></entry>
+                </entries>
+            </table>
+            
+            <table name="mdb_16_info">
+                <key name="mdb_table" size="DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></key>
+                <value name="dbal_table" default="DBAL_TABLE_EMPTY"></value>
+                <value name="mdb_item_0_field_size" default="0"></value>
+                <entries>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_1" dbal_table="DBAL_TABLE_MDB_16_ISEM_1" mdb_item_0_field_size="7" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_2" dbal_table="DBAL_TABLE_MDB_16_ISEM_2" mdb_item_0_field_size="9" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_3" dbal_table="DBAL_TABLE_MDB_16_ISEM_3" mdb_item_0_field_size="9" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM" dbal_table="DBAL_TABLE_MDB_16_LEM" mdb_item_0_field_size="12" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IOEM_0" dbal_table="DBAL_TABLE_MDB_16_IOEM_0" mdb_item_0_field_size="5" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IOEM_1" dbal_table="DBAL_TABLE_MDB_16_IOEM_1" mdb_item_0_field_size="5" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_MC_ID" dbal_table="DBAL_TABLE_MDB_16_MC_ID" mdb_item_0_field_size="5" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_GLEM_0" dbal_table="DBAL_TABLE_MDB_16_GLEM_0" mdb_item_0_field_size="7" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_GLEM_1" dbal_table="DBAL_TABLE_MDB_16_GLEM_1" mdb_item_0_field_size="7" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EOEM_0" dbal_table="DBAL_TABLE_MDB_16_EOEM_0" mdb_item_0_field_size="9" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EOEM_1" dbal_table="DBAL_TABLE_MDB_16_EOEM_1" mdb_item_0_field_size="9" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ESEM" dbal_table="DBAL_TABLE_MDB_16_ESEM" mdb_item_0_field_size="11" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_1" dbal_table="DBAL_TABLE_MDB_16_EXEM_1" mdb_item_0_field_size="7" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_2" dbal_table="DBAL_TABLE_MDB_16_EXEM_2" mdb_item_0_field_size="7" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_3" dbal_table="DBAL_TABLE_MDB_16_EXEM_3" mdb_item_0_field_size="13" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_4" dbal_table="DBAL_TABLE_MDB_16_EXEM_4" mdb_item_0_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_RMEP" dbal_table="DBAL_TABLE_MDB_16_RMEP" mdb_item_0_field_size="5" ></entry>
+                </entries>
+            </table>
+            
+            <table name="mdb_21_info">
+                <key name="mdb_table" size="DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></key>
+                <value name="dbal_table" default="0"></value>
+                <value name="mdb_item_0_field_size" default="0"></value>
+                <entries>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM" dbal_table="DBAL_TABLE_MDB_21_LEM" mdb_item_0_field_size="16" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_3" dbal_table="DBAL_TABLE_MDB_21_EXEM_3" mdb_item_0_field_size="32" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_4" dbal_table="DBAL_TABLE_MDB_21_EXEM_4" mdb_item_0_field_size="32" ></entry>
+                </entries>
+            </table>
+            
+            <table name="mdb_23_info">
+                <key name="mdb_table" size="DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></key>
+                <value name="dbal_table" default="0"></value>
+                <value name="mdb_item_0_field_size" default="0"></value>
+                <value name="mdb_item_1_field_size" default="0"></value>
+                <entries>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM" dbal_table="DBAL_TABLE_MDB_23_LEM" mdb_item_0_field_size="12" mdb_item_1_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_3" dbal_table="DBAL_TABLE_MDB_23_EXEM_3" mdb_item_0_field_size="13" mdb_item_1_field_size="4" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_4" dbal_table="DBAL_TABLE_MDB_23_EXEM_4" mdb_item_0_field_size="4" mdb_item_1_field_size="2" ></entry>
+                </entries>
+            </table>
+
+            <table name="mdb_24_info">
+                <key name="mdb_table" size="DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></key>
+                <value name="dbal_table" default="0"></value>
+                <value name="mdb_item_0_array_size" default="0"></value>
+                <value name="mdb_item_1_array_size" default="0"></value>
+                <value name="mdb_item_1_field_size" default="0"></value>
+                <entries>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM" dbal_table="DBAL_TABLE_MDB_24_LEM" mdb_item_0_array_size="12" mdb_item_1_array_size="12" mdb_item_1_field_size="18" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_3" dbal_table="DBAL_TABLE_MDB_24_EXEM_3" mdb_item_0_array_size="13" mdb_item_1_array_size="13" mdb_item_1_field_size="18" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_4" dbal_table="DBAL_TABLE_MDB_24_EXEM_4" mdb_item_0_array_size="4" mdb_item_1_array_size="4" mdb_item_1_field_size="16" ></entry>
+                </entries>
+            </table>
+            
+            <table name="mdb_29_info">
+                <key name="mdb_table" size="DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></key>
+                <value name="dbal_table" default="0"></value>
+                <value name="mdb_item_0_array_size" default="0"></value>
+                <value name="mdb_item_1_array_size" default="0"></value>
+                <entries>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_1" dbal_table="DBAL_TABLE_MDB_29_ISEM_1" mdb_item_0_array_size="3" mdb_item_1_array_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_2" dbal_table="DBAL_TABLE_MDB_29_ISEM_2" mdb_item_0_array_size="4" mdb_item_1_array_size="4" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ISEM_3" dbal_table="DBAL_TABLE_MDB_29_ISEM_3" mdb_item_0_array_size="4" mdb_item_1_array_size="4" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM" dbal_table="DBAL_TABLE_MDB_29_LEM" mdb_item_0_array_size="11" mdb_item_1_array_size="11" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IOEM_0" dbal_table="DBAL_TABLE_MDB_29_IOEM_0" mdb_item_0_array_size="2" mdb_item_1_array_size="2" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_IOEM_1" dbal_table="DBAL_TABLE_MDB_29_IOEM_1" mdb_item_0_array_size="2" mdb_item_1_array_size="2" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_MC_ID" dbal_table="DBAL_TABLE_MDB_29_MC_ID" mdb_item_0_array_size="2" mdb_item_1_array_size="2" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_GLEM_0" dbal_table="DBAL_TABLE_MDB_29_GLEM_0" mdb_item_0_array_size="3" mdb_item_1_array_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_GLEM_1" dbal_table="DBAL_TABLE_MDB_29_GLEM_1" mdb_item_0_array_size="3" mdb_item_1_array_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EOEM_0" dbal_table="DBAL_TABLE_MDB_29_EOEM_0" mdb_item_0_array_size="4" mdb_item_1_array_size="4" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EOEM_1" dbal_table="DBAL_TABLE_MDB_29_EOEM_1" mdb_item_0_array_size="4" mdb_item_1_array_size="4" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_ESEM" dbal_table="DBAL_TABLE_MDB_29_ESEM" mdb_item_0_array_size="5" mdb_item_1_array_size="5" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_1" dbal_table="DBAL_TABLE_MDB_29_EXEM_1" mdb_item_0_array_size="3" mdb_item_1_array_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_2" dbal_table="DBAL_TABLE_MDB_29_EXEM_2" mdb_item_0_array_size="3" mdb_item_1_array_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_3" dbal_table="DBAL_TABLE_MDB_29_EXEM_3" mdb_item_0_array_size="6" mdb_item_1_array_size="6" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_4" dbal_table="DBAL_TABLE_MDB_29_EXEM_4" mdb_item_0_array_size="3" mdb_item_1_array_size="3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_RMEP" dbal_table="DBAL_TABLE_MDB_29_RMEP" mdb_item_0_array_size="2" mdb_item_1_array_size="2" ></entry>
+                </entries>
+            </table>
+            
+            
+            <table name="mdb_31_info">
+                <key name="mdb_table" size="DBAL_NOF_PHYSICAL_TABLES"></key>
+                <value name="dbal_table" default="0"></value>
+                <value name="array_size" default="0"></value>
+                <value name="mdb_item_0_field_size" default="0"></value>
+                <entries>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ISEM_1" dbal_table="DBAL_TABLE_MDB_31_ISEM_1" array_size="10" mdb_item_0_field_size="25" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ISEM_2" dbal_table="DBAL_TABLE_MDB_31_ISEM_2" array_size="10" mdb_item_0_field_size="25" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ISEM_3" dbal_table="DBAL_TABLE_MDB_31_ISEM_3" array_size="10" mdb_item_0_field_size="25" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_LEM" dbal_table="DBAL_TABLE_MDB_31_LEM" array_size="11" mdb_item_0_field_size="27" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_IOEM_1" dbal_table="DBAL_TABLE_MDB_31_IOEM_0" array_size="10" mdb_item_0_field_size="25" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_IOEM_2" dbal_table="DBAL_TABLE_MDB_31_IOEM_1" array_size="10" mdb_item_0_field_size="25" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_PPMC" dbal_table="DBAL_TABLE_MDB_31_MC_ID" array_size="10" mdb_item_0_field_size="25" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_GLEM_1" dbal_table="DBAL_TABLE_MDB_31_GLEM_0" array_size="9" mdb_item_0_field_size="23" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_GLEM_2" dbal_table="DBAL_TABLE_MDB_31_GLEM_1" array_size="9" mdb_item_0_field_size="23" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_EOEM_1" dbal_table="DBAL_TABLE_MDB_31_EOEM_0" array_size="10" mdb_item_0_field_size="25" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_EOEM_2" dbal_table="DBAL_TABLE_MDB_31_EOEM_1" array_size="10" mdb_item_0_field_size="25" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ESEM" dbal_table="DBAL_TABLE_MDB_31_ESEM" array_size="10" mdb_item_0_field_size="25" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_SEXEM_1" dbal_table="DBAL_TABLE_MDB_31_EXEM_1" array_size="10" mdb_item_0_field_size="25" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_SEXEM_2" dbal_table="DBAL_TABLE_MDB_31_EXEM_2" array_size="10" mdb_item_0_field_size="25" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_SEXEM_3" dbal_table="DBAL_TABLE_MDB_31_EXEM_3" array_size="10" mdb_item_0_field_size="25" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_LEXEM" dbal_table="DBAL_TABLE_MDB_31_EXEM_4" array_size="10" mdb_item_0_field_size="25" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_RMEP_EM" dbal_table="DBAL_TABLE_MDB_31_RMEP" array_size="10" mdb_item_0_field_size="25" ></entry>
+                </entries>
+            </table>
+            
+            <table name="mdb_32_info">
+                <key name="mdb_table" size="DBAL_NOF_PHYSICAL_TABLES"></key>
+                <value name="dbal_table" default="0"></value>
+                <value name="mdb_item_0_field_size" default="0"></value>
+                <entries>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ISEM_1" dbal_table="DBAL_TABLE_MDB_32_ISEM_1" mdb_item_0_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ISEM_2" dbal_table="DBAL_TABLE_MDB_32_ISEM_2" mdb_item_0_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ISEM_3" dbal_table="DBAL_TABLE_MDB_32_ISEM_3" mdb_item_0_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_LEM" dbal_table="DBAL_TABLE_MDB_32_LEM" mdb_item_0_field_size="11" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_IOEM_1" dbal_table="DBAL_TABLE_MDB_32_IOEM_0" mdb_item_0_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_IOEM_2" dbal_table="DBAL_TABLE_MDB_32_IOEM_1" mdb_item_0_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_PPMC" dbal_table="DBAL_TABLE_MDB_32_MC_ID" mdb_item_0_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_GLEM_1" dbal_table="DBAL_TABLE_MDB_32_GLEM_0" mdb_item_0_field_size="9" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_GLEM_2" dbal_table="DBAL_TABLE_MDB_32_GLEM_1" mdb_item_0_field_size="9" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_EOEM_1" dbal_table="DBAL_TABLE_MDB_32_EOEM_0" mdb_item_0_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_EOEM_2" dbal_table="DBAL_TABLE_MDB_32_EOEM_1" mdb_item_0_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ESEM" dbal_table="DBAL_TABLE_MDB_32_ESEM" mdb_item_0_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_SEXEM_1" dbal_table="DBAL_TABLE_MDB_32_EXEM_1" mdb_item_0_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_SEXEM_2" dbal_table="DBAL_TABLE_MDB_32_EXEM_2" mdb_item_0_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_SEXEM_3" dbal_table="DBAL_TABLE_MDB_32_EXEM_3" mdb_item_0_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_LEXEM" dbal_table="DBAL_TABLE_MDB_32_EXEM_4" mdb_item_0_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_RMEP_EM" dbal_table="DBAL_TABLE_MDB_32_RMEP" mdb_item_0_field_size="10" ></entry>
+                </entries>
+            </table>
+
+            <table name="mdb_41_info">
+                <key name="mdb_table" size="DBAL_NOF_PHYSICAL_TABLES"></key>
+                <value name="dbal_table" default="0"></value>
+                <value name="array_size" default="0"></value>
+                <value name="mdb_item_2_field_size" default="0"></value>
+                <value name="mdb_item_3_field_size" default="0"></value>
+                <entries>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ISEM_1" dbal_table="DBAL_TABLE_MDB_41_ISEM_1" array_size="10" mdb_item_2_field_size="10" mdb_item_3_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ISEM_2" dbal_table="DBAL_TABLE_MDB_41_ISEM_2" array_size="10" mdb_item_2_field_size="10" mdb_item_3_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ISEM_3" dbal_table="DBAL_TABLE_MDB_41_ISEM_3" array_size="10" mdb_item_2_field_size="10" mdb_item_3_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_LEM" dbal_table="DBAL_TABLE_MDB_41_LEM" array_size="11" mdb_item_2_field_size="11" mdb_item_3_field_size="11" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_IOEM_1" dbal_table="DBAL_TABLE_MDB_41_IOEM_0" array_size="10" mdb_item_2_field_size="10" mdb_item_3_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_IOEM_2" dbal_table="DBAL_TABLE_MDB_41_IOEM_1" array_size="10" mdb_item_2_field_size="10" mdb_item_3_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_PPMC" dbal_table="DBAL_TABLE_MDB_41_MC_ID" array_size="10" mdb_item_2_field_size="10" mdb_item_3_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_GLEM_1" dbal_table="DBAL_TABLE_MDB_41_GLEM_0" array_size="9" mdb_item_2_field_size="9" mdb_item_3_field_size="9" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_GLEM_2" dbal_table="DBAL_TABLE_MDB_41_GLEM_1" array_size="9" mdb_item_2_field_size="9" mdb_item_3_field_size="9" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_EOEM_1" dbal_table="DBAL_TABLE_MDB_41_EOEM_0" array_size="10" mdb_item_2_field_size="10" mdb_item_3_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_EOEM_2" dbal_table="DBAL_TABLE_MDB_41_EOEM_1" array_size="10" mdb_item_2_field_size="10" mdb_item_3_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ESEM" dbal_table="DBAL_TABLE_MDB_41_ESEM" array_size="10" mdb_item_2_field_size="10" mdb_item_3_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_SEXEM_1" dbal_table="DBAL_TABLE_MDB_41_EXEM_1" array_size="10" mdb_item_2_field_size="10" mdb_item_3_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_SEXEM_2" dbal_table="DBAL_TABLE_MDB_41_EXEM_2" array_size="10" mdb_item_2_field_size="10" mdb_item_3_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_SEXEM_3" dbal_table="DBAL_TABLE_MDB_41_EXEM_3" array_size="10" mdb_item_2_field_size="10" mdb_item_3_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_LEXEM" dbal_table="DBAL_TABLE_MDB_41_EXEM_4" array_size="10" mdb_item_2_field_size="10" mdb_item_3_field_size="10" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_RMEP_EM" dbal_table="DBAL_TABLE_MDB_41_RMEP" array_size="10" mdb_item_2_field_size="10" mdb_item_3_field_size="10" ></entry>
+                </entries>
+            </table>
+
+            <table name="mdb_em_tables_info">
+                <key name="mdb_table" size="DBAL_NOF_PHYSICAL_TABLES"></key>
+                <value name="mdb_14_table" default="0"></value>
+                <value name="mdb_15_table" default="0"></value>
+                <value name="mdb_17_table" default="0"></value>
+                <value name="mdb_step_table" default="0"></value>
+                <value name="mdb_32_table" default="0"></value>
+                <entries>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ISEM_1" mdb_14_table="DBAL_TABLE_MDB_14_ISEM_1" mdb_15_table="DBAL_TABLE_MDB_15_ISEM_1" mdb_17_table="DBAL_TABLE_MDB_17_ISEM_1" mdb_step_table="DBAL_TABLE_MDB_41_ISEM_1" mdb_32_table="DBAL_TABLE_MDB_32_ISEM_1" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ISEM_2" mdb_14_table="DBAL_TABLE_MDB_14_ISEM_2" mdb_15_table="DBAL_TABLE_MDB_15_ISEM_2" mdb_17_table="DBAL_TABLE_MDB_17_ISEM_2" mdb_step_table="DBAL_TABLE_MDB_41_ISEM_2" mdb_32_table="DBAL_TABLE_MDB_32_ISEM_2" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ISEM_3" mdb_14_table="DBAL_TABLE_MDB_14_ISEM_3" mdb_15_table="DBAL_TABLE_MDB_15_ISEM_3" mdb_17_table="DBAL_TABLE_MDB_17_ISEM_3" mdb_step_table="DBAL_TABLE_MDB_41_ISEM_3" mdb_32_table="DBAL_TABLE_MDB_32_ISEM_3" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_LEM" mdb_14_table="DBAL_TABLE_MDB_14_LEM" mdb_15_table="DBAL_TABLE_MDB_15_LEM" mdb_17_table="DBAL_TABLE_MDB_17_LEM" mdb_step_table="DBAL_TABLE_MDB_41_LEM" mdb_32_table="DBAL_TABLE_MDB_32_LEM" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_IOEM_1" mdb_14_table="DBAL_TABLE_MDB_14_IOEM_0" mdb_15_table="DBAL_TABLE_MDB_15_IOEM_0" mdb_17_table="DBAL_TABLE_MDB_17_IOEM_0" mdb_step_table="DBAL_TABLE_MDB_41_IOEM_0" mdb_32_table="DBAL_TABLE_MDB_32_IOEM_0" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_IOEM_2" mdb_14_table="DBAL_TABLE_MDB_14_IOEM_1" mdb_15_table="DBAL_TABLE_MDB_15_IOEM_1" mdb_17_table="DBAL_TABLE_MDB_17_IOEM_1" mdb_step_table="DBAL_TABLE_MDB_41_IOEM_1" mdb_32_table="DBAL_TABLE_MDB_32_IOEM_1" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_PPMC" mdb_14_table="DBAL_TABLE_MDB_14_MC_ID" mdb_15_table="DBAL_TABLE_MDB_15_MC_ID" mdb_17_table="DBAL_TABLE_MDB_17_MC_ID" mdb_step_table="DBAL_TABLE_MDB_41_MC_ID" mdb_32_table="DBAL_TABLE_MDB_32_MC_ID" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_GLEM_1" mdb_14_table="DBAL_TABLE_MDB_14_GLEM_0" mdb_15_table="DBAL_TABLE_MDB_15_GLEM_0" mdb_17_table="DBAL_TABLE_MDB_17_GLEM_0" mdb_step_table="DBAL_TABLE_MDB_41_GLEM_0" mdb_32_table="DBAL_TABLE_MDB_32_GLEM_0" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_GLEM_2" mdb_14_table="DBAL_TABLE_MDB_14_GLEM_1" mdb_15_table="DBAL_TABLE_MDB_15_GLEM_1" mdb_17_table="DBAL_TABLE_MDB_17_GLEM_1" mdb_step_table="DBAL_TABLE_MDB_41_GLEM_1" mdb_32_table="DBAL_TABLE_MDB_32_GLEM_1" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_EOEM_1" mdb_14_table="DBAL_TABLE_MDB_14_EOEM_0" mdb_15_table="DBAL_TABLE_MDB_15_EOEM_0" mdb_17_table="DBAL_TABLE_MDB_17_EOEM_0" mdb_step_table="DBAL_TABLE_MDB_41_EOEM_0" mdb_32_table="DBAL_TABLE_MDB_32_EOEM_0" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_EOEM_2" mdb_14_table="DBAL_TABLE_MDB_14_EOEM_1" mdb_15_table="DBAL_TABLE_MDB_15_EOEM_1" mdb_17_table="DBAL_TABLE_MDB_17_EOEM_1" mdb_step_table="DBAL_TABLE_MDB_41_EOEM_1" mdb_32_table="DBAL_TABLE_MDB_32_EOEM_1" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_ESEM" mdb_14_table="DBAL_TABLE_MDB_14_ESEM" mdb_15_table="DBAL_TABLE_MDB_15_ESEM" mdb_17_table="DBAL_TABLE_MDB_17_ESEM" mdb_step_table="DBAL_TABLE_MDB_41_ESEM" mdb_32_table="DBAL_TABLE_MDB_32_ESEM" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_SEXEM_1" mdb_14_table="DBAL_TABLE_MDB_14_EXEM_1" mdb_15_table="DBAL_TABLE_MDB_15_EXEM_1" mdb_17_table="DBAL_TABLE_MDB_17_EXEM_1" mdb_step_table="DBAL_TABLE_MDB_41_EXEM_1" mdb_32_table="DBAL_TABLE_MDB_32_EXEM_1" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_SEXEM_2" mdb_14_table="DBAL_TABLE_MDB_14_EXEM_2" mdb_15_table="DBAL_TABLE_MDB_15_EXEM_2" mdb_17_table="DBAL_TABLE_MDB_17_EXEM_2" mdb_step_table="DBAL_TABLE_MDB_41_EXEM_2" mdb_32_table="DBAL_TABLE_MDB_32_EXEM_2" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_SEXEM_3" mdb_14_table="DBAL_TABLE_MDB_14_EXEM_3" mdb_15_table="DBAL_TABLE_MDB_15_EXEM_3" mdb_17_table="DBAL_TABLE_MDB_17_EXEM_3" mdb_step_table="DBAL_TABLE_MDB_41_EXEM_3" mdb_32_table="DBAL_TABLE_MDB_32_EXEM_3" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_LEXEM" mdb_14_table="DBAL_TABLE_MDB_14_EXEM_4" mdb_15_table="DBAL_TABLE_MDB_15_EXEM_4" mdb_17_table="DBAL_TABLE_MDB_17_EXEM_4" mdb_step_table="DBAL_TABLE_MDB_41_EXEM_4" mdb_32_table="DBAL_TABLE_MDB_32_EXEM_4" ></entry>
+                    <entry mdb_table="DBAL_PHYSICAL_TABLE_RMEP_EM" mdb_14_table="DBAL_TABLE_MDB_14_RMEP" mdb_15_table="DBAL_TABLE_MDB_15_RMEP" mdb_17_table="DBAL_TABLE_MDB_17_RMEP" mdb_step_table="DBAL_TABLE_MDB_41_RMEP" mdb_32_table="DBAL_TABLE_MDB_32_RMEP" ></entry>
+                </entries>
+            </table>
+            
+            <table name="mdb_emp_tables_info">
+                <key name="mdb_table" size="DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></key>
+                <value name="emp_age_cfg_table" default="0"></value>
+                <value name="mdb_22_table" default="0"></value>
+                <entries>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_LEM" emp_age_cfg_table="DBAL_TABLE_MDB_20_LEM"  mdb_22_table="DBAL_TABLE_MDB_22_LEM" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_3" emp_age_cfg_table="DBAL_TABLE_MDB_20_EXEM_3" mdb_22_table="DBAL_TABLE_MDB_22_EXEM_3" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_EXEM_4" emp_age_cfg_table="DBAL_TABLE_MDB_20_EXEM_4" mdb_22_table="DBAL_TABLE_MDB_22_EXEM_4" ></entry>
+                </entries>
+            </table>
+
+            <table name="mdb_em_shift_vmv_regs">
+                <key name="dbal_id" size="DBAL_NOF_PHYSICAL_TABLES"></key>
+                <value name="nof_valid_regs" default="0"></value>
+                <value name="table_name_arr" default="DBAL_TABLE_EMPTY"></value>
+                <value name="field_name_arr" default="DBAL_FIELD_EMPTY"></value>
+                <value name="key_name_arr" default="DBAL_FIELD_EMPTY"></value>
+                <value name="stage_index_arr" default="0"></value>
+                <entries>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_ISEM_1" nof_valid_regs="2" table_name_arr="DBAL_TABLE_MDB_VMV_SHIFT_WITH_STAGES,DBAL_TABLE_MDB_VMV_SHIFT_WITH_STAGES" field_name_arr="DBAL_FIELD_VTT_ST_ONE_LE_VMV_SHIFT_VALUE_MAP, DBAL_FIELD_VTT_ST_ONE_LE_VMV_SHIFT_VALUE_MAP" key_name_arr="DBAL_FIELD_STAGE_INDEX, DBAL_FIELD_STAGE_INDEX" stage_index_arr="1,2"></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_ISEM_2"  nof_valid_regs="4" table_name_arr="DBAL_TABLE_MDB_VMV_SHIFT_WITH_STAGES,DBAL_TABLE_MDB_VMV_SHIFT_WITH_STAGES,DBAL_TABLE_MDB_VMV_SHIFT_WITH_STAGES,DBAL_TABLE_MDB_VMV_SHIFT_WITH_STAGES" field_name_arr="DBAL_FIELD_VTT_ST_TOW_LE_VMV_SHIFT_VALUE_MAP, DBAL_FIELD_VTT_ST_TOW_LE_VMV_SHIFT_VALUE_MAP, DBAL_FIELD_VTT_ST_TH_LE_VMV_SHIFT_VALUE_MAP, DBAL_FIELD_VTT_ST_TH_LE_VMV_SHIFT_VALUE_MAP" key_name_arr="DBAL_FIELD_STAGE_INDEX, DBAL_FIELD_STAGE_INDEX, DBAL_FIELD_STAGE_INDEX, DBAL_FIELD_STAGE_INDEX" stage_index_arr="1,2,1,2"></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_ISEM_3"  nof_valid_regs="0" table_name_arr="" field_name_arr="" key_name_arr="" stage_index_arr="" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_LEM"  nof_valid_regs="2" table_name_arr="DBAL_TABLE_MDB_VMV_SHIFT_WITH_STAGES, DBAL_TABLE_MDB_VMV_SHIFT_EXTRA_REGS" field_name_arr="DBAL_FIELD_FLPLE_VMV_SHIFT_VALUE, DBAL_FIELD_IPPB_LEL_VMV_SHIFT_VALUE_MAP" key_name_arr="DBAL_FIELD_STAGE_INDEX,DBAL_FIELD_EMPTY" stage_index_arr="0,0" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_IOEM_1"  nof_valid_regs="1" table_name_arr="DBAL_TABLE_MDB_VMV_SHIFT" field_name_arr="DBAL_FIELD_IPPB_OAM_VMV_SHIFT_VALUE" key_name_arr="DBAL_FIELD_EMPTY" stage_index_arr="" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_IOEM_2"  nof_valid_regs="0" table_name_arr="" field_name_arr="" key_name_arr="" stage_index_arr="" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_EOEM_1"  nof_valid_regs="1" table_name_arr="DBAL_TABLE_MDB_VMV_SHIFT" field_name_arr="DBAL_FIELD_ETPPC_OAM_VMV_SHIFT_VALUE" key_name_arr="DBAL_FIELD_EMPTY" stage_index_arr="" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_EOEM_2"  nof_valid_regs="0" table_name_arr="" field_name_arr="" key_name_arr="" stage_index_arr="" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_PPMC"  nof_valid_regs="0" table_name_arr="" field_name_arr="" key_name_arr="" stage_index_arr="" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_GLEM_1"  nof_valid_regs="0" table_name_arr="" field_name_arr="" key_name_arr="" stage_index_arr="" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_GLEM_2"  nof_valid_regs="0" table_name_arr="" field_name_arr="" key_name_arr="" stage_index_arr="" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_ESEM"  nof_valid_regs="3" table_name_arr="DBAL_TABLE_MDB_VMV_SHIFT,DBAL_TABLE_MDB_VMV_SHIFT,DBAL_TABLE_MDB_VMV_SHIFT" field_name_arr="DBAL_FIELD_ESEM_1_SHIFT_VAL,DBAL_FIELD_ESEM_2_SHIFT_VAL,DBAL_FIELD_ESEM_3_SHIFT_VAL" key_name_arr="DBAL_FIELD_EMPTY,DBAL_FIELD_EMPTY,DBAL_FIELD_EMPTY" stage_index_arr="0,0,0" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_SEXEM_1"  nof_valid_regs="2" table_name_arr="DBAL_TABLE_MDB_VMV_SHIFT_WITH_STAGES,DBAL_TABLE_MDB_VMV_SHIFT_WITH_STAGES" field_name_arr="DBAL_FIELD_VTT_ST_ONE_LE_VMV_SHIFT_VALUE_MAP,DBAL_FIELD_VTT_ST_TOW_LE_VMV_SHIFT_VALUE_MAP" key_name_arr="DBAL_FIELD_STAGE_INDEX,DBAL_FIELD_STAGE_INDEX" stage_index_arr="0,0" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_SEXEM_2"  nof_valid_regs="1" table_name_arr="DBAL_TABLE_MDB_VMV_SHIFT_WITH_STAGES" field_name_arr="DBAL_FIELD_FLPLE_VMV_SHIFT_VALUE" key_name_arr="DBAL_FIELD_STAGE_INDEX" stage_index_arr="2" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_SEXEM_3"  nof_valid_regs="4" table_name_arr="DBAL_TABLE_MDB_VMV_SHIFT_WITH_STAGES,DBAL_TABLE_MDB_VMV_SHIFT_WITH_STAGES,DBAL_TABLE_MDB_VMV_SHIFT_EXTRA_REGS_WITH_STAGE,DBAL_TABLE_MDB_VMV_SHIFT_EXTRA_REGS" field_name_arr="DBAL_FIELD_FLPLE_VMV_SHIFT_VALUE,DBAL_FIELD_VTT_ST_TH_LE_VMV_SHIFT_VALUE_MAP,DBAL_FIELD_IPPC_VMV_SHIFT_VALUE_MAP,DBAL_FIELD_IPPD_VMV_SHIFT_VALUE_MAP" key_name_arr="DBAL_FIELD_STAGE_INDEX,DBAL_FIELD_STAGE_INDEX,DBAL_FIELD_STAGE_INDEX,DBAL_FIELD_EMPTY" stage_index_arr="1,0,1,0" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_LEXEM"  nof_valid_regs="2" table_name_arr="DBAL_TABLE_MDB_VMV_SHIFT_EXTRA_REGS,DBAL_TABLE_MDB_VMV_SHIFT_EXTRA_REGS_WITH_STAGE" field_name_arr="DBAL_FIELD_ERPP_VMV_SHIFT_VALUE_MAP,DBAL_FIELD_IPPC_VMV_SHIFT_VALUE_MAP" key_name_arr="DBAL_FIELD_EMPTY,DBAL_FIELD_STAGE_INDEX" stage_index_arr="0,0" ></entry>
+                    <entry dbal_id="DBAL_PHYSICAL_TABLE_RMEP_EM"  nof_valid_regs="0" table_name_arr="" field_name_arr="" key_name_arr="" stage_index_arr="" ></entry>
+                </entries>
+            </table>
+
+        </tables>
+    </sub_module>
+    
+    <sub_module name="direct">
+
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+            <table name="mdb_42_info">
+                <key name="mdb_table" size="DBAL_NOF_ENUM_MDB_PHYSICAL_TABLE_VALUES"></key>
+                <value name="dbal_table" default="0"></value>
+                <entries>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_1" dbal_table="DBAL_TABLE_MDB_42_FEC_1" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_2" dbal_table="DBAL_TABLE_MDB_42_FEC_2" ></entry>
+                    <entry mdb_table="DBAL_ENUM_FVAL_MDB_PHYSICAL_TABLE_FEC_3" dbal_table="DBAL_TABLE_MDB_42_FEC_3" ></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="eedb">
+
+        <features>
+            <feature name="eedb_bank_hitbit_masked_clear" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="nof_eedb_banks" value="64"></define>
+            <define name="entry_format_bits" value="7"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="entry_bank" value="MDB_MEM_02000000m"></numeric>
+            <numeric name="abk_bank" value="MDB_MEM_2300000m"></numeric>
+        </numerics>
+
+        <tables>
+            <table name="phase_info">
+                <key name="phase_number" size="DBAL_NOF_ENUM_MDB_EEDB_PHASE_VALUES"></key>
+                <value name="nof_available_banks" default="0"></value>
+                <entries>
+                    <entry phase_number="DBAL_ENUM_FVAL_MDB_EEDB_PHASE_PHASE_1" nof_available_banks="64"></entry>
+                    <entry phase_number="DBAL_ENUM_FVAL_MDB_EEDB_PHASE_PHASE_2" nof_available_banks="8"></entry>
+                    <entry phase_number="DBAL_ENUM_FVAL_MDB_EEDB_PHASE_PHASE_3" nof_available_banks="32"></entry>
+                    <entry phase_number="DBAL_ENUM_FVAL_MDB_EEDB_PHASE_PHASE_4" nof_available_banks="8"></entry>
+                    <entry phase_number="DBAL_ENUM_FVAL_MDB_EEDB_PHASE_PHASE_5" nof_available_banks="32"></entry>
+                    <entry phase_number="DBAL_ENUM_FVAL_MDB_EEDB_PHASE_PHASE_6" nof_available_banks="16"></entry>
+                    <entry phase_number="DBAL_ENUM_FVAL_MDB_EEDB_PHASE_PHASE_7" nof_available_banks="16"></entry>
+                    <entry phase_number="DBAL_ENUM_FVAL_MDB_EEDB_PHASE_PHASE_8" nof_available_banks="16"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="kaps">
+
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric name="rpb_field" value="RPB_RESETN_Nf"></numeric>
+            <numeric name="big_kaps_revision_val" value="0x00050003"></numeric>
+        </numerics>
+
+        <tables>
+            <table name="big_bb_blk_id_mapping">
+                <key name="blk_id" size="DNX_DATA_MAX_MDB_KAPS_NOF_BIG_BBS_BLK_IDS"></key>
+                <value name="global_macro_index" default="DNX_DATA_MAX_MDB_DH_NOF_MACROES_TYPE_A + DNX_DATA_MAX_MDB_DH_NOF_MACROES_TYPE_B"></value>
+                <entries>
+                    <entry blk_id="0" global_macro_index="1"></entry>
+                    <entry blk_id="1" global_macro_index="3"></entry>
+                    <entry blk_id="2" global_macro_index="4"></entry>
+                    <entry blk_id="3" global_macro_index="7"></entry>
+                    <entry blk_id="4" global_macro_index="8"></entry>
+                    <entry blk_id="5" global_macro_index="9"></entry>
+                    <entry blk_id="6" global_macro_index="10"></entry>
+                    <entry blk_id="7" global_macro_index="11"></entry>
+                    <entry blk_id="8" global_macro_index="13"></entry>
+                    <entry blk_id="9" global_macro_index="14"></entry>
+                    <entry blk_id="10" global_macro_index="15"></entry>
+                    <entry blk_id="11" global_macro_index="17"></entry>
+                    <entry blk_id="12" global_macro_index="18"></entry>
+                    <entry blk_id="13" global_macro_index="19"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="hw_bug">
+
+        <features>
+            <feature name="step_table_supports_mix_ar_algo" value="0"></feature>
+            <feature name="eedb_bank_traffic_lock" value="0"></feature>
+            <feature name="em_dfg_ovf_cam_disabled" value="0"></feature>
+            <feature name="em_mact_transplant_no_reply" value="0"></feature>
+            <feature name="em_mact_use_refresh_on_insert" value="0"></feature>
+            <feature name="em_mact_insert_flush_drop_on_exceed_limit" value="0"></feature>
+            <feature name="em_sbus_interface_shutdown" value="0"></feature>
+            <feature name="em_compare_init" value="0"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+</device_data>

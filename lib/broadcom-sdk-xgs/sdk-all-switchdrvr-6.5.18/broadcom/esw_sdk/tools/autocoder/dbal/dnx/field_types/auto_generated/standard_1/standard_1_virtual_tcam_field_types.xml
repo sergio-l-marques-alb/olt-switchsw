@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FieldTypesDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../field_types_schema.xsd">
+
+    <GeneralInfo image="standard_1" dynamic_loading="0" />
+
+<FieldType Name="PRTTCAM_KEY_VP_COE" Print="STRUCTURE" Size="14">
+    <OneLineDescription>PRT Virtual for CoE</OneLineDescription>
+    <FieldDbInterface>
+        <StructFields>
+            <StructField Name="VID" Size="8" Type="VLAN_ID"/>
+            <StructField Name="PTC_ATTRIBUTE" Size="6" Type="UINT"/>
+        </StructFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping/>
+</FieldType>
+
+
+<FieldType Name="PRTTCAM_KEY_VP_PON" Print="STRUCTURE" Size="13">
+    <OneLineDescription>PON</OneLineDescription>
+    <FieldDbInterface>
+        <StructFields>
+            <StructField Name="PON_TAG_PON_SUBPORT_ID" Size="3" Type="UINT"/>
+            <StructField Name="PTC" Size="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___217"/>
+            <StructField Name="ZERO_PADDING" Size="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___218"/>
+        </StructFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping/>
+</FieldType>
+
+
+<FieldType Name="PRTTCAM_KEY_VP_SPA" Print="STRUCTURE" Size="16">
+    <OneLineDescription>PRT Virtual for SPA</OneLineDescription>
+    <FieldDbInterface>
+        <StructFields>
+            <StructField Name="SYSTEM_PORT_AGGREGATE" Size="16" Type="SYSTEM_PORT"/>
+        </StructFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping/>
+</FieldType>
+
+
+<FieldType Name="PRT_KBR_INFO_HALF" Print="UINT32" Size="17">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <ChildFields>
+            <ChildField Name="PRTTCAM_KEY_VP_COE"/>
+            <ChildField Name="PRTTCAM_KEY_VP_PON"/>
+            <ChildField Name="PRTTCAM_KEY_VP_SPA"/>
+        </ChildFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <ChildFieldsEncoding>
+            <ChildField EncodeType="PREFIX" Name="PRTTCAM_KEY_VP_COE" Value="4"/>
+            <ChildField EncodeType="PREFIX" Name="PRTTCAM_KEY_VP_PON" Value="10"/>
+            <ChildField EncodeType="PREFIX" Name="PRTTCAM_KEY_VP_SPA" Value="0"/>
+        </ChildFieldsEncoding>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+</FieldTypesDbCatalog>

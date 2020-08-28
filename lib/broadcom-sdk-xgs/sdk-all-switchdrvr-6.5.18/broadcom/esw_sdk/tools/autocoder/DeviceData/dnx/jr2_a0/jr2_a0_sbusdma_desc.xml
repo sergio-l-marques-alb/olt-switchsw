@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="sbusdma_desc">
+
+    <includes>
+        <include>soc/dnx/utils/dnx_sbusdma_desc.h</include>
+    </includes>
+
+    <sub_module name ="global">
+    
+        <features>
+            <feature name="desc_dma"></feature>        
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+                <numeric name="dma_desc_aggregator_chain_length_max" value="0">
+                    <property name="dma_desc_aggregator_chain_length_max" method="range" range_min="0" range_max="1000000" extern="false">
+                        <doc>
+                            Maximal number of descriptors in a single chain.
+                            Default: 0 - disabled
+                        </doc>
+                    </property>
+                </numeric>
+                <numeric name="dma_desc_aggregator_buff_size_kb" value="0">
+                    <property name="dma_desc_aggregator_buff_size_kb" method="range" range_min="0" range_max="100000" extern="false">
+                        <doc>
+                            Total size in KB of dmmable memory allocated in favor of the descriptor DMA double-buffer.
+                            Default: 0 - disabled
+                        </doc>
+                    </property>
+                </numeric>
+                <numeric name="dma_desc_aggregator_timeout_usec" value="0">
+                    <property name="dma_desc_aggregator_timeout_usec" method="range" range_min="0" range_max="100000000" extern="false">
+                        <doc>
+                            Timeout between the creation of a descriptor chain and its commit to HW
+                            Default: 0 - disabled
+                        </doc>
+                    </property>
+                </numeric>
+        </numerics>
+
+        <tables>
+                <table name="enable_module_desc_dma">
+                        <key name="module_enum_val" size="SBUSDMA_DESC_MODULE_ENABLE_NOF_MODULES"></key>
+                        <value name="enable" default="0">
+                            <property name="dma_desc_aggregator_enable_specific" method="custom">
+                                <doc>
+                                    Enable (1) / Disable (0) descriptor DMA per module.
+                                    See UM for supported module names.
+                                    Default: Disabled (0).
+                                </doc>
+                            </property>
+                        </value>
+               </table>
+        </tables>
+    </sub_module>
+
+</device_data>

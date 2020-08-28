@@ -1,0 +1,631 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="ESB_INIT" Valid="DNX_DATA.esb.general.esb_support">
+        <OneLineDescription>Table to initiallize the ESB and allocate a buffer per queue.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="When set allocate buffer per active queue." Name="BUFF_ALLOC_RSTN" Type="BOOL"/>
+                <Field Description="Asserted during Tail Pointer Memory init process." Name="TPM_INIT_STATUS" Permission="READONLY" Type="BOOL"/>
+                <Field Description="Asserted during Head Pointer Memory init process." Name="HPM_INIT_STATUS" Permission="READONLY" Type="BOOL"/>
+                <Field Description="Asserted during End of Burst Memory init process." Name="EOBM_INIT_STATUS" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV PLL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="BUFF_ALLOC_RSTN">
+                    <Access>
+                        <Register Name="ESB_ESB_INITr">
+                            <HwField Name="ESB_BUF_ALLOC_RSTNf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TPM_INIT_STATUS">
+                    <Access>
+                        <Register Name="ESB_INIT_DONE_STATUSr">
+                            <HwField Name="TPM_INITf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HPM_INIT_STATUS">
+                    <Access>
+                        <Register Name="ESB_INIT_DONE_STATUSr">
+                            <HwField Name="HPM_INITf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EOBM_INIT_STATUS">
+                    <Access>
+                        <Register Name="ESB_INIT_DONE_STATUSr">
+                            <HwField Name="EOBM_INITf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="ESB_FPC_RANGE_CONFIG" Valid="DNX_DATA.esb.general.esb_support">
+        <OneLineDescription>Table to configure the ranges of ESB Free pointer controlers.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FPC_ID" Size="#log2_round_up(DNX_DATA.esb.general.nof_fpc)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="First buffer in the corresponding Sub Queue." Name="FIRST_BUFF_PTR" Size="DNX_DATA.esb.general.fpc_ptr_size" Type="UINT"/>
+                <Field Description="Last buffer in the corresponding Sub Queue." Name="LAST_BUFF_PTR" Size="DNX_DATA.esb.general.fpc_ptr_size" Type="UINT"/>
+                <Field Description="If asserted write all buffers from internal FIFOs to memory." Name="MOVE_BUFFS_TO_MEM" Type="BOOL"/>
+                <Field Description="If asserted initiaize the corresponding FPC." Name="FPC_INIT" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV PLL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIRST_BUFF_PTR">
+                    <Access>
+                        <KeyCondition Field="FPC_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ESB_FPC_0_CONFIGr">
+                            <HwField Name="FPC_0_FIRST_PTRf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FPC_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ESB_FPC_1_CONFIGr">
+                            <HwField Name="FPC_1_FIRST_PTRf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FPC_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="ESB_FPC_2_CONFIGr">
+                            <HwField Name="FPC_2_FIRST_PTRf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FPC_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="ESB_FPC_3_CONFIGr">
+                            <HwField Name="FPC_3_FIRST_PTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LAST_BUFF_PTR">
+                    <Access>
+                        <KeyCondition Field="FPC_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ESB_FPC_0_CONFIGr">
+                            <HwField Name="FPC_0_LAST_PTRf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FPC_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ESB_FPC_1_CONFIGr">
+                            <HwField Name="FPC_1_LAST_PTRf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FPC_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="ESB_FPC_2_CONFIGr">
+                            <HwField Name="FPC_2_LAST_PTRf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FPC_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="ESB_FPC_3_CONFIGr">
+                            <HwField Name="FPC_3_LAST_PTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MOVE_BUFFS_TO_MEM">
+                    <Access>
+                        <KeyCondition Field="FPC_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ESB_FPC_0_CONFIGr">
+                            <HwField Name="FPC_0_MOVE_ALL_PTR_TO_MEMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FPC_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ESB_FPC_1_CONFIGr">
+                            <HwField Name="FPC_1_MOVE_ALL_PTR_TO_MEMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FPC_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="ESB_FPC_2_CONFIGr">
+                            <HwField Name="FPC_2_MOVE_ALL_PTR_TO_MEMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FPC_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="ESB_FPC_3_CONFIGr">
+                            <HwField Name="FPC_3_MOVE_ALL_PTR_TO_MEMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FPC_INIT">
+                    <Access>
+                        <KeyCondition Field="FPC_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ESB_FPC_0_CONFIGr">
+                            <HwField Name="FPC_0_INITf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FPC_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ESB_FPC_1_CONFIGr">
+                            <HwField Name="FPC_1_INITf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FPC_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="ESB_FPC_2_CONFIGr">
+                            <HwField Name="FPC_2_INITf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FPC_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="ESB_FPC_3_CONFIGr">
+                            <HwField Name="FPC_3_INITf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+   <AppDB Name="ESB_PER_NIF_IF_CREDITS_CONFIG" Valid="DNX_DATA.esb.general.esb_support">
+        <OneLineDescription>Table to initiallize EPNI NIF TXI logic and IRDY threshold for a NIF port(ETH and ILKN).</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.esb.general.total_nof_esb_queues-DNX_DATA.esb.general.nof_special_queues-DNX_DATA.esb.general.nof_ilkn_tdm_queues-DNX_DATA.esb.general.nof_reserved_queues-1" Name="NIF_IF" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Initiallize the TXI logic for NIF port." Name="TXI_INIT" Type="BOOL"/>
+                <Field Description="Initiallize the credit size for NIF port." Name="CREDIT_INIT" Type="BOOL"/>                
+                <Field Description="Per NIF port IRDY threshold for egq2nif interface." Name="TXI_IRDY_THRESH" Size="7" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV PLL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TXI_INIT">
+                    <Access>
+                        <Register Name="EPNI_INIT_EPNI_NIF_TXIr">
+                            <HwField Name="INIT_EPNI_NIF_TXIf"/>
+                            <DataOffset Formula="#KEY_VALUE(NIF_IF)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TXI_IRDY_THRESH">
+                    <Access>
+                        <Memory Name="EPNI_N_IF_TXI_IRDY_THm">
+                            <EntryOffset Formula="#KEY_VALUE(NIF_IF)"/>
+                            <HwField Name="TXI_IRDY_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CREDIT_INIT">
+                    <Access>
+                        <Register Name="EPNI_INIT_EPNI_NIF_TXIr">
+                            <HwField Name="CREDIT_INITf"/>
+                            <DataOffset Formula="#KEY_VALUE(NIF_IF)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="ESB_CREDIT_SIZE" Valid="DNX_DATA.esb.general.esb_support">
+        <OneLineDescription>Table set EPNI NIF credit size.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="set the initial credit size value." Name="CREDIT_SIZE" Size="9" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV PLL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CREDIT_SIZE">
+                    <Access>
+                        <Register Name="EPNI_INIT_EPNI_NIF_TXIr">
+                            <HwField Name="CREDIT_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+    <AppDB Name="ESB_EGQ_IF_2_Q_MAP" Valid="DNX_DATA.esb.general.esb_support">
+        <OneLineDescription>Table for EGQ interface to ESB queue mapping (enqueue path) - Map only NIF EGQ interfaces.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MinValue="DNX_DATA.egr_queuing.params.egr_if_nif_base" Name="EGQ_IF"/>
+            </Key>
+            <Result>
+                <Field Description="ESB queue ID." Name="Q_NUM" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV PLL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="Q_NUM">
+                    <Access>
+                        <Memory Name="EPNI_IFC_2_NIF_PORT_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)-dnx_data_egr_queuing.params.egr_if_nif_base_get(unit)"/>
+                            <HwField Name="NIF_PORT_NUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="ESB_Q_2_EGQ_IF_MAP" Valid="DNX_DATA.esb.general.esb_support">
+        <OneLineDescription>Table for ESB queue to EGQ interface mapping (dequeue path) - Map ESB queue for NIFs(ETH, FlexE, ILKN) only to EGQ interface.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.esb.general.total_nof_esb_queues-DNX_DATA.esb.general.nof_special_queues-DNX_DATA.esb.general.nof_reserved_queues-1" Name="ESB_Q_NUM"/>
+            </Key>
+            <Result>
+                <Field Description="Port macro number." Name="PORT_MACRO" Size="#log2_round_up(DNX_DATA.nif.eth.total_nof_ethu_pms_in_device-1)" Type="UINT"/>
+                <Field Description="Port number internal to the port macro." Name="INTERNAL_PORT" Size="DNX_DATA.esb.dbal.pm_internal_port_size" Type="UINT"/>
+                <Field Description="NIF interface number." Name="NIF_IF" Size="#log2_round_up(DNX_DATA.nif.global.nof_nif_ports-1)" Type="UINT"/>
+                <Field Description="EGQ interface number." Name="EGRESS_IF" Size="#log2_round_up(DNX_DATA.egr_queuing.params.nof_egr_interfaces-1)" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV PLL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PORT_MACRO">
+                    <Access>
+                        <Memory Name="EPNI_Q_NUM_2_NIF_PORT_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(ESB_Q_NUM)"/>
+                            <HwField Name="PM_NUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INTERNAL_PORT">
+                    <Access>
+                        <Memory Name="EPNI_Q_NUM_2_NIF_PORT_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(ESB_Q_NUM)"/>
+                            <HwField Name="PM_INTERNAL_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NIF_IF">
+                    <Access>
+                        <Memory Name="EPNI_Q_NUM_2_NIF_PORT_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(ESB_Q_NUM)"/>
+                            <HwField Name="NIF_PORT_NUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                 <Field Name="EGRESS_IF">
+                    <Access>
+                        <Memory Name="EPNI_Q_NUM_2_NIF_PORT_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(ESB_Q_NUM)"/>
+                            <HwField Name="EGRESS_PORT_NUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="ESB_ADD_QUEUE" Valid="DNX_DATA.esb.general.esb_support">
+        <OneLineDescription>Table for adding new ESB queue.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="When set, hardware will allocate new buffer for the new Queue added." Name="ADD_QUEUE_EN" Type="BOOL"/>
+                <Field Description="Queue ID to allocate buffer to." Name="ADD_QUEUE_ID" Size="8" Type="UINT"/>
+                <Field Description="Set if hardware has completed allocating buffers to the new Queue." Name="ENQ_ADD_QUEUE_DONE" Permission="READONLY" Type="BOOL"/>
+                <Field Description="Set if hardware has completed updating HPM with the new buffers." Name="DEQ_ADD_QUEUE_DONE" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV PLL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ADD_QUEUE_EN">
+                    <Access>
+                        <Register Name="ESB_ESB_ADD_QUEUEr">
+                            <HwField Name="ESB_ADD_QUEUE_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ADD_QUEUE_ID">
+                    <Access>
+                        <Register Name="ESB_ESB_ADD_QUEUEr">
+                            <HwField Name="ESB_ADD_QUEUE_IDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENQ_ADD_QUEUE_DONE">
+                    <Access>
+                        <Register Name="ESB_ESB_ADD_QUEUEr">
+                            <HwField Name="ESB_ENQ_ADD_QUEUE_DONEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                 <Field Name="DEQ_ADD_QUEUE_DONE">
+                    <Access>
+                        <Register Name="ESB_ESB_ADD_QUEUEr">
+                            <HwField Name="ESB_DEQ_ADD_QUEUE_DONEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="ESB_REMOVE_QUEUE" Valid="DNX_DATA.esb.general.esb_support">
+        <OneLineDescription>Table for removing ESB queue.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="When set, hardware will free buffer from the head of the Queue." Name="REMOVE_QUEUE_EN" Type="BOOL"/>
+                <Field Description="Queue ID to free buffer from." Name="REMOVE_QUEUE_ID" Size="8" Type="UINT"/>
+                <Field Description="Set if hardware has completed freeing buffers from the Queue." Name="REMOVE_QUEUE_DONE" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV PLL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="REMOVE_QUEUE_EN">
+                    <Access>
+                        <Register Name="ESB_ESB_REMOVE_QUEUEr">
+                            <HwField Name="ESB_REMOVE_QUEUE_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="REMOVE_QUEUE_ID">
+                    <Access>
+                        <Register Name="ESB_ESB_REMOVE_QUEUEr">
+                            <HwField Name="ESB_REMOVE_QUEUE_IDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="REMOVE_QUEUE_DONE">
+                    <Access>
+                        <Register Name="ESB_ESB_REMOVE_QUEUEr">
+                            <HwField Name="ESB_REMOVE_QUEUE_DONEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="ESB_QUEUE_MUX" Valid="DNX_DATA.esb.general.esb_support">
+        <OneLineDescription>Round robin multiplexor for ESB queues in scheduler.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SLOT_ID" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="ESB queue number." Name="ESB_Q_NUM"/>
+            </Result>
+            <TableLabels>J2P_NOTREV PLL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ESB_Q_NUM">
+                    <Access>
+                        <Memory Name="ESB_ESB_QUEUE_MUXm">
+                        <EntryOffset Formula="#KEY_VALUE(SLOT_ID)"/>
+                            <HwField Name="ESB_NIF_PORT_MUXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="ESB_PER_QUEUE_CONFIG" Valid="DNX_DATA.esb.general.esb_support">
+        <OneLineDescription>Per Queue configurations in ESB.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.esb.general.total_nof_esb_queues-1" Name="ESP_Q_NUM" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Define the minimal gap between consecutive commands to the same shared buffer Q." Name="MIN_GAP" Size="5" Type="UINT"/>
+                <Field Description="If asserted Q is 10G." Name="IF_IS_SLOW" Type="BOOL"/>
+                <Field Description="If asserted Q is active and can be scheduled." Name="QUEUE_IS_ACTIVE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV PLL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MIN_GAP">
+                    <Access>
+                        <Memory Name="ESB_IFC_PROFILE_CFGm">
+                        <EntryOffset Formula="#KEY_VALUE(ESP_Q_NUM)"/>
+                            <HwField Name="MIN_GAPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IF_IS_SLOW">
+                    <Access>
+                        <Memory Name="ESB_IFC_PROFILE_CFGm">
+                        <EntryOffset Formula="#KEY_VALUE(ESP_Q_NUM)"/>
+                            <HwField Name="IF_IS_10Gf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QUEUE_IS_ACTIVE">
+                    <Access>
+                        <Memory Name="ESB_IFC_PROFILE_CFGm">
+                        <EntryOffset Formula="#KEY_VALUE(ESP_Q_NUM)"/>
+                            <HwField Name="QUEUE_IS_ACTIVEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="ESB_CALENDER_SET" Valid="DNX_DATA.esb.general.esb_support">
+        <OneLineDescription>Table to load new calendar settings to internal usage.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="When set, hardware will load new calendar settings to internal usage when it reaches the end of the current calendar." Name="CALENDAR_SWITCH_EN" Type="BOOL"/>
+                <Field Description="Set when the HW has finished loading the new calendar." Name="CALENDAR_SWITCH_STATUS" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV PLL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CALENDAR_SWITCH_EN">
+                    <Access>
+                        <Register Name="ESB_ESB_CALENDER_SETTINGr">
+                            <HwField Name="ESB_CALENDAR_SWITCH_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CALENDAR_SWITCH_STATUS">
+                    <Access>
+                        <Register Name="ESB_ESB_CALENDER_SETTINGr">
+                            <HwField Name="ESB_CALENDAR_WORKING_SETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="ESB_ILKN_TDM_QUEUE_EN" Valid="DNX_DATA.esb.general.esb_support">
+        <OneLineDescription>Table to designate an ESB queue for ILKN TDM traffic.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ILKN_ID"/>
+            </Key>
+            <Result>
+                <Field Description="ESB Q ID for TDM traffic on the corresponding ILKN port." Name="TDM_QUEUE_ID" Size="7" Type="UINT"/>
+                <Field Description="If asserted corresponding ILKN port is using TDM_QUEUE_ID for TDM traffic." Name="TDM_INTLV_EN" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV PLL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TDM_QUEUE_ID">
+                    <Access>
+                        <Memory Name="ESB_ILKN_TDM_INTLVm">
+                        <EntryOffset Formula="#KEY_VALUE(ILKN_ID)"/>
+                            <HwField Name="TDM_QUEUE_IDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TDM_INTLV_EN">
+                    <Access>
+                        <Memory Name="ESB_ILKN_TDM_INTLVm">
+                        <EntryOffset Formula="#KEY_VALUE(ILKN_ID)"/>
+                            <HwField Name="TDM_INTLV_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="ESB_FLEX_PORT_MAPPING" Valid="DNX_DATA.nif.flexe.is_supported">
+        <OneLineDescription>Table to configure NIF port for flexe traffic.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="NIF_ID" Type="NIF_PORT"/>
+            </Key>
+            <Result>
+                <Field Description="Destination port of flexe traffic." Name="DEST_NIF_PORT" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV PLL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DEST_NIF_PORT">
+                    <Access>
+                        <Memory Name="ESB_FLEX_PORT_MAPPINGm">
+                        <EntryOffset Formula="#KEY_VALUE(NIF_ID)"/>
+                            <HwField Name="DES_NIF_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="ESB_COUNTER_CONFIG" Valid="DNX_DATA.esb.general.esb_support">
+        <OneLineDescription>Table to configure ESB counters.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="ESB queue number." Name="ESB_Q_NUM"/>
+                <Field Description="Mask the Queue number of the counted traffic. If value = 0x3ff, then counting traffic for all queues." Name="MASK" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV PLL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ESB_Q_NUM">
+                    <Access>
+                        <Register Name="ESB_ESB_CNT_CFGr">
+                            <HwField Name="Q_TO_CHECK_BWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MASK">
+                    <Access>
+                        <Register Name="ESB_ESB_CNT_CFGr">
+                            <HwField Name="MASK_Q_TO_CHECK_BWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

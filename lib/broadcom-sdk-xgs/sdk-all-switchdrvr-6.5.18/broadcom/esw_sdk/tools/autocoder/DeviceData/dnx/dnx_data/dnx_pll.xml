@@ -1,0 +1,127 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="pll" bsl_flag="BSL_LS_BCMDNX_PLL">
+    <includes>
+        <include>soc/dnx/pll/pll.h</include>
+    </includes>
+     <sub_module name="general" doc="PLL general configurations">
+        <features>
+            <feature labels="j2p_notrev" name="ts_freq_lock" doc="IEEE1588 DPLL mode"></feature>
+            <feature labels="j2p_notrev" name="bs_enable" doc="Broadsync clock enable"></feature>
+        </features>
+    </sub_module>
+    <sub_module name="pll1" doc="PLL1 configurations">
+        <defines>
+            <define labels="j2p_notrev" name="nof_pll1" doc="Number of PLL1"></define>
+        </defines>
+        <tables>
+            <table labels="j2p_notrev" name="config" doc="PLL1 configuration parameters">
+                <key name="pll1_type" doc="Type of PLL1 according to DNX_PLL1_TYPE enumerator"></key>
+                <value name="pll1_id" type="int" doc="Index of the PLL1, used for DBAL access"></value>
+                <value name="valid" type="int" doc="Indication if the type of PLL1 is supported for device"></value>
+                <value name="pdiv" type="int" doc="Pre divider of PLL1"></value>
+                <value name="ndiv_int" type="int" doc="N divider of PLL1"></value>
+                <value name="ch0_mdiv" type="int" doc="M-divider for channel 0 of PLL1"></value>
+                <value name="ch1_mdiv" type="int" doc="M-divider for channel 1 of PLL1"></value>
+                <value name="ch2_mdiv" type="int" doc="M-divider for channel 2 of PLL1"></value>
+                <value name="ch3_mdiv" type="int" doc="M-divider for channel 3 of PLL1"></value>
+                <value name="ch4_mdiv" type="int" doc="M-divider for channel 4 of PLL1"></value>
+                <value name="ch5_mdiv" type="int" doc="M-divider for channel 5 of PLL1"></value>
+                <value name="output_cml_en" type="int" doc="Enable output CML of PLL1"></value>
+                <value name="refclk_source_sel" type="int" doc="Reference clock source select"></value>
+                <value name="refclk" type="int" doc="Reference clock of PLL1"></value>
+            </table>
+        </tables>
+        <numerics>
+            <numeric labels="j2p_notrev" name="ts_phase_initial_lo" doc="Initial phase values low 32"></numeric>
+            <numeric labels="j2p_notrev" name="ts_phase_initial_hi" doc="Initial phase values high 32"></numeric>
+            <numeric labels="j2p_notrev" name="ts_nof_bits_hi" doc="Number of high bits for presenting phase values"></numeric>
+            <numeric labels="j2p_notrev" name="ts_pll1_id" doc="Index of the TS PLL1, used for DBAL access"></numeric>
+            <numeric labels="j2p_notrev" name="bs_pll1_id" doc="Index of the BS PLL1, used for DBAL access"></numeric>
+            <numeric labels="j2p_notrev" name="fab_pll1_id" doc="Index of the FAB PLL1, used for DBAL access"></numeric>
+            <numeric labels="j2p_notrev" name="nif_pll1_id" doc="Index of the NIF PLL1, used for DBAL access"></numeric>
+            <numeric labels="j2p_notrev" name="flexe_pll1_id" doc="Index of the FLEXE PLL1, used for DBAL access"></numeric>
+        </numerics>
+        <features>
+            <feature labels="j2p_notrev" name="ts_phase_initial_hi_config" doc="Indication if configuring initial phase values high 32 is supported"></feature>
+            <feature labels="j2p_notrev" name="ts_refclk_source_internal" doc="Internal or external (1 for internal) reference clock for TS PLL1"></feature>
+        </features>
+    </sub_module>
+    <sub_module name="pll3" doc="PLL3 configurations">
+        <defines>
+            <define labels="j2p_notrev" name="nof_pll3" doc="Number of PLL3"></define>
+            <define labels="j2p_notrev" name="vco_clock" doc="Frequency of the Voltage Control Oscilator of PLL3. Used to calculate Pdiv, Ndiv, Mdiv and the Effective Ferquency"></define>
+            <define labels="j2p_notrev" name="kp" doc="KP parameter for PLL3 configuration"></define>
+            <define labels="j2p_notrev" name="ki" doc="Ki parameter for PLL3 configuration"></define>
+            <define labels="j2p_notrev" name="en_ctrl" doc="Enable control"></define>
+            <define labels="j2p_notrev" name="en_ctrl_byp" doc="Enable control for bypass mode"></define>
+            <define labels="j2p_notrev" name="route_ctr_byp" doc="Value of route control field when using bypass"></define>
+            <define labels="j2p_notrev" name="ref_clock_125" doc="Value for 125MHz reference clock"></define>
+            <define labels="j2p_notrev" name="ref_clock_156_25" doc="Value for 156.25MHz reference clock."></define>
+            <define labels="j2p_notrev" name="ref_clock_312_5" doc="Value for 312.5MHz reference clock."></define>
+        </defines>
+        <tables>
+            <table labels="j2p_notrev" name="config" doc="PLL3 configuration parameters">
+                <key name="pll3_type" doc="Type of PLL1 according to DNX_PLL1_TYPE enumerator"></key>
+                <value name="pll3_id" type="int" doc="Index of the PLL1, used for DBAL access"></value>
+                <value name="valid" type="int" doc="Indication if the type of PLL3 is supported for device"></value>
+                <value name="ch1_mdiv" type="int" doc="M-divider for channel 1 of PLL3"></value>
+                <value name="ch2_mdiv" type="int" doc="M-divider for channel 2 of PLL3"></value>
+                <value name="ch3_mdiv" type="int" doc="M-divider for channel 3 of PLL3"></value>
+                <value name="ch4_mdiv" type="int" doc="M-divider for channel 4 of PLL3"></value>
+                <value name="ch5_mdiv" type="int" doc="M-divider for channel 5 of PLL3"></value>
+            </table>
+            <table labels="j2p_notrev" name="nif_pll" doc="NIF PLL reference and output frequencies">
+                <key name="pll_index" doc="Index of NIF PLL (0 or 1)"></key>
+                <value name="in_freq" type="int" doc="Reference clock frequency for the NIF SerDeses"></value>
+                <value name="out_freq" type="int" doc="Output clock frequency for the NIF SerDeses"></value>
+            </table>
+            <table labels="j2p_notrev" name="fabric_pll" doc="Fabric PLL reference and output frequencies">
+                <key name="pll_index" doc="Index of Fabric PLL (0 or 1)"></key>
+                <value name="in_freq" type="int" doc="Output clock frequency for the Fabric SerDeses"></value>
+                <value name="out_freq" type="int" doc="Output clock frequency for the Fabric SerDeses"></value>
+            </table>
+        </tables>
+        <numerics>
+            <numeric labels="j2p_notrev" name="nif0_pll3_id" doc="Index of the NIF0 PLL3, used for DBAL access"></numeric>
+            <numeric labels="j2p_notrev" name="nif1_pll3_id" doc="Index of the NIF1 PLL3, used for DBAL access"></numeric>
+            <numeric labels="j2p_notrev" name="mas0_pll3_id" doc="Index of the MAS0 PLL3, used for DBAL access"></numeric>
+            <numeric labels="j2p_notrev" name="mas1_pll3_id" doc="Index of the MAS1 PLL3, used for DBAL access"></numeric>
+        </numerics>
+    </sub_module>
+    <sub_module name="pll4" doc="PLL4 configurations">
+        <defines>
+            <define labels="j2p_notrev" name="nof_pll4" doc="Number of PLL4"></define>
+        </defines>
+        <tables>
+            <table labels="j2p_notrev" name="config" doc="PLL4 configuration parameters">
+                <key name="pll4_type" doc="Type of PLL4 according to DNX_PLL4_TYPE enumerator"></key>
+                <value name="pll4_id" type="int" doc="Index of the PLL4, used for DBAL access"></value>
+                <value name="valid" type="int" doc="Indication if the type of PLL3 is supported for device"></value>
+                <value name="ref_clk_src_sel" type="int" doc="Reference clock source select of PLL4 - 1 from pad, 0 from TS"></value>
+                <value name="ref_clk" type="int" doc="Reference clock of PLL4"></value>
+                <value name="dll_ref_pdiv" type="int" doc="Pre divider of Delay-locked loop of PLL4"></value>
+                <value name="dll_post_en" type="int" doc="Enable of Delay-locked loop of PLL4"></value>
+                <value name="aux_post_en" type="int" doc="Enable of Auxiliary Oscillator of PLL4"></value>
+                <value name="pdiv" type="int" doc="Pre divider of PLL4"></value>
+                <value name="ndiv_int" type="int" doc="N divider of PLL4"></value>
+                <value name="d2c_en" type="int" doc="Enable differential reference clock to CMOS"></value>
+                <value name="ch0_mdiv" type="int" doc="M-divider for channel 0 of PLL4"></value>
+                <value name="ch1_mdiv" type="int" doc="M-divider for channel 1 of PLL4"></value>
+                <value name="ch2_mdiv" type="int" doc="M-divider for channel 2 of PLL4"></value>
+                <value name="ch3_mdiv" type="int" doc="M-divider for channel 3 of PLL4"></value>
+                <value name="ch6_mdiv" type="int" doc="M-divider for channel 6 of PLL4"></value>
+            </table>
+        </tables>
+        <numerics>
+            <numeric labels="j2p_notrev" name="ts_pll4_id" doc="Index of the TS PLL4, used for DBAL access"></numeric>
+            <numeric labels="j2p_notrev" name="bs_pll4_id" doc="Index of the BS PLL4, used for DBAL access"></numeric>
+            <numeric labels="j2p_notrev" name="nif_pll4_id" doc="Index of the NIF PLL4, used for DBAL access"></numeric>
+            <numeric labels="j2p_notrev" name="fab_pll4_id" doc="Index of the FSRD PLL4, used for DBAL access"></numeric>
+        </numerics>
+    </sub_module>
+    <sub_module name="synce_pll" doc="synce PLL general configurations">
+        <features>
+            <feature labels="j2p_notrev" name="present" doc="Marks presence of synce pll"></feature>
+        </features>
+    </sub_module>
+</device_data>

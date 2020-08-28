@@ -1,0 +1,611 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="ETPP_TRAP_ACTION_PROFILE">
+        <OneLineDescription>This table reprsents trap action profile - Action code, Forward and Snoop Strengths</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ETPP_TRAP_ID"/>
+            </Key>
+            <Result>
+                <Field Name="TRAP_ACTION_PROFILE"/>
+                <Field Name="TRAP_FWD_STRENGTH"/>
+                <Field Name="TRAP_SNP_STRENGTH"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TRAP_ACTION_PROFILE">
+                    <Access>
+                        <KeyCondition Enum="SPLIT_HORIZON" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_CFG_SPLIT_HORIZON_TRAP_PARAMSr">
+                            <HwField Name="CFG_SPLIT_HORIZON_ACTION_PROFILEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="STACK_TRAP_1" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_CFG_STACK_TRAP_1_TRAP_PARAMSr">
+                            <HwField Name="CFG_STACK_TRAP_1_ACTION_PROFILEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="STACK_TRAP_2" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_CFG_STACK_TRAP_2_TRAP_PARAMSr">
+                            <HwField Name="CFG_STACK_TRAP_2_ACTION_PROFILEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="VLAN_MEMBERSHIP" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_MEMBERSHIP_TRAP_PARAMSr">
+                            <HwField Name="CFG_MEMBERSHIP_ACTION_PROFILEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ACCEPTABLE_FRAME" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPA_CFG_TRAP_ACTION_PROFILE_1r">
+                            <HwField Name="CFG_ACCEPTABLE_FRAME_TRAP_ACTION_PROFILEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="STP_TRAP" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_STP_TRAP_PARAMSr">
+                            <HwField Name="CFG_STP_ACTION_PROFILEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="PROTECTION_DB_TRAP" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_CFG_PROTECTION_DB_TRAP_PARAMSr">
+                            <HwField Name="CFG_PROTECTION_DB_ACTION_PROFILEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LATENCY_TRAP" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_CFG_LATENCY_TRAP_PARAMSr">
+                            <HwField Name="CFG_LATENCY_ACTION_PROFILEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="METERING_TRAP" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_CFG_METERING_TRAP_PARAMSr">
+                            <HwField Name="CFG_METERING_ACTION_PROFILEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_TRAP" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPA_CFG_TRAP_ACTION_PROFILE_1r">
+                            <HwField Name="CFG_GLEM_TRAP_ACTION_PROFILEf"/>
+                        </Register>
+                    </Access>                        
+                </Field>
+                <Field Name="TRAP_FWD_STRENGTH">
+                    <Access>
+                        <KeyCondition Enum="SPLIT_HORIZON" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_CFG_SPLIT_HORIZON_TRAP_PARAMSr">
+                            <HwField Name="CFG_SPLIT_HORIZON_FWD_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="STACK_TRAP_1" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_CFG_STACK_TRAP_1_TRAP_PARAMSr">
+                            <HwField Name="CFG_STACK_TRAP_1_FWD_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="STACK_TRAP_2" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_CFG_STACK_TRAP_2_TRAP_PARAMSr">
+                            <HwField Name="CFG_STACK_TRAP_2_FWD_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="VLAN_MEMBERSHIP" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_MEMBERSHIP_TRAP_PARAMSr">
+                            <HwField Name="CFG_MEMBERSHIP_FWD_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ACCEPTABLE_FRAME" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPA_CFG_FORWARDING_ACTION_STRENGTH_1r">
+                            <HwField Name="CFG_ACCEPTABLE_FRAME_TRAP_FWD_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="STP_TRAP" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_STP_TRAP_PARAMSr">
+                            <HwField Name="CFG_STP_FWD_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="PROTECTION_DB_TRAP" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_CFG_PROTECTION_DB_TRAP_PARAMSr">
+                            <HwField Name="CFG_PROTECTION_DB_FWD_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LATENCY_TRAP" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_CFG_LATENCY_TRAP_PARAMSr">
+                            <HwField Name="CFG_LATENCY_FWD_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="METERING_TRAP" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_CFG_METERING_TRAP_PARAMSr">
+                            <HwField Name="CFG_METERING_FWD_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_TRAP" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPA_CFG_FORWARDING_ACTION_STRENGTH_1r">
+                            <HwField Name="CFG_GLEM_TRAP_FWD_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>                    
+                </Field>
+                <Field Name="TRAP_SNP_STRENGTH">
+                    <Access>
+                        <KeyCondition Enum="SPLIT_HORIZON" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_CFG_SPLIT_HORIZON_TRAP_PARAMSr">
+                            <HwField Name="CFG_SPLIT_HORIZON_SNOOP_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="STACK_TRAP_1" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_CFG_STACK_TRAP_1_TRAP_PARAMSr">
+                            <HwField Name="CFG_STACK_TRAP_1_SNOOP_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="STACK_TRAP_2" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_CFG_STACK_TRAP_2_TRAP_PARAMSr">
+                            <HwField Name="CFG_STACK_TRAP_2_SNOOP_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="VLAN_MEMBERSHIP" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_MEMBERSHIP_TRAP_PARAMSr">
+                            <HwField Name="CFG_MEMBERSHIP_SNOOP_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ACCEPTABLE_FRAME" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPA_CFG_SNOOP_ACTION_STRENGTH_1r">
+                            <HwField Name="CFG_ACCEPTABLE_FRAME_TRAP_SNOOP_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="STP_TRAP" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_STP_TRAP_PARAMSr">
+                            <HwField Name="CFG_STP_SNOOP_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="PROTECTION_DB_TRAP" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_CFG_PROTECTION_DB_TRAP_PARAMSr">
+                            <HwField Name="CFG_PROTECTION_DB_SNOOP_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LATENCY_TRAP" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_CFG_LATENCY_TRAP_PARAMSr">
+                            <HwField Name="CFG_LATENCY_SNOOP_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="METERING_TRAP" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_CFG_METERING_TRAP_PARAMSr">
+                            <HwField Name="CFG_METERING_SNOOP_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_TRAP" Field="ETPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPA_CFG_SNOOP_ACTION_STRENGTH_1r">
+                            <HwField Name="CFG_GLEM_TRAP_SNOOP_ACTION_STRENGTHf"/>
+                        </Register>
+                    </Access>                                    
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPP_TRAP_SNIF_MAP">
+        <OneLineDescription>Mapping from sniff action profile to snoop and mirror</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SNIF_ACTION_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="SNP_ACTION_PROFILE"/>
+                <Field Name="TRAP_SNP_STRENGTH"/>
+                <Field Name="MRR_ACTION_PROFILE"/>
+            </Result>
+            <TableLabels>SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SNP_ACTION_PROFILE">
+                    <Access>
+                        <Register Name="ETPPA_CFG_MAP_SNIFF_TO_SNOOP_ACTIONr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_ACTION_PROFILE)*3"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_SNP_STRENGTH">
+                    <Access>
+                        <Register Name="ETPPA_CFG_MAP_SNIFF_TO_SNOOP_STRENGTHr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_ACTION_PROFILE)*3"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MRR_ACTION_PROFILE">
+                    <Access>
+                        <Register Name="ETPPA_CFG_MAP_SNIFF_TO_MIRROR_ACTIONr">
+                            <DataOffset Formula="#KEY_VALUE(SNIF_ACTION_PROFILE)*3"/>
+                        </Register>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPP_TRAP_STRENGTH_MAP">
+        <OneLineDescription>Mapping from ingress compressed strength (3b) to egress strength (4b)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TRAP_COMPRESSED_STRENGTH" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TRAP_FWD_STRENGTH"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TRAP_FWD_STRENGTH">
+                    <Access>
+                        <Register Name="ETPPA_CFG_MAP_FORWARD_STRENGTH_TO_STRENGTHr">
+                            <DataOffset Formula="#KEY_VALUE(TRAP_COMPRESSED_STRENGTH)*4"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+    
+    <AppDB Name="ETPP_CFG_FHEI_TYPE_CPU_TRAP">
+        <OneLineDescription>Configuration for FHEI Type for CPU trap</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="CFG_FHEI_TYPE_CPU_TRAP" Type="FHEI_TYPE"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CFG_FHEI_TYPE_CPU_TRAP">
+                    <Access>
+                        <Register Name="ETPPB_CFG_FHEI_TYPE_CPU_TRAPr">
+                            <HwField Name="CFG_FHEI_TYPE_CPU_TRAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="ETPP_CFG_DENY_METER_ON_TRAP">
+        <OneLineDescription>Configuration for METERING trap</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>            
+            </Key>
+            <Result>
+                <Field Name="DENY_METER_ON_PROTECTION_TRAP" Type="BOOL"/>
+                <Field Name="DENY_METER_ON_STACK_TRAP" Type="BOOL"/>
+                <Field Name="DENY_METER_ON_SPLIT_HORIZON_TRAP" Type="BOOL"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DENY_METER_ON_PROTECTION_TRAP">
+                    <Access>
+                        <Register Name="ETPPC_CFG_DONT_METERr">
+                            <HwField Name="CFG_DONT_METER_ON_PROTECTION_TRAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DENY_METER_ON_STACK_TRAP">
+                    <Access>
+                        <Register Name="ETPPC_CFG_DONT_METERr">
+                            <HwField Name="CFG_DONT_METER_ON_STACK_TRAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DENY_METER_ON_SPLIT_HORIZON_TRAP">
+                    <Access>
+                        <Register Name="ETPPC_CFG_DONT_METERr">
+                            <HwField Name="CFG_DONT_METER_ON_SPLIT_HORIZON_TRAPf"/>
+                        </Register>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPP_CFG_DENY_COUNT_ON_TRAP">
+        <OneLineDescription>Configuration for Counting trap</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>            
+            </Key>
+            <Result>
+                <Field Name="DENY_COUNT_ON_PROTECTION_TRAP" Type="BOOL"/>
+                <Field Name="DENY_COUNT_ON_STACK_TRAP" Type="BOOL"/>
+                <Field Name="DENY_COUNT_ON_SPLIT_HORIZON_TRAP" Type="BOOL"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DENY_COUNT_ON_PROTECTION_TRAP">
+                    <Access>
+                        <Register Name="ETPPC_CFG_DONT_COUNTr">
+                            <HwField Name="CFG_DONT_COUNT_ON_PROTECTION_TRAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DENY_COUNT_ON_STACK_TRAP">
+                    <Access>
+                        <Register Name="ETPPC_CFG_DONT_COUNTr">
+                            <HwField Name="CFG_DONT_COUNT_ON_STACK_TRAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DENY_COUNT_ON_SPLIT_HORIZON_TRAP">
+                    <Access>
+                        <Register Name="ETPPC_CFG_DONT_COUNTr">
+                            <HwField Name="CFG_DONT_COUNT_ON_SPLIT_HORIZON_TRAPf"/>
+                        </Register>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="ETPP_TRAP_MTU_MAP">
+        <OneLineDescription>This table hold the information for the 64 MTU trap profiles.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="LAYER_TYPE_COMPRESSED" Size="3" Type="UINT"/>
+                <Field Name="MTU_PROFILE" Size="3"/>
+            </Key>
+            <Result>
+                <Field Name="MTU" Size="14" Type="UINT"/>
+                <Field Name="TRAP_ACTION_PROFILE" Size="3"/>
+                <Field Name="TRAP_FWD_STRENGTH" Size="4"/>
+                <Field Name="TRAP_SNP_STRENGTH" Size="3"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MTU">
+                    <Access>
+                        <Memory GroupName="ETPP_MTU_MAP_TABLE">
+                            <HwField Name="MTUf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_ACTION_PROFILE">
+                    <Access>
+                        <Memory GroupName="ETPP_MTU_MAP_TABLE">
+                            <HwField Name="MTU_ACTION_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_FWD_STRENGTH">
+                    <Access>
+                        <Memory GroupName="ETPP_MTU_MAP_TABLE">
+                            <HwField Name="MTU_FWD_ACTION_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_SNP_STRENGTH">
+                    <Access>
+                        <Memory GroupName="ETPP_MTU_MAP_TABLE">
+                            <HwField Name="MTU_SNOOP_ACTION_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="ETPP_TRAP_MTU_LAYER_TYPE_MAP">
+        <OneLineDescription>This table hold themapping between forward layer type(5b) and compressed forward layer type(3b)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ENC_LAYER_TYPE" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="LAYER_TYPE_COMPRESSED" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LAYER_TYPE_COMPRESSED"> 
+                    <Access>
+                        <Memory GroupName="ETPP_PROTOCOL_TYPE_COMPRESSED_MAP">
+                            <HwField Name="PROTOCOL_TYPE_COMPRESSEDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPP_STACK_TRAP_MIRROR_ACTION_PROFILE">
+        <OneLineDescription>HW of stack trap Mirror-Action-Profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="MRR_ACTION_PROFILE"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MRR_ACTION_PROFILE"> 
+                    <Access>
+                        <Register Name="ETPPC_CFG_STACK_MIRROR_ACTION_PROFILEr">
+                            <HwField Name="CFG_STACK_MIRROR_ACTION_PROFILEf"/>
+                        </Register>
+                    </Access>                     
+                </Field>              
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPP_TRAP_LIF_ACTION_PROFILE">
+        <OneLineDescription>Configuration of LIF profile enablers</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ACTION_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="STACK_TRAP_1_ENABLE" Type="BOOL"/>
+                <Field Name="STACK_TRAP_2_ENABLE" Type="BOOL"/>
+                <Field Name="STACK_MRR_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="STACK_TRAP_1_ENABLE"> 
+                    <Access>
+                        <Register Name="ETPPC_CFG_MAP_STACK_ACTION_PROFILE_IDXr">
+                            <HwField Name="CFG_MAP_STACK_ACTION_PROFILE_IDX_TRAP_1f"/>
+                            <DataOffset Formula="#KEY_VALUE(ACTION_PROFILE)"/>
+                        </Register>
+                    </Access>                    
+                </Field>
+                <Field Name="STACK_TRAP_2_ENABLE"> 
+                    <Access>
+                        <Register Name="ETPPC_CFG_MAP_STACK_ACTION_PROFILE_IDXr">
+                            <HwField Name="CFG_MAP_STACK_ACTION_PROFILE_IDX_TRAP_2f"/>
+                            <DataOffset Formula="#KEY_VALUE(ACTION_PROFILE)"/>
+                        </Register>
+                    </Access>                   
+                </Field>
+                <Field Name="STACK_MRR_ENABLE"> 
+                    <Access>
+                        <Register Name="ETPPC_CFG_MAP_STACK_ACTION_PROFILE_IDXr">
+                            <HwField Name="CFG_MAP_STACK_ACTION_PROFILE_IDX_MIRRORf"/>
+                            <DataOffset Formula="#KEY_VALUE(ACTION_PROFILE)"/>
+                        </Register>
+                    </Access>                   
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="ETPP_LATENCY_TRAP_MIRROR_ACTION_PROFILE">
+        <OneLineDescription>HW of latency trap Mirror-Action-Profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="MRR_ACTION_PROFILE"/>
+                <Field Name="MRR_ACTION_PROFILE_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MRR_ACTION_PROFILE"> 
+                    <Access>
+                        <Register Name="ETPPC_CFG_LATENCY_TRAP_PARAMSr">
+                            <HwField Name="CFG_LATENCY_MIRROR_ACTION_PROFILEf"/>
+                        </Register>
+                    </Access>                    
+                </Field>
+                <Field Name="MRR_ACTION_PROFILE_ENABLE"> 
+                    <Access>
+                        <Register Name="ETPPC_CFG_LATENCY_TRAP_PARAMSr">
+                            <HwField Name="CFG_LATENCY_MIRROR_ACTION_PROFILE_VALIDf"/>
+                        </Register>
+                    </Access>                   
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="ETPP_INT_SIGNALS">
+        <OneLineDescription>ETPP interupt register pointing to PORT MTU trap hit/miss</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="PORT_MTU_TRAP" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PORT_MTU_TRAP"> 
+                    <Access>
+                        <Register Name="ETPPB_ETPPB_INT_REGr">
+                            <HwField Name="PORT_MTU_TRAP_INTf"/>
+                        </Register>
+                    </Access>                   
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+</AppDbCatalog>

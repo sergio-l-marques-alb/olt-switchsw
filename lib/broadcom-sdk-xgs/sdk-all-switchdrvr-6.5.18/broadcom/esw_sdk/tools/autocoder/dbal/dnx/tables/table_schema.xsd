@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+          elementFormDefault="qualified">
+    <xs:include schemaLocation="../dbal_types_definition.xsd" />
+    <!-- common appDb interface -->
+    <xs:complexType  name="AppDBCommon">
+    <xs:sequence >
+        <xs:element name="OneLineDescription" type="xs:string" minOccurs="1" maxOccurs="1" />
+        <xs:element name="AccessMethod" type="TableAccessMethodTypes" minOccurs="1" maxOccurs="1"/>
+        <xs:element name="Maturity" type="MaturityType" minOccurs="1" maxOccurs="unbounded"/>
+        
+        <!-- Interface -->
+        <xs:element name="AppDbInterface" type="TableInterfaceType" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+        <xs:attributeGroup ref="TableDefinitionAttr" />
+    </xs:complexType> 
+    
+    
+    <!--  common appDb app to phy -->
+    <xs:complexType name="AppToPhyDBMappingCommon">
+    <xs:sequence>
+        <xs:element name="CoreMode" type="CoreModeType" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+    </xs:complexType>
+    
+    
+    <!--  common to mdb tables and to hl tables -->
+    <xs:complexType name="MultipleResultsMappingType">
+    <xs:sequence>
+        <xs:element name="Result" minOccurs="1" maxOccurs="unbounded">
+        <xs:complexType>
+            <xs:attributeGroup ref="ResultIndicatorMappingAttr" />
+        </xs:complexType>
+        </xs:element>
+    </xs:sequence>
+    </xs:complexType>
+    
+    
+</xs:schema>

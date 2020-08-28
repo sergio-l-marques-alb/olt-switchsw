@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<top type="jericho">
+    <registers>
+<!-- Dana Ziman (Block Owner) : "The NBIL/NBIH in Jericho has no indirect access." -->
+        <reg name="NBIH_INDIRECT_COMMAND_RD_DATA" no_read="1"/>
+        <reg name="NBIL_INDIRECT_COMMAND_RD_DATA" no_read="1"/>
+<!-- Uri Amit (Block Owner) : "FDR, FMAC and MESH_TOPOLOGY in Jericho has no indirect access." -->
+        <reg name="FDR_INDIRECT_COMMAND_RD_DATA" no_read="1"/>
+        <reg name="FMAC_INDIRECT_COMMAND_RD_DATA" no_read="1"/>
+        <reg name="MESH_TOPOLOGY_ECC_1B_ERR_CNT" no_read="1"/>
+        <reg name="MESH_TOPOLOGY_ECC_2B_ERR_CNT" no_read="1"/>
+        <reg name="MESH_TOPOLOGY_ERROR_INITIATION_DATA" no_read="1"/>
+        <reg name="MESH_TOPOLOGY_PARITY_ERR_CNT" no_read="1"/>
+    </registers>
+    <memories>
+ </memories>
+</top>

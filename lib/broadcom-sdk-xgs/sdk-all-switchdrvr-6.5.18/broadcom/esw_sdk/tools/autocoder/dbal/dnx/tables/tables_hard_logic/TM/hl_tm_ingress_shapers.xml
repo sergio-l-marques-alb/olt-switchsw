@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="INGRESS_SHAPER_CPU_GUARANTEED">
+        <OneLineDescription>This table contains parameters of Cpu Guaranteed shaper.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="TIMER_CYCLES" Size="8" Type="UINT"/>
+                <Field Description="Size in bytes" Name="GRANT_SIZE" Size="10" Type="UINT"/>
+                <Field Description="In bytes" Name="MAX_BURST" Size="16" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="TIMER_CYCLES">
+                    <Access>
+                        <Register Name="IRE_CPU_SHAPERr">
+                            <HwField Name="CPU_SHAPER_TIMER_CYCLESf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GRANT_SIZE">
+                    <Access>
+                        <Register Name="IRE_CPU_SHAPERr">
+                            <HwField Name="CPU_SHAPER_GRANT_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MAX_BURST">
+                    <Access>
+                        <Register Name="IRE_CPU_SHAPERr">
+                            <HwField Name="CPU_SHAPER_MAX_BURSTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_SHAPER_RCY_GUARANTEED">
+        <OneLineDescription>This table contains parameters of RCY Guaranteed shaper.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="TIMER_CYCLES" Size="8" Type="UINT"/>
+                <Field Description="Size in bytes" Name="GRANT_SIZE" Size="12" Type="UINT"/>
+                <Field Description="In bytes" Name="MAX_BURST" Size="16" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="TIMER_CYCLES">
+                    <Access>
+                        <Register Name="IRE_RECYCLING_SHAPERr">
+                            <HwField Name="RCY_SHAPER_TIMER_CYCLESf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GRANT_SIZE">
+                    <Access>
+                        <Register Name="IRE_RECYCLING_SHAPERr">
+                            <HwField Name="RCY_SHAPER_GRANT_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MAX_BURST">
+                    <Access>
+                        <Register Name="IRE_RECYCLING_SHAPERr">
+                            <HwField Name="RCY_SHAPER_MAX_BURSTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_SHAPER_PACKET_RATE">
+        <OneLineDescription>This table contains parameters of Packet Rate shaper.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="TIMER_CYCLES" Size="8" Type="UINT"/>
+                <Field Description="Size in packets" Name="GRANT_SIZE" Size="12" Type="UINT"/>
+                <Field Description="In packets" Name="MAX_BURST" Size="14" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="TIMER_CYCLES">
+                    <Access>
+                        <Register Name="IRE_IHP_SHAPERr">
+                            <HwField Name="IHP_SHAPER_TIMER_CYCLESf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GRANT_SIZE">
+                    <Access>
+                        <Register Name="IRE_IHP_SHAPERr">
+                            <HwField Name="IHP_SHAPER_GRANT_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MAX_BURST">
+                    <Access>
+                        <Register Name="IRE_IHP_SHAPERr">
+                            <HwField Name="IHP_SHAPER_MAX_BURSTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

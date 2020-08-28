@@ -1,0 +1,1609 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+    <AppDB Name="OAM_GENERAL_CONFIGURATION">
+        <OneLineDescription>Configuration for OAM over ethernet packets</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="INGRESS_PACKET_INJECTED_BITMAP" Size="8" Type="UINT"/>
+                <Field Description="This is a bitmap, with the index to every bit being Packet Format Qualifier0 2:0. If the bit is set and PP-Inject is enabled then the packets injection is enabled" Name="EGRESS_PACKET_INJECTED_BITMAP" Size="16" Type="UINT"/>
+                <Field Name="ETHERNET_NEXT_PROTOCOL_OAM" Size="32" Type="UINT"/>
+                <Field Name="OAM_LIF_INVALID_HEADER" Size="22" Type="UINT"/>
+                <Field Name="OAM_MPLS_TP_OR_BFD_ENABLE_MAP" Size="8" Type="UINT"/>
+                <Field Name="OAM_BFD_VALIDITY_CHECK" Size="1" Type="UINT"/>
+                <Field Name="OAM_NO_BFD_AUTHENTICATION" Size="1" Type="UINT"/>
+                <Field Name="OAM_MPLS_TP_FORCE_OPCODE" Size="4" Type="UINT"/>
+                <Field Name="OAM_INVALID_LIF" Size="20" Type="UINT"/>
+                <Field Description="Map FWD Sterngth to OAM-Injection bit" Name="EGRESS_MAP_STRENGTH_TO_OAM_INJECTION" Size="16" Type="UINT"/>
+                <Field Description="Sets OAMP Tx App specific Format to JR2" Name="TX_JR2_AS_OAM" Size="1" Type="UINT"/>
+                <Field Description="In cases of MPLS TP in OAM ID use InLif0 only if larger than this threshold" Name="RIF_ID_THRESHOLD" Size="22" Type="UINT"/>
+                <Field Description="Type-of-Service value used for BFD single-hop" Name="OAMP_BFD_IPV4_ONE_HOP_TOS" Type="TOS" Valid="DNX_DATA.bfd.general.configurable_single_hop_tos"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INGRESS_PACKET_INJECTED_BITMAP">
+                    <Access>
+                        <Register Name="IPPB_OAM_PACKET_INJECTED_BITMAPr">
+                            <HwField Name="PACKET_INJECTED_BITMAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_PACKET_INJECTED_BITMAP">
+                    <Access>
+                        <Register Name="ETPPC_OAM_PACKET_INJECTED_BITMAPr">
+                            <HwField Name="PACKET_INJECTED_BITMAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ETHERNET_NEXT_PROTOCOL_OAM">
+                    <Access>
+                        <Register Name="IPPB_OAM_ETHERNET_CFGr">
+                            <HwField Name="ETHERNET_NEXT_PROTOCOL_OAMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_LIF_INVALID_HEADER">
+                    <Access>
+                        <Register Name="IPPB_OAM_ETHERNET_CFGr">
+                            <HwField Name="OAM_LIF_INVALID_HEADERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_MPLS_TP_OR_BFD_ENABLE_MAP">
+                    <Access>
+                        <Register Name="IPPB_OAM_IDENTIFICATION_ENABLEr">
+                            <HwField Name="OAM_MPLS_TP_OR_BFD_ENABLE_MAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_BFD_VALIDITY_CHECK">
+                    <Access>
+                        <Register Name="IPPB_OAM_IDENTIFICATION_ENABLEr">
+                            <HwField Name="OAM_BFD_VALIDITY_CHECKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_NO_BFD_AUTHENTICATION">
+                    <Access>
+                        <Register Name="IPPB_OAM_IDENTIFICATION_ENABLEr">
+                            <HwField Name="OAM_NO_BFD_AUTHENTICATIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_MPLS_TP_FORCE_OPCODE">
+                    <Access>
+                        <Register Name="IPPB_OAM_IDENTIFICATION_ENABLEr">
+                            <HwField Name="OAM_MPLS_TP_FORCE_OPCODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_INVALID_LIF">
+                    <Access>
+                        <Register Name="ETPPC_CFG_INVALID_OAM_LIFr">
+                            <HwField Name="CFG_INVALID_OAM_LIFf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_MAP_STRENGTH_TO_OAM_INJECTION">
+                    <Access>
+                        <Register Name="ETPPC_MAP_STRENGTH_TO_OAM_INJECTIONr">
+                            <HwField Name="MAP_STRENGTH_TO_OAM_INJECTIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TX_JR2_AS_OAM">
+                    <Access>
+                        <Register Name="OAMP_TX_JR_2_AS_OAMr">
+                            <HwField Name="TX_JR_2_AS_OAM_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RIF_ID_THRESHOLD">
+                    <Access>
+                        <Register Name="IPPB_OAM_ID_RIF_THRESHOLDr">
+                            <HwField Name="OAM_ID_RIF_THRESHOLDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="OAMP_BFD_IPV4_ONE_HOP_TOS">
+                    <Access>
+                        <Register Name="OAMP_BFD_IPV4_ONE_HOP_TOSr">
+                            <HwField Name="RXB_BFD_IPV4_ONE_HOP_TOSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_BFD_IPV4_ONE_HOP_TOSr">
+                            <HwField Name="TXO_BFD_IPV4_ONE_HOP_TOSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_BFD_IPV4_ONE_HOP_TOSr">
+                            <HwField Name="TXM_BFD_IPV4_ONE_HOP_TOSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAM_TCAM_IDENTIFICATION_APPDB">
+        <OneLineDescription>Set OAM TCAM identification APPDB ID</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Description="OAM TCAM identification APPDB 0 ID" Name="IDENTIFICATION_APPDB_0" Size="1" Type="UINT"/>
+                <Field Description="OAM TCAM identification APPDB 1 ID" Name="IDENTIFICATION_APPDB_1" Size="1" Type="UINT" Valid="DNX_DATA.oam.general.oam_identification_appdb_1_field_exists"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="IDENTIFICATION_APPDB_0">
+                    <Access>
+                        <Register Name="IPPB_IDENTIFICATION_APPDBr">
+                            <HwField Name="IDENTIFICATION_APPDBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="IDENTIFICATION_APPDB_0">
+                    <Access>
+                        <Register Name="IPPB_IDENTIFICATION_APPDBr">
+                            <HwField Name="IDENTIFICATION_APPDB_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="IDENTIFICATION_APPDB_1">
+                    <Access>
+                        <Register Name="IPPB_IDENTIFICATION_APPDBr">
+                            <HwField Name="IDENTIFICATION_APPDB_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAM_LM_READ_PER_SUB_TYPE_DISABLE">
+        <OneLineDescription>Disable LM_RD_INDEX per oam sub_type</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OAM_SUB_TYPE" Size="4"/>
+            </Key>
+            <Result>
+                <Field Description="Disable the lm index mapping according to the subtype" Name="OAM_LM_READ_INDEX_DISABLE" Size="1" Type="UINT" Valid="DNX_DATA.oam.general.oam_lm_read_per_sub_disable_field_exists"/>
+                <Field Description="Enable the lm index mapping according to the subtype" Name="OAM_LM_READ_INDEX_ENABLE" Size="1" Type="UINT" Valid="DNX_DATA.oam.general.oam_lm_read_per_sub_enable_field_exists"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="OAM_LM_READ_INDEX_DISABLE">
+                    <Access>
+                        <Register Name="IPPB_RESERVED_SPARE_0r">
+                            <HwField Name="RESERVED_SPARE_0f"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="OAM_LM_READ_INDEX_ENABLE">
+                    <Access>
+                        <Register Name="IPPB_IS_LM_PACKETr">
+                            <HwField Name="IS_LM_PACKETf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="EGRESS_OAM_PROCESS_MAP">
+        <OneLineDescription>Mapping of OAM packet to one several possible OAM processes</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PORT_PROFILE" Size="1" Type="UINT"/>
+                <Field Name="OAM_MEP_TYPE" Size="1" Type="OAM_DIRECTION"/>
+                <Field Name="OAM_SUB_TYPE" Size="4"/>
+            </Key>
+            <Result>
+                <Field Name="OAM_PROCESS_ACTION" Size="3"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OAM_PROCESS_ACTION">
+                    <Access>
+                        <Register Name="ETPPC_OAM_PROCESS_MAPr">
+                            <HwField Name="OAM_PROCESS_MAPf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAM_TS_HEADER_PER_SUBTYPE">
+        <OneLineDescription>For each OAM subtype, automatically adds OAM_TS header if set</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OAM_SUBTYPE_KEY" Size="4" Type="OAM_SUB_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="BUILD_OAM_TS_HEADER" Type="BOOL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="BUILD_OAM_TS_HEADER">
+                    <Access>
+                        <Register Name="IPPD_BUILD_OAM_TS_HEADERr">
+                            <HwField Name="BUILD_OAM_TS_HEADERf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAM_CHANNEL_TYPE">
+        <OneLineDescription>Maps the CW Channel type to an OAM format</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="INDEX" Size="4" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="CHANNEL_TYPE"/>
+                <Field Name="VALID" Size="1" Type="BOOL"/>
+                <Field Name="FORMAT_TYPE" Size="3" Type="OAM_FORMAT_TYPE"/>
+                <Field Name="CHANNEL_TYPE_PACKET_IS_OAM" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CHANNEL_TYPE">
+                    <Access>
+                        <Memory Name="IPPB_OAM_CHANNEL_TYPEm">
+                            <HwField Name="CHANNEL_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VALID">
+                    <Access>
+                        <Memory Name="IPPB_OAM_CHANNEL_TYPEm">
+                            <HwField Name="VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORMAT_TYPE">
+                    <Access>
+                        <Memory Name="IPPB_OAM_CHANNEL_TYPEm">
+                            <HwField Name="OAM_CHANNEL_TYPE_FORMAT_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CHANNEL_TYPE_PACKET_IS_OAM">
+                    <Access>
+                        <Memory Name="IPPB_OAM_CHANNEL_TYPEm">
+                            <HwField Name="OAM_CHANNEL_TYPE_PACKET_IS_OAMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="INGRESS_OAM_SUB_TYPE_TO_DATA_TYPE_MAP">
+        <OneLineDescription>For each OAM subtype, set data type value for OAM Application Extension(oam_ts_data) (0 - counter-value, 1 - TOD-1588, 2 - NTP, 3 - none)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OAM_SUBTYPE_KEY" Type="OAM_SUB_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="INGRESS_OAM_DATA_TYPE" Size="2"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INGRESS_OAM_DATA_TYPE">
+                    <Access>
+                        <Register Name="IPPD_OAM_SUB_TYPE_MAPr">
+                            <HwField Name="OAM_SUB_TYPE_MAPf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="EGRESS_OAM_SUB_TYPE_TO_DATA_TYPE_MAP">
+        <OneLineDescription>For each OAM subtype, set data type value for OAM Application Extension(oam_ts_data) (0 - TOD-1588, 1 - NTP, 2 - counter-value, 3 - none)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OAM_SUB_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="EGRESS_OAM_DATA_TYPE" Size="2"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="EGRESS_OAM_DATA_TYPE">
+                    <Access Size="1">
+                        <Register Name="ETPPB_CFG_OAM_TYPEr">
+                            <HwField Name="CFG_OAM_TOD_TYPEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="1" Size="1">
+                        <Register Name="ETPPB_CFG_OAM_TYPEr">
+                            <HwField Name="CFG_OAM_LM_TYPEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+        <AppDB Name="OAMP_INTERRUPT_REPORT">
+        <OneLineDescription>Interrupt report(stat)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+         <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="JR2_STAT_EVENT" Size="32" Type="UINT" Permission="READONLY" Description="STAT event data" NofInstances="20"/>
+            </Result>
+            <TableLabels>SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="JR2_STAT_EVENT">
+                    <Access instanceIndex="ALL">
+                        <Register Name="OAMP_STAT_INTERRUPT_MESSAGEr">
+                            <HwField Name="STAT_INTERRUPT_MESSAGEf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(JR2_STAT_EVENT)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_INTERRUPT_DATA">
+        <OneLineDescription>Interrupt data received from OAMP for indicating RMEP related change information. It contains the RMEP DB address, LOC indication, RDI indication and RMEP state change info  </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="JR2_OAMP_EVENT" NofInstances="13" Permission="READONLY" Type="JR2_OAMP_EVENT_FORMAT"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="JR2_OAMP_EVENT">
+                    <Access instanceIndex="0">
+                        <Register Name="OAMP_INTERRUPT_MESSAGEr">
+                            <HwField Name="INTERRUPT_MESSAGEf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(JR2_OAMP_EVENT)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="OAMP_INTERRUPT_MESSAGEr">
+                            <HwField Name="INTERRUPT_MESSAGEf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(JR2_OAMP_EVENT)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="OAMP_INTERRUPT_MESSAGEr">
+                            <HwField Name="INTERRUPT_MESSAGEf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(JR2_OAMP_EVENT)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="OAMP_INTERRUPT_MESSAGEr">
+                            <HwField Name="INTERRUPT_MESSAGEf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(JR2_OAMP_EVENT)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="OAMP_INTERRUPT_MESSAGEr">
+                            <HwField Name="INTERRUPT_MESSAGEf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(JR2_OAMP_EVENT)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Register Name="OAMP_INTERRUPT_MESSAGEr">
+                            <HwField Name="INTERRUPT_MESSAGEf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(JR2_OAMP_EVENT)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Register Name="OAMP_INTERRUPT_MESSAGEr">
+                            <HwField Name="INTERRUPT_MESSAGEf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(JR2_OAMP_EVENT)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Register Name="OAMP_INTERRUPT_MESSAGEr">
+                            <HwField Name="INTERRUPT_MESSAGEf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(JR2_OAMP_EVENT)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="8">
+                        <Register Name="OAMP_INTERRUPT_MESSAGEr">
+                            <HwField Name="INTERRUPT_MESSAGEf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(JR2_OAMP_EVENT)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="9">
+                        <Register Name="OAMP_INTERRUPT_MESSAGEr">
+                            <HwField Name="INTERRUPT_MESSAGEf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(JR2_OAMP_EVENT)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="10">
+                        <Register Name="OAMP_INTERRUPT_MESSAGEr">
+                            <HwField Name="INTERRUPT_MESSAGEf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(JR2_OAMP_EVENT)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="11">
+                        <Register Name="OAMP_INTERRUPT_MESSAGEr">
+                            <HwField Name="INTERRUPT_MESSAGEf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(JR2_OAMP_EVENT)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="12">
+                        <Register Name="OAMP_INTERRUPT_MESSAGEr">
+                            <HwField Name="INTERRUPT_MESSAGEf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(JR2_OAMP_EVENT)+16"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_MDB_APP_DB">
+        <OneLineDescription>IDs for the MDB Application Databases</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Description="ID of MEP DB Application Database" Name="MEP_DB_ID" Size="3" Type="UINT"/>
+                <Field Description="ID of RMEP DB Application Database" Name="RMEP_DB_ID" Size="3" Type="UINT"/>
+                <Field Description="ID of MEP DB Application Lookup Database" Name="MEP_LOOKUP_ID" Size="3" Type="UINT"/>
+                <Field Description="ID of RMEP DB Application Lookup Database" Name="RMEP_LOOKUP_ID" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MEP_DB_ID">
+                    <Access>
+                        <Register Name="OAMP_MDB_APP_DBr">
+                            <HwField Name="MDB_APP_DB_MEP_DB_IDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RMEP_DB_ID">
+                    <Access>
+                        <Register Name="OAMP_MDB_APP_DBr">
+                            <HwField Name="MDB_APP_DB_R_MEP_DB_IDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MEP_LOOKUP_ID">
+                    <Access>
+                        <Register Name="OAMP_MDB_APP_DBr">
+                            <HwField Name="MDB_APP_DB_MEP_LKUP_IDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RMEP_LOOKUP_ID">
+                    <Access>
+                        <Register Name="OAMP_MDB_APP_DBr">
+                            <HwField Name="MDB_APP_DB_R_MEP_LKUP_IDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_MEP_TYPE_TRAP_CODE_TCAM">
+        <OneLineDescription>Maps trap code and opcode/channel to MEP type</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="INDEX" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Trap code for this TCAM" Name="KEY_RECEIVED_TRAP_CODE" Size="9" Type="INGRESS_TRAP_ID"/>
+                <Field Description="Opcode or GACH channel for this TCAM" Name="KEY_OPCODE_GACH_CHANNEL" Size="16" Type="UINT"/>
+                <Field Description="0 opcode, 1 for GACH" Name="KEY_OPCODE_GACH_SELECT" Size="1" Type="UINT"/>
+                <Field Description="Mep type - part of key" Name="KEY_MEP_TYPE" Type="OAMP_MEP_TYPE"/>
+                <Field Description="Bitmask for trap code" Name="KEY_RECEIVED_TRAP_CODE_MASK" Size="9" Type="UINT"/>
+                <Field Description="Bitmask for Opcode or GACH channel" Name="KEY_OPCODE_GACH_CHANNEL_MASK" Size="16" Type="UINT"/>
+                <Field Description="Bitmask for Opcode/GACH select." Name="KEY_OPCODE_GACH_SELECT_MASK" Size="1" Type="UINT"/>
+                <Field Description="Bitmask for MEP type" Name="KEY_MEP_TYPE_MASK" Type="OAMP_MEP_TYPE"/>
+                <Field Description="1 for this entry is valid, 0 otherwise" Name="RESULT_VALID" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="KEY_RECEIVED_TRAP_CODE">
+                    <Access>
+                        <Memory Name="OAMP_CLS_TRAP_CODE_TCAMm">
+                            <HwField Name="KEYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="KEY_OPCODE_GACH_CHANNEL">
+                    <Access>
+                        <Memory Name="OAMP_CLS_TRAP_CODE_TCAMm">
+                            <HwField Name="KEYf"/>
+                            <DataOffset Formula="#RESULT_SIZE(KEY_RECEIVED_TRAP_CODE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="KEY_OPCODE_GACH_SELECT">
+                    <Access>
+                        <Memory Name="OAMP_CLS_TRAP_CODE_TCAMm">
+                            <HwField Name="KEYf"/>
+                            <DataOffset Formula="#RESULT_SIZE(KEY_RECEIVED_TRAP_CODE)+#RESULT_SIZE(KEY_OPCODE_GACH_CHANNEL)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="KEY_MEP_TYPE">
+                    <Access>
+                        <Memory Name="OAMP_CLS_TRAP_CODE_TCAMm">
+                            <HwField Name="KEYf"/>
+                            <DataOffset Formula="#RESULT_SIZE(KEY_RECEIVED_TRAP_CODE)+#RESULT_SIZE(KEY_OPCODE_GACH_CHANNEL)+#RESULT_SIZE(KEY_OPCODE_GACH_SELECT)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="KEY_RECEIVED_TRAP_CODE_MASK">
+                    <Access>
+                        <Memory Name="OAMP_CLS_TRAP_CODE_TCAMm">
+                            <HwField Name="MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="KEY_OPCODE_GACH_CHANNEL_MASK">
+                    <Access>
+                        <Memory Name="OAMP_CLS_TRAP_CODE_TCAMm">
+                            <HwField Name="MASKf"/>
+                            <DataOffset Formula="#RESULT_SIZE(KEY_RECEIVED_TRAP_CODE_MASK)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="KEY_OPCODE_GACH_SELECT_MASK">
+                    <Access>
+                        <Memory Name="OAMP_CLS_TRAP_CODE_TCAMm">
+                            <HwField Name="MASKf"/>
+                            <DataOffset Formula="#RESULT_SIZE(KEY_RECEIVED_TRAP_CODE_MASK)+#RESULT_SIZE(KEY_OPCODE_GACH_CHANNEL_MASK)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="KEY_MEP_TYPE_MASK">
+                    <Access>
+                        <Memory Name="OAMP_CLS_TRAP_CODE_TCAMm">
+                            <HwField Name="MASKf"/>
+                            <DataOffset Formula="#RESULT_SIZE(KEY_RECEIVED_TRAP_CODE_MASK)+#RESULT_SIZE(KEY_OPCODE_GACH_CHANNEL_MASK)+#RESULT_SIZE(KEY_OPCODE_GACH_SELECT_MASK)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RESULT_VALID">
+                    <Access>
+                        <Memory Name="OAMP_CLS_TRAP_CODE_TCAMm">
+                            <HwField Name="VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="OAMP_CLS_TRAP_CODE_TCAMm">
+                            <HwField Name="DATf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_UDH">
+        <OneLineDescription>OAMP UDH Configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Description="Rx Mode; 1 - Flexible (Qumran), otherwise Jericho 1 compatible" Name="UDH_MODE" Type="SYSTEM_HEADERS_MODE"/>
+                <Field Description="Size of Tx UDH, 0-17" Name="UDH_SIZE" Size="5" Type="UINT"/>
+                <Field Description="Value of most significant byte of Tx UDH" Name="UDH_TX_DATA" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="UDH_MODE">
+                    <Access>
+                        <Register Name="OAMP_HEADER_CONFIGr">
+                            <HwField Name="UDH_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="UDH_SIZE">
+                    <Access>
+                        <Register Name="OAMP_UDHr">
+                            <HwField Name="UDH_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="UDH_TX_DATA">
+                    <Access>
+                        <Register Name="OAMP_UDHr">
+                            <HwField Name="UDH_TX_DATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_PROTECTION_PACKET_HEADER">
+        <OneLineDescription>Configuration for OAMP protection packets</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Description="Protection packet header - first part" Name="PROTECTION_PACKET_HEADER_PART_1" Size="128" Type="ARRAY8"/>
+                <Field Description="Protection packet header - second part" Name="PROTECTION_PACKET_HEADER_PART_2" Size="512" Type="ARRAY8"/>
+                <Field Description="Length of protection packet header, in bytes, 80 max" Name="PROTECTION_PACKET_LEN" Size="7" Type="UINT"/>
+                <Field Description="input to OAMP-PE TCAM for program selection" Name="PROTECTION_PACKET_EDIT_PROG" Size="24" Type="UINT"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PROTECTION_PACKET_HEADER_PART_1">
+                    <Access>
+                        <Register Name="OAMP_PROTECTION_PACKET_HEADERr">
+                            <HwField Name="PROTECTION_PACKET_HEADERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PROTECTION_PACKET_HEADER_PART_2">
+                    <Access>
+                        <Register Name="OAMP_PROTECTION_PACKET_HEADERr">
+                            <HwField Name="PROTECTION_PACKET_HEADERf"/>
+                            <DataOffset Formula="#RESULT_SIZE(PROTECTION_PACKET_HEADER_PART_1)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PROTECTION_PACKET_LEN">
+                    <Access>
+                        <Register Name="OAMP_PROTECTION_PACKET_CONFr">
+                            <HwField Name="PROTECTION_PACKET_HEADER_NUM_OF_BYTESf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PROTECTION_PACKET_EDIT_PROG">
+                    <Access>
+                        <Register Name="OAMP_PROTECTION_PACKET_CONFr">
+                            <HwField Name="PROTECTION_PACKET_EDIT_PROGRAMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_JR2_FORMAT_PROTECTION_PACKET_HEADER">
+        <OneLineDescription>Configuration for OAMP protection pacekts</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Description="PTCH Header" Name="PTCH_HEADER"/>
+                <Field Description="ITMH Header" Name="ITMH_BASE"/>
+                <Field Description="Proprietary system header" Name="PROPRIETARY_HEADER"/>
+                <Field Description="Editing information system header" Name="FHEI_HEADER" Size="40" Type="ARRAY8"/>
+                <Field Description="Length of protection packet header, in bytes, 80 max" Name="PROTECTION_PACKET_LEN" Size="7" Type="UINT"/>
+                <Field Description="PE program to use on protection packet header" Name="PROTECTION_PACKET_EDIT_PROG" Size="24" Type="UINT"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PTCH_HEADER">
+                    <Access>
+                        <Register Name="OAMP_PROTECTION_PACKET_HEADERr">
+                            <HwField Name="PROTECTION_PACKET_HEADERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ITMH_BASE">
+                    <Access>
+                        <Register Name="OAMP_PROTECTION_PACKET_HEADERr">
+                            <HwField Name="PROTECTION_PACKET_HEADERf"/>
+                            <DataOffset Formula="#RESULT_SIZE(PTCH_HEADER)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PROPRIETARY_HEADER">
+                    <Access>
+                        <Register Name="OAMP_PROTECTION_PACKET_HEADERr">
+                            <HwField Name="PROTECTION_PACKET_HEADERf"/>
+                            <DataOffset Formula="#RESULT_SIZE(PTCH_HEADER)+#RESULT_SIZE(ITMH_BASE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FHEI_HEADER">
+                    <Access>
+                        <Register Name="OAMP_PROTECTION_PACKET_HEADERr">
+                            <HwField Name="PROTECTION_PACKET_HEADERf"/>
+                            <DataOffset Formula="#RESULT_SIZE(PTCH_HEADER)+#RESULT_SIZE(ITMH_BASE)+#RESULT_SIZE(PROPRIETARY_HEADER)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PROTECTION_PACKET_LEN">
+                    <Access>
+                        <Register Name="OAMP_PROTECTION_PACKET_CONFr">
+                            <HwField Name="PROTECTION_PACKET_HEADER_NUM_OF_BYTESf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PROTECTION_PACKET_EDIT_PROG">
+                    <Access>
+                        <Register Name="OAMP_PROTECTION_PACKET_CONFr">
+                            <HwField Name="PROTECTION_PACKET_EDIT_PROGRAMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_JR1_FORMAT_PROTECTION_PACKET_HEADER">
+        <OneLineDescription>Configuration for OAMP protection pacekts</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Description="PTCH Header" Name="PTCH_HEADER"/>
+                <Field Description="ITMH Header" Name="ITMH_BASE_JR1"/>
+                <Field Description="Proprietary system header" Name="PROPRIETARY_HEADER_JR1" Size="56" Type="ARRAY8"/>
+                <Field Description="Editing information system header" Name="FHEI_HEADER_JR1" Size="40" Type="ARRAY8"/>
+                <Field Description="Length of protection packet header, in bytes, 80 max" Name="PROTECTION_PACKET_LEN" Size="7" Type="UINT"/>
+                <Field Description="PE program to use on protection packet header" Name="PROTECTION_PACKET_EDIT_PROG" Size="24" Type="UINT"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PTCH_HEADER">
+                    <Access>
+                        <Register Name="OAMP_PROTECTION_PACKET_HEADERr">
+                            <HwField Name="PROTECTION_PACKET_HEADERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ITMH_BASE_JR1">
+                    <Access>
+                        <Register Name="OAMP_PROTECTION_PACKET_HEADERr">
+                            <HwField Name="PROTECTION_PACKET_HEADERf"/>
+                            <DataOffset Formula="#RESULT_SIZE(PTCH_HEADER)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PROPRIETARY_HEADER_JR1">
+                    <Access>
+                        <Register Name="OAMP_PROTECTION_PACKET_HEADERr">
+                            <HwField Name="PROTECTION_PACKET_HEADERf"/>
+                            <DataOffset Formula="#RESULT_SIZE(PTCH_HEADER)+#RESULT_SIZE(ITMH_BASE_JR1)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FHEI_HEADER_JR1">
+                    <Access>
+                        <Register Name="OAMP_PROTECTION_PACKET_HEADERr">
+                            <HwField Name="PROTECTION_PACKET_HEADERf"/>
+                            <DataOffset Formula="#RESULT_SIZE(PTCH_HEADER)+#RESULT_SIZE(ITMH_BASE_JR1)+#RESULT_SIZE(PROPRIETARY_HEADER_JR1)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PROTECTION_PACKET_LEN">
+                    <Access>
+                        <Register Name="OAMP_PROTECTION_PACKET_CONFr">
+                            <HwField Name="PROTECTION_PACKET_HEADER_NUM_OF_BYTESf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PROTECTION_PACKET_EDIT_PROG">
+                    <Access>
+                        <Register Name="OAMP_PROTECTION_PACKET_CONFr">
+                            <HwField Name="PROTECTION_PACKET_EDIT_PROGRAMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_CLS_FLEX_CRC_TCAM">
+        <OneLineDescription>CRC calculation TCAM table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_DIRECT">
+            <Key>
+                <Field Description="Opcode or GACH channel for this TCAM" Name="OPCODE_GACH_CHANNEL" Size="16" Type="UINT"/>
+                <Field Description="0 opcode, 1 for GACH" Name="OPCODE_GACH_SELECT" Size="1" Type="UINT"/>
+                <Field Description="MEP PE profile" Name="MEP_PE_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Description="3 bit mask index" Name="CRC_MASK_INDEX" Size="3" Type="UINT"/>
+                <Field Description="1 bit choose CRC1 or CRC2 from extra data" Name="CRC_INDEX" Size="1" Type="UINT"/>
+                <Field Description="TRUE for this entry is valid, FALSE otherwise" Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMappingTcam>
+                <Type Name="KEY">
+                    <Access>
+                        <Memory Name="OAMP_CLS_FLEX_CRC_TCAMm">
+                            <HwField Name="KEYf"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="KEY_MASK">
+                    <Access>
+                        <Memory Name="OAMP_CLS_FLEX_CRC_TCAMm">
+                            <HwField Name="MASKf"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="RESULT">
+                    <Access>
+                        <Memory Name="OAMP_CLS_FLEX_CRC_TCAMm">
+                            <HwField Name="DATf"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_FLEX_CRC_MASK">
+        <OneLineDescription>CRC calculation TCAM table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CRC_MASK_INDEX" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Bit per bit mask for the first 64 bits" Name="PER_BIT_MASK" Size="64" Type="ARRAY8"/>
+                <Field Description="Bit per byte mask for the last 120 bytes" Name="PER_BYTE_MASK" Size="120" Type="ARRAY8"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PER_BIT_MASK">
+                    <Access>
+                        <Memory Name="OAMP_FLEX_VER_MASK_TEMPm">
+                            <HwField Name="PER_BIT_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PER_BYTE_MASK">
+                    <Access>
+                        <Memory Name="OAMP_FLEX_VER_MASK_TEMPm">
+                            <HwField Name="PER_BYTE_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_ARBITER_WEIGHT">
+        <OneLineDescription>TX arbiter priorities</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Setting priority of the traffic injected by the TX machine" Name="TXM_ARB_WEIGHT" Size="3" Type="UINT"/>
+                <Field Description="Setting priority of the traffic initiated by the LMR/DMR response machine" Name="SAT_ARB_WEIGHT" Size="3" Type="UINT"/>
+                <Field Description="Setting priority of the traffic injected by TST/LBM machine." Name="RSP_ARB_WEIGHT" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TXM_ARB_WEIGHT">
+                    <Access>
+                        <Register Name="OAMP_ARBITER_WEIGHTr">
+                            <HwField Name="TXM_ARB_WEIGHTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SAT_ARB_WEIGHT">
+                    <Access>
+                        <Register Name="OAMP_ARBITER_WEIGHTr">
+                            <HwField Name="SAT_ARB_WEIGHTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RSP_ARB_WEIGHT">
+                    <Access>
+                        <Register Name="OAMP_ARBITER_WEIGHTr">
+                            <HwField Name="RSP_ARB_WEIGHTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+<AppDB Name="OAM_TOD_GENERAL_CONFIGURATION">
+    <OneLineDescription>General Configuration Of ToD Functionality</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="DIRECT">
+        <Key/>
+        <Result>
+            <Field Description="Active high NSE reset" Name="ECI_NSE_RESET" Type="BOOL"/>
+            <Field Description="The time format 0-Null, 1-OAM 2-NTP 3-OAM_NTP." Name="ECI_TOD_MODE" Size="2" Type="UINT"/>
+            <Field Description="Mode of CMIC TOD IF. 0-Null 1-OAM 2-NTP 3-OAM_NTP " Name="OAMP_CMIC_TOD_MODE" Size="2" Type="UINT"/>
+            <Field Description="Select the time code source.0-NSE block 1-TOD block" Name="TODW_SELECT_IEEE_1588_TIMER" Type="BOOL"/>
+            <Field Description="Select the time code source.0-NSE block 1-TOD block" Name="TODW_SELECT_NTP_TIMER" Type="BOOL"/>
+            <Field Description="NCO Frequency Stepping control Default is 0x2000_0000 based on 500Mhz TimeSync clock" Name="ECI_NSE_NCO_FREQ_CONTROL" Size="32" Type="UINT"/>
+         </Result>
+        <TableLabels>OAM</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping> 
+        <CoreMode Mode="SBC"/> 
+        <FieldMapping>
+             <Field Name="ECI_NSE_RESET"> 
+                 <Access>
+                     <Register Name="ECI_GP_CONTROL_0r"> 
+                         <HwField Name="NSE_RESETf"/>
+                     </Register>
+                 </Access>
+             </Field>
+            <Field Name="ECI_TOD_MODE"> 
+                <Access>
+                    <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_3r"> 
+                        <HwField Name="TOD_MODEf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="OAMP_CMIC_TOD_MODE">
+                <Access>
+                    <Register Name="OAMP_TIMER_CONFIGr">
+                        <HwField Name="CMIC_TOD_MODEf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="TODW_SELECT_IEEE_1588_TIMER"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_8r"> 
+                        <HwField Name="TODW_SELECT_IEEE_1588_TIMERf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="TODW_SELECT_NTP_TIMER"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_8r"> 
+                        <HwField Name="TODW_SELECT_NTP_TIMERf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="ECI_NSE_NCO_FREQ_CONTROL"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_5r"> 
+                        <HwField Name="NSE_REG_NCO_FREQCNTRLf"/>
+                    </Register>
+                </Access>
+            </Field>
+        </FieldMapping>
+    </AppToPhyDbMapping>
+</AppDB>
+
+<AppDB Name="OAM_NTP_TOD_CONFIGURATION">
+    <OneLineDescription>Configuration Of NTP ToD Functionality</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="DIRECT">
+        <Key/>
+        <Result>
+            <Field Description="Switch mux to select bit 25 or 32 (01/10)of the NTP_OUTPUT counter." Name="EVENT_MUX_CONTROL" Size="2" Type="UINT"  Valid="DNX_DATA.oam.general.oam_tod_config_in_eci"/>
+            <Field Description="Enable the counter" Name="COUNT_ENABLE" Type="BOOL" Valid="DNX_DATA.oam.general.oam_tod_config_in_eci"/>
+            <Field Description="NTP Enable for loading NTP_TIME_FRAC_SEC_LOWER, NTP_TIME_FRAC_SEC_UPPER, NTP_TIME_1_SEC and NTP_TIME_FREQ_CONTROL" Name="LOAD_ENABLE" Type="BOOL" Valid="DNX_DATA.oam.general.oam_tod_config_in_eci"/>
+            <Field Description="Value loaded to 32 bit accumulator when TodNtpLoadEnable is asserted" Name="TIME_FRAC_SEC_LOWER" Size="32" Type="UINT"  Valid="DNX_DATA.oam.general.oam_tod_config_in_eci"/>
+            <Field Description="Value loaded to 32 bit accumulator when TodNtpLoadEnable is asserted" Name="TIME_FRAC_SEC_UPPER" Size="26" Type="UINT"  Valid="DNX_DATA.oam.general.oam_tod_config_in_eci"/>
+            <Field Description="Frequency value added to the 32 bit accumulator" Name="TIME_FREQ_CONTROL" Size="32" Type="UINT"  Valid="DNX_DATA.oam.general.oam_tod_config_in_eci"/>
+            <Field Description="Value loaded to 1 bit counter" Name="ONE_SEC" Size="1" Type="UINT"  Valid="DNX_DATA.oam.general.oam_tod_config_in_eci"/>
+            <Field Description="Value loaded to 26 bit counter" Name="UPPER_SEC" Size="26" Type="UINT"  Valid="DNX_DATA.oam.general.oam_tod_config_in_eci"/>
+            <Field Description="TodNtpLoadEnable but effective for a single TimeSync clock cycle" Name="LOAD_ONCE" Type="BOOL"  Valid="DNX_DATA.oam.general.oam_tod_config_in_eci"/>
+            <Field Description="NTP Frequency control word." Name="NTP_FREQ_CONTROL" Size="20" Type="UINT"/>
+        </Result>
+        <TableLabels>OAM</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping> 
+        <CoreMode Mode="SBC"/> 
+        <FieldMapping>
+            <Field Name="EVENT_MUX_CONTROL" Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_6r"> 
+                        <HwField Name="TOD_NTP_EVENT_MUX_CONTROLf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="COUNT_ENABLE" Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_8r"> 
+                        <HwField Name="TOD_NTP_COUNT_ENABLEf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="LOAD_ENABLE" Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_8r"> 
+                        <HwField Name="TOD_NTP_LOAD_ENABLEf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="TIME_FRAC_SEC_LOWER" Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_6r"> 
+                        <HwField Name="TOD_NTP_TIME_FRAC_SEC_LOWERf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="TIME_FRAC_SEC_UPPER" Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_6r"> 
+                        <HwField Name="TOD_NTP_TIME_FRAC_SEC_UPPERf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="TIME_FREQ_CONTROL" Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_6r"> 
+                        <HwField Name="TOD_NTP_TIME_FREQ_CONTROLf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="ONE_SEC" Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_6r"> 
+                        <HwField Name="TOD_NTP_ONE_SECf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="UPPER_SEC" Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_6r"> 
+                        <HwField Name="TOD_NTP_UPPER_SECf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="LOAD_ONCE" Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_8r"> 
+                        <HwField Name="TOD_NTP_LOAD_ONCEf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="NTP_FREQ_CONTROL"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_5r"> 
+                        <HwField Name="NSE_REG_NTP_FREQCNTRLf"/>
+                    </Register>
+                </Access>
+            </Field>
+        </FieldMapping>
+    </AppToPhyDbMapping>
+</AppDB>
+
+<AppDB Name="OAM_1588_TOD_CONFIGURATION" Valid="DNX_DATA.oam.general.oam_tod_config_in_eci">
+    <OneLineDescription>Configuration Of 1588 ToD Functionality</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="DIRECT">
+        <Key/>
+        <Result>
+            <Field Description="Switch mux to select bit 25 or 32 (01/10)of the IEEE1588_OUTPUT counter." Name="EVENT_MUX_CONTROL" Size="2" Type="UINT"/>
+            <Field Description="Enable the counter" Name="COUNT_ENABLE" Type="BOOL"/>
+            <Field Description="NTP Enable for loading 1588_TIME_FRAC_SEC_LOWER, NTP_TIME_FRAC_SEC_UPPER, NTP_TIME_1_SEC and NTP_TIME_FREQ_CONTROL" Name="LOAD_ENABLE" Type="BOOL"/>
+            <Field Description="Value loaded to 32 bit accumulator when Tod1588LoadEnable is asserted" Name="TIME_FRAC_SEC_LOWER" Size="32" Type="UINT"/>
+            <Field Description="Value loaded to 32 bit accumulator when Tod1588LoadEnable is asserted" Name="TIME_FRAC_SEC_UPPER" Size="26" Type="UINT"/>
+            <Field Description="Frequency value added to the 32 bit accumulator" Name="TIME_FREQ_CONTROL" Size="32" Type="UINT"/>
+            <Field Description="Value loaded to 1 bit counter" Name="ONE_SEC" Size="1" Type="UINT"/>
+            <Field Description="Value loaded to 26 bit counter" Name="UPPER_SEC" Size="26" Type="UINT"/>
+            <Field Description="Tod1588LoadEnable but effective for a single TimeSync clock cycle" Name="LOAD_ONCE" Type="BOOL"/>
+        </Result>
+        <TableLabels>OAM</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping> 
+        <CoreMode Mode="SBC"/> 
+        <FieldMapping>
+            <Field Name="EVENT_MUX_CONTROL" Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_7r"> 
+                        <HwField Name="TOD_IEEE_1588_EVENT_MUX_CONTROLf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="COUNT_ENABLE" Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_8r"> 
+                        <HwField Name="TOD_IEEE_1588_COUNT_ENABLEf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="LOAD_ENABLE" Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_8r"> 
+                        <HwField Name="TOD_IEEE_1588_LOAD_ENABLEf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="TIME_FRAC_SEC_LOWER" Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_7r"> 
+                        <HwField Name="TOD_IEEE_1588_TIME_FRAC_SEC_LOWERf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="TIME_FRAC_SEC_UPPER" Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_7r"> 
+                        <HwField Name="TOD_IEEE_1588_TIME_FRAC_SEC_UPPERf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="TIME_FREQ_CONTROL" Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_7r"> 
+                        <HwField Name="TOD_IEEE_1588_TIME_FREQ_CONTROLf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="ONE_SEC" Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_7r"> 
+                        <HwField Name="TOD_IEEE_1588_ONE_SECf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="UPPER_SEC" Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_7r"> 
+                        <HwField Name="TOD_IEEE_1588_UPPER_SECf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="LOAD_ONCE" Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0"> 
+                <Access>
+                    <Register Name="ECI_GP_CONTROL_8r"> 
+                        <HwField Name="TOD_IEEE_1588_LOAD_ONCEf"/>
+                    </Register>
+                </Access>
+            </Field>
+        </FieldMapping>
+    </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_STATUS">
+        <OneLineDescription>OAMP validation(priority)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Description="MEP-DB type missmatch(4)" Name="TYPE_MISS" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Trap missmatch supportded OAM types(3)" Name="TRAP_CODE_MISS" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Recieved Trap code" Name="PKT_TRAP_CODE_RECEIVED" Permission="READONLY" Size="16" Type="UINT"/>
+                <Field Description="No match from Trap code TCAM" Name="PKT_TRAP_CODE_MATCH" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Timestamp missmatch" Name="TIMESTAMP_MISS" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="BFD - Source Port missmatch" Name="SRC_PORT_MISS" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Received Source Port(BFD)" Name="PKT_UDP_SRC_PORT_RECEIVED" Permission="READONLY" Size="16" Type="L4_SRC_PORT"/>
+                <Field Description="RMEP state missmatch" Name="RMEP_STATE_CHANGE" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="RFC 6374 not supported" Name="RFC_PUNT" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="MEP-DB or RMEP-DB hit with parity error(2)" Name="PARITY_ERROR" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="MDL missmatch(6)" Name="MDL_MISS" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Received MDL" Name="PKT_MDL_RECEIVED" Permission="READONLY" Size="3" Type="MDL"/>
+                <Field Description="Received MDL" Name="PKT_MDL_EXPECTED" Permission="READONLY" Size="3" Type="MDL"/>
+                <Field Description="MAID missmatch(5)" Name="MAID_MISS" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="'0' - short, '1' - icc" Name="PKT_MAID_TYPE" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Received MAID" Name="PKT_MAID_RECEIVED" Permission="READONLY" Size="128" Type="ARRAY8"/>
+                <Field Description="Ecpected MAID" Name="PKT_MAID_EXPECTED" Permission="READONLY" Size="128" Type="ARRAY8"/>
+                <Field Description="Flexible CRC missmatch" Name="FLEX_CRC_MISS" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Recieved Flexible CRC" Name="PKT_FLEX_CRC_RECEIVED" Permission="READONLY" Size="16" Type="CRC16"/>
+                <Field Description="Expected Flexible CRC" Name="PKT_FLEX_CRC_EXPECTED" Permission="READONLY" Size="16" Type="CRC16"/>
+                <Field Description="BFD - Your discriminator not in range(9)" Name="ERR_YOUR_DISC_MISS" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Received your Discriminator(BFD)" Name="PKT_YOUR_DISC_RECEIVED" Permission="READONLY" Size="32" Type="YOUR_DISC"/>
+                <Field Description="Expected your Discriminator(BFD)" Name="PKT_YOUR_DISC_EXPECTED" Permission="READONLY" Size="32" Type="YOUR_DISC"/>
+                <Field Description="BFD - Source IP missmatch(10)" Name="ERR_SRC_IP_MISS" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Received Source IP(BFD)" Name="PKT_SRC_IP_RECEIVED" Permission="READONLY" Size="32" Type="IPV4"/>
+                <Field Description="Expected Source IP(BFD)" Name="PKT_SRC_IP_EXPECTED" Permission="READONLY" Size="32" Type="IPV4"/>
+                <Field Description="Subnet mask(BFD)" Name="PKT_SUBNET_MASK" Permission="READONLY" Size="32" Type="IPV4"/>
+                <Field Description="Source IP type(BFD)" Name="MEP_TYPE" Permission="READONLY" Size="4" Type="OAMP_MEP_TYPE"/>
+                <Field Description="Packet arrived with error from egress(1)" Name="ERR_PACKET" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="BFD - Packet my Discriminator missmatch MEP-DB Your doscriminator(8)" Name="ERR_MY_DISC_MISS" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Received my Discriminator(BFD)" Name="PKT_MY_DISC_RECEIVED" Permission="READONLY" Size="32" Type="MY_DISC"/>
+                <Field Description="Expected my Discriminator(BFD)" Name="PKT_MY_DISC_EXPECTED" Permission="READONLY" Size="32" Type="MY_DISC"/>
+                <Field Description="EMC missmatch(Remote MEP not found)(11)" Name="EMC_MISS" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Channel type missmatch" Name="CHAN_TYPE_MISS" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="CCM interval missmatch(7)" Name="CCM_INTERVAL_MISS" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Expected CCM interval" Name="PKT_CCM_INTERVAL_RECEIVED" Permission="READONLY" Size="3" Type="CCM_INTERVAL"/>
+                <Field Description="Received CCM interval" Name="PKT_CCM_INTERVAL_EXPECTED" Permission="READONLY" Size="3" Type="CCM_INTERVAL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TYPE_MISS">
+                    <Access>
+                        <Register Name="OAMP_VALIDITY_CHECK_STICKYr">
+                            <HwField Name="STICKY_PORT_TYPE_MISSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_CODE_MISS">
+                    <Access>
+                        <Register Name="OAMP_VALIDITY_CHECK_STICKYr">
+                            <HwField Name="STICKY_PORT_TRAP_CODE_MISSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_TRAP_CODE_RECEIVED">
+                    <Access>
+                        <Register Name="OAMP_TRAP_CODE_MISS_INFOr">
+                            <HwField Name="TRAP_CODE_RCV_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_TRAP_CODE_MATCH">
+                    <Access>
+                        <Register Name="OAMP_TRAP_CODE_MISS_INFOr">
+                            <HwField Name="TRAP_CODE_NO_MATCHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TIMESTAMP_MISS">
+                    <Access>
+                        <Register Name="OAMP_VALIDITY_CHECK_STICKYr">
+                            <HwField Name="STICKY_PORT_TIMESTAMP_MISSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRC_PORT_MISS">
+                    <Access>
+                        <Register Name="OAMP_VALIDITY_CHECK_STICKYr">
+                            <HwField Name="STICKY_PORT_SRC_PORT_MISSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_UDP_SRC_PORT_RECEIVED">
+                    <Access>
+                        <Register Name="OAMP_SRC_PORT_MISS_INFOr">
+                            <HwField Name="SRC_PORT_RCV_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RMEP_STATE_CHANGE">
+                    <Access>
+                        <Register Name="OAMP_VALIDITY_CHECK_STICKYr">
+                            <HwField Name="STICKY_PORT_RMEP_STATE_CHANGEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RFC_PUNT">
+                    <Access>
+                        <Register Name="OAMP_VALIDITY_CHECK_STICKYr">
+                            <HwField Name="STICKY_PORT_RFC_PUNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PARITY_ERROR">
+                    <Access>
+                        <Register Name="OAMP_VALIDITY_CHECK_STICKYr">
+                            <HwField Name="STICKY_PORT_PARITY_ERRORf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MDL_MISS">
+                    <Access>
+                        <Register Name="OAMP_VALIDITY_CHECK_STICKYr">
+                            <HwField Name="STICKY_PORT_MDL_MISSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_MDL_RECEIVED">
+                    <Access>
+                        <Register Name="OAMP_ETH_MDL_MISS_INFOr">
+                            <HwField Name="PKT_MDLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_MDL_EXPECTED">
+                    <Access>
+                        <Register Name="OAMP_ETH_MDL_MISS_INFOr">
+                            <HwField Name="EXPECTED_MDLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MAID_MISS">
+                    <Access>
+                        <Register Name="OAMP_VALIDITY_CHECK_STICKYr">
+                            <HwField Name="STICKY_PORT_MAID_MISSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_MAID_TYPE">
+                    <Access>
+                        <Register Name="OAMP_ETH_MAID_MISS_INFOr">
+                            <HwField Name="MAID_TYPE_SELECTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_MAID_RECEIVED">
+                    <Access>
+                        <Register Name="OAMP_ETH_MAID_MISS_INFOr">
+                            <HwField Name="PKT_MAIDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_MAID_EXPECTED">
+                    <Access>
+                        <Register Name="OAMP_ETH_MAID_MISS_INFOr">
+                            <HwField Name="EXPECTED_MAIDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FLEX_CRC_MISS">
+                    <Access>
+                        <Register Name="OAMP_VALIDITY_CHECK_STICKYr">
+                            <HwField Name="STICKY_PORT_FLEX_CRC_MISSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_FLEX_CRC_RECEIVED">
+                    <Access>
+                        <Register Name="OAMP_FLEX_CRC_MISS_INFOr">
+                            <HwField Name="CALC_CRCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_FLEX_CRC_EXPECTED">
+                    <Access>
+                        <Register Name="OAMP_FLEX_CRC_MISS_INFOr">
+                            <HwField Name="EXPECTED_CRCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ERR_YOUR_DISC_MISS">
+                    <Access>
+                        <Register Name="OAMP_VALIDITY_CHECK_STICKYr">
+                            <HwField Name="STICKY_PORT_ERR_YOUR_DISC_MISSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_YOUR_DISC_RECEIVED">
+                    <Access>
+                        <Register Name="OAMP_YOUR_DISC_MISS_INFOr">
+                            <HwField Name="YOUR_DISC_RCV_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_YOUR_DISC_EXPECTED">
+                    <Access>
+                        <Register Name="OAMP_YOUR_DISC_MISS_INFOr">
+                            <HwField Name="YOUR_DISC_EXPECTED_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ERR_SRC_IP_MISS">
+                    <Access>
+                        <Register Name="OAMP_VALIDITY_CHECK_STICKYr">
+                            <HwField Name="STICKY_PORT_ERR_SRC_IP_MISSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_SRC_IP_RECEIVED">
+                    <Access>
+                        <Register Name="OAMP_SRC_IP_MISS_INFOr">
+                            <HwField Name="SRC_IP_RCV_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_SRC_IP_EXPECTED">
+                    <Access>
+                        <Register Name="OAMP_SRC_IP_MISS_INFOr">
+                            <HwField Name="SRC_IP_EXPECTED_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_SUBNET_MASK">
+                    <Access>
+                        <Register Name="OAMP_SRC_IP_MISS_INFOr">
+                            <HwField Name="SUBNET_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MEP_TYPE">
+                    <Access>
+                        <Register Name="OAMP_SRC_IP_MISS_INFOr">
+                            <HwField Name="SRC_IP_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ERR_PACKET">
+                    <Access>
+                        <Register Name="OAMP_VALIDITY_CHECK_STICKYr">
+                            <HwField Name="STICKY_PORT_ERR_PACKETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ERR_MY_DISC_MISS">
+                    <Access>
+                        <Register Name="OAMP_VALIDITY_CHECK_STICKYr">
+                            <HwField Name="STICKY_PORT_ERR_MY_DISC_MISSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_MY_DISC_RECEIVED">
+                    <Access>
+                        <Register Name="OAMP_MY_DISC_MISS_INFOr">
+                            <HwField Name="MY_DISC_RCV_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_MY_DISC_EXPECTED">
+                    <Access>
+                        <Register Name="OAMP_MY_DISC_MISS_INFOr">
+                            <HwField Name="MY_DISC_EXPECTED_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EMC_MISS">
+                    <Access>
+                        <Register Name="OAMP_VALIDITY_CHECK_STICKYr">
+                            <HwField Name="STICKY_PORT_EMC_MISSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CHAN_TYPE_MISS">
+                    <Access>
+                        <Register Name="OAMP_VALIDITY_CHECK_STICKYr">
+                            <HwField Name="STICKY_PORT_CHAN_TYPE_MISSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CCM_INTERVAL_MISS">
+                    <Access>
+                        <Register Name="OAMP_VALIDITY_CHECK_STICKYr">
+                            <HwField Name="STICKY_PORT_CCM_INTRVL_MISSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_CCM_INTERVAL_RECEIVED">
+                    <Access>
+                        <Register Name="OAMP_ETH_PERIOD_MISS_INFOr">
+                            <HwField Name="ETH_PRIOD_RCV_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_CCM_INTERVAL_EXPECTED">
+                    <Access>
+                        <Register Name="OAMP_ETH_PERIOD_MISS_INFOr">
+                            <HwField Name="ETH_PRIOD_EXPECTED_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAM_1588_TOD_VALUE">
+        <OneLineDescription>OAM 1588 last ToD value</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Last 1588 TOD counter value" Name="LAST_TOD_VALUE" Permission="READONLY" Size="64" Type="ARRAY8"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LAST_TOD_VALUE">
+                    <Access>
+                        <Register Name="IPPD_TOD_LAST_VALUEr">
+                            <HwField Name="TOD_1588_LAST_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAM_NTP_TOD_VALUE">
+        <OneLineDescription>OAM NTP last ToD value</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Last NTP TOD counter value" Name="LAST_TOD_VALUE" Permission="READONLY" Size="64" Type="ARRAY8"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LAST_TOD_VALUE">
+                    <Access>
+                        <Register Name="IPPD_TOD_LAST_VALUEr">
+                            <HwField Name="TOD_NTP_LAST_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

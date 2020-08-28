@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0" module="trunk">
+    <includes>
+        <include>shared/utilex/utilex_integer_arithmetic.h</include>
+    </includes>
+    <sub_module name="egress_trunk" doc="Egress Trunks - for egress MC">
+        <features>
+            <feature name="multiple_egress_trunk_sizes" value="1"></feature>
+        </features>
+        <numerics>
+            <numeric name="nof" value="UTILEX_MAX( DATA(trunk, parameters, pool_info, max_nof_members_in_group, 0), DATA(trunk, parameters, pool_info, max_nof_members_in_group, 1)) > 64 ? 128 : 256"></numeric>
+            <numeric name="nof_lb_keys_per_profile" value="UTILEX_MAX( DATA(trunk, parameters, pool_info, max_nof_members_in_group, 0), DATA(trunk, parameters, pool_info, max_nof_members_in_group, 1)) > 64 ? 256 : 128"></numeric>
+            <numeric name="dbal_egress_trunk_index_multiplier" value="UTILEX_MAX( DATA(trunk, parameters, pool_info, max_nof_members_in_group, 0), DATA(trunk, parameters, pool_info, max_nof_members_in_group, 1)) > 64 ? 32 : 16"></numeric>
+            <numeric name="dbal_entry_index_divider" value="4"></numeric>
+            <numeric name="dbal_entry_index_msb_multiplier" value="4096"></numeric>
+            <numeric name="size_mode" value="DATA(trunk, egress_trunk, nof) == 128 ? 0 : 1"></numeric>
+        </numerics>
+    </sub_module>
+</device_data>
+

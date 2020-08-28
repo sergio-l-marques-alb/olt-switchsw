@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    $Copyright: (c) 2018 Broadcom Corporation All Rights Reserved.$
+    DBAL GPM SW state:
+    This xml contains the sw state logical DB for the DBAL.
+    ******************************************************
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../sw_state_schema.xsd">
+	
+    <AppDB Name="VIRTUAL_PORT_TCAM_SW">
+        <OneLineDescription>SW State table - Virtual Port TCAM management table</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            <Field Name="INDEX"  Type="UINT" Size="16" Description="index of virtual port tcam entry"/>
+            </Key>
+            <Result>
+                <Field Name="IS_USE" Type="UINT" Size="1" Description="indicate if this TCAM is used"/>
+                <Field Name="PRIORITY" Type="UINT" Size="16" Description="priority of entry"/>
+                <Field Name="PP_PORT" Description="PP Port for mapping result"/>
+                <Field Name="SYSTEM_PORT" Description="PP Port for mapping result"/>
+                <Field Name="PRT_KBR_INFO_HALF" Description="Key for entry index"/>
+            </Result>
+            <TableLabels>SIT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>
+
+

@@ -1,0 +1,615 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="KLEAP_FWD12_RESOURCES_MAPPING">
+        <OneLineDescription>Indicates per Context the KBR mapping in FWD stage. 0 means FWD1, 1 means FWD2</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="KBR_SELECTOR" NofInstances="18" Type="KLEAP_STAGE_SELECTOR"/>
+                <Field Name="FFC_GROUP_SELECTOR" NofInstances="5" Type="KLEAP_STAGE_SELECTOR"/>
+                <Field Name="SHR_PD_SELECTOR" NofInstances="2" Type="KLEAP_STAGE_SELECTOR"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="KBR_SELECTOR">
+                    <Access instanceIndex="ALL">
+                        <Register Name="IPPB_FLPLE_CONFIGr"> 
+                            <HwField Name="KEYS_BUILDER_STAGE_SELECTORSf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FFC_GROUP_SELECTOR">
+                    <Access instanceIndex="ALL">
+                        <Register Name="IPPB_FLPLE_CONFIGr"> 
+                            <HwField Name="FFC_GROUP_STAGE_SELECTORf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SHR_PD_SELECTOR">
+                    <Access instanceIndex="ALL">
+                        <Register Name="IPPB_FLPLE_CONFIGr"> 
+                            <HwField Name="SHARED_PDS_STAGE_SELECTORSf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KLEAP_FWD12_FFC_QUAD_IS_ACL">
+        <OneLineDescription>Indicates per FFC Quad if it is controlled by ACL or FWD context</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CONTEXT_PROFILE" Size="6"/>
+                <Field MaxValue="9" Name="FFC_QUAD_IDX" Size="4" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="FFC_QUAD_IS_ACL" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FFC_QUAD_IS_ACL">
+                    <Access>
+                        <KeyCondition Field="FFC_QUAD_IDX" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="IPPB_FLPLE_FFC_GROUP_0_QUAD_IS_ACL_CONTEXTm"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="FFC_GROUP_0_QUAD_IS_ACL_CONTEXTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FFC_QUAD_IDX" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="IPPB_FLPLE_FFC_GROUP_1_QUAD_IS_ACL_CONTEXTm"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="FFC_GROUP_1_QUAD_IS_ACL_CONTEXTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FFC_QUAD_IDX" Type="BIGGER_THAN" Value="1"/>
+                        <KeyCondition Field="FFC_QUAD_IDX" Type="LOWER_THAN" Value="4"/>
+                        <Memory Name="IPPB_FLPLE_FFC_GROUP_2_QUAD_IS_ACL_CONTEXTm"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="FFC_GROUP_2_QUAD_IS_ACL_CONTEXTf"/>
+                            <DataOffset Formula="#KEY_VALUE(FFC_QUAD_IDX)-2"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FFC_QUAD_IDX" Type="BIGGER_THAN" Value="3"/>
+                        <KeyCondition Field="FFC_QUAD_IDX" Type="LOWER_THAN" Value="8"/>
+                        <Memory Name="IPPB_FLPLE_FFC_GROUP_3_QUAD_IS_ACL_CONTEXTm"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="FFC_GROUP_3_QUAD_IS_ACL_CONTEXTf"/>
+                            <DataOffset Formula="#KEY_VALUE(FFC_QUAD_IDX)-4"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FFC_QUAD_IDX" Type="BIGGER_THAN" Value="7"/>
+                        <Memory Name="IPPB_FLPLE_FFC_GROUP_4_QUAD_IS_ACL_CONTEXTm"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="FFC_GROUP_4_QUAD_IS_ACL_CONTEXTf"/>
+                            <DataOffset Formula="#KEY_VALUE(FFC_QUAD_IDX)-8"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KLEAP_FWD12_KBR_INFO">
+        <OneLineDescription>Indicates per Context per KBR the KBR info - FFC and AppDB configured</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FWD12_KBR_ID"/>
+                <Field Name="CONTEXT_PROFILE" Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="KBR_IS_ACL" Type="BOOL"/>
+                <Field Name="APP_DB_ID"/>
+                <Field Name="FFC_BITMAP" Size="38" Type="BITMAP"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="KBR_IS_ACL">
+                    <Access>
+                        <Memory Name="IPPB_FLPLE_KEY_BUILDER_IS_ACL_CONTEXTm"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="KEY_BUILDER_IS_ACL_CONTEXTf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="APP_DB_ID">
+                    <Access>
+                        <Memory Name="IPPB_FLPLE_KBRm"> 
+                            <ArrayOffset Formula="#KEY_VALUE(FWD12_KBR_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="APP_DBf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FFC_BITMAP">
+                    <Access>
+                        <Memory Name="IPPB_FLPLE_KBRm"> 
+                            <ArrayOffset Formula="#KEY_VALUE(FWD12_KBR_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="KBRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KLEAP_FWD12_FFC_INSTRUCTION">
+        <OneLineDescription>Indicates per Context per KBR the KBR info - FFC and AppDB configured</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="37" Name="FFC_IDX" Size="6" Type="UINT"/>
+                <Field Name="CONTEXT_PROFILE" Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="FWD12_FFC_INSTRUCTION"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FWD12_FFC_INSTRUCTION">
+                    <Access>
+                        <KeyCondition Field="FFC_IDX" Type="LOWER_THAN" Value="2"/>
+                        <Memory Name="IPPB_FLPLE_FFC_GROUP_0_QUAD_0m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <DataOffset Formula="#KEY_VALUE(FFC_IDX)*#RESULT_SIZE(FWD12_FFC_INSTRUCTION)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FFC_IDX" Type="BIGGER_THAN" Value="1"/>
+                        <KeyCondition Field="FFC_IDX" Type="LOWER_THAN" Value="6"/>
+                        <Memory Name="IPPB_FLPLE_FFC_GROUP_1_QUAD_0m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <DataOffset Formula="#KEY_VALUE(FFC_IDX)*#RESULT_SIZE(FWD12_FFC_INSTRUCTION)-2*#RESULT_SIZE(FWD12_FFC_INSTRUCTION)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FFC_IDX" Type="BIGGER_THAN" Value="5"/>
+                        <KeyCondition Field="FFC_IDX" Type="LOWER_THAN" Value="10"/>
+                        <Memory Name="IPPB_FLPLE_FFC_GROUP_2_QUADm"> 
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <DataOffset Formula="#KEY_VALUE(FFC_IDX)*#RESULT_SIZE(FWD12_FFC_INSTRUCTION)-6*#RESULT_SIZE(FWD12_FFC_INSTRUCTION)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FFC_IDX" Type="BIGGER_THAN" Value="9"/>
+                        <KeyCondition Field="FFC_IDX" Type="LOWER_THAN" Value="14"/>
+                        <Memory Name="IPPB_FLPLE_FFC_GROUP_2_QUADm"> 
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <DataOffset Formula="#KEY_VALUE(FFC_IDX)*#RESULT_SIZE(FWD12_FFC_INSTRUCTION)-10*#RESULT_SIZE(FWD12_FFC_INSTRUCTION)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FFC_IDX" Type="BIGGER_THAN" Value="13"/>
+                        <KeyCondition Field="FFC_IDX" Type="LOWER_THAN" Value="18"/>
+                        <Memory Name="IPPB_FLPLE_FFC_GROUP_3_QUADm"> 
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <DataOffset Formula="#KEY_VALUE(FFC_IDX)*#RESULT_SIZE(FWD12_FFC_INSTRUCTION)-14*#RESULT_SIZE(FWD12_FFC_INSTRUCTION)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FFC_IDX" Type="BIGGER_THAN" Value="17"/>
+                        <KeyCondition Field="FFC_IDX" Type="LOWER_THAN" Value="22"/>
+                        <Memory Name="IPPB_FLPLE_FFC_GROUP_3_QUADm"> 
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <DataOffset Formula="#KEY_VALUE(FFC_IDX)*#RESULT_SIZE(FWD12_FFC_INSTRUCTION)-18*#RESULT_SIZE(FWD12_FFC_INSTRUCTION)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FFC_IDX" Type="BIGGER_THAN" Value="21"/>
+                        <KeyCondition Field="FFC_IDX" Type="LOWER_THAN" Value="26"/>
+                        <Memory Name="IPPB_FLPLE_FFC_GROUP_3_QUADm"> 
+                            <ArrayOffset Formula="2"/>
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <DataOffset Formula="#KEY_VALUE(FFC_IDX)*#RESULT_SIZE(FWD12_FFC_INSTRUCTION)-22*#RESULT_SIZE(FWD12_FFC_INSTRUCTION)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FFC_IDX" Type="BIGGER_THAN" Value="25"/>
+                        <KeyCondition Field="FFC_IDX" Type="LOWER_THAN" Value="30"/>
+                        <Memory Name="IPPB_FLPLE_FFC_GROUP_3_QUADm"> 
+                            <ArrayOffset Formula="3"/>
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <DataOffset Formula="#KEY_VALUE(FFC_IDX)*#RESULT_SIZE(FWD12_FFC_INSTRUCTION)-26*#RESULT_SIZE(FWD12_FFC_INSTRUCTION)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FFC_IDX" Type="BIGGER_THAN" Value="29"/>
+                        <KeyCondition Field="FFC_IDX" Type="LOWER_THAN" Value="34"/>
+                        <Memory Name="IPPB_FLPLE_FFC_GROUP_4_QUADm"> 
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <DataOffset Formula="#KEY_VALUE(FFC_IDX)*#RESULT_SIZE(FWD12_FFC_INSTRUCTION)-30*#RESULT_SIZE(FWD12_FFC_INSTRUCTION)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FFC_IDX" Type="BIGGER_THAN" Value="33"/>
+                        <Memory Name="IPPB_FLPLE_FFC_GROUP_4_QUADm"> 
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <DataOffset Formula="#KEY_VALUE(FFC_IDX)*#RESULT_SIZE(FWD12_FFC_INSTRUCTION)-34*#RESULT_SIZE(FWD12_FFC_INSTRUCTION)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KLEAP_FWD12_PD_INFO">
+        <OneLineDescription>Indicates per prioriy decoder and context its parameters and profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CONTEXT_PROFILE" Size="6"/>
+                <Field MaxValue="5" Name="PD_IDX" Size="3" Type="UINT"/>
+                <Field MaxValue="15" Name="FWD12_KBR_ID"/>
+            </Key>
+            <Result>
+                <Field Name="PD_STRENGTH_WIDTH" Size="2" Type="UINT"/>
+                <Field Name="PD_CONST_STRENGTH" Size="4" Type="UINT"/>
+                <Field Name="PD_ORDER" Size="5" Type="UINT"/>
+                <Field Name="PD_PROFILE" Size="7" Type="UINT"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PD_STRENGTH_WIDTH">
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="IPPB_FLPLE_PD_0m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="STRENGTH_WIDTH_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_STRENGTH_WIDTH)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="IPPB_FLPLE_PD_1m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="STRENGTH_WIDTH_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_STRENGTH_WIDTH)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="2"/>
+                        <Memory Name="IPPB_FLPLE_PD_2m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="STRENGTH_WIDTH_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_STRENGTH_WIDTH)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="3"/>
+                        <Memory Name="IPPB_FLPLE_PD_3m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="STRENGTH_WIDTH_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_STRENGTH_WIDTH)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="4"/>
+                        <Memory Name="IPPB_FLPLE_PD_4m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="STRENGTH_WIDTH_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_STRENGTH_WIDTH)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="5"/>
+                        <Memory Name="IPPB_FLPLE_PD_5m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="STRENGTH_WIDTH_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_STRENGTH_WIDTH)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PD_ORDER">
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="IPPB_FLPLE_PD_0m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="ORDER_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_ORDER)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="IPPB_FLPLE_PD_1m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="ORDER_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_ORDER)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="2"/>
+                        <Memory Name="IPPB_FLPLE_PD_2m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="ORDER_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_ORDER)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="3"/>
+                        <Memory Name="IPPB_FLPLE_PD_3m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="ORDER_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_ORDER)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="4"/>
+                        <Memory Name="IPPB_FLPLE_PD_4m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="ORDER_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_ORDER)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="5"/>
+                        <Memory Name="IPPB_FLPLE_PD_5m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="ORDER_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_ORDER)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PD_CONST_STRENGTH">
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="IPPB_FLPLE_PD_0m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="CONST_STRENGTH_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_CONST_STRENGTH)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="IPPB_FLPLE_PD_1m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="CONST_STRENGTH_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_CONST_STRENGTH)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="2"/>
+                        <Memory Name="IPPB_FLPLE_PD_2m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="CONST_STRENGTH_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_CONST_STRENGTH)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="3"/>
+                        <Memory Name="IPPB_FLPLE_PD_3m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="CONST_STRENGTH_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_CONST_STRENGTH)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="4"/>
+                        <Memory Name="IPPB_FLPLE_PD_4m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="CONST_STRENGTH_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_CONST_STRENGTH)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="5"/>
+                        <Memory Name="IPPB_FLPLE_PD_5m"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="CONST_STRENGTH_VECf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_CONST_STRENGTH)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PD_PROFILE">
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="IPPB_FLPLE_PD_0_CONTEXT_TO_PROFILES_DATAm"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="PD_0_CONTEXT_TO_PROFILE_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_PROFILE)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="IPPB_FLPLE_PD_1_CONTEXT_TO_PROFILES_DATAm"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="PD_1_CONTEXT_TO_PROFILE_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_PROFILE)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="2"/>
+                        <Memory Name="IPPB_FLPLE_PD_2_CONTEXT_TO_PROFILES_DATAm"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="PD_2_CONTEXT_TO_PROFILE_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_PROFILE)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="3"/>
+                        <Memory Name="IPPB_FLPLE_PD_3_CONTEXT_TO_PROFILES_DATAm"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="PD_3_CONTEXT_TO_PROFILE_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_PROFILE)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="4"/>
+                        <Memory Name="IPPB_FLPLE_PD_4_CONTEXT_TO_PROFILES_DATAm"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="PD_4_CONTEXT_TO_PROFILE_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_PROFILE)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="PD_IDX" Type="EQUAL_TO" Value="5"/>
+                        <Memory Name="IPPB_FLPLE_PD_5_CONTEXT_TO_PROFILES_DATAm"> 
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="PD_5_CONTEXT_TO_PROFILE_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD12_KBR_ID)*#RESULT_SIZE(PD_PROFILE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KLEAP_FWD12_ALIGNER_MAPPING">
+        <OneLineDescription>Determines the length of the KBR to be copied to Master Key, for both FWD and ACL lookups</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="KBP_KBR_IDX"/>
+                <Field Name="CONTEXT_PROFILE" Size="6"/>
+            </Key>
+            <Result>
+                <Field Description="size in bits of the MSB part of the key used for FWD lookups" Name="FWD_KEY_SIZE" Size="8" Type="UINT"/>
+                <Field Description="size in bits of the MSB part of the key (after FWD_KEY_SIZE) used for ACL lookups" Name="ACL_KEY_SIZE" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FWD_KEY_SIZE">
+                    <Access>
+                        <KeyCondition Enum="KEY_0" Field="KBP_KBR_IDX" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_ELK_ALIGNER_MAPPING_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="KEY_0_SIZEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="KEY_1" Field="KBP_KBR_IDX" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_ELK_ALIGNER_MAPPING_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="KEY_1_SIZEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="KEY_2" Field="KBP_KBR_IDX" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_ELK_ALIGNER_MAPPING_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="KEY_2_SIZEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="KEY_3" Field="KBP_KBR_IDX" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_ELK_ALIGNER_MAPPING_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="KEY_3_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ACL_KEY_SIZE">
+                    <Access>
+                        <KeyCondition Enum="KEY_0" Field="KBP_KBR_IDX" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_ELK_ACL_ALIGNER_MAPPING_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="KEY_0_SIZEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="KEY_1" Field="KBP_KBR_IDX" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_ELK_ACL_ALIGNER_MAPPING_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="KEY_1_SIZEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="KEY_2" Field="KBP_KBR_IDX" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_ELK_ACL_ALIGNER_MAPPING_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="KEY_2_SIZEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="KEY_3" Field="KBP_KBR_IDX" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_ELK_ACL_ALIGNER_MAPPING_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT_PROFILE)"/>
+                            <HwField Name="KEY_3_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="KLEAP_FWD2_CONTEXT_PROFILE">
+        <OneLineDescription>Determines CURRENT_CONTEXT_PROFILE in FLPB based on the iFWD2 context. Used by the ACL CS</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CONTEXT" Type="ACL_CONTEXT"/>
+            </Key>
+            <Result>
+                <Field Name="CURRENT_CONTEXT_PROFILE" Type="CONTEXT_PROFILE"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CURRENT_CONTEXT_PROFILE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_CURRENT_CONTEXT_PROFILE_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(CONTEXT)"/>
+                            <HwField Name="CURRENT_CONTEXT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

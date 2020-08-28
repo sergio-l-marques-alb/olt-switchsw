@@ -1,0 +1,664 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0" module="dram">
+    <includes>
+        <include>soc/shmoo_hbm16.h</include>
+        <include>bcm_int/dnx/dram/hbmc/hbmc.h</include>
+        <include>shared/utilex/utilex_integer_arithmetic.h</include>
+    </includes>
+    
+    <sub_module name="hbm">
+        <features>
+            <feature name="is_supported" value="1"></feature>
+            <feature name="dword_alignment_check"></feature>
+            <!--
+                For J2, we do not have 'low temperature protection'. There is only 'high temperature protection'.
+            -->
+            <feature name="low_temperature_dram_protction" value="0"></feature>
+            <!--
+                For J2A0, we do not have 'delete BDB buffer' option. There is only available for J2B0 and higher.
+            -->
+            <feature name="is_delete_bdb_supported" value="0"></feature>
+            <feature name="cpu2tap_access" value="1"></feature>
+        </features>
+
+        <numerics>
+            <numeric name="burst_length" value="4"></numeric>
+            <!-- This should be either decided by HBM type(Samsung or Micron) or statically by the lower of the 2 -->
+            <numeric name="stop_traffic_temp_threshold" value="90">
+                <property name="dram_temperature_threshold_stop_traffic" method="range"
+                  range_min="DATA(dram, hbm, restore_traffic_temp_threshold)+1"
+                  range_max="105">
+                    <doc>
+                        This is soc property that holds the temperature threshold, for stop directing traffic to DRAM.
+                        Units: degrees Celsius 
+                    </doc>
+                </property>
+            </numeric> 
+            <!-- This should be either decided by HBM type(Samsung or Micron) or statically by the lower of the 2 -->
+            <numeric name="restore_traffic_temp_threshold" value="85">
+                <property name="dram_temperature_threshold_restore_traffic" method="range"
+                  range_min="0"
+                  range_max="105">
+                    <doc>
+                        This is soc property that holds the temperature threshold, for restore directing traffic to DRAM.
+                        Units: degrees Celsius 
+                    </doc>
+                </property>
+            </numeric> 
+            <numeric name="usec_between_temp_samples" value="500000"></numeric>
+            <numeric name="power_down_temp_threshold" value="95">
+                <property name="dram_temperature_threshold_power_down" method="range"
+                  range_min="DATA(dram, hbm, stop_traffic_temp_threshold)+1"
+                  range_max="105">
+                    <doc>
+                        This is soc property that holds the temperature threshold, for doing DRAM shut down.
+                        Units: degrees Celsius 
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="dram_temp_monitor_enable" value="1">
+                <property name="dram_temperature_monitor_enable" method="enable">
+                    <doc>
+                        Enable/disable SDK DRAM temperature monitor
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <defines>
+            <define name="channel_broadcast_id" value="16"></define>
+            <define name="hbc_physical_last_in_chain" value="7"></define>
+            <define name="default_model_part_num" value="0x40"></define>
+        </defines>
+
+        <tables>
+            <table name="channel_symmetric_regs">
+                <key name="index" size="18"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry index="0" reg="HBC_HBM_CONFIGr"></entry>
+                    <entry index="1" reg="HBC_HBM_MODE_REGISTERSr"></entry>
+                    <entry index="2" reg="HBC_HBM_MODE_REGISTER_MANAGER_CONFIGr"></entry>
+                    <entry index="3" reg="HBC_DATA_SOURCE_CONFIGr"></entry>
+                    <entry index="4" reg="HBC_DSI_ASYNC_FIFO_CONFIGr"></entry>
+                    <entry index="5" reg="HBC_WPBQ_CONFIGr"></entry>
+                    <entry index="6" reg="HBC_RPBQ_CONFIGr"></entry>
+                    <entry index="7" reg="HBC_HBM_ROW_ACCESS_TIMINGSr"></entry>
+                    <entry index="8" reg="HBC_HBM_COLUMN_ACCESS_TIMINGSr"></entry>
+                    <entry index="9" reg="HBC_HBM_REFRESH_TIMINGSr"></entry>
+                    <entry index="10" reg="HBC_HBM_GENERAL_TIMINGSr"></entry>
+                    <entry index="11" reg="HBC_HBM_REFRESH_INTERVALSr"></entry>
+                    <entry index="12" reg="HBC_TSM_CONFIGr"></entry>
+                    <entry index="13" reg="HBC_TSM_READ_WRITE_SWITCH_CONFIGr"></entry>
+                    <entry index="14" reg="HBC_PIPELINES_COMMAND_PIN_MUXr"></entry>
+                    <entry index="15" reg="HBC_PIPELINES_BANK_REMAPPINGr"></entry>
+                    <entry index="16" reg="HBC_PIPELINES_PHY_RCMDr"></entry>
+                    <entry index="17" reg="HBC_HBM_CPU_CONTROLr"></entry>
+                </entries>                
+            </table>
+
+            <table name="channel_not_symmetric_regs">
+                <key name="index" size="1"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry index="0" reg="HBC_PIPELINES_CONFIGr"></entry>
+                </entries>
+            </table>
+
+            <table name="controller_symmetric_regs">
+                <key name="index" size="9"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry index="0" reg="HBMC_HBM_PLL_CONFIGr"></entry>
+                    <entry index="1" reg="HBMC_HBM_RESET_CONTROLr"></entry>
+                    <entry index="2" reg="HBMC_HBM_PHY_CONTROLr"></entry>
+                    <entry index="3" reg="HBMC_HBM_PHY_CHANNEL_CONTROLr"></entry>
+                    <entry index="4" reg="TDU_WRITE_REQUEST_PATH_CONFIGr"></entry>
+                    <entry index="5" reg="TDU_READ_REQUEST_PATH_CONFIGr"></entry>
+                    <entry index="6" reg="TDU_READ_DATA_PATH_CONFIGr"></entry>
+                    <entry index="7" reg="TDU_ADDRESS_TRANSLATION_MATRIXr"></entry>
+                    <entry index="8" reg="TDU_DRAM_BLOCKED_CONFIGr"></entry>
+                </entries>
+            </table>
+
+            <table name="controller_not_symmetric_regs">
+                <key name="index" size="1"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry index="0" reg="TDU_ADDRESS_TRANSLATION_CONFIGr"></entry>
+                </entries>
+            </table>
+        
+            <table name="channel_interrupt_regs">
+                <key name="index" size="5"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry index="0" reg="HBC_INTERRUPT_REGISTERr"></entry>
+                    <entry index="1" reg="HBC_ECC_INTERRUPT_REGISTERr"></entry>
+                    <entry index="2" reg="HBC_DSI_INTERRUPT_REGISTERr"></entry>
+                    <entry index="3" reg="HBC_RDR_INTERRUPT_REGISTERr"></entry>
+                    <entry index="4" reg="HBC_PIPELINES_INTERRUPT_REGISTERr"></entry>
+                </entries>
+            </table>
+
+            <table name="controller_interrupt_regs">
+                <key name="index" size="2"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry index="0" reg="HBMC_INTERRUPT_REGISTERr"></entry>
+                    <entry index="1" reg="HBMC_ECC_INTERRUPT_REGISTERr"></entry>
+                </entries>
+            </table>
+        
+            <table name="channel_debug_regs">
+                <key name="index" size="2"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <value name="reassuring_str" default="NULL"></value>                
+                <entries>
+                    <entry index="0" reg="HBC_HBM_ERR_COUNTERSr" reassuring_str="HBM error counters are cleared"></entry>
+                    <entry index="1" reg="HBC_PIPELINES_DEBUGr" reassuring_str="Pipeline debug info is cleared"></entry>
+                </entries>
+            </table>
+
+            <table name="channel_counter_regs">
+                <key name="index" size="2" ></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry index="0" reg="HBC_TSM_DEBUGr"></entry>
+                    <entry index="1" reg="HBC_HBM_COMMAND_COUNTERSr"></entry>
+                </entries>
+            </table>
+
+            <table name="channel_type_regs">
+                <key name="index" size="2"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <value name="type" default="DNX_HBMC_NOF_DIAG_REG_TYPES"></value>
+                <entries>
+                    <entry index="0" reg="HBC_WPBQ_STATUSr" type="DNX_HBMC_DIAG_REG_HISTOGRAM_32_8"></entry>
+                    <entry index="1" reg="HBC_RPBQ_STATUSr" type="DNX_HBMC_DIAG_REG_HISTOGRAM_32_8"></entry>
+                </entries>
+            </table>
+
+            <table name="controller_info_regs" doc="per contorller list of info registers">
+                <key name="index" size="2"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry index="0" reg="HBMC_HBM_PLL_STATUSr"></entry>
+                    <entry index="1" reg="HBMC_HBM_STATUSr"></entry>
+                </entries>
+            </table>
+
+        </tables>
+    </sub_module>
+
+    <sub_module name="general_info">
+        <defines>
+            <define name="otp_restore_version" value="2"></define>
+            <define name="max_nof_drams" value="2"></define>
+            <define name="nof_channels" value="8"></define>
+            <define name="mr_mask" value="0xff"></define>
+            <define name="nof_mrs" value="16"></define>
+            <define name="phy_address_mask" value="0xfff"></define>
+        </defines>  
+        <numerics>
+            <numeric name="max_dram_index" value="shr_bitop_last_bit_get(&amp;DATA(dram, general_info, dram_info, dram_bitmap), DATA(dram, general_info, max_nof_drams))"></numeric>
+            <numeric name="min_dram_index" value="shr_bitop_first_bit_get(&amp;DATA(dram, general_info, dram_info, dram_bitmap), DATA(dram, general_info, max_nof_drams))"></numeric>
+            <numeric name="frequency" value="500">
+                <property name="ext_ram_freq" method="range" range_min="500" range_max="1400">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes 
+                        dram Frequency in MHZ
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="buffer_size" value="4096">
+            </numeric>
+            <numeric name="command_address_parity" value="1">
+                <property name="ext_ram_command_address_parity" method="enable">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes 
+                        0 - Command/address parity disabled 
+                        1 - Command/address parity enabled
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="dq_write_parity" value="1">
+                <property name="ext_ram_dq_write_parity" official="false" method="enable">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes 
+                        0 - DQ write parity disabled 
+                        1 - DQ write parity enabled
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="dq_read_parity" value="1">
+                <property name="ext_ram_dq_read_parity" official="false" method="enable">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes 
+                        0 - DQ read parity disabled 
+                        1 - DQ read parity enabled
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="dbi_read" value="1">
+                <property name="ext_ram_read_dbi" method="enable">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes
+                        0 - Read DBIac disabled 
+                        1 - Read DBIac enabled
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="dbi_write" value="1">
+                <property name="ext_ram_write_dbi" method="enable">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes
+                        0 - Write DBIac disabled 
+                        1 - Write DBIac enabled
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="write_latency" value="7">
+                <property name="ext_ram_write_latency" method="range" range_min="0" range_max="15">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes
+                        HBM write latency (WR) in tCK units
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="read_latency" value="22">
+                <property name="ext_ram_read_latency" method="range" range_min="0" range_max="30">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes
+                        HBM read latency (RD) in tCK units
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="parity_latency" value="2">
+                <property name="ext_ram_parity_latency" method="range" range_min="0" range_max="3">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes
+                        DQ Parity latency (PL) in tCK units
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="actual_parity_latency" value="DATA(dram, general_info, parity_latency) * DATA(dram, general_info, dq_read_parity)"> 
+            </numeric>
+            <numeric name="tune_mode_on_init" value="DNX_HBMC_RUN_TUNE">
+                <property name="dram_phy_tune_mode_on_init" method="direct_map">
+                    <map name="RESTORE_TUNE_PARAMETERS_FROM_SOC_PROPERTIES" value="DNX_HBMC_RESTORE_TUNE_PARAMETERS_FROM_SOC_PROPERTIES"></map>
+                    <map name="RESTORE_TUNE_PARAMETERS_FROM_OTP" value="DNX_HBMC_RESTORE_TUNE_PARAMETERS_FROM_OTP"></map>
+                    <map name="RUN_TUNE" value="DNX_HBMC_RUN_TUNE"></map>
+                    <map name="SKIP_TUNE" value="DNX_HBMC_SKIP_TUNE"></map>
+                    <map name="RESTORE_TUNE_PARAMS_FROM_SOC_PROPS_OR_OTP_OR_TUNE" value="DNX_HBMC_RESTORE_TUNE_PARAMS_FROM_SOC_PROPS_OR_OTP_OR_TUNE"></map>
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes
+                        Choose dram phy tune mode during Init
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+            <table name="mr_defaults">
+                <key name="index" size="DATA(dram, general_info, nof_mrs)"></key>
+                <value name="value" default="0"></value>
+                <entries>
+                    <entry index="1" value="0x70"></entry>
+                    <entry index="3" value="0xc0"></entry>
+                    <entry index="4" value="0x3"></entry>
+                </entries>
+            </table> 
+
+            <table name="dram_info">
+                <value name="dram_type" default="SHMOO_HBM16_DRAM_TYPE_GEN2"></value>
+                <value name="dram_bitmap" default="0x2">
+                    <property name="ext_ram_enabled_bitmap" method="range" range_min="0x0" range_max="0x3">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            A bitmap that indicates which HBMs are used.
+                        </doc>
+                    </property>
+                </value>
+                <value name="nof_columns" default="32">
+                    <property name="ext_ram_columns" method="direct_map" extern="0">
+                        <map name="32" value="32"></map>
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            Number of columns in the dram
+                        </doc>
+                    </property>
+                </value>
+                <value name="nof_rows" default="16384">
+                    <property name="ext_ram_rows" method="direct_map" extern="0">
+                        <map name="16384" value="16384"></map>
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            Number of rows in the dram
+                        </doc>
+                    </property>
+                </value>
+                <value name="nof_banks" default="32">
+                    <property name="ext_ram_banks" method="direct_map" extern="0">
+                        <map name="32" value="32"></map>
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            Number of banks in the dram
+                        </doc>
+                    </property>
+                </value>
+                <value name="data_rate" default="DATA(dram, general_info, frequency) * 2"></value>
+                <value name="ref_clock" default="100"></value>
+                <value name="ctl_type" default="SHMOO_HBM16_CTL_TYPE_1"></value>
+            </table>
+
+            <table name="timing_params" doc="timing parameters">
+                <value name="twr" default="17">
+                    <property name="ext_ram_t_wr" method="range" range_min="0" range_max="63">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="trp" default="16">
+                    <property name="ext_ram_t_rp" method="range" range_min="0" range_max="63">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="trtps" default="7">
+                    <property name="ext_ram_t_rtp_s" method="range" range_min="0" range_max="63">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="trtpl" default="7">
+                    <property name="ext_ram_t_rtp_l" method="range" range_min="0" range_max="63">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="trrds" default="4">
+                    <property name="ext_ram_t_rrd_s" method="range" range_min="0" range_max="63">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="trrdl" default="4">
+                    <property name="ext_ram_t_rrd_l" method="range" range_min="0" range_max="63">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="tfaw" default="16">
+                    <property name="ext_ram_t_faw" method="range" range_min="0" range_max="63">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="trcdwr" default="14">
+                    <property name="ext_ram_t_rcd_wr" method="range" range_min="0" range_max="63">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="trcdrd" default="16">
+                    <property name="ext_ram_t_rcd_rd" method="range" range_min="0" range_max="63">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="tras" default="33">
+                    <property name="ext_ram_t_ras" method="range" range_min="0" range_max="63">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="trc" default="47">
+                    <property name="ext_ram_t_rc" method="range" range_min="0" range_max="63">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="twtrl" default="9">
+                    <property name="ext_ram_t_wtr_l" method="range" range_min="0" range_max="63">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="twtrs" default="5">
+                    <property name="ext_ram_t_wtr_s" method="range" range_min="0" range_max="63">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="trtw" default="21">
+                    <property name="ext_ram_t_rtw" method="range" range_min="0" range_max="63"> 
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="tccdr" default="3">
+                    <property name="ext_ram_t_ccd_r" method="range" range_min="0" range_max="63">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="tccds" default="2">
+                    <property name="ext_ram_t_ccd_s" method="range" range_min="0" range_max="63" >
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="tccdl" default="4">
+                    <property name="ext_ram_t_ccd_l" method="range" range_min="0" range_max="63" >
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="trrefd" default="8">
+                    <property name="ext_ram_t_rrefd" method="range" range_min="0" range_max="255" official="false">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="trfcsb" default="160">
+                    <property name="ext_ram_t_rfcsb" method="range" range_min="0" range_max="1023" official="false">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="trfc" default="260">
+                    <property name="ext_ram_t_rfc" method="range" range_min="0" range_max="1023" official="false">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="tmrd" default="8">
+                    <property name="ext_ram_t_mrd" method="range" range_min="0" range_max="63" official="false">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="tmod" default="15">
+                    <property name="ext_ram_t_mod" method="range" range_min="0" range_max="63" official="false">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <!-- below for GDDR6 training timing -->
+                <value name="twtrtr" default="-1"></value>
+                <value name="twrwtr" default="-1"></value>
+                <value name="treftr" default="-1"></value>
+                <value name="trdtlt" default="-1"></value>
+                <value name="trcdwtr" default="-1"></value>
+                <value name="trcdrtr" default="-1"></value>
+                <value name="trcdltr" default="-1"></value>
+                <value name="tltrtr" default="-1"></value>
+                <value name="tltltr" default="-1"></value>
+            </table>
+
+            <table name="refresh_intervals">
+                <key name="temp_index" size="8"></key>
+                <value name="trefi" default="3900">
+                    <property name="ext_ram_t_refi" method="suffix_range" suffix="" range_min="0" range_max="16383" official="false">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="trefisb" default="60">
+                    <property name="ext_ram_t_refisb" method="suffix_range" suffix="" range_min="0" range_max="2047" official="false">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="address_translation">
+        <numerics>
+        </numerics>
+
+        <defines>
+            <define name="matrix_column_size" value="30"></define>
+            <define name="physical_address_transaction_size" value="32"></define>
+        </defines>
+
+        <tables>
+            <table name="matrix_configuration" doc="address translation matrix(ATM) configuration options">
+                <key name="matrix_option" size="DNX_HBMC_NOF_ATMS"/>
+                <value name="logical_to_physical" default="0"></value>
+                <entries>
+                    <entry matrix_option="DNX_HBMC_SINGLE_HBM_ATM" logical_to_physical="0x1000000, 0x0400002, 0x0000024, 0x0004008, 0x0000041, 0x0008008, 0x0010004, 0x0020002, 0x0000011, 0x0000080, 0x0000100, 0x0000200, 0x0000400, 0x0000800, 0x0001000, 0x0002000, 0x0000001, 0x0000002, 0x0000004, 0x0000008, 0x0040000, 0x0080000, 0x0100000, 0x0000000, 0x0800000, 0x1000000, 0x0000000, 0x0000000, 0x0000000, 0x0000000"></entry>
+                    <entry matrix_option="DNX_HBMC_2_HBMS_ATM" logical_to_physical="0x0000021, 0x0400002, 0x0800004, 0x0004008, 0x0000041, 0x0008008, 0x0010004, 0x0020002, 0x0000011, 0x0000080, 0x0000100, 0x0000200, 0x0000400, 0x0000800, 0x0001000, 0x0002000, 0x0000001, 0x0000002, 0x0000004, 0x0000008, 0x0040000, 0x0080000, 0x0100000, 0x0000000, 0x0200000, 0x1000000, 0x0000000, 0x0000000, 0x0000000, 0x0000000"></entry>
+                </entries>
+            </table>
+
+            <table name="interrupt_regs">
+                <key name="index" size="2"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry index="0" reg="TDU_INTERRUPT_REGISTERr"></entry>
+                    <entry index="1" reg="TDU_ECC_INTERRUPT_REGISTERr"></entry>
+                </entries>
+            </table>
+
+            <table name="counter_regs">
+                <key name="index" size="6"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry index="0" reg="TDU_WRITE_REQUEST_PATH_COUNTERSr"></entry>
+                    <entry index="1" reg="TDU_WRITE_REQUEST_PER_CHANNEL_COUNTr"></entry>
+                    <entry index="2" reg="TDU_READ_REQUEST_PATH_COUNTERSr"></entry>
+                    <entry index="3" reg="TDU_READ_REQUEST_PER_CHANNEL_COUNTr"></entry>
+                    <entry index="4" reg="TDU_READ_DATA_PATH_COUNTERSr"></entry>
+                    <entry index="5" reg="TDU_DRAM_BLOCKED_STATUSr"></entry>
+                </entries>
+            </table>
+
+        </tables>
+    </sub_module>
+
+    <sub_module name="buffers" doc="information regarding BDs and BDBs">
+        <features>
+            <feature name="quarantine_buffers_if_tdu_corrected_errors" value="1"></feature>
+            <feature name="quarantine_buffers_if_tdu_errors" value="1"></feature>
+        </features>
+
+        <numerics>
+            <numeric name="allowed_errors" value="10">
+                <property name="quarantine_mechanism_allowed_errors" method="range" range_min="0" range_max="100">
+                    <doc>
+                        Define the amount of errors a single buffer can have before the Quarantine Mechanism delete the buffer instead of restoring it
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <defines>
+            <define name="nof_bdbs" value="131072"></define>
+            <define name="nof_fpc_banks" value="4"/>
+        </defines>
+
+        <tables>
+            <table name="deleted_buffers_info" doc="deleted buffers info">
+                <value name="deleted_buffers_file" default="./deleted_buffers_file">
+                    <property name="deleted_buffers_file_path" method="str"> 
+                        <doc>
+                            Path for deleted buffers file, if a file exists it will be used,
+                            if not it will be created in this path according to need.
+                        </doc>
+                    </property>
+                </value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="dram_block" doc="information regarding DRAM blocked state.">
+        
+        <defines>
+            <define name="leaky_bucket_window_size" value="5000"></define>
+            <define name="wmr_reset_on_deassert" value="1"></define>
+            <define name="wmr_full_size" value="50"></define>
+        </defines>
+        <numerics>
+            <numeric name="wmr_decrement_thr_factor" value="8 * DATA(dram,dram_block,leaky_bucket_window_size) * DATA(dram,general_info,frequency) / 1000"></numeric>
+            <numeric name="wpr_increment_thr_factor" value="8 * DATA(dram,dram_block,leaky_bucket_window_size) * DATA(dram,general_info,max_nof_drams) * DATA(dram,general_info,frequency) / 1000"></numeric>
+        </numerics>
+    </sub_module>
+
+    <!-- FIXME SDK-186029 - this submodule should be deleted -->
+    <sub_module name="dbal">
+        <numerics>
+            <numeric name="hbmc_index_nof_bits" value="DATA(dram,general_info,max_nof_drams) > 1 ? utilex_log2_round_up(DATA(dram,general_info,max_nof_drams)) : 1"></numeric>
+        </numerics>        
+    </sub_module>
+</device_data>

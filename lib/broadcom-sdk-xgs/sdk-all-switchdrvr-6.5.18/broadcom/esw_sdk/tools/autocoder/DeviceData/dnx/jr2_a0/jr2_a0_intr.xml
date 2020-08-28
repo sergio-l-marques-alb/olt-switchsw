@@ -1,0 +1,887 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="intr">
+    <includes>
+        <include>soc/dnx/intr/auto_generated/jr2/jr2_intr.h</include>
+        <include>soc/mcm/allenum.h</include>
+        <include>soc/dnxc/dnxc_intr_corr_act_func.h</include>
+    </includes>
+    
+    <sub_module name="general">
+
+        <features>
+        </features>
+        
+        <defines>
+        </defines>
+
+        <numerics>
+             <numeric name="nof_interrupts" value="JR2_INT_LAST"></numeric>
+             <numeric name="polled_irq_mode" value="0">
+                  <property name="polled_irq_mode" method="enable">
+                     <doc>
+                        Are interrupts supported by polling mode.
+                     </doc>
+                 </property>
+            </numeric>
+
+             <numeric name="polled_irq_delay" value="0">
+                  <property name="polled_irq_delay" method="range" range_min="0" range_max="100000000">
+                     <doc>
+                        The minimum delay between IRQ polls.
+                     </doc>
+                 </property>
+            </numeric>
+            
+            <numeric name="polled_irq_priority" value="100">
+                 <property name="polled_irq_priority" method="range" range_min="-1" range_max="1000">
+                     <doc>
+                        Priority of IRQ polling thread.
+                     </doc>
+                 </property>
+             </numeric>
+             
+            <numeric name="table_dma_enable" value="1">
+                 <property name="table_dma_enable" method="enable">
+                     <doc>
+                        Enable/disable table DMA operations.
+                     </doc>
+                 </property>
+             </numeric>
+
+             <numeric name="tdma_timeout_usec" value="1000">
+                 <property name="tdma_timeout_usec" method="range" range_min="0" range_max="600000000">
+                     <doc>
+                        Table DMA operation timeout.
+                     </doc>
+                 </property>
+             </numeric>
+
+             <numeric name="tdma_intr_enable" value="0">
+                 <property name="tdma_intr_enable" method="enable">
+                     <doc>
+                        Table DMA done is interrupt driven or by polling.
+                     </doc>
+                 </property>
+             </numeric>
+
+             <numeric name="tslam_dma_enable" value="1">
+                 <property name="tslam_dma_enable" method="enable">
+                     <doc>
+                        Enable/disable tslam DMA operations.
+                     </doc>
+                 </property>
+             </numeric>
+
+             <numeric name="tslam_timeout_usec" value="1000">
+                 <property name="tslam_timeout_usec" method="range" range_min="0" range_max="600000000">
+                     <doc>
+                        Tslam DMA operation timeout.
+                     </doc>
+                 </property>
+             </numeric>
+
+             <numeric name="tslam_intr_enable" value="0">
+                 <property name="tslam_intr_enable" method="enable">
+                     <doc>
+                        Tslam DMA done is interrupt driven or by polling.
+                     </doc>
+                 </property>
+             </numeric>
+
+             <numeric name="schan_timeout_usec" value="1000">
+                 <property name="schan_timeout_usec" method="range" range_min="0" range_max="10000000">
+                     <doc>
+                        Schan operation done is interrupt driven or by polling.
+                     </doc>
+                 </property>
+             </numeric>
+
+             <numeric name="schan_intr_enable" value="0">
+                 <property name="schan_intr_enable" method="enable">
+                     <doc>
+                        Schan operation done is interrupt driven or by polling.
+                     </doc>
+                 </property>
+             </numeric>
+
+             <numeric name="miim_timeout_usec" value="2000">
+                 <property name="miim_timeout_usec" method="range" range_min="0" range_max="600000000">
+                     <doc>
+                        MIM operation timeout.
+                     </doc>
+                 </property>
+             </numeric>
+             
+             <numeric name="miim_intr_enable" value="0">
+                 <property name="schan_intr_enable" method="enable">
+                     <doc>
+                        MIIM operation done is interrupt driven or by polling.
+                     </doc>
+                 </property>
+             </numeric>
+
+             <numeric name="sbus_dma_interval" value="0">
+                 <property name="dma_desc_timeout_usec" method="range" range_min="0" range_max="1000000000">
+                     <doc>
+                        SBUSDMA descriptor mode operation timeout in microseconds.
+                     </doc>
+                 </property>
+             </numeric>
+
+             <numeric name="sbus_dma_intr_enable" value="0">
+                 <property name="dma_desc_intr_enable" method="enable">
+                     <doc>
+                        SBUSDMA descriptor mode operation should use interrupt rather than poll for completion.
+                     </doc>
+                 </property>
+             </numeric>
+
+             <numeric name="mem_clear_chunk_size" value="4">
+                 <property name="mem_clear_chunk_size" method="range" range_min="0" range_max="1000">
+                     <doc>
+                        SBUS DMA chunk size configuration.
+                     </doc>
+                 </property>
+             </numeric>
+        </numerics>
+
+        <tables>
+            <table name="active_on_init">
+                <!-- key size must change if entries changed -->
+                <key name="offset" size="368"></key>
+                <value name="intr" default="INVALIDr"></value>
+                <entries>
+                    <!-- vector interrupt ident -->
+                    <entry offset="0" intr="JR2_INT_OCB_ERROR_ECC"></entry>
+                    <entry offset="1" intr="JR2_INT_OCB_ERROR_FBC_BANK"></entry>
+                    <entry offset="2" intr="JR2_INT_OLP_ERROR_ECC"></entry>
+                    <entry offset="3" intr="JR2_INT_FDA_ERROR_ECC"></entry>
+                    <entry offset="4" intr="JR2_INT_EPRE_ERROR_ECC"></entry>
+                    <entry offset="5" intr="JR2_INT_SPB_ERROR_ECC"></entry>
+                    <entry offset="6" intr="JR2_INT_SPB_ERROR_REASSEMBLY"></entry>
+                    <entry offset="7" intr="JR2_INT_SPB_ERROR_FIFO"></entry>
+                    <entry offset="8" intr="JR2_INT_PQP_ERROR_ECC"></entry>
+                    <entry offset="9" intr="JR2_INT_DDHB_ERROR_ECC"></entry>
+                    <entry offset="10" intr="JR2_INT_ETPPA_ERROR_ECC"></entry>
+                    <entry offset="11" intr="JR2_INT_ETPPA_ETPP_PRP_INT_VEC"></entry>
+                    <entry offset="12" intr="JR2_INT_ETPPA_ETPPA_INT_VEC"></entry>
+                    <entry offset="13" intr="JR2_INT_BDM_ERROR_ECC"></entry>
+                    <entry offset="14" intr="JR2_INT_FDTL_ERROR_ECC"></entry>
+                    <entry offset="15" intr="JR2_INT_ERPP_ERROR_ECC"></entry>
+                    <entry offset="16" intr="JR2_INT_ERPP_ERPP_DISCARD_INT_VEC"></entry>
+                    <entry offset="17" intr="JR2_INT_ERPP_ERPP_DISCARD_INT_VEC_2"></entry>
+                    <entry offset="18" intr="JR2_INT_IPT_ERROR_ECC"></entry>
+                    <entry offset="19" intr="JR2_INT_IPT_ERROR_FIFOS"></entry>
+                    <entry offset="20" intr="JR2_INT_IPT_ERROR_ITE"></entry>
+                    <entry offset="21" intr="JR2_INT_EVNT_ERROR_ECC"></entry>
+                    <entry offset="22" intr="JR2_INT_EVNT_EVENTOR_INTERRUPT"></entry>
+                    <entry offset="23" intr="JR2_INT_TCAM_ERROR_ECC"></entry>
+                    <entry offset="24" intr="JR2_INT_FDR_ERROR_ECC"></entry>
+                    <entry offset="25" intr="JR2_INT_FDR_INT_REG_P_1_MAC_0"></entry>
+                    <entry offset="26" intr="JR2_INT_FDR_INT_REG_P_1_MAC_1"></entry>
+                    <entry offset="27" intr="JR2_INT_FDR_INT_REG_P_1_MAC_2"></entry>
+                    <entry offset="28" intr="JR2_INT_FDR_INT_REG_P_1_MAC_3"></entry>
+                    <entry offset="29" intr="JR2_INT_FDR_INT_REG_P_1_MAC_4"></entry>
+                    <entry offset="30" intr="JR2_INT_FDR_INT_REG_P_1_MAC_5"></entry>
+                    <entry offset="31" intr="JR2_INT_FDR_INT_REG_P_1_MAC_6"></entry>
+                    <entry offset="32" intr="JR2_INT_FDR_INT_REG_P_1_MAC_7"></entry>
+                    <entry offset="33" intr="JR2_INT_FDR_INT_REG_P_2_MAC_0"></entry>
+                    <entry offset="34" intr="JR2_INT_FDR_INT_REG_P_2_MAC_1"></entry>
+                    <entry offset="35" intr="JR2_INT_FDR_INT_REG_P_2_MAC_2"></entry>
+                    <entry offset="36" intr="JR2_INT_FDR_INT_REG_P_2_MAC_3"></entry>
+                    <entry offset="37" intr="JR2_INT_FDR_INT_REG_P_2_MAC_4"></entry>
+                    <entry offset="38" intr="JR2_INT_FDR_INT_REG_P_2_MAC_5"></entry>
+                    <entry offset="39" intr="JR2_INT_FDR_INT_REG_P_2_MAC_6"></entry>
+                    <entry offset="40" intr="JR2_INT_FDR_INT_REG_P_2_MAC_7"></entry>
+                    <entry offset="41" intr="JR2_INT_FDR_INT_REG_P_3_MAC_0"></entry>
+                    <entry offset="42" intr="JR2_INT_FDR_INT_REG_P_3_MAC_1"></entry>
+                    <entry offset="43" intr="JR2_INT_FDR_INT_REG_P_3_MAC_2"></entry>
+                    <entry offset="44" intr="JR2_INT_FDR_INT_REG_P_3_MAC_3"></entry>
+                    <entry offset="45" intr="JR2_INT_FDR_INT_REG_P_3_MAC_4"></entry>
+                    <entry offset="46" intr="JR2_INT_FDR_INT_REG_P_3_MAC_5"></entry>
+                    <entry offset="47" intr="JR2_INT_FDR_INT_REG_P_3_MAC_6"></entry>
+                    <entry offset="48" intr="JR2_INT_FDR_INT_REG_P_3_MAC_7"></entry>
+                    <entry offset="49" intr="JR2_INT_FDR_INT_REG_GENERAL"></entry>
+                    <entry offset="50" intr="JR2_INT_DHC_ERROR_ECC"></entry>
+                    <entry offset="51" intr="JR2_INT_FMAC_ERROR_ECC"></entry>
+                    <entry offset="52" intr="JR2_INT_FMAC_INT_REG_1"></entry>
+                    <entry offset="53" intr="JR2_INT_FMAC_INT_REG_2"></entry>
+                    <entry offset="54" intr="JR2_INT_FMAC_INT_REG_3"></entry>
+                    <entry offset="55" intr="JR2_INT_FMAC_INT_REG_4"></entry>
+                    <entry offset="56" intr="JR2_INT_FMAC_INT_REG_5"></entry>
+                    <entry offset="57" intr="JR2_INT_FMAC_INT_REG_6"></entry>
+                    <entry offset="58" intr="JR2_INT_FMAC_INT_REG_7"></entry>
+                    <entry offset="59" intr="JR2_INT_FMAC_INT_REG_8"></entry>
+                    <entry offset="60" intr="JR2_INT_ITPPD_ERROR_ECC"></entry>
+                    <entry offset="61" intr="JR2_INT_FDT_ERROR_ECC"></entry>
+                    <entry offset="62" intr="JR2_INT_TDU_ERROR_ECC"></entry>
+                    <entry offset="63" intr="JR2_INT_CFC_ERROR_ECC"></entry>
+                    <entry offset="64" intr="JR2_INT_IPPC_ERROR_ECC"></entry>
+                    <entry offset="65" intr="JR2_INT_RTP_ERROR_ECC"></entry>
+                    <entry offset="66" intr="JR2_INT_IPPF_ERROR_ECC"></entry>
+                    <entry offset="67" intr="JR2_INT_SQM_ERROR_ECC"></entry>
+                    <entry offset="68" intr="JR2_INT_SQM_TX_FIFOS_ERR_INT"></entry>
+                    <entry offset="69" intr="JR2_INT_IPPE_ERROR_ECC"></entry>
+                    <entry offset="70" intr="JR2_INT_HBC_ERROR_ECC"></entry>
+                    <entry offset="71" intr="JR2_INT_HBC_DSI_ERROR"></entry>
+                    <entry offset="72" intr="JR2_INT_HBC_RDR_ERROR"></entry>
+                    <entry offset="73" intr="JR2_INT_HBC_PIPELINES_ERROR"></entry>
+                    <entry offset="74" intr="JR2_INT_CDU_ERROR_ECC"></entry>
+                    <entry offset="75" intr="JR2_INT_CDU_NBI_PKT_DROP_COUNTERS_0_75P_INTERRUPT"></entry>
+                    <entry offset="76" intr="JR2_INT_CDU_LINK_STATUS_CHANGE_INT"></entry>
+                    <entry offset="77" intr="JR2_INT_CGM_ERROR_ECC"></entry>
+                    <entry offset="78" intr="JR2_INT_CGM_VOQ_OCCUPANCY_ERR_INT"></entry>
+                    <entry offset="79" intr="JR2_INT_CGM_VSQ_OCCUPANCY_ERR_INT"></entry>
+                    <entry offset="80" intr="JR2_INT_CGM_VOQ_TOTAL_OCCUPANCY_ERR_INT"></entry>
+                    <entry offset="81" intr="JR2_INT_CGM_VSQ_TOTAL_OCCUPANCY_ERR_INT"></entry>
+                    <entry offset="82" intr="JR2_INT_CGM_CONGESTION_INT"></entry>
+                    <entry offset="83" intr="JR2_INT_CGM_LOW_PRIORITY_INT"></entry>
+                    <entry offset="84" intr="JR2_INT_ETPPC_ERROR_ECC"></entry>
+                    <entry offset="85" intr="JR2_INT_ETPPC_ETPP_TERM_INT_VEC"></entry>
+                    <entry offset="86" intr="JR2_INT_ETPPC_ETPPC_INT_VEC"></entry>
+                    <entry offset="87" intr="JR2_INT_OAMP_ERROR_ECC"></entry>
+                    <entry offset="88" intr="JR2_INT_FQP_ERROR_ECC"></entry>
+                    <entry offset="89" intr="JR2_INT_FCR_ERROR_ECC"></entry>
+                    <entry offset="90" intr="JR2_INT_SCH_ERROR_ECC"></entry>
+                    <entry offset="91" intr="JR2_INT_ETPPB_ERROR_ECC"></entry>
+                    <entry offset="92" intr="JR2_INT_ETPPB_BTC_INT_VEC"></entry>
+                    <entry offset="93" intr="JR2_INT_ETPPB_ETPPB_INT_VEC"></entry>
+                    <entry offset="94" intr="JR2_INT_MTM_ERROR_ECC"></entry>
+                    <entry offset="95" intr="JR2_INT_IQM_ERROR_ECC"></entry>
+                    <entry offset="96" intr="JR2_INT_FSRD_ERROR_ECC"></entry>
+                    <entry offset="97" intr="JR2_INT_FSRD_INT_REG_0"></entry>
+                    <entry offset="98" intr="JR2_INT_IRE_ERROR_ECC"></entry>
+                    <entry offset="99" intr="JR2_INT_IRE_RCY_INTERFACE_ERROR"></entry>
+                    <entry offset="100" intr="JR2_INT_IRE_INTERNAL_INTERFACE_ERROR"></entry>
+                    <entry offset="101" intr="JR2_INT_IRE_NIF_ERROR"></entry>
+                    <entry offset="102" intr="JR2_INT_IPS_ERROR_ECC"></entry>
+                    <entry offset="103" intr="JR2_INT_IPS_ACTIVE_QUEUE_COUNT_ERR_INT"></entry>
+                    <entry offset="104" intr="JR2_INT_KAPS_ERROR_ECC"></entry>
+                    <entry offset="105" intr="JR2_INT_IPPD_ERROR_ECC"></entry>
+                    <entry offset="106" intr="JR2_INT_EDB_ERROR_ECC"></entry>
+                    <entry offset="107" intr="JR2_INT_PDM_ERROR_ECC"></entry>
+                    <entry offset="108" intr="JR2_INT_SIF_ERROR_ECC"></entry>
+                    <entry offset="109" intr="JR2_INT_SIF_STATISTICS_BILLING_FIFOS_ERR_INT"></entry>
+                    <entry offset="110" intr="JR2_INT_SIF_STATISTICS_QSIZE_FIFOS_ERR_INT"></entry>
+                    <entry offset="111" intr="JR2_INT_SIF_STATISTICS_BILLING_OPCODE_ERR_INT"></entry>
+                    <entry offset="112" intr="JR2_INT_ECGM_ERROR_ECC"></entry>
+                    <entry offset="113" intr="JR2_INT_ECGM_CGM_REP_AROUND_INT_VEC"></entry>
+                    <entry offset="114" intr="JR2_INT_MACT_ERROR_ECC"></entry>
+                    <entry offset="115" intr="JR2_INT_MACT_LOCAL_MACT_INT"></entry>
+                    <entry offset="116" intr="JR2_INT_EPNI_ERROR_ECC"></entry>
+                    <entry offset="117" intr="JR2_INT_DDP_ERROR_ECC"></entry>
+                    <entry offset="118" intr="JR2_INT_DDP_ERROR_EXTERNAL_MEM"></entry>
+                    <entry offset="119" intr="JR2_INT_DDP_ERROR_ITE"></entry>
+                    <entry offset="120" intr="INVALIDr"></entry>
+                    <entry offset="121" intr="JR2_INT_CRPS_ERROR_ECC"></entry>
+                    <entry offset="122" intr="JR2_INT_CRPS_ERROR_LM_COLLIDE"></entry>
+                    <entry offset="123" intr="JR2_INT_CRPS_ERROR_COUNTER_OVF"></entry>
+                    <entry offset="124" intr="JR2_INT_CRPS_DMA_0_FULLNESS_EVENT"></entry>
+                    <entry offset="125" intr="JR2_INT_CRPS_DMA_1_FULLNESS_EVENT"></entry>
+                    <entry offset="126" intr="JR2_INT_CDUM_ERROR_ECC"></entry>
+                    <entry offset="127" intr="JR2_INT_CDUM_NBI_PKT_DROP_COUNTERS_0_75P_INTERRUPT"></entry>
+                    <entry offset="128" intr="JR2_INT_CDUM_LINK_STATUS_CHANGE_INT"></entry>
+                    <entry offset="129" intr="JR2_INT_IPPA_ERROR_ECC"></entry>
+                    <entry offset="130" intr="JR2_INT_ITPP_ERROR_ECC"></entry>
+                    <entry offset="131" intr="JR2_INT_MRPS_ERROR_ECC"></entry>
+                    <entry offset="132" intr="JR2_INT_MRPS_INGRESS_ENG_WRAP_ERR_INT"></entry>
+                    <entry offset="133" intr="JR2_INT_MRPS_EGRESS_ENG_WRAP_ERR_INT"></entry>
+                    <entry offset="134" intr="JR2_INT_MRPS_INGRESS_ENG_OOP_FIFO_NOT_EMPTY_INT"></entry>
+                    <entry offset="135" intr="JR2_INT_MRPS_EGRESS_ENG_OOP_FIFO_NOT_EMPTY_INT"></entry>
+                    <entry offset="136" intr="JR2_INT_FCT_ERROR_ECC"></entry>
+                    <entry offset="137" intr="JR2_INT_DDHA_ERROR_ECC"></entry>
+                    <entry offset="138" intr="JR2_INT_EPS_ERROR_ECC"></entry>
+                    <entry offset="139" intr="JR2_INT_IPPB_ERROR_ECC"></entry>
+                    <entry offset="140" intr="JR2_INT_IPPB_LEL_INTERRUPT_REGISTER_ONE"></entry>
+                    <entry offset="141" intr="JR2_INT_NMG_LINK_STATUS_CHANGE"></entry>
+                    <entry offset="142" intr="JR2_INT_DQM_ERROR_ECC"></entry>
+                    <entry offset="143" intr="JR2_INT_DQM_TX_FIFOS_ERR_INT"></entry>
+                    <entry offset="144" intr="JR2_INT_RQP_ERROR_ECC"></entry>
+                    <entry offset="145" intr="JR2_INT_RQP_PKT_REAS_INT_VEC"></entry>
+                    <entry offset="146" intr="JR2_INT_RQP_PRS_INT_VEC"></entry>
+                    <entry offset="147" intr="JR2_INT_MCP_ERROR_ECC"></entry>
+                    <entry offset="148" intr="JR2_INT_ECI_ERROR_ECC"></entry>
+                    <entry offset="149" intr="JR2_INT_HBMC_ERROR_ECC"></entry>
+                    <entry offset="150" intr="JR2_INT_ILE_ERROR_ECC"></entry>
+                    <entry offset="151" intr="JR2_INT_MDB_ERROR_ECC"></entry>
+                    <entry offset="152" intr="JR2_INT_PEM_ERROR_ECC"></entry>
+
+                    <!-- interrupt ident need active -->
+                    <!-- Parity -->
+                    <entry offset="155" intr="JR2_INT_SPB_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="158" intr="JR2_INT_ETPPA_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="160" intr="JR2_INT_ERPP_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="163" intr="JR2_INT_FMAC_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="165" intr="JR2_INT_IPPC_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="167" intr="JR2_INT_IPPF_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="168" intr="JR2_INT_IPPE_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="169" intr="JR2_INT_HBC_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="170" intr="JR2_INT_CDU_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="171" intr="JR2_INT_ETPPC_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="175" intr="JR2_INT_SCH_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="176" intr="JR2_INT_ETPPB_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="177" intr="JR2_INT_IRE_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="178" intr="JR2_INT_IPPD_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="181" intr="JR2_INT_CDUM_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="182" intr="JR2_INT_IPPA_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="186" intr="JR2_INT_IPPB_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="188" intr="JR2_INT_RQP_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="189" intr="JR2_INT_MDB_ECC_PARITY_ERR_INT"></entry>
+
+                    <!-- 1 bit Ecc -->
+                    <entry offset="220" intr="JR2_INT_OCB_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="221" intr="JR2_INT_OLP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="222" intr="JR2_INT_FDA_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="223" intr="JR2_INT_EPRE_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="224" intr="JR2_INT_SPB_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="225" intr="JR2_INT_PQP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="226" intr="JR2_INT_DDHB_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="227" intr="JR2_INT_ETPPA_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="228" intr="JR2_INT_MDB_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="229" intr="JR2_INT_PEM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="230" intr="JR2_INT_BDM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="231" intr="JR2_INT_FDTL_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="232" intr="JR2_INT_ERPP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="233" intr="JR2_INT_IPT_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="234" intr="JR2_INT_EVNT_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="235" intr="JR2_INT_TCAM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="236" intr="JR2_INT_FDR_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="237" intr="JR2_INT_DHC_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="238" intr="JR2_INT_FMAC_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="239" intr="JR2_INT_ITPPD_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="240" intr="JR2_INT_FDT_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="241" intr="JR2_INT_TDU_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="242" intr="JR2_INT_CFC_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="243" intr="JR2_INT_IPPC_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="244" intr="JR2_INT_RTP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="245" intr="JR2_INT_IPPF_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="246" intr="JR2_INT_SQM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="247" intr="JR2_INT_IPPE_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="248" intr="JR2_INT_HBC_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="249" intr="JR2_INT_CDU_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="250" intr="JR2_INT_CGM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="251" intr="JR2_INT_ETPPC_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="252" intr="JR2_INT_OAMP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="253" intr="JR2_INT_FQP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="254" intr="JR2_INT_FCR_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="255" intr="JR2_INT_SCH_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="256" intr="JR2_INT_ETPPB_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="257" intr="JR2_INT_MTM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="258" intr="JR2_INT_IQM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="259" intr="JR2_INT_FSRD_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="260" intr="JR2_INT_IRE_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="261" intr="JR2_INT_IPS_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="262" intr="JR2_INT_KAPS_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="263" intr="JR2_INT_IPPD_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="264" intr="JR2_INT_EDB_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="265" intr="JR2_INT_PDM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="266" intr="JR2_INT_SIF_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="267" intr="JR2_INT_ECGM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="268" intr="JR2_INT_MACT_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="269" intr="JR2_INT_EPNI_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="270" intr="JR2_INT_DDP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="271" intr="JR2_INT_PEM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="272" intr="JR2_INT_CRPS_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="273" intr="JR2_INT_CDUM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="275" intr="JR2_INT_IPPA_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="276" intr="JR2_INT_ITPP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="277" intr="JR2_INT_MRPS_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="278" intr="JR2_INT_FCT_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="279" intr="JR2_INT_DDHA_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="280" intr="JR2_INT_EPS_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="281" intr="JR2_INT_IPPB_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="283" intr="JR2_INT_DQM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="284" intr="JR2_INT_RQP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="285" intr="JR2_INT_MCP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="286" intr="JR2_INT_ECI_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="288" intr="JR2_INT_ILE_ECC_ECC_1B_ERR_INT"></entry>
+
+                    <!-- 2bit ECC -->
+                    <entry offset="290" intr="JR2_INT_OCB_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="291" intr="JR2_INT_OCB_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="292" intr="JR2_INT_OCB_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="293" intr="JR2_INT_OLP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="294" intr="JR2_INT_FDA_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="295" intr="JR2_INT_EPRE_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="296" intr="JR2_INT_SPB_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="297" intr="JR2_INT_PQP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="298" intr="JR2_INT_DDHB_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="299" intr="JR2_INT_ETPPA_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="300" intr="JR2_INT_BDM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="301" intr="JR2_INT_FDTL_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="302" intr="JR2_INT_ERPP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="303" intr="JR2_INT_IPT_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="304" intr="JR2_INT_EVNT_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="305" intr="JR2_INT_TCAM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="306" intr="JR2_INT_FDR_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="307" intr="JR2_INT_DHC_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="308" intr="JR2_INT_FMAC_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="309" intr="JR2_INT_ITPPD_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="310" intr="JR2_INT_FDT_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="311" intr="JR2_INT_TDU_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="312" intr="JR2_INT_CFC_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="313" intr="JR2_INT_IPPC_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="314" intr="JR2_INT_RTP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="315" intr="JR2_INT_IPPF_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="316" intr="JR2_INT_SQM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="317" intr="JR2_INT_IPPE_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="318" intr="JR2_INT_HBC_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="319" intr="JR2_INT_CDU_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="320" intr="JR2_INT_CGM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="321" intr="JR2_INT_ETPPC_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="322" intr="JR2_INT_OAMP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="323" intr="JR2_INT_FQP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="324" intr="JR2_INT_FCR_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="325" intr="JR2_INT_SCH_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="326" intr="JR2_INT_ETPPB_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="327" intr="JR2_INT_MTM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="328" intr="JR2_INT_IQM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="329" intr="JR2_INT_FSRD_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="330" intr="JR2_INT_IRE_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="331" intr="JR2_INT_IPS_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="332" intr="JR2_INT_KAPS_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="333" intr="JR2_INT_IPPD_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="334" intr="JR2_INT_EDB_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="335" intr="JR2_INT_PDM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="336" intr="JR2_INT_SIF_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="337" intr="JR2_INT_ECGM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="338" intr="JR2_INT_MACT_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="339" intr="JR2_INT_EPNI_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="340" intr="JR2_INT_DDP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="341" intr="JR2_INT_PEM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="342" intr="JR2_INT_CRPS_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="343" intr="JR2_INT_CDUM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="345" intr="JR2_INT_IPPA_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="346" intr="JR2_INT_ITPP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="347" intr="JR2_INT_MRPS_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="348" intr="JR2_INT_FCT_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="349" intr="JR2_INT_DDHA_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="350" intr="JR2_INT_EPS_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="351" intr="JR2_INT_IPPB_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="353" intr="JR2_INT_DQM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="354" intr="JR2_INT_RQP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="355" intr="JR2_INT_MCP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="356" intr="JR2_INT_ECI_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="358" intr="JR2_INT_ILE_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="359" intr="JR2_INT_MDB_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="360" intr="JR2_INT_PEM_ECC_ECC_2B_ERR_INT"></entry>
+
+                    <!-- Tcam protection error Mechanism -->
+                    <entry offset="361" intr="JR2_INT_TCAM_TCAM_PROTECTION_ERROR_1_BIT_ECC"></entry>
+                    <entry offset="362" intr="JR2_INT_TCAM_TCAM_PROTECTION_ERROR_2_BIT_ECC"></entry>
+                    <!-- Buffers Quarantine Mechanism -->
+                    <entry offset="363" intr="JR2_INT_DDP_DELETE_BDB_FIFO_NOT_EMPTY"></entry>
+                    <entry offset="364" intr="JR2_INT_DDP_DELETE_BDB_FIFO_FULL"></entry>
+
+                    <!-- ILKN link status -->
+                    <entry offset="365" intr="JR2_INT_ILE_ILKN_RX_PORT_0_STATUS_CHANGE_INT"></entry>
+                    <entry offset="366" intr="JR2_INT_ILE_ILKN_RX_PORT_1_STATUS_CHANGE_INT"></entry>
+
+                    <!-- must be last -->
+                    <entry offset="367" intr="INVALIDr"></entry>
+                </entries>
+            </table>
+
+            <table name="disable_on_init">
+                <!-- key size must change if entries changed -->
+                <key name="offset" size="1"></key>
+                <value name="intr" default="INVALIDr"></value>
+                <entries>
+                    <!-- must be last -->
+                    <entry offset="0" intr="INVALIDr"></entry>
+                </entries>
+            </table>
+
+            <table name="disable_print_on_init">
+                <!-- key size must change if entries changed -->
+                <key name="offset" size="5"></key>
+                <value name="intr" default="INVALIDr"></value>
+                <entries>
+                    <entry offset="0" intr="JR2_INT_OAMP_PENDING_EVENT"></entry>
+                    <entry offset="1" intr="JR2_INT_OAMP_STAT_PENDING_EVENT"></entry>
+                    <entry offset="2" intr="JR2_INT_ILE_ILKN_RX_PORT_0_STATUS_CHANGE_INT"></entry>
+                    <entry offset="3" intr="JR2_INT_ILE_ILKN_RX_PORT_1_STATUS_CHANGE_INT"></entry>                    
+                    <!-- must be last -->
+                    <entry offset="4" intr="INVALIDr"></entry>
+                </entries>
+            </table>
+
+            <table name="block_intr_field_mapping">                
+                <!-- key size must change if entries changed -->
+                <key name="offset" size="2048"></key>
+                <value name="intr" default="INVALIDr"></value>
+                <entries>
+                    <entry offset="21" intr="BDM_0_INTERRUPTf"></entry>
+                    <entry offset="140" intr="BDM_1_INTERRUPTf"></entry>
+                    <!--  BRDC Block -->
+                    <!-- <entry offset="1920" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1936" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1952" intr="INVALIDf"></entry> -->
+                    <!-- ignore block CDMAC -->
+                    <!-- <entry offset="1072" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1072" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1088" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1088" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1104" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1104" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1120" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1120" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1136" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1136" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1152" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1152" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1792" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1792" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1808" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1808" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1824" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1824" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1840" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1840" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1856" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1856" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1872" intr="INVALIDf"></entry> -->
+                    <!-- <entry offset="1872" intr="INVALIDf"></entry> -->
+                    <entry offset="1072" intr="CDU_0_CORE_0_PM_INTERRUPTf"></entry>
+                    <entry offset="1088" intr="CDU_1_CORE_0_PM_INTERRUPTf"></entry>
+                    <entry offset="1104" intr="CDU_2_CORE_0_PM_INTERRUPTf"></entry>
+                    <entry offset="1120" intr="CDU_3_CORE_0_PM_INTERRUPTf"></entry>
+                    <entry offset="1136" intr="CDU_4_CORE_0_PM_INTERRUPTf"></entry>
+                    <entry offset="1152" intr="CDU_5_CORE_0_PM_INTERRUPTf"></entry>
+                    <entry offset="1792" intr="CDU_0_CORE_1_PM_INTERRUPTf"></entry>
+                    <entry offset="1808" intr="CDU_1_CORE_1_PM_INTERRUPTf"></entry>
+                    <entry offset="1824" intr="CDU_2_CORE_1_PM_INTERRUPTf"></entry>
+                    <entry offset="1840" intr="CDU_3_CORE_1_PM_INTERRUPTf"></entry>
+                    <entry offset="1856" intr="CDU_4_CORE_1_PM_INTERRUPTf"></entry>
+                    <entry offset="1872" intr="CDU_5_CORE_1_PM_INTERRUPTf"></entry>
+                    <entry offset="53" intr="CDU_1_CORE_0_INTERRUPTf"></entry>
+                    <entry offset="55" intr="CDU_2_CORE_0_INTERRUPTf"></entry>
+                    <entry offset="57" intr="CDU_3_CORE_0_INTERRUPTf"></entry>
+                    <entry offset="59" intr="CDU_4_CORE_0_INTERRUPTf"></entry>
+                    <entry offset="61" intr="CDU_5_CORE_0_INTERRUPTf"></entry>
+                    <entry offset="121" intr="CDU_1_CORE_1_INTERRUPTf"></entry>
+                    <entry offset="122" intr="CDU_2_CORE_1_INTERRUPTf"></entry>
+                    <entry offset="123" intr="CDU_3_CORE_1_INTERRUPTf"></entry>
+                    <entry offset="124" intr="CDU_4_CORE_1_INTERRUPTf"></entry>
+                    <entry offset="125" intr="CDU_5_CORE_1_INTERRUPTf"></entry>
+                    <entry offset="51" intr="CDU_0_CORE_0_INTERRUPTf"></entry>
+                    <entry offset="120" intr="CDU_0_CORE_1_INTERRUPTf"></entry>
+                    <entry offset="199" intr="CFC_0_INTERRUPTf"></entry>
+                    <entry offset="200" intr="CFC_1_INTERRUPTf"></entry>
+                    <entry offset="20" intr="CGM_0_INTERRUPTf"></entry>
+                    <entry offset="139" intr="CGM_1_INTERRUPTf"></entry>
+                    <!-- <entry offset="7" intr="INVALIDf"></entry> -->
+                    <entry offset="17" intr="CRPS_0_INTERRUPTf"></entry>
+                    <entry offset="136" intr="CRPS_1_INTERRUPTf"></entry>
+                    <entry offset="82" intr="DDHA_0_INTERRUPTf"></entry>
+                    <entry offset="83" intr="DDHA_1_INTERRUPTf"></entry>
+                    <entry offset="84" intr="DDHB_0_INTERRUPTf"></entry>
+                    <entry offset="85" intr="DDHB_1_INTERRUPTf"></entry>
+                    <entry offset="86" intr="DDHB_2_INTERRUPTf"></entry>
+                    <entry offset="87" intr="DDHB_3_INTERRUPTf"></entry>
+                    <entry offset="65" intr="DDP_0_INTERRUPTf"></entry>
+                    <entry offset="128" intr="DDP_1_INTERRUPTf"></entry>
+                    <entry offset="88" intr="DHC_0_INTERRUPTf"></entry>
+                    <entry offset="89" intr="DHC_1_INTERRUPTf"></entry>
+                    <entry offset="90" intr="DHC_2_INTERRUPTf"></entry>
+                    <entry offset="91" intr="DHC_3_INTERRUPTf"></entry>
+                    <entry offset="92" intr="DHC_4_INTERRUPTf"></entry>
+                    <entry offset="93" intr="DHC_5_INTERRUPTf"></entry>
+                    <entry offset="94" intr="DHC_6_INTERRUPTf"></entry>
+                    <entry offset="95" intr="DHC_7_INTERRUPTf"></entry>
+                    <entry offset="69" intr="DQM_0_INTERRUPTf"></entry>
+                    <entry offset="132" intr="DQM_1_INTERRUPTf"></entry>
+                    <entry offset="26" intr="ECGM_0_INTERRUPTf"></entry>
+                    <entry offset="145" intr="ECGM_1_INTERRUPTf"></entry>
+                    <entry offset="0" intr="ECI_INTERRUPTf"></entry>
+                    <entry offset="31" intr="EDB_0_INTERRUPTf"></entry>
+                    <entry offset="150" intr="EDB_1_INTERRUPTf"></entry>
+                    <entry offset="24" intr="EPNI_0_INTERRUPTf"></entry>
+                    <entry offset="143" intr="EPNI_1_INTERRUPTf"></entry>
+                    <entry offset="25" intr="EPRE_0_INTERRUPTf"></entry>
+                    <entry offset="144" intr="EPRE_1_INTERRUPTf"></entry>
+                    <entry offset="30" intr="EPS_0_INTERRUPTf"></entry>
+                    <entry offset="149" intr="EPS_1_INTERRUPTf"></entry>
+                    <entry offset="44" intr="ERPP_0_INTERRUPTf"></entry>
+                    <entry offset="163" intr="ERPP_1_INTERRUPTf"></entry>
+                    <entry offset="45" intr="ETPPA_0_INTERRUPTf"></entry>
+                    <entry offset="164" intr="ETPPA_1_INTERRUPTf"></entry>
+                    <entry offset="46" intr="ETPPB_0_INTERRUPTf"></entry>
+                    <entry offset="165" intr="ETPPB_1_INTERRUPTf"></entry>
+                    <entry offset="47" intr="ETPPC_0_INTERRUPTf"></entry>
+                    <entry offset="166" intr="ETPPC_1_INTERRUPTf"></entry>
+                    <entry offset="101" intr="EVENTOR_INTERRUPTf"></entry>
+                    <entry offset="886" intr="FCR_INTERRUPTf"></entry>
+                    <entry offset="888" intr="FCT_INTERRUPTf"></entry>
+                    <entry offset="887" intr="FDA_INTERRUPTf"></entry>
+                    <entry offset="22" intr="FDR_0_INTERRUPTf"></entry>
+                    <entry offset="141" intr="FDR_1_INTERRUPTf"></entry>
+                    <entry offset="882" intr="FDT_INTERRUPTf"></entry>
+                    <entry offset="883" intr="FDTL_INTERRUPTf"></entry>
+                    <entry offset="208" intr="FMAC_0_INTERRUPTf"></entry>
+                    <entry offset="224" intr="FMAC_1_INTERRUPTf"></entry>
+                    <entry offset="256" intr="FMAC_2_INTERRUPTf"></entry>
+                    <entry offset="272" intr="FMAC_3_INTERRUPTf"></entry>
+                    <entry offset="304" intr="FMAC_4_INTERRUPTf"></entry>
+                    <entry offset="320" intr="FMAC_5_INTERRUPTf"></entry>
+                    <entry offset="352" intr="FMAC_6_INTERRUPTf"></entry>
+                    <entry offset="368" intr="FMAC_7_INTERRUPTf"></entry>
+                    <entry offset="400" intr="FMAC_8_INTERRUPTf"></entry>
+                    <entry offset="416" intr="FMAC_9_INTERRUPTf"></entry>
+                    <entry offset="448" intr="FMAC_10_INTERRUPTf"></entry>
+                    <entry offset="464" intr="FMAC_11_INTERRUPTf"></entry>
+                    <entry offset="496" intr="FMAC_12_INTERRUPTf"></entry>
+                    <entry offset="512" intr="FMAC_13_INTERRUPTf"></entry>
+                    <entry offset="544" intr="FMAC_14_INTERRUPTf"></entry>
+                    <entry offset="560" intr="FMAC_15_INTERRUPTf"></entry>
+                    <entry offset="592" intr="FMAC_16_INTERRUPTf"></entry>
+                    <entry offset="608" intr="FMAC_17_INTERRUPTf"></entry>
+                    <entry offset="640" intr="FMAC_18_INTERRUPTf"></entry>
+                    <entry offset="656" intr="FMAC_19_INTERRUPTf"></entry>
+                    <entry offset="688" intr="FMAC_20_INTERRUPTf"></entry>
+                    <entry offset="704" intr="FMAC_21_INTERRUPTf"></entry>
+                    <entry offset="736" intr="FMAC_22_INTERRUPTf"></entry>
+                    <entry offset="752" intr="FMAC_23_INTERRUPTf"></entry>
+                    <entry offset="784" intr="FMAC_24_INTERRUPTf"></entry>
+                    <entry offset="800" intr="FMAC_25_INTERRUPTf"></entry>
+                    <entry offset="832" intr="FMAC_26_INTERRUPTf"></entry>
+                    <entry offset="848" intr="FMAC_27_INTERRUPTf"></entry>
+                    <entry offset="29" intr="FQP_0_INTERRUPTf"></entry>
+                    <entry offset="148" intr="FQP_1_INTERRUPTf"></entry>
+                    <entry offset="240" intr="FSRD_0_INTERRUPTf"></entry>
+                    <entry offset="288" intr="FSRD_1_INTERRUPTf"></entry>
+                    <entry offset="336" intr="FSRD_2_INTERRUPTf"></entry>
+                    <entry offset="384" intr="FSRD_3_INTERRUPTf"></entry>
+                    <entry offset="432" intr="FSRD_4_INTERRUPTf"></entry>
+                    <entry offset="480" intr="FSRD_5_INTERRUPTf"></entry>
+                    <entry offset="528" intr="FSRD_6_INTERRUPTf"></entry>
+                    <entry offset="576" intr="FSRD_7_INTERRUPTf"></entry>
+                    <entry offset="624" intr="FSRD_8_INTERRUPTf"></entry>
+                    <entry offset="672" intr="FSRD_9_INTERRUPTf"></entry>
+                    <entry offset="720" intr="FSRD_10_INTERRUPTf"></entry>
+                    <entry offset="768" intr="FSRD_11_INTERRUPTf"></entry>
+                    <entry offset="816" intr="FSRD_12_INTERRUPTf"></entry>
+                    <entry offset="864" intr="FSRD_13_INTERRUPTf"></entry>
+                    <entry offset="180" intr="HCC_0_INTERRUPTf"></entry>
+                    <entry offset="181" intr="HCC_1_INTERRUPTf"></entry>
+                    <entry offset="182" intr="HCC_2_INTERRUPTf"></entry>
+                    <entry offset="183" intr="HCC_3_INTERRUPTf"></entry>
+                    <entry offset="184" intr="HCC_4_INTERRUPTf"></entry>
+                    <entry offset="185" intr="HCC_5_INTERRUPTf"></entry>
+                    <entry offset="186" intr="HCC_6_INTERRUPTf"></entry>
+                    <entry offset="187" intr="HCC_7_INTERRUPTf"></entry>
+                    <entry offset="188" intr="HCC_8_INTERRUPTf"></entry>
+                    <entry offset="189" intr="HCC_9_INTERRUPTf"></entry>
+                    <entry offset="190" intr="HCC_10_INTERRUPTf"></entry>
+                    <entry offset="191" intr="HCC_11_INTERRUPTf"></entry>
+                    <entry offset="192" intr="HCC_12_INTERRUPTf"></entry>
+                    <entry offset="193" intr="HCC_13_INTERRUPTf"></entry>
+                    <entry offset="194" intr="HCC_14_INTERRUPTf"></entry>
+                    <entry offset="195" intr="HCC_15_INTERRUPTf"></entry>
+                    <entry offset="178" intr="HBMC_0_INTERRUPTf"></entry>
+                    <entry offset="179" intr="HBMC_1_INTERRUPTf"></entry>
+                    <entry offset="48" intr="ILE_0_INTERRUPTf"></entry>
+                    <entry offset="118" intr="ILE_1_INTERRUPTf"></entry>
+                    <entry offset="36" intr="IPPA_0_INTERRUPTf"></entry>
+                    <entry offset="155" intr="IPPA_1_INTERRUPTf"></entry>
+                    <entry offset="37" intr="IPPB_0_INTERRUPTf"></entry>
+                    <entry offset="156" intr="IPPB_1_INTERRUPTf"></entry>
+                    <entry offset="38" intr="IPPC_0_INTERRUPTf"></entry>
+                    <entry offset="157" intr="IPPC_1_INTERRUPTf"></entry>
+                    <entry offset="39" intr="IPPD_0_INTERRUPTf"></entry>
+                    <entry offset="158" intr="IPPD_1_INTERRUPTf"></entry>
+                    <entry offset="40" intr="IPPE_0_INTERRUPTf"></entry>
+                    <entry offset="159" intr="IPPE_1_INTERRUPTf"></entry>
+                    <entry offset="41" intr="IPPF_0_INTERRUPTf"></entry>
+                    <entry offset="160" intr="IPPF_1_INTERRUPTf"></entry>
+                    <!-- <entry offset="7" intr="INVALIDf"></entry> -->
+                    <entry offset="18" intr="IPS_0_INTERRUPTf"></entry>
+                    <entry offset="137" intr="IPS_1_INTERRUPTf"></entry>
+                    <entry offset="19" intr="IPT_0_INTERRUPTf"></entry>
+                    <entry offset="138" intr="IPT_1_INTERRUPTf"></entry>
+                    <entry offset="68" intr="IQM_0_INTERRUPTf"></entry>
+                    <entry offset="131" intr="IQM_1_INTERRUPTf"></entry>
+                    <entry offset="71" intr="IRE_0_INTERRUPTf"></entry>
+                    <entry offset="134" intr="IRE_1_INTERRUPTf"></entry>
+                    <entry offset="43" intr="ITPPB_0_INTERRUPTf"></entry>
+                    <entry offset="162" intr="ITPPB_1_INTERRUPTf"></entry>
+                    <entry offset="42" intr="ITPPA_0_INTERRUPTf"></entry>
+                    <entry offset="161" intr="ITPPA_1_INTERRUPTf"></entry>
+                    <entry offset="96" intr="KAPS_0_INTERRUPTf"></entry>
+                    <entry offset="97" intr="KAPS_1_INTERRUPTf"></entry>
+                    <entry offset="100" intr="MACT_INTERRUPTf"></entry>
+                    <entry offset="66" intr="MCP_0_INTERRUPTf"></entry>
+                    <entry offset="129" intr="MCP_1_INTERRUPTf"></entry>
+                    <entry offset="81" intr="MDB_INTERRUPTf"></entry>
+                    <entry offset="1280" intr="MDB_ARM_INTERRUPTf"></entry>
+                    <entry offset="884" intr="MESH_TOPOLOGY_INTERRUPTf"></entry>
+                    <entry offset="64" intr="MRPS_0_INTERRUPTf"></entry>
+                    <entry offset="127" intr="MRPS_1_INTERRUPTf"></entry>
+                    <entry offset="198" intr="MTM_INTERRUPTf"></entry>
+                    <entry offset="49" intr="NMG_0_INTERRUPTf"></entry>
+                    <entry offset="119" intr="NMG_1_INTERRUPTf"></entry>
+                    <entry offset="102" intr="OAMP_INTERRUPTf"></entry>
+                    <entry offset="880" intr="OCB_0_INTERRUPTf"></entry>
+                    <entry offset="881" intr="OCB_1_INTERRUPTf"></entry>
+                    <entry offset="103" intr="OLP_INTERRUPTf"></entry>
+                    <entry offset="67" intr="PDM_0_INTERRUPTf"></entry>
+                    <entry offset="130" intr="PDM_1_INTERRUPTf"></entry>
+                    <entry offset="32" intr="PEM_0_INTERRUPTf"></entry>
+                    <entry offset="33" intr="PEM_1_INTERRUPTf"></entry>
+                    <entry offset="34" intr="PEM_2_INTERRUPTf"></entry>
+                    <entry offset="35" intr="PEM_3_INTERRUPTf"></entry>
+                    <entry offset="151" intr="PEM_4_INTERRUPTf"></entry>
+                    <entry offset="152" intr="PEM_5_INTERRUPTf"></entry>
+                    <entry offset="153" intr="PEM_6_INTERRUPTf"></entry>
+                    <entry offset="154" intr="PEM_7_INTERRUPTf"></entry>
+                    <entry offset="28" intr="PQP_0_INTERRUPTf"></entry>
+                    <entry offset="147" intr="PQP_1_INTERRUPTf"></entry>
+                    <entry offset="27" intr="RQP_0_INTERRUPTf"></entry>
+                    <entry offset="146" intr="RQP_1_INTERRUPTf"></entry>
+                    <entry offset="885" intr="RTP_INTERRUPTf"></entry>
+                    <entry offset="63" intr="SCH_0_INTERRUPTf"></entry>
+                    <entry offset="167" intr="SCH_1_INTERRUPTf"></entry>
+                    <entry offset="62" intr="SIF_0_INTERRUPTf"></entry>
+                    <entry offset="126" intr="SIF_1_INTERRUPTf"></entry>
+                    <entry offset="16" intr="SPB_0_INTERRUPTf"></entry>
+                    <entry offset="135" intr="SPB_1_INTERRUPTf"></entry>
+                    <entry offset="70" intr="SQM_0_INTERRUPTf"></entry>
+                    <entry offset="133" intr="SQM_1_INTERRUPTf"></entry>
+                    <entry offset="98" intr="KTM_0_INTERRUPTf"></entry>
+                    <entry offset="99" intr="KTM_1_INTERRUPTf"></entry>
+                    <entry offset="176" intr="HBM_TDU_0_INTERRUPTf"></entry>
+                    <entry offset="177" intr="HBM_TDU_1_INTERRUPTf"></entry>
+                </entries>
+            </table>
+
+        </tables>
+
+    </sub_module>
+    <sub_module name="ser">
+        <defines>
+            <define name="tcam_protection_issue" value="1"></define>
+        </defines>
+        <tables>
+            <table name="mem_mask">
+                <key name="index" size="21"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <value name="field" default="INVALIDf"></value>
+                <value name="mode" default="dnxc_mem_mask_mode_none"></value>
+                <entries>
+                    <entry index="0" reg="FDTL_ECC_ERR_1B_MONITOR_MEM_MASKr" field="INVALIDf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="1" reg="FDTL_ECC_ERR_2B_MONITOR_MEM_MASKr" field="INVALIDf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <!-- clear wrongly reported interrupt for FDTL ecc error -->
+                    <entry index="2" reg="FDTL_ECC_INTERRUPT_REGISTERr" field="INVALIDf" mode="dnxc_mem_mask_mode_one"></entry>
+                    <!-- PQP PDM1 and PDM2 wrongly report SER error for Jericho_A0 device, will fix at B0 -->
+                    <entry index="3" reg="PQP_ECC_ERR_1B_MONITOR_MEM_MASKr" field="PDM_1_ECC_1B_ERR_MASKf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="4" reg="PQP_ECC_ERR_1B_MONITOR_MEM_MASKr" field="PDM_2_ECC_1B_ERR_MASKf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="5" reg="PQP_ECC_ERR_2B_MONITOR_MEM_MASKr" field="PDM_1_ECC_2B_ERR_MASKf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="6" reg="PQP_ECC_ERR_2B_MONITOR_MEM_MASKr" field="PDM_2_ECC_2B_ERR_MASKf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <!-- clear interrupt for ecc 1bit and 2bit error for QPQ -->
+                    <entry index="7" reg="PQP_ECC_INTERRUPT_REGISTERr" field="INVALIDf" mode="dnxc_mem_mask_mode_one"></entry>
+                    <!-- UNICAST_DISTRIBUTION_MEMORY SER error can't be cleared -->
+                    <entry index="8" reg="RTP_ECC_ERR_1B_MONITOR_MEM_MASKr" field="UNICAST_DISTRIBUTION_MEMORY_ECC_1B_ERR_MASKf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="9" reg="RTP_ECC_ERR_2B_MONITOR_MEM_MASKr" field="UNICAST_DISTRIBUTION_MEMORY_ECC_2B_ERR_MASKf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <!-- At lower voltages the 1b ECC indication of the following memories is asserting -->
+                    <entry index="10" reg="EPNI_ECC_ERR_1B_MONITOR_MEM_MASKr" field="ASM_ECC_1B_ERR_MASKf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="11" reg="PQP_ECC_ERR_1B_MONITOR_MEM_MASKr" field="WDM_ECC_1B_ERR_MASKf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="12" reg="CGM_ECC_ERR_1B_MONITOR_MEM_MASKr" field="VSQF_SRAM_PDS_STATE_ECC_1B_ERR_MASKf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="13" reg="CGM_ECC_ERR_1B_MONITOR_MEM_MASKr" field="VSQF_SRAM_BUFFERS_STATE_ECC_1B_ERR_MASKf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="14" reg="CGM_ECC_ERR_1B_MONITOR_MEM_MASKr" field="VSQF_WORDS_STATE_ECC_1B_ERR_MASKf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="15" reg="CGM_ECC_ERR_1B_MONITOR_MEM_MASKr" field="VSQE_SRAM_PDS_STATE_ECC_1B_ERR_MASKf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="16" reg="CGM_ECC_ERR_1B_MONITOR_MEM_MASKr" field="VSQE_SRAM_BUFFERS_STATE_ECC_1B_ERR_MASKf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="17" reg="CGM_ECC_ERR_1B_MONITOR_MEM_MASKr" field="VSQE_WORDS_STATE_ECC_1B_ERR_MASKf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="18" reg="CGM_ECC_ERR_1B_MONITOR_MEM_MASKr" field="VSQD_SRAM_PDS_STATE_ECC_1B_ERR_MASKf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="19" reg="CGM_ECC_ERR_1B_MONITOR_MEM_MASKr" field="VSQD_SRAM_BUFFERS_STATE_ECC_1B_ERR_MASKf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="20" reg="CGM_ECC_ERR_1B_MONITOR_MEM_MASKr" field="VSQD_WORDS_STATE_ECC_1B_ERR_MASKf" mode="dnxc_mem_mask_mode_zero"></entry>
+                </entries>
+            </table>
+            <table name="xor_mem">
+                <key name="index" size="43"></key>
+                <value name="mem" default="INVALIDm"></value>
+                <value name="sram_banks_bits" default="0"></value>
+                <value name="entry_used_bits" default="0"></value>
+                <value name="flags" default="0"></value>
+                <entries>
+                    <entry index="0"  mem="CGM_IPP_MAPm"                                  sram_banks_bits="1" entry_used_bits="7"  flags="DNXC_XOR_MEMORY_FORCE_SEVERITY_FLAGS"></entry>
+                    <entry index="1"  mem="CGM_VOQ_PROFILESm"                             sram_banks_bits="1" entry_used_bits="13" flags="0"></entry>
+                    <entry index="2"  mem="CGM_VOQ_DRAM_BOUND_PRMSm"                      sram_banks_bits="1" entry_used_bits="5"  flags="0"></entry>
+                    <entry index="3"  mem="CGM_VOQ_DRAM_RECOVERY_PRMSm"                   sram_banks_bits="1" entry_used_bits="5"  flags="0"></entry>
+                    <entry index="4"  mem="CGM_SYS_RED_QSIZE_RANGESm"                     sram_banks_bits="1" entry_used_bits="5"  flags="0"></entry>
+                    <entry index="5"  mem="CGM_VOQ_GRNTD_PRMSm"                           sram_banks_bits="1" entry_used_bits="5"  flags="0"></entry>
+                    <entry index="6"  mem="DDHA_MACRO_0_PHYSICAL_ENTRY_BANKm"             sram_banks_bits="2" entry_used_bits="12" flags="0"></entry>
+                    <entry index="7"  mem="DDHA_MACRO_1_PHYSICAL_ENTRY_BANKm"             sram_banks_bits="2" entry_used_bits="12" flags="0"></entry>
+                    <entry index="8"  mem="DDHB_MACRO_0_PHYSICAL_ENTRY_BANKm"             sram_banks_bits="1" entry_used_bits="12" flags="0"></entry>
+                    <entry index="9"  mem="DDHB_MACRO_1_PHYSICAL_ENTRY_BANKm"             sram_banks_bits="1" entry_used_bits="12" flags="0"></entry>
+                    <entry index="10" mem="DHC_MACRO_PHYSICAL_ENTRY_BANKm"                sram_banks_bits="2" entry_used_bits="12" flags="0"></entry>
+                    <entry index="11" mem="ECGM_QQST_TABLEm"                              sram_banks_bits="1" entry_used_bits="6"  flags="0"></entry>
+                    <entry index="12" mem="ECGM_QDCT_TABLEm"                              sram_banks_bits="1" entry_used_bits="6"  flags="0"></entry>
+                    <entry index="13" mem="ERPP_PER_PORT_TABLEm"                          sram_banks_bits="1" entry_used_bits="7"  flags="0"></entry>
+                    <entry index="14" mem="ETPPA_LAYER_NWK_QOS_TABLEm"                    sram_banks_bits="1" entry_used_bits="10" flags="0"></entry>
+                    <entry index="15" mem="ETPPB_NEW_QOS_MAPm"                            sram_banks_bits="1" entry_used_bits="10" flags="0"></entry>
+                    <entry index="16" mem="ETPPB_QOS_DP_MAPm"                             sram_banks_bits="1" entry_used_bits="10" flags="0"></entry>
+                    <entry index="17" mem="ETPPB_EGRESS_MEMBERSHIPm"                      sram_banks_bits="1" entry_used_bits="11" flags="0"></entry>
+                    <entry index="18" mem="ETPPB_SOURCE_ADRS_MAP_0m"                      sram_banks_bits="1" entry_used_bits="5"  flags="0"></entry>
+                    <entry index="19" mem="ETPPB_SOURCE_ADRS_MAP_1m"                      sram_banks_bits="1" entry_used_bits="5"  flags="0"></entry>
+                    <entry index="20" mem="ETPPB_ENC_2_ARR_0_FORMAT_CONFIGURATION_TABLEm" sram_banks_bits="1" entry_used_bits="5"  flags="0"></entry>
+                    <entry index="21" mem="ETPPB_ENC_3_ARR_0_FORMAT_CONFIGURATION_TABLEm" sram_banks_bits="1" entry_used_bits="5"  flags="0"></entry>
+                    <entry index="22" mem="ETPPB_ENC_4_ARR_0_FORMAT_CONFIGURATION_TABLEm" sram_banks_bits="1" entry_used_bits="5"  flags="0"></entry>
+                    <entry index="23" mem="ETPPB_ENC_5_ARR_0_FORMAT_CONFIGURATION_TABLEm" sram_banks_bits="1" entry_used_bits="5"  flags="0"></entry>
+                    <entry index="24" mem="ETPPC_NEW_QOS_MAPm"                            sram_banks_bits="1" entry_used_bits="10" flags="0"></entry>
+                    <entry index="25" mem="ETPPC_PROTECTION_TABLEm"                       sram_banks_bits="2" entry_used_bits="11" flags="0"></entry>
+                    <entry index="26" mem="ETPPC_QOS_DP_MAPm"                             sram_banks_bits="1" entry_used_bits="10" flags="0"></entry>
+                    <entry index="27" mem="ETPPC_ENC_1_ARR_0_FORMAT_CONFIGURATION_TABLEm" sram_banks_bits="1" entry_used_bits="5"  flags="0"></entry>
+                    <entry index="28" mem="FDR_FDR_MCm"                                   sram_banks_bits="1" entry_used_bits="11" flags="0"></entry>
+                    <entry index="29" mem="MRPS_EGR_ENG_PRFCFGm"                          sram_banks_bits="1" entry_used_bits="9"  flags="0"></entry>
+                    <entry index="30" mem="MRPS_ING_ENG_PRFCFGm"                          sram_banks_bits="1" entry_used_bits="9"  flags="0"></entry>
+                    <entry index="31" mem="IPPB_ETHERNET_OAM_OPCODE_MAPm"                 sram_banks_bits="1" entry_used_bits="7"  flags="0"></entry>
+                    <entry index="32" mem="IPPD_FEC_ECMPm"                                sram_banks_bits="1" entry_used_bits="10" flags="0"></entry>
+                    <entry index="33" mem="IPPD_DESTINATION_STATUSm"                      sram_banks_bits="1" entry_used_bits="12" flags="0"></entry>
+                    <entry index="34" mem="IPS_QSPMm"                                     sram_banks_bits="1" entry_used_bits="13" flags="0"></entry>
+                    <entry index="35" mem="IPS_QFMm"                                      sram_banks_bits="1" entry_used_bits="13" flags="0"></entry>
+                    <entry index="36" mem="IPS_SPMm"                                      sram_banks_bits="1" entry_used_bits="14" flags="0"></entry>
+                    <entry index="37" mem="IPS_QTYPEm"                                    sram_banks_bits="1" entry_used_bits="12" flags="0"></entry>
+                    <entry index="38" mem="MTM_ING_BITMAP_MAPPING_TABLEm"                 sram_banks_bits="1" entry_used_bits="8"  flags="0"></entry>
+                    <entry index="39" mem="CFC_CFC_MEMORY_0m"                             sram_banks_bits="1" entry_used_bits="3"  flags="0"></entry>
+                    <entry index="40" mem="CGM_VOQ_VSQS_PRMSm"                            sram_banks_bits="2" entry_used_bits="12" flags="0"></entry>
+                    <entry index="41" mem="CGM_VOQ_DRAM_RECOVERY_CACHE_PRMSm"             sram_banks_bits="1" entry_used_bits="5"  flags="0"></entry>
+                     <!-- The last one, invalid -->
+                    <entry index="42" mem="INVALIDm"                                      sram_banks_bits="0" entry_used_bits="0"  flags="0"></entry>
+                </entries>
+            </table>    
+            <table name="intr_exception">
+                <key name="index" size="2"></key>
+                <value name="intr" default="INVALIDr"></value>
+                <value name="exception_get_cb" default="NULL"></value>
+                <entries>
+                    <entry index="0" intr="JR2_INT_CGM_CONGESTION_GLBL_DRAM_BDBS_FC_INT" exception_get_cb="dnx_intr_exceptional_dram_not_present"></entry>
+                    <entry index="1" intr="JR2_INT_CGM_LOW_PRIORITY_GLBL_DRAM_BDBS_FC_LP_INT" exception_get_cb="dnx_intr_exceptional_dram_not_present"></entry>
+                </entries>
+            </table>
+            
+            <table name="static_mem" mode="sequential">
+                <!-- key size must change if entries changed -->
+                <key name="index"></key>
+                <value name="mem" default="INVALIDm"></value>
+                <entries>
+                    <!-- Below memory should be marked as static-->
+                    <entry mem="FDR_FDR_MCm"></entry>
+                    <entry mem="MACT_VSI_PROFILESm"></entry>
+                </entries>
+            </table>
+            
+            <table name="mdb_mem_map">
+                <key name="index" size="5"></key>
+                <value name="acc_mem" default="INVALIDm"></value>
+                <value name="phy_mem" default="INVALIDm"></value>
+                <entries>
+                    <entry index="0" acc_mem="DDHA_MACRO_0_ENTRY_BANKm" phy_mem="DDHA_MACRO_0_PHYSICAL_ENTRY_BANKm"></entry>
+                    <entry index="1" acc_mem="DDHA_MACRO_1_ENTRY_BANKm" phy_mem="DDHA_MACRO_1_PHYSICAL_ENTRY_BANKm"></entry>
+                    <entry index="2" acc_mem="DDHB_MACRO_0_ENTRY_BANKm" phy_mem="DDHB_MACRO_0_PHYSICAL_ENTRY_BANKm"></entry>
+                    <entry index="3" acc_mem="DDHB_MACRO_1_ENTRY_BANKm" phy_mem="DDHB_MACRO_1_PHYSICAL_ENTRY_BANKm"></entry>
+                    <entry index="4" acc_mem="DHC_MACRO_ENTRY_BANKm" phy_mem="DHC_MACRO_PHYSICAL_ENTRY_BANKm"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+</device_data>

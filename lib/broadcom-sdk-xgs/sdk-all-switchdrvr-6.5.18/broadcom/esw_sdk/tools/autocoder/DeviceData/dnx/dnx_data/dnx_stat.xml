@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="stat" bsl_flag="BSL_LS_BCMDNX_STAT">
+    <includes>
+        <include>soc/mcm/allenum.h</include>
+        <include>bcm/stat.h</include>
+    </includes>
+
+    <sub_module name="stat_pp" doc="general stat data">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="max_irpp_profile_value" doc="max irpp profile size"></define>
+            <define labels="j2p_notrev" name="max_etpp_profile_value" doc="max etpp profile size"></define>
+            <define labels="j2p_notrev" name="max_etpp_counting_profile_value" doc="max etpp counting profile size"></define>
+            <define labels="j2p_notrev" name="max_etpp_metering_profile_value" doc="max etpp metering profile size"></define>
+            <define labels="j2p_notrev" name="max_erpp_profile_value" doc="max erpp profile size"></define>
+            <define labels="j2p_notrev" name="etpp_reversed_stat_cmd" doc="ETPP statistics are built wrong in FWD, ENCAP"></define>
+            <define labels="j2p_notrev" name="etpp_enc_stat_cmd_is_reversed" doc="ETPP statistics are built wrong in FWD, ENCAP (some devices reverse it themselves for the trap)"></define>
+            <define labels="j2p_notrev" name="etpp_egress_vsi_always_pushed" doc="ETPP ENCAP stages push VSI stats entry regardless of use_vsd enabler"></define>
+            <define labels="j2p_notrev" name="irpp_start_profile_value" doc="irpp profile first index"></define>
+            <define labels="j2p_notrev" name="erpp_start_profile_value" doc="erpp profile first index"></define>
+            <define labels="j2p_notrev" name="etpp_start_profile_value" doc="etpp profile first index"></define>
+            <define labels="j2p_notrev" name="etpp_counting_start_profile_value" doc="etpp counting profile first index"></define>
+            <define labels="j2p_notrev" name="etpp_metering_start_profile_value" doc="etpp metering profile first index"></define>
+        </defines>
+        
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="diag_counter" doc="diag counter related infomation.">
+        <defines>
+        </defines>
+        <numerics>
+        </numerics>
+        <features>
+        </features>
+        <tables>
+            <table labels="j2p_notrev" name="ovf_info" doc="irregular overfield infomation">
+                <key name="index" doc="overflow field index"></key>
+                <value name="reg" type="soc_reg_t" doc="register name for counter"></value>
+                <value name="cnt_field" type="soc_field_t" doc="cnt field name."></value>
+                <value name="ovf_field" type="soc_field_t" doc="overflow field name"></value>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="drop_reasons" doc="tm drop reasons">
+        <defines>
+            <define labels="j2p_notrev" name="nof_drop_reasons" doc="number of drop reasons"></define>
+        </defines>
+     
+        <numerics>
+        </numerics>
+     
+        <features>
+        </features>
+     
+        <tables>
+            <table labels="j2p_notrev" name="group_drop_reason_index" doc="mapping drop reasons group enum to hw bit index">
+                <key name="group" doc="group enum value"></key>
+                <value name="index" type="uint32" doc="hw group index used in dbal"></value>
+            </table>
+            <table labels="j2p_notrev" name="drop_reason_index" doc="mapping drop reasons bit enum to hw bit index">
+                <key name="drop_reason_bit" doc="drop reason bit representative enum"></key>
+                <value name="index" type="uint32" doc="hw group index used in dbal"></value>
+            </table>
+            <table labels="j2p_notrev" name="drop_reasons_groups" doc="default drop reasons groups">
+                <key name="name" doc="drop reasons group name"></key>
+                <value name="drop_reasons" type="bcm_cosq_drop_reason_t[DNX_DATA_MAX_STAT_DROP_REASONS_NOF_DROP_REASONS]" doc="default drop reasons"></value>
+            </table>
+
+        </tables>
+    </sub_module>
+
+</device_data>
+
+
+
+

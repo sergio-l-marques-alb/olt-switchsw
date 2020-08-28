@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0"  module="lane_map">
+    <includes>
+        <include>bcm/port.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_nif.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_fabric.h</include>
+    </includes>
+
+    <sub_module name="nif">
+
+        <features>
+        </features>
+
+        <numerics>
+        </numerics>
+        <tables>
+        </tables>
+    </sub_module>
+
+</device_data>

@@ -1,0 +1,1936 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+
+    $Id: Exp $
+    $Copyright: (c) 2018 Broadcom Corporation All Rights Reserved.$
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="IPPA_SIGNAL_MEMORY">
+        <OneLineDescription>Table to access debug signals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.debug.mem.params.line_nof(0)-1" Name="LINE" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="SIGRESET" Permission="TRIGGER" Type="UINT"/>
+                <Field Name="SIGDATA" NofInstances="5" Permission="READONLY" Size="512" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPA_MEM_F000000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="IPPA_MEM_F000000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPA_IPPA_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="IPPA_IPPA_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="IPPB_SIGNAL_MEMORY">
+        <OneLineDescription>Table to access debug signals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.debug.mem.params.line_nof(1)-1" Name="LINE" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="SIGRESET" Permission="TRIGGER" Type="UINT"/>
+                <Field Name="SIGDATA" NofInstances="5" Permission="READONLY" Size="512" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPB_MEM_F000000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="IPPB_MEM_F000000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPB_IPPB_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="IPPB_IPPB_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="IPPC_SIGNAL_MEMORY">
+        <OneLineDescription>Table to access debug signals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.debug.mem.params.line_nof(2)-1" Name="LINE" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="SIGRESET" Permission="TRIGGER" Type="UINT"/>
+                <Field Name="SIGDATA" NofInstances="5" Permission="READONLY" Size="512" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPC_MEM_F000000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="IPPC_MEM_F000000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPC_IPPC_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="IPPC_IPPC_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="IPPD_SIGNAL_MEMORY">
+        <OneLineDescription>Table to access debug signals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.debug.mem.params.line_nof(3)-1" Name="LINE" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="SIGRESET" Permission="TRIGGER" Type="UINT"/>
+                <Field Name="SIGDATA" NofInstances="5" Permission="READONLY" Size="512" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPD_MEM_F000000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="IPPD_MEM_F000000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPD_IPPD_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="IPPD_IPPD_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="IPPE_SIGNAL_MEMORY">
+        <OneLineDescription>Table to access debug signals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.debug.mem.params.line_nof(4)-1" Name="LINE" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="SIGRESET" Permission="TRIGGER" Type="UINT"/>
+                <Field Name="SIGDATA" NofInstances="5" Permission="READONLY" Size="512" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPE_MEM_B900000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="IPPE_MEM_B900000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPE_IPPE_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="IPPE_IPPE_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="IPPF_SIGNAL_MEMORY">
+        <OneLineDescription>Table to access debug signals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.debug.mem.params.line_nof(5)-1" Name="LINE" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="SIGRESET" Permission="TRIGGER" Type="UINT"/>
+                <Field Name="SIGDATA" NofInstances="5" Permission="READONLY" Size="512" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPF_MEM_F000000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="IPPF_MEM_F000000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPF_IPPF_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="IPPF_IPPF_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="ERPP_SIGNAL_MEMORY">
+        <OneLineDescription>Table to access debug signals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.debug.mem.params.line_nof(6)-1" Name="LINE" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="SIGRESET" Permission="TRIGGER" Type="UINT"/>
+                <Field Name="SIGDATA" NofInstances="5" Permission="READONLY" Size="512" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="ERPP_MEM_F000000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="ERPP_MEM_F000000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="ERPP_ERPP_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="ERPP_ERPP_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="ETPPA_SIGNAL_MEMORY">
+        <OneLineDescription>Table to access debug signals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.debug.mem.params.line_nof(7)-1" Name="LINE" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="SIGRESET" Permission="TRIGGER" Type="UINT"/>
+                <Field Name="SIGDATA" NofInstances="5" Permission="READONLY" Size="512" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="ETPPA_MEM_F000000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="ETPPA_MEM_F000000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="ETPPA_ETPPA_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="ETPPA_ETPPA_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="ETPPB_SIGNAL_MEMORY">
+        <OneLineDescription>Table to access debug signals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.debug.mem.params.line_nof(8)-1" Name="LINE" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="SIGRESET" Permission="TRIGGER" Type="UINT"/>
+                <Field Name="SIGDATA" NofInstances="5" Permission="READONLY" Size="512" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="ETPPB_MEM_F000000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="ETPPB_MEM_F000000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="ETPPB_ETPPB_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="ETPPB_ETPPB_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="ETPPC_SIGNAL_MEMORY">
+        <OneLineDescription>Table to access debug signals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.debug.mem.params.line_nof(9)-1" Name="LINE" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="SIGRESET" Permission="TRIGGER" Type="UINT"/>
+                <Field Name="SIGDATA" NofInstances="5" Permission="READONLY" Size="512" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="ETPPC_MEM_F000000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="ETPPC_MEM_F000000m">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIGDATA">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="ETPPC_ETPPC_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                            <DataOffset Formula="#RESULT_SIZE(SIGDATA)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIGRESET">
+                    <Access>
+                        <Memory Name="ETPPC_ETPPC_DEBUG_UNITm">
+                            <EntryOffset Formula="#KEY_VALUE(LINE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMA_DEBUG_SIGNALS_WINDOW_CONFIG">
+        <OneLineDescription>Configure table to access pem debug signals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PEMA_ID"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="PEMA_DIRECTION" Size="1" Type="BOOL"/>
+                <Field Name="PEMA_WINDOW" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="PEMA_DIRECTION">
+                    <Access>
+                        <KeyCondition Enum="VTT1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPF_REG_0310r">
+                            <HwField Name="FIELD_28_28f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="VTT3" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPF_REG_03A0r">
+                            <HwField Name="FIELD_28_28f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="VTT5" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPA_REG_0420r">
+                            <HwField Name="FIELD_28_28f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="FWD1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPB_REG_0300r">
+                            <HwField Name="FIELD_28_28f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="FWD2" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPB_REG_0500r">
+                            <HwField Name="FIELD_28_28f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPMF1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_REG_0330r">
+                            <HwField Name="FIELD_28_28f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPMF3" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPD_REG_0400r">
+                            <HwField Name="FIELD_28_28f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="PRP2" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPA_REG_0340r">
+                            <HwField Name="FIELD_28_28f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TERM" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_REG_0330r">
+                            <HwField Name="FIELD_28_28f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="FWD" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_REG_0320r">
+                            <HwField Name="FIELD_28_28f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_REG_0300r">
+                            <HwField Name="FIELD_28_28f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC2" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0520r">
+                            <HwField Name="FIELD_28_28f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC3" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0300r">
+                            <HwField Name="FIELD_28_28f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC4" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0320r">
+                            <HwField Name="FIELD_28_28f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC5" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0340r">
+                            <HwField Name="FIELD_28_28f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TRAP" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0360r">
+                            <HwField Name="FIELD_28_28f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PEMA_WINDOW">
+                    <Access>
+                        <KeyCondition Enum="VTT1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPF_REG_0310r">
+                            <HwField Name="FIELD_25_27f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="VTT3" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPF_REG_03A0r">
+                            <HwField Name="FIELD_25_27f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="VTT5" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPA_REG_0420r">
+                            <HwField Name="FIELD_25_27f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="FWD1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPB_REG_0300r">
+                            <HwField Name="FIELD_25_27f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="FWD2" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPB_REG_0500r">
+                            <HwField Name="FIELD_25_27f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPMF1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_REG_0330r">
+                            <HwField Name="FIELD_25_27f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPMF3" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPD_REG_0400r">
+                            <HwField Name="FIELD_25_27f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="PRP2" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPA_REG_0340r">
+                            <HwField Name="FIELD_25_27f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TERM" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_REG_0330r">
+                            <HwField Name="FIELD_25_27f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="FWD" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_REG_0320r">
+                            <HwField Name="FIELD_25_27f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_REG_0300r">
+                            <HwField Name="FIELD_25_27f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC2" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0520r">
+                            <HwField Name="FIELD_25_27f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC3" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0300r">
+                            <HwField Name="FIELD_25_27f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC4" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0320r">
+                            <HwField Name="FIELD_25_27f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC5" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0340r">
+                            <HwField Name="FIELD_25_27f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TRAP" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0360r">
+                            <HwField Name="FIELD_25_27f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMA_DEBUG_SIGNALS_DATA">
+        <OneLineDescription>Table to access pem debug signals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PEMA_ID"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="PEMA_DATA" NofInstances="2" Permission="READONLY" Size="320" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="PEMA_DATA">
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Enum="VTT1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPF_REG_0311r">
+                            <DataOffset Formula="#RESULT_SIZE(PEMA_DATA)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Enum="VTT3" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPF_REG_03A1r">
+                            <DataOffset Formula="#RESULT_SIZE(PEMA_DATA)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Enum="VTT5" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPA_REG_0421r">
+                            <DataOffset Formula="#RESULT_SIZE(PEMA_DATA)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Enum="FWD1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPB_REG_0301r">
+                            <DataOffset Formula="#RESULT_SIZE(PEMA_DATA)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Enum="FWD2" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPB_REG_0501r">
+                            <DataOffset Formula="#RESULT_SIZE(PEMA_DATA)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Enum="IPMF1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_REG_0331r">
+                            <DataOffset Formula="#RESULT_SIZE(PEMA_DATA)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Enum="IPMF3" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPD_REG_0401r">
+                            <DataOffset Formula="#RESULT_SIZE(PEMA_DATA)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Enum="PRP2" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPA_REG_0341r">
+                            <DataOffset Formula="#RESULT_SIZE(PEMA_DATA)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Enum="TERM" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_REG_0331r">
+                            <DataOffset Formula="#RESULT_SIZE(PEMA_DATA)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Enum="FWD" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_REG_0321r">
+                            <DataOffset Formula="#RESULT_SIZE(PEMA_DATA)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Enum="ENC1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_REG_0301r">
+                            <DataOffset Formula="#RESULT_SIZE(PEMA_DATA)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Enum="ENC2" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0521r">
+                            <DataOffset Formula="#RESULT_SIZE(PEMA_DATA)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Enum="ENC3" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0301r">
+                            <DataOffset Formula="#RESULT_SIZE(PEMA_DATA)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Enum="ENC4" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0321r">
+                            <DataOffset Formula="#RESULT_SIZE(PEMA_DATA)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Enum="ENC5" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0341r">
+                            <DataOffset Formula="#RESULT_SIZE(PEMA_DATA)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Enum="TRAP" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0361r">
+                            <DataOffset Formula="#RESULT_SIZE(PEMA_DATA)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="DEBUG_FLP_DATAPATH_TRAPS">
+        <OneLineDescription>Table to access debug signals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="RESERVED_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="ETHERNET_SA_MC_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="ETHERNET_SA_EQUAL_DA_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV4_VERSION_ERROR_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV4_CHECKSUM_ERROR_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV4_TOTAL_LENGTH_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV4_TTL0_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV4_HAS_OPTIONS_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV4_TTL1_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV4_SIP_EQUAL_DIP_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV4_DIP_ZERO_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV4_SIP_IS_MC_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV6_VERSION_ERROR_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV6_HOP_COUNT0_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV6_HOP_COUNT1_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV6_UNSPECIFIED_DESTINATION_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV6_LOOPBACK_ADDRESS_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV6_MULTICAST_SOURCE_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV6_NEXT_HEADER_NULL_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV6_UNSPECIFIED_SOURCE_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV6_LINK_LOCAL_DESTINATION_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV6_SITE_LOCAL_DESTINATION_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV6_LINK_LOCAL_SOURCE_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV6_SITE_LOCAL_SOURCE_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV6_IPV4_COMPATIBLE_DESTINATION_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV6_IPV4_MAPPED_DESTINATION_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="IPV6_MULTICAST_DESTINATION_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="MPLS_TTL0_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="MPLS_TTL1_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="TCP_SN_FLAGS_ZERO_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="TCP_SN_ZERO_FLAGS_SET_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="TCP_SYN_FUN_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="TCP_EQUAL_PORTS_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="TCP_FRAGMENT_INCOMPLETE_HEADER_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="TCP_FRAGMENT_OFFSET_LT8_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="UDP_EQUAL_PORTS_TRAP_ENABLE" Permission="READONLY" Type="BOOL"/>
+                <Field Name="FCOE_FABRIC_PROVIDED_SECURITY_ENABLE" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Register Name="IPPB_DBG_FLP_DATA_PATH_TRAPr"/>
+                    </Access>
+                </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="NIF_DEBUG_SIGNALS">
+        <OneLineDescription>Table to access debug signals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="NIF_PACKET_DATA" Permission="READONLY" Size="DNX_DATA.pp.debug.packet_header_data" Type="ARRAY32"/>
+                <Field Name="NIF_PTC" Permission="READONLY" Size="DNX_DATA.pp.debug.ptc_size" Type="UINT"/>
+                <Field Name="NIF_VALID_BYTES" Permission="READONLY" Size="DNX_DATA.pp.debug.valid_bytes" Type="UINT"/>
+                <Field Name="NIF_TS" Permission="READONLY" Size="DNX_DATA.pp.debug.time_stamp" Type="ARRAY32"/>
+                <Field Name="NIF_COMMAND" Permission="READONLY" Size="16" Type="UINT"/>
+                <Field Name="NIF_TAG_SWAP" Permission="READONLY" Size="2" Type="UINT"/>
+                <Field Name="NIF_IPV6_SR" Permission="READONLY" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Register Name="IRE_IHP_DEBUG_REGISTERr"/>
+                    </Access>
+                </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="LBP_DEBUG_SIGNALS">
+        <OneLineDescription>Table to access debug signals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="SIG_BYTES_TO_ADD" Permission="READONLY" Size="7" Type="UINT"/>
+                <Field Name="SIG_BYTES_TO_REMOVE" Permission="READONLY" Size="7" Type="UINT"/>
+                <Field Name="HEADER_DATA" Permission="READONLY" Size="512" Type="ARRAY32"/>
+                <Field Name="TM_CMD" NofInstances="2" Permission="READONLY" Size="512" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIG_BYTES_TO_REMOVE">
+                    <Access>
+                        <Register Name="IRE_IHB_DEBUG_REGISTER_1r">
+                            <HwField Name="IHB_BYTES_TO_STRIPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SIG_BYTES_TO_ADD">
+                    <Access>
+                        <Register Name="IRE_IHB_DEBUG_REGISTER_1r">
+                            <HwField Name="IHB_BYTES_TO_PREPENDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HEADER_DATA">
+                    <Access>
+                        <Register Name="IRE_IHB_DEBUG_REGISTER_2r">
+                            <HwField Name="IHB_HEADER_DATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TM_CMD">
+                    <Access instanceIndex="0">
+                        <Register Name="IRE_IHB_TM_CMD_HALF_1r">
+                            <HwField Name="IHB_TM_CMD_HALF_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="IRE_IHB_TM_CMD_HALF_2r">
+                            <HwField Name="IHB_TM_CMD_HALF_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SYSTEM_VISIBILITY_CFG">
+        <OneLineDescription>Global Visibility Parameters</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="IRPP_VISIBILITY_ENABLE" Type="BOOL"/>
+                <Field Name="ERPP_VISIBILITY_ENABLE" Type="BOOL"/>
+                <Field Name="ETPP_VISIBILITY_ENABLE" Type="BOOL"/>
+                <Field Name="IRPP_VISIBILITY_SAMPLING_ENABLE" Type="BOOL"/>
+                <Field Name="IRPP_VISIBILITY_SAMPLING_PERIOD" Type="UINT"/>
+                <Field Name="IRPP_VISIBILITY_GLOBAL_ENABLE" Type="BOOL" Valid="DNX_DATA.debug.general.global_visibility"/>
+                <Field Name="ERPP_VISIBILITY_SAMPLING_ENABLE" Type="BOOL"/>
+                <Field Name="ERPP_VISIBILITY_SAMPLING_PERIOD" Type="UINT"/>
+                <Field Name="ETPP_VISIBILITY_SAMPLING_ENABLE" Type="BOOL"/>
+                <Field Name="ETPP_VISIBILITY_SAMPLING_PERIOD" Type="UINT"/>
+                <Field Name="IPPA_ALWAYS_ENABLE" Type="BOOL"/>
+                <Field Name="IPPB_ALWAYS_ENABLE" Type="BOOL"/>
+                <Field Name="IPPC_ALWAYS_ENABLE" Type="BOOL"/>
+                <Field Name="IPPD_ALWAYS_ENABLE" Type="BOOL"/>
+                <Field Name="IPPE_ALWAYS_ENABLE" Type="BOOL"/>
+                <Field Name="IPPF_ALWAYS_ENABLE" Type="BOOL"/>
+                <Field Name="ERPP_ALWAYS_ENABLE" Type="BOOL"/>
+                <Field Name="ETPPA_ALWAYS_ENABLE" Type="BOOL"/>
+                <Field Name="ETPPB_ALWAYS_ENABLE" Type="BOOL"/>
+                <Field Name="ETPPC_ALWAYS_ENABLE" Type="BOOL"/>
+                <Field Name="IPPA_SAMPLE_VALIDS" Permission="READONLY" Size="DNX_DATA.debug.mem.params.line_nof(0)" Type="UINT"/>
+                <Field Name="IPPB_SAMPLE_VALIDS" Permission="READONLY" Size="DNX_DATA.debug.mem.params.line_nof(1)" Type="ARRAY32"/>
+                <Field Name="IPPC_SAMPLE_VALIDS" Permission="READONLY" Size="DNX_DATA.debug.mem.params.line_nof(2)" Type="UINT"/>
+                <Field Name="IPPD_SAMPLE_VALIDS" Permission="READONLY" Size="DNX_DATA.debug.mem.params.line_nof(3)" Type="UINT"/>
+                <Field Name="IPPE_SAMPLE_VALIDS" Permission="READONLY" Size="DNX_DATA.debug.mem.params.line_nof(4)" Type="UINT"/>
+                <Field Name="IPPF_SAMPLE_VALIDS" Permission="READONLY" Size="DNX_DATA.debug.mem.params.line_nof(5)" Type="UINT"/>
+                <Field Name="ERPP_SAMPLE_VALIDS" Permission="READONLY" Size="DNX_DATA.debug.mem.params.line_nof(6)" Type="UINT"/>
+                <Field Name="ETPPA_SAMPLE_VALIDS" Permission="READONLY" Size="DNX_DATA.debug.mem.params.line_nof(7)" Type="UINT"/>
+                <Field Name="ETPPB_SAMPLE_VALIDS" Permission="READONLY" Size="DNX_DATA.debug.mem.params.line_nof(8)" Type="UINT"/>
+                <Field Name="ETPPC_SAMPLE_VALIDS" Permission="READONLY" Size="DNX_DATA.debug.mem.params.line_nof(9)" Type="UINT"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="IRPP_VISIBILITY_ENABLE">
+                    <Access>
+                        <Register Name="IPPE_IRE_VISIBILITY_BITr">
+                            <HwField Name="IRE_VISIBILITY_BITf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ERPP_VISIBILITY_ENABLE">
+                    <Access>
+                        <Register Name="ERPP_COLLECTOR_VIS_ENr">
+                            <HwField Name="COLLECTOR_VIS_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ETPP_VISIBILITY_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_COLLECTOR_VIS_ENr">
+                            <HwField Name="COLLECTOR_VIS_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IRPP_VISIBILITY_SAMPLING_ENABLE">
+                    <Access>
+                        <Register Name="IPPE_VISIBILITY_CONFIGr">
+                            <HwField Name="PERIODIC_VISIBILITY_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IRPP_VISIBILITY_SAMPLING_PERIOD">
+                    <Access>
+                        <Register Name="IPPE_VISIBILITY_CONFIGr">
+                            <HwField Name="VISIBILITY_COUNTER_THRESHOLDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="IRPP_VISIBILITY_GLOBAL_ENABLE">
+                    <Access>
+                        <Register Name="IPPE_VISIBILITY_CONFIGr">
+                            <HwField Name="VISIBILITY_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ERPP_VISIBILITY_SAMPLING_ENABLE">
+                    <Access>
+                        <Register Name="ERPP_STAT_VISIBILITYr">
+                            <HwField Name="STAT_VISIBILITY_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ERPP_VISIBILITY_SAMPLING_PERIOD">
+                    <Access>
+                        <Register Name="ERPP_STAT_VISIBILITYr">
+                            <HwField Name="STAT_VISIBILITY_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ETPP_VISIBILITY_SAMPLING_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_STAT_VISIBILITYr">
+                            <HwField Name="STAT_VISIBILITY_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ETPP_VISIBILITY_SAMPLING_PERIOD">
+                    <Access>
+                        <Register Name="ETPPA_STAT_VISIBILITYr">
+                            <HwField Name="STAT_VISIBILITY_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="IPPA_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="IPPA_REG_100r">
+                            <HwField Name="FIELD_10_10f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="IPPA_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="IPPA_IPPA_SAMPLE_VALIDSr">
+                            <HwField Name="IPPA_SAMPLE_ALWAYSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="IPPB_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="IPPB_REG_600r">
+                            <HwField Name="FIELD_43_43f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="IPPB_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="IPPB_IPPB_SAMPLE_VALIDSr">
+                            <HwField Name="IPPB_SAMPLE_ALWAYSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="IPPC_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="IPPC_REG_700r">
+                            <HwField Name="FIELD_5_5f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="IPPC_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="IPPC_IPPC_SAMPLE_VALIDSr">
+                            <HwField Name="IPPC_SAMPLE_ALWAYSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0" Name="IPPD_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="IPPD_REG_800r">
+                            <HwField Name="FIELD_17_17f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="IPPD_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="IPPD_IPPD_SAMPLE_VALIDSr">
+                            <HwField Name="IPPD_SAMPLE_ALWAYSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="IPPE_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="IPPE_REG_500r">
+                            <HwField Name="FIELD_3_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="IPPE_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="IPPE_IPPE_SAMPLE_VALIDSr">
+                            <HwField Name="IPPE_SAMPLE_ALWAYSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="IPPF_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="IPPF_REG_100r">
+                            <HwField Name="FIELD_21_21f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="IPPF_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="IPPF_IPPF_SAMPLE_VALIDSr">
+                            <HwField Name="IPPF_SAMPLE_ALWAYSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="ERPP_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="ERPP_REG_F000r">
+                            <HwField Name="FIELD_13_13f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="ERPP_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="ERPP_ERPP_SAMPLE_VALIDSr">
+                            <HwField Name="ERPP_SAMPLE_ALWAYSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="ETPPA_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_REG_F000r">
+                            <HwField Name="FIELD_3_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="ETPPA_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_ETPPA_SAMPLE_VALIDSr">
+                            <HwField Name="ETPPA_SAMPLE_ALWAYSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="ETPPB_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="ETPPB_REG_F000r">
+                            <HwField Name="FIELD_8_8f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="ETPPB_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="ETPPB_ETPPB_SAMPLE_VALIDSr">
+                            <HwField Name="ETPPB_SAMPLE_ALWAYSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0" Name="ETPPC_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="ETPPC_REG_F000r">
+                            <HwField Name="FIELD_10_10f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="ETPPC_ALWAYS_ENABLE">
+                    <Access>
+                        <Register Name="ETPPC_ETPPC_SAMPLE_VALIDSr">
+                            <HwField Name="ETPPC_SAMPLE_ALWAYSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="IPPA_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="IPPA_REG_100r">
+                            <HwField Name="FIELD_0_9f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="IPPA_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="IPPA_IPPA_SAMPLE_VALIDSr">
+                            <HwField Name="IPPA_SAMPLE_VALIDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="IPPB_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="IPPB_REG_600r">
+                            <HwField Name="FIELD_0_42f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="IPPB_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="IPPB_IPPB_SAMPLE_VALIDSr">
+                            <HwField Name="IPPB_SAMPLE_VALIDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="IPPC_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="IPPC_REG_700r">
+                            <HwField Name="FIELD_0_4f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="IPPC_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="IPPC_IPPC_SAMPLE_VALIDSr">
+                            <HwField Name="IPPC_SAMPLE_VALIDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0" Name="IPPD_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="IPPD_REG_800r">
+                            <HwField Name="FIELD_0_16f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="IPPD_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="IPPD_IPPD_SAMPLE_VALIDSr">
+                            <HwField Name="IPPD_SAMPLE_VALIDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+               <Field Device="JR2_A0 JR2_B0" Name="IPPE_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="IPPE_REG_500r">
+                            <HwField Name="FIELD_0_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="IPPE_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="IPPE_IPPE_SAMPLE_VALIDSr">
+                            <HwField Name="IPPE_SAMPLE_VALIDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="IPPF_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="IPPF_REG_100r">
+                            <HwField Name="FIELD_0_20f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="IPPF_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="IPPF_IPPF_SAMPLE_VALIDSr">
+                            <HwField Name="IPPF_SAMPLE_VALIDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="ERPP_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="ERPP_REG_F000r">
+                            <HwField Name="FIELD_0_12f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="ERPP_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="ERPP_ERPP_SAMPLE_VALIDSr">
+                            <HwField Name="ERPP_SAMPLE_VALIDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="ETPPA_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="ETPPA_REG_F000r">
+                            <HwField Name="FIELD_0_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="ETPPA_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="ETPPA_ETPPA_SAMPLE_VALIDSr">
+                            <HwField Name="ETPPA_SAMPLE_VALIDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="ETPPB_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="ETPPB_REG_F000r">
+                            <HwField Name="FIELD_0_7f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="ETPPB_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="ETPPB_ETPPB_SAMPLE_VALIDSr">
+                            <HwField Name="ETPPB_SAMPLE_VALIDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0" Name="ETPPC_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="ETPPC_REG_F000r">
+                            <HwField Name="FIELD_0_9f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="ETPPC_SAMPLE_VALIDS">
+                    <Access>
+                        <Register Name="ETPPC_ETPPC_SAMPLE_VALIDSr">
+                            <HwField Name="ETPPC_SAMPLE_VALIDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="IPMF3_LAST_FES_DEBUG">
+        <OneLineDescription>Table to access the LAST FES debug register to read the context of iPMF3</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CONTEXT" Permission="READONLY" Size="6" Type="ACL_CONTEXT"/>
+                <Field Name="IPMF3_ACTION" Permission="READONLY" Size="7"/>
+                <Field Name="FES_ACTION_VALUE" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="FES_DATA_IN" Permission="READONLY" Size="64" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CONTEXT">
+                    <Access>
+                        <Register Name="IPPD_DBG_LAST_FESr">
+                            <HwField Name="LAST_CONTEXTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IPMF3_ACTION">
+                    <Access>
+                        <Register Name="IPPD_DBG_LAST_FESr">
+                            <HwField Name="OUT_ACTION_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FES_ACTION_VALUE">
+                    <Access>
+                        <Register Name="IPPD_DBG_LAST_FESr">
+                            <HwField Name="OUT_ACTION_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FES_DATA_IN">
+                    <Access>
+                        <Register Name="IPPD_DBG_LAST_FESr">
+                            <HwField Name="IN_KEYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="BTC_INTERRUPTS">
+        <OneLineDescription>Table to access BTC interrupts register</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="HEADER_SIZE_EXCEED" Permission="READONLY" Type="BOOL"/>
+                <Field Name="NOF_INSTRUCTIOS_EXCEED" Permission="READONLY" Type="BOOL"/>
+                <Field Name="HEADER_NOT_BYTE_ALIGNED" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="HEADER_SIZE_EXCEED">
+                    <Access>
+                        <Register Name="ETPPB_BTC_INT_REGr">
+                            <HwField Name="HEADER_SIZE_EXCEEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NOF_INSTRUCTIOS_EXCEED">
+                    <Access>
+                        <Register Name="ETPPB_BTC_INT_REGr">
+                            <HwField Name="NOF_INSTRUCTIONS_EXCEEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HEADER_NOT_BYTE_ALIGNED">
+                    <Access>
+                        <Register Name="ETPPB_BTC_INT_REGr">
+                            <HwField Name="HEADER_SIZE_NOT_BYTE_ALLIGNEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="INVALID_DESTINATION">
+        <OneLineDescription>Contains the last invalid destination that was passed to ingress</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="IS_DESTINATION_INVALID" Permission="READONLY" Type="BOOL"/>
+                <Field Name="INVALID_DESTINATION" Permission="READONLY" Size="19" Type="UINT"/>
+                <Field Name="INVALID_DESTINATION_SOURCE" Permission="READONLY"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="IS_DESTINATION_INVALID">
+                    <Access>
+                        <Register Name="IPPD_INVALID_DESTINATIONr">
+                            <HwField Name="INVALID_DESTINATION_INDICATORf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="INVALID_DESTINATION">
+                    <Access>
+                        <Register Name="IPPD_INVALID_DESTINATIONr">
+                            <HwField Name="INVALID_DESTINATION_DESTINATIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="INVALID_DESTINATION_SOURCE">
+                    <Access>
+                        <Register Name="IPPD_INVALID_DESTINATIONr">
+                            <HwField Name="INVALID_DESTINATION_SOURCEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="IRE_PACKET_REGISTER_INTERFACE">
+        <OneLineDescription>Configuration for IRE packer register interface</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="SOP" Type="BOOL"/>
+                <Field Name="EOP" Type="BOOL"/>
+                <Field Name="VALID_BYTES" Size="7" Type="UINT"/>
+                <Field Name="PTC"/>
+                <Field MaxValue="2" Name="SEND_MODE" Size="2" Type="UINT"/>
+                <Field Name="NOF_PACKETS" Size="16" Type="UINT"/>
+                <Field Name="TIMER_CYCLES" Size="10" Type="UINT"/>
+                <Field Name="PACKET_DATA_512" Size="512" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SOP">
+                    <Access>
+                        <Register Name="IRE_REGISTER_INTERFACE_PACKET_CONTROLr">
+                            <HwField Name="REGI_PKT_SOPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EOP">
+                    <Access>
+                        <Register Name="IRE_REGISTER_INTERFACE_PACKET_CONTROLr">
+                            <HwField Name="REGI_PKT_EOPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VALID_BYTES">
+                    <Access>
+                        <Register Name="IRE_REGISTER_INTERFACE_PACKET_CONTROLr">
+                            <HwField Name="REGI_PKT_BEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PTC">
+                    <Access>
+                        <Register Name="IRE_REG_REASSEMBLY_CONTEXT_CONFIGURATIONr">
+                            <HwField Name="REG_PORT_TERMINATION_CONTEXTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SEND_MODE">
+                    <Access>
+                        <Register Name="IRE_REGISTER_INTERFACE_PACKET_CONTROLr">
+                            <HwField Name="REGI_SEND_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NOF_PACKETS">
+                    <Access>
+                        <Register Name="IRE_REGISTER_INTERFACE_PACKET_CONTROLr">
+                            <HwField Name="REGI_NOF_PACKETSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TIMER_CYCLES">
+                    <Access>
+                        <Register Name="IRE_REGISTER_INTERFACE_PACKET_CONTROLr">
+                            <HwField Name="REGI_TIMER_CYCLESf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PACKET_DATA_512">
+                    <Access>
+                        <Register Name="IRE_REGISTER_INTERFACE_PACKET_DATA_BITS_1023_512r"/>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEM_CONTROLLER">
+        <OneLineDescription>Enable/disable PEM and PEMA per stage</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PEMA_ID"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Enabled if TRUE" Name="PEM_ENABLED" Size="1" Type="BOOL"/>
+                <Field Description="Enabled if FALSE" Name="PEMA_DISABLED" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="PEM_ENABLED">
+                    <Access>
+                        <KeyCondition Enum="VTT1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPF_REG_0310r">
+                            <HwField Name="FIELD_17_17f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="VTT3" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPF_REG_03A0r">
+                            <HwField Name="FIELD_17_17f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="VTT5" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPA_REG_0420r">
+                            <HwField Name="FIELD_17_17f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="FWD1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPB_REG_0300r">
+                            <HwField Name="FIELD_17_17f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="FWD2" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPB_REG_0500r">
+                            <HwField Name="FIELD_17_17f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPMF1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_REG_0330r">
+                            <HwField Name="FIELD_17_17f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPMF3" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPD_REG_0400r">
+                            <HwField Name="FIELD_17_17f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="PRP2" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPA_REG_0340r">
+                            <HwField Name="FIELD_17_17f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TERM" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_REG_0330r">
+                            <HwField Name="FIELD_17_17f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="FWD" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_REG_0320r">
+                            <HwField Name="FIELD_17_17f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_REG_0300r">
+                            <HwField Name="FIELD_17_17f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC2" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0520r">
+                            <HwField Name="FIELD_17_17f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC3" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0300r">
+                            <HwField Name="FIELD_17_17f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC4" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0320r">
+                            <HwField Name="FIELD_17_17f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC5" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0340r">
+                            <HwField Name="FIELD_17_17f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TRAP" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0360r">
+                            <HwField Name="FIELD_17_17f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PEMA_DISABLED">
+                    <Access>
+                        <KeyCondition Enum="VTT1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPF_REG_0310r">
+                            <HwField Name="FIELD_16_16f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="VTT3" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPF_REG_03A0r">
+                            <HwField Name="FIELD_16_16f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="VTT5" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPA_REG_0420r">
+                            <HwField Name="FIELD_16_16f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="FWD1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPB_REG_0300r">
+                            <HwField Name="FIELD_16_16f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="FWD2" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPB_REG_0500r">
+                            <HwField Name="FIELD_16_16f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPMF1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_REG_0330r">
+                            <HwField Name="FIELD_16_16f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPMF3" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="IPPD_REG_0400r">
+                            <HwField Name="FIELD_16_16f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="PRP2" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPA_REG_0340r">
+                            <HwField Name="FIELD_16_16f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TERM" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_REG_0330r">
+                            <HwField Name="FIELD_16_16f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="FWD" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_REG_0320r">
+                            <HwField Name="FIELD_16_16f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC1" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPC_REG_0300r">
+                            <HwField Name="FIELD_16_16f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC2" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0520r">
+                            <HwField Name="FIELD_16_16f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC3" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0300r">
+                            <HwField Name="FIELD_16_16f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC4" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0320r">
+                            <HwField Name="FIELD_16_16f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ENC5" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0340r">
+                            <HwField Name="FIELD_16_16f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TRAP" Field="PEMA_ID" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_REG_0360r">
+                            <HwField Name="FIELD_16_16f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="ETPP_DECREMENT_ABOVE_THRESHOLD">
+        <OneLineDescription>Contains indication if egress cut was above the threshold allowed per device</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="ETPP_DECREMENT_ABOVE_THRESHOLD" Type="BOOL" Permission="READONLY" Valid="!DNX_DATA.debug.general.etpp_eop_and_sop_dec_above_threshold"/>
+                <Field Name="ETPP_SOP_DECREMENT_ABOVE_THRESHOLD" Type="BOOL" Permission="READONLY" Valid="DNX_DATA.debug.general.etpp_eop_and_sop_dec_above_threshold"/>
+                <Field Name="ETPP_EOP_DECREMENT_ABOVE_THRESHOLD" Type="BOOL" Permission="READONLY" Valid="DNX_DATA.debug.general.etpp_eop_and_sop_dec_above_threshold"/>
+                <Field Name="ETPP_SOP_EOP_DECREMENT_ABOVE_THRESHOLD" Type="BOOL" Permission="READONLY" Valid="DNX_DATA.debug.general.etpp_eop_and_sop_dec_above_threshold"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ETPP_DECREMENT_ABOVE_THRESHOLD">
+                    <Access>
+                        <Register Name="EPNI_INTERRUPT_REGISTERr">
+                            <HwField Name="ETPP_DEC_ABOVE_TH_INTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ETPP_SOP_DECREMENT_ABOVE_THRESHOLD">
+                    <Access>
+                        <Register Name="EPNI_INTERRUPT_REGISTERr">
+                            <HwField Name="ETPP_SOP_DEC_ABOVE_TH_INTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ETPP_EOP_DECREMENT_ABOVE_THRESHOLD">
+                    <Access>
+                        <Register Name="EPNI_INTERRUPT_REGISTERr">
+                            <HwField Name="ETPP_EOP_DEC_ABOVE_TH_INTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ETPP_SOP_EOP_DECREMENT_ABOVE_THRESHOLD">
+                    <Access>
+                        <Register Name="EPNI_INTERRUPT_REGISTERr">
+                            <HwField Name="ETPP_EOP_AND_SOP_DEC_ABOVE_TH_INTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

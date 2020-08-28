@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_b0"  module="l3">
+
+    <sub_module name="source_address">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="custom_sa_use_dual_homing"                 value="0"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        
+        
+        <tables>
+        </tables>
+         
+    </sub_module>
+    <sub_module name="hw_bug" doc="L3 related Hw bugs">
+
+        <features>
+            <feature name="fec_hit_bit" value="0"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

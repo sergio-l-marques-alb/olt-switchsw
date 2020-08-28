@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../sw_state_schema.xsd">
+
+    <AppDB Name="IVEC_ACTION_ID_SW_INFO">
+        <OneLineDescription>sw state table - ingress vlan edit action command sw table</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VLAN_EDIT_CMD_INDEX"/>
+            </Key>
+            <Result>
+                <Field Name="BCM_API_VLAN_EDIT_DT_OUTER" Type="BCM_API_VLAN_EDIT_VID_ACTION"/>
+                <Field Name="BCM_API_VLAN_EDIT_DT_INNER" Type="BCM_API_VLAN_EDIT_VID_ACTION"/>
+                <Field Name="BCM_API_VLAN_EDIT_DT_OUTER_PKT_PRIO" Type="BCM_API_VLAN_EDIT_PRIO_ACTION"/>
+                <Field Name="BCM_API_VLAN_EDIT_DT_INNER_PKT_PRIO" Type="BCM_API_VLAN_EDIT_PRIO_ACTION"/>
+                <Field Name="BCM_API_VLAN_EDIT_OUTER_TPID" Type="TPID"/>
+                <Field Name="BCM_API_VLAN_EDIT_INNER_TPID" Type="TPID"/>
+                <Field Name="BCM_API_VLAN_EDIT_OUTER_TPID_ACTION" Type="BCM_API_VLAN_EDIT_TPID_ACTION"/>
+                <Field Name="BCM_API_VLAN_EDIT_INNER_TPID_ACTION" Type="BCM_API_VLAN_EDIT_TPID_ACTION"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="EVEC_FRWRD_STAGE_ACTION_ID_INFO_SW">
+        <OneLineDescription>sw state table - egress vlan edit action command sw table</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VLAN_EDIT_CMD_INDEX"/>
+            </Key>
+            <Result>
+                <Field Name="BCM_API_VLAN_EDIT_DT_OUTER" Type="BCM_API_VLAN_EDIT_VID_ACTION"/>
+                <Field Name="BCM_API_VLAN_EDIT_DT_INNER" Type="BCM_API_VLAN_EDIT_VID_ACTION"/>
+                <Field Name="BCM_API_VLAN_EDIT_DT_OUTER_PKT_PRIO" Type="BCM_API_VLAN_EDIT_PRIO_ACTION"/>
+                <Field Name="BCM_API_VLAN_EDIT_DT_INNER_PKT_PRIO" Type="BCM_API_VLAN_EDIT_PRIO_ACTION"/>
+                <Field Name="BCM_API_VLAN_EDIT_OUTER_TPID" Type="TPID"/>
+                <Field Name="BCM_API_VLAN_EDIT_INNER_TPID" Type="TPID"/>
+                <Field Name="BCM_API_VLAN_EDIT_OUTER_TPID_ACTION" Type="BCM_API_VLAN_EDIT_TPID_ACTION"/>
+                <Field Name="BCM_API_VLAN_EDIT_INNER_TPID_ACTION" Type="BCM_API_VLAN_EDIT_TPID_ACTION"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="TAG_STRUCT_INGRESS_HW_ID_TO_SW_ID">
+        <OneLineDescription>sw state table - ingress tag_struct - from HW-ID to SW-ID</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="INCOMING_TAG_STRUCTURE" Description="TAG-STARUCT HW-ID"/>
+            </Key>
+            <Result>
+                <Field Name="BCM_TAG_FORMAT_CLASS_ID" Size="5" Type="UINT" Description="TAG-STARUCT SW-ID"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="TAG_STRUCT_EGRESS_HW_ID_TO_SW_ID">
+        <OneLineDescription>sw state table - egress tag_struct - from HW-ID to SW-ID</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="INCOMING_TAG_STRUCTURE" Description="TAG-STARUCT HW-ID"/>
+            </Key>
+            <Result>
+                <Field Name="BCM_TAG_FORMAT_CLASS_ID" Size="5" Type="UINT" Description="TAG-STARUCT SW-ID"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="TAG_STRUCT_INGRESS_SW_ID_TO_HW_ID">
+        <OneLineDescription>sw state table - ingress tag_struct - from SW-ID to HW-ID</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="BCM_TAG_FORMAT_CLASS_ID" Size="5" Type="UINT" Description="TAG-STARUCT SW-ID"/>
+            </Key>
+            <Result>
+                <Field Name="INCOMING_TAG_STRUCTURE" Description="TAG-STARUCT HW-ID"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="TAG_STRUCT_EGRESS_SW_ID_TO_HW_ID">
+        <OneLineDescription>sw state table - egress tag_struct - from SW-ID to HW-ID</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="BCM_TAG_FORMAT_CLASS_ID" Size="5" Type="UINT" Description="TAG-STARUCT SW-ID"/>
+            </Key>
+            <Result>
+                <Field Name="INCOMING_TAG_STRUCTURE" Description="TAG-STARUCT HW-ID"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    
+</AppDbCatalog>
+

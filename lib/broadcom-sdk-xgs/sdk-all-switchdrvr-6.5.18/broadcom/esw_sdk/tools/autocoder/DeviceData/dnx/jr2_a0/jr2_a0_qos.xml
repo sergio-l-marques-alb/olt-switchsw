@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="qos">
+
+    <sub_module name="qos">
+        
+        <features>
+            <feature name="qos_var_type_map_enable" value="0"></feature>
+        </features>
+        
+        <defines>
+            <define name = "nof_ingress_profiles"                 value="1024"></define>
+            <define name = "nof_ingress_opcode_profiles"          value="256"></define>
+            <define name = "nof_ingress_ecn_profiles"             value="4"></define>
+            <define name = "nof_ingress_policer_profiles"         value="4"></define>
+            <define name = "nof_ingress_vlan_pcp_profiles"        value="16"></define>
+            <define name = "nof_egress_profiles"                  value="32"></define>
+            <define name = "nof_egress_policer_profiles"          value="8"></define>
+            <define name = "nof_egress_mpls_php_profiles"         value="8"></define>
+            <define name = "nof_egress_opcode_profiles"           value="32"></define>
+            <define name = "nof_egress_php_opcode_profiles"       value="8"></define>
+            <define name = "nof_egress_ttl_pipe_profiles"         value="16"></define>
+            <define name = "nof_egress_cos_profiles"              value="16"></define>
+            <define name = "nof_ingress_propagation_profiles"               value="8"></define>
+            <define name = "nof_ingress_ecn_opcode_profiles"                value="16"></define>
+            <define name = "nof_egress_network_qos_pipe_profiles"           value="64"></define>
+            <define name = "packet_max_priority"                            value="7"></define>
+            <define name = "packet_max_exp"                                 value="7"></define>
+            <define name = "packet_max_dscp"                                value="255"></define>
+            <define name = "packet_max_cfi"                                 value="1"></define>
+            <define name = "packet_max_tc"                                  value="7"></define>
+            <define name = "packet_max_dp"                                  value="3"></define>
+            <define name = "packet_max_ecn"                                 value="3"></define>
+            <define name = "packet_max_egress_policer_offset"               value="7"></define>
+            <define name = "max_int_map_id"                                 value="255"></define>
+            <define name = "max_egress_var"                                 value="255"></define>
+            <define name = "ecn_bits_width"                                 value = "2"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="routing_dscp_preserve_mode" value="2">
+                <property name="logical_port_routing_preserve_dscp" method="direct_map">
+                    <map name="1" value="1"/>
+                    <map name="2" value="2"/>
+                    <doc>
+                        DSCP preserve modes in routing case.
+                        1: DSCP preserve per inlif and outlif;
+                        2: DSCP preserve per outlif.(Default mode)
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        
+        
+        <tables>                       
+        </tables>
+         
+    </sub_module>
+    <sub_module name="hw_bug" doc="qos related HW bugs">
+        <features>
+        <feature name="egress_remark_or_keep_enabler" value="0"></feature>
+        <feature name="fwd_eve_pcp_diff_encap"        value="1"></feature>
+        <feature name="phb_rm_ffc_extend"             value="0"></feature>
+        </features>
+
+        <defines>
+            <define name = "phb_rm_ffc_bits_width"    value = "21"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>
+
+
+

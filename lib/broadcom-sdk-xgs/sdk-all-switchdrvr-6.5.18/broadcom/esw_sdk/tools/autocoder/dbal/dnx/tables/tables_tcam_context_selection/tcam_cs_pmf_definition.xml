@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    *********************************************************************
+    DBAL TCAM_CS Logical Tables:
+    This xml contains the TCAM Context Selection logical DB for the DBAL.
+    The data is loaded to the device during init process
+    *********************************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="./tcam_cs_schema.xsd">
+    
+    <AppDB Name="TCAM_CS_IPMF1">
+        <OneLineDescription>This is logical table of the PMF_A first pass Context selection TCAM key config.</OneLineDescription>
+        <AccessMethod>TCAM_CS</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="TCAM_BY_ID">
+            <Key>
+                <Field Name="CONTAINER_24_0" Type="UINT" Size="23" />
+                <Field Name="CONTAINER_24_0_VALID" Type="UINT" Size="1" />
+                <Field Name="CONTAINER_5_SELECTED_BITS" Type="UINT" Size="DNX_DATA.field.base_ipmf1.cs_container_5_selected_bits_size" />
+                <Field Name="CONTAINER_24_1_VALID" Type="UINT" Size="1" />
+                <Field Name="CONTAINER_40_0_VALID" Type="UINT" Size="1" />
+                <Field Name="CONTAINER_40_1_VALID" Type="UINT" Size="1" />
+                <Field Name="CONTAINER_96_VALID" Type="UINT" Size="1" />
+                <Field Name="CONTAINER_160_VALID" Type="UINT" Size="1" />
+                <Field Name="TRACE_PACKET" Type="BOOL"/>
+                <Field Name="FWD_LAYER_QUAL_MINUS_1" Type="UINT" Size="16" />
+                <Field Name="FWD_LAYER_QUAL_0" Type="UINT" Size="16" />
+                <Field Name="FWD_LAYER_QUAL_1" Type="UINT" Size="16" />
+                <Field Name="FWD_LAYER_QUAL_2" Type="UINT" Size="16" />
+                <Field Name="ACL_CONTEXT_PROFILE" Type="UINT" Size="6" />
+                <Field Name="FWD_LAYER_TYPE_MINUS_1" Type="LAYER_TYPES" />
+                <Field Name="FWD_LAYER_TYPE_0" Type="LAYER_TYPES" />
+                <Field Name="FWD_LAYER_TYPE_1" Type="LAYER_TYPES" />
+                <Field Name="FWD_LAYER_TYPE_2" Type="LAYER_TYPES" />
+                <Field Name="FWD_LAYER_TYPE_3" Type="LAYER_TYPES" />
+                <Field Name="FWD_LAYER_TYPE_4" Type="LAYER_TYPES" />
+                <Field Name="FWD_LAYER_TYPE_5" Type="LAYER_TYPES" />
+                <Field Name="FWD_LAYER_TYPE_6" Type="LAYER_TYPES" />
+                <Field Name="ELK_FOUND_RESULT_7" Type="UINT" Size="1" Valid="DNX_DATA.field.features.kbp_hitbits_correct_in_ipmf1_cs" />
+                <Field Name="ELK_FOUND_RESULT_6" Type="UINT" Size="1" Valid="DNX_DATA.field.features.kbp_hitbits_correct_in_ipmf1_cs" />
+                <Field Name="ELK_FOUND_RESULT_5" Type="UINT" Size="1" Valid="DNX_DATA.field.features.kbp_hitbits_correct_in_ipmf1_cs" />
+                <Field Name="ELK_FOUND_RESULT_4" Type="UINT" Size="1" Valid="DNX_DATA.field.features.kbp_hitbits_correct_in_ipmf1_cs" />
+                <Field Name="ELK_FOUND_RESULT_3" Type="UINT" Size="1" Valid="DNX_DATA.field.features.kbp_hitbits_correct_in_ipmf1_cs" />
+                <Field Name="ELK_FOUND_RESULT_2" Type="UINT" Size="1" Valid="DNX_DATA.field.features.kbp_hitbits_correct_in_ipmf1_cs" />
+                <Field Name="ELK_FOUND_RESULT_1" Type="UINT" Size="1" Valid="DNX_DATA.field.features.kbp_hitbits_correct_in_ipmf1_cs" />
+                <Field Name="ELK_FOUND_RESULT_0" Type="UINT" Size="1" Valid="DNX_DATA.field.features.kbp_hitbits_correct_in_ipmf1_cs" />
+                <Field Name="ELK_RESULT_BITS_120_127" Type="UINT" Size="8" Valid="1-DNX_DATA.field.features.kbp_hitbits_correct_in_ipmf1_cs" />
+                <Field Name="INCOMING_TAG_STRUCTURE" Size="5" />
+                <Field Name="OUT_LIF_RANGE_1" Type="UINT" Size="2" />
+                <Field Name="OUT_LIF_RANGE_0" Type="UINT" Size="2" />
+                <Field Name="IN_LIF_PROFILE_MAP_1" Type="UINT" Size="4" />
+                <Field Name="IN_LIF_PROFILE_MAP_0" Type="UINT" Size="4" />
+                <Field Name="CPU_TRAP_CODE" Type="UINT" Size="9" />
+                <Field Name="FWD_LAYER_INDEX" Size="3" />
+                <Field Name="FWD_CONTEXT_PROFILE" Type="HEXA" Size="5" />
+                <Field Name="PRT_QUALIFIER_RAW"/>
+                <Field Name="PTC_CS_PROFILE" Type="UINT" Size="3" />
+                <Field Name="IN_PORT_CS_PROFILE" Type="UINT" Size="3" />
+                <!-- ELK_OPCODE is of type KBP_OPCODE_ID, but is not limited to a legal opcode ID. -->
+                <Field Name="ELK_OPCODE" Type="UINT" Size="8" Valid="DNX_DATA.field.features.kbp_opcode_in_ipmf1_cs"/>
+            </Key>
+            <Result>
+                <Field Name="FIELD_PMF_CTX_ID" Size="6" />
+                <Field Name="FIELD_PMF_CTX_ID_VALID" Size="1"/>
+                <Field Name="FIELD_PMF_NAS_ID" Size="5" />
+                <Field Name="FIELD_PMF_NAS_ID_VALID" Size="1"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <TcamCsDb>IPMF1</TcamCsDb>
+            <FieldMappingTcam>
+                <Type Name="RESULT"> 
+                    <Access>
+                        <Memory Name="IPPC_PMFACSA_ACTIONm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="TCAM_CS_IPMF2">
+        <OneLineDescription>This is logical table of the PMF_A second pass Context selection TCAM key config.</OneLineDescription>
+        <AccessMethod>TCAM_CS</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="TCAM_BY_ID">
+            <Key>
+                <Field Name="CMP_OUTPUT_PAIR_2" Type="UINT" Size="3" />
+                <Field Name="CMP_OUTPUT_PAIR_1" Type="UINT" Size="3" />
+                <Field Name="STATISTICS_MAPPING_REQUIRED" Type="UINT" Size="15" />
+                <Field Name="STATE_TABLE_DATA"/>
+                <Field Name="PMF1_EXEM_PAYLOAD_MSB" Type="UINT" Size="4" />
+                <Field Name="PMF1_DIRECT_PAYLOAD_MSB" Type="UINT" Size="4" />
+                <Field Name="PMF1_TCAM_ACTION_3_MSB" Type="UINT" Size="4" />
+                <Field Name="PMF1_TCAM_ACTION_2_MSB" Type="UINT" Size="4" />
+                <Field Name="PMF1_TCAM_ACTION_1_MSB" Type="UINT" Size="4" />
+                <Field Name="PMF1_TCAM_ACTION_0_MSB" Type="UINT" Size="4" />
+                <Field Name="PMF1_PROGRAM_SELECTION_PROFILE" Type="UINT" Size="5" />
+                <!-- Restore when we know what is the correct size of these presel qualifiers
+                <Field Name="RESERVED_0" Type="UINT" Size="32" />
+                <Field Name="RESERVED_1" Type="UINT" Size="32" />
+                <Field Name="RESERVED_2" Type="UINT" Size="26" />
+                -->
+            </Key>
+            <Result>
+                <Field Name="FIELD_PMF_CTX_ID" Size="6" />
+                <Field Name="FIELD_PMF_CTX_ID_VALID" Size="1"/>
+                <Field Name="FIELD_PMF_NAS_ID" Size="5" />
+                <Field Name="FIELD_PMF_NAS_ID_VALID" Size="1"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <TcamCsDb>IPMF2</TcamCsDb>
+            <FieldMappingTcam>
+                <Type Name="RESULT"> 
+                    <Access>
+                        <Memory Name="IPPC_PMFACSB_ACTIONm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="TCAM_CS_IPMF3">
+        <OneLineDescription>This is logical table of the PMF_B Context selection TCAM key config.</OneLineDescription>
+        <AccessMethod>TCAM_CS</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="TCAM_BY_ID">
+            <Key>
+                <Field Name="RPF_DST_IS_ECMP" Type="BOOL"/>
+                <Field Name="RPF_MC_MODE" Type="UINT" Size="3" />
+                <Field Name="TRAP_CODE_PROFILE" Type="UINT" Size="1" />
+                <Field Name="OUT_LIF_RANGE_3" Type="UINT" Size="3" />
+                <Field Name="OUT_LIF_RANGE_2" Type="UINT" Size="3" />
+                <Field Name="OUT_LIF_RANGE_1" Type="UINT" Size="3" />
+                <Field Name="OUT_LIF_RANGE_0" Type="UINT" Size="3" />
+                <Field Name="WEAK_TM_VALID" Type="BOOL"/>
+                <Field Name="CS_DESTINATION" Type="UINT" Size="8" />
+                <Field Name="COUNTER_PROFILE_MAP_2" Type="UINT" Size="2" />
+                <Field Name="COUNTER_PROFILE_MAP_1" Type="UINT" Size="2" />
+                <Field Name="COUNTER_PROFILE_MAP_0" Type="UINT" Size="2" />
+                <Field Name="RPF_ECMP_MODE" Size="2" />
+                <Field Name="PEM_SCRATCH_PAD_LSB" Type="UINT" Size="32" />
+                <Field Name="PEM_SCRATCH_PAD_MSB" Type="UINT" Size="1" />
+                <Field Name="ACL_CONTEXT_PROFILE" Type="UINT" Size="6" />
+                <Field Name="FWD_LAYER_QUALIFIER" Type="LAYER_QUALIFIER" />
+                <Field Name="FWD_LAYER_TYPE_0" Type="LAYER_TYPES" />
+                <Field Name="PTC_CS_PROFILE" Type="UINT" Size="3" />
+                <Field Name="IN_PORT_CS_PROFILE" Type="UINT" Size="3" />
+            </Key>
+            <Result>
+                <Field Name="FIELD_PMF_CTX_ID" Size="6" />
+                <Field Name="FIELD_PMF_CTX_ID_VALID" Size="1" />
+                <Field Name="FIELD_PMF_NAS_ID" Size="5" />
+                <Field Name="FIELD_PMF_NAS_ID_VALID" Size="1" />
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <TcamCsDb>IPMF3</TcamCsDb>
+            <FieldMappingTcam>
+                <Type Name="RESULT"> 
+                    <Access>
+                        <Memory Name="IPPD_PMFBCS_ACTIONm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="TCAM_CS_EPMF">
+        <OneLineDescription>This is logical table of the Egress PMF Context selection TCAM key config.</OneLineDescription>
+        <AccessMethod>TCAM_CS</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="TCAM_BY_ID">
+            <Key>
+                <Field Name="PER_PORT_TABLE_DATA_PMF_PROFILE" Type="UINT" Size="3" />
+                <Field Name="FWD_CONTEXT_PROFILE" Type="HEXA" Size="6" />
+                <Field Name="ETHERNET_TAG_FORMAT" Type="UINT" Size="10" />
+                <Field Name="PPH_PRESENT" Type="BOOL" />
+                <Field Name="TSH_EXTENISON_PRESENT" Type="BOOL" />
+                <Field Name="BIER_BFR_EXTENSION_PRESENT" Type="BOOL" />
+                <Field Name="APP_SPECIFIC_EXTENSION_PRESENT" Type="BOOL" />
+                <Field Name="TM_DESTINATION_EXTENSION_PRESENT" Type="BOOL" />
+                <Field Name="LEARN_EXTENSION_PRESENT" Type="BOOL" />
+                <Field Name="FHEI_SIZE" />
+                <Field Name="LIF_EXTENSION_TYPE" />
+                <Field Name="OUT_LIF_PROFILE" Size="4" />
+                <Field Name="RESERVED_0" Type="UINT" Size="2" />
+                <Field Name="PPH_VALUE_1" Type="PPH_VALUE"/>
+                <Field Name="PPH_VALUE_2_LSB" Type="PPH_VALUE" Size="7" />
+                <Field Name="UDH_BASE_3" Type="UINT" Size="2" />
+                <Field Name="UDH_BASE_2" Type="UINT" Size="2" />
+                <Field Name="UDH_BASE_1" Type="UINT" Size="2" />
+                <Field Name="UDH_BASE_0" Type="UINT" Size="2" />
+                <Field Name="FWD_LAYER_TYPE_MINUS_1" Type="LAYER_TYPES" />
+                <Field Name="FWD_LAYER_QUAL_MINUS_1" Type="UINT" Size="16" />
+                <Field Name="FWD_LAYER_TYPE_0" Type="LAYER_TYPES" />
+                <Field Name="FWD_LAYER_QUAL_0" Type="UINT" Size="16" />
+                <Field Name="FWD_LAYER_TYPE_1" Type="LAYER_TYPES" />
+                <Field Name="FWD_LAYER_QUAL_1" Type="UINT" Size="16" />
+                <Field Name="FWD_LAYER_TYPE_2" Type="LAYER_TYPES" />
+                <Field Name="APP_SPECIFIC_EXTENSION_LSB" Type="UINT" Size="4" />
+                <Field Name="FHEI_EXTENSION_LSB" Type="UINT" Size="4" />
+                <Field Name="FWD_STRENGTH"/>
+                <Field Name="FABRIC_OR_EGRESS_MC" Type="BOOL" />
+                <Field Name="IN_LIF_PROFILE_0" Type="IN_LIF_PROFILE" Size="8" />
+            </Key>
+            <Result>
+                <Field Name="FIELD_PMF_CTX_ID" Size="6" />
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <TcamCsDb>EPMF</TcamCsDb>
+            <FieldMappingTcam>
+                <Type Name="RESULT"> 
+                    <Access>
+                        <Memory Name="ERPP_EPMFCS_ACTIONm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>
+
+
+

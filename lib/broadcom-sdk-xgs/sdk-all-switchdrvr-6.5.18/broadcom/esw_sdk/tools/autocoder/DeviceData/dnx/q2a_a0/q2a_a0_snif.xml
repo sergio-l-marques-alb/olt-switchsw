@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="snif">
+
+    <sub_module name="egress">
+        
+        <features>
+            <feature name="probability_sample" value="1"></feature>        
+        </features>
+                 
+    </sub_module>
+</device_data>
+
+
+

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+          elementFormDefault="qualified">
+
+  <!-- Attribute for reg, mem -->
+  <xs:attributeGroup name="LabelsAttrs">
+      <xs:attribute name="Type" type="xs:string" />
+      <xs:attribute name="Description" type="xs:string" use="optional"/>
+  </xs:attributeGroup>
+
+  <!-- Attribute for field -->
+  <xs:attributeGroup name="LabelAttrs">
+      <xs:attribute name="Name" type="xs:string" />
+      <xs:attribute name="Description" type="xs:string" use="optional"/>
+  </xs:attributeGroup>
+
+
+  <xs:element name="SystemEntities">
+  <xs:complexType>
+  <xs:sequence>
+    <xs:element name="Labels" >
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Label" maxOccurs="unbounded">
+        <xs:complexType>
+            <xs:attributeGroup ref="LabelAttrs"/>
+        </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attributeGroup ref="LabelsAttrs"/>
+    </xs:complexType>
+    </xs:element>
+  </xs:sequence>
+  </xs:complexType>
+  </xs:element>
+</xs:schema>

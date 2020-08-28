@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="STAT_PP_IRPP_PROFILE_INFO">
+        <OneLineDescription>Ingress statistics profiles table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="STAT_CMD" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="STAT_IF_OBJECT_ID"/>
+                <Field Name="STAT_IF_TYPE_ID"/>
+                <Field Name="IS_METER" Type="BOOL"/>
+                <Field Name="MAPPING_REQUIRED" Type="BOOL"/>
+                <Field Name="STAT_OBJECT_METADATA_SIZE" Size="2" Type="UINT"/>
+                <Field Name="STAT_OBJECT_METADATA_SHIFT" Size="4" Type="UINT"/>
+            </Result>            
+	    <TableLabels>PP_STATISTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="STAT_IF_OBJECT_ID">
+                    <Access>
+                    	<Memory GroupName="MAP_STATISTIC_OBJECT_TABLE">
+                            <HwField Name="STATISTICS_IFf"/>
+                        </Memory>
+                    </Access>
+               </Field>
+                <Field Name="STAT_IF_TYPE_ID">
+                    <Access>
+                        <Memory GroupName="MAP_STATISTIC_OBJECT_TABLE">
+                            <HwField Name="TYPEf"/>
+                        </Memory>
+                    </Access>
+               </Field>
+                <Field Name="IS_METER">
+                    <Access>
+                        <Memory GroupName="MAP_STATISTIC_OBJECT_TABLE">
+                            <HwField Name="IS_METERf"/>
+                        </Memory>
+                    </Access>
+               </Field>
+                <Field Name="MAPPING_REQUIRED">
+                    <Access>
+                        <Memory GroupName="MAP_STATISTIC_OBJECT_TABLE">
+                            <HwField Name="MAPPING_REQUIREDf"/>
+                        </Memory>
+                    </Access>
+               </Field>
+               <Field Name="STAT_OBJECT_METADATA_SIZE">
+                    <Access>
+                        <Register GroupName="INGRESS_STAT_OBJ_PROFILE_ATTR">
+                            <HwField Name="STAT_OBJ_PROFILE_ATTR_VECf"/>
+                            <DataOffset Formula="#RESULT_SIZE(STAT_OBJECT_METADATA_SHIFT)*#FULL_KEY_VALUE()+#RESULT_SIZE(STAT_OBJECT_METADATA_SIZE)*#FULL_KEY_VALUE()+#RESULT_SIZE(STAT_OBJECT_METADATA_SHIFT)"/>
+                        </Register>
+                    </Access>
+               </Field>
+               <Field Name="STAT_OBJECT_METADATA_SHIFT">
+                    <Access>
+                        <Register GroupName="INGRESS_STAT_OBJ_PROFILE_ATTR">
+                            <HwField Name="STAT_OBJ_PROFILE_ATTR_VECf"/>
+                            <DataOffset Formula="#RESULT_SIZE(STAT_OBJECT_METADATA_SHIFT)*#FULL_KEY_VALUE()+#RESULT_SIZE(STAT_OBJECT_METADATA_SIZE)*#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+               </Field>               
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="STAT_PP_ETPP_PROFILE_INFO">
+        <OneLineDescription>ETPP statistics profiles table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="STAT_CMD" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="STAT_IF_OBJECT_ID"/>
+                <Field Name="STAT_IF_TYPE_ID"/>
+                <Field Name="IS_METER" Size="1" Type="BOOL"/>
+                <Field Name="METER_INTERFACE" Size="1" Type="BOOL"/>
+                <Field Name="METER_QOS_PROFILE" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>PP_STATISTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="STAT_IF_OBJECT_ID">
+                    <Access>
+                        <Register Name="ETPPB_MAP_STS_TO_INTERFACEr">
+                            <HwField Name="MAP_STS_TO_INTERFACEf"/>
+                            <DataOffset Formula="#RESULT_SIZE(STAT_IF_OBJECT_ID)*#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+               </Field>
+               <Field Name="STAT_IF_TYPE_ID">
+                    <Access>
+                        <Register Name="ETPPB_MAP_STS_TO_TYPEr">
+                            <HwField Name="MAP_STS_TO_TYPEf"/>
+                            <DataOffset Formula="#RESULT_SIZE(STAT_IF_TYPE_ID)*#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+               </Field>
+               <Field Name="IS_METER">
+                    <Access>
+                        <Register Name="ETPPC_CFG_STAT_OBJ_CMD_TO_IS_METERr">
+                            <HwField Name="CFG_STAT_OBJ_CMD_TO_IS_METERf"/>
+                            <DataOffset Formula="#RESULT_SIZE(IS_METER)*#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+               </Field>
+               <Field Name="METER_INTERFACE">
+                    <Access>
+                        <Register Name="ETPPC_CFG_STAT_OBJ_CMD_TO_METER_IFr">
+                            <HwField Name="CFG_STAT_OBJ_CMD_TO_METER_IFf"/>
+                            <DataOffset Formula="#RESULT_SIZE(METER_INTERFACE)*#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+               </Field>
+               <Field Name="METER_QOS_PROFILE">
+                    <Access>
+                        <Register Name="ETPPC_CFG_STAT_OBJ_CMD_TO_METER_QOS_PROFILEr">
+                            <HwField Name="CFG_STAT_OBJ_CMD_TO_METER_QOS_PROFILEf"/>
+                            <DataOffset Formula="#RESULT_SIZE(METER_QOS_PROFILE)*#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+               </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="STAT_PP_ERPP_PROFILE_INFO">
+        <OneLineDescription>ERPP statistics profiles table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="STAT_CMD" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="STAT_IF_TYPE_ID"/>
+            </Result>
+            <TableLabels>PP_STATISTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+               <Field Name="STAT_IF_TYPE_ID">
+                    <Access>
+                        <Memory Name="ERPP_COUNTER_0_TYPE_TABLEm">
+                            <HwField Name="COUNTER_0_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="ERPP_COUNTER_1_TYPE_TABLEm">
+                            <HwField Name="COUNTER_1_TYPEf"/>
+                        </Memory>
+                    </Access>
+               </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="STAT_PP_IRPP_VTT_STATISTICS_METADATA_VALUE_MAP">
+        <OneLineDescription>IRPP VTT metadata values</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <!--FIXME: HWJERICHO2-2608 - re-add IS_MC bit key-->
+                <!-- Field Name="IS_MC" Type="BOOL"/-->
+                <Field Name="LAYER_TYPE" Size="5" Type="LAYER_TYPES"/>
+            </Key>
+            <Result>
+                <Field Name="STAT_METADATA_VAL" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>PP_STATISTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="STAT_METADATA_VAL">
+                    <Access>
+                        <Register GroupName="INGRESS_STATISTICS_INFO">
+                            <HwField Name="STAT_META_DATA_MAPf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#RESULT_SIZE(STAT_METADATA_VAL)*2"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register GroupName="INGRESS_STATISTICS_INFO">
+                            <HwField Name="STAT_META_DATA_MAPf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#RESULT_SIZE(STAT_METADATA_VAL)*2+#RESULT_SIZE(STAT_METADATA_VAL)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="STAT_PP_IRPP_FEC_ECMP_STATISTICS_PROFILE_MAP">
+        <OneLineDescription>FEC statistics profile map</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FEC_STAT_OBJECT_PROFILE" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="FEC_STATISTIC_PROFILE_MAP" Size="2"/>
+                <Field Name="ECMP_STATISTIC_PROFILE_MAP" Size="2"/>
+            </Result>
+            <TableLabels>PP_STATISTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FEC_STATISTIC_PROFILE_MAP">
+                    <Access>
+                        <Register Name="IPPD_STATISTIC_PROFILE_MAPr">
+                            <HwField Name="SUPER_STATISTIC_PROFILE_MAPf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#RESULT_SIZE(FEC_STATISTIC_PROFILE_MAP)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ECMP_STATISTIC_PROFILE_MAP">
+                    <Access>
+                        <Register Name="IPPD_STATISTIC_PROFILE_MAPr">
+                            <HwField Name="ECMP_STATISTIC_PROFILE_MAPf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#RESULT_SIZE(ECMP_STATISTIC_PROFILE_MAP)"/>
+                        </Register>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+</AppDbCatalog>

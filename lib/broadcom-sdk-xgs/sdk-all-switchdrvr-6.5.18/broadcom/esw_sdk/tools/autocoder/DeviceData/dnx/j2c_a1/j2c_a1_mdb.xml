@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a1"  module="mdb">
+
+    <sub_module name="hw_bug">
+
+        <features>
+            <feature name="em_compare_init" value="0"></feature>
+        </features>
+
+    </sub_module>
+
+</device_data>

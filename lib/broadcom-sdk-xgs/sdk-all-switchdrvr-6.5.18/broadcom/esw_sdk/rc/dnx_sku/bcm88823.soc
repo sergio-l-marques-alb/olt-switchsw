@@ -1,0 +1,2 @@
+config delete mdb_profile.*
+config add mdb_profile.BCM8880X=L3-XL

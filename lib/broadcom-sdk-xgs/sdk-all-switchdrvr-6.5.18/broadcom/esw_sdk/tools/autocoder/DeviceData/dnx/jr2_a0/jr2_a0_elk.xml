@@ -1,0 +1,250 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="elk">
+    <includes>
+        <include>soc/dnxc/dnxc_port.h</include>
+        <include>soc/kbp/alg_kbp/include/init.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_device.h</include>
+        <include>soc/dnx/dbal/auto_generated/dbal_defines_tables.h</include>
+    </includes>
+
+    <sub_module name="general">
+        <defines>
+            <define name="max_ports" value="4"></define>
+            <define name="rop_fifo_depth" value="512"></define>
+            <define name="flp_full_treshold" value="2000"></define>
+            <define name="max_lane_id" value="32"></define>
+            <define name="egw_max_opcode" value="255"></define>
+        </defines>
+        <numerics>
+            <numeric name="device_type" value="0">
+                <property name="ext_tcam_dev_type" method="direct_map">
+                    <map name="BCM52311" value="1"></map>
+                    <map name="BCM52321" value="2"></map>
+                    <doc>
+                        Specify the external Tcam type.
+                        Jericho2 support BCM52311 and beyond.
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <features>
+        </features>
+ 
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="application">
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric name="optimized_result" value="1"></numeric>
+            <numeric name="split_rpf" value="1">
+                <property name="custom_feature" suffix="kbp_split_rpf_enable" method="suffix_enable">
+                    <doc>
+                        Enable / Disable KBP split RPF.
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="thread_safety" value="0">
+                <property name="custom_feature" suffix="kbp_thread_safety_enable" method="suffix_enable">
+                    <doc>
+                        Enable / Disable KBP thread safety.
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="ipv4_mc_hash_table_size" value="131072"></numeric>
+            <numeric name="ipv6_mc_hash_table_size" value="81920"></numeric>
+            <numeric name="ipv4_large_mc_enable" value="0">
+                <property name="ipv4_large_mc_enable" method="enable">
+                    <doc>
+                        Enable / Disable IPv4 large Multicast.
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="ipv6_large_mc_enable" value="0">
+                <property name="ipv6_large_mc_enable" method="enable">
+                    <doc>
+                        Enable / Disable IPv6 large Multicast.
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="ipv4_mc_table_size" value="(DATA(elk,application,ipv4_large_mc_enable) * 31744) + 1024"></numeric>
+            <numeric name="ipv6_mc_table_size" value="(DATA(elk,application,ipv6_large_mc_enable) * 31744) + 1024"></numeric>
+        </numerics>
+
+        <features>
+            <feature name="ipv4" value="0">
+                <property name="ext_ipv4_fwd_enable" method="enable">
+                    <doc>
+                        Enable / Disable KBP IPv4 forwarding application.
+                    </doc>
+                </property>
+            </feature>
+            <feature name="ipv6" value="0">
+                <property name="ext_ipv6_fwd_enable" method="enable">
+                    <doc>
+                        Enable / Disable KBP IPv6 forwarding application.
+                    </doc>
+                </property>
+            </feature>
+        </features>
+
+        <tables>
+            <table name="db_property" mode="map">
+                <key name="db"></key>
+                <value name="initial_regular_capacity" default="1024"></value>
+                <value name="initial_optimized_capacity" default="1024"></value>
+                <value name="xl_db" default="0"></value>
+                <value name="locality" default="0"></value>
+                <value name="zero_size_ad" default="0"></value>
+                <value name="dbal_none_direct_optimized" default="0"></value>
+                <entries>
+                    <entry db="DBAL_TABLE_KBP_IPV4_UNICAST_PRIVATE_LPM_FORWARD" initial_regular_capacity="524288" initial_optimized_capacity="32768" xl_db="1" locality="0" zero_size_ad="0" dbal_none_direct_optimized="1"></entry>
+                    <entry db="DBAL_TABLE_KBP_IPV6_UNICAST_PRIVATE_LPM_FORWARD" initial_regular_capacity="524288" initial_optimized_capacity="32768" xl_db="1" locality="0" zero_size_ad="0" dbal_none_direct_optimized="1"></entry>
+                    <entry db="DBAL_TABLE_KBP_IPV4_UNICAST_PRIVATE_LPM_RPF" initial_regular_capacity="524288" initial_optimized_capacity="0" xl_db="0" locality="2" zero_size_ad="1" dbal_none_direct_optimized="1"></entry>
+                    <entry db="DBAL_TABLE_KBP_IPV6_UNICAST_PRIVATE_LPM_RPF" initial_regular_capacity="131072" initial_optimized_capacity="0" xl_db="0" locality="2" zero_size_ad="1" dbal_none_direct_optimized="1"></entry>
+                    <entry db="DBAL_TABLE_KBP_IPV4_MULTICAST_TCAM_FORWARD" initial_regular_capacity="DATA(elk,application,ipv4_mc_table_size)" initial_optimized_capacity="0" xl_db="0" locality="0" zero_size_ad="0" dbal_none_direct_optimized="0"></entry>
+                    <entry db="DBAL_TABLE_KBP_IPV6_MULTICAST_TCAM_FORWARD" initial_regular_capacity="DATA(elk,application,ipv6_mc_table_size)" initial_optimized_capacity="0" xl_db="0" locality="0" zero_size_ad="0" dbal_none_direct_optimized="0"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="connectivity">
+        <defines>
+        </defines>
+ 
+        <numerics>
+            <numeric name="connect_mode" value="0">
+                <property name="ext_tcam_connect_mode" method="direct_map">
+                    <map name="SINGLE" value="0"></map>
+                    <map name="DUAL_SHARED" value="1"></map>
+                    <map name="DUAL_SMT" value="2"></map>
+                    <doc>
+                        External Tcam connection mode.
+                        SINGLE: One host connects with one KBP;
+                        DUAL_SHARED: Two hosts connect with one KBP via one thread;
+                        DUAL_SMT: Two hosts connect with one KBP via two threads.
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="mdio_id" value="0">
+                <property name="port_phy_addr" method="suffix_range" range_min="0" range_max="0xFFFFFFFF" suffix="ext_tcam">
+                    <doc>
+                        The MDIO ID connecting with the External Tcam.
+                        KBP mdio ID format:
+                            * bits [5:6,8:9] - bus ID.
+                            * bit [7] - Internal select. Set to 0 for external phy access.
+                            * bits [0:4] - phy/kbp id ==> 0x1    
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <features>
+            <feature name="blackhole" value="0">
+                <property name="custom_feature" method="suffix_enable" suffix="kbp_blackhole">
+                    <doc>
+                        Enable / Disable KBP Blackhole mode.
+                    </doc>
+                </property>
+            </feature>
+        </features>
+ 
+        <tables>
+            <table name="ilkn_reverse">
+                <key name="ilkn_id" size="16" doc="port id elk device side"></key>
+                <value name="reverse"  default="0">
+                <property name="ext_ilkn_reverse" method="suffix_enable" suffix="">
+                    <doc>
+                        External lookup (elk) ILKN lanes swap.
+                        If set, reverse the lanes numbering order on elk device side.
+                        This swap is logical and relates to ILKN protocol lane numbering.
+                    </doc>
+                </property>
+                </value>
+            </table>
+            <table name="topology">
+                <value name="start_lane" default="0, 0, 0, 0"></value>
+                <value name="port_core_mapping" default="0, 0, 0, 0"></value>
+                    <property name="ext_tcam_start_lane" method="custom">
+                        <doc>
+                            1. Define the start lane number for each kbp port.
+                            2. Define the KBP port to Jericho2 core mapping.
+                        </doc>
+                    </property>
+            </table>
+            <table name="kbp_serdes_tx_taps">
+                <value name="pre" default="-14"></value>
+                <value name="main" default="81"></value>
+                <value name="post" default="-28"></value>
+                <value name="pre2" default="4"></value>
+                <value name="post2" default="0"></value>
+                <value name="post3" default="0"></value>
+                <value name="txfir_tap_enable" default="NRZ_6TAP"></value>
+                <property name="ext_tcam_serdes_tx_taps" method="custom">
+                    <doc>
+                        a set of TX FIR parameters for the lane.
+                        serdes_tx_taps_&lt;lane_id&gt;=signalling_mode:pre:main:post:pre2:post2:post3
+                        signalling_mode can be either pam4 or nrz.
+                        [pre2:post2:post3] part is optional:
+                            - if it is given - this is 6-tap mode.
+                            - if it is not given - this is 3-tap mode.
+                    </doc>
+                </property>
+            </table>
+            <table name="kbp_lane_serdes_tx_taps">
+                <key name="lane_id" size="DATA(elk,general,max_lane_id)" doc="lane id on KBP side"></key>
+                <value name="pre" default="0"></value>
+                <value name="main" default="DNXC_PORT_TX_FIR_INVALID_MAIN_TAP"></value>
+                <value name="post" default="0"></value>
+                <value name="pre2" default="0"></value>
+                <value name="post2" default="0"></value>
+                <value name="post3" default="0"></value>
+                <value name="txfir_tap_enable" default="1"></value> <!-- default is NRZ_6TAP -->
+                <property name="serdes_tx_taps" method="custom">
+                    <doc>
+                        a set of TX FIR parameters for the external interface kbp device
+                        It is configured per stat lane, as follow:
+                        serdes_tx_taps_ext_stat_lane&lt;lane_id&gt;=signalling_mode:pre:main:post:pre2:post2:post3
+                        signalling_mode can be either pam4 or nrz.
+                        [pre2:post2:post3] are mandatory. (Can be set to zero).
+                        main is set to DNXC_PORT_TX_FIR_INVALID_MAIN_TAP by default to distinguish between whether the SoC property was set or not.
+                    </doc>
+                </property>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="recovery">
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric name="enable" value="0">
+                <property name="custom_feature" method="suffix_enable" suffix="kbp_recovery_enable">
+                    <doc>
+                        1: Enable the recovery sequence.
+                        0: Disable the recovery sequence.
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="iteration" value="5">
+                <property name="custom_feature" method="suffix_range" range_min="0" range_max="0xFFFFFFFF" suffix="kbp_recovery_iter">
+                    <doc>
+                        The re-try iteration while executing the recovery sequence.
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <features>
+        </features>
+ 
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="device" bsl_flag="BSL_LS_BCMDNX_DEVICE">
+    <includes>
+        <include>soc/dnx/access.h</include>
+    </includes>
+    <sub_module name="general" doc="General attributes">
+
+        <features>
+            <feature labels="j2p_notrev" name="hard_reset_disable" doc="Init the device without hard reset."></feature>
+            <feature labels="j2p_notrev" name="multi_core" doc="Is device multi core"></feature>
+            <feature labels="j2p_notrev" name="rqp_ecc_err_exist" doc="RQP ecc error exist"></feature>
+            <feature labels="j2p_notrev" name="new_crc32_calc" doc="New crc32 calculation"></feature>
+            <feature labels="j2p_notrev" name="protection_state_ignore" doc="Protection state ignoring capability"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="max_nof_system_ports" doc="Max number of system ports, may use software to indicate invalid system port"></define>
+            <define labels="j2p_notrev" name="invalid_system_port" doc="invalid system port - defined as the last system port"></define>
+            <define labels="j2p_notrev" name="fmq_system_port" doc="FMQ reserved system port"></define>
+            <define labels="j2p_notrev" name="invalid_fap_id" doc="invalid FAP id - defined as the last FAP id"></define>
+            <define labels="j2p_notrev" name="fap_ids_per_core_bits" doc="number of bits in FAP IDs per core"></define>
+            <define labels="j2p_notrev" name="nof_cores" doc="Number of cores in the device."></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="core_max_nof_bits" doc="Max number of cores bits to represent core. should be log2(nof_cores)"></numeric>
+            <numeric labels="j2p_notrev" name="max_nof_fap_ids_per_core" doc="maximal number of FAP IDs per core"></numeric>
+            <numeric labels="j2p_notrev" name="max_nof_fap_ids_per_device" doc="maximal number of FAP IDs per device"></numeric>
+            <numeric labels="j2p_notrev" name="core_clock_khz" doc="Core clock frequency [KHZ]"></numeric>
+            <numeric labels="j2p_notrev" name="system_ref_core_clock_khz" doc="Specifies system reference clock speed in kHz."> </numeric>
+            <numeric labels="j2p_notrev" name="ref_core_clock_mhz" doc="Reference clock comes from the board"> </numeric>
+            <numeric labels="j2p_notrev" name="bus_size_in_bits" doc="Core bus size in bits"></numeric>
+            <numeric labels="j2p_notrev" name="maximal_core_bandwidth_kbps" doc="Maximal core bandwidth in Kbits per second"></numeric>
+            <numeric labels="j2p_notrev" name="packet_per_clock" doc="Core packets per clock"></numeric>
+            <numeric labels="j2p_notrev" name="nof_faps" doc="Number of supported faps in the system."></numeric>
+            <numeric labels="j2p_notrev" name="device_id" doc="BCM Device ID (8XXX)"></numeric>
+            <numeric labels="j2p_notrev" name="nof_sku_bits" doc="nof LSB bits of device_is dedicated for SKU"></numeric>
+            <numeric labels="j2p_notrev" name="emulation_system" doc="Checking if the device is ran on emulation."></numeric>
+            <numeric labels="j2p_notrev" name="bist_enable" doc="Determines if to run Memory Built-In Self-Test (MBIST) of internal memories (tables) during startup.">  </numeric>
+            <numeric labels="j2p_notrev" name="nof_bits_for_nof_cores" doc="Number of bits to represent core."></numeric>
+        </numerics>
+
+        <tables>
+            <table labels="j2p_notrev" name="ecc_err_masking" doc="Table containing all registers and fields that need their ECC errors to be masked due to issues when reading">
+                <key name="block_type" doc="HW Block type"></key>
+                <value name="ecc_1bit_err_mask_reg" type="int" doc="Register for masking 1 bit ECC errors"></value>
+                <value name="ecc_1bit_err_field" type="int[DNX_MAX_NOF_ECC_ERR_MEMS]" doc="Array of fields for masking 1 bit ECC errors. Last element of the array myst always be -1."></value>
+                <value name="ecc_2bit_err_mask_reg" type="int" doc="Register for masking 2 bit ECC errors"></value>
+                <value name="ecc_2bit_err_field" type="int[DNX_MAX_NOF_ECC_ERR_MEMS]" doc="Array of fields for masking 2 bit ECC errors. Last element of the array myst always be -1."></value>
+            </table>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="regression" doc="regression attributes">
+        <tables>
+            <table labels="j2p_notrev" name="regression_parms" doc="system mode SoC property">
+                <value name="system_mode_name" type="char *" doc="The system mode name"></value>
+            </table>
+        </tables>
+    </sub_module>
+</device_data>

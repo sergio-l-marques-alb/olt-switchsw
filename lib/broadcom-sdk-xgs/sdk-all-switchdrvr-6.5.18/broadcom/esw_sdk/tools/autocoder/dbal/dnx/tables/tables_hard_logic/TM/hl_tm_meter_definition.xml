@@ -1,0 +1,2954 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+ 
+    <AppDB Name="METER_ING_DATABASE_MEMORY_MAP"> 
+        <OneLineDescription>The following table maps for each ingress database consecutive banks</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field MaxValue="2" Name="DATABASE_ID" Size="2" Type="UINT"/>
+                <Field MaxValue="DNX_DATA.crps.engine.nof_big_engines*2-1" Name="INDEX" Size="DNX_DATA.meter.mem_mgmt.bank_id_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field MaxValue="DNX_DATA.crps.engine.nof_big_engines*2-1" Name="BANK_ID" Size="DNX_DATA.meter.mem_mgmt.bank_id_size" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="BANK_ID">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_ADDR_MAPr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="ING_ENG_N_ADDR_MAPf"/>
+                            <DataOffset Formula="#KEY_VALUE(INDEX)*dnx_data_meter.mem_mgmt.bank_id_size_get(unit)"/>
+                        </Register>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="METER_EGR_DATABASE_MEMORY_MAP"> 
+        <OneLineDescription>The following table maps for each egress database consecutive banks</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="DATABASE_ID" Size="1" Type="UINT"/>
+                <Field MaxValue="DNX_DATA.crps.engine.nof_big_engines*2-1" Name="INDEX" Size="DNX_DATA.meter.mem_mgmt.bank_id_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field MaxValue="DNX_DATA.crps.engine.nof_big_engines*2-1" Name="BANK_ID" Size="DNX_DATA.meter.mem_mgmt.bank_id_size" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="BANK_ID">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_ADDR_MAPr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="EGR_ENG_N_ADDR_MAPf"/>
+                            <DataOffset Formula="#KEY_VALUE(INDEX)*dnx_data_meter.mem_mgmt.bank_id_size_get(unit)"/>
+                        </Register>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+         
+    <AppDB Name="METER_ING_PTR_MAP"> 
+        <OneLineDescription>The following table maps from ingress object stat id into specific entry in the meter memory space.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field MaxValue="2" Name="DATABASE_ID" Size="2" Type="UINT"/>
+                <Field Name="INDEX" Size="DNX_DATA.meter.mem_mgmt.meter_pointer_map_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DATA" Size="DNX_DATA.meter.mem_mgmt.meter_pointer_map_size" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="DATA">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PTR_MAPm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(INDEX)"/>
+                            <HwField Name="METER_BANKf"/>
+                        </Memory>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+    
+    <AppDB Name="METER_EGR_PTR_MAP"> 
+        <OneLineDescription>The following table maps from egress object stat id into specific entry in the meter memory space.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="DATABASE_ID" Size="1" Type="UINT"/>
+                <Field Name="INDEX" Size="DNX_DATA.meter.mem_mgmt.meter_pointer_map_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="DATA" Size="DNX_DATA.meter.mem_mgmt.meter_pointer_map_size" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="DATA">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PTR_MAPm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(INDEX)"/>
+                            <HwField Name="METER_BANKf"/>
+                        </Memory>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+    
+    <AppDB Name="METER_PROFILE_SET_FOR_SMALL_ENGINE"> 
+        <OneLineDescription>The following table maps each policer_id into its profile it is made for the small engines DB (DB_A)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="IS_EGRESS" Type="BOOL"/>
+                <Field Name="METER_ID" Size="13" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="PROFILE_ID" Size="10" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="PROFILE_ID">
+                    <Access>
+                        <Memory Name="MCP_ENG_DB_A_EXT_MEMm">
+                            <ArrayOffset Formula="#KEY_VALUE(IS_EGRESS)"/>
+                            <EntryOffset Formula="#KEY_VALUE(METER_ID)/4"/>                        
+                            <HwField Name="ENG_DB_EXT_DATAf"/>                         
+                            <DataOffset Formula="#KEY_VALUE(METER_ID)%4*10"/>
+                        </Memory>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="METER_GLOBAL_SHARING_FLAG_SMALL_ENGINES">
+        <OneLineDescription>The following table defines the coupling flags for each 4 meters group. it is made in the small engines DB (DB_A)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="IS_EGRESS" Type="BOOL"/>
+                <Field Name="INDEX" Size="11" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="GLOBAL_SHARING_FLAG" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="GLOBAL_SHARING_FLAG">
+                    <Access>
+                        <Memory Name="MCP_ENG_DB_A_EXT_MEMm">
+                            <ArrayOffset Formula="#KEY_VALUE(IS_EGRESS)"/>
+                            <EntryOffset Formula="#KEY_VALUE(INDEX)"/>
+                            <HwField Name="ENG_DB_EXT_DATAf"/>                         
+                            <DataOffset Formula="40"/>
+                        </Memory>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="METER_PROFILE_SET_FOR_BIG_ENGINE"> 
+        <OneLineDescription>The following table maps each policer_id into its profile it is made for the big engines DB (DB_C)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field MaxValue="DNX_DATA.crps.engine.nof_big_engines*2-1" Name="BANK_ID" Size="DNX_DATA.meter.mem_mgmt.bank_id_size" Type="UINT"/>
+                <Field Name="METER_ID" Size="14" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="PROFILE_ID" Size="10" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="PROFILE_ID">
+                    <Access>
+                        <Memory Name="MCP_ENG_DB_C_EXT_MEMm">
+                            <ArrayOffset Formula="#KEY_VALUE(BANK_ID)"/>                        
+                            <EntryOffset Formula="#KEY_VALUE(METER_ID)/4"/>                        
+                            <HwField Name="ENG_DB_EXT_DATAf"/>                         
+                            <DataOffset Formula="#KEY_VALUE(METER_ID)%4*10"/>
+                        </Memory>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="METER_GLOBAL_SHARING_FLAG_BIG_ENGINES">
+        <OneLineDescription>The following table defines the coupling flags for each 4 meters group. it is made in the small engines DB (DB_C)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field MaxValue="DNX_DATA.crps.engine.nof_big_engines*2-1" Name="BANK_ID" Size="DNX_DATA.meter.mem_mgmt.bank_id_size" Type="UINT"/>                
+                <Field Name="INDEX" Size="12" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="GLOBAL_SHARING_FLAG" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="GLOBAL_SHARING_FLAG">
+                    <Access>
+                        <Memory Name="MCP_ENG_DB_C_EXT_MEMm">
+                            <ArrayOffset Formula="#KEY_VALUE(BANK_ID)"/>                                                
+                            <EntryOffset Formula="#KEY_VALUE(INDEX)"/>
+                            <HwField Name="ENG_DB_EXT_DATAf"/>                         
+                            <DataOffset Formula="40"/>
+                        </Memory>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="METER_ING_GENERAL_SETTINGS"> 
+        <OneLineDescription>The following table holds ingress meter general settings.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="HIERARCHICAL_MODE" Type="BOOL"/>
+                <Field Name="RESOLVE_TABLE_MODE_SELECT_PROFILE" Type="BOOL"/> <!-- select to pass into the table the DP-CMD (0) or the Meter-Profile(1) -->
+                <Field Name="GLOBAL_CTR_MODE" Type="BOOL"/> <!-- zero for count packets, one for bytes -->
+                <Field Name="MEF_10_DOT_3_ENABLE" Type="BOOL"/>
+                <Field Name="IRPP_DELTA_NEGATE" Type="BOOL"/>
+                <Field Name="TRUNCATE_SIZE_NEGATE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="HIERARCHICAL_MODE">
+                    <Access>
+                        <Register Name="MRPS_ING_GENERAL_SETTINGSr">
+                            <HwField Name="ING_HIERARCHICAL_MODEf"/>
+                        </Register>
+                    </Access>           
+                </Field> 
+                <Field Name="RESOLVE_TABLE_MODE_SELECT_PROFILE">
+                    <Access>
+                        <Register Name="MRPS_ING_GENERAL_SETTINGSr">
+                            <HwField Name="ING_COLOR_RSLV_MODEf"/>
+                        </Register>
+                    </Access>           
+                </Field>              
+                <Field Name="GLOBAL_CTR_MODE">
+                    <Access>
+                        <Register Name="MRPS_ING_GENERAL_SETTINGSr">
+                            <HwField Name="ING_GLBL_ENG_CTR_MODEf"/>
+                        </Register>
+                    </Access>           
+                </Field> 
+                <Field Device="JR2_A0 J2P_A0" Name="MEF_10_DOT_3_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_ING_GENERAL_SETTINGSr">
+                            <HwField Name="AUTO_DOC_NAME_3f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Device="Q2A_A0 Q2A_B0" Name="MEF_10_DOT_3_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_ING_GENERAL_SETTINGSr">
+                            <HwField Name="AUTO_DOC_NAME_2f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Device="JR2_B0 J2C_A0" Name="MEF_10_DOT_3_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_ING_GENERAL_SETTINGSr">
+                            <HwField Name="FIELD_6_6f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Device="JR2_A0 J2P_A0" Name="IRPP_DELTA_NEGATE">
+                    <Access>
+                        <Register Name="MRPS_ING_GENERAL_SETTINGSr">
+                            <HwField Name="AUTO_DOC_NAME_1f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Device="Q2A_A0 Q2A_B0" Name="IRPP_DELTA_NEGATE">
+                    <Access>
+                        <Register Name="MRPS_ING_GENERAL_SETTINGSr">
+                            <HwField Name="AUTO_DOC_NAME_0f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Device="JR2_B0 J2C_A0" Name="IRPP_DELTA_NEGATE">
+                    <Access>
+                        <Register Name="MRPS_ING_GENERAL_SETTINGSr">
+                            <HwField Name="FIELD_4_4f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Device="JR2_A0 J2P_A0" Name="TRUNCATE_SIZE_NEGATE">
+                    <Access>
+                        <Register Name="MRPS_ING_GENERAL_SETTINGSr">
+                            <HwField Name="AUTO_DOC_NAME_2f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                 <Field Device="Q2A_A0 Q2A_B0" Name="TRUNCATE_SIZE_NEGATE">
+                    <Access>
+                        <Register Name="MRPS_ING_GENERAL_SETTINGSr">
+                            <HwField Name="AUTO_DOC_NAME_1f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Device="JR2_B0 J2C_A0" Name="TRUNCATE_SIZE_NEGATE">
+                    <Access>
+                        <Register Name="MRPS_ING_GENERAL_SETTINGSr">
+                            <HwField Name="FIELD_5_5f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="METER_EGR_GENERAL_SETTINGS"> 
+        <OneLineDescription>The following table holds egress meter general settings.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="HIERARCHICAL_MODE" Type="BOOL"/>
+                <Field Name="RESOLVE_TABLE_MODE_SELECT_PROFILE" Type="BOOL"/> <!-- select to pass into the table the DP-CMD (0) or the Meter-Profile(1) -->
+                <Field Name="MEF_10_DOT_3_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="HIERARCHICAL_MODE">
+                    <Access>
+                        <Register Name="MRPS_EGR_GENERAL_SETTINGSr">
+                            <HwField Name="EGR_HIERARCHICAL_MODEf"/>
+                        </Register>
+                    </Access>           
+                </Field> 
+                <Field Name="RESOLVE_TABLE_MODE_SELECT_PROFILE">
+                    <Access>
+                        <Register Name="MRPS_EGR_GENERAL_SETTINGSr">
+                            <HwField Name="EGR_COLOR_RSLV_MODEf"/>
+                        </Register>
+                    </Access>           
+                </Field> 
+                <Field Device="JR2_A0 J2P_A0" Name="MEF_10_DOT_3_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_EGR_GENERAL_SETTINGSr">
+                            <HwField Name="AUTO_DOC_NAME_4f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Device="Q2A_A0 Q2A_B0" Name="MEF_10_DOT_3_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_EGR_GENERAL_SETTINGSr">
+                            <HwField Name="AUTO_DOC_NAME_3f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Device="JR2_B0 J2C_A0" Name="MEF_10_DOT_3_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_EGR_GENERAL_SETTINGSr">
+                            <HwField Name="FIELD_3_3f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="METER_FWD_TYPE_GROUP_MAP"> 
+        <OneLineDescription>The following table map the ingress fwd type into expansion groups (offset)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="FWD_TYPE" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="OFFSET" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="OFFSET">
+                    <Access>
+                        <Register Name="MRPS_ING_GLBL_PTR_MAPr">
+                            <HwField Name="ING_GLBL_PTR_MAPf"/>
+                            <DataOffset Formula="#KEY_VALUE(FWD_TYPE)*3"/>
+                        </Register>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="METER_ING_STAT"> 
+        <OneLineDescription>The following table define the settings of the ingress debug counters</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="METER_POINTER_START" Size="DNX_DATA.meter.mem_mgmt.meter_pointer_size" Type="UINT"/>
+                <Field Name="METER_POINTER_END" Size="DNX_DATA.meter.mem_mgmt.meter_pointer_size" Type="UINT"/>
+                <Field Name="COUNT_PACKETS" Type="BOOL"/> <!-- if false, count bytes -->
+                <Field MaxValue="3" Name="DATABASE_ID" Size="2" Type="UINT"/>
+                <Field Name="CIR_TOKEN_COUNTER" Permission="READONLY" Size="48" Type="ARRAY32"/>
+                <Field Name="EIR_TOKEN_COUNTER" Permission="READONLY" Size="48" Type="ARRAY32"/>
+                <Field Name="RED_TOKEN_COUNTER" Permission="READONLY" Size="48" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="METER_POINTER_START">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_STAT_SETTINGSr">
+                            <HwField Name="ING_ENG_STAT_CFG_INDEXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="METER_POINTER_END">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_STAT_SETTINGSr">
+                            <HwField Name="ING_ENG_STAT_CFG_INDEX_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COUNT_PACKETS">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_STAT_SETTINGSr">
+                            <HwField Name="ING_ENG_STAT_CFG_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DATABASE_ID">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_STAT_SETTINGSr">
+                            <HwField Name="ING_ENG_STAT_CFG_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="CIR_TOKEN_COUNTER">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_STAT_CTRr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ING_ENG_STAT_CTR_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0 J2C_A0" Name="CIR_TOKEN_COUNTER">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_STAT_CTRr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ING_ENG_STAT_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="EIR_TOKEN_COUNTER">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_STAT_CTRr">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="ING_ENG_STAT_CTR_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0 J2C_A0" Name="EIR_TOKEN_COUNTER">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_STAT_CTRr">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="ING_ENG_STAT_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="RED_TOKEN_COUNTER">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_STAT_CTRr">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="ING_ENG_STAT_CTR_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0 J2C_A0" Name="RED_TOKEN_COUNTER">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_STAT_CTRr">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="ING_ENG_STAT_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="METER_EGR_STAT"> 
+        <OneLineDescription>The following table define the settings of the egress debug counters</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="METER_POINTER_START" Size="DNX_DATA.meter.mem_mgmt.meter_pointer_size" Type="UINT"/>
+                <Field Name="METER_POINTER_END" Size="DNX_DATA.meter.mem_mgmt.meter_pointer_size" Type="UINT"/>
+                <Field Name="COUNT_PACKETS" Type="BOOL"/> <!-- if false, count bytes -->
+                <Field Name="DATABASE_ID" Size="1" Type="UINT"/>
+                <Field Name="CIR_TOKEN_COUNTER" Permission="READONLY" Size="48" Type="ARRAY32"/>
+                <Field Name="EIR_TOKEN_COUNTER" Permission="READONLY" Size="48" Type="ARRAY32"/>
+                <Field Name="RED_TOKEN_COUNTER" Permission="READONLY" Size="48" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="METER_POINTER_START">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_STAT_SETTINGSr">
+                            <HwField Name="EGR_ENG_STAT_CFG_INDEXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="METER_POINTER_END">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_STAT_SETTINGSr">
+                            <HwField Name="EGR_ENG_STAT_CFG_INDEX_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COUNT_PACKETS">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_STAT_SETTINGSr">
+                            <HwField Name="EGR_ENG_STAT_CFG_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DATABASE_ID">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_STAT_SETTINGSr">
+                            <HwField Name="EGR_ENG_STAT_CFG_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>        
+                <Field Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="CIR_TOKEN_COUNTER">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_STAT_CTRr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="EGR_ENG_STAT_CTR_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0 J2C_A0" Name="CIR_TOKEN_COUNTER">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_STAT_CTRr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="EGR_ENG_STAT_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="EIR_TOKEN_COUNTER">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_STAT_CTRr">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="EGR_ENG_STAT_CTR_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0 J2C_A0" Name="EIR_TOKEN_COUNTER">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_STAT_CTRr">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="EGR_ENG_STAT_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="RED_TOKEN_COUNTER">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_STAT_CTRr">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="EGR_ENG_STAT_CTR_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0 J2C_A0" Name="RED_TOKEN_COUNTER">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_STAT_CTRr">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="EGR_ENG_STAT_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="METER_GLOBAL_GENERAL_CONFIG"> 
+        <OneLineDescription>The following table holds global meter general configuration.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="SOFT_INIT" Type="BOOL"/> <!-- if set, meter goes into soft init -->
+                <Field Name="ENABLE" Type="BOOL"/> 
+                <Field Name="FWD_TYPE_FILTER_BITMAP" Size="8" Type="UINT"/> 
+                <Field Name="DP_CMD_FILTER_BITMAP" Size="16" Type="UINT"/> 
+                <Field Name="RANDOM_MODE_ENABLE" Type="BOOL"/>
+                <Field Name="CBL_RANDOM_RANGE" Size="2" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SOFT_INIT">
+                    <Access>
+                        <Register Name="MRPS_ING_GLBL_ENG_GLOBAL_SETTINGSr">
+                            <HwField Name="ING_GLBL_ENG_INITf"/>
+                        </Register>
+                    </Access>           
+                </Field> 
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="MRPS_ING_GLBL_ENG_GLOBAL_SETTINGSr">
+                            <HwField Name="ING_GLBL_ENG_ENABLEf"/>
+                        </Register>
+                    </Access>           
+                </Field> 
+                <Field Name="FWD_TYPE_FILTER_BITMAP">
+                    <Access>
+                        <Register Name="MRPS_ING_GLBL_ENG_FILTERr">
+                            <HwField Name="ING_GLBL_ENG_GLBL_PTR_FILTERf"/>
+                        </Register>
+                    </Access>           
+                </Field>    
+                <Field Name="DP_CMD_FILTER_BITMAP">
+                    <Access>
+                        <Register Name="MRPS_ING_GLBL_ENG_FILTERr">
+                            <HwField Name="ING_GLBL_ENG_DP_CMD_FILTERf"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Name="RANDOM_MODE_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_ING_GLBL_ENG_RND_SETTINGSr">
+                            <HwField Name="ING_GLBL_ENG_CBL_RND_MODE_ENf"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Name="CBL_RANDOM_RANGE">
+                    <Access>
+                        <Register Name="MRPS_ING_GLBL_ENG_RND_SETTINGSr">
+                            <HwField Name="ING_GLBL_ENG_RND_RANGEf"/>
+                        </Register>
+                    </Access>           
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="METER_INGRESS_DB_GENERAL_CONFIG"> 
+        <OneLineDescription>The following table holds the configuration per ingress meter database.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field MaxValue="2" Name="DATABASE_ID" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field MaxValue="(DNX_DATA.crps.engine.nof_big_engines*16384/DNX_DATA.meter.mem_mgmt.adrress_range_resolution)" Name="NOF_METERS" Size="#log2_round_up(DNX_DATA.crps.engine.nof_big_engines*16384/DNX_DATA.meter.mem_mgmt.adrress_range_resolution)" Type="UINT"/>    <!-- used in 8K resolutions. possible values: 1,2,4,6,8,10...24 (1=8K meters in HW DB_A, 2=16K/4=32K/.. meters in DB_C) -->
+                <Field Name="MEMORY_BANKS_MAPPING_ENABLE" Type="BOOL"/>
+                <Field Name="SOFT_INIT" Type="BOOL"/> <!-- if set, meter goes into soft init -->
+                <Field Name="ENABLE" Type="BOOL"/>
+                <Field Name="SINGLE_RATE_ENABLE" Type="BOOL"/> 
+                <Field Name="FWD_TYPE_FILTER_BITMAP" Size="8" Type="UINT"/> 
+                <Field Name="DP_CMD_FILTER_BITMAP" Size="16" Type="UINT"/>  
+                <Field MaxValue="DNX_DATA.meter.expansion.max_size" Name="EXPANSION_SIZE" Size="#log2_round_up(DNX_DATA.meter.expansion.max_size+1)" Type="UINT"/> <!-- 0=No_expansion, 1=exp_2, 2=exp_3, 3=exp_4, 4=exp_5 -->
+                <Field Description="If set, expantion is done based on global-engine pointer. Else, based on traffic-class" Name="EXPANSION_IS_GLBL_POINTER" Type="BOOL" Valid="DNX_DATA.meter.expansion.expansion_based_on_tc_support"/>
+                <Field Name="CBL_RANDOM_MODE_ENABLE" Type="BOOL"/>
+                <Field Name="EBL_RANDOM_MODE_ENABLE" Type="BOOL"/>
+                <Field Name="RANDOM_RANGE" Size="2" Type="UINT"/>
+                <Field Name="METER_REFRESH_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>      
+                <Field Name="NOF_METERS">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_ADDR_RANGEr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="ING_ENG_N_ADDR_RANGEf"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="MEMORY_BANKS_MAPPING_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_ADDR_MAPr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="ING_ENG_N_ADDR_MAP_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>        
+                <Field Name="SOFT_INIT">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_GLOBAL_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="ING_ENG_N_INITf"/>
+                        </Register>
+                    </Access>           
+                </Field> 
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_GLOBAL_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="ING_ENG_N_ENABLEf"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="SINGLE_RATE_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_GLOBAL_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="AUTO_DOC_NAME_8f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Device="JR2_B0 J2C_A0" Name="SINGLE_RATE_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_GLOBAL_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="FIELD_17_17f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Name="FWD_TYPE_FILTER_BITMAP">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_FILTERr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="ING_ENG_N_GLBL_PTR_FILTERf"/>
+                        </Register>
+                    </Access>           
+                </Field>    
+                <Field Name="DP_CMD_FILTER_BITMAP">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_FILTERr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="ING_ENG_N_DP_CMD_FILTERf"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="EXPANSION_SIZE">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_GLBL_PTR_EXP_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="ING_ENG_N_GLBL_PTR_EXP_SIZEf"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="EXPANSION_SIZE">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_EXP_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="ING_ENG_N_EXP_SIZEf"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="EXPANSION_IS_GLBL_POINTER">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_EXP_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="ING_ENG_N_EXP_IS_GLBL_PTRf"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Name="CBL_RANDOM_MODE_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_RND_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="ING_ENG_N_CBL_RND_MODE_ENf"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Name="EBL_RANDOM_MODE_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_RND_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="ING_ENG_N_EBL_RND_MODE_ENf"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Name="RANDOM_RANGE">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_RND_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="ING_ENG_N_RND_RANGEf"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="METER_REFRESH_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_GLOBAL_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="AUTO_DOC_NAME_6f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Device="JR2_B0 J2C_A0" Name="METER_REFRESH_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_ING_ENG_GLOBAL_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="FIELD_3_3f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+    
+    <AppDB Name="METER_EGRESS_DB_GENERAL_CONFIG"> 
+        <OneLineDescription>The following table holds the configuration per egress meter database.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="DATABASE_ID" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field MaxValue="24" Name="NOF_METERS" Size="5" Type="UINT"/>   <!-- used in 8K resolutions. possible values: 1,2,4,6,8,10...24 (1=8K meters in HW DB_A, 2=16K/4=32K/.. meters in DB_C) -->            
+                <Field Name="MEMORY_BANKS_MAPPING_ENABLE" Type="BOOL"/>
+                <Field Name="SOFT_INIT" Type="BOOL"/> <!-- if set, meter goes into soft init -->
+                <Field Name="ENABLE" Type="BOOL"/> 
+                <Field Name="SINGLE_RATE_ENABLE" Type="BOOL"/>
+                <Field Name="DP_CMD_FILTER_BITMAP" Size="16" Type="UINT"/> 
+                <Field Name="CBL_RANDOM_MODE_ENABLE" Type="BOOL"/>
+                <Field Name="EBL_RANDOM_MODE_ENABLE" Type="BOOL"/>
+                <Field Name="RANDOM_RANGE" Size="2" Type="UINT"/>
+                <Field Name="METER_REFRESH_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>        
+
+                <Field Name="NOF_METERS">     
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_ADDR_RANGEr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="EGR_ENG_N_ADDR_RANGEf"/>
+                        </Register>
+                    </Access>
+                </Field>             
+                <Field Name="MEMORY_BANKS_MAPPING_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_ADDR_MAPr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="EGR_ENG_N_ADDR_MAP_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SOFT_INIT">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_GLOBAL_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="EGR_ENG_N_INITf"/>
+                        </Register>
+                    </Access>           
+                </Field> 
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_GLOBAL_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="EGR_ENG_N_ENABLEf"/>
+                        </Register>
+                    </Access>           
+                </Field> 
+                <Field Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="SINGLE_RATE_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_GLOBAL_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="AUTO_DOC_NAME_12f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Device="JR2_B0 J2C_A0" Name="SINGLE_RATE_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_GLOBAL_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="FIELD_17_17f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Name="DP_CMD_FILTER_BITMAP">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_FILTERr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="EGR_ENG_N_DP_CMD_FILTERf"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Name="CBL_RANDOM_MODE_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_RND_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="EGR_ENG_N_CBL_RND_MODE_ENf"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Name="EBL_RANDOM_MODE_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_RND_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="EGR_ENG_N_EBL_RND_MODE_ENf"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Name="RANDOM_RANGE">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_RND_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="EGR_ENG_N_RND_RANGEf"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="METER_REFRESH_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_GLOBAL_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="AUTO_DOC_NAME_10f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+                <Field Device="JR2_B0 J2C_A0" Name="METER_REFRESH_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_EGR_ENG_GLOBAL_SETTINGSr">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <HwField Name="FIELD_3_3f"/>
+                        </Register>
+                    </Access>           
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>     
+
+    <AppDB Name="METER_GLOBAL_PROFILE_CONFIG"> 
+        <OneLineDescription>The following table holds global meter profile configuration.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="PROFILE_INDEX" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="COLOR_AWARE" Type="BOOL"/>
+                <Field Name="PACKET_MODE" Type="BOOL"/>
+                <Field Name="COUPLING_FLAG" Type="BOOL"/>
+                <Field Name="SHARING_FLAG" Type="BOOL"/>
+                <Field Name="CIR_RESET" Type="BOOL"/>
+                <Field Name="CBS_MANT" Size="7" Type="UINT"/>
+                <Field Name="CBS_EXP" Size="4" Type="UINT"/>
+                <Field Name="CIR_MANT" Size="DNX_DATA.meter.profile.ir_mant_nof_bits" Type="UINT"/>
+                <Field Name="CIR_MANY_EXP" Size="3" Type="UINT"/>
+                <Field Name="MAX_CIR_MANT" Size="DNX_DATA.meter.profile.ir_mant_nof_bits" Type="UINT"/>
+                <Field Name="MAX_CIR_MANT_EXP" Size="3" Type="UINT"/>
+                <Field Name="CIR_REV_EXP" Size="5" Type="UINT"/>
+                <Field Name="COLOR_RSLV_PROFILE" Size="1" Type="UINT"/>
+                <Field Name="HEADER_COMPENSATION_PROFILE" Size="3" Type="UINT"/> 
+                <Field Name="HEADER_COMPENSATION_TRUNCATE_ENABLE" Type="BOOL"/>
+                <Field Name="HEADER_COMPENSATION_IRPP_HDR_ENABLE" Type="BOOL"/>
+                <Field Name="HEADER_COMPENSATION_IN_PORT_ENABLE" Type="BOOL"/>                          
+                <Field Name="BUCKET_LEVEL_RESOLUTION" Size="1" Type="UINT"/> <!-- 0 - regular, 1- low res (big buckets) -->
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="COLOR_AWARE" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="COLOR_AWAREf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="COLOR_AWARE" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="COLOR_AWAREf"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="PACKET_MODE" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="PACKET_MODEf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="PACKET_MODE" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="PACKET_MODEf"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="COUPLING_FLAG" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="COUPLING_FLAGf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="COUPLING_FLAG" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="COUPLING_FLAGf"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="SHARING_FLAG" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="SHARING_FLAGf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="SHARING_FLAG" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="SHARING_FLAGf"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="CIR_RESET" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_RESETf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CIR_RESET" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_RESETf"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="CBS_MANT" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CBS_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CBS_MANT" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CBS_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="CBS_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CBS_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CBS_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CBS_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="CIR_MANT" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CIR_MANT" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="CIR_MANY_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CIR_MANY_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="MAX_CIR_MANT" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_CIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="MAX_CIR_MANT" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_CIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="MAX_CIR_MANT_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_CIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="MAX_CIR_MANT_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_CIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="CIR_REV_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_REV_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CIR_REV_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_REV_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="COLOR_RSLV_PROFILE" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="COLOR_RSLV_PROFILEf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="COLOR_RSLV_PROFILE" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="COLOR_RSLV_PROFILEf"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="HEADER_COMPENSATION_PROFILE" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="HEADER_COMPENSATION_PROFILEf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="HEADER_COMPENSATION_PROFILE" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="HEADER_COMPENSATION_PROFILEf"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="HEADER_COMPENSATION_TRUNCATE_ENABLE" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="HEADER_COMPENSATION_MASKf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="HEADER_COMPENSATION_TRUNCATE_ENABLE" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="HEADER_COMPENSATION_MASKf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="HEADER_COMPENSATION_IRPP_HDR_ENABLE" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="HEADER_COMPENSATION_MASKf"/>
+                            <DataOffset Formula="1"/>
+                        </Memory>
+                    </Access>           
+                </Field> 
+                <Field Name="HEADER_COMPENSATION_IRPP_HDR_ENABLE" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="HEADER_COMPENSATION_MASKf"/>
+                            <DataOffset Formula="1"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="HEADER_COMPENSATION_IN_PORT_ENABLE" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="HEADER_COMPENSATION_MASKf"/>
+                            <DataOffset Formula="2"/>
+                        </Memory>
+                    </Access>           
+                </Field>   
+                <Field Name="HEADER_COMPENSATION_IN_PORT_ENABLE" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="HEADER_COMPENSATION_MASKf"/>
+                            <DataOffset Formula="2"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="BUCKET_LEVEL_RESOLUTION" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="0"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="BUCKET_LEVEL_RESOLUTIONf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="BUCKET_LEVEL_RESOLUTION" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PRFCFGm">
+                            <ArrayOffset Formula="1"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="BUCKET_LEVEL_RESOLUTIONf"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="METER_ING_PROFILE_CONFIG"> 
+        <OneLineDescription>The following table holds ingress meter profile configuration.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field MaxValue="2" Name="DATABASE_ID" Size="2" Type="UINT"/>
+                <Field Name="PROFILE_INDEX" Size="10" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="COLOR_AWARE" Type="BOOL"/>
+                <Field Name="PACKET_MODE" Type="BOOL"/>
+                <Field Name="COUPLING_FLAG" Type="BOOL"/>
+                <Field Name="SHARING_FLAG" Type="BOOL"/>
+                <Field Name="CIR_RESET" Type="BOOL"/>
+                <Field Name="EIR_RESET" Type="BOOL"/>
+                <Field Name="CBS_MANT" Size="7" Type="UINT"/>
+                <Field Name="CBS_EXP" Size="4" Type="UINT"/>
+                <Field Name="EBS_MANT" Size="7" Type="UINT"/>
+                <Field Name="EBS_EXP" Size="4" Type="UINT"/>
+                <Field Name="CIR_MANT" Size="DNX_DATA.meter.profile.ir_mant_nof_bits" Type="UINT"/>
+                <Field Name="EIR_MANT" Size="DNX_DATA.meter.profile.ir_mant_nof_bits" Type="UINT"/>
+                <Field Name="CIR_MANT_EXP" Size="3" Type="UINT"/>
+                <Field Name="EIR_MANT_EXP" Size="3" Type="UINT"/>
+                <Field Name="MAX_EIR_MANT" Size="DNX_DATA.meter.profile.ir_mant_nof_bits" Type="UINT"/>
+                <Field Name="MAX_EIR_MANT_EXP" Size="3" Type="UINT"/>
+                <Field Name="MAX_CIR_MANT" Size="DNX_DATA.meter.profile.ir_mant_nof_bits" Type="UINT"/>
+                <Field Name="MAX_CIR_MANT_EXP" Size="3" Type="UINT"/>
+                <Field Name="CIR_REV_EXP" Size="5" Type="UINT"/>
+                <Field Name="EIR_REV_EXP" Size="5" Type="UINT"/>
+                <Field Name="COLOR_RSLV_PROFILE" Size="1" Type="UINT"/>
+                <Field Name="HEADER_COMPENSATION_PROFILE" Size="3" Type="UINT"/> 
+                <Field Name="HEADER_COMPENSATION_TRUNCATE_ENABLE" Type="BOOL"/> <!-- [0] -> header_truncate, [1] -> header_delta, [2] -> in_pp_port_and_mtr_prf_map,[3] -> header_append_size_ptr -->
+                <Field Name="HEADER_COMPENSATION_IRPP_HDR_ENABLE" Type="BOOL"/>
+                <Field Name="HEADER_COMPENSATION_IN_PORT_ENABLE" Type="BOOL"/>   
+                <Field Name="BUCKET_LEVEL_RESOLUTION" Size="1" Type="UINT"/> <!-- 0 - regular, 1- low res (big buckets) -->
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="COLOR_AWARE" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="COLOR_AWAREf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="COLOR_AWARE" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="COLOR_AWAREf"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="PACKET_MODE" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="PACKET_MODEf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="PACKET_MODE" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="PACKET_MODEf"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="COUPLING_FLAG" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="COUPLING_FLAGf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="COUPLING_FLAG" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="COUPLING_FLAGf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="SHARING_FLAG" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="SHARING_FLAGf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="SHARING_FLAG" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="SHARING_FLAGf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CIR_RESET" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_RESETf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CIR_RESET" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_RESETf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EIR_RESET" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EIR_RESETf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EIR_RESET" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EIR_RESETf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CBS_MANT" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CBS_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CBS_MANT" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CBS_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CBS_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CBS_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CBS_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CBS_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EBS_MANT" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EBS_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EBS_MANT" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EBS_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EBS_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EBS_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EBS_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EBS_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CIR_MANT" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CIR_MANT" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EIR_MANT" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EIR_MANT" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CIR_MANT_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CIR_MANT_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+              <Field Name="EIR_MANT_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+              <Field Name="EIR_MANT_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="MAX_EIR_MANT" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_EIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="MAX_EIR_MANT" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_EIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="MAX_EIR_MANT_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_EIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="MAX_EIR_MANT_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_EIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="MAX_CIR_MANT" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_CIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="MAX_CIR_MANT" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_CIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="MAX_CIR_MANT_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_CIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="MAX_CIR_MANT_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_CIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CIR_REV_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_REV_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CIR_REV_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_REV_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EIR_REV_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EIR_REV_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EIR_REV_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EIR_REV_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="COLOR_RSLV_PROFILE" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="COLOR_RSLV_PROFILEf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="COLOR_RSLV_PROFILE" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="COLOR_RSLV_PROFILEf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="HEADER_COMPENSATION_PROFILE" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="HEADER_COMPENSATION_PROFILEf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="HEADER_COMPENSATION_PROFILE" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="HEADER_COMPENSATION_PROFILEf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="HEADER_COMPENSATION_TRUNCATE_ENABLE" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="HEADER_COMPENSATION_MASKf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="HEADER_COMPENSATION_TRUNCATE_ENABLE" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="HEADER_COMPENSATION_MASKf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="HEADER_COMPENSATION_IRPP_HDR_ENABLE" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>                        
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="HEADER_COMPENSATION_MASKf"/>
+                            <DataOffset Formula="1"/>
+                        </Memory>
+                    </Access>           
+                </Field> 
+                <Field Name="HEADER_COMPENSATION_IRPP_HDR_ENABLE" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>                        
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="HEADER_COMPENSATION_MASKf"/>
+                            <DataOffset Formula="1"/>
+                        </Memory>
+                    </Access>           
+                </Field> 
+                <Field Name="HEADER_COMPENSATION_IN_PORT_ENABLE" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>                        
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="HEADER_COMPENSATION_MASKf"/>
+                            <DataOffset Formula="2"/>
+                        </Memory>
+                    </Access>           
+                </Field>    
+                <Field Name="HEADER_COMPENSATION_IN_PORT_ENABLE" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>                        
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="HEADER_COMPENSATION_MASKf"/>
+                            <DataOffset Formula="2"/>
+                        </Memory>
+                    </Access>           
+                </Field>   
+                <Field Name="BUCKET_LEVEL_RESOLUTION" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="BUCKET_LEVEL_RESOLUTIONf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="BUCKET_LEVEL_RESOLUTION" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+3"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="BUCKET_LEVEL_RESOLUTIONf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="METER_EGR_PROFILE_CONFIG"> 
+        <OneLineDescription>The following table holds egress meter profile configuration.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="DATABASE_ID" Size="1" Type="UINT"/>
+                <Field Name="PROFILE_INDEX" Size="10" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="COLOR_AWARE" Type="BOOL"/>
+                <Field Name="PACKET_MODE" Type="BOOL"/>
+                <Field Name="COUPLING_FLAG" Type="BOOL"/>
+                <Field Name="SHARING_FLAG" Type="BOOL"/>
+                <Field Name="CIR_RESET" Type="BOOL"/>
+                <Field Name="EIR_RESET" Type="BOOL"/>
+                <Field Name="CBS_MANT" Size="7" Type="UINT"/>
+                <Field Name="CBS_EXP" Size="4" Type="UINT"/>
+                <Field Name="EBS_MANT" Size="7" Type="UINT"/>
+                <Field Name="EBS_EXP" Size="4" Type="UINT"/>
+                <Field Name="CIR_MANT" Size="DNX_DATA.meter.profile.ir_mant_nof_bits" Type="UINT"/>
+                <Field Name="EIR_MANT" Size="DNX_DATA.meter.profile.ir_mant_nof_bits" Type="UINT"/>
+                <Field Name="CIR_MANT_EXP" Size="3" Type="UINT"/>
+                <Field Name="EIR_MANT_EXP" Size="3" Type="UINT"/>
+                <Field Name="MAX_EIR_MANT" Size="DNX_DATA.meter.profile.ir_mant_nof_bits" Type="UINT"/>
+                <Field Name="MAX_EIR_MANT_EXP" Size="3" Type="UINT"/>
+                <Field Name="MAX_CIR_MANT" Size="DNX_DATA.meter.profile.ir_mant_nof_bits" Type="UINT"/>
+                <Field Name="MAX_CIR_MANT_EXP" Size="3" Type="UINT"/>
+                <Field Name="CIR_REV_EXP" Size="5" Type="UINT"/>
+                <Field Name="EIR_REV_EXP" Size="5" Type="UINT"/>
+                <Field Name="COLOR_RSLV_PROFILE" Size="1" Type="UINT"/>
+                <Field Name="BUCKET_LEVEL_RESOLUTION" Size="1" Type="UINT"/> <!-- 0 - regular, 1- low res (big buckets) -->
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping >
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="COLOR_AWARE" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="COLOR_AWAREf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="COLOR_AWARE" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="COLOR_AWAREf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="PACKET_MODE" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="PACKET_MODEf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="PACKET_MODE" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="PACKET_MODEf"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="COUPLING_FLAG" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="COUPLING_FLAGf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="COUPLING_FLAG" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="COUPLING_FLAGf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="SHARING_FLAG" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="SHARING_FLAGf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="SHARING_FLAG" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="SHARING_FLAGf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CIR_RESET" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_RESETf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CIR_RESET" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_RESETf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EIR_RESET" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EIR_RESETf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EIR_RESET" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EIR_RESETf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CBS_MANT" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CBS_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CBS_MANT" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CBS_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CBS_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CBS_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CBS_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CBS_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EBS_MANT" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EBS_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EBS_MANT" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EBS_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EBS_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EBS_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EBS_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EBS_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CIR_MANT" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CIR_MANT" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EIR_MANT" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EIR_MANT" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>                
+                <Field Name="CIR_MANT_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CIR_MANT_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EIR_MANT_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EIR_MANT_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="MAX_EIR_MANT" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_EIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="MAX_EIR_MANT" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_EIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="MAX_EIR_MANT_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_EIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="MAX_EIR_MANT_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_EIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="MAX_CIR_MANT" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_CIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="MAX_CIR_MANT" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_CIR_MANTf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="MAX_CIR_MANT_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_CIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="MAX_CIR_MANT_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MAX_CIR_MANT_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CIR_REV_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_REV_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="CIR_REV_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="CIR_REV_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EIR_REV_EXP" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EIR_REV_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="EIR_REV_EXP" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="EIR_REV_EXPf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="COLOR_RSLV_PROFILE" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="COLOR_RSLV_PROFILEf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="COLOR_RSLV_PROFILE" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="COLOR_RSLV_PROFILEf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="BUCKET_LEVEL_RESOLUTION" Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0 JR2_B0 J2C_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="BUCKET_LEVEL_RESOLUTIONf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+                <Field Name="BUCKET_LEVEL_RESOLUTION" Device="J2P_A0">
+                    <Access>
+                        <Memory Name="MRPS_EGR_ENG_PRFCFGm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)+2"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="BUCKET_LEVEL_RESOLUTIONf"/>
+                        </Memory>
+                    </Access>           
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="METER_GLOBAL_COMPENSATION_BY_PORT"> 
+        <OneLineDescription>The following holds pp port compensation profiles for global meter</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="IN_PP_PORT" Type="PP_PORT"/>
+            </Key>
+            <Result>
+                <Field Name="DELTA" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="DELTA">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PP_PORT_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(IN_PP_PORT)"/>                        
+                            <HwField Name="PP_PORT_DELTAf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="METER_ING_COMPENSATION_BY_PORT"> 
+        <OneLineDescription>The following holds pp port compensation profiles for ingress meter</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field MaxValue="2" Name="DATABASE_ID" Size="2" Type="UINT"/>
+                <Field Name="IN_PP_PORT" Type="PP_PORT"/>
+            </Key>
+            <Result>
+                <Field Name="DELTA" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="DELTA">
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PP_PORT_MAPm">
+                            <ArrayOffset Formula="#KEY_VALUE(DATABASE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(IN_PP_PORT)"/>                        
+                            <HwField Name="PP_PORT_DELTAf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="METER_ING_RESOLVE_COLOR_TABLE"> 
+        <OneLineDescription>The following configure the ingress resolved table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="METER_DB_0_STATE" Type="METER_INTERNAL_COLOR_MAPPING"/>  
+                <Field Name="METER_DB_0_OTHER_BUCKET" Type="BOOL"/> 
+                <Field Name="METER_DB_1_STATE" Type="METER_INTERNAL_COLOR_MAPPING"/>
+                <Field Name="METER_DB_1_OTHER_BUCKET" Type="BOOL"/>
+                <Field Name="METER_DB_2_STATE" Type="METER_INTERNAL_COLOR_MAPPING"/>
+                <Field Name="METER_DB_2_OTHER_BUCKET" Type="BOOL"/>
+                <Field Name="ACTION" Size="4" Type="UINT"/> <!-- DATA BIT 0,1,2,3-->
+            </Key>
+            <Result>
+                <Field Name="RESOLVE_DP" Size="2" Type="UINT"/>
+                <Field Name="METER_0_UPDATE_BUCKET" Type="METER_INTERNAL_COLOR_MAPPING"/>
+                <Field Name="METER_1_UPDATE_BUCKET" Type="METER_INTERNAL_COLOR_MAPPING"/>
+                <Field Name="METER_2_UPDATE_BUCKET" Type="METER_INTERNAL_COLOR_MAPPING"/>
+                <Field Name="METER_0_COUNTER_VALID" Type="BOOL"/>
+                <Field Name="METER_1_COUNTER_VALID" Type="BOOL"/>
+                <Field Name="METER_2_COUNTER_VALID" Type="BOOL"/>
+                <Field Name="METER_0_COUNTER_COLOR" Size="2" Type="UINT"/> <!-- this is not METER_INTERNAL_COLOR_MAPPING. it is bcm enum bcm_color_t -->
+                <Field Name="METER_1_COUNTER_COLOR" Size="2" Type="UINT"/> <!-- this is not METER_INTERNAL_COLOR_MAPPING. it is bcm enum bcm_color_t -->
+                <Field Name="METER_2_COUNTER_COLOR" Size="2" Type="UINT"/> <!-- this is not METER_INTERNAL_COLOR_MAPPING. it is bcm enum bcm_color_t -->
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="RESOLVE_DP">
+                    <Access>
+                        <Memory Name="MRPS_ING_RSLV_COLORm">
+                            <HwField Name="RSLV_COLORf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="METER_0_UPDATE_BUCKET">
+                    <Access>
+                        <Memory Name="MRPS_ING_RSLV_COLORm">
+                            <HwField Name="ENG_0_UPDATE_COLORf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="METER_1_UPDATE_BUCKET">
+                    <Access>
+                        <Memory Name="MRPS_ING_RSLV_COLORm">
+                            <HwField Name="ENG_1_UPDATE_COLORf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="METER_2_UPDATE_BUCKET">
+                    <Access>
+                        <Memory Name="MRPS_ING_RSLV_COLORm">
+                            <HwField Name="ENG_2_UPDATE_COLORf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="METER_0_COUNTER_VALID">
+                    <Access>
+                        <Memory Name="MRPS_ING_RSLV_COLORm">
+                            <HwField Name="ENG_0_COUNTER_COLOR_VALIDf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="METER_1_COUNTER_VALID">
+                    <Access>
+                        <Memory Name="MRPS_ING_RSLV_COLORm">
+                            <HwField Name="ENG_1_COUNTER_COLOR_VALIDf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="METER_2_COUNTER_VALID">
+                    <Access>
+                        <Memory Name="MRPS_ING_RSLV_COLORm">
+                            <HwField Name="ENG_2_COUNTER_COLOR_VALIDf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="METER_0_COUNTER_COLOR">
+                    <Access>
+                        <Memory Name="MRPS_ING_RSLV_COLORm">
+                            <HwField Name="ENG_0_COUNTER_COLORf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="METER_1_COUNTER_COLOR">
+                    <Access>
+                        <Memory Name="MRPS_ING_RSLV_COLORm">
+                            <HwField Name="ENG_1_COUNTER_COLORf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="METER_2_COUNTER_COLOR">
+                    <Access>
+                        <Memory Name="MRPS_ING_RSLV_COLORm">
+                            <HwField Name="ENG_2_COUNTER_COLORf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>  
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="METER_EGR_RESOLVE_COLOR_TABLE"> 
+        <OneLineDescription>The following configure the egress resolved table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="METER_DB_0_STATE" Type="METER_INTERNAL_COLOR_MAPPING"/> <!-- METER_DB_0_STATE-->
+                <Field Name="METER_DB_0_OTHER_BUCKET" Type="BOOL"/> <!-- METER_DB_0_OTHER_BUCKET-->
+                <Field Name="METER_DB_1_STATE" Type="METER_INTERNAL_COLOR_MAPPING"/>
+                <Field Name="METER_DB_1_OTHER_BUCKET" Type="BOOL"/>
+                <Field Name="ACTION" Size="4" Type="UINT"/> <!-- DATA BIT 0,1,2,3-->
+            </Key>
+            <Result>
+                <Field Name="RESOLVE_DP" Size="2" Type="UINT"/>
+                <Field Name="METER_0_UPDATE_BUCKET" Type="METER_INTERNAL_COLOR_MAPPING"/>
+                <Field Name="METER_1_UPDATE_BUCKET" Type="METER_INTERNAL_COLOR_MAPPING"/>
+                <Field Name="METER_0_COUNTER_VALID" Type="BOOL"/>
+                <Field Name="METER_1_COUNTER_VALID" Type="BOOL"/>
+                <Field Name="METER_0_COUNTER_COLOR" Size="2" Type="UINT"/> <!-- this is not METER_INTERNAL_COLOR_MAPPING. it is bcm enum bcm_color_t -->
+                <Field Name="METER_1_COUNTER_COLOR" Size="2" Type="UINT"/> <!-- this is not METER_INTERNAL_COLOR_MAPPING. it is bcm enum bcm_color_t -->
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="RESOLVE_DP">
+                    <Access>
+                        <Memory Name="MRPS_EGR_RSLV_COLORm">
+                            <HwField Name="RSLV_COLORf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="METER_0_UPDATE_BUCKET">
+                    <Access>
+                        <Memory Name="MRPS_EGR_RSLV_COLORm">
+                            <HwField Name="ENG_0_UPDATE_COLORf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="METER_1_UPDATE_BUCKET">
+                    <Access>
+                        <Memory Name="MRPS_EGR_RSLV_COLORm">
+                            <HwField Name="ENG_1_UPDATE_COLORf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="METER_0_COUNTER_VALID">
+                    <Access>
+                        <Memory Name="MRPS_EGR_RSLV_COLORm">
+                            <HwField Name="ENG_0_COUNTER_COLOR_VALIDf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="METER_1_COUNTER_VALID">
+                    <Access>
+                        <Memory Name="MRPS_EGR_RSLV_COLORm">
+                            <HwField Name="ENG_1_COUNTER_COLOR_VALIDf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="METER_0_COUNTER_COLOR">
+                    <Access>
+                        <Memory Name="MRPS_EGR_RSLV_COLORm">
+                            <HwField Name="ENG_0_COUNTER_COLORf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="METER_1_COUNTER_COLOR">
+                    <Access>
+                        <Memory Name="MRPS_EGR_RSLV_COLORm">
+                            <HwField Name="ENG_1_COUNTER_COLORf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="METER_ING_FINAL_RESOLVE_COLOR_TABLE"> 
+        <OneLineDescription>The following configure the ingress final resolved table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="DP_CMD" Size="4" Type="UINT"/>
+                <Field Name="IN_COLOR" Size="2" Type="UINT"/>
+                <Field Name="GLOBAL_DECISION_DROP" Type="BOOL"/>                
+                <Field Name="RESOLVE_DP" Size="2" Type="UINT"/> 
+            </Key>
+            <Result>
+                <Field Name="INGRESS_COLOR" Size="2" Type="UINT"/>
+                <Field Name="EGRESS_COLOR" Size="2" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="INGRESS_COLOR">
+                    <Access>
+                        <Memory Name="MRPS_ING_FINAL_RSLV_COLORm">
+                            <HwField Name="ING_COLORf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>    
+                <Field Name="EGRESS_COLOR">
+                    <Access>
+                        <Memory Name="MRPS_ING_FINAL_RSLV_COLORm">
+                            <HwField Name="EGR_COLORf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>    
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="METER_EGR_FINAL_RESOLVE_COLOR_TABLE"> 
+        <OneLineDescription>The following configure the egress final resolved table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="DP_CMD" Size="4" Type="UINT"/>
+                <Field Name="IN_COLOR" Size="2" Type="UINT"/>
+                <Field Name="RESOLVE_DP" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_COLOR" Size="2" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="OUT_COLOR">
+                    <Access>
+                        <Memory Name="MRPS_EGR_FINAL_RSLV_COLORm">
+                            <HwField Name="COLORf"/>                         
+                        </Memory>
+                    </Access>
+                </Field>    
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="METER_PROTOCOL_TYPE_IS_ETH"> 
+        <OneLineDescription>The following configure if the fwd type is Eth, used for Statistics_Object10 calculation</OneLineDescription>
+        <!-- Statistics_Object10(3) = (Layer-Record[FWD].Type != Ethernet)  ?  0x7 : ... -->
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PROT_TYPE" Type="LAYER_TYPES"/>
+            </Key>
+            <Result>
+                <Field Name="IS_ETH" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_ETH">
+                    <Access>
+                        <Register Name="IPPC_PMF_PRTOCOL_IS_ETHr">
+                            <HwField Name="PMF_PROTOCOL_IS_ETHf"/>
+                            <DataOffset Formula="#KEY_VALUE(PROT_TYPE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB> 
+
+    <AppDB Name="METER_STATISTIC_10_MAP"> 
+        <OneLineDescription>The following configure the values of statistics object 10</OneLineDescription>
+        <!-- Statistics_Object10(3) = (Layer-Record[FWD].Type != Ethernet)  ?  
+                                        0x7 : PmfStatistic10Map ({Layer-Record[FWD].Qualifier[Cast](2), Unknown-Destination-Address(1)}) 
+                                        Qualifier(2): {is_bc, is_mc} -->
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="IS_UNKNOWN" Type="BOOL"/>
+                <Field Name="IS_MC" Type="BOOL"/>
+                <Field Name="IS_BC" Type="BOOL"/>
+            </Key>
+            <Result>
+                <Field Name="METER_FWD_TYPE" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="METER_FWD_TYPE">
+                    <Access>
+                        <Register Name="IPPC_PMF_STATISTIC_10_MAPr">
+                            <HwField Name="PMF_STATISTIC_10_MAPf"/>   
+                            <DataOffset Formula="#KEY_VALUE(IS_BC)*4*3+#KEY_VALUE(IS_MC)*2*3+#KEY_VALUE(IS_UNKNOWN)*3"/>
+                        </Register>
+                    </Access>
+                </Field>    
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+    
+    <AppDB Name="METER_INGRESS_PORT_HEADER_COMPENSATION">
+        <OneLineDescription>This table sets In-PP-Port Header-Compensation-Profile delta value for meter</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="HEADER_DELTA" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="HEADER_DELTA">
+                    <Access>
+                        <Memory Name="MRPS_ING_GLBL_ENG_PP_PORT_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_PORT)"/>
+                            <HwField Name="PP_PORT_DELTAf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PP_PORT_MAPm">
+                            <ArrayOffset Formula="0"/>                        
+                            <EntryOffset Formula="#KEY_VALUE(PP_PORT)"/>
+                            <HwField Name="PP_PORT_DELTAf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PP_PORT_MAPm">
+                            <ArrayOffset Formula="1"/>                        
+                            <EntryOffset Formula="#KEY_VALUE(PP_PORT)"/>
+                            <HwField Name="PP_PORT_DELTAf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="MRPS_ING_ENG_PP_PORT_MAPm">
+                            <ArrayOffset Formula="2"/>                        
+                            <EntryOffset Formula="#KEY_VALUE(PP_PORT)"/>
+                            <HwField Name="PP_PORT_DELTAf"/>
+                        </Memory>
+                    </Access>                    
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+     <AppDB Name="METER_GLOBAL_COUNTERS"> 
+        <OneLineDescription>The following table holds meter global counters - red/black/rejected</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field MaxValue="4" Name="METER_ID" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="RED_COLOR_COUNTER" Permission="READONLY" Size="48" Type="ARRAY8"/>
+                <Field Name="BLACK_COLOR_COUNTER" Permission="READONLY" Size="48" Type="ARRAY8"/>
+                <Field Name="REJECT_COUNTER" Permission="READONLY" Size="48" Type="ARRAY8"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="RED_COLOR_COUNTER">
+                    <Access>
+                        <Register Name="MRPS_ING_GLBL_ENG_IN_RED_COLOR_CTRr">
+                            <ArrayOffset Formula="#KEY_VALUE(METER_ID)"/>
+                            <HwField Name="ING_GLBL_ENG_IN_RED_COLOR_CTR_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0 J2C_A0" Name="RED_COLOR_COUNTER">
+                    <Access>
+                        <Register Name="MRPS_ING_GLBL_ENG_IN_RED_COLOR_CTRr">
+                            <ArrayOffset Formula="#KEY_VALUE(METER_ID)"/>
+                            <HwField Name="ING_GLBL_ENG_IN_RED_COLOR_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="BLACK_COLOR_COUNTER">
+                    <Access>
+                        <Register Name="MRPS_ING_GLBL_ENG_IN_BLACK_COLOR_CTRr">
+                            <ArrayOffset Formula="#KEY_VALUE(METER_ID)"/>
+                            <HwField Name="ING_GLBL_ENG_IN_BLACK_COLOR_CTR_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0 J2C_A0" Name="BLACK_COLOR_COUNTER">
+                    <Access>
+                        <Register Name="MRPS_ING_GLBL_ENG_IN_BLACK_COLOR_CTRr">
+                            <ArrayOffset Formula="#KEY_VALUE(METER_ID)"/>
+                            <HwField Name="ING_GLBL_ENG_IN_BLACK_COLOR_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+               <Field Device="JR2_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="REJECT_COUNTER">
+                    <Access>
+                        <Register Name="MRPS_ING_GLBL_ENG_RJCT_CTRr">
+                            <ArrayOffset Formula="#KEY_VALUE(METER_ID)"/>
+                            <HwField Name="ING_GLBL_ENG_RJCT_CTR_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0 J2C_A0" Name="REJECT_COUNTER">
+                    <Access>
+                        <Register Name="MRPS_ING_GLBL_ENG_RJCT_CTRr">
+                            <ArrayOffset Formula="#KEY_VALUE(METER_ID)"/>
+                            <HwField Name="ING_GLBL_ENG_RJCT_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="METER_EGRESS_DISCARD_ENABLE"> 
+        <OneLineDescription>The following table enable egress discard (drop) per dp</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DP"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="ETPPC_CFG_FINAL_DP_TRAPr">
+                            <HwField Name="CFG_FINAL_DP_TRAPf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>                            
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+ 
+     <AppDB Name="METER_DYNAMIC_ACCESS_ENABLE"> 
+        <OneLineDescription>The following table enable dynamic access to MCP block</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0 J2P_A0" Name="ENABLE">
+                    <Access>
+                        <Register Name="MCP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESSf"/>
+                        </Register>
+                    </Access>
+                </Field>                
+                <Field Device="Q2A_A0 Q2A_B0" Name="ENABLE">
+                    <Access>
+                        <Register Name="MCP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_ENG_DB_A_EXT_MEM_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="MCP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_ENG_DB_A_EXT_MEM_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="MCP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_ENG_DB_C_EXT_MEM_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="MCP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_ENG_DB_C_EXT_MEM_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="MCP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_ENG_DB_C_EXT_MEM_2f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="MCP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_ENG_DB_C_EXT_MEM_3f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="MCP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_ENG_DB_C_EXT_MEM_4f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="MCP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_ENG_DB_C_EXT_MEM_5f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="MCP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_ENG_DB_C_EXT_MEM_6f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="MCP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_ENG_DB_C_EXT_MEM_7f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+    
+    
+</AppDbCatalog>

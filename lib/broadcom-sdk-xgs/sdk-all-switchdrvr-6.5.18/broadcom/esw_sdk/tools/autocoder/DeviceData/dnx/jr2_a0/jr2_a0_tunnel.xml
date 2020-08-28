@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="tunnel">
+
+     <sub_module name="general" doc="general tunnel information">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name = "esem_cmd_arr_prefix_gre_any_ipv4"         value = "0xC"></define>
+            <define name = "esem_cmd_arr_prefix_vxlan_gpe"            value = "0x34"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+        <tables>
+        </tables>
+    </sub_module>
+
+
+    <sub_module name="ipv6">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name = "nof_terminated_sips"                 value="65536"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        
+        
+        <tables>                       
+        </tables>
+         
+    </sub_module>
+    
+    <sub_module name="udp">
+        <defines>
+            <define name = "nof_udp_ports_profiles"                 value="7"></define>
+            <define name = "first_udp_ports_profile"                value="1"></define>
+        </defines>    
+    </sub_module>
+</device_data>
+
+
+

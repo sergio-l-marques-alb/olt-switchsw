@@ -1,0 +1,910 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="field" bsl_flag="BSL_LS_BCMDNX_FLDPROCDNX">
+
+    <!--
+        The following submodule only exists because we cannot use DNX DATA pointers (DATA()) from a table's entry for define (but we can for numerical).
+    -->
+    <sub_module name="base_ipmf1" doc="Ingress PMF_1 data. For internal DNX DATA use only. Use stage submodule instead.">
+        <defines>
+            <!--
+                Definitions related to FFC Groups. Begin
+            -->
+            <define name="nof_ffc" doc="Number of FFC's per context. For internal DNX_DATA use only."></define>
+            <define name="nof_ffc_groups" doc="Number of FFC Groups. For internal DNX_DATA use only."></define>
+            <define name="ffc_group_one_lower" doc="Min FFC Index for First FFC Group. For internal DNX_DATA use only."></define>
+            <define name="ffc_group_one_upper" doc="Max FFC Index for First FFC Group. For internal DNX_DATA use only."></define>
+            <define name="ffc_group_two_lower" doc="Min FFC Index for Second FFC Group. For internal DNX_DATA use only."></define>
+            <define name="ffc_group_two_upper" doc="Max FFC Index for Second FFC Group. For internal DNX_DATA use only."></define>
+            <define name="ffc_group_three_lower" doc="Min FFC Index for Thirth FFC Group. For internal DNX_DATA use only."></define>
+            <define name="ffc_group_three_upper" doc="Max FFC Index for Thirth FFC Group. For internal DNX_DATA use only."></define>
+            <define name="ffc_group_four_lower" doc="Min FFC Index for Fourth FFC Group. For internal DNX_DATA use only."></define>
+            <define name="ffc_group_four_upper" doc="Max FFC Index for Fourth FFC Group. For internal DNX_DATA use only."></define>
+            <!--
+                Definitions related to FFC Groups. End
+            -->
+            <define name="nof_keys" doc="Number of keys for the this PMF stage. For internal DNX_DATA use only."></define>
+            <define name="nof_keys_alloc" doc="Number of keys available for allocation for use by this specific PMF stage. For internal DNX_DATA use only."></define>
+            <define name="nof_keys_alloc_for_tcam" doc="Number of keys available for allocation for use by this specific PMF stage for TCAM access. For internal DNX_DATA use only."></define>
+            <define name="nof_keys_alloc_for_exem" doc="Number of keys available for allocation for use by this specific PMF stage for EXEM access. For internal DNX_DATA use only."></define>
+            <define name="nof_keys_alloc_for_mdb_dt" doc="Number of keys available for allocation for use by this specific PMF stage for MDB_DT access. For internal DNX_DATA use only."></define>
+            <define name="nof_masks_per_fes" doc="Number of masks per FES. For internal DNX_DATA use only."></define>
+            <define name="nof_fes_id_per_array" doc="Number FESes in each FES array. For internal DNX_DATA use only."></define>
+            <define name="nof_fes_array" doc="Number FES arrays. For internal DNX_DATA use only."></define>
+            <define name="nof_fes_instruction_per_context" doc="Number of FES INSTRUCTIONs per context. For internal DNX_DATA use only."></define>
+            <define name="nof_fes_programs" doc="Number of FES programs. For internal DNX_DATA use only."></define>
+            <define name="nof_prog_per_fes" doc="Number of MS bits instruction programs per FES. For internal DNX_DATA use only."></define>
+            <define name="program_selection_cam_mask_nof_bits" doc="Number of bits for data or mask in the memory IHB_FLP_PROGRAM_SELECTION_CAM. For internal DNX_DATA use only."></define>
+            <define name="cs_container_5_selected_bits_size" doc="Number of bits taken from general data for context selection."></define>
+            <define name="nof_contexts" doc="Number of Ingress PMF_A programs (contexts). For internal DNX_DATA use only."></define>
+            <define name="nof_link_profiles" doc="Number of profiles assigned to iPMF1 contexts in order to create links between iPMF1 and iPMF2 contexts. For internal DNX_DATA use only."></define>
+            <define name="nof_cs_lines" doc="Number of program selection lines. For internal DNX_DATA use only."></define>
+            <define name="nof_actions" doc="Number of actions. For internal DNX_DATA use only."></define>
+            <define name="nof_qualifiers" doc="Number of qualifiers. For internal DNX_DATA use only."></define>
+            <define name="nof_80B_zones" doc="Number of Ingress PMF 80b dedicated instruction groupsv"></define>
+            <define name="nof_key_zones" doc="Number of Ingress PMF 80b key zones. For internal DNX_DATA use only."></define>
+            <define name="nof_key_zone_bits" doc="Number of Ingress PMF 80b key zone bits. For internal DNX_DATA use only."></define>
+            <define name="nof_bits_in_fes_action" doc="Number of bits on the output of a FES. For internal DNX_DATA use only."></define>
+            <define name="nof_bits_in_fes_key_select" doc="Number of bits on input to FES. For internal DNX_DATA use only."></define>
+            <define name="nof_fes_key_selects_on_one_actions_line" doc="Number of 'key select's that can go into one line on actions table.('double key' actions are considered one line). For internal DNX_DATA use only."></define>
+            <!--
+                Definitions related to FEM. Begin
+            -->
+            <define name="fem_condition_ms_bit_min_value" doc="The minumum legal value to be set in bit select for a FEM. For internal DNX_DATA use only."></define>
+            <define name="fem_condition_ms_bit_max_value" doc="The maximum legal value to be set in bit select for a FEM. For internal DNX_DATA use only."></define>
+            <define name="nof_bits_in_fem_programs" doc="Number of bit in FEM program representation. This is log2 of the number of fem programs. For internal DNX_DATA use only."></define>
+            <define name="nof_fem_programs" doc="Total number FEM programs available. For internal DNX_DATA use only."></define>
+            <define name="log_nof_bits_in_fem_key_select" doc="Log2 of number of bits on one 'chunk' of input to FEM. For internal DNX_DATA use only."></define>
+            <define name="nof_bits_in_fem_key_select" doc="Number of bits on one 'chunk' of input to FEM. For internal DNX_DATA use only."></define>
+            <define name="fem_key_select_resolution_in_bits"
+                        doc="Number of bits in the 'step' from one 'key select' to the following. See dbal_enum_value_field_field_pmf_a_fem_key_select_e. For internal DNX_DATA use only."></define>
+            <define name="log_nof_bits_in_fem_map_data_field" doc="Log2 of number of bits on MAP_DATA field in IPPC_FEM_MAP_INDEX_TABLE (See FIELD_PMF_A_FEM_MAP_INDEX dbal table). For internal DNX_DATA use only."></define>
+            <define name="nof_bits_in_fem_map_data_field" doc="Number of bits on MAP_DATA field in IPPC_FEM_MAP_INDEX_TABLE (See FIELD_PMF_A_FEM_MAP_INDEX dbal table). For internal DNX_DATA use only."></define>
+            <define name="nof_bits_in_fem_action_fems_2_15" doc="Number of bits on action value in IPPC_FEM_*_24B_MAP_TABLE. For internal DNX_DATA use only."></define>
+            <define name="nof_bits_in_fem_action_fems_0_1" doc="Number of bits on action value in IPPC_FEM_*_4B_MAP_TABLE. For internal DNX_DATA use only."></define>
+            <define name="nof_bits_in_fem_action" doc="Maximal number of bits on action value in IPPC_FEM_*_*_MAP_TABLE. For internal DNX_DATA use only."></define>
+            <define name="nof_bits_in_fem_condition"
+                        doc="Number of bits on fem condition. This is log2 of the number of conditions that may be assigned to each (fem_id,fem_program) combination. For internal DNX_DATA use only."></define>
+            <define name="nof_fem_condition" doc="Total number of fem conditions. This is the number of conditions that may be assigned to each (fem_id,fem_program) combination. For internal DNX_DATA use only."></define>
+            <define name="nof_bits_in_fem_map_index" doc="Number of bits on fem map index. This represents log2 of the number of actions that may be assigned to each condition. For internal DNX_DATA use only."></define>
+            <define name="nof_fem_map_index" doc="Total number fem map indices. This represents the number of actions that may be assigned to each condition. For internal DNX_DATA use only."></define>
+            <define name="nof_bits_in_fem_id" doc="Number of bits on fem identifier. This represents the number of FEMs in the system: No. of FEMs is 2^nof_bits_in_fem_id. For internal DNX_DATA use only."></define>
+            <define name="nof_fem_id" doc="Total number 'FEM id's available. For internal DNX_DATA use only."></define>
+            <define name="num_fems_with_short_action" doc="Number of FEMs, starting from 'fem_id=0', which have only 4 bits on action value. The rest have 24 bits on action value. For internal DNX_DATA use only."></define>
+            <define name="num_bits_in_fem_field_select" doc="Number of bits on each of the HW field marked FIELD_SELECT_MAP_*. For internal DNX_DATA use only."></define>
+            <define name="nof_fem_id_per_array" doc="Number FEMes in each FEM array. For internal DNX_DATA use only."></define>
+            <define name="nof_fem_array" doc="Number FEM arrays. For internal DNX_DATA use only."></define>
+            <define name="nof_fems_per_context" doc="Number of FEMs per context. For internal DNX_DATA use only."></define>
+            <!--
+                Definitions related to FEM. End
+            -->
+            <define name="default_strength" doc="Default value for PMF strength. For internal DNX_DATA use only."></define>
+            <define name="nof_compare_pairs_in_compare_mode" doc="Number compare pairs in compare mode. For internal DNX_DATA use only."></define>
+            <define name="nof_compare_keys_in_compare_mode" doc="Number compare keys in compare mode. For internal DNX_DATA use only."></define>
+            <define name="compare_key_size" doc="Size of the compare key in the system. For internal DNX_DATA use only."></define>
+            <define name="nof_l4_ops_ranges_legacy" doc="Number of ranges for L4 Ops legacy. For internal DNX_DATA use only."></define>
+            <define name="nof_ext_l4_ops_ranges" doc="Number of ranges for External L4 Ops. For internal DNX_DATA use only."></define>
+            <define name="nof_pkt_hdr_ranges" doc="Number of ranges for PKT HDR. For internal DNX_DATA use only."></define>
+            <define name="nof_out_lif_ranges" doc="Number of ranges for Out Lif. For internal DNX_DATA use only."></define>
+            <define name="fes_key_select_for_zero_bit" doc="The key select used for obtaining an always zero bit for input to FES (for example, using a zero padded bit). For internal DNX_DATA use only."></define>
+            <define name="fes_shift_for_zero_bit" doc="The shift used for obtaining an always zero bit for input to FES (for example, using a zero padded bit). For internal DNX_DATA use only."></define>
+            <define name="uses_small_exem" doc="Indicated if the stage can perform a SEXEM lookup. For internal DNX_DATA use only."></define>
+            <define name="uses_large_exem" doc="Indicated if the stage can perform a LEXEM lookup. For internal DNX_DATA use only."></define>
+            <define name="cmp_selection"   doc="Compare selection for both keys of 2nd compare, See the CMP_SELECTION field in IPPC_PMF_GENERAL register for additional information. For internal DNX_DATA use only."></define>
+            <define name="fes_instruction_size" doc="Number of bits in one fes instruction."></define>
+            <define name="fes_pgm_id_offset" doc="FES Program ID offset pointing to IPPC_PMF_FES_PROGRAMm->FES_2ND_INSTRUCTION_LSB_ADDRESSf."></define>
+        </defines>
+     </sub_module>
+
+    <!--
+        The following submodule only exists because we cannot use DNX DATA pointers (DATA()) from a table's entry for define (but we can for numerical).
+    -->
+    <sub_module name="base_ipmf2" doc="Ingress PMF_2 data. For internal DNX DATA use only. Use stage submodule instead.">
+        <defines>
+            <!--
+                Definitions related to FFC Groups. Begin
+            -->
+            <define name="nof_ffc" doc="Number of FFC's per context. For internal DNX_DATA use only."></define>
+            <define name="nof_ffc_groups" doc="Number of FFC Groups. For internal DNX_DATA use only."></define>
+            <define name="ffc_group_one_lower" doc="Min FFC Index for First FFC Group. For internal DNX_DATA use only."></define>
+            <define name="ffc_group_one_upper" doc="Max FFC Index for First FFC Group. For internal DNX_DATA use only."></define>
+            <!--
+                Definitions related to FFC Groups. End
+            -->
+            <define name="nof_keys" doc="Number of keys for the this PMF stage. For internal DNX_DATA use only."></define>
+            <define name="nof_keys_alloc" doc="Number of keys available for allocation for use by this specific PMF stage. For internal DNX_DATA use only."></define>
+            <define name="nof_keys_alloc_for_tcam" doc="Number of keys available for allocation for use by this specific PMF stage for TCAM access. For internal DNX_DATA use only."></define>
+            <define name="nof_keys_alloc_for_exem" doc="Number of keys available for allocation for use by this specific PMF stage for EXEM access. For internal DNX_DATA use only."></define>
+            <define name="nof_keys_alloc_for_dir_ext" doc="Number of keys available for allocation for use by this specific PMF stage for DIRECT EXTRACTION. For internal DNX_DATA use only."></define>
+            <define name="nof_keys_alloc_for_mdb_dt" doc="Number of keys available for allocation for use by this specific PMF stage for MDB_DT access. For internal DNX_DATA use only."></define>
+            <define name="nof_masks_per_fes" doc="Number of masks per FES. For internal DNX_DATA use only."></define>
+            <define name="nof_fes_id_per_array" doc="Number FESes in each FES array. For internal DNX_DATA use only."></define>
+            <define name="nof_fes_array" doc="Number FES arrays. For internal DNX_DATA use only."></define>
+            <define name="nof_fes_instruction_per_context" doc="Number of FES INSTRUCTIONs per context. For internal DNX_DATA use only."></define>
+            <define name="nof_cs_lines" doc="Number of program selection lines. For internal DNX_DATA use only."></define>
+            <define name="nof_contexts" doc="Number of contexts. For internal DNX_DATA use only."></define>
+            <define name="program_selection_cam_mask_nof_bits" doc="Number of bits for data or mask in the memory IHB_FLP_PROGRAM_SELECTION_CAM. For internal DNX_DATA use only."></define>
+            <define name="nof_qualifiers" doc="Number of qualifiers. For internal DNX_DATA use only."></define>
+            <define name="nof_80B_zones" doc="Number of Ingress PMF 80b dedicated instruction groups. For internal DNX_DATA use only."></define>
+            <define name="nof_key_zones" doc="Number of Ingress PMF 80b key zones. For internal DNX_DATA use only."></define>
+            <define name="nof_key_zone_bits" doc="Number of Ingress PMF 80b key zone bits. For internal DNX_DATA use only."></define>
+            <define name="fes_key_select_for_zero_bit" doc="The key select used for obtaining an always zero bit for input to FES (for example, using a zero padded bit). For internal DNX_DATA use only."></define>
+            <define name="fes_shift_for_zero_bit" doc="The shift used for obtaining an always zero bit for input to FES (for example, using a zero padded bit). For internal DNX_DATA use only."></define>
+            <define name="uses_small_exem" doc="Indicated if the stage can perform a SEXEM lookup. For internal DNX_DATA use only."></define>
+            <define name="uses_large_exem" doc="Indicated if the stage can perform a LEXEM lookup. For internal DNX_DATA use only."></define>
+        </defines>
+    </sub_module>
+
+    <!--
+        The following submodule only exists because we cannot use DNX DATA pointers (DATA()) from a table's entry for define (but we can for numerical).
+    -->
+    <sub_module name="base_ipmf3" doc="Ingress PMF_3 (PMF_B) data. For internal DNX DATA use only. Use stage submodule instead.">
+        <defines>
+            <!--
+                Definitions related to FFC Groups. Begin
+            -->
+            <define name="nof_ffc" doc="Number of FFC's. For internal DNX_DATA use only."></define>
+            <define name="nof_ffc_groups" doc="Number of FFC Groups. For internal DNX_DATA use only."></define>
+            <define name="ffc_group_one_lower" doc="Min FFC Index for First FFC Group. For internal DNX_DATA use only."></define>
+            <define name="ffc_group_one_upper" doc="Max FFC Index for First FFC Group. For internal DNX_DATA use only."></define>
+            <!--
+                Definitions related to FFC Groups. End
+            -->
+            <define name="nof_keys" doc="Number of keys for the this PMF stage. For internal DNX_DATA use only."></define>
+            <define name="nof_keys_alloc" doc="Number of keys available for allocation for use by this specific PMF stage. For internal DNX_DATA use only."></define>
+            <define name="nof_keys_alloc_for_tcam" doc="Number of keys available for allocation for use by this specific PMF stage for TCAM access. For internal DNX_DATA use only."></define>
+            <define name="nof_keys_alloc_for_exem" doc="Number of keys available for allocation for use by this specific PMF stage for EXEM access. For internal DNX_DATA use only."></define>
+            <define name="nof_keys_alloc_for_dir_ext" doc="Number of keys available for allocation for use by this specific PMF stage for DIRECT EXTRACTION. For internal DNX_DATA use only."></define>
+            <define name="nof_keys_alloc_for_mdb_dt" doc="Number of keys available for allocation for use by this specific PMF stage for MDB_DT access. For internal DNX_DATA use only."></define>
+            <define name="nof_masks_per_fes" doc="Number of masks per FES. For internal DNX_DATA use only."></define>
+            <define name="nof_fes_id_per_array" doc="Number FESes in each FES array. For internal DNX_DATA use only."></define>
+            <define name="nof_fes_array" doc="Number FES arrays. For internal DNX_DATA use only."></define>
+            <define name="nof_fes_instruction_per_context" doc="Number of FES INSTRUCTIONs per context. For internal DNX_DATA use only."></define>
+            <define name="nof_fes_programs" doc="Number of FES programs. For internal DNX_DATA use only."></define>
+            <define name="nof_prog_per_fes" doc="Number of MS bits instruction programs per FES. For internal DNX_DATA use only."></define>
+            <define name="program_selection_cam_mask_nof_bits" doc="Number of bits for data or mask in the memory IHB_FLP_PROGRAM_SELECTION_CAM. For internal DNX_DATA use only."></define>
+            <define name="cs_scratch_pad_size" doc="Number of bits taken from general data for context selection."></define>
+            <define name="nof_contexts" doc="Number of Ingress PMF_B programs. For internal DNX_DATA use only."></define>
+            <define name="nof_cs_lines" doc="Number of program selection lines. For internal DNX_DATA use only."></define>
+            <define name="nof_actions" doc="Number of actions. For internal DNX_DATA use only."></define>
+            <define name="nof_qualifiers" doc="Number of qualifiers. For internal DNX_DATA use only."></define>
+            <define name="nof_80B_zones" doc="Number of Ingress PMF 80b dedicated instruction groups. For internal DNX_DATA use only."></define>
+            <define name="nof_key_zones" doc="Number of Ingress PMF 80b key zones. For internal DNX_DATA use only."></define>
+            <define name="nof_key_zone_bits" doc="Number of Ingress PMF 80b key zone bits. For internal DNX_DATA use only."></define>
+            <define name="nof_bits_in_fes_action" doc="Number of bits on the output of a FES. For internal DNX_DATA use only."></define>
+            <define name="nof_bits_in_fes_key_select" doc="Number of bits on input to FES. For internal DNX_DATA use only."></define>
+            <define name="nof_fes_key_selects_on_one_actions_line" doc="Number of 'key select's that can go into one line on actions table.('double key' actions are considered one line). For internal DNX_DATA use only."></define>
+            <define name="default_strength" doc="Default value for PMF strength. For internal DNX_DATA use only."></define>
+            <define name="nof_out_lif_ranges" doc="Number of ranges for Out Lif. For internal DNX_DATA use only."></define>
+            <define name="fes_key_select_for_zero_bit" doc="The key select used for obtaining an always zero bit for input to FES (for example, using a zero padded bit). For internal DNX_DATA use only."></define>
+            <define name="fes_shift_for_zero_bit" doc="The shift used for obtaining an always zero bit for input to FES (for example, using a zero padded bit). For internal DNX_DATA use only."></define>
+            <define name="uses_small_exem" doc="Indicated if the stage can perform a SEXEM lookup. For internal DNX_DATA use only."></define>
+            <define name="uses_large_exem" doc="Indicated if the stage can perform a LEXEM lookup. For internal DNX_DATA use only."></define>
+            <define name="fes_instruction_size" doc="Number of bits in one fes instruction."></define>
+            <define name="fes_pgm_id_offset" doc="FES Program ID offset pointing to IPPD_PMF_FES_PROGRAMm->FES_2ND_INSTRUCTION_LSB_ADDRESSf."></define>
+        </defines>
+        <numerics>
+        
+        <numeric name="nof_fes_used_by_sdk" doc="nof fe used by sdk in ipmf3 can be changed per system header soc property"></numeric>
+           
+        </numerics>
+    </sub_module>
+
+    <!--
+        The following module only exists because we cannot use DNX DATA pointers (DATA()) from a table's entry for define (but we can for numerical).
+    -->
+    <sub_module name="base_epmf" doc="Egress PMF data. For internal DNX DATA use only. Use stage submodule instead.">
+        <defines>
+            <!--
+                Definitions related to FFC Groups. Begin
+            -->
+            <define name="nof_ffc" doc="Number of FFC's. For internal DNX_DATA use only."></define>
+            <define name="nof_ffc_groups" doc="Number of FFC Groups. For internal DNX_DATA use only."></define>
+            <define name="ffc_group_one_lower" doc="Min FFC Index for First FFC Group. For internal DNX_DATA use only."></define>
+            <define name="ffc_group_one_upper" doc="Max FFC Index for First FFC Group. For internal DNX_DATA use only."></define>
+            <!--
+                Definitions related to FFC Groups. End
+            -->
+            <define name="nof_keys" doc="Number of keys for the this PMF stage. For internal DNX_DATA use only."></define>
+            <define name="nof_keys_alloc" doc="Number of keys available for allocation for use by this specific PMF stage. For internal DNX_DATA use only."></define>
+            <define name="nof_keys_alloc_for_tcam" doc="Number of keys available for allocation for use by this specific PMF stage for TCAM access. For internal DNX_DATA use only."></define>
+            <define name="nof_keys_alloc_for_exem" doc="Number of keys available for allocation for use by this specific PMF stage for EXEM access. For internal DNX_DATA use only."></define>
+            <define name="nof_masks_per_fes" doc="Number of masks per FES. For internal DNX_DATA use only."></define>
+            <define name="nof_fes_id_per_array" doc="Number FESes in each FES array. For internal DNX_DATA use only."></define>
+            <define name="nof_fes_array" doc="Number FES arrays. For internal DNX_DATA use only."></define>
+            <define name="nof_fes_instruction_per_context" doc="Number of FES INSTRUCTIONs per context. For internal DNX_DATA use only."></define>
+            <define name="nof_fes_programs" doc="Number of FES programs. For internal DNX_DATA use only."></define>
+            <define name="nof_prog_per_fes" doc="Number of MS bits instruction programs per FES. For internal DNX_DATA use only."></define>
+            <define name="program_selection_cam_mask_nof_bits" doc="Number of bits for data or mask in the memory EGQ_PMF_PROGRAM_SELECTION_CAM. For internal DNX_DATA use only."></define>
+            <define name="nof_cs_lines" doc="Number of program selection lines. For internal DNX_DATA use only."></define>
+            <define name="nof_contexts" doc="Number of Egress contexts. For internal DNX_DATA use only."></define>
+            <define name="nof_actions" doc="Number of actions. For internal DNX_DATA use only."></define>
+            <define name="nof_qualifiers" doc="Number of qualifiers. For internal DNX_DATA use only."></define>
+            <define name="nof_80B_zones" doc="Number of Egress PMF 80b dedicated instruction groups. For internal DNX_DATA use only."></define>
+            <define name="nof_key_zones" doc="Number of Egress PMF 80b key zones. For internal DNX_DATA use only."></define>
+            <define name="nof_key_zone_bits" doc="Number of Egress PMF key zone bits. For internal DNX_DATA use only."></define>
+            <define name="nof_bits_in_fes_action" doc="Number of bits on the output of a FES. For internal DNX_DATA use only."></define>
+            <define name="nof_bits_in_fes_key_select" doc="Number of bits on input to FES. For internal DNX_DATA use only."></define>
+            <define name="nof_fes_key_selects_on_one_actions_line" doc="Number of 'key select's that can applied on one line on actions table.('double key' actions are considered one line). For internal DNX_DATA use only."></define>
+            <define name="nof_l4_ops_ranges_legacy" doc="Number of ranges for L4 Ops legacy. For internal DNX_DATA use only."></define>
+            <define name="fes_key_select_for_zero_bit" doc="The key select used for obtaining an always zero bit for input to FES (for example, using a zero padded bit). For internal DNX_DATA use only."></define>
+            <define name="fes_shift_for_zero_bit" doc="The shift used for obtaining an always zero bit for input to FES (for example, using a zero padded bit). For internal DNX_DATA use only."></define>
+            <define name="uses_small_exem" doc="Indicated if the stage can perform a SEXEM lookup. For internal DNX_DATA use only."></define>
+            <define name="uses_large_exem" doc="Indicated if the stage can perform a LEXEM lookup. For internal DNX_DATA use only."></define>
+            <define name="fes_instruction_size" doc="Number of bits in one fes instruction."></define>
+            <define name="fes_pgm_id_offset" doc="FES Program ID offset pointing to ERPP_PMF_FES_PROGRAMmm->FES_2ND_INSTRUCTION_LSB_ADDRESSf."></define>
+        </defines>
+    </sub_module>
+
+    <!--
+        The following submodule only exists because we cannot use DNX DATA pointers (DATA()) from a table's entry for define (but we can for numerical).
+    -->
+    <sub_module name="base_ifwd2" doc="IFWD2 data. For internal DNX DATA use only. Use stage submodule instead.">
+        <defines>
+            <!--
+                Definitions related to FFC Groups. Begin
+            -->
+            <define name="nof_ffc"  doc="Number of FFC's in this specific IFWD2 stage. For internal DNX_DATA use only."></define>
+            <define name="nof_ffc_groups" doc="Number of FFC Groups. For internal DNX_DATA use only."></define>
+            <define name="ffc_group_one_lower" doc="Min FFC Index for First FFC Group. For internal DNX_DATA use only."></define>
+            <define name="ffc_group_one_upper" doc="Max FFC Index for First FFC Group. For internal DNX_DATA use only."></define>
+            <!--
+                Definitions related to FFC Groups. End
+            -->
+            <define name="nof_keys"  doc="Number of keys available for allocation for use by this specific IFWD2 stage. For internal DNX_DATA use only."></define>
+            <define name="nof_contexts" doc="Number of KBP ACL contexts. For internal DNX_DATA use only."></define>
+            <define name="nof_cs_lines" doc="Number of program selection lines. For internal DNX_DATA use only."></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="stage" doc="Data regarding the field stages">
+        <defines>
+        </defines>
+        <tables>
+            <table name="stage_info" doc="Per stage information">
+                <key name="stage" doc="Field stage enum"></key>
+                <value name="valid" type="int" doc="Whether the field_stage is supported on the device"/>
+                <!--
+                    Values related to FFC Groups. Begin
+                -->
+                <value name="nof_ffc" type="int" doc="Number of FFC's per context"/>
+                <value name="nof_ffc_groups" type="int" doc="Number of FFC Groups"/>
+                <value name="ffc_group_one_lower" type="int" doc="Min FFC Index for First FFC Group"/>
+                <value name="ffc_group_one_upper" type="int" doc="Max FFC Index for First FFC Group"/>
+                <value name="ffc_group_two_lower" type="int" doc="Min FFC Index for Second FFC Group"/>
+                <value name="ffc_group_two_upper" type="int" doc="Max FFC Index for Second FFC Group"/>
+                <value name="ffc_group_three_lower" type="int" doc="Min FFC Index for Thirth FFC Group"/>
+                <value name="ffc_group_three_upper" type="int" doc="Max FFC Index for Thirth FFC Group"/>
+                <value name="ffc_group_four_lower" type="int" doc="Min FFC Index for Fourth FFC Group"/>
+                <value name="ffc_group_four_upper" type="int" doc="Max FFC Index for Fourth FFC Group"/>
+                <!--
+                    Values related to FFC Groups. End
+                -->
+                <value name="nof_keys" type="int" doc="Number of keys for the this PMF stage"/>
+                <value name="nof_keys_alloc" type="int" doc="Number of keys available for allocation for use by this specific PMF stage"/>
+                <value name="nof_keys_alloc_for_tcam" type="int" doc="Number of keys available for allocation for use by this specific PMF stage for TCAM access"/>
+                <value name="nof_keys_alloc_for_exem" type="int" doc="Number of keys available for allocation for use by this specific PMF stage for EXEM access"/>
+                <value name="nof_keys_alloc_for_dir_ext" type="int" doc="Number of keys available for allocation for use by this specific PMF stage for DIRECT EXTRACTION"/>
+                <value name="nof_keys_alloc_for_mdb_dt" type="int" doc="Number of keys available for allocation for use by this specific PMF stage for Direct Table MDB access"/>
+                <value name="nof_masks_per_fes" type="int" doc="Number of masks per FES"/>
+                <value name="nof_fes_id_per_array" type="int" doc="Number FESes in each FES array"/>
+                <value name="nof_fes_array" type="int" doc="Number of FES arrays"/>
+                <value name="nof_fes_instruction_per_context" type="int" doc="Number of FES INSTRUCTIONs per context"/>
+                <value name="nof_fes_programs" type="int" doc="Number of FES programs"/>
+                <value name="nof_prog_per_fes" type="int" doc="Number of MS bits instruction programs per FES"/>
+                <value name="program_selection_cam_mask_nof_bits" type="int" doc="Number of bits for data or mask in the memory IHB_FLP_PROGRAM_SELECTION_CAM"/>
+                <value name="cs_scratch_pad_size" type="int" doc="Number of bits taken from general data for context selection."/>
+                <value name="cs_container_5_selected_bits_size" type="int" doc="Number of bits taken from general data for context selection."/>
+                <value name="nof_contexts" type="int" doc="Number of Ingress PMF_A programs (contexts)"/>
+                <value name="nof_link_profiles" type="int" doc="Number of profiles assigned to iPMF1 contexts in order to create links between iPMF1 and iPMF2 contexts"/>
+                <value name="nof_cs_lines" type="int" doc="Number of program selection lines"/>
+                <value name="nof_actions" type="int" doc="Number of actions"/>
+                <value name="nof_qualifiers" type="int" doc="Number of qualifiers"/>
+                <value name="nof_80B_zones" type="int" doc="Number of Ingress PMF 80b dedicated instruction groups"/>
+                <value name="nof_key_zones" type="int" doc="Number of Ingress PMF 80b key zones"/>
+                <value name="nof_key_zone_bits" type="int" doc="Number of Ingress PMF 80b key zone bits"/>
+                <value name="nof_bits_in_fes_action" type="int" doc="Number of bits on the output of a FES."/>
+                <value name="nof_bits_in_fes_key_select" type="int" doc="Number of bits on input to FES."/>
+                <value name="nof_fes_key_selects_on_one_actions_line" type="int" doc="Number of 'key select's that can go into one line on actions table.('double key' actions are considered one line)"/>
+                <!--
+                    Values related to FEM. Begin
+                -->
+                <value name="fem_condition_ms_bit_min_value" type="int" doc="The minumum legal value to be set in bit select for a FEM."/>
+                <value name="fem_condition_ms_bit_max_value" type="int" doc="The maximum legal value to be set in bit select for a FEM."/>
+                <value name="nof_bits_in_fem_programs" type="int" doc="Number of bit in FEM program representation. This is log2 of the number of fem programs"/>
+                <value name="nof_fem_programs" type="int" doc="Total number FEM programs available."/>
+                <value name="log_nof_bits_in_fem_key_select" type="int" doc="Log2 of number of bits on one 'chunk' of input to FEM."/>
+                <value name="nof_bits_in_fem_key_select" type="int" doc="Number of bits on one 'chunk' of input to FEM."/>
+                <value name="fem_key_select_resolution_in_bits" type="int" doc="Number of bits in the 'step' from one 'key select' to the following. See dbal_enum_value_field_field_pmf_a_fem_key_select_e."/>
+                <value name="log_nof_bits_in_fem_map_data_field" type="int" doc="Log2 of number of bits on MAP_DATA field in IPPC_FEM_MAP_INDEX_TABLE (See FIELD_PMF_A_FEM_MAP_INDEX dbal table)."/>
+                <value name="nof_bits_in_fem_map_data_field" type="int" doc="Number of bits on MAP_DATA field in IPPC_FEM_MAP_INDEX_TABLE (See FIELD_PMF_A_FEM_MAP_INDEX dbal table)."/>
+                <value name="nof_bits_in_fem_action_fems_2_15" type="int" doc="Number of bits on action value in IPPC_FEM_*_24B_MAP_TABLE."/>
+                <value name="nof_bits_in_fem_action_fems_0_1" type="int" doc="Number of bits on action value in IPPC_FEM_*_4B_MAP_TABLE."/>
+                <value name="nof_bits_in_fem_action" type="int" doc="Maximal number of bits on action value in IPPC_FEM_*_*_MAP_TABLE."/>
+                <value name="nof_bits_in_fem_condition" type="int" doc="Number of bits on fem condition. This is log2 of the number of conditions that may be assigned to each (fem_id,fem_program) combination."/>
+                <value name="nof_fem_condition" type="int" doc="Total number of fem conditions. This is the number of conditions that may be assigned to each (fem_id,fem_program) combination."/>
+                <value name="nof_bits_in_fem_map_index" type="int" doc="Number of bits on fem map index. This represents log2 of the number of actions that may be assigned to each condition."/>
+                <value name="nof_fem_map_index" type="int" doc="Total number fem map indices. This represents the number of actions that may be assigned to each condition."/>
+                <value name="nof_bits_in_fem_id" type="int" doc="Number of bits on fem identifier. This represents the number of FEMs in the system: No. of FEMs is 2^nof_bits_in_fem_id"/>
+                <value name="nof_fem_id" type="int" doc="Total number 'FEM id's available."/>
+                <value name="num_fems_with_short_action" type="int" doc="Number of FEMs, starting from 'fem_id=0', which have only 4 bits on action value. The rest have 24 bits on action value"/>
+                <value name="num_bits_in_fem_field_select" type="int" doc="Number of bits on each of the HW field marked FIELD_SELECT_MAP_*"/>
+                <value name="nof_fem_id_per_array" type="int" doc="Number of FEMs in each FEM array"/>
+                <value name="nof_fem_array" type="int" doc="Number of FEM arrays"/>
+                <value name="nof_fems_per_context" type="int" doc="Total number of FEMs on all arrays"/>
+                <!--
+                    Values related to FEM. End
+                -->
+                <value name="default_strength" type="int" doc="Default value for PMF strength"/>
+                <value name="pbus_header_length" type="int" doc="Number of bits reserved in Ingress PBUS for header"/>
+                <value name="nof_layer_records" type="int" doc="Number of layer records taken from the parser."/>
+                <value name="layer_record_size" type="int" doc="Number of bits in each layer record."/>
+                <value name="nof_compare_pairs_in_compare_mode" type="int" doc="Number compare pairs in compare mode"/>
+                <value name="nof_compare_keys_in_compare_mode" type="int" doc="Number compare keys in compare mode"/>
+                <value name="compare_key_size" type="int" doc="Size of the compare key in the system"/>
+                <value name="nof_l4_ops_ranges_legacy" type="int" doc="Number of ranges for L4 Ops legacy"/>
+                <value name="nof_ext_l4_ops_ranges" type="int" doc="Number of ranges for Extended L4 Ops"/>
+                <value name="nof_pkt_hdr_ranges" type="int" doc="Number of ranges for PKT HDR"/>
+                <value name="nof_out_lif_ranges" type="int" doc="Number of ranges for Out Lif"/>
+                <value name="fes_key_select_for_zero_bit" type="int" doc="The key select used for obtaining an always zero bit for input to FES (for example, using a zero padded bit)."/>
+                <value name="fes_shift_for_zero_bit" type="int" doc="The shift used for obtaining an always zero bit for input to FES (for example, using a zero padded bit)."/>
+                <value name="uses_small_exem" type="int" doc="Indicated if the stage can perform a SEXEM lookup."/>
+                <value name="uses_large_exem" type="int" doc="Indicated if the stage can perform a LEXEM lookup."/>
+                <value name="cmp_selection" type="int" doc="Compare selection for both keys of 2nd compare, See the CMP_SELECTION field in IPPC_PMF_GENERAL register for additional information"/>
+                <value name="nof_bits_main_pbus" type="int" doc="Number of bits in the main PBUS of the stage (the one used by METADATA qualifiers). Only iPMF2 uses the iPMF1 PBUs as it's main PBUS."/>
+                <value name="nof_bits_native_pbus" type="int" doc="Number of bits in the native PBUS of the stage, if it is different from the main PBUS. Only iPMF2 has a separate native PBUS."/>
+            </table>
+        </tables>
+     </sub_module>
+
+    <sub_module name="kbp" doc="KBP data">
+        <defines>
+            <define name="nof_fgs" doc="Number of External TCAM Field Groups"></define>
+            <define name="max_single_key_size" doc="Maximum single key size"></define>
+            <define name="nof_acl_keys_master_max" doc="The maximum number of keys that can be used by ACL (not FWD) in KBP for a single context"></define>
+            <define name="nof_acl_keys_fg_max" doc="The maximum number of keys that can be used by ACL (not FWD) in KBP for a single field group"></define>
+            <define name="min_acl_nof_ffc"  doc="Minimum number of FFC's that should be allocated for each context for ACL purposes."></define>
+            <define name="max_fwd_context_num_for_one_apptype" doc="Maximum number of fwd contexts that could be mapped to an apptype "></define>
+            <define name="max_acl_context_num" doc="Maximum number of ACL contexts in the KBP "></define>
+            <define name="size_apptype_profile_id" doc="Size in bits of the apptype profile ID (based on iFED2 ACL context)"></define>
+            <define name="key_bmp" doc="bitmap of the key IDs used by the KBP."></define>
+            <define name="apptype_user_1st" doc="First User defined Apptype id to avoid overlapping with static ones"></define>
+            <define name="apptype_user_nof" doc="Number of user Defined apptypes that can be created"></define>
+            <define name="max_payload_size_per_opcode" doc="The total payload size of the KBP"></define>
+        </defines>
+        <tables>
+            <table name="ffc_to_quad_and_group_map" doc="Mapping of the ffc id to its quad anad group">
+                <key name="ffc_id" doc="Id of the required ffc"></key>
+                <value name="quad_id" type="uint32" doc="Id of the relevant quad for the given ffc id"></value>
+                <value name="group_id" type="uint32" doc="Id of the relevant group for the given ffc id"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="tcam" doc="TCAM data">
+        <defines>
+            <define name="key_size_half" doc="Half TCAM key size"></define>
+            <define name="key_size_single" doc="Single TCAM key size"></define>
+            <define name="key_size_double" doc="Double TCAM key size"></define>
+            <define name="dt_max_key_size" doc="Maximum key size for TCAM DT"></define>
+            <define name="action_size_half" doc="When the key size is half key (80b), this holds the action width payload"></define>
+            <define name="action_size_single" doc="When the key size is single key (160b), this holds the action width payload"></define>
+            <define name="action_size_double" doc="When the key size is double key (320b), this holds the action width payload"></define>
+            <define name="key_mode_size" doc="Number of bits representing the entry size for each half entry."></define>
+            <define name="entry_size_single_key_hw" doc="The full key size in HW, includingd entry size field, not including payload and valid bits."></define>
+            <define name="entry_size_single_valid_bits_hw" doc="The size of the valid bits in HW."></define>
+            <define name="entry_size_half_payload_hw" doc="The full payload size in HW for half an entry."></define>
+            <define name="hw_bank_size" doc="Size of a TCAM bank in HW"></define>
+            <define name="small_bank_size" doc="Number of entries per small TCAM bank"></define>
+            <define name="nof_big_bank_lines" doc="Number of TCAM big bank lines"></define>
+            <define name="nof_small_bank_lines" doc="Number of TCAM small bank lines"></define>
+            <define name="nof_big_banks" doc="Number of TCAM big banks"></define>
+            <define name="nof_small_banks" doc="Number of TCAM small banks"></define>
+            <define name="nof_banks" doc="Number of TCAM banks"></define>
+            <define name="nof_payload_tables" doc="Number of action tables"></define>
+            <define name="nof_access_profiles" doc="Number of TCAM access profiles"></define>
+            <define name="action_width_selector_size" doc="The action width selector size for each bank in each access profile, each bit represents the corresponding 32 bit in the action table"></define>
+            <define name="cascaded_data_nof_bits" doc="Number of TCAM cascaded data bits"></define>
+            <define name="big_bank_key_nof_bits" doc="Number of TCAM big bank key bits"></define>
+            <define name="nof_entries_160_bits" doc="Number of 160 bits TCAM entries; Value: (nof_big_banks*nof_big_bank_lines)+(nof_small_banks*nof_small_bank_lines)"></define>
+            <define name="nof_entries_80_bits" doc="Number of 80 bits TCAM entries; Value: (2*nof_big_banks*nof_big_bank_lines)+(2*nof_small_banks*nof_small_bank_lines)"></define>
+            <define name="tcam_banks_size" doc="The size of TCAM_TCAM_BANK which is equal to (nof_big_banks + nof_small_banks) * nof_big_bank_lines"></define>
+            <define name="tcam_banks_last_index" doc="Last index available in TCAM banks"></define>
+            <define name="nof_tcam_handlers" doc="Number of TCAM handlers in device"></define>
+            <define name="max_prefix_size" doc="Maximum prefix size in TCAM"></define>
+            <define name="max_prefix_value" doc="Maximum prefix value in TCAM"></define>
+            <define name="nof_keys_in_double_key" doc="Number of 160'b key's in double key"></define>
+            <define name="nof_keys_max" doc="Number of 160'b key's in one search lookup"></define>
+            <define name="access_profile_half_key_mode" doc="Half key mode in access profile"></define>
+            <define name="access_profile_single_key_mode" doc="Single key mode in access profile"></define>
+            <define name="access_profile_double_key_mode" doc="Double key mode in access profile"></define>
+            <define name="hit_indication_entries_per_byte" doc="Number of entries in byte, in TCAM and CS TCAM HIT and indication memories."></define>
+            <define name="max_tcam_priority" doc="The biggest valid value for the priority of a TCAM entry"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="group" doc="Field Group">
+        <defines>
+            <define name="nof_fgs" doc="Number of Field Groups"></define>
+            <define name="nof_action_per_fg" doc="Number of action per Field Group"></define>
+            <define name="nof_quals_per_fg" doc="Number of qualifiers per Field Group"></define>
+            <define name="nof_keys_per_fg_max" doc="Maximum number of keys (KBRs) a field group can have."></define>
+            <define name="id_fec_wa" doc="FEC WA is being used in more then one WA context, hence must be created with_id so that other WA can re-use the FG"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="efes" doc="EFES data">
+        <defines>
+            <define name="max_nof_key_selects_per_field_io" doc="Number of key selects in table for each field IO"></define>
+        </defines>
+        <tables>
+            <table name="key_select_properties" doc="The properties of the different key select options">
+                <key name="stage" doc="Field stage enum"></key>
+                <key name="field_io" doc="Identifies the source of the information"></key>
+                <value name="key_select" type="uint8[DNX_DATA_MAX_FIELD_EFES_MAX_NOF_KEY_SELECTS_PER_FIELD_IO]" doc="Represents the DBAL key select enums of the different stages"/>
+                <value name="num_bits" type="uint8[DNX_DATA_MAX_FIELD_EFES_MAX_NOF_KEY_SELECTS_PER_FIELD_IO]" doc="Number of bits on key select for field IO. If zero than entry is invalid."></value>
+                <value name="lsb" type="uint16[DNX_DATA_MAX_FIELD_EFES_MAX_NOF_KEY_SELECTS_PER_FIELD_IO]" doc="The offset on the field IO of the key select"></value>
+                <value name="num_bits_not_on_key" type="uint8[DNX_DATA_MAX_FIELD_EFES_MAX_NOF_KEY_SELECTS_PER_FIELD_IO]" doc="The number of LS bits on key select not on the field IO"></value>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="fem" doc="FEM data">
+        <defines>
+            <define name="max_nof_key_selects_per_field_io" doc="Number of key selects in table for each field IO"></define>
+        </defines>
+        <tables>
+            <table name="key_select_properties" doc="The properties of the different key select options">
+                <key name="field_io" doc="Identifies the source of the information"></key>
+                <value name="key_select" type="uint8[DNX_DATA_MAX_FIELD_FEM_MAX_NOF_KEY_SELECTS_PER_FIELD_IO]" doc="Represents the DBAL key select enums of the different stages"/>
+                <value name="num_bits" type="uint8[DNX_DATA_MAX_FIELD_FEM_MAX_NOF_KEY_SELECTS_PER_FIELD_IO]" doc="Number of bits on key select for field IO. If zero than entry is invalid."></value>
+                <value name="lsb" type="uint16[DNX_DATA_MAX_FIELD_FEM_MAX_NOF_KEY_SELECTS_PER_FIELD_IO]" doc="The offset on the field IO of the key select"></value>
+                <value name="num_bits_not_on_key" type="uint8[DNX_DATA_MAX_FIELD_FEM_MAX_NOF_KEY_SELECTS_PER_FIELD_IO]" doc="The number of LS bits on key select not on the field IO"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="context" doc="Field Context">
+        <defines>
+            <define name="default_context" doc="Default Context Id (used for Ethernet Packets)"></define>
+            <define name="default_itmh_context" doc="Default Context Id for ITMH Packets"></define>
+            <define name="default_itmh_pph_context" doc="Default Context Id for ITMH_PPH Packets"></define>
+            <define name="default_j1_itmh_context" doc="Default Context Id for J1 ITMH Packets"></define>
+            <define name="default_j1_itmh_pph_context" doc="Default Context Id for J1 ITMH_PPH Packets"></define>
+            <define name="default_stacking_context" doc="Default Context Id for Stacking Packets"></define>
+            <define name="default_oam_context" doc="Default Context Id for OAM Packets"></define>
+            <define name="default_oam_reflector_context" doc="Default Context Id for OAM downmep reflector Packets"></define>
+            <define name="default_j1_learning_2ndpass_context" doc="Default Context Id for 2nd pass of J1 Learning WA"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="preselector" doc="Field Presel">
+        <defines>
+        
+             <!-- iPMF1 Application and WA Presel ids -->
+            <define name="default_oam_presel_id_ipmf1" doc="Default Presel Id in iPMF1 for OAM Packets"></define>
+            <define name="default_itmh_presel_id_ipmf1"  doc="Default Presel Id in iPMF1 for ITMH injected Packets"></define>
+            <define name="default_itmh_pph_presel_id_ipmf1" doc="Default Presel Id in iPMF1 for ITMHoPPH injected Packets"></define>
+            <define name="default_j1_itmh_presel_id_ipmf1" doc="Default Presel Id in iPMF1 for ITMH_J1 injected Packets"></define>
+            <define name="default_j1_itmh_pph_presel_id_ipmf1" doc="Default Presel Id in iPMF1 for ITMH_J1oPPH_J1 injected Packets"></define>
+                <!-- OAMP must have higher presel Id then ITMH_PPH -->
+            <define name="default_j1_itmh_pph_oamp_presel_id_ipmf1" doc="Default Presel Id in iPMF1 for ITMH_J1oPPH_J1 injected Packets from OAMP"></define>
+            <define name="default_stacking_presel_id_ipmf1" doc="Default Presel in iPMF1 Id for Stacking Packets"></define>
+            <define name="default_j1_learn_wa_presel_id_1st_pass_ipmf1" doc="Default Presel in iPMF1 Learn WA 1st Pass"></define>
+            <define name="default_j1_learn_wa_presel_id_2nd_pass_ipmf1" doc="Default Presel in iPMF1 Learn WA 2nd Pass"></define>
+            
+            <!-- iPMF3 Application and WA Presel ids -->
+            <define name="default_itmh_pph_presel_id_ipmf3" doc="Default Presel Id in iPMF1 for ITMHoPPH injected Packets"></define>
+            <define name="default_j1_itmh_pph_presel_id_ipmf3"  doc="Default Presel Id in iPMF1 for ITMH_J1oPPH_J1 injected Packets" ></define>
+            <define name="default_oam_roo_ipv4_presel_id_ipmf3" doc="Default Presel in iPMF3 Id for IPv4 with ROO Packets"></define>
+            <define name="default_oam_roo_ipv6_presel_id_ipmf3" doc="Default Presel in iPMF3 Id for IPv6 with ROO Packets"></define>
+            <define name="default_oam_w_o_roo_no_rif_ipv4_presel_id_ipmf3" doc="Default Presel in iPMF3 Id for IPv4 without ROO Packets no RIF"></define>
+            <define name="default_oam_w_o_roo_no_rif_ipv6_presel_id_ipmf3" doc="Default Presel in iPMF3 Id for IPv6 without ROO Packets no RIF"></define>
+            <define name="default_oam_w_o_roo_with_rif_ipv4_presel_id_ipmf3" doc="Default Presel in iPMF3 Id for IPv4 without ROO Packets with RIF"></define>
+            <define name="default_oam_w_o_roo_with_rif_ipv6_presel_id_ipmf3" doc="Default Presel in iPMF3 Id for IPv6 without ROO Packets with RIF"></define>
+            <define name="default_j1_ipv4_mc_in_lif_presel_id_ipmf3" doc="Default Presel in iPMF3 Id for IPv4 MC Packets"></define>
+            <define name="default_j1_ipv6_mc_in_lif_presel_id_ipmf3" doc="Default Presel in iPMF3 Id for IPv6 MC Packets"></define>
+}
+}
+            <define name="default_j1_php_presel_id_ipmf3" doc="Default Presel in iPMF3 Id for MPLS PHP Packets"></define>
+            <define name="default_j1_swap_presel_id_ipmf3" doc="Default Presel in iPMF3 Id for MPLS SWAP Packets"></define>
+
+            <!-- ePMF Application and WA Presel ids -->
+            <define name="default_j1_same_port_wa_presel_id_epmf" doc="Default Presel in ePMF Same port WA"></define>
+            <define name="default_learn_limit_wa_presel_id_epmf" doc="Default Presel in ePMF Learn WA"></define>
+            
+            <!-- Presel Module general params -->
+            <define name="num_cs_inlif_profile_entries" doc="The number of CS entries which are used for inlif profile mapping"></define>            
+            
+        </defines>
+    </sub_module>
+
+    <sub_module name="qual" doc="User Defined Data Qualifiers">
+        <defines>
+            <define name="user_1st" doc="First User qualifier id to avoid overlapping with static ones"></define>
+            <define name="user_nof" doc="Number of User Define Data qualifiers that can be created"></define>
+            <define name="vw_1st" doc="First VW qualifier id to avoid overlapping with static or user defined qualifiers"></define>
+            <define name="vw_nof" doc="Number of VW qualifiers that can be created"></define>
+            <define name="max_bits_in_qual" doc="Maximum number of bits that any qualifier can have"></define>
+            <define name="ingress_pbus_header_length" doc="Number of bits reserved in ingress PBUS for header."></define>
+            <define name="egress_pbus_header_length" doc="Number of bits reserved in egress PBUS for header."></define>
+            <define name="ifwd2_pbus_size" doc="Number of bits in the PBUS of iFWD2"></define>
+            <define name="ipmf1_pbus_size" doc="Number of bits in the PBUS of iPMF1"></define>
+            <define name="ipmf2_pbus_size" doc="Number of bits in the PBUS of iPMF3"></define>
+            <define name="ipmf3_pbus_size" doc="Number of bits in the PBUS of iPMF3"></define>
+            <define name="epmf_pbus_size" doc="Number of bits in the PBUS of ePMF"></define>
+            <define name="ingress_nof_layer_records" doc="Number of layer records taken from the parser in ingress stages."></define>
+            <define name="ingress_layer_record_size" doc="Number of bits in each layer record in ingress stages."></define>
+            <define name="egress_nof_layer_records" doc="Number of layer records taken from the parser in egress stages."></define>
+            <define name="egress_layer_record_size" doc="Number of bits in each layer record in egress stages."></define>
+            <define name="ac_lif_wide_size" doc="Size of AC_LIF_WIDE data size"></define>
+
+        </defines>
+        <tables>
+            <table name="params" doc="Per stage Per qualifier properties">
+                <key name="stage" doc="stage enum"/>
+                <key name="qual" doc="dnx qualifier"/>
+                <value name="offset" type="int" doc="offset on PBUS"/>
+                <value name="signal" type="char *" doc="signal representing specific qualifier on stage entry"/>
+            </table>
+
+            <table name="layer_record_info_ingress" doc="Information about layer record qualifiers in the ingress">
+                <key name="layer_record" doc="layer record enum"/>
+                <value name="valid" type="int" doc="Whether the layer record is supported on the device"/>
+                <value name="size" type="int" doc="The size of the qualifier in bits"/>
+                <value name="offset" type="int" doc="The lsb of the qualifier within the layer record"/>
+            </table>
+            
+            <table name="layer_record_info_egress" doc="Information about layer record qualifiers in the egress">
+                <key name="layer_record" doc="layer record enum"/>
+                <value name="valid" type="int" doc="Whether the layer record is supported on the device"/>
+                <value name="size" type="int" doc="The size of the qualifier in bits"/>
+                <value name="offset" type="int" doc="The lsb of the qualifier within the layer record"/>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="action" doc="User Define Data Actions">
+        <defines>
+            <define name="user_1st" doc="First user action id to avaoid overlapping with static ones"></define>
+            <define name="user_nof" doc="Number of User Define Data actions that can be created"></define>
+            <define name="vw_1st" doc="First VW action id to avoid overlapping with static or user defined qualifiers"></define>
+            <define name="vw_nof" doc="Number of VW action that can be created"></define>
+        </defines>
+    </sub_module>
+    
+    <sub_module name="virtual_wire" doc="virtual_wires">
+        <defines>
+            <define name="signals_nof" doc="Number of elements in the table vw_quals."></define>
+            <define name="actions_per_signal_nof" doc="Maximum number of actions that write to a signal."></define>
+            <define name="general_data_user_general_containers_size" doc="The size in bits of the user_general part of the general_data (before the comp_general_data part)."></define>
+            <define name="ipmf1_general_data_index" doc="The index in signal_qual_mapping table of the general data signal for iPMF1."></define>
+        </defines>
+        <tables>
+            <table name="signal_mapping" doc="Per stage per signal, how it maps to standard 1 qualifiers and actions">
+                <key name="stage" doc="stage enum"/>
+                <key name="signal_id" doc="A local index for the entry"/>
+                <value name="signal_name" type="char *" doc="Name of the signal."/>
+                <value name="mapped_qual" type="int" doc="Standard 1 qualifier that correlates to the signal"/>
+                <value name="offset_from_qual" type="int" doc="Offset on from the start of the standard 1 qualifier"/>
+                <value name="mapped_action" type="int[DNX_DATA_MAX_FIELD_VIRTUAL_WIRE_ACTIONS_PER_SIGNAL_NOF]" doc="Standard 1 action that correlates to the signal"/>
+                <value name="action_offset" type="int[DNX_DATA_MAX_FIELD_VIRTUAL_WIRE_ACTIONS_PER_SIGNAL_NOF]" doc="Offset on from the start of the signal for the action"/>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="profile_bits" doc="PMF Dedicated bits in profiles">
+        <defines>
+            <define name="nof_ing_in_lif" doc="Number of reserved bits for Ingress FP in in_lif_profile"></define>
+            <define name="nof_eg_in_lif" doc="Number of reserved bits for Egress FP in in_lif_profile"></define>
+            <define name="nof_ing_eth_rif" doc="Number of reserved bits for Ingress FP in in_rif_profile"></define>
+            <define name="nof_eg_eth_rif" doc="Number of reserved bits for Egress FP in in_rif_profile"></define>
+            <define name="ingress_pp_port_key_gen_var_size" doc="Number of bits available on the key_ken_per per PP port"></define>
+            <define name="max_port_profile_size" doc="The maximum number in bits of all port profiles hw memories possible"></define>
+            <define name="nof_bits_in_port_profile" doc="The number of bits used by the PMF for port profiles. Note that the actual number may be lower in some stages."></define>
+            <define name="nof_bits_in_ingress_pp_port_general_data" doc="The number of bits used by the PMF for per PP port general data."></define>
+        </defines>
+        <numerics>
+            <numeric name="pmf_sexem3_stage" doc="Determines using SOC property if we use SEXEM3 in iPMF2 or iPMF3."></numeric>
+            <numeric name="pmf_map_stage" doc="Determines using SOC property if we use MAP in iPMF1/iPMF2 or iPMF3."></numeric>
+        </numerics>
+    </sub_module>
+
+    <sub_module name="dir_ext" doc="Direct Extraction Data">
+        <defines>
+            <define name="half_key_size" doc="Half key size of direct extraction"></define>
+            <define name="single_key_size" doc="Single key size of direct extraction"></define>
+            <define name="double_key_size" doc="Double key size of direct extraction"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="state_table" doc="State Table data">
+        <defines>
+            <define name="key_size" doc="Size of the state table key in the system"></define>
+            <define name="address_max" doc="Max address for the state table"></define>
+            <define name="address_size" doc="Size of the address field in State Table in bits"></define>
+            <define name="data_size" doc="Size of the data field in State Table in bits"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="map" doc="MAP data">
+        <defines>
+            <define name="key_size" doc="Size of the MAP key in the system"></define>
+            <define name="action_size_small" doc="Size of the small MAP action in the system"></define>
+            <define name="action_size_mid" doc="Size of the mid MAP action in the system"></define>
+            <define name="action_size_large" doc="Size of the large MAP action in the system"></define>
+            <define name="ipmf1_key_select" doc="The PMF key used for MAP lookup by iPMF1. The value is the offset from the first key in the stage."></define>
+            <define name="ipmf2_key_select" doc="The PMF key used for MAP lookup by iPMF2. The value is the offset from the first key in the stage."></define>
+            <define name="ipmf3_key_select" doc="The PMF key used for MAP lookup by iPMF3. The value is the offset from the first key in the stage."></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="hash" doc="Hash (CRC) values">
+        <defines>
+            <define name="max_key_size" doc="maximal key size Field Group type "></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="udh" doc="User Defined Headers defines">
+        <defines>
+            <define name="type_count" doc="UDH Type count"></define>
+            <define name="type_0_length" doc="UDH Type 0 length in bytes"></define>
+            <define name="type_1_length" doc="UDH Type 1 length in bytes"></define>
+            <define name="type_2_length" doc="UDH Type 2 length in bytes"></define>
+            <define name="type_3_length" doc="UDH Type 3 length in bytes"></define>
+        </defines>
+        <numerics>
+            <numeric name="field_class_id_size_0" doc="J1 Mode UDH related size"></numeric>
+            <numeric name="field_class_id_size_1" doc="J1 Mode UDH retlated size"></numeric>
+            <numeric name="field_class_id_size_2" doc="J1 Mode UDH retlated size"></numeric>
+            <numeric name="field_class_id_size_3" doc="J1 Mode UDH retlated size"></numeric>
+            <numeric name="field_class_id_total_size" doc="J1 Mode UDH retlated size"></numeric>
+        </numerics>
+    </sub_module>
+
+    <sub_module name="system_headers" doc="System headers definitions">
+        <defines>
+            <define name="nof_profiles" doc="Number of system headers in device"></define>
+        </defines>
+        <numerics>
+            <numeric name="pph_learn_ext_disable" doc="Never add learn_ext in system headers unlesee FP required. Used by default header_profile only."></numeric>
+        </numerics>
+        <tables>
+            <table name="system_header_profiles" doc="Contains all system headers profiles defined in this device">
+                <key name="system_header_profile" doc="System header profile number"></key>
+                <value name="name" type="char *" doc="profile name"></value>
+                <value name="build_ftmh" type="uint8" doc="Defines whether to build FTMH header or not"></value>
+                <value name="build_tsh" type="uint8" doc="Defines whether to build TSH header or not"></value>
+                <value name="build_pph" type="uint8" doc="Defines whether to build PPH header or not"></value>
+                <value name="build_udh" type="uint8" doc="Defines whether to build UDH header or not"></value>
+                <value name="never_add_pph_learn_ext" type="uint8" doc="Defines whether to never add PPH Learn Ext."></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="exem" doc="exem values">
+        <defines>
+            <define name="small_app_db_id_size" doc="Number of bits used application db"></define>
+            <define name="large_app_db_id_size" doc="Number of bits used application db"></define>
+            <define name="small_max_key_size" doc="Small EXEM key size in bits"></define>
+            <define name="large_max_key_size" doc="Large EXEM key size in bits"></define>
+            <define name="small_max_result_size" doc="Small EXEM result (payload) size in bits, including VMV"></define>
+            <define name="large_max_result_size" doc="Large EXEM result (payload) size in bits, including VMV"></define>
+            <define name="small_max_container_size" doc="Large EXEM maximal container size in bits"></define>
+            <define name="large_max_container_size" doc="Large EXEM result (payload) size in bits"></define>
+            <define name="small_key_hash_size" doc="number of bits out of key used for hashing (these bits are spared from saving in container)"></define>
+            <define name="large_key_hash_size" doc="number of bits out of key used for hashing (these bits are spared from saving in container)"></define>
+            <define name="small_min_app_db_id_range" doc="Small EXEM first APP_DB_ID allocated to PMF module"></define>
+            <define name="large_min_app_db_id_range" doc="Large EXEM first APP_DB_ID allocated to PMF module"></define>
+            <define name="small_max_app_db_id_range" doc="Small EXEM last APP_DB_ID allocated to PMF module"></define>
+            <define name="large_max_app_db_id_range" doc="Large EXEM last APP_DB_ID allocated to PMF module"></define>
+            <define name="small_ipmf2_key" doc="The PMF key used for EXEM lookup by iPMF2. The value is the offset from the first key in the stage."></define>
+            <define name="small_ipmf2_key_part" doc="The PMF key part used for EXEM lookup by iPMF2. 0 means the LSB half, 1 the MSB half."></define>
+            <define name="small_ipmf2_key_hw_value" doc="The HW value to provide for selecting small_ipmf2_key and small_ipmf2_key_part."></define>
+            <define name="small_ipmf2_key_hw_bits" doc="The number of bits used by the HW for selecting small_ipmf2_key and small_ipmf2_key_part."></define>
+            <define name="large_ipmf1_key_configurable" doc="Whether or not the EXEM key for iPMF1 can be configured on a chip wide basis."></define>
+            <define name="large_ipmf1_key" doc="The PMF key used for EXEM lookup by iPMF1. The value is the offset from the first key in the stage."></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="ace" doc="ACE values, for ACE expansion done by the PPMC DB and ACE ACR, for both MC replication ID pointers and ACE pointers">
+        <defines>
+            <define name="ace_id_size" doc="Number of bits used for the ACE ID (result type), which serves as an ID for the ACE format and context ID for the ACE EFES."></define>
+            <define name="key_size" doc="Number of bits in the key of the PPMC table, including the prefix that indicates the type to the entry"></define>
+            <define name="key_hash_size" doc="Number of bits in the key that are only used in the hash and aren't placed in the entry."></define>
+            <define name="app_db_id_size" doc="Number of bits Used for the APP DB ID."></define>
+            <define name="payload_size" doc="Number of bits used to encode the container size, including the result type"></define>
+            <define name="min_key_range_pmf" doc="The first entry in the range of ACE keys allocated to ACE pointers (but not to MC replication ID)."></define>
+            <define name="max_key_range_pmf" doc="The last entry in the range of ACE keys allocated to ACE pointers (but not to MC replication ID)."></define>
+            <define name="min_ace_id_dynamic_range" doc="Minimal number of ACE ID that can be allocated dynamically."></define>
+            <define name="nof_ace_id" doc="Number of ACE IDs."></define>
+            <define name="nof_action_per_ace_format" doc="Number of action per ACE Format"></define>
+            <define name="row_size" doc="Number of bits per raw, entry size is number row size times VMV encoding meaning, e.g. half row encoding VMV would mean 60 bits entry size."></define>
+            <define name="min_entry_size" doc="Minimum number of bits in entry."></define>
+            <define name="ace_id_pmf_alloc_first" doc="The first ACE ID allocated to ACE, that is to ePMF extension."></define>
+            <define name="ace_id_pmf_alloc_last" doc="The last ACE ID allocated to ACE, that is to ePMF extension."></define>
+            <!-- Per stage info-->
+            <define name="nof_masks_per_fes" doc="Number of masks per FES"></define>
+            <define name="nof_fes_id_per_array" doc="Number FESes in each FES array"></define>
+            <define name="nof_fes_array" doc="Number FES arrays"></define>
+            <define name="nof_fes_instruction_per_context" doc="Number of FES INSTRUCTIONs per ACE ID, also the number of FESes."></define>
+            <define name="nof_fes_programs" doc="Number of FES programs. For ACE the FES program is the same as ACE ID. Used here for compatibility with PMF FESes."></define>
+            <define name="nof_prog_per_fes" doc="Number of MS bits instruction programs per FES"></define>
+            <define name="nof_bits_in_fes_action" doc="Number of bits on the output of a FES."></define>
+            <define name="fes_shift_for_zero_bit" doc="The shift used for obtaining an always zero bit for input to FES. Uses the zero padding at the end of the payload, expected to work only if EFES field type=1."></define>
+            <define name="fes_instruction_size" doc="Number of bits in one fes instruction."></define>
+            <define name="fes_shift_offset" doc="FES shift offset in ETPPA_PRP_FES_PROGRAM_TABLEm->DATA_PER_FESf"></define>
+            <define name="fes_invalid_bits_offset" doc="FES invalid bits offset in ETPPA_PRP_FES_PROGRAM_TABLEm->DATA_PER_FESf"></define>
+            <define name="fes_type_offset" doc="FES type offset in ETPPA_PRP_FES_PROGRAM_TABLEm->DATA_PER_FESf"></define>
+            <define name="fes_ace_action_offset" doc="FES ace action offset in ETPPA_PRP_FES_PROGRAM_TABLEm->DATA_PER_FESf"></define>
+            <define name="fes_chosen_mask_offset" doc="FES chosen mask offset in ETPPA_PRP_FES_PROGRAM_TABLEm->DATA_PER_FESf"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="entry" doc="Entry data">
+        <defines>
+            <define name="dir_ext_nof_fields" doc="The maximum number of fields in a direct extraction request. \n
+                                                  (e.g. if we want the action to be composed of 3 bits of constant value, 5 bits from the key, \n
+                                                  5 bits of constant value and then 4 bits from the key we need at least 4 fields.)\n
+                                                  Used by dnx_field_dir_ext_action_t for the array size of the fields. \n
+                                                  Arbitrary value, can be increased."></define>
+            <define name="nof_action_params_per_entry" doc="Number of action parameters can be given for each action \n
+                                                            e.g. action values that are filled for TCAM action result"></define>
+            <define name="nof_qual_params_per_entry" doc="Number of qualifiers parameters can be given for each qualifier type \n
+                                                            e.g. qualifier/key values that are filled for TCAM key"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="L4_Ops" doc="L4 Ops data">
+        <defines>
+            <define name="udp_position" doc="The position of the UDP protocol in the register"></define>
+            <define name="tcp_position" doc="The position of the UDP protocol in the register"></define>
+            <define name="nof_range_entries" doc="number of range entries in L4 Ops"></define>
+            <define name="nof_ext_encoders" doc="Number of range result encoders in extended L4 OPs"></define>
+            <define name="nof_ext_types" doc="Number of range types in extended L4 OPs"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="encoded_qual_actions_offset" doc="Encoded qualfiers and actions offsets">
+        <defines>
+            <define name="trap_strength_offset" doc="The offset of the Trap Strength in the action"></define>
+            <define name="trap_qualifier_offset" doc="The offset of the Trap Qualifier in the action"></define>
+            <define name="sniff_qualifier_offset" doc="The offset of the Snoop qualifier in the action"></define>
+            <define name="mirror_qualifier_offset" doc="The offset of the Mirror Qualifier in the action"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="Compare_operand" doc="The offset of the compare_operand">
+        <defines>
+            <define name="equal" doc="The position in the qual showing that the result of compare is equal"></define>
+            <define name="not_equal" doc="The position in the qual showing that the result of compare is not equal"></define>
+            <define name="smaller" doc="The position in the qual showing that the first compare value is smaller then the second"></define>
+            <define name="not_smaller" doc="The position in the qual showing that the first compare value is not smaller then the second"></define>
+            <define name="bigger" doc="The position in the qual showing that the first compare value is bigger then the second"></define>
+            <define name="not_bigger" doc="The position in the qual showing that the first compare value is not bigger then the second"></define>
+            <define name="nof_operands" doc="The number of all operands"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="diag" doc="Field diagnostics related defines and features.">
+        <features>
+            <feature name="tcam_cs_hit_bit_support" doc="Indicates if the TCAM Context Selection hit bit indication is supported."></feature>
+        </features>
+        <defines>
+            <define name="bytes_to_remove_mask" doc="Mask of bits, which are related to the value of bytes to remove, from the signal."></define>
+            <define name="layers_to_remove_size_in_bit" doc="Size of the layers to remove value in bits, to be used for shifting the signal value."></define>
+            <define name="layers_to_remove_mask" doc="Mask of bits, which are related to the value of layers to remove, from the signal."></define>
+            <define name="nof_signals_per_action" doc="Maximum number of signals per action."></define>
+            <define name="nof_signals_per_qualifier" doc="Maximum number of signals per qualifier."></define>
+       </defines>
+    </sub_module>
+
+    <sub_module name="common_max_val" doc="Common max values over all PMF stages (IPMF1/IPMF2/IPMF3/EPMF) or over all IO types (TCAM, EXAM, ...)">
+        <defines>
+            <define name="nof_ffc" doc="Maximal number of FFC's in all stages"></define>
+            <define name="nof_keys" doc="Number of keys for the entire PMF module"></define>
+            <define name="nof_masks_per_fes" doc="Number of masks per FES"></define>
+            <define name="nof_fes_id_per_array" doc="Number FESes in each FES array"></define>
+            <define name="nof_fes_array" doc="Number FES arrays"></define>
+            <define name="nof_fes_instruction_per_context" doc="Number of FES INSTRUCTIONs per context"></define>
+            <define name="nof_fes_programs" doc="Number of FES programs"></define>
+            <define name="nof_prog_per_fes" doc="Number of MS bits instruction programs per FES"></define>
+            <define name="nof_program_selection_lines" doc="Number of Ingress context selection lines"></define>
+            <define name="program_selection_cam_mask_nof_bits" doc="Number of bits for data or mask in the memory IHB_FLP_PROGRAM_SELECTION_CAM"></define>
+            <define name="nof_cs_lines" doc="Number of program selection lines"></define>
+            <define name="nof_contexts" doc="Number of contexts per PMF"></define>
+            <define name="nof_actions" doc="Number of actions"></define>
+            <define name="nof_qualifiers" doc="Number of qualifiers"></define>
+            <define name="nof_80B_zones" doc="Number of Ingress PMF 80b dedicated instruction groups"></define>
+            <define name="nof_key_zones" doc="Number of Ingress PMF 80b key zones"></define>
+            <define name="nof_key_zone_bits" doc="Number of Ingress PMF 80b key zone bits"></define>
+            <define name="nof_bits_in_fes_action" doc="Number of bits on the outpus of a FES."></define>
+            <define name="nof_bits_in_fes_key_select" doc="Number of bits on input to FES."></define>
+            <define name="nof_fes_key_selects_on_one_actions_line" doc="Number of 'key select's that can be applied on one line on actions table. ('double key' actions are considered one line)"></define>
+            <define name="nof_ffc_in_qual" doc="Maximal number of ffc for one qualifier."></define>
+            <define name="nof_bits_in_ffc" doc="Number of bits in ffc."></define>
+            <define name="nof_ffc_in_uint32" doc="Number of uint32 needed to hold bitmap for maximum number of FFC's."></define>
+            <define name="nof_action_per_group" doc="Maxmimal number of actions between both Field Group and ACE format. Used for arrays in functions that serve both."></define>
+            <define name="nof_layer_records" doc="Maximal number of layer records."></define>
+            <define name="layer_record_size" doc="Maximal size of layer records."></define>
+            <define name="nof_l4_ops_ranges_legacy" doc="Maximal number of ranges for L4 Ops legacy."></define>
+            <define name="nof_pkt_hdr_ranges" doc="Maximal number of ranges for packet header."></define>
+            <define name="nof_out_lif_ranges" doc="Maximal number of ranges for Out Lif."></define>
+            <define name="kbr_size"  doc="Maximal KBR size."></define>
+            <define name="nof_compare_pairs"  doc="Maximal number of pairs used for compare."></define>
+            <define name="nof_compare_pairs_in_compare_mode"  doc="Number compare pairs in compare mode."></define>
+            <define name="nof_compare_keys_in_compare_mode"  doc="Number compare keys in compare mode."></define>
+            <define name="nof_bits_in_fem_action"  doc="Maximal number of bits on action value in IPPC_FEM_*_*_MAP_TABLE."></define>
+            <define name="nof_fem_condition"  doc="Total number of fem conditions. This is the number of conditions that may be assigned to each (fem_id,fem_program) combination."></define>
+            <define name="nof_fem_map_index"  doc="Total number fem map indices. This represents the number of actions that may be assigned to each condition. For internal DNX_DATA use only."></define>
+            <define name="nof_fem_id" doc="Total number 'FEM id's available."></define>
+            <define name="nof_array_ids" doc="Total number of 'array_is's which are used to identify a range of FESes or FEMs. See BCM_FIELD_ACTION_POSITION."></define>
+            <define name="dbal_pairs" doc="Maximum number of pairs which are used to identify the DBAL key/result field in dnx_field_dbal_entry_set function. "></define>
+        </defines>
+        <tables>
+            <table name="array_id_type" doc="Contains indications on whether a specific 'array_id' is for FESes or for FEMs">
+                <key name="array_id" doc="Index identifier of 'array_id'"></key>
+                <value name="is_fes" type="int" doc="Non-zero if 'array_id' is for FESes. Zero otherwise"></value>
+                <value name="is_fem" type="int" doc="Non-zero if 'array_id' is for FEMs. Zero otherwise"></value>
+                <value name="fes_array_index" type="int" doc="Converts 'array_id' to number of FES arrays so far. 'array_id' 0 converts to 0, 2 converts to 1"></value>
+                <value name="fem_array_index" type="int" doc="Converts 'array_id' to number of FEM arrays so far. 'array_id' 1 converts to 0, 3 converts to 1"></value>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="init" doc="Field defines and features related to init.">
+        <defines>
+            <define name="wa_fec_dest" doc="APP WA for fec destination"></define>
+            <define name="wa_l4_trap" doc="APP WA for L4 Trap"></define>
+            <define name="wa_oam_layer_index" doc="APP WA for OAM Layer Index"></define>
+            <define name="wa_oam_stat" doc="APP WA for OAM Statistics"></define>
+            <define name="wa_flow_id" doc="APP WA for Flow ID"></define>
+            <define name="wa_roo" doc="APP WA for Roo"></define>
+            <define name="wa_jr1_ipmc_inlif" doc="APP WA for IPMC In LIF"></define>
+            <define name="wa_j1_same_port" doc="APP WA for J1 Same port"></define>
+            <define name="wa_j1_learning" doc="APP WA for J1 Learning"></define>
+            <define name="wa_learn_limit" doc="APP WA for Learn Limit"></define>
+            <define name="wa_j1_php" doc="APP WA for J1 MPLS PHP"></define>
+       </defines>
+    </sub_module>
+
+
+    <sub_module name="features" doc="All device specific features">
+        <defines>
+            <define name="ecc_wa_enable"
+                doc="ECC is calculated per whole entry on each entry write, therefore, when writing half-entries\n
+                     wrong ECC values is being calculated, this workaround enables read-modify-write of the whole\n
+                     entry instead of writing half-entries to have correct ECC calculated on each write.">
+            </define>
+            <define name="switch_to_acl_context"
+                doc="Allows to swap the acl_context and fwd_context signals after iPMF1/2 using IPPC_PMF_GENERAL.SWITCH_TO_ACL_CONTEXT.">
+            </define>
+            <define name="per_pp_port_pmf_profile_cs_offset" doc="The placement of PMF_PROFILE field within ERPP_PER_PORT_TABLE. Used because DBAL mapping by device didn't work."></define>
+            <!-- FIXME SDK-154314: Add a define to differentiate ePMF exem zero padding changing from MSB to LSB-->
+            <define name="tcam_result_flip_eco" doc="The TCAM result flip ECO is about flippiing lsb and msb parts of the TCAM-result in order to support 80b result being parsed by ARR"></define>
+            <define name="tcam_result_half_payload_on_msb" doc="Indicates that for half payload lookup the result is on the MSB half, but not using the tcam_result_flip_eco."></define>
+            <define name="parsing_start_offset_msb_meaningless" doc="In JR2, the parsing_start_offset signal is 8 bit in ingress but only 7 in egress, so we make the action smaller so as not to have a meaningles MSB."></define>
+            <define name="kbp_opcode_in_ipmf1_cs" doc="Indicates whether the context selection of iPMF1 takes the KBP opcode into account."></define>
+            <define name="kbp_hitbits_correct_in_ipmf1_cs" doc="Indicates whether the context selection of iPMF1 takes the KBP hitbits from the correct place of the elk payload. Assumed to be either 0 or 1."></define>
+            <define name="exem_vmv_removable_from_payload" doc="Indicates whether it is possible to configure a shift to remove the from the EXEM payload."></define>
+            <define name="multiple_dynamic_mem_enablers" doc="Indicates whether it is possible to configure dynamic memory enablers for ST, CS hit, TCAM entry protection etc."></define>
+            <define name="aacl_super_group_handler_enable" doc="Indicates whether it is possible to configure Super Group Handler for AACL"></define>
+            <define name="aacl_tcam_swap_enable" doc="Indicates whether it is possible to configure TCAM swap for AACL"></define>
+            <define name="extended_l4_ops" doc="Whether extended L4 Ops is supported"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="signal_sizes" doc="signal sizes that change by device, as needed for qualifier and action sizes.">
+        <defines>
+            <define name="dual_queue_size" doc="Dual queue added by HWJERICHO2C-55 and increased in size in HWJERICHO2P-127. Not supported in J2, but we still configure a value because the DBAL field needs a size."></define>
+            <define name="packet_header_size" doc="packet_header_size. Changed in HWJERICHO2P-384."></define>
+            <define name="ecn" doc="ECN signal. Changed in HWJERICHO2C-565."></define>
+            <define name="congestion_info" doc="CONGESTION_INFO signal. Takes ECN by default, and changed with it."></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="dnx_data_internal" doc="For internal DNX DATA usage only">
+        <defines>
+            <define name="lr_eth_is_da_mac_valid" doc="Whether layer record ETH_IS_DA_MAC works on device (works on JR2_B0 but not on JR2_A0)."></define>
+        </defines>
+    </sub_module>
+
+</device_data>

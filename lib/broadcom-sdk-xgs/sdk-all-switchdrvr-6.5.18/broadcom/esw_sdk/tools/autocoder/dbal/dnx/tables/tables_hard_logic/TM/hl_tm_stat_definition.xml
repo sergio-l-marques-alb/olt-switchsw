@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="STAT_RJCT_FILTER_GROUP">
+        <OneLineDescription>This table gives the filter groups corresponding drop reasons bitmap</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.stat.drop_reasons.nof_drop_reasons-1" Name="DROP_REASON" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="STAT_DROP_REASON_RJCT_MASK" NofInstances="8" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV STAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="STAT_DROP_REASON_RJCT_MASK">
+                    <Access instanceIndex="0">
+                        <Register Name="CGM_DROP_REASON_RJCT_MASKr">
+                            <HwField Name="DROP_REASON_0_RJCT_MASKf"/>
+                            <DataOffset Formula="#KEY_VALUE(DROP_REASON)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="CGM_DROP_REASON_RJCT_MASKr">
+                            <HwField Name="DROP_REASON_1_RJCT_MASKf"/>
+                            <DataOffset Formula="#KEY_VALUE(DROP_REASON)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="CGM_DROP_REASON_RJCT_MASKr">
+                            <HwField Name="DROP_REASON_2_RJCT_MASKf"/>
+                            <DataOffset Formula="#KEY_VALUE(DROP_REASON)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="CGM_DROP_REASON_RJCT_MASKr">
+                            <HwField Name="DROP_REASON_3_RJCT_MASKf"/>
+                            <DataOffset Formula="#KEY_VALUE(DROP_REASON)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="CGM_DROP_REASON_RJCT_MASKr">
+                            <HwField Name="DROP_REASON_4_RJCT_MASKf"/>
+                            <DataOffset Formula="#KEY_VALUE(DROP_REASON)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Register Name="CGM_DROP_REASON_RJCT_MASKr">
+                            <HwField Name="DROP_REASON_5_RJCT_MASKf"/>
+                            <DataOffset Formula="#KEY_VALUE(DROP_REASON)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Register Name="CGM_DROP_REASON_RJCT_MASKr">
+                            <HwField Name="DROP_REASON_6_RJCT_MASKf"/>
+                            <DataOffset Formula="#KEY_VALUE(DROP_REASON)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Register Name="CGM_DROP_REASON_RJCT_MASKr">
+                            <HwField Name="DROP_REASON_7_RJCT_MASKf"/>
+                            <DataOffset Formula="#KEY_VALUE(DROP_REASON)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="STAT_DROP_REASON_RJCT_MASK">
+                    <Access instanceIndex="0">
+                        <Register Name="CGM_STAT_RJCT_REASON_RJCT_MASKr">
+                            <HwField Name="STAT_RJCT_REASON_0_RJCT_MASKf"/>
+                            <DataOffset Formula="#KEY_VALUE(DROP_REASON)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="CGM_STAT_RJCT_REASON_RJCT_MASKr">
+                            <HwField Name="STAT_RJCT_REASON_1_RJCT_MASKf"/>
+                            <DataOffset Formula="#KEY_VALUE(DROP_REASON)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="CGM_STAT_RJCT_REASON_RJCT_MASKr">
+                            <HwField Name="STAT_RJCT_REASON_2_RJCT_MASKf"/>
+                            <DataOffset Formula="#KEY_VALUE(DROP_REASON)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="CGM_STAT_RJCT_REASON_RJCT_MASKr">
+                            <HwField Name="STAT_RJCT_REASON_3_RJCT_MASKf"/>
+                            <DataOffset Formula="#KEY_VALUE(DROP_REASON)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="CGM_STAT_RJCT_REASON_RJCT_MASKr">
+                            <HwField Name="STAT_RJCT_REASON_4_RJCT_MASKf"/>
+                            <DataOffset Formula="#KEY_VALUE(DROP_REASON)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Register Name="CGM_STAT_RJCT_REASON_RJCT_MASKr">
+                            <HwField Name="STAT_RJCT_REASON_5_RJCT_MASKf"/>
+                            <DataOffset Formula="#KEY_VALUE(DROP_REASON)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Register Name="CGM_STAT_RJCT_REASON_RJCT_MASKr">
+                            <HwField Name="STAT_RJCT_REASON_6_RJCT_MASKf"/>
+                            <DataOffset Formula="#KEY_VALUE(DROP_REASON)"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Register Name="CGM_STAT_RJCT_REASON_RJCT_MASKr">
+                            <HwField Name="STAT_RJCT_REASON_7_RJCT_MASKf"/>
+                            <DataOffset Formula="#KEY_VALUE(DROP_REASON)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

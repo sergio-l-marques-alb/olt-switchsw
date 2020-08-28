@@ -1,0 +1,1818 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Fields Types DB:
+    This xml contains the fields types DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+    According to:d88547d
+    DB Rules:
+    *********
+-->
+
+<FieldTypesDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="field_types_schema.xsd">
+
+    <FieldType Name="IPMF1_QUALIFIERS_CONTAINER" Size="256" Print="STRUCTURE">
+        <OneLineDescription>List of qualifiers for IPMF1</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="ALL_ONES"/>
+                <StructField Name="MEM_SOFT_ERR"/>
+                <StructField Name="ACL_CONTEXT"/>
+                <StructField Name="NASID"/>
+                <StructField Name="FWD_CONTEXT"/>
+                <StructField Name="RPF_OUT_LIF" Type="GLOB_OUT_LIF"/>
+                <StructField Name="RPF_DEFAULT_ROUTE_FOUND" Type="BOOL"/>
+                <StructField Name="RPF_ROUTE_VALID" Type="BOOL"/>
+                <StructField Name="IS_APPLET"/>
+                <StructField Name="GENERAL_DATA_0" Size="128" Type="ARRAY32"/>
+                <StructField Name="GENERAL_DATA_1" Size="128" Type="ARRAY32"/>
+                <StructField Name="GENERAL_DATA_2" Size="128" Type="ARRAY32"/>
+                <StructField Name="FWD_DOMAIN" Type="FODO"/>
+                <StructField Name="FWD_DOMAIN_PROFILE"/>
+                <StructField Name="VLAN_EDIT_PCP_2"/>
+                <StructField Name="VLAN_EDIT_DEI_2"/>
+                <StructField Name="VLAN_EDIT_PCP_DEI_2"/>
+                <StructField Name="VLAN_EDIT_VID_2"/>
+                <StructField Name="VLAN_EDIT_PCP_1"/>
+                <StructField Name="VLAN_EDIT_DEI_1"/>
+                <StructField Name="VLAN_EDIT_PCP_DEI_1"/>
+                <StructField Name="VLAN_EDIT_VID_1"/>
+                <StructField Name="VLAN_EDIT_CMD_INDEX"/>
+                <StructField Name="VLAN_EDIT_CMD"/>
+                <StructField Name="SRC_SYS_PORT"/>
+                <StructField Name="SNOOP_CODE"/>
+                <StructField Name="SNOOP_STRENGTH"/>
+                <StructField Name="FWD_LAYER_ADDITIONAL_INFO" Type="FORWARDING_ADDITIONAL_INFO"/>
+                <StructField Name="RPF_DST"/>
+                <StructField Name="RPF_DST_VALID" Type="BOOL"/>
+                <StructField Name="PACKET_IS_IEEE1588"/>
+                <StructField Name="IEEE1588_COMMAND"/>
+                <StructField Name="IEEE1588_COMPENSATE_TIME_STAMP" Type="BOOL"/>
+                <StructField Name="IEEE1588_ENCAPSULATION" Type="BOOL"/>
+                <StructField Name="IEEE1588_HEADER_OFFSET"/>
+                <StructField Name="PACKET_IS_COMPATIBLE_MC"/>
+                <StructField Name="PRT_QUALIFIER_RAW"/>
+                <StructField Name="PACKET_HEADER_SIZE" Type="HEADER_SIZE"/>
+                <StructField Name="MIRROR_CODE"/>
+                <StructField Name="VISIBILITY"/>
+                <StructField Name="PMF_OAM_ID"/>
+                <StructField Name="OAM_UP_MEP"/>
+                <StructField Name="OAM_SUB_TYPE"/>
+                <StructField Name="OAM_OFFSET"/>
+                <StructField Name="OAM_STAMP_OFFSET"/>
+                <StructField Name="LEARN_INFO"/>
+                <StructField Name="INGRESS_LEARN_ENABLE" Type="LEARN_ENABLE"/>
+                <StructField Name="EGRESS_LEARN_ENABLE" Type="LEARN_ENABLE"/>
+                <StructField Name="GLOB_IN_LIF_1" Type="GLOB_IN_LIF"/>
+                <StructField Name="GLOB_IN_LIF_0" Type="GLOB_IN_LIF"/>
+                <StructField Name="IN_LIF_PROFILE_0" Type="IN_LIF_PROFILE"/>
+                <StructField Name="IN_LIF_PROFILE_1" Type="IN_LIF_PROFILE"/>
+                <StructField Name="FWD_ACTION_STRENGTH" Type="FWD_STRENGTH"/>
+                <StructField Name="FWD_ACTION_DESTINATION" Type="DESTINATION"/>
+                <StructField Name="FWD_ACTION_CPU_TRAP_CODE" Type="INGRESS_TRAP_ID"/>
+                <StructField Name="FWD_ACTION_CPU_TRAP_QUAL" Type="TRAP_QUALIFIER"/>
+                <StructField Name="EEI"/>
+                <StructField Name="ELK_LKP_HIT_0" Type="BOOL"/>
+                <StructField Name="ELK_LKP_HIT_1" Type="BOOL"/>
+                <StructField Name="ELK_LKP_HIT_2" Type="BOOL"/>
+                <StructField Name="ELK_LKP_HIT_3" Type="BOOL"/>
+                <StructField Name="ELK_LKP_HIT_4" Type="BOOL"/>
+                <StructField Name="ELK_LKP_HIT_5" Type="BOOL"/>
+                <StructField Name="ELK_LKP_HIT_6" Type="BOOL"/>
+                <StructField Name="ELK_LKP_HIT_7" Type="BOOL"/>
+                <StructField Name="ELK_LKP_PAYLOAD_ALL_PART_1" Type="ARRAY32" Size="88"/>
+                <StructField Name="ELK_LKP_PAYLOAD_ALL_PART_0" Type="ARRAY32" Size="160"/>
+                <StructField Name="IN_PORT"/>
+                <StructField Name="PTC"/>
+                <StructField Name="LAG_LB_KEY"/>
+                <StructField Name="NWK_LB_KEY"/>
+                <StructField Name="ECMP_LB_KEY_0" Type="UINT" Size="16"/>
+                <StructField Name="ECMP_LB_KEY_1" Type="UINT" Size="16"/>
+                <StructField Name="ECMP_LB_KEY_2" Type="UINT" Size="16"/>
+                <StructField Name="GLOB_OUT_LIF_1" Type="GLOB_OUT_LIF"/>
+                <StructField Name="GLOB_OUT_LIF_0" Type="GLOB_OUT_LIF"/>
+                <StructField Name="IN_TTL"/>
+                <StructField Name="BIER_STR_OFFSET"/>
+                <StructField Name="BIER_STR_SIZE"/>
+                <StructField Name="PACKET_IS_BIER"/>
+                <StructField Name="SAVED_CONTEXT_PROFILE"/>
+                <StructField Name="OAM_METER_DISABLE"/>
+                <StructField Name="INCOMING_TAG_STRUCTURE"/>
+                <StructField Name="TC"/>
+                <StructField Name="DP"/>
+                <StructField Name="METADATA_ECN"/>
+                <StructField Name="NWK_QOS"/>
+                <StructField Name="TRACE_PACKET" Type="BOOL"/>
+                <StructField Name="PACKET_HEADER_SIZE_RANGE" Size="2" Type="UINT"/>
+                <StructField Name="IN_PORT_PMF_DATA"/>
+                <StructField Name="IN_PORT_MAPPED_PP_PORT" Type="MAPPED_PP_PORT"/>
+                <StructField Name="TM_PORT_PMF_DATA"/>
+                <StructField Name="VID_VALID" Type="BOOL"/>
+                <StructField Name="L4OPS"/>
+                <StructField Name="STATISTICS_OBJECT_10" Size="3" Type="STAT_OBJECT_ID"/>
+                <StructField Name="CPU_TRAP_CODE_PROFILE" Size="1" Type="UINT"/>
+                <StructField Name="TM_FLOW_ID" Type="STAT_OBJECT_ID"/>
+                <StructField Name="EXT_STATISTICS_ID_3" Type="STAT_OBJECT_ID"/>
+                <StructField Name="EXT_STATISTICS_ID_2" Type="STAT_OBJECT_ID"/>
+                <StructField Name="EXT_STATISTICS_ID_1" Type="STAT_OBJECT_ID"/>
+                <StructField Name="EXT_STATISTICS_ID_0" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_0" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_1" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_2" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_3" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_4" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_5" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_6" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_7" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_8" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_9" Type="STAT_OBJECT_ID"/>
+                <StructField Name="TM_FLOW_ATR" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="EXT_STATISTICS_ATR_3" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="EXT_STATISTICS_ATR_2" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="EXT_STATISTICS_ATR_1" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="EXT_STATISTICS_ATR_0" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_0" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_1" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_2" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_3" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_4" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_5" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_6" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_7" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_8" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_9" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_META_DATA"/>
+                <StructField Name="CONTEXT_KEY_GEN_VAR"/>
+                <StructField Name="EGRESS_PARSING_INDEX"/>
+                <StructField Name="FWD_LAYER_INDEX"/>
+                <StructField Name="AC_IN_LIF_WIDE_DATA"/>
+                <StructField Name="NATIVE_AC_IN_LIF_WIDE_DATA" Type="UINT" Size="8"/>
+                <StructField Name="PP_PORT_PMF_PROFILE" Type="UINT" Size="DNX_DATA.field.profile_bits.nof_bits_in_port_profile"/>
+                <StructField Name="TM_PORT_PMF_PROFILE" Type="UINT" Size="DNX_DATA.field.profile_bits.nof_bits_in_port_profile"/>
+                <StructField Name="PP_PORT_PMF_GENERAL_DATA" Type="UINT" Size="DNX_DATA.field.profile_bits.nof_bits_in_ingress_pp_port_general_data"/>
+                <!-- FIXME SDK-150529: The following two qualifiers change size and offset in in_lif_profiel. Take the size and offset change directly from DNX DATA -->
+                <StructField Name="PMF_IN_LIF_PROFILE" Type="IN_LIF_PROFILE"/>
+                <StructField Name="PMF_ETH_RIF_PROFILE" Type="FWD_DOMAIN_PROFILE"/>
+                <StructField Name="UNKNOWN_ADDRESS" Size="1" Type="UINT" Description="(HWJERICHO2C-107,HWJERICHO2C-120)"/>
+                <StructField Name="L4OPS_ENCODED" Size="32" Type="UINT" Description="(HWJERICHO2P-267)"/>
+                <StructField Name="LEARN_SRC_MAC" Type="L2_MAC"/>
+                <StructField Name="LEARN_VLAN" Type="VLAN_ID"/>
+                <StructField Name="LEARN_VSI" Size="18" Type="UINT"/>
+                <StructField Name="LEARN_DATA" Size="64" Type="ARRAY32"/>
+                <StructField Name="LEARN_STATION_MOVE" Type="BOOL"/>
+                <StructField Name="LEARN_MATCH" Type="BOOL"/>
+                <StructField Name="LEARN_FOUND" Type="BOOL"/>
+                <StructField Name="LEARN_EXPECTED_WON" Type="BOOL"/>                                                                                                
+                <StructField Name="VRF_VALUE"/>
+                <StructField Name="PP_PORT"/>
+                <StructField Name="CORE"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="ALL_ONES"/>
+                <StructField Name="MEM_SOFT_ERR"/>
+                <StructField Name="ACL_CONTEXT"/>
+                <StructField Name="NASID"/>
+                <StructField Name="FWD_CONTEXT"/>
+                <StructField Name="RPF_OUT_LIF"/>
+                <StructField Name="RPF_DEFAULT_ROUTE_FOUND"/>
+                <StructField Name="RPF_ROUTE_VALID"/>
+                <StructField Name="IS_APPLET"/>
+                <StructField Name="GENERAL_DATA_0"/>
+                <StructField Name="GENERAL_DATA_1"/>
+                <StructField Name="GENERAL_DATA_2"/>
+                <StructField Name="FWD_DOMAIN"/>
+                <StructField Name="FWD_DOMAIN_PROFILE"/>
+                <StructField Name="VLAN_EDIT_PCP_2"/>
+                <StructField Name="VLAN_EDIT_DEI_2"/>
+                <StructField Name="VLAN_EDIT_PCP_DEI_2"/>
+                <StructField Name="VLAN_EDIT_VID_2"/>
+                <StructField Name="VLAN_EDIT_PCP_1"/>
+                <StructField Name="VLAN_EDIT_DEI_1"/>
+                <StructField Name="VLAN_EDIT_PCP_DEI_1"/>
+                <StructField Name="VLAN_EDIT_VID_1"/>
+                <StructField Name="VLAN_EDIT_CMD_INDEX"/>
+                <StructField Name="VLAN_EDIT_CMD"/>
+                <StructField Name="SRC_SYS_PORT"/>
+                <StructField Name="SNOOP_CODE"/>
+                <StructField Name="SNOOP_STRENGTH"/>
+                <StructField Name="FWD_LAYER_ADDITIONAL_INFO"/>
+                <StructField Name="RPF_DST"/>
+                <StructField Name="RPF_DST_VALID"/>
+                <StructField Name="PACKET_IS_IEEE1588"/>
+                <StructField Name="IEEE1588_COMMAND"/>
+                <StructField Name="IEEE1588_COMPENSATE_TIME_STAMP"/>
+                <StructField Name="IEEE1588_ENCAPSULATION"/>
+                <StructField Name="IEEE1588_HEADER_OFFSET"/>
+                <StructField Name="PACKET_IS_COMPATIBLE_MC"/>
+                <StructField Name="PRT_QUALIFIER_RAW"/>
+                <StructField Name="PACKET_HEADER_SIZE"/>
+                <StructField Name="MIRROR_CODE"/>
+                <StructField Name="VISIBILITY"/>
+                <StructField Name="PMF_OAM_ID"/>
+                <StructField Name="OAM_UP_MEP"/>
+                <StructField Name="OAM_SUB_TYPE"/>
+                <StructField Name="OAM_OFFSET"/>
+                <StructField Name="OAM_STAMP_OFFSET"/>
+                <StructField Name="LEARN_INFO"/>
+                <StructField Name="INGRESS_LEARN_ENABLE"/>
+                <StructField Name="EGRESS_LEARN_ENABLE"/>
+                <StructField Name="LEARN_ENABLE"/>
+                <StructField Name="GLOB_IN_LIF_1"/>
+                <StructField Name="GLOB_IN_LIF_0"/>
+                <StructField Name="IN_LIF_PROFILE_0"/>
+                <StructField Name="IN_LIF_PROFILE_1"/>
+                <StructField Name="FWD_ACTION_STRENGTH"/>
+                <StructField Name="FWD_ACTION_DESTINATION"/>
+                <StructField Name="FWD_ACTION_CPU_TRAP_CODE"/>
+                <StructField Name="FWD_ACTION_CPU_TRAP_QUAL"/>
+                <StructField Name="EEI"/>
+                <StructField Name="ELK_LKP_HIT_0"/>
+                <StructField Name="ELK_LKP_HIT_1"/>
+                <StructField Name="ELK_LKP_HIT_2"/>
+                <StructField Name="ELK_LKP_HIT_3"/>
+                <StructField Name="ELK_LKP_HIT_4"/>
+                <StructField Name="ELK_LKP_HIT_5"/>
+                <StructField Name="ELK_LKP_HIT_6"/>
+                <StructField Name="ELK_LKP_HIT_7"/>
+                <StructField Name="ELK_LKP_HIT_1"/>
+                <StructField Name="ELK_LKP_HIT_0"/>
+                <StructField Name="IN_PORT"/>
+                <StructField Name="PTC"/>
+                <StructField Name="LAG_LB_KEY"/>
+                <StructField Name="NWK_LB_KEY"/>
+                <StructField Name="ECMP_LB_KEY_0"/>
+                <StructField Name="ECMP_LB_KEY_1"/>
+                <StructField Name="ECMP_LB_KEY_2"/>
+                <StructField Name="GLOB_OUT_LIF_1"/>
+                <StructField Name="GLOB_OUT_LIF_0"/>
+                <StructField Name="IN_TTL"/>
+                <StructField Name="BIER_STR_OFFSET"/>
+                <StructField Name="BIER_STR_SIZE"/>
+                <StructField Name="PACKET_IS_BIER"/>
+                <StructField Name="SAVED_CONTEXT_PROFILE"/>
+                <StructField Name="OAM_METER_DISABLE"/>
+                <StructField Name="INCOMING_TAG_STRUCTURE"/>
+                <StructField Name="TC"/>
+                <StructField Name="DP"/>
+                <StructField Name="METADATA_ECN"/>
+                <StructField Name="NWK_QOS"/>
+                <StructField Name="TRACE_PACKET"/>
+                <StructField Name="PACKET_HEADER_SIZE_RANGE"/>
+                <StructField Name="IN_PORT_PMF_DATA"/>
+                <StructField Name="IN_PORT_MAPPED_PP_PORT"/>
+                <StructField Name="TM_PORT_PMF_DATA"/>
+                <StructField Name="VID_VALID"/>
+                <StructField Name="L4OPS"/>
+                <StructField Name="STATISTICS_OBJECT_10"/>
+                <StructField Name="CPU_TRAP_CODE_PROFILE"/>
+                <StructField Name="TM_FLOW_ID"/>
+                <StructField Name="EXT_STATISTICS_ID_3"/>
+                <StructField Name="EXT_STATISTICS_ID_2"/>
+                <StructField Name="EXT_STATISTICS_ID_1"/>
+                <StructField Name="EXT_STATISTICS_ID_0"/>
+                <StructField Name="STATISTICS_ID_0"/>
+                <StructField Name="STATISTICS_ID_1"/>
+                <StructField Name="STATISTICS_ID_2"/>
+                <StructField Name="STATISTICS_ID_3"/>
+                <StructField Name="STATISTICS_ID_4"/>
+                <StructField Name="STATISTICS_ID_5"/>
+                <StructField Name="STATISTICS_ID_6"/>
+                <StructField Name="STATISTICS_ID_7"/>
+                <StructField Name="STATISTICS_ID_8"/>
+                <StructField Name="STATISTICS_ID_9"/>
+                <StructField Name="TM_FLOW_ATR"/>
+                <StructField Name="EXT_STATISTICS_ATR_3"/>
+                <StructField Name="EXT_STATISTICS_ATR_2"/>
+                <StructField Name="EXT_STATISTICS_ATR_1"/>
+                <StructField Name="EXT_STATISTICS_ATR_0"/>
+                <StructField Name="STATISTICS_ATR_0"/>
+                <StructField Name="STATISTICS_ATR_1"/>
+                <StructField Name="STATISTICS_ATR_2"/>
+                <StructField Name="STATISTICS_ATR_3"/>
+                <StructField Name="STATISTICS_ATR_4"/>
+                <StructField Name="STATISTICS_ATR_5"/>
+                <StructField Name="STATISTICS_ATR_6"/>
+                <StructField Name="STATISTICS_ATR_7"/>
+                <StructField Name="STATISTICS_ATR_8"/>
+                <StructField Name="STATISTICS_ATR_9"/>
+                <StructField Name="STATISTICS_META_DATA"/>
+                <StructField Name="CONTEXT_KEY_GEN_VAR"/>
+                <StructField Name="EGRESS_PARSING_INDEX"/>
+                <StructField Name="FWD_LAYER_INDEX"/>
+                <StructField Name="AC_IN_LIF_WIDE_DATA"/>
+                <StructField Name="NATIVE_AC_IN_LIF_WIDE_DATA"/>
+                <StructField Name="PP_PORT_PMF_PROFILE"/>
+                <StructField Name="TM_PORT_PMF_PROFILE"/>
+                <StructField Name="PP_PORT_PMF_GENERAL_DATA"/>
+                <StructField Name="PMF_IN_LIF_PROFILE"/>
+                <StructField Name="PMF_ETH_RIF_PROFILE"/>
+                <StructField Name="UNKNOWN_ADDRESS"/>
+                <StructField Name="L4OPS_ENCODED"/>
+                <StructField Name="LEARN_SRC_MAC"/>
+                <StructField Name="LEARN_VLAN"/>
+                <StructField Name="LEARN_VSI"/>
+                <StructField Name="LEARN_DATA"/>
+                <StructField Name="LEARN_STATION_MOVE"/>
+                <StructField Name="LEARN_MATCH"/>
+                <StructField Name="LEARN_FOUND"/>
+                <StructField Name="LEARN_EXPECTED_WON"/>                  
+                <StructField Name="VRF_VALUE"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPMF1_ACTIONS_CONTAINER" Size="256" Print="STRUCTURE">
+        <OneLineDescription>List of actions for IPMF1</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="ACL_CONTEXT"/>
+                <StructField Name="ADMT_PROFILE"/>
+                <StructField Name="BIER_STR_OFFSET"/>
+                <StructField Name="BIER_STR_SIZE"/>
+                <StructField Name="CONGESTION_INFO"/>
+                <StructField Name="DST_DATA"/>
+                <StructField Name="DP"/>
+                <StructField Name="DP_METER_COMMAND"/>
+                <StructField Name="EEI"/> 
+                <StructField Name="EGRESS_LEARN_ENABLE" Type="LEARN_ENABLE"/>
+                <StructField Name="ELEPHANT_PAYLOAD"/>
+                <StructField Name="TRACE_PACKET_ACT"/>
+                <StructField Name="END_OF_PACKET_EDITING"/>
+                <StructField Name="EXT_STATISTICS_0" Type="EXT_STATISTICS"/>
+                <StructField Name="EXT_STATISTICS_1" Type="EXT_STATISTICS"/>
+                <StructField Name="EXT_STATISTICS_2" Type="EXT_STATISTICS"/>
+                <StructField Name="EXT_STATISTICS_3" Type="EXT_STATISTICS"/>
+                <StructField Name="FWD_TRAP"/>
+                <StructField Name="FWD_DOMAIN" Type="FODO"/>
+                <StructField Name="FWD_LAYER_ADDITIONAL_INFO" Type="FORWARDING_ADDITIONAL_INFO"/>
+                <StructField Name="FWD_CONTEXT"/>
+                <StructField Name="FWD_LAYER_INDEX"/>
+                <StructField Name="IEEE1588_DATA"/>
+                <StructField Name="INGRESS_LEARN_ENABLE" Type="LEARN_ENABLE"/>
+                <StructField Name="GLOB_IN_LIF_0" Type="GLOB_IN_LIF"/>
+                <StructField Name="GLOB_IN_LIF_1" Type="GLOB_IN_LIF"/>
+                <StructField Name="IN_LIF_PROFILE_0" Type="IN_LIF_PROFILE"/>
+                <StructField Name="IN_LIF_PROFILE_1" Type="IN_LIF_PROFILE"/>
+                <StructField Name="PP_PORT"/>
+                <StructField Name="IN_TTL"/>
+                <StructField Name="ITPP_DELTA_AND_VALID"/>
+                <StructField Name="LATENCY_FLOW"/>
+                <StructField Name="LEARN_INFO_0" Type="UINT"/>
+                <StructField Name="LEARN_INFO_1" Type="UINT"/>
+                <StructField Name="LEARN_INFO_2" Type="UINT"/>
+                <StructField Name="LEARN_INFO_3" Type="UINT"/>
+                <StructField Name="LEARN_INFO_4" Type="UINT"/>
+                <StructField Name="LEARN_OR_TRANSPLANT" Type="BOOL"/>
+                <StructField Name="MIRROR_DATA"/>
+                <StructField Name="NWK_QOS"/>
+                <StructField Name="OAM_DATA"/>
+                <StructField Name="PMF_OAM_ID"/>
+                <StructField Name="GLOB_OUT_LIF_0" Type="GLOB_OUT_LIF"/>
+                <StructField Name="GLOB_OUT_LIF_1" Type="GLOB_OUT_LIF"/>
+                <StructField Name="GLOB_OUT_LIF_2" Type="GLOB_OUT_LIF"/>
+                <StructField Name="GLOB_OUT_LIF_3" Type="GLOB_OUT_LIF"/>
+                <StructField Name="OUT_LIF_PUSH" Type="GLOB_OUT_LIF"/>
+                <StructField Name="PACKET_IS_COMPATIBLE_MC"/>
+                <StructField Name="PACKET_IS_BIER"/>
+                <StructField Name="EGRESS_PARSING_INDEX"/>
+                <StructField Name="PEM_GENERAL_DATA0" Size="32" Type="UINT"/>
+                <StructField Name="PEM_GENERAL_DATA1" Size="32" Type="UINT"/>
+                <StructField Name="PEM_GENERAL_DATA2" Size="32" Type="UINT"/>
+                <StructField Name="PEM_GENERAL_DATA3" Size="32" Type="UINT"/>
+                <StructField Name="PPH_RESERVED"/>
+                <StructField Name="PPH_TYPE"/>
+                <StructField Name="RPF_DST"/>
+                <StructField Name="RPF_DST_VALID" Type="BOOL"/>
+                <StructField Name="RPF_OUT_LIF_ENCODED"/>
+                <StructField Name="PTC"/>
+                <StructField Name="STATISTICAL_SAMPLING"/>
+                <StructField Name="SNOOP_DATA"/>
+                <StructField Name="SRC_SYS_PORT"/>
+                <StructField Name="STACKING_ROUTE_HISTORY_BITMAP"/>
+                <StructField Name="SLB_PAYLOAD0" Size="32" Type="UINT"/>
+                <StructField Name="SLB_PAYLOAD1" Size="32" Type="UINT"/>
+                <StructField Name="SLB_KEY0" Size="32" Type="UINT"/>
+                <StructField Name="SLB_KEY1" Size="32" Type="UINT"/>
+                <StructField Name="SLB_KEY2" Size="16" Type="USHORT"/>
+                <StructField Name="SLB_FOUND" Type="BOOL"/>
+                <StructField Name="STATE_ADDRESS_DATA"/>
+                <StructField Name="STATE_DATA"/>
+                <StructField Name="STATISTICS_ID_0" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_1" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_2" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_3" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_4" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_5" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_6" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_7" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_8" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_9" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ATR_0" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_1" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_2" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_3" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_4" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_5" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_6" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_7" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_8" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_9" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_META_DATA"/>
+                <StructField Name="STATISTICS_OBJECT_10" Size="3" Type="STAT_OBJECT_ID"/>
+                <StructField Name="ST_VSQ_PTR"/>
+                <StructField Name="SYSTEM_HEADER_PROFILE_INDEX"/>
+                <StructField Name="TC"/>
+                <StructField Name="TM_PROFILE"/>
+                <StructField Name="USER_HEADER_1" Type="USER_HEADER"/>
+                <StructField Name="USER_HEADER_1_TYPE" Type="USER_HEADER_TYPE"/>
+                <StructField Name="USER_HEADER_2" Type="USER_HEADER"/>
+                <StructField Name="USER_HEADER_2_TYPE" Type="USER_HEADER_TYPE"/>
+                <StructField Name="USER_HEADER_3" Type="USER_HEADER"/>
+                <StructField Name="USER_HEADER_3_TYPE" Type="USER_HEADER_TYPE"/>
+                <StructField Name="USER_HEADER_4" Type="USER_HEADER"/>
+                <StructField Name="USER_HEADER_4_TYPE" Type="USER_HEADER_TYPE"/>
+                <StructField Name="VLAN_EDIT_CMD_INDEX"/>
+                <StructField Name="VLAN_EDIT_PCP_DEI_1"/>
+                <StructField Name="VLAN_EDIT_PCP_DEI_2"/>
+                <StructField Name="VLAN_EDIT_VID_1"/>
+                <StructField Name="VLAN_EDIT_VID_2"/>
+                <StructField Name="INGRESS_TIME_STAMP" Type="TIME_STAMP"/>
+                <StructField Name="INT_DATA"/>
+                <StructField Name="INGRESS_TIME_STAMP_OVERRIDE" Type="BOOL"/>
+                <StructField Name="EVENTOR"/>
+                <StructField Name="STAT_OBJ_LM_READ_INDEX"/>
+                <StructField Name="LEARN_INFO_KEY_0" Size ="32" Type="UINT"/>
+                <StructField Name="LEARN_INFO_KEY_1" Size ="32" Type="UINT"/>
+                <StructField Name="LEARN_INFO_KEY_2_APP_DB_INDEX" Size ="18" Type="UINT"/>
+                <StructField Name="LEARN_INFO_PAYLOAD_0" Size ="32" Type="UINT"/>
+                <StructField Name="LEARN_INFO_PAYLOAD_1" Size ="32" Type="UINT"/>
+                <StructField Name="LEARN_INFO_FORMAT_INDEX" Size ="2" Type="UINT"/>
+                <StructField Name="VISIBILITY_CLEAR"/>
+                <StructField Name="VISIBILITY"/>
+                <StructField Name="INVALIDATE_NEXT"/>
+                <StructField Name="INVALID"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="ACL_CONTEXT"/>
+                <StructField Name="ADMT_PROFILE"/>
+                <StructField Name="BIER_STR_OFFSET"/>
+                <StructField Name="BIER_STR_SIZE"/>
+                <StructField Name="CONGESTION_INFO"/>
+                <StructField Name="DST_DATA"/>
+                <StructField Name="DP"/>
+                <StructField Name="DP_METER_COMMAND"/>
+                <StructField Name="EEI"/> 
+                <StructField Name="EGRESS_LEARN_ENABLE"/>
+                <StructField Name="ELEPHANT_PAYLOAD"/>
+                <StructField Name="TRACE_PACKET_ACT"/>
+                <StructField Name="END_OF_PACKET_EDITING"/>
+                <StructField Name="EXT_STATISTICS_0"/>
+                <StructField Name="EXT_STATISTICS_1"/>
+                <StructField Name="EXT_STATISTICS_2"/>
+                <StructField Name="EXT_STATISTICS_3"/>
+                <StructField Name="FWD_TRAP"/>
+                <StructField Name="FWD_DOMAIN"/>
+                <StructField Name="FWD_LAYER_ADDITIONAL_INFO"/>
+                <StructField Name="FWD_CONTEXT"/>
+                <StructField Name="FWD_LAYER_INDEX"/>
+                <StructField Name="IEEE1588_DATA"/>
+                <StructField Name="INGRESS_LEARN_ENABLE"/>
+                <StructField Name="GLOB_IN_LIF_0"/>
+                <StructField Name="GLOB_IN_LIF_1"/>
+                <StructField Name="IN_LIF_PROFILE_0"/>
+                <StructField Name="IN_LIF_PROFILE_1"/>
+                <StructField Name="PP_PORT"/>
+                <StructField Name="IN_TTL"/>
+                <StructField Name="ITPP_DELTA_AND_VALID"/>
+                <StructField Name="LATENCY_FLOW"/>
+                <StructField Name="LEARN_INFO_0"/>
+                <StructField Name="LEARN_INFO_1"/>
+                <StructField Name="LEARN_INFO_2"/>
+                <StructField Name="LEARN_INFO_3"/>
+                <StructField Name="LEARN_INFO_4"/>
+                <StructField Name="LEARN_OR_TRANSPLANT"/>
+                <StructField Name="MIRROR_DATA"/>
+                <StructField Name="NWK_QOS"/>
+                <StructField Name="OAM_DATA"/>
+                <StructField Name="PMF_OAM_ID"/>
+                <StructField Name="GLOB_OUT_LIF_0"/>
+                <StructField Name="GLOB_OUT_LIF_1"/>
+                <StructField Name="GLOB_OUT_LIF_2"/>
+                <StructField Name="GLOB_OUT_LIF_3"/>
+                <StructField Name="OUT_LIF_PUSH"/>
+                <StructField Name="PACKET_IS_COMPATIBLE_MC"/>
+                <StructField Name="PACKET_IS_BIER"/>
+                <StructField Name="EGRESS_PARSING_INDEX"/>
+                <StructField Name="PEM_GENERAL_DATA0"/>
+                <StructField Name="PEM_GENERAL_DATA1"/>
+                <StructField Name="PEM_GENERAL_DATA2"/>
+                <StructField Name="PEM_GENERAL_DATA3"/>
+                <StructField Name="PPH_RESERVED"/>
+                <StructField Name="PPH_TYPE"/>
+                <StructField Name="RPF_DST"/>
+                <StructField Name="RPF_DST_VALID"/>
+                <StructField Name="RPF_OUT_LIF_ENCODED"/>
+                <StructField Name="PTC"/>
+                <StructField Name="STATISTICAL_SAMPLING"/>
+                <StructField Name="SNOOP_DATA"/>
+                <StructField Name="SRC_SYS_PORT"/>
+                <StructField Name="STACKING_ROUTE_HISTORY_BITMAP"/>
+                <StructField Name="SLB_PAYLOAD0"/>
+                <StructField Name="SLB_PAYLOAD1"/>
+                <StructField Name="SLB_KEY0"/>
+                <StructField Name="SLB_KEY1"/>
+                <StructField Name="SLB_KEY2"/>
+                <StructField Name="SLB_FOUND"/>
+                <StructField Name="STATE_ADDRESS_DATA"/>
+                <StructField Name="STATE_DATA"/>
+                <StructField Name="STATISTICS_ID_0"/>
+                <StructField Name="STATISTICS_ID_1"/>
+                <StructField Name="STATISTICS_ID_2"/>
+                <StructField Name="STATISTICS_ID_3"/>
+                <StructField Name="STATISTICS_ID_4"/>
+                <StructField Name="STATISTICS_ID_5"/>
+                <StructField Name="STATISTICS_ID_6"/>
+                <StructField Name="STATISTICS_ID_7"/>
+                <StructField Name="STATISTICS_ID_8"/>
+                <StructField Name="STATISTICS_ID_9"/>
+                <StructField Name="STATISTICS_ATR_0"/>
+                <StructField Name="STATISTICS_ATR_1"/>
+                <StructField Name="STATISTICS_ATR_2"/>
+                <StructField Name="STATISTICS_ATR_3"/>
+                <StructField Name="STATISTICS_ATR_4"/>
+                <StructField Name="STATISTICS_ATR_5"/>
+                <StructField Name="STATISTICS_ATR_6"/>
+                <StructField Name="STATISTICS_ATR_7"/>
+                <StructField Name="STATISTICS_ATR_8"/>
+                <StructField Name="STATISTICS_ATR_9"/>
+                <StructField Name="STATISTICS_META_DATA"/>
+                <StructField Name="STATISTICS_OBJECT_10"/>
+                <StructField Name="ST_VSQ_PTR"/>
+                <StructField Name="SYSTEM_HEADER_PROFILE_INDEX"/>
+                <StructField Name="TC"/>
+                <StructField Name="TM_PROFILE"/>
+                <StructField Name="USER_HEADER_1"/>
+                <StructField Name="USER_HEADER_1_TYPE"/>
+                <StructField Name="USER_HEADER_2"/>
+                <StructField Name="USER_HEADER_2_TYPE"/>
+                <StructField Name="USER_HEADER_3"/>
+                <StructField Name="USER_HEADER_3_TYPE"/>
+                <StructField Name="USER_HEADER_4"/>
+                <StructField Name="USER_HEADER_4_TYPE"/>
+                <StructField Name="VLAN_EDIT_CMD_INDEX"/>
+                <StructField Name="VLAN_EDIT_PCP_DEI_1"/>
+                <StructField Name="VLAN_EDIT_PCP_DEI_2"/>
+                <StructField Name="VLAN_EDIT_VID_1"/>
+                <StructField Name="VLAN_EDIT_VID_2"/>
+                <StructField Name="INGRESS_TIME_STAMP"/>
+                <StructField Name="INT_DATA"/>
+                <StructField Name="INGRESS_TIME_STAMP_OVERRIDE"/>
+                <StructField Name="EVENTOR"/>
+                <StructField Name="STAT_OBJ_LM_READ_INDEX"/>
+                <StructField Name="VISIBILITY_CLEAR"/>
+                <StructField Name="VISIBILITY"/>
+                <StructField Name="INVALIDATE_NEXT"/>
+                <StructField Name="INVALID"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPMF2_QUALIFIERS_CONTAINER" Size="256" Print="STRUCTURE">
+        <OneLineDescription>List of qualifiers for IPMF2</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="PMF1_TCAM_ACTION_0" Size="64" Type="ARRAY32"/>
+                <StructField Name="PMF1_TCAM_ACTION_1" Size="64" Type="ARRAY32"/>
+                <StructField Name="PMF1_TCAM_ACTION_2" Size="64" Type="ARRAY32"/>
+                <StructField Name="PMF1_TCAM_ACTION_3" Size="64" Type="ARRAY32"/>
+                <StructField Name="PMF1_EXEM_ACTION" Size="64" Type="ARRAY32"/>
+                <StructField Name="PMF1_DIRECT_ACTION" Size="120" Type="ARRAY32"/>
+                <StructField Name="STATE_TABLE_DATA"/>
+                <StructField Name="STATE_TABLE_ADDRESS"/>
+                <StructField Name="KEY_F_INITIAL" Size="160" Type="ARRAY32"/>
+                <StructField Name="KEY_G_INITIAL" Size="160" Type="ARRAY32"/>
+                <StructField Name="KEY_H_INITIAL" Size="160" Type="ARRAY32"/>
+                <StructField Name="KEY_I_INITIAL" Size="160" Type="ARRAY32"/>
+                <StructField Name="KEY_J_INITIAL" Size="160" Type="ARRAY32"/>
+                <StructField Name="NWK_LB_KEY"/>
+                <StructField Name="LAG_LB_KEY"/>
+                <StructField Name="ECMP_LB_KEY_2" Type="UINT" Size="16"/>
+                <StructField Name="ECMP_LB_KEY_1" Type="UINT" Size="16"/>
+                <StructField Name="ECMP_LB_KEY_0" Type="UINT" Size="16"/>
+                <StructField Name="TRJ_HASH" Type="UINT" Size="16"/>
+                <StructField Name="CMP_KEY_0_DECODED" Type="CMP_KEY_DECODED"/>
+                <StructField Name="CMP_KEY_1_DECODED" Type="CMP_KEY_DECODED"/>
+                <StructField Name="CMP_KEY_TCAM_0_DECODED" Type="CMP_KEY_DECODED"/>
+                <StructField Name="CMP_KEY_TCAM_1_DECODED" Type="CMP_KEY_DECODED"/>
+                <StructField Name="NASID"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="PMF1_TCAM_ACTION_0"/>
+                <StructField Name="PMF1_TCAM_ACTION_1"/>
+                <StructField Name="PMF1_TCAM_ACTION_2"/>
+                <StructField Name="PMF1_TCAM_ACTION_3"/>
+                <StructField Name="PMF1_EXEM_ACTION"/>
+                <StructField Name="PMF1_DIRECT_ACTION"/>
+                <StructField Name="STATE_TABLE_DATA"/>
+                <StructField Name="STATE_TABLE_ADDRESS"/>
+                <StructField Name="KEY_F_INITIAL"/>
+                <StructField Name="KEY_G_INITIAL"/>
+                <StructField Name="KEY_H_INITIAL"/>
+                <StructField Name="KEY_I_INITIAL"/>
+                <StructField Name="KEY_J_INITIAL"/>
+                <StructField Name="LAG_LB_KEY"/>
+                <StructField Name="ECMP_LB_KEY_2"/>
+                <StructField Name="ECMP_LB_KEY_1"/>
+                <StructField Name="ECMP_LB_KEY_0"/>
+                <StructField Name="TRJ_HASH"/>
+                <StructField Name="CMP_KEY_0_DECODED"/>
+                <StructField Name="CMP_KEY_1_DECODED"/>
+                <StructField Name="CMP_KEY_TCAM_0_DECODED"/>
+                <StructField Name="CMP_KEY_TCAM_1_DECODED"/>
+                <StructField Name="NASID"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPMF3_QUALIFIERS_CONTAINER" Size="256" Print="STRUCTURE">
+        <OneLineDescription>List of qualifiers for IPMF3</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="ALL_ONES"/>
+                <StructField Name="LEARN_INFO"/>
+                <StructField Name="RPF_ECMP_MODE"/>
+                <StructField Name="RPF_ECMP_GROUP"/>
+                <StructField Name="ADMT_PROFILE"/>
+                <StructField Name="BIER_STR_OFFSET"/>
+                <StructField Name="BIER_STR_SIZE"/>
+                <StructField Name="BYTES_TO_REMOVE"/>
+                <StructField Name="WEAK_TM_VALID" Type="BOOL"/>
+                <StructField Name="WEAK_TM_PROFILE" Size="6" Type="UINT"/>
+                <StructField Name="STAT_OBJ_LM_READ_INDEX"/>
+                <StructField Name="CONGESTION_INFO"/>
+                <StructField Name="END_OF_PACKET_EDITING"/>
+                <StructField Name="EEI"/>
+                <StructField Name="EGRESS_LEARN_ENABLE" Type="LEARN_ENABLE"/>
+                <StructField Name="FWD_ACTION_CPU_TRAP_CODE" Type="INGRESS_TRAP_ID"/>
+                <StructField Name="FWD_ACTION_CPU_TRAP_QUAL" Type="TRAP_QUALIFIER"/>
+                <StructField Name="DP_METER_COMMAND"/>
+                <StructField Name="DP"/>
+                <StructField Name="TC"/>
+                <StructField Name="FWD_ACTION_DESTINATION" Type="DESTINATION"/>
+                <StructField Name="FWD_ACTION_STRENGTH" Type="FWD_STRENGTH"/>
+                <StructField Name="FWD_PAYLOAD" Size="62" Type="ARRAY32"/>
+                <StructField Name="FWD_DOMAIN" Type="FODO"/>
+                <StructField Name="FWD_DOMAIN_PROFILE"/>
+                <StructField Name="GENERAL_DATA_IPMF3" Size="128" Type="UINT" Description="The general data available for iPMF3 (that which is writable by iPMF1/2)"/>
+                <StructField Name="PEM_GENERAL_DATA3" Size="32" Type="UINT"/>
+                <StructField Name="IEEE1588_COMMAND"/>
+                <StructField Name="IEEE1588_COMPENSATE_TIME_STAMP" Type="BOOL"/>
+                <StructField Name="IEEE1588_ENCAPSULATION" Type="BOOL"/>
+                <StructField Name="IEEE1588_HEADER_OFFSET"/>
+                <StructField Name="IN_LIF_PROFILE_0" Type="IN_LIF_PROFILE"/>
+                <StructField Name="IN_LIF_PROFILE_1" Type="IN_LIF_PROFILE"/>
+                <StructField Name="GLOB_IN_LIF_0" Type="GLOB_IN_LIF"/>
+                <StructField Name="GLOB_IN_LIF_1" Type="GLOB_IN_LIF"/>
+                <StructField Name="IN_PORT"/>
+                <StructField Name="CORE"/>
+                <StructField Name="IN_TTL"/>
+                <StructField Name="INGRESS_LEARN_ENABLE" Type="LEARN_ENABLE"/>
+                <StructField Name="ITPP_DELTA"/>
+                <StructField Name="LAG_LB_KEY"/>
+                <StructField Name="LATENCY_FLOW_ID_VALID" Type="BOOL"/>
+                <StructField Name="LATENCY_FLOW_ID" Size="19" Type="UINT"/>
+                <StructField Name="MIRROR_CODE"/>
+                <StructField Name="MIRROR_QUALIFIER"/>
+                <StructField Name="NWK_LB_KEY"/>
+                <StructField Name="NWK_QOS"/>
+                <StructField Name="PMF_OAM_ID"/>
+                <StructField Name="OAM_OFFSET"/>
+                <StructField Name="OAM_STAMP_OFFSET"/>
+                <StructField Name="OAM_SUB_TYPE"/>
+                <StructField Name="OAM_UP_MEP"/>
+                <StructField Name="GLOB_OUT_LIF_0" Type="GLOB_OUT_LIF"/>
+                <StructField Name="GLOB_OUT_LIF_1" Type="GLOB_OUT_LIF"/>
+                <StructField Name="GLOB_OUT_LIF_2" Type="GLOB_OUT_LIF"/>
+                <StructField Name="GLOB_OUT_LIF_3" Type="GLOB_OUT_LIF"/>
+                <StructField Name="IS_APPLET"/>
+                <StructField Name="NASID"/>
+                <StructField Name="PACKET_IS_BIER"/>
+                <StructField Name="PACKET_IS_IEEE1588"/>
+                <StructField Name="EGRESS_PARSING_INDEX"/>
+                <StructField Name="PTC"/>
+                <StructField Name="EXT_STATISTICS_VALID" Type="BOOL"/>
+                <StructField Name="PPH_RESERVED"/>
+                <StructField Name="PPH_TYPE"/>
+                <StructField Name="RPF_DST"/>
+                <StructField Name="RPF_DST_VALID" Type="BOOL"/>
+                <StructField Name="SNOOP_CODE"/>
+                <StructField Name="SNOOP_STRENGTH"/>
+                <StructField Name="SNOOP_QUALIFIER"/>
+                <StructField Name="SRC_SYS_PORT"/>
+                <StructField Name="ST_VSQ_PTR"/>
+                <StructField Name="STATISTICAL_SAMPLING_CODE"/>
+                <StructField Name="STATISTICAL_SAMPLING_QUALIFIER"/>
+                <StructField Name="STACKING_ROUTE_HISTORY_BITMAP"/>
+                <StructField Name="STATISTICS_META_DATA"/>
+                <StructField Name="STATISTICS_OBJECT_10" Size="3" Type="STAT_OBJECT_ID"/>
+                <StructField Name="SYSTEM_HEADER_PROFILE_INDEX"/>
+                <StructField Name="TM_PROFILE"/>
+                <StructField Name="USER_HEADER_1" Type="USER_HEADER"/>
+                <StructField Name="USER_HEADER_2" Type="USER_HEADER"/>
+                <StructField Name="USER_HEADER_3" Type="USER_HEADER"/>
+                <StructField Name="USER_HEADER_4" Type="USER_HEADER"/>
+                <StructField Name="USER_HEADER_1_TYPE" Type="USER_HEADER_TYPE"/>
+                <StructField Name="USER_HEADER_2_TYPE" Type="USER_HEADER_TYPE"/>
+                <StructField Name="USER_HEADER_3_TYPE" Type="USER_HEADER_TYPE"/>
+                <StructField Name="USER_HEADER_4_TYPE" Type="USER_HEADER_TYPE"/>
+                <StructField Name="USER_HEADERS_TYPE" Size="8" Type="UINT"/>
+                <StructField Name="VISIBILITY"/>
+                <StructField Name="VLAN_EDIT_VID_2"/>
+                <StructField Name="VLAN_EDIT_VID_1"/>
+                <StructField Name="VLAN_EDIT_DEI_2"/>
+                <StructField Name="VLAN_EDIT_PCP_2"/>
+                <StructField Name="VLAN_EDIT_PCP_DEI_2"/>
+                <StructField Name="VLAN_EDIT_DEI_1"/>
+                <StructField Name="VLAN_EDIT_PCP_1"/>
+                <StructField Name="VLAN_EDIT_PCP_DEI_1"/>
+                <StructField Name="VLAN_EDIT_CMD_INDEX"/>
+                <StructField Name="VLAN_EDIT_CMD"/>
+                <StructField Name="FWD_LAYER_ADDITIONAL_INFO" Type="FORWARDING_ADDITIONAL_INFO"/>
+                <StructField Name="SLB_LEARN_NEEDED" Type="BOOL"/>
+                <StructField Name="SLB_KEY" Size="80" Type="ARRAY32"/>
+                <StructField Name="SLB_PAYLOAD" Size="60" Type="ARRAY32"/>
+                <StructField Name="TM_PORT_PMF_DATA"/>
+                <StructField Name="IN_PORT_PMF_DATA"/>
+                <StructField Name="IN_PORT_MAPPED_PP_PORT" Type="MAPPED_PP_PORT"/>
+                <StructField Name="CONTEXT_KEY_GEN_VAR"/>
+                <StructField Name="FER_STATISTICS_OBJ" Size="72" Type="ARRAY32"/>
+                <StructField Name="FWD_LAYER_INDEX"/>
+                <StructField Name="PP_PORT_PMF_PROFILE" Type="UINT" Size="DNX_DATA.field.profile_bits.nof_bits_in_port_profile"/>
+                <StructField Name="TM_PORT_PMF_PROFILE" Type="UINT" Size="DNX_DATA.field.profile_bits.nof_bits_in_port_profile"/>
+                <StructField Name="PP_PORT_PMF_GENERAL_DATA" Type="UINT" Size="DNX_DATA.field.profile_bits.nof_bits_in_ingress_pp_port_general_data"/>
+                <!-- FIXME SDK-150529: The following two qualifiers change size and offset in in_lif_profiel. Take the size and offset change directly from DNX DATA -->
+                <StructField Name="PMF_IN_LIF_PROFILE" Type="IN_LIF_PROFILE"/>
+                <StructField Name="PMF_ETH_RIF_PROFILE" Type="FWD_DOMAIN_PROFILE"/>
+                <StructField Name="DUAL_QUEUE" Size="DNX_DATA.field.signal_sizes.dual_queue_size" Type="UINT" Description="(HWJERICHO2C-55)"/>
+                <StructField Name="ELEPHANT_TRAP_INFO" Size="96" Type="ARRAY32" Description="(HWJERICHO2C-443)"/>
+                <StructField Name="ELEPHANT_LEARN_NEEDED" Size="1" Type="UINT" Description="(HWJERICHO2C-443)"/>
+                <StructField Name="PRT_QUALIFIER_RAW" Description="(HWJERICHO2C-165)"/>
+                <StructField Name="ECL_VALID" Size="1" Type="UINT" Description="(HWJERICHO2P-317)"/>
+                <StructField Name="BTK_OFFSET_SOP" Size="8" Type="UINT" Description="btk_offset_in_bytes_from_sop (HWJERICHO2P-317)"/>
+                <StructField Name="BTC_OFFSET_SOP" Size="9" Type="UINT" Description="btc_offset_in_bytes_from_sop (HWJERICHO2P-317)"/>
+                <StructField Name="BTC_MINUS_BTK" Size="9" Type="UINT" Description="(HWJERICHO2P-317)"/>
+                <StructField Name="LEARN_SRC_MAC" Type="L2_MAC"/>
+                <StructField Name="LEARN_VLAN" Type="VLAN_ID"/>
+                <StructField Name="LEARN_VSI" Size="18" Type="UINT"/>
+                <StructField Name="LEARN_DATA" Size="64" Type="ARRAY32"/>
+                <StructField Name="LEARN_STATION_MOVE" Type="BOOL"/>
+                <StructField Name="LEARN_MATCH" Type="BOOL"/>
+                <StructField Name="LEARN_FOUND" Type="BOOL"/>
+                <StructField Name="LEARN_EXPECTED_WON" Type="BOOL"/>
+                <StructField Name="VRF_VALUE"/>
+                <StructField Name="PP_PORT"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="ALL_ONES"/>
+                <StructField Name="LEARN_INFO"/>
+                <StructField Name="RPF_ECMP_MODE"/>
+                <StructField Name="RPF_ECMP_GROUP"/>
+                <StructField Name="ADMT_PROFILE"/>
+                <StructField Name="BIER_STR_OFFSET"/>
+                <StructField Name="BIER_STR_SIZE"/>
+                <StructField Name="BYTES_TO_REMOVE"/>
+                <StructField Name="WEAK_TM_VALID"/>
+                <StructField Name="WEAK_TM_PROFILE"/>
+                <StructField Name="STAT_OBJ_LM_READ_INDEX"/>
+                <StructField Name="CONGESTION_INFO"/>
+                <StructField Name="END_OF_PACKET_EDITING"/>
+                <StructField Name="EEI"/>
+                <StructField Name="EGRESS_LEARN_ENABLE"/>
+                <StructField Name="FWD_ACTION_CPU_TRAP_CODE"/>
+                <StructField Name="FWD_ACTION_CPU_TRAP_QUAL"/>
+                <StructField Name="DP_METER_COMMAND"/>
+                <StructField Name="DP"/>
+                <StructField Name="TC"/>
+                <StructField Name="FWD_ACTION_DESTINATION"/>
+                <StructField Name="FWD_ACTION_STRENGTH"/>
+                <StructField Name="FWD_PAYLOAD"/>
+                <StructField Name="FWD_DOMAIN"/>
+                <StructField Name="FWD_DOMAIN_PROFILE"/>
+                <StructField Name="GENERAL_DATA_IPMF3"/>
+                <StructField Name="PEM_GENERAL_DATA3"/>
+                <StructField Name="IEEE1588_COMMAND"/>
+                <StructField Name="IEEE1588_COMPENSATE_TIME_STAMP"/>
+                <StructField Name="IEEE1588_ENCAPSULATION"/>
+                <StructField Name="IEEE1588_HEADER_OFFSET"/>
+                <StructField Name="IN_LIF_PROFILE_0"/>
+                <StructField Name="IN_LIF_PROFILE_1"/>
+                <StructField Name="GLOB_IN_LIF_0"/>
+                <StructField Name="GLOB_IN_LIF_1"/>
+                <StructField Name="IN_PORT"/>
+                <StructField Name="CORE"/>
+                <StructField Name="IN_TTL"/>
+                <StructField Name="INGRESS_LEARN_ENABLE"/>
+                <StructField Name="ITPP_DELTA"/>
+                <StructField Name="LAG_LB_KEY"/>
+                <StructField Name="LATENCY_FLOW_ID_VALID"/>
+                <StructField Name="LATENCY_FLOW_ID"/>
+                <StructField Name="MIRROR_CODE"/>
+                <StructField Name="MIRROR_QUALIFIER"/>
+                <StructField Name="NWK_LB_KEY"/>
+                <StructField Name="NWK_QOS"/>
+                <StructField Name="PMF_OAM_ID"/>
+                <StructField Name="OAM_OFFSET"/>
+                <StructField Name="OAM_STAMP_OFFSET"/>
+                <StructField Name="OAM_SUB_TYPE"/>
+                <StructField Name="OAM_UP_MEP"/>
+                <StructField Name="GLOB_OUT_LIF_0"/>
+                <StructField Name="GLOB_OUT_LIF_1"/>
+                <StructField Name="GLOB_OUT_LIF_2"/>
+                <StructField Name="GLOB_OUT_LIF_3"/>
+                <StructField Name="IS_APPLET"/>
+                <StructField Name="NASID"/>
+                <StructField Name="PACKET_IS_BIER"/>
+                <StructField Name="PACKET_IS_IEEE1588"/>
+                <StructField Name="EGRESS_PARSING_INDEX"/>
+                <StructField Name="PTC"/>
+                <StructField Name="EXT_STATISTICS_VALID"/>
+                <StructField Name="PPH_RESERVED"/>
+                <StructField Name="PPH_TYPE"/>
+                <StructField Name="RPF_DST"/>
+                <StructField Name="RPF_DST_VALID"/>
+                <StructField Name="SNOOP_CODE"/>
+                <StructField Name="SNOOP_STRENGTH"/>
+                <StructField Name="SNOOP_QUALIFIER"/>
+                <StructField Name="SRC_SYS_PORT"/>
+                <StructField Name="ST_VSQ_PTR"/>
+                <StructField Name="STATISTICAL_SAMPLING_CODE"/>
+                <StructField Name="STATISTICAL_SAMPLING_QUALIFIER"/>
+                <StructField Name="STACKING_ROUTE_HISTORY_BITMAP"/>
+                <StructField Name="STATISTICS_META_DATA"/>
+                <StructField Name="STATISTICS_OBJECT_10"/>
+                <StructField Name="SYSTEM_HEADER_PROFILE_INDEX"/>
+                <StructField Name="TM_PROFILE"/>
+                <StructField Name="USER_HEADER_1"/>
+                <StructField Name="USER_HEADER_2"/>
+                <StructField Name="USER_HEADER_3"/>
+                <StructField Name="USER_HEADER_4"/>
+                <StructField Name="USER_HEADER_1_TYPE"/>
+                <StructField Name="USER_HEADER_2_TYPE"/>
+                <StructField Name="USER_HEADER_3_TYPE"/>
+                <StructField Name="USER_HEADER_4_TYPE"/>
+                <StructField Name="USER_HEADERS_TYPE"/>
+                <StructField Name="VISIBILITY"/>
+                <StructField Name="VLAN_EDIT_VID_2"/>
+                <StructField Name="VLAN_EDIT_VID_1"/>
+                <StructField Name="VLAN_EDIT_DEI_2"/>
+                <StructField Name="VLAN_EDIT_PCP_2"/>
+                <StructField Name="VLAN_EDIT_PCP_DEI_2"/>
+                <StructField Name="VLAN_EDIT_DEI_1"/>
+                <StructField Name="VLAN_EDIT_PCP_1"/>
+                <StructField Name="VLAN_EDIT_PCP_DEI_1"/>
+                <StructField Name="VLAN_EDIT_CMD_INDEX"/>
+                <StructField Name="VLAN_EDIT_CMD"/>
+                <StructField Name="FWD_LAYER_ADDITIONAL_INFO"/>
+                <StructField Name="SLB_LEARN_NEEDED"/>
+                <StructField Name="SLB_KEY"/>
+                <StructField Name="SLB_PAYLOAD"/>
+                <StructField Name="TM_PORT_PMF_DATA"/>
+                <StructField Name="IN_PORT_PMF_DATA"/>
+                <StructField Name="IN_PORT_MAPPED_PP_PORT"/>
+                <StructField Name="CONTEXT_KEY_GEN_VAR"/>
+                <StructField Name="FER_STATISTICS_OBJ"/>
+                <StructField Name="FWD_LAYER_INDEX"/>
+                <StructField Name="PP_PORT_PMF_PROFILE"/>
+                <StructField Name="TM_PORT_PMF_PROFILE"/>
+                <StructField Name="PP_PORT_PMF_GENERAL_DATA"/>
+                <StructField Name="PMF_IN_LIF_PROFILE"/>
+                <StructField Name="PMF_ETH_RIF_PROFILE"/>
+                <StructField Name="LEARN_SRC_MAC"/>
+                <StructField Name="LEARN_VLAN"/>
+                <StructField Name="LEARN_VSI"/>
+                <StructField Name="LEARN_DATA"/>
+                <StructField Name="LEARN_STATION_MOVE"/>
+                <StructField Name="LEARN_MATCH"/>
+                <StructField Name="LEARN_FOUND"/>
+                <StructField Name="LEARN_EXPECTED_WON"/>
+                <StructField Name="VRF_VALUE"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPMF3_ACTIONS_CONTAINER" Size="256" Print="STRUCTURE">
+        <OneLineDescription>List of actions for IPMF3</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="ACL_CONTEXT"/>
+                <StructField Name="ADMT_PROFILE"/>
+                <StructField Name="BIER_STR_OFFSET"/>
+                <StructField Name="BIER_STR_SIZE"/>
+                <StructField Name="BYTES_TO_REMOVE"/>
+                <StructField Name="CONGESTION_INFO"/>
+                <StructField Name="DP"/>
+                <StructField Name="DP_METER_COMMAND"/>
+                <StructField Name="EEI"/>
+                <StructField Name="EGRESS_LEARN_ENABLE" Type="LEARN_ENABLE"/>
+                <StructField Name="END_OF_PACKET_EDITING"/>
+                <StructField Name="EXT_STATISTICS_0" Type="EXT_STATISTICS"/>
+                <StructField Name="EXT_STATISTICS_1" Type="EXT_STATISTICS"/>
+                <StructField Name="EXT_STATISTICS_2" Type="EXT_STATISTICS"/>
+                <StructField Name="EXT_STATISTICS_3" Type="EXT_STATISTICS"/>
+                <StructField Name="FWD_TRAP"/>
+                <StructField Name="DST_DATA"/>
+                <StructField Name="FWD_DOMAIN" Type="FODO"/>
+                <StructField Name="FWD_LAYER_ADDITIONAL_INFO" Type="FORWARDING_ADDITIONAL_INFO"/>
+                <StructField Name="FWD_LAYER_INDEX"/>
+                <StructField Name="ACTION_GENERAL_DATA_0" Type="UINT"/>
+                <StructField Name="ACTION_GENERAL_DATA_1" Type="UINT"/>
+                <StructField Name="ACTION_GENERAL_DATA_2" Type="UINT"/>
+                <StructField Name="ACTION_GENERAL_DATA_3" Type="UINT"/>
+                <StructField Name="IEEE1588_DATA"/>
+                <StructField Name="INGRESS_LEARN_ENABLE" Type="LEARN_ENABLE"/>
+                <StructField Name="INGRESS_TIME_STAMP" Type="TIME_STAMP"/>
+                <StructField Name="INGRESS_TIME_STAMP_OVERRIDE" Type="BOOL"/>
+                <StructField Name="INT_DATA"/>
+                <StructField Name="GLOB_IN_LIF_0" Type="GLOB_IN_LIF"/>
+                <StructField Name="IN_LIF_PROFILE_0" Type="IN_LIF_PROFILE"/>
+                <StructField Name="GLOB_IN_LIF_1" Type="GLOB_IN_LIF"/>
+                <StructField Name="IN_LIF_PROFILE_1" Type="IN_LIF_PROFILE"/>
+                <StructField Name="PP_PORT"/>
+                <StructField Name="IN_TTL"/>
+                <StructField Name="ITPP_DELTA_AND_VALID"/>
+                <StructField Name="LAG_LB_KEY"/>
+                <StructField Name="LATENCY_FLOW"/>
+                <StructField Name="LEARN_INFO_0" Type="UINT"/>
+                <StructField Name="LEARN_INFO_1" Type="UINT"/>
+                <StructField Name="LEARN_INFO_2" Type="UINT"/>
+                <StructField Name="LEARN_INFO_3" Type="UINT"/>
+                <StructField Name="LEARN_INFO_4" Type="UINT"/>
+                <StructField Name="LEARN_OR_TRANSPLANT" Type="BOOL"/>
+                <StructField Name="MIRROR_DATA"/>
+                <StructField Name="NWK_LB_KEY"/>
+                <StructField Name="NWK_QOS"/>
+                <StructField Name="NWK_HEADER_APPEND_SIZE"/>
+                <StructField Name="OAM_DATA"/>
+                <StructField Name="PMF_OAM_ID"/>
+                <StructField Name="GLOB_OUT_LIF_0" Type="GLOB_OUT_LIF"/>
+                <StructField Name="GLOB_OUT_LIF_1" Type="GLOB_OUT_LIF"/>
+                <StructField Name="GLOB_OUT_LIF_2" Type="GLOB_OUT_LIF"/>
+                <StructField Name="GLOB_OUT_LIF_3" Type="GLOB_OUT_LIF"/>
+                <StructField Name="IS_APPLET"/>
+                <StructField Name="PACKET_IS_BIER"/>
+                <StructField Name="EGRESS_PARSING_INDEX"/>
+                <StructField Name="PPH_RESERVED"/>
+                <StructField Name="PPH_TYPE"/>
+                <StructField Name="PUSH_OUT_LIF" Type="GLOB_OUT_LIF"/>
+                <StructField Name="SNOOP_DATA"/>
+                <StructField Name="SRC_SYS_PORT"/>
+                <StructField Name="STACKING_ROUTE_HISTORY_BITMAP"/>
+                <StructField Name="STATISTICAL_SAMPLING"/>
+                <StructField Name="STATISTICS_META_DATA"/>
+                <StructField Name="STATISTICS_ID_0" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_1" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_2" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_3" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_4" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_5" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_6" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_7" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_8" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_9" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ATR_0" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_1" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_2" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_3" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_4" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_5" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_6" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_7" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_8" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_9" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_OBJECT_10" Size="3" Type="STAT_OBJECT_ID"/>
+                <StructField Name="ST_VSQ_PTR"/>
+                <StructField Name="SYSTEM_HEADER_PROFILE_INDEX"/>
+                <StructField Name="SYSTEM_HEADER_SIZE_ADJUST"/>
+                <StructField Name="TC"/>
+                <StructField Name="TM_PROFILE"/>
+                <StructField Name="USER_HEADER_1" Type="USER_HEADER"/>
+                <StructField Name="USER_HEADER_2" Type="USER_HEADER"/>
+                <StructField Name="USER_HEADER_3" Type="USER_HEADER"/>
+                <StructField Name="USER_HEADER_4" Type="USER_HEADER"/>
+                <StructField Name="USER_HEADERS_TYPE" Size="8" Type="UINT"/>
+                <StructField Name="VISIBILITY"/>
+                <StructField Name="VLAN_EDIT_CMD_INDEX"/>
+                <StructField Name="VLAN_EDIT_PCP_DEI_1"/>
+                <StructField Name="VLAN_EDIT_PCP_DEI_2"/>
+                <StructField Name="VLAN_EDIT_VID_1"/>
+                <StructField Name="VLAN_EDIT_VID_2"/>
+                <StructField Name="PARSING_START_OFFSET" Size="9-DNX_DATA.field.features.parsing_start_offset_msb_meaningless" Type="UINT"/>
+                <StructField Name="PARSING_START_TYPE" Size="6" Type="UINT"/>
+                <StructField Name="STAT_OBJ_LM_READ_INDEX"/>
+                <StructField Name="LEARN_INFO_KEY_0" Size ="32" Type="UINT"/>
+                <StructField Name="LEARN_INFO_KEY_1" Size ="32" Type="UINT"/>
+                <StructField Name="LEARN_INFO_KEY_2_APP_DB_INDEX" Size ="18" Type="UINT"/>
+                <StructField Name="LEARN_INFO_PAYLOAD_0" Size ="32" Type="UINT"/>
+                <StructField Name="LEARN_INFO_PAYLOAD_1" Size ="32" Type="UINT"/>
+                <StructField Name="LEARN_INFO_FORMAT_INDEX" Size ="2" Type="UINT"/>
+                <StructField Name="INVALIDATE_NEXT"/>
+                <StructField Name="INVALID"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="ACL_CONTEXT"/>
+                <StructField Name="ADMT_PROFILE"/>
+                <StructField Name="BIER_STR_OFFSET"/>
+                <StructField Name="BIER_STR_SIZE"/>
+                <StructField Name="BYTES_TO_REMOVE"/>
+                <StructField Name="CONGESTION_INFO"/>
+                <StructField Name="DP"/>
+                <StructField Name="DP_METER_COMMAND"/>
+                <StructField Name="EEI"/>
+                <StructField Name="EGRESS_LEARN_ENABLE"/>
+                <StructField Name="END_OF_PACKET_EDITING"/>
+                <StructField Name="EXT_STATISTICS_0"/>
+                <StructField Name="EXT_STATISTICS_1"/>
+                <StructField Name="EXT_STATISTICS_2"/>
+                <StructField Name="EXT_STATISTICS_3"/>
+                <StructField Name="FWD_TRAP"/>
+                <StructField Name="DST_DATA"/>
+                <StructField Name="FWD_DOMAIN"/>
+                <StructField Name="FWD_LAYER_ADDITIONAL_INFO"/>
+                <StructField Name="FWD_LAYER_INDEX"/>
+                <StructField Name="ACTION_GENERAL_DATA_0"/>
+                <StructField Name="ACTION_GENERAL_DATA_1"/>
+                <StructField Name="ACTION_GENERAL_DATA_2"/>
+                <StructField Name="ACTION_GENERAL_DATA_3"/>
+                <StructField Name="IEEE1588_DATA"/>
+                <StructField Name="INGRESS_LEARN_ENABLE"/>
+                <StructField Name="INGRESS_TIME_STAMP"/>
+                <StructField Name="INGRESS_TIME_STAMP_OVERRIDE"/>
+                <StructField Name="INT_DATA"/>
+                <StructField Name="GLOB_IN_LIF_0"/>
+                <StructField Name="IN_LIF_PROFILE_0"/>
+                <StructField Name="GLOB_IN_LIF_1"/>
+                <StructField Name="IN_LIF_PROFILE_0"/>
+                <StructField Name="PP_PORT"/>
+                <StructField Name="IN_TTL"/>
+                <StructField Name="ITPP_DELTA_AND_VALID"/>
+                <StructField Name="LAG_LB_KEY"/>
+                <StructField Name="LATENCY_FLOW"/>
+                <StructField Name="LEARN_INFO_0"/>
+                <StructField Name="LEARN_INFO_1"/>
+                <StructField Name="LEARN_INFO_2"/>
+                <StructField Name="LEARN_INFO_3"/>
+                <StructField Name="LEARN_INFO_4"/>
+                <StructField Name="LEARN_OR_TRANSPLANT"/>
+                <StructField Name="MIRROR_DATA"/>
+                <StructField Name="NWK_LB_KEY"/>
+                <StructField Name="NWK_QOS"/>
+                <StructField Name="NWK_HEADER_APPEND_SIZE"/>
+                <StructField Name="OAM_DATA"/>
+                <StructField Name="PMF_OAM_ID"/>
+                <StructField Name="GLOB_OUT_LIF_0"/>
+                <StructField Name="GLOB_OUT_LIF_1"/>
+                <StructField Name="GLOB_OUT_LIF_2"/>
+                <StructField Name="GLOB_OUT_LIF_3"/>
+                <StructField Name="IS_APPLET"/>
+                <StructField Name="PACKET_IS_BIER"/>
+                <StructField Name="EGRESS_PARSING_INDEX"/>
+                <StructField Name="PPH_RESERVED"/>
+                <StructField Name="PPH_TYPE"/>
+                <StructField Name="PUSH_OUT_LIF"/>
+                <StructField Name="SNOOP_DATA"/>
+                <StructField Name="SRC_SYS_PORT"/>
+                <StructField Name="STACKING_ROUTE_HISTORY_BITMAP"/>
+                <StructField Name="STATISTICAL_SAMPLING"/>
+                <StructField Name="STATISTICS_META_DATA"/>
+                <StructField Name="STATISTICS_ID_0"/>
+                <StructField Name="STATISTICS_ID_1"/>
+                <StructField Name="STATISTICS_ID_2"/>
+                <StructField Name="STATISTICS_ID_3"/>
+                <StructField Name="STATISTICS_ID_4"/>
+                <StructField Name="STATISTICS_ID_5"/>
+                <StructField Name="STATISTICS_ID_6"/>
+                <StructField Name="STATISTICS_ID_7"/>
+                <StructField Name="STATISTICS_ID_8"/>
+                <StructField Name="STATISTICS_ID_9"/>
+                <StructField Name="STATISTICS_ATR_0"/>
+                <StructField Name="STATISTICS_ATR_1"/>
+                <StructField Name="STATISTICS_ATR_2"/>
+                <StructField Name="STATISTICS_ATR_3"/>
+                <StructField Name="STATISTICS_ATR_4"/>
+                <StructField Name="STATISTICS_ATR_5"/>
+                <StructField Name="STATISTICS_ATR_6"/>
+                <StructField Name="STATISTICS_ATR_7"/>
+                <StructField Name="STATISTICS_ATR_8"/>
+                <StructField Name="STATISTICS_ATR_9"/>
+                <StructField Name="STATISTICS_OBJECT_10"/>
+                <StructField Name="ST_VSQ_PTR"/>
+                <StructField Name="SYSTEM_HEADER_PROFILE_INDEX"/>
+                <StructField Name="SYSTEM_HEADER_SIZE_ADJUST"/>
+                <StructField Name="TC"/>
+                <StructField Name="TM_PROFILE"/>
+                <StructField Name="USER_HEADER_1"/>
+                <StructField Name="USER_HEADER_2"/>
+                <StructField Name="USER_HEADER_3"/>
+                <StructField Name="USER_HEADER_4"/>
+                <StructField Name="USER_HEADERS_TYPE"/>
+                <StructField Name="VISIBILITY"/>
+                <StructField Name="VLAN_EDIT_CMD_INDEX"/>
+                <StructField Name="VLAN_EDIT_PCP_DEI_1"/>
+                <StructField Name="VLAN_EDIT_PCP_DEI_2"/>
+                <StructField Name="VLAN_EDIT_VID_1"/>
+                <StructField Name="VLAN_EDIT_VID_2"/>
+                <StructField Name="PARSING_START_OFFSET"/>
+                <StructField Name="PARSING_START_TYPE"/>
+                <StructField Name="STAT_OBJ_LM_READ_INDEX"/>
+                <StructField Name="INVALIDATE_NEXT"/>
+                <StructField Name="INVALID"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IFWD2_QUALIFIERS_CONTAINER" Size="256" Print="STRUCTURE">
+        <OneLineDescription>List of qualifiers for IFWD2</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FWD_LAYER_INDEX"/>
+                <StructField Name="RPF_ROUTE_VALID" Type="BOOL"/>
+                <StructField Name="FWD1_PRIORITY_DECODER_FWD_PROFILE" Type="FWD_PROFILE"/>
+                <StructField Name="FWD1_PRIORITY_DECODER_FWD_RESULT" Type="ARRAY32" Size="96"/>
+                <StructField Name="FWD1_PRIORITY_DECODER_RPF_PROFILE" Type="FWD_PROFILE"/>
+                <StructField Name="FWD1_PRIORITY_DECODER_RPF_RESULT" Type="ARRAY32" Size="96"/>
+                <StructField Name="MP_PROFILE_SEL"/>
+                <StructField Name="RPF_DEFAULT_ROUTE_FOUND" Type="BOOL"/>
+                <StructField Name="ACL_CONTEXT"/>
+                <StructField Name="CONTEXT" Type="ACL_CONTEXT"/>
+                <StructField Name="NASID"/>
+                <StructField Name="ENABLE_PP_INJECT" Type="BOOL"/>
+                <StructField Name="EEI"/>
+                <StructField Name="EGRESS_LEARN_ENABLE" Type="LEARN_ENABLE"/>
+                <StructField Name="FWD_ACTION_CPU_TRAP_CODE" Type="INGRESS_TRAP_ID"/>
+                <StructField Name="FWD_ACTION_CPU_TRAP_QUAL" Type="TRAP_QUALIFIER"/>
+                <StructField Name="FWD_ACTION_DESTINATION" Type="DESTINATION"/>
+                <StructField Name="FWD_ACTION_STRENGTH" Type="FWD_STRENGTH"/>
+                <StructField Name="FWD_DOMAIN" Type="FODO"/>
+                <StructField Name="FWD_DOMAIN_PROFILE"/>
+                <StructField Name="FWD_LAYER_ADDITIONAL_INFO" Type="FORWARDING_ADDITIONAL_INFO"/>
+                <StructField Name="GENERAL_DATA_0" Size="128" Type="ARRAY32"/>
+                <StructField Name="GENERAL_DATA_1" Size="128" Type="ARRAY32"/>
+                <StructField Name="GENERAL_DATA_2" Size="128" Type="ARRAY32"/>
+                <StructField Name="GENERAL_DATA_3" Size="126" Type="ARRAY32"/>
+                <StructField Name="AC_IN_LIF_WIDE_DATA"/>
+                <StructField Name="IEEE1588_COMMAND"/>
+                <StructField Name="IEEE1588_COMPENSATE_TIME_STAMP" Type="BOOL"/>
+                <StructField Name="IEEE1588_ENCAPSULATION" Type="BOOL"/>
+                <StructField Name="IEEE1588_HEADER_OFFSET"/>
+                <StructField Name="IN_LIF_PROFILE_0" Type="IN_LIF_PROFILE"/>
+                <StructField Name="IN_LIF_PROFILE_1" Type="IN_LIF_PROFILE"/>
+                <StructField Name="GLOB_IN_LIF_0" Type="GLOB_IN_LIF"/>
+                <StructField Name="GLOB_IN_LIF_1" Type="GLOB_IN_LIF"/>
+                <StructField Name="PP_PORT"/>
+                <StructField Name="INCOMING_TAG_STRUCTURE"/>
+                <StructField Name="INGRESS_LEARN_ENABLE" Type="LEARN_ENABLE"/>
+                <StructField Name="LEARN_INFO" Size="160"/>
+                <StructField Name="MEM_SOFT_ERR" />
+                <StructField Name="NWK_QOS"/>
+                <StructField Name="OAM_OFFSET"/>
+                <StructField Name="OAM_STAMP_OFFSET"/>
+                <StructField Name="OAM_OPCODE" Size="4"/>
+                <StructField Name="OAM_YOUR_DISCR"/>
+                <StructField Name="MY_CFM_MAC"/>
+                <StructField Name="PACKET_IS_OAM"/>
+                <StructField Name="PACKET_IS_BFD"/>
+                <StructField Name="MDL"/>
+                <StructField Name="VTT_OAM_LIF_0" Type="GLOB_OUT_LIF"/>
+                <StructField Name="VTT_OAM_LIF_0_VALID" Type="BOOL"/>
+                <StructField Name="VTT_OAM_LIF_1" Type="GLOB_OUT_LIF"/>
+                <StructField Name="VTT_OAM_LIF_1_VALID" Type="BOOL"/>
+                <StructField Name="VTT_OAM_LIF_2" Type="GLOB_OUT_LIF"/>
+                <StructField Name="VTT_OAM_LIF_2_VALID" Type="BOOL"/>
+                <StructField Name="VTT_OAM_PCP_0" Type="PCP"/>
+                <StructField Name="VTT_OAM_PCP_1" Type="PCP"/>
+                <StructField Name="VTT_OAM_PCP_2" Type="PCP"/>
+                <StructField Name="GLOB_OUT_LIF_0" Type="GLOB_OUT_LIF"/>
+                <StructField Name="GLOB_OUT_LIF_1" Type="GLOB_OUT_LIF"/>
+                <StructField Name="PRT_QUALIFIER_RAW"/>
+                <StructField Name="PACKET_HEADER_SIZE" Type="HEADER_SIZE"/>
+                <StructField Name="IS_APPLET"/>
+                <StructField Name="PACKET_IS_COMPATIBLE_MC"/>
+                <StructField Name="PACKET_IS_IEEE1588"/>
+                <StructField Name="DP"/>
+                <StructField Name="METADATA_ECN"/>
+                <StructField Name="TC"/>
+                <StructField Name="PTC"/>
+                <StructField Name="RPF_DST"/>
+                <StructField Name="RPF_DST_VALID" Type="BOOL"/>
+                <StructField Name="SNOOP_CODE"/>
+                <StructField Name="SNOOP_STRENGTH"/>
+                <StructField Name="MIRROR_CODE"/>
+                <StructField Name="STATISTICAL_SAMPLING_CODE"/>
+                <StructField Name="SRC_SYS_PORT"/>
+                <StructField Name="STATISTICS_ID_0" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_1" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_2" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_3" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_4" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ID_5" Type="STAT_OBJECT_ID"/>
+                <StructField Name="STATISTICS_ATR_0" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_1" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_2" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_3" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_4" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="STATISTICS_ATR_5" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="VLAN_EDIT_CMD"/>
+                <StructField Name="TRACE_PACKET" Type="BOOL"/>
+                <StructField Name="IN_TTL"/>
+                <StructField Name="LIF_OAM_TRAP_PROFILE" Type="PROTOCOL_TRAP_PROFILE"/>
+                <StructField Name="VISIBILITY_CLEAR"/>
+                <StructField Name="VISIBILITY"/>
+                <StructField Name="RPF_OUT_LIF" Type="GLOB_OUT_LIF"/>
+                <StructField Name="ACTION_PROFILE_SA_DROP_INDEX" Size="2" Type="UINT"/>
+                <StructField Name="ACTION_PROFILE_SA_NOT_FOUND_INDEX" Size="2" Type="UINT"/>
+                <StructField Name="ACTION_PROFILE_DA_NOT_FOUND_INDEX" Size="1" Type="UINT"/>
+                <StructField Name="SAVED_CONTEXT_PROFILE"/>
+                <StructField Name="IPV4_VERSION_ERROR" Type="BOOL"/>
+                <StructField Name="IPV4_CHECKSUM_ERROR" Type="BOOL"/>
+                <StructField Name="IPV4_TOTAL_LENGTH_ERROR" Type="BOOL"/>
+                <StructField Name="IPV4_OPTIONS_ERROR" Type="BOOL"/>
+                <StructField Name="IPV4_SIP_EQUAL_DIP_ERROR" Type="BOOL"/>
+                <StructField Name="IPV4_DIP_ZERO_ERROR" Type="BOOL"/>
+                <StructField Name="IPV4_SIP_IS_MC_ERROR" Type="BOOL"/>
+                <StructField Name="IPV4_HEADER_LENGTH_ERROR" Type="BOOL"/>
+                <StructField Name="IN_LIF_UNKNOWN_DA_PROFILE" Size="2" Type="UINT"/>
+                <StructField Name="NOF_VALID_LM_LIFS"/>
+                <StructField Name="IS_IN_LIF_VALID_FOR_LM" Type="BOOL"/>
+                <StructField Name="FWD1_PRIORITY_DECODER_FWD_STRENGTH" Size="5" Type="UINT"/>
+                <StructField Name="FWD1_PRIORITY_DECODER_RPF_STRENGTH" Size="5" Type="UINT"/>
+                <StructField Name="FWD1_PRIORITY_DECODER_FWD_FOUND" Type="BOOL"/>
+                <StructField Name="FWD1_PRIORITY_DECODER_RPF_FOUND" Type="BOOL"/>
+                <StructField Name="STATISTICS_META_DATA"/>
+                <StructField Name="FWD_STAT_ATTRIBUTE_OBJ_CMD" Type="STAT_OBJECT_CMD"/>
+                <StructField Name="FWD_STAT_ATTRIBUTE_OBJ" Type="STAT_OBJECT_ID"/>
+                <StructField Name="VSI_UNKNOWN_DA_DESTINATION" Size="21" Type="UINT"/>
+                <StructField Name="ECMP_LB_KEY_0" Type="UINT" Size="16"/>
+                <StructField Name="ECMP_LB_KEY_1" Type="UINT" Size="16"/>
+                <StructField Name="ECMP_LB_KEY_2" Type="UINT" Size="16"/>
+                <StructField Name="LAG_LB_KEY"/>
+                <StructField Name="NWK_LB_KEY"/>
+                <StructField Name="CONTEXT_CONSTANTS" Size="64" Type="ARRAY32"/>
+                <!-- FIXME SDK-150529: The following two qualifiers change size and offset in in_lif_profiel. Take the size and offset change directly from DNX DATA -->
+                <StructField Name="PMF_IN_LIF_PROFILE" Type="IN_LIF_PROFILE"/>
+                <StructField Name="PMF_ETH_RIF_PROFILE" Type="FWD_DOMAIN_PROFILE"/>
+                <StructField Name="VRF_VALUE"/>
+                <StructField Name="UNKNOWN_ADDRESS" Size="1" Type="UINT"/>
+                <StructField Name="INGRESS_PROTOCOL_TRAP_IN_LIF_PROFILE" Size="8" Type="UINT"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FWD_LAYER_INDEX"/>
+                <StructField Name="RPF_ROUTE_VALID"/>
+                <StructField Name="FWD1_PRIORITY_DECODER_FWD_PROFILE"/>
+                <StructField Name="FWD1_PRIORITY_DECODER_FWD_RESULT"/>
+                <StructField Name="FWD1_PRIORITY_DECODER_RPF_PROFILE"/>
+                <StructField Name="FWD1_PRIORITY_DECODER_RPF_RESULT"/>
+                <StructField Name="MP_PROFILE_SEL"/>
+                <StructField Name="RPF_DEFAULT_ROUTE_FOUND"/>
+                <StructField Name="ACL_CONTEXT"/>
+                <StructField Name="CONTEXT"/>
+                <StructField Name="NASID"/>
+                <StructField Name="ENABLE_PP_INJECT"/>
+                <StructField Name="EEI"/>
+                <StructField Name="EGRESS_LEARN_ENABLE"/>
+                <StructField Name="FWD_ACTION_CPU_TRAP_CODE"/>
+                <StructField Name="FWD_ACTION_CPU_TRAP_QUAL"/>
+                <StructField Name="FWD_ACTION_DESTINATION"/>
+                <StructField Name="FWD_ACTION_STRENGTH"/>
+                <StructField Name="FWD_DOMAIN"/>
+                <StructField Name="FWD_DOMAIN_PROFILE"/>
+                <StructField Name="FWD_LAYER_ADDITIONAL_INFO"/>
+                <StructField Name="GENERAL_DATA_0"/>
+                <StructField Name="GENERAL_DATA_1"/>
+                <StructField Name="GENERAL_DATA_2"/>
+                <StructField Name="GENERAL_DATA_3"/>
+                <StructField Name="AC_IN_LIF_WIDE_DATA"/>
+                <StructField Name="IEEE1588_COMMAND"/>
+                <StructField Name="IEEE1588_COMPENSATE_TIME_STAMP"/>
+                <StructField Name="IEEE1588_ENCAPSULATION"/>
+                <StructField Name="IEEE1588_HEADER_OFFSET"/>
+                <StructField Name="IN_LIF_PROFILE_0"/>
+                <StructField Name="IN_LIF_PROFILE_1"/>
+                <StructField Name="GLOB_IN_LIF_0"/>
+                <StructField Name="GLOB_IN_LIF_1"/>
+                <StructField Name="IN_PORT"/>
+                <StructField Name="INCOMING_TAG_STRUCTURE"/>
+                <StructField Name="INGRESS_LEARN_ENABLE"/>
+                <StructField Name="LEARN_INFO"/>
+                <StructField Name="MEM_SOFT_ERR" />
+                <StructField Name="NWK_QOS"/>
+                <StructField Name="OAM_OFFSET"/>
+                <StructField Name="OAM_STAMP_OFFSET"/>
+                <StructField Name="OAM_OPCODE"/>
+                <StructField Name="OAM_YOUR_DISCR"/>
+                <StructField Name="MY_CFM_MAC"/>
+                <StructField Name="PACKET_IS_OAM"/>
+                <StructField Name="PACKET_IS_BFD"/>
+                <StructField Name="MDL"/>
+                <StructField Name="VTT_OAM_LIF_0"/>
+                <StructField Name="VTT_OAM_LIF_0_VALID"/>
+                <StructField Name="VTT_OAM_LIF_1"/>
+                <StructField Name="VTT_OAM_LIF_1_VALID"/>
+                <StructField Name="VTT_OAM_LIF_2"/>
+                <StructField Name="VTT_OAM_LIF_2_VALID"/>
+                <StructField Name="VTT_OAM_PCP_0"/>
+                <StructField Name="VTT_OAM_PCP_1"/>
+                <StructField Name="VTT_OAM_PCP_2"/>
+                <StructField Name="GLOB_OUT_LIF_0"/>
+                <StructField Name="GLOB_OUT_LIF_1"/>
+                <StructField Name="PRT_QUALIFIER_RAW"/>
+                <StructField Name="PACKET_HEADER_SIZE"/>
+                <StructField Name="IS_APPLET"/>
+                <StructField Name="PACKET_IS_COMPATIBLE_MC"/>
+                <StructField Name="PACKET_IS_IEEE1588"/>
+                <StructField Name="DP"/>
+                <StructField Name="METADATA_ECN"/>
+                <StructField Name="TC"/>
+                <StructField Name="PTC"/>
+                <StructField Name="RPF_DST"/>
+                <StructField Name="RPF_DST_VALID"/>
+                <StructField Name="SNOOP_CODE"/>
+                <StructField Name="SNOOP_STRENGTH"/>
+                <StructField Name="MIRROR_CODE"/>
+                <StructField Name="STATISTICAL_SAMPLING_CODE"/>
+                <StructField Name="SRC_SYS_PORT"/>
+                <StructField Name="STATISTICS_ID_0"/>
+                <StructField Name="STATISTICS_ID_1"/>
+                <StructField Name="STATISTICS_ID_2"/>
+                <StructField Name="STATISTICS_ID_3"/>
+                <StructField Name="STATISTICS_ID_4"/>
+                <StructField Name="STATISTICS_ID_5"/>
+                <StructField Name="STATISTICS_ATR_0"/>
+                <StructField Name="STATISTICS_ATR_1"/>
+                <StructField Name="STATISTICS_ATR_2"/>
+                <StructField Name="STATISTICS_ATR_3"/>
+                <StructField Name="STATISTICS_ATR_4"/>
+                <StructField Name="STATISTICS_ATR_5"/>
+                <StructField Name="VLAN_EDIT_CMD"/>
+                <StructField Name="TRACE_PACKET"/>
+                <StructField Name="IN_TTL"/>
+                <StructField Name="LIF_OAM_TRAP_PROFILE"/>
+                <StructField Name="VISIBILITY_CLEAR"/>
+                <StructField Name="VISIBILITY"/>
+                <StructField Name="RPF_OUT_LIF"/>
+                <StructField Name="ACTION_PROFILE_SA_DROP_INDEX"/>
+                <StructField Name="ACTION_PROFILE_SA_NOT_FOUND_INDEX"/>
+                <StructField Name="ACTION_PROFILE_DA_NOT_FOUND_INDEX"/>
+                <StructField Name="SAVED_CONTEXT_PROFILE"/>
+                <StructField Name="IPV4_VERSION_ERROR"/>
+                <StructField Name="IPV4_CHECKSUM_ERROR"/>
+                <StructField Name="IPV4_TOTAL_LENGTH_ERROR"/>
+                <StructField Name="IPV4_OPTIONS_ERROR"/>
+                <StructField Name="IPV4_SIP_EQUAL_DIP_ERROR"/>
+                <StructField Name="IPV4_DIP_ZERO_ERROR"/>
+                <StructField Name="IPV4_SIP_IS_MC_ERROR"/>
+                <StructField Name="IPV4_HEADER_LENGTH_ERROR"/>
+                <StructField Name="IN_LIF_UNKNOWN_DA_PROFILE"/>
+                <StructField Name="NOF_VALID_LM_LIFS"/>
+                <StructField Name="IS_IN_LIF_VALID_FOR_LM"/>
+                <StructField Name="FWD1_PRIORITY_DECODER_FWD_STRENGTH"/>
+                <StructField Name="FWD1_PRIORITY_DECODER_RPF_STRENGTH"/>
+                <StructField Name="FWD1_PRIORITY_DECODER_FWD_FOUND"/>
+                <StructField Name="FWD1_PRIORITY_DECODER_RPF_FOUND"/>
+                <StructField Name="STATISTICS_META_DATA"/>
+                <StructField Name="FWD_STAT_ATTRIBUTE_OBJ_CMD"/>
+                <StructField Name="FWD_STAT_ATTRIBUTE_OBJ"/>
+                <StructField Name="VSI_UNKNOWN_DA_DESTINATION"/>
+                <StructField Name="ECMP_LB_KEY_0"/>
+                <StructField Name="ECMP_LB_KEY_1"/>
+                <StructField Name="ECMP_LB_KEY_2"/>
+                <StructField Name="LAG_LB_KEY"/>
+                <StructField Name="NWK_LB_KEY"/>
+                <StructField Name="CONTEXT_CONSTANTS"/>
+                <StructField Name="PMF_IN_LIF_PROFILE"/>
+                <StructField Name="PMF_ETH_RIF_PROFILE"/>
+                <StructField Name="VRF_VALUE"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="EPMF_QUALIFIERS_CONTAINER" Size="256" Print="STRUCTURE">
+        <OneLineDescription>List of qualifiers for EPMF</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="FTMH_RESERVED" Type="BOOL"/>
+                <StructField Name="FTMH_VISIBILITY" Type="VISIBILITY"/>
+                <StructField Name="FTMH_TM_PROFILE" Type="TM_PROFILE"/>
+                <StructField Name="FTMH_ECN_ENABLE" Type="BOOL"/>
+                <StructField Name="FTMH_CNI" Type="BOOL"/>
+                <StructField Name="FTMH_BIER_BFR_EXT_PRESENT" Type="BOOL"/>
+                <StructField Name="FTMH_FLOW_ID_EXT_PRESENT" Type="BOOL"/>
+                <StructField Name="FTMH_APPLICATION_SPECIFIC_EXT_PRESENT" Type="BOOL"/>
+                <StructField Name="FTMH_TM_DESTINATION_EXT_PRESENT" Type="BOOL"/>
+                <StructField Name="FTMH_MCID_OR_OUTLIF_0_OR_MCDB_PTR" Type="GLOB_OUT_LIF"/>
+                <StructField Name="FTMH_TM_ACTION_IS_MC" Type="BOOL"/>
+                <StructField Name="FTMH_PPH_PRESENT" Type="BOOL"/>
+                <StructField Name="FTMH_TSH_EXT_PRESENT" Type="BOOL"/>
+                <StructField Name="FTMH_TM_ACTION_TYPE" Type="TM_ACTION_TYPE"/>
+                <StructField Name="FTMH_DP" Type="DP"/>
+                <StructField Name="PP_DSP" Type="DSP"/>
+                <StructField Name="SRC_SYS_PORT"/>
+                <StructField Name="FTMH_TC" Type="TC"/>
+                <StructField Name="FTMH_PACKET_SIZE" Size="14" Type="UINT"/>
+                <StructField Name="LB_KEY" Size="8" Type="UINT"/>
+                <StructField Name="NWK_LB_KEY"/>
+                <StructField Name="STACKING_EXT" Size="16" Type="UINT"/>
+                <StructField Name="BIER_BFR_EXT" Size="16" Type="UINT"/>
+                <StructField Name="TM_DESTINATION_EXT" Size="24" Type="UINT"/>
+                <StructField Name="APPLICATION_SPECIFIC_EXT" Size="48" Type="ARRAY32"/>
+                <StructField Name="TSH_EXT" Size="56" Type="ARRAY32"/>
+                <StructField Name="FWD_STRENGTH"/>
+                <StructField Name="PPH_PARSING_START_TYPE" Size="5" Type="UINT"/>
+                <StructField Name="PPH_PARSING_START_OFFSET" Size="7" Type="UINT"/>
+                <StructField Name="PPH_LIF_EXT_TYPE" Type="LIF_EXTENSION_TYPE"/>
+                <StructField Name="FHEI_SIZE"/>
+                <StructField Name="PPH_LEARN_EXT_PRESENT" Type="BOOL"/>
+                <StructField Name="PPH_TTL" Type="IN_TTL"/>
+                <StructField Name="NWK_QOS"/>
+                <StructField Name="PPH_IN_LIF" Type="GLOB_IN_LIF"/>
+                <StructField Name="PPH_FWD_DOMAIN" Type="FODO"/>
+                <StructField Name="PPH_IN_LIF_PROFILE" Type="IN_LIF_PROFILE"/>
+                <StructField Name="PPH_END_OF_PACKET_EDITING" Type="END_OF_PACKET_EDITING"/>
+                <StructField Name="PPH_FORWARDING_LAYER_ADDITIONAL_INFO" Type="FORWARDING_ADDITIONAL_INFO"/>
+                <StructField Name="PPH_VALUE1" Type="PPH_VALUE"/>
+                <StructField Name="PPH_VALUE2" Type="PPH_VALUE"/>
+                <StructField Name="FHEI_EXT" Size="64" Type="ARRAY32"/>
+                <StructField Name="LEARN_EXT" Size="152" Type="ARRAY32"/>
+                <StructField Name="LIF_EXT" Size="72" Type="ARRAY32"/>
+                <StructField Name="USER_HEADER_1" Type="USER_HEADER"/>
+                <StructField Name="USER_HEADER_2" Type="USER_HEADER"/>
+                <StructField Name="USER_HEADER_3" Type="USER_HEADER"/>
+                <StructField Name="USER_HEADER_4" Type="USER_HEADER"/>
+                <StructField Name="USER_HEADER_1_TYPE" Type="USER_HEADER_TYPE"/>
+                <StructField Name="USER_HEADER_2_TYPE" Type="USER_HEADER_TYPE"/>
+                <StructField Name="USER_HEADER_3_TYPE" Type="USER_HEADER_TYPE"/>
+                <StructField Name="USER_HEADER_4_TYPE" Type="USER_HEADER_TYPE"/>
+                <StructField Name="IS_TDM" Type="BOOL"/>
+                <StructField Name="CUD_OUTLIF_OR_MCDB_PTR" Type="GLOB_OUT_LIF"/>
+                <StructField Name="DISCARD"/>
+                <StructField Name="OUT_LIF_PROFILE" Size="4"/>
+                <StructField Name="PMF_OUT_LIF_PROFILE" Size="1"/>
+                <StructField Name="PMF_OUT_RIF_PROFILE" Size="1"/>
+                <StructField Name="ETH_TAG_FORMAT" Size="10" Type="UINT"/>
+                <StructField Name="UPDATED_TPIDS_PACKET_DATA" Size="144" Type="ARRAY32"/>
+                <StructField Name="IVE_BYTES_TO_ADD" Size="5" Type="UINT"/>
+                <StructField Name="IVE_BYTES_TO_REMOVE" Size="5" Type="UINT"/>
+                <StructField Name="ETHER_TYPE_CODE" Size="16" Type="UINT"/>
+                <StructField Name="FABRIC_OR_EGRESS_MC" Type="BOOL"/>
+                <StructField Name="ESTIMATED_BTR" Size="8" Type="UINT"/>
+                <StructField Name="FWD_CONTEXT"/>
+                <StructField Name="GLOB_OUT_LIF_0" Type="GLOB_OUT_LIF"/>
+                <StructField Name="GLOB_OUT_LIF_1" Type="GLOB_OUT_LIF"/>
+                <StructField Name="GLOB_OUT_LIF_2" Type="GLOB_OUT_LIF"/>
+                <StructField Name="GLOB_OUT_LIF_3" Type="GLOB_OUT_LIF"/>
+                <StructField Name="GLOB_IN_LIF_0" Type="GLOB_IN_LIF"/>
+                <StructField Name="IN_LIF_PROFILE_0" Type="IN_LIF_PROFILE"/>
+                <StructField Name="IP_MC_ELIGIBLE" Type="BOOL"/>
+                <StructField Name="IP_MC_SHOULD_BE_BRIDGED" Type="BOOL"/>
+                <StructField Name="LEARN_VALID" Type="BOOL"/>
+                <StructField Name="LOCAL_OUT_LIF" Type="OUT_LIF"/>
+                <StructField Name="FWD_ACTION_PROFILE_INDEX" Type="ACTION_PROFILE_IDX"/>
+                <StructField Name="SNOOP_ACTION_PROFILE_INDEX" Size="2" Type="UINT"/>
+                <StructField Name="SNOOP_STRENGTH"/>
+                <StructField Name="SYSTEM_HEADERS_SIZE" Size="7" Type="UINT"/>
+                <StructField Name="DST_SYS_PORT" Size="16" Type="UINT"/>
+                <StructField Name="TM_PORT"/>
+                <StructField Name="OUT_PP_PORT" Type="PP_PORT"/>
+                <StructField Name="IS_APPLET"/>
+                <StructField Name="MEM_SOFT_ERR"/>
+                <StructField Name="TC_MAP_PROFILE"/>
+                <StructField Name="L4_PORT_IN_RANGE" Size="24" Type="UINT"/>
+                <StructField Name="PROGRAM_INDEX" Size="6" Type="UINT"/>
+                <StructField Name="PER_PORT_TABLE_DATA" Size="144" Type="ARRAY32"/>
+                <StructField Name="PP_PORT_PMF_PROFILE" Type="UINT" Size="DNX_DATA.field.profile_bits.nof_bits_in_port_profile"/>
+                <StructField Name="TM_PORT_PMF_PROFILE" Type="UINT" Size="DNX_DATA.field.profile_bits.nof_bits_in_port_profile"/>
+                <StructField Name="LEARN_SRC_MAC" Type="L2_MAC"/>
+                <StructField Name="LEARN_VLAN" Type="VLAN_ID"/>
+                <StructField Name="LEARN_VSI" Size="18" Type="UINT"/>
+                <StructField Name="LEARN_DATA" Size="64" Type="ARRAY32"/>
+                <!-- FIXME SDK-150529: The following qualifier changes size and offset in in_lif_profiel. Take the size and offset change directly from DNX DATA -->
+                <StructField Name="PMF_IN_LIF_PROFILE" Type="IN_LIF_PROFILE"/>
+                <StructField Name="PPH_VRF_VALUE" Type="VRF_VALUE"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="FTMH_RESERVED"/>
+                <StructField Name="FTMH_VISIBILITY"/>
+                <StructField Name="FTMH_TM_PROFILE"/>
+                <StructField Name="FTMH_ECN_ENABLE"/>
+                <StructField Name="FTMH_CNI"/>
+                <StructField Name="FTMH_BIER_BFR_EXT_PRESENT"/>
+                <StructField Name="FTMH_FLOW_ID_EXT_PRESENT"/>
+                <StructField Name="FTMH_APPLICATION_SPECIFIC_EXT_PRESENT"/>
+                <StructField Name="FTMH_TM_DESTINATION_EXT_PRESENT"/>
+                <StructField Name="FTMH_MCID_OR_OUTLIF_0_OR_MCDB_PTR"/>
+                <StructField Name="FTMH_TM_ACTION_IS_MC"/>
+                <StructField Name="FTMH_PPH_PRESENT"/>
+                <StructField Name="FTMH_TSH_EXT_PRESENT"/>
+                <StructField Name="FTMH_TM_ACTION_TYPE"/>
+                <StructField Name="FTMH_DP"/>
+                <StructField Name="PP_DSP"/>
+                <StructField Name="SRC_SYS_PORT"/>
+                <StructField Name="FTMH_TC"/>
+                <StructField Name="FTMH_PACKET_SIZE"/>
+                <StructField Name="LB_KEY_EXT"/>
+                <StructField Name="STACKING_EXT"/>
+                <StructField Name="BIER_BFR_EXT"/>
+                <StructField Name="TM_DESTINATION_EXT"/>
+                <StructField Name="APPLICATION_SPECIFIC_EXT"/>
+                <StructField Name="TSH_EXT"/>
+                <StructField Name="FWD_STRENGTH"/>
+                <StructField Name="PPH_PARSING_START_TYPE"/>
+                <StructField Name="PPH_PARSING_START_OFFSET"/>
+                <StructField Name="PPH_LIF_EXT_TYPE"/>
+                <StructField Name="FHEI_SIZE"/>
+                <StructField Name="PPH_LEARN_EXT_PRESENT"/>
+                <StructField Name="PPH_TTL"/>
+                <StructField Name="NWK_QOS"/>
+                <StructField Name="PPH_IN_LIF"/>
+                <StructField Name="PPH_FWD_DOMAIN"/>
+                <StructField Name="PPH_IN_LIF_PROFILE"/>
+                <StructField Name="PPH_END_OF_PACKET_EDITING"/>
+                <StructField Name="PPH_FORWARDING_LAYER_ADDITIONAL_INFO"/>
+                <StructField Name="PPH_VALUE1"/>
+                <StructField Name="PPH_VALUE2"/>
+                <StructField Name="FHEI_EXT"/>
+                <StructField Name="LEARN_EXT"/>
+                <StructField Name="LIF_EXT"/>
+                <StructField Name="USER_HEADER_1"/>
+                <StructField Name="USER_HEADER_2"/>
+                <StructField Name="USER_HEADER_3"/>
+                <StructField Name="USER_HEADER_4"/>
+                <StructField Name="USER_HEADER_1_TYPE"/>
+                <StructField Name="USER_HEADER_2_TYPE"/>
+                <StructField Name="USER_HEADER_3_TYPE"/>
+                <StructField Name="USER_HEADER_4_TYPE"/>
+                <StructField Name="IS_TDM"/>
+                <StructField Name="CUD_OUTLIF_OR_MCDB_PTR"/>
+                <StructField Name="DISCARD"/>
+                <StructField Name="OUT_LIF_PROFILE"/>
+                <StructField Name="PMF_OUT_LIF_PROFILE"/>
+                <StructField Name="PMF_OUT_RIF_PROFILE"/>
+                <StructField Name="ETH_TAG_FORMAT"/>
+                <StructField Name="UPDATED_TPIDS_PACKET_DATA"/>
+                <StructField Name="IVE_BYTES_TO_ADD"/>
+                <StructField Name="IVE_BYTES_TO_REMOVE"/>
+                <StructField Name="ETHER_TYPE_CODE"/>
+                <StructField Name="FABRIC_OR_EGRESS_MC"/>
+                <StructField Name="ESTIMATED_BTR"/>
+                <StructField Name="FWD_CONTEXT"/>
+                <StructField Name="GLOB_OUT_LIF_0"/>
+                <StructField Name="GLOB_OUT_LIF_1"/>
+                <StructField Name="GLOB_OUT_LIF_2"/>
+                <StructField Name="GLOB_OUT_LIF_3"/>
+                <StructField Name="GLOB_IN_LIF_0"/>
+                <StructField Name="IN_LIF_PROFILE_0"/>
+                <StructField Name="IP_MC_ELIGIBLE"/>
+                <StructField Name="IP_MC_SHOULD_BE_BRIDGED"/>
+                <StructField Name="LEARN_VALID"/>
+                <StructField Name="LOCAL_OUT_LIF"/>
+                <StructField Name="FWD_ACTION_PROFILE_INDEX"/>
+                <StructField Name="SNOOP_ACTION_PROFILE_INDEX"/>
+                <StructField Name="SNOOP_STRENGTH"/>
+                <StructField Name="SYSTEM_HEADERS_SIZE"/>
+                <StructField Name="DST_SYS_PORT"/>
+                <StructField Name="TM_PORT"/>
+                <StructField Name="OUT_PP_PORT"/>
+                <StructField Name="IS_APPLET"/>
+                <StructField Name="MEM_SOFT_ERR"/>
+                <StructField Name="TC_MAP_PROFILE"/>
+                <StructField Name="L4_PORT_IN_RANGE"/>
+                <StructField Name="PROGRAM_INDEX"/>
+                <StructField Name="PER_PORT_TABLE_DATA"/>
+                <StructField Name="PP_PORT_PMF_PROFILE"/>
+                <StructField Name="TM_PORT_PMF_PROFILE"/>
+                <StructField Name="LEARN_SRC_MAC"/>
+                <StructField Name="LEARN_VLAN"/>
+                <StructField Name="LEARN_VSI"/>
+                <StructField Name="LEARN_DATA"/>
+                <StructField Name="PMF_IN_LIF_PROFILE"/>
+                <StructField Name="PPH_VRF_VALUE"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="EPMF_ACTIONS_CONTAINER" Size="256" Print="STRUCTURE">
+        <OneLineDescription>List of actions for EPMF</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="DISCARD"/>
+                <StructField Name="TC_MAP_PROFILE" Size="3"/>
+                <StructField Name="TC"/>
+                <StructField Name="DP"/>
+                <StructField Name="CUD_OUTLIF_OR_MCDB_PTR" Type="GLOB_OUT_LIF"/>
+                <StructField Name="PP_DSP" Type="DSP"/>
+                <StructField Name="COS_PROFILE"/>
+                <StructField Name="MIRROR_PROFILE" Size="2" Type="UINT"/>
+                <StructField Name="SNOOP_PROFILE"/>
+                <StructField Name="SNOOP_STRENGTH"/>
+                <StructField Name="FWD_ACTION_PROFILE_INDEX" Type="ACTION_PROFILE_IDX"/>
+                <StructField Name="FWD_STRENGTH"/>
+                <StructField Name="PMF_FWD_STRENGTH" Type="FWD_STRENGTH"/>
+                <StructField Name="PMF_SNOOP_STRENGTH" Type="SNOOP_STRENGTH"/>
+                <StructField Name="PMF_PROFILE"/>
+                <StructField Name="PMF_SNOOP_OVERRIDE_ENABLE" Type="BOOL"/>
+                <StructField Name="PMF_FWD_OVERRIDE_ENABLE" Type="BOOL"/>
+                <StructField Name="PMF_COUNTER_0_PROFILE" Type="PMF_COUNTER_PROFILE"/>
+                <StructField Name="PMF_COUNTER_0_PTR" Type="PMF_COUNTER_PTR"/>
+                <StructField Name="PMF_COUNTER_1_PROFILE" Type="PMF_COUNTER_PROFILE"/>
+                <StructField Name="PMF_COUNTER_1_PTR" Type="PMF_COUNTER_PTR"/>
+                <StructField Name="INVALIDATE_NEXT"/>
+                <StructField Name="INVALID"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="DISCARD"/>
+                <StructField Name="TC_MAP_PROFILE"/>
+                <StructField Name="TC"/>
+                <StructField Name="DP"/>
+                <StructField Name="CUD_OUTLIF_OR_MCDB_PTR"/>
+                <StructField Name="PP_DSP"/>
+                <StructField Name="COS_PROFILE"/>
+                <StructField Name="MIRROR_PROFILE"/>
+                <StructField Name="SNOOP_PROFILE"/>
+                <StructField Name="SNOOP_STRENGTH"/>
+                <StructField Name="FWD_ACTION_PROFILE_INDEX"/>
+                <StructField Name="FWD_STRENGTH"/>
+                <StructField Name="PMF_FWD_STRENGTH"/>
+                <StructField Name="PMF_SNOOP_STRENGTH"/>
+                <StructField Name="PMF_PROFILE"/>
+                <StructField Name="PMF_SNOOP_OVERRIDE_ENABLE"/>
+                <StructField Name="PMF_FWD_OVERRIDE_ENABLE"/>
+                <StructField Name="PMF_COUNTER_0_PROFILE"/>
+                <StructField Name="PMF_COUNTER_0_PTR"/>
+                <StructField Name="PMF_COUNTER_1_PROFILE"/>
+                <StructField Name="PMF_COUNTER_1_PTR"/>
+                <StructField Name="INVALIDATE_NEXT"/>
+                <StructField Name="INVALID"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="ACE_ACTIONS_CONTAINER" Size="256" Print="STRUCTURE">
+        <OneLineDescription>List of actions for ACE</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="PP_DSP" Type="DSP"/>
+                <StructField Name="FTMH_TC" Type="TC"/>
+                <StructField Name="FTMH_DP" Type="DP"/>
+                <StructField Name="FTMH_TM_ACTION_TYPE" Type="TM_ACTION_TYPE"/>
+                <StructField Name="FTMH_CNI" Type="BOOL"/>
+                <StructField Name="FTMH_ECN_ENABLE" Type="BOOL"/>
+                <StructField Name="FTMH_VISIBILITY" Type="VISIBILITY"/>
+                <StructField Name="PPH_FORWARD_DOMAIN" Type="FODO"/>
+                <StructField Name="NWK_QOS"/>
+                <StructField Name="PPH_VALUE1" Type="PPH_VALUE"/>
+                <StructField Name="PPH_VALUE2" Type="PPH_VALUE"/>
+                <StructField Name="FHEI_EXT31TO00" Type="UINT"/>
+                <StructField Name="FHEI_EXT63TO32" Type="UINT"/>
+                <StructField Name="PPH_TTL" Type="IN_TTL"/>
+                <StructField Name="PPH_IN_LIF" Type="GLOB_IN_LIF"/>
+                <StructField Name="PPH_IN_LIF_PROFILE" Type="IN_LIF_PROFILE"/>
+                <StructField Name="OUT_LIF0_CUD_OUT_LIF0VALID" Type="GLOB_OUT_LIF_WITH_VALID"/>
+                <StructField Name="OUT_LIF1_CUD_OUT_LIF1VALID" Type="GLOB_OUT_LIF_WITH_VALID"/>
+                <StructField Name="OUT_LIF2_CUD_OUT_LIF2VALID" Type="GLOB_OUT_LIF_WITH_VALID"/>
+                <StructField Name="OUT_LIF3_CUD_OUT_LIF3VALID" Type="GLOB_OUT_LIF_WITH_VALID"/>
+                <StructField Name="PPH_FORWARDING_LAYER_ADDITIONAL_INFO" Type="FORWARDING_ADDITIONAL_INFO"/>
+                <StructField Name="PPH_FWD_LAYER_INDEX" Type="FWD_LAYER_INDEX"/>
+                <StructField Name="PPH_FORWANDING_STRENGTH" Type="FWD_STRENGTH" Size="1"/>
+                <StructField Name="PPH_END_OF_PACKET_EDITING" Type="END_OF_PACKET_EDITING"/>
+                <StructField Name="PPH_APPLICATION_SPECIFIC_EXT_31TO00" Type="UINT"/>
+                <StructField Name="PPH_APPLICATION_SPECIFIC_EXT_47TO32" Type="USHORT"/>
+                <StructField Name="SNIFF_PROFILE" Size="4" Type="UINT"/>
+                <StructField Name="FTMH_SOURCE_SYSTEM_PORT" Type="SRC_SYS_PORT"/>
+                <StructField Name="ACE_CONTEXT_VALUE"/>
+                <StructField Name="ACE_STAMP_VALUE" Type="USHORT"/>
+                <StructField Name="ACE_STAT_METER_OBJ_CMD_ID" Size="25" Type="UINT"/>
+                <StructField Name="CE_STAT_OBJ_CMD_ID_VALID" Size="26" Type="UINT"/>
+                <StructField Name="INVALIDATE_NEXT"/>
+                <StructField Name="INVALID"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="PP_DSP"/>
+                <StructField Name="FTMH_TC"/>
+                <StructField Name="FTMH_DP"/>
+                <StructField Name="FTMH_TM_ACTION_TYPE"/>
+                <StructField Name="FTMH_CNI"/>
+                <StructField Name="FTMH_ECN_ENABLE"/>
+                <StructField Name="FTMH_VISIBILITY"/>
+                <StructField Name="PPH_FORWARD_DOMAIN"/>
+                <StructField Name="NWK_QOS"/>
+                <StructField Name="PPH_VALUE1"/>
+                <StructField Name="PPH_VALUE2"/>
+                <StructField Name="FHEI_EXT31TO00"/>
+                <StructField Name="FHEI_EXT63TO32"/>
+                <StructField Name="PPH_TTL"/>
+                <StructField Name="PPH_IN_LIF"/>
+                <StructField Name="PPH_IN_LIF_PROFILE"/>
+                <StructField Name="OUT_LIF0_CUD_OUT_LIF0VALID"/>
+                <StructField Name="OUT_LIF1_CUD_OUT_LIF1VALID"/>
+                <StructField Name="OUT_LIF2_CUD_OUT_LIF2VALID"/>
+                <StructField Name="OUT_LIF3_CUD_OUT_LIF3VALID"/>
+                <StructField Name="PPH_FORWARDING_LAYER_ADDITIONAL_INFO"/>
+                <StructField Name="PPH_FWD_LAYER_INDEX"/>
+                <StructField Name="PPH_FORWANDING_STRENGTH"/>
+                <StructField Name="PPH_END_OF_PACKET_EDITING"/>
+                <StructField Name="PPH_APPLICATION_SPECIFIC_EXT_31TO00"/>
+                <StructField Name="PPH_APPLICATION_SPECIFIC_EXT_47TO32"/>
+                <StructField Name="SNIFF_PROFILE"/>
+                <StructField Name="FTMH_SOURCE_SYSTEM_PORT"/>
+                <StructField Name="ACE_CONTEXT_VALUE"/>
+                <StructField Name="ACE_STAMP_VALUE"/>
+                <StructField Name="ACE_STAT_METER_OBJ_CMD_ID"/>
+                <StructField Name="CE_STAT_OBJ_CMD_ID_VALID"/>
+                <StructField Name="INVALIDATE_NEXT"/>
+                <StructField Name="INVALID"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="L4OPS_QUALIFIERS_CONTAINER" Size="256" Print="STRUCTURE">
+        <OneLineDescription>List of qualifiers for L4OPS</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="STATISTICS_OBJ_0" Type="STATISTICS_OBJECT"/>
+                <StructField Name="STATISTICS_OBJ_1" Type="STATISTICS_OBJECT"/>
+                <StructField Name="STATISTICS_OBJ_2" Type="STATISTICS_OBJECT"/>
+                <StructField Name="STATISTICS_OBJ_3" Type="STATISTICS_OBJECT"/>
+                <StructField Name="STATISTICS_OBJ_4" Type="STATISTICS_OBJECT"/>
+                <StructField Name="STATISTICS_OBJ_5" Type="STATISTICS_OBJECT"/>
+                <StructField Name="STATISTICS_OBJ_6" Type="STATISTICS_OBJECT"/>
+                <StructField Name="STATISTICS_OBJ_7" Type="STATISTICS_OBJECT"/>
+                <StructField Name="STATISTICS_OBJ_8" Type="STATISTICS_OBJECT"/>
+                <StructField Name="STATISTICS_OBJ_9" Type="STATISTICS_OBJECT"/>
+                <StructField Name="STATISTICS_OBJ_10" Type="STATISTICS_OBJECT"/>
+                <StructField Name="STATISTICS_OBJ_11" Type="STATISTICS_OBJECT"/>
+                <StructField Name="STATISTICS_OBJ_12" Type="STATISTICS_OBJECT"/>
+                <StructField Name="OAM_STATISTICS_OBJ_0" Type="STATISTICS_OBJECT"/>
+                <StructField Name="OAM_STATISTICS_OBJ_1" Type="STATISTICS_OBJECT"/>
+                <StructField Name="OAM_STATISTICS_OBJ_2" Type="STATISTICS_OBJECT"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="STATISTICS_OBJ_0" />
+                <StructField Name="STATISTICS_OBJ_1" />
+                <StructField Name="STATISTICS_OBJ_2" />
+                <StructField Name="STATISTICS_OBJ_3" />
+                <StructField Name="STATISTICS_OBJ_4" />
+                <StructField Name="STATISTICS_OBJ_5" />
+                <StructField Name="STATISTICS_OBJ_6" />
+                <StructField Name="STATISTICS_OBJ_7" />
+                <StructField Name="STATISTICS_OBJ_8" />
+                <StructField Name="STATISTICS_OBJ_9" />
+                <StructField Name="STATISTICS_OBJ_10" />
+                <StructField Name="STATISTICS_OBJ_11" />
+                <StructField Name="STATISTICS_OBJ_12" />
+                <StructField Name="OAM_STATISTICS_OBJ_0" />
+                <StructField Name="OAM_STATISTICS_OBJ_1" />
+                <StructField Name="OAM_STATISTICS_OBJ_2" />
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+
+    <FieldType Name="MISC_FIELDS" Size="256" Print="STRUCTURE">
+        <OneLineDescription>List of qualifiwers for IPMF1</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="ALL_ZERO" Type="UINT"/>
+                <StructField Name="VOID" Type="UINT"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="ALL_ZERO"/>
+                <StructField Name="VOID"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+</FieldTypesDbCatalog>
+

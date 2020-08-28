@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+
+<!-- This XML file is for 88806 SKU Dynamic DNX DATA -->
+<device_data>
+    <module name="device">
+        <sub_module name="general">
+            <features>
+            </features>
+             
+            <defines>
+            </defines >
+         
+            <numerics>
+                <numeric name="device_id" value="0x8806"></numeric>
+            </numerics>
+
+            <tables>
+            </tables>
+        </sub_module>
+    </module>
+ 
+     <module name="nif">
+
+        <sub_module name="ilkn">
+            <features>
+                <feature name="is_supported" value="0"></feature>
+            </features>
+            
+            <numerics>
+                <numeric name="max_nof_ifs" value="0"></numeric>
+                <numeric name="max_nof_elk_ifs" value="0"></numeric>
+            </numerics>
+
+            <tables>
+                <table name="supported_phys">
+                    <value name="is_supported" default="0"></value>
+                    <value name="max_phys" default="0"></value>
+                    <value name="nif_phys" default="0"></value>
+                    <value name="fabric_phys" default="0"></value>
+                    <entries>
+                    </entries>
+                </table>
+                    
+                <table name="ilkn_cores">
+                    <value name="is_elk_supported" default="0"></value>
+                    <value name="is_data_supported" default="0"></value>
+                    <value name="fec_disable_by_bypass" default="0"></value>
+                    <entries>
+                    </entries>
+                </table>
+                    
+                <!-- For J2C ILKN Mux logic  -->
+                <table name="ilkn_cores_clup_facing">
+                    <value name="clu_unit" default="-1"></value>
+                    <entries>
+                    </entries>
+                </table>
+                    
+                <table name="nif_lanes_map">
+                    <value name="first_phy" default="-1"></value>
+                    <value name="ilkn_lane_offset" default="-1"></value>
+                    <value name="nof_lanes" default="-1"></value>
+                    <entries>
+                    </entries>
+                </table>
+            </tables>
+            
+        </sub_module>
+     </module>
+     
+</device_data>

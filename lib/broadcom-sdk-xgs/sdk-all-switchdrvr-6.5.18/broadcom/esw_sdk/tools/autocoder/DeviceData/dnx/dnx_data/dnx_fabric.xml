@@ -1,0 +1,383 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="fabric" bsl_flag="BSL_LS_BCMDNX_FABRIC">
+    <includes>
+        <include>bcm/fabric.h</include>
+        <include>soc/dnxc/fabric.h</include>
+        <include>soc/dnx/dbal/auto_generated/dbal_defines_tables.h</include>
+        <include>soc/dnx/dbal/auto_generated/dbal_defines_fields.h</include>
+        <include>bcm_int/dnx/fabric/fabric_cgm.h</include>
+    </includes>
+
+    <sub_module name="general" doc="General data about fabric">
+
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Is fabric supported"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="nof_lcplls" doc="number of lcplls supported"></define>
+            <define labels="j2p_notrev" name="fmac_clock_khz" doc="FMAC clock frequency [KHz]"></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="connect_mode" doc="Fabric interface connect mode"></numeric>
+        </numerics>
+
+        <tables>
+            <table labels="j2p_notrev" name="fmac_bus_size" doc="Fabric MAC bus size [bits]">
+                <key name="mode" doc="Fabric MAC mode (FEC type)"></key>
+                <value name="size" type="int" doc="The bus size [bits]"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="pll_phys" doc="phys controlled by each lcpll">
+                <key name="lcpll" doc="LCPLL index"></key>
+                <value name="min_phy_id" type="uint32" doc="The min phy ID controlled by given pll"></value>
+                <value name="max_phy_id" type="uint32" doc="The max phy ID controlled by given pll"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="pm_properties" doc="PM properties per PM">
+                <key name="pm_index" doc="PM instance number."></key>
+                <value name="special_pll_check" type="int" doc="Boolean. Does this PM require special PLL check"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="links" doc="data about fabric links">
+
+        <defines>
+            <define labels="j2p_notrev" name="nof_links" doc="Number of fabric links"></define>
+            <define labels="j2p_notrev" name="nof_links_per_core" doc="number of fabric links per core supported"></define>
+            <define labels="j2p_notrev" name="max_link_id" doc="Maximum id of a fabric link"></define>
+            <define labels="j2p_notrev" name="max_speed" doc="Maximum speed a fabric link can have"></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="core_mapping_mode" doc="Fabric link-to-core mapping mode"></numeric>
+        </numerics>
+
+        <tables>
+            <table labels="j2p_notrev" name="general" doc="general data about links">
+                <value name="supported_links" type="bcm_pbmp_t" doc="bitmap of supported links"></value>
+            </table>
+            <table labels="j2p_notrev" name="polarity" doc="Polarity of fabric link">
+                <key name="link" doc="fabric link id"></key>
+                <value name="tx_polarity" type="uint32" doc="TX Polarity"></value>
+                <value name="rx_polarity" type="uint32" doc="RX Polarity"></value>
+            </table>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="blocks" doc="General block information">
+
+        <features>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="nof_instances_fmac" doc="Number of FMAC instances."></define>
+            <define labels="j2p_notrev" name="nof_links_in_fmac" doc="Number of links for each FMAC block."></define>
+            <define labels="j2p_notrev" name="nof_instances_fsrd" doc="Number of FSRD instances."></define>
+            <define labels="j2p_notrev" name="nof_links_in_fsrd" doc="Number of links for each FSRD block."></define>
+            <define labels="j2p_notrev" name="nof_fmacs_in_fsrd" doc="Number of FMAC blocks for each FSRD block."></define>
+            <define labels="j2p_notrev" name="nof_pms" doc="Number of fabric PMs"></define>
+            <define labels="j2p_notrev" name="nof_links_in_pm" doc="Number of links for each fabric PM"></define>
+            <define labels="j2p_notrev" name="nof_fmacs_in_pm" doc="Number of FMAC blocks for each fabric PM"></define>            
+        </defines>
+
+        <tables>
+            <table labels="j2p_notrev" name="fsrd_sbus_chain" doc="The order of FSRDs in the SBUS chain">
+                <key name="fsrd_id" doc="FSRD ID"></key>
+                <value name="index_in_chain" type="int" doc="The index of the FSRD in the SBUS chain"></value>
+            </table>
+            <table labels="j2p_notrev" name="fmac_sbus_chain" doc="The order of FMACs in the SBUS chain">
+                <key name="fmac_id" doc="FMAC ID"></key>
+                <value name="index_in_chain" type="int" doc="The index of the FMAC in the SBUS chain"></value>
+            </table>
+            <table labels="j2p_notrev" name="fsrd_ref_clk_master" doc="The ref clock dependency between the FSRDs">
+                <key name="fsrd_index" doc="FSRD ID"></key>
+                <value name="master_fsrd_index" type="int" doc="The index of the Master FSRD which gives ref clock to the key FSRD"></value>
+            </table>
+        </tables>
+        
+    </sub_module>
+
+    <sub_module name="reachability" doc="General reachability attributes">
+
+        <features>
+        </features>
+ 
+        <defines>
+            <define labels="j2p_notrev" name="resolution" doc="Reachability messages resolution."></define>
+            <!-- Reachability messages sent on all links in a relatively short time,
+                 and then wait relatively long time until the next round to send them.
+                 gen_period is the number of clocks to wait before sending
+                 message on the next link.
+                 After reachability messages were sent on all links, we wait
+                 full_cycle_period_usec micro-seconds before sending the new
+                 rechability messages on all links.-->
+            <define labels="j2p_notrev" name="gen_period" doc="Reachability message generation period (in units of chip clocks)."></define>
+            <define labels="j2p_notrev" name="full_cycle_period_usec" doc="Full cycle of reachability cells period (in units of micro-seconds)."></define>
+            <define labels="j2p_notrev" name="watchdog_resolution" doc="Reachability message watchdog resolution.."></define>
+            <define labels="j2p_notrev" name="watchdog_period_usec" doc="Reachability message watchdog period (in units of micto-seconds)."></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="mesh" doc="MESH mode attributes">
+
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Is mesh supported"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="max_mc_id" doc="Maximum MC ID in MESH mode"></define>
+            <define labels="j2p_notrev" name="max_nof_dest" doc="Maximum number of FAP destination in Mesh mode"></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="multicast_enable" doc="Detemines whether the MESH system supports MC"></numeric>
+            <numeric labels="j2p_notrev" name="nof_dest" doc="Number of FAP destination in MESH mode"></numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="cell" doc="cell attributes">
+        <defines>
+            <define labels="j2p_notrev" name="nof_priorities" doc="nof of supported fabric priorities"></define>
+            <define labels="j2p_notrev" name="vsc256_max_size" doc="Max cell size in VSC256 configuration"></define>
+            <define labels="j2p_notrev" name="sr_cell_header_offset" doc="Offset in the header fields of sr cells (bytes)"></define>
+            <define labels="j2p_notrev" name="sr_cell_nof_instances" doc="Number of source routed cell instances"></define>
+        </defines>
+        
+        <numerics>
+            <numeric labels="j2p_notrev" name="default_packing_mode" doc="Default packing mode"></numeric>
+            <numeric labels="j2p_notrev" name="pcp_enable" doc="packet cell packing enable"></numeric>
+        </numerics>
+        
+    </sub_module>
+    
+    <sub_module name="pipes" doc="pipes attributes">
+        
+        <features>
+            <feature labels="j2p_notrev" name="ocb_wfq" doc="is there a WFQ between OCB contexts in the ingress"></feature>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="max_nof_pipes" doc="max supported fabric pipes"></define>
+            <define labels="j2p_notrev" name="max_nof_contexts" doc="max supported ingress contexts"></define>
+            <define labels="j2p_notrev" name="max_nof_subcontexts" doc="max supported ingress sub contexts"></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="nof_pipes" doc="number of actual (configured) pipes"></numeric>
+            <numeric labels="j2p_notrev" name="multi_pipe_system" doc="Is there a device in the system in multi pipes mode"></numeric>
+        </numerics>
+        
+        <tables>
+            <table labels="j2p_notrev" name="map" doc="map traffic cast X priority to fabric pipe">
+                <value name="uc" type="uint32[DNX_DATA_MAX_FABRIC_CELL_NOF_PRIORITIES]" doc="each element represents uc priority pipe"></value>
+                <value name="mc" type="uint32[DNX_DATA_MAX_FABRIC_CELL_NOF_PRIORITIES]" doc="each element represents mc priority pipe"></value>
+                <value name="name" type="char *" doc="The configuration display name"></value>
+                <value name="type" type="soc_dnxc_fabric_pipe_map_type_t" doc="The pipe mapping type"></value>
+                <value name="min_hp_mc" type="int" doc="Minimum priority to be considered as high priority multicast"></value>
+                <value name="tdm_pipe" type="int" doc="TDM pipe id"></value>
+            </table>
+            
+            <table labels="j2p_notrev" name="valid_map_config" doc="pipes map valid configurations">
+                <key name="config_id" doc="The configuration running number"></key>
+                <value name="nof_pipes" type="uint32" doc="Number of pipes"></value>
+                <value name="uc" type="uint32[DNX_DATA_MAX_FABRIC_CELL_NOF_PRIORITIES]" doc="map unicast cell priority to pipe"></value>
+                <value name="mc" type="uint32[DNX_DATA_MAX_FABRIC_CELL_NOF_PRIORITIES]" doc="map multicast cell priority to pipe"></value>
+                <value name="name" type="char *" doc="The configuration display name"></value>
+                <value name="type" type="soc_dnxc_fabric_pipe_map_type_t" doc="The pipe mapping type"></value>
+                <value name="min_hp_mc" type="int" doc="Minimum priority to be considered as high priority multicast"></value>
+                <value name="tdm_pipe" type="int" doc="TDM pipe id"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="dtq_subcontexts" doc="DTQ subcontexts ids">
+                <key name="dtq" doc="The DTQ number"></key>
+                <key name="is_ocb_only" doc="Whether the subcontext is OCB only or Mixed"></key>
+                <value name="index" type="uint32" doc="The index of the subcontext"></value>
+            </table>
+        </tables>
+        
+    </sub_module>
+
+    <sub_module name="debug" doc="debug configurations">
+        <numerics>
+            <numeric labels="j2p_notrev" name="mesh_topology_size" doc="Size of mesh topology" signed="1"></numeric>
+            <numeric labels="j2p_notrev" name="mesh_topology_fast" doc="Device is in mesh topology fast mode."></numeric>
+        </numerics>
+    </sub_module>
+    
+    <sub_module name="tdm" doc="TDM attributes">
+        <numerics>
+            <numeric labels="j2p_notrev" name="priority" doc="The TDM fabric priority" signed="1"></numeric>
+        </numerics>
+    </sub_module>
+
+    <!-- Congestion Management -->
+    <sub_module name="cgm" doc="CGM info">
+        <features>
+            <feature labels="j2p_notrev" name="egress_drop_low_prio_mc" doc="is egress can drop low priority multicast cells"></feature>
+            <feature labels="j2p_notrev" name="egress_fifo_static_size" doc="is egress fifos size is static or can be changed according to number of pipes"></feature>
+            <feature labels="j2p_notrev" name="is_egress_drop_tdm_latency_supported" doc="Is egress grop tdm latency supported"></feature>
+            <feature labels="j2p_notrev" name="is_static_shaper_supported" doc="Is fabric static shaper supported"></feature>
+        </features>
+        <defines>
+            <define labels="j2p_notrev" name="nof_rci_levels" doc="Number of RCI levels"></define>
+            <define labels="j2p_notrev" name="egress_drop_low_prio_mc_th_clocks_resolution" doc="Clocks resolution in HW"></define>
+            <define labels="j2p_notrev" name="egress_fifo_fc_threshold" doc="Threshold for egress fifo flow control (the threshold below the fifo size)"></define>
+            <define labels="j2p_notrev" name="static_shaper_credit_resolution_bytes" doc="The credit resoultion of the static shaper [bytes]"></define>
+        </defines>
+        <tables>
+            <table labels="j2p_notrev" name="access_map" doc="DBAL information per threshold type">
+                <key name="control_type" type="bcm_fabric_cgm_control_type_t" doc="Fabric CGM control type"></key>
+                <value name="dbal_table" type="dbal_tables_e" doc="DBAL table"></value>
+                <value name="dbal_key1" type="dbal_fields_e" doc="DBAL key1"></value>
+                <value name="dbal_key2" type="dbal_fields_e" doc="DBAL key2"></value>
+                <value name="dbal_result" type="dbal_fields_e" doc="DBAL result"></value>
+                <value name="index_type" type="dnx_fabric_cgm_control_index_type_e" doc="DBAL table index type"></value>
+                <value name="is_valid" type="int" doc="is control_type valid?"></value>
+                <value name="err_msg" type="char *" doc="error message to be printed when using invalid control_type"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="dtqs" doc="DTQs info">
+        <defines>
+            <define labels="j2p_notrev" name="max_nof_subdtqs" doc="Number of sub-DTQs"></define>
+            <define labels="j2p_notrev" name="max_size" doc="Maximum size for all DTQs together"></define>
+            <define labels="j2p_notrev" name="ocb_only_size" doc="Size of OCB-Only DTQs"></define>
+        </defines>
+        <numerics>
+            <numeric labels="j2p_notrev" name="nof_active_dtqs" doc="Number of active DTQs"></numeric>
+        </numerics>
+    </sub_module>
+
+    <sub_module name="ilkn" doc="data about ILKN over fabric">
+        <tables>
+            <table labels="j2p_notrev" name="bypass_info" doc="data about bypassed links">
+                <key name="pm_id" type="int" doc="Internal Port Macro identifier"></key>
+                <value name="links" type="uint32" doc="Links in bypass mode"></value>
+            </table>
+        </tables>        
+    </sub_module>
+    
+    <sub_module name="dbal"  doc="fabric dbal defines">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="link_rci_threshold_bits_nof" doc="number of bits in LINK_RCI_THRESHOLD field"></define>
+            <define labels="j2p_notrev" name="cgm_llfc_threshold_bits_nof" doc="number of bits in link level flow control thresholds"></define>
+            <define labels="j2p_notrev" name="cgm_llfc_threshold_max_value" doc="maximum value of link level flow control threshold"></define>
+            <define labels="j2p_notrev" name="egress_fifo_drop_threshold_bits_nof" doc="number of bits in egress fifo drop thresholds"></define>
+            <define labels="j2p_notrev" name="egress_fifo_drop_threshold_max_value" doc="maximum value of egress fifo drop threshold"></define>
+            <define labels="j2p_notrev" name="cgm_link_fifo_base_address_bits_nof" doc="number of bits in link fifo base address"></define>
+            <define labels="j2p_notrev" name="cgm_link_fifo_base_address_max_value" doc="maximum value of link fifo base address"></define>
+            <define labels="j2p_notrev" name="cgm_egress_fifo_base_address_bits_nof" doc="number of bits in egress fifo base address"></define>
+            <define labels="j2p_notrev" name="cgm_egress_fifo_base_address_max_value" doc="maximum value of egress fifo base address"></define>
+            <define labels="j2p_notrev" name="cgm_egress_fifo_fc_threshold_bits_nof" doc="number of bits in egress fifo flow control threshold"></define>
+            <define labels="j2p_notrev" name="cgm_egress_fifo_fc_threshold_max_value" doc="maximum value of egress fifo flow control threshold"></define>
+            <define labels="j2p_notrev" name="cgm_ingress_fc_threshold_max_value" doc="maximum value of ingress flow control threshold"></define>
+            <define labels="j2p_notrev" name="fabric_transmit_wfq_index_bits_nof" doc="number of bits in fabric transmit wfq index"></define>
+            <define labels="j2p_notrev" name="fabric_transmit_wfq_index_max_value" doc="maximum value of fabric transmit wfq index"></define>
+            <define labels="j2p_notrev" name="mesh_topology_status_2_id1_bits_nof" doc="number of bits in mesh topology status 2 id1"></define>
+            <define labels="j2p_notrev" name="fabric_transmit_dtq_fc_thresholds_bits_nof" doc="number of bits in fabric transmit dtq fc thresholds"></define>
+            <define labels="j2p_notrev" name="fabric_transmit_pdq_size_bits_nof" doc="number of bits in fabric transmit pdq size"></define>
+        </defines>
+
+        <numerics>
+            <!-- Priority -->
+            <numeric labels="j2p_notrev" name="priority_bits_nof" doc="Number of bits in FABRIC_PRIORITY field"></numeric>
+            <!-- Link ID -->
+            <numeric labels="j2p_notrev" name="nof_links_bits_nof" doc="Number of bits in FABRIC_LINK_ID field"></numeric>
+        </numerics>        
+        
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="mesh_mc" doc="fabric mesh mc defines">
+    
+        <defines>
+            <define labels="j2p_notrev" name="nof_replication" doc="number of replication"></define>
+        </defines>
+    </sub_module>
+ 
+    <sub_module name="transmit" doc="fabric transmit defines">
+    
+        <features>
+            <feature labels="j2p_notrev" name="eir_fc_leaky_backet" doc="EIR FC uses leaky bucket mechanism"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="s2d_pdq_size" doc="Sram to Dram PDQ size"></define>
+            <define labels="j2p_notrev" name="pdq_sram_fc_th" doc="PDQ to SRAM DQCQ flow control threshold"></define>
+            <define labels="j2p_notrev" name="pdq_mixs_fc_th" doc="PDQ to MIX-S DQCQ flow control threshold"></define>
+            <define labels="j2p_notrev" name="pdq_mixd_fc_th" doc="PDQ to MIX-D DQCQ flow control threshold"></define>
+            <define labels="j2p_notrev" name="pdq_mix_mixs_fc_th" doc="PDQ to MIX MIX-S DQCQ flow control threshold"></define>
+            <define labels="j2p_notrev" name="pdq_mix_mixd_fc_th" doc="PDQ to MIX MIX-D DQCQ flow control threshold"></define>
+            <define labels="j2p_notrev" name="pdq_ocb_fc_th" doc="PDQ OCB flow control threshold"></define>
+            <define labels="j2p_notrev" name="pdq_dram_delete_fc_th" doc="PDQ dram delete flow control threshold"></define>
+            <define labels="j2p_notrev" name="pdq_sram_delete_fc_th" doc="PDQ sram delete flow control threshold"></define>
+            <define labels="j2p_notrev" name="pdq_s2d_fc_th" doc="Sram to Dram PDQ flow control threshold"></define>
+            <define labels="j2p_notrev" name="pdq_sram_eir_fc_th" doc="PDQ to sram EIR flow control"></define>
+            <define labels="j2p_notrev" name="pdq_mixs_eir_fc_th" doc="PDQ to mix-s EIR flow control"></define>
+            <define labels="j2p_notrev" name="pdq_mixd_eir_fc_th" doc="PDQ to mix-d EIR flow control"></define>
+            <define labels="j2p_notrev" name="pdq_ocb_eir_fc_th" doc="PDQ ocb EIR flow control"></define>
+        </defines>
+
+        <tables>
+            <table labels="j2p_notrev" name="pdq_to_dqcq_fc_th_select" doc="Select PDQs to DQCQs FC thresholds index">
+                <key name="pdq_priority" doc="PDQ priority (0=HP, 1=LP)"></key>
+                <key name="dqcq_priority" doc="DQCQ priority"></key>
+                <value name="sram" type="uint32" doc="SRAM DQCQ"></value>
+                <value name="mixs" type="uint32" doc="MIXS DQCQ"></value>
+                <value name="mixd" type="uint32" doc="MIXD DQCQ"></value>
+                <value name="mix_mixs" type="uint32" doc="MIX_MIXS DQCQ"></value>
+                <value name="mix_mixd" type="uint32" doc="MIX_MIXD DQCQ"></value>
+                <value name="s2d" type="uint32" doc="S2D DQCQ"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="eir_fc_leaky_bucket" doc="Configure the EIR FC leaky bucket machine">
+                <value name="almost_full_th" type="uint32" doc="FIFO almost full threshold"></value>
+                <value name="almost_empty_th" type="uint32" doc="FIFO almost empty threshold"></value>
+                <value name="bucket_size" type="uint32" doc="Bucket size"></value>
+                <value name="bucket_fc_threshold" type="uint32" doc="Bucket flow control threshold"></value>
+                <value name="period" type="uint32" doc="Token update period"></value>
+                <value name="tokens_delta0" type="uint32" doc="Tokens delta 0"></value>
+                <value name="tokens_delta1" type="uint32" doc="Tokens delta 1"></value>
+                <value name="tokens_delta2" type="uint32" doc="Tokens delta 2"></value>
+                <value name="tokens_delta3" type="uint32" doc="Tokens delta 3"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="eir_fc_leaky_bucket_delta_select" doc="Select which delta will be associated with FIFO state">
+                <value name="fifo_in_between" type="uint32" doc="Select delta for the case where FIFO is between almost full and almost empty thresholds"></value>
+                <value name="fifo_partially_almost_full" type="uint32" doc="Select delta for the case where FIFO is partially almost full"></value>
+                <value name="fifo_almost_full" type="uint32" doc="Select delta for the case where FIFO is almost full"></value>
+                <value name="fifo_partially_almost_empty" type="uint32" doc="Select delta for the case where FIFO is partially almost empty"></value>
+                <value name="fifo_not_stable" type="uint32" doc="Select delta for the case where FIFO is not stable"></value>
+                <value name="fifo_almost_empty" type="uint32" doc="Select delta for the case where FIFO is almost empty"></value>
+            </table>
+            <table labels="j2p_notrev" name="dtq_fc_local_thresholds" doc="DTQ FC local thresholds">
+                <key name="dtq_fc" type="int" doc="DTQ FC"></key>
+                <value name="threshold" type="uint32" doc="FC threshold"></value>
+            </table>
+        </tables>
+
+    </sub_module>
+
+</device_data>
+

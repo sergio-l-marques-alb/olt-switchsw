@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0"  module="meter">
+
+    <sub_module name="diag">
+        <features>
+            <feature name="rate_measurements_support" value="0"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    <sub_module name="mem_mgmt">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="meter_pointer_map_size" value="10"></define>
+            <define name="meter_pointer_size" value="20"></define>
+            <define name="invalid_bank_id" value="63"></define>            
+            <define name="ptr_map_table_resolution" value="1024"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="bank_id_size" value="6"></numeric> <!-- although size of banks is less, HW kept the bank id size larger-->        
+            <numeric name="sections_offset" value="1"></numeric>        
+        </numerics>
+
+        <tables>    
+        </tables>
+         
+    </sub_module>
+    <sub_module name="expansion">
+        <features>
+            <feature name="expansion_based_on_tc_support" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="max_size" value="7"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+</device_data>
+

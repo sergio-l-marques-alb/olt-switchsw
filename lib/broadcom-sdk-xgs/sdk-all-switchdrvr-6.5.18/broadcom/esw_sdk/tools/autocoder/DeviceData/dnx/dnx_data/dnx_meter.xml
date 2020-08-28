@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="meter" bsl_flag="BSL_LS_BCMDNX_POLICER">
+    <includes>
+        <include>bcm/policer.h</include>
+    </includes>
+
+    <sub_module name="profile" doc="meter profile definitions">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="large_bucket_mode_exp_add" doc="cbs calculation: the value need to add to the exponent in larger bucket mode"></define>
+            <define labels="j2p_notrev" name="max_regular_bucket_mode_burst" doc="max value for burst size (in bytes), which do not use large bucket mode"></define>
+            <define labels="j2p_notrev" name="rev_exp_min" doc="min value for reverse exponent"></define>
+            <define labels="j2p_notrev" name="rev_exp_max" doc="max value for reverse exponent"></define>
+            <define labels="j2p_notrev" name="burst_size_min" doc="minimum burst size in kbits"></define>
+            <define labels="j2p_notrev" name="nof_valid_global_meters" doc="nof_valid_global_meters, based in nof fwd-types"></define>
+            <define labels="j2p_notrev" name="nof_dp_command_max" doc="max nof DP commands"></define>
+            <define labels="j2p_notrev" name="global_engine_hw_stat_database_id" doc="to indicate global meter in HW - for Ingress Gtimer counter statistic"></define>
+            <define labels="j2p_notrev" name="ir_mant_nof_bits" doc="size of cir/eir mantissa"></define>            
+        </defines>
+
+        <numerics>
+        </numerics>        
+       
+        <tables>
+        </tables>
+    </sub_module>
+    <sub_module name="diag" doc="meter diagnostics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="rate_measurements_support" doc="Are meter engine statistics settings and counter measurments supported?"></feature>
+        </features>
+        
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>        
+       
+        <tables>
+        </tables>
+    </sub_module>   
+    <sub_module name="meter_db" doc="meter database definitions">
+        
+        <features>
+            <feature labels="j2p_notrev" name="refresh_disable_required" doc="disable refresh mechanism required or not, as workaround to enable access to dynamic MCP extansion table"></feature>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="nof_ingress_db" doc="nof ingress meter databases"></define>
+            <define labels="j2p_notrev" name="nof_egress_db" doc="nof egress meter databases"></define>
+            <define labels="j2p_notrev" name="meter_ids_in_group" doc="nof meter ids in one meter group"></define>   
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>    
+        </tables>
+         
+    </sub_module>       
+    <sub_module name="mem_mgmt" doc="meter shared memory definitions">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="adrress_range_resolution" doc="nof of meters resolution in shmem address range HW table "></define>
+            <define labels="j2p_notrev" name="object_stat_pointer_base_resolution" doc="resolution for parameter 'object_stat_pointer_base', in API bcm_policer_engine_database_attach"></define>
+            <define labels="j2p_notrev" name="base_big_engine_for_meter" doc="the base engine that is used for engine. (except the small engines)"></define>
+            <define labels="j2p_notrev" name="ingress_single_bucket_engine" doc="holds the engines that is used for ingress eth meter, which is small and can be used only in single bucket mode"></define>
+            <define labels="j2p_notrev" name="egress_single_bucket_engine" doc="holds the engines that is used for egress eth meter, which is small and can be used only in single bucket mode"></define>
+            <define labels="j2p_notrev" name="counters_buckets_ratio_per_engine" doc="each engine contain X counters or 2*X buckets (for meter). this holds the ratio"></define>
+            <define labels="j2p_notrev" name="meter_pointer_size" doc="The size in bits of the meter pointer"></define>
+            <define labels="j2p_notrev" name="meter_pointer_map_size" doc="Map meter pointer MSBs (from TM command) to new pointer MSBs which are used for bank selection - the size of the mapping in bits"></define>
+            <define labels="j2p_notrev" name="invalid_bank_id" doc="Invalid bank id"></define>
+            <define labels="j2p_notrev" name="ptr_map_table_resolution" doc="ptr map table index is 8 msb bits mask of the object stat id pointer. this indicates the resolution of the table based on this mask"></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="bank_id_size" doc="The size in bits of the bank id calculated from the nof big engines"></numeric>
+            <numeric labels="j2p_notrev" name="nof_bank_ids" doc="The number of possible bank ids"></numeric>
+            <numeric labels="j2p_notrev" name="sections_offset" doc="one engine contain two sections (banks). This parameter holds the offset between two sections. (For example: engine 16: banks: 0,6)"></numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+         
+    </sub_module>       
+    <sub_module name="compensation" doc="meter compensation defintions">
+        
+        <features>
+        </features>
+        
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+            <table labels="j2p_notrev" name="ingress_port_delta_value" doc="minimum and maximum delta value for ingress compensation per port">
+                <value name="min" type="int" doc="minimum value"></value>
+                <value name="max" type="int" doc="maximum value"></value>
+            </table>
+        </tables>
+
+         
+    </sub_module>       
+
+    <sub_module name="expansion" doc="meter expansion definitions">
+        <features>
+            <feature labels="j2p_notrev" name="expansion_based_on_tc_support" doc="expansion is done based on global-engine pointer or based on traffic-class"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="max_size" doc="The max expansion size value in numeric units"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    
+</device_data>
+
+
+
+
+

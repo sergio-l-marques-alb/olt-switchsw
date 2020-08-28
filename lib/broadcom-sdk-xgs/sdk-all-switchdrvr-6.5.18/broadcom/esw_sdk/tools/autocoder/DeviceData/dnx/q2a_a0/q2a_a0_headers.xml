@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0" module="headers">
+    <includes>
+    </includes>
+    <sub_module name="otmh" doc="Outgoing TM header">
+        <features>
+            <feature name="otmh_enable" value="1">
+            </feature>
+        </features>
+    </sub_module>
+
+    <sub_module name="general" doc="General attribute">
+        <features>
+            <feature name="fwd_header_offset_calc_with_egress_pars_idx" value="1">
+            </feature>
+            <feature name="jericho_mode_sys_header_is_supported" value="0">
+            </feature>
+        </features>
+    </sub_module>
+    
+    <sub_module name="hw_bug" doc="Bugs related to system header construction">
+        <features>
+            <feature name="fhei_mpls_cmd_from_eei"                      value="1"></feature>
+            <feature name="unknown_address"                             value="1"></feature>
+        </features>
+        <defines>
+            <define name="fhei_mpls_swap_remark_profile_size"           value="8"></define>
+        </defines>
+    </sub_module>
+</device_data>

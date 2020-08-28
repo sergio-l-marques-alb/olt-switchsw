@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+ elementFormDefault="qualified">
+
+ <xs:include schemaLocation="../../dbal_types_definition.xsd" />
+
+ <xs:complexType name="RegisterMapType">
+  <xs:sequence>
+   <xs:element name="Register" minOccurs="1" maxOccurs="50">  <!--DBAL_MAX_NUMBER_OF_HW_PORTING_ELEMENTS -->
+    <xs:complexType>
+     <xs:attribute name="Name" type="RegisterNamePattern" />
+     <xs:attribute name="MapTo" type="RegisterNamePattern" />
+    </xs:complexType>
+   </xs:element>
+  </xs:sequence>
+ </xs:complexType>
+
+ <xs:complexType name="MemoryMapType">
+  <xs:sequence>
+   <xs:element name="Memory" minOccurs="1" maxOccurs="50"> <!--DBAL_MAX_NUMBER_OF_HW_PORTING_ELEMENTS -->
+    <xs:complexType>
+     <xs:attribute name="Name" type="MemoryNamePattern" />
+     <xs:attribute name="MapTo" type="MemoryNamePattern" />
+    </xs:complexType>
+   </xs:element>
+  </xs:sequence>
+ </xs:complexType>
+
+ <xs:simpleType name="MappingType">
+  <xs:restriction base="xs:string">
+   <xs:enumeration value="REG" />
+   <xs:enumeration value="MEM" />
+  </xs:restriction>
+ </xs:simpleType>
+
+ <xs:element name="HwMapping">
+  <xs:complexType>
+   <xs:sequence>
+    <xs:element name="Mapping" maxOccurs="unbounded">
+     <xs:complexType>
+      <xs:sequence>
+       <xs:element name="OneLineDescription" type="xs:string"
+        minOccurs="1" maxOccurs="1" />
+       <xs:choice>
+        <xs:element name="Memories" type="MemoryMapType">
+        </xs:element>
+        <xs:element name="Registers" type="RegisterMapType">
+        </xs:element>
+       </xs:choice>
+      </xs:sequence>
+      <xs:attribute name="Type" type="MappingType" />
+      <xs:attributeGroup ref="AppToPhyDbMappingType" />
+     </xs:complexType>
+    </xs:element>
+   </xs:sequence>
+  </xs:complexType>
+ </xs:element>
+
+</xs:schema>

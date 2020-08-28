@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="latency">
+
+    <sub_module name="features">  
+        <features>
+            <feature name="valid_flow_profile_flag" value="0"></feature>
+            <feature name="valid_end_to_end_aqm_profile" value="0"></feature>
+            <feature name="probabilistic_mechanism_support" value="0"></feature>
+        </features>
+        
+        <defines>
+        </defines>  
+        <numerics>
+        </numerics>
+
+        <tables>  
+        </tables>       
+    </sub_module>    
+</device_data>
+
+
+
+

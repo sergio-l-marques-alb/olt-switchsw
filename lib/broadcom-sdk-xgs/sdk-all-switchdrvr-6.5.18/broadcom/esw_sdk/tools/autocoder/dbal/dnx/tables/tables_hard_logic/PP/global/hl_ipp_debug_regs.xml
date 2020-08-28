@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="ITPP_HEADER">
+        <OneLineDescription>Holds the last received incoming header</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Holds the last received header 128B" Name="HEADER" NofInstances="2" Permission="READONLY" Size="512" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                 <Field Name="HEADER">
+                    <Access instanceIndex="1">
+                        <Register Name="ITPP_LAST_RECEIVED_HEADER_0r">
+                            <HwField Name="LAST_RCVD_HDR_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="0">
+                        <Register Name="ITPP_LAST_RECEIVED_HEADER_1r">
+                            <HwField Name="LAST_RCVD_HDR_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITPPD_HEADER">
+        <OneLineDescription>Holds the last received incoming header</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Holds the last received header 128B" Name="HEADER" NofInstances="2" Permission="READONLY" Size="512" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                 <Field Name="HEADER">
+                    <Access instanceIndex="1">
+                        <Register Name="ITPPD_LAST_RECEIVED_HEADER_0r">
+                            <HwField Name="LAST_RCVD_HDR_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="0">
+                        <Register Name="ITPPD_LAST_RECEIVED_HEADER_1r">
+                            <HwField Name="LAST_RCVD_HDR_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITPP_ATTRIBUTES">
+        <OneLineDescription>Holds the last received incoming header </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Holds the last received packet size" Name="PACKET_SIZE" Permission="READONLY" Size="14" Type="UINT"/>
+                <Field Description="Holds the last received DP" Name="DP" Permission="READONLY" Size="2"/>
+                <Field Description="Holds the last received Cni" Name="CNI" Permission="READONLY" Type="BOOL"/>
+                <Field Description="Holds the last received action type" Name="ACTION_TYPE" Permission="READONLY" Size="2" Type="UINT"/>
+                <Field Description="Holds the last received PD CUD" Name="PD_CUD" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="Holds the last received PD CUD Type" Name="PD_CUD_TYPE" Permission="READONLY" Size="3" Type="UINT"/>
+                <Field Description="Holds the last received PP DSP" Name="PP_DSP" Permission="READONLY" Size="8" Type="DSP"/>
+                <Field Description="Holds the last received destination device id" Name="DEST_DEVICE_ID" Permission="READONLY" Size="11" Type="UINT"/>
+                <Field Description="Holds the last received fabric" Name="IS_FABRIC" Permission="READONLY" Type="BOOL"/>
+                <Field Description="Holds the last received dram" Name="IS_DRAM" Permission="READONLY" Type="BOOL"/>
+                <Field Description="Holds the last received qnum" Name="QNUM" Permission="READONLY" Size="18" Type="UINT"/>
+                <Field Description="Hold the last received mac ts" Name="MAC_TS" Permission="READONLY" Size="48" Type="ARRAY8"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Register Name="ITPP_LAST_RECEIVED_ATTRIBUTESr"/>
+                    </Access>
+               </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITPPD_ATTRIBUTES">
+        <OneLineDescription>Holds the last received incoming header </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Holds the last received packet size" Name="PACKET_SIZE" Permission="READONLY" Size="14" Type="UINT"/>
+                <Field Description="Holds the last received DP" Name="DP" Permission="READONLY" Size="2"/>
+                <Field Description="Holds the last received Cni" Name="CNI" Permission="READONLY" Type="BOOL"/>
+                <Field Description="Holds the last received action type" Name="ACTION_TYPE" Permission="READONLY" Size="2" Type="UINT"/>
+                <Field Description="Holds the last received PD CUD" Name="PD_CUD" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="Holds the last received PD CUD Type" Name="PD_CUD_TYPE" Permission="READONLY" Size="3" Type="UINT"/>
+                <Field Description="Holds the last received PP DSP" Name="PP_DSP" Permission="READONLY" Size="8" Type="DSP"/>
+                <Field Description="Holds the last received destination device id" Name="DEST_DEVICE_ID" Permission="READONLY" Size="11" Type="UINT"/>
+                <Field Description="Holds the last received fabric" Name="IS_FABRIC" Permission="READONLY" Type="BOOL"/>
+                <Field Description="Holds the last received dram" Name="IS_DRAM" Permission="READONLY" Type="BOOL"/>
+                <Field Description="Holds the last received qnum" Name="QNUM" Permission="READONLY" Size="18" Type="UINT"/>
+                <Field Description="Hold the last received mac ts" Name="MAC_TS" Permission="READONLY" Size="48" Type="ARRAY8"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                 <PackedFields>
+                    <Access>
+                        <Register Name="ITPPD_LAST_RECEIVED_ATTRIBUTESr"/>
+                    </Access>
+               </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITPP_GENERATED_VALUES">
+        <OneLineDescription>Holds the last generated values (output) </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Holds the last LastMemSoftErr values" Name="MEM_SOFT_ERR" Permission="READONLY"/>
+                <Field Description="Holds the last LastBytesToAdd value" Name="BYTES_TO_ADD" Permission="READONLY" Size="7" Type="UINT"/>
+                <Field Description="Holds the last LasBytesToRemove value" Name="BYTES_TO_REMOVE" Permission="READONLY" Size="8"/>
+                <Field Description="Holds the last LastDiscardPkt value" Name="DISCARD" Permission="READONLY"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MEM_SOFT_ERR">
+                    <Access>
+                        <Register Name="ITPP_LAST_GENERATED_VALUESr">
+                            <HwField Name="LAST_MEM_SOFT_ERRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BYTES_TO_ADD">
+                    <Access>
+                        <Register Name="ITPP_LAST_GENERATED_VALUESr">
+                            <HwField Name="LAST_BYTES_TO_ADDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BYTES_TO_REMOVE">
+                    <Access>
+                        <Register Name="ITPP_LAST_GENERATED_VALUESr">
+                            <HwField Name="LAST_BYTES_TO_REMOVEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DISCARD">
+                    <Access>
+                        <Register Name="ITPP_LAST_GENERATED_VALUESr">
+                            <HwField Name="LAST_DISCARD_PKTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITPPD_GENERATED_VALUES">
+        <OneLineDescription>Holds the last generated values (output) </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Holds the last LastMemSoftErr values" Name="MEM_SOFT_ERR" Permission="READONLY"/>
+                <Field Description="Holds the last LastBytesToAdd value" Name="BYTES_TO_ADD" Permission="READONLY" Size="7" Type="UINT"/>
+                <Field Description="Holds the last LasBytesToRemove value" Name="BYTES_TO_REMOVE" Permission="READONLY" Size="8"/>
+                <Field Description="Holds the last LastDiscardPkt value" Name="DISCARD" Permission="READONLY"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MEM_SOFT_ERR">
+                    <Access>
+                        <Register Name="ITPPD_LAST_GENERATED_VALUESr">
+                            <HwField Name="LAST_MEM_SOFT_ERRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BYTES_TO_ADD">
+                    <Access>
+                        <Register Name="ITPPD_LAST_GENERATED_VALUESr">
+                            <HwField Name="LAST_BYTES_TO_ADDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BYTES_TO_REMOVE">
+                    <Access>
+                        <Register Name="ITPPD_LAST_GENERATED_VALUESr">
+                            <HwField Name="LAST_BYTES_TO_REMOVEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DISCARD">
+                    <Access>
+                        <Register Name="ITPPD_LAST_GENERATED_VALUESr">
+                            <HwField Name="LAST_DISCARD_PKTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITPP_GENERATED_HEADDER">
+        <OneLineDescription>Holds the last generated values (output)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Holds the HeaderToAdd 64B" Name="HEADER_TO_ADD" NofInstances="2" Permission="READONLY" Size="256" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="HEADER_TO_ADD">
+                    <Access instanceIndex="1">
+                        <Register Name="ITPP_LAST_GENERATED_VALUESr">
+                            <HwField Name="LAST_HEADER_TO_ADD_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="0">
+                        <Register Name="ITPP_LAST_GENERATED_HDRr">
+                            <HwField Name="LAST_HEADER_TO_ADD_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITPPD_GENERATED_HEADDER">
+        <OneLineDescription>Holds the last generated values (output)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Holds the HeaderToAdd 64B" Name="HEADER_TO_ADD" NofInstances="2" Permission="READONLY" Size="256" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="HEADER_TO_ADD">
+                    <Access instanceIndex="1">
+                        <Register Name="ITPPD_LAST_GENERATED_VALUESr">
+                            <HwField Name="LAST_HEADER_TO_ADD_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="0">
+                        <Register Name="ITPPD_LAST_GENERATED_HDRr">
+                            <HwField Name="LAST_HEADER_TO_ADD_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITPP_MAX_LATENCY_LAT_PKT">
+        <OneLineDescription>ITPP measure latency between the packet OAM_TS stamped by the IPP, to the MAC-Time-Stamp reported to it</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="The max latency value seen so far for packet latency format" Name="MAX_LATENCY_VALUE" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="The current TS count from CMIC" Name="CURRENT_TS_COUNT_VAL" Permission="READONLY" Size="48" Type="ARRAY8"/>
+                <Field Description="Destination device of the packet" Name="DEST_DEV_LAT_PKT" Permission="READONLY" Size="11" Type="UINT"/>
+                <Field Description="Destination system port of the packet" Name="DEST_PORT_LAT_PKT" Permission="READONLY" Size="8" Type="UINT"/>
+                <Field Description="Traffic class of the packet" Name="TRF_CLS_LAT_PKT" Permission="READONLY" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Register Name="ITPP_MAX_LATENCY_LAT_PKTr"/>
+                    </Access>
+               </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITPPD_MAX_LATENCY_LAT_PKT">
+        <OneLineDescription>ITPP measure latency between the packet OAM_TS stamped by the IPP, to the MAC-Time-Stamp reported to it</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="The max latency value seen so far for packet latency format" Name="MAX_LATENCY_VALUE" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="The current TS count from CMIC" Name="CURRENT_TS_COUNT_VAL" Permission="READONLY" Size="48" Type="ARRAY8"/>
+                <Field Description="Destination device of the packet" Name="DEST_DEV_LAT_PKT" Permission="READONLY" Size="11" Type="UINT"/>
+                <Field Description="Destination system port of the packet" Name="DEST_PORT_LAT_PKT" Permission="READONLY" Size="8" Type="UINT"/>
+                <Field Description="Traffic class of the packet" Name="TRF_CLS_LAT_PKT" Permission="READONLY" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Register Name="ITPPD_MAX_LATENCY_LAT_PKTr"/>
+                    </Access>
+               </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITPP_DELETED_LAT_PKTS_CNT">
+        <OneLineDescription>Counts the number of ITPP deleted packets from big latency. If bit 31 is set, the counter has overflowed, or if using GTIMER the count period has ended.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="This counter is used to count the number of ITPP deleted packets from big latency" Name="DELETED_LAT_PKTS_CNT" Permission="READONLY" Size="31" Type="UINT"/>
+                <Field Description="If set, then indicates that DeletedLatPktsCnt has overflowed or if using GTIMER the count period has ended." Name="DELETED_LAT_PKTS_CNT_OVF" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Register Name="ITPP_DELETED_LAT_PKTS_CNTr"/>
+                    </Access>
+               </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITPPD_DELETED_LAT_PKTS_CNT">
+        <OneLineDescription>Counts the number of ITPP deleted packets from big latency. If bit 31 is set, the counter has overflowed, or if using GTIMER the count period has ended.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="This counter is used to count the number of ITPP deleted packets from big latency" Name="DELETED_LAT_PKTS_CNT" Permission="READONLY" Size="31" Type="UINT"/>
+                <Field Description="If set, then indicates that DeletedLatPktsCnt has overflowed or if using GTIMER the count period has ended." Name="DELETED_LAT_PKTS_CNT_OVF" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Register Name="ITPPD_DELETED_LAT_PKTS_CNTr"/>
+                    </Access>
+               </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITPP_BIG_LAT_CNI_CNTR">
+        <OneLineDescription>Counts the number of ITPP packets with latency over the threshold</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="This counter is used to count the number of ITPP packets latency over threshold." Name="BIG_LAT_CNI_CNT" Permission="READONLY" Size="31" Type="UINT"/>
+                <Field Description="If set, then indicates that BigLatPktsCnt has overflowed or if using GTIMER the count period has ended." Name="BIG_LAT_CNI_CNT_OVF" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Register Name="ITPP_BIG_LAT_CNI_CNTRr"/>
+                    </Access>
+               </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITPPD_BIG_LAT_CNI_CNTR">
+        <OneLineDescription>Counts the number of ITPP packets with latency over the threshold</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="This counter is used to count the number of ITPP packets latency over threshold." Name="BIG_LAT_CNI_CNT" Permission="READONLY" Size="31" Type="UINT"/>
+                <Field Description="If set, then indicates that BigLatPktsCnt has overflowed or if using GTIMER the count period has ended." Name="BIG_LAT_CNI_CNT_OVF" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Register Name="ITPPD_BIG_LAT_CNI_CNTRr"/>
+                    </Access>
+               </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITPP_INCOMING_PACKET_CNTR">
+        <OneLineDescription>Counts the number of ITPP incoming packets.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="This counter is used to count the number of ITPP incoming packets." Name="INCOMING_PACKET_CNT" Permission="READONLY" Size="31" Type="UINT"/>
+                <Field Description="If set, then indicates that BigLatPktsCnt has overflowed or if using GTIMER the count period has ended." Name="INCOMING_PACKET_CNT_OVF" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Register Name="ITPP_INCOMING_PACKET_CNTRr"/>
+                    </Access>
+               </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITPPD_INCOMING_PACKET_CNTR">
+        <OneLineDescription>Counts the number of ITPP incoming packets.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="This counter is used to count the number of ITPP incoming packets." Name="INCOMING_PACKET_CNT" Permission="READONLY" Size="31" Type="UINT"/>
+                <Field Description="If set, then indicates that BigLatPktsCnt has overflowed or if using GTIMER the count period has ended." Name="INCOMING_PACKET_CNT_OVF" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Register Name="ITPPD_INCOMING_PACKET_CNTRr"/>
+                    </Access>
+               </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITPP_MAX_LATENCY">
+        <OneLineDescription>The ITPP measures latency from the packet OAM-TS extension</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Each line is one of the 8 highest latency values the ITPP saw" Name="LAT_VALUE" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="Flow ID (taken from the system header or from VoQ - see itpp spec for conditions)" Name="LAT_POINTER" Permission="READONLY" Size="20" Type="UINT"/>
+                <Field Description="Indicates if the packet was dropped from a large latency" Name="LAT_PKT_WAS_DROP" Permission="READONLY" Type="BOOL"/>
+                <Field Description="The current time stamp count of the CMIC" Name="LAT_CURRENT_TS_COUNT" Permission="READONLY" Size="48" Type="ARRAY8"/>
+                <Field Description="The traffic class of the packet" Name="LAT_TRF_CLS" Permission="READONLY" Size="3" Type="UINT"/>
+                <Field Description="The destination system port of the packet" Name="LAT_PORT_ID" Permission="READONLY" Size="8" Type="UINT"/>
+                <Field Description="The destination device of the packet" Name="LAT_DEST_DEV" Permission="READONLY" Size="11" Type="UINT"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Memory Name="ITPP_MAX_LATENCYm"/>
+                    </Access>
+               </PackedFields>
+           </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITPPD_MAX_LATENCY">
+        <OneLineDescription>The ITPP measures latency from the packet OAM-TS extension</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Each line is one of the 8 highest latency values the ITPP saw" Name="LAT_VALUE" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="Flow ID (taken from the system header or from VoQ - see itpp spec for conditions)" Name="LAT_POINTER" Permission="READONLY" Size="20" Type="UINT"/>
+                <Field Description="Indicates if the packet was dropped from a large latency" Name="LAT_PKT_WAS_DROP" Permission="READONLY" Type="BOOL"/>
+                <Field Description="The current time stamp count of the CMIC" Name="LAT_CURRENT_TS_COUNT" Permission="READONLY" Size="48" Type="ARRAY8"/>
+                <Field Description="The traffic class of the packet" Name="LAT_TRF_CLS" Permission="READONLY" Size="3" Type="UINT"/>
+                <Field Description="The destination system port of the packet" Name="LAT_PORT_ID" Permission="READONLY" Size="8" Type="UINT"/>
+                <Field Description="The destination device of the packet" Name="LAT_DEST_DEV" Permission="READONLY" Size="11" Type="UINT"/>
+            </Result>
+            <TableLabels>DIAGNOSTICS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Memory Name="ITPPD_MAX_LATENCYm"/>
+                    </Access>
+               </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

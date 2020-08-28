@@ -1,0 +1,626 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="INGRESS_OAM_LM_COUNTER_READ_IDX_SEL">
+        <OneLineDescription>Counter-interface index bitmap for counter-read</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="NOF_VALID_LM_LIFS"/>
+                <Field Name="MP_TYPE"/>
+                <Field Name="IN_LIF_VALID_FOR_LM"/>
+            </Key>
+            <Result>
+                <Field Name="OAM_LM_COUNTER_READ_IDX_SEL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="OAM_LM_COUNTER_READ_IDX_SEL"> 
+                    <Access>
+                        <Register Name="IPPB_OAM_LM_COUNTER_READ_IDX_SEL_MEMr"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_OAM_LM_COUNTER_READ_IDX_SEL">
+        <OneLineDescription>Counter-interface index bitmap for counter-read</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="NOF_VALID_LM_LIFS"/>
+                <Field Name="MP_TYPE"/>
+                <Field Name="IN_LIF_VALID_FOR_LM"/>
+            </Key>
+            <Result>
+                <Field Name="OAM_LM_COUNTER_READ_IDX_SEL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="OAM_LM_COUNTER_READ_IDX_SEL"> 
+                    <Access>
+                        <Register Name="ETPPC_OAM_LM_COUNTER_READ_IDX_SEL_MEMr"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_OAM_PRIORITY_MAP_PROFILE">
+        <OneLineDescription>Map OUT-LIF Profile to Priority Map Profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OUT_LIF_PROFILE" Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="OAM_PRIORITY_MAP_PROFILE"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="OAM_PRIORITY_MAP_PROFILE"> 
+                    <Access>
+                        <Register Name="ETPPC_CFG_PRIORITY_MAP_OAM_LIF_PROFILEr"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_OAM_COUNTER_GENERAL_ENABLE">
+        <OneLineDescription>Initial enabling of counters</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MP_TYPE" Size="4"/>
+                <Field Name="IN_LIF_VALID_FOR_LM" Size="1"/>
+                <Field Name="OAMB_DIS_CNT" Type="OAM_COUNTER_DISABLE"/>
+                <Field Name="NOF_VALID_LM_LIFS" Size="2"/>
+            </Key>
+            <Result>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_0" Type="OAM_COUNTER_DISABLE"/>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_1" Type="OAM_COUNTER_DISABLE"/>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_2" Type="OAM_COUNTER_DISABLE"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_0">
+                    <Access>
+                        <Memory Name="IPPB_OAM_COUNTER_DISABLE_MAPm">
+                            <HwField Name="OAM_COUNTER_DISABLE_MAPf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_1">
+                    <Access>
+                        <Memory Name="IPPB_OAM_COUNTER_DISABLE_MAPm">
+                            <HwField Name="OAM_COUNTER_DISABLE_MAPf"/>
+                            <DataOffset Formula="#RESULT_SIZE(OAM_COUNTER_DISABLE_ACCESS_0)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_2">
+                    <Access>
+                        <Memory Name="IPPB_OAM_COUNTER_DISABLE_MAPm">
+                            <HwField Name="OAM_COUNTER_DISABLE_MAPf"/>
+                            <DataOffset Formula="#RESULT_SIZE(OAM_COUNTER_DISABLE_ACCESS_0)+#RESULT_SIZE(OAM_COUNTER_DISABLE_ACCESS_1)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_OAM_COUNTER_GENERAL_ENABLE">
+        <OneLineDescription>Initial enabling of egress counters</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MP_TYPE" Size="4"/>
+                <Field Name="IN_LIF_VALID_FOR_LM" Size="1"/>
+                <Field Name="OAMB_DIS_CNT" Type="OAM_COUNTER_DISABLE"/>
+                <Field Name="NOF_VALID_LM_LIFS" Size="2"/>
+            </Key>
+            <Result>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_0" Type="OAM_COUNTER_DISABLE"/>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_1" Type="OAM_COUNTER_DISABLE"/>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_2" Type="OAM_COUNTER_DISABLE"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_0">
+                    <Access>
+                        <Memory Name="ETPPC_OAM_COUNTER_DISABLE_MAPm">
+                            <HwField Name="OAM_COUNTER_DISABLE_MAPf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_1">
+                    <Access>
+                        <Memory Name="ETPPC_OAM_COUNTER_DISABLE_MAPm">
+                            <HwField Name="OAM_COUNTER_DISABLE_MAPf"/>
+                            <DataOffset Formula="#RESULT_SIZE(OAM_COUNTER_DISABLE_ACCESS_0)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_2">
+                    <Access>
+                        <Memory Name="ETPPC_OAM_COUNTER_DISABLE_MAPm">
+                            <HwField Name="OAM_COUNTER_DISABLE_MAPf"/>
+                            <DataOffset Formula="#RESULT_SIZE(OAM_COUNTER_DISABLE_ACCESS_0)+#RESULT_SIZE(OAM_COUNTER_DISABLE_ACCESS_1)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="INGRESS_OAM_COUNTER_GLOBAL_RANGE">
+        <OneLineDescription>Counter range for PCP behavior definition</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="OAM_COUNTER_MIN" Type="COUNTER_BASE"/>
+                <Field Name="OAM_COUNTER_MAX" Type="COUNTER_BASE"/>
+                <Field Description="Base index of in range counter IDs" Name="OAM_COUNTER_IN_RANGE_CFG_BASE" NofInstances="3" Type="COUNTER_BASE"/>
+                <Field Description="Shift to be applied on in range counter IDs" Name="OAM_COUNTER_IN_RANGE_CFG_SHIFT" NofInstances="3" Size="2" Type="UINT"/>
+                <Field Description="Whether or not PCP will be used for counter resolution" Name="OAM_COUNTER_IN_RANGE_CFG_ADD_PCP" NofInstances="3" Size="1" Type="BOOL"/>
+                <Field Description="Base index of out of range counter IDs" Name="OAM_COUNTER_NOT_IN_RANGE_CFG_BASE" NofInstances="3" Type="COUNTER_BASE"/>
+                <Field Description="Shift to be applied on out of range counter IDs" Name="OAM_COUNTER_NOT_IN_RANGE_CFG_SHIFT" NofInstances="3" Size="2" Type="UINT"/>
+                <Field Description="Whether or not PCP will be used for counter resolution" Name="OAM_COUNTER_NOT_IN_RANGE_CFG_ADD_PCP" NofInstances="3" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="OAM_COUNTER_MIN"> 
+                    <Access>
+                        <Register Name="IPPB_OAM_COUNTER_RANGEr"> 
+                            <HwField Name="OAM_COUNTER_MINf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_MAX"> 
+                    <Access>
+                        <Register Name="IPPB_OAM_COUNTER_RANGEr"> 
+                            <HwField Name="OAM_COUNTER_MAXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_IN_RANGE_CFG_BASE">
+                    <Access instanceIndex="0">
+                        <Register Name="IPPB_OAM_COUNTER_IN_RANGE_CFG_0r"> 
+                            <HwField Name="OAM_COUNTER_IN_RANGE_CFG_BASE_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="IPPB_OAM_COUNTER_IN_RANGE_CFG_1r"> 
+                            <HwField Name="OAM_COUNTER_IN_RANGE_CFG_BASE_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="IPPB_OAM_COUNTER_IN_RANGE_CFG_2r"> 
+                            <HwField Name="OAM_COUNTER_IN_RANGE_CFG_BASE_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_IN_RANGE_CFG_SHIFT">
+                    <Access instanceIndex="0">
+                        <Register Name="IPPB_OAM_COUNTER_IN_RANGE_CFG_0r"> 
+                            <HwField Name="OAM_COUNTER_IN_RANGE_CFG_SHIFT_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="IPPB_OAM_COUNTER_IN_RANGE_CFG_1r"> 
+                            <HwField Name="OAM_COUNTER_IN_RANGE_CFG_SHIFT_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="IPPB_OAM_COUNTER_IN_RANGE_CFG_2r"> 
+                            <HwField Name="OAM_COUNTER_IN_RANGE_CFG_SHIFT_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_IN_RANGE_CFG_ADD_PCP">
+                    <Access instanceIndex="0">
+                        <Register Name="IPPB_OAM_COUNTER_IN_RANGE_CFG_0r"> 
+                            <HwField Name="OAM_COUNTER_IN_RANGE_CFG_ADD_PCP_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="IPPB_OAM_COUNTER_IN_RANGE_CFG_1r"> 
+                            <HwField Name="OAM_COUNTER_IN_RANGE_CFG_ADD_PCP_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="IPPB_OAM_COUNTER_IN_RANGE_CFG_2r"> 
+                            <HwField Name="OAM_COUNTER_IN_RANGE_CFG_ADD_PCP_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_NOT_IN_RANGE_CFG_BASE">
+                    <Access instanceIndex="0">
+                        <Register Name="IPPB_OAM_COUNTER_NOT_IN_RANGE_CFG_0r"> 
+                            <HwField Name="OAM_COUNTER_NOT_IN_RANGE_CFG_BASE_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="IPPB_OAM_COUNTER_NOT_IN_RANGE_CFG_1r"> 
+                            <HwField Name="OAM_COUNTER_NOT_IN_RANGE_CFG_BASE_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="IPPB_OAM_COUNTER_NOT_IN_RANGE_CFG_2r"> 
+                            <HwField Name="OAM_COUNTER_NOT_IN_RANGE_CFG_BASE_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_NOT_IN_RANGE_CFG_SHIFT">
+                    <Access instanceIndex="0">
+                        <Register Name="IPPB_OAM_COUNTER_NOT_IN_RANGE_CFG_0r"> 
+                            <HwField Name="OAM_COUNTER_NOT_IN_RANGE_CFG_SHIFT_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="IPPB_OAM_COUNTER_NOT_IN_RANGE_CFG_1r"> 
+                            <HwField Name="OAM_COUNTER_NOT_IN_RANGE_CFG_SHIFT_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="IPPB_OAM_COUNTER_NOT_IN_RANGE_CFG_2r"> 
+                            <HwField Name="OAM_COUNTER_NOT_IN_RANGE_CFG_SHIFT_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_NOT_IN_RANGE_CFG_ADD_PCP">
+                    <Access instanceIndex="0">
+                        <Register Name="IPPB_OAM_COUNTER_NOT_IN_RANGE_CFG_0r"> 
+                            <HwField Name="OAM_COUNTER_NOT_IN_RANGE_CFG_ADD_PCP_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="IPPB_OAM_COUNTER_NOT_IN_RANGE_CFG_1r"> 
+                            <HwField Name="OAM_COUNTER_NOT_IN_RANGE_CFG_ADD_PCP_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="IPPB_OAM_COUNTER_NOT_IN_RANGE_CFG_2r"> 
+                            <HwField Name="OAM_COUNTER_NOT_IN_RANGE_CFG_ADD_PCP_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_OAM_COUNTER_GLOBAL_RANGE">
+        <OneLineDescription>Counter range for PCP behavior definition</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="OAM_COUNTER_MIN" Type="COUNTER_BASE"/>
+                <Field Name="OAM_COUNTER_MAX" Type="COUNTER_BASE"/>
+                <Field Description="Base index of in range counter IDs" Name="OAM_COUNTER_IN_RANGE_CFG_BASE" NofInstances="3" Type="COUNTER_BASE"/>
+                <Field Description="Shift to be applied on in range counter IDs" Name="OAM_COUNTER_IN_RANGE_CFG_SHIFT" NofInstances="3" Size="2" Type="UINT"/>
+                <Field Description="Whether or not PCP will be used for counter resolution" Name="OAM_COUNTER_IN_RANGE_CFG_ADD_PCP" NofInstances="3" Size="1" Type="BOOL"/>
+                <Field Description="Base index of out of range counter IDs" Name="OAM_COUNTER_NOT_IN_RANGE_CFG_BASE" NofInstances="3" Type="COUNTER_BASE"/>
+                <Field Description="Shift to be applied on ot of range counter IDs" Name="OAM_COUNTER_NOT_IN_RANGE_CFG_SHIFT" NofInstances="3" Size="2" Type="UINT"/>
+                <Field Description="Whether or not PCP will be used for counter resolution" Name="OAM_COUNTER_NOT_IN_RANGE_CFG_ADD_PCP" NofInstances="3" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="OAM_COUNTER_MIN"> 
+                    <Access>
+                        <Register Name="ETPPC_OAM_COUNTER_RANGEr"> 
+                            <HwField Name="OAM_COUNTER_MINf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_MAX"> 
+                    <Access>
+                        <Register Name="ETPPC_OAM_COUNTER_RANGEr"> 
+                            <HwField Name="OAM_COUNTER_MAXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_IN_RANGE_CFG_BASE">
+                    <Access instanceIndex="0">
+                        <Register Name="ETPPC_OAM_COUNTER_IN_RANGE_CFG_0r"> 
+                            <HwField Name="OAM_COUNTER_IN_RANGE_CFG_BASE_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ETPPC_OAM_COUNTER_IN_RANGE_CFG_1r"> 
+                            <HwField Name="OAM_COUNTER_IN_RANGE_CFG_BASE_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ETPPC_OAM_COUNTER_IN_RANGE_CFG_2r"> 
+                            <HwField Name="OAM_COUNTER_IN_RANGE_CFG_BASE_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_IN_RANGE_CFG_SHIFT">
+                    <Access instanceIndex="0">
+                        <Register Name="ETPPC_OAM_COUNTER_IN_RANGE_CFG_0r"> 
+                            <HwField Name="OAM_COUNTER_IN_RANGE_CFG_SHIFT_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ETPPC_OAM_COUNTER_IN_RANGE_CFG_1r"> 
+                            <HwField Name="OAM_COUNTER_IN_RANGE_CFG_SHIFT_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ETPPC_OAM_COUNTER_IN_RANGE_CFG_2r"> 
+                            <HwField Name="OAM_COUNTER_IN_RANGE_CFG_SHIFT_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_IN_RANGE_CFG_ADD_PCP">
+                    <Access instanceIndex="0">
+                        <Register Name="ETPPC_OAM_COUNTER_IN_RANGE_CFG_0r"> 
+                            <HwField Name="OAM_COUNTER_IN_RANGE_CFG_ADD_PCP_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ETPPC_OAM_COUNTER_IN_RANGE_CFG_1r"> 
+                            <HwField Name="OAM_COUNTER_IN_RANGE_CFG_ADD_PCP_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ETPPC_OAM_COUNTER_IN_RANGE_CFG_2r"> 
+                            <HwField Name="OAM_COUNTER_IN_RANGE_CFG_ADD_PCP_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_NOT_IN_RANGE_CFG_BASE">
+                    <Access instanceIndex="0">
+                        <Register Name="ETPPC_OAM_COUNTER_NOT_IN_RANGE_CFG_0r"> 
+                            <HwField Name="OAM_COUNTER_NOT_IN_RANGE_CFG_BASE_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ETPPC_OAM_COUNTER_NOT_IN_RANGE_CFG_1r"> 
+                            <HwField Name="OAM_COUNTER_NOT_IN_RANGE_CFG_BASE_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ETPPC_OAM_COUNTER_NOT_IN_RANGE_CFG_2r"> 
+                            <HwField Name="OAM_COUNTER_NOT_IN_RANGE_CFG_BASE_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_NOT_IN_RANGE_CFG_SHIFT">
+                    <Access instanceIndex="0">
+                        <Register Name="ETPPC_OAM_COUNTER_NOT_IN_RANGE_CFG_0r"> 
+                            <HwField Name="OAM_COUNTER_NOT_IN_RANGE_CFG_SHIFT_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ETPPC_OAM_COUNTER_NOT_IN_RANGE_CFG_1r"> 
+                            <HwField Name="OAM_COUNTER_NOT_IN_RANGE_CFG_SHIFT_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ETPPC_OAM_COUNTER_NOT_IN_RANGE_CFG_2r"> 
+                            <HwField Name="OAM_COUNTER_NOT_IN_RANGE_CFG_SHIFT_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_NOT_IN_RANGE_CFG_ADD_PCP">
+                    <Access instanceIndex="0">
+                        <Register Name="ETPPC_OAM_COUNTER_NOT_IN_RANGE_CFG_0r"> 
+                            <HwField Name="OAM_COUNTER_NOT_IN_RANGE_CFG_ADD_PCP_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="ETPPC_OAM_COUNTER_NOT_IN_RANGE_CFG_1r"> 
+                            <HwField Name="OAM_COUNTER_NOT_IN_RANGE_CFG_ADD_PCP_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="ETPPC_OAM_COUNTER_NOT_IN_RANGE_CFG_2r"> 
+                            <HwField Name="OAM_COUNTER_NOT_IN_RANGE_CFG_ADD_PCP_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_OAM_PRIORITY_MAP">
+        <OneLineDescription>Map TC to PCP, for all Priority Map Profiles</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TC"/>
+                <Field Name="OAM_PRIORITY_MAP_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="OAM_PCP" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="OAM_PCP"> 
+                    <Access>
+                        <Register Name="ETPPC_OAM_PRIORITY_MAPr"> 
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAM_STAT_LM_READ_INDEX" Valid="DNX_DATA.oam.general.oam_lm_read_index_field_exists">
+        <OneLineDescription>LM_READ Counter Interface Encoding</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="FLP_COUNTER_READ_INDEX" Type="COUNTER_INTERFACE"/>
+            </Key>
+            <Result>
+                <Field Name="CGM_COUNTER_READ_INDEX" Type="COUNTER_INTERFACE"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/> 
+            <FieldMapping>
+                <Field Device="JR2_B0" Name="CGM_COUNTER_READ_INDEX">
+                    <Access>
+                        <Register Name="IPPD_PMF_GENERALr">
+                            <HwField Name="STAT_OBJ_LM_READ_INDEXf"/>
+                            <DataOffset Formula="#KEY_VALUE(FLP_COUNTER_READ_INDEX)*#RESULT_SIZE(CGM_COUNTER_READ_INDEX)"/>
+                        </Register>
+                    </Access>
+                </Field>
+             </FieldMapping>                                    
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_OAM_LIF_DB_PROFILE_EN_COUNT_DIS">
+        <OneLineDescription>Per (lif-db-access, mp_profile(0-15), packet_is_oam) determines the profile-en configuration (used for disable-counter).</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Access number to OAM-LIF-DB. Possible values: 0, 1, or 2" MaxValue="2" Name="LIF_DB_ACCESS" Size="2" Type="OAM_LIF_DB_ACCESS"/>
+                <Field Description="Output of OAM-LIF-DB, per LIF-DB-ACCESS" Name="MP_PROFILE"/>
+                <Field Name="PACKET_IS_OAM" Size="1"/>
+            </Key>
+            <Result>
+                <Field Description="Setting profile_en_counter_disable=1 disables counters per input." Name="PROFILE_EN_COUNTER_DISABLE" Size="1" Type="OAM_COUNTER_DISABLE"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="PROFILE_EN_COUNTER_DISABLE">
+                    <Access>
+                        <KeyCondition Field="LIF_DB_ACCESS" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="IPPB_OAM_LIF_DB_ACCESS_PROFILE_EN_0r">
+                            <HwField Name="PROFILE_EN_MAP_0f"/>
+                                <DataOffset Formula="#KEY_VALUE(MP_PROFILE)*2+#KEY_VALUE(PACKET_IS_OAM)"/>
+                        </Register>
+                    </Access>    
+                    <Access>
+                        <KeyCondition Field="LIF_DB_ACCESS" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="IPPB_OAM_LIF_DB_ACCESS_PROFILE_EN_1r">
+                            <HwField Name="PROFILE_EN_MAP_1f"/>
+                                <DataOffset Formula="#KEY_VALUE(MP_PROFILE)*2+#KEY_VALUE(PACKET_IS_OAM)"/>
+                        </Register>
+                    </Access>   
+                    <Access>
+                        <KeyCondition Field="LIF_DB_ACCESS" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="IPPB_OAM_LIF_DB_ACCESS_PROFILE_EN_2r">
+                            <HwField Name="PROFILE_EN_MAP_2f"/>
+                                <DataOffset Formula="#KEY_VALUE(MP_PROFILE)*2+#KEY_VALUE(PACKET_IS_OAM)"/>
+                        </Register>
+                    </Access>
+                 </Field>
+            </FieldMapping>                                    
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_OAM_LIF_DB_PROFILE_EN_COUNT_DIS">
+        <OneLineDescription>Per (lif-db-access, mp_profile(0-15), packet_is_oam) determines the profile-en configuration (used for disable-counter).</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Access number to OAM-LIF-DB. Possible values: 0, 1, or 2" MaxValue="2" Name="LIF_DB_ACCESS" Size="2" Type="OAM_LIF_DB_ACCESS"/>
+                <Field Description="Output of OAM-LIF-DB, per LIF-DB-ACCESS" Name="MP_PROFILE"/>
+                <Field Name="PACKET_IS_OAM" Size="1"/>
+            </Key>
+            <Result>
+                <Field Description="Setting profile_en_counter_disable=1 disables counters per input." Name="PROFILE_EN_COUNTER_DISABLE" Size="1" Type="OAM_COUNTER_DISABLE"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="PROFILE_EN_COUNTER_DISABLE">
+                    <Access>
+                        <KeyCondition Field="LIF_DB_ACCESS" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ETPPC_OAM_LIF_DB_ACCESS_PROFILE_EN_0r">
+                            <HwField Name="PROFILE_EN_MAP_0f"/>
+                                <DataOffset Formula="#KEY_VALUE(MP_PROFILE)*2+#KEY_VALUE(PACKET_IS_OAM)"/>
+                        </Register>
+                    </Access>    
+                    <Access>
+                        <KeyCondition Field="LIF_DB_ACCESS" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ETPPC_OAM_LIF_DB_ACCESS_PROFILE_EN_1r">
+                            <HwField Name="PROFILE_EN_MAP_1f"/>
+                                <DataOffset Formula="#KEY_VALUE(MP_PROFILE)*2+#KEY_VALUE(PACKET_IS_OAM)"/>
+                        </Register>
+                    </Access>   
+                    <Access>
+                        <KeyCondition Field="LIF_DB_ACCESS" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="ETPPC_OAM_LIF_DB_ACCESS_PROFILE_EN_2r">
+                            <HwField Name="PROFILE_EN_MAP_2f"/>
+                                <DataOffset Formula="#KEY_VALUE(MP_PROFILE)*2+#KEY_VALUE(PACKET_IS_OAM)"/>
+                        </Register>
+                    </Access>
+                 </Field>
+            </FieldMapping>                                    
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

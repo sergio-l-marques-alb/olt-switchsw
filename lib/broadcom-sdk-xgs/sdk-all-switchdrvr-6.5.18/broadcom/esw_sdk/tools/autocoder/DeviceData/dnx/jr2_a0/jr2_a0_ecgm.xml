@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0" module="ecgm">
+    <includes>
+        <include>bcm_int/dnx/cosq/egress/ecgm.h</include>
+    </includes>
+    
+    <sub_module name="core_resources">
+        <defines>
+            <define name="nof_sp" value="2"></define>
+            <define name="nof_interface_profiles" value="8"></define>
+            <define name="nof_port_profiles" value="16"></define>
+            <define name="total_pds" value="64000"></define>
+            <define name="total_pds_nof_bits" value="16"></define>
+            <define name="total_dbs" value="24000"></define>
+            <define name="total_dbs_nof_bits" value="15"></define>            
+            <define name="max_alpha_value" value="7"></define>
+            <define name="min_alpha_value" value="-7"></define>
+            <define name="max_core_bandwidth_Mbps" value="2400000"></define>        
+        </defines>
+        
+        <numerics>
+        </numerics>
+    </sub_module>
+    
+    <sub_module name="port_resources">
+        <defines>
+            <define name="max_nof_ports" value="48"></define>               
+        </defines>
+        <numerics>
+        </numerics>
+        <tables>  
+        </tables>   
+    </sub_module>
+        
+    <sub_module name="delete_fifo">
+        <tables>
+            <table name="thresholds">
+                <key name="fifo_type" size="3"></key>
+                <value name="fqp_high_priority" default="0"></value>
+                <value name="stop_mc_low" default="0"></value>
+                <value name="stop_mc_high" default="0"></value>
+                <value name="stop_all" default="0"></value>
+                <entries>
+                    <entry fifo_type="ECGM_LONG_PACKETS_FIFO" fqp_high_priority="500" stop_mc_low="500" stop_mc_high="400" stop_all="300"></entry>
+                    <entry fifo_type="ECGM_LCD_FIFO" fqp_high_priority="500" stop_mc_low="500" stop_mc_high="400" stop_all="300"></entry>
+                    <entry fifo_type="ECGM_TDM_AND_SHORT_PACKETS" fqp_high_priority="400" stop_mc_low="400" stop_mc_high="350" stop_all="300"></entry>
+                </entries>
+            </table>
+        </tables>
+        <defines>
+        </defines>
+    </sub_module>
+
+    <sub_module name="info" doc="Ingress congestion info">
+        <defines>
+             <define name="nof_dropped_reasons_rqp" value="10"></define>
+             <define name="nof_dropped_reasons_pqp" value="16"></define>
+             <define name="nof_bits_in_pd_count" value="16"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+        <tables>
+            <table name="dropped_reason_rqp">
+                <key name="index" size="11"></key>
+                <value name="reason" default="NULL"></value>
+                <entries>
+                    <!-- 
+                         List reasons for the dropped and rejected packets in RQP,
+                         which is indicated in register ECGM_RQP_DISCARD_REASONS.
+                    -->   
+                    <entry index="0"   reason="Ttl DBs thld violated"></entry> 
+                    <entry index="1"   reason="Ttl UC DBs pool thld violated"></entry>
+                    <entry index="2"   reason="UC pkt discarded, UC FIFO is full"></entry> 
+                    <entry index="3"   reason="MC HP discarded, MC FIFO is full"></entry> 
+                    <entry index="4"   reason="MC LP discarded, MC FIFO is full"></entry> 
+                    <entry index="5"   reason="Ttl MC DBs pool thld violated"></entry> 
+                    <entry index="6"   reason="Packet-DP not eligbl for shared DB"></entry> 
+                    <entry index="7"   reason="SP DBs threshold violated"></entry> 
+                    <entry index="8"   reason="DP mthd: MC-TC DB thld violated"></entry> 
+                    <entry index="9"   reason="SP mthd: MC-TC to SP0 DB thld vilt"></entry> 
+                    <entry index="10"   reason="SP mthd: MC-TC to SP1 DB thld vilt"></entry> 
+                </entries>
+            </table>
+
+            <table name="dropped_reason_pqp">
+                <key name="index" size="16"></key>
+                <value name="reason" default="NULL"></value>
+                <entries>
+                    <!-- 
+                         List reasons for the dropped and rejected packets in PQP,
+                         which is indicated in register ECGM_PQP_DISCARD_REASONS.
+                    -->   
+                    <entry index="0"   reason="Total PDs threshold violated"></entry> 
+                    <entry index="1"   reason="Ttl UC PDs pool thld violt"></entry> 
+                    <entry index="2"   reason="Per port UC PDs threshold"></entry> 
+                    <entry index="3"   reason="Per queue UC PDs thresholds"></entry> 
+                    <entry index="4"   reason="Per port UC DBs threshold"></entry> 
+                    <entry index="5"   reason="Per queue UC DBs threshold"></entry> 
+                    <entry index="6"   reason="Per queue disable bit"></entry> 
+                    <entry index="7"   reason="no description in reg"></entry> 
+                    <entry index="8"   reason="Total PDs MC pool threshold"></entry> 
+                    <entry index="9"   reason="Per interface PDs threhold"></entry> 
+                    <entry index="10"  reason="MC SP threshold"></entry> 
+                    <entry index="11"  reason="per MC-TC threshold"></entry> 
+                    <entry index="12"  reason="MC PDs per port threshold"></entry> 
+                    <entry index="13"  reason="MC PDs per queue threshold"></entry> 
+                    <entry index="14"  reason="MC per port size threshold"></entry> 
+                    <entry index="15"  reason="MC per queue size threshold"></entry> 
+                </entries>
+            </table>
+
+        </tables>
+    </sub_module>
+</device_data>
+

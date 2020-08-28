@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="tdm">
+
+    <includes>
+        <include>bcm_int/dnx/tdm/tdm.h</include>
+    </includes>
+    <sub_module name="params" doc="default values for tdm module">
+        <defines>
+<!--
+            The following are only required if we want to incorporate DBAL field type definitions
+            when such definitions involve 'data' elements.
+            See fabric_field_types_definition.xml
+            See TDM_CONFIGURATION in hl_tm_tdm.xml
+-->
+<!--
+            <define name="sid_size" value="0"/>
+            <define name="nof_stream_ids"  value="0"/>
+            <define name="context_size" value="0"/>
+            <define name="nof_contexts"  value="0"/>
+            <define name="pkt_size_lower_limit" value="0"/>
+            <define name="pkt_size_upper_limit" value="0"/>
+            <define name="link_mask_size" value="0"/>
+            <define name="link_mask_nof" value="0"/>
+-->
+            <define name="pkt_size_size" value="0"/> 
+            <define name="global_sid_offset_size" value="0"/> 
+        </defines>
+        <numerics>
+            <numeric name="mode" value="TDM_MODE_NONE">
+                <!-- TDM is not supported for this device -->
+                <property name="tdm_mode" method="direct_map">
+                    <map name="TDM_NONE" value="TDM_MODE_NONE"/>
+                    <doc>TDM system mode</doc>
+                </property>
+            </numeric>
+        </numerics>
+        <features>
+        </features>
+    </sub_module>
+</device_data>

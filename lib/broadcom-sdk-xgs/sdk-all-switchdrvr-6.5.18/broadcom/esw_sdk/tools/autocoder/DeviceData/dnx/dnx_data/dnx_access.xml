@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="access" bsl_flag="BSL_LS_BCMDNX_ACCESSDNX">
+    <includes>
+        <include>bcm/port.h</include>
+        <include>soc/chip.h</include>
+    </includes>
+
+    <sub_module name="mdio" doc="mdio related data">
+
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="ext_divisor" doc="external MDIO clock rate divisor"></numeric>
+            <numeric labels="j2p_notrev" name="int_divisor" doc="internal MDIO clock rate divisor"></numeric>
+            <numeric labels="j2p_notrev" name="int_div_out_delay" doc="number of clock delay between the rising edge of MDC and the starting data of MDIO for internal divisor"></numeric>
+            <numeric labels="j2p_notrev" name="ext_div_out_delay" doc="number of clock delay between the rising edge of MDC and the starting data of MDIO for external divisor"></numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+    <sub_module name="rcpu" doc="rcpu related data">
+
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        <table labels="j2p_notrev" name="rx" doc="general data about rx">
+        <value name="pbmp" type="bcm_pbmp_t" doc="valid ports on which RCPU packets can be received by slave device"></value>
+            </table>
+        </tables>
+    </sub_module>
+        
+     <sub_module name="blocks" doc="HW blocks related data">
+
+        <tables>
+            <table labels="j2p_notrev" name="override" doc="blocks enable/disable override">
+                <key name="index" doc="running index"></key>
+                <value name="block_type" type="char *" doc="See soc_block_type_t"></value>
+                <value name="block_instance" type="int" doc="instance ID within block type"></value>
+                <value name="value" type="int" doc="The value to override"></value>
+            </table>
+            <table labels="j2p_notrev" name="soft_init" doc="soft_init info">
+                <value name="trigger_value" type="soc_pbmp_t" doc="Value to be written to initialize soft init"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+</device_data>

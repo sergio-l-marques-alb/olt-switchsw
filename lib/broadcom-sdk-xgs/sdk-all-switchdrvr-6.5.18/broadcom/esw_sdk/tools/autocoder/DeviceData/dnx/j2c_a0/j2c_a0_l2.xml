@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0"  module="l2">
+
+    <sub_module name="general">
+
+        <features>
+            <feature name="ivl_feature_support" value="1"></feature>
+        </features>
+
+    </sub_module>
+ 
+    <sub_module name="hw_bug" doc="L2 related HW bugs">
+        <features>
+        <feature name="age_out_and_refresh_profile_selection" value="0"></feature>
+        <feature name="age_machine_pause_after_flush" value="0"></feature>
+        <feature name="age_state_not_updated" value="0"></feature>
+        <feature name="eth_qual_is_mc" value="1"></feature>
+        <feature name="bc_same_as_unknown_mc" value="1"></feature>
+        <feature name="transplant_instead_of_refresh" value="0"></feature>
+        <feature name="static_mac_age_out" value="0"></feature>
+        <feature name="vmv_for_limit_in_wrong_location" value="0"></feature>
+        <feature name="learn_limit" value="0"></feature>
+        <feature name="wrong_limit_interrupt_handling" value="0"></feature>
+        <feature name="learn_events_wrong_command" value="1"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="vsi">
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="vlan_domain">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="nof_vlan_domains" value="2048"></define>
+            <define name="nof_bits_next_layer_network_domain" value="11"/>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+    <sub_module name="age_and_flush_machine">
+
+        <features>
+        </features>
+
+        <defines>            
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+            <table name="filter_rules">                
+                <value name="table_name" default="MDB_MEM_19000m"></value>
+                <value name="valid" default="ITEM_0_0f"></value>
+                <value name="entry_mask" default="ITEM_8_264f"></value>
+                <value name="entry_filter" default="ITEM_275_531f"></value>
+                <value name="src_mask" default="ITEM_265_267f"></value>
+                <value name="src_filter" default="ITEM_532_534f"></value>
+                <value name="appdb_id_mask" default="ITEM_2_7f"></value>
+                <value name="appdb_id_filter" default="ITEM_269_274f"></value>
+                <value name="accessed_mask" default="ITEM_1_1f"></value>
+                <value name="accessed_filter" default="ITEM_268_268f"></value>
+            </table>
+
+            <table name="data_rules">                
+                <value name="table_name" default="MDB_MEM_20000m"></value>
+                <value name="command" default="ITEM_0_3f"></value>
+                <value name="payload_mask" default="ITEM_4_99f"></value>
+                <value name="payload" default="ITEM_100_195f"></value>
+            </table>
+
+            <table name="flush">
+                <value name="flush_pulse" default="MDB_REG_301Dr"></value>
+                <value name="traverse_thread_priority" default="50">
+                    <property name="l2_flush_traverse_thread_priority" method="range" range_min="0" range_max="0xFFFF">
+                        <doc>L2 flush match traverse non-blocking thread priority</doc>
+                    </property>
+                </value>
+            </table>
+
+            <table name="age">
+                <value name="age_config" default="MDB_REG_185r"></value>
+                <value name="disable_aging" default="ITEM_136_143f"></value>
+                <value name="scan_pulse" default="MDB_REG_301Cr"></value>
+            </table>
+        </tables>
+
+    </sub_module>
+</device_data>

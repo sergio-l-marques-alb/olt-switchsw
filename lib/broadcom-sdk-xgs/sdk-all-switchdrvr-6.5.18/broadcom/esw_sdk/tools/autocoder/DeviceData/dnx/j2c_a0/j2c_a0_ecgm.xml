@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0" module="ecgm">
+    <includes>
+        <include>bcm_int/dnx/cosq/egress/ecgm.h</include>
+    </includes>    
+    <sub_module name="info" doc="Ingress congestion info">       
+        <tables>
+            <table name="dropped_reason_rqp">
+                <key name="index" size="11"></key>
+                <value name="reason" default="NULL"></value>
+                <entries>
+                    <!-- 
+                         List reasons for the dropped and rejected packets in RQP,
+                         which is indicated in register ECGM_RQP_DISCARD_REASONS.
+                    -->   
+                    <entry index="0"   reason="Ttl DBs thld violated"></entry> 
+                    <entry index="1"   reason="Ttl UC DBs pool thld violated"></entry>
+                    <entry index="2"   reason="MC HP discarded, MC FIFO is full"></entry> 
+                    <entry index="3"   reason="MC LP discarded, MC FIFO is full"></entry> 
+                    <entry index="4"   reason="Ttl MC DBs pool thld violated"></entry> 
+                    <entry index="5"   reason="Packet-DP not eligbl for shared DB"></entry> 
+                    <entry index="6"   reason="SP DBs threshold violated"></entry> 
+                    <entry index="7"   reason="DP mthd: MC-TC DB thld violated"></entry> 
+                    <entry index="8"   reason="SP mthd: MC-TC to SP0 DB thld vilt"></entry> 
+                    <entry index="9"   reason="SP mthd: MC-TC to SP1 DB thld vilt"></entry> 
+                </entries>        
+            </table>
+        </tables>            
+    </sub_module>
+    <sub_module name="core_resources">
+        <defines>
+            <define name="max_core_bandwidth_Mbps" value="4000000"></define>        
+        </defines>
+        
+        <numerics>
+        </numerics>
+    </sub_module>
+    <sub_module name="port_resources">
+        <defines>
+            <define name="max_nof_ports" value="160"></define>        
+        </defines>
+        <numerics>
+        </numerics>
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

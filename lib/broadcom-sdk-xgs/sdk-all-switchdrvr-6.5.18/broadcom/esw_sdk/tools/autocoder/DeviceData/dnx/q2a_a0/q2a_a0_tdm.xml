@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="tdm">
+
+    <includes>
+        <include>bcm_int/dnx/tdm/tdm.h</include>
+    </includes>
+    <sub_module name="params" doc="default values for tdm module">
+        <defines>
+            <define name="context_map_base_size" value="14"/>
+            <define name="context_map_base_nof" value="1 &lt;&lt; DATA(tdm, params, context_map_base_size)"/>
+            <define name="sid_min_size" value="1"/>
+            <define name="sid_size" value="14"/>
+            <define name="nof_stream_ids"  value="1 &lt;&lt; DATA(tdm, params, sid_size)"/>
+            <define name="global_sid_offset_size" value="5"/>
+            <define name="global_sid_offset_nof" value="1 &lt;&lt; DATA(tdm, params, global_sid_offset_size)"/>
+            <define name="sid_offset_size" value="6"/>
+            <!--
+               The number of offsets is 33 (0 - 32). That means that we need 6 bits as container and
+               the number itself is calculated using 5 bits.
+             -->
+            <define name="sid_offset_nof" value="(1 &lt;&lt; (DATA(tdm, params, sid_offset_size)-1))+1"/>
+            <define name="sid_offset_nof_in_bits" value="((DATA(tdm, params, sid_offset_nof)-1)*8)+1"/>
+            <define name="context_size" value="10"/>
+            <define name="nof_contexts"  value="1 &lt;&lt; DATA(tdm, params, context_size)"/>
+            <define name="pkt_size_size"  value="9"/>
+            <define name="pkt_size_lower_limit" value="64"/>
+            <define name="pkt_size_upper_limit" value="256"/>
+            <define name="link_mask_size" value="0"/>
+            <define name="link_mask_nof" value="0"/>
+        </defines>
+        <numerics>
+            <numeric name="tdm_tc" value="0">
+                <property name="tdm_egress_priority" method="range" range_min="0" range_max="7">
+                    <doc>TDM tc</doc>
+                </property>
+            </numeric>
+            <numeric name="tdm_dp" value="0">
+                <property name="tdm_egress_dp" method="range" range_min="0" range_max="3">
+                    <doc>TDM dp</doc>
+                </property>
+            </numeric>
+            <numeric name="mode" value="TDM_MODE_NONE">
+                <property name="tdm_mode" method="direct_map">
+                    <map name="TDM_NONE" value="TDM_MODE_NONE"/>
+                    <map name="TDM_OPTIMIZED" value="TDM_MODE_OPTIMIZED"/>
+                    <map name="TDM_STANDARD" value="TDM_MODE_STANDARD"/>
+                    <map name="TDM_PACKET" value="TDM_MODE_PACKET"/>
+                    <doc>TDM system mode</doc>
+                </property>
+            </numeric>
+        </numerics>
+        <features>
+            <feature name="is_supported" value="1"/>
+        </features>
+    </sub_module>
+</device_data>

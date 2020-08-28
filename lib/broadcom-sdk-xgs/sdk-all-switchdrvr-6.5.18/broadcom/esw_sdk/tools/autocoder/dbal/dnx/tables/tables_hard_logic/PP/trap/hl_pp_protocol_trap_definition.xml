@@ -1,0 +1,624 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="PROTOCOL_TRAP_HANDLING_PROFILE">
+        <OneLineDescription>This table contain protocol traps handling profiles per protocol</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IN_PP_PORT" Type="PP_PORT"/>
+            </Key>
+            <Result>
+                <Field Name="L_2_CP_TRAP_HANDLING_PROFILE"/>
+                <Field Name="ICMPV4_TRAP_HANDLING_PROFILE"/>
+                <Field Name="ICMPV6_TRAP_HANDLING_PROFILE"/>
+                <Field Name="IGMP_TRAP_HANDLING_PROFILE"/>
+                <Field Name="NON_AUTH_8021X_TRAP_HANDLING_PROFILE"/>
+                <Field Name="DHCP_TRAP_HANDLING_PROFILE"/>
+                <Field Name="ARP_TRAP_HANDLING_PROFILE"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="L_2_CP_TRAP_HANDLING_PROFILE">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_PROFILING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(IN_PP_PORT)"/>
+                            <HwField Name="L_2_CP_TRAP_HANDLING_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ICMPV4_TRAP_HANDLING_PROFILE">                
+                    <Access>
+                        <Memory Name="IPPB_TRAP_PROFILING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(IN_PP_PORT)"/>
+                            <HwField Name="ICMPV4_TRAP_HANDLING_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ICMPV6_TRAP_HANDLING_PROFILE">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_PROFILING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(IN_PP_PORT)"/>
+                            <HwField Name="ICMPV6_TRAP_HANDLING_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IGMP_TRAP_HANDLING_PROFILE">                
+                    <Access>
+                        <Memory Name="IPPB_TRAP_PROFILING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(IN_PP_PORT)"/>
+                            <HwField Name="IGMP_TRAP_HANDLING_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NON_AUTH_8021X_TRAP_HANDLING_PROFILE">                
+                    <Access>
+                        <Memory Name="IPPB_TRAP_PROFILING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(IN_PP_PORT)"/>
+                            <HwField Name="NON_AUTH_8021X_TRAP_HANDLING_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DHCP_TRAP_HANDLING_PROFILE">                 
+                    <Access>
+                        <Memory Name="IPPB_TRAP_PROFILING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(IN_PP_PORT)"/>
+                            <HwField Name="DHCP_TRAP_HANDLING_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ARP_TRAP_HANDLING_PROFILE">                
+                    <Access>
+                        <Memory Name="IPPB_TRAP_PROFILING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(IN_PP_PORT)"/>
+                            <HwField Name="ARP_TRAP_HANDLING_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>                                        
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="PROTOCOL_L2CP_TRAP_ACTION_PROFILE">
+        <OneLineDescription>This table contains L2CP protocol traps action profiles - action code, forward and snoop strengths</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="63" Name="PROTOCOL_TRAP_ARGS"/>
+                <Field Name="PROTOCOL_TRAP_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="INGRESS_TRAP_ID"/>
+                <Field Name="TRAP_FWD_STRENGTH"/>
+                <Field Name="TRAP_SNP_STRENGTH"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INGRESS_TRAP_ID">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_HANDLING_TABLEm">
+                            <EntryOffset Formula="4*#KEY_VALUE(PROTOCOL_TRAP_ARGS)+#KEY_VALUE(PROTOCOL_TRAP_PROFILE)"/>
+                            <HwField Name="TRAP_ACTION_CODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_FWD_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_HANDLING_TABLEm">
+                            <EntryOffset Formula="4*#KEY_VALUE(PROTOCOL_TRAP_ARGS)+#KEY_VALUE(PROTOCOL_TRAP_PROFILE)"/>
+                            <HwField Name="TRAP_FORWARD_ACTION_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_SNP_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_HANDLING_TABLEm">
+                            <EntryOffset Formula="4*#KEY_VALUE(PROTOCOL_TRAP_ARGS)+#KEY_VALUE(PROTOCOL_TRAP_PROFILE)"/>
+                            <HwField Name="TRAP_SNOOP_ACTION_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="PROTOCOL_ICMP_TRAP_ACTION_PROFILE">
+        <OneLineDescription>This table contains ICMP protocol traps action profiles - action code, forward and snoop strengths</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="1" MinValue="1" Name="PROTOCOL_TYPE"/>
+                <Field MaxValue="31" Name="PROTOCOL_TRAP_ARGS"/>
+                <Field Name="PROTOCOL_TRAP_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="INGRESS_TRAP_ID"/>
+                <Field Name="TRAP_FWD_STRENGTH"/>
+                <Field Name="TRAP_SNP_STRENGTH"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INGRESS_TRAP_ID">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_HANDLING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROTOCOL_TYPE)+4*#KEY_VALUE(PROTOCOL_TRAP_ARGS)+#KEY_VALUE(PROTOCOL_TRAP_PROFILE)"/>
+                            <HwField Name="TRAP_ACTION_CODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_FWD_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_HANDLING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROTOCOL_TYPE)+4*#KEY_VALUE(PROTOCOL_TRAP_ARGS)+#KEY_VALUE(PROTOCOL_TRAP_PROFILE)"/>
+                            <HwField Name="TRAP_FORWARD_ACTION_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_SNP_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_HANDLING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROTOCOL_TYPE)+4*#KEY_VALUE(PROTOCOL_TRAP_ARGS)+#KEY_VALUE(PROTOCOL_TRAP_PROFILE)"/>
+                            <HwField Name="TRAP_SNOOP_ACTION_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="PROTOCOL_IGMP_TRAP_ACTION_PROFILE">
+        <OneLineDescription>This table contains IGMP protocol traps action profiles - action code, forward and snoop strengths</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="2" MinValue="2" Name="PROTOCOL_TYPE"/>
+                <Field MaxValue="2" Name="PROTOCOL_TRAP_ARGS"/>
+                <Field Name="PROTOCOL_TRAP_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="INGRESS_TRAP_ID"/>
+                <Field Name="TRAP_FWD_STRENGTH"/>
+                <Field Name="TRAP_SNP_STRENGTH"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INGRESS_TRAP_ID">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_HANDLING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROTOCOL_TYPE)+4*#KEY_VALUE(PROTOCOL_TRAP_ARGS)+#KEY_VALUE(PROTOCOL_TRAP_PROFILE)"/>
+                            <HwField Name="TRAP_ACTION_CODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_FWD_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_HANDLING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROTOCOL_TYPE)+4*#KEY_VALUE(PROTOCOL_TRAP_ARGS)+#KEY_VALUE(PROTOCOL_TRAP_PROFILE)"/>
+                            <HwField Name="TRAP_FORWARD_ACTION_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_SNP_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_HANDLING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROTOCOL_TYPE)+4*#KEY_VALUE(PROTOCOL_TRAP_ARGS)+#KEY_VALUE(PROTOCOL_TRAP_PROFILE)"/>
+                            <HwField Name="TRAP_SNOOP_ACTION_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="PROTOCOL_DHCP_TRAP_ACTION_PROFILE">
+        <OneLineDescription>This table contains DHCP protocol traps action profiles - action code, forward and snoop strengths</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="4" MinValue="4" Name="PROTOCOL_TYPE"/>
+                <Field MaxValue="3" Name="PROTOCOL_TRAP_ARGS"/>
+                <Field Name="PROTOCOL_TRAP_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="INGRESS_TRAP_ID"/>
+                <Field Name="TRAP_FWD_STRENGTH"/>
+                <Field Name="TRAP_SNP_STRENGTH"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INGRESS_TRAP_ID">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_HANDLING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROTOCOL_TYPE)+4*#KEY_VALUE(PROTOCOL_TRAP_ARGS)+#KEY_VALUE(PROTOCOL_TRAP_PROFILE)"/>
+                            <HwField Name="TRAP_ACTION_CODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_FWD_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_HANDLING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROTOCOL_TYPE)+4*#KEY_VALUE(PROTOCOL_TRAP_ARGS)+#KEY_VALUE(PROTOCOL_TRAP_PROFILE)"/>
+                            <HwField Name="TRAP_FORWARD_ACTION_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_SNP_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_HANDLING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROTOCOL_TYPE)+4*#KEY_VALUE(PROTOCOL_TRAP_ARGS)+#KEY_VALUE(PROTOCOL_TRAP_PROFILE)"/>
+                            <HwField Name="TRAP_SNOOP_ACTION_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="PROTOCOL_ARP_NDP_TRAP_ACTION_PROFILE">
+        <OneLineDescription>This table contains ARP and NDP protocol traps action profiles - action code, forward and snoop strengths</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="6" MinValue="5" Name="PROTOCOL_TYPE"/>
+                <Field MaxValue="1" Name="PROTOCOL_TRAP_ARGS"/>
+                <Field Name="PROTOCOL_TRAP_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="INGRESS_TRAP_ID"/>
+                <Field Name="TRAP_FWD_STRENGTH"/>
+                <Field Name="TRAP_SNP_STRENGTH"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INGRESS_TRAP_ID">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_HANDLING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROTOCOL_TYPE)+4*#KEY_VALUE(PROTOCOL_TRAP_ARGS)+#KEY_VALUE(PROTOCOL_TRAP_PROFILE)"/>
+                            <HwField Name="TRAP_ACTION_CODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_FWD_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_HANDLING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROTOCOL_TYPE)+4*#KEY_VALUE(PROTOCOL_TRAP_ARGS)+#KEY_VALUE(PROTOCOL_TRAP_PROFILE)"/>
+                            <HwField Name="TRAP_FORWARD_ACTION_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_SNP_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_HANDLING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROTOCOL_TYPE)+4*#KEY_VALUE(PROTOCOL_TRAP_ARGS)+#KEY_VALUE(PROTOCOL_TRAP_PROFILE)"/>
+                            <HwField Name="TRAP_SNOOP_ACTION_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="PROTOCOL_8021X_TRAP_ACTION_PROFILE">
+        <OneLineDescription>This table contains 802.1x protocol traps action profiles - action code, forward and snoop strengths</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="3" MinValue="3" Name="PROTOCOL_TYPE"/>
+                <Field Name="PROTOCOL_TRAP_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="INGRESS_TRAP_ID"/>
+                <Field Name="TRAP_FWD_STRENGTH"/>
+                <Field Name="TRAP_SNP_STRENGTH"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INGRESS_TRAP_ID">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_HANDLING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROTOCOL_TYPE)+#KEY_VALUE(PROTOCOL_TRAP_PROFILE)"/>
+                            <HwField Name="TRAP_ACTION_CODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_FWD_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_HANDLING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROTOCOL_TYPE)+#KEY_VALUE(PROTOCOL_TRAP_PROFILE)"/>
+                            <HwField Name="TRAP_FORWARD_ACTION_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_SNP_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_HANDLING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROTOCOL_TYPE)+#KEY_VALUE(PROTOCOL_TRAP_PROFILE)"/>
+                            <HwField Name="TRAP_SNOOP_ACTION_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="PROTOCOL_TRAP_MY_ARP">
+        <OneLineDescription>Additional configuration for My-ARP trap</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="IP_1" Size="32" Type="UINT"/>
+                <Field Name="IP_2" Size="32" Type="UINT"/>
+                <Field Name="IGNORE_DA" Type="BOOL"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IP_1">
+                    <Access>
+                        <Register Name="IPPB_ARP_TRAP_CFGr">
+                            <HwField Name="MY_ARP_IP_1f"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="IP_2">
+                    <Access>
+                        <Register Name="IPPB_ARP_TRAP_CFGr">
+                            <HwField Name="MY_ARP_IP_2f"/>
+                        </Register>
+                    </Access>
+                </Field>                
+                <Field Name="IGNORE_DA">
+                    <Access>
+                        <Register Name="IPPB_ARP_TRAP_CFGr">
+                            <HwField Name="ARP_TRAP_IGNORE_DAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="PROTOCOL_TRAP_NDP">
+        <OneLineDescription>Additional configuration for NDP trap</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="NEIGHBOR_SOLICITATION_TYPE" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="NEIGHBOR_SOLICITATION_TYPE">
+                    <Access>
+                        <Register Name="IPPB_ICMP_NDP_NEIGHBOR_SOLICITATION_TYPEr">
+                            <HwField Name="ICMP_NDP_NEIGHBOR_SOLICITATION_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>                 
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="PROTOCOL_TRAP_MY_NDP">
+        <OneLineDescription>Additional configuration for My-NDP trap</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="WORD_INDEX" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="IP_1" Size="32" Type="UINT"/>
+                <Field Name="IP_2" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IP_1">
+                    <Access>
+                        <Register Name="IPPB_MY_NDP_IP_1r">
+                            <HwField Name="MY_NDP_IP_1f"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*32"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="IP_2">
+                    <Access>
+                        <Register Name="IPPB_MY_NDP_IP_2r">
+                            <HwField Name="MY_NDP_IP_2f"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*32"/>
+                        </Register>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>   
+    
+    <AppDB Name="ICMP_TRAP_CFG">
+        <OneLineDescription>ICMP Trap configuration enablers</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="ICMP_TRAP_ETH" Size="1" Type="UINT"/>
+                <Field Name="ICMP_TRAP_IPV4" Size="1" Type="UINT"/>
+                <Field Name="ICMP_TRAP_IPV6" Size="1" Type="UINT"/>
+                <Field Name="ICMP_TRAP_IGNORE_DA" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ICMP_TRAP_ETH">
+                    <Access>
+                        <Register Name="IPPB_ICMP_TRAP_CFGr">
+                            <HwField Name="ICMP_TRAP_O_ETHf"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="ICMP_TRAP_IPV4">
+                    <Access>
+                        <Register Name="IPPB_ICMP_TRAP_CFGr">
+                            <HwField Name="ICMP_TRAP_O_IPV4f"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="ICMP_TRAP_IPV6">
+                    <Access>
+                        <Register Name="IPPB_ICMP_TRAP_CFGr">
+                            <HwField Name="ICMP_TRAP_O_IPV6f"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="ICMP_TRAP_IGNORE_DA">
+                    <Access>
+                        <Register Name="IPPB_ICMP_TRAP_CFGr">
+                            <HwField Name="ICMP_TRAP_IGNORE_DAf"/>
+                        </Register>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="INGRESS_TRAP_PROFILE_SELECTOR_CFG">
+        <OneLineDescription>Ingress Protocol Traps profile selector map</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CONTEXT_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="INGRESS_TRAP_PROFILE_MODE" Size="2" Type="UINT"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INGRESS_TRAP_PROFILE_MODE">
+                    <Access>
+                        <Register Name="IPPB_INGRESS_TRAP_PROFILE_SELECTOR_CFGr">
+                            <HwField Name="INGRESS_TRAP_PROFILE_SELECTOR_MAPf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*2"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="ICMP_TYPE_COMPRESSION_TABLE">
+        <OneLineDescription>ICMP Type compression map</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ICMP_TYPE" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="COMPRESSED_ICMP_TYPE" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="COMPRESSED_ICMP_TYPE">
+                    <Access>
+                        <Memory Name="IPPB_ICMP_TYPE_COMPRESSION_TABLEm">
+                            <HwField Name="ICMP_COMPRESSED_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PROTOCOL_TRAP_IN_LIF_PROFILE_MAPPING" Valid="DNX_DATA.trap.ingress.trap_in_lif_profile_mapping">
+        <OneLineDescription>Ingress protocol trap InLIF profile mapping </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TRAP_IN_LIF_PROFILE" Size="7" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TRAP_IN_LIF_PROFILE_0" Size="8" Type="UINT"/>
+                <Field Name="TRAP_IN_LIF_PROFILE_1" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="TRAP_IN_LIF_PROFILE_0">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_IN_LIF_PROFILE_TABLEm">
+                            <HwField Name="TRAP_IN_LIF_PROFILE_0f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="TRAP_IN_LIF_PROFILE_1">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_IN_LIF_PROFILE_TABLEm">
+                            <HwField Name="TRAP_IN_LIF_PROFILE_1f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

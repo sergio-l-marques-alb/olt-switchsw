@@ -1,0 +1,2836 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="FABRIC_STAT_CTRL" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>This is fabric statistic control.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FMAC_ID" Type="FMAC_BLK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Selects which lane statistics to show." Name="LANE_SELECT" Size="4" Type="UINT"/>
+                <Field Description="Selects which statistics to show." Name="COUNTER_SELECT" Size="5" Type="UINT"/>
+                <Field Description="If set, the selected counter is cleared upon read. Else, it is cleared only when user clears the counter through the FmalStatisticsCountControl register, or when gtimer starts." Name="CLEAR_ON_READ" Size="1" Type="BOOL"/>
+                <Field Description="0: Count only data cells 1: Count only Link-Level-Flow-Control cells only 2: Reserved  3: Count all Relevant for data cell and data byte counters." Name="COUNTER_MODE" Size="2" Type="UINT"/>
+                <Field Description="0: Count without header 1: Count with header Relevant for data byte counters." Name="DATA_COUNTER_HEADER" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV MIB</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LANE_SELECT">
+                    <Access>
+                        <Register Name="FMAC_FMAL_STATISTICS_OUTPUT_CONTROLr">
+                            <BlockIndex Formula="#KEY_VALUE(FMAC_ID)"/>
+                            <HwField Name="LANE_SELECTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COUNTER_SELECT">
+                    <Access>
+                        <Register Name="FMAC_FMAL_STATISTICS_OUTPUT_CONTROLr">
+                            <BlockIndex Formula="#KEY_VALUE(FMAC_ID)"/>
+                            <HwField Name="COUNTER_SELECTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CLEAR_ON_READ">
+                    <Access>
+                        <Register Name="FMAC_FMAL_STATISTICS_OUTPUT_CONTROLr">
+                            <BlockIndex Formula="#KEY_VALUE(FMAC_ID)"/>
+                            <HwField Name="COUNTER_CLEAR_ON_READf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COUNTER_MODE">
+                    <Access>
+                        <Register Name="FMAC_FMAL_STATISTICS_OUTPUT_CONTROLr">
+                            <BlockIndex Formula="#KEY_VALUE(FMAC_ID)"/>
+                            <HwField Name="DATA_COUNTER_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DATA_COUNTER_HEADER">
+                    <Access>
+                        <Register Name="FMAC_FMAL_STATISTICS_OUTPUT_CONTROLr">
+                            <BlockIndex Formula="#KEY_VALUE(FMAC_ID)"/>
+                            <HwField Name="DATA_BYTE_COUNTER_HEADERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_STAT_COUNTERS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>This is fabric statistic counter.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FMAC_ID" Type="FMAC_BLK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Controlled by register FmalStatisticsOutputControl(dbal talbe FABRIC_STAT_CTRL)." Name="FMAC_COUNTER" Permission="READONLY" Size="48" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV MIB</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FMAC_COUNTER">
+                    <Access>
+                        <Register Name="FMAC_FMAL_STATISTICS_OUTPUTr">
+                            <BlockIndex Formula="#KEY_VALUE(FMAC_ID)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+        <AppDB Name="NIF_CDU_MIB_COUNTERS_RX">
+        <OneLineDescription>CDU MIB counters</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-000000" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.nif.eth.nof_cdu_pms" Name="PM_INDEX" Type="PM_ID"/>
+                <Field Name="LANE" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <!--ROW0 counter R64 R127 R255 R511 R1023 R1518 RMGV R2047-->
+                <Field Description="Receive 64-byte frame counter." Name="R64" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive 65 to 127 byte frame counter." Name="R127" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive 128 to 255 byte frame counter." Name="R255" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive 256 to 511 byte frame counter." Name="R511" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive 512 to 1023 byte frame counter." Name="R1023" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive 1024 to 1518 byte frame counter." Name="R1518" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive 1519 to 1522 byte VLAN-tagged frame counter." Name="RMGV" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive 1519 to 2047 byte frame counter." Name="R2047" Size="40" Type="ARRAY32"/>
+                <!--ROW1 counter R4095 R9216 R16383 RBCA RPROG0 RPROG1 RPROG2 RPROG3-->
+                <Field Description="Receive 2048 to 4095 byte frame counter." Name="R4095" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive 4096 to 9216 byte frame counter." Name="R9216" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive 9217 to 16383 byte frame counter." Name="R16383" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive BC frame counter." Name="RBCA" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive RPROG0 frame counter." Name="RPROG0" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive RPROG1 frame counter." Name="RPROG1" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive RPROG2 frame counter." Name="RPROG2" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive RPROG3 frame counter." Name="RPROG3" Size="40" Type="ARRAY32"/>
+                <!--ROW2 counter RPKT RPOK RUCA RESERVED0 RMCA RXPF RXPP RXCF-->
+                <Field Description="Receive frame counter (all packets)." Name="RPKT" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive good frame." Name="RPOK" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive UC frame counter." Name="RUCA" Size="40" Type="ARRAY32"/>
+                <Field Description="RESERVED0." Name="RESERVED0" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive UC frame counter." Name="RMCA" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive pause frame counter." Name="RXPF" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC(Per-Priority Pause) frame counter." Name="RXPP" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive control frame counter." Name="RXCF" Size="40" Type="ARRAY32"/>
+                <!--ROW3 counter RFCS RERPKT RFLR RJBR RMTUE ROVR RVLN RDVLN-->
+                <Field Description="Receive FCS Error Frame Counter." Name="RFCS" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive Code Error Frame Counter." Name="RERPKT" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive Length Out of Range Frame Counter." Name="RFLR" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive Jabber Frame Counter." Name="RJBR" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive MTU Check Error Frame Counter." Name="RMTUE" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive Oversized Frame Counter." Name="ROVR" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive single and double VLAN tagged frame counter." Name="RVLN" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive double VLAN tagged frame." Name="RDVLN" Size="40" Type="ARRAY32"/>
+                <!--ROW4 counter RXUO RXUDA RXWSA RPRM RPFC0 RPFCOFF0 RPFC1 RPFCOFF1-->
+                <Field Description="Receive unsupported opcode frame counter." Name="RXUO" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive unsupported DA for pause/PFC frame counter." Name="RXUDA" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive incorrect SA counter." Name="RXWSA" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive promiscuous packet counter." Name="RPRM" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority0." Name="RPFC0" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority0." Name="RPFCOFF0" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority1." Name="RPFC1" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority1." Name="RPFCOFF1" Size="40" Type="ARRAY32"/>
+                <!--ROW5 counter RPFC2 RPFCOFF2 RPFC3 RPFCOFF3 RPFC4 RPFCOFF4 RPFC5 RPFCOFF5-->
+                <Field Description="Receive PFC frame with enable bit set for Priority2." Name="RPFC2" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority2." Name="RPFCOFF2" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority3." Name="RPFC3" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority3." Name="RPFCOFF3" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority4." Name="RPFC4" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority4." Name="RPFCOFF4" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority5." Name="RPFC5" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority5." Name="RPFCOFF5" Size="40" Type="ARRAY32"/>
+                <!--ROW6 counter RPFC6 RPFCOFF6 RPFC7 RPFCOFF7 RUND RFRG RRPKT RESERVED1-->
+                <Field Description="Receive PFC frame with enable bit set for Priority6." Name="RPFC6" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority6." Name="RPFCOFF6" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority7." Name="RPFC7" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority7." Name="RPFCOFF7" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive undersized frame counter." Name="RUND" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive fragment counter." Name="RFRG" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive RUNT Frame Counter." Name="RRPKT" Size="40" Type="ARRAY32"/>
+                <Field Description="RESERVED1." Name="RESERVED1" Size="40" Type="ARRAY32"/>
+                <!--ROW12 counter TRPKT TFRG TVLN TDVLN RBYT RRBYT TBYT -->
+                <Field Description="Receive Byte Counter." Name="RBYT" Size="48" Type="ARRAY32"/>
+                <Field Description="Receive Runt Byte Counter." Name="RRBYT" Size="48" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV MIB</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <!--ROW0 counter R64 R127 R255 R511 R1023 R1518 RMGV R2047-->
+                <Field Name="R64">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="R127">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="R255">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="R511">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="R1023">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="R1518">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RMGV">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="R2047">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW1 counter R4095 R9216 R16383 RBCA RPROG0 RPROG1 RPROG2 RPROG3-->
+                <Field Name="R4095">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+1"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="R9216">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+1"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="R16383">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+1"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RBCA">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+1"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPROG0">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+1"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPROG1">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+1"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPROG2">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+1"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPROG3">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+1"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW2 counter RPKT RPOK RUCA RESERVED0 RMCA RXPF RXPP RXCF-->
+                <Field Name="RPKT">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+2"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPOK">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+2"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RUCA">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+2"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RESERVED0">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+2"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RMCA">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+2"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RXPF">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+2"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RXPP">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+2"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="RXCF">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+2"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW3 counter RFCS RERPKT RFLR RJBR RMTUE ROVR RVLN RDVLN-->
+                <Field Name="RFCS">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+3"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RERPKT">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+3"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RFLR">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+3"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RJBR">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+3"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RMTUE">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+3"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ROVR">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+3"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RVLN">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+3"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="RDVLN">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+3"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW4 counter RXUO RXUDA RXWSA RPRM RPFC0 RPFCOFF0 RPFC1 RPFCOFF1-->
+                <Field Name="RXUO">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+4"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RXUDA">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+4"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RXWSA">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+4"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPRM">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+4"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFC0">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+4"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFCOFF0">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+4"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFC1">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+4"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="RPFCOFF1">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+4"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW5 counter RPFC2 RPFCOFF2 RPFC3 RPFCOFF3 RPFC4 RPFCOFF4 RPFC5 RPFCOFF5-->
+                <Field Name="RPFC2">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+5"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFCOFF2">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+5"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFC3">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+5"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFCOFF3">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+5"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFC4">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+5"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFCOFF4">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+5"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFC5">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+5"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="RPFCOFF5">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+5"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW6 counter RPFC6 RPFCOFF6 RPFC7 RPFCOFF7 RUND RFRG RRPKT RESERVED1-->
+                <Field Name="RPFC6">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+6"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFCOFF6">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+6"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFC7">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+6"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFCOFF7">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+6"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RUND">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+6"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RFRG">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+6"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RRPKT">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+6"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="RESERVED1">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+6"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW12 counter TRPKT TFRG TVLN TDVLN RBYT RRBYT TBYT -->
+                <Field Name="RBYT">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+12"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RRBYT">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+12"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="NIF_CDU_MIB_COUNTERS_TX">
+        <OneLineDescription>CDU MIB counters</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-000000" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.nif.eth.nof_cdu_pms" Name="PM_INDEX" Type="PM_ID"/>
+                <Field Name="LANE" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <!--ROW7 counter T64 T127 T255 T511 T1023 T1518 TMGV T2047-->
+                <Field Description="Transmit 64 Byte Frame Counter." Name="T64" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit 65 to 127 byte frame counter." Name="T127" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit 128 to 255 byte frame counter." Name="T255" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit 256 to 511 byte frame counter." Name="T511" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit 512 to 1023 byte frame counter." Name="T1023" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit 1024 to 1518 byte frame counter." Name="T1518" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit 1519 to 1522 byte VLAN-tagged frame counter." Name="TMGV" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit 1519 to 2047 byte frame counter." Name="T2047" Size="40" Type="ARRAY32"/>
+                <!--ROW8 counter T4095 T9216 T16383 TBCA TPFC0 TPFCOFF0 TPFC1 TPFCOFF1-->
+                <Field Description="Transmit 2048 to 4095 byte frame counter." Name="T4095" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit 4096 to 9216 byte frame counter." Name="T9216" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit 9217 to 16383 byte frame counter." Name="T16383" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Broadcast Frame Counter." Name="TBCA" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame with enable bit set for Priority0." Name="TPFC0" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority0." Name="TPFCOFF0" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame with enable bit set for Priority1." Name="TPFC1" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority1." Name="TPFCOFF1" Size="40" Type="ARRAY32"/>
+                <!--ROW9 counter TPFC2 TPFCOFF2 TPFC3 TPFCOFF3 TPFC4 TPFCOFF4 TPFC5 TPFCOFF5-->
+                <Field Description="Transmit PFC frame with enable bit set for Priority2." Name="TPFC2" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority2." Name="TPFCOFF2" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame with enable bit set for Priority3." Name="TPFC3" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority3." Name="TPFCOFF3" Size="40" Type="ARRAY32"/>  
+                <Field Description="Transmit PFC frame with enable bit set for Priority4." Name="TPFC4" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority4." Name="TPFCOFF4" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame with enable bit set for Priority5." Name="TPFC5" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority5." Name="TPFCOFF5" Size="40" Type="ARRAY32"/>
+                <!--ROW10 counter TPFC6 TPFCOFF6 TPFC7 TPFCOFF7 TPKT TPOK TUCA TUFL-->
+                <Field Description="Transmit PFC frame with enable bit set for Priority6." Name="TPFC6" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority6." Name="TPFCOFF6" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame with enable bit set for Priority7." Name="TPFC7" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority7." Name="TPFCOFF7" Size="40" Type="ARRAY32"/>  
+                <Field Description="Transmit Packet/Frame Counter." Name="TPKT" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Good Packet Counter." Name="TPOK" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Unicast Frame Counter." Name="TUCA" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit FIFO Underrun Counter." Name="TUFL" Size="40" Type="ARRAY32"/>
+                <!--ROW11 counter TMCA TXPF TXPP TXCF TFCS TERR TOVR TJBR-->
+                <Field Description="Transmit Multicast Frame Counter." Name="TMCA" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Pause Control Frame Counter." Name="TXPF" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC/Per-Priority Pause Control Frame Counter." Name="TXPP" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit control frame counter." Name="TXCF" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit FCS Error Counter." Name="TFCS" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Error (set by system) Counter." Name="TERR" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Oversize Packet Counter." Name="TOVR" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Jabber Counter." Name="TJBR" Size="40" Type="ARRAY32"/>
+                <!--ROW12 counter TRPKT TFRG TVLN TDVLN RBYT RRBYT TBYT -->
+                <Field Description="Transmit RUNT Frame Counter." Name="TRPKT" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit runt packet with invalid FCS counter." Name="TFRG" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit single and double VLAN tagged frame counter." Name="TVLN" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit double VLAN tagged frame counter." Name="TDVLN" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Byte Counter." Name="TBYT" Size="48" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV MIB</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <!--ROW7 counter T64 T127 T255 T511 T1023 T1518 TMGV T2047-->
+                <Field Name="T64">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+7"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="T127">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+7"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="T255">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+7"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="T511">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+7"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="T1023">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+7"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="T1518">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+7"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TMGV">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+7"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="T2047">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+7"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW8 counter T4095 T9216 T16383 TBCA TPFC0 TPFCOFF0 TPFC1 TPFCOFF1-->
+                <Field Name="T4095">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+8"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="T9216">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+8"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="T16383">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+8"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TBCA">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+8"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFC0">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+8"/>
+                             <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFCOFF0">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+8"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFC1">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+8"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="TPFCOFF1">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+8"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW9 counter TPFC2 TPFCOFF2 TPFC3 TPFCOFF3 TPFC4 TPFCOFF4 TPFC5 TPFCOFF5-->
+                <Field Name="TPFC2">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+9"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFCOFF2">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+9"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFC3">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+9"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFCOFF3">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+9"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFC4">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+9"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFCOFF4">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+9"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFC5">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+9"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="TPFCOFF5">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+9"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW10 counter TPFC6 TPFCOFF6 TPFC7 TPFCOFF7 TPKT TPOK TUCA TUFL-->
+                <Field Name="TPFC6">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+10"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFCOFF6">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+10"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFC7">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+10"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFCOFF7">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+10"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPKT">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+10"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPOK">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+10"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TUCA">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+10"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="TUFL">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+10"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW11 counter TMCA TXPF TXPP TXCF TFCS TERR TOVR TJBR-->
+                <Field Name="TMCA">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+11"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TXPF">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+11"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TXPP">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+11"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TXCF">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+11"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TFCS">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+11"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TERR">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+11"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TOVR">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+11"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="TJBR">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+11"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW12 counter TRPKT TFRG TVLN TDVLN RBYT RRBYT TBYT -->
+                <Field Name="TRPKT">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+12"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TFRG">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+12"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TVLN">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+12"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TDVLN">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+12"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TBYT">
+                    <Access>
+                        <Memory Name="CDMIB_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(LANE)*16+12"/>
+                            <BlockIndex Formula="#KEY_VALUE(PM_INDEX)"/>
+                            <HwField Name="MIB_DATAf"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="NIF_CLU_MIB_COUNTERS_COMMON_RX" Valid="DNX_DATA.nif.eth.is_clu_supported">
+        <OneLineDescription>CLU MIB counters commone between all ETHUs counters are divided to two tables since when keeping them in one table it exceeds dbal size limitations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CLU_LOGICAL_PORT"/>
+            </Key>
+            <Result>
+                <Field Description="Receive 64-byte frame counter." Name="R64" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive 65 to 127 byte frame counter." Name="R127" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive 128 to 255 byte frame counter." Name="R255" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive 256 to 511 byte frame counter." Name="R511" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive 512 to 1023 byte frame counter." Name="R1023" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive 1024 to 1518 byte frame counter." Name="R1518" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive 1519 to 1522 byte VLAN-tagged frame counter." Name="RMGV" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive 1519 to 2047 byte frame counter." Name="R2047" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive 2048 to 4095 byte frame counter." Name="R4095" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive 4096 to 9216 byte frame counter." Name="R9216" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive 9217 to 16383 byte frame counter." Name="R16383" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive BC frame counter." Name="RBCA" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive RPROG0 frame counter." Name="RPROG0" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive RPROG1 frame counter." Name="RPROG1" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive RPROG2 frame counter." Name="RPROG2" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive RPROG3 frame counter." Name="RPROG3" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive frame counter (all packets)." Name="RPKT" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive good frame." Name="RPOK" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive UC frame counter." Name="RUCA" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive UC frame counter." Name="RMCA" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive pause frame counter." Name="RXPF" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive PFC(Per-Priority Pause) frame counter." Name="RXPP" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive control frame counter." Name="RXCF" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive FCS Error Frame Counter." Name="RFCS" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive Code Error Frame Counter." Name="RERPKT" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive Length Out of Range Frame Counter." Name="RFLR" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive Jabber Frame Counter." Name="RJBR" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive MTU Check Error Frame Counter." Name="RMTUE" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive Oversized Frame Counter." Name="ROVR" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive single and double VLAN tagged frame counter." Name="RVLN" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive double VLAN tagged frame." Name="RDVLN" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive unsupported opcode frame counter." Name="RXUO" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive unsupported DA for pause/PFC frame counter." Name="RXUDA" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive incorrect SA counter." Name="RXWSA" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive promiscuous packet counter." Name="RPRM" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority0." Name="RPFC0" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority0." Name="RPFCOFF0" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority1." Name="RPFC1" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority1." Name="RPFCOFF1" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority2." Name="RPFC2" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority2." Name="RPFCOFF2" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority3." Name="RPFC3" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority3." Name="RPFCOFF3" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority4." Name="RPFC4" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority4." Name="RPFCOFF4" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority5." Name="RPFC5" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority5." Name="RPFCOFF5" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority6." Name="RPFC6" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority6." Name="RPFCOFF6" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority7." Name="RPFC7" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority7." Name="RPFCOFF7" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive undersized frame counter." Name="RUND" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive fragment counter." Name="RFRG" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive RUNT Frame Counter." Name="RRPKT" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive Byte Counter." Name="RBYT" Size="48" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive Runt Byte Counter." Name="RRBYT" Size="48" Type="ARRAY32" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV MIB</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="R64">
+                    <Access>
+                        <Register Name="CLMIB_R64r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="R127">
+                    <Access>
+                        <Register Name="CLMIB_R127r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="R255">
+                    <Access>
+                        <Register Name="CLMIB_R255r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="R511">
+                    <Access>
+                        <Register Name="CLMIB_R511r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="R1023">
+                    <Access>
+                        <Register Name="CLMIB_R1023r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="R1518">
+                    <Access>
+                        <Register Name="CLMIB_R1518r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RMGV">
+                    <Access>
+                        <Register Name="CLMIB_RMGVr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+               <Field Name="R2047">
+                    <Access>
+                        <Register Name="CLMIB_R2047r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="R4095">
+                    <Access>
+                        <Register Name="CLMIB_R4095r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="R9216">
+                    <Access>
+                        <Register Name="CLMIB_R9216r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="R16383">
+                    <Access>
+                        <Register Name="CLMIB_R16383r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RBCA">
+                    <Access>
+                        <Register Name="CLMIB_RBCAr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPROG0">
+                    <Access>
+                        <Register Name="CLMIB_RPROG0r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPROG1">
+                    <Access>
+                        <Register Name="CLMIB_RPROG1r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPROG2">
+                    <Access>
+                        <Register Name="CLMIB_RPROG2r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPROG3">
+                    <Access>
+                        <Register Name="CLMIB_RPROG3r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPKT">
+                    <Access>
+                        <Register Name="CLMIB_RPKTr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPOK">
+                    <Access>
+                        <Register Name="CLMIB_RPOKr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RUCA">
+                    <Access>
+                        <Register Name="CLMIB_RUCAr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RMCA">
+                    <Access>
+                        <Register Name="CLMIB_RMCAr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RXPF">
+                    <Access>
+                        <Register Name="CLMIB_RXPFr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RXPP">
+                    <Access>
+                        <Register Name="CLMIB_RXPPr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+               <Field Name="RXCF">
+                    <Access>
+                        <Register Name="CLMIB_RXCFr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RFCS">
+                    <Access>
+                        <Register Name="CLMIB_RFCSr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RERPKT">
+                    <Access>
+                        <Register Name="CLMIB_RERPKTr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RFLR">
+                    <Access>
+                        <Register Name="CLMIB_RFLRr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RJBR">
+                    <Access>
+                        <Register Name="CLMIB_RJBRr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RMTUE">
+                    <Access>
+                        <Register Name="CLMIB_RMTUEr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ROVR">
+                    <Access>
+                        <Register Name="CLMIB_ROVRr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RVLN">
+                    <Access>
+                        <Register Name="CLMIB_RVLNr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+               <Field Name="RDVLN">
+                    <Access>
+                        <Register Name="CLMIB_RDVLNr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RXUO">
+                    <Access>
+                        <Register Name="CLMIB_RXUOr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RXUDA">
+                    <Access>
+                        <Register Name="CLMIB_RXUDAr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RXWSA">
+                    <Access>
+                        <Register Name="CLMIB_RXWSAr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPRM">
+                    <Access>
+                        <Register Name="CLMIB_RPRMr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPFC0">
+                    <Access>
+                        <Register Name="CLMIB_RPFC0r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPFCOFF0">
+                    <Access>
+                        <Register Name="CLMIB_RPFCOFF0r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPFC1">
+                    <Access>
+                        <Register Name="CLMIB_RPFC1r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+               <Field Name="RPFCOFF1">
+                    <Access>
+                        <Register Name="CLMIB_RPFCOFF1r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPFC2">
+                    <Access>
+                        <Register Name="CLMIB_RPFC2r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPFCOFF2">
+                    <Access>
+                        <Register Name="CLMIB_RPFCOFF2r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPFC3">
+                    <Access>
+                        <Register Name="CLMIB_RPFC3r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPFCOFF3">
+                    <Access>
+                        <Register Name="CLMIB_RPFCOFF3r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPFC4">
+                    <Access>
+                        <Register Name="CLMIB_RPFC4r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPFCOFF4">
+                    <Access>
+                        <Register Name="CLMIB_RPFCOFF4r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPFC5">
+                    <Access>
+                        <Register Name="CLMIB_RPFC5r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+               <Field Name="RPFCOFF5">
+                    <Access>
+                        <Register Name="CLMIB_RPFCOFF5r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPFC6">
+                    <Access>
+                        <Register Name="CLMIB_RPFC6r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPFCOFF6">
+                    <Access>
+                        <Register Name="CLMIB_RPFCOFF6r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPFC7">
+                    <Access>
+                        <Register Name="CLMIB_RPFC7r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RPFCOFF7">
+                    <Access>
+                        <Register Name="CLMIB_RPFCOFF7r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RUND">
+                    <Access>
+                        <Register Name="CLMIB_RUNDr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RFRG">
+                    <Access>
+                        <Register Name="CLMIB_RFRGr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RRPKT">
+                    <Access>
+                        <Register Name="CLMIB_RRPKTr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RBYT">
+                    <Access>
+                        <Register Name="CLMIB_RBYTr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RRBYT">
+                    <Access>
+                        <Register Name="CLMIB_RRBYTr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="NIF_CLU_MIB_COUNTERS_COMMON_TX" Valid="DNX_DATA.nif.eth.is_clu_supported">
+        <OneLineDescription>CLU MIB counters commone between all ETHUs counters are divided to two tables since when keeping them in one table it exceeds dbal size limitations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CLU_LOGICAL_PORT"/>
+            </Key>
+            <Result>
+                <Field Description="Transmit 64 Byte Frame Counter." Name="T64" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit 65 to 127 byte frame counter." Name="T127" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit 128 to 255 byte frame counter." Name="T255" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit 256 to 511 byte frame counter." Name="T511" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit 512 to 1023 byte frame counter." Name="T1023" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit 1024 to 1518 byte frame counter." Name="T1518" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit 1519 to 1522 byte VLAN-tagged frame counter." Name="TMGV" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit 1519 to 2047 byte frame counter." Name="T2047" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit 2048 to 4095 byte frame counter." Name="T4095" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit 4096 to 9216 byte frame counter." Name="T9216" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit 9217 to 16383 byte frame counter." Name="T16383" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit Broadcast Frame Counter." Name="TBCA" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit PFC frame with enable bit set for Priority0." Name="TPFC0" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority0." Name="TPFCOFF0" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit PFC frame with enable bit set for Priority1." Name="TPFC1" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority1." Name="TPFCOFF1" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit PFC frame with enable bit set for Priority2." Name="TPFC2" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority2." Name="TPFCOFF2" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit PFC frame with enable bit set for Priority3." Name="TPFC3" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority3." Name="TPFCOFF3" Size="40" Type="ARRAY32" Permission="TRIGGER"/>  
+                <Field Description="Transmit PFC frame with enable bit set for Priority4." Name="TPFC4" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority4." Name="TPFCOFF4" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit PFC frame with enable bit set for Priority5." Name="TPFC5" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority5." Name="TPFCOFF5" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit PFC frame with enable bit set for Priority6." Name="TPFC6" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority6." Name="TPFCOFF6" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit PFC frame with enable bit set for Priority7." Name="TPFC7" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority7." Name="TPFCOFF7" Size="40" Type="ARRAY32" Permission="TRIGGER"/>  
+                <Field Description="Transmit Packet/Frame Counter." Name="TPKT" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit Good Packet Counter." Name="TPOK" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit Unicast Frame Counter." Name="TUCA" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit FIFO Underrun Counter." Name="TUFL" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit Multicast Frame Counter." Name="TMCA" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit Pause Control Frame Counter." Name="TXPF" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit PFC/Per-Priority Pause Control Frame Counter." Name="TXPP" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit control frame counter." Name="TXCF" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit FCS Error Counter." Name="TFCS" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit Error (set by system) Counter." Name="TERR" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit Oversize Packet Counter." Name="TOVR" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit Jabber Counter." Name="TJBR" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit RUNT Frame Counter." Name="TRPKT" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit runt packet with invalid FCS counter." Name="TFRG" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit single and double VLAN tagged frame counter." Name="TVLN" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit double VLAN tagged frame counter." Name="TDVLN" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit Byte Counter." Name="TBYT" Size="48" Type="ARRAY32" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV MIB</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="T64">
+                    <Access>
+                        <Register Name="CLMIB_T64r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="T127">
+                    <Access>
+                        <Register Name="CLMIB_T127r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="T255">
+                    <Access>
+                        <Register Name="CLMIB_T255r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="T511">
+                    <Access>
+                        <Register Name="CLMIB_T511r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="T1023">
+                    <Access>
+                        <Register Name="CLMIB_T1023r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="T1518">
+                    <Access>
+                        <Register Name="CLMIB_T1518r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TMGV">
+                    <Access>
+                        <Register Name="CLMIB_TMGVr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+               <Field Name="T2047">
+                    <Access>
+                        <Register Name="CLMIB_T2047r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="T4095">
+                    <Access>
+                        <Register Name="CLMIB_T4095r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="T9216">
+                    <Access>
+                        <Register Name="CLMIB_T9216r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="T16383">
+                    <Access>
+                        <Register Name="CLMIB_T16383r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TBCA">
+                    <Access>
+                        <Register Name="CLMIB_TBCAr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TPFC0">
+                    <Access>
+                        <Register Name="CLMIB_TPFC0r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TPFCOFF0">
+                    <Access>
+                        <Register Name="CLMIB_TPFCOFF0r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TPFC1">
+                    <Access>
+                        <Register Name="CLMIB_TPFC1r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+               <Field Name="TPFCOFF1">
+                    <Access>
+                        <Register Name="CLMIB_TPFCOFF1r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TPFC2">
+                    <Access>
+                        <Register Name="CLMIB_TPFC2r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TPFCOFF2">
+                    <Access>
+                        <Register Name="CLMIB_TPFCOFF2r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TPFC3">
+                    <Access>
+                        <Register Name="CLMIB_TPFC3r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TPFCOFF3">
+                    <Access>
+                        <Register Name="CLMIB_TPFCOFF3r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TPFC4">
+                    <Access>
+                        <Register Name="CLMIB_TPFC4r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TPFCOFF4">
+                    <Access>
+                        <Register Name="CLMIB_TPFCOFF4r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TPFC5">
+                    <Access>
+                        <Register Name="CLMIB_TPFC5r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+               <Field Name="TPFCOFF5">
+                    <Access>
+                        <Register Name="CLMIB_TPFCOFF5r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TPFC6">
+                    <Access>
+                        <Register Name="CLMIB_TPFC6r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TPFCOFF6">
+                    <Access>
+                        <Register Name="CLMIB_TPFCOFF6r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TPFC7">
+                    <Access>
+                        <Register Name="CLMIB_TPFC7r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TPFCOFF7">
+                    <Access>
+                        <Register Name="CLMIB_TPFCOFF7r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TPKT">
+                    <Access>
+                        <Register Name="CLMIB_TPKTr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TPOK">
+                    <Access>
+                        <Register Name="CLMIB_TPOKr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TUCA">
+                    <Access>
+                        <Register Name="CLMIB_TUCAr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+               <Field Name="TUFL">
+                    <Access>
+                        <Register Name="CLMIB_TUFLr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TMCA">
+                    <Access>
+                        <Register Name="CLMIB_TMCAr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TXPF">
+                    <Access>
+                        <Register Name="CLMIB_TXPFr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TXPP">
+                    <Access>
+                        <Register Name="CLMIB_TXPPr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TXCF">
+                    <Access>
+                        <Register Name="CLMIB_TXCFr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TFCS">
+                    <Access>
+                        <Register Name="CLMIB_TFCSr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TERR">
+                    <Access>
+                        <Register Name="CLMIB_TERRr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TOVR">
+                    <Access>
+                        <Register Name="CLMIB_TOVRr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+               <Field Name="TJBR">
+                    <Access>
+                        <Register Name="CLMIB_TJBRr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TRPKT">
+                    <Access>
+                        <Register Name="CLMIB_TRPKTr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TFRG">
+                    <Access>
+                        <Register Name="CLMIB_TFRGr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TVLN">
+                    <Access>
+                        <Register Name="CLMIB_TVLNr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TDVLN">
+                    <Access>
+                        <Register Name="CLMIB_TDVLNr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TBYT">
+                    <Access>
+                        <Register Name="CLMIB_TBYTr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+
+        <AppDB Name="NIF_CLU_MIB_COUNTERS_DEDICATED" Valid="DNX_DATA.nif.eth.is_clu_supported">
+        <OneLineDescription>CLU MIB counters commone between all ETHUs</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CLU_LOGICAL_PORT"/>
+            </Key>
+            <Result>
+                <Field Description="MAC Receive Verify MFrame Counter." Name="RVERIFY" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="MAC Receive Reply MFrame Counter." Name="RREPLY" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Matched CRC Frame Counter." Name="RMCRC" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive Truncated Frame Counter (due to RX FIFO full)." Name="RTRFU" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive SCH CRC Error." Name="RSCHCRC" Permission="READONLY" Size="40" Type="ARRAY32"/>
+                <Field Description="RX EEE LPI Event Counter." Name="RX_EEE_LPI_EVENT" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="RX EEE LPI Duration Counter." Name="RX_EEE_LPI_DURATION" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive Physical Type LLFC message counter." Name="RX_LLFC_PHY" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive Logical Type LLFC message Counter." Name="RX_LLFC_LOG" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive Type LLFC message with CRC error Counter." Name="RX_LLFC_CRC" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Receive HCFC message counter." Name="RX_HCFC" Permission="READONLY" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive HCFC message with CRC Error counter." Name="RX_HCFC_CRC" Permission="READONLY" Size="40" Type="ARRAY32"/>
+                <Field Description="MAC Transmit Verify MFrame Counter." Name="TVERIFY" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="MAC Transmit Reply MFrame Counter." Name="TREPLY" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit Single Collision Frame Counter." Name="TSCL" Permission="READONLY" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Multiple Collision Frame Counter." Name="TMCL" Permission="READONLY" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Late Collision Frame Counter." Name="TLCL" Permission="READONLY" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Excessive Collision Frame Counter." Name="TXCL" Permission="READONLY" Size="40" Type="ARRAY32"/>
+                <Field Description="TX EEE LPI Event Counter." Name="TX_EEE_LPI_EVENT" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="TX EEE LPI Duration Counter." Name="TX_EEE_LPI_DURATION" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit Logical Type LLFC message counter." Name="TX_LLFC_LOG" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit HCFC message counter." Name="TX_HCFC" Permission="READONLY" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Total Collision Counter." Name="TNCL" Permission="READONLY" Size="40" Type="ARRAY32"/>
+                <Field Description="TTransmit End-to-End HOL packet counter (E2ECC/VOQFC)." Name="XTHOL" Size="40" Type="ARRAY32" Permission="TRIGGER"/>
+                <Field Description="Transmit Spare0." Name="TSPARE0" Permission="READONLY" Size="48" Type="ARRAY32"/>
+                <Field Description="Transmit Spare1." Name="TSPARE1" Permission="READONLY" Size="48" Type="ARRAY32"/>
+                <Field Description="Transmit Spare2." Name="TSPARE2" Permission="READONLY" Size="48" Type="ARRAY32"/>
+                <Field Description="Transmit Spare3." Name="TSPARE3" Permission="READONLY" Size="48" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV MIB</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>                
+                <Field Name="RVERIFY">
+                    <Access>
+                        <Register Name="CLMIB_RVERIFYr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RREPLY">
+                    <Access>
+                        <Register Name="CLMIB_RREPLYr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RMCRC">
+                    <Access>
+                        <Register Name="CLMIB_RMCRCr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RTRFU">
+                    <Access>
+                        <Register Name="CLMIB_RTRFUr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RSCHCRC">
+                    <Access>
+                        <Register Name="CLMIB_RSCHCRCr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_EEE_LPI_EVENT">
+                    <Access>
+                        <Register Name="CLMIB_RX_EEE_LPI_EVENT_COUNTERr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_EEE_LPI_DURATION">
+                    <Access>
+                        <Register Name="CLMIB_RX_EEE_LPI_DURATION_COUNTERr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_LLFC_PHY">
+                    <Access>
+                        <Register Name="CLMIB_RX_LLFC_PHY_COUNTERr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_LLFC_LOG">
+                    <Access>
+                        <Register Name="CLMIB_RX_LLFC_LOG_COUNTERr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_LLFC_CRC">
+                    <Access>
+                        <Register Name="CLMIB_RX_LLFC_CRC_COUNTERr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_HCFC">
+                    <Access>
+                        <Register Name="CLMIB_RX_HCFC_COUNTERr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_HCFC_CRC">
+                    <Access>
+                        <Register Name="CLMIB_RX_HCFC_CRC_COUNTERr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TVERIFY">
+                    <Access>
+                        <Register Name="CLMIB_TVERIFYr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TREPLY">
+                    <Access>
+                        <Register Name="CLMIB_TREPLYr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSCL">
+                    <Access>
+                        <Register Name="CLMIB_TSCLr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TMCL">
+                    <Access>
+                        <Register Name="CLMIB_TMCLr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TLCL">
+                    <Access>
+                        <Register Name="CLMIB_TLCLr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TXCL">
+                    <Access>
+                        <Register Name="CLMIB_TXCLr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TX_EEE_LPI_EVENT">
+                    <Access>
+                        <Register Name="CLMIB_TX_EEE_LPI_EVENT_COUNTERr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TX_EEE_LPI_DURATION">
+                    <Access>
+                        <Register Name="CLMIB_TX_EEE_LPI_DURATION_COUNTERr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TX_LLFC_LOG">
+                    <Access>
+                        <Register Name="CLMIB_TX_LLFC_LOG_COUNTERr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TX_HCFC">
+                    <Access>
+                        <Register Name="CLMIB_TX_HCFC_COUNTERr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TNCL">
+                    <Access>
+                        <Register Name="CLMIB_TNCLr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="XTHOL">
+                    <Access>
+                        <Register Name="CLMIB_XTHOLr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>                
+                <Field Name="TSPARE0">
+                    <Access>
+                        <Register Name="CLMIB_TSPARE0r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSPARE1">
+                    <Access>
+                        <Register Name="CLMIB_TSPARE1r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSPARE2">
+                    <Access>
+                        <Register Name="CLMIB_TSPARE2r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSPARE3">
+                    <Access>
+                        <Register Name="CLMIB_TSPARE3r">
+                            <BlockIndex Formula="#KEY_VALUE(CLU_LOGICAL_PORT)"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+    
+    <AppDB Name="FABRIC_STAT_GTIMER_CTRL" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Control the fabric statistic GTIMER.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FMAC_ID" Type="FMAC_BLK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Gtimer period in clocks." Name="GTIMER_PERIOD" Size="31" Type="UINT"/>
+                <Field Description="Start the Gtimer." Name="GTIMER_START" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV MIB</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_PERIOD">
+                    <Access>
+                        <Register Name="FMAC_FMAL_STATISTICS_GTIMERr">
+                            <BlockIndex Formula="#KEY_VALUE(FMAC_ID)"/>
+                            <HwField Name="GTIMER_PERIODf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_START">
+                    <Access>
+                        <Register Name="FMAC_FMAL_STATISTICS_GTIMERr">
+                            <BlockIndex Formula="#KEY_VALUE(FMAC_ID)"/>
+                            <HwField Name="GTIMER_STARTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+
+    <AppDB Name="NIF_ILKN_RX_STATS_ACC">
+        <OneLineDescription>Configure ILKN RX stats, controls per logic port.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-000000" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="LOGICAL_PORT"/>
+            </Key>
+            <Result>
+                <Field Description="Counter type names match exactly with the recommended statistics from the Interlaken Protocol Definition RX counter types." Name="TYPE" Size="4" Type="UINT"/>
+                <Field Description="Type of access to do." Name="CMD" Size="3" Type="UINT"/>
+                <Field Description="When TYPE field = 0000 then ADDR7:0 represent channel number, When TYPE field = 1000, 1001, and 1010,  then ADDR7:0 represent serdes lane. All other combinations of TYPE does not represent anything and therefore should be set to zeros." Name="ADDR" Size="9" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV MIB</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TYPE">
+                    <Access>
+                        <Register Name="ILKN_SLE_RX_STATS_ACCr">
+                            <BlockIndex Formula="#KEY_VALUE(LOGICAL_PORT)"/>
+                            <HwField Name="SLE_RX_STATS_ACC_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CMD">
+                    <Access>
+                        <Register Name="ILKN_SLE_RX_STATS_ACCr">
+                            <BlockIndex Formula="#KEY_VALUE(LOGICAL_PORT)"/>
+                            <HwField Name="SLE_RX_STATS_ACC_CMDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ADDR">
+                    <Access>
+                        <Register Name="ILKN_SLE_RX_STATS_ACCr">
+                            <BlockIndex Formula="#KEY_VALUE(LOGICAL_PORT)"/>
+                            <HwField Name="SLE_RX_STATS_ACC_ADDRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="NIF_ILKN_TX_STATS_ACC">
+        <OneLineDescription>Configure ILKN TX stats, controls per logic port.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-150969" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="LOGICAL_PORT"/>
+            </Key>
+            <Result>
+                <Field Description="Counter type names match exactly with the recommended statistics from the Interlaken Protocol Definition TX counter types." Name="TYPE" Size="4" Type="UINT"/>
+                <Field Description="Type of access to do." Name="CMD" Size="3" Type="UINT"/>
+                <Field Description="When TYPE field = 0000 then ADDR7:0 represent channel number, When TYPE field = 1000, 1001, and 1010,  then ADDR7:0 represent serdes lane. All other combinations of TYPE does not represent anything and therefore should be set to zeros." Name="ADDR" Size="9" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV MIB</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TYPE">
+                    <Access>
+                        <Register Name="ILKN_SLE_TX_STATS_ACCr">
+                            <BlockIndex Formula="#KEY_VALUE(LOGICAL_PORT)"/>
+                            <HwField Name="SLE_TX_STATS_ACC_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CMD">
+                    <Access>
+                        <Register Name="ILKN_SLE_TX_STATS_ACCr">
+                            <BlockIndex Formula="#KEY_VALUE(LOGICAL_PORT)"/>
+                            <HwField Name="SLE_TX_STATS_ACC_CMDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ADDR">
+                    <Access>
+                        <Register Name="ILKN_SLE_TX_STATS_ACCr">
+                            <BlockIndex Formula="#KEY_VALUE(LOGICAL_PORT)"/>
+                            <HwField Name="SLE_TX_STATS_ACC_ADDRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="NIF_ILKN_STATS">
+        <OneLineDescription>ILKN Counters for RX/TX_Packets, RX/TX_Bytes, and RX/TX_Bad_Packets, controls per logic port.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-000000" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="LOGICAL_PORT"/>
+            </Key>
+            <Result>
+                <Field Description="ILKN RX packets low 32bit." Name="RX_PACKETS_LOW" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="ILKN RX packets high 32bit." Name="RX_PACKETS_HIGH" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="ILKN RX bytes low 32bit." Name="RX_BYTES_LOW" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="ILKN RX bytes high 32bit." Name="RX_BYTES_HIGH" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="ILKN RX err packets low 32bit." Name="RX_ERR_PACKETS_LOW" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="ILKN RX err packets high 32bit." Name="RX_ERR_PACKETS_HIGH" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="ILKN TX packets low 32bit." Name="TX_PACKETS_LOW" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="ILKN TX packets high 32bit." Name="TX_PACKETS_HIGH" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="ILKN TX bytes low 32bit." Name="TX_BYTES_LOW" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="ILKN TX bytes high 32bit." Name="TX_BYTES_HIGH" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="ILKN TX err packets low 32bit." Name="TX_ERR_PACKETS_LOW" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="ILKN TX err packets high 32bit." Name="TX_ERR_PACKETS_HIGH" Permission="READONLY" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV MIB</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="RX_PACKETS_LOW">
+                    <Access>
+                        <Register Name="ILKN_SLE_RX_STATS_RD_PKT_LOWr">
+                            <BlockIndex Formula="#KEY_VALUE(LOGICAL_PORT)"/>
+                            <HwField Name="SLE_RX_STATS_RD_PKT_LOW_RDATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_PACKETS_HIGH">
+                    <Access>
+                        <Register Name="ILKN_SLE_RX_STATS_RD_PKT_HIGHr">
+                            <BlockIndex Formula="#KEY_VALUE(LOGICAL_PORT)"/>
+                            <HwField Name="SLE_RX_STATS_RD_PKT_HIGH_RDATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_BYTES_LOW">
+                    <Access>
+                        <Register Name="ILKN_SLE_RX_STATS_RD_BYTE_LOWr">
+                            <BlockIndex Formula="#KEY_VALUE(LOGICAL_PORT)"/>
+                            <HwField Name="SLE_RX_STATS_RD_BYTE_LOW_RDATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_BYTES_HIGH">
+                    <Access>
+                        <Register Name="ILKN_SLE_RX_STATS_RD_BYTE_HIGHr">
+                            <BlockIndex Formula="#KEY_VALUE(LOGICAL_PORT)"/>
+                            <HwField Name="SLE_RX_STATS_RD_BYTE_HIGH_RDATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_ERR_PACKETS_LOW">
+                    <Access>
+                        <Register Name="ILKN_SLE_RX_STATS_RD_ERR_LOWr">
+                            <BlockIndex Formula="#KEY_VALUE(LOGICAL_PORT)"/>
+                            <HwField Name="SLE_RX_STATS_RD_ERR_LOW_RDATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_ERR_PACKETS_HIGH">
+                    <Access>
+                        <Register Name="ILKN_SLE_RX_STATS_RD_ERR_HIGHr">
+                            <BlockIndex Formula="#KEY_VALUE(LOGICAL_PORT)"/>
+                            <HwField Name="SLE_RX_STATS_RD_ERR_HIGH_RDATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+               <Field Name="TX_PACKETS_LOW">
+                    <Access>
+                        <Register Name="ILKN_SLE_TX_STATS_RD_PKT_LOWr">
+                            <BlockIndex Formula="#KEY_VALUE(LOGICAL_PORT)"/>
+                            <HwField Name="SLE_TX_STATS_RD_PKT_LOW_RDATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TX_PACKETS_HIGH">
+                    <Access>
+                        <Register Name="ILKN_SLE_TX_STATS_RD_PKT_HIGHr">
+                            <BlockIndex Formula="#KEY_VALUE(LOGICAL_PORT)"/>
+                            <HwField Name="SLE_TX_STATS_RD_PKT_HIGH_RDATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TX_BYTES_LOW">
+                    <Access>
+                        <Register Name="ILKN_SLE_TX_STATS_RD_BYTE_LOWr">
+                            <BlockIndex Formula="#KEY_VALUE(LOGICAL_PORT)"/>
+                            <HwField Name="SLE_TX_STATS_RD_BYTE_LOW_RDATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TX_BYTES_HIGH">
+                    <Access>
+                        <Register Name="ILKN_SLE_TX_STATS_RD_BYTE_HIGHr">
+                            <BlockIndex Formula="#KEY_VALUE(LOGICAL_PORT)"/>
+                            <HwField Name="SLE_TX_STATS_RD_BYTE_HIGH_RDATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TX_ERR_PACKETS_LOW">
+                    <Access>
+                        <Register Name="ILKN_SLE_TX_STATS_RD_ERR_LOWr">
+                            <BlockIndex Formula="#KEY_VALUE(LOGICAL_PORT)"/>
+                            <HwField Name="SLE_TX_STATS_RD_ERR_LOW_RDATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TX_ERR_PACKETS_HIGH">
+                    <Access>
+                        <Register Name="ILKN_SLE_TX_STATS_RD_ERR_HIGHr">
+                            <BlockIndex Formula="#KEY_VALUE(LOGICAL_PORT)"/>
+                            <HwField Name="SLE_TX_STATS_RD_ERR_HIGH_RDATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="NIF_ILKN_ELK_FEC_COUNTERS" Valid="DNX_DATA.nif.ilkn.is_fec_supported">
+        <OneLineDescription>ILKN Counters for Rx Fec Correctable/Uncorrectable, controls per ILKN id.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Description="Selects which lane offset fec counter to show." Name="FEC_UNIT" Type="ILKN_FEC_UNIT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Counters for Rx Fec Correctable." Name="RX_FEC_CORRECTED_CNT" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="Counters for Rx Fec Unorrectable." Name="RX_FEC_UNCORRECTED_CNT" Permission="READONLY" Size="32" Type="UINT"/>
+             </Result>
+            <TableLabels>J2P_NOTREV MIB</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="RX_FEC_CORRECTED_CNT">
+                    <Access>
+                        <Register Name="ILE_RX_FEC_DECODER_CORRECTED_CODE_WORD_CNTr">
+                            <ArrayOffset Formula="#KEY_VALUE(FEC_UNIT)"/>
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)"/>
+                            <HwField Name="RX_FEC_N_CORRECTED_CODE_WORD_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="RX_FEC_CORRECTED_CNT">
+                    <Access>
+                        <Register Name="CDU_RX_FEC_DECODER_CORRECTED_CODE_WORD_CNTr">
+                            <ArrayOffset Formula="#KEY_VALUE(FEC_UNIT)%4"/>
+                            <BlockIndex Formula="#KEY_VALUE(FEC_UNIT)/4"/>
+                            <HwField Name="RX_FEC_N_CORRECTED_CODE_WORD_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="RX_FEC_UNCORRECTED_CNT">
+                    <Access>
+                        <Register Name="ILE_RX_FEC_DECODER_UNCORRECTED_CODE_WORD_CNTr">
+                            <ArrayOffset Formula="#KEY_VALUE(FEC_UNIT)"/>
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)"/>
+                            <HwField Name="RX_FEC_N_UNCORRECTED_CODE_WORD_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="RX_FEC_UNCORRECTED_CNT">
+                    <Access>
+                        <Register Name="CDU_RX_FEC_DECODER_UNCORRECTED_CODE_WORD_CNTr">
+                            <ArrayOffset Formula="#KEY_VALUE(FEC_UNIT)%4"/>
+                            <BlockIndex Formula="#KEY_VALUE(FEC_UNIT)/4"/>
+                            <HwField Name="RX_FEC_N_UNCORRECTED_CODE_WORD_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

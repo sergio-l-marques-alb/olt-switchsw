@@ -1,0 +1,483 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="sch">
+
+    <includes>
+        <include>bcm_int/dnx/cosq/scheduler/scheduler.h</include>
+        <include>bcm_int/dnx/algo/sch/sch_alloc_mngr.h</include>
+        <include>shared/utilex/utilex_integer_arithmetic.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_fabric.h</include>
+     </includes>
+
+    <sub_module name="general">
+        
+        <features>
+            <feature name="lag_scheduler_supported"></feature>
+        </features>
+        
+        <defines>
+            <define name="nof_slow_profiles" value="2"></define>
+            <define name="nof_slow_levels" value="8"></define>
+            <define name="cycles_per_credit_token" value="12"></define>
+            <define name="nof_fmq_class" value="4"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="port_priority_propagation_enable" value="0">
+                <property name="port_sch_priority_propagation_enable" method="range" range_min="0" range_max="0">
+                     <doc>
+                        Enable ports to be created with port priority propagation.
+                        Not supported for Jericho2.
+                        Default: 0 (disabled)
+                     </doc>
+                 </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+
+            <table name="low_rate_factor_to_dbal_enum" mode="map">
+                <key name="low_rate_factor"></key>
+                <value name="dbal_enum" default="-1"></value>
+                <value name="valid" default="0"></value>
+                <entries>
+                    <entry low_rate_factor="32" dbal_enum="DBAL_ENUM_FVAL_LOW_RATE_FACTOR_LOW_RATE_FACTOR_32" valid="1"></entry>
+                    <entry low_rate_factor="64" dbal_enum="DBAL_ENUM_FVAL_LOW_RATE_FACTOR_LOW_RATE_FACTOR_64" valid="1"></entry>
+                </entries>
+            </table>
+
+            <table name="dbal_enum_to_low_rate_factor">
+                <key name="dbal_enum" size="DBAL_NOF_ENUM_LOW_RATE_FACTOR_VALUES"></key>
+                <value name="low_rate_factor" default="0"></value>
+                <entries>
+                    <entry low_rate_factor="32" dbal_enum="DBAL_ENUM_FVAL_LOW_RATE_FACTOR_LOW_RATE_FACTOR_32"></entry>
+                    <entry low_rate_factor="64" dbal_enum="DBAL_ENUM_FVAL_LOW_RATE_FACTOR_LOW_RATE_FACTOR_64"></entry>
+                </entries>
+            </table>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="ps">
+        <defines>
+            <define name="nof_hrs_in_ps" value="8"></define>
+            
+            <define name="min_priority_for_tcg" value="4"></define>
+            <define name="max_nof_tcg" value="8"></define>
+
+            <define name="max_tcg_weight" value="1023"></define>
+            <define name="tc_tcg_calendar_access_period" value="3"></define>
+
+        </defines>
+
+        <numerics>
+            <!-- RCY port might have full core bandwidth -->
+            <numeric name="max_port_rate_mbps" value="600000">
+                <property name="maximal_port_bandwidth" method="range" range_min="0" range_max="DATA(sch, interface, max_if_rate_mbps)">
+                     <doc>
+                        Maximal bandwidth of a single port in Mega-bits-per-second.
+                        Used to improve granularity of SCH port-TC and port-TCG shapers.
+                        Default: 600000 (600G)
+                     </doc>
+                 </property>
+
+            </numeric>
+
+            <numeric name="max_burst" value="utilex_power_of_2(DATA(sch, dbal, ps_shaper_max_burst_bits)) - 1"></numeric>
+
+        </numerics>        
+        
+        <tables>
+        </tables>
+
+    </sub_module>
+
+
+    <sub_module name="flow">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="nof_hr" value="512"></define>
+            <define name="nof_cl" value="8*1024"></define>
+
+            <define name="nof_se" value="32*1024"></define>
+
+            <define name="nof_flows" value="96*1024"></define>
+
+            <define name="region_size" value="1024"></define>
+            <define name="nof_regions" value="96"></define>
+            <define name="nof_hr_regions" value="DATA(sch, flow, nof_hr) / 256"></define>
+            <define name="nof_connectors_only_regions" value="64"></define>
+            <define name="flow_in_region_mask" value="0x3ff"></define>
+            <define name="min_connector_bundle_size" value="4"></define>
+            <define name="conn_idx_interdig_flow" value="2"></define>
+        
+            <define name="shaper_flipflops_nof" value="20"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="erp_hr" value="DATA(sch, flow, nof_hr)-8"></numeric>
+            <numeric name="reserved_hr" value="DATA(sch, flow, erp_hr)-1"></numeric> 
+            <numeric name="max_se" value="DATA(sch, flow, nof_se)-1"></numeric>
+            <numeric name="max_flow" value="DATA(sch, flow, nof_flows)-1"></numeric>
+            <numeric name="first_hr_region" value="DATA(sch, flow, nof_regions) - DATA(sch, flow, nof_hr_regions)"></numeric>
+            <numeric name="first_se_flow_id" value="DATA(sch, flow, nof_connectors_only_regions) * DATA(sch, flow, region_size)"></numeric>
+
+            <numeric name="hr_se_id_min" value="DATA(sch, flow, nof_se)/2 - DATA(sch, flow, nof_hr)"></numeric>
+            <numeric name="hr_se_id_max" value="DATA(sch, flow, nof_se)/2-1"></numeric>
+
+            <!-- 
+              * default_credit_source_se_id is the first FQ in the first HR region
+              * this is based on assumption the first HR is used by some port 
+              * so we can reserve its pairing FQ
+              -->
+           <numeric name="default_credit_source_se_id" 
+                    value="DATA(sch, flow, nof_se) / 4 * 3 +
+                     (DATA(sch, flow, nof_regions) - DATA(sch, flow, nof_connectors_only_regions) -DATA(sch, flow, nof_hr_regions)) * DATA(sch, flow, region_size)/4"></numeric>
+
+
+            <numeric name="runtime_performance_optimize_enable_sched_allocation" value="1">
+                <property name="runtime_performance_optimize_enable" method="range" range_min="1" range_max="1">
+                    <doc>
+                       Enable flow property access runtime optimization
+                       In Jericho2 optimization must be enabled
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+            <table name="region_type">
+                <key name="core" size="DATA(device, general, nof_cores)"></key>
+                <key name="region" size="DATA(sch, flow, nof_regions)"></key>
+                <value name="type" default="0"></value>
+                <value name="propagation_direction" default="0"></value>
+                
+                <property name="dtm_flow_mapping_mode_region" method="custom">
+                    <doc>
+                        Configure region mode per region id:
+                        0: connectors only
+                        1: interdigitated odd
+                        2: interdigitated even
+                        3: SE only, propagation direction 0
+                        7: SE only, propagation direction 1
+                        Default: 0
+                    </doc>
+                </property>
+            </table>
+
+            <table name="nof_remote_cores">
+                <key name="core" size="DATA(device, general, nof_cores)"></key>
+                <key name="region" size="DATA(sch, flow, nof_regions)"></key>
+                <value name="val" default="1"></value>
+                <property name="dtm_flow_nof_remote_cores_region" method="custom">
+                    <doc>
+                        Configure region nof remote cores:
+                        1: one core
+                        2: two cores
+                        Default: 1
+                    </doc>
+                </property>
+            </table>
+
+            <table name="cl_num_to_quartet_offset">
+                <key name="cl_num" size="1"></key>
+                <value name="quartet_offset" default="-1"></value>
+                <entries>
+                    <entry cl_num="0" quartet_offset="0"></entry>
+                </entries>
+            </table>
+
+            <table name="quartet_offset_to_cl_num">
+                <key name="quartet_offset" size="4"></key>
+                <value name="cl_num" default="-1"></value>
+                <entries>
+                    <entry quartet_offset="0" cl_num="0"></entry>
+                </entries>
+            </table>
+        </tables>
+                
+    </sub_module>
+
+    <sub_module name="se">
+
+        <features>
+        </features>
+        
+        <defines>
+            <define name="default_cos" value="0xfc"></define>
+            <define name="nof_color_group" value="3"></define>
+            <define name="max_hr_weight" value="4*1024"></define>
+            <define name="cl_class_profile_nof" value="256"></define>
+            
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="interface">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="nof_big_calendars" value="8"></define>
+            <define name="nof_channelized_calendars" value="64"></define>
+            <define name="big_calendar_size" value="1024"></define>
+            <define name="nof_sch_interfaces" value="64"></define>
+            <define name="cal_speed_resolution" value="128"></define>
+            <define name="reserved" value="DATA(sch,interface, nof_sch_interfaces)-1"></define>
+
+        </defines>
+
+        <numerics>
+            <numeric name="max_if_rate_mbps" value="DATA(device, general, maximal_core_bandwidth_kbps) / 1000"></numeric>
+        </numerics>
+
+        <tables>
+            <table name="shaper_resolution">
+                <key name="channelized" size="2"></key>
+                <value name="resolution" default="0"></value>
+                <entries>
+                    <entry channelized="1" resolution="4"></entry>
+                </entries>
+            </table>
+
+        </tables>
+    </sub_module>
+
+    <sub_module name="device">
+        
+        <defines>
+            <define name="drm_resolution" value="128"></define>
+        </defines>
+
+        <features>
+            <feature name="shared_drm"></feature>
+        </features>
+        
+    </sub_module>
+
+
+    <sub_module name="sch_alloc">
+        
+        <features>
+        </features>
+        
+        <defines>
+
+
+            <define name="tag_aggregate_se_2" value="2"></define>
+            <define name="tag_aggregate_se_4" value="4"></define>
+            <define name="tag_aggregate_se_8" value="8"></define>
+            <define name="shared_shaper_max_tag_value" value="DATA(sch, sch_alloc, tag_aggregate_se_8)"></define>
+
+            <!--
+                tag size == how many elements are tagged 
+                -->
+            <define name="tag_size_aggregate_se" value="8"></define>
+            <define name="tag_size_con" value="8"></define>
+
+            <define name="type_con_reg_start" value="0"></define>
+            <define name="alloc_invalid_flow" value="-1"></define>
+            <define name="dealloc_flow_ids" value="16"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="type_con_reg_end" value="DATA(sch, flow, nof_connectors_only_regions) - 1"></numeric>
+            <numeric name="type_hr_reg_start" value="DATA(sch, flow, nof_regions) - DATA(sch, flow, nof_hr_regions)"></numeric>
+        </numerics>        
+        
+        <tables>
+
+            <table name="region">
+                <key name="region_type" size="DNX_SCH_REGION_TYPE_NOF"></key>
+                <value name="flow_type" default="DNX_SCH_ELEMENT_SE_TYPE_NONE"></value>
+                <value name="odd_even_mode" default="DNX_SCHEDULER_REGION_EVEN"></value>
+                <entries>
+                    <entry region_type="DNX_SCH_REGION_TYPE_CON"
+                           flow_type="DNX_SCH_ELEMENT_SE_TYPE_NONE, DNX_SCH_ELEMENT_SE_TYPE_NONE, DNX_SCH_ELEMENT_SE_TYPE_NONE, DNX_SCH_ELEMENT_SE_TYPE_NONE"
+                           odd_even_mode="DNX_SCHEDULER_REGION_ODD">
+                    </entry>
+                    <entry region_type="DNX_SCH_REGION_TYPE_INTERDIG_1"
+                           flow_type="DNX_SCH_ELEMENT_SE_TYPE_CL, DNX_SCH_ELEMENT_SE_TYPE_FQ, DNX_SCH_ELEMENT_SE_TYPE_NONE, DNX_SCH_ELEMENT_SE_TYPE_NONE"
+                           odd_even_mode="DNX_SCHEDULER_REGION_ODD">
+                    </entry>
+                    <entry region_type="DNX_SCH_REGION_TYPE_SE"
+                           flow_type="DNX_SCH_ELEMENT_SE_TYPE_CL, DNX_SCH_ELEMENT_SE_TYPE_FQ, DNX_SCH_ELEMENT_SE_TYPE_FQ, DNX_SCH_ELEMENT_SE_TYPE_FQ"
+                           odd_even_mode="DNX_SCHEDULER_REGION_ODD">
+                    </entry>
+                    <entry region_type="DNX_SCH_REGION_TYPE_SE_HR"
+                           flow_type="DNX_SCH_ELEMENT_SE_TYPE_CL, DNX_SCH_ELEMENT_SE_TYPE_HR, DNX_SCH_ELEMENT_SE_TYPE_FQ, DNX_SCH_ELEMENT_SE_TYPE_FQ"
+                           odd_even_mode="DNX_SCHEDULER_REGION_EVEN">
+                    </entry>
+                </entries>
+            </table>
+
+
+
+            <table name="connector">
+                <key name="composite" size="2"></key>
+                <key name="interdigitated" size="2"></key>
+                <value name="alignment" default="4"></value>
+                <value name="pattern" default="1"></value>
+                <value name="pattern_size" default="1"></value>
+                <value name="nof_in_pattern" default="1"></value>
+                <entries>
+                    <entry composite="0" interdigitated="0" alignment="4" pattern="0x1" pattern_size="1"></entry>
+                    <entry composite="1" interdigitated="0" alignment="8" pattern="0x3" pattern_size="2"></entry>
+                    <entry composite="0" interdigitated="1" alignment="8" pattern="0xc" pattern_size="4" nof_in_pattern="2"></entry>
+                    <entry composite="1" interdigitated="1" alignment="16" pattern="0xc" pattern_size="4"></entry>
+                </entries>
+            </table>
+
+            <table name="se_per_region_type">
+                <key name="flow_type" size="DNX_SCH_ALLOC_FLOW_TYPE_NOF"></key>
+                <key name="region_type" size="DNX_SCH_REGION_TYPE_NOF"></key>
+                <value name="valid" default="0"></value>
+                <value name="alignment" default="4"></value>
+                <value name="pattern" default="1"></value>
+                <value name="pattern_size" default="4"></value>
+                <value name="nof_offsets" default="1"></value>
+                <value name="offset" default="0"></value>
+                <entries>
+                    <entry flow_type="DNX_SCH_ALLOC_FLOW_TYPE_FQ" region_type="DNX_SCH_REGION_TYPE_INTERDIG_1"
+                           valid="1"
+                           pattern="0x2">
+                    </entry>
+                    <entry flow_type="DNX_SCH_ALLOC_FLOW_TYPE_FQ" region_type="DNX_SCH_REGION_TYPE_SE"
+                           valid="1"
+                           pattern="0x1"
+                           nof_offsets="3"
+                           offset="1, 2, 3">
+                    </entry>
+                    <entry flow_type="DNX_SCH_ALLOC_FLOW_TYPE_FQ" region_type="DNX_SCH_REGION_TYPE_SE_HR"
+                           valid="1"
+                           pattern="0x1"
+                           nof_offsets="2"
+                           offset="2, 3">
+                    </entry>
+                </entries>
+            </table>
+
+            <table name="se">
+                <key name="flow_type" size="DNX_SCH_ALLOC_FLOW_TYPE_NOF"></key>
+                <value name="alignment" default="4"></value>
+                <value name="pattern" default="1"></value>
+                <value name="pattern_size" default="4"></value>
+                <value name="nof_offsets" default="1"></value>
+                <value name="offset" default="0"></value>
+                <entries>
+                    <entry flow_type="DNX_SCH_ALLOC_FLOW_TYPE_CL"  pattern="0x1"></entry>
+                    <entry flow_type="DNX_SCH_ALLOC_FLOW_TYPE_ENHANCED_CL" pattern="0x3"></entry>
+
+                    <entry flow_type="DNX_SCH_ALLOC_FLOW_TYPE_HR" pattern="0x2"></entry>
+
+                    <!-- dual shapers -->
+                    <entry flow_type="DNX_SCH_ALLOC_FLOW_TYPE_SHARED_CL_FQ" pattern="0x3"></entry>
+
+                    <entry flow_type="DNX_SCH_ALLOC_FLOW_TYPE_SHARED_SE_4" pattern="0xf"></entry>
+                    <entry flow_type="DNX_SCH_ALLOC_FLOW_TYPE_SHARED_SE_8" pattern="0xff" pattern_size="8" alignment="8"></entry>
+
+                </entries>
+            </table>
+
+            <table name="composite_se_per_region_type">
+                <key name="flow_type" size="DNX_SCH_ALLOC_FLOW_TYPE_NOF"></key>
+                <key name="region_type" size="DNX_SCH_REGION_TYPE_NOF"></key>
+                <value name="valid" default="0"></value>
+                <value name="alignment" default="4"></value>
+                <value name="pattern" default="1"></value>
+                <value name="pattern_size" default="4"></value>
+                <entries>
+                </entries>
+            </table>
+
+            <table name="composite_se">
+                <key name="flow_type" size="DNX_SCH_ALLOC_FLOW_TYPE_NOF"></key>
+                <key name="odd_even_mode" size="DNX_SCHEDULER_REGION_ODD_EVEN_MODE_NOF"></key>
+                <value name="alignment" default="4"></value>
+                <value name="pattern" default="1"></value>
+                <value name="pattern_size" default="4"></value>
+                <entries>
+                    <entry flow_type="DNX_SCH_ALLOC_FLOW_TYPE_COMP_CL" odd_even_mode="DNX_SCHEDULER_REGION_EVEN" pattern="0x5"></entry>
+                    <entry flow_type="DNX_SCH_ALLOC_FLOW_TYPE_COMP_CL" odd_even_mode="DNX_SCHEDULER_REGION_ODD" pattern="0x3"></entry>
+                    <entry flow_type="DNX_SCH_ALLOC_FLOW_TYPE_COMP_HR" odd_even_mode="DNX_SCHEDULER_REGION_EVEN" pattern="0xa"></entry>
+                    <entry flow_type="DNX_SCH_ALLOC_FLOW_TYPE_COMP_HR" odd_even_mode="DNX_SCHEDULER_REGION_ODD" pattern="0x0"></entry> <!-- invalid entry -->
+                    <entry flow_type="DNX_SCH_ALLOC_FLOW_TYPE_COMP_FQ" odd_even_mode="DNX_SCHEDULER_REGION_EVEN" pattern="0xa"></entry>
+                    <entry flow_type="DNX_SCH_ALLOC_FLOW_TYPE_COMP_FQ" odd_even_mode="DNX_SCHEDULER_REGION_ODD" pattern="0xc"></entry>
+
+                </entries>
+            </table>
+
+        </tables>
+    </sub_module>
+
+    <sub_module name="dbal">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <!-- Scheduler Enable -->
+            <define name="scheduler_enable_grouping_factor" value="8"></define>
+            <!-- 1 shift-left scheduler_enable_grouping_factor = 2^scheduler_enable_grouping_factor -->
+            <define name="scheduler_enable_dbal_mult_factor" value="(1 &lt;&lt; DATA(sch,dbal,scheduler_enable_grouping_factor))-1"></define>
+
+
+            <!-- flow ID -->
+            <define name="flow_bits" value="17"></define>
+            
+            <!-- SE ID -->
+            <define name="se_bits" value="15"></define>
+            
+            <!-- CL ID -->
+            <define name="cl_bits" value="13"></define>
+
+            <!-- HR ID -->
+            <define name="hr_bits" value="9"></define>
+
+            <!-- interface ID -->
+            <define name="interface_bits" value="6"></define>
+            <define name="calendar_bits" value="6"></define>
+
+            <define name="flow_shaper_mant_bits" value="6"></define>
+
+            <define name="ps_shaper_quanta_bits" value="11"></define>
+            <define name="ps_shaper_max_burst_bits" value="15"></define>
+
+            <define name="drm_nof_links_max" value="DATA(fabric,links,nof_links)"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="scheduler_enable_key_size" value="DATA(sch,dbal,se_bits) - 3"></numeric>
+
+            <numeric name="flow_id_pair_key_size" value="DATA(sch,dbal,flow_bits) - 1"></numeric>
+            <numeric name="flow_id_pair_max" value="DATA(sch,flow,nof_flows)/2 - 1"></numeric> 
+
+            <!-- PS ID -->
+            <numeric name="ps_bits" value="DATA(sch,dbal,hr_bits) - 3"></numeric>
+
+            <numeric name="flow_shaper_descr_bits" value="DATA(sch,dbal, flow_shaper_mant_bits) + 4 + 9 + 1"></numeric>
+
+            <numeric name="ps_shaper_bits" value="DATA(sch,dbal,ps_shaper_quanta_bits) +DATA(sch,dbal,ps_shaper_max_burst_bits)"></numeric>
+       </numerics>        
+        
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="hw_workarounds">
+        <features>
+            <feature name="dlm" value="1"></feature>
+        </features>
+    </sub_module>
+</device_data>
+
+
+

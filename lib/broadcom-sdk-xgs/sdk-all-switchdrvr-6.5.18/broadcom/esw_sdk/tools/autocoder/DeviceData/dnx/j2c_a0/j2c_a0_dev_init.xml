@@ -1,0 +1,568 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0" module="dev_init">
+    <includes>
+        <include>bcm_int/dnx/spb/spb.h</include>
+        <include>bcm_int/dnx/init/init.h</include>
+        <include>bcm_int/dnx/init/init_custom_funcs.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_fc.h</include>
+        <include>appl/reference/dnx/appl_ref_init_deinit.h</include>
+    </includes>
+
+    <sub_module name="time" doc="time relevant for init">
+        <defines>
+            <define name="init_total_thresh" value="14919600"></define>
+            <define name="appl_init_total_thresh" value="16258800"></define>
+        </defines> 
+        <tables>
+            <table name="step_thresh">
+                <key name="step_id" size="DNX_INIT_STEP_COUNT"></key>
+                <value name="value" default="BCM_INIT_STEP_TIME_THRESH_DEFAULT"></value>
+                <entries>
+                    <entry step_id="DNX_INIT_STEP_DBAL" value="1182000"></entry>
+                    <entry step_id="DNX_INIT_STEP_TUNE" value="214800"></entry>
+                    <entry step_id="DNX_INIT_STEP_TM_MODULES" value="6084000"></entry>
+                    <entry step_id="DNX_INIT_STEP_PP_GENERAL" value="1018800"></entry>
+                    <entry step_id="DNX_INIT_STEP_FLOW_CONTROL_MODULE" value="150000"></entry>
+                    <entry step_id="DNX_INIT_MDB" value="790800"></entry>
+                    <entry step_id="DNX_INIT_STEP_PEMLA" value="408000"></entry>
+                    <entry step_id="DNX_INIT_STEP_MEM_DEFAULTS" value="920400"></entry>
+                    <entry step_id="DNX_INIT_STEP_VISIBILITY" value="145200"></entry>
+                    <entry step_id="DNX_INIT_STEP_ALGO" value="109200"></entry>
+                    <entry step_id="DNX_INIT_STEP_SOFT_RESET" value="151200"></entry>
+                    <entry step_id="DNX_INIT_STEP_DBAL_ACCESS_MDB" value="739200"></entry>
+                    <entry step_id="DNX_INIT_STEP_DBAL_TABLES" value="374400"></entry>
+                    <entry step_id="DNX_INIT_STEP_PP_MODULES" value="1430400"></entry>
+                    <entry step_id="DNX_INIT_STEP_SW_STATE" value="699600"></entry>
+                    <entry step_id="DNX_INIT_STEP_LIF" value="171600"></entry>
+                    <entry step_id="DNX_INIT_STEP_AUX_ACCESS" value="678000"></entry>
+                    <entry step_id="DNX_INIT_STEP_SOFT_INIT" value="351600"></entry>
+                    <entry step_id="DNX_INIT_STEP_DYN_PORT_PROP_SET" value="303600"></entry>
+                    <entry step_id="DNX_INIT_STEP_ACCESS" value="174000"></entry>
+                    <entry step_id="DNX_INIT_STEP_DRAM" value="5529600"></entry>
+                    <entry step_id="DNX_INIT_STEP_PRE_SOFT_INIT" value="944400"></entry>
+                    <entry step_id="DNX_INIT_STEP_APPL_PROPERTIES" value="1690800"></entry>
+                    <entry step_id="DNX_INIT_STEP_COMMON_MODULES" value="1122000"></entry>
+                    <entry step_id="DNX_INIT_STEP_DNX_DATA" value="366000"></entry>
+                    <entry step_id="DNX_INIT_STEP_DYN_PORT_ADD" value="1231200"></entry>
+                    <entry step_id="DNX_INIT_STEP_FIELD" value="196800"></entry>
+                    <entry step_id="DNX_INIT_STEP_FLD_SWSTATE" value="145200"></entry>
+                </entries>
+            </table>
+            <table name="appl_step_thresh">
+                <key name="step_id" size="APPL_DNX_INIT_STEP_COUNT"></key>
+                <value name="value" default="APPL_DNX_INIT_STEP_TIME_THRESH_DEFAULT"></value>
+                <entries>
+                    <entry step_id="APPL_DNX_STEP_QOS" value="171600"></entry>
+                    <entry step_id="APPL_DNX_STEP_SYS_PORTS" value="252000"></entry>
+                    <entry step_id="APPL_DNX_STEP_VLAN" value="160800"></entry>
+                    <entry step_id="APPL_DNX_STEP_SDK" value="14988000"></entry>
+                    <entry step_id="APPL_DNX_STEP_E2E_SCHEME" value="128400"></entry>
+                    <entry step_id="APPL_DNX_STEP_LINKSCAN" value="217200"></entry>
+                    <entry step_id="APPL_DNX_STEP_APPS" value="1273200"></entry>
+                </entries>
+            </table> 
+        </tables>
+    </sub_module>
+
+    <sub_module name="mem">
+        <numerics>
+        </numerics>
+
+        <tables>
+            <table name="default" mode="sequential">
+                <key name="index"></key>
+                <value name="mem" default="INVALIDr"></value>
+                <value name="mode" default="dnx_init_mem_default_mode_zero"></value>
+                <value name="default_get_cb" default="NULL"></value>
+                <value name="field" default="INVALIDf"></value>
+                <entries>
+                    <entry mem="IPS_SPMm" mode="dnx_init_mem_default_mode_all_ones"></entry>
+                    <entry mem="MTM_EGR_BITMAP_MAPPING_TABLEm" mode="dnx_init_mem_default_mode_index" field="PP_DSPf"></entry>
+                    <entry mem="ERPP_PRP_PP_DSP_PTR_TABLEm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_erpp_prp_pp_dsp_ptr_table_get"></entry>
+                    <entry mem="ERPP_TM_PP_DSP_PTR_TABLEm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_erpp_tm_pp_dsp_ptr_table_get"></entry>
+                    <entry mem="ETPPA_DSP_DATA_TABLEm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_etppa_dsp_data_table_get"></entry>
+                    <entry mem="IPS_FMS_BYPASSm" mode="dnx_init_mem_default_mode_all_ones" field="FMS_BYPASS_BMPf"></entry>
+                    <entry mem="CGM_REP_CMD_FIFO_OCCUPANCY_RJCT_THm" mode="dnx_init_mem_default_mode_all_ones"></entry>
+                    <entry mem="SPB_CONTEXT_MRUm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_spb_context_mru_default_get_f" ></entry>
+                    <entry mem="EPNI_ALIGNER_MIRR_QP_TO_CHANNEL_MAPm" mode="dnx_init_mem_default_mode_all_ones" field="CHANNELf"></entry>
+                    <entry mem="SCH_FLOW_TO_FIP_MAPPING_FFMm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_sch_flow_to_fip_mapping_default_get"></entry>
+                    <entry mem="ERPP_CFG_ENABLE_FILTER_PER_PORT_TABLEm" mode="dnx_init_mem_default_mode_all_ones" field="CFG_SAME_INTERFACE_PER_PORTf"></entry>
+                    <entry mem="ETPPB_VID_MIRROR_PROFILE_TABLEm" mode="dnx_init_mem_default_mode_all_ones" field="OUT_PORT_MIRROR_PROFILEf"></entry>
+                    <entry mem="SCH_SHAPER_DESCRIPTOR_MEMORY_STATIC_SHDSm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_sch_shaper_descr_default_get"></entry>
+                    <entry mem="SCH_FLOW_DESCRIPTOR_MEMORY_STATIC_FDMSm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_sch_flow_descr_default_get"></entry>
+                    <entry mem="IPT_PCP_CFGm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_fabric_pcp_default_get"></entry>
+                    <entry mem="SCH_SLOW_SCALE_A_SSAm" mode="dnx_init_mem_default_mode_all_ones" field="MAX_BUCKETf"></entry>
+                    <entry mem="SCH_SLOW_SCALE_B_SSBm" mode="dnx_init_mem_default_mode_all_ones" field="MAX_BUCKETf"></entry>
+                    <entry mem="IPPE_PINFO_LLRm" mode="dnx_init_mem_default_mode_all_ones" field="RECYCLE_PROFILE_ENABLEf"></entry>
+                    <entry mem="MTM_MCDBm" mode="dnx_init_mem_default_mode_all_ones"></entry>
+                    <entry mem="SCH_CIR_SHAPER_CALENDAR_CSCm" mode="dnx_init_mem_default_mode_index" field="PG_NUMf"></entry>
+                    <entry mem="SCH_PIR_SHAPER_CALENDAR_PSCm" mode="dnx_init_mem_default_mode_index" field="HR_NUMf"></entry> <!-- Should be "SCH_PIR_SHAPER_CALENDAR_PSCm" -->
+                    <entry mem="SCH_PORT_SCHEDULER_WEIGHTS_PSWm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_sch_port_schduler_weights_psw_default_get" ></entry>
+                    <entry mem="IPPD_DESTINATION_STATUSm" mode="dnx_init_mem_default_mode_all_ones"></entry>
+                    <entry mem="IPS_QSPMm" mode="dnx_init_mem_default_mode_all_ones" field="SYSTEM_PORTf"></entry>
+                    <entry mem="CGM_IPP_MAPm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_cgm_ipp_map_default_get"></entry>
+                    <entry mem="IPPC_FES_2ND_INSTRUCTIONm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_ippc_fes_2nd_instruction_default_get"></entry>
+                    <entry mem="IPPD_FES_2ND_INSTRUCTIONm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_ippd_fes_2nd_instruction_default_get"></entry>
+                    <entry mem="ERPP_FES_2ND_INSTRUCTIONm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_erpp_fes_2nd_instruction_default_get"></entry>
+                    <entry mem="ETPPA_PRP_FES_PROGRAM_TABLEm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_etppa_prp_fes_program_table_default_get"></entry>
+                    <entry mem="SCH_PIR_SHAPERS_STATIC_TABEL_PSSTm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_sch_psst_default_get"></entry>
+                    <entry mem="SCH_CIR_SHAPERS_STATIC_TABEL_CSSTm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_sch_csst_default_get"></entry>
+                    <entry mem="IPPC_FEM_BIT_SELECTm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_ippc_fem_bit_select_default_get"></entry>
+                    <entry mem="IPPC_FEM_MAP_INDEX_TABLEm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_ippc_fem_map_index_table_default_get"></entry>
+                    <entry mem="TCAM_TCAM_BANK_COMMANDm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_tcam_tcam_bank_command_default_get"></entry>
+                    <entry mem="TCAM_TCAM_ACTIONm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_tcam_tcam_action_default_get"></entry>
+                    <entry mem="TCAM_TCAM_ACTION_SMALLm" mode="dnx_init_mem_default_mode_custom" default_get_cb="dnx_init_custom_tcam_tcam_action_small_default_get"></entry>
+
+                    <!-- Skip since TCAM_BANK are not standard memories -->
+                    <entry mem="ERPP_EPMFCS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPA_VTDCS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPA_VTECS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPB_FLPACS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPB_FLPBCS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPC_PMFACSA_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPC_PMFACSB_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPD_PMFBCS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPE_LLRCS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPE_PRTCAM_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPF_VTACS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPF_VTBCS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="IPPF_VTCCS_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+                    <entry mem="TCAM_TCAM_BANKm" mode="dnx_init_mem_default_mode_none"></entry>
+
+                    <entry mem="IPPB_FLPA_FWD_DOMAIN_STATISTICS_OBJECT_COMMAND_MAPm" mode="dnx_init_mem_default_mode_index"></entry>
+                    <entry mem="IPPB_FLPB_FWD_DOMAIN_STATISTICS_OBJECT_COMMAND_MAPm" mode="dnx_init_mem_default_mode_index"></entry>
+                </entries>
+            </table>
+        </tables>
+
+    </sub_module>
+    
+     <sub_module name="properties">
+        <tables>
+            <table name="unsupported" mode="sequential">
+               <!--
+                 Ability to automatically throw an error in case the customer set a soc property that is not supported by 
+                 Jericho2 (and used to be supported by Jericho1).
+                
+                 To add new soc property to the list do the following:
+                
+                 1.  Add new entry to list of entries.
+                 2.  Set the index (running index)
+                 3.  Set soc property name
+                 4.  Set error message that will be printed in a case the soc property was set (err_msg="..."),
+                     For example: "cell format VSC128 is not supported. VSC256 will be set automatically"
+                 5.  If the soc property read per port: set port_port=1
+                     For example:
+                     <entry property="backplane_serdes_encoding" per_port="1" err_msg="..."></entry>
+                 6.  If the soc property read using suffix method set the required suffix.
+                    For example:
+                    <entry property="custom_feature" suffix="mesh_topology_fast_sync" err_msg=="...">
+                 7.  If the soc property read using suffix and num - set the suffix and max number to verify.
+                     For example:
+                     <entry property="repeater_link_enable" suffix="" num_max="192" err_msg="repeater is not supported"></entry>
+               -->
+                <key name="index"></key>
+                <value name="property" default="NULL"></value>
+                <value name="suffix" default="NULL"></value>
+                <value name="num_max" default="-1"></value>
+                <value name="per_port" default="0"></value>
+                <value name="err_msg" default="NULL"></value>
+                <entries>
+                    <entry property="otm_port_packet_rate" per_port="1" err_msg="Packet_mode is supported by API bcm_cosq_control_set() (bcmCosqControlShaperPacketMode)"></entry>
+                    <entry property="backplane_serdes_encoding" per_port="1" err_msg="Setting encoding supported by API bcm_port_resource_set()"></entry>
+                    <entry property="repeater_link_enable" suffix="" num_max="192" err_msg="repeater is not supported"></entry>
+                    <entry property="system_is_vcs_128_in_system" err_msg="cell format VSC128 is not supported. VSC256 will be set automatically"></entry>
+                    <entry property="hqos_mapping_enable" err_msg="Mapping of many system ports to single modport is always allowed. No need to set this soc property."></entry> 
+                    <entry property="flow_mapping_queue_base" err_msg="Feature not supported"></entry>
+                    <entry property="system_ref_core_clock" err_msg="system_ref_core_clock must be with '_khz' suffix"></entry>
+                    <entry property="fap_device_mode" err_msg="The device supports only PP mode. TM mode is not supported. TDM functionality is done by other APIs (see bcm_port_add)"></entry>
+                    <entry property="custom_feature_l3_mc_use_tcam" err_msg="L3 multicast flows are changed. There are no different options for L3 multicast forwarding. See Arch L3 section."></entry>
+                    <entry property="custom_feature_l3_ipv6_uc_use_tcam" err_msg="L3 multicast flows are changed. There are no different options for L3 multicast forwarding. See Arch L3 section."></entry>
+                    <entry property="bcm886xx_ipv6_ext_hdr_enable" err_msg="Several options of IPv6 Extension headers are supported by default. There is only one mode in the device."></entry>
+                    <entry property="custom_feature_udp_parse_disable" err_msg="UDP parse is enabled by default. There is only one mode in the device."></entry>
+                    <entry property="sa_auth_enabled" err_msg="SA Authentication feature is no longer done by the LLR block. Instead ACL capabilities are available. See L2 backward compatible section."></entry>
+                    <entry property="logical_port_l2_bridge" err_msg="The functionality is no longer set by init-sequence using soc-property."></entry>
+                    <entry property="logical_port_drop" err_msg="The functionality is no longer set by init-sequence using soc-property."></entry>
+                    <entry property="evb_enable" err_msg="EVB functionality is currently not supported."></entry>
+                    <entry property="vlan_translation_match_ipv4" err_msg="Feature not supported"></entry>
+                    <entry property="bcm886xx_next_hop_mac_extension_enable" err_msg="Global mode is no longer required."></entry>
+                    <entry property="bcm886xx_vlan_translate_mode" err_msg="The device supports only advanced vlan translation. Basic vlan translation is not supported anymore. See L2 backward compatible section."></entry>
+                    <entry property="bcm886xx_mpls_termination_database_mode" err_msg="MPLS termination flows are changed. There are no different options for MPLS termination. See Arch MPLS section."></entry>
+                    <entry property="mpls_termination_label_index_enable" err_msg="MPLS termination flows are changed. There are no different options for MPLS termination. See Arch MPLS section."></entry>
+                    <entry property="fast_reroute_labels_enable" err_msg="MPLS termination flows are changed. There are no different options for MPLS termination. See Arch MPLS section."></entry>
+                    <entry property="mpls_context_specific_label_enable" err_msg="The functionality is no longer supported by a global mode."></entry>
+                    <entry property="mpls_context" err_msg="he functionality is no longer supported by a global mode."></entry>
+                    <entry property="mpls_tp_mymac_reserved_address" err_msg="Feature not supported"></entry>
+                    <entry property="bcm886xx_qos_l3_l2_marking" err_msg="QOS remarking is now supported differently. See Arch QOS section."></entry>
+                    <entry property="custom_feature_ipmc_set_entry_type_by_rif" err_msg="Feature not supported"></entry>
+                    <entry property="bcm886xx_l3_ingress_urpf_enable" err_msg="Functionality is supported per LIF(RIF) only."></entry>
+                    <entry property="bcm886xx_mpls_termination_key_mode" err_msg="MPLS termination flows are changed. There are no different options for MPLS termination. See Arch MPLS section."></entry>
+                    <entry property="bcm886xx_logical_interface_bridge_filter_enable" err_msg="The functionality per LIF is now changed and enabled by default with no need for global mode indication."></entry>
+                    <entry property="split_horizon_forwarding_groups_mode" err_msg="The functionality per LIF is now changed and enabled by default with no need for global mode indication."></entry>
+                    <entry property="oam_enable" err_msg="Functionality is enabled by default"></entry>
+                    <entry property="bfd_enable" err_msg="Functionality is enabled by default"></entry>
+                    <entry property="pwe_termination_port_mode_enable" err_msg="Feature not supported"></entry>
+                    <entry property="mpls_entropy_label_indicator_enable" err_msg="MPLS termination flows are changed. There are no different options for MPLS termination. See Arch MPLS section."></entry>
+                    <entry property="bcm886xx_ipv6_tunnel_enable" err_msg="IPv6 tunnel flows are changed. There are no different options for IPv6 tunnels. See Arch IPv6 Tunnel section."></entry>
+                    <entry property="number_of_inrif_mac_termination_combinations" err_msg="The functionality per In-LIF(In-RIF) profile has been changed. Global mode is no longer required."></entry>
+                    <entry property="ipmc_l3mcastl2_mode" err_msg="IPMC flows are changed. There are no different options for it. See Arch IPMC section."></entry>
+                    <entry property="ext_ram_t_32aw" err_msg="timing parameter no longer relevant"></entry>
+                    <entry property="ext_ram_t_al" err_msg="timing parameter no longer relevant"></entry>
+                    <entry property="ext_ram_t_crc_alert" err_msg="timing parameter no longer relevant"></entry>
+                    <entry property="ext_ram_t_crc_rd_latency" err_msg="timing parameter no longer relevant"></entry>
+                    <entry property="ext_ram_t_crc_wr_latency" err_msg="timing parameter no longer relevant"></entry>
+                    <entry property="ext_ram_t_ras_enable" err_msg="timing parameter no longer relevant"></entry>
+                    <entry property="ext_ram_t_ref" err_msg="timing parameter no longer relevant"></entry>
+                    <entry property="ext_ram_t_rfc" err_msg="timing parameter no longer relevant"></entry>
+                    <entry property="ext_ram_t_rrd" err_msg="timing parameter no longer relevant"></entry>
+                    <entry property="ext_ram_t_rst" err_msg="timing parameter no longer relevant"></entry>
+                    <entry property="ext_ram_t_rtp" err_msg="timing parameter no longer relevant"></entry>
+                    <entry property="ext_ram_t_zqcs" err_msg="timing parameter no longer relevant"></entry>
+                    <entry property="ext_ram_abi" err_msg="address bus inversion is not relevant for jr2, drams address lines are ordered internally"></entry>
+                    <entry property="ext_ram_addr_bank_swap" err_msg="address banks swaps are done internally"></entry>
+                    <entry property="ext_ram_present" err_msg="ext_ram_present was replaced by ext_ram_enabled_bitmap to better represent which drams are available in the system"></entry>
+                    <entry property="ext_ram_auto_tune" err_msg="ext_ram_auto_tune was replaced by dram_phy_tune_mode_on_init to better convey the meaning and avoid confusion between soc property and shell command"></entry>
+                    <entry property="ext_ram_dq_swap" err_msg="data bits swaps are done internally"></entry>
+                    <entry property="ext_ram_dbuff_mmc_optimized_distribution_enable" err_msg="this is a legacy soc property that is relevant only for a very specific scenario which doesn't occur in jer 2"></entry>
+                    <entry property="ext_ram_total_size" err_msg="total dram size is configured internally"></entry>
+                    <entry property="ext_ram_type" err_msg="only one type of dram is supported and configured internally"></entry>
+                    <entry property="ext_ram_gear_down_mode" err_msg="gear down mode not supported in jer 2"></entry>
+                    <entry property="slow_max_rate_level" err_msg="Not supported. No tradeoffs between max slow rate and max burst"></entry>
+                    <entry property="l3_multiple_mymac_termination_mode" err_msg="Multiple mymac termination mode is no longer supported"></entry>
+                    <entry property="bcm886xx_ingress_protection_coupled_mode" err_msg="Ingress protection coupled mode no longer supported"></entry>
+                    <entry property="bcm_stat_flags" err_msg="bcm_stat_flags is not in use in DNX. Please go to AE for further information. Please set this soc property to 0, or delete it from config file"></entry>
+                    <entry property="soc_counter_control_level" err_msg="soc_counter_control_level is not in use in DNX. Please go to AE for further information. Please delete it from config file"></entry>
+                    <entry property="ilkn_counters_mode" err_msg="ilkn_counters_mode is not in use in DNX. only counters per channel are supported"></entry>
+                    <entry property="voq_mapping_mode" err_msg="Only INDIRECT mode is supported, so voq_mapping_mode is not relevant"></entry>
+                    <entry property="l3_multiple_mymac_termination_enable" err_msg="l3_multiple_mymac_termination_enable is not supported in JR2"></entry>
+                    <entry property="dport_map_enable" err_msg="this property is no longer supported"></entry>
+                    <entry property="ilkn_num_lanes" err_msg="ilkn_num_lanes is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_invalid_lane_id" err_msg="Ilkn_invalid_lane_id is not in use in DNX."></entry>
+                    <entry property="ilkn_interface_status_ignore" err_msg="ilkn_interface_status_ignore is not in use in DNX."></entry>
+                    <entry property="ilkn_interface_status_oob_ignore" err_msg="ilkn_interface_status_ignore is not in use in DNX."></entry>
+                    <entry property="ilkn_retransmit_buffer_size" err_msg="ilkn_retransmit_buffer_size is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_calendar_mode_rx" err_msg="ilkn_retransmit_calendar_mode_rx is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_calendar_mode_tx" err_msg="ilkn_retransmit_calendar_mode_tx is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_enable_rx" err_msg="ilkn_retransmit_enable_rx is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_enable_tx" err_msg="ilkn_retransmit_enable_tx is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_num_requests_resent" err_msg="ilkn_retransmit_num_requests_resent is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_num_sn_repetitions_rx" err_msg="ilkn_retransmit_num_sn_repetitions_rx is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_num_sn_repetitions_tx" err_msg="ilkn_retransmit_num_sn_repetitions_tx is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_peer_tx_buffer_size" err_msg="ilkn_retransmit_peer_tx_buffer_size is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_reserved_channel_id" err_msg="ilkn_retransmit_reserved_channel_id is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_rx_discontinuity_event_timeout" err_msg="ilkn_retransmit_rx_discontinuity_event_timeout is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_rx_ignore" err_msg="ilkn_retransmit_rx_ignore is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_rx_reset_upon_watchdog_error_enable" err_msg="ilkn_retransmit_rx_reset_upon_watchdog_error_enable is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_rx_reset_when_alligned_error_enable" err_msg="ilkn_retransmit_rx_reset_when_alligned_error_enable is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_rx_reset_when_error_enable" err_msg="ilkn_retransmit_rx_reset_when_error_enable is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_rx_reset_when_retry_error_enable" err_msg="ilkn_retransmit_rx_reset_when_retry_error_enable is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_rx_reset_when_timout_error_enable" err_msg="ilkn_retransmit_rx_reset_when_timout_error_enable is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_rx_reset_when_wrap_after_disc_error_enable" err_msg="ilkn_retransmit_rx_reset_when_wrap_after_disc_error_enable is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_rx_reset_when_wrap_before_disc_error_enable" err_msg="ilkn_retransmit_rx_reset_when_wrap_before_disc_error_enable is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_rx_timeout_sn" err_msg="ilkn_retransmit_rx_timeout_sn is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_rx_timeout_words" err_msg="ilkn_retransmit_rx_timeout_words is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_rx_watchdog" err_msg="ilkn_retransmit_rx_watchdog is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_sn_bits" err_msg="ilkn_retransmit_sn_bits is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_tx_ignore_requests_when_fifo_almost_empty" err_msg="ilkn_retransmit_tx_ignore_requests_when_fifo_almost_empty is not in use in DNX. use ilkn_lanes"></entry>
+                    <entry property="ilkn_retransmit_tx_wait_for_seq_num_change_enable" err_msg="ilkn_retransmit_tx_wait_for_seq_num_change_enable is not in use in DNX. use ilkn_lanes"></entry> 
+                    <entry property="stat_if_enable_port" err_msg="this property is no longer supported"></entry>-------
+                    <entry property="stat_if_tc_source" err_msg="this property is no longer supported"></entry>
+                    <entry property="stat_if_reports_per_packet" err_msg="this property is renamed to stat_if_pkt_size"></entry>
+                    <entry property="stat_if_billing_ingress_queue_stamp_enable" err_msg="this property is no longer supported, made via report format API"></entry>
+                    <entry property="stat_if_billing_ingress_drop_reason_enable" err_msg="this property is no longer supported, made via report format API"></entry>
+                    <entry property="stat_if_billing_filter_reports" err_msg="this property is no longer supported, made via source mapping API"></entry>
+                    <entry property="stat_if_core_mode" err_msg="this property is no longer supported"></entry>
+                    <entry property="stat_if_reports_per packet" err_msg="this property is no longer supported"></entry>
+                    <entry property="stat_if_scrubber_uc_dram_buffer_th" suffix="" num_max="14" err_msg="this property is no longer supported"></entry>
+                    <entry property="stat_if_scrubber_buffer_descr_th" suffix="" num_max="14" err_msg="this property is no longer supported"></entry>
+                    <entry property="stat_if_etpp_counter_mode" suffix="" num_max="1" err_msg="this property is no longer supported"></entry>
+                    <entry property="stat_if_etpp_mode" suffix="" num_max="1" err_msg="this property is no longer supported"></entry>
+                    <entry property="stat_if_rate" err_msg="this property is no longer supported"></entry>
+                    <entry property="counter_engine_source" suffix="" num_max="17" err_msg="this property is no longer supported - no soc properties to configure CRPS functionality"></entry>
+                    <entry property="counter_engine_statistics" suffix="" num_max="17" err_msg="this property is no longer supported- no soc properties to configure CRPS functionality"></entry>
+                    <entry property="counter_engine_format" suffix="" num_max="17" err_msg="this property is no longer supported- no soc properties to configure CRPS functionality"></entry>
+                    <entry property="counter_engine_map_enable" suffix="" num_max="17" err_msg="this property is no longer supported- no soc properties to configure CRPS functionality"></entry>
+                    <entry property="counter_engine_voq_min_queue" suffix="" num_max="17" err_msg="this property is no longer supported- no soc properties to configure CRPS functionality"></entry>
+                    <entry property="counter_engine_voq_queue_set_size" suffix="" num_max="17" err_msg="this property is no longer supported- no soc properties to configure CRPS functionality"></entry>
+                    <entry property="counter_engine_map_drop_green_offset" suffix="" num_max="17" err_msg="this property is no longer supported- no soc properties to configure CRPS functionality"></entry>
+                    <entry property="counter_engine_map_drop_yellow_offset" suffix="" num_max="17" err_msg="this property is no longer supported- no soc properties to configure CRPS functionality"></entry>
+                    <entry property="counter_engine_map_drop_red_offset" suffix="" num_max="17" err_msg="this property is no longer supported- no soc properties to configure CRPS functionality"></entry>
+                    <entry property="counter_engine_map_drop_black_offset" suffix="" num_max="17" err_msg="this property is no longer supported- no soc properties to configure CRPS functionality"></entry>
+                    <entry property="counter_engine_map_fwd_green_offset" suffix="" num_max="17" err_msg="this property is no longer supported- no soc properties to configure CRPS functionality"></entry>
+                    <entry property="counter_engine_map_fwd_yellow_offset" suffix="" num_max="17" err_msg="this property is no longer supported- no soc properties to configure CRPS functionality"></entry>
+                    <entry property="counter_engine_map_fwd_red_offset" suffix="" num_max="17" err_msg="this property is no longer supported- no soc properties to configure CRPS functionality"></entry>
+                    <entry property="counter_engine_map_fwd_black_offset" suffix="" num_max="17" err_msg="this property is no longer supported- no soc properties to configure CRPS functionality"></entry>
+                    <entry property="counter_engine_replicated_packets" err_msg="this property is no longer supported- no soc properties to configure CRPS functionality"></entry>
+                    <entry property="policer_base_rate" err_msg="this property is no longer supported"></entry>
+                    <entry property="policer_ingress_count" err_msg="this property is no longer supported"></entry>
+                    <entry property="policer_egress_count" err_msg="this property is no longer supported"></entry>
+                    <entry property="policer_ingress_sharing_mode" err_msg="this property is no longer supported"></entry>
+                    <entry property="policer_egress_sharing_mode" err_msg="this property is no longer supported"></entry>
+                    <entry property="policer_result_map" err_msg="this property is no longer supported"></entry>
+                    <entry property="policer_result_parallel_color_map" err_msg="this property is no longer supported"></entry>
+                    <entry property="policer_result_parallel_bucket_update" err_msg="this property is no longer supported"></entry>
+                    <entry property="policer_color_resolution_mode" err_msg="this property is no longer supported"></entry>
+                    <entry property="bcm_meter_clear_fe" err_msg="this property is no longer supported"></entry>
+                    <entry property="bcm_meter_clear_ge" err_msg="this property is no longer supported"></entry>
+                    <entry property="bcm_meter_clear_xe" err_msg="this property is no longer supported"></entry>
+                    <entry property="global_meter_control" err_msg="this property is no longer supported"></entry>
+                    <entry property="global_meter_compression_share" err_msg="this property is no longer supported"></entry>
+                    <entry property="global_meter_compaction_support" err_msg="this property is no longer supported"></entry>
+                    <entry property="private_ip_frwrd_table_size" err_msg="mdb_kaps_a_size and mdb_kaps_b_size replace the private_ip_frwrd_table_size and public_ip_frwrd_table_size soc properties."></entry>
+                    <entry property="public_ip_frwrd_table_size" err_msg="mdb_kaps_a_size and mdb_kaps_b_size replace the private_ip_frwrd_table_size and public_ip_frwrd_table_size soc properties."></entry>
+                    <entry property="enhanced_fib_scale_prefix_length" err_msg="IPv4 FIB scale feature is not supported."></entry> 
+                    <entry property="enhanced_fib_scale_prefix_length_ipv6_long" err_msg="IPv6 FIB scale feature is not supported, please read the backward compatibility document."></entry>
+                    <entry property="enhanced_fib_scale_prefix_length_ipv6_short" err_msg="IPv6 FIB scale feature is not supported, please read the backward compatibility document."></entry>
+                    <entry property="phy_an_c37" per_port="1" err_msg="CL37 AN mode is not supported"></entry>
+                    <entry property="mpls_encap_invalid_value" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="mpls_encapsulation_action_swap_or_push_enable" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="port_raw_mpls_enable" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="udp_tunnels_enable" err_msg="UDP tunnels are always enabled, please read the backward compatibility document."></entry>
+                    <entry property="bcm886xx_ip4_tunnel_termination_mode" err_msg="Tunnel termination modes are no longer configured with soc property,please read the backward compatibility document."></entry>
+                    <entry property="default_logical_interface_mpls_termination_explicit_null" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="mpls_termination_explicit_null_label_lookup_mode" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="mpls_egress_label_extended_encapsulation_mode" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="bcm886xx_ipv6_tunnel_enable"  err_msg="IPV6 tunnels are always enabled, please read the backward compatibility document."></entry>
+                    <entry property="egress_membership_mode" err_msg="Egress membership mode is not supported anymore, please read the backward compatibility document."></entry>
+                    <entry property="bcm886xx_ip6_tunnel_termination_mode" err_msg="Ipv6 tunnel termination mode is not configured with soc property, please read the backward compatibility document."></entry>
+                    <entry property="bcm886xx_ip6_tunnel_encapsulation_mode" err_msg="Ipv6 encapsulation mode is not supported anymore, please read the backward compatibility document."></entry>
+                    <entry property="custom_feature_allow_modifications_during_traffic" err_msg="No need to allow modification during traffic anymore, each case handles its own restrictions internally"></entry>
+                    <entry property="ext_1588_mac_enable" per_port="1" err_msg="external mac per port is determinie using API bcm_port_timesync_config_set (flag BCM_PORT_TIMESYNC_EXTERNAL_MAC_ENABLE) "></entry>
+                    <entry property="bcm88660_1588_48b_stamping_enable" err_msg="1588 48b stamping is not supported"></entry>
+                    <entry property="ext_ip4_fwd_table_size" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="ext_ip4_uc_fpr_fwd_table_size" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="ext_ip4_mc_fwd_table_size" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="ext_ip6_fwd_table_size" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="ext_ip6_uc_fpr_fwd_table_size" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="ext_ip6_mc_fwd_table_size" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="ext_mpls_fwd_table_size" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="ext_trill_uc_fwd_table_size" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="ext_trill_mc_fwd_table_size" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="ext_ip4_mc_bridge_fwd_table_size" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="ext_ip4_double_capacity_fwd_table_size" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="ext_ip4_uc_rpf_public_fwd_table_size" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="ext_ip6_uc_rpf_public_fwd_table_size" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="custom_feature_ext_tcam_dc_24bit_result" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="ext_tcam_result_size_segment" suffix="" num_max="7" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="ext_tcam_result_size_segment_res1_pad" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="ext_tcam_result_size_segment_res3_pad" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="bcm_linkscan_interval" err_msg="The soc property is no longer supported. Please use the API bcm_linkscan_enable_set() instead."></entry>
+                    <entry property="num_erp_tm_ports" err_msg="The soc property is no longer supported. Please use the soc property ucode_port with interface ERP instead."></entry>
+                    <entry property="phy_an_c73" per_port="1" err_msg="The soc property is no longer supported. Please use bcm_port_autoneg_ability_advert_set instead."></entry>
+                    <entry property="port_init_autoneg" per_port="1" err_msg="The soc property is no longer supported. Please use bcm_port_autoneg_set instead."></entry>
+                    <entry property="exact_match_tables_shadow_enable" err_msg="Shadow memories are not supported for EM tables, please read the backward compatibility document."></entry>
+                    <entry property="cosq_admission_preference_3" suffix="" err_msg="the soc property is not supported for DP3. it is always ADMIT_OVER_GUARANTEE"></entry>
+                    <entry property="fc_inband_intlkn_type" per_port="1" err_msg="ILKN Inband Flow Control not supported."></entry>
+                    <entry property="fc_inband_intlkn_calender_rep_count" per_port="1" err_msg="ILKN Inband Flow Control not supported."></entry>
+                    <entry property="fc_inband_intlkn_calender_rep_count" suffix="rx" num_max="DATA(fc,inband,nof_inband_intlkn_cal_instances)" err_msg="ILKN Inband Flow Control not supported."></entry>
+                    <entry property="fc_inband_intlkn_calender_rep_count" suffix="tx" num_max="DATA(fc,inband,nof_inband_intlkn_cal_instances)" err_msg="ILKN Inband Flow Control not supported."></entry>
+                    <entry property="fc_inband_intlkn_llfc_mub_enable_mask" per_port="1" err_msg="ILKN Inband Flow Control not supported."></entry>
+                    <entry property="fc_inband_intlkn_channel_mub_enable_mask" per_port="1" err_msg="ILKN Inband Flow Control not supported."></entry>
+                    <entry property="fc_inband_intlkn_channel_mub_enable_mask" suffix="rx" num_max="DATA(fc,inband,nof_inband_intlkn_cal_instances)" err_msg="ILKN Inband Flow Control not supported."></entry>
+                    <entry property="fc_inband_intlkn_channel_mub_enable_mask" suffix="tx" num_max="DATA(fc,inband,nof_inband_intlkn_cal_instances)" err_msg="ILKN Inband Flow Control not supported."></entry>
+                    <entry property="serdes_fabric_clk_freq" suffix="in" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="serdes_fabric_clk_freq" suffix="out" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="serdes_nif_clk_freq" suffix="in" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="serdes_nif_clk_freq" suffix="out" err_msg="The soc property is no longer supported, please read the backward compatibility document."></entry>
+                    <entry property="ilkn_tdm_dedicated_queuing" err_msg="propery is not supported. define interleaving by API"></entry>
+                    <entry property="custom_feature_ilkn_dedicated_tdm_context" per_port="1" err_msg="ILKN dedicated TDM context is not supported."></entry>
+            </entries>
+            </table>
+        </tables>
+    </sub_module>   
+
+    <sub_module name="general">
+        <numerics>
+            <numeric name="access_only" value="0">
+                <property name="custom_feature" method="suffix_enable" suffix="access_only">
+                    <doc>
+                        Set to boot with access only.
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+        <features>
+             <feature name="data_path_hw" value="0"></feature>
+             <feature name="remove_crc_bytes" value="0"></feature>
+             <feature name="remove_crc_bytes_capability" value="1"></feature>
+             <feature name="l4_protocol_fields_config_enable" value="1"></feature>
+        </features>
+    </sub_module>
+
+    <sub_module name="ha">
+        <numerics>
+            <numeric name="warmboot_support" value="0">
+                <property name="warmboot_support" method="direct_map">
+                    <map name="on" value="1"></map>
+                    <map name="off" value="0"></map>
+                    <doc>Specify if WarmBoot is supported</doc>
+                </property>
+            </numeric>
+
+            <numeric name="sw_state_max_size" value="0">
+                <property name="sw_state_max_size" method="range" range_min="0" range_max="1000000000">
+                    <doc>
+                        Configures the size of memory to be pre allocated for sw state.
+                        The valid range is 0-1000000000 (i.e up to 1TB).
+                    </doc>
+                </property>
+            </numeric>
+
+            <numeric name="stable_location" value="1">
+                <property name="stable_location" method="range" range_min="0" range_max="5">
+                    <doc>
+                        Specify the stable cache option for Warm Boot operations.
+                    </doc>
+                </property>
+            </numeric>
+
+            <numeric name="stable_size" value="0">
+                <property name="stable_size" method="range" range_min="0" range_max="1000000000">
+                    <doc>
+                        Specify the stable cache size in bytes used for Warm boot operations.
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+            <table name="stable_filename">
+                <value name="val" default="NULL">
+                    <property name="stable_filename" method="str" >
+                        <doc>file system will be used to save the stable cache data with this filename</doc>
+                    </property>
+                </value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="shadow">
+        <tables>
+            <table name="uncacheable_mem" mode="sequential">
+                <!-- key size must change if entries changed -->
+                <key name="index"></key>
+                <value name="mem" default="INVALIDm"></value>
+                <entries>
+                    <!-- Below memory not real memory Below-->
+                    <entry mem="CDPORT_TSC_UCMEM_DATAm"></entry>
+                    <entry mem="FSRD_FSRD_PROM_MEMm"></entry>
+                    <entry mem="ILE_PORT_0_CPU_ACCESSm"></entry>
+                    <entry mem="ILE_PORT_1_CPU_ACCESSm"></entry>
+                    <entry mem="IPPF_LEARN_PAYLOAD_CONTEXT_MAPPINGm"></entry>
+                    <entry mem="SCH_SCHEDULER_INITm"></entry>
+                    <entry mem="FSRD_FSRD_PROM_MEMm"></entry>
+                    <entry mem="CLPORT_WC_UCMEM_DATAm"></entry>
+                    <!-- ErppDebugUnit and IppfDebugUnit memory -->
+                    <entry mem="ERPP_MEM_F000000m"></entry>
+                    <entry mem="IPPF_MEM_F000000m"></entry>
+
+                    <entry mem="ERPP_ERPP_DEBUG_UNITm"></entry>
+                    <entry mem="ETPPA_ETPPA_DEBUG_UNITm"></entry>
+                    <entry mem="ETPPB_ETPPB_DEBUG_UNITm"></entry>
+                    <entry mem="ETPPC_ETPPC_DEBUG_UNITm"></entry>
+                    <entry mem="IPPA_IPPA_DEBUG_UNITm"></entry>
+                    <entry mem="IPPB_IPPB_DEBUG_UNITm"></entry>
+                    <entry mem="IPPC_IPPC_DEBUG_UNITm"></entry>
+                    <entry mem="IPPD_IPPD_DEBUG_UNITm"></entry>
+                    <entry mem="IPPE_IPPE_DEBUG_UNITm"></entry>
+                    <entry mem="IPPF_IPPF_DEBUG_UNITm"></entry>
+                    <entry mem="IPPA_IPPA_DEBUG_UNITm"></entry>
+                    <entry mem="IPPB_IPPB_DEBUG_UNITm"></entry>
+
+                    <!-- CDPORT block execluded -->
+                    <entry mem="RX_LKUP_1588_MEM_400Gm"></entry>
+                    <entry mem="RX_LKUP_1588_MEM_MPP0m"></entry>
+                    <entry mem="RX_LKUP_1588_MEM_MPP1m"></entry>
+                    <entry mem="SPEED_ID_TABLEm"></entry>
+                    <entry mem="SPEED_PRIORITY_MAP_TBLm"></entry>
+                    <entry mem="TX_LKUP_1588_MEM_400Gm"></entry>
+                    <entry mem="TX_LKUP_1588_MEM_MPP0m"></entry>
+                    <entry mem="TX_LKUP_1588_MEM_MPP1m"></entry>
+                    <entry mem="UM_TABLEm"></entry>
+                   <entry mem="AM_TABLEm"></entry>
+                    <!-- memory which entries length < 64, need check -->
+
+                    <!-- memory with TCAM_BANK is not real memory -->
+                    <entry mem="MDB_ARM_KAPS_TCMm"></entry>
+
+                    <!-- TCAM bank related memory not real memory, those tables provide access to the TCAM banks through read/write commands -->
+                    <entry mem="ERPP_EPMFCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPA_VTDCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPA_VTECS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPB_FLPACS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPB_FLPBCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPC_PMFACSA_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPC_PMFACSB_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPD_PMFBCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPE_LLRCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPE_PRTCAM_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPF_VTACS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPF_VTBCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPF_VTCCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="TCAM_TCAM_BANK_COMMANDm"></entry>
+
+                    <entry mem="ERPP_EPMFCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPA_VTDCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPA_VTECS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPB_FLPACS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPB_FLPBCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPC_PMFACSA_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPC_PMFACSB_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPD_PMFBCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPE_LLRCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPE_PRTCAM_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPF_VTACS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPF_VTBCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPF_VTCCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="TCAM_TCAM_BANK_REPLYm"></entry>
+
+                    <entry mem="ERPP_EPMFCS_TCAM_BANKm"></entry>
+                    <entry mem="IPPA_VTDCS_TCAM_BANKm"></entry>
+                    <entry mem="IPPA_VTECS_TCAM_BANKm"></entry>
+                    <entry mem="IPPB_FLPACS_TCAM_BANKm"></entry>
+                    <entry mem="IPPB_FLPBCS_TCAM_BANKm"></entry>
+                    <entry mem="IPPC_PMFACSA_TCAM_BANKm"></entry>
+                    <entry mem="IPPC_PMFACSB_TCAM_BANKm"></entry>
+                    <entry mem="IPPD_PMFBCS_TCAM_BANKm"></entry>
+                    <entry mem="IPPE_LLRCS_TCAM_BANKm"></entry>
+                    <entry mem="IPPE_PRTCAM_TCAM_BANKm"></entry>
+                    <entry mem="IPPF_VTACS_TCAM_BANKm"></entry>
+                    <entry mem="IPPF_VTBCS_TCAM_BANKm"></entry>
+                    <entry mem="IPPF_VTCCS_TCAM_BANKm"></entry>
+                    <entry mem="TCAM_TCAM_BANKm"></entry>
+                    <!-- Not real memory -->
+                    <entry mem="SCH_TOKEN_MEMORY_CONTROLLER_TMCm"></entry>
+                    <entry mem="MDB_ARM_MEM_0m"></entry>
+                    <entry mem="MDB_ISEM_1m"></entry>
+                    <entry mem="MDB_ISEM_2m"></entry>
+                    <entry mem="MDB_ISEM_3m"></entry>
+                    <entry mem="MDB_IOEM_0m"></entry>
+                    <entry mem="MDB_IOEM_1m"></entry>
+                    <entry mem="MDB_MC_IDm"></entry>
+                    <entry mem="MDB_GLEM_0m"></entry>
+                    <entry mem="MDB_GLEM_1m"></entry>
+                    <entry mem="MDB_EOEM_0m"></entry>
+                    <entry mem="MDB_EOEM_1m"></entry>
+                    <entry mem="EVNT_ASSIGNED_CMIC_ENGINE_TABLEm"></entry>
+                    <entry mem="EVNT_SPACE_REGIONSm"></entry>
+                    <entry mem="EVNT_CMIC_ENG_PROPERTIESm"></entry>
+
+                    <!-- some field represent OAMP status, dynamic -->
+                    <entry mem="OAMP_MEP_DBm"></entry>
+                    <entry mem="OAMP_RMEP_DBm"></entry>
+                    <entry mem="MDB_ESEMm"></entry>
+                    <entry mem="MDB_EXEM_1m"></entry>
+                    <entry mem="MDB_EXEM_2m"></entry>
+                    <entry mem="MDB_RMEPm"></entry>
+                    <!-- port statistics -->
+                    <entry mem="IPPC_PER_PORT_STATISTICSm"></entry>
+                    <!-- others -->
+                    <entry mem="SCH_RESERVED_54m"></entry>
+                    <entry mem="SCH_RESERVED_37m"></entry>
+                    <entry mem="ETPPC_LATENCY_TABLEm"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+</device_data>

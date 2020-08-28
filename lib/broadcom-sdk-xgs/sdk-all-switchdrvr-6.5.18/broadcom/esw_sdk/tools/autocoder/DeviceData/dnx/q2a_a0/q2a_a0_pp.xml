@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0" module="pp">
+
+    <sub_module name="debug">
+        <defines>
+            <define name="packet_header_data" value="128"/>
+            <define name="ptc_size" value="10"/>
+            <define name="valid_bytes" value="8"/>
+            <define name="time_stamp" value="34"/>
+        </defines>
+        <features>
+        </features>
+    </sub_module>
+</device_data>

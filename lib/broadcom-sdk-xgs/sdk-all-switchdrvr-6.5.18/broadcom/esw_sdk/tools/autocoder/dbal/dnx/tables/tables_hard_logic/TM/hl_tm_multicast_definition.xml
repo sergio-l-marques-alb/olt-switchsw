@@ -1,0 +1,1091 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="MCDB">
+        <OneLineDescription>multicast data base</OneLineDescription>
+        <!-- For the HW in this DBAL table allias is used, check hw_entity_porting.xml -->
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MCDB_INDEX" Size="DNX_DATA.multicast.params.nof_mcdb_entries_bits" Type="UINT"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Description="MTM_SINGLE_FORMAT" Name="RESULT_TYPE" Size="5" Value="SINGLE_FORMAT"/>
+                    <Field Name="NEXT_PTR" Size="18" Type="UINT"/>
+                    <Field Name="CUD"/>
+                    <Field Name="DESTINATION"/>
+                </Result>
+                <Result Device="J2C_A0">
+                    <Field Description="MTM_SINGLE_EXT_FORMAT" Name="RESULT_TYPE" Size="5" Value="SINGLE_EXT_FORMAT"/>
+                    <Field Name="NEXT_PTR" Size="18" Type="UINT"/>
+                    <Field Name="CUD"/>
+                    <Field Name="TCM"/>
+                    <Field Name="EGRESS_DESTINATION_EXT"/>
+                </Result>
+                <Result>
+                    <Field Description="MTM_DOUBLE_FORMAT" Name="RESULT_TYPE" Size="5" Value="DOUBLE_FORMAT"/>
+                    <Field Name="NEXT_PTR" Size="18" Type="UINT"/>
+                    <Field Name="CUD"/>
+                    <Field Name="TCM"/>
+                    <Field Name="EGRESS_DESTINATION" NofInstances="2" Size="9"/>
+                </Result>
+                <Result>
+                    <Field Description="MTM_BITMAP_PTR_FORMAT" Name="RESULT_TYPE" Size="5" Value="BITMAP_PTR_FORMAT"/>
+                    <Field Name="NEXT_PTR" Size="18" Type="UINT"/>
+                    <Field Name="CUD"/>
+                    <Field Name="BMP_PTR" Size="DNX_DATA.multicast.params.nof_mcdb_entries_bits" Type="UINT"/>
+                </Result>
+                <Result>
+                    <Field Description="MTM_LINK_LIST_FORMAT" Name="RESULT_TYPE" Size="5" Value="LINK_LIST_FORMAT"/>
+                    <Field Name="NEXT_PTR" Size="18" Type="UINT"/>
+                    <Field Name="LINK_LIST_PTR" Size="DNX_DATA.multicast.params.nof_mcdb_entries_bits" Type="UINT"/>
+                </Result>
+                <Result>
+                    <Field Description="MTM_BITMAP_FORMAT" Name="RESULT_TYPE" Size="5" Value="BITMAP_FORMAT"/>
+                    <Field Name="NEXT_PTR" Size="18" Type="UINT"/>
+                    <Field Name="TCM"/>
+                    <Field Name="BMP_OFFSET" Size="4" Type="UINT"/>
+                    <Field Name="BMP" Size="32" Type="UINT"/>
+                </Result>
+                <Result Device="J2C_A0">
+                    <Field Description="MTM_BITMAP_EXT_FORMAT" Name="RESULT_TYPE" Size="5" Value="BITMAP_EXT_FORMAT"/>
+                    <Field Name="NEXT_PTR" Size="18" Type="UINT"/>
+                    <Field Name="TCM"/>
+                    <Field Name="BMP_OFFSET" Size="5" Type="UINT"/>
+                    <Field Name="BMP" Size="32" Type="UINT"/>
+                </Result>
+                <Result>
+                    <Field Description="MTM_TDM_FORMAT" Name="RESULT_TYPE" Size="5" Value="TDM_FORMAT"/>
+                    <Field Name="EGRESS_DESTINATION" NofInstances="4" Size="9"/>
+                    <Field Name="CUD"/>
+                </Result>
+                <Result Device="J2C_A0">
+                    <Field Description="MTM_TDM_EXT_FORMAT" Name="RESULT_TYPE" Size="5" Value="TDM_EXT_FORMAT"/>
+                    <Field Name="EGRESS_DESTINATION_EXT" NofInstances="3"/>
+                    <Field Name="CUD"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>J2P_NOTREV L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <MultipleResultsMapping>
+                <Result LogicalValue="SINGLE_FORMAT" Value="0" Value1="1" Value2="2" Value3="3"/>
+                <Result LogicalValue="SINGLE_EXT_FORMAT" Value="24" Value1="25" Value2="26" Value3="27"/>
+                <Result LogicalValue="DOUBLE_FORMAT" Value="8" Value1="9" Value2="10" Value3="11"/>
+                <Result LogicalValue="BITMAP_PTR_FORMAT" Value="4" Value1="12"/>
+                <Result LogicalValue="BITMAP_FORMAT" Value="5" Value1="13"/>
+                <Result LogicalValue="BITMAP_EXT_FORMAT" Value="21" Value1="29"/>
+                <Result LogicalValue="LINK_LIST_FORMAT" Value="6" Value1="14"/>
+                <Result LogicalValue="TDM_FORMAT" Value="7" Value1="15"/>
+                <Result LogicalValue="TDM_EXT_FORMAT" Value="23" Value1="31"/>
+            </MultipleResultsMapping>
+            <FieldMapping ResultType="SINGLE_FORMAT">
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="RESULT_TYPE">
+                    <Access Offset="4" Size="1">
+                        <Memory Name="MTM_MCDB_FORMAT_SINGLEm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="J_2C_FORMATf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RESULT_TYPE">
+                     <Access Offset="3" Size="1">
+                        <SwState SwType="SW"/>
+                    </Access>
+                   <Access Offset="2" Size="1">
+                        <Memory Name="MTM_MCDB_FORMAT_SINGLEm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="FORMATf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NEXT_PTR">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_SINGLEm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="NEXT_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CUD">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_SINGLEm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="CUDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DESTINATION">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_SINGLEm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="DESTINATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="SINGLE_EXT_FORMAT">
+                <Field Name="RESULT_TYPE">
+                    <Access Offset="4" Size="1">
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_EGR_SINGLEm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="J_2C_FORMATf"/>
+                        </Memory>
+                    </Access>
+                    <Access Offset="3" Size="1">
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access Offset="2" Size="1">
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_EGR_SINGLEm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="FORMATf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NEXT_PTR">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_EGR_SINGLEm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="NEXT_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CUD">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_EGR_SINGLEm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="CUDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TCM">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_EGR_SINGLEm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="TCMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_DESTINATION_EXT">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_EGR_SINGLEm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="DESTINATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="DOUBLE_FORMAT">
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="RESULT_TYPE">
+                    <Access Offset="4" Size="1">
+                        <Memory Name="MTM_MCDB_FORMAT_DOUBLEm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="J_2C_FORMATf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RESULT_TYPE">
+                    <Access Offset="3" Size="1">
+                        <SwState SwType="SW"/>
+                    </Access>
+                    <Access Offset="2" Size="1">
+                        <Memory Name="MTM_MCDB_FORMAT_DOUBLEm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="FORMATf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NEXT_PTR">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_DOUBLEm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="NEXT_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CUD">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_DOUBLEm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="CUDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TCM">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_DOUBLEm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="TCMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_DESTINATION">
+                    <Access instanceIndex="1">
+                        <Memory Name="MTM_MCDB_FORMAT_DOUBLEm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="DESTINATION_Bf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="0">
+                        <Memory Name="MTM_MCDB_FORMAT_DOUBLEm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="DESTINATION_Af"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="BITMAP_PTR_FORMAT">
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="RESULT_TYPE">
+                    <Access Offset="4" Size="1">
+                        <Memory Name="MTM_MCDB_FORMAT_BITMAP_PTRm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="J_2C_FORMATf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RESULT_TYPE">
+                    <Access Offset="2" Size="1">
+                        <Memory Name="MTM_MCDB_FORMAT_BITMAP_PTRm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="FORMAT_MSBf"/>
+                        </Memory>
+                    </Access>
+                    <Access Size="2">
+                        <Memory Name="MTM_MCDB_FORMAT_BITMAP_PTRm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="FORMAT_LSBf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NEXT_PTR">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_BITMAP_PTRm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="NEXT_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CUD">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_BITMAP_PTRm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="CUDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BMP_PTR">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_BITMAP_PTRm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="BITMAP_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="LINK_LIST_FORMAT">
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="RESULT_TYPE">
+                    <Access Offset="4" Size="1">
+                        <Memory Name="MTM_MCDB_FORMAT_LINK_LISTm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="J_2C_FORMATf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RESULT_TYPE">
+                    <Access Offset="2" Size="1">
+                        <Memory Name="MTM_MCDB_FORMAT_LINK_LISTm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="FORMAT_MSBf"/>
+                        </Memory>
+                    </Access>
+                    <Access Size="2">
+                        <Memory Name="MTM_MCDB_FORMAT_LINK_LISTm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="FORMAT_LSBf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NEXT_PTR">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_LINK_LISTm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="NEXT_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LINK_LIST_PTR">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_LINK_LISTm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="BITMAP_EXT_FORMAT">
+                <Field Name="RESULT_TYPE">
+                    <Access Offset="4" Size="1">
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_BITMAPm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="J_2C_FORMATf"/>
+                        </Memory>
+                    </Access>
+                    <Access Offset="2" Size="1">
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_BITMAPm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="FORMAT_MSBf"/>
+                        </Memory>
+                    </Access>
+                    <Access Size="2">
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_BITMAPm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="FORMAT_LSBf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NEXT_PTR">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_BITMAPm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="NEXT_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TCM">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_BITMAPm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="TCMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BMP_OFFSET">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_BITMAPm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BMP">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_BITMAPm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="BITMAPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="BITMAP_FORMAT">
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="RESULT_TYPE">
+                    <Access Offset="4" Size="1">
+                        <Memory Name="MTM_MCDB_FORMAT_BITMAPm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="J_2C_FORMATf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RESULT_TYPE">
+                    <Access Offset="2" Size="1">
+                        <Memory Name="MTM_MCDB_FORMAT_BITMAPm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="FORMAT_MSBf"/>
+                        </Memory>
+                    </Access>
+                    <Access Size="2">
+                        <Memory Name="MTM_MCDB_FORMAT_BITMAPm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="FORMAT_LSBf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NEXT_PTR">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_BITMAPm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="NEXT_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TCM">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_BITMAPm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="TCMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BMP_OFFSET">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_BITMAPm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BMP">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_BITMAPm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="BITMAPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="TDM_EXT_FORMAT">
+                 <Field Name="RESULT_TYPE">
+                    <Access Offset="4" Size="1">
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_TDMm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="J_2C_FORMATf"/>
+                        </Memory>
+                    </Access>
+                    <Access Offset="2" Size="1">
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_TDMm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="FORMAT_MSBf"/>
+                        </Memory>
+                    </Access>
+                    <Access Size="2">
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_TDMm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="FORMAT_LSBf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_DESTINATION_EXT">
+                    <Access Size="7" instanceIndex="2">
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_TDMm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="PP_DSP_C_LSBf"/>
+                        </Memory>
+                    </Access>
+                    <Access Offset="7" Size="4" instanceIndex="2">
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_TDMm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="PP_DSP_C_MSBf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_TDMm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="PP_DSP_Bf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="0">
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_TDMm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="PP_DSP_Af"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CUD">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_J_2C_TDMm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="CUDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="TDM_FORMAT">
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="RESULT_TYPE">
+                    <Access Offset="4" Size="1">
+                        <Memory Name="MTM_MCDB_FORMAT_TDMm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="J_2C_FORMATf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RESULT_TYPE">
+                    <Access Offset="2" Size="1">
+                        <Memory Name="MTM_MCDB_FORMAT_TDMm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="FORMAT_MSBf"/>
+                        </Memory>
+                    </Access>
+                    <Access Size="2">
+                        <Memory Name="MTM_MCDB_FORMAT_TDMm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="FORMAT_LSBf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_DESTINATION">
+                    <Access instanceIndex="3">
+                        <Memory Name="MTM_MCDB_FORMAT_TDMm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="PP_DSP_Df"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="MTM_MCDB_FORMAT_TDMm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="PP_DSP_Cf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="MTM_MCDB_FORMAT_TDMm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="PP_DSP_Bf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="0">
+                        <Memory Name="MTM_MCDB_FORMAT_TDMm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="PP_DSP_Af"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CUD">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_TDMm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="CUDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MCDB_LINK_LIST_PTR">
+        <OneLineDescription>multicast group status</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MCDB_INDEX" Size="DNX_DATA.multicast.params.nof_mcdb_entries_bits" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="NEXT_PTR" Size="18" Type="UINT"/>
+                <Field Name="PREV_PTR" Size="18" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="NEXT_PTR">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_BITMAP_PTRm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="#FULL_KEY_VALUE()%4*64"/>
+                            </Alias>
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()/dnx_data_multicast.params.mcdb_block_size_get(unit)"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%dnx_data_multicast.params.mcdb_block_size_get(unit)/4"/>
+                            <HwField Name="NEXT_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PREV_PTR">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MULTICAST_GROUP_STATUS">
+        <OneLineDescription>multicast group status</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="GROUP_ID" Size="DNX_DATA.multicast.params.nof_mcdb_entries_bits"/>
+            </Key>
+
+            <Result>
+                <Field Name="INGRESS_GROUP_IS_OPEN" Type="BOOL"/>
+                <Field Name="EGRESS_GROUP_IS_OPEN" Type="BOOL"/>
+                <Field Name="INGRESS_BITMAP_IS_OPEN" Type="BOOL"/>
+                <Field Name="EGRESS_BITMAP_IS_OPEN" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INGRESS_GROUP_IS_OPEN">
+                    <Access>
+                        <Memory Name="CGM_IS_ING_MCm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/32"/>
+                            <HwField Name="IS_ING_MC_BITMAPf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()%32"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_GROUP_IS_OPEN">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>
+                <Field Name="INGRESS_BITMAP_IS_OPEN">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_BITMAP_IS_OPEN">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MULTICAST_OFFSETS">
+        <OneLineDescription>multicast group status</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="INGRESS_CORE_0_OFFSET" Size="19" Type="UINT"/>
+                <Field Name="INGRESS_CORE_1_OFFSET" Size="19" Type="UINT" Valid="DNX_DATA.device.general.nof_cores/2"/>
+                <Field Name="EGRESS_CORE_0_OFFSET" Size="19" Type="UINT"/>
+                <Field Name="EGRESS_CORE_1_OFFSET" Size="19" Type="UINT" Valid="DNX_DATA.device.general.nof_cores/2"/>
+            </Result>
+            <TableLabels>J2P_NOTREV L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0 J2P_A0" Name="INGRESS_CORE_0_OFFSET">
+                    <Access>
+                        <Register Name="MTM_ING_MCDB_OFFSETr">
+                            <HwField Name="ING_0_MCDB_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="INGRESS_CORE_0_OFFSET">
+                    <Access>
+                        <Register Name="MTM_ING_MCDB_OFFSETr">
+                            <HwField Name="ING_MCDB_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2P_A0" Name="INGRESS_CORE_1_OFFSET">
+                    <Access>
+                        <Register Name="MTM_ING_MCDB_OFFSETr">
+                            <HwField Name="ING_1_MCDB_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2P_A0" Name="EGRESS_CORE_0_OFFSET">
+                    <Access>
+                        <Register Name="MTM_EGR_MCDB_OFFSETr">
+                            <HwField Name="EGR_0_MCDB_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="EGRESS_CORE_0_OFFSET">
+                    <Access>
+                        <Register Name="MTM_EGR_MCDB_OFFSETr">
+                            <HwField Name="EGR_MCDB_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2P_A0" Name="EGRESS_CORE_1_OFFSET">
+                    <Access>
+                        <Register Name="MTM_EGR_MCDB_OFFSETr">
+                            <HwField Name="EGR_1_MCDB_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MULTICAST_INGRESS_INTERNAL_STAT_COUNT_COPIES">
+        <OneLineDescription>multicast ingress, is to count all copies as one or count each one of the copies.refer to counter prcoessor, per command id</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="9" Name="COMMAND_ID" Size="4" Type="UINT"/>
+                <Field Name="CORE_ID" Size="1"/>            
+            </Key>
+            <Result>
+                <Field Name="COUNT_ALL_COPIES_AS_ONE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="COUNT_ALL_COPIES_AS_ONE">
+                    <Access>
+                        <KeyCondition Field="COMMAND_ID" Type="EQUAL_TO" Value="0"/> 
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_MC_ONCE_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="COMMAND_ID" Type="EQUAL_TO" Value="1"/> 
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_MC_ONCE_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="COMMAND_ID" Type="EQUAL_TO" Value="2"/> 
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_MC_ONCE_2f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="COMMAND_ID" Type="EQUAL_TO" Value="3"/> 
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_MC_ONCE_3f"/>
+                        </Register>
+                    </Access>
+                                        <Access>
+                        <KeyCondition Field="COMMAND_ID" Type="EQUAL_TO" Value="4"/> 
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_MC_ONCE_4f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="COMMAND_ID" Type="EQUAL_TO" Value="5"/> 
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_MC_ONCE_5f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="COMMAND_ID" Type="EQUAL_TO" Value="6"/> 
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_MC_ONCE_6f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="COMMAND_ID" Type="EQUAL_TO" Value="7"/> 
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_MC_ONCE_7f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="COMMAND_ID" Type="EQUAL_TO" Value="8"/> 
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_MC_ONCE_8f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="COMMAND_ID" Type="EQUAL_TO" Value="9"/> 
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_MC_ONCE_9f"/>
+                        </Register>
+                    </Access>                    
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="MULTICAST_INGRESS_EXTERNAL_STAT_COUNT_COPIES">
+        <OneLineDescription>multicast ingress, is to count all copies as one or count each one of the copies.refer to statistics interface counters</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>            
+            </Key>
+            <Result>
+                <Field Name="COUNT_ALL_COPIES_AS_ONE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="COUNT_ALL_COPIES_AS_ONE">
+                    <Access>
+                        <Register Name="CGM_EXT_STAT_BILL_SETTINGSr">
+                            <HwField Name="EXT_STAT_BILL_MC_ONCEf"/>
+                        </Register>
+                    </Access>                
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="MULTICAST_GROUP_EGR_CORES" Valid="DNX_DATA.device.general.multi_core">
+        <OneLineDescription>multicast group core enable</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="GROUP_ID"/>
+                <Field Name="CORE_REP_ID" Size="1" Type="UINT"/>
+            </Key>
+
+            <Result>
+                <Field Name="CORE_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CORE_ENABLE">
+                    <Access>
+                        <Memory Name="FDR_FDR_MCm">
+                            <EntryOffset Formula="#KEY_VALUE(GROUP_ID)/64"/>
+                            <HwField Name="PAYLOADf"/>
+                            <DataOffset Formula="#KEY_VALUE(GROUP_ID)%64*2+#KEY_VALUE(CORE_REP_ID)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+</AppDbCatalog>

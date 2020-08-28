@@ -1,0 +1,360 @@
+<?xml version="1.0"?>
+
+<device_data lib="dnx_data" module="dram" bsl_flag="BSL_LS_BCMDNX_DRAM">
+    <includes>
+        <include>bcm_int/dnx/dram/hbmc/hbmc.h</include>
+    </includes>
+
+    <sub_module name="hbm" doc="HBM parameters and defines">
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="hbm supported indication"></feature>
+            <feature labels="j2p_notrev" name="dword_alignment_check" doc="indication if dword alignemnt check is required for this architecture"></feature>
+            <feature labels="j2p_notrev" name="low_temperature_dram_protction" doc="Indicates whether there is a 'low-temperature' forbidden range for HBM"></feature>
+            <feature labels="j2p_notrev" name="is_delete_bdb_supported" doc="Deleting dram buffers (marking them as faulty) is possible during 'init sequence'"></feature>
+            <feature labels="j2p_notrev" name="cpu2tap_access" doc="Indication whether cpu2tap access to the HBM is supported"></feature>
+            <feature labels="j2p_notrev" name="seamless_commands_to_same_bank_control" doc="Indication whether seamless commands to same bank control is supported"></feature> <!-- This is a new feature that wat introduced in J2C and it is not actually working, however its default was set to 1, so need to kill it -->
+        </features>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="burst_length" doc="burst length"/>
+            <numeric labels="j2p_notrev" name="stop_traffic_temp_threshold" doc="temperature threshold (C degrees) above which the HBM should not recieve packets anymore"/>
+            <numeric labels="j2p_notrev" name="stop_traffic_low_temp_threshold" doc="Low temperature threshold (C degrees) below which the HBM should not recieve packets anymore"/>
+            <numeric labels="j2p_notrev" name="restore_traffic_temp_threshold" doc="temperature threshold (C degrees) below which the HBM should be reassigned to usage in the traffic flow"/>
+            <numeric labels="j2p_notrev" name="restore_traffic_low_temp_threshold" doc="Low temperature threshold (C degrees) above which the HBM should be reassigned to usage in the traffic flow"/>
+            <numeric labels="j2p_notrev" name="usec_between_temp_samples" doc="time in usecs to wait between HBM temperature sampling"/>
+            <numeric labels="j2p_notrev" name="power_down_temp_threshold" doc="temperature threshold, for doing DRAM shut down"/>
+            <numeric labels="j2p_notrev" name="power_down_low_temp_threshold" doc="Low temperature threshold, for doing DRAM shut down"/>
+            <numeric labels="j2p_notrev" name="dram_temp_monitor_enable" doc="enable/disable driver temperature monitoring"/>
+        </numerics>
+    
+        <defines>
+            <define labels="j2p_notrev" name="channel_broadcast_id" doc="channel id to use in dbal when trying to broadcast"></define>
+            <define labels="j2p_notrev" name="hbc_physical_last_in_chain" doc="block index of the physically last in chain hbc, provided all hbms are active"></define>
+            <define labels="j2p_notrev" name="default_model_part_num" doc="default model part number"></define>
+        </defines>
+
+        <tables>
+            <table labels="j2p_notrev" name="channel_symmetric_regs" doc="per channel list of symmetric registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="channel_not_symmetric_regs" doc="per channel list of not symmetric registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="controller_symmetric_regs" doc="per controller list of symmetric registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="controller_not_symmetric_regs" doc="per controller list of not symmetric registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="channel_interrupt_regs" doc="per channel list of interrupt registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="controller_interrupt_regs" doc="per controller list of interrupt registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="channel_debug_regs" doc="per channel list of debug registers - should be preented if value is not reset value">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+                <value name="reassuring_str" type="char *" doc="string to explain that this register's value is as expected (reset value)"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="channel_counter_regs" doc="per channel list of counter registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="channel_type_regs" doc="per channel list of registers that require per type printing">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+                <value name="type" type="dnx_hbmc_diag_registers_type_t" doc="printing type"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="controller_info_regs" doc="per contorller list of info registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+        </tables>
+    </sub_module>
+
+    <sub_module name="gddr6" doc="GDDR6 parameters and defines">
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="gddr supported indication"></feature>
+            <feature labels="j2p_notrev" name="allow_disable_read_crc" doc="allow disabling read crc"></feature>
+            <feature labels="j2p_notrev" name="interleaved_refresh_cycles" doc="allow per bank and all banks refresh to be interleaved"></feature>
+            <feature labels="j2p_notrev" name="refresh_pend_switch" doc="allow wait for Wr/Rd swith to perform AB refresh"></feature>
+            <feature labels="j2p_notrev" name="dynamic_calibration" doc="Indication whether dynamic calibration is supported"></feature>
+        </features>
+        <defines>
+            <define labels="j2p_notrev" name="nof_ca_bits" doc="number of command address bits"></define>
+            <define labels="j2p_notrev" name="bytes_per_channel" doc="bytes per channel in GDDR6 dram"></define>
+            <define labels="j2p_notrev" name="training_fifo_depth" doc="the depth of the training fifo in GDDR6 dram"></define>
+        </defines>
+        <numerics>
+            <numeric labels="j2p_notrev" name="refresh_mechanism_enable" doc="TSM refresh mechanism enable"/>
+            <numeric labels="j2p_notrev" name="bist_enable" doc="DRAM bist enable"/>
+            <numeric labels="j2p_notrev" name="write_recovery" doc="write recovery"></numeric>
+            <numeric labels="j2p_notrev" name="cabi" doc="enable cabi"></numeric>
+            <numeric labels="j2p_notrev" name="dram_mode" doc="dram mode"></numeric>
+            <numeric labels="j2p_notrev" name="cal_termination" doc="CAL Termination"></numeric>
+            <numeric labels="j2p_notrev" name="cah_termination" doc="CAH Termination"></numeric>
+            <numeric labels="j2p_notrev" name="command_pipe_extra_delay" doc="command pipe extra delay"></numeric>
+            <numeric labels="j2p_notrev" name="use_11bits_ca" doc="use 11bits for command address"></numeric>
+            <numeric labels="j2p_notrev" name="ck_odt" doc="CK ODT"></numeric>
+            <numeric labels="j2p_notrev" name="dynamic_calibration_period" doc="time between 2 iterations of dynamic calibration"></numeric>
+        </numerics>
+        <tables>
+            <table labels="j2p_notrev" name="refresh_intervals" doc="refresh intervals timing parameters">
+                <value name="trefiab" type="uint32" doc="trefiab timing parameters"></value>
+                <value name="trefiab_acc" type="uint32" doc="trefiab_acc timing parameters"></value>
+                <value name="trefisb" type="uint32" doc="trefisb timing parameters"></value>
+            </table>
+            <table labels="j2p_notrev" name="dq_map" doc="DQ swap mapping on boards">
+                <key name="dram_index" doc="dram index"></key>
+                <key name="byte" doc="bit on dram"></key>
+                <value name="dq_map"  type="uint8[8]" doc="dq map"></value>
+            </table>
+            <table labels="j2p_notrev" name="dq_channel_swap" doc="DQ channel swap mapping on boards">
+                <key name="dram_index" doc="dram index"></key>
+                <value name="dq_channel_swap"  type="uint8" doc="dq map"></value>
+            </table>
+            <table labels="j2p_notrev" name="dq_byte_map" doc="DQ bytes swap mapping on boards">
+                <key name="dram_index" doc="dram index"></key>
+                <key name="byte" doc="byte on dram"></key>
+                <value name="dq_byte_map"  type="uint8" doc="dq byte map"></value>
+            </table>
+            <table labels="j2p_notrev" name="ca_map" doc="command address bit swap mapping on boards">
+                <key name="dram_index" doc="dram index"></key>
+                <key name="channel" doc="command address bit"></key>
+                <value name="ca_map"  type="uint8[12]" doc="ca map"></value>
+            </table>
+            <table labels="j2p_notrev" name="cadt_byte_map" doc="bytes swapping on boards">
+                <key name="dram_index" doc="dram index"></key>
+                <key name="channel" doc="dram controller channel"></key>
+                <value name="cadt_byte_map"  type="uint8" doc="cadt byte map"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="channel_regs" doc="per channel list of registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="controller_regs" doc="per phy controller list of registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="channel_interrupt_regs" doc="per channel list of interrupt registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="controller_interrupt_regs" doc="per phy list of interrupt registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="channel_debug_regs" doc="per channel list of debug registers - should be preented if value is not reset value">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+                <value name="reassuring_str" type="char *" doc="string to explain that this register's value is as expected (reset value)"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="channel_counter_regs" doc="per channel list of counter registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="channel_type_regs" doc="per channel list of registers that require per type printing">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+                <value name="type" type="dnx_hbmc_diag_registers_type_t" doc="printing type"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="controller_info_regs" doc="per contorller list of info registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+        </tables>
+    </sub_module>
+
+    <sub_module name="general_info" doc="general info derived from defaults or soc properties which is relevant also for other types of drams, not only to HBM">
+        <defines>
+            <define labels="j2p_notrev" name="otp_restore_version" doc="when restoring from OTP the tune data, do it according to the given version format"></define>
+            <define labels="j2p_notrev" name="max_nof_drams" doc="max number of drams supported for this device - in other words the size of the dram bitmap"></define>
+            <define labels="j2p_notrev" name="nof_channels" doc="max number of dram channels supported for this device"></define>
+            <define labels="j2p_notrev" name="mr_mask" doc="mode register bit mask"></define>
+            <define labels="j2p_notrev" name="nof_mrs" doc="number of mode registers"></define>
+            <define labels="j2p_notrev" name="phy_address_mask" doc="bit mask to describe the relevant bits in phy register address"></define>
+        </defines>
+        <numerics>
+            <numeric labels="j2p_notrev" name="max_dram_index" doc="max dram index from bitmap"></numeric>
+            <numeric labels="j2p_notrev" name="min_dram_index" doc="min dram index from bitmap"></numeric>
+            <numeric labels="j2p_notrev" name="frequency" doc="dram frequency (in MHZ), used to calculated data_rate"></numeric>
+            <numeric labels="j2p_notrev" name="buffer_size" doc="dram buffer size in bytes"></numeric>
+            <numeric labels="j2p_notrev" name="command_address_parity" doc="command address parity"></numeric>
+            <numeric labels="j2p_notrev" name="dq_write_parity" doc="dq write parity"></numeric>
+            <numeric labels="j2p_notrev" name="dq_read_parity" doc="dq read parity"></numeric>
+            <numeric labels="j2p_notrev" name="dbi_read" doc="dbi read"></numeric>
+            <numeric labels="j2p_notrev" name="dbi_write" doc="dbi write"></numeric>
+            <numeric labels="j2p_notrev" name="write_latency" doc="write latency"></numeric>
+            <numeric labels="j2p_notrev" name="read_latency" doc="read latency"></numeric>
+            <numeric labels="j2p_notrev" name="parity_latency" doc="parity latency"></numeric>
+            <numeric labels="j2p_notrev" name="actual_parity_latency" doc="parity latency to be used after factoring in the effect of other numerics"></numeric>
+            <numeric labels="j2p_notrev" name="tune_mode_on_init" doc="tune mode during init sequence"></numeric>
+            <numeric labels="j2p_notrev" name="command_parity_latency" doc="command parity latency"></numeric>
+            <numeric labels="j2p_notrev" name="crc_write_latency" doc="crc write latency"></numeric>
+            <numeric labels="j2p_notrev" name="crc_read_latency" doc="crc read latency"></numeric>
+            <numeric labels="j2p_notrev" name="crc_write" doc="write crc"></numeric>
+            <numeric labels="j2p_notrev" name="crc_read" doc="read crc"></numeric>
+            <numeric labels="j2p_notrev" name="device_size" doc="device size for each dram die"></numeric>
+        </numerics>
+
+        <tables>
+            <table labels="j2p_notrev" name="mr_defaults" doc="mode registers default values">
+                <key name="index" doc="mode register index"></key>
+                <value name="value" type="uint32" doc="default value for mode register"></value>
+            </table>
+            <table labels="j2p_notrev" name="dram_info" doc="general information regarding the dram in the system">
+                <value name="dram_type" type="uint32" doc="dram type as defined by tuning infrastructure"></value>
+                <value name="dram_bitmap" type="uint32" doc="bitmap of currently available drams"></value>
+                <value name="nof_columns" type="uint32" doc="number of columns in the dram"></value>
+                <value name="nof_rows" type="uint32" doc="number of rows in the dram"></value>
+                <value name="nof_banks" type="uint32" doc="number of banks in the dram"></value>
+                <value name="data_rate" type="uint32" doc="(in MHZ)data rate in mbps, in DDRs equal 2 * frequency"></value>
+                <value name="ref_clock" type="uint32" doc="ref clock for the dram phy"></value>
+                <value name="ctl_type" type="uint32" doc="shmoo input - which actions to perform"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="timing_params" doc="timing parameters">
+                <value name="twr" type="uint32" doc="twr timing parameter"></value>
+                <value name="trp" type="uint32" doc="trp timing parameter"></value>
+                <value name="trtps" type="uint32" doc="trtps timing parameter"></value>
+                <value name="trtpl" type="uint32" doc="trtpl timing parameter"></value>
+                <value name="trrds" type="uint32" doc="trrds timing parameter"></value>
+                <value name="trrdl" type="uint32" doc="trrdl timing parameter"></value>
+                <value name="tfaw" type="uint32" doc="tfaw timing parameter"></value>
+                <value name="trcdwr" type="uint32" doc="trcdwr timing parameter"></value>
+                <value name="trcdrd" type="uint32" doc="trcdrd timing parameter"></value>
+                <value name="tras" type="uint32" doc="tras timing parameter"></value>
+                <value name="trc" type="uint32" doc="trc timing parameter"></value>
+                <value name="twtrl" type="uint32" doc="twtrl timing parameter"></value>
+                <value name="twtrs" type="uint32" doc="twtrs timing parameter"></value>
+                <value name="trtw" type="uint32" doc="trtw timing parameter"></value>
+                <value name="tccdr" type="uint32" doc="tccdr timing parameter"></value>
+                <value name="tccds" type="uint32" doc="tccds timing parameter"></value>
+                <value name="tccdl" type="uint32" doc="tccdl timing parameter"></value>
+                <value name="trrefd" type="uint32" doc="trrefd timing parameter"></value>
+                <value name="trfcsb" type="uint32" doc="trfcsb timing parameter"></value>
+                <value name="trfc" type="uint32" doc="trfc timing parameter"></value>
+                <value name="tmrd" type="uint32" doc="tmrd timing parameter"></value>
+                <value name="tmod" type="uint32" doc="tmod timing parameter"></value>
+                <!-- training timings params -->
+                <value name="twtrtr" type="uint32" doc="twtrtr timing parameter"></value>
+                <value name="twrwtr" type="uint32" doc="twrwtr timing parameter"></value>
+                <value name="treftr" type="uint32" doc="treftr timing parameter"></value>
+                <value name="trdtlt" type="uint32" doc="trdtlt timing parameter"></value>
+                <value name="trcdwtr" type="uint32" doc="trcdwtr timing parameter"></value>
+                <value name="trcdrtr" type="uint32" doc="trcdrtr timing parameter"></value>
+                <value name="trcdltr" type="uint32" doc="trcdltr timing parameter"></value>
+                <value name="tltrtr" type="uint32" doc="tltrtr timing parameter"></value>
+                <value name="tltltr" type="uint32" doc="tltltr timing parameter"></value>
+            </table>
+            <table labels="j2p_notrev" name="refresh_intervals" doc="refresh intervals timing parameters">
+                <key name="temp_index" doc="temperature index"></key>
+                <value name="trefi" type="uint32" doc="trefi timing parameters"></value>
+                <value name="trefisb" type="uint32" doc="trefisb timing parameters"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="address_translation" doc="information regarding the address translation scheme between logical to physical buffer">        
+        <numerics>
+        </numerics>
+
+        <defines>
+            <define labels="j2p_notrev" name="matrix_column_size" doc="the number of rows in the ATM"></define>
+            <define labels="j2p_notrev" name="physical_address_transaction_size" doc="nof bytes in each read/write from/to physical address"></define>
+            <define labels="j2p_notrev" name="nof_atms" doc="number of address translation matrix"></define>
+        </defines>
+
+        <tables>
+            <table labels="j2p_notrev" name="matrix_configuration" doc="address translation matrix(ATM) configuration options">
+                <key name="matrix_option" doc="matrix selector"/>
+                <value name="logical_to_physical" type="uint32[DNX_DATA_MAX_DRAM_ADDRESS_TRANSLATION_MATRIX_COLUMN_SIZE]" doc="the values of the ATM"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="interrupt_regs" doc="per address translation unit list of interrupt registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="counter_regs" doc="per address translation unit list of counter registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+        </tables>
+    </sub_module>
+
+    <sub_module name="buffers" doc="information regarding BDs and BDBs">
+        <features>
+            <feature labels="j2p_notrev" name="quarantine_buffers_if_tdu_corrected_errors" doc="this feature represents sending buffers to quarantine after tdu corrected error event has happend"></feature>
+            <feature labels="j2p_notrev" name="quarantine_buffers_if_tdu_errors" doc="this feature represents sending buffers to quarantine after tdu error event has happend"></feature>
+        </features>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="allowed_errors" doc="number of times a buffer is allowed into the quarantine FIFO before it is deleted instead of restored"></numeric>
+        </numerics>
+
+        <defines>
+            <define labels="j2p_notrev" name="nof_bdbs" doc="number of BDBs per core"></define>
+            <define labels="j2p_notrev" name="nof_fpc_banks" doc="number of free pointer controler banks"/>
+        </defines>
+
+        <tables>
+            <table labels="j2p_notrev" name="deleted_buffers_info" doc="deleted buffers info">
+                <value name="deleted_buffers_file" type="char *" doc="full path to file containing deleted buffers for this unit"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="dram_block" doc="information regarding DRAM blocked state.">
+        <features>
+            <feature labels="j2p_notrev" name="write_minus_read_leaky_bucket_disable" doc="indication whether disabling the write minus read leaky bucket is supported"></feature>
+            <feature labels="j2p_notrev" name="write_plus_read_leaky_bucket_disable" doc="indication whether disabling the write plus read leaky bucket is supported"></feature>
+            <feature labels="j2p_notrev" name="average_read_inflights_leaky_bucket" doc="indication whether average read inflights leaky bucket is supported"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="leaky_bucket_window_size" doc="window size for DRAM block calculation"></define>
+            <define labels="j2p_notrev" name="wmr_reset_on_deassert" doc="indication whether to reset on deassert of write-minus-read leaky bucket"></define>
+            <define labels="j2p_notrev" name="wmr_full_size" doc="write-minus-read leaky bucket full size"></define>
+        </defines>
+        <numerics>
+            <numeric labels="j2p_notrev" name="wmr_decrement_thr_factor" doc="factor for calculating decrement threshold for write_minus_read leaky bucket"></numeric>
+            <numeric labels="j2p_notrev" name="wpr_increment_thr_factor" doc="factor for calculating increment threshold for write-plus-read leaky bucket"></numeric>
+        </numerics>
+    </sub_module>
+
+    <!-- FIXME SDK-186029 - this submodule should be deleted -->
+    <sub_module name="dbal" doc="information regarding DRAM dbal.">
+        <numerics>
+            <numeric labels="j2p_notrev" name="hbmc_index_nof_bits" doc="The size (number of bits) of HBMC_INDEX dbal field"></numeric>
+        </numerics>
+    </sub_module>
+
+</device_data>
