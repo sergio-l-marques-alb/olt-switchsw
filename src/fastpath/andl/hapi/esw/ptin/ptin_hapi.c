@@ -5544,6 +5544,8 @@ L7_RC_t ptin_hapi_xlaui_set(bcm_port_t bcm_port)
     return L7_FAILURE;
   }
 
+
+#if 0
   /* Enable DFE for all ports */
   rc = bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_DFE_ENABLE, 1); // DFE ON
   if (L7_BCMX_OK(rc) != L7_TRUE)
@@ -5552,7 +5554,7 @@ L7_RC_t ptin_hapi_xlaui_set(bcm_port_t bcm_port)
                bcm_port, rc);
     return L7_FAILURE;
   }
-
+#endif
   /* Set Full duplex */
   rc = bcm_port_duplex_set(0, bcm_port, 1);
   if (L7_BCMX_OK(rc) != L7_TRUE)
@@ -5827,6 +5829,7 @@ L7_RC_t ptin_hapi_def_set(bcm_port_t bcm_port)
  */
 L7_RC_t hapiBroadSystemInstallPtin_preInit(void)
 {
+#if ((PTIN_BOARD != PTIN_BOARD_AE48GE) && (PTIN_BOARD != PTIN_BOARD_AG16GA))
   BROAD_POLICY_t      policyId;
   BROAD_POLICY_RULE_t ruleId;
   L7_ushort16         vlanId, vlanMask;
@@ -5910,7 +5913,7 @@ L7_RC_t hapiBroadSystemInstallPtin_preInit(void)
   /* Save policy */
   lacp_policyId = policyId;
   PT_LOG_NOTICE(LOG_CTX_STARTUP,"LACP rule added");
-
+#endif
   return L7_SUCCESS;
 }
 
