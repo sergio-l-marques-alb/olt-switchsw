@@ -3483,7 +3483,7 @@ _bcm_kt_cosq_sched_get(int unit, bcm_port_t port, bcm_cos_queue_t cosq,
  */
 STATIC int
 _bcm_kt_cosq_port_sched_set(int unit, bcm_port_t port, bcm_cos_queue_t cosq,
-                                   int mode, int num_weights, int *weights)
+                            int mode, int num_weights, const int *weights)
 {
     int i;
 
@@ -5779,7 +5779,7 @@ bcm_kt_cosq_port_sched_set(int unit, bcm_pbmp_t pbm,
             
         BCM_IF_ERROR_RETURN
             (_bcm_kt_cosq_port_sched_set(unit, port, 0, mode, num_weights,
-                                         (int *)weights));
+                                         weights));
     }
 
     return BCM_E_NONE;

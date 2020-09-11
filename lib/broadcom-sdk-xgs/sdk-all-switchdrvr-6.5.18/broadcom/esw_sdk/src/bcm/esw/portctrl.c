@@ -3482,7 +3482,7 @@ _bcm_esw_portctrl_speed_validate(int unit, bcm_gport_t port, int speed)
     bcm_port_ability_t port_ability, requested_ability;
     int mode = -1;
     int rv;
-    int max_speed;
+    int max_speed = 0;
 
     /* PM8x50 ports will have their speed config checked in portmod */
     if (IS_CD_PORT(unit, port)) {
