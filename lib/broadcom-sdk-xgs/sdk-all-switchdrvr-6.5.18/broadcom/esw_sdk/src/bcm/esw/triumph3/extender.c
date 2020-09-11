@@ -44,9 +44,6 @@
 #include <soc/saber2.h>
 #endif /* BCM_SABER2_SUPPORT */
 
-#if (__GNUC__ >= 4) /* PTin added */
-#pragma GCC diagnostic ignored "-Wunused-function"
-#endif
 #define  TD_EXTENDER_PORT_HASH_BKT_SIZE          32
 /*
  * Extender EGR_L3_NEXT_HOP View

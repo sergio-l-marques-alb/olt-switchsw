@@ -124,10 +124,6 @@ extern int bcmi_esw_port_eee_cfg_set(int unit, bcm_port_t port, int value);
 #define PORTCTRL_SPEED_ABILITY_MAX_COUNT 50
 #endif /* PORTMOD_SUPPORT */
 
-#if (__GNUC__ >= 4) /* PTin added */
-#pragma GCC diagnostic ignored "-Wunused-function"
-#endif
-
 /*
  * Macros for use with encapsulation set related functions
  */

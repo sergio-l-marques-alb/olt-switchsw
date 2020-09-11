@@ -104,10 +104,6 @@ extern void _bcm_vp_vfi_set(int unit, int vp, int vfi);
 #include <soc/esw/cancun_enums.h>
 #endif
 
-#if (__GNUC__ >= 4) /* PTin added */
-#pragma GCC diagnostic ignored "-Wunused-function"
-#endif
-
 #ifdef BCM_SPECIAL_LABEL_SUPPORT
 char *label_type_array[5] = { "special_label_type_NONE",
                                   "Special_label_type_GAL",

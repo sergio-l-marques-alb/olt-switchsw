@@ -64,10 +64,6 @@
 #include <soc/drv.h>    /* For MH Opcode-0 priority workaround */
 #endif
 
-#if (__GNUC__ >= 4) /* PTin added */
-#pragma GCC diagnostic ignored "-Wunused-function"
-#endif
-
 void topo_cpu_dump(topo_cpu_t *topo_cpu, char *prefix);
 
 

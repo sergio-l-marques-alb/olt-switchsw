@@ -43,11 +43,6 @@
 
 #include <bcm_int/esw/latency_monitor.h>
 
-#if (__GNUC__ >= 4) /* PTin added */
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#pragma GCC diagnostic ignored "-Wunused-function"
-#endif
-
 #ifdef ALPM_ENABLE
 #ifdef BCM_TOMAHAWK_SUPPORT
 extern uint32 *alpm_bkt_node_ptr_arr_get(uint32 idx);
