@@ -437,12 +437,12 @@
 
 /* iterate over all cores */
 #define SOC_DPP_CORES_ITER(core_id, index) \
-    for(index = (((core_id) == _SHR_CORE_ALL) ? 0 : (core_id));\
+    for (index = (((core_id) == _SHR_CORE_ALL) ? 0 : (core_id));\
         index < (((core_id) == _SHR_CORE_ALL) ?  SOC_DPP_CONFIG(unit)->core_mode.nof_active_cores : ((core_id) + 1));\
         index++)
 
 #define SOC_DPP_ASSYMETRIC_CORES_ITER(core_id, index)\
-    for(index = (((core_id) == _SHR_CORE_ALL || SOC_DPP_CORE_MODE_IS_SYMMETRIC(unit)) ? 0 : (core_id));\
+    for (index = (((core_id) == _SHR_CORE_ALL || SOC_DPP_CORE_MODE_IS_SYMMETRIC(unit)) ? 0 : (core_id));\
         index < (((core_id) == _SHR_CORE_ALL) ?  \
                     (SOC_DPP_CORE_MODE_IS_SYMMETRIC(unit) ? 1 : SOC_DPP_CONFIG(unit)->core_mode.nof_active_cores) : \
                     ((core_id) + 1));\

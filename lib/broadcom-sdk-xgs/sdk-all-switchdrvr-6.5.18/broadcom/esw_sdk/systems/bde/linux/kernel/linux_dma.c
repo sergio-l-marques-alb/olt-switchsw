@@ -177,7 +177,6 @@ MODULE_PARM_DESC(himemaddr,
 #define DMA_MEM_DEFAULT (16 * ONE_MB)
 #endif
 
-
 /* We try to assemble a contiguous segment from chunks of this size */
 #define DMA_BLOCK_SIZE (512 * ONE_KB)
 

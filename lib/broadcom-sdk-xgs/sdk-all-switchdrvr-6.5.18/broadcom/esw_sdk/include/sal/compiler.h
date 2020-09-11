@@ -754,7 +754,7 @@ typedef struct sal_int64_s  { int u64_w[2]; } sal_int64_t;
 /* } */
 #else
 /* { */
-#  define STATIC static /* PTin corrected */
+#  define STATIC
 /* } */
 #endif
 /* } */

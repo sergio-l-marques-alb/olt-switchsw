@@ -618,6 +618,7 @@ sand_device_create(void)
     bde_ctrl_t* ctrl;
 
     /* Do not execute this function. Otherwise linux-kerbel-bde.ko insertion will fail! */
+    gprintk("%s not executed!\r\n", __FUNCTION__);
     return 0;
 
     ctrl = _devices; 
@@ -3611,7 +3612,6 @@ _interrupt_connect(int d,
     int ret = 0;
 
     gprintk("Setting IRQ...\n");
-    /* PTin end */
 
     isr2_dev = d & LKBDE_ISR2_DEV;
     d &= ~LKBDE_ISR2_DEV;
@@ -3659,7 +3659,6 @@ _interrupt_connect(int d,
     }
 
     gprintk("irq to be used: %d\n",ctrl->iLine);
-    /* PTin end */
 
     if (ctrl->iLine != -1) {
         irq_flags = IRQF_SHARED;
