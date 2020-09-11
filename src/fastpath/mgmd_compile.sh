@@ -240,7 +240,7 @@ elif [ "$1" == "CXO640G" ]; then
 # (Trident3-X3) FIXME
 elif [ "$1" == "TC16SXG" ]; then
   BOARD=$1
-  CPU=pq3
+  CPU=td3x3arm
   
   export COMPILER_DIR=/opt/eldk/usr/bin
   export COMPILER_PREFIX=ppc_85xxDP-
@@ -306,12 +306,7 @@ FP_FOLDER="${FP_FOLDER:-$PWD}"
 MGMD_PATH=$FP_FOLDER/src/application/switching/mgmd
 MGMD_CONFIGURE=$MGMD_PATH/configure
 
-# (Trident3-X3) FIXME
-if [ "$1" == "TC16SXG" ]; then
-    FP_OUTPUT_PATH=$FP_FOLDER/output/FastPath-Ent-esw-xgs4-td3x3arm-LR-CSxw-IQH_$BOARD
-else
-    FP_OUTPUT_PATH=$FP_FOLDER/output/FastPath-Ent-esw-xgs4-$CPU-LR-CSxw-IQH_$BOARD
-fi
+FP_OUTPUT_PATH=$FP_FOLDER/output/FastPath-Ent-esw-xgs4-$CPU-LR-CSxw-IQH_$BOARD
 MGMD_OUTPUT_PATH=$FP_OUTPUT_PATH/objects/mgmd
 EXPORT_FILE=$MGMD_OUTPUT_PATH/export.var
 
