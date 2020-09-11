@@ -23,12 +23,7 @@ CURRENT_PATH ?= $(shell pwd)
 FP_FOLDER    ?= $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURRENT_PATH)))
 OLT_DIR      ?= $(subst /$(FP_FOLDER),,$(shell pwd))
 
-# (Trident3-X3) FIXME
-ifeq ($(BOARD),TC16SXG)
-	CARD_FOLDER ?= FastPath-Ent-esw-xgs4-td3x3arm-LR-CSxw-IQH_$(BOARD)
-else
-	CARD_FOLDER ?= FastPath-Ent-esw-xgs4-$(CPU)-LR-CSxw-IQH_$(BOARD)
-endif
+CARD_FOLDER ?= FastPath-Ent-esw-xgs4-$(CPU)-LR-CSxw-IQH_$(BOARD)
 CARD        ?= $(word 2,$(subst _, ,$(CARD_FOLDER)))
 
 export OUTPATH       ?= output/$(CARD_FOLDER)

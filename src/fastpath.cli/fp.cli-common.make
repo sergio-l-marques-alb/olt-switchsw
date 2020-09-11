@@ -8,12 +8,7 @@ BUILD=\"$(shell date +%y%m%d)-$(X2)\"
 
 FP_FOLDER ?= fastpath
 
-# (Trident3-X3) FIXME
-ifeq ($(BOARD),TC16SXG)
-       CARD_FOLDER ?= FastPath-Ent-esw-xgs4-td3x3arm-LR-CSxw-IQH_$(BOARD)
-else
-       CARD_FOLDER ?= FastPath-Ent-esw-xgs4-$(CPU)-LR-CSxw-IQH_$(BOARD)
-endif
+CARD_FOLDER ?= FastPath-Ent-esw-xgs4-$(CPU)-LR-CSxw-IQH_$(BOARD)
 
 OUTPATH ?= output/$(CARD_FOLDER)
 

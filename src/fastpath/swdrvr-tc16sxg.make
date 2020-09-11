@@ -8,7 +8,7 @@
 
 # Board and CPU identification
 export BOARD = TC16SXG
-export CPU   = pq3
+export CPU   = td3x3arm
 
 # Base folders (using absolute references)
 CURRENT_PATH = $(shell pwd)
@@ -23,7 +23,7 @@ CROSS_COMPILE = ppc_85xxDP-
 
 # Kernel and SDK paths
 KERNEL_PATH ?= $(OLT_DIR)/../lib/kernel/linux-denx-3.18.25_cxo640g-mx
-SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.4.3/broadcom
+SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.18/broadcom
 
 # Comilation logging level
 export LVL7_MAKEFILE_LOGGING := N
