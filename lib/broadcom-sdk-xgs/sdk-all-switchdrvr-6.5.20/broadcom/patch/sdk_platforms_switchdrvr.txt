@@ -1,0 +1,17 @@
+include/sdk_custom_config.h
+systems/bde/linux/user/kernel/Makefile.ubde
+systems/bde/linux/kernel/Makefile.kbde
+systems/bde/linux/shared/Makefile
+make/make.sdk
+make/makerules.pkg.vendor
+make/makerules.link.vendor
+make/make.pkg.vendor
+systems/linux/user/fastpath_common/bdecreate.c
+systems/linux/user/fastpath_common/Makefile.fastpath
+systems/linux/user/fastpath_common/Makefile
+systems/linux/user/fastpath-3_x/Makefile
+make/Make.local.dnx
+make/Make.local.xgs3
+make/Make.local.xgs4
+make/Make.local.xgs5
+make/Makefile.linux-kernel-3_x
