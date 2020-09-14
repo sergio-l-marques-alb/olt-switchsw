@@ -16,7 +16,11 @@
 #undef  _POSIX_C_SOURCE
 #undef _GNU_SOURCE
 #undef _SVID_SOURCE
-#define _BSD_SOURCE
+#if ((__GNUC__ == 4 && __GNUC_MINOR__ >= 9) || (__GNUC__ > 4)) /* PTin modified */
+ #define _DEFAULT_SOURCE
+#else
+ #define _BSD_SOURCE
+#endif
 #endif
 
 #include <sal/types.h>
