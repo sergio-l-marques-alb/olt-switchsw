@@ -636,11 +636,11 @@ xmlValidityError(xmlParserCtxtPtr ctxt, xmlParserErrors error,
 
     if ((ctxt != NULL) && (ctxt->disableSAX != 0) &&
         (ctxt->instate == XML_PARSER_EOF))
-	return;
+	   return;
     if (ctxt != NULL) {
-	ctxt->errNo = error;
-	if ((ctxt->sax != NULL) && (ctxt->sax->initialized == XML_SAX2_MAGIC))
-	    schannel = ctxt->sax->serror;
+	   ctxt->errNo = error;
+	   if ((ctxt->sax != NULL) && (ctxt->sax->initialized == XML_SAX2_MAGIC))
+	       schannel = ctxt->sax->serror;
     }
     if (ctxt != NULL) {
         __xmlRaiseError(schannel,

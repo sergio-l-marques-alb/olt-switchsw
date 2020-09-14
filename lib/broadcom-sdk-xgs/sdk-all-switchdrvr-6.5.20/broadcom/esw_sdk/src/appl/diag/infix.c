@@ -139,9 +139,11 @@ static void infix_doop(infix_data_t *id, int op)
     case OP_CNOT:    v = ! v;            break;
     case OP_MUL:    v = infix_pop(id) * v;        break;
     case OP_DIV:    if (v == 0) { id->err = 1; }
-                else { v = infix_pop(id) / v; }  break;
+                    else { v = infix_pop(id) / v; }
+                    break;
     case OP_MOD:    if (v == 0) { id->err = 1; }
-                else { v = infix_pop(id) % v; }  break;
+                    else { v = infix_pop(id) % v; }
+                    break;
     case OP_ADD:    v = infix_pop(id) + v;        break;
     case OP_SUB:    v = infix_pop(id) - v;        break;
     case OP_LSH:    v = infix_pop(id) << v;        break;
