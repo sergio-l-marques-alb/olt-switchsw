@@ -6372,8 +6372,36 @@ soc_arad_info_config(int unit)
 
             } else if (SOC_IS_JERICHO(unit) && !SOC_IS_QAX(unit)) {
                 dram_bitmap = soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "dram_bitamp", 0x0);
+                printf("%s(%d) dram_bitmap=0x%x\r\n", __FUNCTION__, __LINE__, dram_bitmap);
                 if (dram_bitmap != 0) {
                     SHR_BITCOPY_RANGE(dpp_arad->init.drc_info.dram_bitmap, 0, &dram_bitmap, 0, SOC_DPP_DEFS_GET(unit, hw_dram_interfaces_max));
+
+                    /* Ref CLK: A is the master of B, C is the master of D, F is the master of E, H is the master of G. */
+                    SHR_BITSET(dpp_arad->init.drc_info.ref_clk_bitmap, 0);
+                    SHR_BITSET(dpp_arad->init.drc_info.ref_clk_bitmap, 2);
+                    SHR_BITSET(dpp_arad->init.drc_info.ref_clk_bitmap, 5);
+                    SHR_BITSET(dpp_arad->init.drc_info.ref_clk_bitmap, 7);
+
+                    /* 
+                     * Jericho ZQ calibration mapping:
+                     * A slave of C
+                     * B slave of C
+                     * C is Master
+                     * D slave of C
+                     * E slave of F
+                     * F is Master
+                     * G slave of F
+                     * H slave of F
+                     */
+                    dpp_arad->init.drc_info.zq_calib_map[0] = 2;
+                    dpp_arad->init.drc_info.zq_calib_map[1] = 2;
+                    dpp_arad->init.drc_info.zq_calib_map[2] = 2;
+                    dpp_arad->init.drc_info.zq_calib_map[3] = 2;
+                    dpp_arad->init.drc_info.zq_calib_map[4] = 5;
+                    dpp_arad->init.drc_info.zq_calib_map[5] = 5;
+                    dpp_arad->init.drc_info.zq_calib_map[6] = 5;
+                    dpp_arad->init.drc_info.zq_calib_map[7] = 5;
+
                 } else {
 
                     /* Allowed values for Jericho/88675:
@@ -6397,6 +6425,7 @@ soc_arad_info_config(int unit)
                         SHR_BITSET(dpp_arad->init.drc_info.dram_bitmap, 1);
                         SHR_BITSET(dpp_arad->init.drc_info.dram_bitmap, 2);
                         break;
+                    case 4:
                     case 41:
                         SHR_BITSET(dpp_arad->init.drc_info.dram_bitmap, 0);
                         SHR_BITSET(dpp_arad->init.drc_info.dram_bitmap, 1);

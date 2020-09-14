@@ -180,7 +180,7 @@ MODULE_PARM_DESC(himemaddr,
 #ifdef SAL_BDE_DMA_MEM_DEFAULT
 #define DMA_MEM_DEFAULT (SAL_BDE_DMA_MEM_DEFAULT * ONE_MB)
 #else
-#define DMA_MEM_DEFAULT (8 * ONE_MB)
+#define DMA_MEM_DEFAULT (16 * ONE_MB)
 #endif
 
 /* We try to assemble a contiguous segment from chunks of this size */
@@ -632,6 +632,8 @@ _alloc_mpool(size_t size)
         }
         _cpu_pbase = _dma_pbase = pbase;
         _dma_vbase = IOREMAP(_dma_pbase, size);
+        if (dma_debug >= 1)
+          gprintk("_alloc_mpool (himem=1): _dma_vbase:%p pbase:%lx  allocated:%lx\n", _dma_vbase, pbase, (unsigned long)size);
     } else {
         /* Get DMA memory from kernel */
         if (dma_debug >= 1) {
@@ -646,10 +648,11 @@ _alloc_mpool(size_t size)
             }
             /* get a memory allocation from the kernel */
             {
-                dma_addr_t dma_handle;
+                dma_addr_t dma_handle = 0;
                 _dma_vbase = dma_alloc_coherent(dev, alloc_size, &dma_handle, GFP_KERNEL);
                 if (!_dma_vbase || !dma_handle) {
-                    gprintk("Failed to allocate coherent memory pool of size 0x%lx\n", (unsigned long)alloc_size);
+                    gprintk("_alloc_mpool: failed to allocate the memory pool of size 0x%lx (_dma_vbase=0x%08lx dma_handle=0x%08lx)\n",
+                            (unsigned long)alloc_size, (unsigned long) _dma_vbase, (unsigned long) dma_handle);
                     return;
                 }
                 _cpu_pbase = pbase = dma_handle;
@@ -660,6 +663,7 @@ _alloc_mpool(size_t size)
                         (unsigned long)alloc_size, (unsigned long)size);
             }
             size = _dma_mem_size = alloc_size;
+            gprintk("_alloc_mpool: _SIMPLE_MEMORY_ALLOCATION_ successfull\n");
             break;
           }
 #endif /* _SIMPLE_MEMORY_ALLOCATION_ */
@@ -947,7 +951,7 @@ _sinval(int d, void *ptr, int length)
 #if defined(dma_cache_wback_inv)
      dma_cache_wback_inv((unsigned long)ptr, length);
 #else
-#if defined(IPROC_CMICD) || defined(BCM958525)
+#if defined(IPROC_CMICD) || defined(BCM958525) || defined(__aarch64__) /* PTin adapted for arm64 */
     
     dma_sync_single_for_cpu(NULL, (unsigned long)ptr, length, DMA_BIDIRECTIONAL);
 #else
@@ -963,7 +967,7 @@ _sflush(int d, void *ptr, int length)
 #if defined(dma_cache_wback_inv)
     dma_cache_wback_inv((unsigned long)ptr, length);
 #else
-#if defined(IPROC_CMICD) || defined(BCM958525)
+#if defined(IPROC_CMICD) || defined(BCM958525) || defined(__aarch64__) /* PTin adapted for arm64 */
     
     dma_sync_single_for_cpu(NULL, (unsigned long)ptr, length, DMA_BIDIRECTIONAL);
 #else
