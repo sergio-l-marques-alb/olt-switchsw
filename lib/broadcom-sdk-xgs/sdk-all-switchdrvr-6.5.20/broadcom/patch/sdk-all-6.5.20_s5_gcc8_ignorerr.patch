@@ -1,0 +1,21 @@
+diff -rpN -u6 sdk-all-6.5.20/include/sal/core/libc.h sdk-all-6.5.20_mod/include/sal/core/libc.h
+--- sdk-all-6.5.20/include/sal/core/libc.h	2020-07-15 12:37:20.000000000 +0100
++++ sdk-all-6.5.20_mod/include/sal/core/libc.h	2020-09-11 18:01:38.129729381 +0100
+@@ -84,12 +84,17 @@
+ /* } */
+ #endif
+ 
+ #ifdef RTOS_STRINGS
+ /* { */
+ 
++#if (__GNUC__ >= 8) /* PTin added */
++#pragma GCC diagnostic ignored "-Wstringop-overflow"
++#pragma GCC diagnostic ignored "-Wstringop-truncation"
++#endif
++
+ #define sal_strlen              strlen
+ #define sal_strcpy              strcpy
+ #define sal_strncpy             strncpy
+ #define sal_strcmp              strcmp
+ #define sal_strstr              strstr
+ #define sal_strcat              strcat
