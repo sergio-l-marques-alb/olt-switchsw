@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<device_data>
+    <module name="lif">
+        <sub_module name="global_lif">
+            <features>
+            </features>
+            
+            <defines>
+                <define name="use_mdb_size" value="0"></define>
+            </defines>
+            
+            <numerics>
+                <numeric name="nof_global_in_lifs" value="8192"></numeric>
+            </numerics>
+            
+        </sub_module>
+    
+        <sub_module name="out_lif">
+            <defines>
+                <define name="nof_local_out_lifs" value="81920"></define>
+            </defines >
+        </sub_module>
+
+    </module>
+
+    <module name="l3">
+
+    <sub_module name="fec">
+        
+        <defines>
+            <define name="nof_fecs" value="0"></define>
+            <define name="max_nof_super_fecs_per_bank" value="0"></define>
+        </defines>
+    </sub_module>
+    </module>
+</device_data>

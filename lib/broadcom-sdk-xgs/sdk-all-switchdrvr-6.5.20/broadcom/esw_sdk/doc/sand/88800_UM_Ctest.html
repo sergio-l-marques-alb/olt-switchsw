@@ -1,0 +1,1256 @@
+<html>
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <link rel="stylesheet" href="Manual_CSS.css" type="text/css">
+      <title>DNX Shell Commands</title>
+   <style>
+      body {font-family: Arial;}
+      h1 {font-size: 18pt; font-weight: bold;}
+      h2 {font-size: 16pt; font-weight: bold;}
+      h3 {font-size: 14pt; font-weight: bold;}
+      h4 {font-size: 12pt; font-weight: bold;}
+      h5 {font-size: 11pt; font-weight: bold;}
+      p {font-size: 10pt;}
+      th {font-size: 9pt; font-weight: bold;}
+      td {font-size: 9pt;}
+    </style>
+    <style>
+      body {font-family: Arial;}
+      h1 {font-size: 18pt; font-weight: bold;}
+      h2 {font-size: 16pt; font-weight: bold;}
+      h3 {font-size: 14pt; font-weight: bold;}
+      h4 {font-size: 12pt; font-weight: bold;}
+      h5 {font-size: 11pt; font-weight: bold;}
+      p {font-size: 10pt;}
+      th {font-size: 9pt; font-weight: bold;}
+      td {font-size: 9pt;}
+    </style>
+    </head>
+   <body>
+      <p align="center">
+         			Ctest
+         		
+      </p>
+      <p>This document provides a list of DNX SDK ctests. Each ctest has a section that includes
+         an overview, description, ctest options and ctest examples.
+      </p><a name="tocLink">
+         <h1><font color="CC092F">Table of Contents</font></h1></a><table style="width:30%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Commands</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td><a href="#General">General</a></td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td><a href="#Layer3">Layer3</a></td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td><a href="#mdb">mdb</a></td>
+         </tr>
+      </table>
+      
+      <h1><font color="CC092F">1.  <a name="General">General</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>This document presents description of the CTests. All commands are organized in ctest
+         tree, where leaves are actual executable tests. Manual presents description, synopsis,
+         arguments and examples per each leaf. Each argument has certain type which defines
+         input format, as may be see from argument description. Argument may have default and
+         thus not required on command line, if there is no default(tagged by 'None' in usage).
+         user must provide it. All arguments should be provided in arg=&lt;value&gt; paradigm with
+         2 exceptions: 1. Boolean argument provided without value imply 'TRUE', 2. Argument
+         with 'free' tag allows omitting argument name, providing values only. Values without
+         argument names will be associated with free argument according to the order. 1st nameless
+         argument to the 1st free one, 2nd to the second and so on Besides the arguments presented
+         per command, there are system arguments that may be used with any leaf, There are
+         also system commands which may be invoked after each branch or leaf, see details below
+         
+      </p>
+      
+      <h2>1.1. General &gt; list</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>List available ctests</p>
+      <p><strong>XML Output Support
+            </strong></p>
+      <p>No</p>
+      <p><strong>Synopsis
+            </strong></p>
+      <p>LIST ctest [commands] list [pre] [rnd] [label] [system_mode]</p>
+      <p><strong>Arguments
+            				</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pre</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Include only tests with precommit flag</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>random</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Include only tests with random flag</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>label</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Include tests with specific label</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>system_mode</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Include tests with specific system mode</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>LIST ct list</p>
+      <p>LIST ct tm list pre</p>
+      <p>LIST ct export label=kbp</p>
+      <p>LIST ct export system_mode=kbp</p>
+      
+      
+      
+      
+      
+      <h2>1.2. General &gt; run</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Execute ctests</p>
+      <p><strong>XML Output Support
+            </strong></p>
+      <p>No</p>
+      <p><strong>Synopsis
+            </strong></p>
+      <p>RUN ctest [commands] run [pre] [rnd] [lg] [fail] [um]</p>
+      <p><strong>Arguments
+            				</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>logger</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Set logger mode</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>failed</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Results table will show only failed tests</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>pre</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Include only tests with precommit flag</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>random</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Include only tests with random flag</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>RUN ct run</p>
+      <p>RUN ct tm run pre</p>
+      
+      
+      
+      
+      
+      <h2>1.3. General &gt; usage</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Print list of commands available</p>
+      <p><strong>XML Output Support
+            </strong></p>
+      <p>No</p>
+      <p><strong>Synopsis
+            </strong></p>
+      <p>USaGe  [column=&lt;...&gt;]  [margin=&lt;...&gt;]  [tabular[=no]]  [all[=no]]  [list[=no]]</p>
+      <p><strong>Arguments
+            				</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>column</td>
+            <td>int32</td>
+            <td>120</td>
+            <td>Maximum columns number for output</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>margin</td>
+            <td>int32</td>
+            <td>6</td>
+            <td>Left&amp;Right margin of defined display width</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>tabular</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Print usage in tabular view</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>all</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Show all including system ones</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>list</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Show usage of all leafs inside the branch</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>USaGe</p>
+      
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">2.  <a name="Layer3">Layer3</a></font></h1>
+      
+      <h2>2.1. Layer3 &gt; Performance</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Insert, update and delete Host/Route/IPMC IPv4 or IPv6 entries</p>
+      
+      <h3>2.1.1. Layer3 &gt; Performance &gt; HOST</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Insert, update and delete L3 Host entries</p>
+      
+      <h4>2.1.1.1. Layer3 &gt; Performance &gt; HOST &gt; IPv4</h4>
+      <p><strong>Description
+            				</strong></p>
+      <p>Insert, update and delete L3 Host IPv4 entries while recording how much time each
+         step takes and outputs and/or validates the entry rates
+      </p>
+      <p><strong>Synopsis
+            </strong></p>
+      <p>CTest Layer3 Performance HOST IPv4  [Entries=&lt;...&gt;]  [Runs=&lt;...&gt;]  [Update[=no]] 
+         [DeLeTe[=no]]  [Random[=no]]  [Validate[=no]]  [Update_measures[=no]]  [Public[=no]]
+         [RPF[=no]]  [TCAM[=no]]  [EM[=no]]  [Layer=&lt;...&gt;]
+      </p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>Entries</td>
+            <td>uint32</td>
+            <td>10000</td>
+            <td>Number of entries</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>Runs</td>
+            <td>uint32</td>
+            <td>10</td>
+            <td>Number of runs</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>Update</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to perform update measurements</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>DeLeTe</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to perform delete measurements</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>Random</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to validate measurements with random entries</td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td>Validate</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements</td>
+         </tr>
+         <tr>
+            <td>7.</td>
+            <td>Update_measures</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to update the measurements</td>
+         </tr>
+         <tr>
+            <td>8.</td>
+            <td>Public</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements of public routes</td>
+         </tr>
+         <tr>
+            <td>9.</td>
+            <td>RPF</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements on Route RPF table</td>
+         </tr>
+         <tr>
+            <td>10.</td>
+            <td>TCAM</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements IPMC TCAM table</td>
+         </tr>
+         <tr>
+            <td>11.</td>
+            <td>EM</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements IPMC EM table</td>
+         </tr>
+         <tr>
+            <td>12.</td>
+            <td>Layer</td>
+            <td>string</td>
+            <td>BCM</td>
+            <td>Select starting layer</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>CTest Layer3 Performance HOST IPv4</p>
+      
+      <h4>2.1.1.2. Layer3 &gt; Performance &gt; HOST &gt; IPv6</h4>
+      <p><strong>Description
+            				</strong></p>
+      <p>Insert, update and delete L3 Host IPv6 entries while recording how much time each
+         step takes and outputs and/or validates the entry rates
+      </p>
+      <p><strong>Synopsis
+            </strong></p>
+      <p>CTest Layer3 Performance HOST IPv6  [Entries=&lt;...&gt;]  [Runs=&lt;...&gt;]  [Update[=no]] 
+         [DeLeTe[=no]]  [Random[=no]]  [Validate[=no]]  [Update_measures[=no]]  [Public[=no]]
+         [RPF[=no]]  [TCAM[=no]]  [EM[=no]]  [Layer=&lt;...&gt;]
+      </p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>Entries</td>
+            <td>uint32</td>
+            <td>10000</td>
+            <td>Number of entries</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>Runs</td>
+            <td>uint32</td>
+            <td>10</td>
+            <td>Number of runs</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>Update</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to perform update measurements</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>DeLeTe</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to perform delete measurements</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>Random</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to validate measurements with random entries</td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td>Validate</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements</td>
+         </tr>
+         <tr>
+            <td>7.</td>
+            <td>Update_measures</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to update the measurements</td>
+         </tr>
+         <tr>
+            <td>8.</td>
+            <td>Public</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements of public routes</td>
+         </tr>
+         <tr>
+            <td>9.</td>
+            <td>RPF</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements on Route RPF table</td>
+         </tr>
+         <tr>
+            <td>10.</td>
+            <td>TCAM</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements IPMC TCAM table</td>
+         </tr>
+         <tr>
+            <td>11.</td>
+            <td>EM</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements IPMC EM table</td>
+         </tr>
+         <tr>
+            <td>12.</td>
+            <td>Layer</td>
+            <td>string</td>
+            <td>BCM</td>
+            <td>Select starting layer</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>CTest Layer3 Performance HOST IPv6</p>
+      
+      
+      <h3>2.1.2. Layer3 &gt; Performance &gt; ROUTE</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Insert, update and delete L3 Route entries</p>
+      
+      <h4>2.1.2.1. Layer3 &gt; Performance &gt; ROUTE &gt; IPv4</h4>
+      <p><strong>Description
+            				</strong></p>
+      <p>Insert, update and delete L3 Route IPv4 entries while recording how much time each
+         step takes and outputs and/or validates the entry rates
+      </p>
+      <p><strong>Synopsis
+            </strong></p>
+      <p>CTest Layer3 Performance ROUTE IPv4  [Entries=&lt;...&gt;]  [Runs=&lt;...&gt;]  [Update[=no]]
+         [DeLeTe[=no]]  [Random[=no]]  [Validate[=no]]  [Update_measures[=no]]  [Public[=no]]
+         [RPF[=no]]  [TCAM[=no]]  [EM[=no]]  [Layer=&lt;...&gt;]
+      </p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>Entries</td>
+            <td>uint32</td>
+            <td>10000</td>
+            <td>Number of entries</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>Runs</td>
+            <td>uint32</td>
+            <td>10</td>
+            <td>Number of runs</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>Update</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to perform update measurements</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>DeLeTe</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to perform delete measurements</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>Random</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to validate measurements with random entries</td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td>Validate</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements</td>
+         </tr>
+         <tr>
+            <td>7.</td>
+            <td>Update_measures</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to update the measurements</td>
+         </tr>
+         <tr>
+            <td>8.</td>
+            <td>Public</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements of public routes</td>
+         </tr>
+         <tr>
+            <td>9.</td>
+            <td>RPF</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements on Route RPF table</td>
+         </tr>
+         <tr>
+            <td>10.</td>
+            <td>TCAM</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements IPMC TCAM table</td>
+         </tr>
+         <tr>
+            <td>11.</td>
+            <td>EM</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements IPMC EM table</td>
+         </tr>
+         <tr>
+            <td>12.</td>
+            <td>Layer</td>
+            <td>string</td>
+            <td>BCM</td>
+            <td>Select starting layer</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>CTest Layer3 Performance ROUTE IPv4</p>
+      
+      <h4>2.1.2.2. Layer3 &gt; Performance &gt; ROUTE &gt; IPv6</h4>
+      <p><strong>Description
+            				</strong></p>
+      <p>Insert, update and delete L3 Route IPv6 entries while recording how much time each
+         step takes and outputs and/or validates the entry rates
+      </p>
+      <p><strong>Synopsis
+            </strong></p>
+      <p>CTest Layer3 Performance ROUTE IPv6  [Entries=&lt;...&gt;]  [Runs=&lt;...&gt;]  [Update[=no]]
+         [DeLeTe[=no]]  [Random[=no]]  [Validate[=no]]  [Update_measures[=no]]  [Public[=no]]
+         [RPF[=no]]  [TCAM[=no]]  [EM[=no]]  [Layer=&lt;...&gt;]
+      </p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>Entries</td>
+            <td>uint32</td>
+            <td>10000</td>
+            <td>Number of entries</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>Runs</td>
+            <td>uint32</td>
+            <td>10</td>
+            <td>Number of runs</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>Update</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to perform update measurements</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>DeLeTe</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to perform delete measurements</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>Random</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to validate measurements with random entries</td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td>Validate</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements</td>
+         </tr>
+         <tr>
+            <td>7.</td>
+            <td>Update_measures</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to update the measurements</td>
+         </tr>
+         <tr>
+            <td>8.</td>
+            <td>Public</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements of public routes</td>
+         </tr>
+         <tr>
+            <td>9.</td>
+            <td>RPF</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements on Route RPF table</td>
+         </tr>
+         <tr>
+            <td>10.</td>
+            <td>TCAM</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements IPMC TCAM table</td>
+         </tr>
+         <tr>
+            <td>11.</td>
+            <td>EM</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements IPMC EM table</td>
+         </tr>
+         <tr>
+            <td>12.</td>
+            <td>Layer</td>
+            <td>string</td>
+            <td>BCM</td>
+            <td>Select starting layer</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>CTest Layer3 Performance ROUTE IPv6</p>
+      
+      
+      <h3>2.1.3. Layer3 &gt; Performance &gt; IPMC</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Insert, update and delete IPMC entries</p>
+      
+      <h4>2.1.3.1. Layer3 &gt; Performance &gt; IPMC &gt; IPv4</h4>
+      <p><strong>Description
+            				</strong></p>
+      <p>Insert, update and delete IPMC IPv4 entries while recording how much time each step
+         takes and outputs and/or validates the entry rates
+      </p>
+      <p><strong>Synopsis
+            </strong></p>
+      <p>CTest Layer3 Performance IPMC IPv4  [Entries=&lt;...&gt;]  [Runs=&lt;...&gt;]  [Update[=no]] 
+         [DeLeTe[=no]]  [Random[=no]]  [Validate[=no]]  [Update_measures[=no]]  [Public[=no]]
+         [RPF[=no]]  [TCAM[=no]]  [EM[=no]]  [Layer=&lt;...&gt;]
+      </p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>Entries</td>
+            <td>uint32</td>
+            <td>10000</td>
+            <td>Number of entries</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>Runs</td>
+            <td>uint32</td>
+            <td>10</td>
+            <td>Number of runs</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>Update</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to perform update measurements</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>DeLeTe</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to perform delete measurements</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>Random</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to validate measurements with random entries</td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td>Validate</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements</td>
+         </tr>
+         <tr>
+            <td>7.</td>
+            <td>Update_measures</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to update the measurements</td>
+         </tr>
+         <tr>
+            <td>8.</td>
+            <td>Public</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements of public routes</td>
+         </tr>
+         <tr>
+            <td>9.</td>
+            <td>RPF</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements on Route RPF table</td>
+         </tr>
+         <tr>
+            <td>10.</td>
+            <td>TCAM</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements IPMC TCAM table</td>
+         </tr>
+         <tr>
+            <td>11.</td>
+            <td>EM</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements IPMC EM table</td>
+         </tr>
+         <tr>
+            <td>12.</td>
+            <td>Layer</td>
+            <td>string</td>
+            <td>BCM</td>
+            <td>Select starting layer</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>CTest Layer3 Performance IPMC IPv4</p>
+      
+      <h4>2.1.3.2. Layer3 &gt; Performance &gt; IPMC &gt; IPv6</h4>
+      <p><strong>Description
+            				</strong></p>
+      <p>Insert, update and delete IPMC IPv6 entries while recording how much time each step
+         takes and outputs and/or validates the entry rates
+      </p>
+      <p><strong>Synopsis
+            </strong></p>
+      <p>CTest Layer3 Performance IPMC IPv6  [Entries=&lt;...&gt;]  [Runs=&lt;...&gt;]  [Update[=no]] 
+         [DeLeTe[=no]]  [Random[=no]]  [Validate[=no]]  [Update_measures[=no]]  [Public[=no]]
+         [RPF[=no]]  [TCAM[=no]]  [EM[=no]]  [Layer=&lt;...&gt;]
+      </p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>Entries</td>
+            <td>uint32</td>
+            <td>10000</td>
+            <td>Number of entries</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>Runs</td>
+            <td>uint32</td>
+            <td>10</td>
+            <td>Number of runs</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>Update</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to perform update measurements</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>DeLeTe</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to perform delete measurements</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>Random</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to validate measurements with random entries</td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td>Validate</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements</td>
+         </tr>
+         <tr>
+            <td>7.</td>
+            <td>Update_measures</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to update the measurements</td>
+         </tr>
+         <tr>
+            <td>8.</td>
+            <td>Public</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements of public routes</td>
+         </tr>
+         <tr>
+            <td>9.</td>
+            <td>RPF</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements on Route RPF table</td>
+         </tr>
+         <tr>
+            <td>10.</td>
+            <td>TCAM</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements IPMC TCAM table</td>
+         </tr>
+         <tr>
+            <td>11.</td>
+            <td>EM</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements IPMC EM table</td>
+         </tr>
+         <tr>
+            <td>12.</td>
+            <td>Layer</td>
+            <td>string</td>
+            <td>BCM</td>
+            <td>Select starting layer</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>CTest Layer3 Performance IPMC IPv6</p>
+      
+      
+      <h3>2.1.4. Layer3 &gt; Performance &gt; FEC</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Insert, update and delete FEC entries</p>
+      <p><strong>Synopsis
+            </strong></p>
+      <p>CTest Layer3 Performance FEC  [Entries=&lt;...&gt;]  [Runs=&lt;...&gt;]  [Update[=no]]  [DeLeTe[=no]]
+         [Random[=no]]  [Validate[=no]]  [Update_measures[=no]]  [Public[=no]]  [RPF[=no]]
+         [TCAM[=no]]  [EM[=no]]  [Layer=&lt;...&gt;]
+      </p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>Entries</td>
+            <td>uint32</td>
+            <td>10000</td>
+            <td>Number of entries</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>Runs</td>
+            <td>uint32</td>
+            <td>10</td>
+            <td>Number of runs</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>Update</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to perform update measurements</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>DeLeTe</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to perform delete measurements</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>Random</td>
+            <td>boolean</td>
+            <td>YES</td>
+            <td>Indication to validate measurements with random entries</td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td>Validate</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements</td>
+         </tr>
+         <tr>
+            <td>7.</td>
+            <td>Update_measures</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to update the measurements</td>
+         </tr>
+         <tr>
+            <td>8.</td>
+            <td>Public</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements of public routes</td>
+         </tr>
+         <tr>
+            <td>9.</td>
+            <td>RPF</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements on Route RPF table</td>
+         </tr>
+         <tr>
+            <td>10.</td>
+            <td>TCAM</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements IPMC TCAM table</td>
+         </tr>
+         <tr>
+            <td>11.</td>
+            <td>EM</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Indication to validate the measurements IPMC EM table</td>
+         </tr>
+         <tr>
+            <td>12.</td>
+            <td>Layer</td>
+            <td>string</td>
+            <td>BCM</td>
+            <td>Select starting layer</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>CTest Layer3 Performance FEC</p>
+      
+      
+      
+      
+      
+      
+      <h2>2.2. Layer3 &gt; FEC</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Egress interface FEC tests</p>
+      
+      <h3>2.2.1. Layer3 &gt; FEC &gt; allocation</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Allocation test for bcm_l3_egress_create INGRESS_ONLY</p>
+      <p><strong>Synopsis
+            </strong></p>
+      <p>CTest Layer3 FEC ALLocaTion</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>CTest Layer3 FEC ALLocaTion</p>
+      
+      
+      
+      
+      
+      <h2>2.3. Layer3 &gt; ECMP</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Egress ECMP tests</p>
+      
+      <h3>2.3.1. Layer3 &gt; ECMP &gt; consistent</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>ECMP consistent hashing testing</p>
+      <p><strong>Synopsis
+            </strong></p>
+      <p>CTest Layer3 ECMP consistent</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>CTest Layer3 ECMP consistent</p>
+      
+      
+      
+      
+      <h3>2.3.2. Layer3 &gt; ECMP &gt; performance</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>ECMP performance testing</p>
+      <p><strong>Synopsis
+            </strong></p>
+      <p>CTest Layer3 ECMP performance</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>CTest Layer3 ECMP performance</p>
+      
+      
+      
+      
+      
+      <h2>2.4. Layer3 &gt; rif</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>L3 ingress interface tests</p>
+      
+      <h3>2.4.1. Layer3 &gt; rif &gt; performance</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Performance test for RIF</p>
+      <p><strong>Synopsis
+            </strong></p>
+      <p>CTest Layer3 rif performance ctest l3 rif performance [count=&lt;Nof_intfs&gt;]</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>count</td>
+            <td>uint32</td>
+            <td>4000</td>
+            <td>Number of VSIs to add</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>CTest Layer3 rif performance count=3000</p>
+      
+      
+      
+      
+      
+      
+      <h2>2.5. Layer3 &gt; arp</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Egress interface ARP tests</p>
+      
+      <h3>2.5.1. Layer3 &gt; arp &gt; performance</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Performance test for bcm_l3_egress_create EGRESS_ONLY</p>
+      <p><strong>Synopsis
+            </strong></p>
+      <p>CTest Layer3 arp performance</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>CTest Layer3 arp performance</p>
+      
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">3.  <a name="mdb">mdb</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>Test the MDB physical table operation.</p>
+      <p><strong>Arguments
+            					</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>Table</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>DBAL physical table name</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>MoDe</td>
+            <td>int32</td>
+            <td>0</td>
+            <td>The test mode: 0-fast (tests ~1/10 of the capacity), 1-full(direct)/capacity test
+               (EM/LPM) 2-capacity test mixed entry encoding (EM) 3-MDB iterators test(SW and HW)
+               4-SER KAPS TCAM only
+            </td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>all</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Ignore Table and run the test on all table</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>DeLeTe</td>
+            <td>boolean</td>
+            <td>Yes</td>
+            <td>Perform a delete operation as part of the test, relevant for EM and LPM</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>DYNAMIC</td>
+            <td>int32</td>
+            <td>0</td>
+            <td>Run a dynamic variation of the test. For EEDB: 1-dynamic EEDB bank, 2-dynamic MDB
+               cluster
+            </td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td>app_id</td>
+            <td>uint32</td>
+            <td>0xFFFFFFFF</td>
+            <td>The APP ID</td>
+         </tr>
+         <tr>
+            <td>7.</td>
+            <td>FULL</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Include entry preparation time and descriptor DMA (if enabled) commit to HW in the
+               time measurement.
+            </td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            					</strong></p>
+      <p>CTest MDB all</p>
+      <p>CTest MDB table=LEM mode=1</p>
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+   </body>
+</html>

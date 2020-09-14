@@ -1,0 +1,3 @@
+config delete ucode_port_5.*
+config delete ucode_port_6.*
+config delete ucode_port_7.*

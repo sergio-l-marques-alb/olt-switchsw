@@ -1,0 +1,4351 @@
+<html>
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <link rel="stylesheet" href="SoC_CSS.css" type="text/css">
+      <title>DNX SoC Property List</title>
+   <style>
+      body {font-family: Arial;}
+      h1 {font-size: 18pt; font-weight: bold;}
+      h2 {font-size: 16pt; font-weight: bold;}
+      h3 {font-size: 14pt; font-weight: bold;}
+      h4 {font-size: 12pt; font-weight: bold;}
+      h5 {font-size: 11pt; font-weight: bold;}
+      p {font-size: 10pt;}
+      th {font-size: 9pt; font-weight: bold;}
+      td {font-size: 9pt;}
+    </style>
+    <style>
+      body {font-family: Arial;}
+      h1 {font-size: 18pt; font-weight: bold;}
+      h2 {font-size: 16pt; font-weight: bold;}
+      h3 {font-size: 14pt; font-weight: bold;}
+      h4 {font-size: 12pt; font-weight: bold;}
+      h5 {font-size: 11pt; font-weight: bold;}
+      p {font-size: 10pt;}
+      th {font-size: 9pt; font-weight: bold;}
+      td {font-size: 9pt;}
+    </style>
+    <style>
+      body {font-family: Arial;}
+      h1 {font-size: 18pt; font-weight: bold;}
+      h2 {font-size: 16pt; font-weight: bold;}
+      h3 {font-size: 14pt; font-weight: bold;}
+      h4 {font-size: 12pt; font-weight: bold;}
+      h5 {font-size: 11pt; font-weight: bold;}
+      p {font-size: 10pt;}
+      th {font-size: 9pt; font-weight: bold;}
+      td {font-size: 9pt;}
+    </style>
+    <style>
+      body {font-family: Arial;}
+      h1 {font-size: 18pt; font-weight: bold;}
+      h2 {font-size: 16pt; font-weight: bold;}
+      h3 {font-size: 14pt; font-weight: bold;}
+      h4 {font-size: 12pt; font-weight: bold;}
+      h5 {font-size: 11pt; font-weight: bold;}
+      p {font-size: 10pt;}
+      th {font-size: 9pt; font-weight: bold;}
+      td {font-size: 9pt;}
+    </style>
+    <style>
+      body {font-family: Arial;}
+      h1 {font-size: 18pt; font-weight: bold;}
+      h2 {font-size: 16pt; font-weight: bold;}
+      h3 {font-size: 14pt; font-weight: bold;}
+      h4 {font-size: 12pt; font-weight: bold;}
+      h5 {font-size: 11pt; font-weight: bold;}
+      p {font-size: 10pt;}
+      th {font-size: 9pt; font-weight: bold;}
+      td {font-size: 9pt;}
+    </style>
+    <style>
+      body {font-family: Arial;}
+      h1 {font-size: 18pt; font-weight: bold;}
+      h2 {font-size: 16pt; font-weight: bold;}
+      h3 {font-size: 14pt; font-weight: bold;}
+      h4 {font-size: 12pt; font-weight: bold;}
+      h5 {font-size: 11pt; font-weight: bold;}
+      p {font-size: 10pt;}
+      th {font-size: 9pt; font-weight: bold;}
+      td {font-size: 9pt;}
+    </style>
+    <style>
+      body {font-family: Arial;}
+      h1 {font-size: 18pt; font-weight: bold;}
+      h2 {font-size: 16pt; font-weight: bold;}
+      h3 {font-size: 14pt; font-weight: bold;}
+      h4 {font-size: 12pt; font-weight: bold;}
+      h5 {font-size: 11pt; font-weight: bold;}
+      p {font-size: 10pt;}
+      th {font-size: 9pt; font-weight: bold;}
+      td {font-size: 9pt;}
+    </style>
+    </head>
+   <body>
+      <p align="center">
+         			DNX SoC Property List
+         		
+      </p>
+      <p>This document provides a list of DNX SoCs. Each SoC has a section that includes an
+         overview, description, command options and command examples.
+      </p><a name="tocLink">
+         <h1><font color="CC092F">Table of Contents</font></h1></a>
+      
+      <table style="width:30%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>SoC</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td><a href="#port">port</a></td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td><a href="#access">access</a></td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td><a href="#adapter">adapter</a></td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td><a href="#bier">bier</a></td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td><a href="#ingr_congestion">ingr_congestion</a></td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td><a href="#crps">crps</a></td>
+         </tr>
+         <tr>
+            <td>7.</td>
+            <td><a href="#dbal">dbal</a></td>
+         </tr>
+         <tr>
+            <td>8.</td>
+            <td><a href="#dev_init">dev_init</a></td>
+         </tr>
+         <tr>
+            <td>9.</td>
+            <td><a href="#device">device</a></td>
+         </tr>
+         <tr>
+            <td>10.</td>
+            <td><a href="#dram">dram</a></td>
+         </tr>
+         <tr>
+            <td>11.</td>
+            <td><a href="#egr_queuing">egr_queuing</a></td>
+         </tr>
+         <tr>
+            <td>12.</td>
+            <td><a href="#elk">elk</a></td>
+         </tr>
+         <tr>
+            <td>13.</td>
+            <td><a href="#fabric">fabric</a></td>
+         </tr>
+         <tr>
+            <td>14.</td>
+            <td><a href="#failover">failover</a></td>
+         </tr>
+         <tr>
+            <td>15.</td>
+            <td><a href="#fc">fc</a></td>
+         </tr>
+         <tr>
+            <td>16.</td>
+            <td><a href="#field">field</a></td>
+         </tr>
+         <tr>
+            <td>17.</td>
+            <td><a href="#headers">headers</a></td>
+         </tr>
+         <tr>
+            <td>18.</td>
+            <td><a href="#intr">intr</a></td>
+         </tr>
+         <tr>
+            <td>19.</td>
+            <td><a href="#iqs">iqs</a></td>
+         </tr>
+         <tr>
+            <td>20.</td>
+            <td><a href="#l2">l2</a></td>
+         </tr>
+         <tr>
+            <td>21.</td>
+            <td><a href="#l3">l3</a></td>
+         </tr>
+         <tr>
+            <td>22.</td>
+            <td><a href="#lane_map">lane_map</a></td>
+         </tr>
+         <tr>
+            <td>23.</td>
+            <td><a href="#lif">lif</a></td>
+         </tr>
+         <tr>
+            <td>24.</td>
+            <td><a href="#linkscan">linkscan</a></td>
+         </tr>
+         <tr>
+            <td>25.</td>
+            <td><a href="#mdb">mdb</a></td>
+         </tr>
+         <tr>
+            <td>26.</td>
+            <td><a href="#mib">mib</a></td>
+         </tr>
+         <tr>
+            <td>27.</td>
+            <td><a href="#multicast">multicast</a></td>
+         </tr>
+         <tr>
+            <td>28.</td>
+            <td><a href="#nif">nif</a></td>
+         </tr>
+         <tr>
+            <td>29.</td>
+            <td><a href="#oam">oam</a></td>
+         </tr>
+         <tr>
+            <td>30.</td>
+            <td><a href="#pll">pll</a></td>
+         </tr>
+         <tr>
+            <td>31.</td>
+            <td><a href="#pp">pp</a></td>
+         </tr>
+         <tr>
+            <td>32.</td>
+            <td><a href="#qos">qos</a></td>
+         </tr>
+         <tr>
+            <td>33.</td>
+            <td><a href="#sbusdma_desc">sbusdma_desc</a></td>
+         </tr>
+         <tr>
+            <td>34.</td>
+            <td><a href="#sch">sch</a></td>
+         </tr>
+         <tr>
+            <td>35.</td>
+            <td><a href="#snif">snif</a></td>
+         </tr>
+         <tr>
+            <td>36.</td>
+            <td><a href="#stif">stif</a></td>
+         </tr>
+         <tr>
+            <td>37.</td>
+            <td><a href="#synce">synce</a></td>
+         </tr>
+         <tr>
+            <td>38.</td>
+            <td><a href="#system_red">system_red</a></td>
+         </tr>
+         <tr>
+            <td>39.</td>
+            <td><a href="#tdm">tdm</a></td>
+         </tr>
+         <tr>
+            <td>40.</td>
+            <td><a href="#trap">trap</a></td>
+         </tr>
+         <tr>
+            <td>41.</td>
+            <td><a href="#trunk">trunk</a></td>
+         </tr>
+         <tr>
+            <td>42.</td>
+            <td><a href="#tune">tune</a></td>
+         </tr>
+         <tr>
+            <td>43.</td>
+            <td><a href="#vlan">vlan</a></td>
+         </tr>
+         <tr>
+            <td>44.</td>
+            <td><a href="#pemla_soc">pemla_soc</a></td>
+         </tr>
+      </table>
+      
+      
+      
+      <h1><font color="CC092F">1.  <a name="port">port</a></font></h1>
+      <h2>1.1. port &gt; static_add</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>adding port statically</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>ucode_port, port_priorities, otm_base_q_pair, port_priorities_sch, port_base_hr, ilkn_is_burst_interleaving</td>
+               <td><br>1.<br>To map a physical interface and channel to a local logical port and to a core ID and
+                  TM port in the core, use the SOC property:<br>ucode_port_#logical_port_num# = #interface_type##interface_id#[.#channel_num#]:core#core-id#.#tm-port#[:stat][:kbp][:tdm][:if_tdm_only][:if_tdm_hybrid],
+                  where:<br>*    logical_port_num is the logical port index.<br>*    interface_type is the Physical Interface type.<br>*    interface_id is the index of the specific physical interface, if applicable.<br>*    channel_num is the channel number within the physical interface, if applicable
+                  (relevant for channelized interfaces).<br>*    core-id is the core index, 0 or 1.<br>*    tm-port is the TM port of the core (255 is reserved for ERP).<br>*    stat - add ':stat' to use this logical port as statistics interface (see Statistics
+                  Interface section for further details)<br>*    stat_data - add ':stat_data' to use this logical port as a mix of statistics
+                  interface and data port (see Statistics Interface section for further details)<br>*    kbp - add ':kbp' to use this logical port as KBP<br>*    tdm - add ':tdm' to use this logical port as TDM<br>*    if_tdm_only - add ':if_tdm_only' to use this interface to include TDM ports only<br>*    if_tdm_hybrid - add ':if_tdm_hybrid' to use this interface to include both TDM
+                  ports and non TDM ports<br>*    cross_connect - add ':cross_connect' to use this logical port as cross connect<br>*    flexe - add ':flexe' to use this logical port as FlexE physical port<br>*    egr_ilv - add ':egr_ilv' to enable egress interleaving for the interface of that
+                  port. relevant for master port.<br>*    sch_priority_propagation - add ':sch_priority_propagation' to enable port priority
+                  propagation for the port. All ports of the interface must have the same value of sch_priority_propagation<br>Example: ucode_port_5 = ILKN1.35:core0.2 maps logical port 5 to Interlaken interface
+                  number 1 on channel 35, and to core 0 TM port 2.<br><br>2.<br>To determine the number of OTM queue-pairs for a port, use the following SOC property:<br>port_priorities#port# = 1/2/4/8.<br><br>3.<br>Usually queue pairs are automatically allocated for each port.<br>A user can choose to manage the queues explicitly by using the SOC property otm_base_q_pair_#port#=0-254<br>('255' value is reserved and cannot be used).<br>This can be useful for example when dynamic port provisioning is required, to optimize
+                  queue pair allocation for the more challenging scenario<br>4.<br>To determine the number of HRs for a port, use the following SOC property:<br>port_priorities_sch#port# = 1/2/4/8.<br><br>5.<br>Usually HRs are automatically allocated for each port.<br>A user can choose to manage the HRs explicitly by using the SOC property port_base_hr_#port#=0-255<br>('255' value is reserved for ERP port).<br>This can be useful for example when dynamic port provisioning is required, to optimize
+                  HR allocation for the more challenging scenario<br><br>6.<br>To set ILKN interface to work in interleaved mode in ingress, use the following SOC
+                  property:<br>ilkn_is_burst_interleaving#ILKN_id# = 1.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>port_init_speed</td>
+               <td><br>The default port rate is decided according to interface type.<br>To set different port rate (mbps) use:<br>port_init_speed_&lt;port&gt;=#speed#<br>A list of supported rates per interface type can be found in User Manual.<br><br>                
+               </td>
+               <td>port_init_speed=&lt;[-1 - 4000000]&gt;</td>
+               <td>DNXC_PORT_INVALID_SPEED</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>port_init_speed</td>
+               <td><br>ext_stat_speed configure the speed of the external device (kbp) statistic port.<br>The default port rate is invalid. meaning the external kbp port does not exist.<br>In addition, it also determine how many lanes the port has.<br>Use the Soc property ext_stat_speed with suffix ext_stat in order to configure it.<br>Syntax:<br>port_init_speed_ext_stat[ext_stat_port_id]=[speed_MHz].[nof_lanes]lanes<br>Examples:<br>1. port_init_speed_ext_stat0=200000.4lanes - ext stat port_id=0, speed=200GHz, 4 lanes.<br>2. port_init_speed_ext_stat2=100000.2lanes - ext stat port_id=2, speed=100GHz, 2 lanes.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>packet_padding_size</td>
+               <td><br>Configure padding size per eth port (min 64 max 96)<br><br>                
+               </td>
+               <td>packet_padding_size=&lt;[64 - 96]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>port_init_cl72</td>
+               <td><br>Enable /Disable CL72<br>port_init_cl72_&lt;port&gt; = 1 / 0<br><br>                
+               </td>
+               <td>port_init_cl72=&lt;0 | 1&gt;</td>
+               <td>BCM_PORT_RESOURCE_DEFAULT_REQUEST</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>port_init_cl72_ext_stat</td>
+               <td><br>Enable /Disable link training (CL72) for external device (kbp) statistic port.<br><br>                
+               </td>
+               <td>port_init_cl72[_ext_stat&lt;ext_stat_port&gt;]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>port_fec</td>
+               <td><br>Specifies the FEC type. The types are as follows:<br>0 - no FEC<br>1 - BASE R - 64/66b KR FEC<br>2 - CL91/RS-FEC<br>3 - Rs544, using 1xN RS FEC architecture<br>4 - RS 272, using 1xN RS FEC architecture<br>5 - RS 206 - 64/66b 5T RS FEC<br>6 - RS 108 - 64/66b 5T low latency RS FEC<br>7 - RS 545 - 64/66b 15T RS FEC<br>8 - RS 304 - 64/66b 15T low latency RS FEC<br>9 - Rs544, using 2xN RS FEC architecture<br>10 - Rs272, using 2xN RS FEC architecture<br><br>                
+               </td>
+               <td>port_fec=&lt;0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10&gt;</td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>serdes_lane_config_dfe</td>
+               <td><br>DFE filter<br>serdes_lane_config_dfe_&lt;port&gt;=on|off|lp<br>on - dfe is on and lp dfe is off<br>off - both dfe and lp dfe are off<br>lp - both dfe and lp dfe are on<br><br>                
+               </td>
+               <td>serdes_lane_config[_dfe&lt;port&gt;]=&lt;on | off | lp&gt;</td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>serdes_lane_config_media_type</td>
+               <td><br>media type<br>serdes_lane_config_media_type_&lt;port&gt;=backplane|copper|optics<br><br>                
+               </td>
+               <td>serdes_lane_config[_media_type&lt;port&gt;]=&lt;backplane | copper | optics&gt;</td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>serdes_lane_config_unreliable_los</td>
+               <td><br>unreliable los<br>serdes_lane_config_unreliable_los_&lt;port&gt;=0|1<br><br>                
+               </td>
+               <td>serdes_lane_config[_unreliable_los&lt;port&gt;]=&lt;0 | 1&gt;</td>
+               <td>DNXC_PORT_SERDES_LANE_CONFIG_INVALID_VAL</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>serdes_lane_config_cl72_auto_polarity_en</td>
+               <td><br>enable cl72 auto polarity<br>serdes_lane_config_cl72_auto_polarity_en_&lt;port&gt;=0|1<br><br>                
+               </td>
+               <td>serdes_lane_config[_cl72_auto_polarity_en&lt;port&gt;]=&lt;0 | 1&gt;</td>
+               <td>DNXC_PORT_SERDES_LANE_CONFIG_INVALID_VAL</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>serdes_lane_config_cl72_restart_timeout_en</td>
+               <td><br>enable cl72 restart timeout<br>serdes_lane_config_cl72_restart_timeout_en_&lt;port&gt;=0|1<br><br>                
+               </td>
+               <td>serdes_lane_config[_cl72_restart_timeout_en&lt;port&gt;]=&lt;0 | 1&gt;</td>
+               <td>DNXC_PORT_SERDES_LANE_CONFIG_INVALID_VAL</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>serdes_lane_config_channel_mode</td>
+               <td><br>channel mode<br>serdes_lane_config_channel_mode_&lt;port&gt;=force_nr|force_er<br><br>                
+               </td>
+               <td>serdes_lane_config[_channel_mode&lt;port&gt;]=&lt;force_nr | force_er&gt;</td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>serdes_tx_taps</td>
+               <td><br>a set of TX FIR parameters for the port.<br>serdes_tx_taps_&lt;port&gt;=signalling_mode:pre:main:post:pre2:post2:post3<br>signalling_mode can be either pam4 or nrz.<br>[pre2:post2:post3] part is optional:<br>- if it is given - this it 6-tap mode.<br>- if it is not given - this is 3-tap mode.<br>main is set to DNXC_PORT_TX_FIR_INVALID_MAIN_TAP by default to distinguish between
+                  whether the SoC property was set or not.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>serdes_tx_taps</td>
+               <td><br>a set of TX FIR parameters for the external stat kbp device.<br>It is configured once for the entire device, as follow:<br>serdes_tx_taps_ext_stat=signalling_mode:pre:main:post:pre2:post2:post3<br>signalling_mode can be either pam4 or nrz.<br>[pre2:post2:post3] are mandatory. (Can be set to zero).<br>main is set to DNXC_PORT_TX_FIR_INVALID_MAIN_TAP by default to distinguish between
+                  whether the SoC property was set or not.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>serdes_tx_taps</td>
+               <td><br>a set of TX FIR parameters for the external stat kbp device<br>It is configured per stat lane, as follow:<br>serdes_tx_taps_ext_stat_lane&lt;lane_id&gt;=signalling_mode:pre:main:post:pre2:post2:post3<br>signalling_mode can be either pam4 or nrz.<br>[pre2:post2:post3] are mandatory. (Can be set to zero).<br>main is set to DNXC_PORT_TX_FIR_INVALID_MAIN_TAP by default to distinguish between
+                  whether the SoC property was set or not.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>port_tx_pam4_precoder</td>
+               <td><br>is the precoding enabled on TX side.<br>port_tx_pam4_precoder_&lt;port&gt;=enable/disable<br><br>                
+               </td>
+               <td>port_tx_pam4_precoder=&lt;enable | disable&gt;</td>
+               <td>disable</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>port_lp_tx_precoder</td>
+               <td><br>has the link partner enabled pre-coding on its TX side.<br>in other words - enable the decoding on my RX side.<br>port_lp_tx_precoder_&lt;port&gt;=enable/disable<br><br>                
+               </td>
+               <td>port_lp_tx_precoder=&lt;enable | disable&gt;</td>
+               <td>disable</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>serdes_qrtt_active</td>
+               <td><br>Enable / Disable Quad.<br>serdes_qrtt_active_&lt;quad_number&gt;=1/0<br>If there is no quad_number suffix, the enable/disable will be done for all quads.<br>Default - all quads are enabled.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>tm_port_header_type_in</td>
+               <td><br>Header type per incoming port.<br><br>                
+               </td>
+               <td>tm_port_header_type[_in&lt;port&gt;]=&lt;ETH | RAW | INJECTED | INJECTED_2_PP | INJECTED_2_PP_JR1_MODE
+                  | INJECTED_2 | INJECTED_2_JR1_MODE | TM | RCH_0 | RCH_1 | STA
+               </td>
+               <td>ETH</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>tm_port_header_type_out</td>
+               <td><br>Header type per outgoing port.<br><br>                
+               </td>
+               <td>tm_port_header_type[_out&lt;port&gt;]=&lt;ETH | RAW | CPU | ENCAP_EXTERNAL_CPU | INJECTED |
+                  STACKING&gt;
+               </td>
+               <td>ETH</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>tm_port_header_type</td>
+               <td><br>Header type per port.<br><br>                
+               </td>
+               <td>tm_port_header_type=&lt;ETH | RAW | STACKING&gt;</td>
+               <td>ETH</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ucode_port</td>
+               <td><br>Is ERP port defined in config file per core<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>load_firmware_fabric</td>
+               <td><br>0x&lt;verify FW&gt;&lt;load method&gt;<br>The method of the firmware load.<br>2 - fast; 1 - MDIO load; 0 - do not load firmware.<br>Byte 0 of the SoC property value.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>load_firmware_fabric</td>
+               <td><br>Enable firmware CRC check.<br>Byte 1: bit 0 of the SoC property value.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>load_firmware_fabric</td>
+               <td><br>Enable firmware verification, byte by byte (time consuming).<br>Byte 1: bit 4 of the SoC property value.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>load_firmware_nif</td>
+               <td><br>0x&lt;verify FW&gt;&lt;load method&gt;<br>The method of the firmware load (first hexadecimal charcter).<br>2 - fast; 1 - MDIO load; 0 - do not load firmware<br>Verify FW (first hexadecimal charcter).<br>1 - enables firmware CRC verfication<br>Setting relevant for NIF side<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>load_firmware_nif</td>
+               <td><br>Enable firmware CRC check for NIF side.<br>Byte 1: bit 0 of the SoC property value.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>load_firmware_nif</td>
+               <td><br>Enable firmware verification, byte by byte (time consuming) for NIF side.<br>Byte 1: bit 4 of the SoC property value.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>1.2. port &gt; general</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>general ports data</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>first_header_size</td>
+               <td><br>Indicates the size (in Bytes) of a first header to skip before the major header at
+                  ingress (e.g. Ethernet).<br><br>                
+               </td>
+               <td>first_header_size=&lt;[0 - 63]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>fabric_logical_port_base</td>
+               <td><br>By default fabric logical ports are 256..(256 + nof links)<br>To extend the logical_port_num range so that ports in range 0...511 can be used, use
+                  the following SOC property: fabric_logical_port_base=512.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">2.  <a name="access">access</a></font></h1>
+      <h2>2.1. access &gt; mdio</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>mdio related data</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>rate_ext_mdio_divisor</td>
+               <td><br>Configure external MDIO clock rate divisor<br>ext_mdio_divisor= 0~255<br>Default: -1<br><br>                
+               </td>
+               <td>rate_ext_mdio_divisor=&lt;[0 - 255]&gt;</td>
+               <td>14</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>rate_int_mdio_divisor</td>
+               <td><br>Configure internal MDIO clock rate divisor<br>int_mdio_divisor= 0~255<br>Default: -1<br><br>                
+               </td>
+               <td>rate_int_mdio_divisor=&lt;[0 - 255]&gt;</td>
+               <td>50</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>mdio_output_delay_int</td>
+               <td><br>Configure number of clock delay between the rising edge of MDC and the starting data
+                  of MDIO<br>mdio_output_delay= 0~255<br>Default: -1<br><br>                
+               </td>
+               <td>mdio_output_delay[_int]=&lt;[0 - 255]&gt;</td>
+               <td>25</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>mdio_output_delay_ext</td>
+               <td><br>Configure number of clock delay between the rising edge of MDC and the starting data
+                  of MDIO<br>mdio_output_delay= 0~255<br>Default: -1<br><br>                
+               </td>
+               <td>mdio_output_delay[_ext]=&lt;[0 - 255]&gt;</td>
+               <td>14</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>2.2. access &gt; rcpu</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>rcpu related data</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>rcpu_rx_pbmp</td>
+               <td><br>Configure valid ports on which RCPU packets can be received by slave device<br><br>                
+               </td>
+               <td>rcpu_rx_pbmp=&lt;port bitmap&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">3.  <a name="adapter">adapter</a></font></h1>
+      <h2>3.1. adapter &gt; reg_mem_access</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>adapter reg/mem access</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>custom_feature_adapter_do_collect_enable</td>
+               <td><br>Use do_collect in adapter to collect writes into one bulk write.<br>Default: 0<br><br>                
+               </td>
+               <td>custom_feature[_adapter_do_collect_enable]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">4.  <a name="bier">bier</a></font></h1>
+      <h2>4.1. bier &gt; params</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>bier parameters</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>bier_nof_bfr_entries</td>
+               <td><br>bier supported bfr size<br><br>                
+               </td>
+               <td>bier_nof_bfr_entries=&lt;[0 - 32768]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">5.  <a name="ingr_congestion">ingr_congestion</a></font></h1>
+      <h2>5.1. ingr_congestion &gt; config</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Ingress congestion configuration</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>ingress_congestion_management_guarantee_mode</td>
+               <td><br>legacy SoC property to define CGM guarantee mode<br>defined here just to ensure unsupported value is not specified by user<br><br>                
+               </td>
+               <td>ingress_congestion_management[_guarantee_mode]=&lt;LOOSE&gt;</td>
+               <td>LOOSE</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>discard_mtu_size</td>
+               <td><br>Maximal packet size<br>used in computation of WRED parameters<br><br>                
+               </td>
+               <td>discard_mtu_size=&lt;[0 - 16383]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>5.2. ingr_congestion &gt; info</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Ingress congestion info</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>cosq_admission_preference</td>
+               <td><br>if GUARANTEE_OVER_ADMIT is set, than in case statistic admission tests fail (for example
+                  WRED),<br>but the queue level is within the guaranteed, packet will enter.<br>this soc property is only rlevant for DPs 0-2 (DP3 is always dropped).<br><br>                
+               </td>
+               <td>cosq_admission_preference=&lt;ADMIT_OVER_GUARANTEE | GUARANTEE_OVER_ADMIT&gt;</td>
+               <td>ADMIT_OVER_GUARANTEE</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>5.3. ingr_congestion &gt; vsq</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>VSQ info</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>reduced_priority_groups_lane</td>
+               <td><br>Configure the default VSQ-F by device lane supporting reduced number of priority groups.<br>Default VSQ-F = (reduced lane * BCM_COSQ_VSQ_NOF_PG) + BCM_COSQ_VSQ_NOF_PG - 1<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">6.  <a name="crps">crps</a></font></h1>
+      <h2>6.1. crps &gt; eviction</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>counters eviction parameters</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>counter_engine_sampling_interval</td>
+               <td><br>enable/disable counters bg thread operation. possible values: counter_engine_sampling_interval=0/1<br><br>                
+               </td>
+               <td>counter_engine_sampling_interval=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">7.  <a name="dbal">dbal</a></font></h1>
+      <h2>7.1. dbal &gt; diag</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>dbal diagnostics module</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>custom_feature_logger_file_name</td>
+               <td><br>Dbal logger output file, if NULL log will not dump to file<br><br>                
+               </td>
+               <td>custom_feature[_logger_file_name]=&lt;string&gt;</td>
+               <td>NULL</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>7.2. dbal &gt; db_init</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>dbal init module</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>custom_feature_dbal_collect_mode_pool_size</td>
+               <td><br>Indicates the DBAL collection mode pool size<br>Default: 0.<br><br>                
+               </td>
+               <td>custom_feature[_dbal_collect_mode_pool_size]=&lt;[0 - 1000]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">8.  <a name="dev_init">dev_init</a></font></h1>
+      <h2>8.1. dev_init &gt; mem</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>memory data relevant for init</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>custom_feature_init_tbls_to_zero</td>
+               <td><br>custom_feature_init_tbls_to_zero='0' or '1'<br>if 1 will force zeroing memories in pcid and emulation.<br>Default - '0'<br><br>                
+               </td>
+               <td>custom_feature[_init_tbls_to_zero]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>custom_feature_mem_reset_mode</td>
+               <td><br>custom_feature_mem_reset_mode='INDIRECT'/'DMA'/'NONE'<br>Method to reset tables which are not listed in table 'default'.<br>'NONE' will not reset those memories.<br><br>                
+               </td>
+               <td>custom_feature[_mem_reset_mode]=&lt;INDIRECT | DMA | NONE&gt;</td>
+               <td>INDIRECT</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>custom_feature_mem_defaults_verify</td>
+               <td><br>custom_feature_mem_defaults_verify='0' or '1'<br>if 1 will verify all memories initilized during init sequence<br>Default - '0'<br><br>                
+               </td>
+               <td>custom_feature[_mem_defaults_verify]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>custom_feature_emul_ext_init</td>
+               <td><br>custom_feature_emul_ext_init='0' or '1'<br>if 1 emulation tables will be init using external script, use custom_feature_emul_ext_init_path<br>to indicate the script path<br><br>                
+               </td>
+               <td>custom_feature[_emul_ext_init]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>8.2. dev_init &gt; general</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>general values for device init</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>custom_feature_access_only</td>
+               <td><br>Set to boot with access only.<br><br>                
+               </td>
+               <td>custom_feature[_access_only]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>custom_feature_heat_up</td>
+               <td><br>Set to boot for heat-up.<br><br>                
+               </td>
+               <td>custom_feature[_heat_up]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>8.3. dev_init &gt; ha</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>values for sw state and high availability init</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>stable_filename</td>
+               <td>file system will be used to save the stable cache data with this filename<br>                
+               </td>
+               <td>stable_filename=&lt;string&gt;</td>
+               <td>NULL</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>warmboot_support</td>
+               <td>Specify if WarmBoot is supported<br>                
+               </td>
+               <td>warmboot_support=&lt;on | off&gt;</td>
+               <td>off</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>sw_state_max_size</td>
+               <td><br>Configures the size of memory to be pre allocated for sw state.<br>The valid range is 0-1000000000 (i.e up to 1TB).<br><br>                
+               </td>
+               <td>sw_state_max_size=&lt;[0 - 1000000000]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>stable_location</td>
+               <td><br>Specify the stable cache option for Warm Boot operations.<br><br>                
+               </td>
+               <td>stable_location=&lt;[0 - 5]&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>stable_size</td>
+               <td><br>Specify the stable cache size in bytes used for Warm boot operations.<br><br>                
+               </td>
+               <td>stable_size=&lt;[0 - 1000000000]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>error_recovery_support</td>
+               <td><br>Enable/disable Error Recovery support:<br>0 - off - no ER, after API failure, the system may be inconsistent and require a reboot.<br>1 - on  - after an API failure, the system will recover to the state it had, prior
+                  to the execution of the API.<br>2 - debug  - same as on but will print extra error recovery debug info.<br><br>                
+               </td>
+               <td>error_recovery_support=&lt;on | off | debug&gt;</td>
+               <td>on</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>8.4. dev_init &gt; shadow</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>shadow memory for init</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>mem_cache_enable_all</td>
+               <td><br>Shadow all memory or not.<br><br>                
+               </td>
+               <td>mem_cache_enable[_all]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>mem_cache_enable_ecc</td>
+               <td><br>Shadow all memory with ecc field or not.<br><br>                
+               </td>
+               <td>mem_cache_enable[_ecc]=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>mem_cache_enable_parity</td>
+               <td><br>Shadow all memory with parity field or not.<br><br>                
+               </td>
+               <td>mem_cache_enable[_parity]=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>mem_cache_enable_specific</td>
+               <td><br>Enable memory shadow for specific table.<br><br>                
+               </td>
+               <td>mem_cache_enable[_specific]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>mem_nocache</td>
+               <td><br>Disable memory shadow for specific table.<br><br>                
+               </td>
+               <td>mem_nocache=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>8.5. dev_init &gt; cmc</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>cmc information in CMICx</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>cmc_pci</td>
+               <td><br>Specify the CMC in CMICx used by the PCI Host.<br><br>                
+               </td>
+               <td>cmc[_pci]=&lt;[0 - 1]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>pci_cmcs_num</td>
+               <td><br>Specify the number of CMCs used by the PCI Host.<br><br>                
+               </td>
+               <td>pci_cmcs_num=&lt;[1 - 2]&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>cmc_uc0</td>
+               <td><br>CMC in CMICx used by the micro controller 0.<br><br>                
+               </td>
+               <td>cmc[_uc0]=&lt;[0 - 1]&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>cmc_uc1</td>
+               <td><br>CMC in CMICx used by the micro controller 1.<br><br>                
+               </td>
+               <td>cmc[_uc1]=&lt;[0 - 1]&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>num_queues_pci</td>
+               <td><br>Number of DMA COS for PCI Host.<br><br>                
+               </td>
+               <td>num_queues[_pci]=&lt;[0 - 64]&gt;</td>
+               <td>64</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>num_queues_uc0</td>
+               <td><br>Number of DMA COS for micro controller 0.<br><br>                
+               </td>
+               <td>num_queues[_uc0]=&lt;[0 - 64]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>num_queues_uc1</td>
+               <td><br>Number of DMA COS for micro controller 1.<br><br>                
+               </td>
+               <td>num_queues[_uc1]=&lt;[0 - 64]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">9.  <a name="device">device</a></font></h1>
+      <h2>9.1. device &gt; general</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>General attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>custom_feature_init_without_device_hard_reset</td>
+               <td><br>Init the device without hard reset.<br>Can be 0 and 1<br>Default: 0<br><br>                
+               </td>
+               <td>custom_feature[_init_without_device_hard_reset]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>core_clock_speed_khz</td>
+               <td><br>Device core clock frequency in KHZ<br>Synopsis: core_clock_speed_khz=#freq#<br><br>                
+               </td>
+               <td>core_clock_speed[_khz]=&lt;[300000 - 3000000]&gt;</td>
+               <td>1350000</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>system_ref_core_clock_khz</td>
+               <td><br>Specifies system reference clock speed in kHz.<br>For a system containing a legacy device,the system reference clock needs to be set
+                  according to the legacy device.<br><br>                
+               </td>
+               <td>system_ref_core_clock[_khz]=&lt;[300000 - 3000000]&gt;</td>
+               <td>1600000</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>bist_enable</td>
+               <td><br>Determines if to run Memory Built-In Self-Test (MBIST) of internal memories (tables)
+                  during startup.<br>0 - do not run<br>1 - run<br>2 - run without stopping on errors,with extra logs<br><br>                
+               </td>
+               <td>bist_enable=&lt;[0 - 9999]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>9.2. device &gt; regression</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>regression attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>dvapi_system_indicator</td>
+               <td>SoC property to set the system mode.<br>                
+               </td>
+               <td>dvapi_system_indicator=&lt;string&gt;</td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>9.3. device &gt; emulation</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Emulation attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>diag_emulator_partial_init</td>
+               <td><br>Checking if the device is ran on emulation.<br>Can be 1,2 ,3<br>Default: 0<br><br>                
+               </td>
+               <td>diag_emulator_partial_init=&lt;[0 - 3]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">10.  <a name="dram">dram</a></font></h1>
+      <h2>10.1. dram &gt; hbm</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>HBM parameters and defines</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>dram_temperature_threshold_stop_traffic</td>
+               <td><br>This is soc property that holds the temperature threshold, for stop directing traffic
+                  to DRAM.<br>Units: degrees Celsius<br><br>                
+               </td>
+               <td>dram_temperature_threshold_stop_traffic=&lt;[86 - 105]&gt;</td>
+               <td>90</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>dram_low_temperature_threshold_stop_traffic</td>
+               <td><br>This soc property holds the low temperature threshold.<br>When getting below this temperature, system will stop directing traffic to DRAM.<br>Units: degrees Celsius<br><br>                
+               </td>
+               <td>dram_low_temperature_threshold_stop_traffic=&lt;[0 - 9]&gt;</td>
+               <td>5</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>dram_temperature_threshold_restore_traffic</td>
+               <td><br>This is soc property that holds the temperature threshold, for restore directing traffic
+                  to DRAM.<br>Units: degrees Celsius<br><br>                
+               </td>
+               <td>dram_temperature_threshold_restore_traffic=&lt;[0 - 105]&gt;</td>
+               <td>85</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>dram_low_temperature_threshold_restore_traffic</td>
+               <td><br>This soc property holds temperature threshold.<br>When crossing this threshold from below, system will renew directing traffic to DRAM.<br>Units: degrees Celsius<br><br>                
+               </td>
+               <td>dram_low_temperature_threshold_restore_traffic=&lt;[0 - 84]&gt;</td>
+               <td>10</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>dram_temperature_threshold_power_down</td>
+               <td><br>This is soc property that holds the temperature threshold, for doing DRAM shut down.<br>Units: degrees Celsius<br><br>                
+               </td>
+               <td>dram_temperature_threshold_power_down=&lt;[91 - 105]&gt;</td>
+               <td>95</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>dram_low_temperature_threshold_power_down</td>
+               <td><br>This soc property holds temperature threshold.<br>When crossing this threshold from above, system will power down DRAM.<br>Units: degrees Celsius<br><br>                
+               </td>
+               <td>dram_low_temperature_threshold_power_down=&lt;[0 - 4]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>dram_temperature_monitor_enable</td>
+               <td><br>Enable/disable SDK DRAM temperature monitor<br><br>                
+               </td>
+               <td>dram_temperature_monitor_enable=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_freeze_boot</td>
+               <td><br>Do not start DRAM during BCM init<br><br>                
+               </td>
+               <td>ext_ram_freeze_boot=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>10.2. dram &gt; general_info</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>general info derived from defaults or soc properties which is relevant also for other
+            types of drams, not only to HBM
+         </p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>ext_ram_t_wr</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_wr=&lt;[0 - 63]&gt;</td>
+               <td>UTILEX_DIV_ROUND_UP(17 * DATA(dram, general_info, frequency), 1000)</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_rp</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_rp=&lt;[0 - 63]&gt;</td>
+               <td>UTILEX_DIV_ROUND_UP(14 * DATA(dram, general_info, frequency), 1000)</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_rtp_s</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_rtp_s=&lt;[0 - 63]&gt;</td>
+               <td>5</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_rtp_l</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_rtp_l=&lt;[0 - 63]&gt;</td>
+               <td>5</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_rrd_s</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_rrd_s=&lt;[0 - 63]&gt;</td>
+               <td>UTILEX_DIV_ROUND_UP(4 * DATA(dram, general_info, frequency), 1000)</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_rrd_l</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_rrd_l=&lt;[0 - 63]&gt;</td>
+               <td>UTILEX_DIV_ROUND_UP(4 * DATA(dram, general_info, frequency), 1000)</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_faw</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_faw=&lt;[0 - 63]&gt;</td>
+               <td>UTILEX_DIV_ROUND_UP(16 * DATA(dram, general_info, frequency), 1000)</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_rcd_wr</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_rcd_wr=&lt;[0 - 63]&gt;</td>
+               <td>UTILEX_DIV_ROUND_UP(10 * DATA(dram, general_info, frequency), 1000)</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_rcd_rd</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_rcd_rd=&lt;[0 - 63]&gt;</td>
+               <td>UTILEX_DIV_ROUND_UP(14 * DATA(dram, general_info, frequency), 1000)</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_ras</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_ras=&lt;[0 - 63]&gt;</td>
+               <td>33</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_rc</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_rc=&lt;[0 - 63]&gt;</td>
+               <td>UTILEX_DIV_ROUND_UP(47 * DATA(dram, general_info, frequency), 1000)</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_wtr_l</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_wtr_l=&lt;[0 - 63]&gt;</td>
+               <td>UTILEX_DIV_ROUND_UP(9 * DATA(dram, general_info, frequency), 1000)</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_wtr_s</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_wtr_s=&lt;[0 - 63]&gt;</td>
+               <td>UTILEX_DIV_ROUND_UP(4 * DATA(dram, general_info, frequency), 1000)</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_rtw</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_rtw=&lt;[0 - 63]&gt;</td>
+               <td>4</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_ccd_r</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_ccd_r=&lt;[0 - 63]&gt;</td>
+               <td>3</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_ccd_s</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_ccd_s=&lt;[0 - 63]&gt;</td>
+               <td>2</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_ccd_l</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_ccd_l=&lt;[0 - 63]&gt;</td>
+               <td>4</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_rrefd</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_rrefd=&lt;[0 - 255]&gt;</td>
+               <td>UTILEX_DIV_ROUND_UP(8 * DATA(dram, general_info, frequency), 1000)</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_rfcsb</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_rfcsb=&lt;[0 - 1023]&gt;</td>
+               <td>UTILEX_DIV_ROUND_UP(160 * DATA(dram, general_info, frequency), 1000)</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_rfc</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_rfc=&lt;[0 - 1023]&gt;</td>
+               <td>UTILEX_DIV_ROUND_UP(350 * DATA(dram, general_info, frequency), 1000)</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_mrd</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_mrd=&lt;[0 - 63]&gt;</td>
+               <td>8</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_mod</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_mod=&lt;[0 - 63]&gt;</td>
+               <td>15</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_refi</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_refi=&lt;[0 - 16383]&gt;</td>
+               <td>3900</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_t_refisb</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>For more info regarding this timing parameter check JEDEC<br><br>                
+               </td>
+               <td>ext_ram_t_refisb=&lt;[0 - 2047]&gt;</td>
+               <td>120</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_freq</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>dram Frequency in MHZ<br><br>                
+               </td>
+               <td>ext_ram_freq=&lt;[500 - 1400]&gt;</td>
+               <td>1200</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_command_address_parity</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>0 - Command/address parity disabled<br>1 - Command/address parity enabled<br><br>                
+               </td>
+               <td>ext_ram_command_address_parity=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_dq_write_parity</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>0 - DQ write parity disabled<br>1 - DQ write parity enabled<br><br>                
+               </td>
+               <td>ext_ram_dq_write_parity=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_dq_read_parity</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>0 - DQ read parity disabled<br>1 - DQ read parity enabled<br><br>                
+               </td>
+               <td>ext_ram_dq_read_parity=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_read_dbi</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>0 - Read DBIac disabled<br>1 - Read DBIac enabled<br><br>                
+               </td>
+               <td>ext_ram_read_dbi=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_write_dbi</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>0 - Write DBIac disabled<br>1 - Write DBIac enabled<br><br>                
+               </td>
+               <td>ext_ram_write_dbi=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_write_latency</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>HBM write latency (WR) in tCK units<br><br>                
+               </td>
+               <td>ext_ram_write_latency=&lt;[0 - 15]&gt;</td>
+               <td>7</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ram_parity_latency</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>DQ Parity latency (PL) in tCK units<br><br>                
+               </td>
+               <td>ext_ram_parity_latency=&lt;[0 - 3]&gt;</td>
+               <td>2</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>dram_phy_tune_mode_on_init</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>Choose dram phy tune mode during Init<br><br>                
+               </td>
+               <td>dram_phy_tune_mode_on_init=&lt;RUN_TUNE&gt;</td>
+               <td>RUN_TUNE</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>10.3. dram &gt; buffers</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>information regarding BDs and BDBs</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>deleted_buffers_file_path</td>
+               <td><br>Path for deleted buffers file, if a file exists it will be used,<br>if not it will be created in this path according to need.<br><br>                
+               </td>
+               <td>deleted_buffers_file_path=&lt;string&gt;</td>
+               <td>./deleted_buffers_file</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>quarantine_mechanism_allowed_errors</td>
+               <td><br>Define the amount of errors a single buffer can have before the Quarantine Mechanism
+                  delete the buffer instead of restoring it<br><br>                
+               </td>
+               <td>quarantine_mechanism_allowed_errors=&lt;[0 - 100]&gt;</td>
+               <td>10</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">11.  <a name="egr_queuing">egr_queuing</a></font></h1>
+      <h2>11.1. egr_queuing &gt; params</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>default values for egr_queuing module</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>custom_feature_burst_size_below_mtu</td>
+               <td><br>indicated whether burst size can be configured bellow MTU<br><br>                
+               </td>
+               <td>custom_feature[_burst_size_below_mtu]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">12.  <a name="elk">elk</a></font></h1>
+      <h2>12.1. elk &gt; general</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>ELK general data.</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>ext_tcam_dev_type</td>
+               <td><br>Specify the external Tcam type.<br>Jericho2 support BCM52311 and beyond.<br><br>                
+               </td>
+               <td>ext_tcam_dev_type=&lt;BCM52311 | BCM52321&gt;</td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>12.2. elk &gt; application</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>ELK forwarding applications.</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>ext_ipv4_fwd_enable</td>
+               <td><br>Enable / Disable KBP IPv4 forwarding application.<br><br>                
+               </td>
+               <td>ext_ipv4_fwd_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ipv6_fwd_enable</td>
+               <td><br>Enable / Disable KBP IPv6 forwarding application.<br><br>                
+               </td>
+               <td>ext_ipv6_fwd_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>custom_feature_ext_nat_fwd_enable</td>
+               <td><br>Enable / Disable KBP NAT forwarding application.<br><br>                
+               </td>
+               <td>custom_feature[_ext_nat_fwd_enable]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_sllb_fwd_enable</td>
+               <td><br>Enable / Disable KBP SLLB forwarding application.<br><br>                
+               </td>
+               <td>ext_sllb_fwd_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>custom_feature_kbp_split_rpf_enable</td>
+               <td><br>Enable / Disable KBP split RPF.<br><br>                
+               </td>
+               <td>custom_feature[_kbp_split_rpf_enable]=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_tcam_thread_safety_enable</td>
+               <td><br>Enable / Disable KBP thread safety.<br><br>                
+               </td>
+               <td>ext_tcam_thread_safety_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ipv4_large_mc_enable</td>
+               <td><br>Enable / Disable IPv4 large Multicast modes.<br>Mode 0: Default mode. Disables IPv4 large multicast.<br>Mode 1: Supports higher capacity by enabling ACL algo mode 3.<br>And this modes assumes VRF and DIP are fully specified.<br>Mode 2: Supports higher capacity by enabling ACL algo mode 3.<br><br>                
+               </td>
+               <td>ipv4_large_mc_enable=&lt;[0 - 2]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ipv6_large_mc_enable</td>
+               <td><br>Enable / Disable IPv6 large Multicast modes.<br>Mode 0: Default mode. Disables IPv6 large multicast.<br>Mode 1: Supports higher capacity by enabling ACL algo mode 3.<br>And this modes assumes VRF and DIP are fully specified.<br>Mode 2: Supports higher capacity by enabling ACL algo mode 3.<br><br>                
+               </td>
+               <td>ipv6_large_mc_enable=&lt;[0 - 2]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>12.3. elk &gt; connectivity</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>ELK connectivity parameters.</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>port_phy_addr_ext_tcam</td>
+               <td><br>The MDIO ID connecting with the External Tcam.<br>KBP mdio ID format:<br>* bits [5:6,8:9] - bus ID.<br>* bit [7] - Internal select. Set to 0 for external phy access.<br>* bits [0:4] - phy/kbp id ==&gt; 0x1<br><br>                
+               </td>
+               <td>port_phy_addr[_ext_tcam&lt;kbp_inst&gt;]=&lt;[0 - 4294967295]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_ilkn_reverse</td>
+               <td><br>External lookup (elk) ILKN lanes swap.<br>If set, reverse the lanes numbering order on elk device side.<br>This swap is logical and relates to ILKN protocol lane numbering.<br><br>                
+               </td>
+               <td>ext_ilkn_reverse=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_tcam_start_lane</td>
+               <td><br>1. Define the start lane number for each kbp port.<br>2. Define the KBP port to Jericho2 core mapping.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_tcam_serdes_tx_taps</td>
+               <td><br>a set of TX FIR parameters for the lane.<br>serdes_tx_taps_&lt;lane_id&gt;=signalling_mode:pre:main:post:pre2:post2:post3<br>signalling_mode can be either pam4 or nrz.<br>[pre2:post2:post3] part is optional:<br>- if it is given - this is 6-tap mode.<br>- if it is not given - this is 3-tap mode.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>serdes_tx_taps</td>
+               <td><br>a set of TX FIR parameters for the external interface kbp device<br>It is configured per stat lane, as follow:<br>serdes_tx_taps_ext_stat_lane&lt;lane_id&gt;=signalling_mode:pre:main:post:pre2:post2:post3<br>signalling_mode can be either pam4 or nrz.<br>[pre2:post2:post3] are mandatory. (Can be set to zero).<br>main is set to DNXC_PORT_TX_FIR_INVALID_MAIN_TAP by default to distinguish between
+                  whether the SoC property was set or not.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ext_tcam_connect_mode</td>
+               <td><br>External Tcam connection mode.<br>SINGLE: One host connects with one KBP;<br>DUAL_SHARED: Two hosts connect with one KBP via one thread;<br>DUAL_SMT: Two hosts connect with one KBP via two threads.<br><br>                
+               </td>
+               <td>ext_tcam_connect_mode=&lt;SINGLE | SINGLE_HOST | DUAL_SHARED | DUAL_SMT | SINGLE_PORT&gt;</td>
+               <td>SINGLE_HOST</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>custom_feature_kbp_blackhole</td>
+               <td><br>Enable / Disable KBP Blackhole mode:<br>0: disabled<br>1: enabled - initialize 1 KBP instance<br>2: enabled - initialize 2 KBP instances<br><br>                
+               </td>
+               <td>custom_feature[_kbp_blackhole]=&lt;[0 - 2]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>12.4. elk &gt; recovery</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>ELK general data.</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>custom_feature_kbp_recovery_enable</td>
+               <td><br>1: Enable the recovery sequence.<br>0: Disable the recovery sequence.<br><br>                
+               </td>
+               <td>custom_feature[_kbp_recovery_enable]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>custom_feature_kbp_recovery_iter</td>
+               <td><br>The re-try iteration while executing the recovery sequence.<br><br>                
+               </td>
+               <td>custom_feature[_kbp_recovery_iter]=&lt;[0 - 4294967295]&gt;</td>
+               <td>5</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">13.  <a name="fabric">fabric</a></font></h1>
+      <h2>13.1. fabric &gt; general</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>General data about fabric</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>fabric_connect_mode</td>
+               <td><br>Set the connect mode of the Fabric:<br>FE - fabric is connected to FE device.<br>SINGLE_FAP - stand-alone device.<br>MESH - fabric is connected to other FAPs directly.<br><br>                
+               </td>
+               <td>fabric_connect_mode=&lt;FE | SINGLE_FAP | MESH&gt;</td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>13.2. fabric &gt; links</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>data about fabric links</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>phy_tx_polarity_flip</td>
+               <td><br>Flips PHY TX polarity if enabled<br>phy_tx_polarity_flip_fabric#link# = 0 / 1<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>phy_rx_polarity_flip</td>
+               <td><br>Flips PHY RX polarity if enabled<br>phy_rx_polarity_flip_fabric#link# = 0 / 1<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>fabric_links_to_core_mapping_mode</td>
+               <td><br>Set Fabric link-to-core mapping mode:<br>SHARED - the links are shared between the cores.<br>Default: SHARED<br>Note: this soc property exist only for backward compatibility.<br><br>                
+               </td>
+               <td>fabric_links_to_core_mapping_mode=&lt;SHARED&gt;</td>
+               <td>SHARED</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>13.3. fabric &gt; mesh</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>MESH mode attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>fabric_mesh_multicast_enable</td>
+               <td><br>Enable / Disable MESH MC mode:<br>fabric_mesh_multicast_enable = 1 / 0<br>Relevant only when fabric connect mode is MESH.<br>Default: 1<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>13.4. fabric &gt; cell</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>cell attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>fabric_pcp_enable</td>
+               <td><br>Enable PCP:<br>fabric_pcp_enable=1<br>Default: 1<br>Note: this soc property exist only for backward compatibility.<br><br>                
+               </td>
+               <td>fabric_pcp_enable=&lt;1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>13.5. fabric &gt; pipes</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>pipes attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>fabric_pipe_map</td>
+               <td><br>Assign traffic cast (unicast/multicast) and priority (0/1/2/3) to a pipe.<br>fabric_pipe_map=0/1/2<br>Assigning a specific traffic cast is done by a suffix uc/mc and a number which represents
+                  the cell priority.<br>Not all the options supported, please find the supported options in UM<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>fabric_num_pipes</td>
+               <td><br>Configure number of fabric pipes:<br>fabric_num_pipes= 1/2/3<br>Default: 1<br><br>                
+               </td>
+               <td>fabric_num_pipes=&lt;[1 - 2]&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>system_contains_multiple_pipe_device</td>
+               <td><br>To determine if there is a multiple pipe device in the system:<br>system_contains_multiple_pipe_device = 0/1<br>Default: 0<br><br>                
+               </td>
+               <td>system_contains_multiple_pipe_device=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>13.6. fabric &gt; debug</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>debug configurations</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>custom_feature_mesh_topology_size</td>
+               <td><br>To determine if there is a multiple pipe device in the system:<br>custom_feature_mesh_topology_size=-1/0/1/2/3<br>Default: -1<br><br>                
+               </td>
+               <td>custom_feature[_mesh_topology_size]=&lt;[-1 - 3]&gt;</td>
+               <td>-1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>custom_feature_mesh_topology_fast</td>
+               <td><br>Device is in mesh topology fast mode.<br>Used for internal validation only!<br><br>                
+               </td>
+               <td>custom_feature[_mesh_topology_fast]=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>13.7. fabric &gt; dtqs</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>DTQs info</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>single_dtq</td>
+               <td><br>Configure DTQ mode:<br>single_dtq = 1/0<br>Default: Number of DTQs will be according to pipes configuration<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>13.8. fabric &gt; ilkn</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>data about ILKN over fabric</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>ilkn_use_fabric_links</td>
+               <td><br>bitmap of fabrics link in bypass mode per PM (0x00 - 0xff)<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">14.  <a name="failover">failover</a></font></h1>
+      <h2>14.1. failover &gt; facility</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Facility protection data</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>bcm886xx_fec_accelerated_reroute_mode</td>
+               <td><br>Enable/disable facility accelerated protection.<br><br>                
+               </td>
+               <td>bcm886xx_fec_accelerated_reroute_mode=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">15.  <a name="fc">fc</a></font></h1>
+      <h2>15.1. fc &gt; coe</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Flow Control COE general configurations.</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>fc_calendar_coe_mode</td>
+               <td><br>PP COE Mode<br>Valid value: PAUSE/PFC<br><br>                
+               </td>
+               <td>fc_calendar_coe_mode=&lt;PAUSE | PFC&gt;</td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>fc_coe_mac_address</td>
+               <td><br>Set the mac address of COE FC packet (48 bits)<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>fc_coe_calender_length</td>
+               <td><br>Flow Control COE RX calender length.<br><br>                
+               </td>
+               <td>fc_coe_calender_length=&lt;[1 - 256]&gt;</td>
+               <td>256</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>fc_calendar_pause_resolution</td>
+               <td><br>PP COE Pause counter rate. Unit: usec.<br><br>                
+               </td>
+               <td>fc_calendar_pause_resolution=&lt;[0 - 4294967295]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>fc_coe_data_offset</td>
+               <td><br>Define offset in bytes from after Ethernet Frame for COE FC data. Valid range = [0-31]<br><br>                
+               </td>
+               <td>fc_coe_data_offset=&lt;[0 - 31]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>fc_coe_ethertype</td>
+               <td><br>Set ethertype of COE FC packet.(16bits)<br><br>                
+               </td>
+               <td>fc_coe_ethertype=&lt;[0 - 65535]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>fc_calendar_coe_mode</td>
+               <td><br>Set PP COE Control Opcode used to identify COE.(16bits)<br><br>                
+               </td>
+               <td>fc_calendar_coe_mode=&lt;PAUSE | PFC&gt;</td>
+               <td>PAUSE</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>15.2. fc &gt; oob</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Flow Control OOB general configurations.</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>fc_oob_calender_length</td>
+               <td><br>Flow Control Out-Of-Band TX/RX calender length.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>fc_oob_calender_rep_count</td>
+               <td><br>Flow Control Out-Of-Band TX/RX repeat count.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>fc_oob_tx_freq_ratio</td>
+               <td><br>Sets the Flow Control OOB TX Speed relatively to the Core Clock. Possible values:<br>1 - Same as Core Clock<br>2 - Core Clock / 2<br>4 - Core Clock / 4<br>6 - Core Clock / 6<br>8 - Core Clock / 8<br>10 - Core Clock / 10<br>12 - Core Clock / 12<br>14 - Core Clock / 14<br>16 - Core Clock / 16<br><br>                
+               </td>
+               <td>fc_oob_tx_freq_ratio=&lt;2 | 4 | 6 | 8 | 10 | 12 | 14 | 16&gt;</td>
+               <td>4</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>fc_oob_type</td>
+               <td><br>Flow Control Out-Of-Band port type. Values:<br>0x1 for SPI,  0x2 for ILKN<br><br>                
+               </td>
+               <td>fc_oob_type=&lt;1 | 2&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>fc_oob_mode</td>
+               <td><br>Flow Control Out-Of-Band port mode.. Values:<br>0x0 for disable, 0x1 for RX, 0x2 for TX, 0x3 for both<br><br>                
+               </td>
+               <td>fc_oob_mode=&lt;0 | 1 | 2 | 3&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>fc_intlkn_indication_invert_tx</td>
+               <td><br>This option controls the meaning of '0'/'1' in the of Calendar FC indications per
+                  interface.<br>If unset (default), use the standard FC indication. If set, use an inverted FC indication.<br><br>                
+               </td>
+               <td>fc_intlkn_indication_invert[_tx&lt;oob_id&gt;]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>fc_intlkn_indication_invert_rx</td>
+               <td><br>This option controls the meaning of '0'/'1' in the of Calendar FC indications per
+                  interface.<br>If unset (default), use the standard FC indication. If set, use an inverted FC indication.<br><br>                
+               </td>
+               <td>fc_intlkn_indication_invert[_rx&lt;oob_id&gt;]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>fc_spi_indication_invert</td>
+               <td><br>This option controls the meaning of '0'/'1' in the of Calendar FC indications per
+                  interface.<br>If unset (default), use the standard FC indication. If set, use an inverted FC indication.<br><br>                
+               </td>
+               <td>fc_spi_indication_invert=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">16.  <a name="field">field</a></font></h1>
+      <h2>16.1. field &gt; base_ipmf3</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Ingress PMF_3 (PMF_B) data. For internal DNX DATA use only. Use stage submodule instead.</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>system_headers_mode</td>
+               <td><br>In J1 mode 1 FES is used to send UDHBase action<br><br>                
+               </td>
+               <td>system_headers_mode=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>16.2. field &gt; profile_bits</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>PMF Dedicated bits in profiles</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>pmf_in_lif_profile_nof_bits</td>
+               <td><br>Configure number of in lif profile bits which will be used by PMF:<br>pmf_in_lif_profile_nof_bits= 1-7<br>Default: 2<br><br>                
+               </td>
+               <td>pmf_in_lif_profile_nof_bits=&lt;[1 - 7]&gt;</td>
+               <td>2</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>pmf_in_rif_profile_nof_bits</td>
+               <td><br>Configure number of in-rif profile bits which will be used by PMF:<br>pmf_in_lif_profile_nof_bits= 1-7<br>Default: 2<br><br>                
+               </td>
+               <td>pmf_in_rif_profile_nof_bits=&lt;[1 - 7]&gt;</td>
+               <td>2</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>pmf_sexem3_stage</td>
+               <td><br>Set PMF stage that will use SEXEM3. It can be:<br>IPMF2 - Ingress PMF stage 2.<br>IPMF3 - Ingress PMF stage 3.<br><br>                
+               </td>
+               <td>pmf_sexem3_stage=&lt;IPMF2 | IPMF3&gt;</td>
+               <td>IPMF3</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>pmf_map_stage</td>
+               <td><br>Set PMF stage that will use MAP. It can be:<br>IPMF1 - Ingress PMF stage 1/2.<br>IPMF3 - Ingress PMF stage 3.<br><br>                
+               </td>
+               <td>pmf_map_stage=&lt;IPMF1 | IPMF3&gt;</td>
+               <td>IPMF1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>16.3. field &gt; state_table</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>State Table data</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>pmf_state_table_payload_size</td>
+               <td><br>Set The size of the payload for a state table entry, indicating the number of entries.<br>8 - 8K entries<br>4 - 16K entries<br>2 - 32K entries<br>1 - 64K entries<br><br>                
+               </td>
+               <td>pmf_state_table_payload_size=&lt;8 | 4 | 2 | 1&gt;</td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>pmf_state_table_rmw_source</td>
+               <td><br>Set The size of the payload for a state table entry, indicating the number of entries.<br>ipmf1_key_j_msb - MSB of initial key J in iPMF1<br>ipmf2_key_j_msb - MSB of key J in iPMF2<br><br>                
+               </td>
+               <td>pmf_state_table_rmw_source=&lt;ipmf1_key_j_msb | ipmf2_key_j_msb&gt;</td>
+               <td>ipmf1_key_j_msb</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>16.4. field &gt; udh</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>User Defined Headers defines</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>field_class_id_size_0</td>
+               <td><br>Field class ID size 0 is used to determine UDH_0<br>size in J1 mode and also the udh_egress_offset_0/1.<br>Default: 0x0.<br><br>                
+               </td>
+               <td>field_class_id_size_0=&lt;0 | 8 | 16 | 24 | 32&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>field_class_id_size_1</td>
+               <td><br>Field class ID size 1 is used to determine UDH_1<br>size in J1 mode.<br>Default: 0x0.<br><br>                
+               </td>
+               <td>field_class_id_size_1=&lt;0 | 8 | 16 | 24 | 32&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>field_class_id_size_2</td>
+               <td><br>Field class ID size 2 is used to determine UDH_0<br>size in J1 mode.<br>Default: 0x0.<br><br>                
+               </td>
+               <td>field_class_id_size_2=&lt;0 | 8 | 16 | 24 | 32&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>field_class_id_size_3</td>
+               <td><br>Field class ID size 3 is used to determine UDH_1<br>size in J1 mode.<br>Default: 0x0.<br><br>                
+               </td>
+               <td>field_class_id_size_3=&lt;0 | 8 | 16 | 24 | 32&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>16.5. field &gt; system_headers</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>System headers definitions</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>bcm886xx_pph_learn_extension_disable</td>
+               <td><br>If set, never add learn_ext in system header (unless explictly required in FP action).<br>Used in JR1 mode only. Used by DNX_FIELD_CONTEXT_SYS_HDR_PROFILE_FTMH_TSH_PPH_UDH
+                  only.<br>Default: 0x1.<br><br>                
+               </td>
+               <td>bcm886xx_pph_learn_extension_disable=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">17.  <a name="headers">headers</a></font></h1>
+      <h2>17.1. headers &gt; ftmh</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>ftmh header parameters</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>ftmh_dsp_extension_add</td>
+               <td><br>adding dsp extension for the ftmh<br><br>                
+               </td>
+               <td>ftmh_dsp_extension_add=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>17.2. headers &gt; system_headers</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>system headers</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>system_headers_mode</td>
+               <td><br>System headers mode that the device supports, possible values:<br>0x0 - Jericho-mode - used for Jericho/QMX/QAX/QUX mode<br>0x1 - Jericho2-mode - 0x1 used for Jericho 2 mode<br>Default: 0x1.<br><br>                
+               </td>
+               <td>system_headers_mode=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>system_ftmh_load_balancing_ext_mode</td>
+               <td><br>ftmh load balance key extensiton mode in JR mode:<br>DISABLED - FTMH load balancing extension is disabled<br>ENABLED -  FTMH load balancing extension is enabled.<br>Default: DISABLED<br><br>                
+               </td>
+               <td>system_ftmh_load_balancing_ext_mode=&lt;DISABLED | ENABLED&gt;</td>
+               <td>DISABLED</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>stacking_extension_enable</td>
+               <td><br>ftmh stacking extension mode in JR sys-headers mode:<br>0x0 - FTMH stacking extension is disabled<br>0x1 - FTMH stacking extension is enabled<br>Defaule: DISABLED<br><br>                
+               </td>
+               <td>stacking_extension_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>system_headers_mode</td>
+               <td><br>UDH Base header<br>JR2 mode - Standard UDH Base with 1B<br>JR1 mode - No UDH Base header.<br>Default: JR2 mode<br><br>                
+               </td>
+               <td>system_headers_mode=&lt;1 | 0&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">18.  <a name="intr">intr</a></font></h1>
+      <h2>18.1. intr &gt; general</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>General interrupt information.</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>polled_irq_mode</td>
+               <td><br>Are interrupts supported by polling mode.<br><br>                
+               </td>
+               <td>polled_irq_mode=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>polled_irq_priority</td>
+               <td><br>Priority of IRQ polling thread.<br><br>                
+               </td>
+               <td>polled_irq_priority=&lt;[-1 - 1000]&gt;</td>
+               <td>100</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>polled_irq_delay</td>
+               <td><br>The minimum delay between IRQ polls.<br><br>                
+               </td>
+               <td>polled_irq_delay=&lt;[0 - 100000000]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>table_dma_enable</td>
+               <td><br>Enable/disable table DMA operations.<br><br>                
+               </td>
+               <td>table_dma_enable=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>tdma_timeout_usec</td>
+               <td><br>Table DMA operation timeout.<br><br>                
+               </td>
+               <td>tdma_timeout_usec=&lt;[0 - 4000000000]&gt;</td>
+               <td>1000</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>tdma_intr_enable</td>
+               <td><br>Table DMA done is interrupt driven or by polling.<br><br>                
+               </td>
+               <td>tdma_intr_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>tslam_dma_enable</td>
+               <td><br>Enable/disable tslam DMA operations.<br><br>                
+               </td>
+               <td>tslam_dma_enable=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>tslam_timeout_usec</td>
+               <td><br>Tslam DMA operation timeout.<br><br>                
+               </td>
+               <td>tslam_timeout_usec=&lt;[0 - 4000000000]&gt;</td>
+               <td>1000</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>tslam_intr_enable</td>
+               <td><br>Tslam DMA done is interrupt driven or by polling.<br><br>                
+               </td>
+               <td>tslam_intr_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>schan_timeout_usec</td>
+               <td><br>Schan operation done is interrupt driven or by polling.<br><br>                
+               </td>
+               <td>schan_timeout_usec=&lt;[0 - 10000000]&gt;</td>
+               <td>1000</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>schan_intr_enable</td>
+               <td><br>Schan operation done is interrupt driven or by polling.<br><br>                
+               </td>
+               <td>schan_intr_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>miim_timeout_usec</td>
+               <td><br>MIM operation timeout.<br><br>                
+               </td>
+               <td>miim_timeout_usec=&lt;[0 - 600000000]&gt;</td>
+               <td>2000</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>schan_intr_enable</td>
+               <td><br>MIIM operation done is interrupt driven or by polling.<br><br>                
+               </td>
+               <td>schan_intr_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>dma_desc_timeout_usec</td>
+               <td><br>SBUSDMA descriptor mode operation timeout in microseconds.<br><br>                
+               </td>
+               <td>dma_desc_timeout_usec=&lt;[0 - 1000000000]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>dma_desc_intr_enable</td>
+               <td><br>SBUSDMA descriptor mode operation should use interrupt rather than poll for completion.<br><br>                
+               </td>
+               <td>dma_desc_intr_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>mem_clear_chunk_size</td>
+               <td><br>SBUS DMA chunk size configuration.<br><br>                
+               </td>
+               <td>mem_clear_chunk_size=&lt;[0 - 1000]&gt;</td>
+               <td>4</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>18.2. intr &gt; ser</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>SER handle information.</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>kaps_tcam_scan_window</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>TCAM SCRUB Scan window count size. When set to 0, TCAM scanning is disabled<br>Set by default to run every 10ms =  core_clock_khz * 1000 / 100, 100 times a second.<br>The window is between each tcam line, divide by the number of rows.<br><br>                
+               </td>
+               <td>kaps_tcam_scan_window=&lt;[0 - 4294967295]&gt;</td>
+               <td>10*DATA(device,general,core_clock_khz)/DATA(mdb,kaps,nof_rows_in_rpb)</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>kaps_tcam_scan_pause</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>TCAM SCRUB Scan pause. When set, entries will pause scan machine.<br><br>                
+               </td>
+               <td>kaps_tcam_scan_pause=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>kaps_tcam_scan_uncorrectable_action</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>Controls the action to be performed on uncorrectable TCAM,ECC entries<br>0 - No action<br>1 - invalidate, uncorrectable TCAM ECC entries will be invalidated.<br><br>                
+               </td>
+               <td>kaps_tcam_scan_uncorrectable_action=&lt;[0 - 1]&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>kaps_tcam_scan_correctable_action</td>
+               <td><br>This is an internal soc property that should be used only for debug purposes<br>Controls the action to be performed on uncorrectable TCAM,ECC entries<br>0 - No action<br>1 - invalidate, uncorrectable TCAM ECC entries will be invalidated.<br>2 - correct, Correctable TCAM ECC entries will be corrected.<br><br>                
+               </td>
+               <td>kaps_tcam_scan_correctable_action=&lt;[0 - 2]&gt;</td>
+               <td>2</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">19.  <a name="iqs">iqs</a></font></h1>
+      <h2>19.1. iqs &gt; credit</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Data about credit profiles</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>credit_size</td>
+               <td><br>Set local credit worth. Recommended value is 4096 Bytes.<br>Credit worth has significant implications on the scheduled traffic.<br>Consult with Broadcom applications engineer before changing the credit size value.<br>Supported range [1-8191]<br>Syntax:<br>credit_size=#credit size in bytes#<br>Default:<br>4096<br><br>                
+               </td>
+               <td>credit_size=&lt;[1 - 65535]&gt;</td>
+               <td>4096</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">20.  <a name="l2">l2</a></font></h1>
+      <h2>20.1. l2 &gt; general</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>General L2 properties</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>l2_learn_limit_mode</td>
+               <td>MACT learn limit mode<br>                
+               </td>
+               <td>l2_learn_limit_mode=&lt;VLAN | VLAN_PORT | TUNNEL&gt;</td>
+               <td>VLAN</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>20.2. l2 &gt; dma</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>dma</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>learning_fifo_dma_buffer_size</td>
+               <td><br>Configure the size of the host memory in bytes.<br>The valid range of memory size is 20-327680 bytes.<br>learning_fifo_dma_buffer_size=20-327680<br>Default: 200000<br><br>                
+               </td>
+               <td>learning_fifo_dma_buffer_size=&lt;[20 - 327680]&gt;</td>
+               <td>200000</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>learning_fifo_dma_timeout</td>
+               <td><br>Configures the learning fifo dma timeout in microseconds.<br>The valid range is 0-65535.<br>learning_fifo_dma_timeout=0-65535<br>Default: 32767<br><br>                
+               </td>
+               <td>learning_fifo_dma_timeout=&lt;[0 - 65535]&gt;</td>
+               <td>32767</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>learning_fifo_dma_threshold</td>
+               <td><br>Configures the learning fifo dma threshold.<br>The valid range is 1-16384.<br>learning_fifo_dma_threshold=1-16384<br>Default: 4<br><br>                
+               </td>
+               <td>learning_fifo_dma_threshold=&lt;[1 - 16384]&gt;</td>
+               <td>4</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>20.3. l2 &gt; age_and_flush_machine</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Scan machine used for flush and age operations.</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>l2_flush_traverse_thread_priority</td>
+               <td>L2 flush match traverse non-blocking thread priority<br>                
+               </td>
+               <td>l2_flush_traverse_thread_priority=&lt;[0 - 65535]&gt;</td>
+               <td>50</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">21.  <a name="l3">l3</a></font></h1>
+      <h2>21.1. l3 &gt; rif</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Routing interface</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>rif_id_max</td>
+               <td><br>Default: 4096<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">22.  <a name="lane_map">lane_map</a></font></h1>
+      <h2>22.1. lane_map &gt; nif</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>lane mapping attributes for NIF</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>lane_to_serdes_map</td>
+               <td><br>Define paired serdes rx id and tx id with the same lane number.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>22.2. lane_map &gt; fabric</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>lane mapping attributes for Farbic</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>lane_to_serdes_map</td>
+               <td><br>Define paired serdes rx id and tx id with the same lane number.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>22.3. lane_map &gt; ilkn</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>logical lane re-mapping attributes for ILKN</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>ilkn_lane_map</td>
+               <td><br>Re-assign the ILKN lane order.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">23.  <a name="lif">lif</a></font></h1>
+      <h2>23.1. lif &gt; global_lif</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Global lif attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>system_headers_mode</td>
+               <td>IN_LIF null value in egress stage<br>                
+               </td>
+               <td>system_headers_mode=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>system_headers_mode</td>
+               <td>IN_LIF null value in egress stage<br>                
+               </td>
+               <td>system_headers_mode=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>23.2. lif &gt; in_lif</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>In lif attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>in_lif_profile_allocate_indexed_mode</td>
+               <td>number of values needed for property indexed_mode in in_lif_profile<br>                
+               </td>
+               <td>in_lif_profile_allocate[_indexed_mode]=&lt;[0 - 2]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>in_lif_profile_egress_allocate_orientation</td>
+               <td>number of values needed for egress property in_lif_orientation in in_lif_profile<br>                
+               </td>
+               <td>in_lif_profile_egress_allocate[_orientation]=&lt;[0 - 8]&gt;</td>
+               <td>4</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>in_lif_profile_egress_allocate_policer_inner_dp</td>
+               <td>number of values needed for egress property ive_inner_qos_dp_profile in in_lif_profile<br>                
+               </td>
+               <td>in_lif_profile_egress_allocate[_policer_inner_dp]=&lt;[0 - 4]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>in_lif_profile_egress_allocate_policer_outer_dp</td>
+               <td>number of values needed for egress property ive_outer_qos_dp_profile in in_lif_profile<br>                
+               </td>
+               <td>in_lif_profile_egress_allocate[_policer_outer_dp]=&lt;[0 - 4]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>in_lif_profile_egress_allocate_same_interface_mode</td>
+               <td>number of values needed for egress property same_interface_mode in in_lif_profile<br>                
+               </td>
+               <td>in_lif_profile_egress_allocate[_same_interface_mode]=&lt;[0 - 3]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>23.3. lif &gt; out_lif</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Out lif attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>outlif_logical_to_physical_phase_map</td>
+               <td><br>Map outlif logical phase to physical phase.<br>The suffix for this property is the logical phase, and the value is the physical phase.<br>Every logical phase and every physical phase must be configured.<br><br>                
+               </td>
+               <td>outlif_logical_to_physical_phase_map=&lt;XL | L1 | L2 | M1 | M2 | M3 | S1 | S2&gt;</td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>outlif_nof_bits</td>
+               <td>8192 + (DATA(lif,out_lif,outlif_pointer_size)-19)*8192<br>                
+               </td>
+               <td>outlif_nof_bits=&lt;19 | 20&gt;</td>
+               <td>19</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>outlif_nof_bits</td>
+               <td>DATA(lif,out_lif,outlif_pointer_size)<br>                
+               </td>
+               <td>outlif_nof_bits=&lt;19 | 20&gt;</td>
+               <td>19</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>outlif_nof_bits</td>
+               <td>DATA(lif,out_lif,glem_result)-DATA(lif,out_lif,local_outlif_width)<br>                
+               </td>
+               <td>outlif_nof_bits=&lt;19 | 20&gt;</td>
+               <td>19</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>outlif_nof_bits</td>
+               <td>1 &lt;&lt; DATA(lif,out_lif,outlif_pointer_size)<br>                
+               </td>
+               <td>outlif_nof_bits=&lt;19 | 20&gt;</td>
+               <td>19</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>outlif_nof_bits</td>
+               <td>1 &lt;&lt; (DATA(lif,out_lif,outlif_pointer_size) - DATA(lif,out_lif,physical_bank_pointer_size))<br>                
+               </td>
+               <td>outlif_nof_bits=&lt;19 | 20&gt;</td>
+               <td>19</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">24.  <a name="linkscan">linkscan</a></font></h1>
+      <h2>24.1. linkscan &gt; general</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>general data</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>bcm_linkscan_errdelay</td>
+               <td><br>The amount of time in microseconds for which the bcm_linkscan module will suspend<br>a port from further update processing after 'bcm_linkscan_maxerr' errors are detected.<br>After this delay, the error state for the port is cleared and normal linkscan processing<br>resumes on the port<br>bcm_linkscan_errdelay= 0~0xffffffff<br>Default: 10,000,000<br><br>                
+               </td>
+               <td>bcm_linkscan_errdelay=&lt;[0 - 4294967295]&gt;</td>
+               <td>10000000</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>bcm_linkscan_maxerr</td>
+               <td><br>The number of port update errors which will cause the bcm_linkscan module to suspend<br>a port from update processing for the period of time set in 'bcm_linkscan_errdelay'<br>bcm_linkscan_maxerr= 0~0xffffffff<br>Default: 5<br><br>                
+               </td>
+               <td>bcm_linkscan_maxerr=&lt;[0 - 4294967295]&gt;</td>
+               <td>5</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>linkscan_thread_pri</td>
+               <td><br>Specifies the priority of the BCM Linkscan thread<br>linkcan_thread_pri= 0~0xffffffff<br>Default: 50<br><br>                
+               </td>
+               <td>linkscan_thread_pri=&lt;[1 - 99]&gt;</td>
+               <td>50</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>custom_feature_linkscan_m0_pause</td>
+               <td><br>custom_feature_linkscan_m0_pause='0' or '1'<br>if 1 will pause firmware while linkscan thread process.<br>Default - '0'<br><br>                
+               </td>
+               <td>custom_feature[_linkscan_m0_pause]=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">25.  <a name="mdb">mdb</a></font></h1>
+      <h2>25.1. mdb &gt; pdbs</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p></p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>mdb_profile</td>
+               <td>SoC property to select the MDB profile.<br>                
+               </td>
+               <td>mdb_profile=&lt;string&gt;</td>
+               <td>Balanced</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>mdb_profile_kaps_cfg</td>
+               <td>SoC property to select the KAPS configuration.<br>                
+               </td>
+               <td>mdb_profile_kaps_cfg=&lt;[1 - 256]&gt;</td>
+               <td>2</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>25.2. mdb &gt; direct</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p></p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>pmf_maps_payload_size</td>
+               <td><br>pmf_maps_payload_size determines the payload size for PMF MAPS DB,<br>user can choose between 30/60/120 bits payload size values.<br><br>                
+               </td>
+               <td>pmf_maps_payload_size=&lt;30 | 60 | 120&gt;</td>
+               <td>30</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>pmf_maps_payload_size</td>
+               <td><br>pmf_maps_payload_size determines the payload size for PMF MAPS DB,<br>user can choose between 30/60/120 bits payload size values.<br><br>                
+               </td>
+               <td>pmf_maps_payload_size=&lt;30 | 60 | 120&gt;</td>
+               <td>30</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>pmf_maps_payload_size</td>
+               <td><br>pmf_maps_payload_size determines the payload size for PMF MAPS DB,<br>user can choose between 30/60/120 bits payload size values.<br><br>                
+               </td>
+               <td>pmf_maps_payload_size=&lt;30 | 60 | 120&gt;</td>
+               <td>30</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>25.3. mdb &gt; eedb</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p></p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>outlif_physical_phase_data_granularity</td>
+               <td><br>Assign a data granularity to each outlif physical phase.<br>The suffix for this property is the physical phase, and the value is the data granularity.<br>Valid data granularity values are 30/60/120 bits.<br>Every physical phase must be configured.<br>See related soc property outlif_logical_to_physical_phase_map.<br>outlif_physical_phase_data_granularity_&lt;Type&gt;=&lt;30|60|120&gt;<br>Default: 60.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">26.  <a name="mib">mib</a></font></h1>
+      <h2>26.1. mib &gt; general</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>general mib proprties and data</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>bcm_stat_pbmp</td>
+               <td><br>Bitmap of ports to enable statistic counter collection<br><br>                
+               </td>
+               <td>bcm_stat_pbmp=&lt;port bitmap&gt;</td>
+               <td>0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+                  0xffffffff, 0xffffffff, 0xffffffff, 0xfffff
+               </td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>bcm_stat_interval</td>
+               <td><br>Set statistics collection interval in microseconds<br><br>                
+               </td>
+               <td>bcm_stat_interval=&lt;[0 - 4294967295]&gt;</td>
+               <td>1000000</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>bcm_stat_jumbo</td>
+               <td><br>Maximum packet size used in statistics counter update<br><br>                
+               </td>
+               <td>bcm_stat_jumbo=&lt;[0 - 16383]&gt;</td>
+               <td>1518</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">27.  <a name="multicast">multicast</a></font></h1>
+      <h2>27.1. multicast &gt; params</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>values for different multicast groups</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>multicast_ingress_group_id_range_max</td>
+               <td><br>maximum ingress multicast groups id<br><br>                
+               </td>
+               <td>multicast_ingress_group_id_range_max=&lt;[-1 - 262143]&gt;</td>
+               <td>65535</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>multicast_egress_group_id_range_max</td>
+               <td><br>maximum egress multicast groups id<br>for single FAP or MESH systems it's restricted to 65535<br><br>                
+               </td>
+               <td>multicast_egress_group_id_range_max=&lt;[0 - 262143]&gt;</td>
+               <td>65535</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>multicast_nof_ingress_bitmap</td>
+               <td><br>nof ingress multicast bitmap ids<br><br>                
+               </td>
+               <td>multicast_nof_ingress_bitmap=&lt;[0 - 262143]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>multicast_nof_egress_bitmap</td>
+               <td><br>nof egress multicast bitmap ids<br><br>                
+               </td>
+               <td>multicast_nof_egress_bitmap=&lt;[0 - 262143]&gt;</td>
+               <td>8192</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">28.  <a name="nif">nif</a></font></h1>
+      <h2>28.1. nif &gt; global</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>global nif proprties and data</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>custom_feature_start_tx_threshold</td>
+               <td><br>Start TX threshold controls how many 64B words will be accumulated in the MLF before
+                  starting to transmit<br><br>                
+               </td>
+               <td>custom_feature[_start_tx_threshold]=&lt;[0 - 16383]&gt;</td>
+               <td>-1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>28.2. nif &gt; phys</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>data about phys</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>phy_tx_polarity_flip_phy</td>
+               <td><br>Flips PHY TX polarity if enabled<br>phy_tx_polarity_flip_#lane# = 0 / 1<br><br>                
+               </td>
+               <td>phy_tx_polarity_flip[_phy&lt;lane_index&gt;]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>phy_rx_polarity_flip_phy</td>
+               <td><br>Flips PHY RX polarity if enabled<br>phy_tx_polarity_flip_#lane# = 0 / 1<br><br>                
+               </td>
+               <td>phy_rx_polarity_flip[_phy&lt;lane_index&gt;]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>28.3. nif &gt; ilkn</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>data about ILKN ports</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>ilkn_lanes</td>
+               <td><br>ilkn_lanes_#ilkn_id#=#bitmap#<br>The bitmap parameter is up to 96 bits.<br>When a bit is set, the equivalent lane (PHY) is used for the corresponding port.<br>The ilkn_id parameter is the ILKN interface ID in the range 0-1.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ilkn_burst_max</td>
+               <td><br>Configure ILKN BurstMax per ILKN id.<br>in Jr2 the only supported value is 256.<br><br>                
+               </td>
+               <td>ilkn_burst_max=&lt;[256 - 256]&gt;</td>
+               <td>256</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ilkn_burst_short</td>
+               <td><br>Configure ILKN BurstShort per ILKN id.<br>supported values: 32, 64... BurstMax / 2.<br>default: 32.<br><br>                
+               </td>
+               <td>ilkn_burst_short=&lt;[32 - 128]&gt;</td>
+               <td>32</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ilkn_burst_min</td>
+               <td><br>Configure ILKN BurstMin per ILKN id.<br>supported values: BurstShort... BurstMax / 2.<br>default: burstShort.<br><br>                
+               </td>
+               <td>ilkn_burst_min=&lt;[32 - 128]&gt;</td>
+               <td>32</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>ilkn_metaframe_sync_period</td>
+               <td><br>Configure ILKN Metaframe priod per ILKN id.<br>supported values: 64 - 16K.<br>default: 2048.<br><br>                
+               </td>
+               <td>ilkn_metaframe_sync_period=&lt;[64 - 16384]&gt;</td>
+               <td>2048</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>28.4. nif &gt; eth</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>data about Ethernet ports</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>portmod_thread_disable</td>
+               <td><br>1: Disable pm8x50 portmon thread.<br>0: Enable pm8x50 portmon thread.<br><br>                
+               </td>
+               <td>portmod_thread_disable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">29.  <a name="oam">oam</a></font></h1>
+      <h2>29.1. oam &gt; oamp</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>oamp related consts</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>num_of_scan_rmep_db_entries</td>
+               <td><br>Configure the number of RMEP DB entries to be scanned.<br>Default: 64K-1(all entries are scanned)<br><br>                
+               </td>
+               <td>num_of_scan_rmep_db_entries=&lt;[0 - 65535]&gt;</td>
+               <td>65535</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>oamp_mep_db_full_entry_threshold</td>
+               <td><br>Configure the mep db full entry threshold.<br>MEP IDs up to and including the theshold will be utilized by 1/4 entries<br>MEP IDs above the theshold will be utilized by full entries<br>Default: 0<br><br>                
+               </td>
+               <td>oamp_mep_db_full_entry_threshold=&lt;[0 - 65536]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>oamp_rmep_db_full_entry_threshold</td>
+               <td><br>Configure the rmep db full entry threshold.<br>RMEP IDs up to and including the theshold will be utilized by 1/2 entries<br>RMEP IDs above the theshold will be utilized by full entries<br>Default: 0<br><br>                
+               </td>
+               <td>oamp_rmep_db_full_entry_threshold=&lt;[0 - 65536]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>oamp_fifo_dma_event_interface_enable</td>
+               <td><br>Enables OAMP DMA event interrupts interface.<br>Default: 0<br><br>                
+               </td>
+               <td>oamp_fifo_dma_event_interface_enable=&lt;[0 - 1]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>oamp_fifo_dma_event_interface_buffer_size</td>
+               <td><br>Configure the size of OAMP event interrupts host memory in bytes.<br>The valid range of memory size is 80-413200 bytes.<br>Default: 0<br><br>                
+               </td>
+               <td>oamp_fifo_dma_event_interface_buffer_size=&lt;[80 - 413200]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>oamp_fifo_dma_event_interface_timeout</td>
+               <td><br>Configures the OAMP fifo dma timeout in microseconds.<br>The valid range is 0-65535.<br>Default: 0<br><br>                
+               </td>
+               <td>oamp_fifo_dma_event_interface_timeout=&lt;[0 - 65535]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>oamp_fifo_dma_event_interface_threshold</td>
+               <td><br>Configures the OAMP fifo dma threshold.<br>The valid range is 1-16384.<br>Default: 32<br><br>                
+               </td>
+               <td>oamp_fifo_dma_event_interface_threshold=&lt;[1 - 16384]&gt;</td>
+               <td>32</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>oamp_fifo_dma_report_interface_enable</td>
+               <td><br>Enables OAMP DMA statistic interrupts interface.<br>Default: 0<br><br>                
+               </td>
+               <td>oamp_fifo_dma_report_interface_enable=&lt;[0 - 1]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>oamp_fifo_dma_report_interface_buffer_size</td>
+               <td><br>Configure the size of OAMP statistic interrupts host memory in bytes.<br>The valid range of memory size is 80-413200 bytes.<br>Default: 0<br><br>                
+               </td>
+               <td>oamp_fifo_dma_report_interface_buffer_size=&lt;[80 - 413200]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>oamp_fifo_dma_report_interface_timeout</td>
+               <td><br>Configures the OAMP fifo dma report timeout in microseconds.<br>The valid range is 0-65535.<br>Default: 0<br><br>                
+               </td>
+               <td>oamp_fifo_dma_report_interface_timeout=&lt;[0 - 65535]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>oamp_fifo_dma_report_interface_threshold</td>
+               <td><br>Configures the OAMP fifo dma report threshold.<br>The valid range is 1-16384.<br>Default: 32<br><br>                
+               </td>
+               <td>oamp_fifo_dma_report_interface_threshold=&lt;[1 - 16384]&gt;</td>
+               <td>32</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>system_headers_mode</td>
+               <td>Different field lengths for regular and inter-op mode<br>                
+               </td>
+               <td>system_headers_mode=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>system_headers_mode</td>
+               <td>Different field lengths for regular and inter-op mode<br>                
+               </td>
+               <td>system_headers_mode=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>29.2. oam &gt; property</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>customer soc property</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>custom_feature_oam_injected_over_lsp_cnt</td>
+               <td><br>Default is 0.<br>Used for Count injected CCM packet over LSP<br><br>                
+               </td>
+               <td>custom_feature[_oam_injected_over_lsp_cnt]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">30.  <a name="pll">pll</a></font></h1>
+      <h2>30.1. pll &gt; general</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>PLL general configurations</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>phy_1588_dpll_frequency_lock</td>
+               <td><br>IEEE1588 DPLL mode<br>Supported values: 0 - phase lock, 1 - frequency lock<br><br>                
+               </td>
+               <td>phy_1588_dpll_frequency_lock=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>broadsync_enable_clk</td>
+               <td><br>Broadsync clock enable.<br>Supported values: 0,1 (disable/enable)<br><br>                
+               </td>
+               <td>broadsync_enable_clk=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>30.2. pll &gt; pll1</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>PLL1 configurations</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>custom_feature_ts_pll_internal_clock_reference</td>
+               <td><br>Determine if the ts pll gets the reference clock from external 25Mhz clock or internal
+                  clock.<br>Can be 0 and 1.<br>Value 1 for internal reference clock.<br>Default: 0<br><br>                
+               </td>
+               <td>custom_feature[_ts_pll_internal_clock_reference]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>phy_1588_dpll_phase_initial_lo</td>
+               <td><br>Initial phase values for the IEEE1588 DPLL, lower 32 bits<br><br>                
+               </td>
+               <td>phy_1588_dpll_phase_initial_lo=&lt;[0 - 4294967295]&gt;</td>
+               <td>1073741824</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">31.  <a name="pp">pp</a></font></h1>
+      <h2>31.1. pp &gt; application</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Information on PP applications</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>programmability_image_name</td>
+               <td><br>Define the device application image, affects the ucode to load and the validity per
+                  image MDB tables<br><br>                
+               </td>
+               <td>programmability_image_name=&lt;string&gt;</td>
+               <td>standard_1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>programmability_ucode_relative_path</td>
+               <td><br>Define the aucode relative path<br><br>                
+               </td>
+               <td>programmability_ucode_relative_path=&lt;string&gt;</td>
+               <td>pemla/ucode/standard_1/jer2pemla/u_code_db2pem.txt</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">32.  <a name="qos">qos</a></font></h1>
+      <h2>32.1. qos &gt; qos</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>QOS data</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>logical_port_routing_preserve_dscp</td>
+               <td><br>DSCP preserve modes in routing case.<br>1: DSCP preserve per inlif and outlif;<br>2: DSCP preserve per outlif.(Default mode)<br><br>                
+               </td>
+               <td>logical_port_routing_preserve_dscp=&lt;1 | 2&gt;</td>
+               <td>2</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">33.  <a name="sbusdma_desc">sbusdma_desc</a></font></h1>
+      <h2>33.1. sbusdma_desc &gt; global</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Descriptor DMA global defines</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>dma_desc_aggregator_enable_specific</td>
+               <td><br>Enable (1) / Disable (0) descriptor DMA per module.<br>See UM for supported module names.<br>Default: Disabled (0).<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">34.  <a name="sch">sch</a></font></h1>
+      <h2>34.1. sch &gt; general</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>e2e scheduler general information</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>port_sch_priority_propagation_enable</td>
+               <td><br>Enable port priority propagation functionality.<br>Default: 0 (disabled)<br><br>                
+               </td>
+               <td>port_sch_priority_propagation_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>34.2. sch &gt; ps</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>e2e port scheduler (PS) information</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>maximal_port_bandwidth</td>
+               <td><br>Maximal bandwidth of a single port in Mega-bits-per-second.<br>Used to improve granularity of SCH port-TC and port-TCG shapers.<br>Default: 600000 (600G)<br><br>                
+               </td>
+               <td>maximal_port_bandwidth=&lt;[0 - 1234632]&gt;</td>
+               <td>600000</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>34.3. sch &gt; flow</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>e2e scheduler information</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>dtm_flow_mapping_mode_region</td>
+               <td><br>Configure region mode per region id:<br>0: connectors only<br>1: interdigitated odd<br>2: interdigitated even<br>3: SE only, propagation direction 0<br>7: SE only, propagation direction 1<br>Default: 0<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>dtm_flow_nof_remote_cores_region</td>
+               <td><br>Configure region nof remote cores:<br>1: one core<br>2: two cores<br>Default: 1<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>runtime_performance_optimize_enable</td>
+               <td><br>Enable flow property access runtime optimization<br>In Jericho2 optimization must be enabled<br><br>                
+               </td>
+               <td>runtime_performance_optimize_enable=&lt;[1 - 1]&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">35.  <a name="snif">snif</a></font></h1>
+      <h2>35.1. snif &gt; ingress</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>SNIF ingress profiles data</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>mirror_stamp_sys_on_dsp_ext</td>
+               <td><br>stamping destination on FTM dsp extension<br><br>                
+               </td>
+               <td>mirror_stamp_sys_on_dsp_ext=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">36.  <a name="stif">stif</a></font></h1>
+      <h2>36.1. stif &gt; config</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>configure STIF via soc properties</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>stat_if_scrubber_sram_buffers_th</td>
+               <td><br>scrubber sram buffers threshold<br><br>                
+               </td>
+               <td>stat_if_scrubber_sram_buffers_th=&lt;[0 - 8191]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>stat_if_scrubber_sram_pdbs_th</td>
+               <td><br>scrubber sram pdbs threshold<br><br>                
+               </td>
+               <td>stat_if_scrubber_sram_pdbs_th=&lt;[0 - 8191]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>stat_if_scrubber_bdb_th</td>
+               <td><br>scrubber dram bdb threshold<br><br>                
+               </td>
+               <td>stat_if_scrubber_bdb_th=&lt;[0 - 16383]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>stat_if_selective_report_queue_min_range</td>
+               <td><br>range of queues for qsize reports - min value<br><br>                
+               </td>
+               <td>stat_if_selective_report_queue_min[_range&lt;range_id&gt;]=&lt;[0 - 262143]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>stat_if_selective_report_queue_max_range</td>
+               <td><br>range of queues for qsize reports - max value<br><br>                
+               </td>
+               <td>stat_if_selective_report_queue_max[_range&lt;range_id&gt;]=&lt;[0 - 262143]&gt;</td>
+               <td>DATA(ipq,queues,nof_queues)-1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>stat_if_enable</td>
+               <td><br>Enable / Disable STIF:<br>stat_if_enable = 0 / 1<br><br>                
+               </td>
+               <td>stat_if_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>stat_if_report_multicast_single_copy</td>
+               <td><br>Billing - count all ingress MC copies as one.:<br>stat_if_report_multicast_single_copy = 0/1<br>Default: 1<br><br>                
+               </td>
+               <td>stat_if_report_multicast_single_copy=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>stat_if_pkt_size</td>
+               <td><br>Configure packet size (same for all NIF interfaces):<br>stat_if_pkt_size = 512/ 1024/ 1536<br>Default: 980<br><br>                
+               </td>
+               <td>stat_if_pkt_size=&lt;512 | 1024 | 1536&gt;</td>
+               <td>512</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>stat_if_scrubber_queue_min</td>
+               <td><br>Scrubber queue minimum<br>Default: 0<br><br>                
+               </td>
+               <td>stat_if_scrubber_queue_min=&lt;[0 - 262143]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>stat_if_scrubber_queue_max</td>
+               <td><br>Scrubber queue maximum<br>Default: 65535<br><br>                
+               </td>
+               <td>stat_if_scrubber_queue_max=&lt;[0 - 262143]&gt;</td>
+               <td>262143</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>stat_if_scrubber_rate_min</td>
+               <td><br>Minimal period between two consecutive scrubber in nanoseconds<br>Default: 0 - disabled<br><br>                
+               </td>
+               <td>stat_if_scrubber_rate_min=&lt;[0 - 65535]&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>stat_if_scrubber_rate_max</td>
+               <td><br>Maximal period between two consecutive scrubber in nanoseconds<br>Default: 0 - disabled<br><br>                
+               </td>
+               <td>stat_if_scrubber_rate_max=&lt;[0 - 65535]&gt;</td>
+               <td>65535</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>stat_if_report_mode</td>
+               <td><br>STIF report mode - billing<br>Default: billing<br><br>                
+               </td>
+               <td>stat_if_report_mode=&lt;BILLING&gt;</td>
+               <td>BILLING</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>stat_if_report_size_ingress</td>
+               <td><br>Ingress STIF report size in bits<br><br>                
+               </td>
+               <td>stat_if_report_size[_ingress]=&lt;64 | 72 | 80 | 96&gt;</td>
+               <td>64</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>stat_if_report_size_egress</td>
+               <td><br>Egress STIF report size in bits<br><br>                
+               </td>
+               <td>stat_if_report_size[_egress]=&lt;64 | 72 | 80 | 96&gt;</td>
+               <td>64</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>stat_if_idle_reports_present</td>
+               <td><br>Configure if empty reports will be sent:<br>stat_if_idle_report = 0/1<br>if empty reports will be sent the report period will be set to 256<br>Default: 1<br><br>                
+               </td>
+               <td>stat_if_idle_reports_present=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">37.  <a name="synce">synce</a></font></h1>
+      <h2>37.1. synce &gt; general</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Synchronous Ethernet general attributes shared by Nif and Fabric SyncE.</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>sync_eth_clk_to_port_id_clk</td>
+               <td><br>Specify the logical port number that will drive the recovered clock.<br><br>                
+               </td>
+               <td>sync_eth_clk_to_port_id_clk=&lt;[0 - 448]&gt;</td>
+               <td>-1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>sync_eth_clk_squelch_enable_clk_</td>
+               <td><br>Enable or Disable SyncE auto squelch mode.<br><br>                
+               </td>
+               <td>sync_eth_clk_squelch_enable[_clk_&lt;synce_index&gt;]=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>sync_eth_clk_divider_clk</td>
+               <td><br>Select the SyncE output clock<br>For NIF synce, the values are as follows.<br>2: 25Mhz<br>For Fabric SyncE, it is the output clock divider, range [2, 16].<br><br>                
+               </td>
+               <td>sync_eth_clk_divider[_clk&lt;synce_index&gt;]=&lt;[2 - 16]&gt;</td>
+               <td>2</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>sync_eth_mode</td>
+               <td><br>Synchronous Ethernet Signal Mode.<br>TWO_DIFF_CLK: Two differential outputs;<br>TWO_CLK_AND_VALID: Recovered clock accompanied by a valid indication, two clk+valid
+                  outputs.<br><br>                
+               </td>
+               <td>sync_eth_mode=&lt;TWO_DIFF_CLK | TWO_CLK_AND_VALID&gt;</td>
+               <td>TWO_DIFF_CLK</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">38.  <a name="system_red">system_red</a></font></h1>
+      <h2>38.1. system_red &gt; config</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>system red configuration</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>system_red_enable</td>
+               <td><br>Enable System RED mechanism.<br>When enabled, a system red-Q-size will be calculated and according to output port
+                  congestion level.<br>when a packet is enqueued, a system red will be performed.<br><br>                
+               </td>
+               <td>system_red_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">39.  <a name="tdm">tdm</a></font></h1>
+      <h2>39.1. tdm &gt; params</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>default values for tdm module</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>tdm_mode</td>
+               <td>TDM system mode<br>                
+               </td>
+               <td>tdm_mode=&lt;TDM_NONE&gt;</td>
+               <td>TDM_NONE</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">40.  <a name="trap">trap</a></font></h1>
+      <h2>40.1. trap &gt; ingress</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>trap profiles data</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>protocol_traps_mode</td>
+               <td><br>Set the initialization property of the protocol trap indexing,<br>they can be done per:<br>IN_LIF - Trap profiling address is the IN-LIF<br>IN_PORT - Trap profiling address is the IN-PORT<br><br>                
+               </td>
+               <td>protocol_traps_mode=&lt;IN_LIF | IN_PORT&gt;</td>
+               <td>IN_LIF</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>40.2. trap &gt; strength</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>trap profiles data</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>default_trap_strength</td>
+               <td><br>Default trap strength used when drop / trap packets to CPU.<br><br>                
+               </td>
+               <td>default_trap_strength=&lt;[0 - 15]&gt;</td>
+               <td>4</td>
+               <td>BCM88850_A0</td>
+            </tr>
+            <tr>
+               <td>default_snoop_strength</td>
+               <td><br>Default snoop strength used when drop / trap packets to CPU.<br><br>                
+               </td>
+               <td>default_snoop_strength=&lt;[0 - 7]&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">41.  <a name="trunk">trunk</a></font></h1>
+      <h2>41.1. trunk &gt; parameters</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Trunk parameters and defines</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>trunk_group_max_members_pool</td>
+               <td>SOC property to configure the max amount of members in each trunk in bank. This also
+                  determines the amount of trunk IDs in bank<br>                
+               </td>
+               <td>trunk_group_max_members[_pool&lt;pool_index&gt;]=&lt;2 | 4 | 8 | 16 | 32 | 64 | 128 | 256&gt;</td>
+               <td>64</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">42.  <a name="tune">tune</a></font></h1>
+      <h2>42.1. tune &gt; iqs</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>IQS tune data</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>fabric_connect_mode</td>
+               <td><br>See fabric module<br><br>                
+               </td>
+               <td>fabric_connect_mode=&lt;FE | SINGLE_FAP | MESH&gt;</td>
+               <td>SINGLE_FAP</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">43.  <a name="vlan">vlan</a></font></h1>
+      <h2>43.1. vlan &gt; vlan_translate</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>VLAN translate data</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>system_headers_mode</td>
+               <td>Different ingress VLAN edit action_ids number for regular and inter-op mode<br>                
+               </td>
+               <td>system_headers_mode=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>43.2. vlan &gt; llvp</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Link Layer VLAN Processing</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>l2_port_tpid_class_mode</td>
+               <td><br>Extended Vlan Classification enable<br>Default: 0<br><br>                
+               </td>
+               <td>l2_port_tpid_class_mode=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">44.  <a name="pemla_soc">pemla_soc</a></font></h1>
+      <h2>44.1. pemla_soc &gt; soc</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>pemla soc properties</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>system_headers_mode</td>
+               <td><br>JR1_MODE: backward compatible with Jericho/Kalia<br>JR2_MODE: not backward compatible<br>                
+               </td>
+               <td>system_headers_mode=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88850_A0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      
+   </body>
+</html>

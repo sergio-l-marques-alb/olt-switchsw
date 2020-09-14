@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+
+<!-- This XML file is for 88820 SKU Dynamic DNX DATA -->
+<device_data>
+    <module name="device">
+        <sub_module name="general">
+            <features>
+            </features>
+
+            <numerics>
+                <numeric name="device_id" value="0x8820"></numeric>
+            </numerics>
+
+            <tables>
+            </tables>
+        </sub_module>
+    </module>
+
+     <module name="fabric">
+         <sub_module name="general">
+            <numerics>
+                <numeric name="connect_mode" value="DNX_FABRIC_NOF_CONNECT_MODES">
+                    <property name="fabric_connect_mode" method="direct_map">
+                        <map name="SINGLE_FAP"></map>
+                        <map name="MESH"></map>
+                    </property>
+                </numeric>
+            </numerics>
+        </sub_module>
+     </module>
+
+
+    <module name="access">
+        <sub_module name="blocks">
+            <tables>
+                <table name="override">
+                    <entries>
+                        <entry index="0" block_type="ILE" block_instance="0" value="1"></entry>
+                        <entry index="1" block_type="ILE" block_instance="2" value="1"></entry>
+                        <entry index="2" block_type="ILU" block_instance="0" value="1"></entry>
+                        <entry index="3" block_type="ILU" block_instance="2" value="1"></entry>
+                    </entries>
+                </table>
+            </tables>
+        </sub_module>
+    </module>
+    <module name="nif">
+        <sub_module name="ilkn">
+            <defines>
+                <define name="is_nif_56G_speed_supported" value="0"></define>
+                <define name="is_fabric_56G_speed_supported" value="0"></define>
+            </defines>
+        </sub_module>
+     </module>
+
+</device_data>

@@ -1,0 +1,23 @@
+/*
+ * $Copyright: (c) 2020 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ *
+ * This File is Auto-generated - DO NOT TOUCH IT!!!!
+ */
+
+#include <sal/types.h>
+#include <shared/shrextend/shrextend_error.h>
+
+#ifndef _COMMON_Q2A_A0_PRE_COMPILED_XML_PARSER_H
+#define _COMMON_Q2A_A0_PRE_COMPILED_XML_PARSER_H
+/* *INDENT-OFF* */
+#if defined (BCM_DNX_SUPPORT)
+
+shr_error_e pre_compiled_q2a_a0_common_xml_to_buf(
+    char *filePath,
+    char **buf,
+    long int * size_p);
+
+/* *INDENT-ON* */
+#endif /* (BCM_DNX_SUPPORT) */
+#endif /* _COMMON_Q2A_A0_PRE_COMPILED_XML_PARSER_H */

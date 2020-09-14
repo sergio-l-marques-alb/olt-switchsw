@@ -1,0 +1,31 @@
+/*
+ * $Id: appl_ref_shell_threads.h, v1 Broadcom SDK $
+ * $Copyright: (c) 2020 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ *
+ */
+
+#ifndef _APPL_REF_SHELL_THREADS_H_
+#define _APPL_REF_SHELL_THREADS_H_
+
+/*************
+ * INCLUDES  *
+ *************/
+#include <soc/defs.h>
+#include <soc/types.h>
+#include <bcm/error.h>
+
+/*************
+ * TYPE DEFS *
+ *************/
+
+/*************
+ * STRUCTURES *
+ *************/
+
+/*************
+ * FUNCTIONS *
+ *************/
+int appl_dnxc_shell_threads_deinit(int unit);
+
+#endif /*_APPL_REF_SHELL_THREADS_H_ */

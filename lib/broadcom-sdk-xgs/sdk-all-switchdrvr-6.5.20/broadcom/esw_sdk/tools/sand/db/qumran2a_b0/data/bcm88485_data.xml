@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<device_data>
+    <module name="device">
+        <sub_module name="general">
+            <features>
+            </features>
+ 
+            <defines>
+            </defines >
+
+            <numerics>
+                <numeric name="device_id" value="0x8485"></numeric>
+            </numerics>
+
+            <tables>
+            </tables>
+        </sub_module>
+    </module>
+
+    <module name="nif">
+
+        <sub_module name="flexe">
+            <features>
+                <feature name="is_supported" value="0"></feature>
+            </features>
+
+            <defines>
+                <define name="feu_nof" value="0"></define>
+            </defines>
+
+            <numerics>
+                <numeric name="flexe_mode" value="DNX_FLEXE_MODE_DISABLED">
+                    <property name="flexe_device_mode" method="direct_map">
+                        <map name="DISABLED"></map>
+                    </property>
+                </numeric>
+            </numerics>
+        </sub_module>
+
+    </module>
+
+</device_data>

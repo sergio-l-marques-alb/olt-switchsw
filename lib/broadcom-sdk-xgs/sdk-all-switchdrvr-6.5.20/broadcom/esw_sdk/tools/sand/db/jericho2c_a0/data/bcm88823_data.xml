@@ -1,0 +1,124 @@
+<?xml version="1.0"?>
+
+<!-- This XML file is for 88823 SKU Dynamic DNX DATA -->
+<device_data>
+    <module name="device">
+        <sub_module name="general">
+            <features>
+            </features>
+
+            <defines>
+            </defines >
+
+            <numerics>
+                <numeric name="device_id" value="0x8823"></numeric>
+            </numerics>
+
+            <tables>
+            </tables>
+        </sub_module>
+    </module>
+
+    <module name="nif">
+
+        <sub_module name="ilkn">
+
+            <features>
+                <feature name="is_supported" value="0"></feature>
+            </features>
+
+            <numerics>
+                <numeric name="max_nof_ifs" value="0"></numeric>
+                <numeric name="max_nof_elk_ifs" value="0"></numeric>
+            </numerics>
+
+            <defines>
+                <define name="is_nif_56G_speed_supported" value="0"></define>
+                <define name="is_fabric_56G_speed_supported" value="0"></define>
+            </defines>
+
+            <tables>
+                <table name="supported_phys">
+                    <value name="is_supported" default="0"></value>
+                    <value name="max_phys" default="0"></value>
+                    <value name="nif_phys" default="0"></value>
+                    <value name="fabric_phys" default="0"></value>
+                    <entries>
+                    </entries>
+                </table>
+
+                <table name="ilkn_cores">
+                    <value name="is_elk_supported" default="0"></value>
+                    <value name="is_data_supported" default="0"></value>
+                    <value name="fec_disable_by_bypass" default="0"></value>
+                    <entries>
+                    </entries>
+                </table>
+
+                <!-- For J2C ILKN Mux logic  -->
+                <table name="ilkn_cores_clup_facing">
+                    <value name="clu_unit" default="-1"></value>
+                    <entries>
+                    </entries>
+                </table>
+
+                <table name="nif_lanes_map">
+                    <value name="first_phy" default="-1"></value>
+                    <value name="ilkn_lane_offset" default="-1"></value>
+                    <value name="nof_lanes" default="-1"></value>
+                    <entries>
+                    </entries>
+                </table>
+            </tables>
+
+        </sub_module>
+     </module>
+
+     <module name="fabric">
+         <sub_module name="general">
+
+            <features>
+                <feature name="blocks_exist" value="1"></feature>
+            </features>
+
+            <numerics>
+                <numeric name="connect_mode" value="DNX_FABRIC_NOF_CONNECT_MODES">
+                    <property name="fabric_connect_mode" method="direct_map">
+                        <map name="SINGLE_FAP"></map>
+                    </property>
+                </numeric>
+            </numerics>
+        </sub_module>
+
+        <sub_module name="links">
+            <defines>
+                <define name="nof_links" value="0"></define>
+            </defines>
+
+        </sub_module>
+
+        <sub_module name="blocks">
+            <defines>
+                <define name="nof_pms" value="0"></define>
+            </defines>
+         </sub_module>
+    </module>
+
+    <module name="mdb">
+        <sub_module name="dh">
+            <features>
+                <feature name="macro_A_half_nof_clusters_enable" value="1"></feature>
+            </features>
+
+            <defines>
+            </defines >
+
+            <numerics>
+            </numerics>
+
+            <tables>
+            </tables>
+        </sub_module>
+    </module>
+
+</device_data>

@@ -1,0 +1,1159 @@
+<html>
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <link rel="stylesheet" href="SoC_CSS.css" type="text/css">
+      <title>DNX SoC Property List</title>
+   <style>
+      body {font-family: Arial;}
+      h1 {font-size: 18pt; font-weight: bold;}
+      h2 {font-size: 16pt; font-weight: bold;}
+      h3 {font-size: 14pt; font-weight: bold;}
+      h4 {font-size: 12pt; font-weight: bold;}
+      h5 {font-size: 11pt; font-weight: bold;}
+      p {font-size: 10pt;}
+      th {font-size: 9pt; font-weight: bold;}
+      td {font-size: 9pt;}
+    </style>
+    <style>
+      body {font-family: Arial;}
+      h1 {font-size: 18pt; font-weight: bold;}
+      h2 {font-size: 16pt; font-weight: bold;}
+      h3 {font-size: 14pt; font-weight: bold;}
+      h4 {font-size: 12pt; font-weight: bold;}
+      h5 {font-size: 11pt; font-weight: bold;}
+      p {font-size: 10pt;}
+      th {font-size: 9pt; font-weight: bold;}
+      td {font-size: 9pt;}
+    </style>
+    <style>
+      body {font-family: Arial;}
+      h1 {font-size: 18pt; font-weight: bold;}
+      h2 {font-size: 16pt; font-weight: bold;}
+      h3 {font-size: 14pt; font-weight: bold;}
+      h4 {font-size: 12pt; font-weight: bold;}
+      h5 {font-size: 11pt; font-weight: bold;}
+      p {font-size: 10pt;}
+      th {font-size: 9pt; font-weight: bold;}
+      td {font-size: 9pt;}
+    </style>
+    <style>
+      body {font-family: Arial;}
+      h1 {font-size: 18pt; font-weight: bold;}
+      h2 {font-size: 16pt; font-weight: bold;}
+      h3 {font-size: 14pt; font-weight: bold;}
+      h4 {font-size: 12pt; font-weight: bold;}
+      h5 {font-size: 11pt; font-weight: bold;}
+      p {font-size: 10pt;}
+      th {font-size: 9pt; font-weight: bold;}
+      td {font-size: 9pt;}
+    </style>
+    <style>
+      body {font-family: Arial;}
+      h1 {font-size: 18pt; font-weight: bold;}
+      h2 {font-size: 16pt; font-weight: bold;}
+      h3 {font-size: 14pt; font-weight: bold;}
+      h4 {font-size: 12pt; font-weight: bold;}
+      h5 {font-size: 11pt; font-weight: bold;}
+      p {font-size: 10pt;}
+      th {font-size: 9pt; font-weight: bold;}
+      td {font-size: 9pt;}
+    </style>
+    <style>
+      body {font-family: Arial;}
+      h1 {font-size: 18pt; font-weight: bold;}
+      h2 {font-size: 16pt; font-weight: bold;}
+      h3 {font-size: 14pt; font-weight: bold;}
+      h4 {font-size: 12pt; font-weight: bold;}
+      h5 {font-size: 11pt; font-weight: bold;}
+      p {font-size: 10pt;}
+      th {font-size: 9pt; font-weight: bold;}
+      td {font-size: 9pt;}
+    </style>
+    <style>
+      body {font-family: Arial;}
+      h1 {font-size: 18pt; font-weight: bold;}
+      h2 {font-size: 16pt; font-weight: bold;}
+      h3 {font-size: 14pt; font-weight: bold;}
+      h4 {font-size: 12pt; font-weight: bold;}
+      h5 {font-size: 11pt; font-weight: bold;}
+      p {font-size: 10pt;}
+      th {font-size: 9pt; font-weight: bold;}
+      td {font-size: 9pt;}
+    </style>
+    </head>
+   <body>
+      <p align="center">
+         			DNX SoC Property List
+         		
+      </p>
+      <p>This document provides a list of DNX SoCs. Each SoC has a section that includes an
+         overview, description, command options and command examples.
+      </p><a name="tocLink">
+         <h1><font color="CC092F">Table of Contents</font></h1></a>
+      
+      <table style="width:30%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>SoC</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td><a href="#port">port</a></td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td><a href="#dev_init">dev_init</a></td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td><a href="#device">device</a></td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td><a href="#fabric">fabric</a></td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td><a href="#intr">intr</a></td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td><a href="#linkscan">linkscan</a></td>
+         </tr>
+      </table>
+      
+      
+      
+      <h1><font color="CC092F">1.  <a name="port">port</a></font></h1>
+      <h2>1.1. port &gt; general</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>General attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>load_firmware</td>
+               <td><br>The method of the firmware load.<br>2 - fast; 1 - MDIO load; 0 - do not load firmware.<br>Byte 0 of the SoC property value.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>load_firmware</td>
+               <td><br>Enable firmware CRC check.<br>Byte 1: bit 0 of the SoC property value.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>load_firmware</td>
+               <td><br>Enable firmware verification, byte by byte (time consuming).<br>Byte 1: bit 4 of the SoC property value.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>fabric_mac_bucket_fill_rate</td>
+               <td><br>Mac bucket fill rate.<br>Bucket-Fill-Rate. Number of good cells that add a token to the bucket.<br>BktFillRate 3:0 must be configured to be no bigger than 0xB.<br>The number BktFillRate 3:0 is the exponent of 2,<br>i.e., the number of good cells adding a token to the bucket is 2^BktFillRate 3:0.<br>Good cell is defined according to RxCntCfg<br><br>                
+               </td>
+               <td>fabric_mac_bucket_fill_rate=&lt;[0 - 11]&gt;</td>
+               <td>6</td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>1.2. port &gt; stat</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Port Statistics information</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>bcm_stat_interval</td>
+               <td><br>Sets the statistics thread interval.<br>Value is in microseconds.<br><br>                
+               </td>
+               <td>bcm_stat_interval=&lt;[0 - 4294967295]&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>counter_thread_pri</td>
+               <td><br>Sets the counter thread priority.<br>0 is highes and 255 is lowest.<br><br>                
+               </td>
+               <td>counter_thread_pri=&lt;[0 - 255]&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>bcm_stat_sync_timeout</td>
+               <td><br>Statistic thread sync operation timeout<br><br>                
+               </td>
+               <td>bcm_stat_sync_timeout=&lt;[0 - 255]&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>1.3. port &gt; static_add</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>General static add information</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>port_init_speed</td>
+               <td><br>Port data speed.<br>To set different port rate use:<br>port_init_speed_#port#=#speed#<br>Speed value -1 is ALLOWED.<br>If speed is set to be -1 this will boot the device with the port disabled.<br><br>                
+               </td>
+               <td>port_init_speed=&lt;-1 | 10312 | 11500 | 20625 | 23000 | 25000 | 25781 | 50000 | 53125
+                  | 56250&gt;
+               </td>
+               <td></td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>port_init_cl72</td>
+               <td><br>Enable / Disable CL72<br>port_init_cl72_#port# = 0 / 1<br><br>                
+               </td>
+               <td>port_init_cl72=&lt;0 | 1&gt;</td>
+               <td>BCM_PORT_RESOURCE_DEFAULT_REQUEST</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>port_fec</td>
+               <td><br>Specifies the FEC type. The types are as follows:<br>0 - no FEC<br>1 - BASE R - 64/66b KR FEC<br>5 - RS 206 - 64/66b 5T RS FEC<br>6 - RS 108 - 64/66b 5T low latency RS FEC<br>7 - RS 545 - 64/66b 15T RS FEC<br>8 - RS 304 - 64/66b 15T low latency RS FEC<br><br>                
+               </td>
+               <td>port_fec=&lt;0 | 1 | 5 | 6 | 7 | 8&gt;</td>
+               <td></td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>phy_tx_polarity_flip</td>
+               <td><br>Flips PHY TX polarity if enabled<br>phy_tx_polarity_flip_#port# = 0 / 1<br><br>                
+               </td>
+               <td>phy_tx_polarity_flip=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>phy_rx_polarity_flip</td>
+               <td><br>Flips PHY RX polarity if enabled<br>phy_rx_polarity_flip_#port# = 0 / 1<br><br>                
+               </td>
+               <td>phy_rx_polarity_flip=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>repeater_link_enable</td>
+               <td><br>Shows if a certain FE link is connected to a device in reteamer mode<br><br>                
+               </td>
+               <td>repeater_link_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>port_tx_pam4_precoder</td>
+               <td><br>is the precoding enabled on TX side.<br>port_tx_pam4_precoder_#port#=enable/disable<br><br>                
+               </td>
+               <td>port_tx_pam4_precoder=&lt;enable | disable&gt;</td>
+               <td>disable</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>port_lp_tx_precoder</td>
+               <td><br>has the link partner enabled pre-coding on its TX side.<br>in other words - enable the decoding on my RX side.<br>port_lp_tx_precoder_#port#=enable/disable<br><br>                
+               </td>
+               <td>port_lp_tx_precoder=&lt;enable | disable&gt;</td>
+               <td>disable</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>serdes_lane_config_dfe</td>
+               <td><br>DFE filter<br>serdes_lane_config_dfe_#port#=on|off|lp<br>on - dfe is on and lp dfe is off<br>off - both dfe and lp dfe are off<br>lp - both dfe and lp dfe are on<br><br>                
+               </td>
+               <td>serdes_lane_config[_dfe&lt;port&gt;]=&lt;on | off | lp&gt;</td>
+               <td></td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>serdes_lane_config_media_type</td>
+               <td><br>media type<br>serdes_lane_config_media_type_#port#=backplane|copper|optics<br><br>                
+               </td>
+               <td>serdes_lane_config[_media_type&lt;port&gt;]=&lt;backplane | copper | optics&gt;</td>
+               <td></td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>serdes_lane_config_unreliable_los</td>
+               <td><br>unreliable los<br>serdes_lane_config_unreliable_los_#port#=0|1<br><br>                
+               </td>
+               <td>serdes_lane_config[_unreliable_los&lt;port&gt;]=&lt;0 | 1&gt;</td>
+               <td>DNXC_PORT_SERDES_LANE_CONFIG_INVALID_VAL</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>serdes_lane_config_cl72_auto_polarity_en</td>
+               <td><br>enable cl72 auto polarity<br>serdes_lane_config_cl72_auto_polarity_en_#port#=0|1<br><br>                
+               </td>
+               <td>serdes_lane_config[_cl72_auto_polarity_en&lt;port&gt;]=&lt;0 | 1&gt;</td>
+               <td>DNXC_PORT_SERDES_LANE_CONFIG_INVALID_VAL</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>serdes_lane_config_cl72_restart_timeout_en</td>
+               <td><br>enable cl72 restart timeout<br>serdes_lane_config_cl72_restart_timeout_en_#port#=0|1<br><br>                
+               </td>
+               <td>serdes_lane_config[_cl72_restart_timeout_en&lt;port&gt;]=&lt;0 | 1&gt;</td>
+               <td>DNXC_PORT_SERDES_LANE_CONFIG_INVALID_VAL</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>serdes_lane_config_channel_mode</td>
+               <td><br>channel mode<br>serdes_lane_config_channel_mode_#port#=force_nr|force_er<br><br>                
+               </td>
+               <td>serdes_lane_config[_channel_mode&lt;port&gt;]=&lt;force_nr | force_er&gt;</td>
+               <td></td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>serdes_tx_taps</td>
+               <td><br>a set of TX FIR parameters for the port.<br>serdes_tx_taps_#port#=signalling_mode:pre:main:post:pre2:post2:post3<br>signalling_mode can be either pam4 or nrz.<br>[pre2:post2:post3] part is optional:<br>- if it is given - this it 6-tap mode.<br>- if it is not given - this is 3-tap mode.<br>main is set to DNXC_PORT_TX_FIR_INVALID_MAIN_TAP by default to distinguish between
+                  whether the SoC property was set or not.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>serdes_qrtt_active</td>
+               <td><br>Enable / Disable Quad<br><br>                
+               </td>
+               <td>serdes_qrtt_active=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>1.4. port &gt; lane_map</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>General lane map attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>lane_to_serdes_map_fabric_lane</td>
+               <td><br>Shows the DB for the mapping between the lanes and the serdeses.<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>1.5. port &gt; pll</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>General PLL attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>serdes_fabric_clk_freq_in</td>
+               <td><br>Configure Input PLL ref clocks per 48-link group.<br>Valid values are 1=156.25Mhz, 3=312.5 MHz.<br><br>                
+               </td>
+               <td>serdes_fabric_clk_freq[_in&lt;pll&gt;]=&lt;1 | 3&gt;</td>
+               <td>3</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>serdes_fabric_clk_freq_out</td>
+               <td><br>Configure Output PLL ref clocks per 48-link group.<br>Valid values are 1=156.25Mhz, 3=312.5 MHz or 'bypass'=PLL bypassed(input ref clock
+                  == output ref clock)<br><br>                
+               </td>
+               <td>serdes_fabric_clk_freq[_out&lt;pll&gt;]=&lt;1 | 3 | bypass&gt;</td>
+               <td>bypass</td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>1.6. port &gt; synce</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>General SYNCE attributes.</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>sync_eth_clk_to_port_id_clk</td>
+               <td><br>Specifies which is the source clock port<br><br>                
+               </td>
+               <td>sync_eth_clk_to_port_id_clk=&lt;[0 - 192]&gt;</td>
+               <td>SOC_DNXF_PROPERTY_UNAVAIL</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>sync_eth_clk_divider</td>
+               <td><br>Specifiers the clock divider<br><br>                
+               </td>
+               <td>sync_eth_clk_divider=&lt;[2 - 16]&gt;</td>
+               <td>16</td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">2.  <a name="dev_init">dev_init</a></font></h1>
+      <h2>2.1. dev_init &gt; shadow</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>shadow memory for init</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>mem_cache_enable_all</td>
+               <td><br>Shadow all memory or not.<br><br>                
+               </td>
+               <td>mem_cache_enable[_all]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>mem_cache_enable_ecc</td>
+               <td><br>Shadow all memory with ecc field or not.<br><br>                
+               </td>
+               <td>mem_cache_enable[_ecc]=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>mem_cache_enable_parity</td>
+               <td><br>Shadow all memory with parity field or not.<br><br>                
+               </td>
+               <td>mem_cache_enable[_parity]=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>mem_cache_enable_specific</td>
+               <td><br>Enable memory shadow for specific table.<br><br>                
+               </td>
+               <td>mem_cache_enable[_specific]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>mem_nocache</td>
+               <td><br>Disable memory shadow for specific table.<br><br>                
+               </td>
+               <td>mem_nocache=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>2.2. dev_init &gt; ha</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>values for sw state and high availability init</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>stable_filename</td>
+               <td>file system will be used to save the stable cache data with this filename<br>                
+               </td>
+               <td>stable_filename=&lt;string&gt;</td>
+               <td>NULL</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>warmboot_support</td>
+               <td>Specify if WarmBoot is supported<br>                
+               </td>
+               <td>warmboot_support=&lt;on | off&gt;</td>
+               <td>off</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>sw_state_max_size</td>
+               <td><br>Configures the size of memory to be pre allocated for sw state.<br>The valid range is 0-1000000000 (i.e up to 1TB).<br><br>                
+               </td>
+               <td>sw_state_max_size=&lt;[0 - 1000000000]&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>stable_location</td>
+               <td><br>Specify the stable cache option for Warm Boot operations.<br><br>                
+               </td>
+               <td>stable_location=&lt;[0 - 5]&gt;</td>
+               <td>1</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>stable_size</td>
+               <td><br>Specify the stable cache size in bytes used for Warm boot operations.<br><br>                
+               </td>
+               <td>stable_size=&lt;[0 - 1000000000]&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">3.  <a name="device">device</a></font></h1>
+      <h2>3.1. device &gt; general</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>General attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>custom_feature_init_without_device_hard_reset</td>
+               <td><br>Init the device without hard reset.<br>Can be 0 and 1<br>Default: 0<br><br>                
+               </td>
+               <td>custom_feature[_init_without_device_hard_reset]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>core_clock_speed_khz</td>
+               <td><br>Device core clock frequency in kHZ<br>Synopsis: core_clock_speed_khz=#freq#<br>Only supported value is 1G<br><br>                
+               </td>
+               <td>core_clock_speed[_khz]=&lt;1000000&gt;</td>
+               <td>1000000</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>system_ref_core_clock_khz</td>
+               <td><br>Specifies system reference clock speed in kHz.<br>For a system containing a legacy device, the system reference clock needs to be set
+                  according to the legacy device.<br><br>                
+               </td>
+               <td>system_ref_core_clock[_khz]=&lt;[300000 - 3000000]&gt;</td>
+               <td>1200000</td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>3.2. device &gt; access</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>General access attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>table_dma_enable</td>
+               <td><br>Enable/disable table DMA operations.<br><br>                
+               </td>
+               <td>table_dma_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>tdma_timeout_usec</td>
+               <td><br>Table DMA operation timeout.<br><br>                
+               </td>
+               <td>tdma_timeout_usec=&lt;[0 - 10000000]&gt;</td>
+               <td>1000</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>tdma_intr_enable</td>
+               <td><br>Table DMA done is interrupt driven or by polling.<br><br>                
+               </td>
+               <td>tdma_intr_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>tslam_dma_enable</td>
+               <td><br>Enable/disable tslam DMA operations.<br><br>                
+               </td>
+               <td>tslam_dma_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>tslam_timeout_usec</td>
+               <td><br>Tslam DMA operation timeout.<br><br>                
+               </td>
+               <td>tslam_timeout_usec=&lt;[0 - 10000000]&gt;</td>
+               <td>-1</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>tslam_intr_enable</td>
+               <td><br>Tslam DMA done is interrupt driven or by polling.<br><br>                
+               </td>
+               <td>tslam_intr_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>rate_int_mdio_divisor</td>
+               <td><br>mdio_int_divisor<br><br>                
+               </td>
+               <td>rate_int_mdio_divisor=&lt;[0 - 10000000]&gt;</td>
+               <td>50</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>rate_ext_mdio_divisor</td>
+               <td><br>mdio_ext_divisor<br><br>                
+               </td>
+               <td>rate_ext_mdio_divisor=&lt;[0 - 10000000]&gt;</td>
+               <td>14</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>mdio_output_delay_int</td>
+               <td><br>Configure number of clock delay between the rising edge of MDC and the starting data
+                  of MDIO<br>for internal access<br>mdio_output_delay= 0~255<br>Default: 9<br><br>                
+               </td>
+               <td>mdio_output_delay[_int]=&lt;[0 - 255]&gt;</td>
+               <td>25</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>mdio_output_delay_ext</td>
+               <td><br>Configure number of clock delay between the rising edge of MDC and the starting data
+                  of MDIO<br>for external access<br>mdio_output_delay= 0~255<br>Default: 9<br><br>                
+               </td>
+               <td>mdio_output_delay[_ext]=&lt;[0 - 255]&gt;</td>
+               <td>14</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>bist_enable</td>
+               <td><br>Determines if to run Memory Built-In Self-Test (MBIST) of internal memory (tables)
+                  during startup.<br>0 - do not run<br>1 - run<br>2 - run with extra logs<br><br>                
+               </td>
+               <td>bist_enable=&lt;[0 - 2]&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>dma_desc_timeout_usec</td>
+               <td><br>SBUSDMA descriptor mode operation timeout in microseconds.<br><br>                
+               </td>
+               <td>dma_desc_timeout_usec=&lt;[0 - 1000000000]&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>dma_desc_intr_enable</td>
+               <td><br>SBUSDMA descriptor mode operation should use interrupt rather than poll for completion.<br><br>                
+               </td>
+               <td>dma_desc_intr_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>mem_clear_chunk_size</td>
+               <td><br>SBUS DMA chunk size configuration.<br><br>                
+               </td>
+               <td>mem_clear_chunk_size=&lt;[0 - 1000]&gt;</td>
+               <td>4</td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>3.3. device &gt; custom_features</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Custom features</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>custom_feature_mesh_topology_fast</td>
+               <td><br>Device is in mesh topology fast mode.<br>Used for internal validation only!<br><br>                
+               </td>
+               <td>custom_feature[_mesh_topology_fast]=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>3.4. device &gt; ha</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>values for sw state and high availability init</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>warmboot_support</td>
+               <td>Specify if WarmBoot is supported<br>                
+               </td>
+               <td>warmboot_support=&lt;on | off&gt;</td>
+               <td>off</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>sw_state_max_size</td>
+               <td><br>Configures the size of memory to be pre allocated for sw state.<br>The valid range is 0-1000000000 (i.e up to 1TB).<br><br>                
+               </td>
+               <td>sw_state_max_size=&lt;[0 - 1000000000]&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">4.  <a name="fabric">fabric</a></font></h1>
+      <h2>4.1. fabric &gt; general</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>General fabric attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>fabric_device_mode</td>
+               <td><br>Sets the operationl mode of the device<br><br>                
+               </td>
+               <td>fabric_device_mode=&lt;SINGLE_STAGE_FE2 | MULTI_STAGE_FE2 | MULTI_STAGE_FE13&gt;</td>
+               <td>SINGLE_STAGE_FE2</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>fabric_local_routing_enable_uc</td>
+               <td><br>Enables unicast local routing from FE1 to FE3<br><br>                
+               </td>
+               <td>fabric_local_routing_enable[_uc]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>fabric_local_routing_enable_mc</td>
+               <td><br>Enables multicast local routing from FE1 to FE3<br><br>                
+               </td>
+               <td>fabric_local_routing_enable[_mc]=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>4.2. fabric &gt; pipes</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>General pipes attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>fabric_pipe_map</td>
+               <td><br>Assign traffic cast (unicast/multicast) and priority (0/1/2/3) to a pipe.<br>fabric_pipe_map=0/1/2<br>Assigning a specific traffic cast is done by a suffix uc/mc and a number which represents
+                  the cell priority.<br>Not all the options supported, please find the supported options in UM<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>fabric_num_pipes</td>
+               <td><br>Configure number of fabric pipes<br><br>                
+               </td>
+               <td>fabric_num_pipes=&lt;[1 - 3]&gt;</td>
+               <td>1</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>system_contains_multiple_pipe_device</td>
+               <td><br>Determines if there is a multiple pipe device in the system<br><br>                
+               </td>
+               <td>system_contains_multiple_pipe_device=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>fabric_tdm_priority_min</td>
+               <td><br>Mark a CGM fabric priority as TDM (should be globally configured over the system).<br>'NONE' represents a system that does not support TDM and all the priorities can be
+                  used as regular priorities.<br><br>                
+               </td>
+               <td>fabric_tdm_priority_min=&lt;NONE | 3&gt;</td>
+               <td></td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>4.3. fabric &gt; multicast</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>General multicast attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>fe_mc_id_range</td>
+               <td><br>Specifies the MC IDs range.<br>1.  64K - Supports eight queries at each clock, maximum of 64K multicast IDs, and
+                  up to 192 next-stage devices.<br>2.  128K_HALF - Supports eight queries at each clock, maximum of 128K multicast IDs,
+                  and up to 96 next- stage devices.<br>3.  128K - Supports four queries at each clock, maximum of 128K multicast IDs, and
+                  up to 192 next-stage devices.<br>4.  256K_HALF - Supports four queries at each clock, maximum of 256K multicast IDs,
+                  and up to 96 next- stage devices.<br>5.  256K - Supports two queries at each clock, maximum of 256K multicast IDs, and
+                  up to 192 next-stage devices.<br>6.  512K_HALF - Supports two queries at each clock, maximum of 512K multicast IDs,
+                  and up to 96 next- stage devices.<br><br>                
+               </td>
+               <td>fe_mc_id_range=&lt;64K | 128K_HALF | 128K | 256K_HALF | 256K | 512K_HALF&gt;</td>
+               <td>256K_HALF</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>fabric_multicast_mode</td>
+               <td><br>Specifies the MC mode.<br>Direct multicast is valid in a single-stage systems with a highest FAP-ID less then
+                  192/96 (according to MC table mode).<br><br>                
+               </td>
+               <td>fabric_multicast_mode=&lt;DIRECT | INDIRECT&gt;</td>
+               <td>DIRECT</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>fe_mc_priority_map_enable</td>
+               <td><br>Enable / Disable mapping internal multicast priority according to MC-ID ranges.<br>1: Map MC-ID to fabric priority.<br>0: Extract MC cell priority from cell header.<br><br>                
+               </td>
+               <td>fe_mc_priority_map_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>4.4. fabric &gt; fifos</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>Fabric FIFOs attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>fabric_link_fifo_size_rx</td>
+               <td><br>Get RX FIFO depth per pipe<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>fabric_link_fifo_size_mid</td>
+               <td><br>Get MID FIFO depth per pipe<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>fabric_link_fifo_size_tx</td>
+               <td><br>Get TX FIFO depth per pipe<br><br>                
+               </td>
+               <td></td>
+               <td></td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>4.5. fabric &gt; cell</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>General cell attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>fabric_cell_fifo_dma_enable</td>
+               <td><br>Deterimins if to use or not to use FIFO DMA.<br><br>                
+               </td>
+               <td>fabric_cell_fifo_dma_enable=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>fabric_cell_fifo_dma_buffer_size</td>
+               <td><br>Size of the host memory stored allocated by the CPU.<br><br>                
+               </td>
+               <td>fabric_cell_fifo_dma_buffer_size=&lt;[64 - 32768]&gt;</td>
+               <td>20480</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>fabric_cell_fifo_dma_threshold</td>
+               <td><br>The number of writes by the DMA until a threshold based interrupt is triggered.<br>The value 0 disables the number of write-based interrupts.<br><br>                
+               </td>
+               <td>fabric_cell_fifo_dma_threshold=&lt;[0 - 16]&gt;</td>
+               <td>4</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>fabric_cell_fifo_dma_timeout</td>
+               <td><br>The amount of time in microseconds that passes from the first write by the DMA until
+                  a timeout based interrupt is triggered.<br>Value 0 disables timeout based interrupts.<br><br>                
+               </td>
+               <td>fabric_cell_fifo_dma_timeout=&lt;[0 - 10000]&gt;</td>
+               <td>-1</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>bcm_rx_thread_pri</td>
+               <td><br>RX thread priority.<br><br>                
+               </td>
+               <td>bcm_rx_thread_pri=&lt;[0 - 10000]&gt;</td>
+               <td>200</td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      <h2>4.6. fabric &gt; topology</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>General topology attributes</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>fabric_load_balancing_mode</td>
+               <td><br>Sets the load balancing method.<br><br>                
+               </td>
+               <td>fabric_load_balancing_mode=&lt;NORMAL_LOAD_BALANCE | DESTINATION_UNREACHABLE | BALANCED_INPUT&gt;</td>
+               <td>NORMAL_LOAD_BALANCE</td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">5.  <a name="intr">intr</a></font></h1>
+      <h2>5.1. intr &gt; general</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>General interrupt information.</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>polled_irq_mode</td>
+               <td><br>Are interrupts supported by polling mode.<br><br>                
+               </td>
+               <td>polled_irq_mode=&lt;0 | 1&gt;</td>
+               <td>0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      <h1><font color="CC092F">6.  <a name="linkscan">linkscan</a></font></h1>
+      <h2>6.1. linkscan &gt; general</h2>
+      <ol>
+         <p><strong>Overview
+               						</strong></p>
+         <p>general data</p>
+         <table style="width:90%" border="1" cellpadding="5">
+            <tr bgcolor="#D0D0CE">
+               <th>Property</th>
+               <th>Description</th>
+               <th>Synopsis</th>
+               <th>Default</th>
+               <th>Device</th>
+            </tr>
+            <tr>
+               <td>bcm_linkscan_pbmp_sw</td>
+               <td><br>sw linkscan bitmap<br><br>                
+               </td>
+               <td>bcm_linkscan_pbmp[_sw]=&lt;port bitmap&gt;</td>
+               <td>0x0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>bcm_linkscan_pbmp_hw</td>
+               <td><br>hw linkscan bitmap<br><br>                
+               </td>
+               <td>bcm_linkscan_pbmp[_hw]=&lt;port bitmap&gt;</td>
+               <td>0x0</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>bcm_linkscan_interval</td>
+               <td><br>Configure linkscan interval in microseconds<br>bcm_linkscan_interval= 0~0xffffffff<br>Default: 250,000<br><br>                
+               </td>
+               <td>bcm_linkscan_interval=&lt;[0 - 4294967295]&gt;</td>
+               <td>250000</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>bcm_linkscan_errdelay</td>
+               <td><br>The amount of time in microseconds for which the bcm_linkscan module will suspend<br>a port from further update processing after 'bcm_linkscan_maxerr' errors are detected.<br>After this delay, the error state for the port is cleared and normal linkscan processing<br>resumes on the port<br>bcm_linkscan_errdelay= 0~0xffffffff<br>Default: 10,000,000<br><br>                
+               </td>
+               <td>bcm_linkscan_errdelay=&lt;[0 - 4294967295]&gt;</td>
+               <td>10000000</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>bcm_linkscan_maxerr</td>
+               <td><br>The number of port update errors which will cause the bcm_linkscan module to suspend<br>a port from update processing for the period of time set in 'bcm_linkscan_errdelay'<br>bcm_linkscan_maxerr= 0~0xffffffff<br>Default: 5<br><br>                
+               </td>
+               <td>bcm_linkscan_maxerr=&lt;[0 - 4294967295]&gt;</td>
+               <td>5</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>linkscan_thread_pri</td>
+               <td><br>Specifies the priority of the BCM Linkscan thread<br>linkcan_thread_pri= 0~0xffffffff<br>Default: 50<br><br>                
+               </td>
+               <td>linkscan_thread_pri=&lt;[1 - 99]&gt;</td>
+               <td>50</td>
+               <td>BCM88790_b0</td>
+            </tr>
+            <tr>
+               <td>custom_feature_linkscan_m0_pause</td>
+               <td><br>custom_feature_linkscan_m0_pause='0' or '1'<br>if 1 will pause firmware while linkscan thread process.<br>Default - '0'<br><br>                
+               </td>
+               <td>custom_feature[_linkscan_m0_pause]=&lt;0 | 1&gt;</td>
+               <td>1</td>
+               <td>BCM88790_b0</td>
+            </tr>
+         </table>
+         <p><a href="#tocLink">Table of Contents</a></p>
+      </ol>
+      
+      
+   </body>
+</html>
