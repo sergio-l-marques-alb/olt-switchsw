@@ -87,6 +87,11 @@
 #ifdef RTOS_STRINGS
 /* { */
 
+#if (__GNUC__ >= 8) /* PTin added */
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
+#pragma GCC diagnostic ignored "-Wstringop-truncation"
+#endif
+
 #define sal_strlen              strlen
 #define sal_strcpy              strcpy
 #define sal_strncpy             strncpy
