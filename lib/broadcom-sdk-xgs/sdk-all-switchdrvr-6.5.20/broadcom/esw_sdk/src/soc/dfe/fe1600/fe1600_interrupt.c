@@ -123,7 +123,7 @@ static soc_interrupt_clear_read_fifo_t FE1600_INT_DCL_CCPSRCDCNGLINK_read_fifo =
 int fe1600_interrupts_array_init(int unit)  
 {
     int intr_id;
-    char* interrupts_info_allocation= "interrupts_info_allocation";
+    //char* interrupts_info_allocation= "interrupts_info_allocation";
     soc_interrupt_db_t *fe1600_interrupts;            
     soc_interrupt_tree_t *fe1600_interrupt_tree;
     SOCDNX_INIT_FUNC_DEFS;

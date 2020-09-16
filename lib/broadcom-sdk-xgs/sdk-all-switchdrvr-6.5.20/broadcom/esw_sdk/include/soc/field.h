@@ -11,12 +11,15 @@
 #define _SOC_FIELD_H
 
 #include <soc/types.h>
+#ifdef LVL7_FIXUP
+#include <soc/mcm/allenum.h>
+#else
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SAND_SUPPORT) || defined(PORTMOD_SUPPORT)
 #include <soc/mcm/allenum.h>
 #endif
+#endif
 #include <soc/schanmsg.h>
 #include <soc/types.h>
-
 
 /* Values for flags */
 

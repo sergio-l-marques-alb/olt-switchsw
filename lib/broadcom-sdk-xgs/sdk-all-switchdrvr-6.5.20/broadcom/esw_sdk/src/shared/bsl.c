@@ -33,6 +33,15 @@ bsl_config_t_init(bsl_config_t *config)
     sal_memset(config, 0, sizeof(*config));
 }
 
+/* PTin added: LOG */
+int
+bsl_vectors_get(bsl_config_t * dst)
+{
+    *dst = bsl_config;
+    return 0;
+}
+
+
 /* "Fast" checker function for a single 'chk' */
 int
 bsl_fast_check(uint32 chk)

@@ -16,7 +16,7 @@
 
 #if defined(MOUSSE) || defined(BMW) || defined(IDTRP334) || defined(GTO) || \
     defined(MBZ) || defined(IDT438) || defined(NSX) ||  \
-    defined(METROCORE) || defined(KEYSTONE)
+    defined(METROCORE) || defined(KEYSTONE) || defined(LVL7_FIXUP)
 #endif
 
 #define DCL_CMD(_f,_u)  \

@@ -14,8 +14,14 @@
 #define _SOC_ARL_H
 
 #include <shared/avl.h>
+
+/* PTin modified: SDK 6.3.0 */
+#ifdef LVL7_FIXUP
+#include <soc/mcm/memregs.h>
+#else
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SAND_SUPPORT)
 #include <soc/mcm/memregs.h>
+#endif
 #endif
 
 extern int soc_arl_attach(int unit);
@@ -39,8 +45,11 @@ extern void _drv_arl_hash(uint8 *hash_value, uint8 length, uint16 *hash_result);
 /*
  * For ARL software shadow database access
  */
+/* PTin removed */
+#if 0
 extern int soc_arl_database_dump(int unit, uint32 index, 
                                      l2_arl_sw_entry_t *entry);
+#endif
 extern int soc_arl_database_delete(int unit, uint32 index);
 extern int soc_arl_database_add(int unit, uint32 index, int pending);
 

@@ -638,7 +638,7 @@ typedef struct
      * Number identifier of task (where reset exception
      * has occurred).
      */
-  int            task_id ;
+  unsigned long long task_id ;
     /*
      * Free text description of exception. Null terminated
      * string.
@@ -831,7 +831,7 @@ typedef struct
      * Number identifier of task (where reset exception
      * has occurred).
      */
-  int            task_id ;
+  unsigned long long task_id ;
     /*
      * Free text description of exception. Null terminated
      * string.

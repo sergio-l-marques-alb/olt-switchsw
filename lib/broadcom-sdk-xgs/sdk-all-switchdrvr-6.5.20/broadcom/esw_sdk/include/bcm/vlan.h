@@ -2246,6 +2246,7 @@ extern int bcm_vlan_port_stat_multi_set32(
 #define BCM_VLAN_PORT_VLAN_TRANSLATION_TWO_VLAN_TAGS 0x20000000 /* Creates an egress vlan
                                                           translation lif with
                                                           two vlan tags. */
+#define BCM_VLAN_PORT_INNER_VLAN_REPLACE    0x01000000  /* PTin added: Replace the port inner vid */
 
 /* Logical layer 2 port match criteria */
 typedef enum bcm_vlan_port_match_e {

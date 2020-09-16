@@ -2261,12 +2261,12 @@ int portmod_port_pm_type_get(int unit, int port, int *real_port, portmod_dispatc
 
     rv = SOC_WB_ENGINE_GET_ARR(unit, SOC_WB_ENGINE_PORTMOD, PMM_WB_PORT_ALIAS_MAP, real_port, port);
     if (SOC_FAILURE(rv)) {
-        _SOC_EXIT_WITH_ERR(SOC_E_PORT, ("port %d doesn't exist", port));
+        _SOC_EXIT_WITH_ERR(SOC_E_PORT, (_SOC_MSG("port %d doesn't exist"), port));
     }
 
     /* if real_port is invalid, it should not call portmod_pm_info_get with invalid port.*/
     if(*real_port == INVALID_PORT) {
-        _SOC_EXIT_WITH_ERR(SOC_E_PORT, ("port %d is not valid.", port));        
+        _SOC_EXIT_WITH_ERR(SOC_E_PORT, (_SOC_MSG("port %d is not valid."), port));
     }
 
     _SOC_IF_ERR_EXIT(portmod_pm_info_get(unit, *real_port, &pm_info));
