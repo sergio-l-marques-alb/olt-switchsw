@@ -10,6 +10,7 @@ systems/linux/user/fastpath_common/bdecreate.c
 systems/linux/user/fastpath_common/Makefile.fastpath
 systems/linux/user/fastpath_common/Makefile
 systems/linux/user/fastpath-3_x/Makefile
+systems/linux/user/fastpath-2_6/Makefile
 make/Make.local.dnx
 make/Make.local.xgs3
 make/Make.local.xgs4
