@@ -631,6 +631,8 @@ sal_thread_main_get(void)
 void
 sal_thread_traverse(thread_traverse_cb_f cb_func, void *cb_date)
 {
+/* PTin removed: SDK 6.5.20 */
+#if 0
     thread_info_t *ti;
 
     for (ti = thread_head; ti != NULL; ti = ti->next) {
@@ -638,6 +640,7 @@ sal_thread_traverse(thread_traverse_cb_f cb_func, void *cb_date)
             cb_func(cb_date, ti->tid, ti->name);
         }
     }
+#endif
 }
 
 /*
