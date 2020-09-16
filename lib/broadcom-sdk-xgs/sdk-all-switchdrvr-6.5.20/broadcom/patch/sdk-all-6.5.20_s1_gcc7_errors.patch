@@ -20,3 +20,21 @@ diff -rpN -u6 sdk-all-6.5.20/include/soc/dpp/drv.h sdk-all-6.5.20_mod/include/so
  #define SOC_DPP_IS_MODID_AND_BASE_MODID_ON_SAME_FAP(unit, modid, base_modid) \
             ((base_modid <= modid) && (base_modid + SOC_DPP_CONFIG(unit)->core_mode.nof_active_cores > modid))
  
+diff -rpN -u6 sdk-all-6.5.20/src/soc/common/reg.c sdk-all-6.5.20_mod/src/soc/common/reg.c
+--- sdk-all-6.5.20/src/soc/common/reg.c
++++ sdk-all-6.5.20_mod/src/soc/common/reg.c
+@@ -4440,13 +4440,13 @@ soc_reg_addr(int unit, soc_reg_t reg, in
+     uint32            base;   /* base address from reg_info */
+     int               block = -1;  /* block number */
+     int               pindex = -1; /* register port/cos field */
+     int               gransh; /* index granularity shift */
+     soc_block_types_t regblktype;
+     soc_block_t       portblktype;
+-    int               phy_port;
++    int               phy_port = -1;
+     int               instance_mask = 0;
+     int               instance = -1;
+     
+ 
+ #ifdef BCM_TOMAHAWK3_SUPPORT
+     soc_reg_t reg_excep_list[]={MMU_CRB_DEVICE_PORT_TO_MMU_PORT_MAPPINGr,
