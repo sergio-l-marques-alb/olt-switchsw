@@ -4443,7 +4443,7 @@ soc_reg_addr(int unit, soc_reg_t reg, int port, int index)
     int               gransh; /* index granularity shift */
     soc_block_types_t regblktype;
     soc_block_t       portblktype;
-    int               phy_port;
+    int               phy_port = -1;
     int               instance_mask = 0;
     int               instance = -1;
     
