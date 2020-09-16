@@ -8358,6 +8358,10 @@ _bcm_port_mmu_update(int unit, bcm_port_t port, int link)
     int pause_tx, pause_rx, q_limit_enable, cos;
     uint32 psl_rval, opc_rval, oqc_rval;
 
+#ifdef LVL7_FIXUP
+    if (SOC_IS_SCORPION(unit)) return BCM_E_NONE;
+#endif
+
     if (!SOC_IS_HBX(unit)) {
         return (BCM_E_UNAVAIL);
     }
@@ -8446,6 +8450,9 @@ _bcm_port_untagged_vlan_set(int unit, bcm_port_t port, bcm_vlan_t vid)
              BCM_IF_ERROR_RETURN
                  (_bcm_trx_vlan_port_default_action_get(unit, port, &action));
         }
+        #ifdef LVL7_FIXUP
+        action.it_inner_prio = bcmVlanActionNone;
+        #endif
         action.new_outer_vlan = vid;
         action.priority = PORT(unit, local_port).p_ut_prio;
 #if defined(BCM_TOMAHAWK_SUPPORT)

@@ -40742,6 +40742,9 @@ _bcm_field_group_status_calc(int unit, _field_group_t *fg)
     while (fs != NULL)
     {
         status->entries_total += fs->entry_count/ratio;
+#ifdef LVL7_FIXUP
+        status->natural_depth = fs->entry_count/ratio;
+#endif
         fs = fs->next;
     }
 

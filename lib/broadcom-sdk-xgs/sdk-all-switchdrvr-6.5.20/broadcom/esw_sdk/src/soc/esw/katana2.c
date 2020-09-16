@@ -11493,12 +11493,15 @@ static const float  kt2_baf_profile_indexes[]={0.015625,0.03125,0.0625,
     if ((_soc_kt2_mmu_params.lossless_mode_d_c == 0) ||
          _soc_kt2_mmu_params.packing_mode_d_c) { 
         if (_soc_kt2_mmu_params.extbuf_used_d_c) {
-            output_port_threshold->min_grntd_res_queue_cells_ext_buff = 
-                  _soc_kt2_mmu_params.mmu_ext_buf_cell_size == 2880 ?
-                  12 : /* LCM of all possible cell usage */
+            /* PTin modified */
+            #ifdef EXT_MEM_Q_MIN_CELL
+            output_port_threshold->min_grntd_res_queue_cells_ext_buff = EXT_MEM_Q_MIN_CELL;
+            #else
+            output_port_threshold->min_grntd_res_queue_cells_ext_buff =
                   ceil_func((output_port_threshold->
                              min_grntd_res_queue_cells_int_buff),
                             (general_info->ratio_of_ext_buff_to_int_buff_size));
+            #endif
         }
     }
 
@@ -13791,6 +13794,9 @@ static const float  kt2_baf_profile_indexes[]={0.015625,0.03125,0.0625,
                  soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm, 
                      &mmu_thdo_qconfig_cell_entry, Q_SHARED_LIMIT_CELLf, 
                      temp_val);
+                 /* PTin added */
+                 /*soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm,
+                     &mmu_thdo_qconfig_cell_entry, Q_SHARED_ALPHA_CELLf, 1);*/
 
                  if ((buf_queue->pool_scale != -1) && 
                          mmu_config_enabled) {
@@ -13940,6 +13946,11 @@ static const float  kt2_baf_profile_indexes[]={0.015625,0.03125,0.0625,
                  soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm, 
                      &mmu_thdo_qconfig_cell_entry, Q_SHARED_LIMIT_CELLf, 
                      temp_val);
+                 /* PTin added */
+                 #if 0 //def EXT_MEM_Q_SHARED_ALPHA_CELL
+                 soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm,
+                    &mmu_thdo_qconfig_cell_entry, Q_SHARED_ALPHA_CELLf, EXT_MEM_Q_SHARED_ALPHA_CELL);
+                 #endif
 
                  /* C415:THDO_QCONFIG_CELL.Q_LIMIT_DYNAMIC_CELL
                          =IF($C$14, 0, 1) */

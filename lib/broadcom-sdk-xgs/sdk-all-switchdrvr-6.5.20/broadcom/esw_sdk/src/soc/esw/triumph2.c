@@ -2511,9 +2511,17 @@ _soc_triumph2_process_parity_error(int unit)
                     }
                     break;
                     case _SOC_PARITY_INFO_TYPE_MMUWRED:
+                    /* CSP#1108422: Start */
+                    #if 0
                     SOC_IF_ERROR_RETURN(
                         _soc_triumph2_parity_process_mmuwred(unit, &info[table],
                                                              block_port, msg));
+                    #else
+                    SOC_IF_ERROR_RETURN(
+                        _soc_triumph2_parity_process_mmuwred(unit, &info[table],
+                                                             block_port, msg));
+                    #endif
+                    /* CSP#1108422: End */
                     break;
                     case _SOC_PARITY_INFO_TYPE_MMUMTRO:
                     SOC_IF_ERROR_RETURN(

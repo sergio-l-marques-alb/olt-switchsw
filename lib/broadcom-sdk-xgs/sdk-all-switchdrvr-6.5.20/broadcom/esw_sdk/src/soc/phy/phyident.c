@@ -141,8 +141,13 @@ static int _chk_unicore(int unit, soc_port_t port,
 #endif /* INCLUDE_PHY_XGXS6 */
 
 #if defined(INCLUDE_PHY_8706)
+#ifdef LVL7_FIXUP
+ int _chk_8706(int unit, soc_port_t port, soc_phy_table_t *my_entry,
+			   uint16 phy_id0, uint16 phy_id1, soc_phy_info_t *pi);
+#else
 static int _chk_8706(int unit, soc_port_t port, soc_phy_table_t *my_entry,
                      uint16 phy_id0, uint16 phy_id1, soc_phy_info_t *pi);
+#endif
 #endif /* INCLUDE_PHY_8706 */
 
 #if defined(INCLUDE_PHY_8072)
@@ -5298,7 +5303,11 @@ _chk_sfp_phy(int unit, soc_port_t port, soc_phy_table_t *my_entry,
 }
 
 #if defined(INCLUDE_PHY_8706)
-static int
+#ifndef LVL7_FIXUP
+static 
+#endif
+int
+//static int
 _chk_8706(int unit, soc_port_t port, soc_phy_table_t *my_entry,
              uint16 phy_id0, uint16 phy_id1, soc_phy_info_t *pi)
 {
@@ -7181,8 +7190,8 @@ _phy_ident_type_get(uint16 phy_id0, uint16 phy_id1)
     model     = PHY_MODEL(phy_id0, phy_id1);
     rev_map   = 1 << PHY_REV(phy_id0, phy_id1);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
-             (BSL_META("phy_id0 = %04x phy_id1 %04x oui = %04x model = %04x rev_map = %04x\n"),
+    LOG_DEBUG(BSL_LS_SOC_PHY,
+              (BSL_META("phy_id0 = %04x phy_id1 %04x oui = %04x model = %04x rev_map = %04x\n"),
               phy_id0, phy_id1, oui, model, rev_map));
     for (i = 0; i < COUNTOF(phy_id_map); i++) {
         pm = &phy_id_map[i];

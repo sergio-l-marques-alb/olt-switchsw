@@ -93,7 +93,7 @@ counter_val_set(int unit, soc_port_t port, soc_reg_t ctr_reg,
         non_dma =
             &SOC_CONTROL(unit)->counter_non_dma[ctr_reg -
                                                 SOC_COUNTER_NON_DMA_START];
-        LOG_INFO(BSL_LS_APPL_COUNTER,
+        LOG_VERBOSE(BSL_LS_APPL_COUNTER,
                  (BSL_META_U(unit,
                              "cval_set: %s ar_idx=%d p=%d idx=%d vh=%d vl=%d\n"),
                   non_dma->cname,
@@ -103,7 +103,7 @@ counter_val_set(int unit, soc_port_t port, soc_reg_t ctr_reg,
     } else if (ctr_reg >= NUM_SOC_REG) {
         return;
     } else {
-        LOG_INFO(BSL_LS_APPL_COUNTER,
+        LOG_VERBOSE(BSL_LS_APPL_COUNTER,
                  (BSL_META_U(unit,
                              "cval_set: %s ar_idx=%d p=%d idx=%d vh=%d vl=%d\n"),
                   SOC_REG_NAME(unit, ctr_reg),
@@ -195,7 +195,7 @@ counter_val_get(int unit, soc_port_t port, soc_reg_t ctr_reg,
             non_dma =
                 &SOC_CONTROL(unit)->counter_non_dma[ctr_reg -
                                                SOC_COUNTER_NON_DMA_START];
-            LOG_INFO(BSL_LS_APPL_COUNTER,
+            LOG_VERBOSE(BSL_LS_APPL_COUNTER,
                      (BSL_META_U(unit,
                                  "cval_get: %s ar_idx=%d p=%d idx=%d vh=%d vl=%d\n"),
                       non_dma->cname,
@@ -203,7 +203,7 @@ counter_val_get(int unit, soc_port_t port, soc_reg_t ctr_reg,
                       COMPILER_64_HI(*val),
                       COMPILER_64_LO(*val)));
         } else {
-            LOG_INFO(BSL_LS_APPL_COUNTER,
+            LOG_VERBOSE(BSL_LS_APPL_COUNTER,
                      (BSL_META_U(unit,
                                  "cval_get: %s ar_idx=%d p=%d idx=%d vh=%d vl=%d\n"),
                       SOC_REG_NAME(unit, ctr_reg),
