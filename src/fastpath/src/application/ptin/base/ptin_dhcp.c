@@ -228,7 +228,7 @@ static L7_RC_t ptin_dhcp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *c
  * INLINE FUNCTIONS
  ***********************************************************/
 
-inline L7_BOOL dhcp_clientIndex_check_free(L7_uint dhcp_idx)
+static L7_BOOL dhcp_clientIndex_check_free(L7_uint dhcp_idx)
 {
   /* Validate arguments */
   if (dhcp_idx >= PTIN_SYSTEM_N_DHCP_INSTANCES)
@@ -241,7 +241,7 @@ inline L7_BOOL dhcp_clientIndex_check_free(L7_uint dhcp_idx)
           queue_free_clients.n_elems > 0);
 }
 
-inline L7_int dhcp_clientIndex_allocate(L7_uint dhcp_idx, ptinDhcpClientInfoData_t *infoData)
+static L7_int dhcp_clientIndex_allocate(L7_uint dhcp_idx, ptinDhcpClientInfoData_t *infoData)
 {
   L7_int  client_idx;
   struct ptin_clientIdx_entry_s  *clientIdx_pool_entry;
@@ -306,7 +306,7 @@ inline L7_int dhcp_clientIndex_allocate(L7_uint dhcp_idx, ptinDhcpClientInfoData
   return client_idx;
 }
 
-inline void dhcp_clientIndex_release(L7_uint dhcp_idx, L7_uint32 client_idx)
+static void dhcp_clientIndex_release(L7_uint dhcp_idx, L7_uint32 client_idx)
 {
   struct ptin_clientIdx_entry_s  *clientIdx_pool_entry;
   struct ptin_clientInfo_entry_s *clientInfo_pool_entry;

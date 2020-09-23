@@ -750,7 +750,7 @@ ptin_dtl_search_ptp_t   *entry;
 //DTL/APP LAYER**********************************************************************************
 //extern int search_oam_ptp_add_ptp_entry_pair(T_SEARCH_OAM_PTP_TABLE *t_table, u16 vid_prt, u16 vid, u16 vid_os);
 //extern int search_oam_ptp_del_ptp_entry_pair(T_SEARCH_OAM_PTP_TABLE *t_table, u16 vid_prt, u16 vid, u16 vid_os);
-extern inline L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum);
+extern L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum);
 extern L7_RC_t ptin_xlate_ingress_set( L7_uint port, L7_uint16 outer_vlan, L7_uint op, L7_uint16 newOuterVlanId);
 extern L7_RC_t ptin_xlate_ingress_clear( L7_uint port, L7_uint16 outer_vlan, L7_uint16 inner_vlan);
 extern L7_RC_t dtlPtinGeneric(L7_uint32 intIfNum, L7_uint16 msgId, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data);

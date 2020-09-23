@@ -329,7 +329,7 @@ extern L7_RC_t ptin_intf_slotPort2IntIfNum(L7_uint16 slot, L7_uint16 intf, L7_ui
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern inline L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum);
+extern L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum);
 
 /**
  * Converts FP interface# to PTin port mapping (including LAGs)
@@ -339,7 +339,7 @@ extern inline L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *in
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern inline L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *ptin_port);
+extern L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *ptin_port);
 
 /**
  * Converts ptin_port index to LAG index
@@ -349,7 +349,7 @@ extern inline L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *pti
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern inline L7_RC_t ptin_intf_port2lag(L7_uint32 ptin_port, L7_uint32 *lag_idx);
+extern L7_RC_t ptin_intf_port2lag(L7_uint32 ptin_port, L7_uint32 *lag_idx);
 
 /**
  * Converts LAG index to ptin_port
@@ -359,7 +359,7 @@ extern inline L7_RC_t ptin_intf_port2lag(L7_uint32 ptin_port, L7_uint32 *lag_idx
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-inline L7_RC_t ptin_intf_lag2port(L7_uint32 lag_idx, L7_uint32 *ptin_port);
+extern L7_RC_t ptin_intf_lag2port(L7_uint32 lag_idx, L7_uint32 *ptin_port);
 
 /**
  * Converts ptin_port index to PTin port type and id
@@ -370,7 +370,7 @@ inline L7_RC_t ptin_intf_lag2port(L7_uint32 lag_idx, L7_uint32 *ptin_port);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf);
+extern L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf);
 
 /**
  * Converts PTin port type and id to ptin_port index
@@ -381,7 +381,7 @@ extern inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *pt
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern inline L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uint32 *ptin_port);
+extern L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uint32 *ptin_port);
 
 /**
  * Converts PTin port type and id to ptin_port index
@@ -392,7 +392,7 @@ extern inline L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uin
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern inline L7_RC_t ptin_intf_typeId2port(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *ptin_port);
+extern L7_RC_t ptin_intf_typeId2port(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *ptin_port);
 
 /**
  * Converts ptin_port index to port type and id
@@ -403,7 +403,7 @@ extern inline L7_RC_t ptin_intf_typeId2port(L7_uint8 intf_type, L7_uint8 intf_id
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern inline L7_RC_t ptin_intf_port2typeId(L7_uint32 ptin_port, L7_uint8 *intf_type, L7_uint8 *intf_id);
+extern L7_RC_t ptin_intf_port2typeId(L7_uint32 ptin_port, L7_uint8 *intf_type, L7_uint8 *intf_id);
 
 /**
  * Converts FP interface# to PTin port type and id
@@ -414,7 +414,7 @@ extern inline L7_RC_t ptin_intf_port2typeId(L7_uint32 ptin_port, L7_uint8 *intf_
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_intf);
+extern L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_intf);
 
 /**
  * Converts PTin port type and id to FP interface#
@@ -425,7 +425,7 @@ extern inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern inline L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32 *intIfNum);
+extern L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32 *intIfNum);
 
 /**
  * Converts PTin port type and id to FP interface#
@@ -436,7 +436,7 @@ extern inline L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern inline L7_RC_t ptin_intf_typeId2intIfNum(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *intIfNum);
+extern L7_RC_t ptin_intf_typeId2intIfNum(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *intIfNum);
 
 /**
  * Converts LAG index [1..PTIN_SYSTEM_N_LAGS] to FP intIfNum
@@ -446,7 +446,7 @@ extern inline L7_RC_t ptin_intf_typeId2intIfNum(L7_uint8 intf_type, L7_uint8 int
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern inline L7_RC_t ptin_intf_lag2intIfNum(L7_uint32 lag_idx, L7_uint32 *intIfNum);
+extern L7_RC_t ptin_intf_lag2intIfNum(L7_uint32 lag_idx, L7_uint32 *intIfNum);
 
 /**
  * Convert intIfNum to LAG index
@@ -456,7 +456,7 @@ extern inline L7_RC_t ptin_intf_lag2intIfNum(L7_uint32 lag_idx, L7_uint32 *intIf
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern inline L7_RC_t ptin_intf_intIfNum2lag(L7_uint32 intIfNum, L7_uint32 *lag_idx);
+extern L7_RC_t ptin_intf_intIfNum2lag(L7_uint32 intIfNum, L7_uint32 *lag_idx);
 
 #if PTIN_BOARD_IS_MATRIX
 /**
@@ -467,7 +467,7 @@ extern inline L7_RC_t ptin_intf_intIfNum2lag(L7_uint32 intIfNum, L7_uint32 *lag_
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern inline L7_RC_t ptin_intf_slot2lagIdx(L7_uint16 slot, L7_uint32 *lag_idx);
+extern L7_RC_t ptin_intf_slot2lagIdx(L7_uint16 slot, L7_uint32 *lag_idx);
 #endif
 
 /**
@@ -477,7 +477,7 @@ extern inline L7_RC_t ptin_intf_slot2lagIdx(L7_uint16 slot, L7_uint32 *lag_idx);
  * 
  * @return L7_RC_t L7_TRUE/L7_FALSE
  */
-extern inline L7_RC_t ptin_intf_lag_exists(L7_uint32 lag_idx);
+extern L7_RC_t ptin_intf_lag_exists(L7_uint32 lag_idx);
 
 
 /**

@@ -172,16 +172,16 @@ extern dl_queue_elem_t * dl_queue_get_next(dl_queue_t *queue, dl_queue_elem_t *e
  * BITMAPS MANIPULATION
  ******************************************************************************/
 
-extern inline int _bmp_set(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int bit);
-extern inline int _bmp_set_all(bmp_cell_t bmp[], unsigned int sizeof_bmp);
+extern int _bmp_set(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int bit);
+extern int _bmp_set_all(bmp_cell_t bmp[], unsigned int sizeof_bmp);
 
-extern inline int _bmp_clear(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int bit);
-extern inline int _bmp_clear_all(bmp_cell_t bmp[], unsigned int sizeof_bmp);
-                                    
-extern inline int _bmp_is_set(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int bit);
-extern inline int _bmp_is_all_set(bmp_cell_t bmp[], unsigned int sizeof_bmp);
+extern int _bmp_clear(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int bit);
+extern int _bmp_clear_all(bmp_cell_t bmp[], unsigned int sizeof_bmp);
 
-extern inline int _bmp_is_clear(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int bit);
-extern inline int _bmp_is_all_clear(bmp_cell_t bmp[], unsigned int sizeof_bmp);
+extern int _bmp_is_set(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int bit);
+extern int _bmp_is_all_set(bmp_cell_t bmp[], unsigned int sizeof_bmp);
+
+extern int _bmp_is_clear(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int bit);
+extern int _bmp_is_all_clear(bmp_cell_t bmp[], unsigned int sizeof_bmp);
 
 #endif

@@ -2262,7 +2262,7 @@ L7_RC_t ptin_intf_slot_get(L7_uint8 *slot_id)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-inline L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
+L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
 {
   /* Validate arguments */
   if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
@@ -2295,7 +2295,7 @@ inline L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-inline L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *ptin_port)
+L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *ptin_port)
 {
   /* Validate arguments */
   if (intIfNum==0 || intIfNum >= L7_MAX_INTERFACE_COUNT)
@@ -2328,7 +2328,7 @@ inline L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *ptin_port)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-inline L7_RC_t ptin_intf_port2lag(L7_uint32 ptin_port, L7_uint32 *lag_idx)
+L7_RC_t ptin_intf_port2lag(L7_uint32 ptin_port, L7_uint32 *lag_idx)
 {
   L7_uint32 p_lag;
 
@@ -2373,7 +2373,7 @@ inline L7_RC_t ptin_intf_port2lag(L7_uint32 ptin_port, L7_uint32 *lag_idx)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-inline L7_RC_t ptin_intf_lag2port(L7_uint32 lag_idx, L7_uint32 *ptin_port)
+L7_RC_t ptin_intf_lag2port(L7_uint32 lag_idx, L7_uint32 *ptin_port)
 {
   L7_uint32 port;
 
@@ -2415,7 +2415,7 @@ inline L7_RC_t ptin_intf_lag2port(L7_uint32 lag_idx, L7_uint32 *ptin_port)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf)
+L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf)
 {
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
@@ -2435,7 +2435,7 @@ inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-inline L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uint32 *ptin_port)
+L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uint32 *ptin_port)
 {
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
@@ -2455,7 +2455,7 @@ inline L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uint32 *pt
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-inline L7_RC_t ptin_intf_typeId2port(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *ptin_port)
+L7_RC_t ptin_intf_typeId2port(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *ptin_port)
 {
   L7_uint32 p_port=0;
 
@@ -2506,7 +2506,7 @@ inline L7_RC_t ptin_intf_typeId2port(L7_uint8 intf_type, L7_uint8 intf_id, L7_ui
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-inline L7_RC_t ptin_intf_port2typeId(L7_uint32 ptin_port, L7_uint8 *intf_type, L7_uint8 *intf_id)
+L7_RC_t ptin_intf_port2typeId(L7_uint32 ptin_port, L7_uint8 *intf_type, L7_uint8 *intf_id)
 {
   ptin_intf_t p_intf;
 
@@ -2545,7 +2545,7 @@ inline L7_RC_t ptin_intf_port2typeId(L7_uint32 ptin_port, L7_uint8 *intf_type, L
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_intf)
+L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_intf)
 {
   L7_uint32       ptin_port;
   L7_RC_t         rc;
@@ -2613,7 +2613,7 @@ inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_i
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-inline L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32 *intIfNum)
+L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32 *intIfNum)
 {
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
@@ -2634,7 +2634,7 @@ inline L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-inline L7_RC_t ptin_intf_typeId2intIfNum(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *intIfNum)
+L7_RC_t ptin_intf_typeId2intIfNum(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *intIfNum)
 {
   L7_uint32       ptin_port=0, intIfNum0;
   L7_RC_t         rc;
@@ -2702,7 +2702,7 @@ inline L7_RC_t ptin_intf_typeId2intIfNum(L7_uint8 intf_type, L7_uint8 intf_id, L
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-inline L7_RC_t ptin_intf_lag2intIfNum(L7_uint32 lag_idx, L7_uint32 *intIfNum)
+L7_RC_t ptin_intf_lag2intIfNum(L7_uint32 lag_idx, L7_uint32 *intIfNum)
 {
   if (lag_idx >= PTIN_SYSTEM_N_LAGS)
   {
@@ -2733,7 +2733,7 @@ inline L7_RC_t ptin_intf_lag2intIfNum(L7_uint32 lag_idx, L7_uint32 *intIfNum)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-inline L7_RC_t ptin_intf_intIfNum2lag(L7_uint32 intIfNum, L7_uint32 *lag_idx)
+L7_RC_t ptin_intf_intIfNum2lag(L7_uint32 intIfNum, L7_uint32 *lag_idx)
 {
   L7_uint32 ptin_port;
   //L7_INTF_TYPES_t sysIntfType;
@@ -2794,7 +2794,7 @@ inline L7_RC_t ptin_intf_intIfNum2lag(L7_uint32 intIfNum, L7_uint32 *lag_idx)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-inline L7_RC_t ptin_intf_slot2lagIdx(L7_uint16 slot, L7_uint32 *lag_idx)
+L7_RC_t ptin_intf_slot2lagIdx(L7_uint16 slot, L7_uint32 *lag_idx)
 {
   L7_uint32 aux;
 
@@ -2828,7 +2828,7 @@ inline L7_RC_t ptin_intf_slot2lagIdx(L7_uint16 slot, L7_uint32 *lag_idx)
  * 
  * @return L7_RC_t L7_TRUE/L7_FALSE
  */
-inline L7_RC_t ptin_intf_lag_exists(L7_uint32 lag_idx)
+L7_RC_t ptin_intf_lag_exists(L7_uint32 lag_idx)
 {
   if (lag_idx >= PTIN_SYSTEM_N_LAGS)
   {
