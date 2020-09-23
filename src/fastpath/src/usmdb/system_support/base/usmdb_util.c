@@ -3345,7 +3345,7 @@ L7_RC_t usmDbConvertTimeTicksToDaysHoursMinutesSeconds(L7_uint32 *timeTicks, L7_
   }
   
   memcpy (&timeInSeconds, timeTicks, sizeof (L7_uint32));
-  memset (buf, 0, sizeof (buf));
+  memset (buf, 0, sizeof (*buf));
   
   timeInSeconds = timeInSeconds / 100;  /*to get no of seconds */  
   days = timeInSeconds / 86400;

@@ -110,7 +110,7 @@ static L7_BOOL gid_create_gid(Garp *application, L7_uint32 port_no, void **gid)
                               (GARP_GMRP_APP == application->app) ? "GMRP" :
                               (GARP_GVRP_APP == application->app) ? "GVRP" : "Unknown");
 
-   memset(my_port, 0x00, sizeof(my_port));
+   memset(my_port, 0x00, sizeof(Gid));
 
    my_port->application            = application;
    my_port->port_no                = port_no;

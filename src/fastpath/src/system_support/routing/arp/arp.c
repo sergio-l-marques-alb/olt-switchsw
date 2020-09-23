@@ -1370,7 +1370,7 @@ e_Err ARP_SendARPReq(t_Handle Id, byte *ipAddr, t_Handle userId, word flags)
    {
      return E_NOMEMORY;
    }
-   memset(p_Rqe, 0, sizeof(p_Rqe));
+   memset(p_Rqe, 0, sizeof(*p_Rqe));
    p_Rqe->dstAddrId = p_Adr;
    p_Rqe->userId = userId;
    p_Rqe->l3addr.protocolId = 0;
@@ -1420,7 +1420,7 @@ e_Err ARP_SendARPReqNoRxmt(t_Handle Id, byte *ipAddr, word index)
       memset(p_Adr, 0, sizeof(t_ADR));
       p_Adr->p_obj = p_A;
       p_Adr->status = ARP_ENT_STAT_Valid;
-      memcpy(p_Adr->ipAddr, ipAddr, sizeof(ipAddr));
+      memcpy(p_Adr->ipAddr, ipAddr, sizeof(t_IPAddr));
       p_Adr->intfNum = index;
       p_Adr->entryType = ARP_ENTRY_TYPE_DYNAMIC;
       temporary = L7_TRUE;

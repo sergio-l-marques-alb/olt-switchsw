@@ -129,7 +129,7 @@ L7_RC_t getParamsFromBootpStruct(L7_bootp_t* bootpParams, L7_bootp_dhcp_t* netwo
     gateway=0;
   }
 
-  memcpy(&siaddr, &(bootpParams->bp_siaddr), sizeof(bootpParams->bp_siaddr));
+  memcpy(&siaddr, &(bootpParams->bp_siaddr), sizeof(siaddr));
 
   if(L7_FALSE== L7_bootp_option_get( bootpParams, L7_TAG_DOMAIN_SERVER, dnsServerIpAddr, sizeof(dnsServerIpAddr) ))
   {

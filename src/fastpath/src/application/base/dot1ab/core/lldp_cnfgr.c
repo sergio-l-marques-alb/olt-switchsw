@@ -703,7 +703,7 @@ L7_RC_t lldpCnfgrUconfigPhase2(L7_CNFGR_RESPONSE_t *pResponse,
 
   /* TBD - disable Tx/Rx on all interfaces?? */
 
-  memset(lldpCfgData, 0, sizeof(lldpCfgData));
+  memset(lldpCfgData, 0, sizeof(lldpCfgData_t));
 
   lldpCnfgrState = LLDP_PHASE_WMU;
 

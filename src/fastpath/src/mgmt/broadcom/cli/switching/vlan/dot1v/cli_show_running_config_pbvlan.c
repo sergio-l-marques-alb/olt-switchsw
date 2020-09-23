@@ -101,7 +101,7 @@ L7_RC_t cliRunningConfigProtocolInfo(EwsContext ewsContext, L7_uint32 unit)
       }
 
       memset (buf, 0,sizeof(buf));
-      memset(protocol, 0, L7_PBVLAN_MAX_CONFIGURABLE_PROTOCOLS);
+      memset(protocol, 0, sizeof(protocol));
       memset (stat, 0,sizeof(stat));
       if ((usmDbPbVlanGroupProtocolGet(unit, groupID, protocol, type)) == L7_SUCCESS)
       {

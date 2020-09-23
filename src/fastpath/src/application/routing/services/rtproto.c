@@ -524,7 +524,7 @@ rtInIPForwardArpTable (L7_uint32 dest_ip_addr, L7_uint32 netMask,
   else
   {
     callbackparam = (cbparam_t *) buffer_addr;
-    memset(callbackparam,0,sizeof(callbackparam));
+    memset(callbackparam,0,sizeof(cbparam_t));
     callbackparam->intIfNum = intIfNum;
     callbackparam->routerIP = dest_ip_addr;
     callbackparam->srcrt = srcrt;

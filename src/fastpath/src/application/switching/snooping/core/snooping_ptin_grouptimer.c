@@ -596,7 +596,7 @@ L7_RC_t snoop_ptin_grouptimer_start(snoopPTinL3Grouptimer_t* pTimer, L7_uint32 t
     }
     pTimer->timer = L7_NULLPTR;
     handleListNodeDelete(handleList, &pTimer->timerHandle);
-    memset(pTimer, 0x00, sizeof(pTimer));
+    memset(pTimer, 0x00, sizeof(snoopPTinL3Grouptimer_t));
     osapiSemaGive(timerSem);
     PT_LOG_WARN(LOG_CTX_IGMP,"Could not add new timer data node");
     return L7_FAILURE;

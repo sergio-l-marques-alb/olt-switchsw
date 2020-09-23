@@ -855,7 +855,7 @@ char *dot3adDisplayTraceCode(L7_uchar8 traceCode)
 
 L7_uchar8* dot3adDisplayState(L7_uchar8 state, L7_uchar8 *buf, L7_uint32 size)
 {
- memset(buf,0,sizeof(buf));
+ memset(buf,0,sizeof(*buf));
 
  if (state & DOT3AD_STATE_EXPIRED)
  {

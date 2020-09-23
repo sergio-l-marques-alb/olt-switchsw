@@ -1296,7 +1296,7 @@ L7_char8 *  getMacAndMask(EwsContext ewsContext,
   }
 
   osapiStrncpySafe( strMacAddr, argv[index+*relIndex], sizeof(strMacAddr));
-  memset (macAddr, 0,sizeof(macAddr));
+  memset (macAddr, 0, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
   *relIndex  = *relIndex+1;
 
   if (cliConvertMac(strMacAddr, macAddr) != L7_TRUE)

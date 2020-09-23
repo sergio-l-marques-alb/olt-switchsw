@@ -207,9 +207,11 @@ const char *commandShowIpDhcpSnooping(EwsContext ewsContext, L7_uint32 argc,
 
         if (usmDbDsIntfLogInvalidGet(intIfNum, &log) == L7_SUCCESS)
         {
+          int size = sizeof(logbuf);
+
           osapiSnprintf(logbuf, sizeof(logbuf), "%-16s\r\n", 
                         log ? pStrInfo_common_Yes : pStrInfo_common_No);
-          strncat(buf, logbuf, sizeof(logbuf));
+          strncat(buf, logbuf, size);
         }
 
         ewsTelnetWrite(ewsContext, buf);
@@ -1964,9 +1966,13 @@ const char *commandShowDhcpL2Relay(EwsContext ewsContext, L7_uint32 argc,
             osapiSnprintf(buf, sizeof(buf), "%-11s  %-13s", stat, pStrInfo_base_Disabled);
           }
   
-          osapiSnprintf(logBuf, sizeof(logBuf), "%-16s\r\n", 
-                        trustMode ? pStrInfo_switching_DhcpL2RelayTrusted : pStrInfo_switching_DhcpL2RelayUntrusted);
-          strncat(buf, logBuf, sizeof(logBuf));
+          {
+            int size = sizeof(logBuf);
+
+            osapiSnprintf(logBuf, sizeof(logBuf), "%-16s\r\n", 
+                          trustMode ? pStrInfo_switching_DhcpL2RelayTrusted : pStrInfo_switching_DhcpL2RelayUntrusted);
+            strncat(buf, logBuf, size);
+          }
   
           ewsTelnetWrite(ewsContext, buf);
           /*hasInterfaces = L7_TRUE; */

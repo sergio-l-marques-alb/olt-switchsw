@@ -1482,7 +1482,7 @@ L7_RC_t snmpDiffServClassRuleMatchDstIpv6PrefixGet(L7_uint32 UnitIndex,
    L7_in6_addr_t prefix;
    
    memset(&prefix, 0x00, sizeof(prefix));
-   memset(snmp_buffer, 0x00, sizeof(snmp_buffer));
+   memset(snmp_buffer, 0x00, sizeof(L7_uchar8)*SNMP_BUFFER_LEN);
    if((usmDbDiffServClassRuleMatchDstIpv6AddrGet(UnitIndex, classIndex, classRuleIndex, &prefix) == L7_SUCCESS) &&
       (usmDbDiffServClassRuleMatchDstIpv6PrefLenGet(UnitIndex, classIndex, classRuleIndex, prefixLen) == L7_SUCCESS))
    {
@@ -1503,7 +1503,7 @@ L7_RC_t snmpDiffServClassRuleMatchSrcIpv6PrefixGet(L7_uint32 UnitIndex,
    L7_in6_addr_t prefix6;
 
    memset(&prefix6, 0x00, sizeof(prefix6));
-   memset(snmp_buffer, 0x00, sizeof(snmp_buffer));
+   memset(snmp_buffer, 0x00, sizeof(L7_uchar8)*SNMP_BUFFER_LEN);
    if((usmDbDiffServClassRuleMatchSrcIpv6AddrGet(UnitIndex, classIndex, classRuleIndex, &prefix6) == L7_SUCCESS) &&
       (usmDbDiffServClassRuleMatchSrcIpv6PrefLenGet(UnitIndex, classIndex, classRuleIndex, prefixLen) == L7_SUCCESS))
    {

@@ -549,7 +549,7 @@ L7_RC_t dnsCnfgrUconfigPhase2(L7_CNFGR_RESPONSE_t *pResponse,
   dnsClientAdminModeApply(L7_FALSE);
 
   memset(dnsNotifyTbl, 0, L7_LAST_COMPONENT_ID * sizeof(dnsNotifyEntry_t));
-  memset(dnsCfgData, 0, sizeof(dnsCfgData));
+  memset(dnsCfgData, 0, sizeof(*dnsCfgData));
 
   dnsCnfgrState = DNS_CLIENT_PHASE_WMU;
 

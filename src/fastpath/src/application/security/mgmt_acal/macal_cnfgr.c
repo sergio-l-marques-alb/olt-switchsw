@@ -422,7 +422,7 @@ L7_RC_t macalCnfgrUconfigPhase2( L7_CNFGR_RESPONSE_t *pResponse,
   /* Sysnet deregister for Management Access Control and Administration List */
   (void)macalSysnetRegisterDeregister(L7_FALSE);
 
-  memset(macalCfgData, 0, sizeof(macalCfgData));
+  memset(macalCfgData, 0, sizeof(macalCfgData_t));
 
   macalCnfgrState = MACAL_PHASE_WMU;
 

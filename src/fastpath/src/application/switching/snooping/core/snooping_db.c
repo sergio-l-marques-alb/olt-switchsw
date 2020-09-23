@@ -6082,7 +6082,7 @@ snoopPTinProxyGroup_t *snoopPTinProxyGroupEntryFind(L7_uint32 vlanId, L7_inet_ad
 #endif
 
 //memcpy(&key.interfacePtr,&interfacePtr, sizeof(snoopPTinProxyInterface_t*));
-  memcpy(&key.vlanId,&vlanId, sizeof(L7_uint32*));  
+  memcpy(&key.vlanId,&vlanId, sizeof(L7_uint32));
   memcpy(&key.groupAddr,groupAddr,sizeof(L7_inet_addr_t));
   memcpy(&key.recordType,&recordType,sizeof(L7_uint8));
   pData = avlSearchLVL7(&pSnoopEB->snoopPTinProxyGroupAvlTree, &key, flag);

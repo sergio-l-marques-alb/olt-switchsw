@@ -150,7 +150,7 @@ const char *commandShowProtocol(EwsContext ewsContext, uintf argc, const char * 
 
     memset (buf, 0,sizeof(buf));
     memset (stat, 0,sizeof(stat));
-    memset(protocol, 0, L7_PBVLAN_MAX_CONFIGURABLE_PROTOCOLS);
+    memset(protocol, 0, sizeof(protocol));
     commaFlag = L7_FALSE;
     if ((usmDbPbVlanGroupProtocolGet(unit, groupID, protocol, type)) == L7_SUCCESS)
     {
@@ -442,7 +442,7 @@ const char *commandShowPortProtocol(EwsContext ewsContext, uintf argc, const cha
 
       if(groupFlag == L7_TRUE)
       {
-        memset(protocol, 0x00, L7_PBVLAN_MAX_CONFIGURABLE_PROTOCOLS);
+        memset(protocol, 0x00, sizeof(protocol));
         memset(protocolList, 0x00, sizeof(protocolList));
         commaFlag = L7_FALSE;
 

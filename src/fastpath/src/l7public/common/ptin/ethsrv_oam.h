@@ -840,9 +840,11 @@ typedef struct {
 //IEEE 802.1ag in 802.1Q 21.9.5, table 21-28: respectively reached target MEP, FDB, MEP DB
 
  union {     //We may have a DATA TLV or a TST TLV before the END TLV (or just the END TLV)
-     u8  nxt_TLV[1];
+     u8  nxt_TLV[40];    // FIXME: To avoid "error: ‘memcpy’ offset 37 is out of the bounds [0, 34] of object ‘ltr’ with type ‘ETH_LTR_OAM_DATAGRM’ {aka ‘struct <anonymous>’} [-Werror=array-bounds]"
      u8	 end_TLV;        // Set to all ZEROes
  } __attribute__ ((packed)) tlvs;
+
+ //u8 dummy[16];
 } __attribute__ ((packed)) ETH_LTR_OAM_DATAGRM;
 
 

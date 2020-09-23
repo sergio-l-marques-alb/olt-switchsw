@@ -170,7 +170,7 @@ L7_RC_t getParamsFromDhcpStruct(struct bootp *dhcpParams, L7_bootp_dhcp_t *netwo
 
   memset(bootFileName,   0, BOOTP_FILE_LEN + 1);
   memset(tftpServerName, 0, BOOTP_SNAME_LEN + 1);
-  memset(defaultGateway, 0, L7_DHCPS_DEFAULT_ROUTER_MAX);
+  memset(defaultGateway, 0, sizeof(defaultGateway));
   memset(networkParams,  0, sizeof(L7_bootp_dhcp_t));
 
   /* Get subnet mask & default gw from bootp packet*/
@@ -2174,12 +2174,12 @@ dhcpClientMgmtPortTypeIsOperational (L7_uint32 intIfNum,
 L7_RC_t
 dhcpClientCleanupIntfInfoByAddress (L7_uint32 ipAddr)
 {
-  DHCPC_TRACE (DHCPC_DEBUG_APIS, "Entry");
-
 #ifdef L7_ROUTING_PACKAGE
   dhcpClientInfo_t* clientIntfInfo = L7_NULLPTR;
   L7_bootp_dhcp_t dhcpParams;
   L7_uint32 index = 0;
+
+  DHCPC_TRACE (DHCPC_DEBUG_APIS, "Entry");
 
   for (index = 0; index < DHCP_CLIENT_MAX_RTR_INTERFACES; index++)
   {
@@ -2200,9 +2200,9 @@ dhcpClientCleanupIntfInfoByAddress (L7_uint32 ipAddr)
       }
     }
   }
+  DHCPC_TRACE (DHCPC_DEBUG_APIS, "Exit");
 #endif
 
-  DHCPC_TRACE (DHCPC_DEBUG_APIS, "Exit");
   return L7_SUCCESS;
 }
 
@@ -2221,11 +2221,11 @@ dhcpClientCleanupIntfInfoByAddress (L7_uint32 ipAddr)
 L7_RC_t
 dhcpClientAllIntfInfoCleanup (void)
 {
-  DHCPC_TRACE (DHCPC_DEBUG_APIS, "Entry");
-
 #ifdef L7_ROUTING_PACKAGE
   dhcpClientInfo_t* clientIntfInfo = L7_NULLPTR;
   L7_uint32 index = 0;
+
+  DHCPC_TRACE (DHCPC_DEBUG_APIS, "Entry");
 
   for (index = 0; index < DHCP_CLIENT_MAX_RTR_INTERFACES; index++)
   {
@@ -2237,9 +2237,10 @@ dhcpClientAllIntfInfoCleanup (void)
       }
     }
   }
-#endif
 
   DHCPC_TRACE (DHCPC_DEBUG_APIS, "Exit");
+#endif
+
   return L7_SUCCESS;
 }
 

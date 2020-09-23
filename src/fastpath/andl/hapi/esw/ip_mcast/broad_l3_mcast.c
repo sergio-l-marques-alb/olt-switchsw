@@ -1783,7 +1783,7 @@ L7_RC_t hapiBroadRoutingIntfMcastSnoopAsyncNotifyProcess(L7_uchar8 *mcastMacAddr
         if (dapiCmd->cmdData.mcastModify.outIntfDirection == DAPI_SNOOP_L3_NOTIFY_INGRESS)
         {
           if (memcmp(&(BroadGroupList[tableIndex].rpf_usp),
-                     outRtrPortUsp, sizeof(outRtrPortUsp)) == 0)
+                     outRtrPortUsp, sizeof(DAPI_USP_t)) == 0)
           {
             if (dapiCmd->cmdData.mcastModify.snoopVlanOperState == L7_TRUE)
             {

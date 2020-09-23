@@ -193,7 +193,7 @@ void userMgrRadiusChallengeInfoGet( L7_uchar8 *attributes, L7_uint32 attributesL
 
   /* Initialize pChallengeFlag to false in case the challenge phrase is not found. */
   *pChallengeFlag = L7_FALSE;
-  memset( pChallengePhrase, 0, sizeof(pChallengePhrase));
+  memset( pChallengePhrase, 0, sizeof(*pChallengePhrase));
 
   /* If no attributes found, exit. */
   if (attributesLen <= sizeof(L7_radiusAttrHeader_t))

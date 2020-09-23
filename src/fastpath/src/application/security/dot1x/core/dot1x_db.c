@@ -411,7 +411,7 @@ L7_RC_t dot1xAuthHistoryLogDbInit(void)
                    sizeof(dot1xAuthHistoryLogInfoKey_t));
 
   /* Initialize History Log Entry Index Array */
-  memset(dot1xAuthHistEntryIndexIntfCount, 0x00, L7_MAX_PORT_COUNT);
+  memset(dot1xAuthHistEntryIndexIntfCount, 0x00, sizeof(dot1xAuthHistEntryIndexIntfCount));
 
   return L7_SUCCESS;
 }
@@ -453,7 +453,7 @@ void dot1xAuthHistoryLogDbDeInit(void)
 
 
   /* Reset History Log Entry Index Array */
-  memset(dot1xAuthHistEntryIndexIntfCount, 0x00, L7_MAX_PORT_COUNT);
+  memset(dot1xAuthHistEntryIndexIntfCount, 0x00, sizeof(dot1xAuthHistEntryIndexIntfCount));
 }
 
 

@@ -1664,7 +1664,7 @@ void cliConstructPoliceParmsSyntax(L7_char8 * buf, L7_int32 bufLenMax)
 
 void cliConstructAndPrintPoliceSimpleSyntax(EwsContext ewsContext, L7_char8 * buf, L7_int32 bufLenMax)
 {
-  memset (buf, 0,sizeof(buf));
+  memset (buf, 0,sizeof(*buf));
   osapiStrncatAddBlanks (1, 0, 0, 0, pStrErr_common_IncorrectInput, buf, pStrErr_qos_PoliceSimple_1, bufLenMax - strlen(buf) - 1);
   cliConstructPoliceParmsSyntax(buf, bufLenMax);
   osapiStrncatAddBlanks (1, 0, 0, 0, L7_NULLPTR, buf, pStrErr_qos_PoliceViolate, bufLenMax - strlen(buf) - 1);
@@ -1677,7 +1677,7 @@ void cliConstructAndPrintPoliceSimpleSyntax(EwsContext ewsContext, L7_char8 * bu
 
 void cliConstructAndPrintPoliceSingleRateSyntax(EwsContext ewsContext, L7_char8 * buf, L7_int32 bufLenMax)
 {
-  memset (buf, 0,sizeof(buf));
+  memset (buf, 0,sizeof(*buf));
   osapiStrncatAddBlanks (1, 0, 0, 0, pStrErr_common_IncorrectInput, buf, pStrErr_qos_PoliceSingleRate_1, bufLenMax - strlen(buf) - 1);
   cliConstructPoliceParmsSyntax(buf, bufLenMax);
   osapiStrncatAddBlanks (1, 0, 0, 0, L7_NULLPTR, buf, pStrErr_qos_PoliceExceed, bufLenMax - strlen(buf) - 1);
@@ -1692,7 +1692,7 @@ void cliConstructAndPrintPoliceSingleRateSyntax(EwsContext ewsContext, L7_char8 
 
 void cliConstructAndPrintPoliceTwoRateSyntax(EwsContext ewsContext, L7_char8 * buf, L7_int32 bufLenMax)
 {
-  memset (buf, 0,sizeof(buf));
+  memset (buf, 0,sizeof(*buf));
   osapiStrncatAddBlanks (1, 0, 0, 0, pStrErr_common_IncorrectInput, buf, pStrErr_qos_PoliceTwoRate_1, bufLenMax - strlen(buf) - 1);
   cliConstructPoliceParmsSyntax(buf, bufLenMax);
   osapiStrncatAddBlanks (1, 0, 0, 0, L7_NULLPTR, buf, pStrErr_qos_PoliceExceed, bufLenMax - strlen(buf) - 1);

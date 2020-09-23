@@ -412,7 +412,7 @@ L7_RC_t daiCnfgrInitPhase1Process(L7_CNFGR_RESPONSE_t *pResponse,
     daiRC = L7_ERROR;
     return daiRC;
   }
-  memset(daiInfo, 0, sizeof(daiInfo));
+  memset(daiInfo, 0, sizeof(daiInfo_t));
   daiInfoInit();
 
   daiIntfInfo = (daiIntfInfo_t*) osapiMalloc(L7_DAI_COMPONENT_ID,

@@ -875,7 +875,7 @@ L7_RC_t sFlowFsEntryGetNext(L7_uint32 UnitIndex, L7_char8 *index,
     {
       if( usmDbExtIfNumFromIntIfNum(intIfIndex, &ifIndex) == L7_SUCCESS)
       {
-        memset(index, 0, sizeof(index));
+        memset(index, 0, sizeof(*index));
         sprintf(index,"%s.%d",L7_SFLOW_IFINDEX, ifIndex);
         *instance =1;
         return L7_SUCCESS;
@@ -1249,7 +1249,7 @@ L7_RC_t sFlowCpEntryGetNext(L7_uint32 UnitIndex, L7_uchar8 *index,
     {
       if( usmDbExtIfNumFromIntIfNum(intIfIndex, &ifIndex) == L7_SUCCESS)
       {
-        memset(index, 0, sizeof(index));
+        memset(index, 0, sizeof(*index));
         sprintf(index,"%s.%d",L7_SFLOW_IFINDEX, ifIndex);
         *instance =1;
         return L7_SUCCESS;

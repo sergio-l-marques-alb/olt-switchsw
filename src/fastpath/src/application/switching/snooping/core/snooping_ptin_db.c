@@ -678,7 +678,7 @@ L7_RC_t snoopPTinSourceRemove(snoopPTinL3Interface_t* interfacePtr, snoopPTinL3S
   }
 
   /* Remove clients associated with this source */
-  memset(sourcePtr->clients, 0x00, PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE);
+  memset(sourcePtr->clients, 0x00, sizeof(sourcePtr->clients));
 
   snoop_ptin_sourcetimer_stop(&sourcePtr->sourceTimer);
   memset(sourcePtr, 0x00, sizeof(*sourcePtr));

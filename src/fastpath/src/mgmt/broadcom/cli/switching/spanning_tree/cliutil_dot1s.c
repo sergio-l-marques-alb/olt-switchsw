@@ -550,7 +550,7 @@ L7_RC_t cliSpanTreeGetPortFwdState( L7_uint32 unit, L7_uint32 instance,
   if ( usmDbDot1sMstiPortForwardingStateGet(unit, instance,
                                             iface, &val) == L7_SUCCESS )
   {
-    memset (stat, 0,sizeof(stat));
+    memset (stat, 0, size);
     switch (val)
     {
     case L7_DOT1S_DISCARDING:

@@ -478,7 +478,7 @@ void garpTimerAdd(L7_uint32 vid, L7_uint32 port_no,
     else
     {
         /* A timer is being added */
-        memset(pTimer, 0, sizeof(pTimer));
+        memset(pTimer, 0, sizeof(garpTimerDescr_t));
 
         pTimer->timerType    = timer_type;
         pTimer->vid          = vid;
@@ -826,7 +826,7 @@ void garpDebugUnitTestGarpTimerList(L7_uint32 action,L7_uint32 numEntries)
                 pTimer = &timerList[index % 20];
                 index++;
 
-                memset(pTimer, 0, sizeof(pTimer));
+                memset(pTimer, 0, sizeof(garpTimerDescr_t));
 
                 pTimer->timerType    = 4;
                 pTimer->vid          = 1;

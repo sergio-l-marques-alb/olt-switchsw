@@ -473,7 +473,7 @@ L7_RC_t dsCnfgrInitPhase1Process(L7_CNFGR_RESPONSE_t *pResponse,
     dsRC = L7_ERROR;
     return dsRC;
   }
-  memset(dsInfo, 0, sizeof(dsInfo));
+  memset(dsInfo, 0, sizeof(dsInfo_t));
   dsInfoInit();
   dsBindingsTableCreate();
 #ifdef L7_IPSG_PACKAGE
@@ -485,7 +485,7 @@ L7_RC_t dsCnfgrInitPhase1Process(L7_CNFGR_RESPONSE_t *pResponse,
     dsRC = L7_ERROR;
     return dsRC;
   }
-  memset(ipsgInfo, 0, sizeof(ipsgInfo));
+  memset(ipsgInfo, 0, sizeof(ipsgInfo_t));
   ipsgInfoInit();
   ipsgEntryTableCreate();
 #endif

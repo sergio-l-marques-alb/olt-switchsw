@@ -690,7 +690,7 @@ void hapiDebugMcastAction(int family, unsigned int src1, unsigned int mcastIp,
     mcast = &mcastip6;
   }
 
-  memset(interface, 0x0, 10);
+  memset(interface, 0x0, sizeof(interface));
   interface[0] = intf1;
   interface[1] = intf2;
 
