@@ -536,7 +536,7 @@ boolean chkIfStillDisplayable(EwsCliState cli, EwsCliCommandP mp)
       return L7_FALSE;
     }
 
-    for(y = 0 ; cli->parseList[z]->sameAsNodes[y] != NULL && y < MAX_SAME_AS_PER_NODE; y++)
+    for(y = 0 ; y < MAX_SAME_AS_PER_NODE && cli->parseList[z]->sameAsNodes[y] != NULL; y++)
     {
       if(mp == cli->parseList[z]->sameAsNodes[y])
       {

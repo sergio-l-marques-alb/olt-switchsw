@@ -58,6 +58,13 @@
    (((ulng)(val) >> 24) | (((ulng)(val) >> 8) & 0x0000ff00) | \
     ((ulng)(val) << 24) | (((ulng)(val) << 8) & 0x00ff0000))
 
+#define SWAP64(val) \
+  ((unsigned long long) \
+   (((unsigned long long)(val) >> 56) | (((unsigned long long)(val) >> 40) & 0x000000000000ff00ULL) | (((unsigned long long)(val) >> 24) & 0x0000000000ff0000ULL) | (((unsigned long long)(val) >> 8) & 0x00000000ff000000ULL) | \
+    ((unsigned long long)(val) << 56) | (((unsigned long long)(val) << 40) & 0x00ff000000000000ULL) | (((unsigned long long)(val) << 24) & 0x0000ff0000000000ULL) | (((unsigned long long)(val) << 8) & 0x000000ff00000000ULL))  \
+  )
+
+
 #define MAKE_U16(low, high) ((word)(((byte)(low)) | (((word)((byte)(high))) << 8)))
 #define MAKE_U32(low, high) ((ulng)(((word)(low)) | (((ulng)((word)(high))) << 16)))
 

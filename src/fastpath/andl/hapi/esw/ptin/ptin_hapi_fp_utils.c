@@ -19,7 +19,7 @@
 /* Get the following element pointer in database */
 #define FP_POLICY_GET_PTR_NEXT(ptr,db)          ( (void *) ((char *) (ptr) + (db)->database_elem_sizeof) )
 /* Increment database element pointer */
-#define FP_POLICY_INC_PTR(ptr,db)               ( ((void *) ((char *) (ptr))) += (db)->database_elem_sizeof)
+#define FP_POLICY_INC_PTR(ptr,db)               ( (ptr) += (db)->database_elem_sizeof)
 /* Get the first free element in database */
 #define FP_FREEPOLICY_GET_INDEX(db)             ( (db)->database_index_first_free )
 /* Check if database has no free elements */

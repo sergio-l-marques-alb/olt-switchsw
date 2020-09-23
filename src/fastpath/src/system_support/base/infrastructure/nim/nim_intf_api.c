@@ -1099,7 +1099,7 @@ L7_RC_t nimGetIntfSpeedStatus(L7_uint32 intIfNum, L7_uint32 *intfSpeed)
 L7_BOOL nimIsIntfSpeedAuto(L7_uint32 intIfNum)
 {
   L7_uint32 nimifSpeed = 0;
-  L7_BOOL rc;
+  L7_RC_t rc;
 
   if (cnfgrIsFeaturePresent(L7_NIM_COMPONENT_ID,L7_NIM_AUTONEG_WITH_SPEED_DUPLEX_FEATURE_ID) != L7_TRUE)
   {
@@ -1111,7 +1111,7 @@ L7_BOOL nimIsIntfSpeedAuto(L7_uint32 intIfNum)
   }
 
   NIM_CRIT_SEC_READ_ENTER();
-  IS_INTIFNUM_PRESENT(intIfNum,rc);
+  IS_INTIFNUM_PRESENT(intIfNum, rc);
 
   if (rc == L7_SUCCESS)
   {

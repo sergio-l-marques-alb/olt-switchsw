@@ -1821,7 +1821,7 @@ extern int mh_opcode0_priority_select(int unit,
                                       bcm_field_group_t *group,
                                       bcm_field_entry_t *entry,
                                       int               *obm_reg_changed);
-extern void
+extern int
 mh_opcode0_priority_clear(int unit, 
                           bcm_field_group_t group,
                           bcm_field_entry_t entry,
@@ -2983,7 +2983,6 @@ int hapiBroadCmCheck(bsl_packed_meta_t meta_pack)
  */
 int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args)
 {
-  L7_LOG_SEVERITY_t sev = L7_LOG_SEVERITY_DEBUG;
   L7_BOOL   logit = L7_FALSE, printit = L7_FALSE;
   L7_uchar8 buf[LOG_MSG_MAX_MSG_SIZE];
   log_severity_t ptin_log_sev = LOG_SEV_PRINT;
@@ -3004,21 +3003,18 @@ int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args)
   {
     logit = L7_TRUE;
     printit = printingOverride_g;
-    sev = L7_LOG_SEVERITY_EMERGENCY; 
     ptin_log_sev = LOG_SEV_FATAL;
   }
   else if (meta_data->severity <= bslSeverityError)
   {
     logit = L7_TRUE;
     printit = printingOverride_g;
-    sev = L7_LOG_SEVERITY_ERROR; 
     ptin_log_sev = LOG_SEV_ERROR;
   }
   else if (meta_data->severity <= bslSeverityWarn)
   {
     logit = L7_TRUE;
     printit = printingOverride_g;
-    sev = L7_LOG_SEVERITY_WARNING;
     ptin_log_sev = LOG_SEV_WARNING;
   }
   else if (bsl_check(meta_data->layer, meta_data->source, meta_data->severity, meta_data->unit))
@@ -3028,17 +3024,14 @@ int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args)
 
     if (meta_data->severity <= bslSeverityInfo)
     {
-      sev = L7_LOG_SEVERITY_INFO;
       ptin_log_sev = LOG_SEV_INFO;
     }
     if (meta_data->severity <= bslSeverityVerbose)
     {
-      sev = L7_LOG_SEVERITY_DEBUG;
       ptin_log_sev = LOG_SEV_DEBUG;
     }
     else
     {
-      sev = L7_LOG_SEVERITY_DEBUG;
       ptin_log_sev = LOG_SEV_TRACE;
     }
   }

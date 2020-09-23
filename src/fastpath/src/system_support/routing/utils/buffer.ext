@@ -154,7 +154,7 @@ void *B_ReWrap(void *pBuf);
     (*(((t_Buffer *)(pBuf))->data + (--((t_Buffer *)(pBuf))->head))=d) :\
     (*(((t_Buffer *)(pBuf))->data + \
                   (((t_Buffer *)(pBuf))->head=((t_Buffer *)(pBuf))->size-1))=d),\
-    B_SETFULL(pBuf),1 \
+    B_SETFULL(pBuf) \
    )
 
 
@@ -194,7 +194,7 @@ word    B_AddToStart( void *pBuf, byte *pData, word Length );
    (  (((t_Buffer *)(pBuf))->tail == ((t_Buffer *)(pBuf))->size) ? \
           ((t_Buffer *)(pBuf))->tail = 0 : TRUE, \
         *(((t_Buffer *)(pBuf))->data + ((t_Buffer *)(pBuf))->tail++)=(d),\
-        B_SETFULL(pBuf), 1 \
+        B_SETFULL(pBuf) \
     )
 
 /* Add byte to end  of the buffer */

@@ -16,6 +16,11 @@
         ((L7_uint32)( \
                 (((L7_uint32)(val) & (L7_uint32)0x0000ffffUL) << 16) | \
                 (((L7_uint32)(val) & (L7_uint32)0xffff0000UL) >> 16) ))
+#define SWAP64(val) \
+  ((L7_uint64) \
+   (((L7_uint64)(val) >> 56) | (((L7_uint64)(val) >> 40) & 0x000000000000ff00ULL) | (((L7_uint64)(val) >> 24) & 0x0000000000ff0000ULL) | (((L7_uint64)(val) >> 8) & 0x00000000ff000000ULL) | \
+    ((L7_uint64)(val) << 56) | (((L7_uint64)(val) << 40) & 0x00ff000000000000ULL) | (((L7_uint64)(val) << 24) & 0x0000ff0000000000ULL) | (((L7_uint64)(val) << 8) & 0x000000ff00000000ULL))  \
+  )
 
 L7_RC_t osapiSwapFile(L7_uchar8 *filename) 
 {

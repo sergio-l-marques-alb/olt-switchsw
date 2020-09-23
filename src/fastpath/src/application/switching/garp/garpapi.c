@@ -509,7 +509,7 @@ void garpIntfStartupCallback(NIM_STARTUP_PHASE_t startupPhase)
   GarpPacket   msg;
   L7_RC_t      rc;
 
-  if (!GarpIsReady() == L7_TRUE)
+  if (GarpIsReady() == L7_FALSE)
   {
     nimStartupEventDone(L7_GARP_COMPONENT_ID);
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_GARP_COMPONENT_ID,

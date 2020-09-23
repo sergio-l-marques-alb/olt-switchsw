@@ -31,7 +31,9 @@
 #include "log.h"
 #include "osapi.h"
 #ifdef _L7_OS_LINUX_
+#ifndef _STRUCT_TIMESPEC
 #define _STRUCT_TIMESPEC
+#endif
 struct timezone {
     int tz_minuteswest; /* minutes west of Greenwich */
     int tz_dsttime; /* type of dst correction */

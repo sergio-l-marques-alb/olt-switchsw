@@ -1684,11 +1684,13 @@ SYSNET_PDU_RC_t ripMapFrameFilter(L7_uint32 hookId,
   L7_char8 *data;
   L7_ipHeader_t *ipHeader;
   L7_udp_header_t *udpHeader;
+#if 0
   typedef struct netinfo
   {
     struct sockaddr rip_dst;
     int    rip_metric;
   }NETINFO;
+#endif
   typedef struct rip_pkt
   {
     u_char  rip_cmd;

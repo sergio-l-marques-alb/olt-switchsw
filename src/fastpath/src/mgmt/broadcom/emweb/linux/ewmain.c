@@ -1830,10 +1830,10 @@ void ewaNetBufferPreAlloc()
 
 /*********************************************************************
 *********************************************************************/
-L7_RC_t L7_ewsPhaseOneInit(arg0 /* max connections - use default */
-                           ,arg1 /* max buffers - use default */
-                           ,arg2 /* buffer data size - use default */
-                           ,arg3 /* port number - use default */
+L7_RC_t L7_ewsPhaseOneInit(int arg0, /* max connections - use default */
+                           int arg1, /* max buffers - use default */
+                           int arg2, /* buffer data size - use default */
+                           int arg3  /* port number - use default */
                           )
 {
 #if defined(L7_WEB_PACKAGE) || defined(L7_XWEB_PACKAGE)
