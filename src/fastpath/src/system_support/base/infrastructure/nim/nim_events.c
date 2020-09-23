@@ -519,6 +519,10 @@ void nimDtlIntfChangeCallback(nimUSP_t *usp, L7_uint32 event, void * dapiIntmgmt
   L7_uint32     intIfNum = 0;
   NIM_HANDLE_t           handle;
   NIM_EVENT_NOTIFY_INFO_t eventInfo;
+  /* PTin added: set an alarm for posterior processing */
+#if 1
+  extern L7_uint32 linkStatus_alarm[L7_ALL_INTERFACES/32+1];
+#endif
 
   if (nimPhaseStatusCheck() != L7_TRUE)
   {
@@ -549,7 +553,6 @@ void nimDtlIntfChangeCallback(nimUSP_t *usp, L7_uint32 event, void * dapiIntmgmt
       NIM_INTF_CLRMASKBIT(nimCtlBlk_g->linkStateMask, nimCtlBlk_g->nimPorts[intIfNum].runTimeMaskId);
       /* PTin added: set an alarm for posterior processing */
       #if 1
-      extern L7_uint32 linkStatus_alarm[L7_ALL_INTERFACES/32+1];
       /* Signalize an alarm to ptin_control task */
       linkStatus_alarm[intIfNum/32] |= (L7_uint32) 1 << (intIfNum%32);  /* An alarm has happen */
       PT_LOG_DEBUG(LOG_CTX_INTF,"Alarm-down signaled for intIfNum %u", intIfNum);
