@@ -48,7 +48,7 @@
 *********************************************************************/
 static L7_int32 pimsmStarGCompare(const void * pNode1, 
                                   const void * pNode2,
-                                  L7_uint32 keySize)
+                                  size_t keySize)
 {
   pimsmStarGNode_t * pStarGNode1, *pStarGNode2;
   L7_inet_addr_t  * pGrpAddr1, * pGrpAddr2;
