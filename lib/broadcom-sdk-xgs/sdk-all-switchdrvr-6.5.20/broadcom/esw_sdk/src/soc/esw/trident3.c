@@ -43,6 +43,10 @@
 #include <soc/scache.h>
 #include <soc/flexport/trident3/trident3_flexport_defines.h>
 
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 /* MDIO Clock Frquency for TD3 is 250 MHz
  * Set external MDIO freq to around 5 MHz
  * Hence divisor is set to 50

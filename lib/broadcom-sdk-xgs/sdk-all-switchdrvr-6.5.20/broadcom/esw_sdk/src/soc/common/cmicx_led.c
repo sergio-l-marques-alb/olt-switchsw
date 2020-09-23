@@ -584,7 +584,7 @@ int
 soc_cmicx_led_speed(int unit, soc_led_port_speed_t *led_port_speed)
 {
     int rv = SOC_E_NONE;
-    int led_port, led_uc;
+    int led_port=0, led_uc;
     uint8 val8;
     CMICX_LED_CONTROL_DATAr_t ctrl;
 

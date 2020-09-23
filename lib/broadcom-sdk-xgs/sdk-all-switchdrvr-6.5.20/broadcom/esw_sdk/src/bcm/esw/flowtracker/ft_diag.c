@@ -14,6 +14,11 @@
 
 #if defined(BCM_FLOWTRACKER_SUPPORT)
 
+/* PTin added: GCC8 */
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 /* Export software state. */
 extern bcmi_ft_export_state_t *bcmi_ft_export_state[BCM_MAX_NUM_UNITS];
 

@@ -19,6 +19,10 @@
 #include <soc/phy/phymod_sim.h>
 #include <soc/portmod/portmod.h>
 
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 #ifdef BCM_TRIDENT2PLUS_SUPPORT
 #ifdef PORTMOD_PM4X10TD_SUPPORT
 #define SOC_TD2P_PM4X10_COUNT         8

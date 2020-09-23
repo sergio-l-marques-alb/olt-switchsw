@@ -116,6 +116,11 @@
 #include <bcm_int/common/esmc.h>
 #endif /* BCM_ESMC_EXTDPLL_SUPPORT */
 
+/* PTin added: GCC8 */
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 #define BROAD_SYNC_TIME_CAPTURE_TIMEOUT      (10) /* useconds */
 #define BROAD_SYNC_OUTPUT_TOGGLE_TIME_DELAY  (3)  /* seconds */
 

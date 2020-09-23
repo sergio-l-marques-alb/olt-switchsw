@@ -82,6 +82,11 @@
 #include <soc/portmod/portmod_legacy_phy.h>
 #include <soc/esw/portctrl_internal.h>
 
+/* PTin added: GCC8 */
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 extern uint32_t phymod_dbg_mask;
 extern uint32_t phymod_dbg_addr;
 extern uint32_t phymod_dbg_lane;
@@ -3734,7 +3739,7 @@ _bcm_esw_portctrl_speed_validate(int unit, bcm_gport_t port, int speed)
     bcm_port_ability_t port_ability, requested_ability;
     int mode = -1;
     int rv;
-    int max_speed;
+    int max_speed = 0;
 
     /* PM8x50 ports will have their speed config checked in portmod */
     if (IS_CD_PORT(unit, port)) {

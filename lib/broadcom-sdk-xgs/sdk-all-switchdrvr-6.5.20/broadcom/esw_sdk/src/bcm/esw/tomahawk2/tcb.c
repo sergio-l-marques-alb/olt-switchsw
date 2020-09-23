@@ -23,6 +23,10 @@
 #include <bcm_int/esw/tcb.h>
 #endif
 
+/* PTin added: GCC8 */
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
 
 #define _BCM_TH2_NUM_UCAST_QUEUE_PER_PORT 10
 

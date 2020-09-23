@@ -313,6 +313,11 @@
 #include <bcm_int/esw/switch_appl_sign.h>
 #endif
 
+/* PTin added: GCC8 */
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 /* chip field */
 #define FB      SOC_INFO_CHIP_FB
 #define FB2     SOC_INFO_CHIP_FIREBOLT2
