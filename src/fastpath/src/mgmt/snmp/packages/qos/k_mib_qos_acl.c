@@ -228,12 +228,14 @@ aclEntry_undo(doList_t *doHead, doList_t *doCur,
   {
     /* ignore if deleting a non-existant entry */
     if (data->aclStatus == D_aclStatus_destroy)
+    {
       return NO_ERROR;
+    }
 
-      /* undoing an add, so delete */
-      data->aclStatus = D_aclStatus_destroy;
-      setdata = data;
-      function = SR_DELETE;
+    /* undoing an add, so delete */
+    data->aclStatus = D_aclStatus_destroy;
+    setdata = data;
+    function = SR_DELETE;
   }
   else
   {
@@ -469,12 +471,14 @@ aclIfEntry_undo(doList_t *doHead, doList_t *doCur,
   {
     /* ignore if deleting a non-existant entry */
     if (data->aclIfStatus == D_aclIfStatus_destroy)
+    {
       return NO_ERROR;
+    }
 
-      /* undoing an add, so delete */
-      data->aclIfStatus = D_aclIfStatus_destroy;
-      setdata = data;
-      function = SR_DELETE;
+    /* undoing an add, so delete */
+    data->aclIfStatus = D_aclIfStatus_destroy;
+    setdata = data;
+    function = SR_DELETE;
   }
   else
   {
@@ -1131,12 +1135,14 @@ aclRuleEntry_undo(doList_t *doHead, doList_t *doCur,
   {
     /* ignore if deleting a non-existant entry */
     if (data->aclRuleStatus == D_aclRuleStatus_destroy)
+    {
       return NO_ERROR;
+    }
 
-      /* undoing an add, so delete */
-      data->aclRuleStatus = D_aclRuleStatus_destroy;
-      setdata = data;
-      function = SR_DELETE;
+    /* undoing an add, so delete */
+    data->aclRuleStatus = D_aclRuleStatus_destroy;
+    setdata = data;
+    function = SR_DELETE;
   }
   else
   {
@@ -1406,19 +1412,23 @@ aclMacEntry_undo(doList_t *doHead, doList_t *doCur,
 
   /*Copy valid bits from data to undodata */
   if ( undodata != NULL && (data->aclMacStatus != D_aclMacStatus_destroy))
-      memcpy(undodata->valid,data->valid,sizeof(data->valid));
+  {
+    memcpy(undodata->valid,data->valid,sizeof(data->valid));
+  }
 
   /* we are either trying to undo an add, a delete, or a modify */
   if ( undodata == NULL )
   {
     /* ignore if deleting a non-existant entry */
     if (data->aclMacStatus == D_aclMacStatus_destroy)
+    {
       return NO_ERROR;
+    }
 
-      /* undoin g an add, so delete */
-      data->aclMacStatus = D_aclMacStatus_destroy;
-      setdata = data;
-      function = SR_DELETE;
+    /* undoin g an add, so delete */
+    data->aclMacStatus = D_aclMacStatus_destroy;
+    setdata = data;
+    function = SR_DELETE;
   }
   else
   {
@@ -2060,19 +2070,23 @@ aclMacRuleEntry_undo(doList_t *doHead, doList_t *doCur,
 
   /*Copy valid bits from data to undodata */
   if( undodata != NULL  && (data->aclMacRuleStatus != D_aclMacRuleStatus_destroy))
-      memcpy(undodata->valid,data->valid,sizeof(data->valid));
+  {
+    memcpy(undodata->valid,data->valid,sizeof(data->valid));
+  }
 
   /* we are either trying to undo an add, a delete, or a modify */
   if ( undodata == NULL )
   {
     /* ignore if deleting a non-existant entry */
     if (data->aclMacRuleStatus == D_aclMacRuleStatus_destroy)
+    {
       return NO_ERROR;
+    }
 
-      /* undoing an add, so delete */
-      data->aclMacRuleStatus = D_aclMacRuleStatus_destroy;
-      setdata = data;
-      function = SR_DELETE;
+    /* undoing an add, so delete */
+    data->aclMacRuleStatus = D_aclMacRuleStatus_destroy;
+    setdata = data;
+    function = SR_DELETE;
   }
   else
   {

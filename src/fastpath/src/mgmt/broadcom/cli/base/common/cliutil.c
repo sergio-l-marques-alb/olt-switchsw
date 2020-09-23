@@ -4782,9 +4782,11 @@ void cliDiffservBuildValDscpKeyWords(L7_char8 * buf, L7_uint32 bufSize)
   L7_uint32 buflen;
 
   unit = cliGetUnitId();
-if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
+  if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
                                L7_DIFFSERV_PHB_OTHER_FEATURE_ID) == L7_TRUE)
+  {
     strcpy(buf, "Enter a DSCP value in the range of 0 to 63 or a DSCP keyword (");
+  }
   else
   {
     strcpy (buf, "Enter a DSCP value (");

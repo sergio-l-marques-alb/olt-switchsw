@@ -168,33 +168,39 @@ static int ripMapSysctlTwo(int *name, u_int namelen, caddr_t where,
   name += 3;
   namelen -= 3;
 
+  /* CHECKME: GCC8 Indentation issue */
   if (new)
+  {
     return (EPERM);
-    if (namelen != 3)
-        return (EINVAL);
-    af = name[0];
+  }
+  if (namelen != 3)
+  {
+    return (EINVAL);
+  }
+  af = name[0];
   if (af != AF_INET)
+  {
     return (ENOPROTOOPT);
-    bzero((caddr_t)&w, sizeof(w));
+  }
+  bzero((caddr_t)&w, sizeof(w));
   w.w_where = where;
   w.w_given = *given;
   w.w_needed = 0 - w.w_given;
-    w.w_op = name[1];
-    w.w_arg = name[2];
+  w.w_op = name[1];
+  w.w_arg = name[2];
 
-    /* s = splnet(); */                   /* LVL7_MOD */
-    switch (w.w_op) {
-
+  /* s = splnet(); */                   /* LVL7_MOD */
+  switch (w.w_op) {
     case NET_RT_IFLIST:
         error = ripMapSysctl_iflist(af, &w);
     break;
 
-  default:
+    default:
     break;
-    }
-    /* splx(s); */                        /* LVL7_MOD */
-    if (w.w_tmem)
-    osapiFree(L7_RIP_MAP_COMPONENT_ID, w.w_tmem);                /* LVL7_MOD */
+  }
+  /* splx(s); */                        /* LVL7_MOD */
+  if (w.w_tmem)
+  osapiFree(L7_RIP_MAP_COMPONENT_ID, w.w_tmem);                /* LVL7_MOD */
   w.w_needed += w.w_given;
   if (where) {
     *given = w.w_where - where;
@@ -203,7 +209,7 @@ static int ripMapSysctlTwo(int *name, u_int namelen, caddr_t where,
   } else {
     *given = (w.w_needed * 11) / 10;
   }
-    return (error);
+  return (error);
 }
 
 

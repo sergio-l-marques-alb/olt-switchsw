@@ -242,9 +242,9 @@ rn_lookup(v_arg, m_arg, head, type)
     struct radix_node_head *head;
     int type;
 {
-    register struct radix_node *x;
-    register struct radix_node *saved_x;
-    caddr_t netmask = 0;
+  register struct radix_node *x;
+  register struct radix_node *saved_x;
+  caddr_t netmask = 0;
   int isDefault = 0;
   int keyMatch = 0;
 
@@ -286,17 +286,22 @@ rn_lookup(v_arg, m_arg, head, type)
    * serves as a starting point for getting the next entry
    */
   if(!keyMatch)
+  {
     x = 0;
+  }
 
-    if (x && netmask) {
-        /* walk duplicates e.g. for 1.1.1.0/24 and 1.1.1.0/28 */
-        while (x && x->rn_mask != netmask)
-            x = x->rn_dupedkey;
-    }
+  if (x && netmask)
+  {
+    /* walk duplicates e.g. for 1.1.1.0/24 and 1.1.1.0/28 */
+    while (x && x->rn_mask != netmask)
+      x = x->rn_dupedkey;
+  }
 
   /* exact match? */
   if(type == L7_RN_EXACT)
-          return x;
+  {
+    return x;
+  }
 
   /* found an exact match? */
   if(x && netmask)
@@ -342,7 +347,7 @@ rn_lookup(v_arg, m_arg, head, type)
    * passed in.
    */
   if(!netmask)
-          netmask = head->addmask_key;
+    netmask = head->addmask_key;
 
   /* matched but not found, try to get next */
   x = saved_x;
@@ -2160,8 +2165,11 @@ rn_match_count(v_arg, head, rn_bits)
      * lot of confusion.
      */
     if (t->rn_flags & RNF_ROOT)
-        t = t->rn_dupedkey;
-        return t;
+    {
+      t = t->rn_dupedkey;
+    }
+
+    return t;
 
 on1:
     /* The search tested the bit specified by rn_bmask (rn_bit)
@@ -2178,5 +2186,4 @@ on1:
             return t;
         else
             return L7_NULL;
-
 }

@@ -538,80 +538,80 @@ L7_RC_t dot1sApplyConfigData(void)
     if (dot1sIsValidIntf(intIfNum) != L7_TRUE)
       continue;
 
-      pPort = dot1sIntfFind(intIfNum);
+    pPort = dot1sIntfFind(intIfNum);
 
-      if (pPort == L7_NULLPTR)
-      {
-        return L7_FAILURE;
-      }
-      /* Initialize with the defaults then replace the configured fields
-       * with their configured values.
-       */
-      rc = dot1sPortDefaultPopulate(pPort, intIfNum);
+    if (pPort == L7_NULLPTR)
+    {
+      return L7_FAILURE;
+    }
+    /* Initialize with the defaults then replace the configured fields
+     * with their configured values.
+     */
+    rc = dot1sPortDefaultPopulate(pPort, intIfNum);
 
     pPortCfg = &dot1sCfg->cfg.dot1sCfgPort[intIfNum];
 
-      pPort->portAdminMode = pPortCfg->portAdminMode;
-      /* notParticipating must be kept in sync with Admin Mode
-       * up until the time of an IhAcquire or IhRelease
-       */
-      if (pPort->portAdminMode == L7_ENABLE)
-      {
-        pPort->notParticipating = L7_FALSE;
-      }
-      else
-      {
-        pPort->notParticipating = L7_TRUE;
-      }
+    pPort->portAdminMode = pPortCfg->portAdminMode;
+    /* notParticipating must be kept in sync with Admin Mode
+     * up until the time of an IhAcquire or IhRelease
+     */
+    if (pPort->portAdminMode == L7_ENABLE)
+    {
+      pPort->notParticipating = L7_FALSE;
+    }
+    else
+    {
+      pPort->notParticipating = L7_TRUE;
+    }
 
     pPort->portNum = intIfNum;
-      pPort->adminEdge = pPortCfg->adminEdge;
-      pPort->autoEdge = pPortCfg->autoEdge;
-      pPort->restrictedRole = pPortCfg->restrictedRole;
-      pPort->loopGuard = pPortCfg->loopGuard;
-      pPort->restrictedTcn = pPortCfg->restrictedTcn;
+    pPort->adminEdge = pPortCfg->adminEdge;
+    pPort->autoEdge = pPortCfg->autoEdge;
+    pPort->restrictedRole = pPortCfg->restrictedRole;
+    pPort->loopGuard = pPortCfg->loopGuard;
+    pPort->restrictedTcn = pPortCfg->restrictedTcn;
 
-      for (instIndex = DOT1S_CIST_INDEX; instIndex <= L7_MAX_MULTIPLE_STP_INSTANCES; instIndex++)
-      {
-        pPort->portInstInfo[instIndex].ExternalPortPathCost = pPortCfg->portInstInfo[instIndex].ExternalPortPathCost;
-        pPort->portInstInfo[instIndex].InternalPortPathCost = pPortCfg->portInstInfo[instIndex].InternalPortPathCost;
-        pPort->portInstInfo[instIndex].autoInternalPortPathCost = pPortCfg->portInstInfo[instIndex].autoInternalPortPathCost;
+    for (instIndex = DOT1S_CIST_INDEX; instIndex <= L7_MAX_MULTIPLE_STP_INSTANCES; instIndex++)
+    {
+      pPort->portInstInfo[instIndex].ExternalPortPathCost = pPortCfg->portInstInfo[instIndex].ExternalPortPathCost;
+      pPort->portInstInfo[instIndex].InternalPortPathCost = pPortCfg->portInstInfo[instIndex].InternalPortPathCost;
+      pPort->portInstInfo[instIndex].autoInternalPortPathCost = pPortCfg->portInstInfo[instIndex].autoInternalPortPathCost;
       pPort->portInstInfo[instIndex].autoExternalPortPathCost = pPortCfg->portInstInfo[instIndex].autoExternalPortPathCost;
 
       pPort->portInstInfo[instIndex].portId = ((pPortCfg->portInstInfo[instIndex].portPriority << 8) | intIfNum);
-        /* msti */
-        if (instIndex != DOT1S_CIST_INDEX)
-        {
+      /* msti */
+      if (instIndex != DOT1S_CIST_INDEX)
+      {
         priInstId = dot1sCfg->cfg.dot1sInstance.msti[instIndex].BridgeIdentifier.priInstId;
 
-          pPort->portInstInfo[instIndex].inst.msti.mstiDesignatedPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
-          pPort->portInstInfo[instIndex].inst.msti.mstiDesignatedPriority.regRootId.priInstId = (L7_ushort16)priInstId;
-          pPort->portInstInfo[instIndex].inst.msti.mstiMsgPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
-          pPort->portInstInfo[instIndex].inst.msti.mstiMsgPriority.regRootId.priInstId = (L7_ushort16)priInstId;
-          pPort->portInstInfo[instIndex].inst.msti.mstiPortPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
-          pPort->portInstInfo[instIndex].inst.msti.mstiPortPriority.regRootId.priInstId = (L7_ushort16)priInstId;
-        }
-        else /* cist */
-        {
+        pPort->portInstInfo[instIndex].inst.msti.mstiDesignatedPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
+        pPort->portInstInfo[instIndex].inst.msti.mstiDesignatedPriority.regRootId.priInstId = (L7_ushort16)priInstId;
+        pPort->portInstInfo[instIndex].inst.msti.mstiMsgPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
+        pPort->portInstInfo[instIndex].inst.msti.mstiMsgPriority.regRootId.priInstId = (L7_ushort16)priInstId;
+        pPort->portInstInfo[instIndex].inst.msti.mstiPortPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
+        pPort->portInstInfo[instIndex].inst.msti.mstiPortPriority.regRootId.priInstId = (L7_ushort16)priInstId;
+      }
+      else /* cist */
+      {
         priInstId = dot1sCfg->cfg.dot1sInstance.cist.BridgeIdentifier.priInstId;
 
-          pPort->portInstInfo[instIndex].inst.cist.cistDesignatedPriority.rootId.priInstId = (L7_ushort16)priInstId;
-          pPort->portInstInfo[instIndex].inst.cist.cistDesignatedPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
-          pPort->portInstInfo[instIndex].inst.cist.cistDesignatedPriority.regRootId.priInstId = (L7_ushort16)priInstId;
-          pPort->portInstInfo[instIndex].inst.cist.cistMsgPriority.rootId.priInstId = (L7_ushort16)priInstId;
-          pPort->portInstInfo[instIndex].inst.cist.cistMsgPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
-          pPort->portInstInfo[instIndex].inst.cist.cistMsgPriority.regRootId.priInstId = (L7_ushort16)priInstId;
-          pPort->portInstInfo[instIndex].inst.cist.cistPortPriority.rootId.priInstId = (L7_ushort16)priInstId;
-          pPort->portInstInfo[instIndex].inst.cist.cistPortPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
-          pPort->portInstInfo[instIndex].inst.cist.cistPortPriority.regRootId.priInstId = (L7_ushort16)priInstId;
-        }
-      }/*endfor instIndex*/
+        pPort->portInstInfo[instIndex].inst.cist.cistDesignatedPriority.rootId.priInstId = (L7_ushort16)priInstId;
+        pPort->portInstInfo[instIndex].inst.cist.cistDesignatedPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
+        pPort->portInstInfo[instIndex].inst.cist.cistDesignatedPriority.regRootId.priInstId = (L7_ushort16)priInstId;
+        pPort->portInstInfo[instIndex].inst.cist.cistMsgPriority.rootId.priInstId = (L7_ushort16)priInstId;
+        pPort->portInstInfo[instIndex].inst.cist.cistMsgPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
+        pPort->portInstInfo[instIndex].inst.cist.cistMsgPriority.regRootId.priInstId = (L7_ushort16)priInstId;
+        pPort->portInstInfo[instIndex].inst.cist.cistPortPriority.rootId.priInstId = (L7_ushort16)priInstId;
+        pPort->portInstInfo[instIndex].inst.cist.cistPortPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
+        pPort->portInstInfo[instIndex].inst.cist.cistPortPriority.regRootId.priInstId = (L7_ushort16)priInstId;
+      }
+    }/*endfor instIndex*/
 
-      /* Handle the current link state for this port in case it is
-       * already up.
-       */
-      if (nimGetIntfLinkState(intIfNum, &portLinkState) == L7_SUCCESS)
-      {
+    /* Handle the current link state for this port in case it is
+     * already up.
+     */
+    if (nimGetIntfLinkState(intIfNum, &portLinkState) == L7_SUCCESS)
+    {
       rc = dot1sIhNotifySystem(intIfNum, portLinkState);
     }
   }

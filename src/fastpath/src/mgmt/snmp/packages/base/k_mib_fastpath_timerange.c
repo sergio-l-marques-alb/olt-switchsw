@@ -276,12 +276,14 @@ timeRangeEntry_undo(doList_t *doHead, doList_t *doCur,
   {
     /* ignore if deleting a non-existant entry */
     if (data->timeRangeStatus == D_timeRangeStatus_destroy)
+    {
       return NO_ERROR;
+    }
 
-      /* undoin g an add, so delete */
-      data->timeRangeStatus = D_timeRangeStatus_destroy;
-      setdata = data;
-      function = SR_DELETE;
+    /* undoin g an add, so delete */
+    data->timeRangeStatus = D_timeRangeStatus_destroy;
+    setdata = data;
+    function = SR_DELETE;
   }
   else
   {
@@ -680,12 +682,14 @@ timeRangeAbsoluteEntry_undo(doList_t *doHead, doList_t *doCur,
   {
     /* ignore if deleting a non-existant entry */
     if (data->timeRangeAbsoluteStatus == D_timeRangeAbsoluteStatus_destroy)
+    {
       return NO_ERROR;
+    }
 
-      /* undoing an add, so delete */
-      data->timeRangeAbsoluteStatus = D_timeRangeAbsoluteStatus_destroy;
-      setdata = data;
-      function = SR_DELETE;
+    /* undoing an add, so delete */
+    data->timeRangeAbsoluteStatus = D_timeRangeAbsoluteStatus_destroy;
+    setdata = data;
+    function = SR_DELETE;
   }
   else
   {
@@ -1086,12 +1090,14 @@ timeRangePeriodicEntry_undo(doList_t *doHead, doList_t *doCur,
   {
     /* ignore if deleting a non-existant entry */
     if (data->timeRangePeriodicStatus == D_timeRangePeriodicStatus_destroy)
+    {
       return NO_ERROR;
+    }
 
-      /* undoing an add, so delete */
-      data->timeRangePeriodicStatus = D_timeRangePeriodicStatus_destroy;
-      setdata = data;
-      function = SR_DELETE;
+    /* undoing an add, so delete */
+    data->timeRangePeriodicStatus = D_timeRangePeriodicStatus_destroy;
+    setdata = data;
+    function = SR_DELETE;
   }
   else
   {

@@ -141,10 +141,13 @@ void L7_MD5Update (L7_MD5_CTX_t *context, L7_uchar8 *input, L7_uint32 inputLen)
   /* Compute number of bytes mod 64 */
   index = (L7_uint32)((context->count[0] >> 3) & 0x3F);
 
+  /* CHECKME: GCC8 indentation issue */
   /* Update number of bits */
   if ((context->count[0] += ((L7_uint32)inputLen << 3)) < ((L7_uint32)inputLen << 3))
-	  context->count[1]++;
-	  context->count[1] += ((L7_uint32)inputLen >> 29);
+  {
+    context->count[1]++;
+  }
+  context->count[1] += ((L7_uint32)inputLen >> 29);
 
   partLen = 64 - index;
 

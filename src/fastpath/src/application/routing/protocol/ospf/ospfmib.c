@@ -920,12 +920,19 @@ e_Err ospfAreaTable_SetTest(word lastOid, ulng newValue, t_Handle p)
    /* Rowstatus are "READ_WRITE" objects, so they can be set at any time. */
 
    if ( lastOid == ospfAreaTableRowStatusSubId)  
-      return E_OK;
+   {
+     return E_OK;
+   }
    else
+   {
       if((p_areaEntry->info.rowStatus != notReady) &&
-         (p_areaEntry->info.rowStatus != notInService))
-          return E_FAILED;
-      return E_OK;   
+           (p_areaEntry->info.rowStatus != notInService))
+      {
+         return E_FAILED;
+      }
+   }
+
+   return E_OK;   
 }
 
 
@@ -4781,16 +4788,24 @@ e_Err ospfVirtIfTable_SetTest(word lastOid, ulng newValue, t_Handle p)
    if (lastOid == ospfVirtIfTableRowStatusSubId)
    {
       if (p_virtIfEntry)
+      {
          if (p_virtIfEntry->info.internalCreated == TRUE)
+         {
             return E_FAILED;
+         }
+      }
       return E_OK;
    }
    else
+   {
       if((p_virtIfEntry->info.rowStatus != notReady) &&
          (p_virtIfEntry->info.rowStatus != notInService))
+      {
           return E_FAILED;
+      }
+   }
 
-      return E_OK;   
+   return E_OK;
 }
 
 
@@ -5509,7 +5524,9 @@ e_Err ospfNbrTable_SetTest(word lastOid, ulng newValue, t_Handle p)
                             sizeof(ospfNbrTestTable)/
                             sizeof(ospfNbrTestTable[0]),
                             lastOid, newValue))
+   {
       return E_FAILED;
+   }
    
    /* OSPF Neighbor table fields are "CREATE_READ" objects.         */
    /* Therefore they can be changed (set) only during conceptual row      */
@@ -5517,13 +5534,19 @@ e_Err ospfNbrTable_SetTest(word lastOid, ulng newValue, t_Handle p)
    /* Rowstatus are "READ_WRITE" objects, so they can be set at any time. */
 
    if (lastOid == ospfNbrTableRowStatusSubId)  
+   {
       return E_OK;
+   }
    else
+   {
       if((p_nbrEntry->info.rowStatus != notReady) &&
          (p_nbrEntry->info.rowStatus != notInService))
+      {
           return E_FAILED;
+      }
+   }
 
-      return E_OK;   
+   return E_OK;   
 }
 
 

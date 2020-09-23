@@ -349,11 +349,13 @@ Bool IFO_Delete( t_Handle Id, ulng flag)
 
    /* if no more Interfaces in this Area */
    if (p_ARO && flag)
+   {
+      /* CHECKME: GCC8 indentation issue */
       if (HL_GetFirst(p_ARO->IfoHl, (void *)&p_tmpIfo) != E_OK)
-      {
+       {
           if (p_RTO->Cfg.DelAreaOnLastIfDel)
             ARO_Delete(p_ARO, 1);
-
+       
          /* If the deleted area is not the last one of the router */
          /* Recalculate the appropriate routing table             */
          if(p_RTO->AreasNum != 0)
@@ -369,12 +371,13 @@ Bool IFO_Delete( t_Handle Id, ulng flag)
                }
             }
          }
-      }
+       }
+    }
 
-      if (p_IFO->PendingUpdate)
-      {
+    if (p_IFO->PendingUpdate)
+    {
         F_Delete(p_IFO->PendingUpdate);
-      }
+    }
 
 #if L7_OSPF_TE
    /* Free the interface TE Link Lsa instance number   */

@@ -1444,22 +1444,26 @@ k_agentRouterVrrpTrackRouteEntry_set(agentRouterVrrpTrackRouteEntry_t *data,
     }
   }
   else
+  {
     return(NO_CREATION_ERROR);
+  }
 
   if (VALID(I_agentRouterVrrpTrackRtPrioDec, data->valid) &&
       (snmpVrrpTrackRtPrioSet(USMDB_UNIT_CURRENT, data->vrrpOperVrId,
                                intIfNum,data->agentRouterVrrpTrackRtPfx, data->agentRouterVrrpTrackRtPfxLen,
                                data->agentRouterVrrpTrackRtPrioDec) != L7_SUCCESS))
+  {
     return(COMMIT_FAILED_ERROR);
+  }
 
   if (VALID(I_agentRouterVrrpTrackRtStatus, data->valid) &&
       (snmpVrrpTrackRtRowStatusSet(USMDB_UNIT_CURRENT, data->vrrpOperVrId,
                                 intIfNum,data->agentRouterVrrpTrackRtPfx, data->agentRouterVrrpTrackRtPfxLen,
                                 data->agentRouterVrrpTrackRtStatus) != L7_SUCCESS))
+  {
     return(COMMIT_FAILED_ERROR);
+  }
 
-
-
-    return NO_ERROR;
+  return NO_ERROR;
 }
 

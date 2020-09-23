@@ -3894,11 +3894,14 @@ next_interface:
 
       if (HL_FindFirst(p_RTO->RtbHl, (byte *) &VpnCos, (void *)&p_RTB) == E_OK)
       {
+        /* CHECKME: GCC8 indentation issue */
         if(!TIMER_Active(p_RTB->RecalcTimer))
-          /* Start recalculation timer */
-          RTB_ComputeCalcDelay(p_RTB, p_RTO);
-          TIMER_StartSec(p_RTB->RecalcTimer, p_RTB->CalcDelay,
-                         0, RecalcTimerExp, p_RTO->OspfRtbThread.threadHndle);
+        {
+            /* Start recalculation timer */
+            RTB_ComputeCalcDelay(p_RTB, p_RTO);
+            TIMER_StartSec(p_RTB->RecalcTimer, p_RTB->CalcDelay,
+                           0, RecalcTimerExp, p_RTO->OspfRtbThread.threadHndle);
+        }
       }
    }
      
@@ -4340,11 +4343,16 @@ e_Err FindSummaryOrASExtLsa(t_RTO *p_RTO, t_ARO *p_ARO, e_S_LScodes LsType,
 
    if((err == E_OK) && (NetMask == A_GET_4B(p_DbEntry->p_Lsa)))
    {
+      /* CHECKME: GCC8 indentation issue */
       if(p_foundLsa)
+      {
          *p_foundLsa = p_DbEntry;
+      }
       if(p_LsId)
+      {
          *p_LsId = A_GET_4B(p_DbEntry->Lsa.LsId);
-         return E_OK;
+      }
+      return E_OK;
    }
 
    return E_NOT_FOUND;

@@ -1007,9 +1007,12 @@ static L7_RC_t hapiBroadQosCosApplyPolicy(BROAD_PORT_t *dstPortPtr, BROAD_PORT_t
                                                 qos->dscpMapDirty);
         #endif
 
+        /* Checkme: GCC8 */
         if (result == L7_SUCCESS)
+        {
            qos->dscpMapDirty = L7_FALSE;
            qosPortPtr->cos.dscpMapDirty = L7_FALSE;   /* PTin added: CoS */
+        }
         break;
 
 #if defined(FEAT_METRO_CPE_V1_0)

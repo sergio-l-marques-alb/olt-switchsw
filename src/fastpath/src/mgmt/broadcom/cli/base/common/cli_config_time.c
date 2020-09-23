@@ -440,13 +440,16 @@ const L7_char8  *commandClockSummerTimeRecurring (EwsContext ewsContext,
 
   /* get switch ID based on presence/absence of STACKING package */
   if (cliIsStackingSupported () == L7_TRUE)
-    unit = EWSUNIT (ewsContext);
-  else
-    unit = cliGetUnitId ();
-    if (cliConvertTo32BitUnsignedInteger (argv[index], &stWeek) != L7_SUCCESS)
   {
-
-  if (usmDbWeekNumberGet ((L7_char8 *)argv[index], &stWeek) != L7_SUCCESS)
+    unit = EWSUNIT (ewsContext);
+  }
+  else
+  {
+    unit = cliGetUnitId ();
+  }
+  if (cliConvertTo32BitUnsignedInteger (argv[index], &stWeek) != L7_SUCCESS)
+  {
+    if (usmDbWeekNumberGet ((L7_char8 *)argv[index], &stWeek) != L7_SUCCESS)
     {
       ewsTelnetWrite (ewsContext, pStrInfo_base_clierror_summertime_startweek);
       cliSyntaxBottom (ewsContext);

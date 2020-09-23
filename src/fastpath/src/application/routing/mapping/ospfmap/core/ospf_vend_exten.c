@@ -2377,51 +2377,53 @@ L7_RC_t ospfMapExtenIfStatusSet(L7_uint32 intIfNum, L7_int32 val)
    */
   if(memcmp((void *)prevAddrs, (void *)ifoCfg.addrs,
      L7_L3_NUM_IP_ADDRS*sizeof(L7_rtrIntfIpAddr_t)) == 0)
+  {
     return L7_SUCCESS;
+  }
 
-    switch (val)
-    {
-        case L7_OSPF_ROW_ACTIVE:
-            parm = ROW_ACTIVE;
-            break;
+  switch (val)
+  {
+      case L7_OSPF_ROW_ACTIVE:
+          parm = ROW_ACTIVE;
+          break;
 
-        case L7_OSPF_ROW_NOT_IN_SERVICE:
-            parm = ROW_NOT_IN_SERVICE;
-            break;
+      case L7_OSPF_ROW_NOT_IN_SERVICE:
+          parm = ROW_NOT_IN_SERVICE;
+          break;
 
-        case L7_OSPF_ROW_NOT_READY:
-            parm = ROW_NOT_READY;
-            break;
+      case L7_OSPF_ROW_NOT_READY:
+          parm = ROW_NOT_READY;
+          break;
 
-        case L7_OSPF_ROW_CREATE_AND_GO:
-            parm = ROW_CREATE_AND_GO;
-            break;
+      case L7_OSPF_ROW_CREATE_AND_GO:
+          parm = ROW_CREATE_AND_GO;
+          break;
 
-        case L7_OSPF_ROW_CREATE_AND_WAIT:
-            parm = ROW_CREATE_AND_WAIT;
-            break;
+      case L7_OSPF_ROW_CREATE_AND_WAIT:
+          parm = ROW_CREATE_AND_WAIT;
+          break;
 
-        case L7_OSPF_ROW_DESTROY:
-            parm = ROW_DESTROY;
-            break;
+      case L7_OSPF_ROW_DESTROY:
+          parm = ROW_DESTROY;
+          break;
 
-        case L7_OSPF_ROW_CHANGE:
-            parm = ROW_CHANGE;
-            break;
+      case L7_OSPF_ROW_CHANGE:
+          parm = ROW_CHANGE;
+          break;
 
-        default:
-            return L7_FAILURE;
-            break;
-    }
+      default:
+          return L7_FAILURE;
+          break;
+  }
 
-    ifoCfg.IfStatus = parm;
+  ifoCfg.IfStatus = parm;
 
-    if (IFO_Config_Pack((t_Handle)p_IFO, &ifoCfg) != E_OK)
-    {
-        return L7_FAILURE;
-    }
+  if (IFO_Config_Pack((t_Handle)p_IFO, &ifoCfg) != E_OK)
+  {
+      return L7_FAILURE;
+  }
 
-    return L7_SUCCESS;
+  return L7_SUCCESS;
 }
 
 /*********************************************************************

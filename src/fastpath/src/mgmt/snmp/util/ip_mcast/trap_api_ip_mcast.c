@@ -114,11 +114,13 @@ L7_RC_t SnmpPimNeighborLossTrapSend(L7_uint32 pimNeighborUpTime)
   trap = osapiMalloc(L7_SNMP_COMPONENT_ID, sizeof(L7_SNMP_TRAP_IP_MCAST_PimNeighborLoss_t));
 
   if (trap == L7_NULLPTR)
+  {
     return L7_ERROR;
+  }
 
-    trap->pimNeighborUpTime = pimNeighborUpTime;
-     return snmpTrapSend(L7_SNMP_TRAP_IP_MCAST_PimNeighborLoss, (void*)trap, &SnmpTrapSendCallback_ip_mcast);
+  trap->pimNeighborUpTime = pimNeighborUpTime;
 
+  return snmpTrapSend(L7_SNMP_TRAP_IP_MCAST_PimNeighborLoss, (void*)trap, &SnmpTrapSendCallback_ip_mcast);
 }
 
 /*********************************************************************
