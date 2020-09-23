@@ -370,29 +370,29 @@ BCM_56334_A0 = 1
 BCM_56334_B0 = 1
 # PTin added: this driver cannot be compiled with PQ2 compiler
 # Anyway, it won't be needed on those platforms
-#ifeq ($(L7_CPU),pq3)
+ifeq ($(L7_CPU),pq3)
 BCM_56840_A0 = 1
 BCM_56840_B0 = 1
-#endif
-#ifeq ($(L7_CPU),e500mc)
+endif
+ifeq ($(L7_CPU),e500mc)
 BCM_56840_A0 = 1
 BCM_56840_B0 = 1
-#endif
-#ifeq ($(L7_CPU),helixarm)
+endif
+ifeq ($(L7_CPU),helixarm)
 BCM_56340_A0 = 1
 BCM_56340_B0 = 1
-#endif
-#ifeq ($(L7_CPU),katanaarm)
+endif
+ifeq ($(L7_CPU),katanaarm)
 BCM_56450_A0 = 1
 BCM_56450_B0 = 1
 BCM_56450_B1 = 1
-#endif
-#ifeq ($(L7_CPU),katanaarmlc)
+endif
+ifeq ($(L7_CPU),katanaarmlc)
 BCM_56450_A0 = 1
 BCM_56450_B0 = 1
 BCM_56450_B1 = 1
-#endif
-#ifeq ($(L7_CPU),armv7)
+endif
+ifeq ($(L7_CPU),armv7)
 BCM_56142_A0 = 1
 BCM_56150_A0 = 1
 BCM_56160_A0 = 1
@@ -400,7 +400,21 @@ BCM_56170_A0 = 1
 BCM_56170_B0 = 1
 BCM_53570_A0 = 1
 BCM_53570_B0 = 1
-#endif
+endif
+ifeq ($(L7_CPU),td3x3arm)
+BCM_56370_A0 = 1
+#BCM_56870_A0 = 1
+#BCM_56960_A0 = 1
+#BCM_56850_A0 = 1
+#BCM_56840_A0 = 1
+#BCM_56840_B0 = 1
+#BCM_56634_A0 = 1
+#BCM_56634_B0 = 1
+#BCM_56624_A0 = 1
+#BCM_56624_B0 = 1
+#BCM_56304_B0 = 1
+#BCM_56800_A0 = 1
+endif
 
 #BCM_56142_A0 = 1
 #BCM_56836_A0 = 1

@@ -76,7 +76,7 @@ endif
 export SDK
 
 override kernel_version=2_6
-platform=pq3-$(kernel_version)
+platform=td3x3arm-$(kernel_version)
 
 # Select build platform 
 BUILD_PLATFORM=WR_LINUX
