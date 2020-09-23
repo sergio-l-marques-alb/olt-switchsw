@@ -526,7 +526,7 @@ void dot1qTraceQueueMsgFormat(DOT1Q_MSG_t *msg, L7_uint32 direction)
         {
           if ((L7_INTF_MASK_STRING_LENGTH - strlen(maskString)) >= 15)
           {
-            sprintf(maskString,"%s 0x%.8x ",maskString,remainingMask[i]);
+            sprintf(&maskString[strlen(maskString)]," 0x%.8x ", remainingMask[i]);
           }
         }
 
@@ -546,7 +546,7 @@ void dot1qTraceQueueMsgFormat(DOT1Q_MSG_t *msg, L7_uint32 direction)
         {
           if ((L7_INTF_MASK_STRING_LENGTH - strlen(maskString)) >= 15)
           {
-            sprintf(maskString,"%s 0x%.8x ",maskString,remainingMask[i]);
+            sprintf(&maskString[strlen(maskString)]," 0x%.8x ", remainingMask[i]);
           }
         }
 
@@ -705,7 +705,7 @@ void dot1qDebugListToMaskString(L7_ushort16 *intIfList,L7_uint32 numPorts, L7_uc
     {
       if ((L7_INTF_MASK_STRING_LENGTH - strlen(maskString)) >= 15)
       {
-        sprintf(maskString,"%s 0x%.8x ",maskString, remainingMask[i]);
+        sprintf(&maskString[strlen(maskString)]," 0x%.8x ", remainingMask[i]);
       }
     }
 

@@ -789,8 +789,7 @@ L7_RC_t dot1qVlanIntfCreateInNim(L7_uint32 vlanId, L7_uint32 *pIntIfNum)
     intfDescr.defaultSpeed   =  FD_DOT1Q_DEFAULT_VLAN_INTF_SPEED;
     intfDescr.phyCapability  =  0;
     intfDescr.connectorType  =  0;
-    sprintf ((L7_char8 *)&(intfDescr.ifDescr), "%s %s",
-             (L7_char8 *)&(intfDescr.ifDescr),
+    sprintf ((L7_char8 *)&(intfDescr.ifDescr[strlen(intfDescr.ifDescr)]), " %s",
              IANA_L2_VLAN_DESC);
 
     sprintf ((L7_char8 *)&(intfDescr.ifName), "%s %d",

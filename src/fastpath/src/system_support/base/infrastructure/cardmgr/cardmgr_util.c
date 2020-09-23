@@ -19,6 +19,10 @@
  *
  **********************************************************************/
 
+#if defined(__GNUC__) && (__GNUC__ >= 6) /* PTin added */
+#pragma GCC diagnostic ignored "-Wformat-overflow"
+#endif
+
 #define L7_MAC_ENET_BCAST
 #include "cardmgr_include.h"
 #include "log.h"
@@ -1903,9 +1907,7 @@ L7_RC_t cmgrDoNotifyPortCreate(L7_uint32 unit,
         (void)sprintf (pIntfDescr.ifName, "%d/%d",
                        slot, port);
       }
-      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
-                     (L7_char8 *)(pIntfDescr.ifDescr),
-                     IANA_FAST_ETHERNET_DESC);
+      (void) strcat((L7_char8 *)(pIntfDescr.ifDescr), " " IANA_FAST_ETHERNET_DESC);
       break;
 
     case  L7_IANA_GIGABIT_ETHERNET:
@@ -1927,9 +1929,7 @@ L7_RC_t cmgrDoNotifyPortCreate(L7_uint32 unit,
         (void)sprintf (pIntfDescr.ifName, "%d/%d",
                        slot, port);
       }
-      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
-                     (L7_char8 *)(pIntfDescr.ifDescr),
-                     IANA_GIGABIT_ETHERNET_DESC);
+      (void) strcat((L7_char8 *)(pIntfDescr.ifDescr), " " IANA_GIGABIT_ETHERNET_DESC);
       break;
 
     /* PTin added: Speed 2.5G */
@@ -1952,9 +1952,7 @@ L7_RC_t cmgrDoNotifyPortCreate(L7_uint32 unit,
         (void)sprintf (pIntfDescr.ifName, "%d/%d",
                        slot, port);
       }
-      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
-                     (L7_char8 *)(pIntfDescr.ifDescr),
-                     IANA_2G5_ETHERNET_DESC);
+      (void) strcat((L7_char8 *)(pIntfDescr.ifDescr), " " IANA_2G5_ETHERNET_DESC);
       break;
     /* PTin end */
 
@@ -1977,9 +1975,7 @@ L7_RC_t cmgrDoNotifyPortCreate(L7_uint32 unit,
         (void)sprintf (pIntfDescr.ifName, "%d/%d",
                        slot, port);
       }
-      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
-                     (L7_char8 *)(pIntfDescr.ifDescr),
-                     IANA_10G_ETHERNET_DESC);
+      (void) strcat((L7_char8 *)(pIntfDescr.ifDescr), " " IANA_10G_ETHERNET_DESC);
       break;
 
     /* PTin added: Speed 40G */
@@ -2002,9 +1998,7 @@ L7_RC_t cmgrDoNotifyPortCreate(L7_uint32 unit,
         (void)sprintf (pIntfDescr.ifName, "%d/%d",
                        slot, port);
       }
-      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
-                     (L7_char8 *)(pIntfDescr.ifDescr),
-                     IANA_40G_ETHERNET_DESC);
+      (void) strcat((L7_char8 *)(pIntfDescr.ifDescr), " " IANA_40G_ETHERNET_DESC);
       break;
 
     /* PTin added: Speed 100G */
@@ -2027,9 +2021,7 @@ L7_RC_t cmgrDoNotifyPortCreate(L7_uint32 unit,
         (void)sprintf (pIntfDescr.ifName, "%d/%d",
                        slot, port);
       }
-      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
-                     (L7_char8 *)(pIntfDescr.ifDescr),
-                     IANA_100G_ETHERNET_DESC);
+      (void) strcat((L7_char8 *)(pIntfDescr.ifDescr), " " IANA_100G_ETHERNET_DESC);
       break;
 
     /* PTin end */

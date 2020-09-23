@@ -631,7 +631,7 @@ static L7_RC_t cliTxtCfgWriteFile (L7_char8 * filename, L7_ConfigScript_t * pCfg
     {
       if (cp[0] != 0 && cp[0] != ' ')
       {
-        sprintf (cmdString, "%s%s\n", cmdString, cp);
+        sprintf(&cmdString[strlen(cmdString)], "%s\n", cp);
         count++;
       }
       cp = cp + strlen (cp) + 1;
@@ -1005,7 +1005,7 @@ void cliTxtCfgMemoryTrace (L7_char8 * entry)
       {
         if (cp[0] != 0 && cp[0] != ' ')
         {
-          sprintf (cmdString, "%s%s\n", cmdString, cp);
+          sprintf(&cmdString[strlen(cmdString)], "%s\n", cp);
         }
         cp = cp + strlen (cp) + 1;
       }

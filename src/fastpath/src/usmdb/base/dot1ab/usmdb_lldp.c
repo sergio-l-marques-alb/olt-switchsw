@@ -1844,7 +1844,7 @@ void usmDbLldpChassisIdFormat(L7_char8              *buffer,
       sprintf(buffer, "%02X", chassisId[0]);
       for (i=1; i<length; i++)
       {
-        sprintf(buffer, "%s:%02X", buffer, chassisId[i]); 
+        sprintf(&buffer[strlen(buffer)], ":%02X", chassisId[i]); 
       }
       break;
     case LLDP_CHASSIS_ID_SUBTYPE_NET_ADDR:
@@ -1862,7 +1862,7 @@ void usmDbLldpChassisIdFormat(L7_char8              *buffer,
            sprintf(buffer, "%d", chassisId[netTypeIndex+1]);
            for (i=netTypeIndex+2; i<=length-1; i++)
            {
-             sprintf(buffer, "%s.%d", buffer, chassisId[i]);
+             sprintf(&buffer[strlen(buffer)], ".%d", chassisId[i]);
            }
            break;
          case LLDP_CHASSIS_ID_SUBTYPE_NET_XTPOVERIPV6:
@@ -1870,7 +1870,7 @@ void usmDbLldpChassisIdFormat(L7_char8              *buffer,
            sprintf(buffer, "%02X%02X", chassisId[netTypeIndex+1], chassisId[netTypeIndex+2]);
            for (i=netTypeIndex+3; i<=length-1; i+=2)
            {
-             sprintf(buffer, "%s:%02X%02X", buffer, chassisId[i],chassisId[i+1]);
+             sprintf(&buffer[strlen(buffer)], ":%02X%02X", chassisId[i],chassisId[i+1]);
            }
            break;
          case LLDP_CHASSIS_ID_SUBTYPE_NET_NSAP:
@@ -1878,7 +1878,7 @@ void usmDbLldpChassisIdFormat(L7_char8              *buffer,
            sprintf(buffer, "%02X%02X", chassisId[netTypeIndex+1], chassisId[netTypeIndex+2]);
            for (i=netTypeIndex+3; i<=length-1; i+=2)
            {
-             sprintf(buffer, "%s%02X%02X", buffer, chassisId[i],chassisId[i+1]);
+             sprintf(&buffer[strlen(buffer)], "%02X%02X", chassisId[i],chassisId[i+1]);
            }
            break;
          case LLDP_CHASSIS_ID_SUBTYPE_NET_HDLC: /* The address consists of three parts: A Service Access Point (SAP)
@@ -1891,7 +1891,7 @@ void usmDbLldpChassisIdFormat(L7_char8              *buffer,
             sprintf(buffer, "%02X",chassisId[netTypeIndex+1]);
            for (i=netTypeIndex+2; i<=length-1; i+=1)
            {
-             sprintf(buffer,"%s%02X",buffer,chassisId[i]);
+             sprintf(&buffer[strlen(buffer)],"%02X", chassisId[i]);
            }
           break;
 
@@ -1899,7 +1899,7 @@ void usmDbLldpChassisIdFormat(L7_char8              *buffer,
            sprintf(buffer, "%02X",chassisId[netTypeIndex+1]);
            for (i=netTypeIndex+2; i<=length-1; i+=1)
            {
-             sprintf(buffer,"%s:%02X",buffer,chassisId[i]);
+             sprintf(&buffer[strlen(buffer)], ":%02X", chassisId[i]);
            }
            break;
          case LLDP_CHASSIS_ID_SUBTYPE_NET_E163:
@@ -1907,7 +1907,7 @@ void usmDbLldpChassisIdFormat(L7_char8              *buffer,
            sprintf(buffer, "%d",chassisId[netTypeIndex+1]);
            for (i=netTypeIndex+2; i<=length-1; i+=1)
            {
-             sprintf(buffer,"%s%d",buffer,chassisId[i]);
+             sprintf(&buffer[strlen(buffer)],"%d", chassisId[i]);
            }
            break;
          case LLDP_CHASSIS_ID_SUBTYPE_NET_F69:
@@ -1916,7 +1916,7 @@ void usmDbLldpChassisIdFormat(L7_char8              *buffer,
            sprintf(buffer, "%02X",chassisId[netTypeIndex+1]);
            for (i=netTypeIndex+2; i<=length-1; i+=1)
            {
-             sprintf(buffer,"%s%02X",buffer,chassisId[i]);
+             sprintf(&buffer[strlen(buffer)], "%02X", chassisId[i]);
            }
            break;
          case LLDP_CHASSIS_ID_SUBTYPE_NET_IPX: /* 80 bit address network:
@@ -1935,7 +1935,7 @@ void usmDbLldpChassisIdFormat(L7_char8              *buffer,
            sprintf(buffer, "%d", chassisId[netTypeIndex+1]);
            for (i=netTypeIndex+2; i<=length-1; i++)
            {
-             sprintf(buffer, "%s.%d", buffer, chassisId[i]);
+             sprintf(&buffer[strlen(buffer)], ".%d", chassisId[i]);
            }
            break;
          case LLDP_CHASSIS_ID_SUBTYPE_NET_DNS:
@@ -2041,7 +2041,7 @@ void usmDbLldpPortIdFormat(L7_char8           *buffer,
       sprintf(buffer, "%02X", portId[0]);
       for (i=1; i<length; i++)
       {
-        sprintf(buffer, "%s:%02X", buffer, portId[i]); 
+        sprintf(&buffer[strlen(buffer)], ":%02X", portId[i]); 
       }
       break;
     case LLDP_PORT_ID_SUBTYPE_INTF_ALIAS:
@@ -2215,7 +2215,7 @@ void usmDbLldpManAddrFormat(L7_char8                  *buffer,
       sprintf(buffer, "%02X", address[0]);
       for (i=1; i<length; i++)
       {
-        sprintf(buffer, "%s:%02X", buffer, address[i]); 
+        sprintf(&buffer[strlen(buffer)], ":%02X", address[i]); 
       }
       break;
     case LLDP_IANA_ADDR_FAMILY_NUMBER_IPV4:
@@ -2225,7 +2225,7 @@ void usmDbLldpManAddrFormat(L7_char8                  *buffer,
       sprintf(buffer, "%u", address[0]);
       for (i=1; i<length; i++)
       {
-        sprintf(buffer, "%s.%u", buffer, address[i]); 
+        sprintf(&buffer[strlen(buffer)], ".%u", address[i]); 
       }
       break;
   }
