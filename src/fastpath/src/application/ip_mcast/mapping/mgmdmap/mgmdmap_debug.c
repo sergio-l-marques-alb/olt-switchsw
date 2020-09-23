@@ -780,7 +780,7 @@ void mgmdDebugPacketRxTxTrace(L7_uchar8 family, L7_BOOL rxTrace,
     switch (pktType)
     {
     case MLD_LISTENER_QUERY:
-      memcpy(str, "MLD Query", MGMD_PKT_TYPE_STR_LEN);
+      strncpy(str, "MLD Query", MGMD_PKT_TYPE_STR_LEN);
       MCAST_GET_BYTE(code, payLoad);
       MCAST_GET_SHORT(chksum, payLoad);
       MCAST_GET_BYTE(maxRespTime, payLoad);

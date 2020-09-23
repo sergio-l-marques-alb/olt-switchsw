@@ -336,8 +336,8 @@ L7_RC_t filterMfdbEntryAdd(L7_uint32 vlanId,L7_uchar8* macAddr,
   memcpy((void *)mfdbInfo.macAddr, macAddr, L7_MAC_ADDR_LEN);
   mfdbInfo.user.componentId = L7_MFDB_PROTOCOL_STATIC;
   mfdbInfo.user.type = L7_MFDB_TYPE_STATIC;
-  memcpy((void *)mfdbInfo.user.description, 
-         (void *)L7_MFDB_MGMT_CONFIGURED, L7_MFDB_COMPONENT_DESCR_STRING_LEN);
+  strncpy(mfdbInfo.user.description, 
+          L7_MFDB_MGMT_CONFIGURED, L7_MFDB_COMPONENT_DESCR_STRING_LEN);
 
   if(dstIntfMask != L7_NULLPTR)
   {
@@ -438,8 +438,8 @@ L7_RC_t filterMfdbEntryPortsDelete(L7_uint32 vlanId,L7_uchar8* macAddr, L7_INTF_
   memcpy((void *)mfdbInfo.macAddr, macAddr, L7_MAC_ADDR_LEN);
   mfdbInfo.user.componentId = L7_MFDB_PROTOCOL_STATIC;
   mfdbInfo.user.type = L7_MFDB_TYPE_STATIC;
-  memcpy((void *)mfdbInfo.user.description, 
-         (void *)L7_MFDB_MGMT_CONFIGURED, L7_MFDB_COMPONENT_DESCR_STRING_LEN);
+  strncpy(mfdbInfo.user.description, 
+          L7_MFDB_MGMT_CONFIGURED, L7_MFDB_COMPONENT_DESCR_STRING_LEN);
 
   if (dstIntfMask != L7_NULLPTR)
   {

@@ -1180,7 +1180,7 @@ L7_RC_t gmrpFwdPortAdd(L7_uint32 vlanId, L7_uchar8 *macAddr, L7_uint32 intIfNum)
    memcpy((void *)memInfo.macAddr,(void *)macAddr,L7_MAC_ADDR_LEN);
    memInfo.vlanId = vlanId;
    memInfo.user.componentId = L7_MFDB_PROTOCOL_GMRP;
-   memcpy((void *)memInfo.user.description,(void *)L7_MFDB_NETWORK_CONFIGURED,L7_MFDB_COMPONENT_DESCR_STRING_LEN);
+   strncpy(memInfo.user.description, L7_MFDB_NETWORK_CONFIGURED, L7_MFDB_COMPONENT_DESCR_STRING_LEN);
    memInfo.user.type = L7_MFDB_TYPE_DYNAMIC;
 
    /*now set the mask bit in the fwd mask for this interface */
@@ -1221,7 +1221,7 @@ L7_RC_t gmrpFwdPortDelete(L7_uint32 vlanId, L7_uchar8 *macAddr, L7_uint32 intIfN
    memcpy((void *)memInfo.macAddr,(void *)macAddr,L7_MAC_ADDR_LEN);
    memInfo.vlanId = vlanId;
    memInfo.user.componentId = L7_MFDB_PROTOCOL_GMRP;
-   memcpy((void *)memInfo.user.description,(void *)L7_MFDB_NETWORK_CONFIGURED,L7_MFDB_COMPONENT_DESCR_STRING_LEN);
+   strncpy(memInfo.user.description, L7_MFDB_NETWORK_CONFIGURED, L7_MFDB_COMPONENT_DESCR_STRING_LEN);
    memInfo.user.type = L7_MFDB_TYPE_DYNAMIC;
 
    /*now set the mask bit in the fwd mask for this interface */
@@ -1258,7 +1258,7 @@ L7_RC_t gmrpEntryDelete(L7_uint32 vlanId, L7_uchar8 *macAddr)
   memcpy((void *)memInfo.macAddr,(void *)macAddr,L7_MAC_ADDR_LEN);
   memInfo.vlanId = vlanId;
   memInfo.user.componentId = L7_MFDB_PROTOCOL_GMRP;
-  memcpy((void *)memInfo.user.description,(void *)L7_MFDB_NETWORK_CONFIGURED,L7_MFDB_COMPONENT_DESCR_STRING_LEN);
+  strncpy(memInfo.user.description, L7_MFDB_NETWORK_CONFIGURED, L7_MFDB_COMPONENT_DESCR_STRING_LEN);
   memInfo.user.type = L7_MFDB_TYPE_DYNAMIC;
 
   /* Set up debug buffer */

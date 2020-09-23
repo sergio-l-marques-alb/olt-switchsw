@@ -178,7 +178,7 @@ L7_RC_t cliCheckIfInteger(L7_char8 * buf)
   L7_uint32 i;
   L7_uint32 j = 0;
 
-  if (buf != '\0')
+  if (buf != L7_NULLPTR)
    {
       if (buf[j] == '-')
       {
@@ -191,9 +191,9 @@ L7_RC_t cliCheckIfInteger(L7_char8 * buf)
       }
       }
 
-      for (i = j; i < strlen(buf) && buf != '\0'; i++)
+      for (i = j; i < strlen(buf); i++)
       {
-         if ((buf[i] < '0' || buf[i] > '9') && (buf != '\0'))
+         if (buf[i] < '0' || buf[i] > '9')
          {
             return L7_FAILURE;
          }
@@ -4428,7 +4428,7 @@ L7_RC_t cliValidPrefixPrefixLenCheck(const L7_char8 * buf, L7_in6_addr_t * prefi
   p = cliStringSeparateHelp(&input, slash);
   plen= cliStringSeparateHelp(&input, end);
 
-  if (p != '\0')
+  if (p != L7_NULLPTR)
   {
      if (strlen(p) >= sizeof(strIPaddr))
     {
@@ -4802,7 +4802,7 @@ if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
     {
       strcat(buf, pStrInfo_base_46);
     }
-    else if (buf != '\0')
+    else if (buf != L7_NULLPTR)
     {
       buflen = strlen(buf);
       buf[buflen-2] = '.' ;

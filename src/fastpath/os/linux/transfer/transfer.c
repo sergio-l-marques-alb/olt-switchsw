@@ -2074,7 +2074,7 @@ L7_RC_t L7_transfer_start(L7_uint32 direction)
           usmDbTransferModeGet(simGetThisUnit(), &transfer_type);
 
           usmDbTransferFilePathLocalGet(simGetThisUnit(), buf);
-          strncpy(transfer_fname_local, buf, sizeof(buf));
+          strcpy(transfer_fname_local, buf);
           buf[(sizeof(buf) - 1)] = '\0';
 
           usmDbTransferFileNameLocalGet(simGetThisUnit(), buf);
@@ -2082,7 +2082,7 @@ L7_RC_t L7_transfer_start(L7_uint32 direction)
           buf[(sizeof(buf) - 1)] = '\0';
 
           usmDbTransferFilePathRemoteGet(simGetThisUnit(), buf);
-          strncpy(transfer_fname_remote, buf, sizeof(buf));
+          strcpy(transfer_fname_remote, buf);
           buf[(sizeof(buf) - 1)] = '\0';
 
           usmDbTransferFileNameRemoteGet(simGetThisUnit(), buf);

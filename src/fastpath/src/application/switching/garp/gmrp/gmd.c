@@ -181,7 +181,7 @@ L7_BOOL gmd_create_entry(void *my_gmd, L7_uchar8 *key,
 
   memInfo.vlanId = vlanId;
   memInfo.user.componentId = L7_MFDB_PROTOCOL_GMRP;
-  memcpy((void *)memInfo.user.description,(void *)L7_MFDB_NETWORK_CONFIGURED,L7_MFDB_COMPONENT_DESCR_STRING_LEN);
+  strncpy(memInfo.user.description, L7_MFDB_NETWORK_CONFIGURED, L7_MFDB_COMPONENT_DESCR_STRING_LEN);
   memInfo.user.type = L7_MFDB_TYPE_DYNAMIC;
 
   /* Set up debug buffer */

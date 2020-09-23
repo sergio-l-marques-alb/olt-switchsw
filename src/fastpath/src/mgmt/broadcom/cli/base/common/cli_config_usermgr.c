@@ -4930,7 +4930,7 @@ L7_RC_t cliUserMgrPasswdErrorStringGet(L7_char8 *password,
              }
              if(rc != L7_SUCCESS)
              {
-               memcpy(keyword, "<UNKNOWN KEYWORD>", sizeof(keyword));  
+               strcpy(keyword, "<UNKNOWN KEYWORD>");  
              } 
              memset(buf,0x00,len);
              osapiSnprintf(buf, len, CLI_PASSWD_MUST_NOT_CONTAIN_EXCLUDE_KEYWORDS, keyword);

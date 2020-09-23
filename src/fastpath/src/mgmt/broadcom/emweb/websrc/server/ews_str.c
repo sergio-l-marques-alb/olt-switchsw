@@ -61,7 +61,8 @@
 #include "ews_str.h"
 #include "ew_lib.h"
 
-extern char *	strncpy (char *__s1, const char *__s2, unsigned int __n);  /*LVL7_P0006*/
+/* PTin removed: GCC8 */
+//extern char *	strncpy (char *__s1, const char *__s2, unsigned int __n);  /*LVL7_P0006*/
 
 /******************************************************************************
  *
@@ -1723,7 +1724,7 @@ char *ews_strstr(const char *s1, const char *s2)
         }
     }
 
-  if(*s2 == '\0' && p != '\0')
+  if(*s2 == '\0' && p != NULL)
     {
       return (char *) p;
     }

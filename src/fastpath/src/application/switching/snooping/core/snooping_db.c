@@ -538,8 +538,8 @@ L7_RC_t snoopIntfAdd(L7_uchar8 *macAddr, L7_uint32 vlanId, L7_uint32 intIfNum,
   mfdb.user.componentId = (pSnoopCB->family == L7_AF_INET) ? L7_MFDB_PROTOCOL_IGMP
                           : L7_MFDB_PROTOCOL_MLD;
   mfdb.user.type        = (!snoopEntry->staticGroup) ? L7_MFDB_TYPE_DYNAMIC : L7_MFDB_TYPE_STATIC;  /* PTin modified: IGMP snooping */
-  memcpy((void *)mfdb.user.description, (void *)L7_MFDB_NETWORK_ASSISTED,
-         L7_MFDB_COMPONENT_DESCR_STRING_LEN);
+  strncpy(mfdb.user.description, L7_MFDB_NETWORK_ASSISTED,
+          L7_MFDB_COMPONENT_DESCR_STRING_LEN);
 
   /* Set the mask bit in the fwd mask for this interface */
   L7_INTF_SETMASKBIT(mfdb.user.fwdPorts, intIfNum);
@@ -724,8 +724,8 @@ L7_RC_t snoopIntfRemove(L7_uchar8* macAddr, L7_uint32 vlanId,
   mfdb.user.componentId = (pSnoopCB->family == L7_AF_INET) ? L7_MFDB_PROTOCOL_IGMP
                           : L7_MFDB_PROTOCOL_MLD;
   mfdb.user.type        = (!snoopEntry->staticGroup) ? L7_MFDB_TYPE_DYNAMIC : L7_MFDB_TYPE_STATIC;  /* PTin modified: IGMP Snooping */
-  memcpy((void *)mfdb.user.description, (void *)L7_MFDB_NETWORK_ASSISTED,
-         L7_MFDB_COMPONENT_DESCR_STRING_LEN);
+  strncpy(mfdb.user.description, L7_MFDB_NETWORK_ASSISTED,
+          L7_MFDB_COMPONENT_DESCR_STRING_LEN);
   /* Set the mask bit in the fwd mask for this interface */
   L7_INTF_SETMASKBIT(mfdb.user.fwdPorts, intIfNum);
 
@@ -5002,8 +5002,8 @@ L7_RC_t snoopEntryRemove(L7_uchar8 *macAddr, L7_uint32 vlanId,
   mfdb.user.componentId = (family == L7_AF_INET) ? L7_MFDB_PROTOCOL_IGMP
                           : L7_MFDB_PROTOCOL_MLD;
   mfdb.user.type        = (!snoopEntry->staticGroup) ? L7_MFDB_TYPE_DYNAMIC : L7_MFDB_TYPE_STATIC;  /* PTin modified: IGMP snooping */
-  memcpy((void *)mfdb.user.description,(void *)L7_MFDB_NETWORK_ASSISTED,
-         L7_MFDB_COMPONENT_DESCR_STRING_LEN);
+  strncpy(mfdb.user.description, L7_MFDB_NETWORK_ASSISTED,
+          L7_MFDB_COMPONENT_DESCR_STRING_LEN);
 
   (void)mfdbEntryDelete(&mfdb);
 

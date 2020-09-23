@@ -1640,7 +1640,7 @@ void cliWebBuildTestConfigData(L7_uint32 ver)
 
   cliWebCfgData.systemWebMode = FD_CLI_WEB_MODE + 1;
   cliWebCfgData.userPrompt = L7_FALSE + 1;
-  memcpy(cliWebCfgData.systemCommandPrompt, "TEST PROMPT", L7_PROMPT_SIZE - 1);
+  strncpy(cliWebCfgData.systemCommandPrompt, "TEST PROMPT", L7_PROMPT_SIZE - 1);
   cliWebCfgData.systemTelnetNewSessions = FD_CLI_WEB_TELNET_NEW_SESSIONS + 1;
   cliWebCfgData.systemTelnetNumSessions = FD_CLI_WEB_DEFAULT_NUM_SESSIONS + 1;
   cliWebCfgData.systemTelnetTimeout = FD_CLI_WEB_DEFAULT_REMOTECON_TIMEOUT + 1;
