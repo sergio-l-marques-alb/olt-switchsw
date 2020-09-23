@@ -6263,26 +6263,27 @@ L7_RC_t passwdRecoveryFlagGet(L7_int32 *envVar)
   }
 
 #elif _L7_OS_LINUX_
+  {
+    /* Get the data from a text file because its text file for this OS */
+    L7_char8 passwordBuff[50],*tempPtr = L7_NULLPTR;
 
- /* Get the data from a text file because its text file for this OS */
- L7_char8 passwordBuff[50],*tempPtr = L7_NULLPTR;
+    memset(passwordBuff,0x00,sizeof(passwordBuff));
 
- memset(passwordBuff,0x00,sizeof(passwordBuff));
+    /* Open the text file and convert the text data to integer */
+    /* PTin modified: paths */
+    if(osapiFsRead("/var/log/switchdrvr/envFile",(L7_char8 *)passwordBuff,sizeof(passwordBuff)) != L7_SUCCESS)
+    {
+      return L7_FAILURE;
+    }
+    tempPtr = strstr(passwordBuff,"defaultPwdFlag=");
+    if(tempPtr == L7_NULL)
+    {
+      return L7_ERROR;
+    }
 
- /* Open the text file and convert the text data to integer */
- /* PTin modified: paths */
- if(osapiFsRead("/var/log/switchdrvr/envFile",(L7_char8 *)passwordBuff,sizeof(passwordBuff)) != L7_SUCCESS)
- {
-    return L7_FAILURE;
- }
- tempPtr = strstr(passwordBuff,"defaultPwdFlag=");
- if(tempPtr == L7_NULL)
- {
-     return L7_ERROR;
- }
-
- tempPtr = tempPtr + strlen("defaultPwdFlag=");
- envVaribles.defaultPasswordFlag = atoi(tempPtr);
+    tempPtr = tempPtr + strlen("defaultPwdFlag=");
+    envVaribles.defaultPasswordFlag = atoi(tempPtr);
+  }
 #endif
 *envVar = envVaribles.defaultPasswordFlag;
 return L7_SUCCESS;
@@ -6321,16 +6322,18 @@ L7_RC_t passwdRecoveryFlagSet(L7_uint32 value)
      return L7_ERROR;
   }
 #elif _L7_OS_LINUX_
-  L7_char8 passwordBuff[50];
+  {
+    L7_char8 passwordBuff[50];
 
     memset(passwordBuff,0x00,sizeof(passwordBuff));
-  /* Open the text file and Write a text data to the file */
-  osapiSnprintf(passwordBuff,sizeof(passwordBuff),"defaultPwdFlag=%d",envVaribles.defaultPasswordFlag);
+    /* Open the text file and Write a text data to the file */
+    osapiSnprintf(passwordBuff,sizeof(passwordBuff),"defaultPwdFlag=%d",envVaribles.defaultPasswordFlag);
     /* PTin modified: paths */
     if(osapiFsWrite("/var/log/switchdrvr/envFile",passwordBuff,sizeof(passwordBuff)) != L7_SUCCESS)
     {
       return L7_FAILURE;
     }
+  }
 #endif
     return L7_SUCCESS;
 }

@@ -1071,6 +1071,7 @@ void mgmdDebugDeRegister(void)
 void mgmdDebugPrint(L7_uchar8 family)
 {
   L7_uint32 flagIndex;
+  mgmdDebugTraceFlags_t *mgmdTraceFlags = &(mgmdDebugCfg.cfg.mgmdDebugTraceFlag[family]);
 
   sysapiPrintf("\n-----------------\n");
   sysapiPrintf("\n version = %d", mgmdDebugCfg.hdr.version);
@@ -1081,7 +1082,6 @@ void mgmdDebugPrint(L7_uchar8 family)
   sysapiPrintf("\n dataChng = %d", mgmdDebugCfg.hdr.dataChanged);
   sysapiPrintf("\n-----------------\n");
 
-  mgmdDebugTraceFlags_t *mgmdTraceFlags = &(mgmdDebugCfg.cfg.mgmdDebugTraceFlag[family]);
   for (flagIndex = 0;  flagIndex < MGMD_DEBUG_LAST_TRACE ; flagIndex ++)
   {
     if (((*(mgmdTraceFlags[flagIndex/MGMD_DEBUG_TRACE_FLAG_BITS_MAX])) & 
