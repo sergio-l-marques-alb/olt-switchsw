@@ -782,7 +782,7 @@ L7_BOOL cliSSHLoginCheck(L7_char8 *enteredInfo, L7_uint32 accessLevel,
       }
       if (L7_SUCCESS == rc)
         {
-            memset(challengePhrase, 0, sizeof(challengePhrase));
+            memset(challengePhrase, 0, sizeof(*challengePhrase));
             /* User is authenticated */
             usmDbLoginSessionUserSet(U_IDX, cliLoginSessionIndexGet(), userNameSSH);
 
