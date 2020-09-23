@@ -25,6 +25,10 @@
 #include "nim_util.h"
 #include "defaultconfig.h"
 
+#if defined(__GNUC__) && (__GNUC__ >= 7)
+#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
+#endif
+
 extern L7_RC_t maskShiftRightBits(L7_uchar8 *j, L7_int32 k, L7_int32 m);
 extern L7_RC_t maskShiftLeftBits(L7_uchar8 *j, L7_int32 k, L7_int32 m);
 extern L7_RC_t maskOrBits(L7_uchar8 *j, L7_uchar8 *k, L7_int32 m);
