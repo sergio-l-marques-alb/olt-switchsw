@@ -350,6 +350,7 @@ L7_RC_t dsTestPacket(L7_uint32 rxIntf,
   L7_uint32 siaddr;
   L7_RC_t rc;
   L7_uint32 leaseTime;
+  L7_uint client_idx;
 
   if (dsStringToMac(clientHwAddr, &clientMac) != L7_SUCCESS)
     return L7_FAILURE;
@@ -451,7 +452,7 @@ L7_RC_t dsTestPacket(L7_uint32 rxIntf,
   memcpy(pos, &leaseTime, 4);
 
   printf("\nqueueing test packet to DHCP snooping");
-  L7_uint client_idx = (L7_uint)-1;
+  client_idx = (L7_uint)-1;
   rc = dsPacketQueue(frame, TEST_MSG_LEN, vlanId, rxIntf, sVlanId, &client_idx );
 
   osapiWriteLockGive(dsCfgRWLock);

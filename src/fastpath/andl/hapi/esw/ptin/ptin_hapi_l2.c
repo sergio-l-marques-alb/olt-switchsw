@@ -986,6 +986,7 @@ L7_RC_t ptin_hapi_maclimit_reset( mac_learn_info_t *mac_learn_info_ptr)
 L7_RC_t ptin_hapi_maclimit_fdbFlush(bcm_vlan_t vlan_id, bcm_gport_t gport, BROAD_FLUSH_TYPE_t type)
 {
   L7_uint vport_id = 0;
+  BROAD_L2ADDR_FLUSH_t  l2addr_vlan;
 
   vport_id = gport & 0xffff;
 
@@ -993,7 +994,6 @@ L7_RC_t ptin_hapi_maclimit_fdbFlush(bcm_vlan_t vlan_id, bcm_gport_t gport, BROAD
   macLearn_info_flow[vport_id].mac_counter = 0;
 
   /* Flush FDB */
-  BROAD_L2ADDR_FLUSH_t  l2addr_vlan;
   /* Fill in the structure */
   l2addr_vlan.bcm_gport = gport;
   l2addr_vlan.vlanID = vlan_id;

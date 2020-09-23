@@ -561,6 +561,7 @@ L7_RC_t ptin_xlate_ingress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
 L7_RC_t ptin_xlate_ingress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *outerVlanId, L7_uint16 *innerVlanId,
                                              L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId )
 {
+  ptin_vlanXlate_t xlate;
   L7_uint16 oldOuterVid, oldInnerVid;
   L7_RC_t rc = L7_SUCCESS;
 
@@ -578,8 +579,6 @@ L7_RC_t ptin_xlate_ingress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *oute
   /* Initialize new Vlan... as 0 (invalid value) */
   oldOuterVid = PTIN_XLATE_NOT_DEFINED;
   oldInnerVid = PTIN_XLATE_NOT_DEFINED;
-
-  ptin_vlanXlate_t xlate;
 
   memset(&xlate, 0x00, sizeof(ptin_vlanXlate_t));
   xlate.stage         = PTIN_XLATE_STAGE_INGRESS;
@@ -1173,6 +1172,7 @@ L7_RC_t ptin_xlate_egress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *outer
 {
   L7_uint32 class_id;
   L7_uint16 oldOuterVid, oldInnerVid;
+  ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
 
   if (ptin_debug_xlate)
@@ -1201,8 +1201,6 @@ L7_RC_t ptin_xlate_egress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *outer
   /* Initialize new Vlan... as 0 (invalid value) */
   oldOuterVid = PTIN_XLATE_NOT_DEFINED;
   oldInnerVid = PTIN_XLATE_NOT_DEFINED;
-
-  ptin_vlanXlate_t xlate;
 
   memset(&xlate, 0x00, sizeof(ptin_vlanXlate_t));
   xlate.stage         = PTIN_XLATE_STAGE_EGRESS;

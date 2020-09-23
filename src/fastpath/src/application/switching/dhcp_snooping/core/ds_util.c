@@ -410,6 +410,7 @@ L7_RC_t _dsBindingClear(L7_uint32 intIfNum,
   L7_uint32 prevIntf;
   dsBindingType_t prevType;
   dhcpSnoopBinding_t dsBinding;
+  dsBindingTreeKey_t key;
 
   memset(&prevMac, 0, sizeof(prevMac));
   memset(&dsBinding, 0, sizeof(dsBinding));
@@ -443,7 +444,6 @@ L7_RC_t _dsBindingClear(L7_uint32 intIfNum,
         continue;
      }
       /* Delete this binding */
-      dsBindingTreeKey_t key;
       memset(&key, 0x00, sizeof(key));
       memcpy(&key.macAddr.addr, &prevMac.addr, L7_ENET_MAC_ADDR_LEN);
       key.ipType = dsBinding.key.ipType;
@@ -591,11 +591,15 @@ L7_RC_t dsIntfTrustApply(L7_uint32 intIfNum, L7_BOOL trust)
 L7_BOOL dsIntfIsSnooping(L7_uint32 intIfNum)
 {
   if (intIfNum > DS_MAX_INTF_COUNT)
+  {
     return L7_FALSE;
+  }
   if (dsIntfInfo[intIfNum].dsNumVlansEnabled > 0)
+  {
     return L7_TRUE;
+  }
 
-    return L7_FALSE;
+  return L7_FALSE;
 }
 
 /*********************************************************************
@@ -2177,7 +2181,7 @@ L7_RC_t dsDbRemoteRestore()
   L7_uint32 unit,slot, port;
   L7_uint32 vlanId;
   L7_RC_t rc;
-
+  dsBindingTreeKey_t key;
 
   if((osapiFsFileSizeGet(DHCP_SNOOPING_DOWNLOAD_FILE_NAME,&fileSize)) != L7_SUCCESS)
   {
@@ -2340,17 +2344,17 @@ L7_RC_t dsDbRemoteRestore()
                         dsBinding.intIfNum);
        if ( rc == L7_FAILURE)
        {
-               L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
-                  "Lease time parsing problem occured while reading the snooping database.");
-                osapiFsClose(filedesc);
-                 osapiFsDeleteFile(DHCP_SNOOPING_DOWNLOAD_FILE_NAME);
-                 return L7_FAILURE;
+         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
+                 "Lease time parsing problem occured while reading the snooping database.");
+         osapiFsClose(filedesc);
+         osapiFsDeleteFile(DHCP_SNOOPING_DOWNLOAD_FILE_NAME);
+         return L7_FAILURE;
        }
-        dsBindingTreeKey_t key;
-        memset(&key, 0x00, sizeof(key));
-        memcpy(&key.macAddr.addr, &macAddr.addr, L7_ENET_MAC_ADDR_LEN);
-        key.ipType = L7_AF_INET;
-        dsBindingLeaseSet(&key, dsBinding.remLease);
+
+       memset(&key, 0x00, sizeof(key));
+       memcpy(&key.macAddr.addr, &macAddr.addr, L7_ENET_MAC_ADDR_LEN);
+       key.ipType = L7_AF_INET;
+       dsBindingLeaseSet(&key, dsBinding.remLease);
        break;
      }
      readCnt = readCnt+sizeof(buf);
@@ -2426,10 +2430,10 @@ void dsDbLocalSave()
 
 void dsDbLocalRestore()
 {
-
   L7_RC_t rc;
   L7_uint32 dbIndex, dbEntries;
   dhcpSnoopBinding_t dsBinding;
+  dsBindingTreeKey_t key;
 
   if (dsCfgData->dsGlobalAdminMode == L7_ENABLE)
   {
@@ -2462,11 +2466,10 @@ void dsDbLocalRestore()
           continue;
          }
          rc = dsBindingAdd(DS_BINDING_DYNAMIC,
-                       &dsDbCfgData.dsBindingDb[dbIndex]. macAddr,
-                      dsDbCfgData.dsBindingDb[dbIndex].ipAddr,
-                      dsDbCfgData.dsBindingDb[dbIndex].vlanId, 0 /* PTin modified: DHCP */,
-                      dsDbCfgData.dsBindingDb[dbIndex].intIfNum);
-         dsBindingTreeKey_t key;
+                           &dsDbCfgData.dsBindingDb[dbIndex]. macAddr,
+                           dsDbCfgData.dsBindingDb[dbIndex].ipAddr,
+                           dsDbCfgData.dsBindingDb[dbIndex].vlanId, 0 /* PTin modified: DHCP */,
+                           dsDbCfgData.dsBindingDb[dbIndex].intIfNum);
          memset(&key, 0x00, sizeof(key));
          memcpy(&key.macAddr.addr, &dsDbCfgData.dsBindingDb[dbIndex].macAddr.addr, L7_ENET_MAC_ADDR_LEN);
          key.ipType = L7_AF_INET;

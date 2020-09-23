@@ -754,26 +754,25 @@ int usl_bcmx_ipmc_inuse_get(usl_bcm_ipmc_addr_t *ipmc, L7_BOOL *inuse)
   *inuse = usl_ipmc_inuse_get(ipmc);
 
 #else
-
-  L7_uint32         flags = 0;
-
-  ipmc->flags |= BCM_IPMC_HIT_CLEAR;
-
-  rv = usl_bcm_ipmc_inuse_get(ipmc, &flags);
-
-  if (L7_BCMX_OK(rv) == L7_TRUE) 
   {
-    if (flags & BCM_IPMC_HIT)
-      *inuse = L7_TRUE;
-  }
-  else
-  {
-    USL_LOG_MSG(USL_BCM_E_LOG,
-                "Failed to get inuse state of entry index %d\n", ipmc->ipmc_index);
-  }
+      L7_uint32         flags = 0;
 
+      ipmc->flags |= BCM_IPMC_HIT_CLEAR;
+
+      rv = usl_bcm_ipmc_inuse_get(ipmc, &flags);
+
+      if (L7_BCMX_OK(rv) == L7_TRUE) 
+      {
+        if (flags & BCM_IPMC_HIT)
+          *inuse = L7_TRUE;
+      }
+      else
+      {
+        USL_LOG_MSG(USL_BCM_E_LOG,
+                    "Failed to get inuse state of entry index %d\n", ipmc->ipmc_index);
+      }
+  }
 #endif
-
 
   return rv; 
 }

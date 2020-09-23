@@ -277,11 +277,10 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 
   /* Only search and validate client for non Matrix (CXP360G, etc) and untrusted interfaces */
 #if ( ! PTIN_BOARD_IS_MATRIX )
-
-  ptin_client_id_t client;
-
 //  if (!_pppoeVlanIntfTrustGet(pduInfo->vlanId,pduInfo->intIfNum))
   {
+    ptin_client_id_t client;
+
     #if 0
     /* Validate inner vlan */
     if (innerVlanId==0 || innerVlanId>=4095)
@@ -660,7 +659,7 @@ L7_RC_t pppoeCommonErrorFrameCreate(L7_uchar8 *originalFramePtr, L7_uchar8 *newF
    L7_pppoe_header_t *pppoe_header_new;
    L7_ethHeader_t    *eth_header_new;
    L7_tlv_header_t   tlv_header;
-   L7_uchar8         system_mac_addr;
+   L7_uchar8         system_mac_addr[L7_ENET_MAC_ADDR_LEN];
 
    /* Copy the original frame up to the end of the PPPoE header */
    memset(newFramePtr, 0x00, PPPOE_PACKET_SIZE_MAX);
@@ -695,13 +694,13 @@ L7_RC_t pppoeCommonErrorFrameCreate(L7_uchar8 *originalFramePtr, L7_uchar8 *newF
    memcpy(&eth_header_new->dest.addr, &eth_header_new->src.addr, sizeof(L7_enetMacAddr_t));
    if (simGetSystemIPMacType() == L7_SYSMAC_BIA)
    {
-    simGetSystemIPBurnedInMac(&system_mac_addr);
+    simGetSystemIPBurnedInMac(system_mac_addr);
    }
    else
    {
-    simGetSystemIPLocalAdminMac(&system_mac_addr);
+    simGetSystemIPLocalAdminMac(system_mac_addr);
    }
-   memcpy(&eth_header_new->src.addr, &system_mac_addr, sizeof(L7_enetMacAddr_t));
+   memcpy(&eth_header_new->src.addr, &system_mac_addr, sizeof(L7_uchar8)*L7_ENET_MAC_ADDR_LEN);
 
    return L7_SUCCESS;
 }
@@ -776,6 +775,7 @@ L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 v
   L7_pppoe_header_t *pppoe_header;
   L7_INTF_TYPES_t   sysIntfType;
   L7_uint32         member_mode;
+  L7_uint16         extOVlan, extIVlan;
 
   /* If outgoing interface is CPU interface, don't send it */
   if ((nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
@@ -809,8 +809,8 @@ L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 v
 
   /* PTin added: PPPOE */
   #if 1
-  L7_uint16 extOVlan = vlanId;
-  L7_uint16 extIVlan = 0;
+  extOVlan = vlanId;
+  extIVlan = 0;
 
   /* Extract external outer and inner vlan for this tx interface */
   if (ptin_pppoe_extVlans_get(intIfNum, vlanId, innerVlanId, client_idx, &extOVlan,&extIVlan) == L7_SUCCESS)

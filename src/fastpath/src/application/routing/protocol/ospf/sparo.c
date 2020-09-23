@@ -2234,7 +2234,7 @@ e_Err ARO_OpaqueLsdbNextEntry(t_Handle RTO_Id, t_Handle ARO_Id, t_Handle IFO_Id,
   t_A_DbKey      currentKey;
   t_RTO *p_RTO = (t_RTO*) RTO_Id;
   t_ARO *p_ARO = (t_ARO*) ARO_Id;
-  t_IFO *p_IFO = (t_IFO*) IFO_Id;;
+  t_IFO *p_IFO = (t_IFO*) IFO_Id;
   t_Handle       OpaqueLsaHl;
   ulng           nextIpAddr;
   ulng           nextIfIndex;
@@ -5069,6 +5069,9 @@ static e_Err LsaOrgRouter(t_Handle Id, ulng prm)
   Bool          isBdrRtr = FALSE, isNssaRtr = FALSE;
   byte Option = 0;
   Bool forceOrig = (prm != 0);
+  ulng maxRtrLsaLen;
+  byte *pktEnd;
+  Bool lsaFull;
 
   /* if in graceful restart, don't originate */
   if (o2GracefulRestartInProgress(p_RTO))
@@ -5081,17 +5084,17 @@ static e_Err LsaOrgRouter(t_Handle Id, ulng prm)
    * we have to leave room for them. Also must leave room for MD5 authentication
    * data in case any interface in the area runs MD5. */
 
-  ulng maxRtrLsaLen = GetMaxLsaLength(p_ARO, S_ROUTER_LSA) - 
-                      (IP_HDR_LEN + OSPF_MD5_AUTH_DATA_LEN + sizeof(t_S_PckHeader) +
-                       sizeof(t_S_LsUpdate) + sizeof(t_S_LsaHeader));
+  maxRtrLsaLen = GetMaxLsaLength(p_ARO, S_ROUTER_LSA) - 
+                 (IP_HDR_LEN + OSPF_MD5_AUTH_DATA_LEN + sizeof(t_S_PckHeader) +
+                 sizeof(t_S_LsUpdate) + sizeof(t_S_LsaHeader));
 
   /* First byte beyond end of packet. Cannot write to this location or beyond
    * or router LSA will be too big to fit in an LS Update in an IP packet of 
    * size OSPF_MAX_LSA_BUF_LEN. */
-  byte *pktEnd = NULL;
+  pktEnd = NULL;
 
   /* TRUE when the LSA is full */
-  Bool lsaFull = FALSE;
+  lsaFull = FALSE;
 
   if (!p_RTO->Cfg.AdminStat || !p_ARO->OperationState)
     return E_FAILED;
@@ -5281,6 +5284,7 @@ static e_Err LsaOrgNetwork(t_Handle Id, ulng prm)
    t_A_DbKey     key;
    t_A_DbEntry   *former;
    Bool          lsaFull = FALSE;
+   ulng maxNetworkLsaLen;
 
    /* if in graceful restart, don't originate */
    if (o2GracefulRestartInProgress(p_RTO))
@@ -5292,9 +5296,9 @@ static e_Err LsaOrgNetwork(t_Handle Id, ulng prm)
     * this routine does not build an IP header or standard OSPF or LSA headers,
     * we have to leave room for them. Also must leave room for MD5 authentication
    * data in case any interface in the area runs MD5. */
-   ulng maxNetworkLsaLen = GetMaxLsaLength(p_ARO, S_NETWORK_LSA) - 
-                           (IP_HDR_LEN + OSPF_MD5_AUTH_DATA_LEN + sizeof(t_S_PckHeader) +
-                            sizeof(t_S_LsUpdate) + sizeof(t_S_LsaHeader));
+   maxNetworkLsaLen = GetMaxLsaLength(p_ARO, S_NETWORK_LSA) - 
+                      (IP_HDR_LEN + OSPF_MD5_AUTH_DATA_LEN + sizeof(t_S_PckHeader) +
+                      sizeof(t_S_LsUpdate) + sizeof(t_S_LsaHeader));
 
    if(!p_RTO->Cfg.AdminStat || !p_ARO->OperationState)
       return E_FAILED;

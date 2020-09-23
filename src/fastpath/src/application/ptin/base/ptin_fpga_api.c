@@ -527,25 +527,27 @@ L7_uint8 ptin_fpga_board_slot_get(void)
 
   board_slot_id = CPLD_SLOT_ID_GET();
 
-#if (PTIN_BOARD_IS_LINECARD)      
-  L7_BOOL  olt1t1_backplane;
+#if (PTIN_BOARD_IS_LINECARD)
+  {
+    L7_BOOL  olt1t1_backplane;
 
-  /* Condition for OLT1T1 backplane */
-  olt1t1_backplane = (ptin_fpga_board_get() == PTIN_BOARD_CXO160G);
-  
-  /* If high and low nibbles are equal, we are at a OLT1T3 system */
-  if (!olt1t1_backplane)
-  {
+    /* Condition for OLT1T1 backplane */
+    olt1t1_backplane = (ptin_fpga_board_get() == PTIN_BOARD_CXO160G);
+
+    /* If high and low nibbles are equal, we are at a OLT1T3 system */
+    if (!olt1t1_backplane)
+    {
     board_slot_id += 2;
-  }
-  /* Otherwise, we are at a OLT1T1 system */
-  else
-  {
+    }
+    /* Otherwise, we are at a OLT1T1 system */
+    else
+    {
     /* Validate slot id */       
     if (board_slot_id > 4)
       return ((L7_uint8) -1);
     /* Invert slot ids */ 
     board_slot_id = 4 - board_slot_id;        
+    }
   }
 #elif (PTIN_BOARD_IS_MATRIX)
   board_slot_id = (board_slot_id == 0) ? PTIN_SYS_MX1_SLOT : PTIN_SYS_MX2_SLOT;

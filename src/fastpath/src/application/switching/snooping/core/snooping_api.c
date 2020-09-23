@@ -264,9 +264,11 @@ L7_RC_t ptin_snoop_clientsList_get(L7_inet_addr_t *groupAddr, L7_uint16 vlanId, 
 
   if (igmp_network_version==3)
   {
+    snoopPTinL3InfoData_t  *snoopEntryV3; 
+
     PT_LOG_TRACE(LOG_CTX_IGMP,"IGMPv3 Clients List Get!");
-     snoopPTinL3InfoData_t  *snoopEntryV3; 
-     /* Search for entry in AVL tree*/
+
+    /* Search for entry in AVL tree*/
     if (L7_NULLPTR == (snoopEntryV3 = snoopPTinL3EntryFind(vlanId, groupAddr, L7_MATCH_EXACT)) || 
         snoopEntryV3->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].active==L7_FALSE ||
         snoopEntryV3->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].numberOfClients==0)
@@ -285,10 +287,11 @@ L7_RC_t ptin_snoop_clientsList_get(L7_inet_addr_t *groupAddr, L7_uint16 vlanId, 
     else
     {
       L7_uint32 client_list_bmp_tmp[PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE];
-      memset(client_list_bmp_tmp,0x00,sizeof(snoopEntryV3->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].clients));
-      *number_of_clients=0;
       L7_uint16 intIfNum; 
       L7_uint16 idx;     
+
+      memset(client_list_bmp_tmp,0x00,sizeof(snoopEntryV3->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].clients));
+      *number_of_clients=0;
 
       for (intIfNum=1; intIfNum<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; intIfNum++)
       {
@@ -4082,6 +4085,9 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   snoop_eb_t    *pSnoopEB = L7_NULLPTR;
   char           groupAddrStr[IPV6_DISP_ADDR_LEN]={};
   char           sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
+#if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
+  ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
+#endif
 
   inetAddrPrint(groupAddr, groupAddrStr);
   inetAddrPrint(sourceAddr, sourceAddrStr);
@@ -4102,7 +4108,6 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
 
 
 #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
-  ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
   ptin_prottypeb_intf_config_get(intIfNum, &protTypebIntfConfig);
 #endif
 

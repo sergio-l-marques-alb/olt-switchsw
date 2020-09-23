@@ -2148,11 +2148,11 @@ L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, pbmp_t *
  */
 L7_RC_t ptin_hapi_linkscan_get(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 *enable)
 {
-  PT_LOG_INFO(LOG_CTX_HAPI, "Linkscan read from usp {%d,%d,%d}", usp->unit, usp->slot, usp->port);
-
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
   L7_int mode;
+
+  PT_LOG_INFO(LOG_CTX_HAPI, "Linkscan read from usp {%d,%d,%d}", usp->unit, usp->slot, usp->port);
 
   /* Validate dapiPort */
   if (usp->unit<0 || usp->slot<0 || usp->port<0)
@@ -2198,8 +2198,6 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
 {
   /* Code regarding to forcelinks procedures is going to be removed */
 #if (SDK_VERSION_IS <= SDK_VERSION(6,5,7,0))
-  PT_LOG_DEBUG(LOG_CTX_HAPI, "Linkscan procedure to usp {%d,%d,%d}", usp->unit, usp->slot, usp->port);
-
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
   L7_int ptin_port;
@@ -2212,6 +2210,8 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
   bcm_port_if_t                 intf_type;
   bcm_error_t                   rv;
 #endif
+
+  PT_LOG_DEBUG(LOG_CTX_HAPI, "Linkscan procedure to usp {%d,%d,%d}", usp->unit, usp->slot, usp->port);
 
   /* Validate dapiPort */
   if (usp->unit<0 || usp->slot<0 || usp->port<0)
@@ -2324,8 +2324,6 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
 {
   /* Code regarding to forcelinks procedures is going to be removed */
 #if (SDK_VERSION_IS <= SDK_VERSION(6,5,7,0))
-  PT_LOG_DEBUG(LOG_CTX_HAPI, "Force link procedure (link=%u, enable=%u) for usp {%d,%d,%d}", link, enable, usp->unit, usp->slot, usp->port);
-
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
   L7_int ptin_port, i, link_status;
@@ -2339,6 +2337,8 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
   HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
   bcm_port_if_t                 intf_type;
 #endif
+
+  PT_LOG_DEBUG(LOG_CTX_HAPI, "Force link procedure (link=%u, enable=%u) for usp {%d,%d,%d}", link, enable, usp->unit, usp->slot, usp->port);
 
   /* Validate dapiPort */
   if (usp->unit<0 || usp->slot<0 || usp->port<0)
@@ -5810,6 +5810,8 @@ L7_RC_t ag16ga_bck_static_switching()
 
       do
       {
+        int index;
+        L7_short16 port_aux;
 
         rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
         if (rc != L7_SUCCESS)  break;
@@ -5838,12 +5840,12 @@ L7_RC_t ag16ga_bck_static_switching()
         rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uchar8 *)&pbm, (L7_uchar8 *)&pbm_mask);
         if (rc != L7_SUCCESS)  break;
 
-        int index = i * 4 + j;
+        index = i * 4 + j;
 
         rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_value[j], (L7_uchar8 *)&vlan_mask[j]);
         if (rc != L7_SUCCESS)  break;
 
-        L7_short16 port_aux = (usp_map[index].port-1);
+        port_aux = (usp_map[index].port-1);
 
         rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_REDIRECT, 1 /*unit*/, 0 /*slot*/, port_aux);
         if (rc != L7_SUCCESS)
@@ -5921,10 +5923,9 @@ L7_RC_t ag16ga_frontal_static_switching()
 
       for (j = 0; j < 4; j++)
       {
+        int index = (i * 4) + j;
 
         PT_LOG_ERR(LOG_CTX_STARTUP,"Port %d was given\r\n", port);
-
-        int index = (i * 4) + j;
 
         /* Validate port */
         if (hapi_ptin_bcmPort_get(index, &bcm_port) != L7_SUCCESS)

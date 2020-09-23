@@ -29,6 +29,10 @@
 #include "bcm/l2.h"
 #include "bcm/link.h"
 
+#if defined (__GNUC__) && (__GNUC__ >= 7)
+#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
+#endif
+
 extern int l7_rpc_server_mcast_port_update_groups(int unit, bcm_port_t port, 
                                            int setget, uint32 *args);
 
@@ -1966,8 +1970,10 @@ l7_rpc_client_port_sfp_diag_get(bcm_gport_t gport,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  L7_int len;
-  rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_SFP_DIAG_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  {
+      L7_int len;
+      rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_SFP_DIAG_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  }
   #else
   rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_SFP_DIAG_GET, args);
   #endif
@@ -2014,8 +2020,10 @@ l7_rpc_client_port_copper_diag_get(bcm_gport_t gport, bcm_port_cable_diag_t *cd)
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  L7_int len;
-  rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_COPPER_DIAG_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  {
+      L7_int len;
+      rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_COPPER_DIAG_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  }
   #else
   rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_COPPER_DIAG_GET, args);
   #endif
@@ -2391,8 +2399,10 @@ l7_rpc_client_port_dot1x_client_timeout_get(bcm_gport_t gport,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  L7_int len;
-  rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_DOT1X_CLIENT_TIMEOUT_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  {
+      L7_int len;
+      rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_DOT1X_CLIENT_TIMEOUT_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  }
   #else
   rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_DOT1X_CLIENT_TIMEOUT_GET, args);
   #endif
@@ -2485,8 +2495,10 @@ l7_rpc_client_stat_get(bcm_gport_t gport, uint64 stats[snmpValCount])
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  L7_int len;
-  rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_STATS_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  {
+      L7_int len;
+      rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_STATS_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  }
   #else
   rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_STATS_GET, args);
   #endif
@@ -2534,8 +2546,10 @@ l7_rpc_client_port_stat_get(bcm_gport_t gport, uint64 stats[snmpValCount])
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  L7_int len;
-  rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_STATS_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  {
+      L7_int len;
+      rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_STATS_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  }
   #else
   rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_STATS_GET, args);
   #endif
@@ -3651,8 +3665,10 @@ int l7_rpc_client_port_pfc_stat_get(bcm_gport_t gport,
   memcpy (args, stat, sizeof (*stat));
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  L7_int len;
-  rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_PFC_STAT_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  {
+      L7_int len;
+      rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_PFC_STAT_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  }
   #else
   rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_PFC_STAT_GET, args);
   #endif

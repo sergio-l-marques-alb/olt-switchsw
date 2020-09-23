@@ -1652,6 +1652,12 @@ int ptin_vp_gpon(L7_uint32 pon_port, L7_uint32 network_port, L7_int s_vid, L7_in
   bcm_gport_t network_gport;
   int gemid[] = {101, 102, 103};
   int cvid[]  = {25, 35, 45};
+  bcm_vlan_port_t vlan_port[3];
+  bcm_vlan_action_set_t action;
+  bcm_multicast_t mcast_group;
+  bcm_multicast_t encap_id;
+  bcm_pbmp_t pbmp, ubmp;
+  bcm_vlan_control_vlan_t vlan_control;
   int i;
   bcm_error_t error;
 
@@ -1663,7 +1669,6 @@ int ptin_vp_gpon(L7_uint32 pon_port, L7_uint32 network_port, L7_int s_vid, L7_in
   }
 
   /* create the virtual ports */
-  bcm_vlan_port_t vlan_port[3];
   bcm_vlan_port_t_init(&vlan_port[0]);
   bcm_vlan_port_t_init(&vlan_port[1]);
   bcm_vlan_port_t_init(&vlan_port[2]);
@@ -1689,7 +1694,6 @@ int ptin_vp_gpon(L7_uint32 pon_port, L7_uint32 network_port, L7_int s_vid, L7_in
 
   /* create egress translation entries for virtual ports to do VLAN tag manipulation 
    * i.e. client -> gem_id + some_c_vlan */
-  bcm_vlan_action_set_t action;
   for (i = 0; i < 3; i++) {
       bcm_vlan_action_set_t_init(&action);
       
@@ -1712,9 +1716,6 @@ int ptin_vp_gpon(L7_uint32 pon_port, L7_uint32 network_port, L7_int s_vid, L7_in
   }
 
   /* create multicast group, and add virtual ports to it */
-  bcm_multicast_t mcast_group;
-  bcm_multicast_t encap_id;
-
   if ((error=bcm_multicast_create(unit, BCM_MULTICAST_TYPE_VLAN, &mcast_group))!=BCM_E_NONE)
   {
     printf("Error with bcm_multicast_create(%d, %d, &mcast_group): error=%d (\"%s\")\r\n",
@@ -1748,7 +1749,6 @@ int ptin_vp_gpon(L7_uint32 pon_port, L7_uint32 network_port, L7_int s_vid, L7_in
   }
 
   /* configure vlan membership */
-  bcm_pbmp_t pbmp, ubmp;
   BCM_PBMP_CLEAR(pbmp);
   BCM_PBMP_CLEAR(ubmp);
   BCM_PBMP_PORT_ADD(pbmp, network_port);
@@ -1773,7 +1773,6 @@ int ptin_vp_gpon(L7_uint32 pon_port, L7_uint32 network_port, L7_int s_vid, L7_in
   }
 
   /* configure the VLAN to enable flooding towards virtual ports, this overrides the regular VLAN flooding */
-  bcm_vlan_control_vlan_t vlan_control;
   if ((error=bcm_vlan_control_vlan_get(unit, s_vid, &vlan_control))!=BCM_E_NONE)
   {
     printf("Error with bcm_vlan_control_vlan_get: error=%d (\"%s\")\r\n",error, bcm_errmsg(error));

@@ -52,6 +52,8 @@ e_Err o2GraceLsaProcess(t_NBO *p_NBO, t_A_DbEntry *p_DbEntry)
 {
   t_RTO *p_RTO = (t_RTO*) p_NBO->RTO_Id;
   L7_BOOL alreadyRestarting = o2NeighborIsRestarting(p_NBO);
+  L7_int32 timeRemaining;
+  L7_uint32 graceLsaAge;
 
   /* Ignore our own grace LSAs. We may get these back during 
    * db exchange when we do a graceful restart. */
@@ -61,8 +63,8 @@ e_Err o2GraceLsaProcess(t_NBO *p_NBO, t_A_DbEntry *p_DbEntry)
   }
 
   /* Number of seconds left in grace period */
-  L7_int32 timeRemaining = 0;
-  L7_uint32 graceLsaAge = A_GET_2B(p_DbEntry->Lsa.LsAge);
+  timeRemaining = 0;
+  graceLsaAge = A_GET_2B(p_DbEntry->Lsa.LsAge);
 
   p_RTO->grStats.helpfulNbrStats.graceLsasReceived++;
   if (graceLsaAge >= MaxAge)

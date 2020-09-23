@@ -670,6 +670,7 @@ L7_RC_t ptin_evc_init(void)
  */
 L7_RC_t ptin_evc_startup(void)
 {
+  L7_uint32 intIfNum_vport;
 #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
   L7_int  i;
   L7_RC_t rc;
@@ -721,8 +722,6 @@ L7_RC_t ptin_evc_startup(void)
 #endif
 
   PT_LOG_INFO(LOG_CTX_API, "Standard EVCs configured for OLT1T0 equipment");
-
-  L7_uint32 intIfNum_vport;
 
   /* Create intIfNum for Virtual ports */
   if (L7_SUCCESS != vlan_port_intIfNum_create(1, &intIfNum_vport))
@@ -4195,6 +4194,9 @@ L7_RC_t ptin_evc_destroy_all(void)
 L7_RC_t ptin_evc_p2p_bridge_replicate(L7_uint32 evc_ext_id, L7_uint32 ptin_port, L7_uint32 ptin_port_ngpon2, ptin_HwEthMef10Intf_t *intf)
 {
   L7_uint32 evc_id;
+  ptin_HwEthEvcBridge_t evcBridge;
+  struct ptin_evc_client_s *pclientFlow;
+  int j;
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -4210,8 +4212,6 @@ L7_RC_t ptin_evc_p2p_bridge_replicate(L7_uint32 evc_ext_id, L7_uint32 ptin_port,
     return L7_FAILURE;
   }
 
-  ptin_HwEthEvcBridge_t evcBridge;
-
   evcBridge.index = evc_ext_id;
   
   /* Validate leaf interface (from received message) */
@@ -4222,10 +4222,7 @@ L7_RC_t ptin_evc_p2p_bridge_replicate(L7_uint32 evc_ext_id, L7_uint32 ptin_port,
     return L7_FAILURE;
   }
 
-  struct ptin_evc_client_s *pclientFlow;
   dl_queue_get_head(&evcs[evc_id].intf[ptin_port_ngpon2].clients, (dl_queue_elem_t **) &pclientFlow);
-
-  int j;
 
   for (j=0; j < evcs[evc_id].intf[ptin_port_ngpon2].clients.n_elems && pclientFlow != L7_NULLPTR; j++) 
   {
@@ -5121,39 +5118,41 @@ L7_RC_t ptin_evc_macbridge_client_packages_add(ptin_evc_macbridge_client_package
   }
 
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  L7_uint                   int_ovid;
-  ptin_client_id_t          clientId;
-  struct ptin_evc_client_s *pflow;
-  L7_BOOL                   addOrRemove = L7_FALSE;//Add Packages
-  L7_RC_t                   rc = L7_SUCCESS;
-
-  /* Get internal vlan and inner NNI vlan */
-  int_ovid = evcs[evc_id].intf[leaf_port].int_vlan;
-
-  /* Check if flow entry already exists */
-  ptin_evc_find_flow(ecvFlow->uni_ovid, &evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t**) &pflow);
-
-  if (pflow == NULL)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Flow does not exist", evc_id);
-    return L7_DEPENDENCY_NOT_MET;
-  }
+    L7_uint                   int_ovid;
+    ptin_client_id_t          clientId;
+    struct ptin_evc_client_s *pflow;
+    L7_BOOL                   addOrRemove = L7_FALSE;//Add Packages
+    L7_RC_t                   rc = L7_SUCCESS;
 
-  /* Client id: For IGMP */
-  memset(&clientId, 0x00, sizeof(clientId));
-  clientId.ptin_intf.intf_type  = ecvFlow->ptin_intf.intf_type;
-  clientId.ptin_intf.intf_id    = ecvFlow->ptin_intf.intf_id;
-  clientId.outerVlan            = pflow->int_ovid;
-  clientId.innerVlan            = pflow->int_ivid;
-  clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+    /* Get internal vlan and inner NNI vlan */
+    int_ovid = evcs[evc_id].intf[leaf_port].int_vlan;
 
-  /* Add client */
-  if ( (rc = ptin_igmp_api_client_add(&clientId, pflow->uni_ovid, pflow->uni_ivid, ecvFlow->onuId, 0x00, 0, 0, addOrRemove, ecvFlow->packageBmpList, ecvFlow->noOfPackages) != L7_SUCCESS) )
-  {
-    PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error adding client to IGMP instance", evc_id);
+    /* Check if flow entry already exists */
+    ptin_evc_find_flow(ecvFlow->uni_ovid, &evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t**) &pflow);
+
+    if (pflow == NULL)
+    {
+      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Flow does not exist", evc_id);
+      return L7_DEPENDENCY_NOT_MET;
+    }
+
+    /* Client id: For IGMP */
+    memset(&clientId, 0x00, sizeof(clientId));
+    clientId.ptin_intf.intf_type  = ecvFlow->ptin_intf.intf_type;
+    clientId.ptin_intf.intf_id    = ecvFlow->ptin_intf.intf_id;
+    clientId.outerVlan            = pflow->int_ovid;
+    clientId.innerVlan            = pflow->int_ivid;
+    clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+
+    /* Add client */
+    if ( (rc = ptin_igmp_api_client_add(&clientId, pflow->uni_ovid, pflow->uni_ivid, ecvFlow->onuId, 0x00, 0, 0, addOrRemove, ecvFlow->packageBmpList, ecvFlow->noOfPackages) != L7_SUCCESS) )
+    {
+      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error adding client to IGMP instance", evc_id);
+      return rc;
+    }
     return rc;
   }
-  return rc;
 #else
   PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u: Flows not available for this board", evc_id);
   return L7_ERROR;
@@ -5229,39 +5228,41 @@ L7_RC_t ptin_evc_macbridge_client_packages_remove(ptin_evc_macbridge_client_pack
   }
 
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  L7_uint                   int_ovid;
-  ptin_client_id_t          clientId;
-  struct ptin_evc_client_s *pflow;
-  L7_BOOL                   addOrRemove = L7_TRUE;//Remove Packages
-  L7_RC_t                   rc = L7_SUCCESS;
-
-  /* Get internal vlan and inner NNI vlan */
-  int_ovid = evcs[evc_id].intf[leaf_port].int_vlan;
-
-  /* Check if flow entry already exists */
-  ptin_evc_find_flow(ecvFlow->uni_ovid, &evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t**) &pflow);
-
-  if (pflow == NULL)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Flow does not exist", evc_id);
-    return L7_DEPENDENCY_NOT_MET;
-  }
+    L7_uint                   int_ovid;
+    ptin_client_id_t          clientId;
+    struct ptin_evc_client_s *pflow;
+    L7_BOOL                   addOrRemove = L7_TRUE;//Remove Packages
+    L7_RC_t                   rc = L7_SUCCESS;
 
-  /* Client id: For IGMP */
-  memset(&clientId, 0x00, sizeof(clientId));
-  clientId.ptin_intf.intf_type  = ecvFlow->ptin_intf.intf_type;
-  clientId.ptin_intf.intf_id    = ecvFlow->ptin_intf.intf_id;
-  clientId.outerVlan            = pflow->int_ovid;
-  clientId.innerVlan            = pflow->int_ivid;
-  clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+    /* Get internal vlan and inner NNI vlan */
+    int_ovid = evcs[evc_id].intf[leaf_port].int_vlan;
 
-  /* Add client */
-  if ( (rc = ptin_igmp_api_client_add(&clientId, pflow->uni_ovid, pflow->uni_ivid, ecvFlow->onuId, 0x0C, 0, 0, addOrRemove, ecvFlow->packageBmpList, ecvFlow->noOfPackages) != L7_SUCCESS) )
-  {
-    PT_LOG_WARN(LOG_CTX_EVC, "EVC# %u: IGMP Client Not Found", evc_id);
-    return SUCCESS;
+    /* Check if flow entry already exists */
+    ptin_evc_find_flow(ecvFlow->uni_ovid, &evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t**) &pflow);
+
+    if (pflow == NULL)
+    {
+      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Flow does not exist", evc_id);
+      return L7_DEPENDENCY_NOT_MET;
+    }
+
+    /* Client id: For IGMP */
+    memset(&clientId, 0x00, sizeof(clientId));
+    clientId.ptin_intf.intf_type  = ecvFlow->ptin_intf.intf_type;
+    clientId.ptin_intf.intf_id    = ecvFlow->ptin_intf.intf_id;
+    clientId.outerVlan            = pflow->int_ovid;
+    clientId.innerVlan            = pflow->int_ivid;
+    clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+
+    /* Add client */
+    if ( (rc = ptin_igmp_api_client_add(&clientId, pflow->uni_ovid, pflow->uni_ivid, ecvFlow->onuId, 0x0C, 0, 0, addOrRemove, ecvFlow->packageBmpList, ecvFlow->noOfPackages) != L7_SUCCESS) )
+    {
+      PT_LOG_WARN(LOG_CTX_EVC, "EVC# %u: IGMP Client Not Found", evc_id);
+      return SUCCESS;
+    }
+    return rc;
   }
-  return rc;
 #else
   PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u: Flows not available for this board", evc_id);
   return L7_ERROR;
@@ -5282,6 +5283,7 @@ L7_RC_t ptin_evc_flow_remove_port(L7_uint32 ptin_port, L7_uint32 evc_ext_id)
 {
   L7_uint32 evc_id;
   dl_queue_t *queue;
+  struct ptin_evc_client_s *pclientFlow = NULL;
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -5296,8 +5298,6 @@ L7_RC_t ptin_evc_flow_remove_port(L7_uint32 ptin_port, L7_uint32 evc_ext_id)
     PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", evc_id);
     return L7_FAILURE;
   }
-
-  struct ptin_evc_client_s *pclientFlow = NULL;
 
   queue = &evcs[evc_id].intf[ptin_port].clients;
   dl_queue_get_head( queue, (dl_queue_elem_t **)&pclientFlow);
@@ -5346,6 +5346,7 @@ L7_RC_t ptin_evc_flow_replicate(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_ui
 { 
   L7_uint32  evc_id, intIfNum;
   dl_queue_t *queue;
+  struct ptin_evc_client_s *pclientFlow = NULL;
 
  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -5376,8 +5377,6 @@ L7_RC_t ptin_evc_flow_replicate(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_ui
     PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Cannot get intIfNum from port %u", evc_id, leaf_port);
     return L7_FAILURE;
   }
-
-  struct ptin_evc_client_s *pclientFlow = NULL;
 
   queue = &evcs[evc_id].intf[leaf_port].clients;
   dl_queue_get_head( queue, (dl_queue_elem_t **)&pclientFlow);
@@ -5476,172 +5475,173 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   }
 
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  L7_uint int_ovid;
-  L7_int  vport_id, multicast_group;
-  L7_BOOL igmp_enabled, dhcpv4_enabled, dhcpv6_enabled, pppoe_enabled;
-  /* Always add client */
-  ptin_client_id_t clientId;
-
-  struct ptin_evc_client_s *pflow;
-
-  /* Get internal vlan and inner NNI vlan */
-  int_ovid = evcs[evc_id].intf[leaf_port].int_vlan;
-
-  /* Multicast group */
-  multicast_group = evcs[evc_id].multicast_group;
-
-  /* Check if flow entry already exists */
-  ptin_evc_find_flow(evcFlow->uni_ovid, &evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t**) &pflow);
-
-  /* If flow does it, create it */
-  if (pflow == NULL)
   {
-    /* Check if there is available flows */
-    if (queue_free_clients.n_elems == 0)
+    L7_uint int_ovid;
+    L7_int  vport_id, multicast_group;
+    L7_BOOL igmp_enabled, dhcpv4_enabled, dhcpv6_enabled, pppoe_enabled;
+    /* Always add client */
+    ptin_client_id_t clientId;
+
+    struct ptin_evc_client_s *pflow;
+
+    /* Get internal vlan and inner NNI vlan */
+    int_ovid = evcs[evc_id].intf[leaf_port].int_vlan;
+
+    /* Multicast group */
+    multicast_group = evcs[evc_id].multicast_group;
+
+    /* Check if flow entry already exists */
+    ptin_evc_find_flow(evcFlow->uni_ovid, &evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t**) &pflow);
+
+    /* If flow does it, create it */
+    if (pflow == NULL)
     {
-      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: No available flows", evc_id);
-      return L7_FAILURE;
+      /* Check if there is available flows */
+      if (queue_free_clients.n_elems == 0)
+      {
+        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: No available flows", evc_id);
+        return L7_FAILURE;
+      }
+
+      /* Create virtual port */
+      if (ptin_virtual_port_add(intIfNum,
+                                evcFlow->uni_ovid, evcFlow->uni_ivid,
+                                int_ovid, evcFlow->int_ivid,
+                                multicast_group,
+                                &vport_id,
+                                evcFlow->macLearnMax) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error creating virtual port", evc_id);
+        return L7_FAILURE;
+      }
+      else
+      {
+        intf_vp_entry_t e;
+
+        e.vport_id  = vport_id & 0xffffff;
+        e.pon       = evcFlow->ptin_intf;
+        e.gem_id    = evcFlow->uni_ovid;
+        //e.onu       = evcFlow->onuId;
+        intf_vp_DB(1, &e);
+      }
+
+      /* Add client to the EVC struct */
+      dl_queue_remove_head(&queue_free_clients, (dl_queue_elem_t**) &pflow);    /* get a free client entry */
+      pflow->in_use     = L7_TRUE;                                              /* update it */
+      pflow->int_ovid   = int_ovid;
+      pflow->int_ivid   = evcFlow->int_ivid;
+      pflow->uni_ovid   = evcFlow->uni_ovid;
+      pflow->uni_ivid   = evcFlow->uni_ivid;
+      pflow->action_outer_vlan = PTIN_XLATE_ACTION_REPLACE;
+      pflow->action_inner_vlan = PTIN_XLATE_ACTION_NONE;
+      pflow->client_vid = evcFlow->uni_ivid;
+      pflow->flags      = 0; //evcFlow->flags;    /* Initial value: no flags exist */
+      pflow->virtual_gport = vport_id;
+      pflow->vport_id   = vport_id & 0xffffff;
+      pflow->macLearnMax  = evcFlow->macLearnMax;
+      pflow->onuId        = evcFlow->onuId;
+      pflow->mask         = evcFlow->mask;
+      pflow->maxBandwidth = evcFlow->maxBandwidth;
+      pflow->maxChannels  = evcFlow->maxChannels;
+
+      dl_queue_add_tail(&evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t*) pflow); /* add it to the corresponding interface */
+      evcs[evc_id].n_clientflows++;
+
+      PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: flow successfully added (vport_id=%lu\tpon=%u/%u(%lu)\tgem_id=%u\tvirtual_gport=0x%8.8lx)",
+               evc_ext_id,
+               vport_id & 0xffffff,
+               evcFlow->ptin_intf.intf_type,evcFlow->ptin_intf.intf_id, intIfNum,
+               evcFlow->uni_ovid, vport_id);
+    }
+    else
+    {
+      PT_LOG_WARN(LOG_CTX_EVC, "EVC# %u: GEM id already exists", evc_id, evcFlow->uni_ovid, leaf_port);
     }
 
-    /* Create virtual port */
-    if (ptin_virtual_port_add(intIfNum,
-                              evcFlow->uni_ovid, evcFlow->uni_ivid,
-                              int_ovid, evcFlow->int_ivid,
-                              multicast_group,
-                              &vport_id,
-                              evcFlow->macLearnMax) != L7_SUCCESS)
+    /* Protocols */
+    igmp_enabled    = (evcFlow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL  ) == PTIN_EVC_MASK_IGMP_PROTOCOL;
+    dhcpv4_enabled  = (evcFlow->flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL) == PTIN_EVC_MASK_DHCPV4_PROTOCOL;
+    dhcpv6_enabled  = (evcFlow->flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL) == PTIN_EVC_MASK_DHCPV6_PROTOCOL;
+    pppoe_enabled   = (evcFlow->flags & PTIN_EVC_MASK_PPPOE_PROTOCOL ) == PTIN_EVC_MASK_PPPOE_PROTOCOL;
+
+    /* Client id: For IGMP */
+    memset(&clientId, 0x00, sizeof(clientId));
+    clientId.ptin_intf.intf_type  = evcFlow->ptin_intf.intf_type;
+    clientId.ptin_intf.intf_id    = evcFlow->ptin_intf.intf_id;
+    clientId.outerVlan            = pflow->int_ovid;
+    clientId.innerVlan            = pflow->int_ivid;
+    clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+
+    /* Manage IGMP client */
+    if (evcFlow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
     {
-      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error creating virtual port", evc_id);
+      /* Add client */
+      if (ptin_igmp_api_client_add(&clientId, pflow->uni_ovid, pflow->uni_ivid, evcFlow->onuId, evcFlow->mask, evcFlow->maxBandwidth, evcFlow->maxChannels, L7_FALSE, evcFlow->packageBmpList, evcFlow->noOfPackages) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error adding client to IGMP instance", evc_id);
+        return L7_FAILURE;
+      }
+      else
+      {
+        PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Added client to IGMP instance", evc_id);
+      }
+    }
+    else if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+    {
+      /* Remove client */
+      if (ptin_igmp_api_client_remove(&clientId) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error removing client from IGMP instance", evc_id);
+        //rc = L7_FAILURE;    /* L7_NOT_EXIST is not an error */
+      }
+      else
+      {
+        PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Client removed from IGMP instance", evc_id);
+      }
+    }
+
+    /* ---------------- IGMP ------------------- */
+    /* Only configure IGMP for first time configurations */
+    if (ptin_evc_update_igmp(evc_id, &pflow->flags, igmp_enabled,
+                             L7_FALSE /*Update*/, L7_TRUE /*Look to counters*/) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error configuring IGMP", evc_id);
+      ptin_igmp_api_client_remove(&clientId);
       return L7_FAILURE;
     }
     else
     {
-      intf_vp_entry_t e;
-
-      e.vport_id  = vport_id & 0xffffff;
-      e.pon       = evcFlow->ptin_intf;
-      e.gem_id    = evcFlow->uni_ovid;
-      //e.onu       = evcFlow->onuId;
-      intf_vp_DB(1, &e);
+      PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: IGMP configured", evc_id);
     }
 
-    /* Add client to the EVC struct */
-    dl_queue_remove_head(&queue_free_clients, (dl_queue_elem_t**) &pflow);    /* get a free client entry */
-    pflow->in_use     = L7_TRUE;                                              /* update it */
-    pflow->int_ovid   = int_ovid;
-    pflow->int_ivid   = evcFlow->int_ivid;
-    pflow->uni_ovid   = evcFlow->uni_ovid;
-    pflow->uni_ivid   = evcFlow->uni_ivid;
-    pflow->action_outer_vlan = PTIN_XLATE_ACTION_REPLACE;
-    pflow->action_inner_vlan = PTIN_XLATE_ACTION_NONE;
-    pflow->client_vid = evcFlow->uni_ivid;
-    pflow->flags      = 0; //evcFlow->flags;    /* Initial value: no flags exist */
-    pflow->virtual_gport = vport_id;
-    pflow->vport_id   = vport_id & 0xffffff;
-    pflow->macLearnMax  = evcFlow->macLearnMax;
-    pflow->onuId        = evcFlow->onuId;
-    pflow->mask         = evcFlow->mask;
-    pflow->maxBandwidth = evcFlow->maxBandwidth;
-    pflow->maxChannels  = evcFlow->maxChannels;
-
-    dl_queue_add_tail(&evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t*) pflow); /* add it to the corresponding interface */
-    evcs[evc_id].n_clientflows++;
-
-    PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: flow successfully added (vport_id=%lu\tpon=%u/%u(%lu)\tgem_id=%u\tvirtual_gport=0x%8.8lx)",
-             evc_ext_id,
-             vport_id & 0xffffff,
-             evcFlow->ptin_intf.intf_type,evcFlow->ptin_intf.intf_id, intIfNum,
-             evcFlow->uni_ovid, vport_id);
-  }
-  else
-  {
-    PT_LOG_WARN(LOG_CTX_EVC, "EVC# %u: GEM id already exists", evc_id, evcFlow->uni_ovid, leaf_port);
-  }
-
-  /* Protocols */
-  igmp_enabled    = (evcFlow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL  ) == PTIN_EVC_MASK_IGMP_PROTOCOL;
-  dhcpv4_enabled  = (evcFlow->flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL) == PTIN_EVC_MASK_DHCPV4_PROTOCOL;
-  dhcpv6_enabled  = (evcFlow->flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL) == PTIN_EVC_MASK_DHCPV6_PROTOCOL;
-  pppoe_enabled   = (evcFlow->flags & PTIN_EVC_MASK_PPPOE_PROTOCOL ) == PTIN_EVC_MASK_PPPOE_PROTOCOL;
-
-  /* Client id: For IGMP */
-  memset(&clientId, 0x00, sizeof(clientId));
-  clientId.ptin_intf.intf_type  = evcFlow->ptin_intf.intf_type;
-  clientId.ptin_intf.intf_id    = evcFlow->ptin_intf.intf_id;
-  clientId.outerVlan            = pflow->int_ovid;
-  clientId.innerVlan            = pflow->int_ivid;
-  clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-
-  /* Manage IGMP client */
-  if (evcFlow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
-  {
-    /* Add client */
-    if (ptin_igmp_api_client_add(&clientId, pflow->uni_ovid, pflow->uni_ivid, evcFlow->onuId, evcFlow->mask, evcFlow->maxBandwidth, evcFlow->maxChannels, L7_FALSE, evcFlow->packageBmpList, evcFlow->noOfPackages) != L7_SUCCESS)
+    #if (!PTIN_BOARD_IS_MATRIX)
+    /* ---------------- DHCP ------------------- */
+    /* Only configure DHCP for first time configurations */
+    if (ptin_evc_update_dhcp(evc_id, &pflow->flags, dhcpv4_enabled, dhcpv6_enabled,
+                             L7_FALSE /*Update*/, L7_TRUE /*Look to counters*/) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error adding client to IGMP instance", evc_id);
+      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error configuring DHCP", evc_id);
       return L7_FAILURE;
     }
     else
     {
-      PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Added client to IGMP instance", evc_id);
+      PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: DHCP configured", evc_id);
     }
-  }
-  else if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
-  {
-    /* Remove client */
-    if (ptin_igmp_api_client_remove(&clientId) != L7_SUCCESS)
+
+    /* ---------------- PPPoE ------------------- */
+    /* PPPoE configuration */
+    if (ptin_evc_update_pppoe(evc_id, &pflow->flags, pppoe_enabled,
+                              L7_FALSE /*Update*/, L7_TRUE /*Look to counters*/) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error removing client from IGMP instance", evc_id);
-      //rc = L7_FAILURE;    /* L7_NOT_EXIST is not an error */
+      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error configuring PPPoE", evc_id);
+      return L7_FAILURE;
     }
     else
     {
-      PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Client removed from IGMP instance", evc_id);
+      PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: PPPoE configured", evc_id);
     }
+    #endif
   }
-
-  /* ---------------- IGMP ------------------- */
-  /* Only configure IGMP for first time configurations */
-  if (ptin_evc_update_igmp(evc_id, &pflow->flags, igmp_enabled,
-                           L7_FALSE /*Update*/, L7_TRUE /*Look to counters*/) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error configuring IGMP", evc_id);
-    ptin_igmp_api_client_remove(&clientId);
-    return L7_FAILURE;
-  }
-  else
-  {
-    PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: IGMP configured", evc_id);
-  }
-
-  #if (!PTIN_BOARD_IS_MATRIX)
-  /* ---------------- DHCP ------------------- */
-  /* Only configure DHCP for first time configurations */
-  if (ptin_evc_update_dhcp(evc_id, &pflow->flags, dhcpv4_enabled, dhcpv6_enabled,
-                           L7_FALSE /*Update*/, L7_TRUE /*Look to counters*/) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error configuring DHCP", evc_id);
-    return L7_FAILURE;
-  }
-  else
-  {
-    PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: DHCP configured", evc_id);
-  }
-
-  /* ---------------- PPPoE ------------------- */
-  /* PPPoE configuration */
-  if (ptin_evc_update_pppoe(evc_id, &pflow->flags, pppoe_enabled,
-                            L7_FALSE /*Update*/, L7_TRUE /*Look to counters*/) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error configuring PPPoE", evc_id);
-    return L7_FAILURE;
-  }
-  else
-  {
-    PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: PPPoE configured", evc_id);
-  }
-  #endif
-
 #else
   PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u: Flows not available for this board", evc_id);
   return L7_ERROR;

@@ -4438,6 +4438,7 @@ const L7_char8 *commandIpMtu(EwsContext ewsContext, L7_uint32 argc, const L7_cha
   L7_uint32 unit;
   L7_RC_t status = L7_SUCCESS;
   L7_char8 buf[L7_CLI_MAX_STRING_LENGTH];
+  L7_RC_t rc;
 
   ewsContext->actionFunctionStatusFlag=L7_ACTION_FUNC_FAILED;
   cliSyntaxTop (ewsContext);
@@ -4493,7 +4494,7 @@ const L7_char8 *commandIpMtu(EwsContext ewsContext, L7_uint32 argc, const L7_cha
            continue;
         }
 
-        L7_RC_t rc = usmDbIntfIpMtuSet(unit, iface, ipMtuSize);
+        rc = usmDbIntfIpMtuSet(unit, iface, ipMtuSize);
         if (rc == L7_FAILURE)
         {
           status = L7_FAILURE;

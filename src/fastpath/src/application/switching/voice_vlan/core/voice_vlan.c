@@ -1063,9 +1063,10 @@ L7_RC_t  voiceVlanPortStatusSet(L7_uint32 intfNum, L7_uint32 status)
     /* check if administratively enabled */
     if ((voiceVlanCfg->voiceVlanAdminMode == L7_ENABLE) && (pCfg->adminMode == L7_ENABLE))
     {
+      L7_uint32 currAcquired;
+
       VOICE_VLAN_TRACE(VOICE_VLAN_TRACE_DEBUG, "%s: Voice Vlan admin mode [%d] Configured Interface mode [%d] \r\n",
                        __FUNCTION__,voiceVlanCfg->voiceVlanAdminMode,pCfg->adminMode );
-      L7_uint32 currAcquired;
 
       /* check the interface state:  Link must be up and either (active or unauth voice VLAN enabled) */
       if ((L7_UP      != linkState) ||

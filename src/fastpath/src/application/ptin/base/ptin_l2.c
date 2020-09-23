@@ -67,112 +67,114 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
             intIfNum, virtual_port);
 
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  ptin_bw_profile_t profile;
-  ptin_bw_meter_t   meter;
-  L7_RC_t           rc = L7_SUCCESS;
-  intf_vp_entry_t   vp_entry;
-
-  /* Search for this entry */
-  memset(&vp_entry, 0x00, sizeof(vp_entry));
-  vp_entry.vport_id = virtual_port & 0xffffff;
-
-  if (intf_vp_DB(3, &vp_entry) != 0)
   {
-    PT_LOG_WARN(LOG_CTX_L2, "Virtual port 0x%08x does not exist!", virtual_port);
-    return L7_FAILURE;
-  }
+    ptin_bw_profile_t profile;
+    ptin_bw_meter_t   meter;
+    L7_RC_t           rc = L7_SUCCESS;
+    intf_vp_entry_t   vp_entry;
 
-#if 0
-  /* virtual ports (NGPON2) */
-  L7_uint32         position = 0;
+    /* Search for this entry */
+    memset(&vp_entry, 0x00, sizeof(vp_entry));
+    vp_entry.vport_id = virtual_port & 0xffffff;
 
-  if (msgsType == ADD_MAC) /* Write a new MAC in a opensaf checkpoint */
-  {
-    PT_LOG_ERR(LOG_CTX_L2, "Msgtype %d", msgsType);
-    //ptin_opensaf_find_free_element(&position, vp_entry.onu, SWITCHDRVR_ONU /* checkpoint id */);
-
-    PT_LOG_ERR(LOG_CTX_L2, "Data position to write %d", position);
-
-    /* find NGPON2 Group*/
-    ptin_opensaf_write_checkpoint(macAddr, MAC_SIZE_BYTES, vp_entry.onu , position, SWITCHDRVR_ONU, ADD_MAC);
-  }
-  else /* Remove MAC from opensaf checkpoint (fill with 0's) */
-  {
-    L7_uchar8 macAddr_aux[MAC_SIZE_BYTES] ="";
-    
-    PT_LOG_ERR(LOG_CTX_L2, "Msgtype %d", msgsType);
-
-    if(ptin_checkpoint_findDatainSection(SWITCHDRVR_ONU, vp_entry.onu, macAddr, MAC_SIZE_BYTES, &position) == 0) /* Find if the MAC is in opensaf and get is position in the section*/
+    if (intf_vp_DB(3, &vp_entry) != 0)
     {
+      PT_LOG_WARN(LOG_CTX_L2, "Virtual port 0x%08x does not exist!", virtual_port);
+      return L7_FAILURE;
+    }
+
+  #if 0
+    /* virtual ports (NGPON2) */
+    L7_uint32         position = 0;
+
+    if (msgsType == ADD_MAC) /* Write a new MAC in a opensaf checkpoint */
+    {
+      PT_LOG_ERR(LOG_CTX_L2, "Msgtype %d", msgsType);
+      //ptin_opensaf_find_free_element(&position, vp_entry.onu, SWITCHDRVR_ONU /* checkpoint id */);
+
+      PT_LOG_ERR(LOG_CTX_L2, "Data position to write %d", position);
+
       /* find NGPON2 Group*/
-      ptin_opensaf_write_checkpoint(macAddr_aux, MAC_SIZE_BYTES, vp_entry.onu, position, SWITCHDRVR_ONU, REMOVE_MAC);
+      ptin_opensaf_write_checkpoint(macAddr, MAC_SIZE_BYTES, vp_entry.onu , position, SWITCHDRVR_ONU, ADD_MAC);
+    }
+    else /* Remove MAC from opensaf checkpoint (fill with 0's) */
+    {
+      L7_uchar8 macAddr_aux[MAC_SIZE_BYTES] ="";
+      
+      PT_LOG_ERR(LOG_CTX_L2, "Msgtype %d", msgsType);
+
+      if(ptin_checkpoint_findDatainSection(SWITCHDRVR_ONU, vp_entry.onu, macAddr, MAC_SIZE_BYTES, &position) == 0) /* Find if the MAC is in opensaf and get is position in the section*/
+      {
+        /* find NGPON2 Group*/
+        ptin_opensaf_write_checkpoint(macAddr_aux, MAC_SIZE_BYTES, vp_entry.onu, position, SWITCHDRVR_ONU, REMOVE_MAC);
+      }
+      else
+      {
+        PT_LOG_ERR(LOG_CTX_L2, "MAC not present in opensaf ");
+      }
+    }
+  #endif /*OPENSAF_SUPPORTED*/
+
+
+    /* If no policer associated, there is nothing to be done! */
+    if (!vp_entry.policer.in_use || vp_entry.policer.meter.cir == (L7_uint32)-1)
+    {
+      return L7_SUCCESS;
+    }
+
+    /* Fill structure for policer */
+    memset(&profile, 0x00, sizeof(profile));
+    memset(&meter, 0x00, sizeof(meter));
+    profile.ptin_port           = -1;
+    profile.outer_vlan_ingress  = vlanId;
+    profile.cos                 = (L7_uint8) -1;
+    memcpy(profile.macAddr, macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+
+    if (msgsType == FDB_ADD)
+    {
+      PT_LOG_TRACE(LOG_CTX_L2, "ADD event: MAC=%02x:%02x:%02x:%02x:%02x:%02x VLAN=%u intIfNum=%u virtual_port=0x%08x",
+                macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5], vlanId, intIfNum, virtual_port);
+
+      /* Add policer */
+      meter.cir = vp_entry.policer.meter.cir;
+      meter.eir = vp_entry.policer.meter.eir;
+      meter.cbs = vp_entry.policer.meter.cbs;
+      meter.ebs = vp_entry.policer.meter.ebs;
+    }
+    else if (msgsType == FDB_DEL)
+    {
+      PT_LOG_TRACE(LOG_CTX_L2, "DEL event: MAC=%02x:%02x:%02x:%02x:%02x:%02x VLAN=%u intIfNum=%u virtual_port=0x%08x",
+                macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5], vlanId, intIfNum, virtual_port);
+
+      /* Remove policer */
+      meter.cir = (L7_uint32) -1;
+      meter.eir = (L7_uint32) -1;
+      meter.cbs = (L7_uint32) -1;
+      meter.ebs = (L7_uint32) -1;
     }
     else
     {
-      PT_LOG_ERR(LOG_CTX_L2, "MAC not present in opensaf ");
+      PT_LOG_ERR(LOG_CTX_L2, "Unknown operation type %u", msgsType);
+      rc = L7_FAILURE;
     }
+
+    PT_LOG_TRACE(LOG_CTX_L2, "Going to configure policer");
+
+    /* Apply policer */
+    if (ptin_bwPolicer_set(&profile, &meter, vp_entry.policer.policer_id) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_L2, "Error applying profile");
+      rc = L7_FAILURE;
+    }
+
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_L2, "Error occurred");
+      return rc;
+    }
+
+    PT_LOG_TRACE(LOG_CTX_L2, "Policer configured successfully");
   }
-#endif /*OPENSAF_SUPPORTED*/
-
-
-  /* If no policer associated, there is nothing to be done! */
-  if (!vp_entry.policer.in_use || vp_entry.policer.meter.cir == (L7_uint32)-1)
-  {
-    return L7_SUCCESS;
-  }
-
-  /* Fill structure for policer */
-  memset(&profile, 0x00, sizeof(profile));
-  memset(&meter, 0x00, sizeof(meter));
-  profile.ptin_port           = -1;
-  profile.outer_vlan_ingress  = vlanId;
-  profile.cos                 = (L7_uint8) -1;
-  memcpy(profile.macAddr, macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
-
-  if (msgsType == FDB_ADD)
-  {
-    PT_LOG_TRACE(LOG_CTX_L2, "ADD event: MAC=%02x:%02x:%02x:%02x:%02x:%02x VLAN=%u intIfNum=%u virtual_port=0x%08x",
-              macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5], vlanId, intIfNum, virtual_port);
-
-    /* Add policer */
-    meter.cir = vp_entry.policer.meter.cir;
-    meter.eir = vp_entry.policer.meter.eir;
-    meter.cbs = vp_entry.policer.meter.cbs;
-    meter.ebs = vp_entry.policer.meter.ebs;
-  }
-  else if (msgsType == FDB_DEL)
-  {
-    PT_LOG_TRACE(LOG_CTX_L2, "DEL event: MAC=%02x:%02x:%02x:%02x:%02x:%02x VLAN=%u intIfNum=%u virtual_port=0x%08x",
-              macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5], vlanId, intIfNum, virtual_port);
-
-    /* Remove policer */
-    meter.cir = (L7_uint32) -1;
-    meter.eir = (L7_uint32) -1;
-    meter.cbs = (L7_uint32) -1;
-    meter.ebs = (L7_uint32) -1;
-  }
-  else
-  {
-    PT_LOG_ERR(LOG_CTX_L2, "Unknown operation type %u", msgsType);
-    rc = L7_FAILURE;
-  }
-
-  PT_LOG_TRACE(LOG_CTX_L2, "Going to configure policer");
-
-  /* Apply policer */
-  if (ptin_bwPolicer_set(&profile, &meter, vp_entry.policer.policer_id) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_L2, "Error applying profile");
-    rc = L7_FAILURE;
-  }
-
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_L2, "Error occurred");
-    return rc;
-  }
-
-  PT_LOG_TRACE(LOG_CTX_L2, "Policer configured successfully");
 #endif
 
   return L7_SUCCESS;

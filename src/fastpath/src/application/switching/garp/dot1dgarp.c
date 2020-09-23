@@ -1571,14 +1571,14 @@ void garpIntfAcquireReleaseCheck(L7_uint32 intIfNum, L7_PORT_EVENTS_t event,
 *********************************************************************/
 L7_RC_t garpVlanChangeProcess(dot1qNotifyData_t *vlanData, L7_uint32 intIfNum, L7_uint32 event,L7_ushort16 gvrp_event)
 {
-    L7_RC_t     rc;
     GARPCommand cmd;
     L7_uint32   status;
     L7_uint32   mode;
     L7_uint32   index;
     L7_uint32 i = 0, vlanId = 0, numVlans = 0;
-    rc = L7_SUCCESS;
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+    L7_RC_t     rc = L7_SUCCESS;
+
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
     for (i = 1; i<=L7_VLAN_MAX_MASK_BIT; i++)

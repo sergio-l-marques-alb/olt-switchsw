@@ -77,7 +77,7 @@ L7_RC_t hapiBroadFireboltMmuConfigModify(L7_uint32 unit)
   soc_port_t  port;
   int treg,cos;
   int ncells;
-  int static_cells = 0;;
+  int static_cells = 0;
   int dynamic_cells = 0;
   int dyncell_e,dyncell_hg;
   int ibpcell_e;

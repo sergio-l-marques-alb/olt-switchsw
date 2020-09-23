@@ -1201,33 +1201,33 @@ static L7_RC_t hapiBroadQosAclInstAdd(DAPI_USP_t               *usp,
                 break;
 
             case L7_QOS_ACL_TLV_ATTR_MIRROR_TYPE:
+              {
+                DAPI_USP_t mirrorUsp;
+                BROAD_METER_ENTRY_t meterInfo;
+                denyFlag = 0;    
+                captureNotDeny = 1;
 
-              denyFlag = 0;    
-              captureNotDeny = 1;
-              DAPI_USP_t mirrorUsp;
-              BROAD_METER_ENTRY_t meterInfo;
+                /* PTIN TODO: Currently the intfnum comming from the above layer is being ignored and the CPU port is forced */
+                #if 0
+                mirrorUsp.unit = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,0));
+                mirrorUsp.slot = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,4));
+                mirrorUsp.port = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,8));
+                #else                   
+                mirrorUsp.unit = 0;
+                mirrorUsp.slot = L7_CPU_SLOT_NUM;
+                mirrorUsp.port = 0;
+                #endif
 
-              /* PTIN TODO: Currently the intfnum comming from the above layer is being ignored and the CPU port is forced */
-              #if 0
-              mirrorUsp.unit = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,0));
-              mirrorUsp.slot = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,4));
-              mirrorUsp.port = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,8));
-              #else                   
-              mirrorUsp.unit = 0;
-              mirrorUsp.slot = L7_CPU_SLOT_NUM;
-              mirrorUsp.port = 0;
-              #endif
-
-              result = hapiBroadPolicyRuleActionAdd(ruleId,
+                result = hapiBroadPolicyRuleActionAdd(ruleId,
                                                      BROAD_ACTION_MIRROR,
                                                      mirrorUsp.unit,
                                                      mirrorUsp.slot,
                                                      mirrorUsp.port);
 
-               result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_PERMIT, 0, 0, 0);
+                result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_PERMIT, 0, 0, 0);
 
-               if (result == L7_SUCCESS)
-               {
+                if (result == L7_SUCCESS)
+                {
                  /* Workaround for VK2 (TG16G) */
                  result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_PCAP, 0, 0);
                     
@@ -1256,7 +1256,8 @@ static L7_RC_t hapiBroadQosAclInstAdd(DAPI_USP_t               *usp,
 
                     result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
                   }
-                 }
+                }
+              }
             break;
 
             /* Timed Based ACLs - Reading the correaltor and rule status information from the TLV */

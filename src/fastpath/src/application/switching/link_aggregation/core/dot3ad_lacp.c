@@ -94,7 +94,7 @@ static dot3ad_mux_machine_state_t muxStateTable[lacpMuxEvents-lacpPerEvents][MUX
 extern L7_uint32 dot3adBufferPoolId;
 
 static unsigned short int ptin_debug_lacp = 0;
-inline void ptin_debug_lacp_set(unsigned short int enable){ptin_debug_lacp = enable;};
+void ptin_debug_lacp_set(unsigned short int enable){ptin_debug_lacp = enable;};
 
 /**************************************************************************
 *
@@ -1523,6 +1523,7 @@ L7_RC_t dot3adMuxMachineAttachedAction(dot3ad_port_t *p)
 *************************************************************************/
 L7_RC_t dot3adMuxMachineCollDistAction(dot3ad_port_t *p)
 {
+  dot3ad_agg_t *a;
   L7_RC_t rc;
 
   PT_LOG_INFO(LOG_CTX_TRUNKS, "Coll+Dist Action: intIfNum=%u", p->actorPortNum);
@@ -1551,7 +1552,6 @@ L7_RC_t dot3adMuxMachineCollDistAction(dot3ad_port_t *p)
   /* PTin added: Blocked state */
 #if 1
   /* is the aggregator valid */
-  dot3ad_agg_t  *a;
   a = dot3adAggIntfFind(p->actorOperPortKey);
   if (a == L7_NULLPTR)
   {

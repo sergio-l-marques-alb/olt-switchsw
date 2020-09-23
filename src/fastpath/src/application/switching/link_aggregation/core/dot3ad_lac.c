@@ -304,7 +304,7 @@ L7_RC_t dot3adIntfChangeCallBack(L7_uint32 intIfNum, L7_uint32 event,NIM_CORRELA
   L7_RC_t rc;
   dot3adMsg_t msg;
   NIM_EVENT_COMPLETE_INFO_t status;
-
+  L7_int32 numMsg;
 
 
   PT_LOG_TRACE(LOG_CTX_EVENTS, "dot3adIntfChangeCallBack: event=%u, intIfNum=%u", event, intIfNum);
@@ -344,7 +344,7 @@ L7_RC_t dot3adIntfChangeCallBack(L7_uint32 intIfNum, L7_uint32 event,NIM_CORRELA
   msg.intfData.nimInfo.event        = event;
   msg.intfData.nimInfo.correlator   = correlator;
 
-  L7_int32 numMsg = -1;
+  numMsg = -1;
   osapiMsgQueueGetNumMsgs(dot3ad_queue, &numMsg);
   PT_LOG_TRACE(LOG_CTX_EVENTS, "Going to send message: event=%u, intIfNum=%u, msg_count=%d", event, intIfNum, numMsg);
 

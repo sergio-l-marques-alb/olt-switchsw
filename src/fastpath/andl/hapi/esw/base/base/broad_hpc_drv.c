@@ -868,6 +868,7 @@ void hpcHardwareDefaultConfigApply(void)
   int i;
   int index;
   int rv;
+  bcm_pbmp_t pbmp;
   bcm_pbmp_t ubmp;
   int port;
   bcm_cos_queue_t cosq;
@@ -1044,8 +1045,6 @@ void hpcHardwareDefaultConfigApply(void)
               rv);  
     }
 
-
-    bcm_pbmp_t pbmp;
     BCM_PBMP_ASSIGN(pbmp, PBMP_PORT_ALL(i));
 
     BCM_PBMP_CLEAR(ubmp);

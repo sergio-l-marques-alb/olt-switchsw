@@ -2165,16 +2165,15 @@ L7_RC_t cliRunningConfigRadiusInfo(EwsContext ewsContext, L7_uint32 unit)
   L7_IP_ADDRESS_TYPE_t acctTypeList[L7_RADIUS_MAX_ACCT_SERVERS] = {L7_IP_ADDRESS_TYPE_UNKNOWN};
   L7_char8 acctHostList[L7_RADIUS_MAX_ACCT_SERVERS][L7_DNS_HOST_NAME_LEN_MAX];
 
+  L7_IP_ADDRESS_TYPE_t type = L7_IP_ADDRESS_TYPE_UNKNOWN;
+  L7_char8 name[L7_RADIUS_SERVER_NAME_LENGTH+1];
+
   L7_uint32 count;
   L7_int32 i;
   L7_RC_t rc = L7_FAILURE;
 
   memset(authHostList, 0x00, sizeof(L7_DNS_HOST_NAME_LEN_MAX) * L7_RADIUS_MAX_AUTH_SERVERS);
   memset(acctHostList, 0x00, sizeof(L7_DNS_HOST_NAME_LEN_MAX) * L7_RADIUS_MAX_ACCT_SERVERS);
-
-
-  L7_IP_ADDRESS_TYPE_t type = L7_IP_ADDRESS_TYPE_UNKNOWN;
-  L7_char8 name[L7_RADIUS_SERVER_NAME_LENGTH+1];
 
   if ( usmDbRadiusAccountingModeGet(unit, &val ) == L7_SUCCESS )
   {
@@ -2816,17 +2815,16 @@ L7_RC_t cliRunningPhysicalInterfaceInfo(EwsContext ewsContext, L7_uint32 unit, L
   L7_uchar8 paeCap;
   L7_uint32 tmpVal;
   L7_int32 hashMode;
-
   L7_ushort16 defPrio;
+#ifdef L7_ROUTING_PACKAGE
+  L7_int32 bandwidth;
+#endif
 
   autoCount = 0;
   includeCount = 0;
   excludeCount = 0;
   tagCount = 0;
   notagCount = 0;
-#ifdef L7_ROUTING_PACKAGE
-  L7_int32 bandwidth;
-#endif
 
 #if defined L7_DOT1AD_PACKAGE
   DOT1AD_INTFERFACE_TYPE_t  intfType;

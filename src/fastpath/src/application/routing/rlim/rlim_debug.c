@@ -343,10 +343,10 @@ L7_RC_t rlimDebugShow()
   sysapiPrintf("Configured Tunnel interfaces:\n");
   while (entryFound)
   {
+    rlimTunnelCfgData_t *tcp = &rlimCfgData->tunnelCfgData[tunnelId];
+
     if (tunnelId > RLIM_MAX_TUNNEL_ID)
       break;
-
-    rlimTunnelCfgData_t *tcp = &rlimCfgData->tunnelCfgData[tunnelId];
 
     sysapiPrintf("    tunnel%u\n", tunnelId);
     sysapiPrintf("        mode: %s\n", rlimTunnelModeString(tcp->tunnelMode));

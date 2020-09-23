@@ -2318,7 +2318,7 @@ void o2UpdateStats(t_RTO *p_RTO)
 {
   L7_uint32 index = p_RTO->statsIndex;
   L7_uint32 prevIndex = (index == 0) ? O2_STATS_SIZE - 1 : index - 1;
-  L7_uint32 rxDelta;;
+  L7_uint32 rxDelta;
   L7_uint32 txDelta;
 
   /* Record current stats */

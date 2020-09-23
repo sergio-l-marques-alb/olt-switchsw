@@ -1558,7 +1558,7 @@ static L7_RC_t ipMapIntfDisable(L7_uint32 intIfNum)
   return rc;
 }
 
-L7_RC_t ptin_ipMapRoutingIntfCreate(intIfNum)
+L7_RC_t ptin_ipMapRoutingIntfCreate(L7_uint32 intIfNum)
 {
   return ipMapRoutingIntfCreate(intIfNum);
 }
@@ -3138,9 +3138,9 @@ L7_RC_t ipMapRtrIntfSecondaryIpAddressApply(L7_uint32 intIfNum, L7_uint32 ipAddr
     L7_routeEntry_t routeEntry;
     L7_RC_t rc;
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-    nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
-
     static const char *routine_name = "ipMapRtrIntfSecondaryIpAddressApply()";
+
+    nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
     IPMAP_TRACE("%s %d: %s : intf %d, %s\n",
                 __FILE__, __LINE__, routine_name, intIfNum, ifName);
@@ -3429,44 +3429,46 @@ void ipMapRtrIntfStaticConfigApply(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddr,
 L7_RC_t ipMapRtrIntfSecondaryIpAddressRemoveApply(L7_uint32 intIfNum, L7_uint32 ipAddr,
                                                   L7_uint32 ipMask, L7_uint32 index)
 {
-    L7_routeEntry_t routeEntry;
+  L7_routeEntry_t routeEntry;
   L7_rtrCfgCkt_t *pCfg;
 
   if (!ipMapMapIntfIsConfigurable(intIfNum, &pCfg))
+  {
     return L7_FAILURE;
+  }
 
-    if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
-    {
-        L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
-        sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddressRemoveApply: intIfNum %d\n",
-            intIfNum);
-        ipMapTraceWrite(traceBuf);
-    }
+  if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
+  {
+      L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
+      sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddressRemoveApply: intIfNum %d\n",
+          intIfNum);
+      ipMapTraceWrite(traceBuf);
+  }
 
   /* De-activate static routes and static ARP entries on this subnet. */
   ipMapRtrIntfStaticConfigRemoveApply(intIfNum, ipAddr, ipMask);
 
-    /* Remove the secondary address from the IP stack */
-    if (ipmRouterIfSecondaryAddrDelete(intIfNum, ipAddr, ipMask, index) != L7_SUCCESS)
-    {
-        if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
-        {
-            L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
-            sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddressRemoveApply: "
-              "Failed to remove address from IP stack.\n");
-            ipMapTraceWrite(traceBuf);
-        }
-        return L7_FAILURE;
-    }
+  /* Remove the secondary address from the IP stack */
+  if (ipmRouterIfSecondaryAddrDelete(intIfNum, ipAddr, ipMask, index) != L7_SUCCESS)
+  {
+      if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
+      {
+          L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
+          sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddressRemoveApply: "
+            "Failed to remove address from IP stack.\n");
+          ipMapTraceWrite(traceBuf);
+      }
+      return L7_FAILURE;
+  }
 
-    memset(&routeEntry, 0x00, sizeof(L7_routeEntry_t));
-    routeEntry.ipAddr      = (ipAddr & ipMask);
-    routeEntry.subnetMask  = ipMask;
-    routeEntry.protocol    = RTO_LOCAL;
-    routeEntry.metric      = FD_RTR_ROUTE_LOCAL_COST;
-    routeEntry.ecmpRoutes.equalCostPath[0].arpEntry.ipAddr = ipAddr;
-    routeEntry.ecmpRoutes.numOfRoutes = 1;
-    rtoRouteDelete(&routeEntry);
+  memset(&routeEntry, 0x00, sizeof(L7_routeEntry_t));
+  routeEntry.ipAddr      = (ipAddr & ipMask);
+  routeEntry.subnetMask  = ipMask;
+  routeEntry.protocol    = RTO_LOCAL;
+  routeEntry.metric      = FD_RTR_ROUTE_LOCAL_COST;
+  routeEntry.ecmpRoutes.equalCostPath[0].arpEntry.ipAddr = ipAddr;
+  routeEntry.ecmpRoutes.numOfRoutes = 1;
+  rtoRouteDelete(&routeEntry);
 
   if (ipMapIntfSupports(intIfNum, IPMAP_INTFCAP_ARP) == L7_TRUE)
   {
@@ -3487,11 +3489,11 @@ L7_RC_t ipMapRtrIntfSecondaryIpAddressRemoveApply(L7_uint32 intIfNum, L7_uint32 
     }
   }
 
-    /* Notify registered users of deletion event. Not asynchronous. */
-    ipMapRoutingEventChangeNotify(intIfNum, L7_RTR_INTF_SECONDARY_IP_ADDR_DELETE,
+  /* Notify registered users of deletion event. Not asynchronous. */
+  ipMapRoutingEventChangeNotify(intIfNum, L7_RTR_INTF_SECONDARY_IP_ADDR_DELETE,
                                 L7_FALSE, L7_NULLPTR);
 
-    return L7_SUCCESS;
+  return L7_SUCCESS;
 }
 
 /*********************************************************************

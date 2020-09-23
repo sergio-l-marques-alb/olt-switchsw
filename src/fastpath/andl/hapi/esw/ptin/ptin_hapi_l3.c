@@ -29,6 +29,25 @@ L7_RC_t ptin_hapi_l3_host_add(ptin_dapi_port_t *dapiPort, st_ptin_l3 *data)
     int               l2tocpu = 0;
     int               rv = L7_SUCCESS;
 
+    bcm_l3_egress_t   egress_object;
+    int               copytocpu = 0;
+    int               drop = 0;
+    int               mpls_label = BCM_MPLS_LABEL_INVALID;
+    int               object_id = -1;
+    uint32            flags = 0;
+
+    bcm_l3_host_t   host_info;
+    int             host_as_route = 0;
+    bcm_ip_t        ip_addr = 0;
+    int             untag = 0;
+    int             hits = 0;
+    int             replace = 0;
+    int             rpe = 0;
+    int             v6  = 0;
+    int             pri = 0;
+    int             vrf = 0;
+    int             lookup_class = 0;
+    bcm_ip6_t       ip6_addr;
 
     /* Input parameters */
 
@@ -65,16 +84,7 @@ L7_RC_t ptin_hapi_l3_host_add(ptin_dapi_port_t *dapiPort, st_ptin_l3 *data)
     }
 
 
-
     /* _l3_cmd_egress_object_create */
-
-    bcm_l3_egress_t   egress_object;             
-    int               copytocpu = 0;
-    int               drop = 0;
-    int               mpls_label = BCM_MPLS_LABEL_INVALID;
-    int               object_id = -1;
-    uint32            flags = 0;
-
     bcm_l3_egress_t_init(&egress_object);
     sal_memset(mac, 0, sizeof(bcm_mac_t));
 
@@ -125,21 +135,6 @@ L7_RC_t ptin_hapi_l3_host_add(ptin_dapi_port_t *dapiPort, st_ptin_l3 *data)
 
 
     /* _l3_cmd_host_add */
-
-    bcm_l3_host_t   host_info;
-    int             host_as_route = 0;
-    bcm_ip_t        ip_addr = 0;
-    int             untag = 0;
-    int             hits = 0;
-    int             replace = 0;
-    int             rpe = 0;
-    int             v6  = 0;
-    int             pri = 0;
-    int             vrf = 0;
-    int             lookup_class = 0;
-    bcm_ip6_t       ip6_addr;
-
-
     /* Init struct */
     bcm_l3_host_t_init(&host_info);
 

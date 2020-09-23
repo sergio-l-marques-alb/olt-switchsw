@@ -856,15 +856,14 @@ _proc_ethsrv_oam_CSF_function_end:
         tmout= OAM_TMR_CODE_TO_ms[_p_mep_lm->period];
         _p_mep_lm->LMM_timer += T_ms;
         if (_p_mep_lm->LMM_timer+T_ms/2 > tmout) {//time_2_send_lmm=1;
+            L7_int32 intIfNum; 
+
             _p_mep_lm->LMM_timer=0;
 
             // Get MAC Address
-            L7_int32 intIfNum; 
             ETHSRV_OAM_LOG ("%u", _p_mep->prt);
             ptin_intf_port2intIfNum( _p_mep->prt, &intIfNum);
             nimGetIntfAddress(intIfNum, 1, _p_mep_lm->DMAC.byte);   //memcpy(buff, pSMAC, 6)
-
-
 
             ETHSRV_OAM_LOG ("MAC %02x:%02x:%02x:%02x:%02x:%02x ", 
            _p_mep_lm->SMAC.byte[0],  _p_mep_lm->SMAC.byte[1],  _p_mep_lm->SMAC.byte[2],  _p_mep_lm->SMAC.byte[3],  _p_mep_lm->SMAC.byte[4],  _p_mep_lm->SMAC.byte[5]);
@@ -1461,7 +1460,7 @@ u16                 ltr_len = sizeof(ETH_LTR_OAM_DATAGRM);
          ltm_eg_id= (T_LTM_EG_ID_TLV *) &((u8*)p_ltm)[i_eg_id_tlv];
          memcpy(&p_eg_id->last, &ltm_eg_id->v, sizeof(p_eg_id->last));
          memset(p_eg_id->next.zero, 0, 2);
-         memcpy(p_eg_id->next.mac, MP_MAC, sizeof(p_eg_id->next.mac));
+         memcpy(p_eg_id->next.mac, MP_MAC, sizeof(u8)*6);
      }
 
      //REPLY ING/EG TLV
@@ -1476,7 +1475,7 @@ u16                 ltr_len = sizeof(ETH_LTR_OAM_DATAGRM);
          p_rpl_id->type=        REPLY_IN_TLV_TYPE;
          p_rpl_id->action=      ingaction;    
      }
-     memcpy(p_rpl_id->v.mac, MP_MAC, sizeof(p_rpl_id->v.mac));
+     memcpy(p_rpl_id->v.mac, MP_MAC, sizeof(u8)*6);
 
      //END TLV
      ((u8*)p_rpl_id)[sizeof(T_RPL_IN_ID_TLV)]=0;

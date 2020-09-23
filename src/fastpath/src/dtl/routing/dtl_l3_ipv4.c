@@ -353,7 +353,6 @@ L7_RC_t dtlIpv4SpoofingModeSet(L7_uint32 mode)
 *********************************************************************/
 L7_RC_t dtlIpv4SpoofingHandlingSet(L7_uint32 mode)
 {
-
   static const char *routine_name = "dtlIpv4SpoofingHandlingSet()";
 
   DTL_IP_TRACE("%s : mode =  %s, \n",
@@ -385,7 +384,6 @@ L7_RC_t dtlIpv4ICMPRedirectModeSet(L7_uint32 mode)
   L7_BOOL     enable;
   DAPI_USP_t ddusp;
   L7_RC_t dr;
-
   static const char *routine_name = "dtlIpv4ICMPRedirectModeSet()";
 
   DTL_IP_TRACE("%s : mode =  %s, \n", routine_name, mode?"enable":"disable");
@@ -791,10 +789,9 @@ L7_RC_t dtlIpv4LocalMulticastAddrAdd(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddress)
   nimUSP_t nimusp;
   DAPI_USP_t ddusp;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-  nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
-
-
   static const char *routine_name = "dtlIpv4LocalMulticastAddrAdd()";
+
+  nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
   DTL_IP_TRACE("%s : intf = %u, %s, IP Addr = %x  \n",
                  routine_name,
@@ -850,9 +847,9 @@ L7_RC_t dtlIpv4LocalMulticastAddrDelete(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddre
   nimUSP_t nimusp;
   DAPI_USP_t ddusp;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-  nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
-
   static const char *routine_name = "dtlIpv4LocalMulticastAddrDelete()";
+
+  nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
   DTL_IP_TRACE("%s : intf = %u, %s, IP Addr = %x  \n",
                  routine_name,
@@ -916,10 +913,9 @@ L7_RC_t dtlIpv4ArpEntryAdd(L7_arpEntry_t *pArp)
   nimUSP_t nimusp;
   DAPI_USP_t ddusp;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-  nimGetIntfName(pArp->intIfNum, L7_SYSNAME, ifName);
-
-
   static const char *routine_name = "dtlIpv4ArpEntryAdd()";
+
+  nimGetIntfName(pArp->intIfNum, L7_SYSNAME, ifName);
 
   DTL_IP_TRACE("%s : IP Addr = %x, intf = %u, %s, flags = %x, vlan = %d" \
                  " mac addr = %d:%d:%d:%d:%d:%d \n",
@@ -997,9 +993,9 @@ L7_RC_t dtlIpv4ArpEntryModify(L7_arpEntry_t *pArp)
   nimUSP_t nimusp;
   DAPI_USP_t ddusp;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-  nimGetIntfName(pArp->intIfNum, L7_SYSNAME, ifName);
-
   static const char *routine_name = "dtlIpv4ArpEntryModify()";
+
+  nimGetIntfName(pArp->intIfNum, L7_SYSNAME, ifName);
 
   DTL_IP_TRACE("%s : IP Addr = %x, intf = %u, %s, flags = %x, vlan = %d" \
                  " mac addr = %d:%d:%d:%d:%d:%d \n",
@@ -1073,7 +1069,6 @@ L7_RC_t dtlIpv4ArpEntryDelete(L7_arpEntry_t *pArp)
   DAPI_ROUTING_ARP_CMD_t dapiCmd;
   nimUSP_t nimusp;
   DAPI_USP_t ddusp;
-
   static const char *routine_name = "dtlIpv4ArpEntryDelete()";
 
   DTL_IP_TRACE("%s : IP Addr =  %x,  \n",
@@ -1142,7 +1137,6 @@ dtlIpv4ArpEntryDeleteAll (void)
   L7_RC_t dr;
   DAPI_ROUTING_ARP_CMD_t dapiCmd;
   DAPI_USP_t ddusp;
-
   static const char *routine_name = "dtlIpv4ArpEntryDeleteAll()";
 
   DTL_IP_TRACE("%s \n", routine_name);
@@ -1193,10 +1187,9 @@ L7_RC_t dtlIpv4ArpEntryQuery(L7_arpQuery_t *pArp)
   DAPI_USP_t ddusp;
   L7_uint32 lhs,lhd;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-  nimGetIntfName(pArp->intIfNum, L7_SYSNAME, ifName);
-
-
   static const char *routine_name = "dtlIpv4ArpEntryQuery()";
+
+  nimGetIntfName(pArp->intIfNum, L7_SYSNAME, ifName);
 
   DTL_IP_TRACE("%s %d: %s : IP Addr = %x, vlan = %d, intf = %u, %s\n",
                __FILE__, __LINE__, routine_name,
@@ -1282,9 +1275,7 @@ L7_RC_t dtlIpv4ArpEntryCallback(DAPI_USP_t *ddusp,
   DAPI_ROUTING_ARP_CMD_t *dapiRsp = (DAPI_ROUTING_ARP_CMD_t *)dapiEventInfo;
   L7_arpEntry_t arpEntry;
   nimUSP_t      nimUsp;
-
   static const char *routine_name = "dtlIpv4ArpEntryQueryCallback()";
-
 
   /* this function only for ARP Mgmt family */
   if (family != DAPI_FAMILY_ROUTING_ARP_MGMT)
@@ -1680,7 +1671,6 @@ static L7_RC_t dtlIpv4RouteEntryExtract(L7_routeEntry_t *pRoute,
   DAPI_ROUTING_ROUTE_DESTINATION_t *pEcrRow, *pEcr;
 #endif
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-
   static const char *routine_name = "dtlIpv4RouteEntryExtract()";
 
   for (i=0; i < pRoute->ecmpRoutes.numOfRoutes; i++)
@@ -1808,9 +1798,9 @@ L7_RC_t dtlIpv4VrrpVridAdd(L7_uint32 intIfNum, L7_uint32 vrID, L7_uint32 ipAddr)
   DAPI_USP_t ddusp;
   nimUSP_t nimusp;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-  nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
-
   static const char *routine_name = "dtlIpv4VrrpVridAdd()";
+
+  nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
   ipCircuit.intIfNum    = intIfNum;
   ipCircuit.vlanId      = 0;        /* FUTURE_FUNC */
@@ -1870,9 +1860,9 @@ L7_RC_t dtlIpv4VrrpVridDelete(L7_uint32 intIfNum, L7_uint32 vrID)
   DAPI_USP_t ddusp;
   nimUSP_t nimusp;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-  nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
-
   static const char *routine_name = "dtlIpv4VrrpVridDelete()";
+
+  nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
   ipCircuit.intIfNum    = intIfNum;
   ipCircuit.vlanId      = 0;        /* FUTURE_FUNC */

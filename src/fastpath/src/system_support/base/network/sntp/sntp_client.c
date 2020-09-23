@@ -851,10 +851,10 @@ static L7_RC_t sntpLocalMcastSocketOpen()
 {
   L7_uint32 on = 1;
   L7_sockaddr_union_t baddr;
-  localAddr = L7_INADDR_ANY;
-
   struct L7_ip_mreq_s  ipMreq;
      
+  localAddr = L7_INADDR_ANY;
+
   /** Open a socket and begin querying the server. */
   if (osapiSocketCreate(L7_AF_INET, L7_SOCK_DGRAM, 0, &ucastFd) != L7_SUCCESS)
   {
@@ -1600,6 +1600,7 @@ static L7_RC_t sntpResponseProcess(L7_char8 * response, L7_int32 responseLen)
   L7_int32 delay;
   L7_int32 offset;
   sntpPacket_t ntpData;
+  L7_char8 * buf;
   L7_RC_t updateStatus = L7_FAILURE;
   
   L7_uchar8 recvAddressDisplay[L7_SNTP_MAX_ADDRESS_LEN];
@@ -1699,7 +1700,7 @@ static L7_RC_t sntpResponseProcess(L7_char8 * response, L7_int32 responseLen)
       sntpStatusData->sntpLastUpdateTime = osapiUTCTimeNow();
 
       /* Need to add/update conversion routines in osapi */
-      L7_char8 * buf = ctime((void *)&(sntpStatusData->sntpLastUpdateTime));
+      buf = ctime((void *)&(sntpStatusData->sntpLastUpdateTime));
       buf[24] = '\0';
       SNTP_PRINTF("SNTP: system clock synchronized on %s UTC. Indicates that SNTP has"
                   " successfully synchronized the time of the box with the server.", buf);

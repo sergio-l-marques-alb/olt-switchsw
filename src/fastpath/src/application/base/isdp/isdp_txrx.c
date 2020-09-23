@@ -299,6 +299,8 @@ L7_RC_t isdpTcnTx(L7_uint32 intIfNum, L7_uchar8 version)
   L7_netBufHandle     bufHandle = L7_NULL;
   L7_RC_t             rc        = L7_SUCCESS;
   L7_uchar8           ifName[L7_NIM_IFNAME_SIZE + 1];
+  isdpEntry_t         *pEntry = L7_NULLPTR;
+  isdpEntryKey_t      key;
 #ifdef L7_ROUTING_PACKAGE
   L7_IP_ADDR_t        ipAddress = 0;
   L7_IP_MASK_t        mask      = 0;
@@ -307,10 +309,9 @@ L7_RC_t isdpTcnTx(L7_uint32 intIfNum, L7_uchar8 version)
   L7_BOOL             vlanParticipate = L7_TRUE;
   L7_uint32           mode            = L7_NULL;
   L7_VLAN_MASK_t vidMask;
+
   memset(&vidMask, L7_NULL, sizeof(L7_VLAN_MASK_t));
 #endif /* L7_ROUTING_PACKAGE */
-  isdpEntry_t         *pEntry = L7_NULLPTR;
-  isdpEntryKey_t      key;
 
   memset(ifName, 0, sizeof(ifName));
 

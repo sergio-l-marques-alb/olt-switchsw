@@ -908,16 +908,18 @@ int main(int argc, char *argv[], char *envp[])
   }
 
 #if 1
-  int res;
-  struct rlimit coreLimit;
-  coreLimit.rlim_cur = RLIM_INFINITY;
-  coreLimit.rlim_max = RLIM_INFINITY;
+  {
+    int res;
+    struct rlimit coreLimit;
+    coreLimit.rlim_cur = RLIM_INFINITY;
+    coreLimit.rlim_max = RLIM_INFINITY;
 
-  res = setrlimit(RLIMIT_CORE, (const struct rlimit*)&coreLimit);
-  PT_LOG_INFO(LOG_CTX_STARTUP,"set core limit %d", res);
+    res = setrlimit(RLIMIT_CORE, (const struct rlimit*)&coreLimit);
+    PT_LOG_INFO(LOG_CTX_STARTUP,"set core limit %d", res);
 
-  res = getrlimit(RLIMIT_CORE, &coreLimit);
-  PT_LOG_INFO(LOG_CTX_STARTUP,"core size limits : cur %d max %d", (int)coreLimit.rlim_cur, (int)coreLimit.rlim_max);
+    res = getrlimit(RLIMIT_CORE, &coreLimit);
+    PT_LOG_INFO(LOG_CTX_STARTUP,"core size limits : cur %d max %d", (int)coreLimit.rlim_cur, (int)coreLimit.rlim_max);
+  }
 #endif
 
   sigemptyset(&BlockedSigs);

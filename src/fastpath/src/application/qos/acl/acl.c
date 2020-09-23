@@ -11062,10 +11062,10 @@ void aclTRCorrEntryListInitialize()
 L7_RC_t aclTRCorrEntryGet(aclTRCorrEntry_t **aclTRCorrEntryPtr)
 {
   L7_uint32 msgLvlReqd;
+  aclTRCorrEntry_t *aclTRCorrEntryTemp = L7_NULLPTR;
+
   /* always display output for this function */
   msgLvlReqd = ACL_MSGLVL_LO_2;
- 
-  aclTRCorrEntry_t *aclTRCorrEntryTemp = L7_NULLPTR;
 
   if (aclTRCorrEntryPtr == L7_NULLPTR ||
       aclTRCorrEntryListFree == L7_NULLPTR)

@@ -1300,6 +1300,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
    register L7_ipHeader_t *ip_header;
    sysnet_pdu_info_t pduInfo;
    SYSNET_PDU_RC_t hookAction;
+   ptin_PptTsRecord_t ptpTs;
 
    /* PTin added: inband */
    L7_uint16    vid = 0;                        
@@ -1312,7 +1313,6 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
    info->dtlCmdInfo.cmdType.L2.flags = 0;
 
    /* Register a PTP TS */
-   ptin_PptTsRecord_t ptpTs;
    ptpTs.validTsRecord = L7_FALSE;
 
    /*
@@ -1381,12 +1381,15 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
       }
       else if (dtl0Vid == PTIN_VLAN_PCAP_EXT)
       {            
+        int intfNum;
+        int vlan;
+
         /* Remove PTIN_VLAN_PCAP_EXT TAG*/
         ptin_RemoveTag(data, &data_length);
 
         /* Get IntfNum from agent (were the packet were receive)*/
-        int intfNum =((data[14]<<8) & 0x0F00) | (data[15] & 0x00FF);
-        int vlan = ((data[18]<<8) & 0x0F00) | (data[19] & 0x00FF);
+        intfNum =((data[14]<<8) & 0x0F00) | (data[15] & 0x00FF);
+        vlan = ((data[18]<<8) & 0x0F00) | (data[19] & 0x00FF);
 
         if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
         {

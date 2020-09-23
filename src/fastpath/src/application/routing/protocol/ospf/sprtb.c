@@ -1950,10 +1950,6 @@ static e_Err AsExtModifyRte(t_RTB *p_RTB, t_A_DbEntry *p_DbEntry,
    ulng prevCost;
    t_S_AsExternalLsa* lsaForRoute;
    Bool  preferNewRte = FALSE;
-
-   if (!p_PreferRte)
-     return E_FAILED;
-
    /* forwarding address advertised in the LSA for the destination network. */
    SP_IPADR fwdingAddr = 0;
 
@@ -1962,6 +1958,9 @@ static e_Err AsExtModifyRte(t_RTB *p_RTB, t_A_DbEntry *p_DbEntry,
     * the next hop address is copied from the route to the ASBR/forwarding address */
    SP_IPADR nextHopAddr = 0;
    SP_IPADR rtEntryFwdAddr;
+
+   if (!p_PreferRte)
+     return E_FAILED;
 
    p_AsExtLsa = (t_S_AsExternalLsa *)p_DbEntry->p_Lsa;
 
@@ -5869,9 +5868,10 @@ static e_Err RTB_RtoUpdate(void *p_Info)
     /* not done yet? */
     if (e == E_BUSY)
     {
+      t_XXCallInfo *callData = 0;
+
       /* Schedule an event, this gives OSPF a chance to service its queues */
       p_RTB->spfWaitForRto++;
-      t_XXCallInfo *callData = 0;
       PACKET_INIT_MQUEUE(callData, RTB_RtoUpdate, 0, 0, OSPF_EVENT_QUEUE, 1, (ulng)p_RTB);
       ASSERT(callData);
       if (XX_Call(p_RTO->OspfRtbThread.threadHndle, callData) != E_OK)

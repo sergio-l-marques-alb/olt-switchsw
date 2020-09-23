@@ -1720,15 +1720,16 @@ L7_RC_t snmpSwitchCpuRisingThresholdTrapSend(L7_uint32 risingThreshold, L7_char8
   OID *oid_risingThreshold = MakeOIDFromDot("agentSwitchCpuProcessRisingThreshold");
   OID *oid_buf = MakeOIDFromDot("agentSwitchCpuProcessName");
 
+  OctetString *os_buf = MakeOctetStringFromText(buf);
   VarBind *var_risingThreshold = L7_NULLPTR;
+  VarBind *var_buf = MakeVarBindWithValue(oid_buf, NULL, OCTET_PRIM_TYPE, os_buf);
+
   var_risingThreshold = MakeVarBindWithValue(oid_risingThreshold, NULL, INTEGER_TYPE, &risingThreshold);
 
-  OctetString *os_buf = MakeOctetStringFromText(buf);
   if (os_buf == NULL)
   {
     return L7_FAILURE;
   }
-  VarBind *var_buf = MakeVarBindWithValue(oid_buf, NULL, OCTET_PRIM_TYPE, os_buf);
 
   FreeOID(oid_risingThreshold);
   FreeOID(oid_buf);

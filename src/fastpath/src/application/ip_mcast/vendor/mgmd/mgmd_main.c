@@ -762,7 +762,7 @@ static L7_RC_t mgmd_proxy_report_destroy (L7_sll_member_t *pData)
 * @notes 
 * @end
 ********************************************************************/
-static L7_int32 mgmd_proxy_report_compare (void *pData1, void *pData2, size_t size)
+static L7_int32 mgmd_proxy_report_compare (void *pData1, void *pData2, L7_uint32 size)
 {
   mgmd_proxy_unsolicited_rpt_t *pKey1 = (mgmd_proxy_unsolicited_rpt_t *)pData1;
   mgmd_proxy_unsolicited_rpt_t *pKey2 = (mgmd_proxy_unsolicited_rpt_t *)pData2;

@@ -567,9 +567,10 @@ dot1xAuthHistoryLogInfo_t *dot1xAuthHistoryLogInfoAlloc(L7_uint32 intIfNum,
 L7_RC_t dot1xAuthHistoryLogInfoDeAlloc(dot1xAuthHistoryLogInfo_t *node)
 {
   dot1xAuthHistoryLogTableDb_t *pHistoryLogDb;
-  pHistoryLogDb = &dot1xAuthHistoryLogDb;
   dot1xAuthHistoryLogInfo_t *pData=L7_NULLPTR;
   L7_RC_t rc = L7_FAILURE;
+
+  pHistoryLogDb = &dot1xAuthHistoryLogDb;
 
   if(node != L7_NULLPTR)
   {

@@ -115,11 +115,11 @@ L7_BOOL dosMapIntfConfigEntryGet(L7_uint32 intIfNum, dosIntfCfgData_t **pCfg)
 {
   L7_uint32 i;
   nimConfigID_t configIdNull;
+  /* Avoid N^2 processing when interfaces created at startup */
+  static L7_uint32 nextIndex = 1;
 
   memset(&configIdNull, 0, sizeof(nimConfigID_t));
 
-  /* Avoid N^2 processing when interfaces created at startup */
-  static L7_uint32 nextIndex = 1;
 
   if (!(DOSCONTROL_IS_READY))
     return L7_FALSE;

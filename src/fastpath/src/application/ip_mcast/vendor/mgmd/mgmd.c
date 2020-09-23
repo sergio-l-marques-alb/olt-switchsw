@@ -4154,7 +4154,7 @@ static void mgmd_timeout_groups_event_handler (void *param)
     {
       if (proxy_status == L7_ENABLE)
       {
-        L7_inet_addr_t       *proxySrcList = mgmdCB->querySrcList;;
+        L7_inet_addr_t       *proxySrcList = mgmdCB->querySrcList;
         L7_uint32             proxySrcCount = 0, index;
 
         for (index=0; index < MGMD_MAX_QUERY_SOURCES; index++)

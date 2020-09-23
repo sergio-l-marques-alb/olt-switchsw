@@ -2500,6 +2500,7 @@ L7_RC_t ptin_igmp_proxy_config_set(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProxy)
 {
   PTIN_MGMD_EVENT_t      inEventMsg = {0}, outEventMsg = {0};
   PTIN_MGMD_EVENT_CTRL_t ctrlResMsg = {0};
+  ptin_IgmpProxyCfg_t    oldIgmpConfig;
 
   /* Create and send a PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_SET event to MGMD */
   ptin_mgmd_event_ctrl_create(&inEventMsg, PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_SET, rand(), 0, ptinMgmdTxQueueId, (void*) igmpProxy, (uint32) sizeof(PTIN_MGMD_CTRL_MGMD_CONFIG_t));
@@ -2512,8 +2513,6 @@ L7_RC_t ptin_igmp_proxy_config_set(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProxy)
   PT_LOG_DEBUG(LOG_CTX_IGMP,  "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
   PT_LOG_DEBUG(LOG_CTX_IGMP,  "  CTRL Res     : %u",   ctrlResMsg.res);
 
-
-  ptin_IgmpProxyCfg_t oldIgmpConfig;
   ptin_igmp_proxy_config_get__snooping_old(&oldIgmpConfig);
 
   /* If sucesseful, configure the old PTIN_IGMP struct, required for dynamic clients */
@@ -3681,6 +3680,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
     L7_uint32                      intIfNum;
     L7_uint32                      globalGroupCountperMsg = 0;
     L7_BOOL                        isFirstDevice=L7_TRUE;
+    L7_uint16                      noOfClients;
 
     /* Find client */
     if (ptin_igmp_group_client_find(&client, &clientGroup, AVL_EXACT)!=L7_SUCCESS)
@@ -3701,7 +3701,6 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
       return L7_FAILURE;
     }
 
-
     /*Take Semaphore*/
     osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
@@ -3715,7 +3714,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
       return L7_FAILURE;
     }
 
-    L7_uint16 noOfClients = igmp_clientDevice_get_devices_number(clientGroup);
+    noOfClients = igmp_clientDevice_get_devices_number(clientGroup);
 
     if (noOfClients>0)
     {
@@ -3750,7 +3749,9 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
         if( device_client->igmpClientDataKey.ptin_port == clientGroup->igmpClientDataKey.ptin_port &&
             device_client->igmpClientDataKey.innerVlan == clientGroup->igmpClientDataKey.innerVlan &&
             device_client->igmpClientDataKey.outerVlan == clientGroup->igmpClientDataKey.outerVlan )
-          {
+        {
+          L7_uint16   iterator;
+          L7_uint16   existingEntry;
 
           do
           {
@@ -3797,8 +3798,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
               return L7_FAILURE;
             }
 
-            L7_uint16   iterator;
-            L7_uint16   existingEntry=L7_FALSE;
+            existingEntry=L7_FALSE;
 
             PT_LOG_DEBUG(LOG_CTX_IGMP, "Active groups (Service:%u)", McastEvcId);
             while ((ctrlResMsg.dataLength > 0) && (numberOfChannels < *max_number_of_channels))
@@ -3925,6 +3925,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
   ptinIgmpClientGroupsSnapshotInfoData_t *avl_infoData;
   L7_uint32                              totalClientCount = 0; 
   L7_uint32                              totalInvalidClients = 0; 
+  static ptin_client_id_t tempKey;
 
   /* Validate arguments */
   if (client_list==L7_NULLPTR || number_of_clients==L7_NULLPTR || total_clients==L7_NULLPTR)
@@ -3952,9 +3953,11 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
   /* If the entry index is 0, request the client list from MGMD. Otherwise, read from our local snapshot */
   if (0 == client_index)
   {
+    PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t *mgmdGroupsRes;
     L7_uint32 maxResponseEntries = PTIN_MGMD_EVENT_CTRL_DATA_SIZE_MAX/sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t);
-    PT_LOG_DEBUG(LOG_CTX_IGMP, "Max Entries:%u", maxResponseEntries);
     L7_uint32 pageClientCount = 0; 
+
+    PT_LOG_DEBUG(LOG_CTX_IGMP, "Max Entries:%u", maxResponseEntries);
 
     /*Take Semaphore*/
     osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
@@ -3993,7 +3996,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
 
       PT_LOG_DEBUG(LOG_CTX_IGMP, "Active groups (Service:%u GroupAddr:%08X)", McastEvcId, groupAddr->s_addr);
 
-      PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t *mgmdGroupsRes = (PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t*) ctrlResMsg.data;      
+      mgmdGroupsRes = (PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t*) ctrlResMsg.data;      
       while (ctrlResMsg.dataLength > 0 && mgmdGroupsRes != L7_NULLPTR)
       {
         ptin_client_id_t               newClientEntry;    
@@ -4081,12 +4084,14 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
 
   #endif
   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-          L7_uint16 nni_ovid;
+          {
+            L7_uint16 nni_ovid;
 
-          ptin_evc_get_NNIvlan_fromEvcId(McastEvcId, &nni_ovid);
-          newClientEntry.outerVlan = nni_ovid;
-          newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-          //PT_LOG_DEBUG(LOG_CTX_IGMP, "oVlan: %u", newClientEntry.outerVlan);
+            ptin_evc_get_NNIvlan_fromEvcId(McastEvcId, &nni_ovid);
+            newClientEntry.outerVlan = nni_ovid;
+            newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+            //PT_LOG_DEBUG(LOG_CTX_IGMP, "oVlan: %u", newClientEntry.outerVlan);
+          }
   #endif
   #if (MC_CLIENT_INNERVLAN_SUPPORTED)
           //newClientEntry.innerVlan = clientGroup->igmpClientDataKey.innerVlan;
@@ -4217,7 +4222,6 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
     osapiSemaGive(ptin_igmp_clients_sem);
   }
 
-	static ptin_client_id_t tempKey;
   /* Get all clients */
   memset(&avl_key,0x00,sizeof(ptin_client_id_t));
   while (L7_NULLPTR != (avl_infoData = (ptinIgmpClientGroupsSnapshotInfoData_t *)avlSearchLVL7(&(igmpSnapshotClientGroups.avlTree), &avl_key, L7_MATCH_GETNEXT)))
@@ -10456,24 +10460,26 @@ static L7_RC_t ptin_igmp_device_client_remove(L7_uint ptin_port, L7_uint client_
 
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
 #if PTIN_BOARD_IS_LINECARD
-      L7_uint32 internalServiceId;
-      
-      /* Reset Allocated channels*/
-      clientInfo->pClientGroup->admissionControl.allocatedChannels = 0;
-      if (clientGroup->evcId < PTIN_SYSTEM_N_EXTENDED_EVCS &&        
-          clientGroup->onuId < PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF)
       {
-        if (ptinIgmpAdmissionControlMulticastInternalServiceId[clientGroup->evcId] < PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID)
+        L7_uint32 internalServiceId;
+        
+        /* Reset Allocated channels*/
+        clientInfo->pClientGroup->admissionControl.allocatedChannels = 0;
+        if (clientGroup->evcId < PTIN_SYSTEM_N_EXTENDED_EVCS &&        
+            clientGroup->onuId < PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF)
         {
-          internalServiceId = ptinIgmpAdmissionControlMulticastInternalServiceId[clientGroup->evcId];
-          igmpMulticastAdmissionControl[ptin_port][clientGroup->onuId][internalServiceId].admissionControl.allocatedChannels = 0;        
+          if (ptinIgmpAdmissionControlMulticastInternalServiceId[clientGroup->evcId] < PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID)
+          {
+            internalServiceId = ptinIgmpAdmissionControlMulticastInternalServiceId[clientGroup->evcId];
+            igmpMulticastAdmissionControl[ptin_port][clientGroup->onuId][internalServiceId].admissionControl.allocatedChannels = 0;        
+          }
         }
-      }
-      else
-      {
-        PT_LOG_CRITIC(LOG_CTX_IGMP," Some value out of range! (EvcId %d OnuId %d) ", 
-                     clientGroup->evcId,
-                     clientGroup->onuId);
+        else
+        {
+          PT_LOG_CRITIC(LOG_CTX_IGMP," Some value out of range! (EvcId %d OnuId %d) ", 
+                       clientGroup->evcId,
+                       clientGroup->onuId);
+        }
       }
 #endif
 #endif
@@ -11816,6 +11822,7 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
   PTIN_MGMD_CTRL_STATS_RESPONSE_t mgmdStatsResMsg = {0};
   //L7_uint32                       clientId;
   L7_uint32                       intIfNum;
+  L7_uint16                       noOfClients;
 
   memset(statistics, 0x00, sizeof(PTIN_MGMD_CTRL_STATS_RESPONSE_t));
 
@@ -11901,11 +11908,11 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
                                                      statistics->igmpValidRx;             
   }                                              
 
-    L7_uint16 noOfClients=igmp_clientDevice_get_devices_number(clientGroup);
-    PT_LOG_DEBUG(LOG_CTX_IGMP,  "  noOfClients %u", noOfClients);
+  noOfClients=igmp_clientDevice_get_devices_number(clientGroup);
+  PT_LOG_DEBUG(LOG_CTX_IGMP,  "  noOfClients %u", noOfClients);
 
-    if (noOfClients>0) 
-    {
+  if (noOfClients>0) 
+  {
     L7_uint16 noOfClientsFound=0;
     ptinIgmpClientDataKey_t     avl_key;
     ptinIgmpClientInfoData_t    *device_client;
@@ -12161,26 +12168,28 @@ L7_RC_t ptin_igmp_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t *ptin_i
     return L7_FAILURE;
   }
 #else
-  L7_uint igmp_idx, ptin_port;
-
-  /* Validate interface */
-  if (ptin_intf_ptintf2port(ptin_intf, &ptin_port)!=L7_SUCCESS || ptin_port>=PTIN_SYSTEM_N_INTERF)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "ptin_intf %u/%u is invalid", ptin_intf->intf_type, ptin_intf->intf_id);
-    return L7_FAILURE;
-  }
+    L7_uint igmp_idx, ptin_port;
 
-  /* Get IGMP instance */
-  if (ptin_igmp_instance_find_fromSingleEvcId(evc_idx, &igmp_idx) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_IGMP,"No Igmp instance found for EVC %u",evc_idx);
-    return L7_FAILURE;
-  }
+    /* Validate interface */
+    if (ptin_intf_ptintf2port(ptin_intf, &ptin_port)!=L7_SUCCESS || ptin_port>=PTIN_SYSTEM_N_INTERF)
+    {
+      PT_LOG_ERR(LOG_CTX_EVC, "ptin_intf %u/%u is invalid", ptin_intf->intf_type, ptin_intf->intf_id);
+      return L7_FAILURE;
+    }
 
-  /* Clear stats */
-  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
-  memset(&igmpInstances[igmp_idx].stats_intf[ptin_port], 0x00, sizeof(ptin_IGMP_Statistics_t));
-  osapiSemaGive(ptin_igmp_stats_sem);
+    /* Get IGMP instance */
+    if (ptin_igmp_instance_find_fromSingleEvcId(evc_idx, &igmp_idx) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_IGMP,"No Igmp instance found for EVC %u",evc_idx);
+      return L7_FAILURE;
+    }
+
+    /* Clear stats */
+    osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
+    memset(&igmpInstances[igmp_idx].stats_intf[ptin_port], 0x00, sizeof(ptin_IGMP_Statistics_t));
+    osapiSemaGive(ptin_igmp_stats_sem);
+  }
 #endif 
   return L7_SUCCESS;
 }
@@ -14081,9 +14090,8 @@ static L7_uint8 igmp_clientDevice_get_devices_number(struct ptinIgmpClientGroupI
 #else
 
   L7_uint8                       i_client = 0;
-  ptinIgmpClientDataKey_t        avl_key;;
+  ptinIgmpClientDataKey_t        avl_key;
   ptinIgmpClientInfoData_t      *device_client;
-
 
   /* Run all cells in AVL tree */
   memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
@@ -14098,8 +14106,8 @@ static L7_uint8 igmp_clientDevice_get_devices_number(struct ptinIgmpClientGroupI
     {
       i_client++;
     }
-       /* Prepare next key */
-      memcpy(&avl_key, &device_client->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
+    /* Prepare next key */
+    memcpy(&avl_key, &device_client->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
   }
   return i_client;
      
@@ -14513,9 +14521,11 @@ static void igmp_clientIndex_mark(L7_uint ptin_port, L7_uint client_idx, ptinIgm
 
 #ifndef ONE_MULTICAST_VLAN_RING_SUPPORT
   #if PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE
-  L7_uint16 nClients =  igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients;
-  igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->client_bmp[nClients] = infoData->deviceClientId;
-  igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients    = nClients + 1;
+  {
+    L7_uint16 nClients =  igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients;
+    igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->client_bmp[nClients] = infoData->deviceClientId;
+    igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients    = nClients + 1;
+  }
 #endif
 #endif // ONE_MULTICAST_VLAN_RING_SUPPORT
 }
@@ -14565,15 +14575,19 @@ static void igmp_clientIndex_unmark(L7_uint ptin_port, L7_uint client_idx)
 
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
   #if PTIN_BOARD_IS_LINECARD //|| PTIN_BOARD_IS_STANDALONE
-  L7_uint16 nClients = igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients;
-  igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients = nClients - 1;
+  {
+    L7_uint16 nClients = igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients;
+    igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients = nClients - 1;
+  }
   #endif
 #endif // ONE_MULTICAST_VLAN_RING_SUPPORT
 
 #ifndef ONE_MULTICAST_VLAN_RING_SUPPORT
   #if PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE
-  L7_uint16 nClients = igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients;
-  igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients = nClients - 1;
+  {
+    L7_uint16 nClients = igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients;
+    igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients = nClients - 1;
+  }
   #endif
 #endif
    
@@ -19230,10 +19244,8 @@ RC_t ptin_igmp_multicast_service_remove(L7_uint32 ptinPort, L7_uint32 onuId, L7_
 RC_t ptin_igmp_multicast_get_all_serviceId_per_onu(L7_uint32 ptinPort, L7_uint32 onuId, L7_uint32 *listOfServices, L7_uint32 *nOfServices)
 {
   L7_uint8 i = 0;
-  
-  ptinIgmpClientDataKey_t   avl_key;;
+  ptinIgmpClientDataKey_t   avl_key;
   ptinIgmpGroupClientInfoData_t  *group_client;
-
 
   /* ptinPort is valid? */
   if (ptinPort >= PTIN_SYSTEM_N_UPLINK_INTERF)
@@ -20501,15 +20513,12 @@ RC_t ptin_igmp_multicast_querierReset_on_specific_serviceID(L7_uint32 ptinPort, 
 
 void ptin_igmp_onu_services_inUse_dump(L7_uint32 ptinPort, L7_uint32 onuId)
 {
-
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-
-  printf("Services in use on a specific onuID (local struct):\n");
-
   L7_uint8  i = 0;
   L7_uint32 nOfServices = 0;
-
   L7_uint32 listOfServices[PTIN_SYSTEM_MAX_SERVICES_PER_ONU];
+
+  printf("Services in use on a specific onuID (local struct):\n");
 
   ptin_igmp_multicast_get_all_serviceId_per_onu(ptinPort, onuId, listOfServices, &nOfServices);
 

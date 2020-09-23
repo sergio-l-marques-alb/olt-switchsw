@@ -5077,6 +5077,8 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
   /* Shaping rate */
   if (intfQos->mask & PTIN_QOS_INTF_SHAPINGRATE_MASK)
   {
+    ptin_intf_shaper_t   entry;
+
     PT_LOG_NOTICE(LOG_CTX_INTF, "New shaping rate is %u", intfQos->shaping_rate);
 
     if(intfQos->shaping_rate == 0)
@@ -5088,7 +5090,6 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
     PT_LOG_TRACE(LOG_CTX_INTF, "intfQos->shaping_rate = %u",intfQos->shaping_rate);
 
     //rc = usmDbQosCosQueueIntfShapingRateSet(1, intIfNum, (intfQos->shaping_rate * ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE])/100);
-    ptin_intf_shaper_t   entry;
 
     memset(&entry, 0x00, sizeof(ptin_intf_shaper_t));
 

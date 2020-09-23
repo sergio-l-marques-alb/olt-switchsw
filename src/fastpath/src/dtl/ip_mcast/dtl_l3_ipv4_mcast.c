@@ -514,9 +514,9 @@ L7_RC_t dtlMulticastSGCountersGet(L7_multicastForwEntryCounterQuery_t *pMcastFor
    nimUSP_t nimusp;
    DAPI_USP_t ddusp;
    L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-   nimGetIntfName(pMcastForwEntryCntQuery->inIntIfNum, L7_SYSNAME, ifName);
-
    static const char *routine_name = "dtlMulticastSGCountersGet()";
+
+   nimGetIntfName(pMcastForwEntryCntQuery->inIntIfNum, L7_SYSNAME, ifName);
 
    DTL_IP_TRACE("%s %d: %s : Dest IP Addr = %x  Source IP addr = %x ,inIntf = %u, %s\n",
                   __FILE__, __LINE__, routine_name,
@@ -626,9 +626,9 @@ L7_RC_t dtlMulticastSGUseGet(L7_multicastForwEntryUseQuery_t *pMcastForwEntryUse
    nimUSP_t nimusp;
    DAPI_USP_t ddusp;
    L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-   nimGetIntfName(pMcastForwEntryUseQuery->inIntIfNum, L7_SYSNAME, ifName);
-
    static const char *routine_name = "dtlMulticastSGCountersGet()";
+
+   nimGetIntfName(pMcastForwEntryUseQuery->inIntIfNum, L7_SYSNAME, ifName);
 
    DTL_IP_TRACE("%s %d: %s : Dest IP Addr = %x  Source IP addr = %x ,inIntf = %u, %s\n",
                   __FILE__, __LINE__, routine_name,
@@ -791,9 +791,9 @@ L7_RC_t dtlMcastVlanPortMemberUpdate(L7_uint32 vid, L7_uint32 portIntIfNum)
   L7_uint32            mode;
   L7_uint32            tagMode;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-  nimGetIntfName(portIntIfNum, L7_SYSNAME, ifName);
-
   static const char   *routine_name = "dtlMcastVlanPortMemberUpdate()";
+
+  nimGetIntfName(portIntIfNum, L7_SYSNAME, ifName);
 
   DTL_IP_TRACE("%s %d: %s : vid = %d, portIntf = %u, %s \n",
                  __FILE__, __LINE__, routine_name,

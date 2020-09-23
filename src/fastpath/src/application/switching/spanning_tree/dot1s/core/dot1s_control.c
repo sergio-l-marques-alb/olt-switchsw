@@ -973,11 +973,12 @@ L7_RC_t dot1sIssueCmd(L7_uint32 event,
 {
   L7_RC_t rc = L7_FAILURE;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-  nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
   /* find storage for new msg, possibly add to another queue */
   DOT1S_MSG_t msg;
   DOT1S_STATE_CHANGE_MSG_t stateChgMsg;
+
+  nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
   if ((event != dot1sStateChangeDone) &&
       (event != dot1sStateSetError))

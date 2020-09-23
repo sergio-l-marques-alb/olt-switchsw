@@ -1064,6 +1064,8 @@ inline void print_string_hex(char *str, L7_uint16 max, L7_BOOL print_all, L7_BOO
  */
 void ptin_process_cpu(void)
 {
+  L7_char8   *start;
+  L7_char8   *end;
   L7_char8   printBuf[L7_CLI_MAX_STRING_LENGTH];
   L7_char8   *cpuUtil = "CPU Utilization:";
   L7_uint32  cpuUtilLen = osapiStrnlen(cpuUtil, L7_CLI_MAX_STRING_LENGTH);
@@ -1075,9 +1077,6 @@ void ptin_process_cpu(void)
     printf("Error getting CPU utilization!\r\n");
     return;
   }
-
-  L7_char8 *start;
-  L7_char8 *end;
 
   start = buffer_threads;
   end   = buffer_threads;

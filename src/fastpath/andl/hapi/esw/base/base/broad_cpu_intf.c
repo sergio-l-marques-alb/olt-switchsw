@@ -1624,7 +1624,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
        (*(L7_ushort16 *)&bcm_pkt.pkt_data->data[4+12] != osapiHtons(0x9100))    /* PTin added: ethertypes */
      ) /* Is this correct way ? */
   {
-    memcpy(&bcm_pkt.pkt_data->data[0], &bcm_pkt.pkt_data->data[4], 12);
+    memmove(&bcm_pkt.pkt_data->data[0], &bcm_pkt.pkt_data->data[4], 12);
     *(L7_ushort16 *)&bcm_pkt.pkt_data->data[12] = osapiHtons(hapiBroadDvlanEthertype);
     *(L7_ushort16 *)&bcm_pkt.pkt_data->data[14] = osapiHtons(BCM_VLAN_CTRL(cmdInfo->cmdData.send.priority , 0, sendVlanId));
     pkt_start_idx = 0;
@@ -1633,7 +1633,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
   else
   {
     /* remove the initial offset(pkt_idx:4) if the packet is already tagged.*/
-    memcpy(&bcm_pkt.pkt_data->data[0], &bcm_pkt.pkt_data->data[4], frameLength);
+    memmove(&bcm_pkt.pkt_data->data[0], &bcm_pkt.pkt_data->data[4], frameLength);
     #if defined(L7_METRO_PACKAGE) && defined(L7_DOT1AD_PACKAGE)
     {
       bcm_chip_family_t    board_family;
@@ -4484,14 +4484,16 @@ L7_BOOL hapiBroadReceivePdu(L7_netBufHandle frameHdl,
         /* check if physical port is enabled to receive LLDP packets */
         if (hapiPort->hapiModeparm.physical.acceptLLDPDU == L7_TRUE)
         {
-          if ( voiceVlanAuthDebug )
-          {
-            sysapiPrintf("%s(): acceptLLDPDU is TRUE\n",__FUNCTION__);
-          }
           /* remove VLAN tag before sending to CPU,
              LLDP is only concerned with physical ports,
              do not consider LAG membership */
           unsigned char tmp_buffer[12];
+
+          if ( voiceVlanAuthDebug )
+          {
+            sysapiPrintf("%s(): acceptLLDPDU is TRUE\n",__FUNCTION__);
+          }
+
           memcpy(tmp_buffer,user_data,12);
           memcpy(user_data+4,tmp_buffer,12);
           user_data += 4;

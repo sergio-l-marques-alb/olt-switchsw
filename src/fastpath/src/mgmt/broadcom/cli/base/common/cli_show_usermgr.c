@@ -2050,13 +2050,14 @@ const L7_char8 *commandShowPasswordsResult(EwsContext ewsContext,
                                            const L7_char8 * * argv,
                                            uintf index)
 {
-  cliSyntaxTop(ewsContext);
   L7_uint32   authMethod, id, result;
   L7_BOOL     strengthCheck;
   L7_char8    userName[L7_LOGIN_SIZE]={0};
   L7_ushort16 minPassLen;
   L7_uint8    val;
   L7_char8    buf[L7_CLI_MAX_STRING_LENGTH * 2]={0};
+
+  cliSyntaxTop(ewsContext);
 
   usmDbMinPassLengthGet(&minPassLen);
       

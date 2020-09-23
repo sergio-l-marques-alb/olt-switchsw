@@ -297,8 +297,10 @@ L7_uint32 dot1sGetPortTransmitIntervalInSec(L7_uint32 intIfNum)
 
 void dot1sIntfTest()
 {
-  portIndexDebug = 1;
   DOT1S_PORT_COMMON_t *p;
+
+  portIndexDebug = 1;
+
   printf("MAx interface count %d \t Max Port count %d \t L7_MAX_NUM_LAG_INTF %d\n",
          L7_MAX_INTERFACE_COUNT,L7_MAX_PORT_COUNT,L7_MAX_NUM_LAG_INTF);
 

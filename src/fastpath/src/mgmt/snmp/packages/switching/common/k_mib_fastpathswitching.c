@@ -410,10 +410,11 @@ k_agentSwitchCpuProcessGroup_get(int serialNum, ContextInfo *contextInfo,
                                  int nominator)
 {
    static agentSwitchCpuProcessGroup_t agentSwitchCpuProcessGroupData;
-   ZERO_VALID(agentSwitchCpuProcessGroupData.valid);
 #ifdef I_agentSwitchCpuProcessTotalUtilization
    L7_char8 snmp_buffer[SNMP_BUFFER_LEN];
 #endif /* I_agentSwitchCpuProcessTotalUtilization */
+
+   ZERO_VALID(agentSwitchCpuProcessGroupData.valid);
 
    /*
     * put your code to retrieve the information here
@@ -1246,9 +1247,10 @@ k_agentPasswordManagementConfigGroup_set(agentPasswordManagementConfigGroup_t *d
    * set request is only paritally successful
   */
   L7_char8 tempValid[sizeof(data->valid)];
-  bzero(tempValid, sizeof(tempValid));
   L7_uint8 val8;
   L7_uint32 enable;
+
+  bzero(tempValid, sizeof(tempValid));
 
   if (VALID(I_agentPasswordManagementMinLength, data->valid))
   {
@@ -1684,6 +1686,7 @@ k_agentUserConfigGroup_set(agentUserConfigGroup_t *data,
 {
   L7_char8 snmp_buffer[SNMP_BUFFER_LEN];
   L7_char8 auditMsg[SNMP_BUFFER_LEN];
+  L7_char8 tempValid[sizeof(data->valid)];
 
   memset(snmp_buffer, L7_NULL, sizeof(snmp_buffer));
   memset(auditMsg, L7_NULL, sizeof(auditMsg));
@@ -1691,7 +1694,6 @@ k_agentUserConfigGroup_set(agentUserConfigGroup_t *data,
    * Defining temporary variable for storing the valid bits for the case when the
    * set request is only paritally successful
   */
-  L7_char8 tempValid[sizeof(data->valid)];
   bzero(tempValid, sizeof(tempValid));
 
   if (VALID(I_agentUserConfigCreate, data->valid))
@@ -1973,6 +1975,7 @@ k_agentUserConfigEntry_set(agentUserConfigEntry_t *data,
 {
   L7_char8 snmp_buffer[SNMP_BUFFER_LEN];
   L7_char8 auditMsg[SNMP_BUFFER_LEN];
+  L7_char8 tempValid[sizeof(data->valid)];
 
 #if defined(I_agentUserEncryptionType)
   L7_uint32 temp_encryption_type;
@@ -1984,7 +1987,6 @@ k_agentUserConfigEntry_set(agentUserConfigEntry_t *data,
    * Defining temporary variable for storing the valid bits for the case when the
    * set request is only paritally successful
   */
-  L7_char8 tempValid[sizeof(data->valid)];
   bzero(tempValid, sizeof(tempValid));
 
   if ( snmpAgentUserConfigEntryGet(USMDB_UNIT_CURRENT, data->agentUserIndex) != L7_SUCCESS)
@@ -3520,12 +3522,13 @@ k_agentNetworkConfigGroup_set(agentNetworkConfigGroup_t *data,
   */
   L7_char8 snmp_buffer[SNMP_BUFFER_LEN];
   L7_char8 tempValid[sizeof(data->valid)];
-  bzero(tempValid, sizeof(tempValid));
   L7_uint32 oldval;
 #ifdef L7_ROUTING_PACKAGE
   L7_uint32 intIfNum;
 #endif
     
+  bzero(tempValid, sizeof(tempValid));
+
   if ( VALID(I_agentNetworkConfigProtocol, data->valid))
   {
     if(snmpAgentNetworkConfigProtocolSet(USMDB_UNIT_CURRENT,
@@ -4463,8 +4466,9 @@ k_agentServicePortConfigGroup_set(agentServicePortConfigGroup_t *data,
   L7_char8 snmp_buffer[SNMP_BUFFER_LEN];
   #endif
   L7_char8 tempValid[sizeof(data->valid)];
-  bzero(tempValid, sizeof(tempValid));
   L7_uint32 oldval;
+
+  bzero(tempValid, sizeof(tempValid));
 
   if (usmDbComponentPresentCheck(USMDB_UNIT_CURRENT, L7_SERVICE_PORT_PRESENT_ID ) == L7_FALSE )
       return(COMMIT_FAILED_ERROR);
@@ -12108,6 +12112,7 @@ k_agentTransferUploadGroup_set(agentTransferUploadGroup_t *data,
 {
   L7_char8 snmp_buffer[SNMP_BUFFER_LEN];
   L7_char8 auditMsg[SNMP_BUFFER_LEN];
+  L7_char8 tempValid[sizeof(data->valid)];
 
   memset(auditMsg, L7_NULL, sizeof(auditMsg));
 
@@ -12115,7 +12120,6 @@ k_agentTransferUploadGroup_set(agentTransferUploadGroup_t *data,
    * Defining temporary variable for storing the valid bits for the case when the
    * set request is only paritally successful
   */
-  L7_char8 tempValid[sizeof(data->valid)];
   bzero(tempValid, sizeof(tempValid));
 
   if ( VALID(I_agentTransferUploadMode, data->valid))
@@ -12487,6 +12491,7 @@ k_agentTransferDownloadGroup_set(agentTransferDownloadGroup_t *data,
 {
   L7_char8 snmp_buffer[SNMP_BUFFER_LEN];
   L7_char8 auditMsg[L7_CLI_MAX_STRING_LENGTH];
+  L7_char8 tempValid[sizeof(data->valid)];
 
   memset(auditMsg, L7_NULL, sizeof(auditMsg));
 
@@ -12494,7 +12499,6 @@ k_agentTransferDownloadGroup_set(agentTransferDownloadGroup_t *data,
    * Defining temporary variable for storing the valid bits for the case when the
    * set request is only paritally successful
   */
-  L7_char8 tempValid[sizeof(data->valid)];
   bzero(tempValid, sizeof(tempValid));
 
   if ( VALID(I_agentTransferDownloadMode, data->valid))

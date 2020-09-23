@@ -179,12 +179,12 @@ L7_RC_t ipsgEntryAdd(ipsgEntryType_t entryType,
                      L7_enetMacAddr_t *macAddr,
                      L7_inet_addr_t *ipAddr)
 {
+  L7_INTF_STATES_t intIfState;
+  ipsgEntryTreeNode_t  ipsgEntry, *pNode;
+
 #ifndef IPSG_VLAN_FIELD_IS_CARE
   vlanId = 0;
 #endif
-
-  L7_INTF_STATES_t intIfState;
-  ipsgEntryTreeNode_t  ipsgEntry, *pNode;
 
   if ( (entryType == IPSG_ENTRY_STATIC) &&
        (ipsgInfo->ipsgEntryTable.currentStaticBindings) >=
@@ -1040,12 +1040,12 @@ L7_RC_t ipsgEntryRemove (ipsgEntryType_t entryType,
                      L7_inet_addr_t* ipAddr)
 
 {
+  ipsgEntryTreeNode_t *pNode = NULL, *freeNode=NULL, ipsgEntry;
+  dhcpSnoopBinding_t dsNode;
+
 #ifndef IPSG_VLAN_FIELD_IS_CARE
   vlanId = 0;
 #endif
-
-  ipsgEntryTreeNode_t *pNode = NULL, *freeNode=NULL, ipsgEntry;
-  dhcpSnoopBinding_t dsNode;
 
   /* If IPSG enabled, remove binding from HW */
   if (ipsgEntryTreeSearch(intIfNum,

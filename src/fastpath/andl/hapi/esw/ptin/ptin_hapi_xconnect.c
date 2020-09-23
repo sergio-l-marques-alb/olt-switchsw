@@ -557,6 +557,8 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
 {
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
+  bcm_vlan_port_t vlan_port;
+  bcm_vlan_action_set_t action;
   bcm_multicast_t mc_group;
   bcm_error_t error;
   bcm_multicast_t encap_id;
@@ -585,7 +587,6 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
   }
 
   /* create the virtual ports */
-  bcm_vlan_port_t vlan_port;
   bcm_vlan_port_t_init(&vlan_port);
 
   /* in direction PON -> network, match on stacked VLAN, translate to client ID on ingress */
@@ -667,7 +668,6 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
 
     /* create egress translation entries for virtual ports to do VLAN tag manipulation 
      * i.e. client -> gem_id + some_c_vlan */
-    bcm_vlan_action_set_t action;
     bcm_vlan_action_set_t_init(&action);
     
     /* for outer tagged packet => outer tag replaced with gem_id */
@@ -753,6 +753,7 @@ L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
   int unit;
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
+  bcm_vlan_port_t vlan_port;
   bcm_multicast_t encap_id;
   bcm_error_t error;
 
@@ -786,7 +787,6 @@ L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
   }
 
   /* create the virtual ports */
-  bcm_vlan_port_t vlan_port;
   bcm_vlan_port_t_init(&vlan_port);
 
   /* If virtual port id is provided, use it */

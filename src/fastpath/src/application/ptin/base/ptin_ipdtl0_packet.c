@@ -146,6 +146,8 @@ static void ptin_ipdtl0_task(void)
 
             if (msg.msgId == PTIN_IPDTL0_PACKET_MESSAGE_ID)
             {
+                sysnet_pdu_info_t pduInfo;
+
                 if (ptin_ipdtl0_debug_enable)
                 {
                     PT_LOG_TRACE(LOG_CTX_API, "Packet received: intIfNum %d, vlanId %d, innerVlanId %d, payloadLen %d, Rx TS %lu\n", 
@@ -168,8 +170,6 @@ static void ptin_ipdtl0_task(void)
                     printf("\n\n\r");
                     #endif
                 }
-
-                sysnet_pdu_info_t       pduInfo;
 
                 bzero((char *)&pduInfo, sizeof(sysnet_pdu_info_t));
                 pduInfo.intIfNum = msg.intIfNum;

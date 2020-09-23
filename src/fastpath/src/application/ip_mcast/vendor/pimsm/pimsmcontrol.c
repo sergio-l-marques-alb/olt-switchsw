@@ -2398,9 +2398,10 @@ static L7_RC_t pimsmIgmpV3MemberExcludeModeProcess(pimsmCB_t *pimsmCb,
   L7_int32 numSrcs =0;
   L7_uint32 i = 0;
   L7_uchar8  buf[IPV6_DISP_ADDR_LEN];
-  numSrcs = srcCount;
   pimsmSGRptNode_t *pSGRptNode = L7_NULLPTR;
   
+  numSrcs = srcCount;
+
   for (i = 0; i < numSrcs; i++)
   {
     if (pMgmdGrpInfo->sourceList[i] == L7_NULLPTR)

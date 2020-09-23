@@ -967,20 +967,28 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   L7_uint32             activeState;
   L7_uint16             int_ovlan;
   L7_uint16             int_ivlan    = 0;
+
   ptin_IgmpProxyCfg_t   igmpCfg;
+  ptin_mgmd_port_type_t portType;
+  L7_uint32             groupAddress;
+#ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
+  L7_uint8              isDynamic;
+#endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
   PT_LOG_TRACE(LOG_CTX_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
 
 #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
-  ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
-
-  /* Get  the protection status of this switch port */
-  ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);
-  if( protTypebIntfConfig.intfRole != PROT_TYPEB_ROLE_NONE &&  protTypebIntfConfig.status != L7_ENABLE)
   {
-    if (ptin_debug_igmp_snooping)
-      PT_LOG_NOTICE(LOG_CTX_IGMP,"Silently ignoring packet transmission. I'm a Protection Port [portId=%u serviceId=%u]",portId, serviceId );
-    return SUCCESS;
+    ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
+
+    /* Get  the protection status of this switch port */
+    ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);
+    if( protTypebIntfConfig.intfRole != PROT_TYPEB_ROLE_NONE &&  protTypebIntfConfig.status != L7_ENABLE)
+    {
+      if (ptin_debug_igmp_snooping)
+        PT_LOG_NOTICE(LOG_CTX_IGMP,"Silently ignoring packet transmission. I'm a Protection Port [portId=%u serviceId=%u]",portId, serviceId );
+      return SUCCESS;
+    }
   }
 #else
   #error "Not Implemented Yet"
@@ -1001,11 +1009,6 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   }
   //Workaround to support Group Specific Queries; IPv6 is not complaint with this approach!
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
-  ptin_mgmd_port_type_t portType;
-  L7_uint32             groupAddress;
-#ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
-  L7_uint8              isDynamic;
-#endif //ONE_MULTICAST_VLAN_RING_SUPPORT
   if (snooping_portType_get(serviceId, portId, &portType) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get port type from int_ovlan [%u] portId [%u]",serviceId,portId);

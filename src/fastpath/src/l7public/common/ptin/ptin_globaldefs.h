@@ -279,8 +279,8 @@ extern volatile void        *ptin_task_msg_buffer;
 extern volatile L7_uint32    ptin_task_msg_id;
 
 #define PTIN_CRASH()  {       \
-  ptin_state = PTIN_STATE_CRASHED;  \
   volatile int i;             \
+  ptin_state = PTIN_STATE_CRASHED;  \
   for(;;i++) sleep(60);       \
 }
 

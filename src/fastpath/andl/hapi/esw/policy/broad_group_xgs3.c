@@ -5564,59 +5564,60 @@ int policy_group_get_stats(int                  unit,
     eid = BROAD_ENTRY_TO_BCM_ENTRY(entry);
 
     /* PTin added: SDK 6.3.0 */
-    #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
+#if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
+    {
+        int stat_size, stat_id;
+        bcm_field_stat_t stat_type[2];
+        uint64 values[2];
 
-    int stat_size, stat_id;
-    bcm_field_stat_t stat_type[2];
-    uint64 values[2];
+        /* Get stat id for this entry */
+        rv = bcm_field_entry_stat_get(unit, entry, &stat_id);
+        if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+            return rv;
 
-    /* Get stat id for this entry */
-    rv = bcm_field_entry_stat_get(unit, entry, &stat_id);
-    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
-        return rv;
+        /* Get number of counters */
+        rv = bcm_field_stat_size(unit, stat_id, &stat_size);
+        if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+            return rv;
+        /* Limit number of counters to 2 */
+        if (stat_size>2)  stat_size = 2;
 
-    /* Get number of counters */
-    rv = bcm_field_stat_size(unit, stat_id, &stat_size);
-    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
-        return rv;
-    /* Limit number of counters to 2 */
-    if (stat_size>2)  stat_size = 2;
+        if (stat_size==0)
+          return BCM_E_EMPTY;
 
-    if (stat_size==0)
-      return BCM_E_EMPTY;
+        /* Get collection of counters */
+        rv = bcm_field_stat_config_get(unit, stat_id, stat_size, stat_type);
+        if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+            return rv;
 
-    /* Get collection of counters */
-    rv = bcm_field_stat_config_get(unit, stat_id, stat_size, stat_type);
-    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
-        return rv;
+        /* Get counters values */
+        rv = bcm_field_stat_multi_get(unit, stat_id, stat_size, stat_type, values);
+        if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+            return rv;
 
-    /* Get counters values */
-    rv = bcm_field_stat_multi_get(unit, stat_id, stat_size, stat_type, values);
-    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
-        return rv;
-
-    if (stat_size>=1 && val1!=NULL)  *val1 = values[0];
-    if (stat_size>=2 && val2!=NULL)  *val2 = values[1];
-
+        if (stat_size>=1 && val1!=NULL)  *val1 = values[0];
+        if (stat_size>=2 && val2!=NULL)  *val2 = values[1];
+    }
     #else
-
-    if (policyStage == BROAD_POLICY_STAGE_EGRESS)
     {
-      rv = bcm_field_counter_get(unit, eid, 0, val2);
-      if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))   /* empty means no counter */
-          return rv;
-    }
-    else
-    {
-      rv = bcm_field_counter_get(unit, eid, 0, val1);
-      if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))   /* empty means no counter */
-          return rv;
+        if (policyStage == BROAD_POLICY_STAGE_EGRESS)
+        {
+          rv = bcm_field_counter_get(unit, eid, 0, val2);
+          if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))   /* empty means no counter */
+              return rv;
+        }
+        else
+        {
+          rv = bcm_field_counter_get(unit, eid, 0, val1);
+          if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))   /* empty means no counter */
+              return rv;
 
-      rv = bcm_field_counter_get(unit, eid, 1, val2);  /* empty means no counter */
-      if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
-          return rv;
+          rv = bcm_field_counter_get(unit, eid, 1, val2);  /* empty means no counter */
+          if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+              return rv;
+        }
     }
-    #endif
+#endif
 
     return BCM_E_NONE;
 }
@@ -5634,32 +5635,34 @@ int policy_group_stats_clear(int                  unit,
     eid = BROAD_ENTRY_TO_BCM_ENTRY(entry);
 
     /* PTin modified: SDK 6.3.0 */
-    #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
-    int                stat_id;
-
-    /* Get stat id for this entry */
-    rv = bcm_field_entry_stat_get(unit, entry, &stat_id);
-    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
-        return rv;
-
-    /* Reset counters */
-    rv = bcm_field_stat_all_set(unit, stat_id, val1);
-    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))   /* empty means no counter */
-        return rv;
-
-    #else
-
-    rv = bcm_field_counter_set(unit, eid, 0, val1);
-    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))   /* empty means no counter */
-        return rv;
-
-    if (policyStage != BROAD_POLICY_STAGE_EGRESS)
+#if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
     {
-      rv = bcm_field_counter_set(unit, eid, 1, val1);  /* empty means no counter */
-      if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
-          return rv;
+        int                stat_id;
+
+        /* Get stat id for this entry */
+        rv = bcm_field_entry_stat_get(unit, entry, &stat_id);
+        if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+            return rv;
+
+        /* Reset counters */
+        rv = bcm_field_stat_all_set(unit, stat_id, val1);
+        if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))   /* empty means no counter */
+            return rv;
     }
-    #endif
+#else
+    {
+        rv = bcm_field_counter_set(unit, eid, 0, val1);
+        if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))   /* empty means no counter */
+            return rv;
+
+        if (policyStage != BROAD_POLICY_STAGE_EGRESS)
+        {
+          rv = bcm_field_counter_set(unit, eid, 1, val1);  /* empty means no counter */
+          if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+              return rv;
+        }
+    }
+#endif
 
     return BCM_E_NONE;
 }
@@ -6167,76 +6170,79 @@ void debug_entry_counter(int unit, bcm_field_entry_t eid)
     int    rv;
 
     /* PTin modified: SDK 6.3.0 */
-    #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
-    int    i;
-    int    stat_id;
-    int    stat_size;
-    bcm_field_stat_t stat_type[4];
-    uint64 values[4];
-
-    /* Get stat id for this entry */
-    rv = bcm_field_entry_stat_get(unit, eid, &stat_id);
-    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+#if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
     {
-      sysapiPrintf("Error with bcm_field_entry_stat_get\n");
-      return;
-    }
+        int    i;
+        int    stat_id;
+        int    stat_size;
+        bcm_field_stat_t stat_type[4];
+        uint64 values[4];
 
-    /* Get number of counters */
-    rv = bcm_field_stat_size(unit, stat_id, &stat_size);
-    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+        /* Get stat id for this entry */
+        rv = bcm_field_entry_stat_get(unit, eid, &stat_id);
+        if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+        {
+          sysapiPrintf("Error with bcm_field_entry_stat_get\n");
+          return;
+        }
+
+        /* Get number of counters */
+        rv = bcm_field_stat_size(unit, stat_id, &stat_size);
+        if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+        {
+          sysapiPrintf("Error with bcm_field_stat_size\n");
+          return;
+        }
+        /* Limit number of counters to 2 */
+        if (stat_size>4)  stat_size = 4;
+
+        if (stat_size==0)
+        {
+          sysapiPrintf("No counters\n");
+          return;
+        }
+
+        /* Get collection of counters */
+        rv = bcm_field_stat_config_get(unit, stat_id, stat_size, stat_type);
+        if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+        {
+          sysapiPrintf("Error with bcm_field_stat_config_get\n");
+          return;
+        }
+
+        /* Get counters values */
+        rv = bcm_field_stat_multi_get(unit, stat_id, stat_size, stat_type, values);
+        if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+        {
+          sysapiPrintf("Error with bcm_field_stat_multi_get\n");
+          return;
+        }
+
+        /* Print counters */
+        for (i=0; i<stat_size; i++)
+        {
+          sysapiPrintf("Counter %d: %08x %08x\n", i, u64_H(values[i]), u64_L(values[i]));
+        }
+    }
+#else
     {
-      sysapiPrintf("Error with bcm_field_stat_size\n");
-      return;
+        uint64 val64;
+
+        rv = bcm_field_counter_get(unit, eid, 0, &val64);
+
+        if (BCM_E_NONE == rv)
+            sysapiPrintf("Counter 0: %08x %08x\n", u64_H(val64), u64_L(val64));
+        else
+            sysapiPrintf("error code = %d\n", rv);
+
+        rv = bcm_field_counter_get(unit, eid, 1, &val64);
+
+        if (BCM_E_NONE == rv)
+            sysapiPrintf("Counter 1: %08x %08x\n", u64_H(val64), u64_L(val64));
+        else
+            sysapiPrintf("error code = %d\n", rv);
     }
-    /* Limit number of counters to 2 */
-    if (stat_size>4)  stat_size = 4;
-
-    if (stat_size==0)
-    {
-      sysapiPrintf("No counters\n");
-      return;
-    }
-
-    /* Get collection of counters */
-    rv = bcm_field_stat_config_get(unit, stat_id, stat_size, stat_type);
-    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
-    {
-      sysapiPrintf("Error with bcm_field_stat_config_get\n");
-      return;
-    }
-
-    /* Get counters values */
-    rv = bcm_field_stat_multi_get(unit, stat_id, stat_size, stat_type, values);
-    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
-    {
-      sysapiPrintf("Error with bcm_field_stat_multi_get\n");
-      return;
-    }
-
-    /* Print counters */
-    for (i=0; i<stat_size; i++)
-    {
-      sysapiPrintf("Counter %d: %08x %08x\n", i, u64_H(values[i]), u64_L(values[i]));
-    }
-
-    #else
-    uint64 val64;
-
-    rv = bcm_field_counter_get(unit, eid, 0, &val64);
-
-    if (BCM_E_NONE == rv)
-        sysapiPrintf("Counter 0: %08x %08x\n", u64_H(val64), u64_L(val64));
-    else
-        sysapiPrintf("error code = %d\n", rv);
-
-    rv = bcm_field_counter_get(unit, eid, 1, &val64);
-
-    if (BCM_E_NONE == rv)
-        sysapiPrintf("Counter 1: %08x %08x\n", u64_H(val64), u64_L(val64));
-    else
-        sysapiPrintf("error code = %d\n", rv);
-    #endif
+#endif
 }
 
 /* PTin added: FFP */

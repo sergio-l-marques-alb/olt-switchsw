@@ -82,9 +82,10 @@ static
 L7_RC_t voiceVlanCnfgrInitPhase1Process(L7_CNFGR_RESPONSE_t * pResponse,
                                         L7_CNFGR_ERR_RC_t * pReason)
 {
+  L7_RC_t rc = L7_FAILURE;
+
   *pResponse = L7_CNFGR_CMD_COMPLETE;
   *pReason = 0;
-  L7_RC_t rc = L7_FAILURE;
 
   /* Allocate and initialized memory for global data */
   voiceVlanCfg = (voiceVlanCfg_t *) osapiMalloc(L7_VOICE_VLAN_COMPONENT_ID,

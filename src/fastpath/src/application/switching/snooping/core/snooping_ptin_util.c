@@ -433,10 +433,13 @@ L7_RC_t snoopPTinScheduleReportMessage(L7_uint32 vlanId, L7_inet_addr_t* groupAd
 #if 0 
 //      newgroupPtr=newgroupPtr+igmpCfg.host.max_records_per_report;       
 #else //Since the group records are not sequencialy ordered on the memory, we cannot perform any arithmetic operation with pointers. Therefore we need to move the pointer record by record.
-        L7_uint32 numberOfRecords;
-        for (numberOfRecords=0;numberOfRecords<igmpCfg.host.max_records_per_report && newgroupPtr!=L7_NULLPTR ;numberOfRecords++)
         {
-          newgroupPtr=newgroupPtr->nextGroupRecord;
+          L7_uint32 numberOfRecords;
+
+          for (numberOfRecords=0;numberOfRecords<igmpCfg.host.max_records_per_report && newgroupPtr!=L7_NULLPTR ;numberOfRecords++)
+          {
+            newgroupPtr=newgroupPtr->nextGroupRecord;
+          }
         }
 #endif
       }
@@ -583,13 +586,14 @@ L7_RC_t snoopPTinReportFrameV3Build(L7_uint32 noOfRecords, snoopPTinProxyGroup_t
 
 static L7_uchar8* snoopPTinGroupRecordV3Build(L7_uint32 vlanId, L7_inet_addr_t* groupAddr,L7_uint8 recordType,L7_uint16 numberOfSources,snoopPTinProxySource_t* source, L7_uchar8 *buffer, L7_uint32 *length)
 {
-
+  L7_uint32 i;
+  char              debug_buf[IPV6_DISP_ADDR_LEN]={};
   L7_uchar8         *dataPtr,*noSourcesPtr, byteVal;
   L7_ushort16       shortVal;
   L7_uint32         ipv4Addr;
   snoopPTinProxySource_t* sourcePtr;
-  L7_uint32 i;
-  char                debug_buf[IPV6_DISP_ADDR_LEN]={};
+  L7_INTF_MASK_t    mcastRtrAttached;  
+  L7_uint32         noOfInterfaces = 0;
 
   /* Argument validation */
   if (buffer == L7_NULLPTR || length == L7_NULLPTR || groupAddr==L7_NULLPTR || (numberOfSources>0 && source==L7_NULLPTR))
@@ -658,8 +662,6 @@ static L7_uchar8* snoopPTinGroupRecordV3Build(L7_uint32 vlanId, L7_inet_addr_t* 
   *length = SNOOP_IGMPV3_RECORD_GROUP_HEADER_MIN_LENGTH + L7_IP_ADDR_LEN * numberOfSources;
 //bufferOut=dataPtr;
 
-  L7_INTF_MASK_t mcastRtrAttached;  
-  L7_uint32      noOfInterfaces = 0;
   if (ptin_igmp_rootIntfs_getList(vlanId, &mcastRtrAttached, &noOfInterfaces)==L7_SUCCESS)
   {
     L7_uint32         intf; /* Loop through internal interface numbers */
@@ -1154,6 +1156,7 @@ void snoopPTinMcastgroupPrint(L7_int32 vlanId,L7_uint32 groupAddrText)
       if (snoopEntry->interfaces[ifIdx].active == L7_TRUE)
       {
         L7_uint32 sourceIdx; 
+        L7_int8 clientIdx;
 
         printf("Interface: %02u |\n", ifIdx);                
         printf("              |Static:         %s\n", snoopEntry->interfaces[ifIdx].isStatic?"Yes":"No");        
@@ -1162,7 +1165,6 @@ void snoopPTinMcastgroupPrint(L7_int32 vlanId,L7_uint32 groupAddrText)
         printf("              |Group-Timer:    %u\n", snoop_ptin_grouptimer_timeleft(&snoopEntry->interfaces[ifIdx].groupTimer));                
         printf("              |Nbr of Clients: %u\n", snoopEntry->interfaces[ifIdx].numberOfClients);        
         printf("              |Clients: ");
-        L7_int8 clientIdx;
         for (clientIdx=(PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE-1); clientIdx>=0; --clientIdx)
         {
           printf("%08X", snoopEntry->interfaces[ifIdx].clients[clientIdx]);
@@ -1209,17 +1211,15 @@ void snoopPTinMcastgroupPrint(L7_int32 vlanId,L7_uint32 groupAddrText)
  *************************************************************************/
 void snoopPTinGroupRecordPrint(L7_uint32 vlanId,L7_uint32 groupAddrText,L7_uint8 recordType)
 {
-  char                  debug_buf[IPV6_DISP_ADDR_LEN]={};
   L7_uint32 i;
-
+  char                  debug_buf[IPV6_DISP_ADDR_LEN]={};
   L7_inet_addr_t        groupAddr;
+  snoopPTinProxyInterface_t *interfacePtr;
+  snoopPTinProxyGroup_t     *groupPtr;
+  snoopPTinProxySource_t    *sourcePtr;
+
   memset(&groupAddr, 0x00, sizeof(L7_inet_addr_t));
   groupAddr.family=1;
-
-
-  snoopPTinProxyInterface_t *interfacePtr;
-  snoopPTinProxyGroup_t *groupPtr;    
-  snoopPTinProxySource_t *sourcePtr;    
 
   if ( vlanId<0 || vlanId>4095 /*|| addrStr==L7_NULLPTR*/)
   {

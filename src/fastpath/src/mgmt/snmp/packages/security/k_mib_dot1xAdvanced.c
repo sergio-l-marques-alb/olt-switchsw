@@ -489,8 +489,9 @@ k_agentDot1xMonitorModeConfigGroup_get(int serialNum, ContextInfo *contextInfo,
                                        int nominator)
 {
   static agentDot1xMonitorModeConfigGroup_t agentDot1xMonitorModeConfigGroupData;
-  ZERO_VALID(agentDot1xMonitorModeConfigGroupData.valid);
   L7_BOOL enable; 
+
+  ZERO_VALID(agentDot1xMonitorModeConfigGroupData.valid);
 
   switch (nominator)
   {

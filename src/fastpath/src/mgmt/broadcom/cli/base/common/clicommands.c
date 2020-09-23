@@ -451,8 +451,8 @@ void buildTreeMaintenanceMode(void)
   EwsCliCommandP depth1;
   EwsCliCommandP depth2,depth3,depth4, depth5, depth6;
   
-  #ifdef L7_PBVLAN_PACKAGE
-  EwsCliCommandP depth7,depth8, depth9;;
+#ifdef L7_PBVLAN_PACKAGE
+  EwsCliCommandP depth7,depth8, depth9;
   L7_uint32      unit = 0;
 #endif
 

@@ -1255,7 +1255,7 @@ L7_RC_t hapiBroadInterfaceFlowControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *dat
   L7_RC_t                              result  = L7_SUCCESS;
   BROAD_PORT_t                        *hapiPortPtr;
   int                                  rv;
-  DAPI_INTF_MGMT_CMD_t                *dapiCmd = (DAPI_INTF_MGMT_CMD_t*)data;;
+  DAPI_INTF_MGMT_CMD_t                *dapiCmd = (DAPI_INTF_MGMT_CMD_t*)data;
   int                                  mode;
   usl_bcm_port_pause_config_t         pauseCmd;
 
@@ -2867,7 +2867,7 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
   return rc;
 }
 
-L7_RC_t hapiBroadConfigIgmpFilterRaptor(enableFilter)
+L7_RC_t hapiBroadConfigIgmpFilterRaptor(int enableFilter)
 {
 
   L7_RC_t          rc = L7_SUCCESS;
@@ -5628,7 +5628,7 @@ int hapiBroadXgs3HigigPriorityPatch(int unit)
    return valid_rev;
 }
 
-int hapiBroadBcmGroupRequired(unit)
+int hapiBroadBcmGroupRequired(int unit)
 {
   return hapiBroadXgs3HigigPriorityPatch(unit);
 }
@@ -7425,8 +7425,9 @@ L7_RC_t hapiBroadIntfPfcStatsClear(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
 L7_RC_t hapiBroadIntfPfcConfigTest(int unit, int slot, int port, int enable, int bitmap)
 {
   DAPI_USP_t usp;
-  usp.unit = unit; usp.slot = slot; usp.port = port;
   DAPI_INTF_MGMT_CMD_t  cmd;
+
+  usp.unit = unit; usp.slot = slot; usp.port = port;
 
   cmd.cmdData.pfcConfig.enable = enable;
   cmd.cmdData.pfcConfig.priority_bmp = bitmap;

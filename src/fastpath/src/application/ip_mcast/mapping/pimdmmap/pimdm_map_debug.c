@@ -1048,6 +1048,7 @@ void pimdmDebugDeRegister(void)
 void printPimdmDebug(L7_uchar8 family)
 {
   L7_uint32 flagIndex;
+  pimdmDebugTraceFlags_t *pimdmTraceFlags;
 
   sysapiPrintf("\n-----------------\n");
   sysapiPrintf("\n version = %d", pimdmDebugCfg.hdr.version);
@@ -1058,7 +1059,7 @@ void printPimdmDebug(L7_uchar8 family)
   sysapiPrintf("\n dataChng = %d", pimdmDebugCfg.hdr.dataChanged);
   sysapiPrintf("\n-----------------\n");
 
-  pimdmDebugTraceFlags_t *pimdmTraceFlags = &(pimdmDebugCfg.cfg.pimdmDebugTraceFlag[family]);
+  pimdmTraceFlags = &(pimdmDebugCfg.cfg.pimdmDebugTraceFlag[family]);
   for (flagIndex = 0;  flagIndex < PIMDM_DEBUG_LAST_TRACE ; flagIndex ++)
   {
     if (((*(pimdmTraceFlags[flagIndex/PIMDM_DEBUG_TRACE_FLAG_BITS_MAX])) & 

@@ -4757,56 +4757,56 @@ L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table, int struct1o
     mac_table->entry[i].addr[5] = (L7_uint8) (macAddr & 0xff);
   }
 #else
-
-  ptin_switch_mac_entry *entries_list;
-
-  /* Load table */
-  if (mac_table->intro.startEntryId==0)
   {
-    if (ptin_l2_mac_table_load()!=L7_SUCCESS)
+    ptin_switch_mac_entry *entries_list;
+
+    /* Load table */
+    if (mac_table->intro.startEntryId==0)
     {
-      PT_LOG_ERR(LOG_CTX_MSG,"Error loading table");
+      if (ptin_l2_mac_table_load()!=L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG,"Error loading table");
+        return L7_FAILURE;
+      }
+    }
+
+    /* Get input number of MAC itemns, and majorate them */
+
+    numEntries = mac_table->intro.numEntries;
+
+    if (numEntries>MSG_CMDGET_MAC_TABLE_MAXENTRIES)
+    {
+      numEntries = MSG_CMDGET_MAC_TABLE_MAXENTRIES;
+    }
+
+    /* Read table */
+    if (ptin_l2_mac_table_get(ENDIAN_SWAP32(mac_table->intro.startEntryId), &numEntries, &entries_list)!=L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG,"Error getting MAC list");
       return L7_FAILURE;
     }
+
+    /* Copy MAC list to output message */
+    for (i=0; i<numEntries; i++)
+    {
+      memcpy(mac_table->entry[i].addr, entries_list[i].addr, sizeof(L7_uint8)*6);
+      mac_table->entry[i].evcId          = entries_list[i].evcId;
+      mac_table->entry[i].vlanId         = entries_list[i].vlanId;
+      mac_table->entry[i].intf.intf_type = entries_list[i].intf.intf_type;
+      mac_table->entry[i].intf.intf_id   = entries_list[i].intf.intf_id;
+      mac_table->entry[i].gem_id         = entries_list[i].gem_id;
+      mac_table->entry[i].static_entry   = entries_list[i].static_entry;
+
+      ENDIAN_SWAP32_MOD(mac_table->entry[i].evcId);
+      ENDIAN_SWAP16_MOD(mac_table->entry[i].vlanId);
+      ENDIAN_SWAP16_MOD(mac_table->entry[i].gem_id);
+
+    }
+
+    /* Update number of entries */
+    mac_table->intro.numEntries = numEntries;
+    ENDIAN_SWAP32_MOD(mac_table->intro.numEntries);
   }
-
-  /* Get input number of MAC itemns, and majorate them */
-
-  numEntries = mac_table->intro.numEntries;
-
-  if (numEntries>MSG_CMDGET_MAC_TABLE_MAXENTRIES)
-  {
-    numEntries = MSG_CMDGET_MAC_TABLE_MAXENTRIES;
-  }
-
-  /* Read table */
-  if (ptin_l2_mac_table_get(ENDIAN_SWAP32(mac_table->intro.startEntryId), &numEntries, &entries_list)!=L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG,"Error getting MAC list");
-    return L7_FAILURE;
-  }
-
-  /* Copy MAC list to output message */
-  for (i=0; i<numEntries; i++)
-  {
-    memcpy(mac_table->entry[i].addr, entries_list[i].addr, sizeof(L7_uint8)*6);
-    mac_table->entry[i].evcId          = entries_list[i].evcId;
-    mac_table->entry[i].vlanId         = entries_list[i].vlanId;
-    mac_table->entry[i].intf.intf_type = entries_list[i].intf.intf_type;
-    mac_table->entry[i].intf.intf_id   = entries_list[i].intf.intf_id;
-    mac_table->entry[i].gem_id         = entries_list[i].gem_id;
-    mac_table->entry[i].static_entry   = entries_list[i].static_entry;
-
-    ENDIAN_SWAP32_MOD(mac_table->entry[i].evcId);
-    ENDIAN_SWAP16_MOD(mac_table->entry[i].vlanId);
-    ENDIAN_SWAP16_MOD(mac_table->entry[i].gem_id);
-
-  }
-
-  /* Update number of entries */
-  mac_table->intro.numEntries = numEntries;
-  ENDIAN_SWAP32_MOD(mac_table->intro.numEntries);
-
 #endif
 
   return L7_SUCCESS;
@@ -11560,98 +11560,99 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_get(msg_MCAssocChannel_t *channel_list, L7_ui
   PT_LOG_DEBUG(LOG_CTX_MSG," SrcIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list->channel_srcIp.addr.ipv4, channel_list->channel_srcIp.family, channel_list->channel_srcmask);
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-  L7_uint16 i, i_start;
-  L7_uint16 number_of_channels;
-  L7_uint8  slotId;
-
-  /* For null entry idex, read and store all channels */
-  if (channel_list->entry_idx==0)
   {
-    /* Clear channel list */
-    memset(igmpAssoc_list, 0x00, sizeof(igmpAssoc_list));
-    igmpAssoc_channels_max = 0;
+    L7_uint16 i, i_start;
+    L7_uint16 number_of_channels;
+    L7_uint8  slotId;
 
-    number_of_channels = PTIN_IGMP_CHANNELS_MAX;
-    if (ptin_igmp_channel_list_get(0, channel_list->evcid_mc, igmpAssoc_list, &number_of_channels)!=L7_SUCCESS)
+    /* For null entry idex, read and store all channels */
+    if (channel_list->entry_idx==0)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error reading list of channels");
-      return L7_FAILURE;
+      /* Clear channel list */
+      memset(igmpAssoc_list, 0x00, sizeof(igmpAssoc_list));
+      igmpAssoc_channels_max = 0;
+
+      number_of_channels = PTIN_IGMP_CHANNELS_MAX;
+      if (ptin_igmp_channel_list_get(0, channel_list->evcid_mc, igmpAssoc_list, &number_of_channels)!=L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Error reading list of channels");
+        return L7_FAILURE;
+      }
+      /* Update number of channels */
+      igmpAssoc_channels_max = number_of_channels;
     }
-    /* Update number of channels */
-    igmpAssoc_channels_max = number_of_channels;
-  }
 
-  /* Save important data of input message */
-  slotId  = channel_list->SlotId;
-  i_start = channel_list->entry_idx;
+    /* Save important data of input message */
+    slotId  = channel_list->SlotId;
+    i_start = channel_list->entry_idx;
 
-  /* Determine max number of messages */
-  /* First index is beyond max index: no channels to retrieve */
-  if (i_start >= igmpAssoc_channels_max)
-  {
-    number_of_channels = 0;
-  }
-  /* Remaining channels, is lower than maximum message capacity */
-  else if ( (igmpAssoc_channels_max - i_start) < IGMPASSOC_MAX_CHANNELS_IN_MESSAGE )
-  {
-    number_of_channels = igmpAssoc_channels_max - i_start;
-  }
-  /* Use maximum capacity */
-  else
-  {
-    number_of_channels = IGMPASSOC_MAX_CHANNELS_IN_MESSAGE;
-  }
-
-  for (i=0; i<=number_of_channels; i++)
-  {
-    /* Constant information to be replicated in all channels */
-    channel_list[i].SlotId    = slotId;
-    channel_list[i].entry_idx = i_start + i;
-
-    /* Group address (prepared for IPv6) */
-    if ( igmpAssoc_list[i_start+i].groupAddr.family == L7_AF_INET6 )
+    /* Determine max number of messages */
+    /* First index is beyond max index: no channels to retrieve */
+    if (i_start >= igmpAssoc_channels_max)
     {
-      channel_list[i].channel_dstIp.family = PTIN_AF_INET6;
-      memcpy( channel_list[i].channel_dstIp.addr.ipv6, igmpAssoc_list[i_start+i].groupAddr.addr.ipv6.in6.addr8, sizeof(L7_uchar8)*16);
-      channel_list[i].channel_dstmask = 128;
+      number_of_channels = 0;
     }
+    /* Remaining channels, is lower than maximum message capacity */
+    else if ( (igmpAssoc_channels_max - i_start) < IGMPASSOC_MAX_CHANNELS_IN_MESSAGE )
+    {
+      number_of_channels = igmpAssoc_channels_max - i_start;
+    }
+    /* Use maximum capacity */
     else
     {
-      channel_list[i].channel_dstIp.family = PTIN_AF_INET;
-      channel_list[i].channel_dstIp.addr.ipv4 = igmpAssoc_list[i_start+i].groupAddr.addr.ipv4.s_addr;
-      channel_list[i].channel_dstmask = 32;
+      number_of_channels = IGMPASSOC_MAX_CHANNELS_IN_MESSAGE;
     }
 
-    /* Source address (prepared for IPv6) */
-    if ( igmpAssoc_list[i_start+i].sourceAddr.family == L7_AF_INET6 )
+    for (i=0; i<=number_of_channels; i++)
     {
-      channel_list[i].channel_srcIp.family = PTIN_AF_INET6;
-      memcpy( channel_list[i].channel_srcIp.addr.ipv6, igmpAssoc_list[i_start+i].sourceAddr.addr.ipv6.in6.addr8, sizeof(L7_uchar8)*16);
-      channel_list[i].channel_srcmask = 128;
+      /* Constant information to be replicated in all channels */
+      channel_list[i].SlotId    = slotId;
+      channel_list[i].entry_idx = i_start + i;
+
+      /* Group address (prepared for IPv6) */
+      if ( igmpAssoc_list[i_start+i].groupAddr.family == L7_AF_INET6 )
+      {
+        channel_list[i].channel_dstIp.family = PTIN_AF_INET6;
+        memcpy( channel_list[i].channel_dstIp.addr.ipv6, igmpAssoc_list[i_start+i].groupAddr.addr.ipv6.in6.addr8, sizeof(L7_uchar8)*16);
+        channel_list[i].channel_dstmask = 128;
+      }
+      else
+      {
+        channel_list[i].channel_dstIp.family = PTIN_AF_INET;
+        channel_list[i].channel_dstIp.addr.ipv4 = igmpAssoc_list[i_start+i].groupAddr.addr.ipv4.s_addr;
+        channel_list[i].channel_dstmask = 32;
+      }
+
+      /* Source address (prepared for IPv6) */
+      if ( igmpAssoc_list[i_start+i].sourceAddr.family == L7_AF_INET6 )
+      {
+        channel_list[i].channel_srcIp.family = PTIN_AF_INET6;
+        memcpy( channel_list[i].channel_srcIp.addr.ipv6, igmpAssoc_list[i_start+i].sourceAddr.addr.ipv6.in6.addr8, sizeof(L7_uchar8)*16);
+        channel_list[i].channel_srcmask = 128;
+      }
+      else
+      {
+        channel_list[i].channel_srcIp.family = PTIN_AF_INET;
+        channel_list[i].channel_srcIp.addr.ipv4 = igmpAssoc_list[i_start+i].sourceAddr.addr.ipv4.s_addr;
+        channel_list[i].channel_srcmask = 32;
+      }
+
+      //channel_list[i].???       = igmpAssoc_list[i_start+i].evc_uc;
+      channel_list[i].evcid_mc  = igmpAssoc_list[i_start+i].evc_mc;
+      //channel_list[i].???       = igmpAssoc_list[i_start+i].is_static;
+
+
+     CHMSG_IP_ADDR_SWAP_MOD(channel_list[i].channel_dstIp);
+     CHMSG_IP_ADDR_SWAP_MOD(channel_list[i].channel_srcIp);
+
+     ENDIAN_SWAP64_MOD(channel_list[i].channelBandwidth);
+     ENDIAN_SWAP32_MOD(channel_list[i].evcid_mc);
+     ENDIAN_SWAP16_MOD(channel_list[i].entry_idx);
     }
-    else
-    {
-      channel_list[i].channel_srcIp.family = PTIN_AF_INET;
-      channel_list[i].channel_srcIp.addr.ipv4 = igmpAssoc_list[i_start+i].sourceAddr.addr.ipv4.s_addr;
-      channel_list[i].channel_srcmask = 32;
-    }
 
-    //channel_list[i].???       = igmpAssoc_list[i_start+i].evc_uc;
-    channel_list[i].evcid_mc  = igmpAssoc_list[i_start+i].evc_mc;
-    //channel_list[i].???       = igmpAssoc_list[i_start+i].is_static;
-
-
-   CHMSG_IP_ADDR_SWAP_MOD(channel_list[i].channel_dstIp);
-   CHMSG_IP_ADDR_SWAP_MOD(channel_list[i].channel_srcIp);
-
-   ENDIAN_SWAP64_MOD(channel_list[i].channelBandwidth);
-   ENDIAN_SWAP32_MOD(channel_list[i].evcid_mc);
-   ENDIAN_SWAP16_MOD(channel_list[i].entry_idx);
+    /* Return number of channels */
+    *n_channels = number_of_channels;
   }
-
-  /* Return number of channels */
-  *n_channels = number_of_channels;
-
 #else
 
   PT_LOG_DEBUG(LOG_CTX_MSG,"Not supported!");
@@ -12126,24 +12127,26 @@ L7_RC_t ptin_msg_static_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16
     }
 
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED//Remove Static Channel from (WhiteList) Group List     
-    msg_MCAssocChannel_t         channel_list;  
+    {
+      msg_MCAssocChannel_t         channel_list;  
 
-    memset(&channel_list, 0x00, sizeof(channel_list));
+      memset(&channel_list, 0x00, sizeof(channel_list));
 
-    channel_list.SlotId=channel[i].SlotId;
-    channel_list.evcid_mc=channel[i].evc_id;
+      channel_list.SlotId=channel[i].SlotId;
+      channel_list.evcid_mc=channel[i].evc_id;
 
-    channel_list.channel_dstIp.family=PTIN_AF_INET;
-    channel_list.channel_dstIp.addr.ipv4=channel[i].channelIp.s_addr;
-    channel_list.channel_dstmask=32;//32 Bits of Mask
+      channel_list.channel_dstIp.family=PTIN_AF_INET;
+      channel_list.channel_dstIp.addr.ipv4=channel[i].channelIp.s_addr;
+      channel_list.channel_dstmask=32;//32 Bits of Mask
 
-    channel_list.channel_srcIp.family=PTIN_AF_INET;
-    channel_list.channel_srcIp.addr.ipv4 = channel[i].sourceIp.s_addr;
-    channel_list.channel_srcmask=32;
+      channel_list.channel_srcIp.family=PTIN_AF_INET;
+      channel_list.channel_srcIp.addr.ipv4 = channel[i].sourceIp.s_addr;
+      channel_list.channel_srcmask=32;
 
-    channel_list.channelBandwidth = channel[i].channelBandwidth;
-    
-    ptin_msg_group_list_remove(&channel_list,1, L7_TRUE);   
+      channel_list.channelBandwidth = channel[i].channelBandwidth;
+      
+      ptin_msg_group_list_remove(&channel_list,1, L7_TRUE);   
+    }
     #endif//End Static Channel Remove
     
   }
@@ -12374,6 +12377,8 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
 #else
   L7_uint32      sourceAddr = 0x0;
 #endif
+  msg_SnoopSyncRequest_t   snoopSyncRequest;
+  L7_uint32                ipAddr;
   
   if (snoopSyncReply==L7_NULLPTR)
   {
@@ -12475,9 +12480,6 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
     return L7_SUCCESS;
   }
 
-  msg_SnoopSyncRequest_t   snoopSyncRequest;
-  L7_uint32                ipAddr;
-
   memset(&snoopSyncRequest, 0x00, sizeof(snoopSyncRequest));
 
 #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
@@ -12500,30 +12502,32 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
   
   PT_LOG_INFO(LOG_CTX_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u] to ipAddr:%08X (%u) to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, ipAddr, MX_PAIR_SLOT_ID);         
 #else
-  ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};     
-
-  /*  Get the configuration of this portId for the Type B Scheme Protection */
-  ptin_prottypeb_intf_config_get(snoopSyncReply[numberOfSnoopEntries-1].portId, &protTypebIntfConfig);    
-
-  if(protTypebIntfConfig.status==L7_ENABLE)//If I'm a Protection
   {
-    PT_LOG_NOTICE(LOG_CTX_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Active slotId/intfNum:%u/%u",protTypebIntfConfig.pairSlotId, protTypebIntfConfig.intfNum);
-    return SUCCESS;
-  }
-    
-  #if PTIN_BOARD_IS_STANDALONE
-  ipAddr = simGetIpcIpAddr();
-  #else
-  /* Determine the IP address of the working port/slot */   
-  if (L7_SUCCESS != ptin_fpga_slot_ip_addr_get(protTypebIntfConfig.pairSlotId, &ipAddr))
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Failed to obtain ipAddress of slotId:%u", protTypebIntfConfig.pairSlotId);
-    return L7_FAILURE;
-  }
-  #endif
-  snoopSyncRequest.portId = protTypebIntfConfig.pairIntfNum;
+    ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u | portId:%u] to ipAddr:%08X to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, snoopSyncRequest.portId, ipAddr);
+    /*  Get the configuration of this portId for the Type B Scheme Protection */
+    ptin_prottypeb_intf_config_get(snoopSyncReply[numberOfSnoopEntries-1].portId, &protTypebIntfConfig);    
+
+    if(protTypebIntfConfig.status==L7_ENABLE)//If I'm a Protection
+    {
+      PT_LOG_NOTICE(LOG_CTX_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Active slotId/intfNum:%u/%u",protTypebIntfConfig.pairSlotId, protTypebIntfConfig.intfNum);
+      return SUCCESS;
+    }
+      
+    #if PTIN_BOARD_IS_STANDALONE
+    ipAddr = simGetIpcIpAddr();
+    #else
+    /* Determine the IP address of the working port/slot */   
+    if (L7_SUCCESS != ptin_fpga_slot_ip_addr_get(protTypebIntfConfig.pairSlotId, &ipAddr))
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Failed to obtain ipAddress of slotId:%u", protTypebIntfConfig.pairSlotId);
+      return L7_FAILURE;
+    }
+    #endif
+    snoopSyncRequest.portId = protTypebIntfConfig.pairIntfNum;
+
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u | portId:%u] to ipAddr:%08X to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, snoopSyncRequest.portId, ipAddr);
+  }
 #endif
               
   
@@ -16568,10 +16572,11 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
         /* Configure Egress XLATE on the destination interface */
         if (msg->src_intf[n].direction == 1 || msg->src_intf[n].direction == 3)
         {
+          L7_uint32 auxIntfNum, ptin_port_dst;
+
           PT_LOG_TRACE(LOG_CTX_MSG, "Src intfNum %d", ptin_port_aux);
           PT_LOG_TRACE(LOG_CTX_MSG, "Dst intfNum %d", msg->dst_intf.intf_id);
 
-          L7_uint32 auxIntfNum, ptin_port_dst;
           ptin_port_dst = msg->dst_intf.intf_id;
 
           if(msg->dst_intf.intf_id == 0)
@@ -17804,64 +17809,68 @@ L7_RC_t ptin_msg_get_next_qualRFC2819(L7_int buffer_index, msg_rfc2819_buffer_t 
   buffer_id = buffer_index & 0xFFFF;
 
   if (buffer_index & 0x80000000)
+  {
     buffer_index=RFC2819_BUFFER_24HOURS;
+  }
   else
+  {
     buffer_index=RFC2819_BUFFER_15MIN;
+  }
 
 
-    if(ptin_rfc2819_buffer_get(buffer_index, buffer_id, &ring_buffer) <0) 
-    {
-      memset(&buffer[n_elements], 0x00, sizeof(msg_rfc2819_buffer_t)); // When no performance monotoring is avaiable send zeros.
-      return L7_SUCCESS;
-    }
-        
-    buffer[n_elements].index                = ENDIAN_SWAP32(ring_buffer.index);
-    buffer[n_elements].arg                  = ENDIAN_SWAP32(ring_buffer.arg);
-    buffer[n_elements].time                 = ENDIAN_SWAP32(ring_buffer.time);
-    buffer[n_elements].path                 = ENDIAN_SWAP32(ring_buffer.path);
-    buffer[n_elements].cTempo               = ENDIAN_SWAP32(ring_buffer.cTempo);
+  if(ptin_rfc2819_buffer_get(buffer_index, buffer_id, &ring_buffer) <0) 
+  {
+    memset(&buffer[n_elements], 0x00, sizeof(msg_rfc2819_buffer_t)); // When no performance monotoring is avaiable send zeros.
+    return L7_SUCCESS;
+  }
+      
+  buffer[n_elements].index                = ENDIAN_SWAP32(ring_buffer.index);
+  buffer[n_elements].arg                  = ENDIAN_SWAP32(ring_buffer.arg);
+  buffer[n_elements].time                 = ENDIAN_SWAP32(ring_buffer.time);
+  buffer[n_elements].path                 = ENDIAN_SWAP32(ring_buffer.path);
+  buffer[n_elements].cTempo               = ENDIAN_SWAP32(ring_buffer.cTempo);
 
-    buffer[n_elements].Octets               = ENDIAN_SWAP64(ring_buffer.Octets);
-    buffer[n_elements].Pkts                 = ENDIAN_SWAP64(ring_buffer.Pkts);                
-    buffer[n_elements].Broadcast            = ENDIAN_SWAP64(ring_buffer.Broadcast);
-    buffer[n_elements].Multicast            = ENDIAN_SWAP64(ring_buffer.Multicast);           
-    buffer[n_elements].CRCAlignErrors       = ENDIAN_SWAP64(ring_buffer.CRCAlignErrors);      
-    buffer[n_elements].UndersizePkts        = ENDIAN_SWAP64(ring_buffer.UndersizePkts);       
-    buffer[n_elements].OversizePkts         = ENDIAN_SWAP64(ring_buffer.OversizePkts);        
-    buffer[n_elements].Fragments            = ENDIAN_SWAP64(ring_buffer.Fragments);           
-    buffer[n_elements].Jabbers              = ENDIAN_SWAP64(ring_buffer.Jabbers);             
-    buffer[n_elements].Collisions           = ENDIAN_SWAP64(ring_buffer.Collisions);          
-    buffer[n_elements].Utilization          = ENDIAN_SWAP64(ring_buffer.Utilization);         
-    buffer[n_elements].Pkts64Octets         = ENDIAN_SWAP64(ring_buffer.Pkts64Octets);        
-    buffer[n_elements].Pkts65to127Octets    = ENDIAN_SWAP64(ring_buffer.Pkts65to127Octets);   
-    buffer[n_elements].Pkts128to255Octets   = ENDIAN_SWAP64(ring_buffer.Pkts128to255Octets);  
-    buffer[n_elements].Pkts256to511Octets   = ENDIAN_SWAP64(ring_buffer.Pkts256to511Octets);  
-    buffer[n_elements].Pkts512to1023Octets  = ENDIAN_SWAP64(ring_buffer.Pkts512to1023Octets); 
-    buffer[n_elements].Pkts1024to1518Octets = ENDIAN_SWAP64(ring_buffer.Pkts1024to1518Octets);
-   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].index %d", buffer[n_elements].index);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].arg  %d",  buffer[n_elements].arg );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].time  %d", buffer[n_elements].time );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].path %d",  buffer[n_elements].path);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].cTempo %d", buffer[n_elements].cTempo);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Octets  %d", buffer[n_elements].Octets );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts %d", buffer[n_elements].Pkts);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Broadcast %d", buffer[n_elements].Broadcast);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Multicast %d", buffer[n_elements].Multicast);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].CRCAlignErrors %d", buffer[n_elements].CRCAlignErrors);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].UndersizePkts", buffer[n_elements].UndersizePkts);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].OversizePkts %d", buffer[n_elements].OversizePkts);
+  buffer[n_elements].Octets               = ENDIAN_SWAP64(ring_buffer.Octets);
+  buffer[n_elements].Pkts                 = ENDIAN_SWAP64(ring_buffer.Pkts);                
+  buffer[n_elements].Broadcast            = ENDIAN_SWAP64(ring_buffer.Broadcast);
+  buffer[n_elements].Multicast            = ENDIAN_SWAP64(ring_buffer.Multicast);           
+  buffer[n_elements].CRCAlignErrors       = ENDIAN_SWAP64(ring_buffer.CRCAlignErrors);      
+  buffer[n_elements].UndersizePkts        = ENDIAN_SWAP64(ring_buffer.UndersizePkts);       
+  buffer[n_elements].OversizePkts         = ENDIAN_SWAP64(ring_buffer.OversizePkts);        
+  buffer[n_elements].Fragments            = ENDIAN_SWAP64(ring_buffer.Fragments);           
+  buffer[n_elements].Jabbers              = ENDIAN_SWAP64(ring_buffer.Jabbers);             
+  buffer[n_elements].Collisions           = ENDIAN_SWAP64(ring_buffer.Collisions);          
+  buffer[n_elements].Utilization          = ENDIAN_SWAP64(ring_buffer.Utilization);         
+  buffer[n_elements].Pkts64Octets         = ENDIAN_SWAP64(ring_buffer.Pkts64Octets);        
+  buffer[n_elements].Pkts65to127Octets    = ENDIAN_SWAP64(ring_buffer.Pkts65to127Octets);   
+  buffer[n_elements].Pkts128to255Octets   = ENDIAN_SWAP64(ring_buffer.Pkts128to255Octets);  
+  buffer[n_elements].Pkts256to511Octets   = ENDIAN_SWAP64(ring_buffer.Pkts256to511Octets);  
+  buffer[n_elements].Pkts512to1023Octets  = ENDIAN_SWAP64(ring_buffer.Pkts512to1023Octets); 
+  buffer[n_elements].Pkts1024to1518Octets = ENDIAN_SWAP64(ring_buffer.Pkts1024to1518Octets);
+ 
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].index %d", buffer[n_elements].index);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].arg  %d",  buffer[n_elements].arg );   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].time  %d", buffer[n_elements].time );   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].path %d",  buffer[n_elements].path);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].cTempo %d", buffer[n_elements].cTempo);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Octets  %d", buffer[n_elements].Octets );   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts %d", buffer[n_elements].Pkts);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Broadcast %d", buffer[n_elements].Broadcast);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Multicast %d", buffer[n_elements].Multicast);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].CRCAlignErrors %d", buffer[n_elements].CRCAlignErrors);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].UndersizePkts", buffer[n_elements].UndersizePkts);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].OversizePkts %d", buffer[n_elements].OversizePkts);
 
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Fragments  %d", buffer[n_elements].Fragments );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Jabbers %d",  buffer[n_elements].Jabbers);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Collisions %d", buffer[n_elements].Collisions);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Utilization  %d", buffer[n_elements].Utilization );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts64Octets %d", buffer[n_elements].Pkts64Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts65to127Octets %d", buffer[n_elements].Pkts65to127Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts128to255Octets %d", buffer[n_elements].Pkts128to255Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts256to511Octets %d", buffer[n_elements].Pkts256to511Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts512to1023Octets", buffer[n_elements].Pkts512to1023Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts1024to1518Octets %d", buffer[n_elements].Pkts1024to1518Octets);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Fragments  %d", buffer[n_elements].Fragments );   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Jabbers %d",  buffer[n_elements].Jabbers);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Collisions %d", buffer[n_elements].Collisions);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Utilization  %d", buffer[n_elements].Utilization );   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts64Octets %d", buffer[n_elements].Pkts64Octets);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts65to127Octets %d", buffer[n_elements].Pkts65to127Octets);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts128to255Octets %d", buffer[n_elements].Pkts128to255Octets);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts256to511Octets %d", buffer[n_elements].Pkts256to511Octets);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts512to1023Octets", buffer[n_elements].Pkts512to1023Octets);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts1024to1518Octets %d", buffer[n_elements].Pkts1024to1518Octets);
       
   return L7_SUCCESS;
 }
@@ -17968,6 +17977,7 @@ L7_RC_t ptin_msg_igmp_packages_add(msg_igmp_package_t *msg)
   L7_char8  packageBmpStr[PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint8)*8)-1]={};
 //L7_char8 *charPtr = packageBmpStr;
   L7_RC_t   rc = L7_SUCCESS;
+  int i=0;
 
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR )
@@ -17985,8 +17995,6 @@ L7_RC_t ptin_msg_igmp_packages_add(msg_igmp_package_t *msg)
 #endif
 
   ENDIAN_SWAP16_MOD(msg->noOfPackages);
-
-  int i=0;
 
   for (i=0; i<PTIN_IGMP_PACKAGE_BITMAP_SIZE;i++)
   {
@@ -18044,6 +18052,7 @@ L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg)
 //L7_char8 *charPtr = packageBmpStr;
   L7_BOOL   forceRemoval = L7_FALSE;
   L7_RC_t   rc = L7_SUCCESS;
+  int i=0;
 
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR )
@@ -18061,8 +18070,6 @@ L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg)
 #endif 
      
   ENDIAN_SWAP16_MOD(msg->noOfPackages);
-
-  int i=0;
 
   for (i=0; i<PTIN_IGMP_PACKAGE_BITMAP_SIZE;i++)
   {

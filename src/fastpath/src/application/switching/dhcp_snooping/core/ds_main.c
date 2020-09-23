@@ -870,10 +870,10 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
       /* Only search and validate client for non CXP360G and untrusted interfaces */
       #if ( !PTIN_BOARD_IS_MATRIX )
 
-      ptin_client_id_t client;
-
       if (!_dsVlanIsIntfRoot(pduInfo->vlanId,pduInfo->intIfNum))
       {
+        ptin_client_id_t client;
+
         #if 0
         /* Validate inner vlan */
         if (innerVlanId==0 || innerVlanId>=4095)
@@ -1209,10 +1209,10 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
       /* Only search and validate client for non CXP360G and untrusted interfaces */
       #if ( !PTIN_BOARD_IS_MATRIX )
 
-      ptin_client_id_t client;
-
       if (!_dsVlanIsIntfRoot(pduInfo->vlanId,pduInfo->intIfNum))
       {
+        ptin_client_id_t client;
+
         #if 0
         /* Validate inner vlan */
         if (innerVlanId==0 || innerVlanId>=4095)
@@ -4478,6 +4478,7 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
   L7_enetMacAddr_t chaddr;
   L7_uint32 leaseTime;
   dhcpSnoopBinding_t dsBinding;
+  dsBindingTreeKey_t key;
 
   memcpy(&chaddr, dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
 
@@ -4608,7 +4609,6 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
            dsInfo->debugStats.bindingsAdded++;
          }
          /* Extract lease time */
-         dsBindingTreeKey_t key;
          memset(&key, 0x00, sizeof(key));
          memcpy(&key.macAddr.addr, &chaddr.addr, L7_ENET_MAC_ADDR_LEN);
          key.ipType = L7_AF_INET;
@@ -4628,7 +4628,6 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
          /* Client has refused or given up lease, or server has refused. Remove binding.
           * A failure removing binding could be ok. The client might be on a trusted
           * port or a port not enabled for DHCP snooping. */
-         dsBindingTreeKey_t key;
          memset(&key, 0x00, sizeof(key));
          memcpy(&key.macAddr.addr, &chaddr.addr, L7_ENET_MAC_ADDR_LEN);
          key.ipType = L7_AF_INET;
@@ -5219,6 +5218,7 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   L7_uchar8        *dataStart;
   L7_INTF_TYPES_t   sysIntfType;
   L7_uint32         member_mode;
+  L7_uint16         extOVlan, extIVlan;
 
   if (ptin_debug_dhcp_snooping)
     PT_LOG_TRACE(LOG_CTX_DHCP, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
@@ -5268,8 +5268,8 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
   /* PTin added: DHCP snooping */
   #if 1
-  L7_uint16 extOVlan = vlanId;
-  L7_uint16 extIVlan = 0;
+  extOVlan = vlanId;
+  extIVlan = 0;
 
   if (ptin_debug_dhcp_snooping)
     PT_LOG_TRACE(LOG_CTX_DHCP, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u, frameLen %u", intIfNum, vlanId, innerVlanId, frameLen);

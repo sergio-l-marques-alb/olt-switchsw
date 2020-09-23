@@ -1243,6 +1243,7 @@ void snoopPacketSend(L7_uint32 intIfNum,
   L7_uchar8        *dataStart;
   L7_INTF_TYPES_t   sysIntfType;
   L7_uint32         member_mode;
+  L7_uint16         extOVlan, extIVlan;
 
 #if PTIN_BOARD_IS_MATRIX  
   /* Do nothing for slave matrix */
@@ -1295,8 +1296,8 @@ void snoopPacketSend(L7_uint32 intIfNum,
 
   /* PTin added: IGMP snooping */
   #if 1
-  L7_uint16 extOVlan = vlanId;
-  L7_uint16 extIVlan = 0;
+  extOVlan = vlanId;
+  extIVlan = 0;
 
   /* Extract external outer and inner vlan for this tx interface */
   if (ptin_igmp_extVlans_get(intIfNum, vlanId, innerVIDUntagged, client_idx, &extOVlan, &extIVlan) == L7_SUCCESS)
