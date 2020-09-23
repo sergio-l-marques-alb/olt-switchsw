@@ -371,6 +371,8 @@ void debugTestAes(L7_char8 *str)
   AES_KEY aeskey;
   int lth;
 
+  memset(iv, 0x00, sizeof(iv));
+
   lth = strlen(str) + 1;
   strncpy(in,str, lth);
   AES_set_encrypt_key(key16,128,&aeskey);

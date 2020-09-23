@@ -526,7 +526,7 @@ L7_RC_t snoopAdminModeApply(L7_uint32 adminMode, L7_uint16 vlan_id /* PTin added
 {
   L7_uint32             intIfNum, cfgIndex, mode;
   L7_uint32             vlanId;
-  nimConfigID_t         configIdNull;
+  nimConfigID_t         configIdNull={0};
   L7_RC_t               rc;
   snoopIntfCfgData_t   *pCfg = L7_NULLPTR;
   snoopOperData_t      *pSnoopOperEntry  = L7_NULLPTR;
