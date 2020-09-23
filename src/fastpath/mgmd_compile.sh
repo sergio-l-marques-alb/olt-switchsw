@@ -237,13 +237,13 @@ elif [ "$1" == "CXO640G" ]; then
   export PTIN_MGMD_PLATFORM_ADMISSION_CONTROL_SUPPORT=0
   export PTIN_MGMD_PLATFORM_ROOT_PORT_IS_ON_MAX_PORT_ID=0
 
-# (Trident3-X3) FIXME
+# Trident3-X3
 elif [ "$1" == "TC16SXG" ]; then
   BOARD=$1
   CPU=td3x3arm
   
-  export COMPILER_DIR=/opt/eldk/usr/bin
-  export COMPILER_PREFIX=ppc_85xxDP-
+  export COMPILER_DIR=/opt/xldk/6.0.1/helix5/usr/bin
+  export COMPILER_PREFIX=aarch64-linux-
 #  export LD_LIB_PATH=/opt/broadcom_kt2_hx4/usr/lib
 
   # Overide local variables with the ones comming from the makefile (if defined)
