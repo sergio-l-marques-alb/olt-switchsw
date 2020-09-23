@@ -1002,7 +1002,8 @@ void loggingInit()
       /* The fault records "reuses" the event records, but are not structured well for this.
          This is a workaround to account for the differences in sizes of the structures.*/
       memset (&fault_event_record, 0, sizeof(fault_event_record));
-      memcpy(&fault_event_record, &fault_record, sizeof(fault_event_record));
+      /* FIXME: GCC8 */
+      //memcpy(&fault_event_record, &fault_record, sizeof(fault_event_record));
 
       add_flash_log_entry (&fault_event_record,L7_FALSE);
     }
