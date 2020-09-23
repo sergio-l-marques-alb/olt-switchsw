@@ -36,7 +36,7 @@
 
 /* define wrappers to osapiFree and osapiMalloc */
 void snmpFree(void * memory);
-void *snmpMalloc(L7_uint32 nbytes);
+void *snmpMalloc(size_t nbytes);
 
 #define free(_x)        (snmpFree(_x))
 #define malloc(nbytes)  (snmpMalloc(nbytes))

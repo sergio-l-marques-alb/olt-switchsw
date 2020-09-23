@@ -33,7 +33,7 @@ void hexdump (void *buf, size_t length, const char *startLine, const char *endLi
      printf("%02X ", buffer[i]);
      if ( (i == (length - 1)) && (0 != (length%32)) )
      {
-        printf("%*.*s", (32 - (length%32))*3, (32 - (length%32))*3, "");
+        printf("%*.*s", (32 - ((unsigned int) length%32))*3, (32 - ((unsigned int) length%32))*3, "");
         if ( NULL != endLine ){ printf("%s", endLine); }
         printf("\n");
      }
@@ -330,7 +330,7 @@ inline int _bmp_set(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int bit)
 #ifdef BITMAP_VALIDATE_SIZE
     if (bit >= (sizeof(bmp_cell_t) * sizeof_bmp * 8)) {
         printf("%s(%d) *** CRITICAL *** Bit %u is out of range! Bitmap size = %u bits\n",
-               __FUNCTION__, __LINE__, bit, (sizeof(bmp_cell_t) * sizeof_bmp * 8));
+               __FUNCTION__, __LINE__, bit, (unsigned int) (sizeof(bmp_cell_t) * sizeof_bmp * 8));
         return 0;
     }
 #endif
@@ -361,7 +361,7 @@ inline int _bmp_clear(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int bi
 #ifdef BITMAP_VALIDATE_SIZE
     if (bit >= (sizeof(bmp_cell_t) * sizeof_bmp * 8)) {
         printf("%s(%d) *** CRITICAL *** Bit %u is out of range! Bitmap size = %u bits\n",
-               __FUNCTION__, __LINE__, bit, (sizeof(bmp_cell_t) * sizeof_bmp * 8));
+               __FUNCTION__, __LINE__, bit, (unsigned int) (sizeof(bmp_cell_t) * sizeof_bmp * 8));
         return 0;
     }
 #endif
@@ -392,7 +392,7 @@ inline int _bmp_is_set(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int b
 #ifdef BITMAP_VALIDATE_SIZE
     if (bit >= (sizeof(bmp_cell_t) * sizeof_bmp * 8)) {
         printf("%s(%d) *** CRITICAL *** Bit %u is out of range! Bitmap size = %u bits\n",
-               __FUNCTION__, __LINE__, bit, (sizeof(bmp_cell_t) * sizeof_bmp * 8));
+               __FUNCTION__, __LINE__, bit, (unsigned int) (sizeof(bmp_cell_t) * sizeof_bmp * 8));
         return 0;
     }
 #endif
@@ -422,7 +422,7 @@ inline int _bmp_is_clear(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int
 #ifdef BITMAP_VALIDATE_SIZE
     if (bit >= (sizeof(bmp_cell_t) * sizeof_bmp * 8)) {
         printf("%s(%d) *** CRITICAL *** Bit %u is out of range! Bitmap size = %u bits\n",
-               __FUNCTION__, __LINE__, bit, (sizeof(bmp_cell_t) * sizeof_bmp * 8));
+               __FUNCTION__, __LINE__, bit, (unsigned int) (sizeof(bmp_cell_t) * sizeof_bmp * 8));
         return 0;
     }
 #endif

@@ -1042,8 +1042,8 @@ Malloc_Safe(size_t s, const char *file, uint32 line)
   p = ewaAlloc(s);
   if (NULL == p)
     {
-      EMWEB_ERROR(("malloc_safe: attempted allocation of %d bytes failed\n",
-                   s));
+      EMWEB_ERROR(("malloc_safe: attempted allocation of %u bytes failed\n",
+                   (unsigned int) s));
       ERROR_EXIT;
     }
   return p;

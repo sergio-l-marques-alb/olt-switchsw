@@ -43,9 +43,9 @@
 *       
 * @end
 *********************************************************************/
-static L7_int32 pimsmSGRptCompare(const void *pNode1, 
-                                  const void *pNode2,
-                                  L7_uint32   keySize)
+static int pimsmSGRptCompare(const void *pNode1, 
+                             const void *pNode2,
+                             size_t      keySize)
 {
   pimsmSGRptNode_t * pSGRptNode1, *pSGRptNode2;
   L7_inet_addr_t  * pSrcAddr1, * pSrcAddr2;

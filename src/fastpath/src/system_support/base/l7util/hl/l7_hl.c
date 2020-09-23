@@ -907,8 +907,8 @@ void hlDebugShow(void *objId)
   printf("\nBuffer pool ID:  %#x", p_H->bufferPoolId);
 
   printf("\nMemory use:");
-  printf("\n  Hash list:  %u bytes", sizeof(l7_hl_t));
-  printf("\n  Hash bucket array:  %u bytes", sizeof(hl_value_t **) * p_H->numBuckets);
+  printf("\n  Hash list:  %u bytes", (unsigned int) sizeof(l7_hl_t));
+  printf("\n  Hash bucket array:  %u bytes", (unsigned int) (sizeof(hl_value_t **) * p_H->numBuckets));
   if (p_H->valContainer)
   {
     printf("\n  Val container buffer pool:  %u bytes",

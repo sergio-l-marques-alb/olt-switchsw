@@ -49,7 +49,7 @@
 *
 * @end
 *****************************************************************/
-L7_int32 dvmrpAVLCacheCompare(const void *a, const void *b, L7_uint32 len);
+L7_int dvmrpAVLCacheCompare(const void *a, const void *b, size_t len);
 
 
 /*********************************************************************

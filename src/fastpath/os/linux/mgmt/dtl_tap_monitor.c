@@ -396,7 +396,7 @@ void tap_monitor_task_fn()
              *file descriptor
              */
             frame_length = read(reg_table[i].fd,(void *)frame_data,MAX_FRAME_LEN);
-            PRINT_CTRL_MSG("frame length is %d bytes\n",frame_length);
+            PRINT_CTRL_MSG("frame length is %u bytes\n", (unsigned int) frame_length);
 
             /*
              *check to make sure we got something

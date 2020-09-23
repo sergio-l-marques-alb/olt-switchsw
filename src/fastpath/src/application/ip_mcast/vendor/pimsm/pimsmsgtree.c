@@ -44,9 +44,9 @@
 *       
 * @end
 *********************************************************************/
-static L7_int32 pimsmSGCompare(const void * pimsmSGNode1, 
-                               const void * pimsmSGNode2,
-                               L7_uint32 keySize)
+static int pimsmSGCompare(const void * pimsmSGNode1, 
+                          const void * pimsmSGNode2,
+                          size_t keySize)
 {
   pimsmSGNode_t * pSGNode1, *pSGNode2;
   L7_inet_addr_t  *pSrcAddr1, * pSrcAddr2;

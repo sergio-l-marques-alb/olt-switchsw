@@ -123,8 +123,8 @@ mfcCacheEntry_t *mfcEntryGet(L7_inet_addr_t *pSource,
 *
 *********************************************************************/
 static 
-L7_int32 mfcCacheEntryCompare(const void *pData1, const void *pData2, 
-                              L7_uint32 size)
+L7_int mfcCacheEntryCompare(const void *pData1, const void *pData2, 
+                            size_t size)
 {
   mfcCacheEntry_t *pKey1 = (mfcCacheEntry_t *)pData1;
   mfcCacheEntry_t *pKey2 = (mfcCacheEntry_t *)pData2;

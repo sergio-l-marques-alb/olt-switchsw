@@ -41,7 +41,7 @@
 *
 * @end
 *****************************************************************/
-L7_int32 dvmrpAVLCompareGroup(const void *a, const void *b, L7_uint32 len)
+L7_int dvmrpAVLCompareGroup(const void *a, const void *b, size_t len)
 {
   L7_inet_addr_t source_a, source_b, group_a, group_b;
   L7_int32 ret = L7_NULL;

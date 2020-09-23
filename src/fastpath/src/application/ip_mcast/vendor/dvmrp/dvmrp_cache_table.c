@@ -43,7 +43,7 @@
 *
 * @end
 *****************************************************************/
-L7_int32 dvmrpAVLCacheCompare(const void *a, const void *b, L7_uint32 len)
+L7_int dvmrpAVLCacheCompare(const void *a, const void *b, size_t len)
 {
   dvmrp_cache_entry_t *pKey1 = (dvmrp_cache_entry_t *) a;
   dvmrp_cache_entry_t *pKey2 = (dvmrp_cache_entry_t *) b;

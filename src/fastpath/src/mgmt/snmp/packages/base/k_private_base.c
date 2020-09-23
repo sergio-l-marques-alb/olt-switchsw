@@ -13,7 +13,7 @@ void snmpFree(void * memory)
   }
 }
 
-void *snmpMalloc(L7_uint32 nbytes)
+void *snmpMalloc(size_t nbytes)
 {
   return osapiMalloc(L7_SNMP_COMPONENT_ID, nbytes);
 }
