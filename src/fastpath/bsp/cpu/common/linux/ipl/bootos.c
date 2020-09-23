@@ -180,6 +180,11 @@ struct stack_frame_intro_s
  * PTin added: ARM processor 
  * Missing code for ARM processor
  */
+#elif defined(__aarch64__)
+/* 
+ * PTin added: ARM processor 
+ * Missing code for ARM processor
+ */
 #elif defined(__mips__)
 
 register unsigned int *sigsegv_stack asm("$29");

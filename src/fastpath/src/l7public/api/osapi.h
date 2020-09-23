@@ -23,6 +23,7 @@
 #ifndef OSAPIPROTO_HEADER
 #define OSAPIPROTO_HEADER
 
+#include <sys/syscall.h>
 #include <stdarg.h>                     /* CRC_OK: deviation from Guidelines */
 #include <time.h>
 
@@ -4337,24 +4338,19 @@ typedef struct
 #ifdef L7_LINUX_24
 #define osapiGetpid()  (unsigned long) getpid()
 #else
-#ifdef __powerpc__
+#if defined(__powerpc__)
 #define osapiGetpid()  (unsigned long) syscall(207) /* __NR_gettid */
-#else
-#ifdef __mips__
+#elif defined(__mips__)
 #define osapiGetpid()  (unsigned long) syscall(4222) /* __NR_gettid */
-#else
-#ifdef __i386__
+#elif defined(__i386__)
 #define osapiGetpid()  (unsigned long) syscall(224) /* __NR_gettid */
-#else
-/* PTin added: ARM processor */
-#ifdef __arm__
+#elif defined(__arm__)
 #define osapiGetpid()  (unsigned long) syscall(224) /* __NR_gettid */
+#elif  defined(__aarch64__)
+#define osapiGetpid()  (unsigned long) syscall(SYS_gettid)  /* __NR_gettid */
 #else
 #define osapiGetpid()  (unsigned long) gettid()
-#endif /* arm */
-#endif /* i386 */
-#endif /* mips */
-#endif /* powerpc */
+#endif
 #endif /* Linux 2.4 */
 
 #endif /* _L7_OS_LINUX_ */

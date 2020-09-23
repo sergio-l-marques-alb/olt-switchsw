@@ -317,7 +317,7 @@ static int fpConsoleFd;
 #ifdef _L7_OS_ECOS_
 struct sigaction origSignal, newSignal;
 #else
-struct sigvec origSignal, newSignal;
+//struct sigvec origSignal, newSignal;
 #endif
 
 void setmodes(void)
@@ -365,12 +365,14 @@ void setmodes(void)
 #else
 /* PTin modified: ARM processor */
 /* Ptin TODO: signal */
+#if 0
 #ifndef __arm__
   sigvec(SIGTERM, (struct sigvec *) NULL,  &origSignal);
   newSignal.sv_handler = onintr;
   newSignal.sv_mask = 0;
   newSignal.sv_flags = 0;
   sigvec(SIGTERM, &newSignal, NULL);
+#endif
 #endif
 #endif
 }
@@ -397,8 +399,10 @@ void restoremodes(int errcall )
   sigaction(SIGTERM, &origSignal, NULL);
 #else
 /* PTin TODO: signal */
+#if 0
 #ifndef __arm__
   sigvec(SIGTERM, &origSignal, NULL);
+#endif
 #endif
 #endif
   return;
