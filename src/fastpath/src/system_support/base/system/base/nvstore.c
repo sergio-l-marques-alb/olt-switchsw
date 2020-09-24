@@ -786,8 +786,8 @@ L7_RC_t nvStoreGetFile(L7_char8 *fileName, L7_char8 *buffer, L7_uint32 bufferSiz
     }
 
     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_SIM_COMPONENT_ID, "Building defaults for file %s."
-            " A component’s configuration file does not exist or the file’s checksum is incorrect"
-            " so the component’s default configuration file is built.\n",fileName);
+            " A component's configuration file does not exist or the file's checksum is incorrect"
+            " so the component's default configuration file is built.\n",fileName);
 
     (*defaultBuild)(version);
 
@@ -796,7 +796,7 @@ L7_RC_t nvStoreGetFile(L7_char8 *fileName, L7_char8 *buffer, L7_uint32 bufferSiz
     if (osapiFsWrite(fileName, buffer, (L7_int32)bufferSize) == L7_ERROR)
     {
       L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_SIM_COMPONENT_ID, "Error on call to osapiFsWrite routine "
-                             "on file %s. Either the file can not be opened or the OS’s file I/O returned"
+                             "on file %s. Either the file can not be opened or the OS's file I/O returned"
                              " an error trying to write to the file.\n",fileName);
     }
   }
@@ -807,7 +807,7 @@ L7_RC_t nvStoreGetFile(L7_char8 *fileName, L7_char8 *buffer, L7_uint32 bufferSiz
     if (chkSum != *checkSum)
     {
       L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_SIM_COMPONENT_ID, "File %s corrupted from file system.  "
-                    "Checksum mismatch. The calculated checksum of a component’s configuration file in "
+                    "Checksum mismatch. The calculated checksum of a component's configuration file in "
                     "the file system did not match the checksum of the file in memory.\n", fileName);
 
 
@@ -816,9 +816,9 @@ L7_RC_t nvStoreGetFile(L7_char8 *fileName, L7_char8 *buffer, L7_uint32 bufferSiz
         return(L7_FAILURE);
       }
 
-      L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_SIM_COMPONENT_ID, "Building defaults for file %s. A component’s "
-                            "configuration file does not exist or the file’s checksum is incorrect so the "
-                             "component’s default configuration file is built.\n",fileName);
+      L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_SIM_COMPONENT_ID, "Building defaults for file %s. A component's "
+                            "configuration file does not exist or the file's checksum is incorrect so the "
+                             "component's default configuration file is built.\n",fileName);
 
       (*defaultBuild)(version);
 
@@ -827,7 +827,7 @@ L7_RC_t nvStoreGetFile(L7_char8 *fileName, L7_char8 *buffer, L7_uint32 bufferSiz
       if (osapiFsWrite(fileName, buffer, (L7_int32)bufferSize) == L7_ERROR)
       {
         L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_SIM_COMPONENT_ID, "Error on call to osapiFsWrite routine "
-                "on file %s. Either the file can not be opened or the OS’s file I/O returned "
+                "on file %s. Either the file can not be opened or the OS's file I/O returned "
                 "an error trying to write to the file.\n",fileName);
       }
     }

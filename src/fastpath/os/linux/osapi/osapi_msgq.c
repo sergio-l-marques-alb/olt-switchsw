@@ -462,10 +462,8 @@ L7_RC_t osapiMessageSend(void *queue_ptr, void *Message, L7_uint32 Size,
   }
   else
   {
-
     PT_LOG_ERR(LOG_CTX_MISC,"queue_ptr 0x%08x is full",(L7_uint32) queue_ptr);
     rc = L7_ERROR;
-
   }
 
   pthread_cleanup_pop(1);
