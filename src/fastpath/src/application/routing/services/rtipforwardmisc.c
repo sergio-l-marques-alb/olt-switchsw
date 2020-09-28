@@ -83,7 +83,7 @@ void rtcreateIcmpErrPckt(struct rtmbuf *m, struct rtmbuf *mcopy)
   memcpy(mcopy->rtm_data, m->rtm_data, (unsigned int)mcopy->rtm_len);
 
   /* Save the ethernet header so that we can use it search for a VRRP IP address */
-  SYSAPI_NET_MBUF_GET_DATASTART((L7_netBufHandle)m->rtm_bufhandle, dataStart);
+  SYSAPI_NET_MBUF_GET_DATASTART((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle), dataStart);
   if(dataStart != NULL)
      memcpy(mcopy->m_dmac, dataStart, L7_MAC_ADDR_LEN);
   else

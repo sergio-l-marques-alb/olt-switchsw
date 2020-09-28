@@ -1333,7 +1333,7 @@ static int ripRouteEntryDisplay(struct radix_node *rn, struct walkarg *argp)
       pIntName = RT->rt_ifp->int_name;
     else
       pIntName = "n/a";
-    RIP_MAP_PRT(RIP_MAP_MSGLVL_ON, "%s (0x%x)\n", pIntName, (L7_uint32)RT->rt_ifp);
+    RIP_MAP_PRT(RIP_MAP_MSGLVL_ON, "%s (0x%llx)\n", pIntName, PTR_TO_UINT64(RT->rt_ifp));
 
   } /* endfor */
 

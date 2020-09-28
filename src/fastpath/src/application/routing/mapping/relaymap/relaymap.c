@@ -445,15 +445,15 @@ void ihDebugShow(void)
 
   if (osapiSemaTake(ihInfo->ihLock, L7_WAIT_FOREVER) != L7_SUCCESS)
   {
-    printf("\nFailed to take IP helper semaphore at %#x.", (L7_uint32) ihInfo->ihLock);
+    printf("\nFailed to take IP helper semaphore at %p.", ihInfo->ihLock);
     return;
   }
-  printf("\nIP helper thread ID:  %#x", ihInfo->dhcpRelayTaskId);
+  printf("\nIP helper thread ID:  %#llx", ihInfo->dhcpRelayTaskId);
   printf("\nMax number of relay entries:  %u", ihCfg->relayEntryList.maxEntries);
   printf("\nCurrent number of relay entries:  %u", ihRelayEntryCount());
   printf("\nServer addr pool ID:  %u", pDhcpRelayInfo->serverPoolId);
   printf("\nPacket pool ID:  %u", pDhcpRelayInfo->packetPoolId);
-  printf("\nIP helper semaphore: %#x", (L7_uint32) ihInfo->ihLock);
+  printf("\nIP helper semaphore: %p", ihInfo->ihLock);
   printf("\nSysnet intercept registered?:  %s", ihInfo->regWithSysnet ? "Yes" : "No");
   printf("\nCurrent trace flags:  %#x", ihInfo->ihTraceFlags);
 

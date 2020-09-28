@@ -65,7 +65,7 @@ extern osapiTimerDescr_t *pRtrDiscTimerHolder;
 *
 * @end
 *********************************************************************/
-void rtrDiscTimerTick(void * parm1, L7_uint32 parm2)
+void rtrDiscTimerTick(L7_uint64 parm1, L7_uint64 parm2)
 {
     L7_RC_t rc;
     rtrDiscMsg_t msg;

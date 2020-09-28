@@ -48,7 +48,7 @@ extern L7_uint32         *vrrpIntfMapTbl;
 extern vrrpRouterBasicConfiguration_t  vrrpBasicConfig_g;
 extern void  *vrrp_Queue;
 extern void     *VrrpConfigSema;
-extern L7_int32  vrrpTaskDaemonId;
+extern L7_uint64 vrrpTaskDaemonId;
 extern vrrpList_t * listMemPool_g[L7_VRRP_INTF_MAX_COUNT + 1];
 extern vrrpRouterInfo_t * routersArray_g[L7_VRRP_INTF_MAX_COUNT + 1];
 extern vrrpIntfInformation_t * vrrpIntfInfoTbl;

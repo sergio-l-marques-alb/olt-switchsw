@@ -736,7 +736,7 @@ void rlimTunnelOpRemoteAddrUpdate(L7_uint32 tunnelId, rlimAddr_t *newAddr)
        break;
 
      case RLIM_ADDRTYPE_IP4:
-       rtoNHResCallbackUnregister(tcp->remoteAddr.un.ip4addr, rlimTunnelIp4NhopChangeCallback, (void *)tunnelId);
+       rtoNHResCallbackUnregister(tcp->remoteAddr.un.ip4addr, rlimTunnelIp4NhopChangeCallback, UINT_TO_PTR(tunnelId));
        break;
 
 #if 0 /* not yet */
@@ -768,7 +768,7 @@ void rlimTunnelOpRemoteAddrUpdate(L7_uint32 tunnelId, rlimAddr_t *newAddr)
 
     case RLIM_ADDRTYPE_IP4:
       rlimTunnelIp4ReachabilityCheck(tunnelId);
-      rtoNHResCallbackRegister(tcp->remoteAddr.un.ip4addr, rlimTunnelIp4NhopChangeCallback, (void *)tunnelId);
+      rtoNHResCallbackRegister(tcp->remoteAddr.un.ip4addr, rlimTunnelIp4NhopChangeCallback, UINT_TO_PTR(tunnelId));
       break;
 
 #if 0 /* not yet */

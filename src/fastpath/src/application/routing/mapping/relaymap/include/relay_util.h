@@ -172,7 +172,7 @@ typedef struct dhcpRelayInfo_s
 {
     /* indicates whether DHCP_RELAY is initialized or not.*/
     L7_BOOL         dhcpRelayInitialized;
-    L7_uint32       dhcpRelayTaskId;
+    L7_uint64       dhcpRelayTaskId;
 
     /* L7_TRUE if sysnet intercept currently registered. */
     L7_BOOL regWithSysnet;

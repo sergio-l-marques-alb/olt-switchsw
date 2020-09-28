@@ -116,9 +116,9 @@ the event times out (and bad things probably happen).
 #endif
 
 
-L7_int32                ipMapForwardingTaskId = L7_NULL;
-L7_int32                ipMapProcessingTaskId = L7_NULL;
-ipMapInfo_t                 *pIpMapInfo                                 = L7_NULL;
+L7_uint64               ipMapForwardingTaskId = L7_NULL;
+L7_uint64               ipMapProcessingTaskId = L7_NULL;
+ipMapInfo_t             *pIpMapInfo                                 = L7_NULL;
 void *ipMapMsgQSema = L7_NULL;
 void *ipMapForwardQueue[L7_L3_FORWARD_QUEUE_COUNT];
 L7_uint32 ipMapForwardQueueHWMark[L7_L3_FORWARD_QUEUE_COUNT];
@@ -979,7 +979,7 @@ L7_RC_t ipMapIntfDelete(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
 *
 * @end
 *********************************************************************/
-void ipMapStaleRouteTimerExp(L7_uint32 unused1, L7_uint32 unused2)
+void ipMapStaleRouteTimerExp(L7_uint64 unused1, L7_uint64 unused2)
 {
   ipMapMsg_t   Message;
   L7_RC_t rc;

@@ -64,9 +64,9 @@
  */
 typedef struct {
   void *processQueue;
-  L7_uint32 procTaskHandle;
+  L7_uint64 procTaskHandle;
   void *cnfgrQueue;
-  L7_uint32 cnfgrTaskHandle;
+  L7_uint64 cnfgrTaskHandle;
   osapiTimerDescr_t *ip4NhopChangeTimer;
   osapiTimerDescr_t *tunnelDestAgeTimer;
 

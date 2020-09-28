@@ -1749,8 +1749,8 @@ void ripMapDebugShow(void)
               "RIP Internal Debug Information\n");
 
   RIP_MAP_PRT(RIP_MAP_MSGLVL_ON,
-              "  RIP Control Ctx:  taskSemId=0x%8.8x  taskSemAvail=%d  msgLvl=%d\n",
-              (L7_uint32)ripMapCtrl_g.taskCtrl.semId, ripMapCtrl_g.taskCtrl.semAvail,
+              "  RIP Control Ctx:  taskSemId=0x%llx  taskSemAvail=%d  msgLvl=%d\n",
+              PTR_TO_UINT64(ripMapCtrl_g.taskCtrl.semId), ripMapCtrl_g.taskCtrl.semAvail,
               ripMapCtrl_g.msgLvl);
 
   RIP_MAP_PRT(RIP_MAP_MSGLVL_ON,

@@ -214,8 +214,8 @@ L7_RC_t ipMapArpInitPhase2Process(void)
 {
   L7_RC_t rc;
 
-  PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_ROUTING_ARP_MGMT (%u)",
-           (L7_uint32) dtlIpv4ArpEntryCallback, DTL_FAMILY_ROUTING_ARP_MGMT);
+  PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function %p to family DTL_FAMILY_ROUTING_ARP_MGMT (%u)",
+              dtlIpv4ArpEntryCallback, DTL_FAMILY_ROUTING_ARP_MGMT);
 
   if ((rc = dtlCallbackRegistration(DTL_FAMILY_ROUTING_ARP_MGMT,
               dtlIpv4ArpEntryCallback)) != L7_SUCCESS)
@@ -650,7 +650,7 @@ L7_RC_t ipMapArpIntfUnregister(L7_uint32 intIfNum)
 L7_RC_t ipMapArpAddrResolve(L7_uint32 intIfNum, L7_uint32 ipAddr,
                             L7_uchar8 *pMacAddr,
                             ipMapArpResCallback_ft pCallbackFn,
-                            L7_uint32 cbParm1, L7_uint32 cbParm2)
+                            L7_uint64 cbParm1, L7_uint64 cbParm2)
 {
   L7_RC_t rc;
   IPM_ARP_SEMA_TAKE(&ipMapArpCtx_g.arpLock, L7_WAIT_FOREVER);

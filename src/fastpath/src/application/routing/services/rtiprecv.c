@@ -108,7 +108,7 @@ void rtLvl7IPRecv(L7_netBufHandle bufHandle,
   /* Get the received Physical port number */
   m->rtm_pkthdr.rxPort = pduInfo->rxPort;
 
-  m->rtm_bufhandle = (void *)bufHandle;
+  m->rtm_bufhandle = (void *) UINT_TO_PTR(bufHandle);
   SYSAPI_NET_MBUF_GET_DATASTART(m->rtm_bufhandle, data);
 
   rtmDataOffset = sysNetDataOffsetGet(data);

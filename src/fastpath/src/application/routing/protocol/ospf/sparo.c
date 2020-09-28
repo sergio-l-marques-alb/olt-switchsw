@@ -258,10 +258,10 @@ void ospfDebugDdShow(char * str, t_A_DbEntry *p_DbEntry)
   {
     strcpy(areaIdStr, "0");
   }
-  sprintf(traceBuf, "\r\n%s DB %s LSID: %s, Adv Router: %s, Area %s, InitAge: %d, OrgTime %u, SeqNo: 0x%lx, Opt 0x%x, p_Lsa 0x%x, isCur %s",
+  sprintf(traceBuf, "\r\n%s DB %s LSID: %s, Adv Router: %s, Area %s, InitAge: %d, OrgTime %u, SeqNo: 0x%lx, Opt 0x%x, p_Lsa 0x%llx, isCur %s",
           str, lsaTypeNames[p_DbEntry->Lsa.LsType], lsIdStr, advRouterStr, areaIdStr,
           p_DbEntry->InitAge, (unsigned int)p_DbEntry->OrgTime, A_GET_4B(p_DbEntry->Lsa.SeqNum), p_DbEntry->Lsa.Options,
-          (unsigned int)p_DbEntry->p_Lsa, (L7_BIT_ISSET(p_DbEntry->dbFlags, O2_DB_ENTRY_IS_CUR) ? "TRUE" : "FALSE") );
+          PTR_TO_UINT64(p_DbEntry->p_Lsa), (L7_BIT_ISSET(p_DbEntry->dbFlags, O2_DB_ENTRY_IS_CUR) ? "TRUE" : "FALSE") );
   sysapiPrintf(traceBuf);    
 }
 
@@ -5017,7 +5017,7 @@ void ospfDebugVlinks(void)
       L7_uchar8 localAddrStr[OSAPI_INET_NTOA_BUF_SIZE];
       t_ARO *p_transitARO = (t_ARO*) p_IFO->TransitARO;
       RTO_InterfaceName(p_IFO, ifName);
-      printf("\nIFO pointer  %#x", (L7_uint32) p_IFO);
+      printf("\nIFO pointer %p", p_IFO);
       printf("\n\nVirtual interface %s...", ifName);
       printf("\nTransit area ID %lu.", (ulng) p_IFO->Cfg.VirtTransitAreaId);
       if (p_transitARO)
@@ -7376,8 +7376,8 @@ static Bool AgingRemoveOverAgedLsa(t_Handle user, byte *value, ulng param)
       if (p_RTO->ospfTraceFlags & OSPF_TRACE_AGING)
       {
          char traceBuf[OSPF_MAX_TRACE_STR_LEN];
-         sprintf(traceBuf, "Skip deleting aged DB 0x%x LSID 0x%08x, area 0x%08x in Exchange/Load state",
-                (L7_uint32)p_DbEntry, (L7_uint32)A_GET_4B(p_DbEntry->Lsa.LsId), (L7_uint32)p_ARO->AreaId);
+         sprintf(traceBuf, "Skip deleting aged DB 0x%llx LSID 0x%08x, area 0x%08x in Exchange/Load state",
+                 PTR_TO_UINT64(p_DbEntry), (L7_uint32)A_GET_4B(p_DbEntry->Lsa.LsId), (L7_uint32)p_ARO->AreaId);
          RTO_TraceWrite(traceBuf);
       }
 
@@ -7401,8 +7401,8 @@ static Bool AgingRemoveOverAgedLsa(t_Handle user, byte *value, ulng param)
            if (p_RTO->ospfTraceFlags & OSPF_TRACE_AGING)
            {
               char traceBuf[OSPF_MAX_TRACE_STR_LEN];
-              sprintf(traceBuf, "Skip deleting aged DB 0x%x LSID %x, area %x SeqNo: 0x%x, on NBO %x ReTx list",
-                     (L7_uint32)p_DbEntry, (L7_uint32)(A_GET_4B(p_DbEntry->Lsa.LsId)), 
+              sprintf(traceBuf, "Skip deleting aged DB 0x%llx LSID %x, area %x SeqNo: 0x%x, on NBO %x ReTx list",
+                     PTR_TO_UINT64(p_DbEntry), (L7_uint32)(A_GET_4B(p_DbEntry->Lsa.LsId)), 
                      (L7_uint32)p_ARO->AreaId, (L7_uint32)(A_GET_4B(p_DbEntry->Lsa.SeqNum)), 
                      (L7_uint32)p_NBO->IpAdr);
               RTO_TraceWrite(traceBuf);
@@ -7447,8 +7447,8 @@ static Bool AgingRemoveOverAgedLsa(t_Handle user, byte *value, ulng param)
       if (p_RTO->ospfTraceFlags & OSPF_TRACE_AGING)
       {
          char traceBuf[OSPF_MAX_TRACE_STR_LEN];
-         sprintf(traceBuf, "Deleting DBE 0x%x type %d on area %x. LSID: %x, Adv Router: %x, Age: %d, SeqNo: 0x%x",
-                (L7_uint32)p_DbEntry, (L7_uint32)p_DbEntry->Lsa.LsType, 
+         sprintf(traceBuf, "Deleting DBE 0x%llx type %d on area %x. LSID: %x, Adv Router: %x, Age: %d, SeqNo: 0x%x",
+                PTR_TO_UINT64(p_DbEntry), (L7_uint32)p_DbEntry->Lsa.LsType, 
                 p_ARO ? (L7_uint32)p_ARO->AreaId : 0, (L7_uint32)A_GET_4B(p_DbEntry->Lsa.LsId), 
                 (L7_uint32)A_GET_4B(p_DbEntry->Lsa.AdvertisingRouter), 
                 (L7_uint32)A_GET_2B(p_DbEntry->Lsa.LsAge), 

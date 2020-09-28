@@ -878,7 +878,7 @@ L7_RC_t ipMapSubnetStaticRoutesRemove(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddr, L
 L7_RC_t ipMapSubnetLocalRouteRemove(L7_uint32 ipAddr, L7_uint32 ipMask);
 L7_uchar8 *ipMapNsfProtocolName(L7_NSF_PROTOCOL_t protocol);
 L7_uchar8 *ipMapNsfRoutesPendingString(void);
-void ipMapStaleRouteTimerExp(L7_uint32 unused1, L7_uint32 unused2);
+void ipMapStaleRouteTimerExp(L7_uint64 unused1, L7_uint64 unused2);
 
 /*-------------------------------------------------------------*/
 /*                   ipmap_cnfgr.c                             */

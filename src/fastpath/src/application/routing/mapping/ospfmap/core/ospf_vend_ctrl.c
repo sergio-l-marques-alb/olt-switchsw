@@ -2669,7 +2669,7 @@ static void sockStatus( t_Handle userId,     /* User Id of connection */
                         t_Handle connId,     /* Connection Idreturned by TcpUdpBind_Open */
                         word status)         /* Connection status flags */
 {
-  OSPFMAP_TRACE("Socket 0x%8.8X status is %ld\n", (unsigned int)connId, (ulng)status);
+  OSPFMAP_TRACE("Socket 0x%llX status is %ld\n", PTR_TO_UINT64(connId), (ulng)status);
 }
 
 

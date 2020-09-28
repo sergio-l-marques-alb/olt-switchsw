@@ -46,7 +46,7 @@ extern t_IFO * ifoPtrGet(L7_uint32 intIfNum);
 extern L7_RC_t ifoAuthKeyCfgGet(L7_uint32 intIfNum, t_OspfAuthKey *p_Auth);
 extern L7_RC_t virtIfAuthKeyCfgGet(t_Handle IFO_Id, t_OspfAuthKey *p_Auth);
 extern void XX_DisplayQueue(t_Handle threadID, ulng queueId, ulng resolveNames, long maxDepth);
-extern void osapiDebugStackTrace (L7_uint32 task_id, FILE *fp);
+extern void osapiDebugStackTrace (L7_uint64 task_id, FILE *fp);
 
 
 static void ospfRedistCfgBuildTestConfigData(ospfRedistCfg_t *redistCfg, L7_uint32 seed);
@@ -782,9 +782,9 @@ void ospfMapExtenIFOShow(L7_uint32 unit, L7_uint32 slot, L7_uint32 port,
       }
       osapiInetNtoa((L7_uint32)p_IFO->IfoId, debug_buf);
       SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nIfoId......................................0x%x  (%-15.15s)", (L7_uint32)p_IFO->IfoId, debug_buf);
-      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nLowLayerId.................................0x%x", (L7_uint32)p_IFO->LowLayerId);
-      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nARO_Id.....................................0x%x", (L7_uint32)p_IFO->ARO_Id);
-      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nRTO_Id.....................................0x%x", (L7_uint32)p_IFO->RTO_Id);
+      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nLowLayerId.................................%p", p_IFO->LowLayerId);
+      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nARO_Id.....................................%p", p_IFO->ARO_Id);
+      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nRTO_Id.....................................%p", p_IFO->RTO_Id);
 
       memset(&ifoCfg, 0, sizeof(t_IFO_Cfg));
       memcpy(&ifoCfg, &p_IFO->Cfg, sizeof(t_IFO_Cfg));
@@ -1140,19 +1140,19 @@ void ospfMapExtenIFOShow(L7_uint32 unit, L7_uint32 slot, L7_uint32 port,
 
       osapiInetNtoa((L7_uint32)p_IFO->BackupId, debug_buf);
       SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nBackupId...................................%-15.15s", debug_buf);
-      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nTransitARO.................................0x%x", (L7_uint32)p_IFO->TransitARO);
+      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nTransitARO.................................%p", p_IFO->TransitARO);
 
       osapiInetNtoa((L7_uint32)p_IFO->VrtNgbIpAdr, debug_buf);
       SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nVrtNgbIpAdr................................%-15.15s", debug_buf);
       SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nVirtIfIndex................................%u", (L7_uint32)p_IFO->VirtIfIndex);
-      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nHelloTimer.................................0x%x", (L7_uint32)p_IFO->HelloTimer);
-      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nWaitTimer..................................0x%x", (L7_uint32)p_IFO->WaitTimer);
-      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nNboHl......................................0x%x", (L7_uint32)p_IFO->NboHl);
-      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nLsAck......................................0x%x", (L7_uint32)p_IFO->LsAck);
-      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAckTimer...................................0x%x", (L7_uint32)p_IFO->AckTimer);
-      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nMetricHl...................................0x%x", (L7_uint32)p_IFO->MetricHl);
-      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nNbmaHl.....................................0x%x", (L7_uint32)p_IFO->NbmaHl);
-      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAuthKeyHl..................................0x%x", (L7_uint32)p_IFO->AuthKeyHl);
+      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nHelloTimer.................................%p", p_IFO->HelloTimer);
+      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nWaitTimer..................................%p", p_IFO->WaitTimer);
+      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nNboHl......................................%p", p_IFO->NboHl);
+      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nLsAck......................................%p", p_IFO->LsAck);
+      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAckTimer...................................%p", p_IFO->AckTimer);
+      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nMetricHl...................................%p", p_IFO->MetricHl);
+      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nNbmaHl.....................................%p", p_IFO->NbmaHl);
+      SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAuthKeyHl..................................%p", p_IFO->AuthKeyHl);
       SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nTimeStamp..................................%u", (L7_uint32)p_IFO->TimeStamp);
       SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nCfgMetric..................................%u", (L7_uint32)p_IFO->CfgMetric);
       SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\n\nPacket Statistics:");
@@ -1298,7 +1298,7 @@ void ospfMapExtenRTOShow(void)
   {
     SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nTaken......................................false");
   }
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nMngId......................................0x%x", (L7_uint32)p_RTO->MngId);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nMngId......................................%p", p_RTO->MngId);
 
   memset(&rtrCfg, 0, sizeof(t_S_RouterCfg));
   memcpy(&rtrCfg, &p_RTO->Cfg, sizeof(t_S_RouterCfg));
@@ -1411,8 +1411,8 @@ void ospfMapExtenRTOShow(void)
     SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\n\tRouterStatus.....................unknown");
     break;
   }
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\n\nOspfSysLabel...............................0x%x", (L7_uint32)p_RTO->OspfSysLabel.threadHndle);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nOspfRtbThread..............................0x%x", (L7_uint32)p_RTO->OspfRtbThread.threadHndle);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\n\nOspfSysLabel...............................%p", p_RTO->OspfSysLabel.threadHndle);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nOspfRtbThread..............................%p", p_RTO->OspfRtbThread.threadHndle);
   if (p_RTO->RtbOwnThread == TRUE)
   {
     SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nRtbOwnThread...............................true");
@@ -1430,7 +1430,7 @@ void ospfMapExtenRTOShow(void)
   {
     SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nIsOverflowed...............................false");
   }
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nOverflowTimer..............................0x%x", (L7_uint32)p_RTO->OverflowTimer);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nOverflowTimer..............................%p", p_RTO->OverflowTimer);
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nnonDefExtLsaCount..........................0x%x", (L7_uint32)p_RTO->NonDefExtLsaCount);
   
   if (p_RTO->LsdbOverload == TRUE)
@@ -1442,13 +1442,13 @@ void ospfMapExtenRTOShow(void)
     SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nLsdbOverload...............................false");
   }
   
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAsExtRoutesHl..............................0x%x", (L7_uint32)p_RTO->AsExtRoutesHl);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAsExternalLsaHl............................0x%x", (L7_uint32)p_RTO->AsExternalLsaHl);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAsOpaqueLsaHl..............................0x%x", (L7_uint32)p_RTO->AsOpaqueLsaHl);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nRtbHl......................................0x%x", (L7_uint32)p_RTO->RtbHl);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nIfoIndexHl.................................0x%x", (L7_uint32)p_RTO->IfoIndexHl);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nFaIndexHl..................................0x%x", (L7_uint32)p_RTO->FaIndexHl);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAroHl......................................0x%x", (L7_uint32)p_RTO->AroHl);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAsExtRoutesHl..............................%p", p_RTO->AsExtRoutesHl);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAsExternalLsaHl............................%p", p_RTO->AsExternalLsaHl);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAsOpaqueLsaHl..............................%p", p_RTO->AsOpaqueLsaHl);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nRtbHl......................................%p", p_RTO->RtbHl);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nIfoIndexHl.................................%p", p_RTO->IfoIndexHl);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nFaIndexHl..................................%p", p_RTO->FaIndexHl);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAroHl......................................%p", p_RTO->AroHl);
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAreasNum...................................%u", (L7_uint32)p_RTO->AreasNum);
 }
 
@@ -1634,22 +1634,22 @@ void ospfMapExtenAROShow(L7_uint32 areaId)
   {
     SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nOperationState...............................false");
   }
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nRTO_Id.......................................0x%x", (L7_uint32)p_ARO->RTO_Id);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nRTO_Id.......................................%p", p_ARO->RTO_Id);
 
   osapiInetNtoa((L7_uint32)p_ARO->AreaId, debug_buf);
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAreaId.......................................%-15.15s", debug_buf);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nMngId........................................0x%x", (L7_uint32)p_ARO->MngId);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nIfoHl........................................0x%x", (L7_uint32)p_ARO->IfoHl);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAdrRangeHl...................................0x%x", (L7_uint32)p_ARO->AdrRangeHl);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nHostHl.......................................0x%x", (L7_uint32)p_ARO->HostHl);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nRouterLsaHl..................................0x%x", (L7_uint32)p_ARO->RouterLsaHl);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nNetworkLsaHl.................................0x%x", (L7_uint32)p_ARO->NetworkLsaHl);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nNetSummaryLsaHl..............................0x%x", (L7_uint32)p_ARO->NetSummaryLsaHl);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAsBoundSummaryLsaHl..........................0x%x", (L7_uint32)p_ARO->AsBoundSummaryLsaHl);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nNssaLsaHl....................................0x%x", (L7_uint32)p_ARO->NssaLsaHl);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAreaOpaqueLsaHl..............................0x%x", (L7_uint32)p_ARO->AreaOpaqueLsaHl);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nSpfHl........................................0x%x", (L7_uint32)p_ARO->SpfHl);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nCandidateHl..................................0x%x", (L7_uint32)p_ARO->CandidateHl);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nMngId........................................%p", p_ARO->MngId);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nIfoHl........................................%p", p_ARO->IfoHl);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAdrRangeHl...................................%p", p_ARO->AdrRangeHl);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nHostHl.......................................%p", p_ARO->HostHl);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nRouterLsaHl..................................%p", p_ARO->RouterLsaHl);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nNetworkLsaHl.................................%p", p_ARO->NetworkLsaHl);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nNetSummaryLsaHl..............................%p", p_ARO->NetSummaryLsaHl);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAsBoundSummaryLsaHl..........................%p", p_ARO->AsBoundSummaryLsaHl);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nNssaLsaHl....................................%p", p_ARO->NssaLsaHl);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAreaOpaqueLsaHl..............................%p", p_ARO->AreaOpaqueLsaHl);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nSpfHl........................................%p", p_ARO->SpfHl);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nCandidateHl..................................%p", p_ARO->CandidateHl);
 
   if (p_ARO->TransitCapability == TRUE)
   {
@@ -1676,7 +1676,7 @@ void ospfMapExtenAROShow(L7_uint32 areaId)
     break;
   }
 
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nStubDefaultCostHl............................0x%x", (L7_uint32)p_ARO->StubDefaultCostHl);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nStubDefaultCostHl............................%p", p_ARO->StubDefaultCostHl);
 
   switch (p_ARO->ImportSummaries)
   {
@@ -1698,8 +1698,8 @@ void ospfMapExtenAROShow(L7_uint32 areaId)
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAreaIntRtrCount..............................%u", (L7_uint32)p_ARO->AreaIntRtrCount);
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAreaLsaCount.................................%u", (L7_uint32)p_ARO->AreaLsaCount);
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nAreaLsaCksumSum..............................%u", (L7_uint32)p_ARO->AreaLsaCksumSum);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nDelayedLsa...................................0x%x", (L7_uint32)p_ARO->DelayedLsa);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nDlyLsaTimer..................................0x%x", (L7_uint32)p_ARO->DlyLsaTimer);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nDelayedLsa...................................%p", p_ARO->DelayedLsa);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nDlyLsaTimer..................................%p", p_ARO->DlyLsaTimer);
   
 #if 0  
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nMcSpfRuns....................................%u", (L7_uint32)p_ARO->McSpfRuns);
@@ -1727,7 +1727,7 @@ void ospfMapExtenAROShow(L7_uint32 areaId)
   }
 #endif
 
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nOspfSysLabel.................................0x%x", (L7_uint32)p_ARO->OspfSysLabel.threadHndle);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nOspfSysLabel.................................%p", p_ARO->OspfSysLabel.threadHndle);
 
   if (p_ARO->HasVirtLink == TRUE)
   {
@@ -1878,15 +1878,15 @@ void ospfDebugNBOShowPtr(t_NBO * p_NBO)
   }
 
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nState......................................%u", (L7_uint32)p_NBO->State);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nIFO_Id.....................................0x%x", (L7_uint32)p_NBO->IFO_Id);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nRTO_Id.....................................0x%x", (L7_uint32)p_NBO->RTO_Id);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nARO_Id.....................................0x%x", (L7_uint32)p_NBO->ARO_Id);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nMngId......................................0x%x", (L7_uint32)p_NBO->MngId);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nInactivityTimer............................0x%x", (L7_uint32)p_NBO->InactivityTimer);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nIFO_Id.....................................%p", p_NBO->IFO_Id);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nRTO_Id.....................................%p", p_NBO->RTO_Id);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nARO_Id.....................................%p", p_NBO->ARO_Id);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nMngId......................................%p", p_NBO->MngId);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nInactivityTimer............................%p", p_NBO->InactivityTimer);
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nInactivityInterval.........................%u", (L7_uint32)p_NBO->InactivityInterval);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nDdRxmtTimer................................0x%x", (L7_uint32)p_NBO->DdRxmtTimer);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nRqRxmtTimer................................0x%x", (L7_uint32)p_NBO->RqRxmtTimer);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nSlaveLastDdTimer...........................0x%x", (L7_uint32)p_NBO->SlaveLastDdTimer);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nDdRxmtTimer................................%p", p_NBO->DdRxmtTimer);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nRqRxmtTimer................................%p", p_NBO->RqRxmtTimer);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nSlaveLastDdTimer...........................%p", p_NBO->SlaveLastDdTimer);
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nRxmtInterval...............................%u", (L7_uint32)p_NBO->RxmtInterval);
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nHloIntCount................................%u", (L7_uint32)p_NBO->HloIntCount);
 
@@ -1927,9 +1927,9 @@ void ospfDebugNBOShowPtr(t_NBO * p_NBO)
 
   osapiInetNtoa((L7_uint32)p_NBO->BackupId, debug_buf);
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nBackupId...................................%-15.15s", debug_buf);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nLeReTx.....................................0x%x", (L7_uint32)p_NBO->LsReTx);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nDbSum......................................0x%x", (L7_uint32)p_NBO->DbSum);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nLsReq......................................0x%x", (L7_uint32)p_NBO->LsReq);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nLeReTx.....................................%p", p_NBO->LsReTx);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nDbSum......................................%p", p_NBO->DbSum);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nLsReq......................................%p", p_NBO->LsReq);
 
   if (p_NBO->ExchOrLoadState == TRUE)
   {
@@ -1976,7 +1976,7 @@ void ospfDebugNBOShowPtr(t_NBO * p_NBO)
     SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nInitDDSent.................................false");
   }
 
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nOspfSysLabel...............................0x%x", (L7_uint32)p_NBO->OspfSysLabel.threadHndle);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nOspfSysLabel...............................%p", p_NBO->OspfSysLabel.threadHndle);
 }
 
 /*********************************************************************
@@ -2238,7 +2238,7 @@ void ospfMsgQLen(L7_uint32 detail)
   L7_int32 i, msgQLen = 0;
   OS_Thread *threadId = (OS_Thread*) ospfMapCtrl_g.ospfThread;
 
-  printf("\nOSPF protocol thread ID:  %#x", (unsigned int) threadId);
+  printf("\nOSPF protocol thread ID: %p", threadId);
   for(i = 0; i < OSPF_NUM_QUEUES; i++)
   {
     if (osapiMsgQueueGetNumMsgs((void*)threadId->QueueID[i], &msgQLen) == L7_SUCCESS)
@@ -2695,7 +2695,7 @@ void ospfStackTrace(void)
 {
   OS_Thread		*pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
-	osapiDebugStackTrace((L7_int32) pThreadGlobal->TaskID, NULL);
+	osapiDebugStackTrace(pThreadGlobal->TaskID, NULL);
 }
 
 

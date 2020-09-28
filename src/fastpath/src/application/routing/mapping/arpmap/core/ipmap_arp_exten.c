@@ -765,7 +765,7 @@ void ipMapArpExtenAddrConflictStatsShow()
 
   for (addrEnt = p_A->addrEnt; addrEnt; addrEnt = addrEnt->next)
   {
-    if(ipMapArpExtenGetIntIfNum(addrEnt->intfNum, &intIfNum) == L7_SUCCESS)
+    if(ipMapArpExtenGetIntIfNum(addrEnt->intfNum, &intIfNum) == E_OK)
     {
       memset(ifName, 0, sizeof(ifName));
       nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
@@ -799,7 +799,7 @@ void ipMapArpExtenAddrConflictStatsReset()
 
   for (addrEnt = p_A->addrEnt; addrEnt; addrEnt = addrEnt->next)
   {
-    if(ipMapArpExtenGetIntIfNum(addrEnt->intfNum, &intIfNum) == L7_SUCCESS)
+    if(ipMapArpExtenGetIntIfNum(addrEnt->intfNum, &intIfNum) == E_OK)
     {
       addrEnt->addrConflictStats.numOfConflictsDetected = 0;
     }

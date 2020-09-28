@@ -5169,7 +5169,7 @@ L7_RC_t ipMapVlanRtrIntIfNumToVlanId(L7_uint32 intIfNum, L7_uint32 *vlanId)
     {
       if ( nimGetMacroPortAssignment(intIfNum, &macroPortIntf) == L7_SUCCESS)
       {
-        *vlanId    = (L7_uint32)macroPortIntf.macroInfo;
+        *vlanId    = PTR_TO_UINT32(macroPortIntf.macroInfo);
         return L7_SUCCESS;
       }
     }

@@ -34,7 +34,7 @@
 /* Holds information required by the processing task */
 typedef struct rtrDiscInfo_s
 {
-    L7_uint32       rtrDiscProcessingTaskId;
+    L7_uint64       rtrDiscProcessingTaskId;
     void *          rtrDiscProcessingQueue;
 } rtrDiscInfo_t;
 
@@ -99,7 +99,7 @@ typedef struct rtrDiscIntfInfo_s
 *       
 * @end
 *********************************************************************/
-void rtrDiscTimerTick(void * parm1, L7_uint32 parm2);
+void rtrDiscTimerTick(L7_uint64 parm1, L7_uint64 parm2);
 
 /*********************************************************************
 * @purpose  Processes the timer tick messages

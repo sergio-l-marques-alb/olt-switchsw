@@ -39,7 +39,7 @@
 #include "arp.h"
 
 /* External References */
-extern void osapiDebugStackTrace (L7_uint32 task_id, FILE *fp);
+extern void osapiDebugStackTrace (L7_uint64 task_id, FILE *fp);
 
 /* Global data */
 ipMapArpCtx_t   ipMapArpCtx_g;          /* IP Mapping layer ARP global context*/
@@ -68,7 +68,7 @@ struct arpLockHistory_s
 {
   L7_char8  file[ARP_HIST_FILE_LEN+1];
   L7_uint32 line;
-  L7_uint32 tid;
+  L7_uint64 tid;
   L7_uint32 lockid;
   L7_char8  fname[ARP_HIST_FUNC_LEN+1];
   L7_uint32 ts;
@@ -141,10 +141,10 @@ void arpLockShowStack(L7_char8 * fname, L7_uint32 lockid, L7_char8 * file, L7_ui
 {
   osapiSleep(osapiTaskIdSelf() % 60);
   l7utilsFilenameStrip(&file);
-  sysapiPrintf("\n%s failed to lock 0x%x tsk 0x%x %s:%u",
+  sysapiPrintf("\n%s failed to lock 0x%x tsk 0x%llx %s:%u",
                fname, lockid, osapiTaskIdSelf(), file, line);
   L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_ARP_MAP_COMPONENT_ID,
-          "\n%s failed tsk 0x%x %s:%u",
+          "\n%s failed tsk 0x%llx %s:%u",
                fname, osapiTaskIdSelf(), file, line);
   osapiSleep(90);
   if(!arpDeadlocked)
@@ -407,8 +407,8 @@ e_Err ipMapArpSendCallback(t_Handle userId, void *pFrame, word flags,
     {
         IPM_ARP_PRT(IPM_ARP_MSGLVL_MED,
                     "IPM_ARP: ARP Send could not copy frame contents to msg block, "
-                    "pFrame=0x%8.8x intf=%d\n",
-                    (L7_uint32)pFrame, pIntf->index);
+                    "pFrame=0x%llx intf=%d\n",
+                    PTR_TO_UINT64(pFrame), pIntf->index);
         SYSAPI_NET_MBUF_FREE(bufHandle);
         break;
     }
@@ -1423,7 +1423,7 @@ void ipMapArpCacheEventNotify(ipMapArpCacheEvent_t event,
 void ipMapArpSemaTake(ipMapArpLockCtrl_t *pLock, L7_int32 timeout,
                       char *file, L7_ulong32 line)
 {
-  L7_int32      taskId = osapiTaskIdSelf();
+  L7_uint64     taskId = osapiTaskIdSelf();
   L7_RC_t       rc;
 
   if(timeout == L7_WAIT_FOREVER)
@@ -1434,8 +1434,8 @@ void ipMapArpSemaTake(ipMapArpLockCtrl_t *pLock, L7_int32 timeout,
   if ((rc = osapiSemaTake(pLock->semId, arpLockDebugTimeout)) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_ARP_MAP_COMPONENT_ID,
-            "Semaphore take failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
-            file, line, rc, (L7_uint32)pLock->semId);
+            "Semaphore take failure for file %s:%lu, rc=%u, id=%p\n",
+            file, line, rc, pLock->semId);
     ARP_LOCK_DEBUG_DUMP(pLock->semId, file, line);
   }
 
@@ -1484,8 +1484,8 @@ void ipMapArpSemaGive(ipMapArpLockCtrl_t *pLock, char *file, L7_ulong32 line)
   if ((rc = osapiSemaGive(pLock->semId)) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_ARP_MAP_COMPONENT_ID,
-            "Semaphore give failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
-            file, line, rc, (L7_uint32)pLock->semId);
+            "Semaphore give failure for file %s:%lu, rc=%u, id=%p\n",
+            file, line, rc, pLock->semId);
   }
 
   ARP_LOCK_DEBUG_LOG(file, line, pLock->semId);
@@ -1653,8 +1653,8 @@ void ipMapArpLockShow(void)
   ipMapArpLockCtrl_t  *pLock = &ipMapArpCtx_g.arpLock;
 
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "  ARP Component Lock:\n");
-  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    lock info      semId=0x%x  owner task=0x%x  owner lock count=%ld  lkTot=%lu  unlkTot=%lu\n",
-        (L7_uint32)pLock->semId, (L7_uint32)pLock->ownerTaskId, pLock->ownerLockCount,
+  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    lock info      semId=0x%llx  owner task=0x%llx  owner lock count=%ld  lkTot=%lu  unlkTot=%lu\n",
+        PTR_TO_UINT64(pLock->semId), pLock->ownerTaskId, pLock->ownerLockCount,
         pLock->lockTotal, pLock->unlockTotal);
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    owner at %s:%u\n", pLock->ownerFile, pLock->ownerLine);
 }
@@ -1678,17 +1678,17 @@ void ipMapArpCtxShow(void)
 
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "\nIPMAP ARP Global Context Contents\n");
 
-  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "  arpHandle       = 0x%8.8x\n",
-              (L7_uint32)pCtx->arpHandle);
-  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "  regUserId        = 0x%8.8x\n",
-              (L7_uint32)pCtx->regUserId);
-  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "  pIntfList        = 0x%8.8x\n",
-              (L7_uint32)pCtx->pIntfList);
+  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "  arpHandle       = 0x%llx\n",
+              PTR_TO_UINT64(pCtx->arpHandle));
+  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "  regUserId        = 0x%llx\n",
+              PTR_TO_UINT64(pCtx->regUserId));
+  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "  pIntfList        = 0x%llx\n",
+              PTR_TO_UINT64(pCtx->pIntfList));
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "  Reissue Task:\n");
-  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    taskId         = 0x%8.8x\n",
-              (L7_uint32)pCtx->reissue.taskId);
-  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    pMsgQ          = 0x%8.8x\n",
-              (L7_uint32)pCtx->reissue.pMsgQ);
+  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    taskId         = 0x%llx\n",
+              pCtx->reissue.taskId);
+  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    pMsgQ          = 0x%llx\n",
+              PTR_TO_UINT64(pCtx->reissue.pMsgQ));
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    totalCt        = %u\n",
               (L7_uint32)pCtx->reissue.totalCt);
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    peakCt         = %u\n",
@@ -1701,10 +1701,10 @@ void ipMapArpCtxShow(void)
               (L7_uint32)pCtx->reissue.failCt);
 
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "  Callback Task:\n");
-  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    taskId         = 0x%8.8x\n",
-              (L7_uint32)pCtx->callback.taskId);
-  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    pMsgQ          = 0x%8.8x\n",
-              (L7_uint32)pCtx->callback.pMsgQ);
+  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    taskId         = 0x%llx\n",
+              pCtx->callback.taskId);
+  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    pMsgQ          = 0x%llx\n",
+              PTR_TO_UINT64(pCtx->callback.pMsgQ));
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    totalCt        = %u\n",
               (L7_uint32)pCtx->callback.totalCt);
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    peakCt         = %u\n",
@@ -1717,8 +1717,8 @@ void ipMapArpCtxShow(void)
               (L7_uint32)pCtx->callback.failCt);
 
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "  Timer Expire (XX) Task:\n");
-  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    taskId         = 0x%8.8x\n",
-              (L7_uint32)pCtx->timerExp.taskId);
+  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    taskId         = 0x%llx\n",
+              pCtx->timerExp.taskId);
 
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "  routingStarted      = %s\n",
               (ipMapRoutingStarted == L7_TRUE) ? "True" : "False");
@@ -1746,30 +1746,30 @@ void ipMapArpCtxShow(void)
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    treeEntryMax   = %u\n",
               pCtx->gwTbl.treeEntryMax);
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    *treeHeap      = 0x%8.8x\n",
-              (L7_uint32)pCtx->gwTbl.treeHeap);
+              PTR_TO_UINT64(pCtx->gwTbl.treeHeap));
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    treeHeapSize   = %u\n",
               pCtx->gwTbl.treeHeapSize);
-  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    *dataHeap      = 0x%8.8x\n",
-              (L7_uint32)pCtx->gwTbl.dataHeap);
+  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    *dataHeap      = 0x%llx\n",
+              PTR_TO_UINT64(pCtx->gwTbl.dataHeap));
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    dataHeapSize   = %u\n",
               pCtx->gwTbl.dataHeapSize);
 
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "  IP Lookup Table:\n");
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    treeEntryMax   = %u\n",
               pCtx->ipTbl.treeEntryMax);
-  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    *treeHeap      = 0x%8.8x\n",
-              (L7_uint32)pCtx->ipTbl.treeHeap);
+  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    *treeHeap      = 0x%llx\n",
+              PTR_TO_UINT64(pCtx->ipTbl.treeHeap));
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    treeHeapSize   = %u\n",
               pCtx->ipTbl.treeHeapSize);
-  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    *dataHeap      = 0x%8.8x\n",
-              (L7_uint32)pCtx->ipTbl.dataHeap);
+  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    *dataHeap      = 0x%llx\n",
+              PTR_TO_UINT64(pCtx->ipTbl.dataHeap));
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    dataHeapSize   = %u\n",
               pCtx->ipTbl.dataHeapSize);
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "\n");
   pLock = &pCtx->arpLock;
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "  ARP Component Lock:\n");
-  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    lock info      semId=0x%x  owner task=0x%x  owner lock count=%ld  lkTot=%lu  unlkTot=%lu\n",
-              (L7_uint32)pLock->semId, (L7_uint32)pLock->ownerTaskId, pLock->ownerLockCount,
+  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    lock info      semId=0x%llx  owner task=0x%llx  owner lock count=%ld  lkTot=%lu  unlkTot=%lu\n",
+              PTR_TO_UINT64(pLock->semId), pLock->ownerTaskId, pLock->ownerLockCount,
               pLock->lockTotal, pLock->unlockTotal);
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    owner at %s:%u\n", pLock->ownerFile, pLock->ownerLine);
 
@@ -1830,7 +1830,7 @@ void ipMapArpAllShow(L7_uint32 amt)
 L7_RC_t ipMapArpAddrResolveInternal(L7_uint32 intIfNum, L7_uint32 ipAddr,
                                     L7_uchar8 *pMacAddr,
                                     ipMapArpResCallback_ft pCallbackFn,
-                                    L7_uint32 cbParm1, L7_uint32 cbParm2)
+                                    L7_uint64 cbParm1, L7_uint64 cbParm2)
 {
   ipMapArpIntf_t  *pIntf;
   t_ARPResInfo  arpResInfo;

@@ -3585,8 +3585,8 @@ void ospfDebugNboRetx(t_NBO *p_NBO)
     return;
   }
 
-  sprintf(traceBuf, "NBO 0x%x ipaddr %s area 0x%x", 
-    (L7_uint32)p_NBO, osapiInet_ntoa((L7_uint32)p_NBO->IpAdr), 
+  sprintf(traceBuf, "NBO 0x%llx ipaddr %s area 0x%x", 
+    PTR_TO_UINT64(p_NBO), osapiInet_ntoa((L7_uint32)p_NBO->IpAdr), 
     (L7_uint32)((t_ARO*)(p_NBO->ARO_Id))->AreaId);
 
   if(p_NBO->LsReTxHead)

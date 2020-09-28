@@ -236,7 +236,7 @@ typedef struct ipMapArpIpNode_s
 typedef struct ipMapArpLockCtrl_s
 {
   void            *semId;               /* semaphore id */
-  L7_int32        ownerTaskId;          /* current lock owner task */
+  L7_uint64       ownerTaskId;          /* current lock owner task */
   L7_int32        ownerLockCount;       /* nested lock count for current owner (signed value) */
   L7_uint32       lockTotal;            /* total number of times locked        */
   L7_uint32       unlockTotal;          /* total number of times unlocked      */
@@ -309,7 +309,7 @@ typedef struct
 
 typedef struct
 {
-  L7_int32        taskId;               /* system task identifier */
+  L7_uint64       taskId;               /* system task identifier */
   void            *pMsgQ;               /* task msg queue ptr */
   L7_uint32       totalCt;              /* total msgs processed by task */
   L7_uint32       peakCt;               /* peak msgs processed per task iteration */
@@ -971,7 +971,7 @@ void ipMapArpAllShow(L7_uint32 amt);
 L7_RC_t ipMapArpAddrResolveInternal(L7_uint32 intIfNum, L7_uint32 ipAddr,
                             L7_uchar8 *pMacAddr, 
                             ipMapArpResCallback_ft pCallbackFn,
-                            L7_uint32 cbParm1, L7_uint32 cbParm2);
+                            L7_uint64 cbParm1, L7_uint64 cbParm2);
 
 /*-----------------*/
 /* ipm_arp_table.c */

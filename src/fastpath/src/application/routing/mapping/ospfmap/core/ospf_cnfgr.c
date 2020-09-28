@@ -61,7 +61,7 @@
 static L7_BOOL traceConfigState = L7_FALSE;
 
 ospfMapCnfgrState_t ospfMapCnfgrState = OSPFMAP_PHASE_INIT_0;
-L7_int32 ospfProcTaskHandle = 0;
+L7_uint64 ospfProcTaskHandle = 0;
 
 /* The OSPF processing thread reads events from two message queues. msgQSema
  * is a counting semaphore to indicate whether data is available in

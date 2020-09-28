@@ -683,7 +683,7 @@ L7_RC_t ihUdpMessageForward(L7_ipHeader_t *ipPkt, L7_uint32 destAddr,
   /* Always building a 14 byte MAC header here */
   L7_uint32 ethHeaderLen = 2 * L7_MAC_ADDR_LEN + sizeof(L7_ushort16);
   L7_ushort16 srcPort, destPort;   /* host byte order */
-  L7_uint32 alignmentShift;
+  L7_uint64 alignmentShift;
 
   /* IP MAP requires packet be in an mbuf. So allocate a new one. Not optimal, but 
    * better than rewriting all the sw forwarding code. */
@@ -700,7 +700,7 @@ L7_RC_t ihUdpMessageForward(L7_ipHeader_t *ipPkt, L7_uint32 destAddr,
   /* Be picky about alignment. We know we are going to use a 14-byte
    * ethernet header. Assuming dataStart is 4-byte aligned, this will
    * make the IP header not 4-byte aligned. So move dataStart by 2 bytes. */
-  alignmentShift = ((L7_uint32)dataStart) % 4; 
+  alignmentShift = PTR_TO_UINT64(dataStart) % 4; 
   dataStart += alignmentShift;
   SYSAPI_NET_MBUF_SET_DATASTART(bufHandle, dataStart);
 

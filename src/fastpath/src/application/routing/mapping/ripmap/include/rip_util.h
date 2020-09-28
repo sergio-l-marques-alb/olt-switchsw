@@ -62,8 +62,8 @@
 typedef struct ripInfo_s     
 {
   L7_BOOL         ripInitialized;           /* indicates vendor RIP stack init'd */
-  L7_uint32       ripTaskId;                /* RIP vendor code task ID */
-  L7_uint32       ripMapProcessingTaskId;   /* RIP mapping layer task ID */
+  L7_uint64       ripTaskId;                /* RIP vendor code task ID */
+  L7_uint64       ripMapProcessingTaskId;   /* RIP mapping layer task ID */
 
   /* The RIP processing thread reads from two message queues. There is a separate
    * queue for redistribution events so that we can give priority to other events,

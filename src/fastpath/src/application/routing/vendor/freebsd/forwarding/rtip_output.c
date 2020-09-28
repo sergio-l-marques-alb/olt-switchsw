@@ -96,7 +96,7 @@ rtip_output(m0, opt, routerIP, netMask, intIfNum, flags, imo, srcrt)
     pduInfo.intIfNum = m->rtm_pkthdr.rcvif->if_index;
   pduInfo.destIntIfNum = intIfNum;
   if (SYSNET_PDU_INTERCEPT(L7_AF_INET, SYSNET_INET_RECV_OUT,
-                           (L7_netBufHandle)m->rtm_bufhandle,
+                           (L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle),
                            &pduInfo, L7_NULLPTR, &hookVerdict) == L7_TRUE)
   {
     if (hookVerdict == SYSNET_PDU_RC_DISCARD)
@@ -212,7 +212,7 @@ rtip_output(m0, opt, routerIP, netMask, intIfNum, flags, imo, srcrt)
 		 */
 		if (ip->ip_ttl == 0 || ifp->if_flags & IFF_LOOPBACK) {
             if (m->rtm_bufhandle != NULL)
-                SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+                SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle));
 			rtm_freem(m);
             goto done;
 		}
@@ -260,7 +260,7 @@ done:
 	return (error);
 bad:
     if (m->rtm_bufhandle != NULL)
-                SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+                SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle));
 	rtm_freem(m0);
     goto done;
 }

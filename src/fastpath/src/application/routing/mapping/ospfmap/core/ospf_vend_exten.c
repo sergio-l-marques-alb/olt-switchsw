@@ -1618,13 +1618,13 @@ L7_RC_t ospfMapExtenIntfAreaIdPack(L7_uint32 intIfNum, L7_uint32 area)
 {
     t_XXCallInfo    *xxci;      /* XX_Call info */
     e_Err           e;
-    L7_int32        currThread = osapiTaskIdSelf();
+    L7_uint64       currThread = osapiTaskIdSelf();
     OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
     PACKET_INIT(xxci, ospfMapExtenIntfAreaIdSet, 0, 0, 3, (ulng)intIfNum);
     PACKET_PUT(xxci, (ulng)area);
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -1658,7 +1658,7 @@ L7_RC_t ospfMapExtenIntfAreaIdPack(L7_uint32 intIfNum, L7_uint32 area)
         XX_Free(xxci);
     }
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread !=  pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -7331,7 +7331,7 @@ e_Err ospfAbrEntry_Lookup_Pack(L7_uint32 destinationIp,
   t_XXCallInfo  *xxci;      /* XX_Call info */
   e_Err         e;
   L7_RC_t       rc = L7_FAILURE;
-  L7_int32      currThread = osapiTaskIdSelf();
+  L7_uint64      currThread = osapiTaskIdSelf();
   OS_Thread     *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
   if(p_rtbEntry == NULL)
@@ -7339,7 +7339,7 @@ e_Err ospfAbrEntry_Lookup_Pack(L7_uint32 destinationIp,
     return E_FAILED;
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
@@ -7373,7 +7373,7 @@ e_Err ospfAbrEntry_Lookup_Pack(L7_uint32 destinationIp,
     rc = ospfAbrEntry_Lookup(destinationIp, p_rtbEntry);
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
   }
@@ -7402,7 +7402,7 @@ e_Err ospfAsbrEntry_Lookup_Pack(L7_uint32 destinationIp,
   t_XXCallInfo  *xxci;      /* XX_Call info */
   e_Err         e;
   L7_RC_t       rc = L7_FAILURE;
-  L7_int32      currThread = osapiTaskIdSelf();
+  L7_uint64     currThread = osapiTaskIdSelf();
   OS_Thread     *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
   if(p_rtbEntry == NULL)
@@ -7410,7 +7410,7 @@ e_Err ospfAsbrEntry_Lookup_Pack(L7_uint32 destinationIp,
     return E_FAILED;
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
@@ -7444,7 +7444,7 @@ e_Err ospfAsbrEntry_Lookup_Pack(L7_uint32 destinationIp,
     rc = ospfAsbrEntry_Lookup(destinationIp, p_rtbEntry);
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
   }
@@ -7651,7 +7651,7 @@ e_Err ospfAbrEntryNext_Pack(L7_uint32 *destinationIp,
   t_XXCallInfo  *xxci;      /* XX_Call info */
   e_Err         e;
   L7_RC_t       rc = L7_FAILURE;
-  L7_int32      currThread = osapiTaskIdSelf();
+  L7_uint64     currThread = osapiTaskIdSelf();
   OS_Thread     *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
   if(p_rtbEntry == NULL)
@@ -7659,7 +7659,7 @@ e_Err ospfAbrEntryNext_Pack(L7_uint32 *destinationIp,
     return E_FAILED;
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
@@ -7668,7 +7668,7 @@ e_Err ospfAbrEntryNext_Pack(L7_uint32 *destinationIp,
       return E_FAILED;
     }
 
-    PACKET_INIT(xxci, ospfAbrEntryNext_UnPack, 0, 0, 3, (L7_uint32)destinationIp);
+    PACKET_INIT(xxci, ospfAbrEntryNext_UnPack, 0, 0, 3, PTR_TO_UINT32(destinationIp));
     PACKET_PUT(xxci, (L7_RtbEntryInfo_t *)p_rtbEntry);
     PACKET_PUT(xxci, (L7_RC_t *)&rc);
     e = XX_Call(ospfMapCtrl_g.ospfThread, xxci);
@@ -7693,7 +7693,7 @@ e_Err ospfAbrEntryNext_Pack(L7_uint32 *destinationIp,
     rc = ospfAbrEntryNext(destinationIp, p_rtbEntry);
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
   }
@@ -7722,7 +7722,7 @@ e_Err ospfAsbrEntryNext_Pack(L7_uint32 *destinationIp,
   t_XXCallInfo  *xxci;      /* XX_Call info */
   e_Err         e;
   L7_RC_t       rc = L7_FAILURE;
-  L7_int32      currThread = osapiTaskIdSelf();
+  L7_uint64     currThread = osapiTaskIdSelf();
   OS_Thread     *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
   if(p_rtbEntry == NULL)
@@ -7730,7 +7730,7 @@ e_Err ospfAsbrEntryNext_Pack(L7_uint32 *destinationIp,
     return E_FAILED;
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
@@ -7739,7 +7739,7 @@ e_Err ospfAsbrEntryNext_Pack(L7_uint32 *destinationIp,
       return E_FAILED;
     }
 
-    PACKET_INIT(xxci, ospfAsbrEntryNext_UnPack, 0, 0, 3, (L7_uint32)destinationIp);
+    PACKET_INIT(xxci, ospfAsbrEntryNext_UnPack, 0, 0, 3, PTR_TO_UINT32(destinationIp));
     PACKET_PUT(xxci, (L7_RtbEntryInfo_t *)p_rtbEntry);
     PACKET_PUT(xxci, (L7_RC_t *)&rc);
     e = XX_Call(ospfMapCtrl_g.ospfThread, xxci);
@@ -7764,7 +7764,7 @@ e_Err ospfAsbrEntryNext_Pack(L7_uint32 *destinationIp,
     rc = ospfAsbrEntryNext(destinationIp, p_rtbEntry);
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
   }
@@ -12116,7 +12116,7 @@ e_Err RTO_Config_Pack(t_Handle RTO_Id, t_S_RouterCfg *p_Cfg)
     e_Err           e;
     void            *p_info;
     int             numOfMsgs = 0, i;
-    L7_int32        currThread = osapiTaskIdSelf();
+    L7_uint64       currThread = osapiTaskIdSelf();
     OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
     /* Fill in the router configuration info */
@@ -12129,7 +12129,7 @@ e_Err RTO_Config_Pack(t_Handle RTO_Id, t_S_RouterCfg *p_Cfg)
     /* copy user supplied configuration info */
     memcpy(p_rtoCfg, p_Cfg, sizeof(t_S_RouterCfg));
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -12189,7 +12189,7 @@ e_Err RTO_Config_Pack(t_Handle RTO_Id, t_S_RouterCfg *p_Cfg)
     memcpy(p_Cfg, p_rtoCfg, sizeof(t_S_RouterCfg));
     XX_Free(p_rtoCfg);
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -12261,7 +12261,7 @@ e_Err IFO_Config_Pack(t_Handle IFO_Id, t_IFO_Cfg *p_Cfg)
     t_IFO_Cfg       *p_ifoCfg;  /* interface configuration info */
     t_XXCallInfo    *xxci;      /* XX_Call info */
     e_Err           e;
-    L7_int32        currThread = osapiTaskIdSelf();
+    L7_uint64       currThread = osapiTaskIdSelf();
     OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
     /* Fill in the interface configuration info */
@@ -12275,7 +12275,7 @@ e_Err IFO_Config_Pack(t_Handle IFO_Id, t_IFO_Cfg *p_Cfg)
     /* copy user supplied configuration info */
     memcpy(p_ifoCfg, p_Cfg, sizeof(t_IFO_Cfg));
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -12313,7 +12313,7 @@ e_Err IFO_Config_Pack(t_Handle IFO_Id, t_IFO_Cfg *p_Cfg)
     memcpy(p_Cfg, p_ifoCfg, sizeof(t_IFO_Cfg));
     XX_Free(p_ifoCfg);
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -12370,7 +12370,7 @@ e_Err ARO_Config_Pack(t_Handle ARO_Id, t_S_AreaCfg *p_Cfg)
     t_S_AreaCfg     *p_aroCfg;  /* ospf area configuration info */
     t_XXCallInfo    *xxci;      /* XX_Call info */
     e_Err           e;
-    L7_int32        currThread = osapiTaskIdSelf();
+    L7_uint64       currThread = osapiTaskIdSelf();
     OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
     /* Fill in the area configuration info */
@@ -12383,7 +12383,7 @@ e_Err ARO_Config_Pack(t_Handle ARO_Id, t_S_AreaCfg *p_Cfg)
     /* copy user supplied configuration info */
     memcpy(p_aroCfg, p_Cfg, sizeof(t_S_AreaCfg));
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -12421,7 +12421,7 @@ e_Err ARO_Config_Pack(t_Handle ARO_Id, t_S_AreaCfg *p_Cfg)
     memcpy(p_Cfg, p_aroCfg, sizeof(t_S_AreaCfg));
     XX_Free(p_aroCfg);
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -12561,7 +12561,7 @@ e_Err ospfLsdbAdvertisement_Lookup_Pack(L7_uint32 LsdbAreaId,
     t_XXCallInfo    *xxci;      /* XX_Call info */
     e_Err           e;
     L7_RC_t         rc = L7_FAILURE;
-    L7_int32        currThread = osapiTaskIdSelf();
+    L7_uint64       currThread = osapiTaskIdSelf();
     OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
     L7_ospfLsdbEntry_t  temp_Lsa;
 
@@ -12570,7 +12570,7 @@ e_Err ospfLsdbAdvertisement_Lookup_Pack(L7_uint32 LsdbAreaId,
         p_Lsa = &temp_Lsa;
     }
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -12612,7 +12612,7 @@ e_Err ospfLsdbAdvertisement_Lookup_Pack(L7_uint32 LsdbAreaId,
                           p_LsdbAdvertisement);
     }
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -12646,7 +12646,7 @@ e_Err ospfLsdbTable_Lookup_Pack(L7_uint32 LsdbAreaId,
     t_XXCallInfo    *xxci;      /* XX_Call info */
     e_Err           e;
     L7_RC_t         rc = L7_FAILURE;
-    L7_int32        currThread = osapiTaskIdSelf();
+    L7_uint64       currThread = osapiTaskIdSelf();
     OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
     L7_ospfLsdbEntry_t  temp_Lsa;
 
@@ -12655,7 +12655,7 @@ e_Err ospfLsdbTable_Lookup_Pack(L7_uint32 LsdbAreaId,
         p_Lsa = &temp_Lsa;
     }
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -12692,7 +12692,7 @@ e_Err ospfLsdbTable_Lookup_Pack(L7_uint32 LsdbAreaId,
         rc = ospfLsdbTable_Lookup(LsdbAreaId, LsdbType, LsdbId, LsdbRouterId, p_Lsa);
     }
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -12758,7 +12758,7 @@ e_Err ospfLsdbTable_GetNext_Pack(L7_uint32 *areaId,
     t_XXCallInfo    *xxci;      /* XX_Call info */
     e_Err           e;
     L7_RC_t         rc = L7_FAILURE;
-    L7_int32        currThread = osapiTaskIdSelf();
+    L7_uint64       currThread = osapiTaskIdSelf();
     OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
     L7_ospfLsdbEntry_t  temp_Lsa;
 
@@ -12767,7 +12767,7 @@ e_Err ospfLsdbTable_GetNext_Pack(L7_uint32 *areaId,
         p_Lsa = &temp_Lsa;
     }
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -12776,7 +12776,7 @@ e_Err ospfLsdbTable_GetNext_Pack(L7_uint32 *areaId,
             return E_FAILED;
         }
 
-        PACKET_INIT(xxci, ospfLsdbTable_GetNext_Unpack, 0, 0, 6, (L7_uint32)areaId);
+        PACKET_INIT(xxci, ospfLsdbTable_GetNext_Unpack, 0, 0, 6, PTR_TO_UINT32(areaId));
         PACKET_PUT(xxci, (L7_uint32 *)Type);
         PACKET_PUT(xxci, (L7_uint32 *)Lsid);
         PACKET_PUT(xxci, (L7_uint32 *)RouterId);
@@ -12804,7 +12804,7 @@ e_Err ospfLsdbTable_GetNext_Pack(L7_uint32 *areaId,
         rc = ospfLsdbTable_GetNext(areaId, Type, Lsid, RouterId, p_Lsa);
     }
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -12870,7 +12870,7 @@ e_Err ospfExtLsdbAdvertisement_Lookup_Pack(L7_uint32 LsdbType, L7_uint32 LsdbId,
     t_XXCallInfo    *xxci;      /* XX_Call info */
     e_Err           e;
     L7_RC_t         rc = L7_FAILURE;
-    L7_int32        currThread = osapiTaskIdSelf();
+    L7_uint64       currThread = osapiTaskIdSelf();
     OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
     L7_ospfLsdbEntry_t  temp_Lsa;
 
@@ -12879,7 +12879,7 @@ e_Err ospfExtLsdbAdvertisement_Lookup_Pack(L7_uint32 LsdbType, L7_uint32 LsdbId,
         p_Lsa = &temp_Lsa;
     }
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -12919,7 +12919,7 @@ e_Err ospfExtLsdbAdvertisement_Lookup_Pack(L7_uint32 LsdbType, L7_uint32 LsdbId,
                              p_LsdbAdvertisement);
     }
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -12949,7 +12949,7 @@ e_Err ospfExtLsdbTable_Lookup_Pack(L7_uint32 LsdbType, L7_uint32 LsdbId,
     t_XXCallInfo    *xxci;      /* XX_Call info */
     e_Err           e;
     L7_RC_t         rc = L7_FAILURE;
-    L7_int32        currThread = osapiTaskIdSelf();
+    L7_uint64       currThread = osapiTaskIdSelf();
     OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
     L7_ospfLsdbEntry_t  temp_Lsa;
 
@@ -12958,7 +12958,7 @@ e_Err ospfExtLsdbTable_Lookup_Pack(L7_uint32 LsdbType, L7_uint32 LsdbId,
         p_Lsa = &temp_Lsa;
     }
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -12994,7 +12994,7 @@ e_Err ospfExtLsdbTable_Lookup_Pack(L7_uint32 LsdbType, L7_uint32 LsdbId,
         rc = ospfExtLsdbTable_Lookup(LsdbType, LsdbId, LsdbRouterId, p_Lsa);
     }
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -13058,7 +13058,7 @@ e_Err ospfExtLsdbTable_GetNext_Pack(L7_uint32 *Type, L7_uint32 *Lsid,
     t_XXCallInfo    *xxci;      /* XX_Call info */
     e_Err           e;
     L7_RC_t         rc = L7_FAILURE;
-    L7_int32        currThread = osapiTaskIdSelf();
+    L7_uint64       currThread = osapiTaskIdSelf();
     OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
     L7_ospfLsdbEntry_t  temp_Lsa;
 
@@ -13067,7 +13067,7 @@ e_Err ospfExtLsdbTable_GetNext_Pack(L7_uint32 *Type, L7_uint32 *Lsid,
         p_Lsa = &temp_Lsa;
     }
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -13076,7 +13076,7 @@ e_Err ospfExtLsdbTable_GetNext_Pack(L7_uint32 *Type, L7_uint32 *Lsid,
             return E_FAILED;
         }
 
-        PACKET_INIT(xxci, ospfExtLsdbTable_GetNext_Unpack, 0, 0, 5, (L7_uint32)Type);
+        PACKET_INIT(xxci, ospfExtLsdbTable_GetNext_Unpack, 0, 0, 5, PTR_TO_UINT32(Type));
         PACKET_PUT(xxci, (L7_uint32 *)Lsid);
         PACKET_PUT(xxci, (L7_uint32 *)RouterId);
         PACKET_PUT(xxci, (L7_ospfLsdbEntry_t *)p_Lsa);
@@ -13103,7 +13103,7 @@ e_Err ospfExtLsdbTable_GetNext_Pack(L7_uint32 *Type, L7_uint32 *Lsid,
         rc = ospfExtLsdbTable_GetNext(Type, Lsid, RouterId, p_Lsa);
     }
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -13160,7 +13160,7 @@ e_Err NBO_Config_Pack(t_Handle NBO_Id, t_S_NeighborCfg *p_Cfg)
     t_S_NeighborCfg *p_nboCfg;  /* ospf neighbor configuration info */
     t_XXCallInfo    *xxci;      /* XX_Call info */
     e_Err           e;
-    L7_int32        currThread = osapiTaskIdSelf();
+    L7_uint64       currThread = osapiTaskIdSelf();
     OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
     /* Fill in the neighbor configuration info */
@@ -13173,7 +13173,7 @@ e_Err NBO_Config_Pack(t_Handle NBO_Id, t_S_NeighborCfg *p_Cfg)
     /* copy user supplied configuration info */
     memcpy(p_nboCfg, p_Cfg, sizeof(t_S_NeighborCfg));
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -13211,7 +13211,7 @@ e_Err NBO_Config_Pack(t_Handle NBO_Id, t_S_NeighborCfg *p_Cfg)
     memcpy(p_Cfg, p_nboCfg, sizeof(t_S_NeighborCfg));
     XX_Free(p_nboCfg);
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -13268,7 +13268,7 @@ e_Err RTO_AsExternalCfg_Pack(t_Handle RTO_Id, t_S_AsExternalCfg *p_Cfg)
   t_S_AsExternalCfg *p_asExtCfg;  /* ospf router object configuration info */
   t_XXCallInfo      *xxci;        /* XX_Call info */
   e_Err             e;
-  L7_int32          currThread = osapiTaskIdSelf();
+  L7_uint64         currThread = osapiTaskIdSelf();
   OS_Thread         *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
   /* Fill in the router configuration info */
@@ -13286,7 +13286,7 @@ e_Err RTO_AsExternalCfg_Pack(t_Handle RTO_Id, t_S_AsExternalCfg *p_Cfg)
   RTO_AsExternalCfg should happen inline
   */
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     if(osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
@@ -13323,7 +13323,7 @@ e_Err RTO_AsExternalCfg_Pack(t_Handle RTO_Id, t_S_AsExternalCfg *p_Cfg)
   memcpy(p_Cfg, p_asExtCfg, sizeof(t_S_AsExternalCfg));
   XX_Free(p_asExtCfg);
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
       osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
   }
@@ -13377,10 +13377,10 @@ e_Err RTO_PurgeExternalLsas_Pack(t_Handle RTO_Id)
 {
     t_XXCallInfo      *xxci;        /* XX_Call info */
     e_Err             e;
-    L7_int32        currThread = osapiTaskIdSelf();
-    OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
+    L7_uint64         currThread = osapiTaskIdSelf();
+    OS_Thread         *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -13412,7 +13412,7 @@ e_Err RTO_PurgeExternalLsas_Pack(t_Handle RTO_Id)
         e = RTO_PurgeExternalLsas(RTO_Id);
     }
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -13469,7 +13469,7 @@ e_Err ARO_StubMetric_Pack(t_Handle ARO_Id, t_S_StubAreaEntry *p_Cfg)
     t_S_StubAreaEntry   *p_stubCfg;  /* ospf area configuration info */
     t_XXCallInfo        *xxci;      /* XX_Call info */
     e_Err               e;
-    L7_int32            currThread = osapiTaskIdSelf();
+    L7_uint64           currThread = osapiTaskIdSelf();
     OS_Thread           *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
     /* Fill in the area configuration info */
@@ -13482,7 +13482,7 @@ e_Err ARO_StubMetric_Pack(t_Handle ARO_Id, t_S_StubAreaEntry *p_Cfg)
     /* copy user supplied configuration info */
     memcpy(p_stubCfg, p_Cfg, sizeof(t_S_StubAreaEntry));
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -13520,7 +13520,7 @@ e_Err ARO_StubMetric_Pack(t_Handle ARO_Id, t_S_StubAreaEntry *p_Cfg)
     memcpy(p_Cfg, p_stubCfg, sizeof(t_S_StubAreaEntry));
     XX_Free(p_stubCfg);
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -13605,7 +13605,7 @@ e_Err ARO_AddressRange_Pack(t_S_AreaAggregateEntry *p_Cfg)
     t_S_AreaAggregateEntry  *p_adrRange; /* ospf area configuration info */
     t_XXCallInfo            *xxci;       /* XX_Call info */
     e_Err                   e;
-    L7_int32                currThread = osapiTaskIdSelf();
+    L7_uint64               currThread = osapiTaskIdSelf();
     OS_Thread               *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
     /* Fill in the area configuration info */
@@ -13619,7 +13619,7 @@ e_Err ARO_AddressRange_Pack(t_S_AreaAggregateEntry *p_Cfg)
     memcpy(p_adrRange, p_Cfg, sizeof(t_S_AreaAggregateEntry));
     PACKET_INIT(xxci, ARO_AddressRange_Unpack, 0, 0, 2, (ulng)p_adrRange);
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -13658,7 +13658,7 @@ e_Err ARO_AddressRange_Pack(t_S_AreaAggregateEntry *p_Cfg)
     memcpy(p_Cfg, p_adrRange, sizeof(t_S_AreaAggregateEntry));
     XX_Free(p_adrRange);
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -13715,7 +13715,7 @@ e_Err ARO_HostConfig_Pack(t_Handle ARO_Id, t_S_HostRouteCfg *p_Cfg)
     t_S_HostRouteCfg    *p_hosts;  /* ospf area configuration info */
     t_XXCallInfo        *xxci;      /* XX_Call info */
     e_Err               e;
-    L7_int32            currThread = osapiTaskIdSelf();
+    L7_uint64           currThread = osapiTaskIdSelf();
     OS_Thread           *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
     /* Fill in the area configuration info */
@@ -13728,7 +13728,7 @@ e_Err ARO_HostConfig_Pack(t_Handle ARO_Id, t_S_HostRouteCfg *p_Cfg)
     /* copy user supplied configuration info */
     memcpy(p_hosts, p_Cfg, sizeof(t_S_HostRouteCfg));
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -13766,7 +13766,7 @@ e_Err ARO_HostConfig_Pack(t_Handle ARO_Id, t_S_HostRouteCfg *p_Cfg)
     memcpy(p_Cfg, p_hosts, sizeof(t_S_HostRouteCfg));
     XX_Free(p_hosts);
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -13822,10 +13822,10 @@ e_Err ARO_Delete_Pack(t_Handle ARO_Id, ulng flag)
 {
     t_XXCallInfo    *xxci;      /* XX_Call info */
     e_Err           e;
-    L7_int32        currThread = osapiTaskIdSelf();
+    L7_uint64       currThread = osapiTaskIdSelf();
     OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -13858,7 +13858,7 @@ e_Err ARO_Delete_Pack(t_Handle ARO_Id, ulng flag)
         e = ARO_Delete(ARO_Id, flag);
     }
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -13921,10 +13921,10 @@ e_Err IFO_Delete_Pack(t_Handle IFO_Id, ulng flag, L7_uint32 intIfNum)
 {
     t_XXCallInfo    *xxci;      /* XX_Call info */
     e_Err           e;
-    L7_int32        currThread = osapiTaskIdSelf();
+    L7_uint64       currThread = osapiTaskIdSelf();
     OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -13958,7 +13958,7 @@ e_Err IFO_Delete_Pack(t_Handle IFO_Id, ulng flag, L7_uint32 intIfNum)
         e = IFO_Delete(IFO_Id, flag);
     }
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -14012,10 +14012,10 @@ e_Err IFO_Up_Pack(t_Handle IFO_Id)
 {
     t_XXCallInfo    *xxci;      /* XX_Call info */
     e_Err           e;
-    L7_int32        currThread = osapiTaskIdSelf();
+    L7_uint64       currThread = osapiTaskIdSelf();
     OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -14047,7 +14047,7 @@ e_Err IFO_Up_Pack(t_Handle IFO_Id)
         e = IFO_Up(IFO_Id);
     }
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -14101,10 +14101,10 @@ e_Err IFO_Down_Pack(t_Handle IFO_Id)
 {
     t_XXCallInfo    *xxci;      /* XX_Call info */
     e_Err           e;
-    L7_int32        currThread = osapiTaskIdSelf();
+    L7_uint64       currThread = osapiTaskIdSelf();
     OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -14136,7 +14136,7 @@ e_Err IFO_Down_Pack(t_Handle IFO_Id)
         e = IFO_Down(IFO_Id);
     }
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -14193,7 +14193,7 @@ e_Err IFO_MetricConfig_Pack(t_Handle IFO_Id, t_S_IfMetric *p_Cfg)
     t_S_IfMetric    *p_metric;  /* interface configuration info */
     t_XXCallInfo    *xxci;      /* XX_Call info */
     e_Err           e;
-    L7_int32        currThread = osapiTaskIdSelf();
+    L7_uint64       currThread = osapiTaskIdSelf();
     OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
     /* Fill in the interface configuration info */
@@ -14206,7 +14206,7 @@ e_Err IFO_MetricConfig_Pack(t_Handle IFO_Id, t_S_IfMetric *p_Cfg)
     /* copy user supplied configuration info */
     memcpy(p_metric, p_Cfg, sizeof(t_S_IfMetric));
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -14244,7 +14244,7 @@ e_Err IFO_MetricConfig_Pack(t_Handle IFO_Id, t_S_IfMetric *p_Cfg)
     memcpy(p_Cfg, p_metric, sizeof(t_S_IfMetric));
     XX_Free(p_metric);
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -14301,7 +14301,7 @@ e_Err IFO_AuthKeyConfig_Pack(t_Handle IFO_Id, t_OspfAuthKey *p_Cfg)
     t_OspfAuthKey   *p_authKeyCfg;  /* auth key configuration info */
     t_XXCallInfo    *xxci;      /* XX_Call info */
     e_Err           e;
-    L7_int32        currThread = osapiTaskIdSelf();
+    L7_uint64       currThread = osapiTaskIdSelf();
     OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
     /* Fill in the auth key configuration info */
@@ -14314,7 +14314,7 @@ e_Err IFO_AuthKeyConfig_Pack(t_Handle IFO_Id, t_OspfAuthKey *p_Cfg)
     /* copy user supplied configuration info */
     memcpy(p_authKeyCfg, p_Cfg, sizeof(t_OspfAuthKey));
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -14352,7 +14352,7 @@ e_Err IFO_AuthKeyConfig_Pack(t_Handle IFO_Id, t_OspfAuthKey *p_Cfg)
     memcpy(p_Cfg, p_authKeyCfg, sizeof(t_OspfAuthKey));
     XX_Free(p_authKeyCfg);
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -14429,7 +14429,7 @@ e_Err NSSA_Config_Pack(L7_uint32 areaId, t_S_NssaCfg *p_Cfg)
     t_S_NssaCfg     *p_nssaCfg;  /* ospf area configuration info */
     t_XXCallInfo    *xxci;      /* XX_Call info */
     e_Err           e;
-    L7_int32        currThread = osapiTaskIdSelf();
+    L7_uint64       currThread = osapiTaskIdSelf();
     OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
     /* Fill in the NSSA configuration info */
@@ -14444,7 +14444,7 @@ e_Err NSSA_Config_Pack(L7_uint32 areaId, t_S_NssaCfg *p_Cfg)
     PACKET_INIT(xxci, NSSA_Config_Unpack, 0, 0, 3, (ulng)areaId);
     PACKET_PUT(xxci, (ulng)p_nssaCfg);
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
         {
@@ -14491,7 +14491,7 @@ e_Err NSSA_Config_Pack(L7_uint32 areaId, t_S_NssaCfg *p_Cfg)
     memcpy(p_Cfg, p_nssaCfg, sizeof(t_S_NssaCfg));
     XX_Free(p_nssaCfg);
 
-    if (currThread != (L7_int32) pThreadGlobal->TaskID)
+    if (currThread != pThreadGlobal->TaskID)
     {
         osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
     }
@@ -14628,12 +14628,12 @@ static e_Err IFO_Stats_Unpack(void *p_Info)
 e_Err IFO_Stats_Pack(t_IFO *p_IFO, t_PCK_Stats *intfStats)
 {
   t_XXCallInfo  *xxci;      /* XX_Call info */
-    e_Err           e;
-    L7_int32        currThread = osapiTaskIdSelf();
-    OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
+    e_Err       e;
+    L7_uint64   currThread = osapiTaskIdSelf();
+    OS_Thread   *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
   /* Should never be called on OSPF protocol thread */
-    if (currThread == (L7_int32) pThreadGlobal->TaskID)
+    if (currThread == pThreadGlobal->TaskID)
     return E_FAILED;
 
   if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
@@ -14643,7 +14643,7 @@ e_Err IFO_Stats_Pack(t_IFO *p_IFO, t_PCK_Stats *intfStats)
     return E_FAILED;
   }
 
-  PACKET_INIT(xxci, IFO_Stats_Unpack, 0, 0, 2, (L7_uint32)p_IFO);
+  PACKET_INIT(xxci, IFO_Stats_Unpack, 0, 0, 2, PTR_TO_UINT32(p_IFO));
   PACKET_PUT(xxci, intfStats);
   e = XX_Call(ospfMapCtrl_g.ospfThread, xxci);
 
@@ -14744,10 +14744,10 @@ e_Err RTO_OpaqueCapability_Get_Pack(t_Handle RTO_Id, L7_uint32 *opaqueEnabled)
 {
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err           e;
-  L7_int32        currThread = osapiTaskIdSelf();
+  L7_uint64       currThread = osapiTaskIdSelf();
   OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
@@ -14780,7 +14780,7 @@ e_Err RTO_OpaqueCapability_Get_Pack(t_Handle RTO_Id, L7_uint32 *opaqueEnabled)
     e = RTO_OpaqueCapability_Get(RTO_Id, opaqueEnabled);
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
   }
@@ -14864,10 +14864,10 @@ e_Err RTO_OpaqueCapability_Set_Pack(t_Handle RTO_Id, L7_BOOL opaqueEnabled)
 {
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err           e;
-  L7_int32        currThread = osapiTaskIdSelf();
+  L7_uint64       currThread = osapiTaskIdSelf();
   OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
@@ -14900,7 +14900,7 @@ e_Err RTO_OpaqueCapability_Set_Pack(t_Handle RTO_Id, L7_BOOL opaqueEnabled)
     e = RTO_OpaqueCapability_Set(RTO_Id, opaqueEnabled);
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
   }
@@ -15053,10 +15053,10 @@ e_Err ospfAreaOpaqueLsdbTable_Lookup_Pack(L7_uint32 lsdbAreaId,
     L7_ospfOpaqueLsdbEntry_t *p_Lsa)
 {
   t_XXCallInfo    *xxci;      /* XX_Call info */
-  e_Err                   e;
-  L7_RC_t                 rc;
-  L7_int32                currThread = osapiTaskIdSelf();
-  OS_Thread               *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
+  e_Err           e;
+  L7_RC_t         rc;
+  L7_uint64       currThread = osapiTaskIdSelf();
+  OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
   L7_ospfOpaqueLsdbEntry_t  temp_Lsa;
 
   if(p_Lsa == NULL)
@@ -15064,7 +15064,7 @@ e_Err ospfAreaOpaqueLsdbTable_Lookup_Pack(L7_uint32 lsdbAreaId,
     p_Lsa = &temp_Lsa;
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
@@ -15101,7 +15101,7 @@ e_Err ospfAreaOpaqueLsdbTable_Lookup_Pack(L7_uint32 lsdbAreaId,
     rc = ospfAreaOpaqueLsdbTable_Lookup(lsdbAreaId, lsdbType, lsdbId, lsdbRouterId, p_Lsa);
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
   }
@@ -15257,7 +15257,7 @@ e_Err ospfAreaOpaqueLsdbTable_NextLookup_Pack(L7_uint32 *LsdbAreaId,
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err                   e;
   L7_RC_t                 rc;
-  L7_int32                currThread = osapiTaskIdSelf();
+  L7_uint64               currThread = osapiTaskIdSelf();
   OS_Thread               *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
   L7_ospfOpaqueLsdbEntry_t  temp_Lsa;
 
@@ -15266,7 +15266,7 @@ e_Err ospfAreaOpaqueLsdbTable_NextLookup_Pack(L7_uint32 *LsdbAreaId,
     p_Lsa = &temp_Lsa;
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
@@ -15275,7 +15275,7 @@ e_Err ospfAreaOpaqueLsdbTable_NextLookup_Pack(L7_uint32 *LsdbAreaId,
       return E_FAILED;
     }
 
-    PACKET_INIT(xxci, ospfAreaOpaqueLsdbTable_NextLookup_Unpack, 0, 0, 6, (L7_uint32)LsdbAreaId);
+    PACKET_INIT(xxci, ospfAreaOpaqueLsdbTable_NextLookup_Unpack, 0, 0, 6, PTR_TO_UINT32(LsdbAreaId));
     PACKET_PUT(xxci, (L7_int32*)LsdbType);
     PACKET_PUT(xxci, (L7_uint32*)LsdbId);
     PACKET_PUT(xxci, (L7_uint32*)LsdbRouterId);
@@ -15303,7 +15303,7 @@ e_Err ospfAreaOpaqueLsdbTable_NextLookup_Pack(L7_uint32 *LsdbAreaId,
     rc = ospfAreaOpaqueLsdbTable_NextLookup(LsdbAreaId, LsdbType, LsdbId, LsdbRouterId, p_Lsa);
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
   }
@@ -15598,7 +15598,7 @@ e_Err ospfAreaOpaqueAdvertisement_Lookup_Pack(L7_uint32 LsdbAreaId,
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err                   e;
   L7_RC_t                 rc;
-  L7_int32                currThread = osapiTaskIdSelf();
+  L7_uint64               currThread = osapiTaskIdSelf();
   OS_Thread               *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
   L7_ospfOpaqueLsdbEntry_t      temp_Lsa;
 
@@ -15607,7 +15607,7 @@ e_Err ospfAreaOpaqueAdvertisement_Lookup_Pack(L7_uint32 LsdbAreaId,
     p_Lsa = &temp_Lsa;
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
@@ -15649,7 +15649,7 @@ e_Err ospfAreaOpaqueAdvertisement_Lookup_Pack(L7_uint32 LsdbAreaId,
         p_LsdbAdvertisement);
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
   }
@@ -15826,7 +15826,7 @@ e_Err ospfLinkOpaqueLsdbTable_Lookup_Pack(L7_uint32 ipAddr, L7_uint32 ifIndex,
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err                   e;
   L7_RC_t                 rc;
-  L7_int32                currThread = osapiTaskIdSelf();
+  L7_uint64               currThread = osapiTaskIdSelf();
   OS_Thread               *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
   L7_ospfOpaqueLsdbEntry_t  temp_Lsa;
 
@@ -15835,7 +15835,7 @@ e_Err ospfLinkOpaqueLsdbTable_Lookup_Pack(L7_uint32 ipAddr, L7_uint32 ifIndex,
     p_Lsa = &temp_Lsa;
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
@@ -15874,7 +15874,7 @@ e_Err ospfLinkOpaqueLsdbTable_Lookup_Pack(L7_uint32 ipAddr, L7_uint32 ifIndex,
         LsdbId,LsdbRouterId,p_Lsa);
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
   }
@@ -16062,7 +16062,7 @@ e_Err ospfLinkOpaqueLsdbTable_NextLookup_Pack(L7_uint32 *ipAddr,
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err                   e;
   L7_RC_t                 rc;
-  L7_int32                currThread = osapiTaskIdSelf();
+  L7_uint64               currThread = osapiTaskIdSelf();
   OS_Thread               *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
   L7_ospfOpaqueLsdbEntry_t  temp_Lsa;
 
@@ -16071,7 +16071,7 @@ e_Err ospfLinkOpaqueLsdbTable_NextLookup_Pack(L7_uint32 *ipAddr,
     p_Lsa = &temp_Lsa;
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
@@ -16080,7 +16080,7 @@ e_Err ospfLinkOpaqueLsdbTable_NextLookup_Pack(L7_uint32 *ipAddr,
       return E_FAILED;
     }
 
-    PACKET_INIT(xxci, ospfLinkOpaqueLsdbTable_NextLookup_Unpack, 0, 0, 7, (L7_uint32)ipAddr);
+    PACKET_INIT(xxci, ospfLinkOpaqueLsdbTable_NextLookup_Unpack, 0, 0, 7, PTR_TO_UINT32(ipAddr));
     PACKET_PUT(xxci, (L7_int32*)ifIndex);
     PACKET_PUT(xxci, (L7_int32*)LsdbType);
     PACKET_PUT(xxci, (L7_uint32*)LsdbId);
@@ -16110,7 +16110,7 @@ e_Err ospfLinkOpaqueLsdbTable_NextLookup_Pack(L7_uint32 *ipAddr,
         LsdbId,LsdbRouterId,p_Lsa);
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
   }
@@ -16429,7 +16429,7 @@ e_Err ospfLinkOpaqueAdvertisement_Lookup_Pack(L7_uint32 ipAddr, L7_uint32 ifInde
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err                   e;
   L7_RC_t                 rc;
-  L7_int32                currThread = osapiTaskIdSelf();
+  L7_uint64               currThread = osapiTaskIdSelf();
   OS_Thread               *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
   L7_ospfOpaqueLsdbEntry_t      temp_Lsa;
 
@@ -16438,7 +16438,7 @@ e_Err ospfLinkOpaqueAdvertisement_Lookup_Pack(L7_uint32 ipAddr, L7_uint32 ifInde
     p_Lsa = &temp_Lsa;
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
@@ -16479,7 +16479,7 @@ e_Err ospfLinkOpaqueAdvertisement_Lookup_Pack(L7_uint32 ipAddr, L7_uint32 ifInde
         LsdbRouterId,p_Lsa,p_LsdbAdvertisement);
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
   }
@@ -16639,7 +16639,7 @@ e_Err ospfAsOpaqueLsdbTable_Lookup_Pack(L7_uint32 LsdbType, L7_uint32 LsdbId,
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err                   e;
   L7_RC_t                 rc;
-  L7_int32                currThread = osapiTaskIdSelf();
+  L7_uint64               currThread = osapiTaskIdSelf();
   OS_Thread               *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
   L7_ospfOpaqueLsdbEntry_t  temp_Lsa;
 
@@ -16648,7 +16648,7 @@ e_Err ospfAsOpaqueLsdbTable_Lookup_Pack(L7_uint32 LsdbType, L7_uint32 LsdbId,
     p_Lsa = &temp_Lsa;
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
@@ -16684,7 +16684,7 @@ e_Err ospfAsOpaqueLsdbTable_Lookup_Pack(L7_uint32 LsdbType, L7_uint32 LsdbId,
     rc = ospfAsOpaqueLsdbTable_Lookup(LsdbType,LsdbId,LsdbRouterId,p_Lsa);
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
   }
@@ -16826,7 +16826,7 @@ e_Err ospfAsOpaqueLsdbTable_NextLookup_Pack(L7_int32  *LsdbType,
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err                   e;
   L7_RC_t                 rc;
-  L7_int32                currThread = osapiTaskIdSelf();
+  L7_uint64               currThread = osapiTaskIdSelf();
   OS_Thread               *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
   L7_ospfOpaqueLsdbEntry_t  temp_Lsa;
 
@@ -16835,7 +16835,7 @@ e_Err ospfAsOpaqueLsdbTable_NextLookup_Pack(L7_int32  *LsdbType,
     p_Lsa = &temp_Lsa;
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
@@ -16844,7 +16844,7 @@ e_Err ospfAsOpaqueLsdbTable_NextLookup_Pack(L7_int32  *LsdbType,
       return E_FAILED;
     }
 
-    PACKET_INIT(xxci, ospfAsOpaqueLsdbTable_NextLookup_Unpack, 0, 0, 5, (L7_uint32)LsdbType);
+    PACKET_INIT(xxci, ospfAsOpaqueLsdbTable_NextLookup_Unpack, 0, 0, 5, PTR_TO_UINT32(LsdbType));
     PACKET_PUT(xxci, (L7_uint32*)LsdbId);
     PACKET_PUT(xxci, (L7_uint32*)LsdbRouterId);
     PACKET_PUT(xxci, (L7_ospfOpaqueLsdbEntry_t *)p_Lsa);
@@ -16871,7 +16871,7 @@ e_Err ospfAsOpaqueLsdbTable_NextLookup_Pack(L7_int32  *LsdbType,
     rc = ospfAsOpaqueLsdbTable_NextLookup(LsdbType,LsdbId,LsdbRouterId,p_Lsa);
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
   }
@@ -17151,7 +17151,7 @@ e_Err ospfAsOpaqueAdvertisement_Lookup_Pack(L7_uint32 LsdbType,L7_uint32 LsdbId,
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err                   e;
   L7_RC_t                 rc;
-  L7_int32                currThread = osapiTaskIdSelf();
+  L7_uint64               currThread = osapiTaskIdSelf();
   OS_Thread               *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
   L7_ospfOpaqueLsdbEntry_t      temp_Lsa;
 
@@ -17160,7 +17160,7 @@ e_Err ospfAsOpaqueAdvertisement_Lookup_Pack(L7_uint32 LsdbType,L7_uint32 LsdbId,
     p_Lsa = &temp_Lsa;
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
@@ -17199,7 +17199,7 @@ e_Err ospfAsOpaqueAdvertisement_Lookup_Pack(L7_uint32 LsdbType,L7_uint32 LsdbId,
         LsdbRouterId,p_Lsa,p_LsdbAdvertisement);
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
   }
@@ -17299,10 +17299,10 @@ e_Err ospfASOpaqueCksumSum_Get_Pack(t_Handle RTO_Id, L7_uint32 *opaqueCksumSum)
 {
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err           e;
-  L7_int32        currThread = osapiTaskIdSelf();
+  L7_uint64       currThread = osapiTaskIdSelf();
   OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
@@ -17335,7 +17335,7 @@ e_Err ospfASOpaqueCksumSum_Get_Pack(t_Handle RTO_Id, L7_uint32 *opaqueCksumSum)
     e = RTO_ASOpaqueCksumSum_Get(RTO_Id, opaqueCksumSum);
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
   }
@@ -17414,10 +17414,10 @@ e_Err ospfIsStubRtr_Get_Pack(t_Handle RTO_Id, L7_BOOL *isStubRtr)
 {
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err           e;
-  L7_int32        currThread = osapiTaskIdSelf();
+  L7_uint64       currThread = osapiTaskIdSelf();
   OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
@@ -17450,7 +17450,7 @@ e_Err ospfIsStubRtr_Get_Pack(t_Handle RTO_Id, L7_BOOL *isStubRtr)
     e = RTO_IsStubRtr_Get(RTO_Id, isStubRtr);
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
   }
@@ -17530,10 +17530,10 @@ e_Err ospfExtLsdbOverflow_Get_Pack(t_Handle RTO_Id, L7_BOOL *extLsdbOverflow)
 {
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err           e;
-  L7_int32        currThread = osapiTaskIdSelf();
+  L7_uint64       currThread = osapiTaskIdSelf();
   OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     if (osapiSemaTake(ospfMapCtrl_g.ospfSyncSema, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
@@ -17566,7 +17566,7 @@ e_Err ospfExtLsdbOverflow_Get_Pack(t_Handle RTO_Id, L7_BOOL *extLsdbOverflow)
     e = RTO_ExtLsdbOverflow_Get(RTO_Id, extLsdbOverflow);
   }
 
-  if (currThread != (L7_int32) pThreadGlobal->TaskID)
+  if (currThread != pThreadGlobal->TaskID)
   {
     osapiSemaGive(ospfMapCtrl_g.ospfSyncSema);
   }
@@ -17644,10 +17644,10 @@ e_Err ospfGlobalStatus_Pack(t_Handle RTO_Id, L7_ospfStatus_t *status)
 {
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err           e;
-  L7_int32        currThread = osapiTaskIdSelf();
+  L7_uint64       currThread = osapiTaskIdSelf();
   OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
-  if (currThread == (L7_int32) pThreadGlobal->TaskID)
+  if (currThread == pThreadGlobal->TaskID)
   {
     /* This is for UI to get OSPFv2 status. Should never be called
      * on OSPFv2 protocol thread. */
@@ -17730,10 +17730,10 @@ e_Err ospfNeighborClear_Pack(t_Handle RTO_Id, t_IFO *p_IFO, L7_uint32 routerId)
 {
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err           e;
-  L7_int32        currThread = osapiTaskIdSelf();
+  L7_uint64       currThread = osapiTaskIdSelf();
   OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
-  if (currThread == (L7_int32) pThreadGlobal->TaskID)
+  if (currThread == pThreadGlobal->TaskID)
   {
     /* This is for UI to get OSPFv2 status. Should never be called
      * on OSPFv2 protocol thread. */
@@ -17849,10 +17849,10 @@ e_Err ospfCountersClear_Pack(t_Handle RTO_Id)
 {
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err           e;
-  L7_int32        currThread = osapiTaskIdSelf();
+  L7_uint64       currThread = osapiTaskIdSelf();
   OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
-  if (currThread == (L7_int32) pThreadGlobal->TaskID)
+  if (currThread == pThreadGlobal->TaskID)
   {
     /* Should never be called on OSPFv2 protocol thread. */
     return E_FAILED;
@@ -17904,10 +17904,10 @@ e_Err ospfStubRouterClear_Pack(t_Handle RTO_Id)
 {
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err           e;
-  L7_int32        currThread = osapiTaskIdSelf();
+  L7_uint64       currThread = osapiTaskIdSelf();
   OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
-  if (currThread == (L7_int32) pThreadGlobal->TaskID)
+  if (currThread == pThreadGlobal->TaskID)
   {
     /* Should never be called on OSPFv2 protocol thread. */
     return E_FAILED;
@@ -18054,10 +18054,10 @@ e_Err ospfBeginGr_Pack(t_Handle RTO_Id)
 {
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err           e;
-  L7_int32        currThread = osapiTaskIdSelf();
+  L7_uint64       currThread = osapiTaskIdSelf();
   OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
-  if (currThread == (L7_int32) pThreadGlobal->TaskID)
+  if (currThread == pThreadGlobal->TaskID)
   {
     /* Should never be called on OSPFv2 protocol thread. */
     return E_FAILED;
@@ -18158,10 +18158,10 @@ e_Err ospfStartupDone_Pack(t_Handle RTO_Id)
 {
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err           e;
-  L7_int32        currThread = osapiTaskIdSelf();
+  L7_uint64       currThread = osapiTaskIdSelf();
   OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
-  if (currThread == (L7_int32) pThreadGlobal->TaskID)
+  if (currThread == pThreadGlobal->TaskID)
   {
     /* Should never be called on OSPFv2 protocol thread. */
     return E_FAILED;
@@ -18352,10 +18352,10 @@ e_Err ospfHelpfulNbrStatus_Pack(t_Handle RTO_Id, L7_uint32 intIfNum,
 {
   t_XXCallInfo    *xxci;      /* XX_Call info */
   e_Err           e;
-  L7_int32        currThread = osapiTaskIdSelf();
+  L7_uint64       currThread = osapiTaskIdSelf();
   OS_Thread       *pThreadGlobal = (OS_Thread *)ospfMapCtrl_g.ospfThread;
 
-  if (currThread == (L7_int32) pThreadGlobal->TaskID)
+  if (currThread == pThreadGlobal->TaskID)
   {
     /* This is for UI to get OSPFv2 status. Should never be called
      * on OSPFv2 protocol thread. */

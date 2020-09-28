@@ -56,7 +56,7 @@ L7_vrrpMapCfg_t        *pVrrpMapCfgData = L7_NULL;
 /* Cannot hold this semaphore when calling an IP MAP API. IP MAP can call
  * ARP, which can call VRRP. Can get a deadlock. */
 void  *                 VrrpConfigSema;
-L7_int32                vrrpTaskDaemonId;
+L7_uint64               vrrpTaskDaemonId;
 L7_uint32              *vrrpIntfMapTbl;
 
 
@@ -1105,7 +1105,7 @@ void vrrpInfoShow(L7_uint32 intIfNum, L7_uchar8 vrid)
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_IPMAP,  "\n|                 VRRP CONFIGURATION DATA                |");
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_IPMAP,  "\n+--------------------------------------------------------+");
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_IPMAP,  "\nvrid..................................%d", (L7_uint32)vrrpInfo->object->vrrpCfgInfo.vrid);                  /* Virtual Router ID           */
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_IPMAP,  "\ndescription..................................%s", (L7_uint32)vrrpInfo->object->vrrpCfgInfo.description);           /* Virtual Router ID  description   */
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_IPMAP,  "\ndescription..................................%s", vrrpInfo->object->vrrpCfgInfo.description);           /* Virtual Router ID  description   */
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_IPMAP,  "\npriority..............................%d", (L7_uint32)vrrpInfo->object->vrrpCfgInfo.priority);              /* Priority                    */
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_IPMAP,  "\nadver_int.............................%d", (L7_uint32)vrrpInfo->object->vrrpCfgInfo.adver_int);             /* Advertisement Interval      */
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_IPMAP,  "\nauth_data.............................");

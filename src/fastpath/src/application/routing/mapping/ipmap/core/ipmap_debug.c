@@ -81,8 +81,8 @@ L7_uint32 ipMapTraceIntf = 0;
 ipMapDebugIcmpCtlStats_t icmpCtlStats;
 L7_BOOL ratelimitKicks = L7_FALSE;
 
-extern L7_int32 ipMapForwardingTaskId;
-extern L7_int32 ipMapProcessingTaskId;
+extern L7_uint64 ipMapForwardingTaskId;
+extern L7_uint64 ipMapProcessingTaskId;
 
 /*---------------------------------------*/
 /* Global Configuration Data Structures  */
@@ -1681,7 +1681,7 @@ void dbg_arp_req(L7_uint32 intIfNum, L7_uint32 ipSa, L7_uint32 ipDa)
     L7_uchar8 sMac[6] = {0, 0, 0, 1, 2, 0};
     L7_uchar8 dMac[6] = {0, 0, 0, 4, 5, 0};
     sysnet_pdu_info_t pduInfo;
-    L7_uint32 bufHandle;
+    L7_uint64 bufHandle;
     L7_ushort16 pFlag = L7_LL_ENCAP_ENET | L7_LL_USE_L3_SRC_MAC;
 
     sMac[4] = (ipSa & 0xFF00)>>8;
@@ -1705,7 +1705,7 @@ void dbg_arp_rep(L7_uint32 intIfNum, L7_uint32 ipSa, L7_uint32 ipDa)
     L7_uchar8 sMac[6] = {0, 0, 0, 1, 2, 0};
     L7_uchar8 dMac[6] = {0, 0, 0, 4, 5, 0};
     sysnet_pdu_info_t pduInfo;
-    L7_uint32 bufHandle;
+    L7_uint64 bufHandle;
     L7_ushort16 pFlag = L7_LL_ENCAP_ENET | L7_LL_USE_L3_SRC_MAC;
 
     sMac[4] = (ipSa & 0xFF00)>>8;
@@ -1771,7 +1771,7 @@ void dbg_ip_rcv(L7_uint32 intIfNum, L7_uint32 ipSa, L7_uint32 ipDa, L7_uint32 op
     L7_uchar8 sMac[6] = {0, 0, 0, 1, 2, 0};
     L7_uchar8 dMac[6] = {0, 0, 0, 4, 5, 0};
     sysnet_pdu_info_t pduInfo;
-    L7_uint32 bufHandle;
+    L7_uint64 bufHandle;
     L7_ushort16 pFlag = L7_LL_ENCAP_ENET | L7_LL_USE_L3_SRC_MAC;
 
     sMac[4] = (ipSa & 0xFF00)>>8;

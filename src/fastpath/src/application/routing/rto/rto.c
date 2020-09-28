@@ -1079,13 +1079,16 @@ L7_RC_t rtoRouteAdd (L7_routeEntry_t *routeEntry)
       rtoStats.radix_entries++;
     }
     else
-      L7_LOG_ERROR((L7_uint32) pData);
+    {
+      L7_LOG_ERROR(PTR_TO_UINT32(pData));
+    }
 
     /* Find the new entry so that we can attach route info. */
     pData = radixLookupNode(&rtoRouteTreeData, &routeData.network, &routeData.netmask, L7_RN_EXACT);
     if (!pData)
     {
-      L7_LOG_ERROR("Error: rto.c radix corruption detected!\n"); /* Database corruption. */
+      L7_LOGF(L7_LOG_SEVERITY_CRITICAL, L7_LOG_COMPONENT_DEFAULT,
+              "Error: rto.c radix corruption detected!\n"); /* Database corruption. */
       return L7_FAILURE;
     }          
   }

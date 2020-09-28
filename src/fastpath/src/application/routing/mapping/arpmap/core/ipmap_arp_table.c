@@ -206,8 +206,8 @@ L7_RC_t ipMapArpGwTableDelete(void)
     else
     {
       L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_ARP_MAP_COMPONENT_ID,
-              "%s: Could not delete AVL tree semaphore, id=0x%8.8x\n",
-              routine_name, (L7_uint32)pArpCtx->gwTbl.treeData.semId);
+              "%s: Could not delete AVL tree semaphore, id=%p\n",
+              routine_name, pArpCtx->gwTbl.treeData.semId);
       /* keep going */
     }
   }
@@ -329,7 +329,7 @@ L7_RC_t ipMapArpGwTableInsert(L7_uint32 ipAddr, L7_uint32 intIfNum,
       {
         if(TIMER_StartSec(ipMapArpCtx_g.gwArpRqstTimer, ARP_GW_RQSTTIME,
                           TRUE /* repetitive timer */, gwArpRequestTimeExp,
-                          (t_Handle)ipMapArpCtx_g.timerExp.taskId) != E_OK)
+                          (t_Handle) UINT_TO_PTR(ipMapArpCtx_g.timerExp.taskId)) != E_OK)
           L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_ARP_MAP_COMPONENT_ID,
                   "%s: Start ARP Gateway timer failed\n", routine_name);
       }
@@ -622,9 +622,9 @@ void ipMapArpGwTableShow(void)
     gw.intIfNum = pNode->intIfNum;
 
     osapiInetNtoa(gw.ipAddr, ipStr);
-    IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "%6u    %-15s %8d %10d 0x%8.8x %5s %5s\n",
+    IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "%6u    %-15s %8d %10d 0x%llx %5s %5s\n",
                 ++count, ipStr, pNode->intIfNum, pNode->refCnt,
-                (L7_uint32)pNode, (pNode->holdover == L7_TRUE) ? "Y" : "N",
+                PTR_TO_UINT64(pNode), (pNode->holdover == L7_TRUE) ? "Y" : "N",
                 pNode->staticRouteGw ? "Y" : "N");
   }
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "\n\n");
@@ -737,8 +737,8 @@ L7_RC_t ipMapArpIpTableDelete(void)
     else
     {
       L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_ARP_MAP_COMPONENT_ID,
-              "%s: Could not delete AVL tree semaphore, id=0x%8.8x\n",
-              routine_name, (L7_uint32)pArpCtx->ipTbl.treeData.semId);
+              "%s: Could not delete AVL tree semaphore, id=%p\n",
+              routine_name, pArpCtx->ipTbl.treeData.semId);
       /* keep going */
     }
   }
@@ -952,11 +952,11 @@ L7_RC_t ipMapArpIpTableInsert(ipMapArpIpNode_t *pIpInfo, ipMapArpIpNode_t **ppIp
 
     /* debug message */
     IPM_ARP_PRT(IPM_ARP_MSGLVL_LO,
-                "[%10.10u] IPM_ARP: inserted %s intf %d, pNode=0x%8.8x t_Age=0x%8.8x t_Rsp=0x%8.8x  (inDev=%1s)\n",
+                "[%10.10u] IPM_ARP: inserted %s intf %d, pNode=0x%llx t_Age=0x%llx t_Rsp=0x%llx  (inDev=%1s)\n",
                 osapiTimeMillisecondsGet64(), (L7_uchar8 *)ipStr,
-                pIpInfo->intIfNum, (L7_uint32)pNode,
-                (L7_uint32)pNode->arpEntry.arpAgeTimer,
-                (L7_uint32)pNode->arpEntry.arpRspTimer,
+                pIpInfo->intIfNum, PTR_TO_UINT64(pNode),
+                PTR_TO_UINT64(pNode->arpEntry.arpAgeTimer),
+                PTR_TO_UINT64(pNode->arpEntry.arpRspTimer),
                 (pNode->inDevice == L7_TRUE) ? "Y" : "N");
 
     rc = L7_SUCCESS;                    /* all went well */
@@ -1041,11 +1041,11 @@ L7_RC_t ipMapArpIpTableUpdate(ipMapArpIpNode_t *pIpInfo,
 
     /* debug message */
     IPM_ARP_PRT(IPM_ARP_MSGLVL_LO,
-                "[%10.10u] IPM_ARP: %s %s %d, pNode=0x%8.8x t_Age=0x%8.8x t_Rsp=0x%8.8x  (inDev=%1s)\n",
+                "[%10.10u] IPM_ARP: %s %s %d, pNode=0x%llx t_Age=0x%llx t_Rsp=0x%llx  (inDev=%1s)\n",
                 osapiTimeMillisecondsGet64(), (event == IPM_ARP_TABLE_UPDATE) ? "updated" : "reissued",
-                (L7_uchar8 *)ipStr, pIpInfo->intIfNum, (L7_uint32)pNode,
-                (L7_uint32)pNode->arpEntry.arpAgeTimer,
-                (L7_uint32)pNode->arpEntry.arpRspTimer,
+                (L7_uchar8 *)ipStr, pIpInfo->intIfNum, PTR_TO_UINT64(pNode),
+                PTR_TO_UINT64(pNode->arpEntry.arpAgeTimer),
+                PTR_TO_UINT64(pNode->arpEntry.arpRspTimer),
                 (pNode->inDevice == L7_TRUE) ? "Y" : "N");
 
     rc = L7_SUCCESS;                    /* all went well */
@@ -1082,7 +1082,7 @@ L7_RC_t ipMapArpIpTableRemove(ipMapArpIpNode_t *pIpInfo)
   ipMapArpIpNode_t  *pNode;
   L7_RC_t           rc = L7_FAILURE;
   L7_BOOL           inDeviceSaved;      /* save for debug msg */
-  L7_uint32         ageTimerId, rspTimerId;
+  L7_uint64         ageTimerId, rspTimerId;
 
 
   osapiInetNtoa(pIpInfo->key, ipStr);
@@ -1120,8 +1120,8 @@ L7_RC_t ipMapArpIpTableRemove(ipMapArpIpNode_t *pIpInfo)
 
     /* save value of inDevice flag for debug msg before it is changed/deleted */
     inDeviceSaved = pNode->inDevice;
-    ageTimerId = (L7_uint32)pNode->arpEntry.arpAgeTimer;
-    rspTimerId = (L7_uint32)pNode->arpEntry.arpRspTimer;
+    ageTimerId = PTR_TO_UINT64(pNode->arpEntry.arpAgeTimer);
+    rspTimerId = PTR_TO_UINT64(pNode->arpEntry.arpRspTimer);
 
     /* delete the entry from the ARP table */
     if (ipMapArpIpTableRemoveCommon(pNode) != L7_SUCCESS)
@@ -1139,9 +1139,9 @@ L7_RC_t ipMapArpIpTableRemove(ipMapArpIpNode_t *pIpInfo)
 
     /* debug message */
     IPM_ARP_PRT(IPM_ARP_MSGLVL_LO,
-                "[%10.10u] IPM_ARP: removed %s, intf %d pNode=0x%8.8x t_Age=0x%8.8x t_Rsp=0x%8.8x  (inDev=%1s)\n",
+                "[%10.10u] IPM_ARP: removed %s, intf %d pNode=0x%llx t_Age=0x%llx t_Rsp=0x%llx  (inDev=%1s)\n",
                 osapiTimeMillisecondsGet64(), ipStr, pNode->intIfNum,
-                (L7_uint32)pNode, ageTimerId, rspTimerId,
+                PTR_TO_UINT64(pNode), ageTimerId, rspTimerId,
                 (inDeviceSaved == L7_TRUE) ? "Y" : "N");
 
     rc = L7_SUCCESS;                    /* all went well */
@@ -1177,7 +1177,7 @@ L7_RC_t ipMapArpIpTableOldestRemove(L7_BOOL allowGw)
   ipMapArpIpNode_t  *pNode = L7_NULLPTR;
   L7_RC_t           rc = L7_FAILURE, rc2;
   L7_BOOL           inDeviceSaved;      /* save for debug msg */
-  L7_uint32         ageTimerId, rspTimerId;
+  L7_uint64         ageTimerId, rspTimerId;
 
 
   /* use one-pass loop for error exit control */
@@ -1203,8 +1203,8 @@ L7_RC_t ipMapArpIpTableOldestRemove(L7_BOOL allowGw)
 
     /* save value of inDevice flag for debug msg before it is changed/deleted */
     inDeviceSaved = pNode->inDevice;
-    ageTimerId = (L7_uint32)pNode->arpEntry.arpAgeTimer;
-    rspTimerId = (L7_uint32)pNode->arpEntry.arpRspTimer;
+    ageTimerId = PTR_TO_UINT64(pNode->arpEntry.arpAgeTimer);
+    rspTimerId = PTR_TO_UINT64(pNode->arpEntry.arpRspTimer);
 
     /* delete the entry from the ARP table */
     if (ipMapArpIpTableRemoveCommon(pNode) != L7_SUCCESS)
@@ -1219,9 +1219,9 @@ L7_RC_t ipMapArpIpTableOldestRemove(L7_BOOL allowGw)
 
     /* debug message */
     IPM_ARP_PRT(IPM_ARP_MSGLVL_LO,
-                "[%10.10u] IPM_ARP: oldest removed %s intf %d, pNode=0x%8.8x t_Age=0x%8.8x t_Rsp=0x%8.8x  (inDev=%1s)\n",
+                "[%10.10u] IPM_ARP: oldest removed %s intf %d, pNode=0x%llx t_Age=0x%llx t_Rsp=0x%llx  (inDev=%1s)\n",
                 osapiTimeMillisecondsGet64(), ipStr, pNode->intIfNum,
-                (L7_uint32)pNode, ageTimerId, rspTimerId,
+                PTR_TO_UINT64(pNode), ageTimerId, rspTimerId,
                 (inDeviceSaved == L7_TRUE) ? "Y" : "N");
 
     rc = L7_SUCCESS;                    /* all went well */
@@ -1779,10 +1779,10 @@ void ipMapArpIpTableShow(L7_uint32 intIfNum, L7_uint32 numEnt)
       }
       IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "%2.2x ", pNode->arpEntry.macAddr[i]);
 
-      IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, " %2.1u  %-8.8s %8u   %1s    %2u   0x%8.8x\n",
+      IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, " %2.1u  %-8.8s %8u   %1s    %2u   0x%llx\n",
                   pIntf->intIfNum, ipMapArpEntryTypeStr[entryType], ageTime,
                   (pNode->inDevice == L7_TRUE) ? "Y" : "N", pNode->failedDevAdds,
-                  (L7_uint32)pNode->arpEntry.pNode);
+                  PTR_TO_UINT64(pNode->arpEntry.pNode));
 
       numEnt--;
     }
@@ -1998,8 +1998,8 @@ void ipMapArpIpAgeListShow(L7_uint32 intIfNum, L7_uint32 numEnt)
 
 
   /* display the head and tail pointers */
-  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "\nAge List head = 0x%8.8x  tail = 0x%8.8x\n",
-              (L7_uint32)pAgeList->head, (L7_uint32)pAgeList->tail);
+  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "\nAge List head = 0x%llx  tail = 0x%llx\n",
+              PTR_TO_UINT64(pAgeList->head), PTR_TO_UINT64(pAgeList->tail));
 
   /* quick-scan the list to count the entries */
   for (pNode = pAgeList->head, count = 0;
@@ -2060,9 +2060,9 @@ void ipMapArpIpAgeListShow(L7_uint32 intIfNum, L7_uint32 numEnt)
       entryType = (L7_uint32)pNode->arpEntry.entryType;
       ipMapArpExtenEntryAgeCalc(pNode->arpEntry.timeStamp, (ulng *)&ageTime);
 
-      IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "%6u   %-15.15s %-8.8s  %2.1u  %8u 0x%8.8x\n",
+      IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "%6u   %-15.15s %-8.8s  %2.1u  %8u 0x%llx\n",
                   ++count, ipStr, ipMapArpEntryTypeStr[entryType],
-                  pIntf->intIfNum, ageTime, (L7_uint32)pNode);
+                  pIntf->intIfNum, ageTime, PTR_TO_UINT64(pNode));
 
       numEnt--;
     }

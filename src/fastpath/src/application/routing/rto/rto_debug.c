@@ -338,7 +338,7 @@ L7_uint32 rtoDebugWalkMkNodes()
   offset_next = RADIX_MASK_NODE_ITEM_OFFSET_NEXT(rtoRouteTreeData.mask_rnhead.max_keylen);
   while (ptr)
   {
-    ptr = (void*)(*((L7_uint32*)((char*)ptr+offset_next)));
+    ptr = UINT_TO_PTR(*((L7_uint32*)((char*)ptr+offset_next)));
     i++;
   }
   osapiReadLockGive(rtoRwLock);
@@ -365,7 +365,7 @@ L7_uint32 rtoDebugWalkDataNodes()
 
   while (ptr)
   {
-    ptr=(void*)(*((L7_uint32*)((char*)ptr+offset_next)));
+    ptr=UINT_TO_PTR(*((L7_uint32*)((char*)ptr+offset_next)));
     i++;
   }
   osapiReadLockGive(rtoRwLock);

@@ -4301,7 +4301,7 @@ L7_RC_t ipMapRtrIntfDataGet( L7_uint32 intIfNum, dtlRtrIntfDesc_t *ipCircuitDesc
     /* VLAN routing interface */
     if (nimGetMacroPortAssignment(intIfNum, &macroPortIntf) == L7_SUCCESS)
     {
-      vlanId = (L7_uint32)macroPortIntf.macroInfo;
+      vlanId = PTR_TO_UINT32(macroPortIntf.macroInfo);
     }
     else
     {
@@ -4360,7 +4360,7 @@ L7_RC_t ipMapLockTake(e_ipMapLockType lockType, const L7_int32 wait,
   if (ipMapTraceFlags & IPMAP_TRACE_LOCK)
   {
     L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
-    osapiSnprintf(traceBuf, IPMAP_TRACE_LEN_MAX, "%s taking %s lock on task %#x. wait %d.",
+    osapiSnprintf(traceBuf, IPMAP_TRACE_LEN_MAX, "%s taking %s lock on task %#llx. wait %d.",
             lockHolder, (lockType == IPMAP_READ_LOCK ? "READ" : "WRITE"),
             osapiTaskIdSelf(), wait);
     ipMapTraceWrite(traceBuf);
@@ -4487,7 +4487,7 @@ L7_RC_t ipMapLockGive(e_ipMapLockType lockType, const L7_uchar8 *lockHolder)
   if (ipMapTraceFlags & IPMAP_TRACE_LOCK)
   {
     L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
-    osapiSnprintf(traceBuf, IPMAP_TRACE_LEN_MAX, "%s giving %s lock on task %#x.",
+    osapiSnprintf(traceBuf, IPMAP_TRACE_LEN_MAX, "%s giving %s lock on task %#llx.",
                   lockHolder, (lockType == IPMAP_READ_LOCK ? "READ" : "WRITE"),
                   osapiTaskIdSelf());
     ipMapTraceWrite(traceBuf);

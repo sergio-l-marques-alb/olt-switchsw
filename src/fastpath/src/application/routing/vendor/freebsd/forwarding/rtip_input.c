@@ -252,7 +252,7 @@ ip_input(struct rtmbuf *m)
   if (m->rtm_len < sizeof (struct ip))
   {
     L7_ipstat.ips_toosmall++;
-    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+    SYSAPI_NET_MBUF_FREE((L7_netBufHandle) PTR_TO_UINT64(m->rtm_bufhandle));
     rtm_freem(m);
     return;
   }
@@ -422,13 +422,13 @@ ip_input(struct rtmbuf *m)
   memset(&pduInfo, 0, sizeof(sysnet_pdu_info_t));
   pduInfo.intIfNum = m->rtm_pkthdr.rcvif->if_index;
 
-  if (SYSNET_PDU_INTERCEPT(L7_AF_INET, SYSNET_INET_VALID_IN, (L7_netBufHandle)m->rtm_bufhandle,
+  if (SYSNET_PDU_INTERCEPT(L7_AF_INET, SYSNET_INET_VALID_IN, (L7_netBufHandle) PTR_TO_UINT64(m->rtm_bufhandle),
                            &pduInfo, L7_NULLPTR, &hookVerdict) == L7_TRUE)
   {
     /* If freed by intercept call, don't free it again */
     if (hookVerdict != SYSNET_PDU_RC_DISCARD)
     {
-      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+      SYSAPI_NET_MBUF_FREE((L7_netBufHandle) PTR_TO_UINT64(m->rtm_bufhandle));
     }
       rtm_freem(m);
       if (hookVerdict == SYSNET_PDU_RC_DISCARD)
@@ -500,7 +500,7 @@ ip_input(struct rtmbuf *m)
 
       if (mfcIpv4PktRecv(ip, m->rtm_pkthdr.rcvif, m, 0) != L7_FALSE) {
           L7_ipstat.ips_cantforward++;
-          SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+          SYSAPI_NET_MBUF_FREE((L7_netBufHandle) PTR_TO_UINT64(m->rtm_bufhandle));
           rtm_freem(m);
           return;
       }
@@ -575,7 +575,7 @@ ip_input(struct rtmbuf *m)
   if (rtipforwarding == 0)
   {
     L7_ipstat.ips_cantforward++;
-    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle));
     rtm_freem(m);
 
   }
@@ -586,7 +586,7 @@ ip_input(struct rtmbuf *m)
   ours:
 
   intIfNum = m->rtm_pkthdr.rcvif->if_index;
-  if (ipmRecvLocal((L7_netBufHandle)m->rtm_bufhandle,intIfNum) != L7_SUCCESS)
+  if (ipmRecvLocal((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle),intIfNum) != L7_SUCCESS)
   {
     SYSAPI_IP_STATS_INCREMENT(FD_CNFGR_NIM_MIN_CPU_INTF_NUM,
                               L7_PLATFORM_CTR_RX_IP_IN_DISCARDS);
@@ -600,7 +600,7 @@ ip_input(struct rtmbuf *m)
     return;
 
   bad:
-  SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+  SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle));
   rtm_freem(m);
 
 }
@@ -771,7 +771,7 @@ struct rtmbuf *m;
            * Not acting as a router, so silently drop.
            */
           L7_ipstat.ips_cantforward++;
-          SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+          SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle));
           rtm_freem(m);
           return(1);
         }
@@ -1036,7 +1036,7 @@ struct rtmbuf *m;
     }
   }
 
-  SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+  SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle));
   rtm_freem(m);
   return(1);
 }
@@ -1250,13 +1250,13 @@ int srcrt;
   memset(&pduInfo, 0, sizeof(sysnet_pdu_info_t));
   pduInfo.intIfNum = m->rtm_pkthdr.rcvif->if_index;
 
-  if (SYSNET_PDU_INTERCEPT(L7_AF_INET, SYSNET_INET_FORWARD_IN, (L7_netBufHandle)m->rtm_bufhandle,
+  if (SYSNET_PDU_INTERCEPT(L7_AF_INET, SYSNET_INET_FORWARD_IN, (L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle),
                            &pduInfo, L7_NULLPTR, &hookVerdict) == L7_TRUE)
   {
     /* If freed by intercept call, don't free it again */
     if (hookVerdict != SYSNET_PDU_RC_DISCARD)
     {
-      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle));
     }
     rtm_freem(m);
     return;
@@ -1316,7 +1316,7 @@ int srcrt;
 #endif /* L7_ORIGINAL_VENDOR_CODE */
   {
     L7_ipstat.ips_cantforward++;
-    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle));
     rtm_freem(m);
     return;
   }
@@ -1335,7 +1335,7 @@ int srcrt;
         icmp_error(mcopy, ICMP_TIMXCEED, ICMP_TIMXCEED_INTRANS, dest, 0);
       }
 
-      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle));
       rtm_freem(m);
       /* lvl7_@ip_forward end*/
       return;
@@ -1387,7 +1387,7 @@ int srcrt;
       }
     }
 
-    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle));
     rtm_freem(m);
     return;
   }
@@ -1408,7 +1408,7 @@ int srcrt;
 #endif /* L7_ORIGINAL_VENDOR_CODE */
     {
       L7_ipstat.ips_cantforward++;
-      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle));
       rtm_freem(m);
       return;
     }
@@ -1433,26 +1433,26 @@ int srcrt;
         if (netMbufHandle == L7_NULL)
         {
           /* Cant forward. Can still consume locally */
-          SYSAPI_NET_MBUF_GET_DATASTART((L7_netBufHandle)m->rtm_bufhandle, olddataStart);
+          SYSAPI_NET_MBUF_GET_DATASTART((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle), olddataStart);
           memcpy(&olddataStart[0], (L7_char8 *)rtetherbroadcastaddr, 6);
-          ipmRecvLocal((L7_netBufHandle)m->rtm_bufhandle,MyLocalIfIndex);
+          ipmRecvLocal((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle),MyLocalIfIndex);
 
-          SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+          SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle));
           rtm_freem(m);
           return ;
         }
         SYSAPI_NET_MBUF_GET_DATASTART(netMbufHandle, pdataStart);
-        SYSAPI_NET_MBUF_GET_DATASTART((L7_netBufHandle)m->rtm_bufhandle, olddataStart);
-        SYSAPI_NET_MBUF_GET_DATALENGTH((L7_netBufHandle)m->rtm_bufhandle, datalen);
+        SYSAPI_NET_MBUF_GET_DATASTART((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle), olddataStart);
+        SYSAPI_NET_MBUF_GET_DATALENGTH((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle), datalen);
         memcpy(&pdataStart[0], &olddataStart[0], datalen);
 
         SYSAPI_NET_MBUF_SET_DATALENGTH(netMbufHandle, datalen);
 
       }
 
-      SYSAPI_NET_MBUF_GET_DATASTART((L7_netBufHandle)m->rtm_bufhandle, olddataStart);
+      SYSAPI_NET_MBUF_GET_DATASTART((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle), olddataStart);
       memcpy(&olddataStart[0], (L7_char8 *)rtetherbroadcastaddr, 6);
-      ipmRecvLocal((L7_netBufHandle)m->rtm_bufhandle,MyLocalIfIndex);
+      ipmRecvLocal((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle),MyLocalIfIndex);
 
       if (netDirectBCastsEnable != L7_ENABLE)
       {
@@ -1461,7 +1461,7 @@ int srcrt;
         return;
       }
       else
-        m->rtm_bufhandle = (void *)netMbufHandle;
+        m->rtm_bufhandle = (void *)UINT_TO_PTR(netMbufHandle);
     }
 
   }
@@ -1479,7 +1479,7 @@ int srcrt;
         if (netDirectBCastsEnable != L7_ENABLE)
         {
           L7_ipstat.ips_noroute++;
-          SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+          SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle));
           rtm_freem(m);
           return;
         }
@@ -1503,7 +1503,7 @@ int srcrt;
   {
     /* Discard the packet. */
     L7_ipstat.ips_cantforward++;
-    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle));
     rtm_freem(m);
     return;
   }
@@ -1597,7 +1597,7 @@ if ((MyLocalIfIndex == m->rtm_pkthdr.rcvif->if_index) && !srcrt)
   }
 }
 error = 0;
-  if ((sysapiNetMbufGetRxReasonCode((L7_netBufHandle)m->rtm_bufhandle)&
+  if ((sysapiNetMbufGetRxReasonCode((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle))&
               L7_MBUF_RX_REASON_ICMP_REDIR) == 0 )
   {
 #endif /* L7_ORIGINAL_VENDOR_CODE */
@@ -1608,7 +1608,7 @@ error = 0;
   else
   {
      if (m->rtm_bufhandle != NULL)
-                SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+                SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle));
         rtm_freem(m);
   }
 #endif /* L7_ORIGINAL_VENDOR_CODE */

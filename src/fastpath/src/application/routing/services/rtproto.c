@@ -342,8 +342,8 @@ rtoIPv4Handle (L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 * @end
 *********************************************************************/
 static void
-rtIPForwardArpCallback (L7_uint32 mbufHandle,
-                        L7_uint32 callbackparam,
+rtIPForwardArpCallback (L7_uint64 mbufHandle,
+                        L7_uint64 callbackparam,
                         L7_uchar8 *mac,
                         L7_RC_t  rc)
 {
@@ -357,12 +357,12 @@ rtIPForwardArpCallback (L7_uint32 mbufHandle,
   L7_uint32 icmpUnreachablesMode = L7_DISABLE;
   L7_uint32 icmpRedirectsMode = L7_DISABLE;
 
-  m = (struct rtmbuf *)mbufHandle;
-  p_callbackparam = (cbparam_t *)callbackparam;
+  m = (struct rtmbuf *) UINT_TO_PTR(mbufHandle);
+  p_callbackparam = (cbparam_t *) UINT_TO_PTR(callbackparam);
 
 #if RTPROTO_DEBUG
-  printf("rtIPForwardArpCallback: rc = %d, intIfNum = %d, bufHandle = 0x%x\n",
-         rc, p_callbackparam->intIfNum, (L7_netBufHandle)m->rtm_bufhandle);
+  printf("rtIPForwardArpCallback: rc = %d, intIfNum = %d, bufHandle = 0x%llx\n",
+         rc, p_callbackparam->intIfNum, (L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle));
 #endif
 
   /* Can't resolve. Delete the packet.
@@ -397,7 +397,7 @@ rtIPForwardArpCallback (L7_uint32 mbufHandle,
       }
     }
 
-    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+    SYSAPI_NET_MBUF_FREE((L7_netBufHandle) PTR_TO_UINT64(m->rtm_bufhandle));
     bufferPoolFree (rtBufferPoolId, (L7_uchar8 *) m);
     bufferPoolFree (rtBufferPoolId, (L7_uchar8 *) p_callbackparam);
     return;
@@ -440,7 +440,7 @@ rtIPForwardArpCallback (L7_uint32 mbufHandle,
     }
   }
   /* Send the data packet */
-  rtLvl7TxIPForward ( (L7_netBufHandle)m->rtm_bufhandle, p_callbackparam->intIfNum, mac);
+  rtLvl7TxIPForward ( (L7_netBufHandle)PTR_TO_UINT64(m->rtm_bufhandle), p_callbackparam->intIfNum, mac);
 
   bufferPoolFree(rtBufferPoolId, (L7_uchar8 *) m);
   bufferPoolFree(rtBufferPoolId, (L7_uchar8 *) p_callbackparam);
@@ -511,7 +511,7 @@ rtInIPForwardArpTable (L7_uint32 dest_ip_addr, L7_uint32 netMask,
     p += 2;
     memcpy(p, m->rtm_data, m->rtm_len);
     SYSAPI_NET_MBUF_SET_DATALENGTH(netMbufHandle, m->rtm_len + (p - pdataStart));
-    m->rtm_bufhandle = (void *)netMbufHandle;
+    m->rtm_bufhandle = (void *) UINT_TO_PTR(netMbufHandle);
   }
 
   callbackparam = 0;
@@ -543,8 +543,8 @@ rtInIPForwardArpTable (L7_uint32 dest_ip_addr, L7_uint32 netMask,
                                 dest_ip_addr,
                                 mac,
                                 rtIPForwardArpCallback,
-                                (L7_uint32)m,
-                                (L7_uint32)callbackparam);
+                                PTR_TO_UINT64(m),
+                                PTR_TO_UINT64(callbackparam));
     }
   }
 
@@ -557,7 +557,7 @@ rtInIPForwardArpTable (L7_uint32 dest_ip_addr, L7_uint32 netMask,
      * ARP request to repopulate the L2 table. */
     ipMapArpAddrUsed(dest_ip_addr, intIfNum);
 
-    rtLvl7TxIPForward ( (L7_netBufHandle)m->rtm_bufhandle, intIfNum, mac);
+    rtLvl7TxIPForward ( (L7_netBufHandle) PTR_TO_UINT64(m->rtm_bufhandle), intIfNum, mac);
     bufferPoolFree (rtBufferPoolId, (L7_uchar8 *) m);
     bufferPoolFree (rtBufferPoolId, (L7_uchar8 *) callbackparam);
     return L7_SUCCESS;
@@ -575,7 +575,7 @@ rtInIPForwardArpTable (L7_uint32 dest_ip_addr, L7_uint32 netMask,
       sprintf(traceBuf, "ARP in progress for IP address %s", destStr);
       ipMapTraceWrite(traceBuf);
     }
-    SYSAPI_NET_MBUF_SET_LOC((L7_netBufHandle)m->rtm_bufhandle, MBUF_LOC_ARP_PEND_Q);
+    SYSAPI_NET_MBUF_SET_LOC((L7_netBufHandle) PTR_TO_UINT64(m->rtm_bufhandle), MBUF_LOC_ARP_PEND_Q);
     return EARPINPROGRESS;
   }
 
@@ -590,7 +590,7 @@ rtInIPForwardArpTable (L7_uint32 dest_ip_addr, L7_uint32 netMask,
     ipMapTraceWrite(traceBuf);
   }
 
-  SYSAPI_NET_MBUF_FREE((L7_netBufHandle)m->rtm_bufhandle);
+  SYSAPI_NET_MBUF_FREE((L7_netBufHandle) PTR_TO_UINT64(m->rtm_bufhandle));
   bufferPoolFree (rtBufferPoolId, (L7_uchar8 *) m);
   if (callbackparam)
   {
