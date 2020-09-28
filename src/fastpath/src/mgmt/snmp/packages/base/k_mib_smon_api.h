@@ -175,10 +175,10 @@ snmpSmonPortCopyDirectionGet(L7_uint32 UnitIndex,
     if(usmDbMirrorSourcePortDirectionGet(sessionNum, portCopySource, &probeType)
                                                       == L7_SUCCESS)
     {
-      *portCopyDirection = (((L7_uint32)probeType == L7_MIRROR_INGRESS)?
-           PORTCOPY_INGRESS:(((L7_uint32)probeType == L7_MIRROR_EGRESS)? 
-           PORTCOPY_EGRESS:(((L7_uint32)probeType == L7_MIRROR_BIDIRECTIONAL)?
-           PORTCOPY_BIDIRECTIONAL:(L7_uint32)NULL)));
+      *portCopyDirection = ((probeType == L7_MIRROR_INGRESS)?
+           PORTCOPY_INGRESS:((probeType == L7_MIRROR_EGRESS)? 
+           PORTCOPY_EGRESS:((probeType == L7_MIRROR_BIDIRECTIONAL)?
+           PORTCOPY_BIDIRECTIONAL:0 /*NULL*/)));
 
       return L7_SUCCESS;
     }
@@ -369,7 +369,7 @@ snmpSmonPortCopyDirectionSet(L7_uint32 UnitIndex,
       probeType = ((probeType == L7_MIRROR_INGRESS)? 
             PORTCOPY_INGRESS:((probeType == L7_MIRROR_EGRESS)? 
             PORTCOPY_EGRESS:((probeType == L7_MIRROR_BIDIRECTIONAL)?
-            PORTCOPY_BIDIRECTIONAL:(L7_uint32)NULL)));
+            PORTCOPY_BIDIRECTIONAL:0 /*NULL*/)));
 
       if((L7_uint32)probeType != portCopyDirection)
       {

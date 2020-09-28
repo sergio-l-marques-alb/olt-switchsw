@@ -1179,8 +1179,8 @@ void txtCfgRegistrants(void)
   {
     if (txtCfgNotifyList[i].registrar_ID!= 0)
     {
-      printf("\nComponent %u registered with function %#x", i,
-             (L7_uint32) txtCfgNotifyList[i].notify_txt_cfg_apply_complete);
+      printf("\nComponent %u registered with function %p", i,
+             txtCfgNotifyList[i].notify_txt_cfg_apply_complete);
     }
   }
 }

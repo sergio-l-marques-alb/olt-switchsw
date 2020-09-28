@@ -3392,7 +3392,7 @@ L7_RC_t cliConvertVlanRange(const L7_char8 *vlanRange, L7_uint32 *rangeLow,
   if (hyphen)
   {
     /* this is a range */
-    L7_uint32 vlanLen = (L7_uint32) hyphen - (L7_uint32) vlanRange;
+    L7_uint32 vlanLen = (uint32) (PTR_TO_UINT64(hyphen) - PTR_TO_UINT64(vlanRange));
     osapiStrncpy(vlan1, vlanRange, vlanLen);
     if (cliConvertTo32BitUnsignedInteger(vlan1, rangeLow) != L7_SUCCESS)
     {

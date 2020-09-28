@@ -16990,7 +16990,7 @@ static L7_RC_t traceRouteCallbackFn(void * param, L7_ushort16 handle, L7_uint32 
   L7_uchar8  buff[L7_CLI_MAX_STRING_LENGTH];
   L7_uchar8  ipBuff[L7_CLI_MAX_STRING_LENGTH];
   L7_uchar8  tmpBuff[L7_CLI_MAX_STRING_LENGTH];
-  L7_uint32  probePerHop = (L7_uint32)param;
+  L7_uint32  probePerHop = PTR_TO_UINT32(param);
   
   buff[0] = '\0';
   if(probeCount == 1)
@@ -17298,7 +17298,7 @@ const L7_char8 *commandTraceRoute(EwsContext ewsContext, L7_uint32 argc, const L
   if ( usmDbTraceRoute( "", "", L7_TRUE, vrfId, ipAddr_check,
         probeSize, (L7_ushort16)probePerHop, probeInterval, L7_FALSE,
         port, maxTtl, initTtl, maxFail, traceRouteCallbackFn,
-        (void *)probePerHop, &handle ) != L7_SUCCESS )
+        UINT_TO_PTR(probePerHop), &handle ) != L7_SUCCESS )
   {
     sprintfAddBlanks (0, 1, 0, 0, L7_NULLPTR, str, pStrInfo_base_TracerouteFailed_1 );
   }

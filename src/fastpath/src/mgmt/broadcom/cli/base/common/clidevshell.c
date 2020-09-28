@@ -67,7 +67,8 @@ L7_int32 cliDevShell(L7_char8 * cmd)
    L7_FUNCPTR func_ptr;
    L7_int32 args[CMD_MAX_ARGS];
    L7_BOOL arg_strings[CMD_MAX_ARGS];
-   L7_int32 rc;
+   L7_uint32 rc;
+   L7_uint64 func_addr;
    L7_uint32 arg_index;
 
    func_ptr=NULL;
@@ -78,7 +79,10 @@ L7_int32 cliDevShell(L7_char8 * cmd)
 
    if (func_name[0])
    {
-    func_ptr = (L7_FUNCPTR)(osapiAddressLookup(func_name));
+      func_addr = osapiAddressLookup(func_name);
+      func_ptr  = (L7_FUNCPTR) UINT_TO_PTR(func_addr);
+      //func_ptr = (L7_FUNCPTR64)(osapiAddressLookup(func_name));
+
       printf("\n");
       if (func_ptr)
       {
@@ -89,13 +93,13 @@ L7_int32 cliDevShell(L7_char8 * cmd)
                      args[20],args[21],args[22],args[23],args[24]
 		     );
 
-         printf("\nvalue = %d = 0x%x\n",rc,rc);
+         printf("\nvalue = %d = 0x%x\n", rc, rc);
 
          for (arg_index=0; arg_index < CMD_MAX_ARGS; arg_index++)
          {
            if (arg_strings[arg_index] == L7_TRUE)
            {
-             printf("arg %d: %s\n", arg_index+1, (char*)args[arg_index]);
+             printf("arg %d: %s\n", arg_index+1, (char *) UINT_TO_PTR(args[arg_index]));
            }
          }
       }
@@ -106,13 +110,13 @@ L7_int32 cliDevShell(L7_char8 * cmd)
                               args[15],args[16],args[17],args[18],args[19],
                               args[20],args[21],args[22],args[23],args[24])) == 0)
       {
-         printf("\nvalue = %d = 0x%x\n",rc,rc);
+         printf("\nvalue = %d = 0x%x\n", rc, rc);
 
          for (arg_index=0; arg_index < CMD_MAX_ARGS; arg_index++)
          {
            if (arg_strings[arg_index] == L7_TRUE)
            {
-             printf("arg %d: %s\n", arg_index+1, (char*)args[arg_index]);
+             printf("arg %d: %s\n", arg_index+1, (char *) UINT_TO_PTR(args[arg_index]));
            }
          }
       }
@@ -165,7 +169,7 @@ L7_int32 cliParseCmd(L7_char8 * cmd,L7_char8 * func_name,L7_int32 * args,L7_BOOL
           string_start=0;
           string_end=0;
           if (j >= 1) {
-            args[j-1]=(L7_int32)shell_strings[j-1];
+            args[j-1]=(L7_int32) PTR_TO_UINT64(shell_strings[j-1]);
             arg_strings[j-1] = L7_TRUE;
             j++;
           }

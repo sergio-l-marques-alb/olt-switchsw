@@ -413,7 +413,7 @@ L7_uint32 getConfigScriptList(SYSAPI_DIRECTORY_t * tree)
         {
           continue;
         }
-        fileNameLen = (int)ptr - (int)ptok + 1;
+        fileNameLen = (int) (PTR_TO_UINT64(ptr) - PTR_TO_UINT64(ptok) + 1);
         if (fileNameLen >= L7_MAX_FILENAME)
           fileNameLen = L7_MAX_FILENAME-1;
         osapiStrncpySafe(tree[num_files].filename, ptok, fileNameLen);

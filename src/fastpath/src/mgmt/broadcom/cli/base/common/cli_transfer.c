@@ -130,7 +130,7 @@ L7_RC_t unitUrlParser(L7_char8 * str, L7_uint32 * unit,
     return L7_FAILURE;
   }
 
-  len = ((unsigned int)pBuf - (unsigned int)unitNum);
+  len = (int) (PTR_TO_UINT64(pBuf) - PTR_TO_UINT64(unitNum));
   if(len != 1)
   {
     return L7_FAILURE;
