@@ -2467,7 +2467,7 @@ L7_RC_t dapiControlCallbackRegister(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 
   dapi_g->system->familyCallback[callbackInfoPtr->family] = callbackInfoPtr->funcPtr;
 
-  PT_LOG_DEBUG(LOG_CTX_STARTUP, "Registering function 0x%08x to family index %u", (L7_uint32) callbackInfoPtr->funcPtr, callbackInfoPtr->family);
+  PT_LOG_DEBUG(LOG_CTX_STARTUP, "Registering function %p to family index %u", callbackInfoPtr->funcPtr, callbackInfoPtr->family);
 
   return(result);
 }
@@ -2719,22 +2719,20 @@ void familyCallbackListDebugShow(void)
 
   for (i=0; i<DAPI_NUM_OF_FAMILIES; i++)
   {
-    printf("DAPI_FAMILY_? index %-2u: 0x%08x\r\n", i, (L7_uint32) dapi_g->system->familyCallback[i]);
+    printf("DAPI_FAMILY_? index %-2u: %p\r\n", i, dapi_g->system->familyCallback[i]);
   }
   printf("\r\n");
-  printf("dtlLinkChangeCallback related to DAPI_FAMILY_INTF_MGMT  (%2u) family: 0x%08x\r\n",
-          DAPI_FAMILY_INTF_MGMT,  (L7_uint32) dtlLinkChangeCallback);
-  printf("dtlPduReceiveCallback related to DAPI_FAMILY_FRAME      (%2u) family: 0x%08x\r\n",
-          DAPI_FAMILY_FRAME,      (L7_uint32) dtlPduReceiveCallback);
-  printf("dtlGenericCallback    related to DAPI_FAMILY_QVLAN_MGMT (%2u) family: 0x%08x\r\n",
-          DAPI_FAMILY_QVLAN_MGMT, (L7_uint32) dtlGenericCallback);
-  printf("dtlGenericCallback    related to DAPI_FAMILY_SERVICES   (%2u) family: 0x%08x\r\n",
-          DAPI_FAMILY_SERVICES,   (L7_uint32) dtlGenericCallback);
-  printf("dtlFdbReceiveCallback related to DAPI_FAMILY_ADDR_MGMT  (%2u) family: 0x%08x\r\n",
-          DAPI_FAMILY_ADDR_MGMT,  (L7_uint32) dtlFdbReceiveCallback);
-  printf("dtlIpv4ArpEntryCallback related to DAPI_FAMILY_ROUTING_ARP_MGMT (%2u) family: 0x%08x\r\n",
-          DAPI_FAMILY_ROUTING_ARP_MGMT, (L7_uint32) dtlIpv4ArpEntryCallback);
-
-  fflush(stdout);
+  printf("dtlLinkChangeCallback related to DAPI_FAMILY_INTF_MGMT  (%2u) family: %p\r\n",
+          DAPI_FAMILY_INTF_MGMT,  dtlLinkChangeCallback);
+  printf("dtlPduReceiveCallback related to DAPI_FAMILY_FRAME      (%2u) family: %p\r\n",
+          DAPI_FAMILY_FRAME,      dtlPduReceiveCallback);
+  printf("dtlGenericCallback    related to DAPI_FAMILY_QVLAN_MGMT (%2u) family: %p\r\n",
+          DAPI_FAMILY_QVLAN_MGMT, dtlGenericCallback);
+  printf("dtlGenericCallback    related to DAPI_FAMILY_SERVICES   (%2u) family: %p\r\n",
+          DAPI_FAMILY_SERVICES,   dtlGenericCallback);
+  printf("dtlFdbReceiveCallback related to DAPI_FAMILY_ADDR_MGMT  (%2u) family: %p\r\n",
+          DAPI_FAMILY_ADDR_MGMT,  dtlFdbReceiveCallback);
+  printf("dtlIpv4ArpEntryCallback related to DAPI_FAMILY_ROUTING_ARP_MGMT (%2u) family: %p\r\n",
+          DAPI_FAMILY_ROUTING_ARP_MGMT, dtlIpv4ArpEntryCallback);
 }
 

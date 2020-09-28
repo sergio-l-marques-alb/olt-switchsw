@@ -171,7 +171,7 @@ void dapiTraceDapiCtl(DAPI_CMD_t cmd, DAPI_USP_t *pUsp, L7_BOOL enter,L7_RC_t rc
     TRACE_BEGIN(dapiTraceHandle, L7_DRIVER_COMPONENT_ID);
     TRACE_ENTER_2BYTE(osapiHtons(traceId));
     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
-    TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
+    TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)cmd));
     TRACE_ENTER_4BYTE(osapiHtonl(uspInt));
     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)rc));
@@ -221,7 +221,7 @@ void dapiTraceGeneric(L7_char8* format,...)
     TRACE_BEGIN(dapiTraceHandle, L7_DRIVER_COMPONENT_ID);
     TRACE_ENTER_2BYTE(osapiHtons(traceId));
     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
-    TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
+    TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
 
     /* generic traces are truncated at 55 characters */
     max = strlen(buf);
@@ -280,7 +280,7 @@ void dapiTraceStackEvent(L7_char8* format,...)
     TRACE_BEGIN(dapiTraceHandle, L7_DRIVER_COMPONENT_ID);
     TRACE_ENTER_2BYTE(osapiHtons(traceId));
     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
-    TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
+    TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
 
     /* generic traces are truncated at 55 characters */
     max = strlen(buf);
@@ -334,7 +334,7 @@ void dapiTraceDapiCallback(DAPI_EVENT_t event, DAPI_USP_t *pUsp, L7_BOOL enter,L
     TRACE_BEGIN(dapiTraceHandle, L7_DRIVER_COMPONENT_ID);
     TRACE_ENTER_2BYTE(osapiHtons(traceId));
     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
-    TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
+    TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)event));
     TRACE_ENTER_4BYTE(osapiHtonl(uspInt));
     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)rc));
@@ -380,7 +380,7 @@ void dapiTraceFrame(DAPI_USP_t *pUsp, L7_uchar8 *pkt,L7_uchar8 drop,L7_uint32 co
     TRACE_BEGIN(dapiTraceHandle, L7_DRIVER_COMPONENT_ID);
     TRACE_ENTER_2BYTE(osapiHtons(traceId));
     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
-    TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
+    TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
     TRACE_ENTER_4BYTE(osapiHtonl(uspInt));
     TRACE_ENTER_BYTE(drop);
     TRACE_ENTER_4BYTE(osapiHtonl(cookie));

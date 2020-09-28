@@ -625,7 +625,7 @@ void dapiDebugCommandDecode(DAPI_CMD_t cmd, void *cmdInfo, DAPI_t *dapi_g)
 
   L7_uint32                      frameLength;
   L7_uchar8                     *frameDataPtr;
-  L7_uint32                      blockHandle = L7_NULL;
+  L7_uint64                      blockHandle = L7_NULL;
   L7_int32                       index, jindex;
   L7_BOOL                        flag;
   L7_tlv_t                      *pTLV;
