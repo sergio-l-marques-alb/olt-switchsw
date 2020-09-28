@@ -34,7 +34,7 @@ extern void *dot1xQueue;
 dot1xCnfgrState_t dot1xCnfgrState = DOT1X_PHASE_INIT_0;
 L7_tlvHandle_t    dot1xTlvHandle;
 
-extern L7_int32 dot1xTaskId;
+extern L7_uint64 dot1xTaskId;
 extern dot1xCfg_t *dot1xCfg;
 L7_VLAN_MASK_t dot1xVlanMask;
 L7_ushort16 *dot1xVlanIntfCount;

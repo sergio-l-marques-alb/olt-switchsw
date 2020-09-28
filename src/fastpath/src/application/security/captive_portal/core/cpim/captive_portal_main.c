@@ -78,7 +78,7 @@ extern L7_BOOL captivePortalCnfgrComplete(void);
 
 static int       captive_portal_exitflag   = 0; /* may need to be volatile? */
 
-static L7_int32  cpTaskId                  = L7_ERROR;
+static L7_uint64 cpTaskId                  = L7_ERROR;
 static char      *captive_portal_task_name = "tCptvPrtl";
 
 void             *pCaptivePortalMsgQueue   = L7_NULLPTR;
@@ -976,10 +976,11 @@ static L7_RC_t captive_portal_init()
 static int
 captive_portal_main(char *argv[], int argc)
 {
-  int rc = 0, my_pid;
+  int rc = 0;
+  L7_uint64 my_pid;
 
   osapiTaskInitDone(L7_CAPTIVE_PORTAL_TASK_SYNC);
-  my_pid = (int) osapiTaskIdSelf();
+  my_pid = osapiTaskIdSelf();
 
   do
   {
@@ -997,7 +998,7 @@ captive_portal_main(char *argv[], int argc)
     captive_portal_dolisten(); /* Wait for new business. */
   }
 
-  CP_DLOG(CPD_LEVEL_LOG, "%s: task 0x%08x exiting (rc=%d)\n", __FUNCTION__, my_pid, rc);
+  CP_DLOG(CPD_LEVEL_LOG, "%s: task 0x%llx exiting (rc=%d)\n", __FUNCTION__, my_pid, rc);
   L7_LOG_ERROR(0xDEADBEEF); /* We should NEVER get here */
   return rc;
 }

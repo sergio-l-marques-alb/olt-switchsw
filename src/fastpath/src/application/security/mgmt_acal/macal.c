@@ -40,7 +40,7 @@
 #include "sslt_exports.h"
 #include "acl_exports.h"
 
-L7_int32              macalTaskId;
+L7_uint64             macalTaskId;
 extern void           *macalQueue;
 extern macalCfgData_t *macalCfgData;
 osapiRWLock_t         macalRwLock;

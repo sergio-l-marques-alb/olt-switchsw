@@ -44,8 +44,8 @@ L7_RC_t dot1xTxRxInit(void)
   L7_RC_t rc;
   sysnetNotifyEntry_t snEntry;
 
-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register dot1xPduReceive related to type=%u, protocol_type=%u: 0x%08x",
-           SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_EAPOL, (L7_uint32) dot1xPduReceive);
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register dot1xPduReceive related to type=%u, protocol_type=%u: 0x%llx",
+           SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_EAPOL, PTR_TO_UINT64(dot1xPduReceive));
 
   memset(&snEntry, 0x00, sizeof(snEntry));
   /*Register the pdu receive function with sysnet utility*/

@@ -35,8 +35,8 @@
 void *dot1xTaskSyncSema;
 static L7_uint32 dot1xTimerHandle;
 void *dot1xQueue;      /* reference to the dot1x message queue */
-L7_uint32 dot1xTaskId;
-L7_uint32 dot1xTimerTaskId;
+L7_uint64 dot1xTaskId;
+L7_uint64 dot1xTimerTaskId;
 extern dot1xCnfgrState_t dot1xCnfgrState;
 extern L7_VLAN_MASK_t dot1xVlanMask;
 extern L7_ushort16 *dot1xVlanIntfCount;
@@ -83,10 +83,10 @@ L7_RC_t dot1xStartTasks()
   }
 
   /* create dotxTask - to service dot1x message queue */
-  dot1xTaskId = (L7_uint32)osapiTaskCreate("dot1xTask", (void *)dot1xTask, 0, 0,
-                                           dot1xSidDefaultStackSize(),
-                                           dot1xSidDefaultTaskPriority(),
-                                           dot1xSidDefaultTaskSlice());
+  dot1xTaskId = osapiTaskCreate("dot1xTask", (void *)dot1xTask, 0, 0,
+                                dot1xSidDefaultStackSize(),
+                                dot1xSidDefaultTaskPriority(),
+                                dot1xSidDefaultTaskSlice());
 
   if (dot1xTaskId == L7_ERROR)
   {
@@ -104,10 +104,10 @@ L7_RC_t dot1xStartTasks()
 
 
   /* create dotxTimerTask - to service Timer queue */
-  dot1xTimerTaskId = (L7_uint32)osapiTaskCreate("dot1xTimerTask", (void *)dot1xTimerTask, 0, 0,
-                                                dot1xSidDefaultStackSize(),
-                                                dot1xSidDefaultTaskPriority(),
-                                                dot1xSidDefaultTaskSlice());
+  dot1xTimerTaskId = osapiTaskCreate("dot1xTimerTask", (void *)dot1xTimerTask, 0, 0,
+                                     dot1xSidDefaultStackSize(),
+                                     dot1xSidDefaultTaskPriority(),
+                                     dot1xSidDefaultTaskSlice());
 
   if (dot1xTimerTaskId == L7_ERROR)
   {

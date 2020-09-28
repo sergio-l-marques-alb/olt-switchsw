@@ -34,11 +34,11 @@
 
 macalCnfgrState_t macalCnfgrState = MACAL_PHASE_INIT_0;
 
-extern L7_int32       macalTaskId;
-extern void          *macalQueue;
+extern L7_uint64       macalTaskId;
+extern void           *macalQueue;
 extern macalCfgData_t *macalCfgData;
-/*extern void          *macalSemaphore;*/
-extern osapiRWLock_t    macalRwLock;
+/*extern void         *macalSemaphore;*/
+extern osapiRWLock_t   macalRwLock;
 
 /*********************************************************************
 *

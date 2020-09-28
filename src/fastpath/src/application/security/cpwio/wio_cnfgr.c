@@ -523,7 +523,7 @@ L7_RC_t wioCnfgrUconfigPhase2(L7_CNFGR_RESPONSE_t *pResponse,
 *********************************************************************/
 static L7_RC_t wioThreadCreate(void)
 {
-  L7_int32 wioTaskHandle;
+  L7_uint64 wioTaskHandle;
 
   wioInfo = (wioInfo_t*) osapiMalloc(L7_CP_WIO_COMPONENT_ID, sizeof(wioInfo_t));
   if (!wioInfo)

@@ -295,7 +295,7 @@ L7_RC_t dot1xApmMachine(L7_uint32 dot1xEvent, L7_uint32 lIntIfNum, L7_netBufHand
     break;
   case APM_AUTHENTICATING:
     rc = dot1xApmAuthenticatingAction(logicalPortInfo);
-    rc = dot1xApmGenerateEvents(logicalPortInfo, (void *)bufHandle);
+    rc = dot1xApmGenerateEvents(logicalPortInfo, UINT_TO_PTR(bufHandle));
     freeBuffer = L7_FALSE;
     break;
   case APM_AUTHENTICATED:
@@ -934,7 +934,7 @@ L7_RC_t dot1xApmGenerateEvents(dot1xLogicalPortInfo_t *logicalPortInfo, void *ms
                                        L7_NULL, L7_NULLPTR);
 
   if (logicalPortInfo->apmState == APM_AUTHENTICATING)
-      (void) dot1xStateMachineClassifier(bamAuthStart, lIntIfNum,(L7_netBufHandle)msg, L7_NULLPTR);
+      (void) dot1xStateMachineClassifier(bamAuthStart, lIntIfNum,(L7_netBufHandle)PTR_TO_UINT64(msg), L7_NULLPTR);
 
   if (logicalPortInfo->apmState == APM_ABORTING)
       (void) dot1xStateMachineClassifier(bamAuthAbort, lIntIfNum, L7_NULL, L7_NULLPTR);
