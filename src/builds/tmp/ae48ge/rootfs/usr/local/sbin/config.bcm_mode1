@@ -61,6 +61,14 @@ serdes_fiber_pref_26=1
 serdes_fiber_pref_27=1
 serdes_fiber_pref_28=1
 serdes_fiber_pref_29=1
+phy_an_c37_26=2
+phy_an_c37_27=2
+phy_an_c37_28=2
+phy_an_c37_29=2
+phy_an_c73_26=0
+phy_an_c73_27=0
+phy_an_c73_28=0
+phy_an_c73_29=0
 
 # TSCQ1
 portmap_30=42:1
@@ -75,6 +83,14 @@ serdes_fiber_pref_30=1
 serdes_fiber_pref_31=1
 serdes_fiber_pref_32=1
 serdes_fiber_pref_33=1
+phy_an_c37_30=2
+phy_an_c37_31=2
+phy_an_c37_32=2
+phy_an_c37_33=2
+phy_an_c73_30=0
+phy_an_c73_31=0
+phy_an_c73_32=0
+phy_an_c73_33=0
 
 # TSCE0
 portmap_34=58:1
@@ -83,6 +99,22 @@ portmap_36=60:1
 portmap_37=61:1
 xgxs_tx_lane_map_34=0x0213
 xgxs_rx_lane_map_34=0x0213
+serdes_automedium_34=0
+serdes_automedium_35=0
+serdes_automedium_36=0
+serdes_automedium_37=0
+serdes_fiber_pref_34=1
+serdes_fiber_pref_35=1
+serdes_fiber_pref_36=1
+serdes_fiber_pref_37=1
+phy_an_c37_34=2
+phy_an_c37_35=2
+phy_an_c37_36=2
+phy_an_c37_37=2
+phy_an_c73_34=0
+phy_an_c73_35=0
+phy_an_c73_36=0
+phy_an_c73_37=0
 
 # TSCE1
 portmap_38=62:1
@@ -91,6 +123,22 @@ portmap_40=64:1
 portmap_41=65:1
 xgxs_tx_lane_map_38=0x0213
 xgxs_rx_lane_map_38=0x0213
+serdes_automedium_38=0
+serdes_automedium_39=0
+serdes_automedium_40=0
+serdes_automedium_41=0
+serdes_fiber_pref_38=1
+serdes_fiber_pref_39=1
+serdes_fiber_pref_40=1
+serdes_fiber_pref_41=1
+phy_an_c37_38=2
+phy_an_c37_39=2
+phy_an_c37_40=2
+phy_an_c37_41=2
+phy_an_c73_38=0
+phy_an_c73_39=0
+phy_an_c73_40=0
+phy_an_c73_41=0
 
 # TSCE2
 portmap_42=66:1
@@ -99,6 +147,22 @@ portmap_44=68:1
 portmap_45=69:1
 xgxs_tx_lane_map_42=0x0213
 xgxs_rx_lane_map_42=0x0213
+serdes_automedium_42=0
+serdes_automedium_43=0
+serdes_automedium_44=0
+serdes_automedium_45=0
+serdes_fiber_pref_42=1
+serdes_fiber_pref_43=1
+serdes_fiber_pref_44=1
+serdes_fiber_pref_45=1
+phy_an_c37_42=2
+phy_an_c37_43=2
+phy_an_c37_44=2
+phy_an_c37_45=2
+phy_an_c73_42=0
+phy_an_c73_43=0
+phy_an_c73_44=0
+phy_an_c73_45=0
 
 # TSCE3
 portmap_46=70:1
@@ -107,6 +171,22 @@ portmap_48=72:1
 portmap_49=73:1
 xgxs_tx_lane_map_46=0x0213
 xgxs_rx_lane_map_46=0x0123
+serdes_automedium_46=0
+serdes_automedium_47=0
+serdes_automedium_48=0
+serdes_automedium_49=0
+serdes_fiber_pref_46=1
+serdes_fiber_pref_47=1
+serdes_fiber_pref_48=1
+serdes_fiber_pref_49=1
+phy_an_c37_46=2
+phy_an_c37_47=2
+phy_an_c37_48=2
+phy_an_c37_49=2
+phy_an_c73_46=0
+phy_an_c73_47=0
+phy_an_c73_48=0
+phy_an_c73_49=0
                         
 
 # Backplane: TSCE4 TX/RX={W6,P6,W7,P7}->{P6,P7,W6,W7}
