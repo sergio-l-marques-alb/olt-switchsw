@@ -223,7 +223,7 @@ sal_thread_t
 sal_thread_create(char *name, int ss, int prio, void (f)(void *), void *arg)
 {
 #ifdef LVL7_FIXUP
-    L7_uint32 salTaskHandle;
+    L7_uint64 salTaskHandle;
 
     salTaskHandle = osapiTaskCreate(name,
                                     f,
@@ -232,7 +232,7 @@ sal_thread_create(char *name, int ss, int prio, void (f)(void *), void *arg)
                                     L7_DEFAULT_TASK_PRIORITY,
                                     L7_DEFAULT_TASK_SLICE);
 
-    return (sal_thread_t) salTaskHandle;
+    return (sal_thread_t) UINT_TO_PTR(salTaskHandle);
 #else
     pthread_attr_t	attribs;
     struct sched_param param;
@@ -340,7 +340,7 @@ int
 sal_thread_destroy(sal_thread_t thread)
 {
 #ifdef LVL7_FIXUP
-    L7_uint32 salTaskHandle = (L7_uint32) thread;
+    L7_uint64 salTaskHandle = PTR_TO_UINT64(thread);
 
     osapiTaskDelete(salTaskHandle);
 
@@ -401,7 +401,7 @@ sal_thread_t
 sal_thread_self(void)
 {
 #ifdef LVL7_FIXUP
-    return (sal_thread_t) osapiTaskIdSelf();
+    return (sal_thread_t) UINT_TO_PTR(osapiTaskIdSelf());
 #else
     return (sal_thread_t) pthread_self();
 #endif /* LVL7_FIXUP */
@@ -479,7 +479,7 @@ void
 sal_thread_exit(int rc)
 {
 #ifdef LVL7_FIXUP
-  L7_uint32 salTaskHandler = osapiTaskIdSelf();
+  L7_uint64 salTaskHandler = osapiTaskIdSelf();
 
   osapiTaskDelete(salTaskHandler);
 
