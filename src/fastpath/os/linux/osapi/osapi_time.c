@@ -43,9 +43,9 @@ typedef struct osapiTimerListEntry_s {
 
 typedef struct osapiTimerAddEntry_s
 {
-	void				(*func)(L7_uint32, L7_uint32);
-	L7_uint32			arg1;
-	L7_uint32			arg2;
+	void				(*func)(L7_uint64, L7_uint64);
+	L7_uint64			arg1;
+	L7_uint64			arg2;
 	L7_uint32			milliseconds;
 	osapiTimerDescr_t	**pTimerHolder;
 
@@ -602,8 +602,8 @@ void osapiTimerAddMain (osapiTimerAddEntry *Entry)
 *
 * @end
 *************************************************************************/
-void osapiTimerAdd(void (*func)( L7_uint32, L7_uint32 ),
-                   L7_uint32 arg1, L7_uint32 arg2,
+void osapiTimerAdd(void (*func)( L7_uint64, L7_uint64 ),
+                   L7_uint64 arg1, L7_uint64 arg2,
                    L7_int32 milliseconds, osapiTimerDescr_t **pTimerHolder)
 {
 	osapiTimerAddEntry Entry;

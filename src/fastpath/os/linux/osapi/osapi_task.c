@@ -93,6 +93,21 @@ static L7_uint32 system_page_size = 0;
 #ifdef L7_STACK_USAGE_STATS
 L7_uint32 osapiStackFree(osapi_task_t *task)
 {
+#ifdef PTRS_ARE_64BITS
+  L7_uint64 *tst;
+  L7_uint32 stack_usage;
+
+  if (task==NULL)
+  {
+    return(0);
+  }
+  stack_usage = task->stack_size;
+  tst = (L7_uint64 *) UINT_TO_PTR(task->stack_base_addr);
+  while ((stack_usage > 0) && (*tst == 0xD7D7D7D7D7D7D7D7)) {
+    stack_usage -= 8;
+    tst++;
+  }
+#else
   L7_uint32 *tst;
   L7_uint32 stack_usage;
 
@@ -101,13 +116,15 @@ L7_uint32 osapiStackFree(osapi_task_t *task)
     return(0);
   }
   stack_usage = task->stack_size;
-  tst = (L7_uint32 *) (task->stack_base_addr);
+  tst = (L7_uint32 *) UINT_TO_PTR(task->stack_base_addr);
   while ((stack_usage > 0) && (*tst == 0xD7D7D7D7)) {
     stack_usage -= 4;
     tst++;
   }
+#endif
   return(task->stack_size - stack_usage);
 }
+
 #endif /* L7_STACK_USAGE_STATS */
 
 int osapiDebugStackConsume(int levels)
@@ -132,7 +149,7 @@ static void osapi_task_destroy(osapi_task_t *task)
   pthread_cond_destroy(&(task->fifo_cond));
   pthread_attr_destroy(&(task->attr));
 
-  rc = munmap((void *)(task->stack_base_addr - system_page_size),
+  rc = munmap(UINT_TO_PTR(task->stack_base_addr - system_page_size),
       (task->stack_size + system_page_size));
   if (rc < 0)
   {
@@ -443,20 +460,20 @@ void *osapi_task_wrapper(void *arg)
 * @end
 *
 *************************************************************************/
-L7_int32  osapiTaskCreate( L7_char8 *task_name,
-                           void *task_entry,
-                           void *argv,
-                           L7_uint32 argc,
-                           L7_uint32 stack_size,
-                           L7_uint32 priority,
-                           L7_uint32 time_slice )
+L7_uint64 osapiTaskCreate(L7_char8 *task_name,
+                          void *task_entry,
+                          void *argv,
+                          L7_uint32 argc,
+                          L7_uint32 stack_size,
+                          L7_uint32 priority,
+                          L7_uint32 time_slice )
 {
 
   L7_uint32 namelen;
   char *namePtr;
   osapi_task_t *newTask;
   int rc;
-  L7_int32 task_id;
+  L7_uint64 task_id;
   pthread_mutexattr_t attr;
   void *alloced_stack;
   
@@ -476,13 +493,13 @@ L7_int32  osapiTaskCreate( L7_char8 *task_name,
     return(L7_ERROR);
   }
 
-  task_id = (L7_int32) newTask;
+  task_id = PTR_TO_UINT64(newTask);
   namePtr = ((char *)newTask) + sizeof(osapi_task_t); 
   newTask->name = namePtr;
 
   if (task_name == NULL)
   {
-    snprintf(namePtr, namelen, "t%08x", (unsigned int)newTask);
+    snprintf(namePtr, namelen, "t%llx", PTR_TO_UINT64(newTask));
   }
   else
   {
@@ -554,8 +571,8 @@ L7_int32  osapiTaskCreate( L7_char8 *task_name,
      stack overflows will segfault */
   if (mprotect((void *)alloced_stack , system_page_size, PROT_NONE) < 0)
   {
-    osapi_printf("osapiTaskCreate: Could not set stack guard page at 0x%08X inaccessible, error %d\n", 
-                 (unsigned int)(((char *)alloced_stack) + stack_size), errno);
+    osapi_printf("osapiTaskCreate: Could not set stack guard page at 0x%llX inaccessible, error %d\n", 
+                 PTR_TO_UINT64(((char *)alloced_stack) + stack_size), errno);
     /* nonfatal */
   }
   alloced_stack = (void *)(((char *)alloced_stack) + system_page_size);
@@ -570,7 +587,7 @@ L7_int32  osapiTaskCreate( L7_char8 *task_name,
     return(L7_ERROR);
   }
 
-  newTask->stack_base_addr = (unsigned long)alloced_stack;
+  newTask->stack_base_addr = PTR_TO_UINT64(alloced_stack);
   newTask->stack_size = stack_size;
 #ifdef L7_STACK_USAGE_STATS
   memset(alloced_stack, 0xD7, stack_size);
@@ -601,7 +618,7 @@ L7_int32  osapiTaskCreate( L7_char8 *task_name,
 
   if (rc != 0)
   {
-    osapi_printf ("osapiTaskCreate: Error creating task 0x%08X [%s], error %d\n", (unsigned int)task_id, namePtr, rc);
+    osapi_printf ("osapiTaskCreate: Error creating task 0x%llX [%s], error %d\n", task_id, namePtr, rc);
     
     /* Remove the task structure from the list of tasks */
     pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
@@ -630,8 +647,8 @@ L7_int32  osapiTaskCreate( L7_char8 *task_name,
     return(L7_ERROR);
   }
 
-  PT_LOG_NOTICE(LOG_CTX_STARTUP, "New pthread created: \"%s\" -> pthread_id=%u (task_id=%u)",
-             namePtr, newTask->thread, (unsigned int)task_id);
+  PT_LOG_NOTICE(LOG_CTX_STARTUP, "New pthread created: \"%s\" -> pthread_id=%lu (task_id=0x%llx)",
+                namePtr, newTask->thread, task_id);
 
   return(task_id);
 
@@ -651,13 +668,13 @@ L7_int32  osapiTaskCreate( L7_char8 *task_name,
 *
 *************************************************************************/
 
-void osapiTaskDelete( L7_int32 task_id)
+void osapiTaskDelete(L7_uint64 task_id)
 {
 
   int rc, rc2 = 0;
   L7_uint32 delete_safe;
   osapi_task_t *self;
-  osapi_task_t *osapiTask = (osapi_task_t *)task_id;
+  osapi_task_t *osapiTask = (osapi_task_t *) UINT_TO_PTR(task_id);
   struct osapi_waitq_s *queue = NULL;
 
   /* need task scheduling lock? */
@@ -851,9 +868,9 @@ void osapiTaskDelete( L7_int32 task_id)
 *
 *************************************************************************/
 
-void osapiTaskSignal( L7_int32 task_id, int sig)
+void osapiTaskSignal( L7_uint64 task_id, int sig)
 {
-  osapi_task_t *osapiTask = (osapi_task_t *)task_id;
+  osapi_task_t *osapiTask = (osapi_task_t *) UINT_TO_PTR(task_id);
 
   pthread_kill(osapiTask->thread, sig);
   
@@ -1372,11 +1389,11 @@ void osapiEnableInts(L7_uint32 LockKey)
 * @end
 *
 *************************************************************************/
-L7_RC_t osapiTaskPrioritySet(L7_int32 TaskID, L7_int32 Priority)
+L7_RC_t osapiTaskPrioritySet(L7_uint64 TaskID, L7_int32 Priority)
 {
 
   int policy;
-  osapi_task_t *osapiTask = (osapi_task_t *)TaskID;
+  osapi_task_t *osapiTask = (osapi_task_t *) UINT_TO_PTR(TaskID);
   struct sched_param sp;
 
   memset(&sp, 0, sizeof(sp));
@@ -1422,10 +1439,10 @@ L7_RC_t osapiTaskPrioritySet(L7_int32 TaskID, L7_int32 Priority)
 * @end
 *
 *************************************************************************/
-L7_RC_t osapiTaskPriorityGet(L7_int32 TaskID, L7_uint32 *Priority)
+L7_RC_t osapiTaskPriorityGet(L7_uint64 TaskID, L7_uint32 *Priority)
 {
 
-  osapi_task_t *osapiTask = (osapi_task_t *)TaskID;
+  osapi_task_t *osapiTask = (osapi_task_t *) UINT_TO_PTR(TaskID);
 
   *Priority = osapiTask->osapi_prio;
 
@@ -1478,14 +1495,14 @@ L7_RC_t osapiTaskYield ( void )
 * @end
 *
 *************************************************************************/
-L7_RC_t  osapiTaskNameGet( L7_int32 task_id, L7_char8 *task_name)
+L7_RC_t  osapiTaskNameGet( L7_uint64 task_id, L7_char8 *task_name)
 {
 
   osapi_task_t *task_block;
   osapi_task_t *curTask;
   L7_RC_t rc;
 
-  task_block = (osapi_task_t *) task_id;
+  task_block = (osapi_task_t *) UINT_TO_PTR(task_id);
 
   pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
                        (void *)&task_list_lock);
@@ -1535,10 +1552,10 @@ task.
 * @end
 *
 *************************************************************************/
-L7_RC_t osapiTaskIDSelfGet(L7_int32 *TaskIDPtr)
+L7_RC_t osapiTaskIDSelfGet(L7_uint64 *TaskIDPtr)
 {
 
-  *TaskIDPtr = (L7_int32)pthread_getspecific(osapi_task_key);
+  *TaskIDPtr = PTR_TO_UINT64(pthread_getspecific(osapi_task_key));
 
   return(L7_SUCCESS);
 
@@ -1558,14 +1575,14 @@ L7_RC_t osapiTaskIDSelfGet(L7_int32 *TaskIDPtr)
 * @end
 *
 *************************************************************************/
-L7_RC_t osapiTaskIdVerify(L7_int32 task_id)
+L7_RC_t osapiTaskIdVerify(L7_uint64 task_id)
 {
 
   osapi_task_t *task_block;
   osapi_task_t *curTask;
   L7_RC_t rc;
 
-  task_block = (osapi_task_t *) task_id;
+  task_block = (osapi_task_t *) UINT_TO_PTR(task_id);
 
   pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
                        (void *)&task_list_lock);
@@ -1609,9 +1626,9 @@ L7_RC_t osapiTaskIdVerify(L7_int32 task_id)
 * @end
 *
 *************************************************************************/
-L7_int32  osapiTaskIdSelf( void)
+L7_uint64 osapiTaskIdSelf( void)
 {
-  return((L7_int32)pthread_getspecific(osapi_task_key));
+  return (PTR_TO_UINT64(pthread_getspecific(osapi_task_key)));
 }
 
 /**************************************************************************
@@ -1666,7 +1683,7 @@ unsigned long *mips_backtrace(unsigned long *pc, unsigned long **sp,
 * @end
 *
 *************************************************************************/
-void osapiDebugStackTrace (L7_uint32 debug_task_id, FILE *filePtr)
+void osapiDebugStackTrace (L7_uint64 debug_task_id, FILE *filePtr)
 {
 #if defined (__powerpc__) || defined(__mips__)
   osapi_task_t *task_block;
@@ -1724,7 +1741,7 @@ void osapiDebugStackTrace (L7_uint32 debug_task_id, FILE *filePtr)
   if (pid == 0)
   {
 #endif
-    task_block = (osapi_task_t *) debug_task_id;
+    task_block = (osapi_task_t *) UINT_TO_PTR(debug_task_id);
     for (curTask = task_list_head; curTask != NULL;
         curTask = curTask->chain_next)
     {
@@ -1940,10 +1957,10 @@ void osapiDebugStackTrace (L7_uint32 debug_task_id, FILE *filePtr)
  *
  * @end
  *********************************************************************/
-L7_RC_t osapiWhichStack(L7_uint32 addr, L7_char8 *buf, L7_uint32 bufSize)
+L7_RC_t osapiWhichStack(L7_uint64 addr, L7_char8 *buf, L7_uint32 bufSize)
 {
   osapi_task_t *checking;
-  L7_uint32 cur_stack_guard_begin, cur_stack_guard_end;
+  L7_uint64 cur_stack_guard_begin, cur_stack_guard_end;
   L7_RC_t rc = L7_FAILURE;
 
   pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
@@ -1981,10 +1998,10 @@ L7_RC_t osapiWhichStack(L7_uint32 addr, L7_char8 *buf, L7_uint32 bufSize)
 * @end
 *
 *************************************************************************/
-int osapiTaskPidGet( L7_int32 task_id)
+int osapiTaskPidGet( L7_uint64 task_id)
 {
 
-  return ((osapi_task_t *)(task_id))->PID;
+  return ((osapi_task_t *) UINT_TO_PTR(task_id))->PID;
 }
 
 
@@ -2072,7 +2089,7 @@ void osapiCpuUtilMonitorTask(L7_uint32 *argv, L7_ulong32 numArgs)
   for (curTask = task_list_head; curTask != NULL;
       curTask = curTask->chain_next)
   {
-    sysapiTaskCpuUtilTableInsert((L7_int32)curTask);
+    sysapiTaskCpuUtilTableInsert(PTR_TO_UINT64(curTask));
   }
   pthread_cleanup_pop(1);
 
@@ -2137,9 +2154,9 @@ void osapiCpuUtilMonitorTask(L7_uint32 *argv, L7_ulong32 numArgs)
 
 
       insertFlag = L7_FALSE;
-      if (sysapiTaskCpuUtilTableFind((L7_int32)curTask, &index) == L7_FALSE)
+      if (sysapiTaskCpuUtilTableFind(PTR_TO_UINT64(curTask), &index) == L7_FALSE)
       {
-        index = sysapiTaskCpuUtilTableInsert((L7_int32)curTask);
+        index = sysapiTaskCpuUtilTableInsert(PTR_TO_UINT64(curTask));
         insertFlag = L7_TRUE;
       }
 

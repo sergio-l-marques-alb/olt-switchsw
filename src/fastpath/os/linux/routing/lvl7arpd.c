@@ -93,12 +93,12 @@ static struct arpd_sock_s arpd_sock;
 extern L7_RC_t ipMapArpAddrResolve(L7_uint32 intIfNum, L7_uint32 ipAddr,
                    L7_uchar8 *pMacAddr,
                    ipMapArpResCallback_ft pCallbackFn,
-                   L7_uint32 cbParm1, L7_uint32 cbParm2);
+                   L7_uint64 cbParm1, L7_uint64 cbParm2);
 
 L7_RC_t process_getneigh_request(struct nlmsghdr *gnr);
 
-void arp_resolver_callback(L7_uint32 ipaddr,
-               L7_uint32 ifindex,
+void arp_resolver_callback(L7_uint64 ipaddr,
+               L7_uint64 ifindex,
                L7_uchar8 *mac_addr,
                L7_RC_t  rc);
 
@@ -599,7 +599,7 @@ L7_RC_t process_getneigh_request(struct nlmsghdr *gnr)
  *NOTES:
  *
  ******************************************************************/
-void arp_resolver_callback(L7_uint32 ipaddr, L7_uint32 ifindex, L7_uchar8 *mac_addr, L7_RC_t rc)
+void arp_resolver_callback(L7_uint64 ipaddr, L7_uint64 ifindex, L7_uchar8 *mac_addr, L7_RC_t rc)
 {
   if (rc == L7_SUCCESS)
     update_kernel_arp_table(ipaddr,mac_addr,ifindex,DYNAMIC_ARP_ENTRY);

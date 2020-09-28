@@ -38,6 +38,8 @@
 #include "cliapi.h"
 #endif
 
+#include "logger.h"
+
 static L7_char8 *symbols = NULL;
 static L7_uint32 *addresses = NULL;
 static L7_uint32 num_symbols = 0;
@@ -46,7 +48,183 @@ static L7_uint32 num_symbols = 0;
 #define U_IDX   1
 #endif
 
-static L7_uint32 (*cliDevshellFuncPtr)(L7_char8 *cmd) = L7_NULLPTR;
+/* PTin added: 64 bits support */
+#if 1
+L7_int32 osapiDevshell(L7_char8 * name, L7_int32 * rc,
+                              L7_int32 arg0,  L7_int32 arg1,  L7_int32 arg2,
+                              L7_int32 arg3,  L7_int32 arg4,  L7_int32 arg5,
+                              L7_int32 arg6,  L7_int32 arg7,  L7_int32 arg8,
+                              L7_int32 arg9,  L7_int32 arg10, L7_int32 arg11,
+                              L7_int32 arg12, L7_int32 arg13, L7_int32 arg14,
+                              L7_int32 arg15, L7_int32 arg16, L7_int32 arg17,
+                              L7_int32 arg18, L7_int32 arg19, L7_int32 arg20,
+                              L7_int32 arg21, L7_int32 arg22, L7_int32 arg23,
+                              L7_int32 arg24
+			      );
+
+#define CMD_MAX_SIZE    256
+#define CMD_MAX_ARGS     25 
+
+static L7_char8 shell_strings[CMD_MAX_ARGS][CMD_MAX_SIZE];
+
+static L7_int32 osapiDevShellParseCmd(L7_char8 * cmd,L7_char8 * func_name,L7_int32 * args,L7_BOOL * arg_strings)
+{
+  L7_int32 i;
+  L7_int32 j;
+  L7_int32 k;      
+  L7_int32 string_start,string_end;
+  L7_int32 end_of_cmd=0;
+
+  memset (func_name, 0,CMD_MAX_SIZE);
+  memset ((L7_char8 *)args, 0,CMD_MAX_ARGS*sizeof(L7_int32));
+  memset ((L7_char8 *)shell_strings, 0,CMD_MAX_ARGS*CMD_MAX_SIZE);
+  j=0;
+  k=0;
+  string_start=0;
+  string_end=0;
+
+  for (i=0; i<CMD_MAX_SIZE-1; i++) {
+    if (cmd[i]==' ' || cmd[i]==0 || cmd[i]==',' || cmd[i]==')') {
+      if (cmd[i]==0) {
+        end_of_cmd=1;
+      }
+      if (!string_start || string_end) {
+        cmd[i]=0;
+      }
+      switch (j) {
+      case 0:
+        osapiStrncpySafe(func_name,cmd,CMD_MAX_SIZE);
+        j++;
+        break;
+      default:
+        if (string_start && string_end) {
+          if (j >= 1) {
+            osapiStrncpy(shell_strings[j-1],&cmd[string_start+1],min((string_end-string_start-1),(sizeof(shell_strings[j-1])-1)));
+          }
+          string_start=0;
+          string_end=0;
+          if (j >= 1) {
+            args[j-1]=PTR_TO_UINT32(shell_strings[j-1]);
+            arg_strings[j-1] = L7_TRUE;
+            j++;
+          }
+        }
+        else if (k!=i && !string_start) {
+          if (j >= 1) {
+
+            if ((cmd[k] == '0') && ((cmd[k+1] == 'x') || (cmd[k+1] == 'X'))) {
+              args[j-1]=(L7_int32) strtoul(&cmd[k],(L7_char8 * *)NULL,16);
+              arg_strings[j-1] = L7_FALSE;
+            }
+            else {
+              args[j-1]=(L7_int32) atoi(&cmd[k]);
+              arg_strings[j-1] = L7_FALSE;
+            }
+            j++;
+          }
+        }
+      }
+      if (end_of_cmd) {
+        return 0;
+      }
+      k=i+1;
+    }
+    else if (cmd[i]==0x27) {                                                                     /*double quote*/
+      if (string_start) {
+        string_end=i;
+      }
+      else {
+        string_start=i;
+      }
+    }
+    else if (cmd[i]=='(' && !string_start) {
+      cmd[i]=0;
+      if (j==0) {
+        osapiStrncpySafe(func_name,cmd,CMD_MAX_SIZE);
+        j++;
+      }
+      k=i+1;
+    }
+  }
+  return 0;
+}
+
+
+L7_uint32 osapiDevShellCommand(L7_char8 * cmd)
+{
+   L7_char8 func_name[CMD_MAX_SIZE];
+   L7_FUNCPTR  func_ptr;
+   L7_int32 args[CMD_MAX_ARGS];
+   L7_BOOL arg_strings[CMD_MAX_ARGS];
+   L7_int32 rc;
+   L7_uint32 arg_index;
+   L7_uint64 func_addr;
+   extern void ptin_intf_dump(void);
+
+   func_ptr=NULL;
+
+   memset(arg_strings, 0, sizeof(arg_strings));
+
+   osapiDevShellParseCmd(cmd,func_name,args,arg_strings);
+
+   if (func_name[0])
+   {
+      func_addr = osapiAddressLookup(func_name);
+      func_ptr  = (L7_FUNCPTR) UINT_TO_PTR(func_addr);
+
+      PT_LOG_TRACE(LOG_CTX_MISC,"cmd=\"%s\" func_name=\"%s\" func_addr=0x%llx func_ptr=%p args[0]=%d args[1]=%d args[2]=%d",
+                   cmd, func_name, func_addr, func_ptr, args[0], args[1], args[2]);
+
+      if (func_ptr)
+      {
+         rc=func_ptr(args[0],args[1],args[2],args[3],args[4],
+                     args[5],args[6],args[7],args[8],args[9],
+                     args[10],args[11],args[12],args[13],args[14],
+                     args[15],args[16],args[17],args[18],args[19],
+                     args[20],args[21],args[22],args[23],args[24]
+		     );
+
+         printf("\nvalue = %d = 0x%x\n",rc,rc);
+
+         for (arg_index=0; arg_index < CMD_MAX_ARGS; arg_index++)
+         {
+           if (arg_strings[arg_index] == L7_TRUE)
+           {
+             printf("arg %d: %s\n", arg_index+1, (char *) UINT_TO_PTR(args[arg_index]));
+           }
+         }
+      }
+      else if ((osapiDevshell(func_name, &rc,
+                              args[0],args[1],args[2],args[3],args[4],
+                              args[5],args[6],args[7],args[8],args[9],
+                              args[10],args[11],args[12],args[13],args[14],
+                              args[15],args[16],args[17],args[18],args[19],
+                              args[20],args[21],args[22],args[23],args[24])) == 0)
+      {
+         printf("\nvalue = %d = 0x%x\n",rc,rc);
+
+         for (arg_index=0; arg_index < CMD_MAX_ARGS; arg_index++)
+         {
+           if (arg_strings[arg_index] == L7_TRUE)
+           {
+             printf("arg %d: %s\n", arg_index+1, (char *) UINT_TO_PTR(args[arg_index]));
+           }
+         }
+      }
+      else
+      {
+         printf("Undefined symbol: %s\n",func_name);
+      }
+  }
+  else if (cmd[0])
+  {
+     printf("\nParse error.\n");
+  }
+  return 0;
+}
+#endif
+
+static L7_uint32 (*cliDevshellFuncPtr)(L7_char8 *cmd) = osapiDevShellCommand;
 
 void osapiDevShellSet(L7_uint32 (*func)(L7_char8 *))
 {
@@ -55,14 +233,18 @@ void osapiDevShellSet(L7_uint32 (*func)(L7_char8 *))
 
 L7_uint32 osapiDevShellExec(L7_char8 *cmd)
 {
+  if(cliDevshellFuncPtr != NULL)
+  {
+    return cliDevshellFuncPtr(cmd);
+  }
+  else
+  {
 #ifdef L7_CLI_PACKAGE
-  return cliDevShell(cmd);
+    return cliDevShell(cmd);
 #else
-  if(cliDevshellFuncPtr == NULL)
     return -1;
-
-  return cliDevshellFuncPtr(cmd);
 #endif
+  }
 }
 
 /**************************************************************************
@@ -217,16 +399,17 @@ void osapiDebugShell(void) {
  *********************************************************************/
 #define OSAPI_ADDRESS_LOOKUP_CACHE_SIZE 8
 #define OSAPI_ADDRESS_LOOKUP_NAME_SIZE 64
-#define OSAPI_ADDRESS_LOOKUP_FMT_STRING "%8x%64s"
-L7_uint32 osapiAddressLookup(L7_char8 *funcName) {
+#define OSAPI_ADDRESS_LOOKUP_FMT_STRING "%16llx%64s"
+L7_uint64 osapiAddressLookup(L7_char8 *funcName)
+{
   int retval = 0;
   FILE *f;
   char *buf, *cachep;
   static char *name_cache = NULL;
-  static L7_uint32 *addr_cache = NULL;
+  static L7_uint64 *addr_cache = NULL;
   static int cache_open_slot = 0;
   int rc, i;
-  L7_uint32 sym_addr = 0;
+  L7_uint64 sym_addr = 0;
 
   /* If first time through, allocate cache, never to be freed */
   if (name_cache == NULL) {
@@ -260,7 +443,7 @@ L7_uint32 osapiAddressLookup(L7_char8 *funcName) {
     for(i=0;i<num_symbols;i++) {
       cachep = symbols + i*OSAPI_ADDRESS_LOOKUP_NAME_SIZE;
       if (strcmp(funcName, cachep) == 0) {
-	return addresses[i];
+        return addresses[i];
       }
     }
     return 0;
@@ -330,7 +513,7 @@ L7_uint32 osapiAddressLookup(L7_char8 *funcName) {
   pclose(f);
 #endif
   osapiFree(L7_OSAPI_COMPONENT_ID, buf);  
-  return retval;
+  return (L7_uint64) retval;
 }
 
 
@@ -352,13 +535,17 @@ L7_uint32 osapiAddressLookup(L7_char8 *funcName) {
  *
  * @end
  *********************************************************************/
-L7_RC_t osapiFunctionLookup(L7_uint32 addr, L7_char8 *funcName,
-       L7_uint32 funcNameLen, L7_uint32 *offset) {
+L7_RC_t osapiFunctionLookup(L7_uint64 addr, L7_char8 *funcName,
+                            L7_uint32 funcNameLen, L7_uint32 *offset) {
   FILE *f;
   L7_char8 *buf, *candidate_name;
-  L7_uint32 cur_addr, candidate_addr = 0;
   static int first_time = 1;
-  static L7_uint32 lowest_addr = 0xFFFFFFFFUL, highest_addr = 0;
+  L7_uint64 cur_addr, candidate_addr = 0;
+#ifdef PTRS_ARE_64BITS
+  static L7_uint64 lowest_addr = 0xFFFFFFFFFFFFFFFFUL, highest_addr = 0;
+#else
+  static L7_uint64 lowest_addr = 0xFFFFFFFFUL, highest_addr = 0;
+#endif
   int i;
 
   if (((addr < lowest_addr) || (addr > highest_addr)) && (!first_time)) {
@@ -373,7 +560,7 @@ L7_RC_t osapiFunctionLookup(L7_uint32 addr, L7_char8 *funcName,
 	    funcName[funcNameLen-1] = 0;
 	  }
 	  if (offset != NULL) {
-	    *offset = addr - addresses[i-1];
+	    *offset = (L7_uint32) (addr - addresses[i-1]);
 	  }
 	  return(L7_SUCCESS);
 	} else {
@@ -441,7 +628,7 @@ L7_RC_t osapiFunctionLookup(L7_uint32 addr, L7_char8 *funcName,
       funcName[funcNameLen-1] = 0;
     }
     if (offset != NULL) {
-      *offset = (addr - candidate_addr);
+      *offset = (L7_uint32) (addr - candidate_addr);
     }
     osapiFree(L7_OSAPI_COMPONENT_ID, buf);
     osapiFree(L7_OSAPI_COMPONENT_ID, candidate_name);
@@ -452,7 +639,7 @@ L7_RC_t osapiFunctionLookup(L7_uint32 addr, L7_char8 *funcName,
   return L7_FAILURE;      
 }
 
-int osapiDebugFunctionLookupTest(unsigned long addr) {
+int osapiDebugFunctionLookupTest(unsigned long long addr) {
   char *name_buf;
   L7_uint32 offset;
   L7_RC_t rc;
@@ -467,7 +654,7 @@ int osapiDebugFunctionLookupTest(unsigned long addr) {
     printf("Lookup failed.\n");
     return 1;
   }
-  printf("Address %08lX is %d bytes into function %s\n", 
+  printf("Address %08llX is %u bytes into function %s\n", 
         addr, offset, name_buf);
   return 0;
 }
@@ -498,7 +685,7 @@ void osapiLkup(L7_char8 *search_str) {
   int search_len, buf_len;
   FILE *f;
   L7_char8 *buf;
-  L7_uint32 sym_addr;
+  L7_uint64 sym_addr;
 
   search_len = strlen(search_str);
   if (search_str[0] == '*') {
@@ -563,7 +750,7 @@ void osapiLkup(L7_char8 *search_str) {
 /* Load symbols from the file into memory. */
 int osapiDevshellSymbolsLoad(void) {
   FILE *f;
-  L7_uint32 cur_addr;
+  L7_uint64 cur_addr;
   int i;
   char *cur_sym, *buf;
 

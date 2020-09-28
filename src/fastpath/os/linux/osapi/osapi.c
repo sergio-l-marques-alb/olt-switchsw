@@ -137,17 +137,17 @@ int osapi_printf(const char *fmt, ...)
 #define OSAPI_MEM_DEBUG
 #endif
 
-
 #ifdef OSAPI_MEM_DEBUG
 #define OSAPI_TRACK_FILE_NAME_SIZE 16
 
 /* Memory allocation structure
 */
 typedef struct osapiMemAllocType_s {
-  L7_uint32 data_start;
+  L7_uint64 data_start;
   L7_uint32 length;
-  L7_uint32 task_id;
+  //L7_uint32 task_id[2];
   L7_uint32 in_use;
+  L7_uint64 task_id;
   L7_uint32 component_id;
 #ifdef OSAPI_MEM_LIST
   struct osapiMemAllocType_s *prev;
@@ -156,11 +156,20 @@ typedef struct osapiMemAllocType_s {
   L7_uint32 line_number;
   L7_uint32 time_stamp;
 #endif
+#ifdef PTRS_ARE_64BITS
+  L7_uint64 user_data[1];
+#else
   L7_uint32 user_data[1];
+#endif
 } osapiMemAllocType;
 
+#ifdef PTRS_ARE_64BITS
+#define OSAPI_MEM_START (0xA7A7A7A7A7A7A7A7)
+#define OSAPI_MEM_END   (0xB7B7B7B7B7B7B7B7)
+#else
 #define OSAPI_MEM_START (0xA7A7A7A7)
-#define OSAPI_MEM_END (0xB7B7B7B7)
+#define OSAPI_MEM_END   (0xB7B7B7B7)
+#endif
 
 /* Set this flag to 1 in order to change default behavior to LOG_ERROR
 ** when corrupted sentinel is detected on osapiFree()
@@ -186,8 +195,13 @@ static int debugNumBytes = 0;
 /* Declaration for osapiMalloc() debug functionality */
 L7_osapiMallocUsage_t osapiMallocMemUsage[L7_LAST_COMPONENT_ID];
 
-static L7_uint32 min_mem_alloc = 0xFFFFFFFF;
-static L7_uint32 max_mem_alloc = 0;
+#ifdef PTRS_ARE_64BITS
+static L7_uint64 min_mem_alloc = 0xFFFFFFFFFFFFFFFF;
+static L7_uint64 max_mem_alloc = 0;
+#else
+static L7_uint64 min_mem_alloc = 0xFFFFFFFF;
+static L7_uint64 max_mem_alloc = 0;
+#endif
 
 /**************************************************************************
 *
@@ -288,16 +302,23 @@ void osapiDebugMallocSummary(L7_COMPONENT_IDS_t compId, L7_uint32 delta)
 #endif /* OSAPI_MEM_DEBUG */
 
 
+#define MEMALLOC_TASKID_GET(mem_alloc) ((mem_alloc)->task_id)
+/*( ((L7_uint64) (mem_alloc)->task_id[0]) | (((L7_uint64) (mem_alloc)->task_id[1]) << 32) )*/
+
 #ifdef OSAPI_MEM_LIST
 static void osapiDebugMemoryPrint (osapiMemAllocType *mem_alloc)
 {
-  L7_uint32 mem_size_word = (mem_alloc->length + 3) / 4;
+  L7_uint32 mem_size_word = (mem_alloc->length + (WORD_SIZE-1)) / WORD_SIZE;
 
-  printf("Addr:    0x%x\n", (L7_uint32) &mem_alloc->user_data[0]);
-  printf("Start:   0x%x\n", mem_alloc->data_start);
+  printf("Addr:    0x%llx\n", PTR_TO_UINT64(&mem_alloc->user_data[0]));
+  printf("Start:   0x%llx\n", mem_alloc->data_start);
+#ifdef PTRS_ARE_64BITS
+  printf("End:     0x%llx\n", mem_alloc->user_data[mem_size_word]);
+#else
   printf("End:     0x%x\n", mem_alloc->user_data[mem_size_word]);
+#endif
   printf("Size:    0x%x\n", mem_alloc->length);
-  printf("Task:    0x%x\n", mem_alloc->task_id);
+  printf("Task:    0x%llx\n", MEMALLOC_TASKID_GET(mem_alloc));
   printf("CompId:  %u\n", mem_alloc->component_id);
   printf("File:    %s\n", mem_alloc->file_name);
   printf("Line:    %d\n", mem_alloc->line_number);
@@ -309,7 +330,7 @@ static void osapiDebugMemoryPrint (osapiMemAllocType *mem_alloc)
 
 static int osapiMemAllocValid(osapiMemAllocType *mem_alloc, char *src)
 {
-  L7_uint32 memloc = (L7_uint32)mem_alloc;
+  L7_uint64 memloc = PTR_TO_UINT64(mem_alloc);
   L7_uint32 mem_size_word;
   L7_uint32 errtype = 0;
 
@@ -319,8 +340,8 @@ static int osapiMemAllocValid(osapiMemAllocType *mem_alloc, char *src)
     if(memloc > max_mem_alloc) break;
     errtype = 1;
     if(mem_alloc->data_start != OSAPI_MEM_START) break;
-    memloc = (L7_uint32)mem_alloc->next;
-    mem_size_word = (mem_alloc->length + 3) / 4;
+    memloc = PTR_TO_UINT64(mem_alloc->next);
+    mem_size_word = (mem_alloc->length + (WORD_SIZE-1)) / WORD_SIZE;
     if((memloc != 0) && (memloc < min_mem_alloc)) break;
     if(memloc > max_mem_alloc) break;
     if (mem_alloc->user_data[mem_size_word] != OSAPI_MEM_END)
@@ -365,7 +386,7 @@ void osapiDebugMemoryCheck (void)
   osapiMemAllocType *mem_alloc;
   L7_uint32 mem_size_word;
   pthread_t self;
-  L7_uint32 mem_addr;
+  L7_uint64 mem_addr;
 
   self = pthread_self();
   pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
@@ -386,11 +407,11 @@ void osapiDebugMemoryCheck (void)
       break;
     }
 
-    mem_size_word = (mem_alloc->length + 3) / 4;
-    mem_addr = (unsigned int) mem_alloc->user_data + (mem_size_word * 4);
+    mem_size_word = (mem_alloc->length + (WORD_SIZE-1)) / WORD_SIZE;
+    mem_addr = PTR_TO_UINT64(mem_alloc->user_data) + (mem_size_word * WORD_SIZE);
     if ((mem_addr > max_mem_alloc) || (mem_addr < min_mem_alloc))
     {
-      printf("Memory size is too large, mem_addr=0x%x, max_mem_alloc=0x%x, min_mem_alloc=0x%x\n",
+      printf("Memory size is too large, mem_addr=0x%llx, max_mem_alloc=0x%llx, min_mem_alloc=0x%llx\n",
 		      mem_addr, max_mem_alloc, min_mem_alloc);
 
       osapiDebugMemoryPrint (mem_alloc);
@@ -405,10 +426,10 @@ void osapiDebugMemoryCheck (void)
     }
 
   if ((mem_alloc->next != L7_NULLPTR) &&
-	(((L7_uint32) mem_alloc->next > max_mem_alloc) ||
-        ((L7_uint32) mem_alloc->next < min_mem_alloc)))
+	((PTR_TO_UINT64(mem_alloc->next) > max_mem_alloc) ||
+        (PTR_TO_UINT64(mem_alloc->next) < min_mem_alloc)))
     {
-      printf("Pointer to next memory block is invalid: 0x%x\n", (unsigned int) mem_alloc->next);
+      printf("Pointer to next memory block is invalid: %p\n", mem_alloc->next);
       osapiDebugMemoryPrint (mem_alloc);
       break;
     }
@@ -440,7 +461,7 @@ void osapiDebugMemoryCheck (void)
 #define OSAPI_MAX_STATS_TASKS 1000
 void osapiDebugMemoryStats (void)
 {
-  static L7_uint32 task_id_table [OSAPI_MAX_STATS_TASKS];
+  static L7_uint64 task_id_table [OSAPI_MAX_STATS_TASKS];
   static L7_uint32 task_id_count [OSAPI_MAX_STATS_TASKS];
   static L7_uint32 task_id_total [OSAPI_MAX_STATS_TASKS];
   L7_uint32 num_blocks = 0;
@@ -448,7 +469,7 @@ void osapiDebugMemoryStats (void)
   L7_uint32 num_tasks = 0;
   osapiMemAllocType *mem_alloc;
   L7_uint32 i;
-  L7_uint32 task_id;
+  L7_uint64 task_id;
   L7_uchar8 task_name[128];
   L7_uint32 total_size = 0;
   L7_RC_t rc;
@@ -464,7 +485,7 @@ void osapiDebugMemoryStats (void)
   while ((mem_alloc != 0) && osapiMemAllocValid(mem_alloc, "osapiDebugMemoryStats"))
   {
     num_blocks++;
-    task_id = mem_alloc->task_id;
+    task_id = MEMALLOC_TASKID_GET(mem_alloc);
 
     for (i = 0; i < OSAPI_MAX_STATS_TASKS; i++)
     {
@@ -521,7 +542,7 @@ void osapiDebugMemoryStats (void)
     {
       strcpy (task_name, "Unknown");
     }
-    printf("Task id: 0x%08x -- Task Name: %32s -- Blocks: %6d -- Size: %d\n",
+    printf("Task id: 0x%016llx -- Task Name: %32s -- Blocks: %6d -- Size: %d\n",
               task_id_table[i],
               task_name,
               task_id_count[i],
@@ -545,7 +566,7 @@ void osapiDebugMemoryStats (void)
 * @end
 *
 *************************************************************************/
-void osapiDebugMemoryInfo (L7_uint32 task_id,
+void osapiDebugMemoryInfo (L7_uint64 task_id,
                            L7_uint32 size,
                            L7_uint32 time_stamp)
 {
@@ -561,15 +582,15 @@ void osapiDebugMemoryInfo (L7_uint32 task_id,
     total_blocks++;
     total_size += mem_alloc->length;
 
-    if (((task_id == 0) || (mem_alloc->task_id == task_id)) &&
+    if (((task_id == 0) || (MEMALLOC_TASKID_GET(mem_alloc) == task_id)) &&
         (mem_alloc->length > size) &&
         (mem_alloc->time_stamp > time_stamp))
     {
       total_blocks_match++;
       total_size_match += mem_alloc->length;
-      printf("Tid: 0x%x - Addr: 0x%x -  %16s (%5d) - Size: %5d - Time: %5d\n",
-             mem_alloc->task_id,
-             (L7_uint32) &mem_alloc->user_data[0],
+      printf("Tid: 0x%llx - Addr: 0x%llx -  %16s (%5d) - Size: %5d - Time: %5d\n",
+             MEMALLOC_TASKID_GET(mem_alloc),
+             PTR_TO_UINT64(&mem_alloc->user_data[0]),
              mem_alloc->file_name,
              mem_alloc->line_number,
              mem_alloc->length,
@@ -587,7 +608,7 @@ void osapiDebugMemoryInfo (L7_uint32 task_id,
          total_size_match);
 }
 
-void osapiDebugMemoryChangedInfo (L7_uint32 task_id, L7_uint32 size)
+void osapiDebugMemoryChangedInfo (L7_uint64 task_id, L7_uint32 size)
 {
   static L7_uint32 time_stamp = 0;
 
@@ -687,9 +708,9 @@ static void osapiMallocDetailRecord(FILE *fp,
     {
     mem_alloc = &allocBuffer[i];
 
-      fprintf(fp, "Tid: 0x%x - Addr: 0x%x -  %16s (%5d) - Size: %5d - Inuse: %d - Time: %5d\n",
-             mem_alloc->task_id,
-             (L7_uint32) &mem_alloc->user_data[0],
+      fprintf(fp, "Tid: 0x%llx - Addr: 0x%llx -  %16s (%5d) - Size: %5d - Inuse: %d - Time: %5d\n",
+             MEMALLOC_TASKID_GET(mem_alloc),
+             PTR_TO_UINT64(&mem_alloc->user_data[0]),
              mem_alloc->file_name,
              mem_alloc->line_number,
              mem_alloc->length,
@@ -791,7 +812,6 @@ void osapiDebugMallocDetail(L7_uint32 comp_id,
 #ifdef OSAPI_MEM_DEBUG
 void osapi_heap_corruption_dump(osapiMemAllocType *mem, int beginning)
 {
-  L7_uint32 *dump_start, *dump_end;
   int i;
   L7_uchar8 *c, *a;
   L7_uchar8 file_name[OSAPI_TRACK_FILE_NAME_SIZE];
@@ -799,9 +819,63 @@ void osapi_heap_corruption_dump(osapiMemAllocType *mem, int beginning)
   L7_uint32 time_stamp = 0;
   osapiMemAllocType *prev_blk = NULL;
 
+#ifdef PTRS_ARE_64BITS
+  L7_uint64 *dump_start, *dump_end;
+
   memset(file_name, 0, sizeof(file_name));
   c = (L7_uchar8 *)mem;
-  while (((L7_uint32)c)%4 != 0) {
+  while ((PTR_TO_UINT64(c))%WORD_SIZE != 0) {
+    c--;
+  }
+  dump_start = (L7_uint64 *)c;
+  dump_end = dump_start + 1;
+  /* Go back and forward 2 blocks if possible, but at least 128 bytes, 
+     and at most 1KB */
+  i = 0;
+  while (i < 3) 
+  {
+    while (*dump_start != OSAPI_MEM_START) 
+    {
+      dump_start--;
+    }
+    if ((beginning && (i == 1)) || ((!beginning) && (i == 0))) {
+      /* Interesting block - get its info */
+      prev_blk = (osapiMemAllocType *)dump_start;
+      memcpy(file_name, prev_blk->file_name, sizeof(file_name));
+      file_name[sizeof(file_name) - 1] = 0;
+      line_number = prev_blk->line_number;
+      time_stamp = prev_blk->time_stamp;
+    }
+    i++;
+  }
+  i = 0;
+  while (i < 3) 
+  {
+    while (*dump_end != OSAPI_MEM_END) 
+    {
+      dump_end++;
+    }
+  i++;
+  }
+  if ((c - ((L7_uchar8 *)dump_start)) < 128) {
+    dump_start = (L7_uint64 *)c - 32;
+  }
+  if ((((L7_uchar8 *)dump_end) - c) < 128) {
+    dump_end = (L7_uint64 *)c + 32;
+  }
+  if ((c - ((L7_uchar8 *)dump_start)) > 1024) {
+    dump_start = (L7_uint64 *)c - 256;
+  }
+  if ((((L7_uchar8 *)dump_end) - c) > 1024) {
+    dump_end = (L7_uint64 *)c + 256;
+  }
+
+#else
+  L7_uint32 *dump_start, *dump_end;
+
+  memset(file_name, 0, sizeof(file_name));
+  c = (L7_uchar8 *)mem;
+  while ((PTR_TO_UINT64(c))%WORD_SIZE != 0) {
     c--;
   }
   dump_start = (L7_uint32 *)c;
@@ -846,9 +920,10 @@ void osapi_heap_corruption_dump(osapiMemAllocType *mem, int beginning)
   if ((((L7_uchar8 *)dump_end) - c) > 1024) {
     dump_end = (L7_uint32 *)c + 256;
   }
+#endif
 
-  printf("Dumping heap from 0x%08x to 0x%08x. Block being freed = 0x%08x\n",
-         (L7_uint32) dump_start, (L7_uint32) dump_end, (L7_uint32) mem);
+  printf("Dumping heap from %p to %p. Block being freed = %p\n",
+         dump_start, dump_end, mem);
   if (prev_blk != NULL) {
     printf("%sorrupt block allocated at time %d, from %s line %d\n",
 	   beginning ? "Block before c" : "C", 
@@ -861,7 +936,7 @@ void osapi_heap_corruption_dump(osapiMemAllocType *mem, int beginning)
   {
     if (i % 16 == 0) 
     {
-      printf("%08x: ", (L7_uint32) c);
+      printf("%llx: ", PTR_TO_UINT64(c));
     }
     printf("%02x ", *c);
     c++;
@@ -958,16 +1033,16 @@ void osapiFree(L7_COMPONENT_IDS_t compId, void * memory)
     {
       printf("*** Start-of-block heap corruption found\n");
       osapi_heap_corruption_dump(mem_alloc, 1);
-      L7_LOG_ERROR((L7_uint32) memory);
+      L7_LOG_ERROR(PTR_TO_UINT32(memory));
     }
 
-    mem_size_word = (mem_alloc->length + 3) / 4;
+    mem_size_word = (mem_alloc->length + (WORD_SIZE-1)) / WORD_SIZE;
 
     if (mem_alloc->user_data[mem_size_word] != OSAPI_MEM_END)
     {
       printf("*** End-of-block heap corruption found\n");
       osapi_heap_corruption_dump(mem_alloc, 0);
-      L7_LOG_ERROR((L7_uint32) memory);
+      L7_LOG_ERROR(PTR_TO_UINT32(memory));
     }
     if (mem_alloc->in_use == 0)
     {
@@ -1068,20 +1143,22 @@ void *osapiMalloc_track_try( L7_uint32 numberofbytes,
     L7_LOG_ERROR(compId);
   }
 
-  mem_size_word = (numberofbytes + 3) / 4;
+  mem_size_word = (numberofbytes + (WORD_SIZE-1)) / WORD_SIZE;
 
-  address = (void *)malloc( (mem_size_word * 4) + sizeof (osapiMemAllocType));
+  address = (void *)malloc( (mem_size_word * WORD_SIZE) + sizeof (osapiMemAllocType));
   if ( address != NULL )
   {
     mem_alloc = (osapiMemAllocType *) address;
     mem_alloc->data_start = OSAPI_MEM_START;
     mem_alloc->length = numberofbytes;
-    mem_alloc->task_id = osapiTaskIdSelf ();
+    mem_alloc->task_id = osapiTaskIdSelf();
+    //mem_alloc->task_id[0] = (L7_uint32) (osapiTaskIdSelf() & 0xffffffff);
+    //mem_alloc->task_id[1] = (L7_uint32) (osapiTaskIdSelf() >> 32);
     mem_alloc->in_use = 1;
     mem_alloc->component_id = compId;
     mem_alloc->user_data[mem_size_word] = OSAPI_MEM_END;
 
-    (void)memset(&mem_alloc->user_data[0], 0, (mem_size_word * 4));
+    (void)memset(&mem_alloc->user_data[0], 0, (mem_size_word * WORD_SIZE));
 
     /* Memory has been allocated successfully, increment the value of current memory used
     ** by the component, also change the value of maximum memory used by the component
@@ -1106,11 +1183,11 @@ void *osapiMalloc_track_try( L7_uint32 numberofbytes,
     mem_alloc->prev = 0;
     allocMemList = mem_alloc;
 
-    min_mem_alloc = min(min_mem_alloc, (L7_uint32)mem_alloc);
+    min_mem_alloc = min(min_mem_alloc, PTR_TO_UINT64(mem_alloc));
     max_mem_alloc = max(max_mem_alloc, 
-		    ((L7_uint32)mem_alloc + 
-		    (mem_size_word * 4) + 
-		    sizeof (osapiMemAllocType) + 4));   
+		    (PTR_TO_UINT64(mem_alloc) + 
+		    (mem_size_word * WORD_SIZE) + 
+		    sizeof (osapiMemAllocType) + WORD_SIZE));   
 
 #endif  /* OSAPI_MEM_LIST */
 
@@ -1240,16 +1317,18 @@ void *osapiRealloc_track(void *pBlock,
     L7_LOG_ERROR(compId);
   }
 
-  mem_size_word = (numberofbytes + 3) / 4;
+  mem_size_word = (numberofbytes + (WORD_SIZE-1)) / WORD_SIZE;
 
-  address = (void *)realloc(old_alloc, (mem_size_word * 4) + sizeof (osapiMemAllocType));
+  address = (void *)realloc(old_alloc, (mem_size_word * WORD_SIZE) + sizeof (osapiMemAllocType));
 
   if ( address != NULL )
   {
     mem_alloc = (osapiMemAllocType *) address;
     mem_alloc->data_start = OSAPI_MEM_START;
     mem_alloc->length = numberofbytes;
-    mem_alloc->task_id = osapiTaskIdSelf ();
+    mem_alloc->task_id = osapiTaskIdSelf();
+    //mem_alloc->task_id[0] = (L7_uint32) (osapiTaskIdSelf() & 0xffffffff);
+    //mem_alloc->task_id[1] = (L7_uint32) (osapiTaskIdSelf() >> 32);
     mem_alloc->in_use = 1;
     mem_alloc->component_id = compId;
     mem_alloc->user_data[mem_size_word] = OSAPI_MEM_END;
@@ -1257,12 +1336,12 @@ void *osapiRealloc_track(void *pBlock,
 
     if (old_alloc == NULL)
     {
-        (void)memset(&mem_alloc->user_data[0], 0, (mem_size_word * 4));
+        (void)memset(&mem_alloc->user_data[0], 0, (mem_size_word * WORD_SIZE));
     }
     else
     {
         (void)memset(((L7_uchar8 *)(&mem_alloc->user_data[0]))+old_size, 0,
-                     ((mem_size_word * 4) - old_size));
+                     ((mem_size_word * WORD_SIZE) - old_size));
     }
 
 
@@ -2876,7 +2955,7 @@ void osapiDebugSetStackDumpLogMode(L7_BOOL enable)
   osapiStackDumpLogMode = enable;
 }
 
-extern void osapiDebugStackTrace (L7_uint32 debug_task_id, FILE *filePtr);
+extern void osapiDebugStackTrace (L7_uint64 debug_task_id, FILE *filePtr);
 /*********************************************************************
 * @purpose  Routine to take a snapshot of the task stack
 *           traces and write it to the flash. This can be

@@ -118,7 +118,7 @@ L7_RC_t tap_monitor_register(int fd, L7_uint32 intIfNum, dtlCmdSend func)
    /*
     *write this to the control socket
     */
-   PRINT_CTRL_MSG("adding fd %d with function 0x%x to tap monitor\n",fd,(unsigned int)func); 
+   PRINT_CTRL_MSG("adding fd %d with function %p to tap monitor\n",fd,func); 
    if(write(sp[0],(const void *)&new_entry,sizeof(struct tap_control_s)) < 0)
       perror("Could not send control message to tap_monitor"); 
 
@@ -367,7 +367,7 @@ void tap_monitor_task_fn()
              *start by getting a frame buffer
              */
              SYSAPI_NET_MBUF_GET(frame_buffer);
-             if((void *)frame_buffer == NULL)
+             if(UINT_TO_PTR(frame_buffer) == NULL)
              {
                 /*
                  *if the frame buffer is NULL
@@ -414,7 +414,7 @@ void tap_monitor_task_fn()
             /*
              *now call the function to get the dtl command send
              */
-            PRINT_CTRL_MSG("Calling send function at 0x%x\n",(unsigned int)reg_table[i].SendFn);
+            PRINT_CTRL_MSG("Calling send function at %p\n", reg_table[i].SendFn);
 
 	    /* send fn takes ownership of buffer */
             reg_table[i].SendFn(reg_table[i].fd,reg_table[i].intIfNum,frame_buffer,&tapInfo);
@@ -551,7 +551,7 @@ void tap_monitor_dump_reg_table()
       printf("reg_table[%d].valid = %s\n",i,(reg_table[i].valid == L7_TRUE) ? "True":"False");
       printf("reg_table[%d].skip = %s\n",i,(reg_table[i].skip == L7_TRUE) ? "True":"False");
       printf("reg_table[%d].fd = %d\n",i,reg_table[i].fd);
-      printf("reg_table[%d].SendFn=0x%x\n\n",i,(unsigned int)reg_table[i].SendFn);
+      printf("reg_table[%d].SendFn=%p\n\n", i, reg_table[i].SendFn);
    }
 }
     

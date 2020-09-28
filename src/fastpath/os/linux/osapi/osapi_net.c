@@ -545,7 +545,11 @@ L7_RC_t osapiRawIfAddrGet( L7_uchar8 *ifName, L7_uint32 *ipAddr )
   Try to get address for tmpIfName
   */
 
-  rc = ioctl(sock, SIOCGIFADDR, (int)&ifr);
+#ifdef PTRS_ARE_64BITS
+  rc = ioctl(sock, SIOCGIFADDR, PTR_TO_UINT64(&ifr));
+#else
+  rc = ioctl(sock, SIOCGIFADDR, PTR_TO_UINT32(&ifr));
+#endif
 
   if(rc == 0){
     *ipAddr = osapiNtohl(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr.s_addr);
@@ -1397,7 +1401,11 @@ void osapiArpFlush(L7_uchar8 *ifName)
       return;
     }
 
-    if(ioctl(sd, SIOCGIFINDEX, (int)&ifr) != 0)
+#ifdef PTRS_ARE_64BITS
+    if(ioctl(sd, SIOCGIFINDEX, PTR_TO_UINT64(&ifr)) != 0)
+#else
+    if(ioctl(sd, SIOCGIFINDEX, PTR_TO_UINT32(&ifr)) != 0)
+#endif
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_OSAPI_COMPONENT_ID,
               "osapiArpFlush: could not get interface %s! errno = %d\n",
@@ -2929,9 +2937,9 @@ int osapi_ping_rx(void *argv[], int argc)
 
   }
 
-  sock = (int)argv[0];
+  sock = (int) PTR_TO_UINT32(argv[0]);
 
-  id = (unsigned short)(unsigned int)argv[1];
+  id = (unsigned short)PTR_TO_UINT32(argv[1]);
 
   count = (L7_uint32 *)argv[2];
 
@@ -3028,7 +3036,7 @@ L7_uint32 osapiPingTimed(L7_char8 *hostName, L7_int32 numPackets, L7_uint32 msWa
   struct sockaddr_in dest;
   struct icmp *icmp_hdr;
   L7_uint32 packets_rx = 0;
-  L7_int32 rx_task_id;
+  L7_uint64 rx_task_id;
   void *rx_args[4];
 
   dest.sin_family = AF_INET;
@@ -3052,7 +3060,7 @@ L7_uint32 osapiPingTimed(L7_char8 *hostName, L7_int32 numPackets, L7_uint32 msWa
 
   */
 
-  rx_args[0] = (void *)sock;
+  rx_args[0] = (void *)UINT_TO_PTR(sock);
   rx_args[1] = (void *)(osapiGetpid() & 0xffff); /* change after test */
   rx_args[2] = (void *)&packets_rx;
   rx_args[3] = (void *)&dest;
@@ -3076,7 +3084,7 @@ L7_uint32 osapiPingTimed(L7_char8 *hostName, L7_int32 numPackets, L7_uint32 msWa
 
   icmp_hdr->icmp_type = ICMP_ECHO;
   icmp_hdr->icmp_code = 0;
-  icmp_hdr->icmp_id = osapiHtons((unsigned short)(unsigned int)rx_args[1]);
+  icmp_hdr->icmp_id = osapiHtons((unsigned short)PTR_TO_UINT32(rx_args[1]));
 
   udata = osapi_ping_tx_buf + sizeof(struct icmp);
 

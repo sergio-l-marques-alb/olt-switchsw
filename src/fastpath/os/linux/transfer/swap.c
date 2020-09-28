@@ -25,7 +25,12 @@
 L7_RC_t osapiSwapFile(L7_uchar8 *filename) 
 {
   int fd;
-  L7_uint32 *dst,i,j,rbytes=0,wbytes=0,totoalbyteswritten=0;
+#ifdef PTRS_ARE_64BITS
+  L7_uint64 *dst;
+#else
+  L7_uint32 *dst;
+#endif
+  L7_uint32 i,j,rbytes=0,wbytes=0,totoalbyteswritten=0;
   unsigned long size,offset;
   L7_uchar8 *buf,temp;
 
@@ -65,11 +70,19 @@ L7_RC_t osapiSwapFile(L7_uchar8 *filename)
       return (L7_FAILURE);
     }
 
+#ifdef PTRS_ARE_64BITS
+    dst = (L7_uint64 *)buf;
+#else
     dst = (L7_uint32 *)buf;
+#endif
 
     for (i=0; i < rbytes; i += 4)
     {
+#ifdef PTRS_ARE_64BITS
+      *dst = SWAP64(*dst);
+#else
       *dst = SWAP32(*dst);
+#endif
       dst++;
     }
     lseek(fd,offset,SEEK_SET);

@@ -72,7 +72,7 @@ L3INTF_INFO *l3intfInfo;
 static L7_BOOL RouterIntfInitDone = L7_FALSE;
 
 /* Task ID for task that processes ARP requests */
-static L7_uint32 arpd_task_id = 0;
+static L7_uint64 arpd_task_id = 0;
 
 
 /**************************************************************************
@@ -1801,15 +1801,17 @@ L7_RC_t ipmRouterIfMetricGet(L7_uint32 intIfNum, L7_uint32 *metric)
 *********************************************************************/
 L7_RC_t ipmArpTaskCreate(void)
 {
-    L7_RC_t rc = osapiTaskCreate("linux_arpd_task", arpd_entry_fn, 0, 0,
-                                 L7_DEFAULT_STACK_SIZE,
-                                 L7_MEDIUM_TASK_PRIORITY,
-                                 L7_DEFAULT_TASK_SLICE);
+    L7_uint64 taskId;
 
-    if (rc != L7_ERROR)
+    taskId = osapiTaskCreate("linux_arpd_task", arpd_entry_fn, 0, 0,
+                             L7_DEFAULT_STACK_SIZE,
+                             L7_MEDIUM_TASK_PRIORITY,
+                             L7_DEFAULT_TASK_SLICE);
+
+    if (taskId != L7_ERROR)
     {
         /* task create succeeded and returned the new task ID */
-        arpd_task_id = rc;
+        arpd_task_id = taskId;
         return L7_SUCCESS;
     }
     return L7_FAILURE;

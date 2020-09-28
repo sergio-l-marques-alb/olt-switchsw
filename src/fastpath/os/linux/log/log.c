@@ -191,7 +191,7 @@ void log_backtrace(unsigned int * raw_stack_pointer)
   {
     len = sprintf(buf, "<0> last link register = 0x%x",(int)frame_info->last_link_register);
     logWriteMsgToFlash(buf, len);
-    len = sprintf(buf, "<0> next stack frame located at 0x%x",(int)frame_info->backchain);
+    len = sprintf(buf, "<0> next stack frame located at 0x%llx",PTR_TO_UINT64(frame_info->backchain));
     logWriteMsgToFlash(buf, len);
   }
 }

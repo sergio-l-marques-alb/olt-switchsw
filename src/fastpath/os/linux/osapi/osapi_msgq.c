@@ -77,13 +77,13 @@ static osapi_msgq_t *msgq_list_head = NULL;
 *
 * @end
 *************************************************************************/
-void osapiMsgQueueShow(L7_uint32 queue_id)
+void osapiMsgQueueShow(L7_uint64 queue_id)
 {
   osapi_msgq_t *msg_queue;
   osapi_msgq_t *next_q;
 
 
-  msg_queue = (osapi_msgq_t *) queue_id;
+  msg_queue = (osapi_msgq_t *) UINT_TO_PTR(queue_id);
 
   pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
                        (void *)&msgq_list_lock);
@@ -94,9 +94,9 @@ void osapiMsgQueueShow(L7_uint32 queue_id)
   {
     if ((queue_id == 0) || (msg_queue == next_q))
     {
-      printf("Queue ID: %d (0x%x)\n",
-                  (int) next_q, 
-                  (int) next_q);
+      printf("Queue ID: %llu (0x%llx)\n",
+             PTR_TO_UINT64(next_q), 
+             PTR_TO_UINT64(next_q));
       printf("Queue Name: %s\n",
                   next_q->name);
       printf("Mem Size: %d\n",
@@ -154,7 +154,7 @@ void * osapiMsgQueueCreate(L7_char8 *queue_name, L7_uint32 queue_size,
   if (queue_name == NULL)
   {
 
-    sprintf(synth_name, "q%d", (int)newMsgQ);
+    sprintf(synth_name, "q%llu", PTR_TO_UINT64(newMsgQ));
 
     namePtr = synth_name;
 
@@ -177,7 +177,7 @@ void * osapiMsgQueueCreate(L7_char8 *queue_name, L7_uint32 queue_size,
 
   strcpy (newMsgQ->name, namePtr);
 
-  offset = message_size + (L7_uint32)OSAPI_MSG_HEADER_SIZE;
+  offset = message_size + PTR_TO_UINT32(OSAPI_MSG_HEADER_SIZE);
 
   datalen = queue_size * offset;
 
@@ -462,7 +462,7 @@ L7_RC_t osapiMessageSend(void *queue_ptr, void *Message, L7_uint32 Size,
   }
   else
   {
-    PT_LOG_ERR(LOG_CTX_MISC,"queue_ptr 0x%08x is full",(L7_uint32) queue_ptr);
+    PT_LOG_ERR(LOG_CTX_MISC,"queue_ptr %p is full", queue_ptr);
     rc = L7_ERROR;
   }
 
@@ -671,8 +671,8 @@ void osapiDebugMsgQueuePrint(void)
       if (osapiMsgQ != L7_NULL)
       {
 
-          printf ("%x - %-16.15s    %6d   %6d      %6d  %6d\n",
-                        (L7_uint32)osapiMsgQ,
+          printf ("%p - %-16.15s    %6d   %6d      %6d  %6d\n",
+                        osapiMsgQ,
                         osapiMsgQ->name,
                         osapiMsgQ->msg_count,
                         osapiMsgQ->send_wait.count,

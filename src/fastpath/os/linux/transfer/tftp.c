@@ -100,7 +100,7 @@ int osapiTftp (L7_uint32 ipAddr, L7_uint32 fileType, L7_uint32 direction)
   sysapiPrintf ("executing L7_TFTP_COPY %s %s 0x%x\n", tftpOp, ipAddrStr, ipAddr);
 
   tftpStatus = L7_TFTP_COPY (&inet_address, "switchdrvr", tftpOp, "octet", -1, 
-                             TFTP_TIMEOUT, func, (void *) file_desc, L7_FALSE);
+                             TFTP_TIMEOUT, func, UINT_TO_PTR(file_desc), L7_FALSE);
   sysapiPrintf ("Transfer completed status = %d\n", tftpStatus);
 
   osapiTransferClose (file_desc);

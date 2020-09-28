@@ -45,7 +45,7 @@ typedef struct osapi_task_s {
    osapi_task_entry_t *entry;
    L7_uint32 argc;
    void *argv;
-   L7_uint32 stack_base_addr;
+   L7_uint64 stack_base_addr;
    L7_uint32 stack_size;
    struct osapi_waitq_s *waiting;
    pthread_cond_t fifo_cond;

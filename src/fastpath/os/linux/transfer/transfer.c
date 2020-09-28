@@ -663,7 +663,8 @@ L7_int32 create_ascii_event_log(L7_char8 *event_log_file_name)
      conserve stack space. */
   static char string[L7_CLI_MAX_STRING_LENGTH*2];
   static L7_char8 buf[1024];
-  L7_uint32 index, stringLength, NumberOfBytesWritten;
+  L7_uint64 index;
+  L7_uint32 stringLength, NumberOfBytesWritten;
   L7_int32 pad;
   L7_char8 pad_char = ' ';
   char *cr_location;
@@ -2548,7 +2549,7 @@ L7_RC_t osapiKernelUpdate(void)
 * @end
 *
 ***************************************************************************/
-void L7_http_stale_buffer_check(L7_uint32 dummy1, L7_uint32 dummy2)
+void L7_http_stale_buffer_check(L7_uint64 dummy1, L7_uint64 dummy2)
 {
   L7_uint32 now;
 

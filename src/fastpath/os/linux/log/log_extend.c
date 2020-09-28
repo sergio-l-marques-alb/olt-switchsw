@@ -533,7 +533,7 @@ log_event_int(char * file_name, unsigned long line, unsigned long error_code)
 *************************************************************************/
 
 L7_uint32
-L7_event_log_get_next(struct logformat_event *logPtr, L7_uint32 index,
+L7_event_log_get_next(struct logformat_event *logPtr, L7_uint64 index,
                       L7_char8 *pstring)
 {
     L7_ulong32  w32;
@@ -567,16 +567,16 @@ L7_event_log_get_next(struct logformat_event *logPtr, L7_uint32 index,
         }
 
         pw32 = (L7_uint32 *) (&logPtr[i-1]);
-        index = (L7_uint32) (&logPtr[i-1]);
+        index = PTR_TO_UINT64(&logPtr[i-1]);
     }
     else
     {
-        pw32 = (L7_uint32 *) index;
+        pw32 = (L7_uint32 *) UINT_TO_PTR(index);
     }
 
-    if (index == (L7_uint32) logPtr)
+    if (index == PTR_TO_UINT64(logPtr))
     {
-        index = (L7_uint32) (&logPtr[Log_Max_Entries-1]);
+        index = PTR_TO_UINT64(&logPtr[Log_Max_Entries-1]);
     }
     else
     {
