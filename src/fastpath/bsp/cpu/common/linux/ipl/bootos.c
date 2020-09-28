@@ -259,7 +259,7 @@ int fp_main(int argc, char *argv[])
 {
   L7_CNFGR_CMD_DATA_t cmdData,
                       *pCmdData = &cmdData;
-  L7_int32 startupStatusTaskID;
+  L7_uint64 startupStatusTaskID;
   L7_RC_t rc;
 
   /* PTin added: Clock */
@@ -389,7 +389,7 @@ int fp_main(int argc, char *argv[])
 ** Processor architecture specific.
 *****************************************************************/
 
-#ifdef __arm__
+#if defined(__arm__)
 void print_backtrace(FILE *logfd)
 {
   int i, nptrs;
@@ -401,7 +401,24 @@ void print_backtrace(FILE *logfd)
 
   BT_PRINT(logfd, "ARM Backtrace\n");
   for (i=0; i<nptrs; i++) {
-    BT_PRINT(logfd, "0x%08X\n", (unsigned int)buffer[i]);
+    BT_PRINT(logfd, "0x%08lX\n", PTR_TO_UINT32(buffer[i]));
+  }
+}
+#endif
+
+#if defined(__aarch64__)
+void print_backtrace(FILE *logfd)
+{
+  int i, nptrs;
+#define SIZE 100
+  void *buffer[SIZE];
+
+  nptrs = backtrace(buffer, SIZE);
+  printf("backtrace() returned %d addresses\n", nptrs);
+
+  BT_PRINT(logfd, "ARM Backtrace\n");
+  for (i=0; i<nptrs; i++) {
+    BT_PRINT(logfd, "0x%016llX\n", PTR_TO_UINT64(buffer[i]));
   }
 }
 #endif
@@ -776,7 +793,11 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
   BT_PRINT(bfd, "si_signo: \t%d\n", info->si_signo);
   BT_PRINT(bfd, "si_errno: \t%d\n", info->si_errno);
   BT_PRINT(bfd, "si_code:  \t%d\n", info->si_code);
-  BT_PRINT(bfd, "si_addr:  \t0x%x\n", (int)info->si_addr);
+#ifdef __aarch64__
+  BT_PRINT(bfd, "si_addr:  \t0x%llx\n", PTR_TO_UINT64(info->si_addr));
+#else
+  BT_PRINT(bfd, "si_addr:  \t0x%lx\n", PTR_TO_UINT32(info->si_addr));
+#endif
 
   if (osapiLocalTime(osapiUTCTimeNow(), &lt) == L7_SUCCESS)
   {
@@ -803,6 +824,10 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
   print_backtrace(bfd);
 #endif
 
+#if defined (__aarch64__)
+  print_backtrace(bfd);
+#endif
+
 
   BT_PRINT(bfd, "\n\n************************************************************\n");
   BT_PRINT(bfd, "*                 End LVL7 Stack Information               *\n");
@@ -823,7 +848,7 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
 
   /* Figure out if this segfault is a stack overflow, and, if so, which
      task it's from. */
-  rc = osapiWhichStack((L7_uint32)(info->si_addr), logfilename, 20);
+  rc = osapiWhichStack(PTR_TO_UINT64(info->si_addr), logfilename, 20);
   if (rc == L7_SUCCESS)
   {
     BT_PRINT(bfd, "\n\nThis appears to be a stack overflow, of task %s.\n\n",

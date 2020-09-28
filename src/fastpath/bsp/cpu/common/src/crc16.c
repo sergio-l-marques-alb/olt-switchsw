@@ -163,7 +163,7 @@ L7_ushort16 file_crc_compute(L7_uchar8 * file_name, L7_uint32 file_size)
  * @end
  *
  *************************************************************************/
-L7_ushort16 bspapiCalcCrc(L7_uint32 address, L7_uint32 size)
+L7_ushort16 bspapiCalcCrc(void *address, L7_uint32 size)
 {
   L7_ushort16 crc;
   L7_uchar8   *next_address;

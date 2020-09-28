@@ -769,7 +769,7 @@ L7_RC_t bspapiNextSdmTemplateSave(L7_uint32 templateId)
   sdmTemplateData.version = SDM_TEMPLATE_FILE_VERSION;
   sdmTemplateData.sdm_template_id = templateId;
   sdmTemplateData.pad = 0;
-  sdmTemplateData.crc = bspapiCalcCrc((L7_uint32) &sdmTemplateData, 
+  sdmTemplateData.crc = bspapiCalcCrc((void *) &sdmTemplateData, 
                                       (L7_uint32)(sizeof (sdmTemplateData) - 
                                                   sizeof (sdmTemplateData.crc)));
 
@@ -802,7 +802,7 @@ L7_RC_t bspapiNextSdmTemplateGet(L7_uint32 *nextTemplateId)
   }
 
   /* Verify CRC */
-  if (sdmTemplateData.crc != bspapiCalcCrc((L7_uint32) &sdmTemplateData, 
+  if (sdmTemplateData.crc != bspapiCalcCrc((void *) &sdmTemplateData, 
                                            (L7_uint32)(sizeof (sdmTemplateData) - 
                                                        sizeof (sdmTemplateData.crc))))
   {

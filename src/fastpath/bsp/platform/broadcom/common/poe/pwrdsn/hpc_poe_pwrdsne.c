@@ -179,7 +179,7 @@ static L7_uchar8  echo_num                 = 0;
 static L7_BOOL    poeMonitorEnabled        = L7_TRUE;
 static L7_BOOL    poeInitComplete          = L7_FALSE;
 static L7_BOOL    poeInitialized           = L7_FALSE;
-static L7_uint32  poeMonitorTaskId         = L7_NULL;
+static L7_uint64  poeMonitorTaskId         = L7_NULL;
 static void      *poe_access_sem           = L7_NULL;
 static void      *poe_tx_sem               = L7_NULL;
 static void      *poe_rx_msgq[L7_MAX_POE_CARDS_PER_UNIT];
@@ -212,7 +212,7 @@ static L7_RC_t (*poeMsgHandlers[SYSAPI_HPC_POE_MSG_ID_MAX])(SYSAPI_POE_MSG_t *ms
 
 #ifdef HPC_POE_PWRDSNE_DEBUG
 static void *hpcPoePrintfQueueID = L7_NULLPTR;
-static L7_int32 hpcPoePrintfTaskID = L7_NULL;
+static L7_uint64 hpcPoePrintfTaskID = L7_NULL;
 
 /**************************************************************************
 *

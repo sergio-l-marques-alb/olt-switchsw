@@ -71,7 +71,7 @@ static void      *poe_access_sem           = L7_NULL;
 static void      *poe_tx_sem               = L7_NULL;
 
 static L7_BOOL    poeInitialized           = L7_FALSE;
-static L7_uint32  poeMonitorTaskId         = 0;
+static L7_uint64  poeMonitorTaskId         = 0;
 static L7_char8   versionString[80];    /* Firmware version */
 
 typedef struct
