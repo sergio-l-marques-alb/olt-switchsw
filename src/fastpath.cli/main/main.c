@@ -7508,7 +7508,7 @@ int main (int argc, char *argv[])
           ptr->dst_intf.intf_id   = 0;
           ptr->n_intf = 0;
 
-          memset(ptr->src_intf, 0, PTIN_SYSTEM_MAX_N_PORTS);
+          memset(ptr->src_intf, 0, sizeof(ptr->src_intf)*PTIN_SYSTEM_MAX_N_PORTS);
  
           for (index=(3+0); index<argc; index++)
           {
@@ -8020,7 +8020,8 @@ int main (int argc, char *argv[])
           if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))  {
             // Validate size
             if (resposta.infoDim!=sizeof(msg_ptin_policy_resources)) {
-              printf(" Switch: Invalid structure size (expected=%u, received=%u bytes)\n\r",sizeof(msg_ptin_policy_resources),resposta.infoDim);
+              printf(" Switch: Invalid structure size (expected=%u, received=%u bytes)\n\r",
+                     (unsigned int) sizeof(msg_ptin_policy_resources),resposta.infoDim);
               break;
             }
 
@@ -8067,7 +8068,8 @@ int main (int argc, char *argv[])
             // Validate size
             if (resposta.infoDim!=sizeof(msg_slotModeCfg_t))
             {
-              printf(" Switch: Invalid structure size (expected=%u, received=%u bytes)\n\r",sizeof(msg_slotModeCfg_t),resposta.infoDim);
+              printf(" Switch: Invalid structure size (expected=%u, received=%u bytes)\n\r",
+                     (unsigned int) sizeof(msg_slotModeCfg_t),resposta.infoDim);
               break;
             }
 
@@ -8107,7 +8109,8 @@ int main (int argc, char *argv[])
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))  {
           // Validate size
           if ((resposta.infoDim%sizeof(msg_ptin_pcs_prbs))!=0) {
-            printf(" Switch: Invalid structure size (N*expected=%u, received=%u bytes)\n\r",sizeof(msg_ptin_pcs_prbs),resposta.infoDim);
+            printf(" Switch: Invalid structure size (N*expected=%u, received=%u bytes)\n\r",
+                   (unsigned int) sizeof(msg_ptin_pcs_prbs),resposta.infoDim);
             break;
           }
           n = resposta.infoDim / sizeof(msg_ptin_pcs_prbs);
@@ -8365,7 +8368,8 @@ int main (int argc, char *argv[])
           }
           else
           {
-            printf(" Switch: Error with structure size: %u (expected=%u)\n\r", resposta.infoDim, sizeof(msg_ptin_temperature_monitor_t));
+            printf(" Switch: Error with structure size: %u (expected=%u)\n\r",
+                   resposta.infoDim, (unsigned int) sizeof(msg_ptin_temperature_monitor_t));
           }
         }
         else
@@ -8549,7 +8553,8 @@ int main (int argc, char *argv[])
           uint8 i, j, n;
           // Validate size
           if (resposta.infoDim==0 || (resposta.infoDim%sizeof(msg_QoSConfiguration_t))!=0) {
-            printf(" Switch: Invalid structure size (expected=%u, received=%u bytes)\n\r",sizeof(msg_QoSConfiguration_t),resposta.infoDim);
+            printf(" Switch: Invalid structure size (expected=%u, received=%u bytes)\n\r",
+                   (unsigned int) sizeof(msg_QoSConfiguration_t),resposta.infoDim);
             break;
           }
           // Number of elements
@@ -8688,7 +8693,8 @@ int main (int argc, char *argv[])
           uint8 i, j, n, dp;
           // Validate size
           if (resposta.infoDim==0 || (resposta.infoDim%sizeof(msg_QoSConfiguration3_t))!=0) {
-            printf(" Switch: Invalid structure size (expected=%u, received=%u bytes)\n\r",sizeof(msg_QoSConfiguration3_t),resposta.infoDim);
+            printf(" Switch: Invalid structure size (expected=%u, received=%u bytes)\n\r",
+                   (unsigned int) sizeof(msg_QoSConfiguration3_t),resposta.infoDim);
             break;
           }
           // Number of elements
@@ -9002,7 +9008,8 @@ int main (int argc, char *argv[])
           uint16 i;
           // Validate minimum size
           if (resposta.infoDim<sizeof(msg_switch_mac_intro_t)) {
-            printf(" Switch: Invalid structure size (min.expected=%u, received=%u bytes)\n\r",sizeof(msg_switch_mac_intro_t),resposta.infoDim);
+            printf(" Switch: Invalid structure size (min.expected=%u, received=%u bytes)\n\r",
+                   (unsigned int) sizeof(msg_switch_mac_intro_t),resposta.infoDim);
             break;
           }
 
@@ -9012,8 +9019,8 @@ int main (int argc, char *argv[])
           // Validate total size
           if ( resposta.infoDim < (sizeof(msg_switch_mac_intro_t) + (sizeof(msg_switch_mac_entry)*ENDIAN_SWAP32(ptr->intro.numEntries))) )
           {
-            printf(" Switch: Invalid structure size (expected=%lu, received=%u bytes)\n\r",
-                   sizeof(msg_switch_mac_intro_t) + sizeof(msg_switch_mac_entry)*ENDIAN_SWAP32(ptr->intro.numEntries),
+            printf(" Switch: Invalid structure size (expected=%u, received=%u bytes)\n\r",
+                   (unsigned int) (sizeof(msg_switch_mac_intro_t) + sizeof(msg_switch_mac_entry)*ENDIAN_SWAP32(ptr->intro.numEntries)),
                    resposta.infoDim);
             break;
           }
@@ -9079,7 +9086,8 @@ int main (int argc, char *argv[])
           msg_HWuplinkProtConf *ptr;
 
           if ((resposta.infoDim % sizeof(msg_HWuplinkProtConf)) != 0) {
-            printf(" Switch: Invalid structure size (%u vs %u)\n\r", resposta.infoDim, sizeof(msg_HWuplinkProtConf));
+            printf(" Switch: Invalid structure size (%u vs %u)\n\r",
+                   resposta.infoDim, (unsigned int) sizeof(msg_HWuplinkProtConf));
             break;
           }
 
@@ -9113,7 +9121,8 @@ int main (int argc, char *argv[])
           msg_HWuplinkProtStatus *ptr;
 
           if ((resposta.infoDim % sizeof(msg_HWuplinkProtStatus)) != 0) {
-            printf(" Switch: Invalid structure size (%u vs %u)\n\r", resposta.infoDim, sizeof(msg_HWuplinkProtStatus));
+            printf(" Switch: Invalid structure size (%u vs %u)\n\r",
+                   resposta.infoDim, (unsigned int) sizeof(msg_HWuplinkProtStatus));
             break;
           }
 
@@ -9173,7 +9182,8 @@ int main (int argc, char *argv[])
           msg_HWuplinkProtInfo *ptr;
 
           if ((resposta.infoDim % sizeof(msg_HWuplinkProtInfo)) != 0) {
-            printf(" Switch: Invalid structure size (%u vs %u)\n\r", resposta.infoDim, sizeof(msg_HWuplinkProtInfo));
+            printf(" Switch: Invalid structure size (%u vs %u)\n\r",
+                   resposta.infoDim, (unsigned int) sizeof(msg_HWuplinkProtInfo));
             break;
           }
 
@@ -9203,7 +9213,8 @@ int main (int argc, char *argv[])
           msg_HwEthernetDhcpOpt82Profile_t *ptr;
 
           if (resposta.infoDim != sizeof(msg_HwEthernetDhcpOpt82Profile_t)) {
-            printf(" Switch: Invalid structure size (%u vs %u)\n\r", resposta.infoDim, sizeof(msg_HwEthernetDhcpOpt82Profile_t));
+            printf(" Switch: Invalid structure size (%u vs %u)\n\r",
+                   resposta.infoDim, (unsigned int) sizeof(msg_HwEthernetDhcpOpt82Profile_t));
             break;
           }
 
@@ -9246,7 +9257,8 @@ int main (int argc, char *argv[])
           msg_dai_statistics_t *ptr;
 
           if (resposta.infoDim != sizeof(msg_dai_statistics_t)) {
-            printf(" Switch: Invalid structure size (%u vs %u)\n\r", resposta.infoDim, sizeof(msg_dai_statistics_t));
+            printf(" Switch: Invalid structure size (%u vs %u)\n\r",
+                   resposta.infoDim, (unsigned int) sizeof(msg_dai_statistics_t));
             break;
           }
 
@@ -9329,7 +9341,8 @@ int main (int argc, char *argv[])
           uint16 i;
           // Validate size
           if (resposta.infoDim != sizeof(msg_DHCPv4v6_bind_table_t)) {
-            printf(" Switch: Invalid structure size (expected=%u, received=%u bytes)\n\r", sizeof(msg_DHCPv4v6_bind_table_t), resposta.infoDim);
+            printf(" Switch: Invalid structure size (expected=%u, received=%u bytes)\n\r",
+                   (unsigned int) sizeof(msg_DHCPv4v6_bind_table_t), resposta.infoDim);
             break;
           }
 
@@ -9785,7 +9798,8 @@ int main (int argc, char *argv[])
           entries = resposta.infoDim/sizeof(msg_RoutingArpTableResponse);
 
           if (entries==0) {
-            printf(" ARP Table: Invalid structure size (%u vs %u)\n\r",resposta.infoDim,sizeof(msg_RoutingArpTableResponse));
+            printf(" ARP Table: Invalid structure size (%u vs %u)\n\r",
+                   resposta.infoDim, (unsigned int) sizeof(msg_RoutingArpTableResponse));
             break;
           }
 
@@ -9820,7 +9834,8 @@ int main (int argc, char *argv[])
           entries = resposta.infoDim/sizeof(msg_RoutingRouteTableResponse);
 
           if (entries==0) {
-            printf(" Route Table: Invalid structure size (%u vs %u)\n\r",resposta.infoDim,sizeof(msg_RoutingRouteTableResponse));
+            printf(" Route Table: Invalid structure size (%u vs %u)\n\r",
+                   resposta.infoDim, (unsigned int) sizeof(msg_RoutingRouteTableResponse));
             break;
           }
 
@@ -9872,7 +9887,8 @@ int main (int argc, char *argv[])
           entries = resposta.infoDim/sizeof(msg_RoutingPingSessionQuery);
 
           if (entries==0) {
-            printf(" Ping session query: Invalid structure size (%u vs %u)\n\r",resposta.infoDim,sizeof(msg_RoutingPingSessionQuery));
+            printf(" Ping session query: Invalid structure size (%u vs %u)\n\r",
+                   resposta.infoDim, (unsigned int) sizeof(msg_RoutingPingSessionQuery));
             break;
           }
 
@@ -9913,7 +9929,8 @@ int main (int argc, char *argv[])
           entries = resposta.infoDim/sizeof(msg_RoutingTracertSessionQuery);
 
           if (entries==0) {
-            printf(" Traceroute session query: Invalid structure size (%u vs %u)\n\r", resposta.infoDim, sizeof(msg_RoutingTracertSessionQuery));
+            printf(" Traceroute session query: Invalid structure size (%u vs %u)\n\r",
+                   resposta.infoDim, (unsigned int) sizeof(msg_RoutingTracertSessionQuery));
             break;
           }
 
@@ -9940,7 +9957,8 @@ int main (int argc, char *argv[])
           entries = resposta.infoDim/sizeof(msg_RoutingTracertSessionHopsResponse);
 
           if (entries==0) {
-            printf(" Traceroute hops: Invalid structure size (%u vs %u)\n\r",resposta.infoDim,sizeof(msg_RoutingTracertSessionHopsResponse));
+            printf(" Traceroute hops: Invalid structure size (%u vs %u)\n\r",
+                   resposta.infoDim, (unsigned int) sizeof(msg_RoutingTracertSessionHopsResponse));
             break;
           }
 
@@ -9975,7 +9993,8 @@ int main (int argc, char *argv[])
           nLags = resposta.infoDim/sizeof(msg_LACPLagInfo_t);
 
           if (nLags==0) {
-            printf(" Switch: Invalid structure size (%u vs %u)\n\r",resposta.infoDim,sizeof(msg_LACPLagInfo_t));
+            printf(" Switch: Invalid structure size (%u vs %u)\n\r",
+                   resposta.infoDim, (unsigned int) sizeof(msg_LACPLagInfo_t));
             break;
           }
 
@@ -10017,7 +10036,8 @@ int main (int argc, char *argv[])
           nLags = resposta.infoDim/sizeof(msg_LACPLagStatus_t);
 
           if (nLags==0) {
-            printf(" Switch: Invalid structure size (%u vs %u)\n\r",resposta.infoDim,sizeof(msg_LACPLagStatus_t));
+            printf(" Switch: Invalid structure size (%u vs %u)\n\r",
+                   resposta.infoDim, (unsigned int) sizeof(msg_LACPLagStatus_t));
             break;
           }
 
@@ -10052,7 +10072,7 @@ int main (int argc, char *argv[])
           nStructs = resposta.infoDim/sizeof(msg_LACPAdminState_t);
 
           if (nStructs==0) {
-            printf(" Switch: Invalid structure size (%u vs %u)\n\r",resposta.infoDim,sizeof(msg_LACPAdminState_t));
+            printf(" Switch: Invalid structure size (%u vs %u)\n\r", resposta.infoDim, (unsigned int) sizeof(msg_LACPAdminState_t));
             break;
           }
 
@@ -10313,7 +10333,7 @@ int main (int argc, char *argv[])
             msg_evcStats_t *ptr;
 
             if (resposta.infoDim != sizeof(msg_evcStats_t)) {
-              printf(" Switch: Invalid structure size (%u vs %u)\n\r",resposta.infoDim,sizeof(msg_evcStats_t));
+              printf(" Switch: Invalid structure size (%u vs %u)\n\r", resposta.infoDim, (unsigned int) sizeof(msg_evcStats_t));
               break;
             }
 
@@ -10470,7 +10490,7 @@ int main (int argc, char *argv[])
           if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))  {
             // Validate size
             if (resposta.infoDim!=sizeof(MSG_FRAMEDELAY_status)) {
-              printf(" FrameDelay: Invalid structure size (expected=%u, received=%u bytes)\n\r",sizeof(MSG_FRAMEDELAY_status),resposta.infoDim);
+              printf(" FrameDelay: Invalid structure size (expected=%u, received=%u bytes)\n\r", (unsigned int) sizeof(MSG_FRAMEDELAY_status),resposta.infoDim);
               break;
             }
             printf("FrameDelay: DM_Max             %lld\n\r", po->DM_Max);
@@ -10502,7 +10522,7 @@ int main (int argc, char *argv[])
           if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))  {
             // Validate size
             if (resposta.infoDim!=sizeof(MSG_FRAMELOSS_status)) {
-              printf(" FrameDelay: Invalid structure size (expected=%u, received=%u bytes)\n\r",sizeof(MSG_FRAMELOSS_status),resposta.infoDim);
+              printf(" FrameDelay: Invalid structure size (expected=%u, received=%u bytes)\n\r", (unsigned int) sizeof(MSG_FRAMELOSS_status),resposta.infoDim);
               break;
             }
             printf("FrameLoss: Delta_LM_tx_i      %lld\n\r", po->Delta_LM_tx_i);
