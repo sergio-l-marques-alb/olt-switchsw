@@ -1975,7 +1975,7 @@ void usl_ipmc_debug_help()
 *
 * @end
 *********************************************************************/
-void usl_ipmc_inuse_timer(L7_uint32 arg1, L7_uint32 arg2)
+void usl_ipmc_inuse_timer(L7_uint64 arg1, L7_uint64 arg2)
 {
   L7_RC_t rc = L7_SUCCESS;
   static L7_BOOL firstTime = L7_TRUE;

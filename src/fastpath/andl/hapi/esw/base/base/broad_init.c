@@ -108,7 +108,7 @@
 extern void dapiTraceShow(L7_uint32 count,L7_uchar8 *db,L7_BOOL unformat);
 extern void fp_stk_mgr_system_db_dump();
 extern void ut(L7_uint32 i);
-extern void osapiDebugStackTrace (L7_uint32 task_id, FILE *filePtr);
+extern void osapiDebugStackTrace (L7_uint64 task_id, FILE *filePtr);
 
 #endif
 

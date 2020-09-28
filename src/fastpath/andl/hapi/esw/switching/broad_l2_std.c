@@ -3867,7 +3867,7 @@ int mac_sync_callback (void *user_data, shr_avl_datum_t *datum , void *extra_dat
     return BCM_E_NONE;
   }
 
-  unit = (int) extra_data;
+  unit = PTR_TO_UINT32(extra_data);
   l2x_entry = (l2x_entry_t *) datum;
 
   if (_bcm_esw_l2_from_l2x(unit, 0, &l2Addr, (uint32 *) l2x_entry) != BCM_E_NONE)
@@ -3944,7 +3944,7 @@ L7_RC_t mac_hardware_sync (void)
 
     sal_mutex_take(soc->arlShadowMutex, sal_mutex_FOREVER);
 
-    shr_avl_traverse (soc->arlShadow, mac_sync_callback, (void *) bcm_unit);
+    shr_avl_traverse (soc->arlShadow, mac_sync_callback, UINT_TO_PTR(bcm_unit));
 
     sal_mutex_give(soc->arlShadowMutex);
   }
@@ -4257,7 +4257,7 @@ L7_RC_t hapiBroadL2AddrFlushInit (DAPI_t *dapi_g)
   if (hapiBroadFlushTgidList  == L7_NULLPTR)
     hapiBroadFlushTgidList = osapiMalloc(L7_DRIVER_COMPONENT_ID,size);
 
-  if (hapiBroadFlushTgidList == L7_NULLPTR) L7_LOG_ERROR(hapiBroadFlushTgidList);
+  if (hapiBroadFlushTgidList == L7_NULLPTR) L7_LOG_ERROR(PTR_TO_UINT32(hapiBroadFlushTgidList));
 
   memset((void *)hapiBroadFlushTgidList,0,size);
 
@@ -4268,7 +4268,7 @@ L7_RC_t hapiBroadL2AddrFlushInit (DAPI_t *dapi_g)
   if (hapiBroadFlushVlanList == L7_NULLPTR)
     hapiBroadFlushVlanList = osapiMalloc(L7_DRIVER_COMPONENT_ID,size);
 
-  if (hapiBroadFlushVlanList == L7_NULLPTR) L7_LOG_ERROR(hapiBroadFlushVlanList);
+  if (hapiBroadFlushVlanList == L7_NULLPTR) L7_LOG_ERROR(PTR_TO_UINT32(hapiBroadFlushVlanList));
 
 
   memset(hapiBroadFlushMac, 0, L7_ENET_MAC_ADDR_LEN);
@@ -4278,7 +4278,7 @@ L7_RC_t hapiBroadL2AddrFlushInit (DAPI_t *dapi_g)
                                                       1,
                                                       sizeof(BROAD_L2ADDR_FLUSH_t));
 
-  if (hapiL2AddrFlushQueue == L7_NULL) L7_LOG_ERROR(hapiL2AddrFlushQueue);
+  if (hapiL2AddrFlushQueue == L7_NULL) L7_LOG_ERROR(PTR_TO_UINT32(hapiL2AddrFlushQueue));
 
   /* spawn task */
   if (osapiTaskCreate("hapiL2AddrFlushTask", hapiBroadL2AddrFlushTask,

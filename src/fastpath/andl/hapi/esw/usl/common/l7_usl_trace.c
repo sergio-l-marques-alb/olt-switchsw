@@ -453,7 +453,7 @@ void usl_trace_sema_mask_set(L7_uint32 mask)
 *
 * @end
 *********************************************************************/
-void usl_trace_sema(L7_uchar8 db,L7_uchar8 *sema,L7_int32 task,L7_ulong32 line,L7_BOOL take)
+void usl_trace_sema(L7_uchar8 db, L7_uchar8 *sema, L7_uint64 task, L7_ulong32 line, L7_BOOL take)
 {
   L7_uchar8 take_give;
   take_give = (take)?1:0;
@@ -468,7 +468,7 @@ void usl_trace_sema(L7_uchar8 db,L7_uchar8 *sema,L7_int32 task,L7_ulong32 line,L
     TRACE_ENTER_2BYTE(osapiHtons(USL_DB_SEMA));
     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
     TRACE_ENTER_4BYTE(*(L7_uint32 *)sema);
-    TRACE_ENTER_4BYTE(osapiHtonl(task));
+    TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) task));
     TRACE_ENTER_4BYTE(osapiHtonl(line));
     TRACE_ENTER_BYTE(take_give);
     TRACE_END();

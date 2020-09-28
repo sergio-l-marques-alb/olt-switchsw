@@ -337,7 +337,7 @@ L7_RC_t broad_ptin_qos_classify(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L
   /* Validate data pointer */
   if (qos_cfg == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid Arguments: intf=0x%08x", (L7_uint32) qos_cfg);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid Arguments: Null pointer");
     return L7_FAILURE;
   }
 
@@ -385,7 +385,7 @@ L7_RC_t broad_ptin_qos_remark(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_
   /* Validate data pointer */
   if (remark_enable == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid Arguments: intf=0x%08x", (L7_uint32) remark_enable);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid Arguments: Null pointer");
     return L7_FAILURE;
   }
 

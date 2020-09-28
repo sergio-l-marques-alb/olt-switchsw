@@ -29,7 +29,7 @@
 /* 
  * Type used to pass masks in the API
  */
-typedef L7_uint32 l7_mask_handle_t;
+typedef L7_uint64 l7_mask_handle_t;
 
 /*********************************************************************
 * @purpose  Create a mask of the size indicated

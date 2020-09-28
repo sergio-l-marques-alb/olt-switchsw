@@ -36,7 +36,7 @@ L7_BOOL broadL3ArpDebug = 0;
 L7_BOOL broadL3DebugTrace = L7_FALSE;
 
 /* Async and caller task ids */
-static L7_uint32 broadL3DebugTaskIds[16] = {0};
+static L7_uint64 broadL3DebugTaskIds[16] = {0};
 
 /* Debug sema to write to console/buffer */
 void *broadL3DebugSema;
@@ -352,7 +352,7 @@ void hapiBroadL3DebugArpQueryPrint(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data)
 void hapiBroadL3DebugTaskIdSet(void)
 {
   L7_uint8 i, index = 255;
-  L7_uint32 taskId = 0;
+  L7_uint64 taskId = 0;
 
   osapiTaskIDSelfGet(&taskId);
   for (i=0; i<16; i++)
@@ -381,12 +381,12 @@ void hapiBroadL3DebugTaskIdShow(void)
   for (i=0; i<16; i++)
   {
     if (broadL3DebugTaskIds[i] != 0)
-      sysapiPrintf("Task Id: 0x%x\n", broadL3DebugTaskIds[i]);
+      sysapiPrintf("Task Id: 0x%llx\n", broadL3DebugTaskIds[i]);
   }
 }
 
 /* Stack trace for all tasks calling into broad L3 code */
-extern void osapiDebugStackTrace(L7_uint32 task_id, FILE *filePtr);
+extern void osapiDebugStackTrace(L7_uint64 task_id, FILE *filePtr);
 void hapiBroadL3DebugStackTrace(void)
 {
   L7_uint8 i=0;

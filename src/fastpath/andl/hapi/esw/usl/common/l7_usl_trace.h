@@ -330,7 +330,7 @@ extern void usl_trace_mode_apply(L7_BOOL enable);
 *
 * @end
 *********************************************************************/
-extern void usl_trace_sema(L7_uchar8 db,L7_uchar8 *sema,L7_int32 task,L7_ulong32 line,L7_BOOL take);
+extern void usl_trace_sema(L7_uchar8 db, L7_uchar8 *sema, L7_uint64 task, L7_ulong32 line, L7_BOOL take);
 
 /*********************************************************************
 * @purpose  Format the output for a database sema event 

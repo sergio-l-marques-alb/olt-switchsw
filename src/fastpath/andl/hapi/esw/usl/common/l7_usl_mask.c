@@ -80,7 +80,7 @@ L7_RC_t l7_mask_create(L7_uint32 numElements,l7_mask_handle_t *handle)
      * return the pointer to the mask as a handle, all future requests on this
      * mask must provide the handle
      */
-    *handle = (l7_mask_handle_t)mask;
+    *handle = (l7_mask_handle_t) PTR_TO_UINT64(mask);
 
     rc = L7_SUCCESS;
 
@@ -103,7 +103,7 @@ L7_RC_t l7_mask_create(L7_uint32 numElements,l7_mask_handle_t *handle)
 L7_RC_t l7_mask_delete(l7_mask_handle_t *handle)
 {
   L7_RC_t   rc = L7_ERROR;
-  l7_mask_t *mask = (l7_mask_t*)*handle;
+  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(*handle);
 
   do
   {
@@ -141,8 +141,8 @@ L7_RC_t l7_mask_copy(l7_mask_handle_t src, l7_mask_handle_t dst)
 
   do
   {
-    dstMask = (l7_mask_t *)dst;
-    srcMask = (l7_mask_t *)src;
+    dstMask = (l7_mask_t *)UINT_TO_PTR(dst);
+    srcMask = (l7_mask_t *)UINT_TO_PTR(src);
 
     if ((dstMask == L7_NULLPTR) || (srcMask == L7_NULLPTR)) break;
 
@@ -176,7 +176,7 @@ L7_RC_t l7_mask_copy(l7_mask_handle_t src, l7_mask_handle_t dst)
 L7_RC_t l7_mask_clear(l7_mask_handle_t handle)
 {
   L7_RC_t   rc = L7_ERROR;
-  l7_mask_t *mask = (l7_mask_t*)handle;
+  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
 
   do
   {
@@ -211,7 +211,7 @@ L7_RC_t l7_mask_clear(l7_mask_handle_t handle)
 L7_RC_t l7_mask_is_zero(l7_mask_handle_t handle, L7_BOOL *isZero)
 {
   L7_BOOL   rc = L7_ERROR;
-  l7_mask_t *mask = (l7_mask_t*)handle;
+  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
 
   do
   {
@@ -246,8 +246,8 @@ L7_RC_t l7_mask_is_zero(l7_mask_handle_t handle, L7_BOOL *isZero)
 L7_RC_t l7_mask_is_equal(l7_mask_handle_t handle, l7_mask_handle_t handle2,L7_BOOL *isEqual) 
 {
   L7_BOOL   rc = L7_ERROR;
-  l7_mask_t *mask = (l7_mask_t*)handle;
-  l7_mask_t *mask2 = (l7_mask_t*)handle2;
+  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
+  l7_mask_t *mask2 = (l7_mask_t*)UINT_TO_PTR(handle2);
   L7_uint32 i;
 
   do
@@ -295,7 +295,7 @@ L7_RC_t l7_mask_is_equal(l7_mask_handle_t handle, l7_mask_handle_t handle2,L7_BO
 L7_RC_t l7_mask_invert(l7_mask_handle_t handle)
 {
   L7_RC_t rc = L7_ERROR;
-  l7_mask_t *mask = (l7_mask_t*)handle;
+  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
   L7_uint32 i;
 
   do
@@ -332,7 +332,7 @@ L7_RC_t l7_mask_invert(l7_mask_handle_t handle)
 L7_RC_t l7_mask_bit_set(l7_mask_handle_t handle,L7_uint32 bit)
 {
   L7_RC_t   rc = L7_ERROR;
-  l7_mask_t *mask = (l7_mask_t*)handle;
+  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
   L7_uint32 bytePos, bitPos;
 
   do
@@ -375,7 +375,7 @@ L7_RC_t l7_mask_bit_set(l7_mask_handle_t handle,L7_uint32 bit)
 L7_RC_t l7_mask_bit_clear(l7_mask_handle_t handle,L7_uint32 bit)
 {
   L7_RC_t   rc = L7_ERROR;
-  l7_mask_t *mask = (l7_mask_t*)handle;
+  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
   L7_uint32 bytePos, bitPos;
 
   do
@@ -417,7 +417,7 @@ L7_RC_t l7_mask_bit_clear(l7_mask_handle_t handle,L7_uint32 bit)
 L7_RC_t l7_mask_is_bit_set(l7_mask_handle_t handle, L7_uint32 bit, L7_BOOL *isSet)
 {
   L7_RC_t   rc = L7_ERROR;
-  l7_mask_t *mask = (l7_mask_t*)handle;
+  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
   L7_uint32 bytePos, bitPos;
 
   do
@@ -460,7 +460,7 @@ L7_RC_t l7_mask_is_bit_set(l7_mask_handle_t handle, L7_uint32 bit, L7_BOOL *isSe
 L7_RC_t l7_mask_next_get(l7_mask_handle_t handle,L7_uint32 *pBit)
 {
   L7_RC_t   rc = L7_ERROR;
-  l7_mask_t *mask = (l7_mask_t*)handle;
+  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
   L7_uint32 bytePos, bitPos;
   L7_uint32 myBit;
   L7_BOOL   foundNext = L7_FALSE;
@@ -558,7 +558,7 @@ L7_RC_t l7_mask_next_get(l7_mask_handle_t handle,L7_uint32 *pBit)
 L7_RC_t l7_mask_first_free_get(l7_mask_handle_t handle,L7_uint32 *pBit)
 {
   L7_RC_t   rc = L7_ERROR;
-  l7_mask_t *mask = (l7_mask_t*)handle;
+  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
   L7_uint32 bytePos, bitPos;
   L7_uint32 myBit;
   L7_BOOL   foundFirst = L7_FALSE;
@@ -652,7 +652,7 @@ L7_RC_t l7_mask_first_free_get(l7_mask_handle_t handle,L7_uint32 *pBit)
 L7_RC_t l7_mask_print(l7_mask_handle_t handle)
 {
   L7_RC_t   rc = L7_ERROR;
-  l7_mask_t *mask = (l7_mask_t*)handle;
+  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
   L7_uint32 i;
 
   do
@@ -694,7 +694,7 @@ L7_RC_t l7_mask_print(l7_mask_handle_t handle)
 L7_RC_t l7_mask_buffer_write(l7_mask_handle_t handle,L7_uchar8 *buf)
 {
   L7_RC_t   rc = L7_ERROR;
-  l7_mask_t *mask = (l7_mask_t*)handle;
+  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
 
   do
   {
@@ -726,7 +726,7 @@ L7_RC_t l7_mask_buffer_write(l7_mask_handle_t handle,L7_uchar8 *buf)
 *********************************************************************/
 L7_uint32 l7_mask_sizeOf(l7_mask_handle_t handle)
 {
-  l7_mask_t *mask = (l7_mask_t*)handle;
+  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
   L7_uint32 size = 0;
 
   do
@@ -773,7 +773,7 @@ L7_RC_t l7_mask_buffer_read(L7_uchar8 *buf,l7_mask_handle_t *handle)
 
     tmpMask->bitmap = buf + sizeof(l7_mask_t);
 
-    *handle = (l7_mask_handle_t)tmpMask;
+    *handle = (l7_mask_handle_t) PTR_TO_UINT64(tmpMask);
 
     rc = L7_SUCCESS;
 
@@ -793,7 +793,7 @@ L7_RC_t l7_mask_buffer_read(L7_uchar8 *buf,l7_mask_handle_t *handle)
 *********************************************************************/
 L7_uint32 l7_mask_number_set_get(l7_mask_handle_t handle)
 {
-  l7_mask_t *mask = (l7_mask_t*)handle;
+  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
   L7_uint32 count = 0;
 
   do

@@ -1033,11 +1033,11 @@ void hapiBroadDebugPcimDump(L7_int32 unit, L7_uint32 off_start, L7_uint32 count,
 #endif
 
 #ifdef BCM_ESW_SUPPORT
-void hapiBroadDebugDmaVecDump(L7_int32 addr)
+void hapiBroadDebugDmaVecDump(L7_int64 addr)
 {
   L7_int32     unit = 0;
 
-  soc_dma_dump_dv(unit, " ", (void *)addr);
+  soc_dma_dump_dv(unit, " ", UINT_TO_PTR(addr));
 }
 #endif
 
@@ -2469,7 +2469,7 @@ void hapiBroadDebugDumpAll(int mmuDump)
     printf("soc_dump(%d)\n",unit);
     soc_dump(unit," ");
 
-    printf("soc_chip_dump(%d,0x%x)\n",unit,(L7_uint32)soc->chip_driver);
+    printf("soc_chip_dump(%d,%p)\n",unit, soc->chip_driver);
     soc_chip_dump(unit,soc->chip_driver);
 
     printf("********  CMIC PCI Reg DUMPS ***********\n");

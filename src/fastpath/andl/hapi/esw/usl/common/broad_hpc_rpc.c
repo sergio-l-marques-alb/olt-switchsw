@@ -562,11 +562,11 @@ L7_RC_t l7_rpc_buffer_init(void)
   /* Allocate RPC request message */
   l7RpcReqMsgBuf = osapiMalloc (L7_DRIVER_COMPONENT_ID, (l7RpcReqMsgBufSize));
   if (l7RpcReqMsgBuf == L7_NULLPTR)
-    L7_LOG_ERROR("USL: unable to allocate l7RpcReqMsgBuf\n");
+    L7_LOG_ERROR(0 /*"USL: unable to allocate l7RpcReqMsgBuf\n"*/);
 
   l7RpcReqMsgBufSema = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (l7RpcReqMsgBufSema == L7_NULLPTR)
-    L7_LOG_ERROR("USL: unable to create the l7RpcReqMsgBufSema\n");
+    L7_LOG_ERROR(0 /*"USL: unable to create the l7RpcReqMsgBufSema\n"*/);
 
 
   /* Allocate RPC response message */
@@ -576,13 +576,13 @@ L7_RC_t l7_rpc_buffer_init(void)
   {
     l7RpcRespMsgBuf[i].buf = osapiMalloc (L7_DRIVER_COMPONENT_ID, (l7RpcRespMsgBufSize));
     if (l7RpcRespMsgBuf[i].buf == L7_NULLPTR)
-      L7_LOG_ERROR("USL: unable to allocate l7RpcReqMsgBuf\n");
+      L7_LOG_ERROR(0 /*"USL: unable to allocate l7RpcReqMsgBuf\n"*/);
     l7RpcRespMsgBuf[i].buf_size = l7RpcRespMsgBufSize;
   }
 
   l7RpcRespMsgBufSema = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (l7RpcRespMsgBufSema == L7_NULLPTR)
-    L7_LOG_ERROR("USL: unable to create the l7RpcRespMsgBufSema\n");
+    L7_LOG_ERROR(0 /*"USL: unable to create the l7RpcRespMsgBufSema\n"*/);
 
   return L7_SUCCESS;
 }
@@ -601,7 +601,7 @@ L7_RC_t l7_rpc_buffer_init(void)
 L7_uchar8* l7_rpc_req_buffer_get(void)
 {
   if ((l7RpcReqMsgBuf == L7_NULLPTR) || (l7RpcReqMsgBufSema == L7_NULLPTR))
-    L7_LOG_ERROR("USL: unable to allocate buffer before USL is initted\n");
+    L7_LOG_ERROR(0 /*"USL: unable to allocate buffer before USL is initted\n"*/);
 
 
   /* The corresponding give is when the buffer is freed later on */
@@ -624,7 +624,7 @@ L7_uchar8* l7_rpc_req_buffer_get(void)
 L7_RC_t l7_rpc_req_buffer_free(L7_uchar8 *buffer)
 {
   if ((l7RpcReqMsgBuf == L7_NULLPTR) || (l7RpcReqMsgBufSema == L7_NULLPTR))
-    L7_LOG_ERROR("USL: unable to free RPC buffer \n");
+    L7_LOG_ERROR(0 /*"USL: unable to free RPC buffer \n"*/);
 
   /* The corresponding give is when the buffer is freed later on */
   osapiSemaGive(l7RpcReqMsgBufSema);
@@ -644,7 +644,7 @@ L7_RC_t l7_rpc_req_buffer_free(L7_uchar8 *buffer)
 L7_RC_t l7_rpc_req_buffer_size_get()
 {
   if ((l7RpcReqMsgBuf == L7_NULLPTR) || (l7RpcReqMsgBufSema == L7_NULLPTR))
-    L7_LOG_ERROR("USL: RPC buffer not allocated\n");
+    L7_LOG_ERROR(0 /*"USL: RPC buffer not allocated\n"*/);
 
   return l7RpcReqMsgBufSize;
 }

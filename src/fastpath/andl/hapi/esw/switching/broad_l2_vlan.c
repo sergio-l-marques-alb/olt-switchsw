@@ -2518,7 +2518,7 @@ L7_RC_t hapiBroadVlanCritSecEnter(void)
 {
   if (broadVlanSema == L7_NULLPTR)
   {
-      L7_LOG_ERROR(broadVlanSema);
+      L7_LOG_ERROR(PTR_TO_UINT32(broadVlanSema));
       return L7_FAILURE;
     }
   return osapiSemaTake(broadVlanSema,L7_WAIT_FOREVER);
@@ -2539,7 +2539,7 @@ L7_RC_t hapiBroadVlanCritSecExit(void)
 {
   if (broadVlanSema == L7_NULLPTR)
   {
-    L7_LOG_ERROR(broadVlanSema);
+    L7_LOG_ERROR(PTR_TO_UINT32(broadVlanSema));
     return L7_FAILURE;
   }
 

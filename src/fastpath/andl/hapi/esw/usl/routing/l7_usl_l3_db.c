@@ -159,7 +159,7 @@ L7_uint32 uslL3DataplaneCleanupCount = 0; /* Total dataplane cleanups */
 /* TIMER to be used for inuse check */
 static osapiTimerDescr_t *pUslHostInUseTimer = L7_NULL;
 
-static void usl_l3host_active_timer(L7_uint32 arg1, L7_uint32 arg2);
+static void usl_l3host_active_timer(L7_uint64 arg1, L7_uint64 arg2);
 #endif
 
 #define USL_L3_EGR_NHOP_DB_LOCK_TAKE() \
@@ -6848,7 +6848,7 @@ L7_BOOL usl_l3host_hit_flags_get(const L7_uint32 family,
 *
 * @end
 *********************************************************************/
-static void usl_l3host_active_timer(L7_uint32 arg1, L7_uint32 arg2)
+static void usl_l3host_active_timer(L7_uint64 arg1, L7_uint64 arg2)
 {
   static L7_uchar8 *msg = L7_NULL;    /* pointer to message space */
   L7_RC_t rc;                         /* result workspace */

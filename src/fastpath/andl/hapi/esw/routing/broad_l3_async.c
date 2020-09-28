@@ -2274,7 +2274,7 @@ static void hapiBroadL3AsyncRetryFailures (DAPI_t *dapi_g)
 * @end
 *
 *******************************************************************************/
-void hapiBroadL3RetryTimer(L7_uint32 arg1, L7_uint32 arg2)
+void hapiBroadL3RetryTimer(L7_uint64 arg1, L7_uint64 arg2)
 {
   /* Set retry flag and wake up async task, only when we have failed entries */
   if ((broadL3HwRouteStats.current_add_failures > 0) ||
