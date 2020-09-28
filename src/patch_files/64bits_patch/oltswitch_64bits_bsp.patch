@@ -1,0 +1,242 @@
+Index: bsp/cpu/common/linux/ipl/bootos.c
+===================================================================
+--- bsp/cpu/common/linux/ipl/bootos.c	(revision 7768)
++++ bsp/cpu/common/linux/ipl/bootos.c	(working copy)
+@@ -256,13 +256,13 @@ void startupStatusTask(int argc, void *a
+ 
+ 
+ int fp_main(int argc, char *argv[])
+ {
+   L7_CNFGR_CMD_DATA_t cmdData,
+                       *pCmdData = &cmdData;
+-  L7_int32 startupStatusTaskID;
++  L7_uint64 startupStatusTaskID;
+   L7_RC_t rc;
+ 
+   /* PTin added: Clock */
+   #if 1
+   extern pthread_cond_t osapiTimerCond;
+ 
+@@ -386,25 +386,42 @@ int fp_main(int argc, char *argv[])
+ **
+ ** This function will dump information regarding the  call stack
+ ** of the offending pid which received a fatal signal
+ ** Processor architecture specific.
+ *****************************************************************/
+ 
+-#ifdef __arm__
++#if defined(__arm__)
+ void print_backtrace(FILE *logfd)
+ {
+   int i, nptrs;
+ #define SIZE 100
+   void *buffer[SIZE];
+ 
+   nptrs = backtrace(buffer, SIZE);
+   printf("backtrace() returned %d addresses\n", nptrs);
+ 
+   BT_PRINT(logfd, "ARM Backtrace\n");
+   for (i=0; i<nptrs; i++) {
+-    BT_PRINT(logfd, "0x%08X\n", (unsigned int)buffer[i]);
++    BT_PRINT(logfd, "0x%08lX\n", PTR_TO_UINT32(buffer[i]));
++  }
++}
++#endif
++
++#if defined(__aarch64__)
++void print_backtrace(FILE *logfd)
++{
++  int i, nptrs;
++#define SIZE 100
++  void *buffer[SIZE];
++
++  nptrs = backtrace(buffer, SIZE);
++  printf("backtrace() returned %d addresses\n", nptrs);
++
++  BT_PRINT(logfd, "ARM Backtrace\n");
++  for (i=0; i<nptrs; i++) {
++    BT_PRINT(logfd, "0x%016llX\n", PTR_TO_UINT64(buffer[i]));
+   }
+ }
+ #endif
+ 
+ #ifdef __powerpc__
+ void print_backtrace(siginfo_t *info, unsigned int *raw_stack_pointer, FILE *logfd)
+@@ -773,13 +790,17 @@ void sigsegv_handler (int sig, siginfo_t
+   BT_PRINT(bfd, "pid:      \t%ld\n", osapiGetpid());
+   BT_PRINT(bfd, "TID:      \t%d\n", (int)self);
+   BT_PRINT(bfd, "Task Name:\t%s\n", taskName ? taskName : "unknown!");
+   BT_PRINT(bfd, "si_signo: \t%d\n", info->si_signo);
+   BT_PRINT(bfd, "si_errno: \t%d\n", info->si_errno);
+   BT_PRINT(bfd, "si_code:  \t%d\n", info->si_code);
+-  BT_PRINT(bfd, "si_addr:  \t0x%x\n", (int)info->si_addr);
++#ifdef __aarch64__
++  BT_PRINT(bfd, "si_addr:  \t0x%llx\n", PTR_TO_UINT64(info->si_addr));
++#else
++  BT_PRINT(bfd, "si_addr:  \t0x%lx\n", PTR_TO_UINT32(info->si_addr));
++#endif
+ 
+   if (osapiLocalTime(osapiUTCTimeNow(), &lt) == L7_SUCCESS)
+   {
+     BT_PRINT(bfd, "Date/Time:\t%d/%d/%d %d:%02d:%02d\n",
+          lt.L7_mon+1, lt.L7_mday, lt.L7_year+1900, lt.L7_hour,
+          lt.L7_min, lt.L7_sec);
+@@ -800,12 +821,16 @@ void sigsegv_handler (int sig, siginfo_t
+ #endif /* __powerpc__ || __mips__ */
+ 
+ #if defined (__arm__)
+   print_backtrace(bfd);
+ #endif
+ 
++#if defined (__aarch64__)
++  print_backtrace(bfd);
++#endif
++
+ 
+   BT_PRINT(bfd, "\n\n************************************************************\n");
+   BT_PRINT(bfd, "*                 End LVL7 Stack Information               *\n");
+   BT_PRINT(bfd, "************************************************************\n");
+ 
+   /*
+@@ -820,13 +845,13 @@ void sigsegv_handler (int sig, siginfo_t
+   BT_PRINT(bfd, "\n\n************************************************************\n");
+   BT_PRINT(bfd, "*                 End LVL7 Message Log                     *\n");
+   BT_PRINT(bfd, "************************************************************\n");
+ 
+   /* Figure out if this segfault is a stack overflow, and, if so, which
+      task it's from. */
+-  rc = osapiWhichStack((L7_uint32)(info->si_addr), logfilename, 20);
++  rc = osapiWhichStack(PTR_TO_UINT64(info->si_addr), logfilename, 20);
+   if (rc == L7_SUCCESS)
+   {
+     BT_PRINT(bfd, "\n\nThis appears to be a stack overflow, of task %s.\n\n",
+          logfilename);
+   }
+ 
+Index: bsp/cpu/common/src/bspapi.c
+===================================================================
+--- bsp/cpu/common/src/bspapi.c	(revision 7768)
++++ bsp/cpu/common/src/bspapi.c	(working copy)
+@@ -766,13 +766,13 @@ L7_RC_t bspapiNextSdmTemplateSave(L7_uin
+   bspSdmTemplateData_t sdmTemplateData;
+   L7_uint32 nbytes = sizeof(sdmTemplateData);
+ 
+   sdmTemplateData.version = SDM_TEMPLATE_FILE_VERSION;
+   sdmTemplateData.sdm_template_id = templateId;
+   sdmTemplateData.pad = 0;
+-  sdmTemplateData.crc = bspapiCalcCrc((L7_uint32) &sdmTemplateData, 
++  sdmTemplateData.crc = bspapiCalcCrc((void *) &sdmTemplateData, 
+                                       (L7_uint32)(sizeof (sdmTemplateData) - 
+                                                   sizeof (sdmTemplateData.crc)));
+ 
+   return bspCpuFsWrite(SDM_TEMPLATE_FILENAME, (L7_char8*) &sdmTemplateData, nbytes);
+ }
+ 
+@@ -799,13 +799,13 @@ L7_RC_t bspapiNextSdmTemplateGet(L7_uint
+   if (bspCpuFsRead(SDM_TEMPLATE_FILENAME, (L7_char8*) &sdmTemplateData, nbytes) != L7_SUCCESS)
+   {
+     return L7_NOT_EXIST;
+   }
+ 
+   /* Verify CRC */
+-  if (sdmTemplateData.crc != bspapiCalcCrc((L7_uint32) &sdmTemplateData, 
++  if (sdmTemplateData.crc != bspapiCalcCrc((void *) &sdmTemplateData, 
+                                            (L7_uint32)(sizeof (sdmTemplateData) - 
+                                                        sizeof (sdmTemplateData.crc))))
+   {
+     return L7_ERROR;
+   }
+   /* Only one version of this file has been defined. So if file version doesn't 
+Index: bsp/cpu/common/src/crc16.c
+===================================================================
+--- bsp/cpu/common/src/crc16.c	(revision 7768)
++++ bsp/cpu/common/src/crc16.c	(working copy)
+@@ -160,13 +160,13 @@ L7_ushort16 file_crc_compute(L7_uchar8 *
+  *
+  * @comments none.
+  *
+  * @end
+  *
+  *************************************************************************/
+-L7_ushort16 bspapiCalcCrc(L7_uint32 address, L7_uint32 size)
++L7_ushort16 bspapiCalcCrc(void *address, L7_uint32 size)
+ {
+   L7_ushort16 crc;
+   L7_uchar8   *next_address;
+   L7_int32 i;
+ 
+   GenCrcTable ();
+Index: bsp/cpu/td3x3arm/linux/build/td3x3arm.cfg
+===================================================================
+--- bsp/cpu/td3x3arm/linux/build/td3x3arm.cfg	(revision 7768)
++++ bsp/cpu/td3x3arm/linux/build/td3x3arm.cfg	(working copy)
+@@ -17,14 +17,14 @@ CPU_TYPE= -DLVL7_TD3X3ARM
+ #0x00508544
+ L7_MODEL_ID=5276996
+ 
+ CPU_FLAGS=$(CPU_TYPE) -DSERVICE_PORT_PRESENT=1 -DL7_STACK_USAGE_STATS -DLVL7_DEBUG_BREAKIN \
+           -march=armv8-a -Wdeclaration-after-statement \
+           -Wno-pointer-sign -Wno-unused-but-set-variable -Wno-enum-compare -Wno-switch -Wno-address -Wno-sequence-point \
+-          -Wno-stringop-truncation -Wno-format-overflow -Wno-format-truncation -Wno-stringop-overflow \
+-          -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast
++          -Wno-stringop-truncation -Wno-format-overflow -Wno-format-truncation -Wno-stringop-overflow
++# -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast
+ 
+ CPU_FLAGS_CPP=$(CPU_TYPE) -DSERVICE_PORT_PRESENT=1 -DL7_STACK_USAGE_STATS -DLVL7_DEBUG_BREAKIN \
+           -march=armv8-a \
+           -Wno-pointer-sign -Wno-unused-but-set-variable -Wno-enum-compare -Wno-switch -Wno-address -Wno-sequence-point \
+           -Wno-stringop-truncation -Wno-format-overflow -Wno-format-truncation -Wno-stringop-overflow \
+           -Wdeclaration-after-statement -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast
+Index: bsp/platform/broadcom/common/poe/brcm/hpc_poe_brcm.c
+===================================================================
+--- bsp/platform/broadcom/common/poe/brcm/hpc_poe_brcm.c	(revision 7768)
++++ bsp/platform/broadcom/common/poe/brcm/hpc_poe_brcm.c	(working copy)
+@@ -68,13 +68,13 @@ static L7_BOOL   hpcPoeAutoResetMode  =
+ 
+ /****************      Semaphores    ******************************************/
+ static void      *poe_access_sem           = L7_NULL;
+ static void      *poe_tx_sem               = L7_NULL;
+ 
+ static L7_BOOL    poeInitialized           = L7_FALSE;
+-static L7_uint32  poeMonitorTaskId         = 0;
++static L7_uint64  poeMonitorTaskId         = 0;
+ static L7_char8   versionString[80];    /* Firmware version */
+ 
+ typedef struct
+ {
+   /* from Get Port Measurements */
+   L7_ushort16                        powerConsumed;       /* unit is in milliWatts */
+Index: bsp/platform/broadcom/common/poe/pwrdsn/hpc_poe_pwrdsne.c
+===================================================================
+--- bsp/platform/broadcom/common/poe/pwrdsn/hpc_poe_pwrdsne.c	(revision 7768)
++++ bsp/platform/broadcom/common/poe/pwrdsn/hpc_poe_pwrdsne.c	(working copy)
+@@ -176,13 +176,13 @@ static L7_uint32  poe_bad_echo_count
+ 
+ /* operational stuff */
+ static L7_uchar8  echo_num                 = 0;
+ static L7_BOOL    poeMonitorEnabled        = L7_TRUE;
+ static L7_BOOL    poeInitComplete          = L7_FALSE;
+ static L7_BOOL    poeInitialized           = L7_FALSE;
+-static L7_uint32  poeMonitorTaskId         = L7_NULL;
++static L7_uint64  poeMonitorTaskId         = L7_NULL;
+ static void      *poe_access_sem           = L7_NULL;
+ static void      *poe_tx_sem               = L7_NULL;
+ static void      *poe_rx_msgq[L7_MAX_POE_CARDS_PER_UNIT];
+ static L7_char8   versionString[80];    /* Firmware version */
+ 
+ static HPC_POE_GLOBAL_STATUS_t poeGlobalStatus_g;
+@@ -209,13 +209,13 @@ static L7_RC_t (*poeMsgHandlers[SYSAPI_H
+ #define HPCPOE_PRINTF_QUEUE "PRINTF-Q"
+ #define HPCPOE_PRINTF_QUEUE_MESSAGE_COUNT 256
+ #define HPCPOE_PRINTF_QUEUE_MESSAGE_SIZE  180
+ 
+ #ifdef HPC_POE_PWRDSNE_DEBUG
+ static void *hpcPoePrintfQueueID = L7_NULLPTR;
+-static L7_int32 hpcPoePrintfTaskID = L7_NULL;
++static L7_uint64 hpcPoePrintfTaskID = L7_NULL;
+ 
+ /**************************************************************************
+ *
+ * @purpose  Task that creates, then reads an osapiMsgQueue and prints
+ *           any data in the queue to the screen.
+ *

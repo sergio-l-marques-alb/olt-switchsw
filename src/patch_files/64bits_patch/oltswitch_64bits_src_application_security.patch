@@ -1,0 +1,255 @@
+Index: src/application/security/captive_portal/core/cpim/captive_portal_main.c
+===================================================================
+--- src/application/security/captive_portal/core/cpim/captive_portal_main.c	(revision 7768)
++++ src/application/security/captive_portal/core/cpim/captive_portal_main.c	(working copy)
+@@ -75,13 +75,13 @@ extern L7_RC_t cpimIntfFinishWork(void);
+ extern void    cpdmMonitorSessions(void);
+ extern L7_BOOL captivePortalCnfgrComplete(void);
+ 
+ 
+ static int       captive_portal_exitflag   = 0; /* may need to be volatile? */
+ 
+-static L7_int32  cpTaskId                  = L7_ERROR;
++static L7_uint64 cpTaskId                  = L7_ERROR;
+ static char      *captive_portal_task_name = "tCptvPrtl";
+ 
+ void             *pCaptivePortalMsgQueue   = L7_NULLPTR;
+ 
+ void             *pCPStatsQ                = L7_NULLPTR;
+ 
+@@ -973,16 +973,17 @@ static L7_RC_t captive_portal_init()
+ * @end
+ *********************************************************************/
+ 
+ static int
+ captive_portal_main(char *argv[], int argc)
+ {
+-  int rc = 0, my_pid;
++  int rc = 0;
++  L7_uint64 my_pid;
+ 
+   osapiTaskInitDone(L7_CAPTIVE_PORTAL_TASK_SYNC);
+-  my_pid = (int) osapiTaskIdSelf();
++  my_pid = osapiTaskIdSelf();
+ 
+   do
+   {
+     /* Try to initialize the task's internal data */
+     if (L7_SUCCESS != captive_portal_init())
+     {
+@@ -994,13 +995,13 @@ captive_portal_main(char *argv[], int ar
+   } while ( 0 );
+ 
+   if (0 == rc) {
+     captive_portal_dolisten(); /* Wait for new business. */
+   }
+ 
+-  CP_DLOG(CPD_LEVEL_LOG, "%s: task 0x%08x exiting (rc=%d)\n", __FUNCTION__, my_pid, rc);
++  CP_DLOG(CPD_LEVEL_LOG, "%s: task 0x%llx exiting (rc=%d)\n", __FUNCTION__, my_pid, rc);
+   L7_LOG_ERROR(0xDEADBEEF); /* We should NEVER get here */
+   return rc;
+ }
+ 
+ /*********************************************************************
+ * @purpose  This function starts the captive portal task once it has
+Index: src/application/security/cpwio/wio_cnfgr.c
+===================================================================
+--- src/application/security/cpwio/wio_cnfgr.c	(revision 7768)
++++ src/application/security/cpwio/wio_cnfgr.c	(working copy)
+@@ -520,13 +520,13 @@ L7_RC_t wioCnfgrUconfigPhase2(L7_CNFGR_R
+ * @notes
+ *
+ * @end
+ *********************************************************************/
+ static L7_RC_t wioThreadCreate(void)
+ {
+-  L7_int32 wioTaskHandle;
++  L7_uint64 wioTaskHandle;
+ 
+   wioInfo = (wioInfo_t*) osapiMalloc(L7_CP_WIO_COMPONENT_ID, sizeof(wioInfo_t));
+   if (!wioInfo)
+   {
+     return L7_FAILURE;
+   }
+Index: src/application/security/dot1x/core/dot1x_cnfgr.c
+===================================================================
+--- src/application/security/dot1x/core/dot1x_cnfgr.c	(revision 7768)
++++ src/application/security/dot1x/core/dot1x_cnfgr.c	(working copy)
+@@ -31,13 +31,13 @@
+ #include "ms_api.h"
+ 
+ extern void *dot1xQueue;
+ dot1xCnfgrState_t dot1xCnfgrState = DOT1X_PHASE_INIT_0;
+ L7_tlvHandle_t    dot1xTlvHandle;
+ 
+-extern L7_int32 dot1xTaskId;
++extern L7_uint64 dot1xTaskId;
+ extern dot1xCfg_t *dot1xCfg;
+ L7_VLAN_MASK_t dot1xVlanMask;
+ L7_ushort16 *dot1xVlanIntfCount;
+ L7_VLAN_MASK_t dot1xGuestVlanMask;
+ L7_ushort16 *dot1xGuestVlanIntfCount;
+ static L7_BOOL warmRestart;
+Index: src/application/security/dot1x/core/dot1x_control.c
+===================================================================
+--- src/application/security/dot1x/core/dot1x_control.c	(revision 7768)
++++ src/application/security/dot1x/core/dot1x_control.c	(working copy)
+@@ -32,14 +32,14 @@
+ #include "usmdb_util_api.h"
+ #include "voice_vlan_api.h"
+ 
+ void *dot1xTaskSyncSema;
+ static L7_uint32 dot1xTimerHandle;
+ void *dot1xQueue;      /* reference to the dot1x message queue */
+-L7_uint32 dot1xTaskId;
+-L7_uint32 dot1xTimerTaskId;
++L7_uint64 dot1xTaskId;
++L7_uint64 dot1xTimerTaskId;
+ extern dot1xCnfgrState_t dot1xCnfgrState;
+ extern L7_VLAN_MASK_t dot1xVlanMask;
+ extern L7_ushort16 *dot1xVlanIntfCount;
+ extern L7_VLAN_MASK_t dot1xGuestVlanMask;
+ extern L7_ushort16 *dot1xGuestVlanIntfCount;
+ extern L7_tlvHandle_t    dot1xTlvHandle;
+@@ -80,16 +80,16 @@ L7_RC_t dot1xStartTasks()
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DOT1X_COMPONENT_ID,
+             "Unable to create dot1x task semaphore\n");
+     return L7_FAILURE;
+   }
+ 
+   /* create dotxTask - to service dot1x message queue */
+-  dot1xTaskId = (L7_uint32)osapiTaskCreate("dot1xTask", (void *)dot1xTask, 0, 0,
+-                                           dot1xSidDefaultStackSize(),
+-                                           dot1xSidDefaultTaskPriority(),
+-                                           dot1xSidDefaultTaskSlice());
++  dot1xTaskId = osapiTaskCreate("dot1xTask", (void *)dot1xTask, 0, 0,
++                                dot1xSidDefaultStackSize(),
++                                dot1xSidDefaultTaskPriority(),
++                                dot1xSidDefaultTaskSlice());
+ 
+   if (dot1xTaskId == L7_ERROR)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DOT1X_COMPONENT_ID,
+             "Failed to create dot1x task\n");
+     return L7_FAILURE;
+@@ -101,16 +101,16 @@ L7_RC_t dot1xStartTasks()
+             "Unable to initialize dot1xTask()\n");
+     return L7_FAILURE;
+   }
+ 
+ 
+   /* create dotxTimerTask - to service Timer queue */
+-  dot1xTimerTaskId = (L7_uint32)osapiTaskCreate("dot1xTimerTask", (void *)dot1xTimerTask, 0, 0,
+-                                                dot1xSidDefaultStackSize(),
+-                                                dot1xSidDefaultTaskPriority(),
+-                                                dot1xSidDefaultTaskSlice());
++  dot1xTimerTaskId = osapiTaskCreate("dot1xTimerTask", (void *)dot1xTimerTask, 0, 0,
++                                     dot1xSidDefaultStackSize(),
++                                     dot1xSidDefaultTaskPriority(),
++                                     dot1xSidDefaultTaskSlice());
+ 
+   if (dot1xTimerTaskId == L7_ERROR)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DOT1X_COMPONENT_ID,
+             "Failed to create dot1x timer task\n");
+     return L7_FAILURE;
+Index: src/application/security/dot1x/core/dot1x_sm.c
+===================================================================
+--- src/application/security/dot1x/core/dot1x_sm.c	(revision 7768)
++++ src/application/security/dot1x/core/dot1x_sm.c	(working copy)
+@@ -292,13 +292,13 @@ L7_RC_t dot1xApmMachine(L7_uint32 dot1xE
+   case APM_CONNECTING:
+     rc = dot1xApmConnectingAction(logicalPortInfo);
+     rc = dot1xApmGenerateEvents(logicalPortInfo, L7_NULLPTR);
+     break;
+   case APM_AUTHENTICATING:
+     rc = dot1xApmAuthenticatingAction(logicalPortInfo);
+-    rc = dot1xApmGenerateEvents(logicalPortInfo, (void *)bufHandle);
++    rc = dot1xApmGenerateEvents(logicalPortInfo, UINT_TO_PTR(bufHandle));
+     freeBuffer = L7_FALSE;
+     break;
+   case APM_AUTHENTICATED:
+     rc = dot1xApmAuthenticatedAction(logicalPortInfo);
+     /* No need to generate events here */
+     break;
+@@ -931,13 +931,13 @@ L7_RC_t dot1xApmGenerateEvents(dot1xLogi
+   if (logicalPortInfo->apmState == APM_CONNECTING &&
+       logicalPortInfo->reAuthCount > dot1xPortInfo[physPort].reAuthMax)
+       (void) dot1xStateMachineClassifier(apmReAuthCountGreaterThanReAuthMax, lIntIfNum,
+                                        L7_NULL, L7_NULLPTR);
+ 
+   if (logicalPortInfo->apmState == APM_AUTHENTICATING)
+-      (void) dot1xStateMachineClassifier(bamAuthStart, lIntIfNum,(L7_netBufHandle)msg, L7_NULLPTR);
++      (void) dot1xStateMachineClassifier(bamAuthStart, lIntIfNum,(L7_netBufHandle)PTR_TO_UINT64(msg), L7_NULLPTR);
+ 
+   if (logicalPortInfo->apmState == APM_ABORTING)
+       (void) dot1xStateMachineClassifier(bamAuthAbort, lIntIfNum, L7_NULL, L7_NULLPTR);
+ 
+   return L7_SUCCESS;
+ }
+Index: src/application/security/dot1x/core/dot1x_txrx.c
+===================================================================
+--- src/application/security/dot1x/core/dot1x_txrx.c	(revision 7768)
++++ src/application/security/dot1x/core/dot1x_txrx.c	(working copy)
+@@ -41,14 +41,14 @@ static L7_uchar8 temp[DOT1X_MAX_PDU_SIZE
+ *************************************************************************/
+ L7_RC_t dot1xTxRxInit(void)
+ {
+   L7_RC_t rc;
+   sysnetNotifyEntry_t snEntry;
+ 
+-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register dot1xPduReceive related to type=%u, protocol_type=%u: 0x%08x",
+-           SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_EAPOL, (L7_uint32) dot1xPduReceive);
++  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register dot1xPduReceive related to type=%u, protocol_type=%u: 0x%llx",
++           SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_EAPOL, PTR_TO_UINT64(dot1xPduReceive));
+ 
+   memset(&snEntry, 0x00, sizeof(snEntry));
+   /*Register the pdu receive function with sysnet utility*/
+   osapiStrncpy(snEntry.funcName, "dot1xPduReceive", sizeof(snEntry.funcName));
+   snEntry.notify_pdu_receive = dot1xPduReceive;
+   snEntry.type = SYSNET_ETHERTYPE_ENTRY;
+Index: src/application/security/mgmt_acal/macal.c
+===================================================================
+--- src/application/security/mgmt_acal/macal.c	(revision 7768)
++++ src/application/security/mgmt_acal/macal.c	(working copy)
+@@ -37,13 +37,13 @@
+ #include "sysnet_api_ipv4.h"
+ 
+ #include "usmdb_trapmgr_api.h"
+ #include "sslt_exports.h"
+ #include "acl_exports.h"
+ 
+-L7_int32              macalTaskId;
++L7_uint64             macalTaskId;
+ extern void           *macalQueue;
+ extern macalCfgData_t *macalCfgData;
+ osapiRWLock_t         macalRwLock;
+ L7_uint32             macalDebugLevel;
+ 
+ /*********************************************************************
+Index: src/application/security/mgmt_acal/macal_cnfgr.c
+===================================================================
+--- src/application/security/mgmt_acal/macal_cnfgr.c	(revision 7768)
++++ src/application/security/mgmt_acal/macal_cnfgr.c	(working copy)
+@@ -31,17 +31,17 @@
+ #include "nvstoreapi.h"
+ #include "macal.h"
+ #include "macal_cnfgr.h"
+ 
+ macalCnfgrState_t macalCnfgrState = MACAL_PHASE_INIT_0;
+ 
+-extern L7_int32       macalTaskId;
+-extern void          *macalQueue;
++extern L7_uint64       macalTaskId;
++extern void           *macalQueue;
+ extern macalCfgData_t *macalCfgData;
+-/*extern void          *macalSemaphore;*/
+-extern osapiRWLock_t    macalRwLock;
++/*extern void         *macalSemaphore;*/
++extern osapiRWLock_t   macalRwLock;
+ 
+ /*********************************************************************
+ *
+ * @purpose  CNFGR System Initialization for Management Access Control and Administration List component
+ *
+ * @param    L7_CNFGR_CMD_DATA_t  *pCmdData    Data structure for this

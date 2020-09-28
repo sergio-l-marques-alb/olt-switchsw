@@ -1,0 +1,758 @@
+Index: src/l7public/api/async_event_api.h
+===================================================================
+--- src/l7public/api/async_event_api.h	(revision 7768)
++++ src/l7public/api/async_event_api.h	(working copy)
+@@ -116,13 +116,13 @@ typedef enum
+  */
+ /* This used to be a pointer to an element in the async library's 
+  * correlator array. It is now simply the event sequence number. Retain
+  * the naming to avoid changing all references to this. */
+ typedef L7_uint32 ASYNC_CORRELATOR_t;
+ 
+-typedef L7_uint32  ASYNC_EVENT_HANDLER_t;
++typedef L7_uint64 ASYNC_EVENT_HANDLER_t;
+ 
+ 
+ 
+ /*---------------------------------------------------------*/
+ /*                                                         */
+ /*    STRUCTURES FOR EVENTS                                */
+Index: src/l7public/api/bspapi.h
+===================================================================
+--- src/l7public/api/bspapi.h	(revision 7768)
++++ src/l7public/api/bspapi.h	(working copy)
+@@ -362,13 +362,13 @@ L7_RC_t bspapiBootCodeVersionRead(L7_cha
+  *
+  * @comments none.
+  *
+  * @end
+  *
+  *************************************************************************/
+-L7_ushort16 bspapiCalcCrc(L7_uint32 address, L7_uint32 size);
++L7_ushort16 bspapiCalcCrc(void *address, L7_uint32 size);
+ 
+ /**************************************************************************
+ * @purpose  Read the CPU's MAC address. If MAC address cannot be read,
+ *           do not update macString.
+ *
+ * @param    mac - pointer to MAC address string
+Index: src/l7public/api/l7_ipmap_arp_api.h
+===================================================================
+--- src/l7public/api/l7_ipmap_arp_api.h	(revision 7768)
++++ src/l7public/api/l7_ipmap_arp_api.h	(working copy)
+@@ -50,14 +50,14 @@ typedef enum {
+ /*  -- callback function to handle queued addr resolutions */
+ /*  -- resultStatus indicates outcome:                     */
+ /*       L7_SUCCESS: address resolved                      */
+ /*       L7_FAILURE: resolution failed                     */
+ typedef void (*ipMapArpResCallback_ft)
+ (
+-L7_uint32       cbParm1,                /* callback parm 1 */
+-L7_uint32       cbParm2,                /* callback parm 2 */
++L7_uint64       cbParm1,                /* callback parm 1 */
++L7_uint64       cbParm2,                /* callback parm 2 */
+ L7_uchar8       *pMacAddr,              /* ptr to resolved MAC address */
+ L7_RC_t         resultStatus            /* return code of resolution attempt */
+ );
+ 
+ /* User Function:  Interface Raw Send Entry Point */
+ /*  -- raw send function to be used by IPM ARP    */
+@@ -262,13 +262,13 @@ L7_RC_t ipMapArpIntfUnregister(L7_uint32
+ * @end
+ *********************************************************************/
+ extern
+ L7_RC_t ipMapArpAddrResolve(L7_uint32 intIfNum, L7_uint32 ipAddr,
+                             L7_uchar8 *pMacAddr, 
+                             ipMapArpResCallback_ft pCallbackFn,
+-                            L7_uint32 cbParm1, L7_uint32 cbParm2);
++                            L7_uint64 cbParm1, L7_uint64 cbParm2);
+ 
+ /*********************************************************************
+ * @purpose  Called when an ARP entry is used for software forwarding. 
+ *
+ * @param    ipAddr      IP address of neighbor
+ * @param    intIfNum    internal interface number of interface where packet
+Index: src/l7public/api/l7_mcast_api.h
+===================================================================
+--- src/l7public/api/l7_mcast_api.h	(revision 7768)
++++ src/l7public/api/l7_mcast_api.h	(working copy)
+@@ -1200,13 +1200,13 @@ L7_RC_t mcastMapGetHandleListHandle (L7_
+ *
+ * @comments This heapID is to be used for all the memory allocations for the
+ *           given IP address family within the Multicast module
+ *
+ * @end
+ *********************************************************************/
+-L7_uint32 mcastMapHeapIdGet (L7_uint32 family);
++L7_uint64 mcastMapHeapIdGet (L7_uint32 family);
+ 
+ /*********************************************************************
+ * @purpose  Checks if any contradictory configuration made for 
+ *           unnumbered interface.
+ *
+ * @param    intIfNum      @b{(input)} Internal interface number
+Index: src/l7public/api/l7handle_api.h
+===================================================================
+--- src/l7public/api/l7handle_api.h	(revision 7768)
++++ src/l7public/api/l7handle_api.h	(working copy)
+@@ -117,13 +117,13 @@ L7_RC_t handleListDeinit(L7_COMPONENT_ID
+ *
+ * @notes    
+ *
+ * @end
+ *********************************************************************/
+ extern
+-L7_uint32 handleListNodeStore(handle_list_t *list,void *ptr);
++L7_uint64 handleListNodeStore(handle_list_t *list,void *ptr);
+ 
+ 
+ /*********************************************************************
+ *
+ * @purpose  To Delete the node.
+ *
+@@ -136,13 +136,13 @@ L7_uint32 handleListNodeStore(handle_lis
+ *
+ * @end
+ *********************************************************************/
+ #define handleListNodeDelete(list, handle)               \
+         handleListNodeDelete_track(list, handle, __FILE__, __LINE__)
+ extern
+-void handleListNodeDelete_track(handle_list_t *list,L7_uint32 *handle,
++void handleListNodeDelete_track(handle_list_t *list,L7_uint64 *handle,
+                              L7_uchar8 *fileName,
+                              L7_uint32 lineNum);
+ 
+ 
+ /*********************************************************************
+ *
+@@ -157,12 +157,12 @@ void handleListNodeDelete_track(handle_l
+ *
+ * @end
+ *********************************************************************/
+ #define handleListNodeRetrieve(index)               \
+         handleListNodeRetrieve_track(index, __FILE__, __LINE__)
+ extern
+-void* handleListNodeRetrieve_track(L7_uint32 index, 
++void* handleListNodeRetrieve_track(L7_uint64 index, 
+                              L7_uchar8 *fileName,
+                              L7_uint32 lineNum);
+ 
+ #endif
+ 
+Index: src/l7public/api/osapi.h
+===================================================================
+--- src/l7public/api/osapi.h	(revision 7768)
++++ src/l7public/api/osapi.h	(working copy)
+@@ -435,19 +435,19 @@ EXT_API L7_RC_t osapiMsgQueueGetNumMsgs(
+ *
+ * @comments
+ *
+ * @end
+ *
+ *************************************************************************/
+-EXT_API L7_int32 osapiTaskCreate(L7_char8 *task_name,
+-                                void *task_entry,
+-                                /*@null@*/void *argv,
+-                                L7_uint32 argc,
+-                                L7_uint32 stack_size,
+-                                L7_uint32 priority,
+-                                L7_uint32 time_slice );
++EXT_API L7_uint64 osapiTaskCreate(L7_char8 *task_name,
++                                 void *task_entry,
++                                 /*@null@*/void *argv,
++                                 L7_uint32 argc,
++                                 L7_uint32 stack_size,
++                                 L7_uint32 priority,
++                                 L7_uint32 time_slice );
+ 
+ /**************************************************************************
+ *
+ * @purpose  Delay a task for the number of system ticks
+ *
+ * @param    ticks   @b{(input)}  number of clock ticks to delay
+@@ -473,13 +473,13 @@ EXT_API L7_RC_t  osapiTaskDelay ( L7_int
+ *
+ * @comments
+ *
+ * @end
+ *
+ *************************************************************************/
+-EXT_API void osapiTaskDelete( L7_int32 task_id);
++EXT_API void osapiTaskDelete( L7_uint64 task_id);
+ 
+ /**************************************************************************
+ *
+ * @purpose  Send a Signal to a task.
+ *
+ * @param    task_id @b{(input)}    handle for the task to be deleted.
+@@ -489,13 +489,13 @@ EXT_API void osapiTaskDelete( L7_int32 t
+ *
+ * @comments    none.
+ *
+ * @end
+ *
+ *************************************************************************/
+-EXT_API void osapiTaskSignal( L7_int32 task_id, int sig);
++EXT_API void osapiTaskSignal( L7_uint64 task_id, int sig);
+ 
+ /**************************************************************************
+ *
+ * @purpose  Show all active tasks in system
+ *
+ * @param    none.
+@@ -520,13 +520,13 @@ EXT_API void     osapiShowTasks( void );
+ *
+ * @comments
+ *
+ * @end
+ *
+ *************************************************************************/
+-EXT_API L7_RC_t osapiTaskIDSelfGet( L7_int32 *TaskIDPtr );
++EXT_API L7_RC_t osapiTaskIDSelfGet( L7_uint64 *TaskIDPtr );
+ 
+ /**************************************************************************
+ *
+ * @purpose  Change the priority of a task.
+ *
+ * @param    TaskID   @b{(input)}  ID of task to change priority.
+@@ -537,13 +537,13 @@ EXT_API L7_RC_t osapiTaskIDSelfGet( L7_i
+ *
+ * @comments
+ *
+ * @end
+ *
+ *************************************************************************/
+-EXT_API L7_RC_t osapiTaskPrioritySet ( L7_int32 TaskID, L7_int32 Priority );
++EXT_API L7_RC_t osapiTaskPrioritySet ( L7_uint64 TaskID, L7_int32 Priority );
+ 
+ /**************************************************************************
+ *
+ * @purpose  Sleep for a given number of seconds.
+ *
+ * @param    seconds    @b{(input)}  number of seconds to sleep.
+@@ -1940,13 +1940,13 @@ EXT_API void     osapiEnableInts  ( L7_u
+ *
+ * @purpose
+ *
+ * @comments
+ *
+ *********************************************************************/
+-typedef void (*osapiTimerCallback_t)( L7_uint32 parm1, L7_uint32 parm2 );
++typedef void (*osapiTimerCallback_t)( L7_uint64 parm1, L7_uint64 parm2 );
+ 
+ /*********************************************************************
+ *
+ * @structures osapiTimerDescr_t
+ *
+ * @purpose
+@@ -2055,13 +2055,13 @@ EXT_API void osapiTimerHandler(void) ;
+ *
+ * @comments
+ *
+ * @end
+ *
+ *************************************************************************/
+-EXT_API void osapiTimerAdd ( void (*func)( L7_uint32, L7_uint32 ), L7_uint32 arg1, L7_uint32 arg2, L7_int32 milliseconds, osapiTimerDescr_t **pTimerHolder );
++EXT_API void osapiTimerAdd ( void (*func)( L7_uint64, L7_uint64 ), L7_uint64 arg1, L7_uint64 arg2, L7_int32 milliseconds, osapiTimerDescr_t **pTimerHolder );
+ 
+ /**************************************************************************
+ *
+ * @purpose  Remove a function for the timeout list.
+ *
+ * @param    pTimerHolder   @b{(input)}  ptr to an osapi timer descriptor, that was returned in osapiTimerAdd(), to deallocate.
+@@ -3412,13 +3412,13 @@ EXT_API L7_RC_t osapiTaskYield ( void );
+ *
+ * @comments
+ *
+ * @end
+ *
+ *************************************************************************/
+-EXT_API L7_RC_t  osapiTaskNameGet( L7_int32 task_id, L7_char8 *task_name);
++EXT_API L7_RC_t  osapiTaskNameGet( L7_uint64 task_id, L7_char8 *task_name);
+ 
+ /**************************************************************************
+ *
+ * @purpose  Get the priority for a specific task.
+ *
+ * @param    task_id      @b{(input)} id for the given task.
+@@ -3429,13 +3429,13 @@ EXT_API L7_RC_t  osapiTaskNameGet( L7_in
+ *
+ * @comments
+ *
+ * @end
+ *
+ *************************************************************************/
+-EXT_API L7_RC_t  osapiTaskPriorityGet( L7_int32 task_id, L7_uint32 *priority);
++EXT_API L7_RC_t  osapiTaskPriorityGet( L7_uint64 task_id, L7_uint32 *priority);
+ 
+ /**************************************************************************
+ *
+ * @purpose  Verifies the existence of a specified task.
+ *
+ * @param    task_id   @b{(input)} task ID to be verified.
+@@ -3445,13 +3445,13 @@ EXT_API L7_RC_t  osapiTaskPriorityGet( L
+ *
+ * @comments
+ *
+ * @end
+ *
+ *************************************************************************/
+-EXT_API L7_RC_t  osapiTaskIdVerify( L7_int32 task_id);
++EXT_API L7_RC_t  osapiTaskIdVerify( L7_uint64 task_id);
+ 
+ /**************************************************************************
+ *
+ * @purpose  Get the task ID of a running task.
+ *
+ * @param    none
+@@ -3460,13 +3460,13 @@ EXT_API L7_RC_t  osapiTaskIdVerify( L7_i
+ *
+ * @comments
+ *
+ * @end
+ *
+ *************************************************************************/
+-EXT_API L7_int32  osapiTaskIdSelf( void );
++EXT_API L7_uint64  osapiTaskIdSelf( void );
+ 
+ /*********************************************************************
+ * @purpose  Duplicate a string given Component
+ *
+ * @param    sourceString Pointer to string to duplicate
+ *
+@@ -4157,13 +4157,13 @@ void osapiOSVersionRegister(void);
+ *           0 if it fails
+ *
+ * @comments
+ *
+ * @end
+ *********************************************************************/
+-EXT_API L7_uint32 osapiAddressLookup(L7_char8 *funcName);
++EXT_API L7_uint64 osapiAddressLookup(L7_char8 *funcName);
+ 
+ /*********************************************************************
+ * @purpose  Returns the function containing a given address
+ *
+ * @param    addr, L7_uint32
+ *           funcName, L7_char8* buffer allocated by caller
+@@ -4176,14 +4176,14 @@ EXT_API L7_uint32 osapiAddressLookup(L7_
+ *           L7_FAILURE if function not found, buffers untouched.
+ *
+ * @comments
+ *
+ * @end
+ *********************************************************************/
+-EXT_API L7_RC_t osapiFunctionLookup(L7_uint32 addr, L7_char8 *funcName,
+-				    L7_uint32 funcNameLen, L7_uint32 *offset);
++EXT_API L7_RC_t osapiFunctionLookup(L7_uint64 addr, L7_char8 *funcName,
++                                    L7_uint32 funcNameLen, L7_uint32 *offset);
+ 
+ 
+ /**************************************************************************
+ *
+ * @purpose  convert string to long unsigned integer
+ *
+@@ -4230,14 +4230,14 @@ EXT_API L7_uint32 osapiStrnlen(const L7_
+ *
+ * @comments
+ *           Unimplemented on VxWorks.
+ *
+ * @end
+ *********************************************************************/
+-EXT_API L7_RC_t osapiWhichStack(L7_uint32 addr, L7_char8 *buf,
+-				    L7_uint32 bufSize);
++EXT_API L7_RC_t osapiWhichStack(L7_uint64 addr, L7_char8 *buf,
++                                L7_uint32 bufSize);
+ 
+ /****** Serviceability ******/
+ #ifdef LVL7_DEBUG_BREAKIN
+ /***********************************************************************
+ *@purpose  Enable/Disable console break-in
+ *
+@@ -4455,13 +4455,13 @@ void osapiLogStackTraceFlash(L7_char8 *f
+ *
+ * @comments
+ *
+ * @end
+ *
+ *************************************************************************/
+-int osapiTaskPidGet( L7_int32 task_id);
++int osapiTaskPidGet( L7_uint64 task_id);
+ #endif
+ 
+ /*********************************************************************
+ * @purpose  Task that measures system-wide task utilization.
+ *
+ * @param    numArgs @b{(input)}  Number of arguments passed from caller
+Index: src/l7public/api/sysapi.h
+===================================================================
+--- src/l7public/api/sysapi.h	(revision 7768)
++++ src/l7public/api/sysapi.h	(working copy)
+@@ -117,13 +117,13 @@ typedef struct mbuf_history_s
+ typedef struct
+ {
+   L7_uint32   applSpecVar;                 /* application specific use */
+   L7_uchar8  *bufStart;
+   L7_uint32   bufLength;
+   void       *osBuffer;
+-  L7_uint32   taskId;
++  L7_uint64   taskId;
+   L7_uint32   timeStamp;
+   L7_BOOL     rxBuffer;  /* set to L7_TRUE if this buffer was allocated on Rx side */
+   L7_BOOL     in_use;    /* Buffer is curently allocated. */
+   L7_uint32   rxCode;    /* indicates why the pkt was received */
+   L7_uchar8   last_file[16]; /* File name that touched the buffer last (debug) */
+   L7_uint32   last_line;   /* Line number that touched the buffer last (debug) */
+@@ -196,13 +196,13 @@ typedef enum
+  }                                                            \
+ }
+ 
+ /* L7 NET MBUF MACRO: */
+ /* Get a aligned NET MBUF - netMbufHandle output */
+ 
+-#define SYSAPI_BUF_ALIGN(x, align)  (((L7_uint32) (x) + (align - 1)) & ~(align - 1))
++#define SYSAPI_BUF_ALIGN(x, align)  ((PTR_TO_UINT64(x) + (align - 1)) & ~(align - 1))
+ 
+ #define SYSAPI_NET_ALIGN_MBUF_GET(netMbufHandle,__ALIGN_TYPE__)         \
+ {                                                                       \
+   netMbufHandle = sysapiNetMbufAlignGet(__FILE__,__LINE__,__ALIGN_TYPE__); \
+   if (netMbufHandle == L7_NULL)                                         \
+   {                                                                     \
+@@ -242,42 +242,42 @@ typedef enum
+ 
+ 
+ 
+ /* L7 NET MBUF MACRO: */
+ /* Get data pointer for a NET MBUF - netMbufHandle input, dataStart output */
+ #define SYSAPI_NET_MBUF_GET_DATASTART(netMbufHandle, dataStart) \
+- dataStart = ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufStart
++ dataStart = ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufStart
+ 
+ 
+ 
+ /* L7 NET MBUF MACRO: */
+ /* Set data pointer for a NET MBUF - netMbufHandle input, dataStart input */
+ #define SYSAPI_NET_MBUF_SET_DATASTART(netMbufHandle, dataStart) \
+- ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufStart = dataStart
++ ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufStart = dataStart
+ 
+ 
+ 
+ /* L7 NET MBUF MACRO: */
+ /* Get data length for a NET MBUF - netMbufHandle input, dataLength output */
+ #define SYSAPI_NET_MBUF_GET_DATALENGTH(netMbufHandle, dataLength) \
+- dataLength = ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufLength
++ dataLength = ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufLength
+ 
+ 
+ 
+ /* L7 NET MBUF MACRO: */
+ /* Set data length for a NET MBUF - netMbufHandle input, dataLength input */
+ #define SYSAPI_NET_MBUF_SET_DATALENGTH(netMbufHandle, dataLength) \
+- ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufLength = dataLength
++ ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufLength = dataLength
+ 
+ /* Set MBUF location */
+ #define SYSAPI_NET_MBUF_SET_LOC(netMbufHandle, loc) \
+- ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->mbufLoc = loc
++ ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->mbufLoc = loc
+ 
+ /* Get MBUF location */
+ #define SYSAPI_NET_MBUF_GET_LOC(netMbufHandle) \
+-  ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->mbufLoc
++  ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->mbufLoc
+ 
+ 
+ /* Align buffer to 4 byte boundary  */
+ 
+ /**************************************************************************
+ *
+@@ -512,13 +512,13 @@ void sysapiWriteConfigToFlashStart();
+ *
+ * @notes    Use the Mutex semaphore to inhibit global variable corruption
+ *
+ * @end
+ *
+ *************************************************************************/
+-L7_uint32 *sysapiMbufGet(L7_BOOL isRx );
++L7_uint64 *sysapiMbufGet(L7_BOOL isRx );
+ 
+ /**************************************************************************
+ *
+ * @purpose  Return an mbuf to the mbuf pool
+ *
+ * @param    *mbuf ptr to the mbuf to return
+@@ -529,13 +529,13 @@ L7_uint32 *sysapiMbufGet(L7_BOOL isRx );
+ *
+ * @notes    Use the Mutex semaphore to inhibit global variable corruption
+ *
+ * @end
+ *
+ *************************************************************************/
+-void      sysapiMbufFree( L7_uint32 *mbuf, L7_BOOL isRx );
++void      sysapiMbufFree( L7_uint64 *mbuf, L7_BOOL isRx );
+ 
+ /**************************************************************************
+ *
+ * @purpose  General purpose printf routine
+ *
+ * @param    none
+@@ -1716,13 +1716,13 @@ void sysapiTxtCfgValidSet(L7_BOOL val);
+ 
+ #include "transfer_exports.h"
+ 
+ typedef struct
+ {
+   L7_uint32 util;
+-  L7_uint32 taskId;
++  L7_uint64 taskId;
+ } cpuTaskUtilSort_t;
+ 
+ typedef struct
+ {
+   /* Time period (secs) over which cpu utilization is being measured. 0 indicates
+    * that this time-period is not active.
+@@ -1739,13 +1739,13 @@ typedef struct
+   L7_BOOL   firstAvgDone; 
+   
+ } cpuPeriodUtilInfo_t;
+ 
+ typedef struct
+ {
+-  L7_int32 taskId;
++  L7_uint64 taskId;
+ 
+   /* Indicates that the task entry needs to be aged out as task has been deleted */
+   L7_BOOL  pendingAge;
+ 
+   /* Number of time-periods being monitored for the task */
+   L7_int32 numPeriods;
+@@ -1783,14 +1783,14 @@ typedef struct
+ } sysapiTotalCpuUtil_t;
+ 
+ 
+ void sysapiCpuUtilLockTake(void);
+ void sysapiCpuUtilLockGive(void);
+ void sysapiTaskCpuUtilTableSort();
+-L7_BOOL sysapiTaskCpuUtilTableFind(L7_int32 taskId, L7_uint32 *index);
+-L7_uint32 sysapiTaskCpuUtilTableInsert(L7_int32 taskId);
++L7_BOOL sysapiTaskCpuUtilTableFind(L7_uint64 taskId, L7_uint32 *index);
++L7_uint32 sysapiTaskCpuUtilTableInsert(L7_uint64 taskId);
+ L7_BOOL sysapiCpuUtilMonitorActive();
+ void sysapiCpuUtilTaskAge(void);
+ void sysapiTaskCpuUtilUpdate(L7_uint32 taskIdx, L7_int32 scaledUtil);
+ void sysapiTotalCpuUtilUpdate(L7_int32 scaledUtil);
+ L7_RC_t sysapiTotalCpuUtilTablePeriodInsert(L7_uint32 risingPeriod, 
+                                             L7_uint32 risingThreshold,
+Index: src/l7public/api/unitmgr_api.h
+===================================================================
+--- src/l7public/api/unitmgr_api.h	(revision 7768)
++++ src/l7public/api/unitmgr_api.h	(working copy)
+@@ -1029,13 +1029,13 @@ L7_RC_t unitMgrEventLogGet(L7_uint32 uni
+ *
+ * @notes none
+ *
+ * @end
+ *
+ *********************************************************************/
+-L7_uint32 unitMgrEventLogEntryNextGet(L7_uint32 UnitIndex, L7_uint32 ptr, L7_char8 *pstring);
++L7_uint32 unitMgrEventLogEntryNextGet(L7_uint32 UnitIndex, L7_uint64 ptr, L7_char8 *pstring);
+ 
+ /*********************************************************************
+ * @purpose  Will propagate configuration files to other connected units
+ *
+ * @param    cfg_type        Type of config file being propagated
+ *
+Index: src/l7public/common/datatypes.h
+===================================================================
+--- src/l7public/common/datatypes.h	(revision 7768)
++++ src/l7public/common/datatypes.h	(working copy)
+@@ -85,14 +85,14 @@ typedef double          L7_double64;
+  *  - Useful for loop indicies, etc.
+  *  - Do not use for variables whose memory footprint size must be tightly controlled.
+  */
+ typedef int             L7_int;
+ typedef unsigned int    L7_uint;
+ 
+-typedef L7_uint32       L7_netBufHandle;
+-typedef L7_uint32       L7_netBlockHandle;
++typedef L7_uint64       L7_netBufHandle;
++typedef L7_uint64       L7_netBlockHandle;
+ 
+ /* Represents a 64 bit unsigned integer. */
+ typedef struct
+ {
+   L7_uint32   high;
+   L7_uint32   low;
+@@ -135,28 +135,30 @@ typedef enum
+ 
+ 
+ #ifdef __cplusplus
+ typedef L7_RC_t (*L7_FUNCPTR_t) (...); /* ptr to funct returning L7_RC */
+ typedef void (*L7_VOIDFUNCPTR_t) (...); /* ptr to fcn rtrning void  */
+ #else
+-typedef L7_RC_t (*L7_FUNCPTR_t) (); /* ptr to function returning L7_RC*/
+-typedef void (*L7_VOIDFUNCPTR_t) (); /* ptr to fcn rtrning void  */
++typedef L7_RC_t (*L7_FUNCPTR_t) ( ); /* ptr to function returning L7_RC*/
++typedef void (*L7_VOIDFUNCPTR_t) ( ); /* ptr to fcn rtrning void  */
+ #endif			/* _cplusplus */
+ 
+ #ifdef __cplusplus
+   #define EXT_API extern "C"
+ #else
+   #define EXT_API extern
+ #endif
+ /* For Linux we need to define FUNCPTR type.
+ */
+ #if defined(_L7_OS_LINUX_) || defined(_L7_OS_ECOS_)
+   #ifdef __cplusplus
+ typedef L7_int32    (*L7_FUNCPTR) (...); 
++typedef L7_uint64   (*L7_FUNCPTR64) (...); 
+   #else
+-typedef L7_int32    (*L7_FUNCPTR) (); 
++typedef L7_int32    (*L7_FUNCPTR) ( ); 
++typedef L7_uint64   (*L7_FUNCPTR64) ( ); 
+   #endif
+ #endif
+ #ifdef L7_METRO_FLEX_PACKAGE
+ #ifdef L7_DOT1AD_PACKAGE
+ typedef L7_RC_t (*fNimSetIntfAdminState)(L7_uint32, L7_uint32);
+ #endif
+Index: src/l7public/common/local.h
+===================================================================
+--- src/l7public/common/local.h	(revision 7768)
++++ src/l7public/common/local.h	(working copy)
+@@ -15,13 +15,13 @@
+  *
+  * ********************************************************************/
+ 
+ #ifndef local_h
+ #define local_h
+ 
+-
++#include "datatypes.h"
+ 
+ /* List of predefined OS symbols used further for RTOS selection
+    0 = no operating system
+    2 = VxWorks
+    9 = Linux
+  */
+@@ -370,23 +370,27 @@
+ /*
+  * The Basic Clock is hardware dependent. It may occupy less then the
+  * sizeof(ulng) bytes. The mask is used to handle the wrap around.
+  * For example, if the BCLOCK timer has 16 bits the mask is 0xffff.
+  */
+   #ifndef BCLOCK_MASK
++  #ifdef PTRS_ARE_64BITS
++    #define BCLOCK_MASK 0xffffffffffffffff
++  #else
+     #define BCLOCK_MASK 0xffffffff
+   #endif
++  #endif
+ 
+ #endif /* L7_BCLOCK */
+ 
+ /*-------------------------------------------------------------------------------*/
+ /* The following constant should match pointer size on
+  * the given h/w / s/w platform.
+  */
+ #ifndef POINTER_SIZE
+-  #define POINTER_SIZE       4
++  #define POINTER_SIZE  WORD_SIZE
+ #endif
+ 
+ #ifndef L7_CORE_CPU
+   #define L7_CORE_CPU   PCSIM
+ #endif
+ 
+Index: src/l7public/common/log.h
+===================================================================
+--- src/l7public/common/log.h	(revision 7768)
++++ src/l7public/common/log.h	(working copy)
+@@ -456,13 +456,13 @@ extern void l7_log(L7_LOG_SEVERITY_t sev
+ * @end
+ *********************************************************************/
+ 
+ 
+ extern void logmsg(L7_LOG_FACILITY_t facility, L7_LOG_SEVERITY_t severity,
+                    L7_COMPONENT_IDS_t component, L7_clocktime ttime, L7_uint32 stk,
+-                   L7_uint32 tid, L7_char8 * fileName, L7_uint32 line, L7_char8 * nfo);
++                   L7_uint64 tid, L7_char8 * fileName, L7_uint32 line, L7_char8 * nfo);
+ 
+ /*********************************************************************
+ * @purpose  Log error and reset the box.
+ *
+ * @param    error_code - 32-bit error code.
+ * @param    file_name  - File where the error ocurred.
+Index: src/l7public/common/log_ext.h
+===================================================================
+--- src/l7public/common/log_ext.h	(revision 7768)
++++ src/l7public/common/log_ext.h	(working copy)
+@@ -47,13 +47,13 @@ extern "C" {
+ */
+   struct logformat_event
+   {
+     unsigned long entry_format;
+     unsigned char file_name[LOG_FILE_NAME_SIZE];
+     unsigned long line_number;
+-    unsigned long task_id;
++    unsigned long long task_id;
+     unsigned long error_code;
+     time_t        time_stamp; /* Number of seconds since IPL */
+   };
+ 
+ /* This structure is used to report processor faults.
+ */
+@@ -112,13 +112,13 @@ extern void Log_Init ( unsigned long fla
+ * @comments for debugging purposes
+ *     
+ * @end
+ *
+ *************************************************************************/
+ extern L7_uint32 L7_event_log_get_next (struct logformat_event *logPtr, 
+-                                        L7_uint32 index, L7_char8 *pstring);
++                                        L7_uint64 index, L7_char8 *pstring);
+ 
+ 
+ 
+ 
+ #ifdef __cplusplus
+ }
+Index: src/l7public/common/registry.h
+===================================================================
+--- src/l7public/common/registry.h	(revision 7768)
++++ src/l7public/common/registry.h	(working copy)
+@@ -100,12 +100,13 @@ typedef enum
+ 
+ typedef enum
+ {
+   U8_ENTRY=1, /* entry contains an 8 bit value */
+   U16_ENTRY,  /* entry contains a 16 bit value */
+   U32_ENTRY,  /* entry contains a 32 bit value */
++  U64_ENTRY,  /* entry contains a 64 bit value */
+   MAC_ENTRY,  /* entry contains a ptr to a MAC address */
+   STR_ENTRY,  /* entry contains a ptr to a NULL terminated string */
+   PORT_ENTRY, /* entry contains a ptr to a slot[x].port_registry struct */
+   SLOT_ENTRY, /* entry contains a ptr to a slot[x].slot_registry struct */
+   IGNORE_SVC_PORT,
+   LAST_REG_ENTRY_TYPE
+Index: src/l7public/porting/usmdb_log_api.h
+===================================================================
+--- src/l7public/porting/usmdb_log_api.h	(revision 7768)
++++ src/l7public/porting/usmdb_log_api.h	(working copy)
+@@ -1277,13 +1277,13 @@ L7_RC_t usmDbLogMsgPersistentRemoteRetri
+ *
+ * @notes none
+ *
+ * @end
+ *
+ *********************************************************************/
+-L7_uint32 usmDbLogEventLogEntryNextGet(L7_uint32 UnitIndex, L7_uint32 ptr, L7_char8 *pstring);
++L7_uint32 usmDbLogEventLogEntryNextGet(L7_uint32 UnitIndex, L7_uint64 ptr, L7_char8 *pstring);
+ 
+ 
+ /**********************************************************************
+ * @purpose  TO set the email Alerting Admin status.
+ *
+ * @param    unitIndex @b{(input)}  the unit index

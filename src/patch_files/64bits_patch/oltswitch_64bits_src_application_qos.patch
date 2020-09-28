@@ -1,0 +1,1243 @@
+Index: src/application/qos/acl/acl.c
+===================================================================
+--- src/application/qos/acl/acl.c	(revision 7768)
++++ src/application/qos/acl/acl.c	(working copy)
+@@ -5871,26 +5871,26 @@ L7_RC_t aclTlvParse(L7_tlv_t *pTlv, L7_u
+     return L7_SUCCESS;
+ 
+   /* print a title line */
+   if (intIfNum != 0)
+   {
+     ACL_PRT(msgLvlReqd,
+-            "\nParsing TLV at location 0x%8.8x (intf %u, dir %u):\n\n",
+-            (L7_uint32)pTlv, intIfNum, direction);
++            "\nParsing TLV at location 0x%llx (intf %u, dir %u):\n\n",
++            PTR_TO_UINT64(pTlv), intIfNum, direction);
+   }
+   else if (vlanId != 0)
+   {
+     ACL_PRT(msgLvlReqd,
+-            "\nParsing TLV at location 0x%8.8x (vlan %u, dir %u):\n\n",
+-            (L7_uint32)pTlv, vlanId, direction);
++            "\nParsing TLV at location 0x%llx (vlan %u, dir %u):\n\n",
++            PTR_TO_UINT64(pTlv), vlanId, direction);
+   }
+   else
+   {
+     ACL_PRT(msgLvlReqd,
+-            "\nParsing TLV at location 0x%8.8x:\n\n",
+-            (L7_uint32)pTlv);
++            "\nParsing TLV at location 0x%llx:\n\n",
++            PTR_TO_UINT64(pTlv));
+   }
+ 
+   /* use the TLV utility to traverse the TLV
+    * (it uses our designated show function to display the TLV contents)
+    */
+   if (tlvParse(pTlv, aclTlvEntryDisplay) != L7_SUCCESS)
+@@ -10028,14 +10028,14 @@ L7_RC_t aclSemaTake(void *semId, L7_int3
+   L7_RC_t       rc;
+ 
+   rc = osapiSemaTake(semId, timeout);
+   if (rc != L7_SUCCESS)
+   {
+     l7utilsFilenameStrip(&file);
+-    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Semaphore take failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
+-            file, line, rc, (L7_uint32)semId);
++    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Semaphore take failure for file %s:%lu, rc=%u, id=%p\n",
++            file, line, rc, semId);
+   }
+   return rc;
+ }
+ 
+ /**************************************************************************
+ * @purpose  Give an ACL semaphore
+@@ -10059,14 +10059,14 @@ L7_RC_t aclSemaGive(void *semId, char *f
+   L7_RC_t       rc;
+ 
+   rc = osapiSemaGive(semId);
+   if (rc != L7_SUCCESS)
+   {
+     l7utilsFilenameStrip(&file);
+-    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Semaphore give failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
+-            file, line, rc, (L7_uint32)semId);
++    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Semaphore give failure for file %s:%lu, rc=%u, id=%p\n",
++            file, line, rc, semId);
+   }
+   return rc;
+ }
+ 
+ /**************************************************************************
+ * @purpose  Take an ACL read lock
+@@ -10096,14 +10096,14 @@ L7_RC_t aclReadLockTake(osapiRWLock_t rw
+   L7_RC_t       rc;
+ 
+   rc = osapiReadLockTake(rwlock, timeout);
+   if (rc != L7_SUCCESS)
+   {
+     l7utilsFilenameStrip(&file);
+-    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Read lock take failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
+-            file, line, rc, (L7_uint32)rwlock.handle);
++    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Read lock take failure for file %s:%lu, rc=%u, id=%p\n",
++            file, line, rc, rwlock.handle);
+   }
+   return rc;
+ }
+ 
+ /**************************************************************************
+ * @purpose  Give an ACL read lock
+@@ -10127,14 +10127,14 @@ L7_RC_t aclReadLockGive(osapiRWLock_t rw
+   L7_RC_t       rc;
+ 
+   rc = osapiReadLockGive(rwlock);
+   if (rc != L7_SUCCESS)
+   {
+     l7utilsFilenameStrip(&file);
+-    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Read lock give failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
+-            file, line, rc, (L7_uint32)rwlock.handle);
++    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Read lock give failure for file %s:%lu, rc=%u, id=%p\n",
++            file, line, rc, rwlock.handle);
+   }
+   return rc;
+ }
+ 
+ /**************************************************************************
+ * @purpose  Take an ACL write lock
+@@ -10164,14 +10164,14 @@ L7_RC_t aclWriteLockTake(osapiRWLock_t r
+   L7_RC_t       rc;
+ 
+   rc = osapiWriteLockTake(rwlock, timeout);
+   if (rc != L7_SUCCESS)
+   {
+     l7utilsFilenameStrip(&file);
+-    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Write lock take failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
+-            file, line, rc, (L7_uint32)rwlock.handle);
++    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Write lock take failure for file %s:%lu, rc=%u, id=%p\n",
++            file, line, rc, rwlock.handle);
+   }
+   return rc;
+ }
+ 
+ /**************************************************************************
+ * @purpose  Give an ACL write lock
+@@ -10195,14 +10195,14 @@ L7_RC_t aclWriteLockGive(osapiRWLock_t r
+   L7_RC_t       rc;
+ 
+   rc = osapiWriteLockGive(rwlock);
+   if (rc != L7_SUCCESS)
+   {
+     l7utilsFilenameStrip(&file);
+-    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Write lock give failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
+-            file, line, rc, (L7_uint32)rwlock.handle);
++    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Write lock give failure for file %s:%lu, rc=%u, id=%p\n",
++            file, line, rc, rwlock.handle);
+   }
+   return rc;
+ }
+ 
+ 
+ /*********************************************************************
+Index: src/application/qos/acl/acl_api.c
+===================================================================
+--- src/application/qos/acl/acl_api.c	(revision 7768)
++++ src/application/qos/acl/acl_api.c	(working copy)
+@@ -5449,14 +5449,14 @@ static L7_RC_t aclCommonCallbackTableSho
+ 
+       if (cnfgrApiComponentMnemonicGet(pCbEntry->compId, compIdStr) != L7_SUCCESS)
+       {
+         osapiSnprintf(compIdStr, sizeof(compIdStr), "<unknown>");
+       }
+       ACL_PRT(msgLvlReqd,
+-              " [%2u] funcPtr=0x%8.8x comp=%-*s descr=%s\n",
+-              i, (L7_uint32)pCbEntry->funcPtr, sizeof(compIdStr), compIdStr, pCbEntry->displayStr);
++              " [%2u] funcPtr=0x%llx comp=%-*s descr=%s\n",
++              i, PTR_TO_UINT64(pCbEntry->funcPtr), sizeof(compIdStr), compIdStr, pCbEntry->displayStr);
+     }
+   } /* endfor */
+ 
+   ACL_PRT(msgLvlReqd, "\n");
+ 
+   if (ACL_READ_LOCK_GIVE(aclRwLock) != L7_SUCCESS)
+Index: src/application/qos/acl/acl_cluster.c
+===================================================================
+--- src/application/qos/acl/acl_cluster.c	(revision 7768)
++++ src/application/qos/acl/acl_cluster.c	(working copy)
+@@ -53,13 +53,13 @@ static L7_ushort16        aclRxCount = 0
+ static L7_ushort16        aclMacRxCount = 0;
+ static L7_uint32          aclRxRuleCount = 0;    /* total rules received to verify against L7_ACL_MAX_RULES */
+ static L7_BOOL            aclRxInProg = L7_FALSE; /* indicates Rx operation currently in progress */
+ static L7_BOOL            aclRxError = L7_FALSE; /* indicates unrecoverable error receiving, drop remaining messages */
+ 
+ 
+-static L7_int32 aclClusterTaskId = L7_ERROR;
++static L7_uint64 aclClusterTaskId = L7_ERROR;
+ static void    *aclClusterQueue  = L7_NULLPTR;
+ static L7_BOOL  aclClusterDebug  = L7_FALSE;
+ 
+ /*********************************************************************
+ * @purpose  Check if room in message buffer to add IE, send and clear
+ *           buffer when max message size is reached.
+Index: src/application/qos/acl/acl_cnfgr.c
+===================================================================
+--- src/application/qos/acl/acl_cnfgr.c	(revision 7768)
++++ src/application/qos/acl/acl_cnfgr.c	(working copy)
+@@ -31,14 +31,14 @@
+ #include "dtlapi.h"
+ #include "dtl_acl.h"
+ #include "clustering_api.h"
+ #include "acl_cluster.h"
+ 
+ aclCnfgrState_t aclCnfgrState = ACL_PHASE_INIT_0;
+-L7_int32        aclLogTaskId_g = L7_ERROR;      /* this is what osapi returns */
+-L7_int32        aclEventTaskId_g = L7_ERROR;  /* this is what osapi returns */ 
++L7_uint64       aclLogTaskId_g = L7_ERROR;      /* this is what osapi returns */
++L7_uint64       aclEventTaskId_g = L7_ERROR;  /* this is what osapi returns */ 
+ /* ACL Queue to post event notifications
+  * currently this is used for time range notifications 
+ */
+ void            *aclEventQueue = L7_NULLPTR; 
+ /* ACL Time Range Table */
+ aclTRTableEntry_t *aclTimeRangeTable = L7_NULLPTR;
+@@ -270,13 +270,13 @@ void aclApiCnfgrCommand(L7_CNFGR_CMD_DAT
+ L7_RC_t aclCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
+                                    L7_CNFGR_ERR_RC_t   *pReason )
+ {
+   L7_RC_t aclRC;
+   L7_RC_t maxIntf;
+   L7_RC_t maxVlan;
+-  L7_RC_t i, j, k;
++  int i, j, k;
+ 
+   *pResponse  = L7_CNFGR_CMD_COMPLETE;
+   *pReason    = 0;
+   aclRC       = L7_SUCCESS;
+   
+   maxIntf = platIntfMaxCountGet();
+Index: src/application/qos/acl/acl_migrate.c
+===================================================================
+--- src/application/qos/acl/acl_migrate.c	(revision 7768)
++++ src/application/qos/acl/acl_migrate.c	(working copy)
+@@ -355,18 +355,18 @@ aclMigrateConfigData(L7_uint32 oldVer, L
+           (sizeof(pCfgCur->cfgParms.aclMsgLvl) != sizeof(pCfgV6->cfgParms.aclMsgLvl)))
+       {
+         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID,
+                 "Configuration structure size mismatch.  Building default configuration.\n " \
+                       "sizeof(pCfgCur->cfgParms.aclIntfCfgData) = %u, sizeof(pCfgV6->cfgParms.aclIntfCfgData) = %u\n" \
+                       "sizeof(pCfgCur->cfgParms.aclVlanCfgData) = %u, sizeof(pCfgV6->cfgParms.aclVlanCfgData) = %u\n",
+-                      sizeof(pCfgCur->cfgParms.aclIntfCfgData), sizeof(pCfgV6->cfgParms.aclIntfCfgData),
+-                      sizeof(pCfgCur->cfgParms.aclVlanCfgData), sizeof(pCfgV6->cfgParms.aclVlanCfgData));
++                      (L7_uint32) sizeof(pCfgCur->cfgParms.aclIntfCfgData), (L7_uint32) sizeof(pCfgV6->cfgParms.aclIntfCfgData),
++                      (L7_uint32) sizeof(pCfgCur->cfgParms.aclVlanCfgData), (L7_uint32) sizeof(pCfgV6->cfgParms.aclVlanCfgData));
+ #ifdef PROD_USE_BINARY_CONFIGURATION
+         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID,
+                 "sizeof(pCfgCur->cfgParms.aclData) = %u, sizeof(pCfgV6->cfgParms.aclData) = %u\n",
+-                      sizeof(pCfgCur->cfgParms.aclData), sizeof(pCfgV6->cfgParms.aclData));
++                      (L7_uint32) sizeof(pCfgCur->cfgParms.aclData), (L7_uint32) sizeof(pCfgV6->cfgParms.aclData));
+ #endif
+         buildDefault = L7_TRUE;
+       }
+       else
+       {
+ #ifdef PROD_USE_BINARY_CONFIGURATION
+Index: src/application/qos/diffserv/base/diffserv_callback.c
+===================================================================
+--- src/application/qos/diffserv/base/diffserv_callback.c	(revision 7768)
++++ src/application/qos/diffserv/base/diffserv_callback.c	(working copy)
+@@ -138,14 +138,14 @@ void diffServCallbackFini(void)
+ 
+     if (pDiffServCallbackInfo_g->semId != L7_NULLPTR)
+     {
+       if (osapiSemaDelete(pDiffServCallbackInfo_g->semId) != L7_SUCCESS)
+       {
+         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
+-                "%s: Error freeing callback table semaphore (0x%8.8x)\n",
+-                __FUNCTION__, (L7_uint32)pDiffServCallbackInfo_g->semId);
++                "%s: Error freeing callback table semaphore (%p)\n",
++                __FUNCTION__, pDiffServCallbackInfo_g->semId);
+       }
+     }
+ 
+     osapiFree(L7_FLEX_QOS_DIFFSERV_COMPONENT_ID, pDiffServCallbackInfo_g);
+     pDiffServCallbackInfo_g = L7_NULLPTR;
+   }
+@@ -503,14 +503,14 @@ static L7_RC_t dsCommonCallbackTableShow
+ 
+       if (cnfgrApiComponentMnemonicGet(pCbEntry->compId, compIdStr) != L7_SUCCESS)
+       {
+         osapiSnprintf(compIdStr, sizeof(compIdStr), "<unknown>");
+       }
+       DIFFSERV_PRT(msgLvlReqd,
+-              " [%2u] funcPtr=0x%8.8x comp=%-*s descr=%s\n",
+-              i, (L7_uint32)pCbEntry->funcPtr, sizeof(compIdStr), compIdStr, pCbEntry->displayStr);
++              " [%2u] funcPtr=0x%llx comp=%-*s descr=%s\n",
++              i, PTR_TO_UINT64(pCbEntry->funcPtr), sizeof(compIdStr), compIdStr, pCbEntry->displayStr);
+     }
+   } /* endfor */
+ 
+   DIFFSERV_PRT(msgLvlReqd, "\n");
+ 
+   DIFFSERV_SEMA_GIVE(pDiffServCallbackInfo_g->semId);
+Index: src/application/qos/diffserv/base/diffserv_cluster.c
+===================================================================
+--- src/application/qos/diffserv/base/diffserv_cluster.c	(revision 7768)
++++ src/application/qos/diffserv/base/diffserv_cluster.c	(working copy)
+@@ -48,13 +48,13 @@ static L7_BOOL          dsClusterRxCfgMs
+ static dsClusterMsgIe_t dsClusterRxCfgIeExpected  = DS_CLUSTER_MSG_IE_NONE; /* next expected IE in a defined sequence */
+ 
+ /* copy of data received from cluster member switch */
+ static L7_BOOL  dsClusterRxInProg   = L7_FALSE; /* indicates Rx operation currently in progress */
+ static L7_BOOL  dsClusterRxError    = L7_FALSE; /* indicates unrecoverable error receiving, drop remaining messages */
+ 
+-static L7_int32 dsClusterTaskId     = L7_ERROR;
++static L7_uint64 dsClusterTaskId    = L7_ERROR;
+ static void     *dsClusterQueue     = L7_NULLPTR;
+ static L7_BOOL  dsClusterDebug      = L7_FALSE;
+ 
+ static L7_COMPONENT_IDS_t dsCompId  = L7_FLEX_QOS_DIFFSERV_COMPONENT_ID;
+ 
+ static dsClusterTableParms_t dsClusterTableParms[DSMIB_TABLE_ID_TOTAL] =
+@@ -477,13 +477,13 @@ L7_RC_t diffServClusterDebugShow(void)
+   sysapiPrintf("  dsClusterTmpCfg          = %p\n",      dsClusterTmpCfg);
+   sysapiPrintf("  dsClusterRxCfgMsgStarted = %d\n",      dsClusterRxCfgMsgStarted);
+   sysapiPrintf("  dsClusterRxCfgIeExpected = 0x%4.4x\n", dsClusterRxCfgIeExpected);
+   sysapiPrintf("  dsClusterRxInProg        = %d\n",      dsClusterRxInProg);
+   sysapiPrintf("  dsClusterRxError         = %d\n",      dsClusterRxError);
+   sysapiPrintf("  dsClusterTaskId          = 0x%x\n",    dsClusterTaskId);
+-  sysapiPrintf("  dsClusterQueue           = 0x%x\n",    (L7_uint32)dsClusterQueue);
++  sysapiPrintf("  dsClusterQueue           = %p\n",      dsClusterQueue);
+   sysapiPrintf("  dsClusterDebug           = %d\n",      dsClusterDebug);
+   sysapiPrintf("\n");
+   return L7_SUCCESS;
+ }
+ 
+ /*********************************************************************
+Index: src/application/qos/diffserv/base/diffserv_distiller.c
+===================================================================
+--- src/application/qos/diffserv/base/diffserv_distiller.c	(revision 7768)
++++ src/application/qos/diffserv/base/diffserv_distiller.c	(working copy)
+@@ -1737,22 +1737,22 @@ L7_RC_t dsDistillerCtrlShow(void)
+                  "\n\nDiffServ Distiller Ctrl Struct does not exist.\n");
+     return L7_FAILURE;
+   }
+ 
+ 
+   DIFFSERV_PRT(msgLvlReqd,
+-               "\nDisplaying Distiller Ctrl struct from location 0x%8.8x:\n",
+-               (L7_uint32)p);
++               "\nDisplaying Distiller Ctrl struct from location 0x%llx:\n",
++               PTR_TO_UINT64(p));
+ 
+   /* general fields */
+   DIFFSERV_PRT(msgLvlReqd,
+-               "  Service intf OLL tree anchor: 0x%8.8x:\n",
+-               (L7_uint32)p->pOLL);
++               "  Service intf OLL tree anchor: 0x%llx:\n",
++               PTR_TO_UINT64(p->pOLL));
+   DIFFSERV_PRT(msgLvlReqd,
+-               "  OLL mutex semaphore id      : 0x%8.8x:\n",
+-               (L7_uint32)p->ollSemId);
++               "  OLL mutex semaphore id      : 0x%llx:\n",
++               PTR_TO_UINT64(p->ollSemId));
+   DIFFSERV_PRT(msgLvlReqd,
+                "  TLV block handle            : 0x%8.8x:\n",
+                (L7_uint32)p->tlvHandle);
+ 
+   /* policy information */
+   for (i = 1; i <= L7_DIFFSERV_POLICY_LIM; i++)
+Index: src/application/qos/diffserv/base/diffserv_distiller_tlv.c
+===================================================================
+--- src/application/qos/diffserv/base/diffserv_distiller_tlv.c	(revision 7768)
++++ src/application/qos/diffserv/base/diffserv_distiller_tlv.c	(working copy)
+@@ -873,14 +873,13 @@ L7_RC_t dsDstlTlvPolicyDel(L7_uint32 pol
+ 
+         else
+         {
+           /* intf node pointer changed from value we started with */
+           L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
+                   "dsDstlTlvPolicyDel:  Intf node ptr changed unexpectedly "
+-                  "from 0x%8.8x to 0x%8.8x\n", (L7_uint32)pNode,
+-                  (L7_uint32)pNodeCheck);
++                  "from %p to %p\n", pNode, pNodeCheck);
+           rc = L7_FAILURE;
+         }
+ 
+         DIFFSERV_SEMA_GIVE(pDsDstlCtrl->ollSemId);
+ 
+       } /* endif TLV successfully built */
+@@ -3599,19 +3598,19 @@ L7_RC_t dsDstlTlvParse(L7_tlv_t *pTlv, L
+       (pDiffServInfo_g->diffServMsgLvl < msgLvlReqd))
+     return L7_SUCCESS;
+ 
+   /* print a title line */
+   if (intIfNum != 0)
+   {
+-    DIFFSERV_PRT(msgLvlReqd, "\nParsing TLV at location 0x%8.8x (intf %u):\n\n",
+-                 (L7_uint32)pTlv, intIfNum);
++    DIFFSERV_PRT(msgLvlReqd, "\nParsing TLV at location 0x%llx (intf %u):\n\n",
++                 PTR_TO_UINT64(pTlv), intIfNum);
+   }
+   else
+   {
+-    DIFFSERV_PRT(msgLvlReqd, "\nParsing TLV at location 0x%8.8x:\n\n",
+-                 (L7_uint32)pTlv);
++    DIFFSERV_PRT(msgLvlReqd, "\nParsing TLV at location 0x%llx:\n\n",
++                 PTR_TO_UINT64(pTlv));
+   }
+ 
+   /* use the TLV utility to traverse the TLV
+    * (it uses our designated show function to display the TLV contents)
+    */
+   if (tlvParse(pTlv, dsDstlTlvEntryDisplay) != L7_SUCCESS)
+Index: src/application/qos/diffserv/base/diffserv_util.c
+===================================================================
+--- src/application/qos/diffserv/base/diffserv_util.c	(revision 7768)
++++ src/application/qos/diffserv/base/diffserv_util.c	(working copy)
+@@ -179,14 +179,14 @@ void diffServSemaTake(void *semId, L7_in
+   L7_RC_t       rc;
+ 
+   if ((rc = osapiSemaTake(semId, timeout)) != L7_SUCCESS)
+   {
+     l7utilsFilenameStrip(&file);
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
+-            "Semaphore take failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
+-            file, line, rc, (L7_uint32)semId);
++            "Semaphore take failure for file %s:%lu, rc=%u, id=%p\n",
++            file, line, rc, semId);
+   }
+ }
+ 
+ /**************************************************************************
+ * @purpose  Give a semaphore
+ *
+@@ -208,14 +208,14 @@ void diffServSemaGive(void *semId, char
+   L7_RC_t       rc;
+ 
+   if ((rc = osapiSemaGive(semId)) != L7_SUCCESS)
+   {
+     l7utilsFilenameStrip(&file);
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
+-            "Semaphore give failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
+-            file, line, rc, (L7_uint32)semId);
++            "Semaphore give failure for file %s:%lu, rc=%u, id=%p\n",
++            file, line, rc, semId);
+   }
+ }
+ 
+ /*********************************************************************
+ * @purpose  Show the DiffServ feature support list for this platform
+ *
+Index: src/application/qos/diffserv/prvtmib/diffserv_class_api.c
+===================================================================
+--- src/application/qos/diffserv/prvtmib/diffserv_class_api.c	(revision 7768)
++++ src/application/qos/diffserv/prvtmib/diffserv_class_api.c	(working copy)
+@@ -262,13 +262,13 @@ L7_RC_t diffServClassCreate(L7_uint32 cl
+   /* make sure change gets picked up when config is saved */
+   if (dataChanged == L7_TRUE)
+     pDiffServCfgData_g->cfgHdr.dataChanged = L7_TRUE;
+ 
+   DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
+                           classIndex, 0, 0,
+-                          (L7_uint32)pRow, (L7_uchar8)rc,
++                          PTR_TO_UINT32(pRow), (L7_uchar8)rc,
+                           (L7_uchar8)activateRow);
+ 
+   return rc;
+ }
+ 
+ /*************************************************************************
+@@ -409,13 +409,13 @@ L7_RC_t diffServClassDelete(L7_uint32 cl
+     DIFFSERV_SEMA_GIVE(dsmibIndexSemId);
+ 
+   } while (0);
+ 
+   DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
+                           classIndex, 0, 0,
+-                          (L7_uint32)pRow, (L7_uchar8)rc);
++                          PTR_TO_UINT32(pRow), (L7_uchar8)rc);
+ 
+   return rc;
+ }
+ 
+ /*********************************************************************
+ * @purpose  Verify that a Class Table row exists for the specified index
+Index: src/application/qos/diffserv/prvtmib/diffserv_classrule_api.c
+===================================================================
+--- src/application/qos/diffserv/prvtmib/diffserv_classrule_api.c	(revision 7768)
++++ src/application/qos/diffserv/prvtmib/diffserv_classrule_api.c	(working copy)
+@@ -303,13 +303,13 @@ L7_RC_t diffServClassRuleCreate(L7_uint3
+   /* make sure change gets picked up when config is saved */
+   if (dataChanged == L7_TRUE)
+     pDiffServCfgData_g->cfgHdr.dataChanged = L7_TRUE;
+ 
+   DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
+                           classIndex, classRuleIndex, 0,
+-                          (L7_uint32)pRow, (L7_uchar8)rc,
++                          PTR_TO_UINT32(pRow), (L7_uchar8)rc,
+                           (L7_uchar8)activateRow);
+ 
+   return rc;
+ }
+ 
+ /*************************************************************************
+@@ -598,13 +598,13 @@ L7_RC_t dsmibClassRuleDelete(L7_uint32 c
+     /* send callbacks for all policies that reference the affected class */
+     dsmibClassRulePolicyChangeNotify(classIndex);
+   }
+ 
+   DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
+                           classIndex, classRuleIndex, 0,
+-                          (L7_uint32)pRow, (L7_uchar8)rc);
++                          PTR_TO_UINT32(pRow), (L7_uchar8)rc);
+ 
+   return rc;
+ }
+ 
+ /*********************************************************************
+ * @purpose  Verify that a Class Rule Table row exists for the specified indexes
+Index: src/application/qos/diffserv/prvtmib/diffserv_policy_api.c
+===================================================================
+--- src/application/qos/diffserv/prvtmib/diffserv_policy_api.c	(revision 7768)
++++ src/application/qos/diffserv/prvtmib/diffserv_policy_api.c	(working copy)
+@@ -266,13 +266,13 @@ L7_RC_t diffServPolicyCreate(L7_uint32 p
+   /* NOTE: Not sending notify event callbacks here since policy does not
+    *       contain any meaningful instance definition yet.
+    */
+ 
+   DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
+                           policyIndex, 0, 0,
+-                          (L7_uint32)pRow, (L7_uchar8)rc,
++                          PTR_TO_UINT32(pRow), (L7_uchar8)rc,
+                           (L7_uchar8)activateRow);
+ 
+   return rc;
+ }
+ 
+ /*************************************************************************
+@@ -424,13 +424,13 @@ L7_RC_t diffServPolicyDelete(L7_uint32 p
+     /* send notify event callbacks for this policy */
+     diffServDeleteNotify(policyIndex, policyType, policyName);
+   }
+ 
+   DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
+                           policyIndex, 0, 0,
+-                          (L7_uint32)pRow, (L7_uchar8)rc);
++                          PTR_TO_UINT32(pRow), (L7_uchar8)rc);
+ 
+   return rc;
+ }
+ 
+ /*********************************************************************
+ * @purpose  Verify that a Policy Table row exists for the specified index
+Index: src/application/qos/diffserv/prvtmib/diffserv_policyattr_api.c
+===================================================================
+--- src/application/qos/diffserv/prvtmib/diffserv_policyattr_api.c	(revision 7768)
++++ src/application/qos/diffserv/prvtmib/diffserv_policyattr_api.c	(working copy)
+@@ -301,13 +301,13 @@ L7_RC_t diffServPolicyAttrCreate(L7_uint
+   /* make sure change gets picked up when config is saved */
+   if (dataChanged == L7_TRUE)
+     pDiffServCfgData_g->cfgHdr.dataChanged = L7_TRUE;
+ 
+   DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
+                           policyIndex, policyInstIndex, policyAttrIndex,
+-                          (L7_uint32)pRow, (L7_uchar8)rc,
++                          PTR_TO_UINT32(pRow), (L7_uchar8)rc,
+                           (L7_uchar8)activateRow);
+ 
+   return rc;
+ }
+ 
+ /*************************************************************************
+@@ -592,13 +592,13 @@ L7_RC_t dsmibPolicyAttrDelete(L7_uint32
+      */
+     diffServChangeNotify(policyIndex, DIFFSERV_EVENT_MODIFY, L7_NULLPTR);
+   }
+ 
+   DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
+                           policyIndex, policyInstIndex, policyAttrIndex,
+-                          (L7_uint32)pRow, (L7_uchar8)rc);
++                          PTR_TO_UINT32(pRow), (L7_uchar8)rc);
+ 
+   return rc;
+ }
+ 
+ /*********************************************************************
+ * @purpose  Verify that a Policy Attribute Table row exists for the
+Index: src/application/qos/diffserv/prvtmib/diffserv_policyinst_api.c
+===================================================================
+--- src/application/qos/diffserv/prvtmib/diffserv_policyinst_api.c	(revision 7768)
++++ src/application/qos/diffserv/prvtmib/diffserv_policyinst_api.c	(working copy)
+@@ -311,13 +311,13 @@ L7_RC_t diffServPolicyInstCreate(L7_uint
+   /* make sure change gets picked up when config is saved */
+   if (dataChanged == L7_TRUE)
+     pDiffServCfgData_g->cfgHdr.dataChanged = L7_TRUE;
+ 
+   DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
+                           policyIndex, policyInstIndex, 0,
+-                          (L7_uint32)pRow, (L7_uchar8)rc,
++                          PTR_TO_UINT32(pRow), (L7_uchar8)rc,
+                           (L7_uchar8)activateRow);
+ 
+   return rc;
+ }
+ 
+ /*************************************************************************
+@@ -612,13 +612,13 @@ L7_RC_t dsmibPolicyInstDelete(L7_uint32
+      */
+     diffServChangeNotify(policyIndex, DIFFSERV_EVENT_MODIFY, L7_NULLPTR);
+   }
+ 
+   DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
+                           policyIndex, policyInstIndex, 0,
+-                          (L7_uint32)pRow, (L7_uchar8)rc);
++                          PTR_TO_UINT32(pRow), (L7_uchar8)rc);
+ 
+   return rc;
+ }
+ 
+ /*********************************************************************
+ * @purpose  Verify that a Policy-Class Instance Table row exists for the
+Index: src/application/qos/diffserv/prvtmib/diffserv_policyperf_api.c
+===================================================================
+--- src/application/qos/diffserv/prvtmib/diffserv_policyperf_api.c	(revision 7768)
++++ src/application/qos/diffserv/prvtmib/diffserv_policyperf_api.c	(working copy)
+@@ -762,13 +762,13 @@ L7_RC_t dsmibPolicyPerfInCreate(L7_uint3
+     }
+ 
+   } while (0);
+ 
+   DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
+                           policyIndex, policyInstIndex, intIfNum,
+-                          (L7_uint32)pRow, (L7_uchar8)rc,
++                          PTR_TO_UINT32(pRow), (L7_uchar8)rc,
+                           (L7_uchar8)activateRow);
+ 
+   return rc;
+ }
+ 
+ /*************************************************************************
+@@ -864,13 +864,13 @@ L7_RC_t dsmibPolicyPerfInDelete(L7_uint3
+     DIFFSERV_SEMA_GIVE(dsmibIndexSemId);
+ 
+   } while (0);
+ 
+   DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
+                           policyIndex, policyInstIndex, intIfNum,
+-                          (L7_uint32)pRow, (L7_uchar8)rc);
++                          PTR_TO_UINT32(pRow), (L7_uchar8)rc);
+ 
+   return rc;
+ }
+ 
+ /*********************************************************************
+ * @purpose  Obtain pointer to specified Policy-Class Inbound Performance
+@@ -1121,13 +1121,13 @@ L7_RC_t dsmibPolicyPerfOutCreate(L7_uint
+     }
+ 
+   } while (0);
+ 
+   DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
+                           policyIndex, policyInstIndex, intIfNum,
+-                          (L7_uint32)pRow, (L7_uchar8)rc,
++                          PTR_TO_UINT32(pRow), (L7_uchar8)rc,
+                           (L7_uchar8)activateRow);
+ 
+   return rc;
+ }
+ 
+ /*************************************************************************
+@@ -1223,13 +1223,13 @@ L7_RC_t dsmibPolicyPerfOutDelete(L7_uint
+     DIFFSERV_SEMA_GIVE(dsmibIndexSemId);
+ 
+   } while (0);
+ 
+   DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
+                           policyIndex, policyInstIndex, intIfNum,
+-                          (L7_uint32)pRow, (L7_uchar8)rc);
++                          PTR_TO_UINT32(pRow), (L7_uchar8)rc);
+ 
+   return rc;
+ }
+ 
+ /*********************************************************************
+ * @purpose  Obtain pointer to specified Policy-Class Outbound Performance
+Index: src/application/qos/diffserv/prvtmib/diffserv_prvtmib.c
+===================================================================
+--- src/application/qos/diffserv/prvtmib/diffserv_prvtmib.c	(revision 7768)
++++ src/application/qos/diffserv/prvtmib/diffserv_prvtmib.c	(working copy)
+@@ -120,14 +120,14 @@ void diffServPrivateMibFini(void)
+ 
+   if (dsmibIndexSemId != L7_NULLPTR)
+   {
+     if (osapiSemaDelete(dsmibIndexSemId) != L7_SUCCESS)
+     {
+       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
+-              "%s: Error freeing MIB index table semaphore (0x%8.8x)\n",
+-              __FUNCTION__, (L7_uint32)dsmibIndexSemId);
++              "%s: Error freeing MIB index table semaphore (%p)\n",
++              __FUNCTION__, dsmibIndexSemId);
+     }
+     dsmibIndexSemId = L7_NULLPTR;
+   }
+ }
+ 
+ 
+@@ -1103,14 +1103,14 @@ void dsmibAvlCtrlShow(void)
+     allocBytes = (treeHeapElemSize + pCtrl->entrySize) * pCtrl->entryMaxNum;
+     totalBytes += allocBytes;
+ 
+     DIFFSERV_PRT(msgLvlReqd, "\n%s Table:\n", dsmibPrvtTableIdStr[i]);
+     DIFFSERV_PRT(msgLvlReqd, "  maxEnt=%u entSize=%u keySize=%u ",
+                  pCtrl->entryMaxNum, pCtrl->entrySize, pCtrl->entryKeySize);
+-    DIFFSERV_PRT(msgLvlReqd, "pTreeHeap=0x%8.8x pDataHeap=0x%8.8x ",
+-                 (L7_uint32)pCtrl->pTreeHeap, (L7_uint32)pCtrl->pDataHeap);
++    DIFFSERV_PRT(msgLvlReqd, "pTreeHeap=0x%llx pDataHeap=0x%llx ",
++                 PTR_TO_UINT64(pCtrl->pTreeHeap), PTR_TO_UINT64(pCtrl->pDataHeap));
+     DIFFSERV_PRT(msgLvlReqd, "allocBytes=%u\n", allocBytes);
+   }
+   DIFFSERV_PRT(msgLvlReqd, "\nTotal private MIB AVL resource byte allocation:  %u\n\n", totalBytes);
+ }
+ 
+ /*********************************************************************
+Index: src/application/qos/diffserv/prvtmib/diffserv_service_api.c
+===================================================================
+--- src/application/qos/diffserv/prvtmib/diffserv_service_api.c	(revision 7768)
++++ src/application/qos/diffserv/prvtmib/diffserv_service_api.c	(working copy)
+@@ -201,13 +201,13 @@ L7_RC_t diffServServiceCreate(L7_uint32
+   /* make sure change gets picked up when config is saved */
+   if (dataChanged == L7_TRUE)
+     pDiffServCfgData_g->cfgHdr.dataChanged = L7_TRUE;
+ 
+   DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
+                           intIfNum, ifDirection, 0,
+-                          (L7_uint32)pRow, (L7_uchar8)rc,
++                          PTR_TO_UINT32(pRow), (L7_uchar8)rc,
+                           (L7_uchar8)activateRow);
+ 
+   return rc;
+ }
+ 
+ /*************************************************************************
+@@ -340,13 +340,13 @@ L7_RC_t diffServServiceDelete(L7_uint32
+     DIFFSERV_SEMA_GIVE(dsmibIndexSemId);
+ 
+   } while (0);
+ 
+   DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
+                           intIfNum, ifDirection, 0,
+-                          (L7_uint32)pRow, (L7_uchar8)rc);
++                          PTR_TO_UINT32(pRow), (L7_uchar8)rc);
+ 
+   return rc;
+ }
+ 
+ /*********************************************************************
+ * @purpose  Verify that a Service Table row exists for the specified
+Index: src/application/qos/diffserv/stdmib/diffserv_action_api.c
+===================================================================
+--- src/application/qos/diffserv/stdmib/diffserv_action_api.c	(revision 7768)
++++ src/application/qos/diffserv/stdmib/diffserv_action_api.c	(working copy)
+@@ -280,13 +280,13 @@ L7_RC_t diffServActionCreate(L7_uint32
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             actionId, 0, 0,
+-                            (L7_uint32)pActionRow, (L7_uchar8)rc,
++                            PTR_TO_UINT32(pActionRow), (L7_uchar8)rc,
+                             (L7_uchar8)L7_TRUE);
+   }
+ 
+   return rc;
+ }
+ 
+@@ -356,13 +356,13 @@ L7_RC_t diffServActionDelete(dsStdMibRow
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             actionId, 0, 0,
+-                            (L7_uint32)pActionRow, (L7_uchar8)rc);
++                            PTR_TO_UINT32(pActionRow), (L7_uchar8)rc);
+   }
+ 
+   return rc;
+ }
+   
+ /*********************************************************************
+@@ -1169,13 +1169,13 @@ L7_RC_t diffServCountActCreate(L7_uint32
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             countActId, 0, 0,
+-                            (L7_uint32)pCountActRow, (L7_uchar8)rc,
++                            PTR_TO_UINT32(pCountActRow), (L7_uchar8)rc,
+                             (L7_uchar8)L7_TRUE);
+   }
+ 
+   return rc;
+ }
+ 
+@@ -1228,13 +1228,13 @@ L7_RC_t diffServCountActDelete(L7_uint32
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             countActId, 0, 0,                                                
+-                            (L7_uint32)pRow, (L7_uchar8)rc);
++                            PTR_TO_UINT32(pRow), (L7_uchar8)rc);
+   }
+ 
+   return rc;
+ }
+                                                                             
+ /*********************************************************************
+@@ -1637,13 +1637,13 @@ L7_RC_t diffServAssignQueueCreate(L7_uin
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             assignId, 0, 0,
+-                            (L7_uint32)pAssignRow, (L7_uchar8)rc,
++                            PTR_TO_UINT32(pAssignRow), (L7_uchar8)rc,
+                             (L7_uchar8)L7_TRUE);
+   }
+ 
+   return rc;
+ }
+ 
+@@ -1696,13 +1696,13 @@ L7_RC_t diffServAssignQueueDelete(L7_uin
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             assignId, 0, 0,                                                
+-                            (L7_uint32)pRow, (L7_uchar8)rc);
++                            PTR_TO_UINT32(pRow), (L7_uchar8)rc);
+   }
+ 
+   return rc;
+ }
+                                                                             
+ /*********************************************************************
+@@ -2078,13 +2078,13 @@ L7_RC_t diffServRedirectCreate(L7_uint32
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             redirectId, 0, 0,
+-                            (L7_uint32)pRedirectRow, (L7_uchar8)rc,
++                            PTR_TO_UINT32(pRedirectRow), (L7_uchar8)rc,
+                             (L7_uchar8)L7_TRUE);
+   }
+ 
+   return rc;
+ }
+ 
+@@ -2137,13 +2137,13 @@ L7_RC_t diffServRedirectDelete(L7_uint32
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             redirectId, 0, 0,                                                
+-                            (L7_uint32)pRow, (L7_uchar8)rc);
++                            PTR_TO_UINT32(pRow), (L7_uchar8)rc);
+   }
+ 
+   return rc;
+ }
+                                                                             
+ /*********************************************************************
+@@ -2518,13 +2518,13 @@ L7_RC_t diffServMirrorCreate(L7_uint32 p
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             mirrorId, 0, 0,
+-                            (L7_uint32)pMirrorRow, (L7_uchar8)rc,
++                            PTR_TO_UINT32(pMirrorRow), (L7_uchar8)rc,
+                             (L7_uchar8)L7_TRUE);
+   }
+ 
+   return rc;
+ }
+ 
+@@ -2577,13 +2577,13 @@ L7_RC_t diffServMirrorDelete(L7_uint32 m
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             mirrorId, 0, 0,                                                
+-                            (L7_uint32)pRow, (L7_uchar8)rc);
++                            PTR_TO_UINT32(pRow), (L7_uchar8)rc);
+   }
+ 
+   return rc;
+ }
+                                                                             
+ /*********************************************************************
+Index: src/application/qos/diffserv/stdmib/diffserv_clfr_api.c
+===================================================================
+--- src/application/qos/diffserv/stdmib/diffserv_clfr_api.c	(revision 7768)
++++ src/application/qos/diffserv/stdmib/diffserv_clfr_api.c	(working copy)
+@@ -480,13 +480,13 @@ L7_RC_t diffServClfrCreate(dsStdMibRowPt
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             clfrId, 0, 0,
+-                            (L7_uint32)pClfrRow, (L7_uchar8)rc,
++                            PTR_TO_UINT32(pClfrRow), (L7_uchar8)rc,
+                             (L7_uchar8)L7_TRUE);
+   }
+ 
+   return rc;
+ }
+ 
+@@ -551,13 +551,13 @@ L7_RC_t diffServClfrDelete(dsStdMibRowPt
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             clfrId, 0, 0,
+-                            (L7_uint32)pClfrRow, (L7_uchar8)rc);
++                            PTR_TO_UINT32(pClfrRow), (L7_uchar8)rc);
+   }
+ 
+   return rc;
+ }
+ 
+ 
+@@ -941,13 +941,13 @@ L7_RC_t diffServClfrElemCreate(L7_uint32
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             clfrId, clfrElemId, 0,
+-                            (L7_uint32)pClfrElemRow, (L7_uchar8)rc,
++                            PTR_TO_UINT32(pClfrElemRow), (L7_uchar8)rc,
+                             (L7_uchar8)L7_TRUE);
+   }
+ 
+   return rc;
+ }
+ 
+@@ -1023,13 +1023,13 @@ L7_RC_t diffServClfrElemDelete(dsStdMibR
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             clfrId, clfrElemId, 0,
+-                            (L7_uint32)pClfrElemRow, (L7_uchar8)rc);
++                            PTR_TO_UINT32(pClfrElemRow), (L7_uchar8)rc);
+   }
+ 
+   return rc;
+ }
+  
+ /********************************************************************* 
+@@ -1740,13 +1740,13 @@ L7_RC_t diffServAuxMFClfrCreate(dsStdMib
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             auxMFClfrId, 0, 0,
+-                            (L7_uint32)pAuxMFClfrRow, (L7_uchar8)rc,
++                            PTR_TO_UINT32(pAuxMFClfrRow), (L7_uchar8)rc,
+                             (L7_uchar8)L7_TRUE);
+   }
+ 
+   return rc;
+ }
+ 
+@@ -1813,13 +1813,13 @@ L7_RC_t diffServAuxMFClfrDelete(L7_uint3
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             auxMFClfrId, 0, 0,
+-                            (L7_uint32)pAuxMFClfrRow, (L7_uchar8)rc);
++                            PTR_TO_UINT32(pAuxMFClfrRow), (L7_uchar8)rc);
+   }
+ 
+   return rc;
+ }
+ 
+ /*********************************************************************
+Index: src/application/qos/diffserv/stdmib/diffserv_dropper_api.c
+===================================================================
+--- src/application/qos/diffserv/stdmib/diffserv_dropper_api.c	(revision 7768)
++++ src/application/qos/diffserv/stdmib/diffserv_dropper_api.c	(working copy)
+@@ -281,13 +281,13 @@ L7_RC_t diffServAlgDropCreate(L7_uint32
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             algDropId, 0, 0,
+-                            (L7_uint32)pAlgDropRow, (L7_uchar8)rc,
++                            PTR_TO_UINT32(pAlgDropRow), (L7_uchar8)rc,
+                             (L7_uchar8)L7_TRUE);
+   }
+ 
+   return rc;
+ }
+ 
+@@ -363,13 +363,13 @@ L7_RC_t diffServAlgDropDelete(dsStdMibRo
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             algDropId, 0, 0,
+-                            (L7_uint32)pAlgDropRow, (L7_uchar8)rc);
++                            PTR_TO_UINT32(pAlgDropRow), (L7_uchar8)rc);
+   }
+ 
+   return rc;
+ }
+ 
+ /*********************************************************************
+Index: src/application/qos/diffserv/stdmib/diffserv_meter_api.c
+===================================================================
+--- src/application/qos/diffserv/stdmib/diffserv_meter_api.c	(revision 7768)
++++ src/application/qos/diffserv/stdmib/diffserv_meter_api.c	(working copy)
+@@ -269,13 +269,13 @@ L7_RC_t diffServMeterCreate(dsStdMibRowP
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             meterId, 0, 0,
+-                            (L7_uint32)pMeterRow, (L7_uchar8)rc,
++                            PTR_TO_UINT32(pMeterRow), (L7_uchar8)rc,
+                             (L7_uchar8)L7_TRUE);
+   }
+ 
+   return rc;
+ }
+ 
+@@ -348,13 +348,13 @@ L7_RC_t diffServMeterDelete(dsStdMibRowP
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             meterId, 0, 0,
+-                            (L7_uint32)pMeterRow, (L7_uchar8)rc);
++                            PTR_TO_UINT32(pMeterRow), (L7_uchar8)rc);
+   }
+ 
+   return rc;
+ }
+ 
+ /*********************************************************************
+@@ -802,13 +802,13 @@ L7_RC_t diffServTBParamCreate(L7_uint32
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             tbParamId, 0, 0,
+-                            (L7_uint32)pTBParamRow, (L7_uchar8)rc,
++                            PTR_TO_UINT32(pTBParamRow), (L7_uchar8)rc,
+                             (L7_uchar8)L7_TRUE);
+   }
+ 
+   return rc;
+ }
+ 
+@@ -861,13 +861,13 @@ L7_RC_t diffServTBParamDelete(L7_uint32
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             tbParamId, 0, 0,
+-                            (L7_uint32)pTBParamRow, (L7_uchar8)rc);
++                            PTR_TO_UINT32(pTBParamRow), (L7_uchar8)rc);
+   }
+ 
+   return rc;
+ }
+ 
+ /*********************************************************************
+@@ -1277,13 +1277,13 @@ L7_RC_t diffServColorAwareCreate(L7_uint
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             meterId, 0, 0,
+-                            (L7_uint32)pMeterRow, (L7_uchar8)rc,
++                            PTR_TO_UINT32(pMeterRow), (L7_uchar8)rc,
+                             (L7_uchar8)L7_TRUE);
+   }
+ 
+   return rc;
+ }
+ 
+@@ -1336,13 +1336,13 @@ L7_RC_t diffServColorAwareDelete(L7_uint
+   } while (0);
+ 
+   if (DS_TRACE_MODE_ENHANCED() == L7_TRUE)
+   {
+     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
+                             meterId, 0, 0,                                                
+-                            (L7_uint32)pRow, (L7_uchar8)rc);
++                            PTR_TO_UINT32(pRow), (L7_uchar8)rc);
+   }
+ 
+   return rc;
+ }
+                                                                             
+ /*********************************************************************
+Index: src/application/qos/diffserv/stdmib/diffserv_stdmib.c
+===================================================================
+--- src/application/qos/diffserv/stdmib/diffserv_stdmib.c	(revision 7768)
++++ src/application/qos/diffserv/stdmib/diffserv_stdmib.c	(working copy)
+@@ -95,14 +95,14 @@ void diffServStandardMibFini(void)
+   /* delete the semaphore for all standard MIB tables */
+   if (dsStdMibSemId != L7_NULLPTR)
+   {
+     if (osapiSemaDelete(dsStdMibSemId) != L7_SUCCESS)
+     {
+       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
+-              "%s: Error freeing standard MIB index table semaphore (0x%8.8x)\n",
+-              __FUNCTION__, (L7_uint32)dsStdMibSemId);
++              "%s: Error freeing standard MIB index table semaphore (%p)\n",
++              __FUNCTION__, dsStdMibSemId);
+     }
+   }
+ }
+ 
+ /*********************************************************************
+ * @purpose  Reset all DiffServ standard MIB contents to initial state
+@@ -2668,14 +2668,14 @@ void dsStdMibAvlCtrlShow(void)
+     allocBytes = (treeHeapElemSize + pCtrl->entrySize) * pCtrl->entryMaxNum;
+     totalBytes += allocBytes;
+ 
+     DIFFSERV_PRT(msgLvlReqd, "\n%s Table:\n", dsmibStdTableIdStr[i]);
+     DIFFSERV_PRT(msgLvlReqd, "  maxEnt=%u entSize=%u keySize=%u ",
+                  pCtrl->entryMaxNum, pCtrl->entrySize, pCtrl->entryKeySize);
+-    DIFFSERV_PRT(msgLvlReqd, "pTreeHeap=0x%8.8x pDataHeap=0x%8.8x ",
+-                 (L7_uint32)pCtrl->pTreeHeap, (L7_uint32)pCtrl->pDataHeap);
++    DIFFSERV_PRT(msgLvlReqd, "pTreeHeap=0x%llx pDataHeap=0x%llx ",
++                 PTR_TO_UINT64(pCtrl->pTreeHeap), PTR_TO_UINT64(pCtrl->pDataHeap));
+     DIFFSERV_PRT(msgLvlReqd, "allocBytes=%u\n", allocBytes);
+   }
+   DIFFSERV_PRT(msgLvlReqd, "\nTotal standard MIB AVL resource byte allocation:  %u\n\n", totalBytes);
+ }
+ 
+ /*********************************************************************
+Index: src/application/qos/iscsi/core/iscsi.c
+===================================================================
+--- src/application/qos/iscsi/core/iscsi.c	(revision 7768)
++++ src/application/qos/iscsi/core/iscsi.c	(working copy)
+@@ -35,13 +35,13 @@
+ #include "iscsi_ckpt.h"
+ #endif
+ 
+ extern iscsiCfgData_t  *iscsiCfgData;
+ 
+ void                   *iscsiQueue        = L7_NULLPTR;
+-L7_int32                iscsiTaskId;
++L7_uint64               iscsiTaskId;
+ static void            *iscsiSema         = L7_NULL;
+ L7_uint32               iscsiDebug = ISCSI_TRACE_ALWAYS_ON;
+ 
+ void iscsiImpConnectionDelete(L7_uint32 connectionId);
+ void iscsiImpSessionDelete(L7_uint32 sessionId);
+ 
+Index: src/application/qos/iscsi/core/iscsi_cnfgr.c
+===================================================================
+--- src/application/qos/iscsi/core/iscsi_cnfgr.c	(revision 7768)
++++ src/application/qos/iscsi/core/iscsi_cnfgr.c	(working copy)
+@@ -34,13 +34,13 @@
+ #include "cli_txt_cfg_api.h"
+ #endif
+ 
+ /* externs */
+ extern iscsiCfgData_t      *iscsiCfgData;
+ extern void                *iscsiQueue;
+-extern L7_uint32            iscsiTaskId;
++extern L7_uint64            iscsiTaskId;
+ extern L7_uint32            iscsiPacketBufferPoolId;
+ extern osapiRWLock_t        iscsiCfgRWLock;
+ 
+ /* global variables */
+ iscsiCnfgrState_t           iscsiCnfgrState_g = ISCSI_PHASE_INIT_0;
+ L7_BOOL                     iscsiWarmStart;
+Index: src/application/qos/iscsi/core/iscsi_control.c
+===================================================================
+--- src/application/qos/iscsi/core/iscsi_control.c	(revision 7768)
++++ src/application/qos/iscsi/core/iscsi_control.c	(working copy)
+@@ -29,13 +29,13 @@
+ #include "iscsi_api.h"
+ #include "iscsi_sid.h"
+ #include "iscsi_packet.h"
+ #include "dtl_iscsi.h"
+ 
+ extern void            *iscsiQueue;
+-extern L7_int32         iscsiTaskId;
++extern L7_uint64        iscsiTaskId;
+ 
+ L7_int32                  iscsiPacketBufferPoolId;
+ static osapiTimerDescr_t *iscsiTimer         = L7_NULLPTR;
+ static L7_uint32          iscsiIdleTimeMsecs = ISCSI_IDLE_TIMEOUT;
+ 
+ extern void iscsiImpSessionDelete(L7_uint32 sessionId);
+Index: src/application/qos/voip/core/voip_cnfgr.c
+===================================================================
+--- src/application/qos/voip/core/voip_cnfgr.c	(revision 7768)
++++ src/application/qos/voip/core/voip_cnfgr.c	(working copy)
+@@ -38,13 +38,13 @@
+ #endif
+ 
+ /* externs */
+ extern voipCfgData_t       *voipCfgData;
+ extern L7_uint32           *voipMapTbl;
+ extern void                *voipQueue;
+-extern L7_int32             voipTaskId;
++extern L7_uint64            voipTaskId;
+ extern osapiRWLock_t        voipCfgRWLock;
+ extern voipIntfInfo_t      *voipIntfInfo;
+ L7_uint32                  voipTimerTaskId;
+ 
+ L7_BOOL                 voipWarmStart;
+ extern PORTEVENT_MASK_t voipPortEventMask_g;
+Index: src/application/qos/voip/core/voip_control.c
+===================================================================
+--- src/application/qos/voip/core/voip_control.c	(revision 7768)
++++ src/application/qos/voip/core/voip_control.c	(working copy)
+@@ -37,13 +37,13 @@
+ #include "osapi_support.h"
+ #include "voip_control.h"
+ #include "voip_exports.h"
+ #include "dtl_voip.h"
+ 
+ void                   *voipQueue        = L7_NULLPTR;
+-L7_int32                voipTaskId;
++L7_uint64               voipTaskId;
+ 
+ #define VOIP_TIMER_INTERVAL   1000*60*3  /* wake up every 3 minutes (idle timeout) when there are pending requests */
+ #define VOIP_CALL_IDLE_TIMEOUT  VOIP_TIMER_INTERVAL
+ /* use one timer that wakes up every second, maintain a
+    a reference count and delete the timer when we have no pending sessions */
+ static osapiTimerDescr_t *voipTimer       = L7_NULLPTR;

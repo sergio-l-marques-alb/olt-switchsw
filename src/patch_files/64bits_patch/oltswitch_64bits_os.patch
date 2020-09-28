@@ -1,0 +1,2012 @@
+Index: os/linux/log/log.c
+===================================================================
+--- os/linux/log/log.c	(revision 7768)
++++ os/linux/log/log.c	(working copy)
+@@ -188,13 +188,13 @@ void log_backtrace(unsigned int * raw_st
+   len = sprintf(buf, "<0> Process id %d", getpid());
+   logWriteMsgToFlash(buf, len);
+   for(;frame_info != NULL;frame_info = (struct stack_frame_intro_s *)frame_info->backchain)
+   {
+     len = sprintf(buf, "<0> last link register = 0x%x",(int)frame_info->last_link_register);
+     logWriteMsgToFlash(buf, len);
+-    len = sprintf(buf, "<0> next stack frame located at 0x%x",(int)frame_info->backchain);
++    len = sprintf(buf, "<0> next stack frame located at 0x%llx",PTR_TO_UINT64(frame_info->backchain));
+     logWriteMsgToFlash(buf, len);
+   }
+ }
+ 
+ /**********************************************************************
+ * @purpose  get persistent log message count
+Index: os/linux/log/log_extend.c
+===================================================================
+--- os/linux/log/log_extend.c	(revision 7768)
++++ os/linux/log/log_extend.c	(working copy)
+@@ -530,13 +530,13 @@ log_event_int(char * file_name, unsigned
+ *
+ * @end
+ *
+ *************************************************************************/
+ 
+ L7_uint32
+-L7_event_log_get_next(struct logformat_event *logPtr, L7_uint32 index,
++L7_event_log_get_next(struct logformat_event *logPtr, L7_uint64 index,
+                       L7_char8 *pstring)
+ {
+     L7_ulong32  w32;
+     L7_uint32   *pw32;
+     L7_uint32   days;
+     L7_ushort16 hours, minutes, seconds;
+@@ -564,22 +564,22 @@ L7_event_log_get_next(struct logformat_e
+         if (i == 0)
+         {
+             return L7_NULL;
+         }
+ 
+         pw32 = (L7_uint32 *) (&logPtr[i-1]);
+-        index = (L7_uint32) (&logPtr[i-1]);
++        index = PTR_TO_UINT64(&logPtr[i-1]);
+     }
+     else
+     {
+-        pw32 = (L7_uint32 *) index;
++        pw32 = (L7_uint32 *) UINT_TO_PTR(index);
+     }
+ 
+-    if (index == (L7_uint32) logPtr)
++    if (index == PTR_TO_UINT64(logPtr))
+     {
+-        index = (L7_uint32) (&logPtr[Log_Max_Entries-1]);
++        index = PTR_TO_UINT64(&logPtr[Log_Max_Entries-1]);
+     }
+     else
+     {
+         index -= sizeof(struct logformat_event);
+     }
+ 
+Index: os/linux/mgmt/dtl_tap_monitor.c
+===================================================================
+--- os/linux/mgmt/dtl_tap_monitor.c	(revision 7768)
++++ os/linux/mgmt/dtl_tap_monitor.c	(working copy)
+@@ -115,13 +115,13 @@ L7_RC_t tap_monitor_register(int fd, L7_
+    new_entry.entry.skip = L7_FALSE;
+    new_entry.type = MSG_ADD_FD;
+ 
+    /*
+     *write this to the control socket
+     */
+-   PRINT_CTRL_MSG("adding fd %d with function 0x%x to tap monitor\n",fd,(unsigned int)func); 
++   PRINT_CTRL_MSG("adding fd %d with function %p to tap monitor\n",fd,func); 
+    if(write(sp[0],(const void *)&new_entry,sizeof(struct tap_control_s)) < 0)
+       perror("Could not send control message to tap_monitor"); 
+ 
+    return L7_SUCCESS;
+ }
+ 
+@@ -364,13 +364,13 @@ void tap_monitor_task_fn()
+             /*
+              *we need to read from this descriptor
+              *and send it through the dtl interface
+              *start by getting a frame buffer
+              */
+              SYSAPI_NET_MBUF_GET(frame_buffer);
+-             if((void *)frame_buffer == NULL)
++             if(UINT_TO_PTR(frame_buffer) == NULL)
+              {
+                 /*
+                  *if the frame buffer is NULL
+                  *then  we should just give up
+                  *this iteration and retry from 
+                  *the top of this loop 
+@@ -411,13 +411,13 @@ void tap_monitor_task_fn()
+            
+             SYSAPI_NET_MBUF_SET_DATALENGTH(frame_buffer,frame_length);
+             
+             /*
+              *now call the function to get the dtl command send
+              */
+-            PRINT_CTRL_MSG("Calling send function at 0x%x\n",(unsigned int)reg_table[i].SendFn);
++            PRINT_CTRL_MSG("Calling send function at %p\n", reg_table[i].SendFn);
+ 
+ 	    /* send fn takes ownership of buffer */
+             reg_table[i].SendFn(reg_table[i].fd,reg_table[i].intIfNum,frame_buffer,&tapInfo);
+ 
+             /*
+              *decrement the count of ready fd's
+@@ -548,11 +548,11 @@ void tap_monitor_dump_reg_table()
+    int i;
+    for(i=0;i<max_tap_interfaces;i++)
+    {
+       printf("reg_table[%d].valid = %s\n",i,(reg_table[i].valid == L7_TRUE) ? "True":"False");
+       printf("reg_table[%d].skip = %s\n",i,(reg_table[i].skip == L7_TRUE) ? "True":"False");
+       printf("reg_table[%d].fd = %d\n",i,reg_table[i].fd);
+-      printf("reg_table[%d].SendFn=0x%x\n\n",i,(unsigned int)reg_table[i].SendFn);
++      printf("reg_table[%d].SendFn=%p\n\n", i, reg_table[i].SendFn);
+    }
+ }
+     
+ 
+Index: os/linux/osapi/osapi.c
+===================================================================
+--- os/linux/osapi/osapi.c	(revision 7768)
++++ os/linux/osapi/osapi.c	(working copy)
+@@ -134,36 +134,45 @@ int osapi_printf(const char *fmt, ...)
+ /* If MEM_LIST is defined then we must also define MEM_DEBUG.
+ */
+ #ifdef OSAPI_MEM_LIST
+ #define OSAPI_MEM_DEBUG
+ #endif
+ 
+-
+ #ifdef OSAPI_MEM_DEBUG
+ #define OSAPI_TRACK_FILE_NAME_SIZE 16
+ 
+ /* Memory allocation structure
+ */
+ typedef struct osapiMemAllocType_s {
+-  L7_uint32 data_start;
++  L7_uint64 data_start;
+   L7_uint32 length;
+-  L7_uint32 task_id;
++  //L7_uint32 task_id[2];
+   L7_uint32 in_use;
++  L7_uint64 task_id;
+   L7_uint32 component_id;
+ #ifdef OSAPI_MEM_LIST
+   struct osapiMemAllocType_s *prev;
+   struct osapiMemAllocType_s *next;
+   L7_uchar8 file_name [OSAPI_TRACK_FILE_NAME_SIZE];
+   L7_uint32 line_number;
+   L7_uint32 time_stamp;
+ #endif
++#ifdef PTRS_ARE_64BITS
++  L7_uint64 user_data[1];
++#else
+   L7_uint32 user_data[1];
++#endif
+ } osapiMemAllocType;
+ 
++#ifdef PTRS_ARE_64BITS
++#define OSAPI_MEM_START (0xA7A7A7A7A7A7A7A7)
++#define OSAPI_MEM_END   (0xB7B7B7B7B7B7B7B7)
++#else
+ #define OSAPI_MEM_START (0xA7A7A7A7)
+-#define OSAPI_MEM_END (0xB7B7B7B7)
++#define OSAPI_MEM_END   (0xB7B7B7B7)
++#endif
+ 
+ /* Set this flag to 1 in order to change default behavior to LOG_ERROR
+ ** when corrupted sentinel is detected on osapiFree()
+ */
+ static L7_uint32 osapiTestMemory = 1;
+ 
+@@ -183,14 +192,19 @@ static int timMemDebug = 0;
+ static int debugCompId = 0;
+ static int debugNumBytes = 0;
+ 
+ /* Declaration for osapiMalloc() debug functionality */
+ L7_osapiMallocUsage_t osapiMallocMemUsage[L7_LAST_COMPONENT_ID];
+ 
+-static L7_uint32 min_mem_alloc = 0xFFFFFFFF;
+-static L7_uint32 max_mem_alloc = 0;
++#ifdef PTRS_ARE_64BITS
++static L7_uint64 min_mem_alloc = 0xFFFFFFFFFFFFFFFF;
++static L7_uint64 max_mem_alloc = 0;
++#else
++static L7_uint64 min_mem_alloc = 0xFFFFFFFF;
++static L7_uint64 max_mem_alloc = 0;
++#endif
+ 
+ /**************************************************************************
+ *
+ * @purpose  Debug function to enable/disable checking of allocated memory
+ *           during osapiFree. When this flag is enabled the code verifies
+ *           that start and end sentinel are set properly.
+@@ -285,45 +299,52 @@ void osapiDebugMallocSummary(L7_COMPONEN
+   }
+ }
+ 
+ #endif /* OSAPI_MEM_DEBUG */
+ 
+ 
++#define MEMALLOC_TASKID_GET(mem_alloc) ((mem_alloc)->task_id)
++/*( ((L7_uint64) (mem_alloc)->task_id[0]) | (((L7_uint64) (mem_alloc)->task_id[1]) << 32) )*/
++
+ #ifdef OSAPI_MEM_LIST
+ static void osapiDebugMemoryPrint (osapiMemAllocType *mem_alloc)
+ {
+-  L7_uint32 mem_size_word = (mem_alloc->length + 3) / 4;
++  L7_uint32 mem_size_word = (mem_alloc->length + (WORD_SIZE-1)) / WORD_SIZE;
+ 
+-  printf("Addr:    0x%x\n", (L7_uint32) &mem_alloc->user_data[0]);
+-  printf("Start:   0x%x\n", mem_alloc->data_start);
++  printf("Addr:    0x%llx\n", PTR_TO_UINT64(&mem_alloc->user_data[0]));
++  printf("Start:   0x%llx\n", mem_alloc->data_start);
++#ifdef PTRS_ARE_64BITS
++  printf("End:     0x%llx\n", mem_alloc->user_data[mem_size_word]);
++#else
+   printf("End:     0x%x\n", mem_alloc->user_data[mem_size_word]);
++#endif
+   printf("Size:    0x%x\n", mem_alloc->length);
+-  printf("Task:    0x%x\n", mem_alloc->task_id);
++  printf("Task:    0x%llx\n", MEMALLOC_TASKID_GET(mem_alloc));
+   printf("CompId:  %u\n", mem_alloc->component_id);
+   printf("File:    %s\n", mem_alloc->file_name);
+   printf("Line:    %d\n", mem_alloc->line_number);
+   printf("In Use:  0x%x\n", mem_alloc->in_use);
+   printf("Up Time: %d\n", mem_alloc->time_stamp);
+   printf("next:    %p\n", mem_alloc->next);
+   printf("prev:    %p\n", mem_alloc->prev);
+ }
+ 
+ static int osapiMemAllocValid(osapiMemAllocType *mem_alloc, char *src)
+ {
+-  L7_uint32 memloc = (L7_uint32)mem_alloc;
++  L7_uint64 memloc = PTR_TO_UINT64(mem_alloc);
+   L7_uint32 mem_size_word;
+   L7_uint32 errtype = 0;
+ 
+   do
+   {
+     if(memloc < min_mem_alloc) break;
+     if(memloc > max_mem_alloc) break;
+     errtype = 1;
+     if(mem_alloc->data_start != OSAPI_MEM_START) break;
+-    memloc = (L7_uint32)mem_alloc->next;
+-    mem_size_word = (mem_alloc->length + 3) / 4;
++    memloc = PTR_TO_UINT64(mem_alloc->next);
++    mem_size_word = (mem_alloc->length + (WORD_SIZE-1)) / WORD_SIZE;
+     if((memloc != 0) && (memloc < min_mem_alloc)) break;
+     if(memloc > max_mem_alloc) break;
+     if (mem_alloc->user_data[mem_size_word] != OSAPI_MEM_END)
+     {
+       printf("%s: memory corruption %p invalid end\n", src, mem_alloc);
+       osapiDebugMemoryPrint(mem_alloc);
+@@ -362,13 +383,13 @@ static int osapiMemAllocValid(osapiMemAl
+ void osapiDebugMemoryCheck (void)
+ {
+   L7_uint32 num_blocks = 0;
+   osapiMemAllocType *mem_alloc;
+   L7_uint32 mem_size_word;
+   pthread_t self;
+-  L7_uint32 mem_addr;
++  L7_uint64 mem_addr;
+ 
+   self = pthread_self();
+   pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
+       (void *)&threadsafe_lock);
+   pthread_mutex_lock(&threadsafe_lock);
+ 
+@@ -383,17 +404,17 @@ void osapiDebugMemoryCheck (void)
+     {
+       osapiDebugMemoryPrint (mem_alloc);
+       osapi_heap_corruption_dump(mem_alloc, 1);
+       break;
+     }
+ 
+-    mem_size_word = (mem_alloc->length + 3) / 4;
+-    mem_addr = (unsigned int) mem_alloc->user_data + (mem_size_word * 4);
++    mem_size_word = (mem_alloc->length + (WORD_SIZE-1)) / WORD_SIZE;
++    mem_addr = PTR_TO_UINT64(mem_alloc->user_data) + (mem_size_word * WORD_SIZE);
+     if ((mem_addr > max_mem_alloc) || (mem_addr < min_mem_alloc))
+     {
+-      printf("Memory size is too large, mem_addr=0x%x, max_mem_alloc=0x%x, min_mem_alloc=0x%x\n",
++      printf("Memory size is too large, mem_addr=0x%llx, max_mem_alloc=0x%llx, min_mem_alloc=0x%llx\n",
+ 		      mem_addr, max_mem_alloc, min_mem_alloc);
+ 
+       osapiDebugMemoryPrint (mem_alloc);
+       break;
+     }
+ 
+@@ -402,16 +423,16 @@ void osapiDebugMemoryCheck (void)
+       osapiDebugMemoryPrint (mem_alloc);
+       osapi_heap_corruption_dump(mem_alloc, 0);
+       break;
+     }
+ 
+   if ((mem_alloc->next != L7_NULLPTR) &&
+-	(((L7_uint32) mem_alloc->next > max_mem_alloc) ||
+-        ((L7_uint32) mem_alloc->next < min_mem_alloc)))
++	((PTR_TO_UINT64(mem_alloc->next) > max_mem_alloc) ||
++        (PTR_TO_UINT64(mem_alloc->next) < min_mem_alloc)))
+     {
+-      printf("Pointer to next memory block is invalid: 0x%x\n", (unsigned int) mem_alloc->next);
++      printf("Pointer to next memory block is invalid: %p\n", mem_alloc->next);
+       osapiDebugMemoryPrint (mem_alloc);
+       break;
+     }
+ 
+     mem_alloc = mem_alloc->next;
+   }
+@@ -437,21 +458,21 @@ void osapiDebugMemoryCheck (void)
+ * @end
+ *
+ *************************************************************************/
+ #define OSAPI_MAX_STATS_TASKS 1000
+ void osapiDebugMemoryStats (void)
+ {
+-  static L7_uint32 task_id_table [OSAPI_MAX_STATS_TASKS];
++  static L7_uint64 task_id_table [OSAPI_MAX_STATS_TASKS];
+   static L7_uint32 task_id_count [OSAPI_MAX_STATS_TASKS];
+   static L7_uint32 task_id_total [OSAPI_MAX_STATS_TASKS];
+   L7_uint32 num_blocks = 0;
+   L7_uint32 num_overflow = 0;
+   L7_uint32 num_tasks = 0;
+   osapiMemAllocType *mem_alloc;
+   L7_uint32 i;
+-  L7_uint32 task_id;
++  L7_uint64 task_id;
+   L7_uchar8 task_name[128];
+   L7_uint32 total_size = 0;
+   L7_RC_t rc;
+ 
+   memset (task_id_table, 0, sizeof (task_id_table));
+   memset (task_id_count, 0, sizeof (task_id_count));
+@@ -461,13 +482,13 @@ void osapiDebugMemoryStats (void)
+ 
+   mem_alloc = allocMemList;
+ 
+   while ((mem_alloc != 0) && osapiMemAllocValid(mem_alloc, "osapiDebugMemoryStats"))
+   {
+     num_blocks++;
+-    task_id = mem_alloc->task_id;
++    task_id = MEMALLOC_TASKID_GET(mem_alloc);
+ 
+     for (i = 0; i < OSAPI_MAX_STATS_TASKS; i++)
+     {
+       if ((task_id_table[i] == 0) ||
+           (task_id_table[i] == task_id))
+       {
+@@ -518,13 +539,13 @@ void osapiDebugMemoryStats (void)
+       rc = osapiTaskNameGet (task_id_table[i], task_name);
+     }
+     if (rc != L7_SUCCESS)
+     {
+       strcpy (task_name, "Unknown");
+     }
+-    printf("Task id: 0x%08x -- Task Name: %32s -- Blocks: %6d -- Size: %d\n",
++    printf("Task id: 0x%016llx -- Task Name: %32s -- Blocks: %6d -- Size: %d\n",
+               task_id_table[i],
+               task_name,
+               task_id_count[i],
+               task_id_total[i]);
+   }
+ }
+@@ -542,13 +563,13 @@ void osapiDebugMemoryStats (void)
+ * @comments We don't lock memory while looking for buffers,
+ *           so the code may crash. Don't use in production.
+ *
+ * @end
+ *
+ *************************************************************************/
+-void osapiDebugMemoryInfo (L7_uint32 task_id,
++void osapiDebugMemoryInfo (L7_uint64 task_id,
+                            L7_uint32 size,
+                            L7_uint32 time_stamp)
+ {
+   osapiMemAllocType *mem_alloc;
+   L7_uint32 total_blocks = 0;
+   L7_uint32 total_blocks_match = 0;
+@@ -558,21 +579,21 @@ void osapiDebugMemoryInfo (L7_uint32 tas
+   mem_alloc = allocMemList;
+   while ((mem_alloc != 0) && osapiMemAllocValid(mem_alloc, "osapiDebugMemoryInfo"))
+   {
+     total_blocks++;
+     total_size += mem_alloc->length;
+ 
+-    if (((task_id == 0) || (mem_alloc->task_id == task_id)) &&
++    if (((task_id == 0) || (MEMALLOC_TASKID_GET(mem_alloc) == task_id)) &&
+         (mem_alloc->length > size) &&
+         (mem_alloc->time_stamp > time_stamp))
+     {
+       total_blocks_match++;
+       total_size_match += mem_alloc->length;
+-      printf("Tid: 0x%x - Addr: 0x%x -  %16s (%5d) - Size: %5d - Time: %5d\n",
+-             mem_alloc->task_id,
+-             (L7_uint32) &mem_alloc->user_data[0],
++      printf("Tid: 0x%llx - Addr: 0x%llx -  %16s (%5d) - Size: %5d - Time: %5d\n",
++             MEMALLOC_TASKID_GET(mem_alloc),
++             PTR_TO_UINT64(&mem_alloc->user_data[0]),
+              mem_alloc->file_name,
+              mem_alloc->line_number,
+              mem_alloc->length,
+              mem_alloc->time_stamp);
+     }
+ 
+@@ -584,13 +605,13 @@ void osapiDebugMemoryInfo (L7_uint32 tas
+             total_blocks, total_size);
+   printf("Total Matching Blocks: %d -- Total Matching Size: %d\n",
+           total_blocks_match,
+          total_size_match);
+ }
+ 
+-void osapiDebugMemoryChangedInfo (L7_uint32 task_id, L7_uint32 size)
++void osapiDebugMemoryChangedInfo (L7_uint64 task_id, L7_uint32 size)
+ {
+   static L7_uint32 time_stamp = 0;
+ 
+   if(time_stamp != 0)
+   {
+     osapiDebugMemoryInfo(task_id, size, time_stamp);
+@@ -684,15 +705,15 @@ static void osapiMallocDetailRecord(FILE
+     
+     /* Print the allocations found/requested */
+     for(i = 0; i < cnt; i++)
+     {
+     mem_alloc = &allocBuffer[i];
+ 
+-      fprintf(fp, "Tid: 0x%x - Addr: 0x%x -  %16s (%5d) - Size: %5d - Inuse: %d - Time: %5d\n",
+-             mem_alloc->task_id,
+-             (L7_uint32) &mem_alloc->user_data[0],
++      fprintf(fp, "Tid: 0x%llx - Addr: 0x%llx -  %16s (%5d) - Size: %5d - Inuse: %d - Time: %5d\n",
++             MEMALLOC_TASKID_GET(mem_alloc),
++             PTR_TO_UINT64(&mem_alloc->user_data[0]),
+              mem_alloc->file_name,
+              mem_alloc->line_number,
+              mem_alloc->length,
+              mem_alloc->in_use,
+              mem_alloc->time_stamp);
+     }
+@@ -788,23 +809,76 @@ void osapiDebugMallocDetail(L7_uint32 co
+ 
+ #endif  /* OSAPI_MEM_LIST */
+ 
+ #ifdef OSAPI_MEM_DEBUG
+ void osapi_heap_corruption_dump(osapiMemAllocType *mem, int beginning)
+ {
+-  L7_uint32 *dump_start, *dump_end;
+   int i;
+   L7_uchar8 *c, *a;
+   L7_uchar8 file_name[OSAPI_TRACK_FILE_NAME_SIZE];
+   L7_uint32 line_number = 0;
+   L7_uint32 time_stamp = 0;
+   osapiMemAllocType *prev_blk = NULL;
+ 
++#ifdef PTRS_ARE_64BITS
++  L7_uint64 *dump_start, *dump_end;
++
++  memset(file_name, 0, sizeof(file_name));
++  c = (L7_uchar8 *)mem;
++  while ((PTR_TO_UINT64(c))%WORD_SIZE != 0) {
++    c--;
++  }
++  dump_start = (L7_uint64 *)c;
++  dump_end = dump_start + 1;
++  /* Go back and forward 2 blocks if possible, but at least 128 bytes, 
++     and at most 1KB */
++  i = 0;
++  while (i < 3) 
++  {
++    while (*dump_start != OSAPI_MEM_START) 
++    {
++      dump_start--;
++    }
++    if ((beginning && (i == 1)) || ((!beginning) && (i == 0))) {
++      /* Interesting block - get its info */
++      prev_blk = (osapiMemAllocType *)dump_start;
++      memcpy(file_name, prev_blk->file_name, sizeof(file_name));
++      file_name[sizeof(file_name) - 1] = 0;
++      line_number = prev_blk->line_number;
++      time_stamp = prev_blk->time_stamp;
++    }
++    i++;
++  }
++  i = 0;
++  while (i < 3) 
++  {
++    while (*dump_end != OSAPI_MEM_END) 
++    {
++      dump_end++;
++    }
++  i++;
++  }
++  if ((c - ((L7_uchar8 *)dump_start)) < 128) {
++    dump_start = (L7_uint64 *)c - 32;
++  }
++  if ((((L7_uchar8 *)dump_end) - c) < 128) {
++    dump_end = (L7_uint64 *)c + 32;
++  }
++  if ((c - ((L7_uchar8 *)dump_start)) > 1024) {
++    dump_start = (L7_uint64 *)c - 256;
++  }
++  if ((((L7_uchar8 *)dump_end) - c) > 1024) {
++    dump_end = (L7_uint64 *)c + 256;
++  }
++
++#else
++  L7_uint32 *dump_start, *dump_end;
++
+   memset(file_name, 0, sizeof(file_name));
+   c = (L7_uchar8 *)mem;
+-  while (((L7_uint32)c)%4 != 0) {
++  while ((PTR_TO_UINT64(c))%WORD_SIZE != 0) {
+     c--;
+   }
+   dump_start = (L7_uint32 *)c;
+   dump_end = dump_start + 1;
+   /* Go back and forward 2 blocks if possible, but at least 128 bytes, 
+      and at most 1KB */
+@@ -843,28 +917,29 @@ void osapi_heap_corruption_dump(osapiMem
+   if ((c - ((L7_uchar8 *)dump_start)) > 1024) {
+     dump_start = (L7_uint32 *)c - 256;
+   }
+   if ((((L7_uchar8 *)dump_end) - c) > 1024) {
+     dump_end = (L7_uint32 *)c + 256;
+   }
++#endif
+ 
+-  printf("Dumping heap from 0x%08x to 0x%08x. Block being freed = 0x%08x\n",
+-         (L7_uint32) dump_start, (L7_uint32) dump_end, (L7_uint32) mem);
++  printf("Dumping heap from %p to %p. Block being freed = %p\n",
++         dump_start, dump_end, mem);
+   if (prev_blk != NULL) {
+     printf("%sorrupt block allocated at time %d, from %s line %d\n",
+ 	   beginning ? "Block before c" : "C", 
+ 	   time_stamp, file_name, line_number);
+   }
+ 
+   c = (L7_uchar8 *)dump_start;
+   i = 0;
+   while (c < ((L7_uchar8 *)dump_end)) 
+   {
+     if (i % 16 == 0) 
+     {
+-      printf("%08x: ", (L7_uint32) c);
++      printf("%llx: ", PTR_TO_UINT64(c));
+     }
+     printf("%02x ", *c);
+     c++;
+     i++;
+     if (i % 16 == 0) 
+     {
+@@ -955,22 +1030,22 @@ void osapiFree(L7_COMPONENT_IDS_t compId
+   if (osapiTestMemory != 0)
+   {
+     if (mem_alloc->data_start != OSAPI_MEM_START )
+     {
+       printf("*** Start-of-block heap corruption found\n");
+       osapi_heap_corruption_dump(mem_alloc, 1);
+-      L7_LOG_ERROR((L7_uint32) memory);
++      L7_LOG_ERROR(PTR_TO_UINT32(memory));
+     }
+ 
+-    mem_size_word = (mem_alloc->length + 3) / 4;
++    mem_size_word = (mem_alloc->length + (WORD_SIZE-1)) / WORD_SIZE;
+ 
+     if (mem_alloc->user_data[mem_size_word] != OSAPI_MEM_END)
+     {
+       printf("*** End-of-block heap corruption found\n");
+       osapi_heap_corruption_dump(mem_alloc, 0);
+-      L7_LOG_ERROR((L7_uint32) memory);
++      L7_LOG_ERROR(PTR_TO_UINT32(memory));
+     }
+     if (mem_alloc->in_use == 0)
+     {
+       printf("*** Free of freed block\n");
+       printf("Block had been allocated by %s line %d at time %d\n",
+              mem_alloc->file_name, mem_alloc->line_number,
+@@ -1065,26 +1140,28 @@ void *osapiMalloc_track_try( L7_uint32 n
+ 
+   if (compId >= L7_LAST_COMPONENT_ID)
+   {
+     L7_LOG_ERROR(compId);
+   }
+ 
+-  mem_size_word = (numberofbytes + 3) / 4;
++  mem_size_word = (numberofbytes + (WORD_SIZE-1)) / WORD_SIZE;
+ 
+-  address = (void *)malloc( (mem_size_word * 4) + sizeof (osapiMemAllocType));
++  address = (void *)malloc( (mem_size_word * WORD_SIZE) + sizeof (osapiMemAllocType));
+   if ( address != NULL )
+   {
+     mem_alloc = (osapiMemAllocType *) address;
+     mem_alloc->data_start = OSAPI_MEM_START;
+     mem_alloc->length = numberofbytes;
+-    mem_alloc->task_id = osapiTaskIdSelf ();
++    mem_alloc->task_id = osapiTaskIdSelf();
++    //mem_alloc->task_id[0] = (L7_uint32) (osapiTaskIdSelf() & 0xffffffff);
++    //mem_alloc->task_id[1] = (L7_uint32) (osapiTaskIdSelf() >> 32);
+     mem_alloc->in_use = 1;
+     mem_alloc->component_id = compId;
+     mem_alloc->user_data[mem_size_word] = OSAPI_MEM_END;
+ 
+-    (void)memset(&mem_alloc->user_data[0], 0, (mem_size_word * 4));
++    (void)memset(&mem_alloc->user_data[0], 0, (mem_size_word * WORD_SIZE));
+ 
+     /* Memory has been allocated successfully, increment the value of current memory used
+     ** by the component, also change the value of maximum memory used by the component
+     ** if required
+     **/
+     pMallocUsage->countAlloc++;
+@@ -1103,17 +1180,17 @@ void *osapiMalloc_track_try( L7_uint32 n
+       allocMemList->prev = mem_alloc;
+     }
+     mem_alloc->next = allocMemList;
+     mem_alloc->prev = 0;
+     allocMemList = mem_alloc;
+ 
+-    min_mem_alloc = min(min_mem_alloc, (L7_uint32)mem_alloc);
++    min_mem_alloc = min(min_mem_alloc, PTR_TO_UINT64(mem_alloc));
+     max_mem_alloc = max(max_mem_alloc, 
+-		    ((L7_uint32)mem_alloc + 
+-		    (mem_size_word * 4) + 
+-		    sizeof (osapiMemAllocType) + 4));   
++		    (PTR_TO_UINT64(mem_alloc) + 
++		    (mem_size_word * WORD_SIZE) + 
++		    sizeof (osapiMemAllocType) + WORD_SIZE));   
+ 
+ #endif  /* OSAPI_MEM_LIST */
+ 
+     mem_address = &mem_alloc->user_data[0];
+   } 
+ #else  /* This code is executed when debugging is disabled. */
+@@ -1237,35 +1314,37 @@ void *osapiRealloc_track(void *pBlock,
+ 
+   if (compId >= L7_LAST_COMPONENT_ID)
+   {
+     L7_LOG_ERROR(compId);
+   }
+ 
+-  mem_size_word = (numberofbytes + 3) / 4;
++  mem_size_word = (numberofbytes + (WORD_SIZE-1)) / WORD_SIZE;
+ 
+-  address = (void *)realloc(old_alloc, (mem_size_word * 4) + sizeof (osapiMemAllocType));
++  address = (void *)realloc(old_alloc, (mem_size_word * WORD_SIZE) + sizeof (osapiMemAllocType));
+ 
+   if ( address != NULL )
+   {
+     mem_alloc = (osapiMemAllocType *) address;
+     mem_alloc->data_start = OSAPI_MEM_START;
+     mem_alloc->length = numberofbytes;
+-    mem_alloc->task_id = osapiTaskIdSelf ();
++    mem_alloc->task_id = osapiTaskIdSelf();
++    //mem_alloc->task_id[0] = (L7_uint32) (osapiTaskIdSelf() & 0xffffffff);
++    //mem_alloc->task_id[1] = (L7_uint32) (osapiTaskIdSelf() >> 32);
+     mem_alloc->in_use = 1;
+     mem_alloc->component_id = compId;
+     mem_alloc->user_data[mem_size_word] = OSAPI_MEM_END;
+     address = (void *) &mem_alloc->user_data[0];
+ 
+     if (old_alloc == NULL)
+     {
+-        (void)memset(&mem_alloc->user_data[0], 0, (mem_size_word * 4));
++        (void)memset(&mem_alloc->user_data[0], 0, (mem_size_word * WORD_SIZE));
+     }
+     else
+     {
+         (void)memset(((L7_uchar8 *)(&mem_alloc->user_data[0]))+old_size, 0,
+-                     ((mem_size_word * 4) - old_size));
++                     ((mem_size_word * WORD_SIZE) - old_size));
+     }
+ 
+ 
+     /* Memory has been allocated successfully, increment the value of current memory used
+     ** by the component, also change the value of maximum memory used by the component
+     ** if required
+@@ -2873,13 +2952,13 @@ void osapiMiscInit(void)
+ *************************************************************************/
+ void osapiDebugSetStackDumpLogMode(L7_BOOL enable)
+ {
+   osapiStackDumpLogMode = enable;
+ }
+ 
+-extern void osapiDebugStackTrace (L7_uint32 debug_task_id, FILE *filePtr);
++extern void osapiDebugStackTrace (L7_uint64 debug_task_id, FILE *filePtr);
+ /*********************************************************************
+ * @purpose  Routine to take a snapshot of the task stack
+ *           traces and write it to the flash. This can be
+ *           invoked by rest of the system when a fatal error
+ *           happens and system is going down.
+ *
+Index: os/linux/osapi/osapi_devshell.c
+===================================================================
+--- os/linux/osapi/osapi_devshell.c	(revision 7768)
++++ os/linux/osapi/osapi_devshell.c	(working copy)
+@@ -35,37 +35,219 @@
+ #include "bspapi.h"
+ 
+ #ifdef L7_CLI_PACKAGE
+ #include "cliapi.h"
+ #endif
+ 
++#include "logger.h"
++
+ static L7_char8 *symbols = NULL;
+ static L7_uint32 *addresses = NULL;
+ static L7_uint32 num_symbols = 0;
+ 
+ #ifndef U_IDX
+ #define U_IDX   1
+ #endif
+ 
+-static L7_uint32 (*cliDevshellFuncPtr)(L7_char8 *cmd) = L7_NULLPTR;
++/* PTin added: 64 bits support */
++#if 1
++L7_int32 osapiDevshell(L7_char8 * name, L7_int32 * rc,
++                              L7_int32 arg0,  L7_int32 arg1,  L7_int32 arg2,
++                              L7_int32 arg3,  L7_int32 arg4,  L7_int32 arg5,
++                              L7_int32 arg6,  L7_int32 arg7,  L7_int32 arg8,
++                              L7_int32 arg9,  L7_int32 arg10, L7_int32 arg11,
++                              L7_int32 arg12, L7_int32 arg13, L7_int32 arg14,
++                              L7_int32 arg15, L7_int32 arg16, L7_int32 arg17,
++                              L7_int32 arg18, L7_int32 arg19, L7_int32 arg20,
++                              L7_int32 arg21, L7_int32 arg22, L7_int32 arg23,
++                              L7_int32 arg24
++			      );
++
++#define CMD_MAX_SIZE    256
++#define CMD_MAX_ARGS     25 
++
++static L7_char8 shell_strings[CMD_MAX_ARGS][CMD_MAX_SIZE];
++
++static L7_int32 osapiDevShellParseCmd(L7_char8 * cmd,L7_char8 * func_name,L7_int32 * args,L7_BOOL * arg_strings)
++{
++  L7_int32 i;
++  L7_int32 j;
++  L7_int32 k;      
++  L7_int32 string_start,string_end;
++  L7_int32 end_of_cmd=0;
++
++  memset (func_name, 0,CMD_MAX_SIZE);
++  memset ((L7_char8 *)args, 0,CMD_MAX_ARGS*sizeof(L7_int32));
++  memset ((L7_char8 *)shell_strings, 0,CMD_MAX_ARGS*CMD_MAX_SIZE);
++  j=0;
++  k=0;
++  string_start=0;
++  string_end=0;
++
++  for (i=0; i<CMD_MAX_SIZE-1; i++) {
++    if (cmd[i]==' ' || cmd[i]==0 || cmd[i]==',' || cmd[i]==')') {
++      if (cmd[i]==0) {
++        end_of_cmd=1;
++      }
++      if (!string_start || string_end) {
++        cmd[i]=0;
++      }
++      switch (j) {
++      case 0:
++        osapiStrncpySafe(func_name,cmd,CMD_MAX_SIZE);
++        j++;
++        break;
++      default:
++        if (string_start && string_end) {
++          if (j >= 1) {
++            osapiStrncpy(shell_strings[j-1],&cmd[string_start+1],min((string_end-string_start-1),(sizeof(shell_strings[j-1])-1)));
++          }
++          string_start=0;
++          string_end=0;
++          if (j >= 1) {
++            args[j-1]=PTR_TO_UINT32(shell_strings[j-1]);
++            arg_strings[j-1] = L7_TRUE;
++            j++;
++          }
++        }
++        else if (k!=i && !string_start) {
++          if (j >= 1) {
++
++            if ((cmd[k] == '0') && ((cmd[k+1] == 'x') || (cmd[k+1] == 'X'))) {
++              args[j-1]=(L7_int32) strtoul(&cmd[k],(L7_char8 * *)NULL,16);
++              arg_strings[j-1] = L7_FALSE;
++            }
++            else {
++              args[j-1]=(L7_int32) atoi(&cmd[k]);
++              arg_strings[j-1] = L7_FALSE;
++            }
++            j++;
++          }
++        }
++      }
++      if (end_of_cmd) {
++        return 0;
++      }
++      k=i+1;
++    }
++    else if (cmd[i]==0x27) {                                                                     /*double quote*/
++      if (string_start) {
++        string_end=i;
++      }
++      else {
++        string_start=i;
++      }
++    }
++    else if (cmd[i]=='(' && !string_start) {
++      cmd[i]=0;
++      if (j==0) {
++        osapiStrncpySafe(func_name,cmd,CMD_MAX_SIZE);
++        j++;
++      }
++      k=i+1;
++    }
++  }
++  return 0;
++}
++
++
++L7_uint32 osapiDevShellCommand(L7_char8 * cmd)
++{
++   L7_char8 func_name[CMD_MAX_SIZE];
++   L7_FUNCPTR  func_ptr;
++   L7_int32 args[CMD_MAX_ARGS];
++   L7_BOOL arg_strings[CMD_MAX_ARGS];
++   L7_int32 rc;
++   L7_uint32 arg_index;
++   L7_uint64 func_addr;
++   extern void ptin_intf_dump(void);
++
++   func_ptr=NULL;
++
++   memset(arg_strings, 0, sizeof(arg_strings));
++
++   osapiDevShellParseCmd(cmd,func_name,args,arg_strings);
++
++   if (func_name[0])
++   {
++      func_addr = osapiAddressLookup(func_name);
++      func_ptr  = (L7_FUNCPTR) UINT_TO_PTR(func_addr);
++
++      PT_LOG_TRACE(LOG_CTX_MISC,"cmd=\"%s\" func_name=\"%s\" func_addr=0x%llx func_ptr=%p args[0]=%d args[1]=%d args[2]=%d",
++                   cmd, func_name, func_addr, func_ptr, args[0], args[1], args[2]);
++
++      if (func_ptr)
++      {
++         rc=func_ptr(args[0],args[1],args[2],args[3],args[4],
++                     args[5],args[6],args[7],args[8],args[9],
++                     args[10],args[11],args[12],args[13],args[14],
++                     args[15],args[16],args[17],args[18],args[19],
++                     args[20],args[21],args[22],args[23],args[24]
++		     );
++
++         printf("\nvalue = %d = 0x%x\n",rc,rc);
++
++         for (arg_index=0; arg_index < CMD_MAX_ARGS; arg_index++)
++         {
++           if (arg_strings[arg_index] == L7_TRUE)
++           {
++             printf("arg %d: %s\n", arg_index+1, (char *) UINT_TO_PTR(args[arg_index]));
++           }
++         }
++      }
++      else if ((osapiDevshell(func_name, &rc,
++                              args[0],args[1],args[2],args[3],args[4],
++                              args[5],args[6],args[7],args[8],args[9],
++                              args[10],args[11],args[12],args[13],args[14],
++                              args[15],args[16],args[17],args[18],args[19],
++                              args[20],args[21],args[22],args[23],args[24])) == 0)
++      {
++         printf("\nvalue = %d = 0x%x\n",rc,rc);
++
++         for (arg_index=0; arg_index < CMD_MAX_ARGS; arg_index++)
++         {
++           if (arg_strings[arg_index] == L7_TRUE)
++           {
++             printf("arg %d: %s\n", arg_index+1, (char *) UINT_TO_PTR(args[arg_index]));
++           }
++         }
++      }
++      else
++      {
++         printf("Undefined symbol: %s\n",func_name);
++      }
++  }
++  else if (cmd[0])
++  {
++     printf("\nParse error.\n");
++  }
++  return 0;
++}
++#endif
++
++static L7_uint32 (*cliDevshellFuncPtr)(L7_char8 *cmd) = osapiDevShellCommand;
+ 
+ void osapiDevShellSet(L7_uint32 (*func)(L7_char8 *))
+ {
+   cliDevshellFuncPtr = func;
+ }
+ 
+ L7_uint32 osapiDevShellExec(L7_char8 *cmd)
+ {
++  if(cliDevshellFuncPtr != NULL)
++  {
++    return cliDevshellFuncPtr(cmd);
++  }
++  else
++  {
+ #ifdef L7_CLI_PACKAGE
+-  return cliDevShell(cmd);
++    return cliDevShell(cmd);
+ #else
+-  if(cliDevshellFuncPtr == NULL)
+     return -1;
+-
+-  return cliDevshellFuncPtr(cmd);
+ #endif
++  }
+ }
+ 
+ /**************************************************************************
+ *
+ * @purpose  Fork a /bin/sh process running on the system console
+ *
+@@ -214,22 +396,23 @@ void osapiDebugShell(void) {
+  * @comments
+  *
+  * @end
+  *********************************************************************/
+ #define OSAPI_ADDRESS_LOOKUP_CACHE_SIZE 8
+ #define OSAPI_ADDRESS_LOOKUP_NAME_SIZE 64
+-#define OSAPI_ADDRESS_LOOKUP_FMT_STRING "%8x%64s"
+-L7_uint32 osapiAddressLookup(L7_char8 *funcName) {
++#define OSAPI_ADDRESS_LOOKUP_FMT_STRING "%16llx%64s"
++L7_uint64 osapiAddressLookup(L7_char8 *funcName)
++{
+   int retval = 0;
+   FILE *f;
+   char *buf, *cachep;
+   static char *name_cache = NULL;
+-  static L7_uint32 *addr_cache = NULL;
++  static L7_uint64 *addr_cache = NULL;
+   static int cache_open_slot = 0;
+   int rc, i;
+-  L7_uint32 sym_addr = 0;
++  L7_uint64 sym_addr = 0;
+ 
+   /* If first time through, allocate cache, never to be freed */
+   if (name_cache == NULL) {
+     name_cache = osapiMalloc(L7_OSAPI_COMPONENT_ID, 
+         OSAPI_ADDRESS_LOOKUP_CACHE_SIZE*OSAPI_ADDRESS_LOOKUP_NAME_SIZE);
+     if (name_cache != NULL) {
+@@ -257,13 +440,13 @@ L7_uint32 osapiAddressLookup(L7_char8 *f
+   /* Not in cache. Look through the compressed file. */
+   /* If user loaded symbols into memory, look through that. */
+   if (num_symbols != 0) {
+     for(i=0;i<num_symbols;i++) {
+       cachep = symbols + i*OSAPI_ADDRESS_LOOKUP_NAME_SIZE;
+       if (strcmp(funcName, cachep) == 0) {
+-	return addresses[i];
++        return addresses[i];
+       }
+     }
+     return 0;
+   }
+   /* Look through file */
+   buf = osapiMalloc(L7_OSAPI_COMPONENT_ID, OSAPI_ADDRESS_LOOKUP_NAME_SIZE);
+@@ -327,13 +510,13 @@ L7_uint32 osapiAddressLookup(L7_char8 *f
+ #if defined(RAPTOR) && defined(L7_LINUX_24)
+   fclose(f);
+ #else
+   pclose(f);
+ #endif
+   osapiFree(L7_OSAPI_COMPONENT_ID, buf);  
+-  return retval;
++  return (L7_uint64) retval;
+ }
+ 
+ 
+ 
+ /*********************************************************************
+  * @purpose  Returns the function containing a given address
+@@ -349,19 +532,23 @@ L7_uint32 osapiAddressLookup(L7_char8 *f
+  *           L7_FAILURE if function not found, buffers untouched.
+  *
+  * @comments 
+  *
+  * @end
+  *********************************************************************/
+-L7_RC_t osapiFunctionLookup(L7_uint32 addr, L7_char8 *funcName,
+-       L7_uint32 funcNameLen, L7_uint32 *offset) {
++L7_RC_t osapiFunctionLookup(L7_uint64 addr, L7_char8 *funcName,
++                            L7_uint32 funcNameLen, L7_uint32 *offset) {
+   FILE *f;
+   L7_char8 *buf, *candidate_name;
+-  L7_uint32 cur_addr, candidate_addr = 0;
+   static int first_time = 1;
+-  static L7_uint32 lowest_addr = 0xFFFFFFFFUL, highest_addr = 0;
++  L7_uint64 cur_addr, candidate_addr = 0;
++#ifdef PTRS_ARE_64BITS
++  static L7_uint64 lowest_addr = 0xFFFFFFFFFFFFFFFFUL, highest_addr = 0;
++#else
++  static L7_uint64 lowest_addr = 0xFFFFFFFFUL, highest_addr = 0;
++#endif
+   int i;
+ 
+   if (((addr < lowest_addr) || (addr > highest_addr)) && (!first_time)) {
+     return L7_FAILURE;
+   }
+   if (num_symbols != 0) {
+@@ -370,13 +557,13 @@ L7_RC_t osapiFunctionLookup(L7_uint32 ad
+ 	if (addresses[i-1] < addr) {
+ 	  if (funcName != NULL) {
+ 	    strncpy(funcName, symbols+(i-1)*OSAPI_ADDRESS_LOOKUP_NAME_SIZE, funcNameLen);
+ 	    funcName[funcNameLen-1] = 0;
+ 	  }
+ 	  if (offset != NULL) {
+-	    *offset = addr - addresses[i-1];
++	    *offset = (L7_uint32) (addr - addresses[i-1]);
+ 	  }
+ 	  return(L7_SUCCESS);
+ 	} else {
+ 	  return(L7_FAILURE);
+ 	}
+       }
+@@ -438,24 +625,24 @@ L7_RC_t osapiFunctionLookup(L7_uint32 ad
+     candidate_name[OSAPI_ADDRESS_LOOKUP_NAME_SIZE-1] = 0;
+     if (funcName != NULL) {
+       strncpy(funcName, candidate_name, funcNameLen);
+       funcName[funcNameLen-1] = 0;
+     }
+     if (offset != NULL) {
+-      *offset = (addr - candidate_addr);
++      *offset = (L7_uint32) (addr - candidate_addr);
+     }
+     osapiFree(L7_OSAPI_COMPONENT_ID, buf);
+     osapiFree(L7_OSAPI_COMPONENT_ID, candidate_name);
+     return L7_SUCCESS;      
+   }
+   osapiFree(L7_OSAPI_COMPONENT_ID, buf);
+   osapiFree(L7_OSAPI_COMPONENT_ID, candidate_name);
+   return L7_FAILURE;      
+ }
+ 
+-int osapiDebugFunctionLookupTest(unsigned long addr) {
++int osapiDebugFunctionLookupTest(unsigned long long addr) {
+   char *name_buf;
+   L7_uint32 offset;
+   L7_RC_t rc;
+ 
+   name_buf = osapiMalloc(L7_OSAPI_COMPONENT_ID, 48);
+   if (name_buf == NULL) {
+@@ -464,13 +651,13 @@ int osapiDebugFunctionLookupTest(unsigne
+   }
+   rc = osapiFunctionLookup(addr, name_buf, 48, &offset);
+   if (rc == L7_FAILURE) {
+     printf("Lookup failed.\n");
+     return 1;
+   }
+-  printf("Address %08lX is %d bytes into function %s\n", 
++  printf("Address %08llX is %u bytes into function %s\n", 
+         addr, offset, name_buf);
+   return 0;
+ }
+ 
+ /*********************************************************************
+  *
+@@ -495,13 +682,13 @@ int osapiDebugFunctionLookupTest(unsigne
+  *********************************************************************/
+ void osapiLkup(L7_char8 *search_str) {
+   int begins_with = 0, ends_with = 0, contains = 0;
+   int search_len, buf_len;
+   FILE *f;
+   L7_char8 *buf;
+-  L7_uint32 sym_addr;
++  L7_uint64 sym_addr;
+ 
+   search_len = strlen(search_str);
+   if (search_str[0] == '*') {
+     search_str++;
+     search_len--;
+     ends_with = 1;
+@@ -560,13 +747,13 @@ void osapiLkup(L7_char8 *search_str) {
+   printf("\nSearch complete.\n");
+ }
+ 
+ /* Load symbols from the file into memory. */
+ int osapiDevshellSymbolsLoad(void) {
+   FILE *f;
+-  L7_uint32 cur_addr;
++  L7_uint64 cur_addr;
+   int i;
+   char *cur_sym, *buf;
+ 
+   if (num_symbols != 0) {
+     printf("Symbols already loaded.\n");
+     return(1);
+Index: os/linux/osapi/osapi_msgq.c
+===================================================================
+--- os/linux/osapi/osapi_msgq.c	(revision 7768)
++++ os/linux/osapi/osapi_msgq.c	(working copy)
+@@ -74,32 +74,32 @@ static osapi_msgq_t *msgq_list_head = NU
+ * @returns  none
+ *
+ * @comments none
+ *
+ * @end
+ *************************************************************************/
+-void osapiMsgQueueShow(L7_uint32 queue_id)
++void osapiMsgQueueShow(L7_uint64 queue_id)
+ {
+   osapi_msgq_t *msg_queue;
+   osapi_msgq_t *next_q;
+ 
+ 
+-  msg_queue = (osapi_msgq_t *) queue_id;
++  msg_queue = (osapi_msgq_t *) UINT_TO_PTR(queue_id);
+ 
+   pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
+                        (void *)&msgq_list_lock);
+   pthread_mutex_lock(&msgq_list_lock);
+ 
+   next_q = msgq_list_head;
+   while (next_q != 0)
+   {
+     if ((queue_id == 0) || (msg_queue == next_q))
+     {
+-      printf("Queue ID: %d (0x%x)\n",
+-                  (int) next_q, 
+-                  (int) next_q);
++      printf("Queue ID: %llu (0x%llx)\n",
++             PTR_TO_UINT64(next_q), 
++             PTR_TO_UINT64(next_q));
+       printf("Queue Name: %s\n",
+                   next_q->name);
+       printf("Mem Size: %d\n",
+                   next_q->mem_size);
+       printf("Max Msg: %d\n",
+                   next_q->msg_max);
+@@ -151,13 +151,13 @@ void * osapiMsgQueueCreate(L7_char8 *que
+ 
+   }
+ 
+   if (queue_name == NULL)
+   {
+ 
+-    sprintf(synth_name, "q%d", (int)newMsgQ);
++    sprintf(synth_name, "q%llu", PTR_TO_UINT64(newMsgQ));
+ 
+     namePtr = synth_name;
+ 
+   }
+   else
+   {
+@@ -174,13 +174,13 @@ void * osapiMsgQueueCreate(L7_char8 *que
+     return(L7_NULLPTR);
+ 
+   }
+ 
+   strcpy (newMsgQ->name, namePtr);
+ 
+-  offset = message_size + (L7_uint32)OSAPI_MSG_HEADER_SIZE;
++  offset = message_size + PTR_TO_UINT32(OSAPI_MSG_HEADER_SIZE);
+ 
+   datalen = queue_size * offset;
+ 
+   if ((newMsgQ->base = osapiMalloc(L7_OSAPI_COMPONENT_ID, datalen)) == NULL)
+   {
+ 
+@@ -459,13 +459,13 @@ L7_RC_t osapiMessageSend(void *queue_ptr
+     else {/*PTIn added*/
+       PT_LOG_ERR(LOG_CTX_MISC,"osapi_waitq_enqueue()=%u", rc);
+     }
+   }
+   else
+   {
+-    PT_LOG_ERR(LOG_CTX_MISC,"queue_ptr 0x%08x is full",(L7_uint32) queue_ptr);
++    PT_LOG_ERR(LOG_CTX_MISC,"queue_ptr %p is full", queue_ptr);
+     rc = L7_ERROR;
+   }
+ 
+   pthread_cleanup_pop(1);
+ 
+   return(rc);
+@@ -668,14 +668,14 @@ void osapiDebugMsgQueuePrint(void)
+ 
+   for (;;)
+   {
+       if (osapiMsgQ != L7_NULL)
+       {
+ 
+-          printf ("%x - %-16.15s    %6d   %6d      %6d  %6d\n",
+-                        (L7_uint32)osapiMsgQ,
++          printf ("%p - %-16.15s    %6d   %6d      %6d  %6d\n",
++                        osapiMsgQ,
+                         osapiMsgQ->name,
+                         osapiMsgQ->msg_count,
+                         osapiMsgQ->send_wait.count,
+                         osapiMsgQ->recv_wait.count,
+                         osapiMsgQ->msg_high);
+ 
+Index: os/linux/osapi/osapi_net.c
+===================================================================
+--- os/linux/osapi/osapi_net.c	(revision 7768)
++++ os/linux/osapi/osapi_net.c	(working copy)
+@@ -542,13 +542,17 @@ L7_RC_t osapiRawIfAddrGet( L7_uchar8 *if
+   strcpy(ifr.ifr_name, ifName);
+ 
+   /*
+   Try to get address for tmpIfName
+   */
+ 
+-  rc = ioctl(sock, SIOCGIFADDR, (int)&ifr);
++#ifdef PTRS_ARE_64BITS
++  rc = ioctl(sock, SIOCGIFADDR, PTR_TO_UINT64(&ifr));
++#else
++  rc = ioctl(sock, SIOCGIFADDR, PTR_TO_UINT32(&ifr));
++#endif
+ 
+   if(rc == 0){
+     *ipAddr = osapiNtohl(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr.s_addr);
+     return L7_SUCCESS;
+   }
+   return L7_FAILURE;
+@@ -1394,13 +1398,17 @@ void osapiArpFlush(L7_uchar8 *ifName)
+       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_OSAPI_COMPONENT_ID,
+               "osapiArpFlush: could not open socket for ifreq! errno = %d\n",errno);
+       close(sd);
+       return;
+     }
+ 
+-    if(ioctl(sd, SIOCGIFINDEX, (int)&ifr) != 0)
++#ifdef PTRS_ARE_64BITS
++    if(ioctl(sd, SIOCGIFINDEX, PTR_TO_UINT64(&ifr)) != 0)
++#else
++    if(ioctl(sd, SIOCGIFINDEX, PTR_TO_UINT32(&ifr)) != 0)
++#endif
+     {
+       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_OSAPI_COMPONENT_ID,
+               "osapiArpFlush: could not get interface %s! errno = %d\n",
+         ifr.ifr_name, errno);
+       return;
+     }
+@@ -2926,15 +2934,15 @@ int osapi_ping_rx(void *argv[], int argc
+   {
+ 
+     return(-1);
+ 
+   }
+ 
+-  sock = (int)argv[0];
++  sock = (int) PTR_TO_UINT32(argv[0]);
+ 
+-  id = (unsigned short)(unsigned int)argv[1];
++  id = (unsigned short)PTR_TO_UINT32(argv[1]);
+ 
+   count = (L7_uint32 *)argv[2];
+ 
+   dest = (struct sockaddr_in *)argv[3];
+ 
+   for (;;)
+@@ -3025,13 +3033,13 @@ L7_uint32 osapiPingTimed(L7_char8 *hostN
+ 
+   int rc, i, sock, xmited = 0;
+   char *udata;
+   struct sockaddr_in dest;
+   struct icmp *icmp_hdr;
+   L7_uint32 packets_rx = 0;
+-  L7_int32 rx_task_id;
++  L7_uint64 rx_task_id;
+   void *rx_args[4];
+ 
+   dest.sin_family = AF_INET;
+   if (inet_aton(hostName, &(dest.sin_addr)) == 0)
+   {
+ 
+@@ -3049,13 +3057,13 @@ L7_uint32 osapiPingTimed(L7_char8 *hostN
+      so it is being taken out for the time being.  ADG
+ 
+   osapiArpFlush ();
+ 
+   */
+ 
+-  rx_args[0] = (void *)sock;
++  rx_args[0] = (void *)UINT_TO_PTR(sock);
+   rx_args[1] = (void *)(osapiGetpid() & 0xffff); /* change after test */
+   rx_args[2] = (void *)&packets_rx;
+   rx_args[3] = (void *)&dest;
+ 
+   /* start receive task */
+   if ((rx_task_id = osapiTaskCreate("osapi_ping_rx", osapi_ping_rx,
+@@ -3073,13 +3081,13 @@ L7_uint32 osapiPingTimed(L7_char8 *hostN
+   }
+ 
+   icmp_hdr = (struct icmp *)osapi_ping_tx_buf;
+ 
+   icmp_hdr->icmp_type = ICMP_ECHO;
+   icmp_hdr->icmp_code = 0;
+-  icmp_hdr->icmp_id = osapiHtons((unsigned short)(unsigned int)rx_args[1]);
++  icmp_hdr->icmp_id = osapiHtons((unsigned short)PTR_TO_UINT32(rx_args[1]));
+ 
+   udata = osapi_ping_tx_buf + sizeof(struct icmp);
+ 
+   for (i = sizeof(struct icmp); i < 84; i++)
+   {
+ 
+Index: os/linux/osapi/osapi_priv.h
+===================================================================
+--- os/linux/osapi/osapi_priv.h	(revision 7768)
++++ os/linux/osapi/osapi_priv.h	(working copy)
+@@ -42,13 +42,13 @@ typedef struct osapi_task_s {
+    L7_uint32 pthread_prio;
+    L7_uint32 cur_prio;
+    char *name;
+    osapi_task_entry_t *entry;
+    L7_uint32 argc;
+    void *argv;
+-   L7_uint32 stack_base_addr;
++   L7_uint64 stack_base_addr;
+    L7_uint32 stack_size;
+    struct osapi_waitq_s *waiting;
+    pthread_cond_t fifo_cond;
+    struct osapi_task_s *fifo_prev, *fifo_next;
+    pthread_t thread;
+    pthread_attr_t attr;
+Index: os/linux/osapi/osapi_task.c
+===================================================================
+--- os/linux/osapi/osapi_task.c	(revision 7768)
++++ os/linux/osapi/osapi_task.c	(working copy)
+@@ -90,27 +90,44 @@ static L7_uint32 system_page_size = 0;
+ 
+ #define OSAPI_INT_LEVELS  1
+ 
+ #ifdef L7_STACK_USAGE_STATS
+ L7_uint32 osapiStackFree(osapi_task_t *task)
+ {
++#ifdef PTRS_ARE_64BITS
++  L7_uint64 *tst;
++  L7_uint32 stack_usage;
++
++  if (task==NULL)
++  {
++    return(0);
++  }
++  stack_usage = task->stack_size;
++  tst = (L7_uint64 *) UINT_TO_PTR(task->stack_base_addr);
++  while ((stack_usage > 0) && (*tst == 0xD7D7D7D7D7D7D7D7)) {
++    stack_usage -= 8;
++    tst++;
++  }
++#else
+   L7_uint32 *tst;
+   L7_uint32 stack_usage;
+ 
+   if (task==NULL)
+   {
+     return(0);
+   }
+   stack_usage = task->stack_size;
+-  tst = (L7_uint32 *) (task->stack_base_addr);
++  tst = (L7_uint32 *) UINT_TO_PTR(task->stack_base_addr);
+   while ((stack_usage > 0) && (*tst == 0xD7D7D7D7)) {
+     stack_usage -= 4;
+     tst++;
+   }
++#endif
+   return(task->stack_size - stack_usage);
+ }
++
+ #endif /* L7_STACK_USAGE_STATS */
+ 
+ int osapiDebugStackConsume(int levels)
+ {
+   char buf[128];
+ 
+@@ -129,13 +146,13 @@ static void osapi_task_destroy(osapi_tas
+ 
+   pthread_mutex_destroy(&(task->lock));
+   pthread_cond_destroy(&(task->control));
+   pthread_cond_destroy(&(task->fifo_cond));
+   pthread_attr_destroy(&(task->attr));
+ 
+-  rc = munmap((void *)(task->stack_base_addr - system_page_size),
++  rc = munmap(UINT_TO_PTR(task->stack_base_addr - system_page_size),
+       (task->stack_size + system_page_size));
+   if (rc < 0)
+   {
+     osapi_printf("osapi_task_destroy: Error %d freeing stack of task %s\n", errno, task->name);
+   }
+ 
+@@ -440,26 +457,26 @@ void *osapi_task_wrapper(void *arg)
+ *
+ * @comments    none.
+ *
+ * @end
+ *
+ *************************************************************************/
+-L7_int32  osapiTaskCreate( L7_char8 *task_name,
+-                           void *task_entry,
+-                           void *argv,
+-                           L7_uint32 argc,
+-                           L7_uint32 stack_size,
+-                           L7_uint32 priority,
+-                           L7_uint32 time_slice )
++L7_uint64 osapiTaskCreate(L7_char8 *task_name,
++                          void *task_entry,
++                          void *argv,
++                          L7_uint32 argc,
++                          L7_uint32 stack_size,
++                          L7_uint32 priority,
++                          L7_uint32 time_slice )
+ {
+ 
+   L7_uint32 namelen;
+   char *namePtr;
+   osapi_task_t *newTask;
+   int rc;
+-  L7_int32 task_id;
++  L7_uint64 task_id;
+   pthread_mutexattr_t attr;
+   void *alloced_stack;
+   
+   pthread_once(&osapi_task_once, osapi_task_init);
+ 
+   if (task_name == NULL)
+@@ -473,19 +490,19 @@ L7_int32  osapiTaskCreate( L7_char8 *tas
+ 
+   if ((newTask = (osapi_task_t *)osapiMalloc(L7_OSAPI_COMPONENT_ID, sizeof(osapi_task_t) + namelen)) == NULL)
+   {
+     return(L7_ERROR);
+   }
+ 
+-  task_id = (L7_int32) newTask;
++  task_id = PTR_TO_UINT64(newTask);
+   namePtr = ((char *)newTask) + sizeof(osapi_task_t); 
+   newTask->name = namePtr;
+ 
+   if (task_name == NULL)
+   {
+-    snprintf(namePtr, namelen, "t%08x", (unsigned int)newTask);
++    snprintf(namePtr, namelen, "t%llx", PTR_TO_UINT64(newTask));
+   }
+   else
+   {
+     strncpy(namePtr, task_name, namelen);
+   }
+ 
+@@ -551,14 +568,14 @@ L7_int32  osapiTaskCreate( L7_char8 *tas
+     return(L7_ERROR);
+   }
+   /* Set first page of stack (we asked for +1) to be inaccessible, so that 
+      stack overflows will segfault */
+   if (mprotect((void *)alloced_stack , system_page_size, PROT_NONE) < 0)
+   {
+-    osapi_printf("osapiTaskCreate: Could not set stack guard page at 0x%08X inaccessible, error %d\n", 
+-                 (unsigned int)(((char *)alloced_stack) + stack_size), errno);
++    osapi_printf("osapiTaskCreate: Could not set stack guard page at 0x%llX inaccessible, error %d\n", 
++                 PTR_TO_UINT64(((char *)alloced_stack) + stack_size), errno);
+     /* nonfatal */
+   }
+   alloced_stack = (void *)(((char *)alloced_stack) + system_page_size);
+   rc = pthread_attr_setstack(&(newTask->attr), alloced_stack, stack_size);
+   if (rc != 0)
+   {
+@@ -567,13 +584,13 @@ L7_int32  osapiTaskCreate( L7_char8 *tas
+     munmap((void *)(((char *)alloced_stack) - system_page_size),
+            (stack_size + system_page_size));
+     osapiFree(L7_OSAPI_COMPONENT_ID, (void *)newTask);
+     return(L7_ERROR);
+   }
+ 
+-  newTask->stack_base_addr = (unsigned long)alloced_stack;
++  newTask->stack_base_addr = PTR_TO_UINT64(alloced_stack);
+   newTask->stack_size = stack_size;
+ #ifdef L7_STACK_USAGE_STATS
+   memset(alloced_stack, 0xD7, stack_size);
+ #endif /* L7_STACK_USAGE_STATS */
+ 
+   pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
+@@ -598,13 +615,13 @@ L7_int32  osapiTaskCreate( L7_char8 *tas
+ 
+   rc = pthread_create(&(newTask->thread), &(newTask->attr),
+                       (void * (*)(void *))osapi_task_wrapper, (void *)newTask);
+ 
+   if (rc != 0)
+   {
+-    osapi_printf ("osapiTaskCreate: Error creating task 0x%08X [%s], error %d\n", (unsigned int)task_id, namePtr, rc);
++    osapi_printf ("osapiTaskCreate: Error creating task 0x%llX [%s], error %d\n", task_id, namePtr, rc);
+     
+     /* Remove the task structure from the list of tasks */
+     pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
+                          (void *)&task_list_lock);
+     if (pthread_mutex_lock(&task_list_lock) != 0)
+     {
+@@ -627,14 +644,14 @@ L7_int32  osapiTaskCreate( L7_char8 *tas
+     /* Free the stack and task structure */
+     osapi_task_destroy(newTask);
+     
+     return(L7_ERROR);
+   }
+ 
+-  PT_LOG_NOTICE(LOG_CTX_STARTUP, "New pthread created: \"%s\" -> pthread_id=%u (task_id=%u)",
+-             namePtr, newTask->thread, (unsigned int)task_id);
++  PT_LOG_NOTICE(LOG_CTX_STARTUP, "New pthread created: \"%s\" -> pthread_id=%lu (task_id=0x%llx)",
++                namePtr, newTask->thread, task_id);
+ 
+   return(task_id);
+ 
+ }
+ 
+ /**************************************************************************
+@@ -648,19 +665,19 @@ L7_int32  osapiTaskCreate( L7_char8 *tas
+ * @comments    none.
+ *
+ * @end
+ *
+ *************************************************************************/
+ 
+-void osapiTaskDelete( L7_int32 task_id)
++void osapiTaskDelete(L7_uint64 task_id)
+ {
+ 
+   int rc, rc2 = 0;
+   L7_uint32 delete_safe;
+   osapi_task_t *self;
+-  osapi_task_t *osapiTask = (osapi_task_t *)task_id;
++  osapi_task_t *osapiTask = (osapi_task_t *) UINT_TO_PTR(task_id);
+   struct osapi_waitq_s *queue = NULL;
+ 
+   /* need task scheduling lock? */
+ 
+   pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
+                        (void *)&(osapiTask->lock));
+@@ -848,15 +865,15 @@ void osapiTaskDelete( L7_int32 task_id)
+ * @comments    none.
+ *
+ * @end
+ *
+ *************************************************************************/
+ 
+-void osapiTaskSignal( L7_int32 task_id, int sig)
++void osapiTaskSignal( L7_uint64 task_id, int sig)
+ {
+-  osapi_task_t *osapiTask = (osapi_task_t *)task_id;
++  osapi_task_t *osapiTask = (osapi_task_t *) UINT_TO_PTR(task_id);
+ 
+   pthread_kill(osapiTask->thread, sig);
+   
+   /* need task scheduling unlock? */
+ 
+ }
+@@ -1369,17 +1386,17 @@ void osapiEnableInts(L7_uint32 LockKey)
+ *
+ * @comments
+ *
+ * @end
+ *
+ *************************************************************************/
+-L7_RC_t osapiTaskPrioritySet(L7_int32 TaskID, L7_int32 Priority)
++L7_RC_t osapiTaskPrioritySet(L7_uint64 TaskID, L7_int32 Priority)
+ {
+ 
+   int policy;
+-  osapi_task_t *osapiTask = (osapi_task_t *)TaskID;
++  osapi_task_t *osapiTask = (osapi_task_t *) UINT_TO_PTR(TaskID);
+   struct sched_param sp;
+ 
+   memset(&sp, 0, sizeof(sp));
+ 
+   pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
+ 		       (void *)&(osapiTask->lock));
+@@ -1419,16 +1436,16 @@ L7_RC_t osapiTaskPrioritySet(L7_int32 Ta
+ *
+ * @comments
+ *
+ * @end
+ *
+ *************************************************************************/
+-L7_RC_t osapiTaskPriorityGet(L7_int32 TaskID, L7_uint32 *Priority)
++L7_RC_t osapiTaskPriorityGet(L7_uint64 TaskID, L7_uint32 *Priority)
+ {
+ 
+-  osapi_task_t *osapiTask = (osapi_task_t *)TaskID;
++  osapi_task_t *osapiTask = (osapi_task_t *) UINT_TO_PTR(TaskID);
+ 
+   *Priority = osapiTask->osapi_prio;
+ 
+   return(L7_SUCCESS);
+ 
+ }
+@@ -1475,20 +1492,20 @@ L7_RC_t osapiTaskYield ( void )
+ *
+ * @comments
+ *
+ * @end
+ *
+ *************************************************************************/
+-L7_RC_t  osapiTaskNameGet( L7_int32 task_id, L7_char8 *task_name)
++L7_RC_t  osapiTaskNameGet( L7_uint64 task_id, L7_char8 *task_name)
+ {
+ 
+   osapi_task_t *task_block;
+   osapi_task_t *curTask;
+   L7_RC_t rc;
+ 
+-  task_block = (osapi_task_t *) task_id;
++  task_block = (osapi_task_t *) UINT_TO_PTR(task_id);
+ 
+   pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
+                        (void *)&task_list_lock);
+   if (pthread_mutex_lock(&task_list_lock) != 0)
+   {
+     L7_LOG_ERROR(0);
+@@ -1532,16 +1549,16 @@ task.
+ *
+ * @comments
+ *
+ * @end
+ *
+ *************************************************************************/
+-L7_RC_t osapiTaskIDSelfGet(L7_int32 *TaskIDPtr)
++L7_RC_t osapiTaskIDSelfGet(L7_uint64 *TaskIDPtr)
+ {
+ 
+-  *TaskIDPtr = (L7_int32)pthread_getspecific(osapi_task_key);
++  *TaskIDPtr = PTR_TO_UINT64(pthread_getspecific(osapi_task_key));
+ 
+   return(L7_SUCCESS);
+ 
+ }
+ 
+ /**************************************************************************
+@@ -1555,20 +1572,20 @@ L7_RC_t osapiTaskIDSelfGet(L7_int32 *Tas
+ *
+ * @comments
+ *
+ * @end
+ *
+ *************************************************************************/
+-L7_RC_t osapiTaskIdVerify(L7_int32 task_id)
++L7_RC_t osapiTaskIdVerify(L7_uint64 task_id)
+ {
+ 
+   osapi_task_t *task_block;
+   osapi_task_t *curTask;
+   L7_RC_t rc;
+ 
+-  task_block = (osapi_task_t *) task_id;
++  task_block = (osapi_task_t *) UINT_TO_PTR(task_id);
+ 
+   pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
+                        (void *)&task_list_lock);
+   if (pthread_mutex_lock(&task_list_lock) != 0)
+   {
+     L7_LOG_ERROR(0);
+@@ -1606,15 +1623,15 @@ L7_RC_t osapiTaskIdVerify(L7_int32 task_
+ *
+ * @comments    none.
+ *
+ * @end
+ *
+ *************************************************************************/
+-L7_int32  osapiTaskIdSelf( void)
++L7_uint64 osapiTaskIdSelf( void)
+ {
+-  return((L7_int32)pthread_getspecific(osapi_task_key));
++  return (PTR_TO_UINT64(pthread_getspecific(osapi_task_key)));
+ }
+ 
+ /**************************************************************************
+ *
+ * @purpose  Check if running task is requested task.
+ *
+@@ -1663,13 +1680,13 @@ unsigned long *mips_backtrace(unsigned l
+ *
+ * @comments
+ *
+ * @end
+ *
+ *************************************************************************/
+-void osapiDebugStackTrace (L7_uint32 debug_task_id, FILE *filePtr)
++void osapiDebugStackTrace (L7_uint64 debug_task_id, FILE *filePtr)
+ {
+ #if defined (__powerpc__) || defined(__mips__)
+   osapi_task_t *task_block;
+   osapi_task_t *curTask;
+   int rc;
+   int   wait_status;
+@@ -1721,13 +1738,13 @@ void osapiDebugStackTrace (L7_uint32 deb
+     perror("fork");
+     return;
+   }
+   if (pid == 0)
+   {
+ #endif
+-    task_block = (osapi_task_t *) debug_task_id;
++    task_block = (osapi_task_t *) UINT_TO_PTR(debug_task_id);
+     for (curTask = task_list_head; curTask != NULL;
+         curTask = curTask->chain_next)
+     {
+       if ((task_block == curTask) ||
+           (task_block == 0))
+       {
+@@ -1937,16 +1954,16 @@ void osapiDebugStackTrace (L7_uint32 deb
+  *
+  * @comments
+  *           Unimplemented on VxWorks.
+  *
+  * @end
+  *********************************************************************/
+-L7_RC_t osapiWhichStack(L7_uint32 addr, L7_char8 *buf, L7_uint32 bufSize)
++L7_RC_t osapiWhichStack(L7_uint64 addr, L7_char8 *buf, L7_uint32 bufSize)
+ {
+   osapi_task_t *checking;
+-  L7_uint32 cur_stack_guard_begin, cur_stack_guard_end;
++  L7_uint64 cur_stack_guard_begin, cur_stack_guard_end;
+   L7_RC_t rc = L7_FAILURE;
+ 
+   pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
+                        (void *)&task_list_lock);
+   if (pthread_mutex_lock(&task_list_lock) == 0)
+   {
+@@ -1978,16 +1995,16 @@ L7_RC_t osapiWhichStack(L7_uint32 addr,
+ *
+ * @comments
+ *
+ * @end
+ *
+ *************************************************************************/
+-int osapiTaskPidGet( L7_int32 task_id)
++int osapiTaskPidGet( L7_uint64 task_id)
+ {
+ 
+-  return ((osapi_task_t *)(task_id))->PID;
++  return ((osapi_task_t *) UINT_TO_PTR(task_id))->PID;
+ }
+ 
+ 
+ #define STAT_BUFSIZE 1024
+ static unsigned int getCpuTime(char *taskStatFileName)
+ {
+@@ -2069,13 +2086,13 @@ void osapiCpuUtilMonitorTask(L7_uint32 *
+     osapi_printf("%s: task_list_lock error\n", __FUNCTION__);
+   }
+ 
+   for (curTask = task_list_head; curTask != NULL;
+       curTask = curTask->chain_next)
+   {
+-    sysapiTaskCpuUtilTableInsert((L7_int32)curTask);
++    sysapiTaskCpuUtilTableInsert(PTR_TO_UINT64(curTask));
+   }
+   pthread_cleanup_pop(1);
+ 
+   sysapiTaskCpuUtilTableSort();
+   sysapiCpuUtilLockGive();
+ 
+@@ -2134,15 +2151,15 @@ void osapiCpuUtilMonitorTask(L7_uint32 *
+         totalPercent += taskPercent;
+         curTask->prevCpuTime = curCpuTime;
+       }
+ 
+ 
+       insertFlag = L7_FALSE;
+-      if (sysapiTaskCpuUtilTableFind((L7_int32)curTask, &index) == L7_FALSE)
++      if (sysapiTaskCpuUtilTableFind(PTR_TO_UINT64(curTask), &index) == L7_FALSE)
+       {
+-        index = sysapiTaskCpuUtilTableInsert((L7_int32)curTask);
++        index = sysapiTaskCpuUtilTableInsert(PTR_TO_UINT64(curTask));
+         insertFlag = L7_TRUE;
+       }
+ 
+       /* Update the utilization in the task table */
+       sysapiTaskCpuUtilUpdate(index, taskPercent);
+ 
+Index: os/linux/osapi/osapi_time.c
+===================================================================
+--- os/linux/osapi/osapi_time.c	(revision 7768)
++++ os/linux/osapi/osapi_time.c	(working copy)
+@@ -40,15 +40,15 @@ typedef struct osapiTimerListEntry_s {
+    struct osapiTimerListEntry_s *next, *prev;
+ 
+ } osapiTimerListEntry_t;
+ 
+ typedef struct osapiTimerAddEntry_s
+ {
+-	void				(*func)(L7_uint32, L7_uint32);
+-	L7_uint32			arg1;
+-	L7_uint32			arg2;
++	void				(*func)(L7_uint64, L7_uint64);
++	L7_uint64			arg1;
++	L7_uint64			arg2;
+ 	L7_uint32			milliseconds;
+ 	osapiTimerDescr_t	**pTimerHolder;
+ 
+ } osapiTimerAddEntry;
+ 
+ typedef struct osapiTimerChangeEntry_s
+@@ -599,14 +599,14 @@ void osapiTimerAddMain (osapiTimerAddEnt
+ * @returns  none.
+ *
+ * @comments    none.
+ *
+ * @end
+ *************************************************************************/
+-void osapiTimerAdd(void (*func)( L7_uint32, L7_uint32 ),
+-                   L7_uint32 arg1, L7_uint32 arg2,
++void osapiTimerAdd(void (*func)( L7_uint64, L7_uint64 ),
++                   L7_uint64 arg1, L7_uint64 arg2,
+                    L7_int32 milliseconds, osapiTimerDescr_t **pTimerHolder)
+ {
+ 	osapiTimerAddEntry Entry;
+ 	int SaveCancelType;
+ 
+ 	if (func == NULL)
+Index: os/linux/routing/l3_intfload.c
+===================================================================
+--- os/linux/routing/l3_intfload.c	(revision 7768)
++++ os/linux/routing/l3_intfload.c	(working copy)
+@@ -69,13 +69,13 @@ L7_uint32 MaxRouterIf;
+ L3INTF_INFO *l3intfInfo;
+ 
+ /* Flag indicating that router interface component has been initialized */
+ static L7_BOOL RouterIntfInitDone = L7_FALSE;
+ 
+ /* Task ID for task that processes ARP requests */
+-static L7_uint32 arpd_task_id = 0;
++static L7_uint64 arpd_task_id = 0;
+ 
+ 
+ /**************************************************************************
+ * @purpose  Add a route
+ *
+ * @param    network      32bit destination ip address
+@@ -1798,21 +1798,23 @@ L7_RC_t ipmRouterIfMetricGet(L7_uint32 i
+ * @notes    
+ *
+ * @end
+ *********************************************************************/
+ L7_RC_t ipmArpTaskCreate(void)
+ {
+-    L7_RC_t rc = osapiTaskCreate("linux_arpd_task", arpd_entry_fn, 0, 0,
+-                                 L7_DEFAULT_STACK_SIZE,
+-                                 L7_MEDIUM_TASK_PRIORITY,
+-                                 L7_DEFAULT_TASK_SLICE);
++    L7_uint64 taskId;
+ 
+-    if (rc != L7_ERROR)
++    taskId = osapiTaskCreate("linux_arpd_task", arpd_entry_fn, 0, 0,
++                             L7_DEFAULT_STACK_SIZE,
++                             L7_MEDIUM_TASK_PRIORITY,
++                             L7_DEFAULT_TASK_SLICE);
++
++    if (taskId != L7_ERROR)
+     {
+         /* task create succeeded and returned the new task ID */
+-        arpd_task_id = rc;
++        arpd_task_id = taskId;
+         return L7_SUCCESS;
+     }
+     return L7_FAILURE;
+ }
+ 
+ /*********************************************************************
+Index: os/linux/routing/lvl7arpd.c
+===================================================================
+--- os/linux/routing/lvl7arpd.c	(revision 7768)
++++ os/linux/routing/lvl7arpd.c	(working copy)
+@@ -90,18 +90,18 @@ static struct arpd_sock_s arpd_sock;
+  *PROTOTYPES
+  */
+ 
+ extern L7_RC_t ipMapArpAddrResolve(L7_uint32 intIfNum, L7_uint32 ipAddr,
+                    L7_uchar8 *pMacAddr,
+                    ipMapArpResCallback_ft pCallbackFn,
+-                   L7_uint32 cbParm1, L7_uint32 cbParm2);
++                   L7_uint64 cbParm1, L7_uint64 cbParm2);
+ 
+ L7_RC_t process_getneigh_request(struct nlmsghdr *gnr);
+ 
+-void arp_resolver_callback(L7_uint32 ipaddr,
+-               L7_uint32 ifindex,
++void arp_resolver_callback(L7_uint64 ipaddr,
++               L7_uint64 ifindex,
+                L7_uchar8 *mac_addr,
+                L7_RC_t  rc);
+ 
+ L7_RC_t update_kernel_arp_table(L7_uint32 ipaddr,
+                 L7_uchar8 *mac_addr,
+                 L7_uint32 ifindex,
+@@ -596,13 +596,13 @@ L7_RC_t process_getneigh_request(struct
+  *             update notice to kernel
+  *
+  *
+  *NOTES:
+  *
+  ******************************************************************/
+-void arp_resolver_callback(L7_uint32 ipaddr, L7_uint32 ifindex, L7_uchar8 *mac_addr, L7_RC_t rc)
++void arp_resolver_callback(L7_uint64 ipaddr, L7_uint64 ifindex, L7_uchar8 *mac_addr, L7_RC_t rc)
+ {
+   if (rc == L7_SUCCESS)
+     update_kernel_arp_table(ipaddr,mac_addr,ifindex,DYNAMIC_ARP_ENTRY);
+ }
+ 
+ 
+Index: os/linux/transfer/swap.c
+===================================================================
+--- os/linux/transfer/swap.c	(revision 7768)
++++ os/linux/transfer/swap.c	(working copy)
+@@ -22,13 +22,18 @@
+     ((L7_uint64)(val) << 56) | (((L7_uint64)(val) << 40) & 0x00ff000000000000ULL) | (((L7_uint64)(val) << 24) & 0x0000ff0000000000ULL) | (((L7_uint64)(val) << 8) & 0x000000ff00000000ULL))  \
+   )
+ 
+ L7_RC_t osapiSwapFile(L7_uchar8 *filename) 
+ {
+   int fd;
+-  L7_uint32 *dst,i,j,rbytes=0,wbytes=0,totoalbyteswritten=0;
++#ifdef PTRS_ARE_64BITS
++  L7_uint64 *dst;
++#else
++  L7_uint32 *dst;
++#endif
++  L7_uint32 i,j,rbytes=0,wbytes=0,totoalbyteswritten=0;
+   unsigned long size,offset;
+   L7_uchar8 *buf,temp;
+ 
+   buf = malloc(NUM_BYTES);
+   memset ( buf, 0,NUM_BYTES);
+   fd=open(filename,O_RDWR);
+@@ -62,17 +67,25 @@ L7_RC_t osapiSwapFile(L7_uchar8 *filenam
+       printf("Unable to read from file %s",filename);
+       close(fd);
+       free(buf);
+       return (L7_FAILURE);
+     }
+ 
++#ifdef PTRS_ARE_64BITS
++    dst = (L7_uint64 *)buf;
++#else
+     dst = (L7_uint32 *)buf;
++#endif
+ 
+     for (i=0; i < rbytes; i += 4)
+     {
++#ifdef PTRS_ARE_64BITS
++      *dst = SWAP64(*dst);
++#else
+       *dst = SWAP32(*dst);
++#endif
+       dst++;
+     }
+     lseek(fd,offset,SEEK_SET);
+     if((wbytes = write(fd,buf,rbytes)) < rbytes )
+     {
+       printf("Unable to write to file %s",filename);
+Index: os/linux/transfer/tftp.c
+===================================================================
+--- os/linux/transfer/tftp.c	(revision 7768)
++++ os/linux/transfer/tftp.c	(working copy)
+@@ -97,13 +97,13 @@ int osapiTftp (L7_uint32 ipAddr, L7_uint
+ 
+   osapiInetNtop (L7_AF_INET, (L7_uchar8 *) & ipAddr, (L7_uchar8 *) ipAddrStr, sizeof (ipAddrStr));
+ 
+   sysapiPrintf ("executing L7_TFTP_COPY %s %s 0x%x\n", tftpOp, ipAddrStr, ipAddr);
+ 
+   tftpStatus = L7_TFTP_COPY (&inet_address, "switchdrvr", tftpOp, "octet", -1, 
+-                             TFTP_TIMEOUT, func, (void *) file_desc, L7_FALSE);
++                             TFTP_TIMEOUT, func, UINT_TO_PTR(file_desc), L7_FALSE);
+   sysapiPrintf ("Transfer completed status = %d\n", tftpStatus);
+ 
+   osapiTransferClose (file_desc);
+   return tftpStatus;
+ }
+ 
+Index: os/linux/transfer/transfer.c
+===================================================================
+--- os/linux/transfer/transfer.c	(revision 7768)
++++ os/linux/transfer/transfer.c	(working copy)
+@@ -660,13 +660,14 @@ L7_int32 create_ascii_event_log(L7_char8
+ {
+   FILE *logfd;
+   /* This function is called on only one thread. Make the buffers static to
+      conserve stack space. */
+   static char string[L7_CLI_MAX_STRING_LENGTH*2];
+   static L7_char8 buf[1024];
+-  L7_uint32 index, stringLength, NumberOfBytesWritten;
++  L7_uint64 index;
++  L7_uint32 stringLength, NumberOfBytesWritten;
+   L7_int32 pad;
+   L7_char8 pad_char = ' ';
+   char *cr_location;
+ 
+   if ((logfd = fopen(event_log_file_name, "w")) == NULL )
+   {
+@@ -2545,13 +2546,13 @@ L7_RC_t osapiKernelUpdate(void)
+ *
+ * @notes    If download still in progress reschedules itself via osapiTimer.
+ *
+ * @end
+ *
+ ***************************************************************************/
+-void L7_http_stale_buffer_check(L7_uint32 dummy1, L7_uint32 dummy2)
++void L7_http_stale_buffer_check(L7_uint64 dummy1, L7_uint64 dummy2)
+ {
+   L7_uint32 now;
+ 
+   now = osapiUpTimeRaw();
+   /* If 5 minutes have gone by without any data being received, this
+      download is no good, free the buffer */

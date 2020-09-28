@@ -1,0 +1,218 @@
+Index: src/dtl/base/dtl_cfg.c
+===================================================================
+--- src/dtl/base/dtl_cfg.c	(revision 7768)
++++ src/dtl/base/dtl_cfg.c	(working copy)
+@@ -200,16 +200,16 @@ L7_RC_t dtlTaskAddr()
+ *
+ * @notes none
+ *
+ * @end
+ *
+ *********************************************************************/
+-L7_RC_t dtlStartTask(L7_uint32 *taskId)
++L7_RC_t dtlStartTask(L7_uint64 *taskId)
+ {
+   L7_RC_t     rc = L7_SUCCESS;
+-  L7_uint32   dtlAddrTask;
++  L7_uint64   dtlAddrTask;
+ 
+   if ((dtlLockSem = osapiSemaMCreate(OSAPI_SEM_Q_FIFO)) == NULL)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DTL_COMPONENT_ID,
+             "DTL: Could not create dtlLockSem\n");
+     return(L7_ERROR);
+Index: src/dtl/base/dtl_cnfgr.c
+===================================================================
+--- src/dtl/base/dtl_cnfgr.c	(revision 7768)
++++ src/dtl/base/dtl_cnfgr.c	(working copy)
+@@ -31,13 +31,13 @@
+ #include "nvstoreapi.h"
+ #include "bspapi.h"
+ #include <string.h>
+ 
+ /* The last phase that was completed */
+ static L7_CNFGR_RQST_t dtlPhase = L7_CNFGR_RQST_FIRST;
+-static L7_uint32  dtlTaskID;
++static L7_uint64  dtlTaskID;
+ 
+ static L7_BOOL dtl_started = L7_FALSE;
+ 
+ 
+ /*********************************************************************
+ * @purpose  Determine whether DTL has been started.
+@@ -294,25 +294,29 @@ L7_RC_t dtlCnfgrInitPhase2Process( L7_CN
+   /* Register with outside components during phase 2 */
+   do
+   {
+     if ((dtlRC = dtlIpRegPkg()) != L7_SUCCESS)
+       break;
+ 
+-    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to registering function 0x%08x to family DTL_FAMILY_INTF_MGMT (%u)", (L7_uint32) dtlLinkChangeCallback, DTL_FAMILY_INTF_MGMT);
++    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to registering function %p to family DTL_FAMILY_INTF_MGMT (%u)",
++                dtlLinkChangeCallback, DTL_FAMILY_INTF_MGMT);
+     if ((dtlRC = dtlCallbackRegistration(DTL_FAMILY_INTF_MGMT,dtlLinkChangeCallback)) != L7_SUCCESS)
+       break;
+ 
+-    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_FRAME (%u)", (L7_uint32) dtlPduReceiveCallback, DTL_FAMILY_FRAME);
++    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function %p to family DTL_FAMILY_FRAME (%u)",
++                dtlPduReceiveCallback, DTL_FAMILY_FRAME);
+     if ((dtlRC = dtlCallbackRegistration(DTL_FAMILY_FRAME,dtlPduReceiveCallback)) != L7_SUCCESS)
+       break;
+ 
+-    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_QVLAN_MGMT (%u)", (L7_uint32) dtlGenericCallback, DTL_FAMILY_QVLAN_MGMT);
++    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function %p to family DTL_FAMILY_QVLAN_MGMT (%u)",
++                dtlGenericCallback, DTL_FAMILY_QVLAN_MGMT);
+     if ((dtlRC = dtlCallbackRegistration(DTL_FAMILY_QVLAN_MGMT,dtlGenericCallback)) != L7_SUCCESS)
+       break;
+ 
+-    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_SERVICES (%u)", (L7_uint32) dtlGenericCallback, DTL_FAMILY_SERVICES);
++    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function %p to family DTL_FAMILY_SERVICES (%u)",
++                dtlGenericCallback, DTL_FAMILY_SERVICES);
+     if ((dtlRC = dtlCallbackRegistration(DTL_FAMILY_SERVICES,dtlGenericCallback)) != L7_SUCCESS)
+      break;
+ 
+   } while ( 0 );
+ 
+ 
+Index: src/dtl/base/dtl_driver.c
+===================================================================
+--- src/dtl/base/dtl_driver.c	(revision 7768)
++++ src/dtl/base/dtl_driver.c	(working copy)
+@@ -74,34 +74,38 @@ L7_RC_t dtlDriverInit(L7_ulong32 cpuBoar
+   stackUnitID = simGetThisUnit();
+ 
+   dtlNetInitDone = L7_FALSE;
+ 
+   if (dapiInit(cpuBoardID) == L7_SUCCESS)
+   {
+-    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_INTF_MGMT (%u)", (L7_uint32) dtlLinkChangeCallback, DTL_FAMILY_INTF_MGMT);
++    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function %p to family DTL_FAMILY_INTF_MGMT (%u)",
++                dtlLinkChangeCallback, DTL_FAMILY_INTF_MGMT);
+     rc = dtlCallbackRegistration(DTL_FAMILY_INTF_MGMT,dtlLinkChangeCallback);
+     if (rc==L7_FAILURE)
+     {
+       return rc;
+     }
+ 
+-    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_FRAME (%u)", (L7_uint32) dtlPduReceiveCallback, DTL_FAMILY_FRAME);
++    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function %p to family DTL_FAMILY_FRAME (%u)",
++                dtlPduReceiveCallback, DTL_FAMILY_FRAME);
+     rc = dtlCallbackRegistration(DTL_FAMILY_FRAME,dtlPduReceiveCallback);
+     if (rc==L7_FAILURE)
+     {
+       return rc;
+     }
+ 
+-    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_QVLAN_MGMT (%u)", (L7_uint32) dtlGenericCallback, DTL_FAMILY_QVLAN_MGMT);
++    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function %p to family DTL_FAMILY_QVLAN_MGMT (%u)",
++                dtlGenericCallback, DTL_FAMILY_QVLAN_MGMT);
+     rc = dtlCallbackRegistration(DTL_FAMILY_QVLAN_MGMT,dtlGenericCallback);
+     if (rc == L7_FAILURE)
+     {
+       return rc;
+     }
+ 
+-    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_SERVICES (%u)", (L7_uint32) dtlGenericCallback, DTL_FAMILY_SERVICES);
++    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function %p to family DTL_FAMILY_SERVICES (%u)",
++                dtlGenericCallback, DTL_FAMILY_SERVICES);
+     rc = dtlCallbackRegistration(DTL_FAMILY_SERVICES, dtlGenericCallback);
+     if (rc == L7_FAILURE)
+     {
+       return rc;
+     }
+ 
+Index: src/dtl/base/dtl_pdu_landd.c
+===================================================================
+--- src/dtl/base/dtl_pdu_landd.c	(revision 7768)
++++ src/dtl/base/dtl_pdu_landd.c	(working copy)
+@@ -602,23 +602,23 @@ L7_RC_t dtlPduLoopback(L7_uint32 destInt
+ 
+ #include "dtl_l3_api.h"
+ 
+ /* PTin added: debug */
+ void dtlFamilyCallbacks_getAddr(void)
+ {
+-  printf("dtlLinkChangeCallback   related to DTL_FAMILY_INTF_MGMT  (%2u) -> DAPI_FAMILY_INTF_MGMT  (%2u) family: 0x%08x\r\n",
+-          DTL_FAMILY_INTF_MGMT,  DAPI_FAMILY_INTF_MGMT,  (L7_uint32) dtlLinkChangeCallback);
+-  printf("dtlPduReceiveCallback   related to DTL_FAMILY_FRAME      (%2u) -> DAPI_FAMILY_FRAME      (%2u) family: 0x%08x\r\n",
+-          DTL_FAMILY_FRAME,      DAPI_FAMILY_FRAME,      (L7_uint32) dtlPduReceiveCallback);
+-  printf("dtlGenericCallback      related to DTL_FAMILY_QVLAN_MGMT (%2u) -> DAPI_FAMILY_QVLAN_MGMT (%2u) family: 0x%08x\r\n",
+-          DTL_FAMILY_QVLAN_MGMT, DAPI_FAMILY_QVLAN_MGMT, (L7_uint32) dtlGenericCallback);
+-  printf("dtlGenericCallback      related to DTL_FAMILY_SERVICES   (%2u) -> DAPI_FAMILY_SERVICES   (%2u) family: 0x%08x\r\n",
+-          DTL_FAMILY_SERVICES,   DAPI_FAMILY_SERVICES,   (L7_uint32) dtlGenericCallback);
+-  printf("dtlFdbReceiveCallback   related to DTL_FAMILY_ADDR_MGMT  (%2u) -> DAPI_FAMILY_ADDR_MGMT  (%2u) family: 0x%08x\r\n",
+-          DTL_FAMILY_ADDR_MGMT,  DAPI_FAMILY_ADDR_MGMT,  (L7_uint32) dtlFdbReceiveCallback);
+-  printf("dtlIpv4ArpEntryCallback related to DTL_FAMILY_ROUTING_ARP_MGMT (%2u) -> DAPI_FAMILY_ROUTING_ARP_MGMT (%2u) family: 0x%08x\r\n",
+-          DTL_FAMILY_ROUTING_ARP_MGMT, DAPI_FAMILY_ROUTING_ARP_MGMT, (L7_uint32) dtlIpv4ArpEntryCallback);
++  printf("dtlLinkChangeCallback   related to DTL_FAMILY_INTF_MGMT  (%2u) -> DAPI_FAMILY_INTF_MGMT  (%2u) family: %p\r\n",
++          DTL_FAMILY_INTF_MGMT,  DAPI_FAMILY_INTF_MGMT,  dtlLinkChangeCallback);
++  printf("dtlPduReceiveCallback   related to DTL_FAMILY_FRAME      (%2u) -> DAPI_FAMILY_FRAME      (%2u) family: %p\r\n",
++          DTL_FAMILY_FRAME,      DAPI_FAMILY_FRAME,      dtlPduReceiveCallback);
++  printf("dtlGenericCallback      related to DTL_FAMILY_QVLAN_MGMT (%2u) -> DAPI_FAMILY_QVLAN_MGMT (%2u) family: %p\r\n",
++          DTL_FAMILY_QVLAN_MGMT, DAPI_FAMILY_QVLAN_MGMT, dtlGenericCallback);
++  printf("dtlGenericCallback      related to DTL_FAMILY_SERVICES   (%2u) -> DAPI_FAMILY_SERVICES   (%2u) family: %p\r\n",
++          DTL_FAMILY_SERVICES,   DAPI_FAMILY_SERVICES,   dtlGenericCallback);
++  printf("dtlFdbReceiveCallback   related to DTL_FAMILY_ADDR_MGMT  (%2u) -> DAPI_FAMILY_ADDR_MGMT  (%2u) family: %p\r\n",
++          DTL_FAMILY_ADDR_MGMT,  DAPI_FAMILY_ADDR_MGMT,  dtlFdbReceiveCallback);
++  printf("dtlIpv4ArpEntryCallback related to DTL_FAMILY_ROUTING_ARP_MGMT (%2u) -> DAPI_FAMILY_ROUTING_ARP_MGMT (%2u) family: %p\r\n",
++          DTL_FAMILY_ROUTING_ARP_MGMT, DAPI_FAMILY_ROUTING_ARP_MGMT, dtlIpv4ArpEntryCallback);
+ 
+   fflush(stdout);
+ }
+ 
+ #endif /*DTLCTRL_COMPONENT_LANDD*/
+Index: src/dtl/base/include/dtl_cfg.h
+===================================================================
+--- src/dtl/base/include/dtl_cfg.h	(revision 7768)
++++ src/dtl/base/include/dtl_cfg.h	(working copy)
+@@ -358,9 +358,9 @@ L7_RC_t dtlTask();
+ *
+ * @notes none
+ *
+ * @end
+ *
+ *********************************************************************/
+-L7_RC_t dtlStartTask(L7_uint32 *taskId);
++L7_RC_t dtlStartTask(L7_uint64 *taskId);
+ 
+ #endif    /* INCLUDE_DTLCTRL_CFG_H */
+Index: src/dtl/routing/dtl_l3_rtr_intf.c
+===================================================================
+--- src/dtl/routing/dtl_l3_rtr_intf.c	(revision 7768)
++++ src/dtl/routing/dtl_l3_rtr_intf.c	(working copy)
+@@ -52,13 +52,13 @@ L7_RC_t dtlRtrIntIfNumToVlanId(L7_uint32
+     if (nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS)
+     {
+         if (sysIntfType == L7_LOGICAL_VLAN_INTF)
+         {
+             if ( nimGetMacroPortAssignment(intIfNum, &macroPortIntf) == L7_SUCCESS)
+             {
+-                vid    = (L7_uint32)macroPortIntf.macroInfo;
++                vid    = PTR_TO_UINT32(macroPortIntf.macroInfo);
+                 *vlanId = (L7_ushort16)vid;
+                 return L7_SUCCESS;
+             }
+         }
+         else
+         {
+Index: src/dtl/routing/dtl_pkg.c
+===================================================================
+--- src/dtl/routing/dtl_pkg.c	(revision 7768)
++++ src/dtl/routing/dtl_pkg.c	(working copy)
+@@ -49,14 +49,14 @@
+ L7_RC_t dtlIpRegPkg()
+ {
+   L7_RC_t rc = L7_SUCCESS;
+ #ifndef L7_IPV6_PACKAGE
+   sysnetNotifyEntry_t snEntry;
+ 
+-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register dtlRecvIP6 related to type=%u, protocol_type=%u: 0x%08x",
+-           SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_IPV6, (L7_uint32) dtlRecvIP6);
++  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register dtlRecvIP6 related to type=%u, protocol_type=%u: %p",
++              SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_IPV6, dtlRecvIP6);
+ 
+   bzero((char *)&snEntry, sizeof(sysnetNotifyEntry_t));
+   strcpy(snEntry.funcName, "dtlRecvIP6");
+   snEntry.notify_pdu_receive = dtlRecvIP6;
+   snEntry.type = SYSNET_ETHERTYPE_ENTRY;
+   snEntry.u.protocol_type = L7_ETYPE_IPV6;

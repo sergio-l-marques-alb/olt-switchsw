@@ -1,0 +1,526 @@
+Index: src/application/base/dhcps/dhcps_main.c
+===================================================================
+--- src/application/base/dhcps/dhcps_main.c	(revision 7768)
++++ src/application/base/dhcps/dhcps_main.c	(working copy)
+@@ -1934,70 +1934,70 @@ L7_ushort16 dhcpsCheckSum( L7_ushort16 *
+ L7_RC_t dhcpsTransitionLeaseState(dhcpsLeaseNode_t * pLease, L7_int32 newState)
+ {
+   /* exit old state */
+   switch(LEASE_DATA(pLease)->state)
+   {
+   case FREE_LEASE:
+-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) exiting FREE state\n", (L7_uint32)pLease);
++    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) exiting FREE state\n", pLease);
+     break;
+ 
+   case EXPIRED_LEASE:
+-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) exiting EXPIRED state\n", (L7_uint32)pLease);
++    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) exiting EXPIRED state\n", pLease);
+     break;
+ 
+   case OFFERED_LEASE:
+-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) exiting OFFERED state\n", (L7_uint32)pLease);
++    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) exiting OFFERED state\n", pLease);
+     dhcpsUnscheduleLease(pLease);
+     break;
+ 
+   case ACTIVE_LEASE:
+-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) exiting ACTIVE state\n", (L7_uint32)pLease);
++    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) exiting ACTIVE state\n", pLease);
+     dhcpsUnscheduleLease(pLease);
+     break;
+ 
+   case ABANDONED_LEASE:
+-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) exiting ABANDONED state\n", (L7_uint32)pLease);
++    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) exiting ABANDONED state\n", pLease);
+     /* reset ticks */
+     pLease->leaseStartTime = 0;
+     break;
+ 
+   default:
+-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_MED,"Lease (%u) exiting UNKNOWN state\n", (L7_uint32)pLease);
++    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_MED,"Lease (%p) exiting UNKNOWN state\n", pLease);
+   }
+ 
+   LEASE_DATA(pLease)->state = newState;
+ 
+   /* enter new state */
+   switch(LEASE_DATA(pLease)->state)
+   {
+   case FREE_LEASE:
+-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) entering FREE state\n", (L7_uint32)pLease);
++    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) entering FREE state\n", pLease);
+     break;
+ 
+   case EXPIRED_LEASE:
+-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) entering EXPIRED state\n", (L7_uint32)pLease);
++    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) entering EXPIRED state\n", pLease);
+     break;
+ 
+   case OFFERED_LEASE:
+-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) entering OFFERED state\n", (L7_uint32)pLease);
++    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) entering OFFERED state\n", pLease);
+     dhcpsScheduleLease(pLease, DHCPS_OFFER_VALIDITY_DURATION_SECS);
+     break;
+ 
+   case ACTIVE_LEASE:
+-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) entering ACTIVE state\n", (L7_uint32)pLease);
++    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) entering ACTIVE state\n", pLease);
+     dhcpsScheduleLease(pLease, LEASE_DATA(pLease)->leaseTime);
+     break;
+ 
+   case ABANDONED_LEASE:
+-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) entering ABANDONED state\n", (L7_uint32)pLease);
++    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) entering ABANDONED state\n", pLease);
+     /* set ticks at which abandoned */
+     pLease->leaseStartTime = simSystemUpTimeGet();
+     break;
+ 
+   default:
+-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_MED,"Lease (%u) entering UNKNOWN state\n", (L7_uint32)pLease);
++    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_MED,"Lease (%p) entering UNKNOWN state\n", pLease);
+   }
+ 
+   return L7_SUCCESS;
+ }
+ 
+ /*********************************************************************
+Index: src/application/base/dhcps/dhcps_map.c
+===================================================================
+--- src/application/base/dhcps/dhcps_map.c	(revision 7768)
++++ src/application/base/dhcps/dhcps_map.c	(working copy)
+@@ -1995,13 +1995,13 @@ void dhcpsCfgDataShow(int showAll)
+     default:
+       sysapiPrintf("\npoolType..........................UNKNOWN (%d)",
+                    pDhcpsMapCfgData->pool[index].poolType);
+       break;
+     }
+ 
+-    sysapiPrintf("\npoolName..........................%s", (L7_uint32)pDhcpsMapCfgData->pool[index].poolName);
++    sysapiPrintf("\npoolName..........................%s", pDhcpsMapCfgData->pool[index].poolName);
+     sysapiPrintf("\nleaseTime.........................%d", (L7_uint32)pDhcpsMapCfgData->pool[index].leaseTime);
+ 
+     for(i = 0; i < L7_DHCPS_DNS_SERVER_MAX; i++)
+     {
+       if ((showAll == 0) && (pDhcpsMapCfgData->pool[index].DNSServerAddrs[i] == 0))
+       {
+Index: src/application/base/dhcps/dhcps_map_util.c
+===================================================================
+--- src/application/base/dhcps/dhcps_map_util.c	(revision 7768)
++++ src/application/base/dhcps/dhcps_map_util.c	(working copy)
+@@ -272,14 +272,14 @@ L7_RC_t dhcpsListDebugPrint(dhcpsLink_t
+   dhcpsLink_t * tempLink;
+ 
+   dhcpsListGetHead(link, &tempLink);
+ 
+   while(tempLink != L7_NULLPTR)
+   {
+-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_MED, "Node %d\tobj  %d\nprev %d\tnext %d\n\n",
+-      (int)tempLink, (int)tempLink->object, (int)tempLink->prev, (int)tempLink->next);
++    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_MED, "Node %p\tobj %p\nprev %p\tnext %p\n\n",
++      tempLink, tempLink->object, tempLink->prev, tempLink->next);
+ 
+     tempLink = tempLink->next;
+   }
+ 
+   return L7_SUCCESS;
+ }
+Index: src/application/base/dos/dos.c
+===================================================================
+--- src/application/base/dos/dos.c	(revision 7768)
++++ src/application/base/dos/dos.c	(working copy)
+@@ -33,13 +33,13 @@
+ #include "dos_util.h"
+ #include "l7_cnfgr_api.h"
+ #include "l7_icmp.h"
+ extern doSCfgData_t *doSCfgData;
+ extern doSCnfgrState_t doSCnfgrState;
+ osapiRWLock_t       doSCfgRWLock;
+-L7_int32            dosTaskId;
++L7_uint64           dosTaskId;
+ void *dosQueue = L7_NULLPTR;
+ L7_uint32 *dosMapTbl = L7_NULLPTR;
+ 
+ /*********************************************************************
+ * @purpose  Build default DoS config data
+ *
+Index: src/application/base/dos/dos_cnfgr.c
+===================================================================
+--- src/application/base/dos/dos_cnfgr.c	(revision 7768)
++++ src/application/base/dos/dos_cnfgr.c	(working copy)
+@@ -29,13 +29,13 @@
+ 
+ extern osapiRWLock_t       doSCfgRWLock;
+ extern doSCfgData_t  *doSCfgData;
+ doSCnfgrState_t doSCnfgrState = DOS_PHASE_INIT_0;
+ PORTEVENT_MASK_t dosPortEventMask_g;
+ extern void *dosQueue;
+-extern L7_int32                   dosTaskId;
++extern L7_uint64                   dosTaskId;
+ extern L7_uint32                  *dosMapTbl;
+ 
+ /*********************************************************************
+ *
+ * @purpose  CNFGR System Initialization for DoS component
+ *
+Index: src/application/base/dot1ab/core/lldp.c
+===================================================================
+--- src/application/base/dot1ab/core/lldp.c	(revision 7768)
++++ src/application/base/dot1ab/core/lldp.c	(working copy)
+@@ -35,13 +35,13 @@
+ #ifdef L7_NSF_PACKAGE
+ #include "lldp_ckpt.h"
+ #endif /* L7_NSF_PACKAGE */
+ 
+ extern lldpCfgData_t  *lldpCfgData;
+ extern void           *lldpQueue;
+-L7_int32               lldpTaskId;
++L7_uint64              lldpTaskId;
+ 
+ /*********************************************************************
+ * @purpose  Start 802.1AB task
+ *
+ * @param    none
+ *
+Index: src/application/base/dot1ab/core/lldp_cnfgr.c
+===================================================================
+--- src/application/base/dot1ab/core/lldp_cnfgr.c	(revision 7768)
++++ src/application/base/dot1ab/core/lldp_cnfgr.c	(working copy)
+@@ -360,14 +360,14 @@ L7_RC_t lldpCnfgrInitPhase2Process(L7_CN
+ 
+     *pResponse  = 0;
+     *pReason    = L7_CNFGR_ERR_RC_FATAL;
+     return L7_ERROR;
+   }
+ 
+-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register lldpPduReceiveCallback related to type=%u, protocol_type=%u: 0x%08x",
+-           SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_LLDP, (L7_uint32) lldpPduReceiveCallback);
++  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register lldpPduReceiveCallback related to type=%u, protocol_type=%u: %p",
++           SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_LLDP, lldpPduReceiveCallback);
+ 
+   /* register with sysnet for LLDP packets, no packets
+      will actually be sent to the application until
+      we configure the driver to accept them on the
+      physical port, we do that when the receive
+      function is enabled and port is up */
+Index: src/application/base/dot1ab/core/lldp_med.c
+===================================================================
+--- src/application/base/dot1ab/core/lldp_med.c	(revision 7768)
++++ src/application/base/dot1ab/core/lldp_med.c	(working copy)
+@@ -79,13 +79,13 @@ L7_RC_t lldpXMedNotificationRegister(L7_
+   {
+     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_LLDP_COMPONENT_ID,
+             "LLDP-MED registrar ID %u greater than Last Component ID\n", component_ID);
+     return(L7_FAILURE);
+   }
+ 
+-  if ((L7_uint32)lldpXMedNotifyList[component_ID].notify_med_intf != L7_NULL)
++  if (PTR_TO_UINT64(lldpXMedNotifyList[component_ID].notify_med_intf) != L7_NULL)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_LLDP_COMPONENT_ID,
+             "LLDP-MED registrar ID %u, %s already registered\n", component_ID, name);
+     return(L7_FAILURE);
+   }
+   (void)osapiSemaTake(lldpSemaphore, L7_WAIT_FOREVER);
+Index: src/application/base/isdp/include/isdp_control.h
+===================================================================
+--- src/application/base/isdp/include/isdp_control.h	(revision 7768)
++++ src/application/base/isdp/include/isdp_control.h	(working copy)
+@@ -61,13 +61,13 @@ typedef struct isdpMsg_s
+  ***************************************************************************
+  */
+ void isdpDispatchCmd(isdpMsg_t msg);
+ void isdpTask();
+ L7_RC_t isdpPduReceiveQueue( L7_uint32 intIfNum, L7_netBufHandle bufHandle);
+ L7_RC_t isdpProcessMsgQueue(isdpMsg_t msg);
+-L7_RC_t isdpTimerExpired(L7_uint32 arg1, L7_uint32 arg2);
++L7_RC_t isdpTimerExpired(L7_uint64 arg1, L7_uint64 arg2);
+ L7_RC_t isdpPduReceiveProcess(L7_uint32 intIfNum, L7_netBufHandle bufHandle);
+ L7_RC_t isdpPduSend(void);
+ L7_RC_t isdpTimerProcess(void);
+ L7_RC_t isdpDataPduRead(L7_uint32 intIfNum, L7_uchar8 *data, L7_uint32 length,
+     isdpPacket_t* isdpPacket);
+ L7_RC_t isdpCtlApplyConfigData(void);
+Index: src/application/base/isdp/isdp_cfg.c
+===================================================================
+--- src/application/base/isdp/isdp_cfg.c	(revision 7768)
++++ src/application/base/isdp/isdp_cfg.c	(working copy)
+@@ -26,13 +26,13 @@ extern isdpCfg_t        *isdpCfg;
+ extern isdpCnfgrState_t isdpCnfgrState;
+ 
+ void                    *isdpTaskSyncSema   = L7_NULLPTR;
+ void                    *isdpProcessQueue   = L7_NULLPTR;
+ void                    *isdpPduQueue       = L7_NULLPTR;
+ void                    *isdpSemaphore      = L7_NULLPTR;
+-L7_uint32               isdpTaskId          = 0;
++L7_uint64               isdpTaskId          = 0;
+ L7_uint32               isdpIpAddrPoolId    = 0;
+ isdpDebugCfg_t          isdpDebugCfg;
+ 
+ /*********************************************************************
+ * @purpose  Saves isdp configuration
+ *
+@@ -160,16 +160,16 @@ L7_RC_t isdpInit(L7_CNFGR_CMD_DATA_t *pC
+     cbData.asyncResponse.rc = L7_FAILURE;
+     cbData.asyncResponse.u.reason = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
+     cnfgrApiCallback(&cbData);
+     return L7_FAILURE;
+   }
+ 
+-  isdpTaskId = (L7_uint32)osapiTaskCreate("isdpTask", (void *)isdpTask, 0, 0,
+-                                             L7_ISDP_STACK_SIZE,
+-                                             L7_ISDP_DEFAULT_ISDP_TASK_PRI,
+-                                             L7_DEFAULT_TASK_SLICE);
++  isdpTaskId = osapiTaskCreate("isdpTask", (void *)isdpTask, 0, 0,
++                               L7_ISDP_STACK_SIZE,
++                               L7_ISDP_DEFAULT_ISDP_TASK_PRI,
++                               L7_DEFAULT_TASK_SLICE);
+   if (isdpTaskId == L7_ERROR)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_ISDP_COMPONENT_ID,
+             "isdpInit: task creation error.\n");
+     cbData.correlator = pCmdData->correlator;
+     cbData.asyncResponse.rc = L7_FAILURE;
+Index: src/application/base/isdp/isdp_control.c
+===================================================================
+--- src/application/base/isdp/isdp_control.c	(revision 7768)
++++ src/application/base/isdp/isdp_control.c	(working copy)
+@@ -594,13 +594,13 @@ L7_RC_t isdpDataPduRead(L7_uint32 intIfN
+ *
+ * @returns    L7_SUCCESS or L7_FAILURE
+ *
+ * @end
+ *
+ *************************************************************************/
+-L7_RC_t isdpTimerExpired(L7_uint32 arg1, L7_uint32 arg2)
++L7_RC_t isdpTimerExpired(L7_uint64 arg1, L7_uint64 arg2)
+ {
+   L7_RC_t   rc = L7_SUCCESS;
+   isdpMsg_t msg;
+ 
+   osapiTimerAdd((void*)isdpTimerExpired, 0, 0, ISDP_BASE_TIMEOUT, &isdpBaseTimer);
+ 
+Index: src/application/base/isdp/isdp_txrx.c
+===================================================================
+--- src/application/base/isdp/isdp_txrx.c	(revision 7768)
++++ src/application/base/isdp/isdp_txrx.c	(working copy)
+@@ -196,14 +196,14 @@ L7_RC_t isdpPduReceive(L7_netBufHandle b
+ *************************************************************************/
+ L7_RC_t isdpTxRxInit(void)
+ {
+   L7_RC_t             rc      = L7_SUCCESS;
+   sysnetNotifyEntry_t snEntry;
+ 
+-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register isdpPduReceive related to type=%u, protocol_type=%u: 0x%08x",
+-           SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_ISDP, (L7_uint32) isdpPduReceive);
++  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register isdpPduReceive related to type=%u, protocol_type=%u: %p",
++              SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_ISDP, isdpPduReceive);
+ 
+   memset(&snEntry, 0, sizeof(snEntry));
+ 
+   /*Register the pdu receive function with sysnet utility*/
+   osapiStrncpy(snEntry.funcName, "isdpPduReceive", sizeof(snEntry.funcName));
+   snEntry.notify_pdu_receive = isdpPduReceive;
+Index: src/application/base/isdp/isdp_util.c
+===================================================================
+--- src/application/base/isdp/isdp_util.c	(revision 7768)
++++ src/application/base/isdp/isdp_util.c	(working copy)
+@@ -24,13 +24,13 @@
+ #include "cli_web_exports.h"
+ #include "cli_web_mgr_api.h"
+ #include "mirror_api.h"
+ 
+ extern isdpStats_t        *isdpStats;
+ extern isdpEntryTree_t    *isdpEntryTree;
+-extern L7_uint32          isdpTaskId;
++extern L7_uint64          isdpTaskId;
+ 
+ extern isdpCnfgrState_t   isdpCnfgrState;
+ extern void               *isdpProcessQueue;
+ extern isdpCfg_t          *isdpCfg;
+ extern L7_uint32          *isdpMapTbl;
+ extern isdpIntfInfoData_t *isdpIntfTbl;
+Index: src/application/base/rmon/rmon_cnfgr.c
+===================================================================
+--- src/application/base/rmon/rmon_cnfgr.c	(revision 7768)
++++ src/application/base/rmon/rmon_cnfgr.c	(working copy)
+@@ -51,13 +51,13 @@ rmonHistoryControlEntry_t *rmonHistoryCo
+ /*Allocate Memory for Alarm Table */
+ rmonAlarmEntry_t *rmonAlarmEntryArray;
+ 
+ /* Allocate Memory for Event Table */
+ rmonEventEntry_t *rmonEventEntryArray;
+ 
+-L7_int32 L7_rmon_task_id;
++L7_uint64 L7_rmon_task_id;
+ 
+ /* Bit mask of NIM events that RMON is registered to receive */
+ PORTEVENT_MASK_t rmonNimEventMask;
+ 
+ /* Semaphore to protect the rmon tables.
+ */
+Index: src/application/base/sflow/include/sflow_mib.h
+===================================================================
+--- src/application/base/sflow/include/sflow_mib.h	(revision 7768)
++++ src/application/base/sflow/include/sflow_mib.h	(working copy)
+@@ -138,13 +138,13 @@ typedef struct SFLOW_poller_DataKey_s
+   L7_uint32 sFlowInstance;
+ } SFLOW_poller_DataKey_t;
+ 
+ typedef struct SFLOW_poller_timerData_s
+ {
+   L7_APP_TMR_HNDL_t      ctrPollTimer;
+-  L7_uint32              ctrPollTimerHandle;
++  L7_uint64              ctrPollTimerHandle;
+ } SFLOW_poller_timerData_t;
+ 
+ typedef struct SFLOW_poller_s
+ {
+   SFLOW_poller_DataKey_t key;
+   SFLOW_poller_mib_t    *pollerCfg;
+@@ -194,13 +194,13 @@ typedef struct SFLOW_agent_s
+ 
+ /* agent information */
+   SFLOW_agent_mib_t    agentGroup;
+ 
+ /* Buffer pools, Semaphores, msgQueues, 
+    sockets, taskIDs, timerCBs...*/
+-  L7_uint32            sFlowTaskHandle;
++  L7_uint64            sFlowTaskHandle;
+ 
+ /* The sFlow thread reads from two queues. sFlow_Event_Queue
+  * holds events to be processed. sFlow_Packet_Queue holds incoming
+  * sFlow packets. */
+   void                *sFlowMsgQSema;
+   void                *sFlowEventQueue;
+Index: src/application/base/sflow/sflow.c
+===================================================================
+--- src/application/base/sflow/sflow.c	(revision 7768)
++++ src/application/base/sflow/sflow.c	(working copy)
+@@ -78,13 +78,13 @@ L7_RC_t sFlowPduReceive(L7_netBufHandle
+   {
+     pSampler->sample_pool++;
+     /* obtain a buffer from the bufferpool */
+     msg.msgId      = SFLOW_SAMPLE_RX;
+     msg.dsIndex    = dsIndex;
+     msg.instance   = FD_SFLOW_INSTANCE;
+-    msg.direction  = ((SYSAPI_NET_MBUF_HEADER_t *)netBufHandle)->rxCode;
++    msg.direction  = ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netBufHandle))->rxCode;
+     /* Get start and length of incoming frame */
+     SYSAPI_NET_MBUF_GET_DATASTART(netBufHandle, data);
+     SYSAPI_NET_MBUF_GET_DATALENGTH(netBufHandle, dataLength);
+ 
+ 
+     msg.dataLength = dataLength;
+Index: src/application/base/sflow/sflow_cnfgr.c
+===================================================================
+--- src/application/base/sflow/sflow_cnfgr.c	(revision 7768)
++++ src/application/base/sflow/sflow_cnfgr.c	(working copy)
+@@ -619,14 +619,14 @@ L7_RC_t sFlowCnfgrInitPhase2Process(L7_C
+     *pResponse  = 0;
+     *pReason    = L7_CNFGR_ERR_RC_FATAL;
+     sFlowRC     = L7_ERROR;
+     return sFlowRC;
+   }
+ 
+-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register sFlowPduReceive related to type=%u, rx_reason=%u: 0x%08x",
+-           SYSNET_PKT_RX_REASON, SFLOW_SAMPLE_INGRESS_REASON_CODE, (L7_uint32) sFlowPduReceive);
++  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register sFlowPduReceive related to type=%u, rx_reason=%u: %p",
++              SYSNET_PKT_RX_REASON, SFLOW_SAMPLE_INGRESS_REASON_CODE, sFlowPduReceive);
+ 
+   /* register with sysnet for sampled packets */
+   bzero((char *)&snEntry, sizeof(sysnetNotifyEntry_t));
+   strncpy(snEntry.funcName, "sFlowPduReceive", sizeof(snEntry.funcName));
+   snEntry.notify_pdu_receive = sFlowPduReceive;
+   snEntry.type = SYSNET_PKT_RX_REASON;
+Index: src/application/base/sflow/sflow_timer.c
+===================================================================
+--- src/application/base/sflow/sflow_timer.c	(revision 7768)
++++ src/application/base/sflow/sflow_timer.c	(working copy)
+@@ -22,13 +22,13 @@
+ #include "datatypes.h"
+ 
+ #include "sflow_mib.h"
+ #include "sflow_ctrl.h"
+ #include "sflow_debug.h"
+ extern SFLOW_agent_t agent;
+-static L7_RC_t  sFlowTimerDestroy(L7_APP_TMR_HNDL_t *timer, L7_uint32 *handle);
++static L7_RC_t  sFlowTimerDestroy(L7_APP_TMR_HNDL_t *timer, L7_uint64 *handle);
+ /*************************************************************************
+ * @purpose  Starts the specified poll timer with specified time period
+ *           and allocates related timer nodes
+ *
+ * @param    pPoller        @b{(input)}  reference to poller object
+ * @param    interval       @b{(input)}  Timer period of the timer
+@@ -39,18 +39,20 @@ static L7_RC_t  sFlowTimerDestroy(L7_APP
+ * @comments none
+ *
+ * @end
+ *************************************************************************/
+ L7_RC_t sFlowPollerTimerStart(SFLOW_poller_t *pPoller, L7_uint32 interval)
+ {
+-  if (pPoller->timerData.ctrPollTimer != L7_NULL)
++  if (pPoller->timerData.ctrPollTimer != L7_NULLPTR)
+   {
+-    if (appTimerUpdate(agent.timerCB, &pPoller->timerData.ctrPollTimer,
++    if (appTimerUpdate(agent.timerCB,
++                       &pPoller->timerData.ctrPollTimer,
+                        (void *)sFlowPollerTimerExpiry,
+-                       (void *)pPoller->timerData.ctrPollTimerHandle, interval,
+-                        "sFlowPollerTimerExpiry")
++                       UINT_TO_PTR(pPoller->timerData.ctrPollTimerHandle),
++                       interval,
++                       "sFlowPollerTimerExpiry")
+                        != L7_SUCCESS)
+     {
+       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SFLOW_COMPONENT_ID,
+               "sFlowPollerTimerStart: Timer could not be updated for dsIndex %u instance %u interval %u\n",
+              pPoller->key.dsIndex, pPoller->key.sFlowInstance, interval);
+     }
+@@ -65,14 +67,14 @@ L7_RC_t sFlowPollerTimerStart(SFLOW_poll
+          " Timer list is full and no more new timer creations are possible.");
+     return L7_FAILURE;
+   }
+ 
+   if ((pPoller->timerData.ctrPollTimer
+         = appTimerAdd(agent.timerCB, sFlowPollerTimerExpiry,
+-                      (void *)pPoller->timerData.ctrPollTimerHandle,
+-                       interval, "sFlowPollerTimerExpiry"))
++                      UINT_TO_PTR(pPoller->timerData.ctrPollTimerHandle),
++                      interval, "sFlowPollerTimerExpiry"))
+         == L7_NULL)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SFLOW_COMPONENT_ID,
+             "sFlowPollerTimerStart: Could not start poller timer for dsIndex %u instance %u\n",
+              pPoller->key.dsIndex, pPoller->key.sFlowInstance);
+     return L7_FAILURE;
+@@ -126,13 +128,13 @@ L7_RC_t sFlowPollerTimerStop(SFLOW_polle
+ * @end
+ *************************************************************************/
+ void sFlowPollerTimerExpiry(void *param)
+ {
+   SFLOW_poller_t *pPoller;
+ 
+-  pPoller = (SFLOW_poller_t *)handleListNodeRetrieve((L7_uint32)param);
++  pPoller = (SFLOW_poller_t *)handleListNodeRetrieve(PTR_TO_UINT64(param));
+   if (pPoller == L7_NULLPTR)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SFLOW_COMPONENT_ID,
+             "sFlowPollerTimerExpiry: Failed to retrieve handle \n");
+     return;
+   }
+@@ -166,13 +168,13 @@ void sFlowPollerTimerExpiry(void *param)
+ * @returns  L7_FAILURE
+ *
+ * @comments none
+ *
+ * @end
+ *************************************************************************/
+-static L7_RC_t  sFlowTimerDestroy(L7_APP_TMR_HNDL_t *timer, L7_uint32 *handle)
++static L7_RC_t  sFlowTimerDestroy(L7_APP_TMR_HNDL_t *timer, L7_uint64 *handle)
+ {
+   /* Delete the apptimer node */
+   (void)appTimerDelete(agent.timerCB, *timer);
+   *timer = NULL;
+ 
+   /* Delete the handle we had created */

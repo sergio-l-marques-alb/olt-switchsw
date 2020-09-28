@@ -1,0 +1,962 @@
+Index: andl/dapi/dapi.c
+===================================================================
+--- andl/dapi/dapi.c	(revision 7768)
++++ andl/dapi/dapi.c	(working copy)
+@@ -2464,13 +2464,13 @@ L7_RC_t dapiControlCallbackRegister(DAPI
+ {
+   L7_RC_t                  result          = L7_SUCCESS;
+   DAPI_CONTROL_CALLBACK_CMD_t *callbackInfoPtr = (DAPI_CONTROL_CALLBACK_CMD_t*)data;
+ 
+   dapi_g->system->familyCallback[callbackInfoPtr->family] = callbackInfoPtr->funcPtr;
+ 
+-  PT_LOG_DEBUG(LOG_CTX_STARTUP, "Registering function 0x%08x to family index %u", (L7_uint32) callbackInfoPtr->funcPtr, callbackInfoPtr->family);
++  PT_LOG_DEBUG(LOG_CTX_STARTUP, "Registering function %p to family index %u", callbackInfoPtr->funcPtr, callbackInfoPtr->family);
+ 
+   return(result);
+ }
+ 
+ L7_RC_t dapiCpuUspGet(DAPI_USP_t *usp)
+ {
+@@ -2716,25 +2716,23 @@ void familyCallbackListDebugShow(void)
+   extern L7_RC_t dtlIpv4ArpEntryCallback(DAPI_USP_t *ddusp,  DAPI_FAMILY_t family, DAPI_CMD_t cmd, DAPI_EVENT_t event, void *dapiEventInfo);
+ 
+   printf("Listing family callbacks list:\r\n");
+ 
+   for (i=0; i<DAPI_NUM_OF_FAMILIES; i++)
+   {
+-    printf("DAPI_FAMILY_? index %-2u: 0x%08x\r\n", i, (L7_uint32) dapi_g->system->familyCallback[i]);
++    printf("DAPI_FAMILY_? index %-2u: %p\r\n", i, dapi_g->system->familyCallback[i]);
+   }
+   printf("\r\n");
+-  printf("dtlLinkChangeCallback related to DAPI_FAMILY_INTF_MGMT  (%2u) family: 0x%08x\r\n",
+-          DAPI_FAMILY_INTF_MGMT,  (L7_uint32) dtlLinkChangeCallback);
+-  printf("dtlPduReceiveCallback related to DAPI_FAMILY_FRAME      (%2u) family: 0x%08x\r\n",
+-          DAPI_FAMILY_FRAME,      (L7_uint32) dtlPduReceiveCallback);
+-  printf("dtlGenericCallback    related to DAPI_FAMILY_QVLAN_MGMT (%2u) family: 0x%08x\r\n",
+-          DAPI_FAMILY_QVLAN_MGMT, (L7_uint32) dtlGenericCallback);
+-  printf("dtlGenericCallback    related to DAPI_FAMILY_SERVICES   (%2u) family: 0x%08x\r\n",
+-          DAPI_FAMILY_SERVICES,   (L7_uint32) dtlGenericCallback);
+-  printf("dtlFdbReceiveCallback related to DAPI_FAMILY_ADDR_MGMT  (%2u) family: 0x%08x\r\n",
+-          DAPI_FAMILY_ADDR_MGMT,  (L7_uint32) dtlFdbReceiveCallback);
+-  printf("dtlIpv4ArpEntryCallback related to DAPI_FAMILY_ROUTING_ARP_MGMT (%2u) family: 0x%08x\r\n",
+-          DAPI_FAMILY_ROUTING_ARP_MGMT, (L7_uint32) dtlIpv4ArpEntryCallback);
+-
+-  fflush(stdout);
++  printf("dtlLinkChangeCallback related to DAPI_FAMILY_INTF_MGMT  (%2u) family: %p\r\n",
++          DAPI_FAMILY_INTF_MGMT,  dtlLinkChangeCallback);
++  printf("dtlPduReceiveCallback related to DAPI_FAMILY_FRAME      (%2u) family: %p\r\n",
++          DAPI_FAMILY_FRAME,      dtlPduReceiveCallback);
++  printf("dtlGenericCallback    related to DAPI_FAMILY_QVLAN_MGMT (%2u) family: %p\r\n",
++          DAPI_FAMILY_QVLAN_MGMT, dtlGenericCallback);
++  printf("dtlGenericCallback    related to DAPI_FAMILY_SERVICES   (%2u) family: %p\r\n",
++          DAPI_FAMILY_SERVICES,   dtlGenericCallback);
++  printf("dtlFdbReceiveCallback related to DAPI_FAMILY_ADDR_MGMT  (%2u) family: %p\r\n",
++          DAPI_FAMILY_ADDR_MGMT,  dtlFdbReceiveCallback);
++  printf("dtlIpv4ArpEntryCallback related to DAPI_FAMILY_ROUTING_ARP_MGMT (%2u) family: %p\r\n",
++          DAPI_FAMILY_ROUTING_ARP_MGMT, dtlIpv4ArpEntryCallback);
+ }
+ 
+Index: andl/dapi/dapi_debug.c
+===================================================================
+--- andl/dapi/dapi_debug.c	(revision 7768)
++++ andl/dapi/dapi_debug.c	(working copy)
+@@ -622,13 +622,13 @@ void dapiDebugCommandDecode(DAPI_CMD_t c
+   DAPI_ROUTING_ARP_CMD_t        *cmdArpMgmt      = (DAPI_ROUTING_ARP_CMD_t*)cmdInfo;
+   DAPI_QOS_CMD_t                *cmdQos          = (DAPI_QOS_CMD_t *)cmdInfo;
+   DAPI_DOT1AD_MGMT_CMD_t          *cmdDot1adMgmt     = (DAPI_DOT1AD_MGMT_CMD_t*)cmdInfo;
+ 
+   L7_uint32                      frameLength;
+   L7_uchar8                     *frameDataPtr;
+-  L7_uint32                      blockHandle = L7_NULL;
++  L7_uint64                      blockHandle = L7_NULL;
+   L7_int32                       index, jindex;
+   L7_BOOL                        flag;
+   L7_tlv_t                      *pTLV;
+   char                          *str = L7_NULL;
+   char                           buffer[SYSAPI_PRINTF_QUEUE_MESSAGE_SIZE];
+ 
+Index: andl/dapi/dapi_trace.c
+===================================================================
+--- andl/dapi/dapi_trace.c	(revision 7768)
++++ andl/dapi/dapi_trace.c	(working copy)
+@@ -168,13 +168,13 @@ void dapiTraceDapiCtl(DAPI_CMD_t cmd, DA
+     if (dapiTraceCmdIgnore == cmd) return;
+     if ((dapiTraceIntIf > 0) && (dapiTraceIntIf != uspInt)) return;
+ 
+     TRACE_BEGIN(dapiTraceHandle, L7_DRIVER_COMPONENT_ID);
+     TRACE_ENTER_2BYTE(osapiHtons(traceId));
+     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
+-    TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
++    TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
+     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)cmd));
+     TRACE_ENTER_4BYTE(osapiHtonl(uspInt));
+     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)rc));
+     TRACE_ENTER_BYTE(enter);
+     TRACE_END();
+ 
+@@ -218,13 +218,13 @@ void dapiTraceGeneric(L7_char8* format,.
+       (dapiTraceMode == L7_TRUE) &&
+       (dapiTraceMask & DAPI_TRACE_GENERIC_MASK))
+   {
+     TRACE_BEGIN(dapiTraceHandle, L7_DRIVER_COMPONENT_ID);
+     TRACE_ENTER_2BYTE(osapiHtons(traceId));
+     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
+-    TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
++    TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
+ 
+     /* generic traces are truncated at 55 characters */
+     max = strlen(buf);
+ 
+     /* make sure strlen is no bigger than the max - header + null term */
+     if (max > (dapiTraceMaxRecordWidth - (sizeof(dapiTracePtHdr_t) + 1)))
+@@ -277,13 +277,13 @@ void dapiTraceStackEvent(L7_char8* forma
+       (dapiTraceMode == L7_TRUE) &&
+       (dapiTraceMask & DAPI_TRACE_STACK_EVENT_MASK))
+   {
+     TRACE_BEGIN(dapiTraceHandle, L7_DRIVER_COMPONENT_ID);
+     TRACE_ENTER_2BYTE(osapiHtons(traceId));
+     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
+-    TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
++    TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
+ 
+     /* generic traces are truncated at 55 characters */
+     max = strlen(buf);
+ 
+     /* make sure strlen is no bigger than the max - header + null term */
+     if (max > (dapiTraceMaxRecordWidth - (sizeof(dapiTracePtHdr_t) + 1)))
+@@ -331,13 +331,13 @@ void dapiTraceDapiCallback(DAPI_EVENT_t
+       (dapiTraceMode == L7_TRUE) &&
+       (dapiTraceMask & DAPI_TRACE_DAPI_CB_MASK))
+   {
+     TRACE_BEGIN(dapiTraceHandle, L7_DRIVER_COMPONENT_ID);
+     TRACE_ENTER_2BYTE(osapiHtons(traceId));
+     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
+-    TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
++    TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
+     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)event));
+     TRACE_ENTER_4BYTE(osapiHtonl(uspInt));
+     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)rc));
+     TRACE_ENTER_BYTE(enter);
+     TRACE_END();
+ 
+@@ -377,13 +377,13 @@ void dapiTraceFrame(DAPI_USP_t *pUsp, L7
+     if (((L7_uint32)(1 << drop)) & ~dapiTraceFrameType) return;
+     if ((dapiTraceIntIf > 0) && (dapiTraceIntIf != uspInt)) return;
+ 
+     TRACE_BEGIN(dapiTraceHandle, L7_DRIVER_COMPONENT_ID);
+     TRACE_ENTER_2BYTE(osapiHtons(traceId));
+     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
+-    TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
++    TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
+     TRACE_ENTER_4BYTE(osapiHtonl(uspInt));
+     TRACE_ENTER_BYTE(drop);
+     TRACE_ENTER_4BYTE(osapiHtonl(cookie));
+ 
+     /* Get the number of bytes to write for the packet */
+     numBytes = dapiTraceMaxRecordWidth - (sizeof(dapiTracePtHdr_t) + sizeof(uspInt) + sizeof(drop) + sizeof(cookie));
+Index: andl/hapi/esw/base/base/broad_debug.c
+===================================================================
+--- andl/hapi/esw/base/base/broad_debug.c	(revision 7768)
++++ andl/hapi/esw/base/base/broad_debug.c	(working copy)
+@@ -1030,17 +1030,17 @@ void hapiBroadDebugPcimDump(L7_int32 uni
+ 
+   fflush(stdout);
+ }
+ #endif
+ 
+ #ifdef BCM_ESW_SUPPORT
+-void hapiBroadDebugDmaVecDump(L7_int32 addr)
++void hapiBroadDebugDmaVecDump(L7_int64 addr)
+ {
+   L7_int32     unit = 0;
+ 
+-  soc_dma_dump_dv(unit, " ", (void *)addr);
++  soc_dma_dump_dv(unit, " ", UINT_TO_PTR(addr));
+ }
+ #endif
+ 
+ #ifdef BCM_ESW_SUPPORT
+ static int hapiBroadDebugIdentifiersValid[] = {
+ #ifdef VALIDf
+@@ -2466,13 +2466,13 @@ void hapiBroadDebugDumpAll(int mmuDump)
+     soc = SOC_CONTROL(unit);
+ 
+     printf("********  BEGIN BCM_UNIT %d ***********\n",unit);
+     printf("soc_dump(%d)\n",unit);
+     soc_dump(unit," ");
+ 
+-    printf("soc_chip_dump(%d,0x%x)\n",unit,(L7_uint32)soc->chip_driver);
++    printf("soc_chip_dump(%d,%p)\n",unit, soc->chip_driver);
+     soc_chip_dump(unit,soc->chip_driver);
+ 
+     printf("********  CMIC PCI Reg DUMPS ***********\n");
+     printf("hapiBroadDebugPcimDump(%d,%d,%d)\n",unit,CMIC_OFFSET_MIN,CMIC_OFFSET_MAX-CMIC_OFFSET_MIN);
+     hapiBroadDebugPcimDump(unit,CMIC_OFFSET_MIN,CMIC_OFFSET_MAX-CMIC_OFFSET_MIN,0);
+ 
+Index: andl/hapi/esw/base/base/broad_init.c
+===================================================================
+--- andl/hapi/esw/base/base/broad_init.c	(revision 7768)
++++ andl/hapi/esw/base/base/broad_init.c	(working copy)
+@@ -105,13 +105,13 @@
+ #ifdef L7_STACKING_PACKAGE
+ #include "broad_stack_mgr.h"
+ 
+ extern void dapiTraceShow(L7_uint32 count,L7_uchar8 *db,L7_BOOL unformat);
+ extern void fp_stk_mgr_system_db_dump();
+ extern void ut(L7_uint32 i);
+-extern void osapiDebugStackTrace (L7_uint32 task_id, FILE *filePtr);
++extern void osapiDebugStackTrace (L7_uint64 task_id, FILE *filePtr);
+ 
+ #endif
+ 
+ /* PTin added: packet trap */
+ #include "logger.h"
+ #include "ptin_hapi.h"
+Index: andl/hapi/esw/base/base/broad_ptin.c
+===================================================================
+--- andl/hapi/esw/base/base/broad_ptin.c	(revision 7768)
++++ andl/hapi/esw/base/base/broad_ptin.c	(working copy)
+@@ -334,13 +334,13 @@ L7_RC_t broad_ptin_qos_classify(DAPI_USP
+ 
+   PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
+ 
+   /* Validate data pointer */
+   if (qos_cfg == L7_NULLPTR)
+   {
+-    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid Arguments: intf=0x%08x", (L7_uint32) qos_cfg);
++    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid Arguments: Null pointer");
+     return L7_FAILURE;
+   }
+ 
+   /* Validate data size */
+   if (dataSize != sizeof(ptin_dtl_qos_t))
+   {
+@@ -382,13 +382,13 @@ L7_RC_t broad_ptin_qos_remark(DAPI_USP_t
+ 
+   PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
+ 
+   /* Validate data pointer */
+   if (remark_enable == L7_NULLPTR)
+   {
+-    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid Arguments: intf=0x%08x", (L7_uint32) remark_enable);
++    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid Arguments: Null pointer");
+     return L7_FAILURE;
+   }
+ 
+   /* Validate data size */
+   if (dataSize != sizeof(L7_uint32))
+   {
+Index: andl/hapi/esw/ptin/ptin_hapi_fp_utils.c
+===================================================================
+--- andl/hapi/esw/ptin/ptin_hapi_fp_utils.c	(revision 7768)
++++ andl/hapi/esw/ptin/ptin_hapi_fp_utils.c	(working copy)
+@@ -8,13 +8,13 @@
+  * MACROS FOR MANAGING DATABASE
+  *********************************/
+ 
+ /* Check if database index is valid */
+ #define FP_POLICY_VALID_INDEX(index,db)         ( (index)>=0 && (index)<(db)->database_num_elems )
+ /* Get database element index from a pointer */
+-#define FP_POLICY_GET_INDEX_FROM_PTR(ptr,db)    ( ((L7_uint32) ((char *) (ptr)) - (L7_uint32) ((char *) (db)->database_base)) / (L7_uint32) (db)->database_elem_sizeof )
++#define FP_POLICY_GET_INDEX_FROM_PTR(ptr,db)    ( (PTR_TO_UINT64((char *) (ptr)) - PTR_TO_UINT64((char *) (db)->database_base)) / (L7_uint32) (db)->database_elem_sizeof )
+ /* Get database pointer from an element index */
+ #define FP_POLICY_GET_PTR_FROM_INDEX(index,db)  ( (void *) ((char *) (db)->database_base + (index)*(db)->database_elem_sizeof) )
+ /* Get database base pointer (first element) */
+ #define FP_POLICY_GET_DATABASE_PTR(db)          ( (void *) (db)->database_base )
+ /* Get the following element pointer in database */
+ #define FP_POLICY_GET_PTR_NEXT(ptr,db)          ( (void *) ((char *) (ptr) + (db)->database_elem_sizeof) )
+Index: andl/hapi/esw/ptin/ptin_hapi_fp_utils.h
+===================================================================
+--- andl/hapi/esw/ptin/ptin_hapi_fp_utils.h	(revision 7768)
++++ andl/hapi/esw/ptin/ptin_hapi_fp_utils.h	(working copy)
+@@ -25,14 +25,14 @@ typedef struct {
+ /*********************************
+  * MACROS FOR MANAGING DATABASE
+  *********************************/
+ 
+ /* Check if database pointer is valid */
+ #define FP_POLICY_VALID_PTR(ptr,db)   ( ( (ptr) != L7_NULLPTR ) && \
+-                                        ( (L7_uint32) ((char *) (ptr)) >= (L7_uint32) ((char *) (db)->database_base) ) && \
+-                                        ( (L7_uint32) ((char *) (ptr)) <= (L7_uint32) ((char *) (db)->database_base) + ((db)->database_num_elems-1)*(db)->database_elem_sizeof) )
++                                        ( PTR_TO_UINT64((char *) (ptr)) >= PTR_TO_UINT64((char *) (db)->database_base) ) && \
++                                        ( PTR_TO_UINT64((char *) (ptr)) <= PTR_TO_UINT64((char *) (db)->database_base) + ((db)->database_num_elems-1)*(db)->database_elem_sizeof) )
+ 
+ 
+ /**
+  * Consult Switch available resources
+  * 
+  * @param resources : struct describing system resources
+Index: andl/hapi/esw/routing/broad_l3_async.c
+===================================================================
+--- andl/hapi/esw/routing/broad_l3_async.c	(revision 7768)
++++ andl/hapi/esw/routing/broad_l3_async.c	(working copy)
+@@ -2271,13 +2271,13 @@ static void hapiBroadL3AsyncRetryFailure
+ * @notes   Failed entries are retried either periodically or if any other entry
+ *          gets deleted
+ *
+ * @end
+ *
+ *******************************************************************************/
+-void hapiBroadL3RetryTimer(L7_uint32 arg1, L7_uint32 arg2)
++void hapiBroadL3RetryTimer(L7_uint64 arg1, L7_uint64 arg2)
+ {
+   /* Set retry flag and wake up async task, only when we have failed entries */
+   if ((broadL3HwRouteStats.current_add_failures > 0) ||
+       (broadL3HwHostStats.current_add_failures > 0))
+   {
+     retryTimerExpired = L7_TRUE;
+Index: andl/hapi/esw/routing/broad_l3_debug.c
+===================================================================
+--- andl/hapi/esw/routing/broad_l3_debug.c	(revision 7768)
++++ andl/hapi/esw/routing/broad_l3_debug.c	(working copy)
+@@ -33,13 +33,13 @@ L7_BOOL broadL3BcmxDebug = L7_FALSE;   /
+ L7_BOOL broadL3WaitDebug = L7_FALSE;   /* trace wait times */
+ L7_BOOL broadL3SemaDebug = L7_FALSE;
+ L7_BOOL broadL3ArpDebug = 0;
+ L7_BOOL broadL3DebugTrace = L7_FALSE;
+ 
+ /* Async and caller task ids */
+-static L7_uint32 broadL3DebugTaskIds[16] = {0};
++static L7_uint64 broadL3DebugTaskIds[16] = {0};
+ 
+ /* Debug sema to write to console/buffer */
+ void *broadL3DebugSema;
+ 
+ 
+ /* Work list stats */
+@@ -349,13 +349,13 @@ void hapiBroadL3DebugArpQueryPrint(DAPI_
+ 
+ 
+ /* Stores the caller's task id */
+ void hapiBroadL3DebugTaskIdSet(void)
+ {
+   L7_uint8 i, index = 255;
+-  L7_uint32 taskId = 0;
++  L7_uint64 taskId = 0;
+ 
+   osapiTaskIDSelfGet(&taskId);
+   for (i=0; i<16; i++)
+   {
+     if (broadL3DebugTaskIds[i] == taskId)
+     {
+@@ -378,18 +378,18 @@ void hapiBroadL3DebugTaskIdShow(void)
+   /* List of tasks that called in HAPI L3 cmds */
+   L7_uint8 i;
+ 
+   for (i=0; i<16; i++)
+   {
+     if (broadL3DebugTaskIds[i] != 0)
+-      sysapiPrintf("Task Id: 0x%x\n", broadL3DebugTaskIds[i]);
++      sysapiPrintf("Task Id: 0x%llx\n", broadL3DebugTaskIds[i]);
+   }
+ }
+ 
+ /* Stack trace for all tasks calling into broad L3 code */
+-extern void osapiDebugStackTrace(L7_uint32 task_id, FILE *filePtr);
++extern void osapiDebugStackTrace(L7_uint64 task_id, FILE *filePtr);
+ void hapiBroadL3DebugStackTrace(void)
+ {
+   L7_uint8 i=0;
+ 
+   for (i=0; i<16; i++)
+   {
+Index: andl/hapi/esw/routing/broad_l3_int.h
+===================================================================
+--- andl/hapi/esw/routing/broad_l3_int.h	(revision 7768)
++++ andl/hapi/esw/routing/broad_l3_int.h	(working copy)
+@@ -1422,13 +1422,13 @@ void hapiBroadL3RouteCacheCommit (void);
+ * @notes   Failed entries are retried either periodically or if any other entry
+ *          gets deleted
+ *
+ * @end
+ *
+ *******************************************************************************/
+-void hapiBroadL3RetryTimer(L7_uint32 arg1, L7_uint32 arg2);
++void hapiBroadL3RetryTimer(L7_uint64 arg1, L7_uint64 arg2);
+ 
+ 
+ /*******************************************************************************
+ * @purpose  Checks if there is room for a new host entry
+ *
+ * @param    cmd - if host is being added/modified
+Index: andl/hapi/esw/switching/broad_l2_std.c
+===================================================================
+--- andl/hapi/esw/switching/broad_l2_std.c	(revision 7768)
++++ andl/hapi/esw/switching/broad_l2_std.c	(working copy)
+@@ -3864,13 +3864,13 @@ int mac_sync_callback (void *user_data,
+ 
+   if (NULL == datum)
+   {
+     return BCM_E_NONE;
+   }
+ 
+-  unit = (int) extra_data;
++  unit = PTR_TO_UINT32(extra_data);
+   l2x_entry = (l2x_entry_t *) datum;
+ 
+   if (_bcm_esw_l2_from_l2x(unit, 0, &l2Addr, (uint32 *) l2x_entry) != BCM_E_NONE)
+   {
+     printf(" %s: _bcm_esw_l2_from_l2x failed \n", __FUNCTION__);
+   }
+@@ -3941,13 +3941,13 @@ L7_RC_t mac_hardware_sync (void)
+      */
+      continue;
+     }
+ 
+     sal_mutex_take(soc->arlShadowMutex, sal_mutex_FOREVER);
+ 
+-    shr_avl_traverse (soc->arlShadow, mac_sync_callback, (void *) bcm_unit);
++    shr_avl_traverse (soc->arlShadow, mac_sync_callback, UINT_TO_PTR(bcm_unit));
+ 
+     sal_mutex_give(soc->arlShadowMutex);
+   }
+ 
+   return L7_SUCCESS;
+ }
+@@ -4254,34 +4254,34 @@ L7_RC_t hapiBroadL2AddrFlushInit (DAPI_t
+   size = (platIntfLagIntfMaxCountGet() / (sizeof(L7_uint32)*8)) +1; /* number of words */
+   size  = size * sizeof(L7_uint32); /* number of bytes */
+ 
+   if (hapiBroadFlushTgidList  == L7_NULLPTR)
+     hapiBroadFlushTgidList = osapiMalloc(L7_DRIVER_COMPONENT_ID,size);
+ 
+-  if (hapiBroadFlushTgidList == L7_NULLPTR) L7_LOG_ERROR(hapiBroadFlushTgidList);
++  if (hapiBroadFlushTgidList == L7_NULLPTR) L7_LOG_ERROR(PTR_TO_UINT32(hapiBroadFlushTgidList));
+ 
+   memset((void *)hapiBroadFlushTgidList,0,size);
+ 
+   /* an array to indicate flushes for vlans */
+   size = (platVlanVlanIdMaxGet() / (sizeof(L7_uint32)*8)) +1; /* number of words */
+   size  = size * sizeof(L7_uint32); /* number of bytes */
+ 
+   if (hapiBroadFlushVlanList == L7_NULLPTR)
+     hapiBroadFlushVlanList = osapiMalloc(L7_DRIVER_COMPONENT_ID,size);
+ 
+-  if (hapiBroadFlushVlanList == L7_NULLPTR) L7_LOG_ERROR(hapiBroadFlushVlanList);
++  if (hapiBroadFlushVlanList == L7_NULLPTR) L7_LOG_ERROR(PTR_TO_UINT32(hapiBroadFlushVlanList));
+ 
+ 
+   memset(hapiBroadFlushMac, 0, L7_ENET_MAC_ADDR_LEN);
+ 
+   /* create a queue to receive requests to flush L2 address */
+   hapiL2AddrFlushQueue = (void *)osapiMsgQueueCreate("hapiL2AddrFlushQueue",
+                                                       1,
+                                                       sizeof(BROAD_L2ADDR_FLUSH_t));
+ 
+-  if (hapiL2AddrFlushQueue == L7_NULL) L7_LOG_ERROR(hapiL2AddrFlushQueue);
++  if (hapiL2AddrFlushQueue == L7_NULL) L7_LOG_ERROR(PTR_TO_UINT32(hapiL2AddrFlushQueue));
+ 
+   /* spawn task */
+   if (osapiTaskCreate("hapiL2AddrFlushTask", hapiBroadL2AddrFlushTask,
+                       dapi_g, 1, L7_DEFAULT_STACK_SIZE,
+                       L7_DEFAULT_TASK_PRIORITY,
+                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+Index: andl/hapi/esw/switching/broad_l2_vlan.c
+===================================================================
+--- andl/hapi/esw/switching/broad_l2_vlan.c	(revision 7768)
++++ andl/hapi/esw/switching/broad_l2_vlan.c	(working copy)
+@@ -2515,13 +2515,13 @@ L7_RC_t hapiBroadProtocolVlanRemove(DAPI
+ *
+ *********************************************************************/
+ L7_RC_t hapiBroadVlanCritSecEnter(void)
+ {
+   if (broadVlanSema == L7_NULLPTR)
+   {
+-      L7_LOG_ERROR(broadVlanSema);
++      L7_LOG_ERROR(PTR_TO_UINT32(broadVlanSema));
+       return L7_FAILURE;
+     }
+   return osapiSemaTake(broadVlanSema,L7_WAIT_FOREVER);
+ }
+ 
+ /*********************************************************************
+@@ -2536,13 +2536,13 @@ L7_RC_t hapiBroadVlanCritSecEnter(void)
+ *
+ *********************************************************************/
+ L7_RC_t hapiBroadVlanCritSecExit(void)
+ {
+   if (broadVlanSema == L7_NULLPTR)
+   {
+-    L7_LOG_ERROR(broadVlanSema);
++    L7_LOG_ERROR(PTR_TO_UINT32(broadVlanSema));
+     return L7_FAILURE;
+   }
+ 
+   return osapiSemaGive(broadVlanSema);
+ }
+ 
+Index: andl/hapi/esw/usl/common/broad_hpc_rpc.c
+===================================================================
+--- andl/hapi/esw/usl/common/broad_hpc_rpc.c	(revision 7768)
++++ andl/hapi/esw/usl/common/broad_hpc_rpc.c	(working copy)
+@@ -559,33 +559,33 @@ L7_RC_t l7_rpc_buffer_init(void)
+ 
+   l7RpcReqMsgBufSize = hpcHardwareRpcMaxMessageLengthGet();
+ 
+   /* Allocate RPC request message */
+   l7RpcReqMsgBuf = osapiMalloc (L7_DRIVER_COMPONENT_ID, (l7RpcReqMsgBufSize));
+   if (l7RpcReqMsgBuf == L7_NULLPTR)
+-    L7_LOG_ERROR("USL: unable to allocate l7RpcReqMsgBuf\n");
++    L7_LOG_ERROR(0 /*"USL: unable to allocate l7RpcReqMsgBuf\n"*/);
+ 
+   l7RpcReqMsgBufSema = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
+   if (l7RpcReqMsgBufSema == L7_NULLPTR)
+-    L7_LOG_ERROR("USL: unable to create the l7RpcReqMsgBufSema\n");
++    L7_LOG_ERROR(0 /*"USL: unable to create the l7RpcReqMsgBufSema\n"*/);
+ 
+ 
+   /* Allocate RPC response message */
+   l7RpcRespMsgBufSize = hpcHardwareRpcMaxMessageLengthGet();
+ 
+   for (i = 0; i <= L7_MAX_UNITS_PER_STACK; i++)
+   {
+     l7RpcRespMsgBuf[i].buf = osapiMalloc (L7_DRIVER_COMPONENT_ID, (l7RpcRespMsgBufSize));
+     if (l7RpcRespMsgBuf[i].buf == L7_NULLPTR)
+-      L7_LOG_ERROR("USL: unable to allocate l7RpcReqMsgBuf\n");
++      L7_LOG_ERROR(0 /*"USL: unable to allocate l7RpcReqMsgBuf\n"*/);
+     l7RpcRespMsgBuf[i].buf_size = l7RpcRespMsgBufSize;
+   }
+ 
+   l7RpcRespMsgBufSema = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
+   if (l7RpcRespMsgBufSema == L7_NULLPTR)
+-    L7_LOG_ERROR("USL: unable to create the l7RpcRespMsgBufSema\n");
++    L7_LOG_ERROR(0 /*"USL: unable to create the l7RpcRespMsgBufSema\n"*/);
+ 
+   return L7_SUCCESS;
+ }
+ 
+ /*********************************************************************
+ * @purpose  Get a buffer to send RPC request message
+@@ -598,13 +598,13 @@ L7_RC_t l7_rpc_buffer_init(void)
+ *       
+ * @end
+ *********************************************************************/
+ L7_uchar8* l7_rpc_req_buffer_get(void)
+ {
+   if ((l7RpcReqMsgBuf == L7_NULLPTR) || (l7RpcReqMsgBufSema == L7_NULLPTR))
+-    L7_LOG_ERROR("USL: unable to allocate buffer before USL is initted\n");
++    L7_LOG_ERROR(0 /*"USL: unable to allocate buffer before USL is initted\n"*/);
+ 
+ 
+   /* The corresponding give is when the buffer is freed later on */
+   osapiSemaTake(l7RpcReqMsgBufSema,L7_WAIT_FOREVER);
+ 
+   memset(l7RpcReqMsgBuf, 0, l7RpcReqMsgBufSize);
+@@ -621,13 +621,13 @@ L7_uchar8* l7_rpc_req_buffer_get(void)
+ *       
+ * @end
+ *********************************************************************/
+ L7_RC_t l7_rpc_req_buffer_free(L7_uchar8 *buffer)
+ {
+   if ((l7RpcReqMsgBuf == L7_NULLPTR) || (l7RpcReqMsgBufSema == L7_NULLPTR))
+-    L7_LOG_ERROR("USL: unable to free RPC buffer \n");
++    L7_LOG_ERROR(0 /*"USL: unable to free RPC buffer \n"*/);
+ 
+   /* The corresponding give is when the buffer is freed later on */
+   osapiSemaGive(l7RpcReqMsgBufSema);
+ 
+   return L7_SUCCESS;
+ }
+@@ -641,13 +641,13 @@ L7_RC_t l7_rpc_req_buffer_free(L7_uchar8
+ *       
+ * @end
+ *********************************************************************/
+ L7_RC_t l7_rpc_req_buffer_size_get()
+ {
+   if ((l7RpcReqMsgBuf == L7_NULLPTR) || (l7RpcReqMsgBufSema == L7_NULLPTR))
+-    L7_LOG_ERROR("USL: RPC buffer not allocated\n");
++    L7_LOG_ERROR(0 /*"USL: RPC buffer not allocated\n"*/);
+ 
+   return l7RpcReqMsgBufSize;
+ }
+ 
+ /*********************************************************************
+ * @purpose  Get a buffer to get RPC response message
+Index: andl/hapi/esw/usl/common/l7_usl_mask.c
+===================================================================
+--- andl/hapi/esw/usl/common/l7_usl_mask.c	(revision 7768)
++++ andl/hapi/esw/usl/common/l7_usl_mask.c	(working copy)
+@@ -77,13 +77,13 @@ L7_RC_t l7_mask_create(L7_uint32 numElem
+     mask->bitmap      = (L7_uchar8 *)(maskBytes + sizeof(l7_mask_t));
+ 
+     /* 
+      * return the pointer to the mask as a handle, all future requests on this
+      * mask must provide the handle
+      */
+-    *handle = (l7_mask_handle_t)mask;
++    *handle = (l7_mask_handle_t) PTR_TO_UINT64(mask);
+ 
+     rc = L7_SUCCESS;
+ 
+   } while ( 0 );
+ 
+   return rc;
+@@ -100,13 +100,13 @@ L7_RC_t l7_mask_create(L7_uint32 numElem
+ *
+ * @end
+ *********************************************************************/
+ L7_RC_t l7_mask_delete(l7_mask_handle_t *handle)
+ {
+   L7_RC_t   rc = L7_ERROR;
+-  l7_mask_t *mask = (l7_mask_t*)*handle;
++  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(*handle);
+ 
+   do
+   {
+     if (mask == L7_NULLPTR) break;
+ 
+     if (mask->maskIdentifier != L7_MASK_IDENTIFIER) break; /* goto while 0 ) */
+@@ -138,14 +138,14 @@ L7_RC_t l7_mask_copy(l7_mask_handle_t sr
+ {
+   L7_RC_t rc = L7_ERROR;
+   l7_mask_t *dstMask, *srcMask;
+ 
+   do
+   {
+-    dstMask = (l7_mask_t *)dst;
+-    srcMask = (l7_mask_t *)src;
++    dstMask = (l7_mask_t *)UINT_TO_PTR(dst);
++    srcMask = (l7_mask_t *)UINT_TO_PTR(src);
+ 
+     if ((dstMask == L7_NULLPTR) || (srcMask == L7_NULLPTR)) break;
+ 
+     if (dstMask->maskIdentifier != L7_MASK_IDENTIFIER) break;
+ 
+     if (srcMask->maskIdentifier != L7_MASK_IDENTIFIER) break;
+@@ -173,13 +173,13 @@ L7_RC_t l7_mask_copy(l7_mask_handle_t sr
+ *
+ * @end
+ *********************************************************************/
+ L7_RC_t l7_mask_clear(l7_mask_handle_t handle)
+ {
+   L7_RC_t   rc = L7_ERROR;
+-  l7_mask_t *mask = (l7_mask_t*)handle;
++  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
+ 
+   do
+   {
+     if (mask == L7_NULLPTR) break;
+ 
+     if (mask->maskIdentifier != L7_MASK_IDENTIFIER) break; /* goto while 0 ) */
+@@ -208,13 +208,13 @@ L7_RC_t l7_mask_clear(l7_mask_handle_t h
+ *
+ * @end
+ *********************************************************************/
+ L7_RC_t l7_mask_is_zero(l7_mask_handle_t handle, L7_BOOL *isZero)
+ {
+   L7_BOOL   rc = L7_ERROR;
+-  l7_mask_t *mask = (l7_mask_t*)handle;
++  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
+ 
+   do
+   {
+     if (mask == L7_NULLPTR) break;
+ 
+     if (mask->maskIdentifier != L7_MASK_IDENTIFIER) break; /* goto while 0 ) */
+@@ -243,14 +243,14 @@ L7_RC_t l7_mask_is_zero(l7_mask_handle_t
+ *
+ * @end
+ *********************************************************************/
+ L7_RC_t l7_mask_is_equal(l7_mask_handle_t handle, l7_mask_handle_t handle2,L7_BOOL *isEqual) 
+ {
+   L7_BOOL   rc = L7_ERROR;
+-  l7_mask_t *mask = (l7_mask_t*)handle;
+-  l7_mask_t *mask2 = (l7_mask_t*)handle2;
++  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
++  l7_mask_t *mask2 = (l7_mask_t*)UINT_TO_PTR(handle2);
+   L7_uint32 i;
+ 
+   do
+   {
+     if (mask == L7_NULLPTR)  break; /* goto while 0 ) */
+     if (mask2 == L7_NULLPTR) break; /* goto while 0 ) */
+@@ -292,13 +292,13 @@ L7_RC_t l7_mask_is_equal(l7_mask_handle_
+ *
+ * @end
+ *********************************************************************/
+ L7_RC_t l7_mask_invert(l7_mask_handle_t handle)
+ {
+   L7_RC_t rc = L7_ERROR;
+-  l7_mask_t *mask = (l7_mask_t*)handle;
++  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
+   L7_uint32 i;
+ 
+   do
+   {
+     if (mask == L7_NULLPTR) break;
+ 
+@@ -329,13 +329,13 @@ L7_RC_t l7_mask_invert(l7_mask_handle_t
+ * @note     The bit is 1 based
+ * @end
+ *********************************************************************/
+ L7_RC_t l7_mask_bit_set(l7_mask_handle_t handle,L7_uint32 bit)
+ {
+   L7_RC_t   rc = L7_ERROR;
+-  l7_mask_t *mask = (l7_mask_t*)handle;
++  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
+   L7_uint32 bytePos, bitPos;
+ 
+   do
+   {
+     if (mask == L7_NULLPTR) break;
+ 
+@@ -372,13 +372,13 @@ L7_RC_t l7_mask_bit_set(l7_mask_handle_t
+ * @note     The bit is 1 based
+ * @end
+ *********************************************************************/
+ L7_RC_t l7_mask_bit_clear(l7_mask_handle_t handle,L7_uint32 bit)
+ {
+   L7_RC_t   rc = L7_ERROR;
+-  l7_mask_t *mask = (l7_mask_t*)handle;
++  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
+   L7_uint32 bytePos, bitPos;
+ 
+   do
+   {
+     if (mask == L7_NULLPTR) break;
+ 
+@@ -414,13 +414,13 @@ L7_RC_t l7_mask_bit_clear(l7_mask_handle
+ *
+ * @end
+ *********************************************************************/
+ L7_RC_t l7_mask_is_bit_set(l7_mask_handle_t handle, L7_uint32 bit, L7_BOOL *isSet)
+ {
+   L7_RC_t   rc = L7_ERROR;
+-  l7_mask_t *mask = (l7_mask_t*)handle;
++  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
+   L7_uint32 bytePos, bitPos;
+ 
+   do
+   {
+     if (mask == L7_NULLPTR) break;
+ 
+@@ -457,13 +457,13 @@ L7_RC_t l7_mask_is_bit_set(l7_mask_handl
+ *           check.  Bit should be zero in order to check the first element of mask
+ * @end
+ *********************************************************************/
+ L7_RC_t l7_mask_next_get(l7_mask_handle_t handle,L7_uint32 *pBit)
+ {
+   L7_RC_t   rc = L7_ERROR;
+-  l7_mask_t *mask = (l7_mask_t*)handle;
++  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
+   L7_uint32 bytePos, bitPos;
+   L7_uint32 myBit;
+   L7_BOOL   foundNext = L7_FALSE;
+ 
+   do
+   {
+@@ -555,13 +555,13 @@ L7_RC_t l7_mask_next_get(l7_mask_handle_
+ *           check.  Bit should be zero in order to check the first element of mask
+ * @end
+ *********************************************************************/
+ L7_RC_t l7_mask_first_free_get(l7_mask_handle_t handle,L7_uint32 *pBit)
+ {
+   L7_RC_t   rc = L7_ERROR;
+-  l7_mask_t *mask = (l7_mask_t*)handle;
++  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
+   L7_uint32 bytePos, bitPos;
+   L7_uint32 myBit;
+   L7_BOOL   foundFirst = L7_FALSE;
+ 
+   do
+   {
+@@ -649,13 +649,13 @@ L7_RC_t l7_mask_first_free_get(l7_mask_h
+ *
+ * @end
+ *********************************************************************/
+ L7_RC_t l7_mask_print(l7_mask_handle_t handle)
+ {
+   L7_RC_t   rc = L7_ERROR;
+-  l7_mask_t *mask = (l7_mask_t*)handle;
++  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
+   L7_uint32 i;
+ 
+   do
+   {
+     if (mask == L7_NULLPTR) break;
+ 
+@@ -691,13 +691,13 @@ L7_RC_t l7_mask_print(l7_mask_handle_t h
+ *
+ * @end
+ *********************************************************************/
+ L7_RC_t l7_mask_buffer_write(l7_mask_handle_t handle,L7_uchar8 *buf)
+ {
+   L7_RC_t   rc = L7_ERROR;
+-  l7_mask_t *mask = (l7_mask_t*)handle;
++  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
+ 
+   do
+   {
+     if (mask == L7_NULLPTR) break;
+ 
+     if (mask->maskIdentifier != L7_MASK_IDENTIFIER) break; /* goto while 0 ) */
+@@ -723,13 +723,13 @@ L7_RC_t l7_mask_buffer_write(l7_mask_han
+ * @returns  The size of the mask in bytes, or zero
+ *
+ * @end
+ *********************************************************************/
+ L7_uint32 l7_mask_sizeOf(l7_mask_handle_t handle)
+ {
+-  l7_mask_t *mask = (l7_mask_t*)handle;
++  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
+   L7_uint32 size = 0;
+ 
+   do
+   {
+     if (mask == L7_NULLPTR) break;
+ 
+@@ -770,13 +770,13 @@ L7_RC_t l7_mask_buffer_read(L7_uchar8 *b
+     tmpMask = (l7_mask_t*)buf;
+ 
+     if (tmpMask->maskIdentifier != L7_MASK_IDENTIFIER) break;
+ 
+     tmpMask->bitmap = buf + sizeof(l7_mask_t);
+ 
+-    *handle = (l7_mask_handle_t)tmpMask;
++    *handle = (l7_mask_handle_t) PTR_TO_UINT64(tmpMask);
+ 
+     rc = L7_SUCCESS;
+ 
+   } while ( 0 );
+ 
+   return rc;
+@@ -790,13 +790,13 @@ L7_RC_t l7_mask_buffer_read(L7_uchar8 *b
+ * @returns  the number of elements in the mask
+ *
+ * @end
+ *********************************************************************/
+ L7_uint32 l7_mask_number_set_get(l7_mask_handle_t handle)
+ {
+-  l7_mask_t *mask = (l7_mask_t*)handle;
++  l7_mask_t *mask = (l7_mask_t*)UINT_TO_PTR(handle);
+   L7_uint32 count = 0;
+ 
+   do
+   {
+     if (mask == L7_NULLPTR) break;
+ 
+Index: andl/hapi/esw/usl/common/l7_usl_mask.h
+===================================================================
+--- andl/hapi/esw/usl/common/l7_usl_mask.h	(revision 7768)
++++ andl/hapi/esw/usl/common/l7_usl_mask.h	(working copy)
+@@ -26,13 +26,13 @@
+ 
+ #define USL_MASK_NOT_FOUND (L7_uint32)(~0)
+ 
+ /* 
+  * Type used to pass masks in the API
+  */
+-typedef L7_uint32 l7_mask_handle_t;
++typedef L7_uint64 l7_mask_handle_t;
+ 
+ /*********************************************************************
+ * @purpose  Create a mask of the size indicated
+ *
+ * @param    numElements  @{(input)}  The number of elements in the mask
+ * @param    handle       @{(output)} The handle for all future accesses to the mask
+Index: andl/hapi/esw/usl/common/l7_usl_trace.c
+===================================================================
+--- andl/hapi/esw/usl/common/l7_usl_trace.c	(revision 7768)
++++ andl/hapi/esw/usl/common/l7_usl_trace.c	(working copy)
+@@ -450,13 +450,13 @@ void usl_trace_sema_mask_set(L7_uint32 m
+ * @param    tak       {(input)} 1 for semaTake, 0 for semaGive
+ *
+ * @returns  void
+ *
+ * @end
+ *********************************************************************/
+-void usl_trace_sema(L7_uchar8 db,L7_uchar8 *sema,L7_int32 task,L7_ulong32 line,L7_BOOL take)
++void usl_trace_sema(L7_uchar8 db, L7_uchar8 *sema, L7_uint64 task, L7_ulong32 line, L7_BOOL take)
+ {
+   L7_uchar8 take_give;
+   take_give = (take)?1:0;
+ 
+ 
+   if ((uslTraceHandle != ~0)
+@@ -465,13 +465,13 @@ void usl_trace_sema(L7_uchar8 db,L7_ucha
+       && (uslSemaMask & (1 << db)))
+   {
+     TRACE_BEGIN(uslTraceHandle, L7_DRIVER_COMPONENT_ID);
+     TRACE_ENTER_2BYTE(osapiHtons(USL_DB_SEMA));
+     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
+     TRACE_ENTER_4BYTE(*(L7_uint32 *)sema);
+-    TRACE_ENTER_4BYTE(osapiHtonl(task));
++    TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) task));
+     TRACE_ENTER_4BYTE(osapiHtonl(line));
+     TRACE_ENTER_BYTE(take_give);
+     TRACE_END();
+   }
+ }
+ 
+Index: andl/hapi/esw/usl/common/l7_usl_trace.h
+===================================================================
+--- andl/hapi/esw/usl/common/l7_usl_trace.h	(revision 7768)
++++ andl/hapi/esw/usl/common/l7_usl_trace.h	(working copy)
+@@ -327,13 +327,13 @@ extern void usl_trace_mode_apply(L7_BOOL
+ * @param    tak       {(input)} 1 for semaTake, 0 for semaGive
+ *
+ * @returns  void
+ *
+ * @end
+ *********************************************************************/
+-extern void usl_trace_sema(L7_uchar8 db,L7_uchar8 *sema,L7_int32 task,L7_ulong32 line,L7_BOOL take);
++extern void usl_trace_sema(L7_uchar8 db, L7_uchar8 *sema, L7_uint64 task, L7_ulong32 line, L7_BOOL take);
+ 
+ /*********************************************************************
+ * @purpose  Format the output for a database sema event 
+ *
+ * @param    traceId     {(input)} The opcode of the event 
+ * @param    pDataStart  {(input)} The byte array of the trace
+Index: andl/hapi/esw/usl/ipmcast/l7_usl_ipmcast_db.c
+===================================================================
+--- andl/hapi/esw/usl/ipmcast/l7_usl_ipmcast_db.c	(revision 7768)
++++ andl/hapi/esw/usl/ipmcast/l7_usl_ipmcast_db.c	(working copy)
+@@ -1972,13 +1972,13 @@ void usl_ipmc_debug_help()
+ * @param    ipmc_index    @{(input)} The Multicast IP address index
+ *
+ * @returns  Defined by the Broadcom driver
+ *
+ * @end
+ *********************************************************************/
+-void usl_ipmc_inuse_timer(L7_uint32 arg1, L7_uint32 arg2)
++void usl_ipmc_inuse_timer(L7_uint64 arg1, L7_uint64 arg2)
+ {
+   L7_RC_t rc = L7_SUCCESS;
+   static L7_BOOL firstTime = L7_TRUE;
+   static L7_uchar8 *msg;
+   static L7_uint32 msgLength;
+   L7_uint32 thisFpUnit;
+Index: andl/hapi/esw/usl/routing/l7_usl_l3_db.c
+===================================================================
+--- andl/hapi/esw/usl/routing/l7_usl_l3_db.c	(revision 7768)
++++ andl/hapi/esw/usl/routing/l7_usl_l3_db.c	(working copy)
+@@ -156,13 +156,13 @@ L7_uint32 uslL3DataplaneCleanupCount = 0
+ 
+ 
+ #ifdef L7_STACKING_PACKAGE
+ /* TIMER to be used for inuse check */
+ static osapiTimerDescr_t *pUslHostInUseTimer = L7_NULL;
+ 
+-static void usl_l3host_active_timer(L7_uint32 arg1, L7_uint32 arg2);
++static void usl_l3host_active_timer(L7_uint64 arg1, L7_uint64 arg2);
+ #endif
+ 
+ #define USL_L3_EGR_NHOP_DB_LOCK_TAKE() \
+ { \
+   usl_trace_sema(USL_L3_HOST_DB_ID,"EGR/NHOP",osapiTaskIdSelf(),__LINE__,L7_TRUE); \
+   if (osapiSemaTake(uslIpEgrNhopDbSema,L7_WAIT_FOREVER) != L7_SUCCESS) \
+@@ -6845,13 +6845,13 @@ L7_BOOL usl_l3host_hit_flags_get(const L
+ *
+ * @param    arg1 (unused)
+ *           arg2 (unused)
+ *
+ * @end
+ *********************************************************************/
+-static void usl_l3host_active_timer(L7_uint32 arg1, L7_uint32 arg2)
++static void usl_l3host_active_timer(L7_uint64 arg1, L7_uint64 arg2)
+ {
+   static L7_uchar8 *msg = L7_NULL;    /* pointer to message space */
+   L7_RC_t rc;                         /* result workspace */
+   L7_uint32 thisFpUnit;               /* the stack member number */
+ 
+   /* initialise things, but only if not done yet */

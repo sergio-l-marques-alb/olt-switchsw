@@ -1,0 +1,4334 @@
+Index: src/system_support/base/infrastructure/box_services/boxs.c
+===================================================================
+--- src/system_support/base/infrastructure/box_services/boxs.c	(revision 7768)
++++ src/system_support/base/infrastructure/box_services/boxs.c	(working copy)
+@@ -39,14 +39,14 @@
+ void *boxsRspQ = L7_NULLPTR;
+ void *boxsReqQ = L7_NULLPTR;
+ 
+ extern void *boxsSemaphore;
+ extern boxsCfg_t * boxsCfg;
+ 
+-L7_uint32 L7_boxs_Req_task_id = 0;
+-L7_uint32 L7_boxs_Rsp_task_id = 0;
++L7_uint64 L7_boxs_Req_task_id = 0;
++L7_uint64 L7_boxs_Rsp_task_id = 0;
+ 
+ boxsData_t gBoxsData[L7_ALL_UNITS];    /* index zero not used */
+ boxsGlobalStatus_t globalStatus[L7_ALL_UNITS];
+ boxsGlobalStatus_t lastGlobalStatus[L7_ALL_UNITS];
+ 
+ 
+Index: src/system_support/base/infrastructure/box_services/boxs_api.c
+===================================================================
+--- src/system_support/base/infrastructure/box_services/boxs_api.c	(revision 7768)
++++ src/system_support/base/infrastructure/box_services/boxs_api.c	(working copy)
+@@ -388,13 +388,13 @@ L7_RC_t boxsApiXfpStatusTrapEnableSet(L7
+ 
+ L7_RC_t boxsApiTempStatusTrapEnableGet(L7_BOOL *enable)
+ {
+   if (boxsCfg == L7_NULLPTR)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_BOX_SERVICES_COMPONENT_ID,
+-            "invalid value %d\n",enable);
++            "invalid value %p\n", enable);
+     return L7_FAILURE;
+   }
+   /* we don't need any sync for read operation */
+   *enable = boxsCfg->cfg.globalCfgData.trapTempStatusEnabled;
+ 
+   return L7_SUCCESS;
+@@ -413,14 +413,14 @@ L7_RC_t boxsApiTempStatusTrapEnableGet(L
+ *********************************************************************/
+ 
+ L7_RC_t boxsApiFanStatusTrapEnableGet(L7_BOOL *enable)
+ {
+   if (boxsCfg == L7_NULLPTR)
+   {
+-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_BOX_SERVICES_COMPONENT_ID,
+-              "invalid value %d\n",enable);
++    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_BOX_SERVICES_COMPONENT_ID,
++          "invalid value %p\n", enable);
+     return L7_FAILURE;
+   }
+   /* we don't need any sync for read operation */
+   *enable = boxsCfg->cfg.globalCfgData.trapFanStatusEnabled;
+ 
+   return L7_SUCCESS;
+Index: src/system_support/base/infrastructure/cardmgr/cardmgr.h
+===================================================================
+--- src/system_support/base/infrastructure/cardmgr/cardmgr.h	(revision 7768)
++++ src/system_support/base/infrastructure/cardmgr/cardmgr.h	(working copy)
+@@ -1582,13 +1582,13 @@ L7_RC_t cmgrInitSlotsOnUnit(L7_uint32 un
+  * @notes    This is called from the timer task and does minimal work.
+  *           It forwards the message to the Card Manager task and resets
+  *           the timer.
+  *       
+  * @end
+  *********************************************************************/
+-void cmgrTimer( L7_uint32 arg1, L7_uint32 arg2 );
++void cmgrTimer( L7_uint64 arg1, L7_uint64 arg2 );
+ 
+ /*********************************************************************
+  * @purpose  Card Manager Task
+  *
+  * @param    none
+  *
+Index: src/system_support/base/infrastructure/cardmgr/cardmgr_cnfgr.c
+===================================================================
+--- src/system_support/base/infrastructure/cardmgr/cardmgr_cnfgr.c	(revision 7768)
++++ src/system_support/base/infrastructure/cardmgr/cardmgr_cnfgr.c	(working copy)
+@@ -691,13 +691,13 @@ L7_RC_t cmgrCnfgrNoopProccess( L7_CNFGR_
+  * @notes    none
+  *
+  * @end
+  *********************************************************************/
+ L7_RC_t cmgrStartTask(L7_CNFGR_CMD_DATA_t *pCmdData)
+ {
+-  L7_int32 taskId;
++  L7_uint64 taskId;
+   cmgrQueue = (void *)osapiMsgQueueCreate(L7_CMGR_QUEUE_NAME,
+       L7_CMGR_MSGQ_COUNT_f,
+       L7_CMGR_MSGQ_SIZE_f);
+   if (cmgrQueue == L7_NULLPTR)
+   {
+     L7_LOG_ERROR(0);
+Index: src/system_support/base/infrastructure/cardmgr/cardmgr_util.c
+===================================================================
+--- src/system_support/base/infrastructure/cardmgr/cardmgr_util.c	(revision 7768)
++++ src/system_support/base/infrastructure/cardmgr/cardmgr_util.c	(working copy)
+@@ -3658,13 +3658,13 @@ void cmgrAllCardsUnplugUnconfigure(void)
+  * @notes    This is called from the timer task and does minimal work.
+  *           It forwards the message to the Card Manager task and resets
+  *           the timer.
+  *
+  * @end
+  *********************************************************************/
+-void cmgrTimer(L7_uint32 arg1, L7_uint32 arg2)
++void cmgrTimer(L7_uint64 arg1, L7_uint64 arg2)
+ {
+   L7_int32 cmgrRC;
+   cmgr_cmpdu_t cmpdu;
+ 
+   osapiSemaTake(cmgrTimerSyncSemaId, L7_WAIT_FOREVER);
+ 
+Index: src/system_support/base/infrastructure/cnfgr/base/cnfgr_ctrl.c
+===================================================================
+--- src/system_support/base/infrastructure/cnfgr/base/cnfgr_ctrl.c	(revision 7768)
++++ src/system_support/base/infrastructure/cnfgr/base/cnfgr_ctrl.c	(working copy)
+@@ -671,13 +671,13 @@ L7_RC_t cnfgrApiScheduleCommand(
+     pMsgData->u.cmdData.type           = pCmdData->type;
+     pMsgData->u.cmdData.evntData.event = event;
+     pMsgData->u.cmdData.evntData.data  = pCmdData->u.evntData.data;
+ 
+     /* schedule it ! */
+     osapiTimerAdd( (void *) cnfgrPendingMsgSend, 
+-	(L7_uint32)pMsgData, 
++	PTR_TO_UINT64(pMsgData),
+ 	L7_NULL, 
+ 	milliseconds,
+ 	&pTimerHolder );
+     cnfgrRC = L7_SUCCESS;
+ 
+   } /* endif valid pCmdData value */
+Index: src/system_support/base/infrastructure/cnfgr/base/cnfgr_hw_tally.c
+===================================================================
+--- src/system_support/base/infrastructure/cnfgr/base/cnfgr_hw_tally.c	(revision 7768)
++++ src/system_support/base/infrastructure/cnfgr/base/cnfgr_hw_tally.c	(working copy)
+@@ -59,13 +59,13 @@ static const L7_uint32 MCAST_HW_UPDATE_T
+ 
+ static L7_uchar8 *phaseNames[L7_CNFGR_HW_APPLY_NUM_PHASES] =
+ {
+   "L2", "L3", "IP MCAST"
+ };
+ 
+-static void cnfgrHwTallyTimerExpired(L7_uint32 phase, L7_uint32 unused);
++static void cnfgrHwTallyTimerExpired(L7_uint64 phase, L7_uint64 unused);
+ static L7_uint32 cnfgrHwUpdatePhaseToIndex(L7_CNFGR_HW_APPLY_t phase);
+ static void cnfgrHwUpdatePendingSet(L7_COMPONENT_IDS_t cid,
+                                     L7_CNFGR_HW_APPLY_t phase);
+ 
+ 
+ /*********************************************************************
+@@ -382,13 +382,13 @@ L7_RC_t cnfgrApiComponentHwUpdateDone(L7
+   }
+ 
+   osapiSemaGive(pendingMaskLock);
+   return L7_SUCCESS;
+ }
+ 
+-static void cnfgrHwTallyTimerExpired(L7_uint32 phase, L7_uint32 unused)
++static void cnfgrHwTallyTimerExpired(L7_uint64 phase, L7_uint64 unused)
+ {
+   L7_uint32 i = cnfgrHwUpdatePhaseToIndex(phase);
+   L7_uchar8 compStr[512];
+   L7_COMPONENT_IDS_t cid;
+   L7_char8 compName[L7_COMPONENT_NAME_MAX_LEN];
+   L7_BOOL firstName = L7_TRUE;
+Index: src/system_support/base/infrastructure/cnfgr/base/cnfgr_msg.c
+===================================================================
+--- src/system_support/base/infrastructure/cnfgr/base/cnfgr_msg.c	(revision 7768)
++++ src/system_support/base/infrastructure/cnfgr/base/cnfgr_msg.c	(working copy)
+@@ -73,13 +73,13 @@ static void *pCnfgrMsgQ2Id = L7_NULLPTR;
+ #define CNFGR_MSG_HANDLER_THREAD_NAME          "Cnfgr_Thread "
+ 
+ #define CNFGR_MSG_HANDLER_THREAD_PRIO_f        cnfgrSidMsgHandlerThreadPrioGet()
+ #define CNFGR_MSG_HANDLER_THREAD_STACK_SIZE_f  cnfgrSidMsgHandlerThreadStackSizeGet()
+ #define CNFGR_MSG_HANDLER_THREAD_SLICE_f       cnfgrSidMsgHandlerThreadSliceGet()
+ 
+-static L7_int32 pCnfgrMsgHandlerTid = (L7_int32)L7_ERROR;
++static L7_uint64 pCnfgrMsgHandlerTid = (L7_uint32) L7_ERROR;
+ 
+ 
+ /*
+  *********************************************************************
+  *                      Message Handler intenal functions
+  *********************************************************************
+@@ -161,13 +161,13 @@ void cnfgrMsgEventComplete()
+ *********************************************************************/
+ void cnfgrMsgFini()
+ {
+     /* set up variables and structures */
+ 
+     /* remove the message handler thread */
+-    if (pCnfgrMsgHandlerTid != (L7_int32)L7_ERROR)
++    if (pCnfgrMsgHandlerTid != L7_ERROR)
+         (void)osapiTaskDelete(pCnfgrMsgHandlerTid);
+     cnfgrMsgEIP = L7_FALSE;
+ 
+     /* remove the message queues */
+     if (pCnfgrMsgQ1Id != L7_NULLPTR)
+         (void)osapiMsgQueueDelete( pCnfgrMsgQ1Id );
+Index: src/system_support/base/infrastructure/cnfgr/base/cnfgr_tally.c
+===================================================================
+--- src/system_support/base/infrastructure/cnfgr/base/cnfgr_tally.c	(revision 7768)
++++ src/system_support/base/infrastructure/cnfgr/base/cnfgr_tally.c	(working copy)
+@@ -226,13 +226,13 @@ L7_BOOL cnfgrTallyRemove(
+                          CNFGR_OUT CNFGR_CT_HANDLE_t *pCtHandle
+                         );
+ L7_RC_t cnfgrTallyUnlockResources(
+                                   CNFGR_IN CNFGR_CT_RESOURCES_t arg1, 
+                                   CNFGR_IN CNFGR_CT_RESOURCES_t arg2
+                                  );
+-void    cnfgrTallyWdTimerExpired(CNFGR_IN L7_uint32 arg1, CNFGR_IN L7_uint32 arg2);
++void    cnfgrTallyWdTimerExpired(CNFGR_IN L7_uint64 arg1, CNFGR_IN L7_uint64 arg2);
+ 
+ /*
+   Internal Funcions 
+ */  
+ 
+ /*********************************************************************
+@@ -495,13 +495,13 @@ L7_RC_t cnfgrTallyUnlockResources(
+ *           allowable OS operations. Do minimum work by placing
+ *           message to the message handler.
+ *
+ *       
+ * @end
+ *********************************************************************/
+-void cnfgrTallyWdTimerExpired( CNFGR_IN L7_uint32 arg1, CNFGR_IN L7_uint32 arg2)
++void cnfgrTallyWdTimerExpired( CNFGR_IN L7_uint64 arg1, CNFGR_IN L7_uint64 arg2)
+ {
+     /* set up structures and variables */
+     
+     CNFGR_MSG_DATA_t  msgData,
+                      *pMsgData = &msgData;
+  
+Index: src/system_support/base/infrastructure/edb/edb_api.c
+===================================================================
+--- src/system_support/base/infrastructure/edb/edb_api.c	(revision 7768)
++++ src/system_support/base/infrastructure/edb/edb_api.c	(working copy)
+@@ -27,14 +27,14 @@
+ #include "edb.h"
+ #include "edb_sid.h"
+ #include "unitmgr_api.h"
+ #include "cardmgr_api.h"
+ #include <ctype.h> /* for isalpha */
+ 
+-L7_uint32 L7_edb_task_id = 0;
+-L7_uint32 L7_edbTrap_task_id = 0;
++L7_uint64 L7_edb_task_id = 0;
++L7_uint64 L7_edbTrap_task_id = 0;
+ 
+ extern PORTEVENT_MASK_t edbNimEventMask;
+ 
+ /* Begin Function Definitions: edb_api.h */
+ 
+ /***************************************************************************************/
+Index: src/system_support/base/infrastructure/log/log_cnfgr.c
+===================================================================
+--- src/system_support/base/infrastructure/log/log_cnfgr.c	(revision 7768)
++++ src/system_support/base/infrastructure/log/log_cnfgr.c	(working copy)
+@@ -102,13 +102,13 @@ extern L7_RC_t dot3ahDyingGaspCallBack(L
+ #endif
+ #endif
+ void (*logNvStoreFuncPtr)(L7_uchar8 *buf) = L7_NULLPTR;
+ static void (*logNvRetrieveFuncPtr)(L7_uchar8 *buf) = L7_NULLPTR;
+ 
+ /* The log config task id. */
+-static L7_int32  logCfgTaskId = 0;
++static L7_uint64   logCfgTaskId = 0;
+ 
+ /* The log config queue. */
+ static void *      logCfgQueue = L7_NULL;
+ 
+ /* Different phases of the log component. */
+ typedef enum
+@@ -914,13 +914,13 @@ void loggingInit()
+ 
+       logmsg(logDefaultFacilityGet(),
+              L7_LOG_SEVERITY_ALERT,
+              L7_LOG_COMPONENT_DEFAULT,
+              ct,
+              0,
+-             (L7_uint32)osapiTaskIdSelf(),
++             osapiTaskIdSelf(),
+              file_name,
+              line_num,
+              buf);
+ 
+       /* Log the previous error in event log */
+       error_record.entry_format = LOGFMT_ERROR;
+@@ -983,13 +983,13 @@ void loggingInit()
+ 
+       logmsg(logDefaultFacilityGet(),
+              L7_LOG_SEVERITY_ALERT,
+              L7_LOG_COMPONENT_DEFAULT,
+              ct,
+              0,
+-             (L7_uint32)osapiTaskIdSelf(),
++             osapiTaskIdSelf(),
+              file_name,
+              line_num,
+              buf);
+       /* Log the previous fault in event log */
+       fault_record.entry_format = err_code;
+       fault_record.time_stamp   = osapiUpTimeRaw();
+Index: src/system_support/base/infrastructure/log/log_debug.c
+===================================================================
+--- src/system_support/base/infrastructure/log/log_debug.c	(revision 7768)
++++ src/system_support/base/infrastructure/log/log_debug.c	(working copy)
+@@ -544,13 +544,13 @@ void log_error_debug_help(void)
+   sysapiPrintf("log_error_debug_func_list()            - list funcs to be executed\n");
+   sysapiPrintf("log_error_func_exec()                  _ execute func list\n");
+   return;
+ }
+ static int log_interval;   /* In milliseconds */
+ static int log_async_exit = 0;
+-static int async_task_id = 0;
++static unsigned long long async_task_id = 0;
+ static int async_event_number = 0;
+ static int log_msg_size = 64;
+ int logSizeSet (int size)
+ {
+  if ((size < 0) || (size > LOG_MSG_MAX_MSG_SIZE))
+   {
+@@ -589,19 +589,19 @@ int i;
+ int logAsyncStart(int interval)
+ {
+  log_async_exit = 0;
+  log_interval = interval;
+   if (async_task_id == 0)
+   {
+-    async_task_id = (L7_uint32)osapiTaskCreate("ASYNC_LOG",
+-                                            (void *)logAsyncTask,
+-                                            L7_NULL,
+-                                            L7_NULL,
+-                                            L7_DEFAULT_STACK_SIZE,
+-                                            L7_DEFAULT_TASK_PRIORITY,
+-                                            L7_DEFAULT_TASK_SLICE);
++    async_task_id = osapiTaskCreate("ASYNC_LOG",
++                                    (void *)logAsyncTask,
++                                    L7_NULL,
++                                    L7_NULL,
++                                    L7_DEFAULT_STACK_SIZE,
++                                    L7_DEFAULT_TASK_PRIORITY,
++                                    L7_DEFAULT_TASK_SLICE);
+   }
+  return 0;
+ }
+ 
+ int logAsyncStop (void)
+ {
+Index: src/system_support/base/infrastructure/log/log_server.c
+===================================================================
+--- src/system_support/base/infrastructure/log/log_server.c	(revision 7768)
++++ src/system_support/base/infrastructure/log/log_server.c	(working copy)
+@@ -175,13 +175,13 @@ static L7_uint32  logSyslogMessageDelive
+ 
+ 
+ /* Our mutex to protect access to shared data structures. */
+ static void * logTaskSyncSemaphore = L7_NULL;
+ 
+ /* Our task id */
+-static L7_int32  logServerTaskId = 0;
++static L7_uint64 logServerTaskId = 0;
+ 
+ /** Local variables used for communication */
+ 
+ /** Our socket. We flag a closed socket with a -1. */
+ static int fd = -1;
+ 
+@@ -938,13 +938,13 @@ void l7_log(L7_LOG_SEVERITY_t severity,
+ 
+   ct.seconds = simAdjustedTimeGet();
+ 
+   l7utilsFilenameStrip(&fileName);
+ 
+   logmsg(logDefaultFacilityGet(), severity, component, ct,
+-         unit, (L7_uint32)osapiTaskIdSelf(), fileName,
++         unit, osapiTaskIdSelf(), fileName,
+          lineNum, nfo);
+ 
+   unitMgrLogMsg(fileName, lineNum, nfo, severity, component);
+ }
+ 
+ /**********************************************************************
+@@ -987,15 +987,15 @@ void log_user_trace(L7_COMPONENT_IDS_t c
+     strcpy (mnemonic, "UNKN");
+     if (component != L7_LOG_COMPONENT_DEFAULT)
+       usmDbComponentMnemonicGet(component, mnemonic);
+ 
+     l7utilsFilenameStrip(&fileName);
+     len = osapiSnprintf(logInitBuf, L7_LOG_MESSAGE_LENGTH,
+-                        "%.15s %s[%d]: %s(%d) --  %s",
++                        "%.15s %s[%llu]: %s(%d) --  %s",
+                         logDateString(ct.seconds),
+-                        mnemonic, (L7_uint32)osapiTaskIdSelf(),
++                        mnemonic, osapiTaskIdSelf(),
+                         fileName, lineNum, nfo);
+ 
+ 
+     sysapiPrintf("\r\n");
+     if (len < 0)
+     {
+@@ -1032,13 +1032,13 @@ void log_user_trace(L7_COMPONENT_IDS_t c
+  *         them into a locally allocated buffer.
+  *
+  * @end
+  *********************************************************************/
+ void logmsg(L7_LOG_FACILITY_t facility, L7_LOG_SEVERITY_t severity,
+             L7_COMPONENT_IDS_t component, L7_clocktime ttime,
+-            L7_uint32 stk, L7_uint32 tid, L7_char8 * fileName,
++            L7_uint32 stk, L7_uint64 tid, L7_char8 * fileName,
+             L7_uint32 lineNum, L7_char8 * nfo)
+ {
+   L7_BOOL logPers = PERSISTENT_LOG_ACTIVE(severity);
+   L7_BOOL logMem = MEMORY_LOG_ACTIVE(severity, component);
+   L7_BOOL logBackend = SYSLOG_LOG_ACTIVE() |
+ 						  EMAILALERT_LOG_ACTIVE() |
+@@ -1053,13 +1053,13 @@ void logmsg(L7_LOG_FACILITY_t facility,
+   struct     logMsg_s msg;
+   L7_BOOL    freeBuf = L7_FALSE;
+   const L7_int32   bufsiz = L7_LOG_MESSAGE_LENGTH;
+ 
+   if (logf_debug)	/* PTin added: debug */
+   {
+-    printf("L7_LOGF: cid=%u stk=%u tid=%u file=%s line=%u msg=\"%s\"\r\n",component,stk,tid,fileName,lineNum,nfo);
++    printf("L7_LOGF: cid=%u stk=%u tid=%llu file=%s line=%u msg=\"%s\"\r\n",component,stk,tid,fileName,lineNum,nfo);
+   }
+ 
+   /* NOTE: This function uses the fileName parm as is (caller is responsible
+    *       for stripping off path info, if desired).
+    */
+ 
+@@ -1115,20 +1115,20 @@ void logmsg(L7_LOG_FACILITY_t facility,
+       if (component != L7_LOG_COMPONENT_DEFAULT)
+         (void)cnfgrApiComponentMnemonicGet(component, mnemonic);
+ 
+       if (fileName != L7_NULL)
+       {
+         len = osapiSnprintf(buf + LOG_STACK_HEADER_LEN, bufsiz,
+-                            "<%d> %.15s %s-%d %s[%d]: %s(%d) %d %%%% ",
++                            "<%d> %.15s %s-%d %s[%llu]: %s(%d) %d %%%% ",
+                             facility * 8 + severity, logDateString(ttime.seconds),
+                             addr, stk, mnemonic, tid, fileName, lineNum, logMessagesReceived);
+       }
+       else
+       {
+         len = osapiSnprintf(buf + LOG_STACK_HEADER_LEN, bufsiz,
+-                            "<%d> %.15s %s-%d %s[%d]: %d %%%% ",
++                            "<%d> %.15s %s-%d %s[%llu]: %d %%%% ",
+                             facility * 8 + severity, logDateString(ttime.seconds),
+                             addr, stk, mnemonic, tid, logMessagesReceived);
+       }
+ 
+       /* Play some games here to avoid overwriting the end of buffer.
+        *
+@@ -2015,19 +2015,19 @@ L7_RC_t logServerInit(struct logCfg_s *
+     printf("logServerInit %s(%d): unable to create message queue!\n",
+            __FILE__, __LINE__);
+     return L7_FAILURE;
+   }
+ 
+   /** create LOG client task */
+-  logServerTaskId = (L7_uint32)osapiTaskCreate("LOG",
+-                                               (void *)logTask,
+-                                               L7_NULL,
+-                                               L7_NULL,
+-                                               L7_DEFAULT_STACK_SIZE,
+-                                               L7_DEFAULT_TASK_PRIORITY,
+-                                               L7_DEFAULT_TASK_SLICE);
++  logServerTaskId = osapiTaskCreate("LOG",
++                                    (void *)logTask,
++                                    L7_NULL,
++                                    L7_NULL,
++                                    L7_DEFAULT_STACK_SIZE,
++                                    L7_DEFAULT_TASK_PRIORITY,
++                                    L7_DEFAULT_TASK_SLICE);
+ 
+   if (logServerTaskId == L7_NULL)
+   {
+     logBufferPoolFree();
+     logWritePersistentLogsToConsole();
+     printf("logServerInit %s(%d): unable to create log task!\n",
+Index: src/system_support/base/infrastructure/nim/nim_data.h
+===================================================================
+--- src/system_support/base/infrastructure/nim/nim_data.h	(revision 7768)
++++ src/system_support/base/infrastructure/nim/nim_data.h	(working copy)
+@@ -213,17 +213,17 @@ typedef struct  nimSystemData_s
+   osapiRWLock_t     rwLock;          /* semaphore for syncronizing NIM */
+ 
+   L7_CNFGR_STATE_t  nimPhaseStatus;	  /* present configurator state of NIM */
+ 
+   nimNotifyList_t   *nimNotifyList;		/* an array of the routines registered for events by other components */
+ 
+-  L7_uint32         taskId;           /* the task ID for the nimTask */
++  L7_uint64         taskId;           /* the task ID for the nimTask */
+ 
+-  L7_uint32   		  ifTableLastChange;/* ifTableLastChange */
++  L7_uint32         ifTableLastChange;/* ifTableLastChange */
+ 
+-  L7_uint32   		  ifNumber;         /* Number of External interfaces created */
++  L7_uint32         ifNumber;         /* Number of External interfaces created */
+ 
+   NIM_INTF_MASK_t   linkStateMask;    /* mask of port link up/down */
+  
+   NIM_INTF_MASK_t   forwardStateMask;	/* mask of port forwarding or not */   /* WPJ: Revisit active mask being removed */
+ 
+   nimIntf_t         *nimPorts;				/* An array of internal interfaces that serves as the primary mapping data */ 
+Index: src/system_support/base/infrastructure/nim/nim_debug.c
+===================================================================
+--- src/system_support/base/infrastructure/nim/nim_debug.c	(revision 7768)
++++ src/system_support/base/infrastructure/nim/nim_debug.c	(working copy)
+@@ -514,13 +514,13 @@ void nimDebugCfgPort(nimCfgPort_t *confi
+ 
+     sysapiPrintf("trapState = %s\n",(configPort->cfgInfo.trapState == L7_ENABLE)?"ENABLE":"DISABLED");
+ 
+     sysapiPrintf("MTU = %d\n", configPort->cfgInfo.ipMtu);
+ 
+     sysapiPrintf("Encapsulation type = %d\n", configPort->cfgInfo.encapsType);
+-    sysapiPrintf("Ptr to this nimCfgPort_t = 0x%0.8x\n",(L7_uint32)configPort);
++    sysapiPrintf("Ptr to this nimCfgPort_t = %p\n", configPort);
+ 
+   }
+ }
+ 
+ void nimDebugPortIntIfNum(nimIntf_t *port)
+ {
+@@ -718,13 +718,13 @@ void nimDebugPortIntIfNum(nimIntf_t *por
+       sysapiPrintf("Intf State = L7_INTF_DELETING\n");
+       break;
+       default:
+         sysapiPrintf("Intf State = Unknown\n");
+     }
+ 
+-    sysapiPrintf("Ptr for the nimIntf_t = 0x%0.8x\n",(L7_uint32)port);
++    sysapiPrintf("Ptr for the nimIntf_t = %p\n", port);
+   }
+ 
+ }
+ 
+ void nimDebugPortIntIfShow(L7_uint32 intIfNum)
+ {
+Index: src/system_support/base/infrastructure/nim/nim_trace.c
+===================================================================
+--- src/system_support/base/infrastructure/nim/nim_trace.c	(revision 7768)
++++ src/system_support/base/infrastructure/nim/nim_trace.c	(working copy)
+@@ -182,13 +182,13 @@ void nimTracePortEvent(L7_COMPONENT_IDS_
+                        L7_PORT_EVENTS_t   event,
+                        L7_uint32          intIfNum,
+                        L7_BOOL            start,
+                        NIM_HANDLE_t       handle)
+ {
+   L7_uint32 info;
+-  L7_int32 taskId;
++  L7_uint64 taskId;
+ 
+   /* increments the counter for another event */
+   if (start)
+     nimTraceEventsCtr++;
+ 
+   if ((nimTraceHandle != ~0) &&
+@@ -233,13 +233,13 @@ void nimTracePortEventComp(L7_COMPONENT_
+                            L7_PORT_EVENTS_t   event,
+                            L7_uint32          intIfNum,
+                            L7_BOOL            start,
+                            NIM_HANDLE_t       handle)
+ {
+   L7_uint32 info;
+-  L7_int32 taskId;
++  L7_uint64 taskId;
+ 
+   /* increments the counter for another event */
+   if (start)
+     nimTraceEventsCtr++;
+ 
+   if ((nimTraceHandle != ~0) &&
+Index: src/system_support/base/infrastructure/sim/core/sim_pts.c
+===================================================================
+--- src/system_support/base/infrastructure/sim/core/sim_pts.c	(revision 7768)
++++ src/system_support/base/infrastructure/sim/core/sim_pts.c	(working copy)
+@@ -25,13 +25,13 @@
+ 
+ void *ptsSema;
+ static L7_uint32 periodicTimerServiceHandle = 0;
+ regComps_t *timersList = L7_NULLPTR;
+ REG_USERS_t users[PTS_MAX_USERS];
+ L7_uint32 debugTimerHelp = 0;
+-static L7_uint32 sim_pts_task_id = L7_ERROR;
++static L7_uint64 sim_pts_task_id = L7_ERROR;
+ 
+ L7_RC_t simPts_task();
+ 
+ void debugTimerHelpEnable(L7_uint32 flag)
+ {
+   debugTimerHelp = flag;
+Index: src/system_support/base/infrastructure/sim/core/sim_util.c
+===================================================================
+--- src/system_support/base/infrastructure/sim/core/sim_util.c	(revision 7768)
++++ src/system_support/base/infrastructure/sim/core/sim_util.c	(working copy)
+@@ -68,14 +68,14 @@ extern L7_BOOL        transferInProgress
+ extern L7_BOOL        suspendMgmtAccess;
+ extern void          *transferContext;
+ extern simAddrChangeNotifyList_t simAddrChangeNotifyList[SIM_ADDR_CHANGE_REGISTRATIONS_MAX];
+ 
+ extern void* simImageSemaphore;
+ 
+-L7_int32 L7_transfer_task_id;
+-L7_int32 addrConflictTaskId;
++L7_uint64 L7_transfer_task_id;
++L7_uint64 addrConflictTaskId;
+ 
+ simOperInfo_t     *simOperInfo = NULL;
+ 
+ /* Flag to indicate whether baud rate needs to be overwritten.
+  */
+ static L7_BOOL OverrideBaudRate = L7_FALSE;
+Index: src/system_support/base/infrastructure/timeranges/timerange.c
+===================================================================
+--- src/system_support/base/infrastructure/timeranges/timerange.c	(revision 7768)
++++ src/system_support/base/infrastructure/timeranges/timerange.c	(working copy)
+@@ -2207,14 +2207,14 @@ L7_RC_t timeRangeReadLockTake(osapiRWLoc
+ 
+   rc = osapiReadLockTake(rwlock, L7_WAIT_FOREVER);
+   if (rc != L7_SUCCESS)
+   {
+     l7utilsFilenameStrip(&file);
+     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_TIMERANGES_COMPONENT_ID,
+-            "Read lock take failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
+-            file, line, rc, (L7_uint32)rwlock.handle);
++            "Read lock take failure for file %s:%lu, rc=%u, id=%p\n",
++            file, line, rc, rwlock.handle);
+   }
+   return rc;
+ }
+ 
+ /**************************************************************************
+ * @purpose  Give an Time Range read lock
+@@ -2239,14 +2239,14 @@ L7_RC_t timeRangeReadLockGive(osapiRWLoc
+ 
+   rc = osapiReadLockGive(rwlock);
+   if (rc != L7_SUCCESS)
+   {
+     l7utilsFilenameStrip(&file);
+     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_TIMERANGES_COMPONENT_ID,
+-            "Read lock give failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
+-            file, line, rc, (L7_uint32)rwlock.handle);
++            "Read lock give failure for file %s:%lu, rc=%u, id=%p\n",
++            file, line, rc, rwlock.handle);
+   }
+   return rc;
+ }
+ 
+ /**************************************************************************
+ * @purpose  Take an Time Range write lock
+@@ -2275,14 +2275,14 @@ L7_RC_t timeRangeWriteLockTake(osapiRWLo
+ 
+   rc = osapiWriteLockTake(rwlock, L7_WAIT_FOREVER);
+   if (rc != L7_SUCCESS)
+   {
+     l7utilsFilenameStrip(&file);
+     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_TIMERANGES_COMPONENT_ID,
+-            "Write lock take failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
+-            file, line, rc, (L7_uint32)rwlock.handle);
++            "Write lock take failure for file %s:%lu, rc=%u, id=%p\n",
++            file, line, rc, rwlock.handle);
+   }
+   return rc;
+ }
+ 
+ /**************************************************************************
+ * @purpose  Give an Time Range write lock
+@@ -2307,14 +2307,14 @@ L7_RC_t timeRangeWriteLockGive(osapiRWLo
+ 
+   rc = osapiWriteLockGive(rwlock);
+   if (rc != L7_SUCCESS)
+   {
+     l7utilsFilenameStrip(&file);
+     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_TIMERANGES_COMPONENT_ID,
+-            "Write lock give failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
+-            file, line, rc, (L7_uint32)rwlock.handle);
++            "Write lock give failure for file %s:%lu, rc=%u, id=%p\n",
++            file, line, rc, rwlock.handle);
+   }
+   return rc;
+ }
+ 
+ /*********************************************************************
+ *
+Index: src/system_support/base/infrastructure/timeranges/timerange_cnfgr.c
+===================================================================
+--- src/system_support/base/infrastructure/timeranges/timerange_cnfgr.c	(revision 7768)
++++ src/system_support/base/infrastructure/timeranges/timerange_cnfgr.c	(working copy)
+@@ -37,13 +37,13 @@ extern timeRangeCfgFileData_t  *timeRang
+ extern L7_uint32               timeRange_curr_entries_g;    /* total current time range entries */
+ extern avlTree_t               *pTimeRangeTree;
+ 
+ osapiRWLock_t                  timeRangeRwLock;
+ timeRangeCnfgrState_t          timeRangeCnfgrState   = TIMERANGE_PHASE_INIT_0;
+ void                           *timeRangeProcQueue   = L7_NULLPTR;
+-L7_int32                       timeRangeProcTaskId   = 0;
++L7_uint64                      timeRangeProcTaskId   = 0;
+ L7_uint32                      timeRangeBufferPoolId = 0;
+ 
+ /*********************************************************************
+ *
+ * @purpose  CNFGR System Initialization for Time Range component
+ *
+Index: src/system_support/base/infrastructure/timeranges/timerange_control.c
+===================================================================
+--- src/system_support/base/infrastructure/timeranges/timerange_control.c	(revision 7768)
++++ src/system_support/base/infrastructure/timeranges/timerange_control.c	(working copy)
+@@ -25,13 +25,13 @@
+ #include "timerange.h"
+ #include "timerange_exports.h"
+ #include "timerange_api.h"
+ #include "timerange_debug.h"
+ #include "timerange_cnfgr.h"
+ 
+-extern L7_int32             timeRangeProcTaskId;
++extern L7_uint64            timeRangeProcTaskId;
+ extern void                 *timeRangeProcQueue;
+ extern avlTree_t            *pTimeRangeTree;
+ extern osapiRWLock_t        timeRangeRwLock;
+ 
+ const L7_uchar8 *timeRangeEventNames[] = {
+ "",
+@@ -151,13 +151,13 @@ L7_RC_t timeRangeEventNotify(L7_uchar8*
+ *
+ * @returns    L7_SUCCESS or L7_FAILURE
+ *
+ * @end
+ *
+ *************************************************************************/
+-L7_RC_t timeRangeTimerExpired(L7_uint32 arg1, L7_uint32 arg2)
++L7_RC_t timeRangeTimerExpired(L7_uint64 arg1, L7_uint64 arg2)
+ {
+   L7_RC_t        rc = L7_SUCCESS;
+   timeRangeMsg_t msg;
+   L7_uint32      currentTime;
+   struct tm      currentLocalTime;
+ 
+Index: src/system_support/base/infrastructure/timeranges/timerange_control.h
+===================================================================
+--- src/system_support/base/infrastructure/timeranges/timerange_control.h	(revision 7768)
++++ src/system_support/base/infrastructure/timeranges/timerange_control.h	(working copy)
+@@ -45,13 +45,13 @@ L7_RC_t timeRangeEventNotify(L7_uchar8*
+ *
+ * @returns    L7_SUCCESS or L7_FAILURE
+ *
+ * @end
+ *
+ *************************************************************************/
+-L7_RC_t timeRangeTimerExpired(L7_uint32 arg1, L7_uint32 arg2);
++L7_RC_t timeRangeTimerExpired(L7_uint64 arg1, L7_uint64 arg2);
+ 
+ /*********************************************************************
+ * @purpose  Start the time range timer.
+ *
+ * @param    void
+ *
+Index: src/system_support/base/l7util/async_event/async_event.c
+===================================================================
+--- src/system_support/base/l7util/async_event/async_event.c	(revision 7768)
++++ src/system_support/base/l7util/async_event/async_event.c	(working copy)
+@@ -60,13 +60,13 @@ void asyncEventSyncTimerExpire(ASYNC_EVE
+ 
+   if (handlerId == L7_NULL) 
+   {
+      return;
+   }
+ 
+-  pHandlerEntry = (asyncEventHandlerDescr_t *)handlerId;
++  pHandlerEntry = (asyncEventHandlerDescr_t *) UINT_TO_PTR(handlerId);
+ 
+   osapiSemaTake(pHandlerEntry->correlatorLock, L7_WAIT_FOREVER);
+   pCorrelator = asyncEventCorrelatorFind(pHandlerEntry, seqno);
+   if (pCorrelator == NULL)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_ERROR, pHandlerEntry->handler.componentId,
+@@ -102,14 +102,14 @@ void asyncEventSyncTimerExpire(ASYNC_EVE
+ 
+ 
+   /* Fill in the completion data */
+   memset(&(pCorrelator->completeData), 0, sizeof(ASYNC_EVENT_COMPLETE_INFO_t) );
+   pCorrelator->completeData.handlerId             = handlerId;
+   pCorrelator->completeData.correlator            = correlator;
+-  pCorrelator->completeData.async_rc.rc            = L7_FAILURE;
+-  pCorrelator->completeData.async_rc.reason        = ASYNC_EVENT_REASON_RC_TIMEOUT;
++  pCorrelator->completeData.async_rc.rc           = L7_FAILURE;
++  pCorrelator->completeData.async_rc.reason       = ASYNC_EVENT_REASON_RC_TIMEOUT;
+          
+   pCorrelator->timerInUse = L7_FALSE;
+ 
+   osapiSemaGive(pHandlerEntry->correlatorLock);
+ 
+   /* Perform the notification to the event owner */
+Index: src/system_support/base/l7util/async_event/async_event_api.c
+===================================================================
+--- src/system_support/base/l7util/async_event/async_event_api.c	(revision 7768)
++++ src/system_support/base/l7util/async_event/async_event_api.c	(working copy)
+@@ -172,13 +172,13 @@ L7_RC_t asyncEventHandlerCreate(asyncEve
+       L7_LOGF(L7_LOG_SEVERITY_ALERT, L7_SIM_COMPONENT_ID,
+                 "Failed to create event sequence number to correlator map.");
+       osapiFree(L7_SIM_COMPONENT_ID, pAsyncHandlerDescr[i].pCorrelators);
+       return L7_FAILURE;
+     }
+ 
+-    *handlerId = (ASYNC_EVENT_HANDLER_t)&(pAsyncHandlerDescr[i]) ;
++    *handlerId = (ASYNC_EVENT_HANDLER_t) PTR_TO_UINT64(&(pAsyncHandlerDescr[i]));
+ 
+     return L7_SUCCESS;
+ }
+ 
+ 
+ /*********************************************************************
+@@ -203,13 +203,13 @@ L7_RC_t asyncEventHandlerDelete(ASYNC_EV
+ 
+    if (handlerId == L7_NULL)
+    {
+       return L7_FAILURE;
+    }
+ 
+-   pHandlerEntry = (asyncEventHandlerDescr_t *)handlerId;
++   pHandlerEntry = (asyncEventHandlerDescr_t *) UINT_TO_PTR(handlerId);
+ 
+    /* Delete sequence number to correlator index map */
+    if (asyncEventCorrelatorMapDelete(pHandlerEntry) != L7_SUCCESS)
+    {
+      L7_LOGF(L7_LOG_SEVERITY_ALERT, pHandlerEntry->handler.componentId,
+               "Failed to delete event sequence number to correlator map.");
+@@ -274,13 +274,13 @@ L7_RC_t asyncEventSyncStart(ASYNC_EVENT_
+ 
+   if (handlerId == L7_NULL)
+   {
+      return L7_FAILURE;
+   }
+ 
+-  pHandlerEntry = (asyncEventHandlerDescr_t *)handlerId;
++  pHandlerEntry = (asyncEventHandlerDescr_t *) UINT_TO_PTR(handlerId);
+ 
+   (void) osapiSemaTake(pHandlerEntry->correlatorLock, L7_WAIT_FOREVER);
+   pCorrelator = asyncEventCorrelatorFind(pHandlerEntry, seqno);
+   if (pCorrelator == NULL)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_ERROR, pHandlerEntry->handler.componentId,
+@@ -370,13 +370,13 @@ void asyncEventSyncFinish(ASYNC_EVENT_HA
+   L7_uint32 seqno = (L7_uint32) correlator;
+   asyncEventHandlerDescr_t *pHandlerEntry;
+   asyncCorrelatorData_t *pCorrelator;
+ 
+   rc = L7_SUCCESS;
+ 
+-  pHandlerEntry = (asyncEventHandlerDescr_t *)handlerId;
++  pHandlerEntry = (asyncEventHandlerDescr_t *) UINT_TO_PTR(handlerId);
+   if (pHandlerEntry == L7_NULLPTR)
+   {
+      return;
+   }
+   (void)osapiSemaTake(pHandlerEntry->correlatorLock, L7_WAIT_FOREVER);
+   pCorrelator = asyncEventCorrelatorFind(pHandlerEntry, seqno);
+@@ -435,13 +435,13 @@ L7_RC_t asyncEventCompleteTally(ASYNC_EV
+ 
+   if ((rc = cnfgrApiComponentNameGet(pComplete->componentId, name)) != L7_SUCCESS)
+   {
+       osapiStrncpySafe(name, "Unknown", 8);
+   }
+ 
+-  pHandlerEntry = (asyncEventHandlerDescr_t *)pComplete->handlerId;
++  pHandlerEntry = (asyncEventHandlerDescr_t *) UINT_TO_PTR(pComplete->handlerId);
+   if (pHandlerEntry == NULL)
+   {
+     return L7_ERROR;
+   }
+ 
+   (void)osapiSemaTake(pHandlerEntry->correlatorLock, L7_WAIT_FOREVER);
+@@ -574,13 +574,13 @@ L7_RC_t asyncEventCorrelatorCreate(ASYNC
+   L7_uint32 seqno;
+   L7_RC_t rc;
+ 
+   rc = L7_SUCCESS;
+ 
+ 
+-  pHandlerEntry =  (asyncEventHandlerDescr_t *)handlerId;
++  pHandlerEntry =  (asyncEventHandlerDescr_t *) UINT_TO_PTR(handlerId);
+ 
+   if ((pHandlerEntry == L7_NULLPTR) || (pCorrelator == L7_NULLPTR))
+   {
+     L7_LOGF(L7_LOG_SEVERITY_ERROR, pHandlerEntry->handler.componentId,
+               "Bad parameters to %s.", __FUNCTION__);
+     return L7_FAILURE;
+@@ -637,13 +637,13 @@ L7_RC_t asyncEventCorrelatorDataSet(ASYN
+                                     ASYNC_CORRELATOR_t correlator,
+                                     void *pData)
+ {
+   asyncEventHandlerDescr_t *pHandlerEntry;
+   asyncCorrelatorData_t *pCorrelator;
+ 
+-  pHandlerEntry = (asyncEventHandlerDescr_t *)handlerId;
++  pHandlerEntry = (asyncEventHandlerDescr_t *) UINT_TO_PTR(handlerId);
+   if (pHandlerEntry == L7_NULLPTR)
+   {
+      return L7_FAILURE;
+   }
+   (void)osapiSemaTake(pHandlerEntry->correlatorLock ,L7_WAIT_FOREVER);
+   pCorrelator = asyncEventCorrelatorFind(pHandlerEntry, correlator);
+@@ -684,13 +684,13 @@ L7_RC_t asyncEventCorrelatorDataGet(ASYN
+   asyncEventHandlerDescr_t *pHandlerEntry;
+   asyncCorrelatorData_t *pCorrelator;
+ 
+   rc = L7_SUCCESS;
+ 
+ 
+-  pHandlerEntry = (asyncEventHandlerDescr_t *)handlerId;
++  pHandlerEntry = (asyncEventHandlerDescr_t *) UINT_TO_PTR(handlerId);
+   if (pHandlerEntry == L7_NULLPTR)
+   {
+      return L7_FAILURE;
+   }
+   (void)osapiSemaTake(pHandlerEntry->correlatorLock ,L7_WAIT_FOREVER);
+   pCorrelator = asyncEventCorrelatorFind(pHandlerEntry, correlator);
+Index: src/system_support/base/l7util/avl/avl_util.c
+===================================================================
+--- src/system_support/base/l7util/avl/avl_util.c	(revision 7768)
++++ src/system_support/base/l7util/avl/avl_util.c	(working copy)
+@@ -77,13 +77,13 @@ void* avlNewNewDataNode(avlTree_t *avl_t
+ 
+   offset_next=avl_tree->offset_next;
+   ptr=avl_tree->currentDataHeap;
+   if (ptr==NULL)
+     return NULL;
+ 
+-  avl_tree->currentDataHeap=(void *)(*((L7_uint32*)((char*)ptr+offset_next)));
++  avl_tree->currentDataHeap=(void *) UINT_TO_PTR(PTR_GET_VALUE(((char*)ptr+offset_next)));
+   return  ptr;
+ }
+ 
+ /*********************************************************************
+ * @purpose  gives memory data node back to data heap and updates the current  
+ *           data heap pointer in the avl tree structure  
+@@ -100,13 +100,13 @@ void* avlNewNewDataNode(avlTree_t *avl_t
+ void avlNewFreeDataNode(avlTree_t * avl_tree, void *ptr)
+ {
+   L7_uint32 offset_next;
+ 
+   offset_next=avl_tree->offset_next;
+   bzero((L7_uchar8 *)ptr,avl_tree->lengthData);
+-  *((L7_uint32*)((char*)ptr+offset_next))=(L7_uint32)(avl_tree->currentDataHeap);
++  PTR_SET_VALUE(((char*)ptr+offset_next)) = PTR_TO_UINT64(avl_tree->currentDataHeap);
+   avl_tree->currentDataHeap=ptr;
+ 
+ }
+ 
+ /*********************************************************************
+ * @purpose   gives memory of node back to table heap and updates the current  
+Index: src/system_support/base/l7util/avl/l7_avl.c
+===================================================================
+--- src/system_support/base/l7util/avl/l7_avl.c	(revision 7768)
++++ src/system_support/base/l7util/avl/l7_avl.c	(working copy)
+@@ -193,22 +193,22 @@ void avlPurgeAvlTree (avlTree_t *avl_tre
+ 
+   for (i = 0; i < max_entries; i++)
+   {
+     treeHeap[i].link[L7_LEFT] = L7_NULL;
+     treeHeap[i].link[L7_RIGHT] = &treeHeap[i+1];
+ 
+-    *((L7_uint32*)((char*)dataHeap + offset_next)) = (L7_uint32)((char*)dataHeap + lengthData);
++    PTR_SET_VALUE(((char*)dataHeap + offset_next)) = PTR_TO_UINT64((char*)dataHeap + lengthData);
+     dataHeap = (char*)dataHeap + lengthData;
+   }
+   
+   treeHeap = avl_tree->initialTableHeap;
+   dataHeap = avl_tree->initialDataHeap;
+   if (i > 0)  /* Added this check to make sure there is no array bound violation */
+   {
+   treeHeap[i-1].link[L7_RIGHT] = L7_NULL;
+-  *(L7_uint32 *)((char*)dataHeap + ((i-1)*lengthData) + offset_next) = L7_NULL;
++  PTR_SET_VALUE((char*)dataHeap + ((i-1)*lengthData) + offset_next) = L7_NULL;
+ }
+ }
+ 
+ /*********************************************************************
+ * @purpose  Inserts ITEM into TREE.  Returns NULL if the item was inserted,
+ *           otherwise a pointer to the duplicate item 
+Index: src/system_support/base/l7util/buff/buff.c
+===================================================================
+--- src/system_support/base/l7util/buff/buff.c	(revision 7768)
++++ src/system_support/base/l7util/buff/buff.c	(working copy)
+@@ -100,12 +100,14 @@ L7_uint32 bufferPoolInit (L7_uint32 num_
+                          &buff_count);
+   if (rc != L7_SUCCESS)
+   {
+     L7_LOG_ERROR(rc);
+   }
+ 
++  PT_LOG_TRACE(LOG_CTX_STARTUP,"buff_count=%u num_buffers=%u", buff_count, num_buffers);
++
+   /* Since we use bufferPoolSizeCompute function to determine pool size, the
+   ** number of buffers in the pool should be equal to the number of buffers we want.
+   */
+   if (buff_count != num_buffers)
+   {
+     L7_LOG_ERROR(buff_count);
+@@ -154,13 +156,13 @@ L7_RC_t bufferPoolCreate (void * buffer_
+   L7_uint32 tot_buf_size; /* Buffer size plus overhead */
+   L7_uint32 pool_id;
+   bufferPoolType *pool;
+   L7_uint32 i;
+   L7_uchar8 *user_data; /* Start of data buffer area */
+   bufferDescrType *descr;
+-  L7_uint32 pool_addr;
++  L7_uint64 pool_addr;
+ 
+   if (BufferPoolLockSem == L7_NULL)
+   {
+     if ((BufferPoolLockSem = osapiSemaMCreate(OSAPI_SEM_Q_FIFO)) == NULL)
+     {
+       L7_LOG_ERROR(L7_ERROR);
+@@ -177,37 +179,54 @@ L7_RC_t bufferPoolCreate (void * buffer_
+     return L7_FAILURE;
+   }
+ 
+   /* Make sure that buffer pool address is alligned on a four-byte
+   ** boundary.
+   */
+-  pool_addr = (L7_uint32) buffer_pool_addr;
++  pool_addr = PTR_TO_UINT64(buffer_pool_addr);
++
++#ifdef PTRS_ARE_64BITS
++  if (pool_addr != (pool_addr & 0xFFFFFFFFFFFFFFF8))
++  {
++    return  L7_ERROR;
++  }
++
++  /* Make sure that buffer size is a multiple of four.
++  ** Round up the buffer size if necessary.
++  */
++  if (buffer_size != (buffer_size & 0xFFFFFFFFFFFFFFF8))
++  {
++    buffer_size += 8;
++    buffer_size &= 0xFFFFFFFFFFFFFFFC;
++  }
++#else
+   if (pool_addr != (pool_addr & 0xFFFFFFFC))
+   {
+     return  L7_ERROR;
+   }
+ 
+   /* Make sure that buffer size is a multiple of four.
+   ** Round up the buffer size if necessary.
+   */
+-  if (buffer_size != (buffer_size & 0xFFFFFFC))
++  if (buffer_size != (buffer_size & 0xFFFFFFFC))
+   {
+     buffer_size += 4;
+     buffer_size &= 0xFFFFFFFC;
+   }
++#endif
+ 
+   /* Zero out the buffer storage area.
+   */
+   memset (buffer_pool_addr, 0, buffer_pool_size);
+ 
+   /* Compute how much memory is required for each buffer. The overhead
+   ** includes buffer descriptor and a 4-byte pointer in the free list.
+   */
+   tot_buf_size = buffer_size +
+                  sizeof (bufferDescrType) +
+-                 4;
++                 WORD_SIZE;
+ 
+   /* Determine how many buffer we can allocate.
+   */
+   num_bufs = buffer_pool_size / tot_buf_size;
+ 
+   /* If we can't allocate any buffers then return an error.
+@@ -249,16 +268,16 @@ L7_RC_t bufferPoolCreate (void * buffer_
+ 
+   /* <<<<<<<<<<< End Critical Section
+   */
+ 
+   /* Set up the buffer pool.
+   */
+-  pool->addr = (L7_uint32) buffer_pool_addr;
++  pool->addr = PTR_TO_UINT64(buffer_pool_addr);
+   pool->buf_size = buffer_size;
+   pool->total = num_bufs;
+-  strncpy(pool->descr,description,L7_MAX_BUFFER_DESCR_SIZE);
++  strncpy((char *) pool->descr,description,L7_MAX_BUFFER_DESCR_SIZE);
+   pool->descr[L7_MAX_BUFFER_DESCR_SIZE-1] = 0;
+ 
+   pool->free_count = num_bufs;
+ 
+   pool->num_allocs = 0;
+   pool->no_buffers_count = 0;
+@@ -304,19 +323,19 @@ L7_RC_t bufferPoolCreate (void * buffer_
+ * @notes   for the buffer pool. It is preferred over bufferPoolDelete().
+ *
+ * @end
+ *********************************************************************/
+ L7_RC_t bufferPoolTerminate (L7_uint32  buffer_pool_id)
+ {
+-  L7_uint32 buffer_pool_addr;
++  L7_uint64 buffer_pool_addr;
+   L7_uint32 pool_id;
+ 
+   pool_id = buffer_pool_id - L7_LOW_BUFFER_POOL_ID;
+   buffer_pool_addr = BufferPoolList[pool_id].addr;
+ 
+-  if ((void *)buffer_pool_addr ==  L7_NULLPTR)
++  if (UINT_TO_PTR(buffer_pool_addr) ==  L7_NULLPTR)
+   {
+       L7_LOG_ERROR(1);
+       return L7_FAILURE;
+   }
+ 
+   if (bufferPoolDelete(buffer_pool_id) != L7_SUCCESS)
+@@ -326,13 +345,13 @@ L7_RC_t bufferPoolTerminate (L7_uint32
+       return L7_FAILURE;
+   }
+ 
+ 
+   /* Deallocate memory for the buffer pool.
+   */
+-  osapiFree(L7_SIM_COMPONENT_ID, (void *)buffer_pool_addr);
++  osapiFree(L7_SIM_COMPONENT_ID, (void *) UINT_TO_PTR(buffer_pool_addr));
+ 
+   return L7_SUCCESS;
+ }
+ 
+ 
+ /*********************************************************************
+@@ -481,13 +500,13 @@ L7_RC_t bufferPoolAllocate (L7_uint32 bu
+   */
+ 
+   /* Make sure that the buffer is not corrputed.
+   */
+   if (descr->in_use)
+   {
+-    L7_LOG_ERROR((L7_uint32) descr);
++    L7_LOG_ERROR(PTR_TO_UINT32(descr));
+   }
+ 
+ 
+   descr->in_use = 1; /* Mark this buffer "In Use" */
+ 
+   *buffer_addr = &descr->data[0];
+@@ -550,18 +569,18 @@ void bufferPoolFree (L7_uint32 buffer_po
+ 
+   /* Verify that the buffer belongs to this pool and is not
+   ** corrupted.
+   */
+   if (descr->in_use == 0)
+   {
+-    L7_LOG_ERROR((L7_uint32) descr);
++    L7_LOG_ERROR(PTR_TO_UINT32(descr));
+   }
+ 
+   if (descr->id != (L7_ushort16) buffer_pool_id)
+   {
+-    L7_LOG_ERROR((L7_uint32) descr);
++    L7_LOG_ERROR(PTR_TO_UINT32(descr));
+   }
+ 
+ 
+   /* Looks like the buffer pool and the buffer are OK.
+   ** Return the buffer into the pool.
+   */
+@@ -612,13 +631,13 @@ L7_RC_t bufferPoolIdGet (L7_uchar8 * buf
+ 
+   /* Verify that the buffer belongs to this pool and is not
+   ** corrupted.
+   */
+   if (descr->in_use == 0)
+   {
+-    L7_LOG_ERROR((L7_uint32) descr);
++    L7_LOG_ERROR(PTR_TO_UINT32(descr));
+   }
+ 
+ 
+   *buffer_pool_id = (L7_uint32) descr->id;
+ 
+   return L7_SUCCESS;
+@@ -642,26 +661,36 @@ L7_RC_t bufferPoolIdGet (L7_uchar8 * buf
+ *********************************************************************/
+ L7_uint32 bufferPoolSizeCompute (L7_uint32 num_buffers,
+                                  L7_uint32 buffer_size)
+ {
+   L7_uint32 mem_size, tot_buf_size;
+ 
++#ifdef PTRS_ARE_64BITS
++  /* If buffer size is not a multiple of four then round it up.
++  */
++  if ((buffer_size & 0xFFFFFFFFFFFFFFF8) != buffer_size)
++  {
++    buffer_size += 8;
++    buffer_size &= 0xFFFFFFFFFFFFFFF8;
++  }
++#else
+   /* If buffer size is not a multiple of four then round it up.
+   */
+   if ((buffer_size & 0xFFFFFFFC) != buffer_size)
+   {
+     buffer_size += 4;
+     buffer_size &= 0xFFFFFFFC;
+   }
++#endif
+ 
+   /* Compute how much memory is required for each buffer. The overhead
+   ** includes buffer descriptor and a 4-byte pointer in the free list.
+   */
+   tot_buf_size = buffer_size +
+                  sizeof (bufferDescrType) +
+-                 4;
++                 WORD_SIZE;
+ 
+   mem_size = tot_buf_size * num_buffers;
+ 
+   return mem_size;
+ }
+ 
+@@ -700,13 +729,13 @@ void bufferPoolShow (L7_uint32 buffer_po
+       {
+         continue;
+       }
+ 
+       pool = &BufferPoolList[i];
+       printf("------\n");
+-      printf("Pool ID: %d, Pool Address: 0x%x, Pool Size: %d, Description: %s \n",
++      printf("Pool ID: %d, Pool Address: 0x%llx, Pool Size: %d, Description: %s \n",
+              pool->id,
+              pool->addr,
+              pool->pool_size,
+              pool->descr);
+ 
+       printf("Tot. Buffs: %d, Free Buffs: %d, Buff. Size: %d, Num Allocs: %d, Num Empty: %d High watermark: %d\n",
+@@ -796,35 +825,35 @@ Temporary test functions.
+ ** Delete a buffer pool.
+ */
+ void bpool1 (void)
+ {
+   L7_RC_t rc;
+   char    *pool_area;
+-  int     pool_size = 1000;
+-  int     pool_id;
+-  int     buff_count;
+-  L7_uchar8    *buffer_addr;
++  L7_uint32 pool_size = 1000;
++  L7_uint32 pool_id;
++  L7_uint32 buff_count;
++  L7_uchar8 *buffer_addr;
+ 
+   pool_area = malloc (pool_size);
+ 
+   rc = bufferPoolCreate (pool_area,
+                          pool_size,
+                          128,     /* Buffer Size */
+                          "First Pool",
+                          &pool_id,
+                          &buff_count);
+ 
+ 
+-  printf("bpool1: Create - rc = %d, id = %d, count = %d\n",
++  printf("bpool1: Create - rc = %d, id = %u, count = %u\n",
+          rc, pool_id, buff_count);
+ 
+   rc = bufferPoolAllocate (pool_id,  &buffer_addr);
+ 
+ 
+-  printf("bpool1: Allocate - rc = %d, addr = 0x%x\n",
+-         rc, (L7_uint32) buffer_addr);
++  printf("bpool1: Allocate - rc = %d, addr = %p\n",
++         rc, buffer_addr);
+ 
+   bufferPoolShow (0);
+ 
+   bufferPoolFree (pool_id, buffer_addr);
+ 
+   rc = bufferPoolDelete (pool_id);
+@@ -842,16 +871,16 @@ void bpool1 (void)
+ ** Delete a buffer pool.
+ */
+ void bpool2 (void)
+ {
+   L7_RC_t rc;
+   char    *pool_area;
+-  int     pool_size;
+-  int     pool_id;
+-  int     buff_count;
+-  L7_uchar8    *buffer_addr;
++  L7_uint32 pool_size;
++  L7_uint32 pool_id;
++  L7_uint32 buff_count;
++  L7_uchar8 *buffer_addr;
+ 
+   pool_size = bufferPoolSizeCompute (7, 127);
+ 
+   pool_area = malloc (pool_size);
+ 
+   rc = bufferPoolCreate (pool_area,
+@@ -859,22 +888,22 @@ void bpool2 (void)
+                          127,     /* Buffer Size */
+                          "Second Pool",
+                          &pool_id,
+                          &buff_count);
+ 
+ 
+-  printf("bpool2: Create - rc = %d, id = %d, count = %d\n",
++  printf("bpool2: Create - rc = %d, id = %u, count = %u\n",
+          rc, pool_id, buff_count);
+ 
+ 
+ 
+   do
+   {
+     rc = bufferPoolAllocate (pool_id,  &buffer_addr);
+-    printf("bpool2: Allocate - rc = %d, addr = 0x%x\n",
+-           rc, (L7_uint32) buffer_addr);
++    printf("bpool2: Allocate - rc = %d, addr = %p\n",
++           rc, buffer_addr);
+ 
+     bufferPoolShow (0);
+ 
+   } while (rc == L7_SUCCESS);
+ 
+ 
+@@ -894,14 +923,14 @@ void bpool2 (void)
+ ** Create a buffer pool.
+ */
+ void bpool3 (void)
+ {
+   L7_RC_t rc;
+   char    *pool_area[L7_MAX_BUFFER_POOLS + 1];
+-  int     pool_size;
+-  int     buff_count;
++  L7_uint32 pool_size;
++  L7_uint32 buff_count;
+   L7_uint32 pool_id[L7_MAX_BUFFER_POOLS + 1];
+   int i;
+ 
+   pool_size = bufferPoolSizeCompute (7, 127);
+ 
+   /* Create MAX pools.
+@@ -988,29 +1017,29 @@ void bpool3 (void)
+ ** Delete a buffer pool.
+ */
+ void bpool4 (void)
+ {
+   L7_RC_t rc;
+   char    *pool_area;
+-  int     pool_size = 1000;
+-  int     pool_id;
+-  int     buff_count;
+-  L7_uchar8    *buffer_addr[10];
++  L7_uint32 pool_size = 1000;
++  L7_uint32 pool_id;
++  L7_uint32 buff_count;
++  L7_uchar8 *buffer_addr[10];
+   int i, j;
+ 
+   pool_area = malloc (pool_size);
+ 
+   rc = bufferPoolCreate (pool_area,
+                          pool_size,
+                          128,     /* Buffer Size */
+                          "Fourth Pool",
+                          &pool_id,
+                          &buff_count);
+ 
+ 
+-  printf("bpool4: Create - rc = %d, id = %d, count = %d\n",
++  printf("bpool4: Create - rc = %d, id = %u, count = %u\n",
+          rc, pool_id, buff_count);
+ 
+   for (j = 0; j < 2; j++)
+   {
+     printf("\nbpool4: >>>>>>>>> Iteration %d\n", j);
+ 
+@@ -1018,14 +1047,14 @@ void bpool4 (void)
+     */
+     for (i = 0; i < buff_count; i++)
+     {
+       rc = bufferPoolAllocate (pool_id,  &buffer_addr[i]);
+ 
+ 
+-      printf("bpool4: Allocate - rc = %d, addr = 0x%x\n",
+-             rc, (L7_uint32) buffer_addr[i]);
++      printf("bpool4: Allocate - rc = %d, addr = %p\n",
++             rc, buffer_addr[i]);
+ 
+       bufferPoolShow (0);
+ 
+       memset (buffer_addr[i], (char) i, 128);
+     }
+ 
+@@ -1057,16 +1086,16 @@ void bpool4 (void)
+ ** Delete a buffer pool.
+ */
+ void bpool5 (void)
+ {
+   L7_RC_t rc;
+   char    *pool_area;
+-  int     pool_size;
+-  int     pool_id;
+-  int     buff_count;
+-  L7_uchar8    *buffer_addr;
++  L7_uint32 pool_size;
++  L7_uint32 pool_id;
++  L7_uint32 buff_count;
++  L7_uchar8 *buffer_addr;
+ 
+   pool_size = bufferPoolSizeCompute (7, 127);
+ 
+   pool_area = malloc (pool_size);
+ 
+   rc = bufferPoolCreate (pool_area,
+@@ -1074,13 +1103,13 @@ void bpool5 (void)
+                          127,     /* Buffer Size */
+                          "Second Pool",
+                          &pool_id,
+                          &buff_count);
+ 
+ 
+-  printf("bpool5: Create - rc = %d, id = %d, count = %d\n",
++  printf("bpool5: Create - rc = %d, id = %u, count = %u\n",
+          rc, pool_id, buff_count);
+ 
+   bufferPoolShow (0);
+ 
+   rc = bufferPoolSizeSet (pool_id, (buff_count - 2));
+ 
+@@ -1088,14 +1117,14 @@ void bpool5 (void)
+          rc);
+ 
+   bufferPoolShow (0);
+   do
+   {
+     rc = bufferPoolAllocate (pool_id,  &buffer_addr);
+-    printf("bpool5: Allocate - rc = %d, addr = 0x%x\n",
+-           rc, (L7_uint32) buffer_addr);
++    printf("bpool5: Allocate - rc = %d, addr = %p\n",
++           rc, buffer_addr);
+ 
+     bufferPoolShow (0);
+ 
+   } while (rc == L7_SUCCESS);
+ 
+ 
+Index: src/system_support/base/l7util/buff/buff.h
+===================================================================
+--- src/system_support/base/l7util/buff/buff.h	(revision 7768)
++++ src/system_support/base/l7util/buff/buff.h	(working copy)
+@@ -48,13 +48,13 @@ typedef struct
+ 
+ /* This structure is maintained for every buffer pool.
+ */
+ typedef struct 
+ {
+   L7_uint32 id;     /* Buffer pool ID */
+-  L7_uint32 addr;   /* Buffer pool address */
++  L7_uint64 addr;   /* Buffer pool address */
+   L7_uint32 pool_size; /* Buffer pool size */
+   L7_uint32 buf_size;  /* buffer size */
+   L7_uint32 total;    /* Total number of buffers in the pool */
+   L7_uchar8 descr [L7_MAX_BUFFER_DESCR_SIZE]; /* Buffer pool description */
+ 
+   L7_uint32 free_count; /* Number of free buffers in the pool */
+Index: src/system_support/base/l7util/hl/l7_hl.c
+===================================================================
+--- src/system_support/base/l7util/hl/l7_hl.c	(revision 7768)
++++ src/system_support/base/l7util/hl/l7_hl.c	(working copy)
+@@ -898,15 +898,15 @@ void hlDebugShow(void *objId)
+     printf("\nFree entry on delete");
+   if (p_H->valContainer)
+     printf("\nUse entry containers for next, prev pointers");
+   printf("\nKey length (bytes):  %u", p_H->keyLen);
+   printf("\nKey offset (bytes):  %u", p_H->keyOffset);
+   printf("\nGet index:  %u", p_H->getIndex);
+-  printf("\nGet value:  %#x", (L7_uint32) p_H->getValue);
+-  printf("\nCurrent value:  %#x", (L7_uint32) p_H->curValue);
+-  printf("\nSemaphore:  %#x", (L7_uint32) p_H->semId);
++  printf("\nGet value:  %p", p_H->getValue);
++  printf("\nCurrent value:  %p", p_H->curValue);
++  printf("\nSemaphore:  %p", p_H->semId);
+   printf("\nBuffer pool ID:  %#x", p_H->bufferPoolId);
+ 
+   printf("\nMemory use:");
+   printf("\n  Hash list:  %u bytes", (unsigned int) sizeof(l7_hl_t));
+   printf("\n  Hash bucket array:  %u bytes", (unsigned int) (sizeof(hl_value_t **) * p_H->numBuckets));
+   if (p_H->valContainer)
+Index: src/system_support/base/l7util/l7apptimer/l7apptimer.c
+===================================================================
+--- src/system_support/base/l7util/l7apptimer/l7apptimer.c	(revision 7768)
++++ src/system_support/base/l7util/l7apptimer/l7apptimer.c	(working copy)
+@@ -123,20 +123,20 @@ L7_RC_t appTimerDestroy(L7_sll_member_t
+ *           processing the tick, we'll throw the call away.
+ *
+ * @end
+ *
+ *********************************************************************/
+ static
+-void appTimerTick(L7_uint32 param1, L7_uint32 param2)
++void appTimerTick(L7_uint64 param1, L7_uint64 param2)
+ {
+   
+   appTmrCtrlBlk_t          *pCtrlBlk;
+   L7_app_tmr_dispatcher_fn pFunc;
+ 
+   /* Some basic sanity checks */
+-  pCtrlBlk = (appTmrCtrlBlk_t *)param1;
++  pCtrlBlk = (appTmrCtrlBlk_t *) UINT_TO_PTR(param1);
+   if(pCtrlBlk == L7_NULLPTR)
+     return;
+   if(pCtrlBlk->pSelf!= pCtrlBlk)
+     return;
+ 
+   /* Retrieve the Dispatch callback function */
+@@ -145,13 +145,13 @@ void appTimerTick(L7_uint32 param1, L7_u
+   /* Make sure that the control block is still valid;
+      indirectly verifying the authenticity of pFunc */
+   if(pCtrlBlk->pSelf != pCtrlBlk)
+     return;
+ 
+   /* Invoke the dispatcher function */
+-  pFunc((L7_APP_TMR_CTRL_BLK_t)pCtrlBlk, (void *)param2);
++  pFunc((L7_APP_TMR_CTRL_BLK_t)pCtrlBlk, (void *) UINT_TO_PTR(param2));
+ }
+ 
+ /*********************************************************************
+ *
+ * @purpose  Initialize/Instantiate an Application Timer Module
+ *
+@@ -233,14 +233,14 @@ L7_APP_TMR_CTRL_BLK_t appTimerInit(L7_CO
+   pCtrlBlk->dispatchFn = dispatchFn;
+   pCtrlBlk->pParam     = pParam;
+   pCtrlBlk->pSelf      = pCtrlBlk;
+ 
+   /* Start the base system tick timer */
+   osapiTimerAdd(appTimerTick,
+-                (L7_uint32)pCtrlBlk,
+-                (L7_uint32)(pCtrlBlk->pParam),
++                PTR_TO_UINT64(pCtrlBlk),
++                PTR_TO_UINT64(pCtrlBlk->pParam),
+                 pCtrlBlk->type,
+                 &(pCtrlBlk->pSysTimer));
+ 
+   return (L7_APP_TMR_CTRL_BLK_t)pCtrlBlk;
+ }
+ 
+@@ -746,14 +746,14 @@ void appTimerProcess(L7_APP_TMR_CTRL_BLK
+       break;
+     }
+   };
+ 
+   /* Restart the base system tick timer */
+   osapiTimerAdd(appTimerTick,
+-                (L7_uint32)pCtrlBlk,
+-                (L7_uint32)(pCtrlBlk->pParam),
++                PTR_TO_UINT64(pCtrlBlk),
++                PTR_TO_UINT64(pCtrlBlk->pParam),
+                 pCtrlBlk->type,
+                 &(pCtrlBlk->pSysTimer));
+ }
+ 
+ /*********************************************************************
+ *
+Index: src/system_support/base/l7util/l7handle/l7handle.c
+===================================================================
+--- src/system_support/base/l7util/l7handle/l7handle.c	(revision 7768)
++++ src/system_support/base/l7util/l7handle/l7handle.c	(working copy)
+@@ -157,13 +157,13 @@ L7_RC_t handleListDeinit(L7_COMPONENT_ID
+ * @returns  a unique handle that would be used to stored in the list.
+ *
+ * @notes
+ *
+ * @end
+ *********************************************************************/
+-L7_uint32 handleListNodeStore(handle_list_t *list,void *ptr)
++L7_uint64 handleListNodeStore(handle_list_t *list,void *ptr)
+ {
+   L7_int32    rc,temp;
+   if(list == L7_NULLPTR || ptr == L7_NULLPTR)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_LOG_COMPONENT_DEFAULT,
+             "\n HANDLE LIST : Invalid handle list params");
+@@ -184,13 +184,13 @@ L7_uint32 handleListNodeStore(handle_lis
+   temp = list->list[list->next_free_node].index;
+   list->list[list->next_free_node].index = -1;
+   list->list[list->next_free_node].node_ptr = ptr;
+   list->next_free_node = temp;
+   list->numAllocated++;
+ 
+-  return ((L7_uint32)&list->list[rc]);
++  return (PTR_TO_UINT64(&list->list[rc]));
+ }
+ 
+ 
+ /*********************************************************************
+ *
+ * @purpose  To Delete the node.
+@@ -201,18 +201,18 @@ L7_uint32 handleListNodeStore(handle_lis
+ * @returns
+ *
+ * @notes
+ *
+ * @end
+ *********************************************************************/
+-void handleListNodeDelete_track(handle_list_t *list,L7_uint32 *handle,
++void handleListNodeDelete_track(handle_list_t *list,L7_uint64 *handle,
+                              L7_uchar8 *fileName,
+                              L7_uint32 lineNum)
+ {
+   handle_member_t   *node;
+-  L7_int32    index;
++  L7_int64    index;
+ 
+   if(list == L7_NULLPTR || handle == L7_NULLPTR)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_LOG_COMPONENT_DEFAULT,
+             "\n HANDLE LIST : Null handle list params from %s(%d)",
+         fileName, lineNum);
+@@ -223,26 +223,26 @@ void handleListNodeDelete_track(handle_l
+     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_LOG_COMPONENT_DEFAULT,
+             "\n HANDLE LIST : Null handle node to delete from %s(%d)",
+         fileName, lineNum);
+     return;
+   }
+ 
+-  node = ( handle_member_t *)*handle;
++  node = ( handle_member_t *) UINT_TO_PTR(*handle);
+   *handle = 0;
+   index = node->index;
+ 
+   /* additional validation */
+   if(index != -1)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_LOG_COMPONENT_DEFAULT,
+             "\n HANDLE LIST : Invalid handle node to delete from %s(%d)",
+         fileName, lineNum);
+     return;
+   }
+ 
+-  index = ((L7_uint32)node - (L7_uint32)list->list)/sizeof(handle_member_t);
++  index = (PTR_TO_UINT64(node) - PTR_TO_UINT64(list->list))/sizeof(handle_member_t);
+ 
+   list->list[list->last_free_node].index = index;
+ 
+   /* cleanup */
+   list->list[index].node_ptr = L7_NULLPTR;
+   list->list[index].index = index;
+@@ -262,13 +262,13 @@ void handleListNodeDelete_track(handle_l
+ * @returns  The Pointer stored in the handle list.
+ *
+ * @notes    This API is provided to delete a handle list,
+ *
+ * @end
+ *********************************************************************/
+-void* handleListNodeRetrieve_track(L7_uint32 handle,
++void* handleListNodeRetrieve_track(L7_uint64 handle,
+                              L7_uchar8 *fileName,
+                              L7_uint32 lineNum)
+ {
+   handle_member_t   *node;
+ 
+   if(handle == 0)
+@@ -276,13 +276,13 @@ void* handleListNodeRetrieve_track(L7_ui
+     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_LOG_COMPONENT_DEFAULT,
+             "\n HANDLE LIST : Null handle to retrieve from %s(%d)",
+         fileName, lineNum);
+     return L7_NULLPTR;
+   }
+ 
+-  node = (handle_member_t*)handle;
++  node = (handle_member_t*) UINT_TO_PTR(handle);
+ 
+   /* additional validation */
+   if(node->index != -1)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_LOG_COMPONENT_DEFAULT,
+             "\n HANDLE LIST : Invalid handle node to retrieve from %s(%d)",
+Index: src/system_support/base/l7util/radix/l7_radix.c
+===================================================================
+--- src/system_support/base/l7util/radix/l7_radix.c	(revision 7768)
++++ src/system_support/base/l7util/radix/l7_radix.c	(working copy)
+@@ -1952,54 +1952,54 @@ void dumptree(struct l7_radix_node *x)
+     }
+   }
+ 
+   if(x->rn_bit >= 0)
+   {
+     /* print intenal node */
+-    printf("\nN,0x%x,0x%x,0x%x,%d,0x%x,%d,%d,0x%x,0x%x",
+-           (L7_uint32)x,
+-           (L7_uint32)x->rn_mklist, (L7_uint32)x->rn_parent,
++    printf("\nN,%p,%p,%p,%d,0x%x,%d,%d,%p,%p",
++           x,
++           x->rn_mklist, x->rn_parent,
+            x->rn_bit, x->rn_bmask, x->rn_flags,
+            x->rn_u.rn_node.rn_Off,
+-           (L7_uint32)x->rn_u.rn_node.rn_L,
+-           (L7_uint32)x->rn_u.rn_node.rn_R);
++           x->rn_u.rn_node.rn_L,
++           x->rn_u.rn_node.rn_R);
+   }
+   else
+   {
+     /* print leaf */
+     /* print intenal node */
+-    printf("\nL,0x%x,0x%x,0x%x,%d,0x%x,%d,0x%x,0x%x,0x%x",
+-           (L7_uint32)x,
+-           (L7_uint32)x->rn_mklist, (L7_uint32)x->rn_parent,
++    printf("\nL,%p,%p,%p,%d,0x%x,%d,%p,%p,%p",
++           x,
++           x->rn_mklist, x->rn_parent,
+            x->rn_bit, x->rn_bmask, x->rn_flags,
+-           (L7_uint32)x->rn_u.rn_leaf.rn_Key,
+-           (L7_uint32)x->rn_u.rn_leaf.rn_Mask,
+-           (L7_uint32)x->rn_u.rn_leaf.rn_Dupedkey);
++           x->rn_u.rn_leaf.rn_Key,
++           x->rn_u.rn_leaf.rn_Mask,
++           x->rn_u.rn_leaf.rn_Dupedkey);
+ 
+     dumpKey("K", x->rn_u.rn_leaf.rn_Key);
+     dumpKey("M", x->rn_u.rn_leaf.rn_Mask);
+   }
+ 
+   if(x->rn_mklist)
+   {
+     struct  l7_radix_mask * mk_node = x->rn_mklist;
+ 
+     while(mk_node)
+     {
+-      printf("\nm,0x%x,0x%x,,%d,%d,%d,0x%x,,%d",
+-             (L7_uint32)mk_node,
+-             (L7_uint32)mk_node->rm_mklist,
++      printf("\nm,%p,%p,,%d,%d,%d,%p,,%d",
++             mk_node,
++             mk_node->rm_mklist,
+              mk_node->rm_bit,
+              mk_node->rm_unused,
+              mk_node->rm_flags,
+-             (L7_uint32)mk_node->rm_rmu.rmu_mask,
++             mk_node->rm_rmu.rmu_mask,
+              mk_node->rm_refs);
+       if ((mk_node->rm_flags & RNF_NORMAL) == 0)
+         dumpKey("m", mk_node->rm_rmu.rmu_mask);
+       else
+-        printf("  rmu_leaf:  %#x", (L7_uint32)mk_node->rm_rmu.rmu_leaf);
++        printf("  rmu_leaf:  %p", mk_node->rm_rmu.rmu_leaf);
+ 
+       mk_node = mk_node->rm_mklist;
+     }
+   }
+ 
+   return;
+@@ -2055,13 +2055,13 @@ rn_walktree_all(h,do_pr)
+                         }
+                         for(i = 0; i < h->max_keylen;i++)
+                         {
+                             sprintf(&buf[2*i],"%02x",*((char *)rn->rn_key+i));
+                         }
+                         buf[2*i] = 0;
+-                        if(do_pr)printf("L%x      %s    \n",(int)rn,buf);
++                        if(do_pr)printf("L%llx      %s    \n",PTR_TO_UINT64(rn),buf);
+         }
+         rn = save;
+ 
+                 /* this node is leaf, grab next int node for which we are on left */
+         /* If at right child go back up, otherwise, go right */
+         while (rn->rn_parent->rn_right == rn
+@@ -2075,17 +2075,17 @@ rn_walktree_all(h,do_pr)
+ 
+             }
+             else{
+                 /* process internal node */
+         if (rn->rn_flags & RNF_ROOT)
+                 {
+-                    if(do_pr)printf("R%x      %3d    l= %x r= %x\n",(int)rn,rn->rn_bit,(int)rn->rn_left, (int)rn->rn_right);
++                    if(do_pr)printf("R%llx      %3d    l= %llx r= %llx\n",PTR_TO_UINT64(rn),rn->rn_bit,PTR_TO_UINT64(rn->rn_left), PTR_TO_UINT64(rn->rn_right));
+                 }
+                 else
+                 {
+-                    if(do_pr)printf("I%x      %3d    l= %x r= %x\n",(int)rn,rn->rn_bit,(int)rn->rn_left, (int)rn->rn_right);
++                    if(do_pr)printf("I%llx      %3d    l= %llx r= %llx\n",PTR_TO_UINT64(rn),rn->rn_bit,PTR_TO_UINT64(rn->rn_left), PTR_TO_UINT64(rn->rn_right));
+                 }
+                 /* masks */
+         m = rn->rn_mklist;
+                 while(m)
+                 {
+                     m_bit = -1 - m->rm_bit;
+Index: src/system_support/base/l7util/radix/l7_radix_api.c
+===================================================================
+--- src/system_support/base/l7util/radix/l7_radix_api.c	(revision 7768)
++++ src/system_support/base/l7util/radix/l7_radix_api.c	(working copy)
+@@ -38,13 +38,14 @@ extern struct radix_node * rn_match_coun
+ *          heaps and recreating the free node linked lists. 
+ *       
+ * @end
+ *********************************************************************/
+ void radixPurgeTree(radixTree_t * tree)
+ {
+-  L7_uint32         i, value;
++  L7_uint64         value;
++  L7_uint32         i;
+   L7_uint32         max_keylen;
+   L7_uint32         max_entries;
+   L7_uint32         offset_next, dataLength;
+   void              *dataHeap;
+   void              *maskNodeHeap;
+   struct radix_mask *maskListHeap;
+@@ -69,27 +70,27 @@ void radixPurgeTree(radixTree_t * tree)
+ 
+   /* re-create linked lists */
+   for (i = 0; i < max_entries - 1; i++)
+   {
+     if (dataHeap)
+     {
+-      value = (L7_uint32)((char*)dataHeap + dataLength);
++      value = PTR_TO_UINT64((char*)dataHeap + dataLength);
+       localAddr = (char*)dataHeap + offset_next;
+-      memcpy(localAddr, &value, sizeof(L7_uint32));
++      memcpy(localAddr, &value, sizeof(L7_uint64));
+       dataHeap = (char *)dataHeap + dataLength;
+     }
+ 
+     /* init linked list for mask list */
+     maskListHeap->rm_mklist = (struct radix_mask *)((char*)maskListHeap + sizeof(struct radix_mask));
+     maskListHeap = maskListHeap->rm_mklist;
+   }
+   for (i = 0; i < (max_keylen*8) - 1; i++)
+   {
+-  	value = (L7_uint32)((char*)maskNodeHeap + RADIX_MASK_NODE_ITEM_SIZE(max_keylen));
++  	value = PTR_TO_UINT64((char*)maskNodeHeap + RADIX_MASK_NODE_ITEM_SIZE(max_keylen));
+   	localAddr = (char*)maskNodeHeap + RADIX_MASK_NODE_ITEM_OFFSET_NEXT(max_keylen);
+-  	memcpy(localAddr, &value, sizeof(L7_uint32));
++  	memcpy(localAddr, &value, sizeof(L7_uint64));
+     maskNodeHeap = (char *)maskNodeHeap + RADIX_MASK_NODE_ITEM_SIZE(max_keylen);
+   }
+  
+   /* reset head ptrs */
+   tree->rn_datanodefreelist             = tree->dataHeap; 
+   tree->mask_rnhead.rn_masknodefreelist = tree->maskNodeHeap; 
+@@ -504,22 +505,22 @@ int dumpNode(struct l7_radix_node * node
+   L7_uint32 i = 0;
+   radixTree_t * tree = (radixTree_t *) arg;
+ 
+   if(node->rn_bit >= 0)
+   {
+     /* never really comes in here because of the way walk_tree is coded */
+-    printf("%x: tree node, test pos %d\tL(%x) R(%x)\n", 
+-           (L7_uint32)node, node->rn_u.rn_node.rn_Off, \
+-           (L7_uint32)node->rn_u.rn_node.rn_L,
+-           (L7_uint32)node->rn_u.rn_node.rn_R);
++    printf("%p: tree node, test pos %d\tL(%p) R(%p)\n", 
++           node, node->rn_u.rn_node.rn_Off, \
++           node->rn_u.rn_node.rn_L,
++           node->rn_u.rn_node.rn_R);
+   }
+   else
+   {
+     entryCount++;
+ 
+-    printf("%d)\t%x: leaf key(", entryCount, (L7_uint32)node);
++    printf("%d)\t%p: leaf key(", entryCount, node);
+ 
+     for(i = 0; i < tree->mask_rnhead.max_keylen; i++)
+       printf("%2x ", node->rn_u.rn_leaf.rn_Key[i]);
+ 
+     printf(") mask (");
+ 
+Index: src/system_support/base/l7util/radix/l7_radix_util.c
+===================================================================
+--- src/system_support/base/l7util/radix/l7_radix_util.c	(revision 7768)
++++ src/system_support/base/l7util/radix/l7_radix_util.c	(working copy)
+@@ -35,24 +35,26 @@
+ *
+ * @end
+ *********************************************************************/
+ void* radixTreeNewDataNode(radixTree_t * tree)
+ {
+   void * ptr;
+-  L7_uint32 offset_next, value;
++  L7_uint32 offset_next;
++  L7_uint64 value;
+   void *localAddr;
+ 
+   offset_next = tree->offset_next;
+   ptr = tree->rn_datanodefreelist;
+ 
+   if (ptr == NULL)
+     return NULL;
+ 
+   localAddr = (char*)ptr+offset_next;
+-  memcpy(&value, localAddr, sizeof(L7_uint32));
+-  tree->rn_datanodefreelist = (void*)value;
++  value = PTR_GET_VALUE(localAddr);
++  //memcpy(&value, localAddr, sizeof(value));
++  tree->rn_datanodefreelist = UINT_TO_PTR(value);
+ 
+   return  ptr;
+ }
+ 
+ /*********************************************************************
+ * @purpose  Free a data node
+@@ -68,13 +70,13 @@ void radixTreeFreeDataNode(radixTree_t *
+ {
+   L7_uint32 offset_next;
+ 
+   offset_next = tree->offset_next;
+   memset((L7_uchar8 *)ptr, 0, tree->dataLength);
+ 
+-  *((L7_uint32*)((char*)ptr+offset_next)) = (L7_uint32)(tree->rn_datanodefreelist);
++  PTR_SET_VALUE(((char*)ptr+offset_next)) = PTR_TO_UINT64(tree->rn_datanodefreelist);
+   tree->rn_datanodefreelist = ptr;
+ }
+ 
+ /*********************************************************************
+ * @purpose  Allocate a mask node from the data heap
+ *
+@@ -87,27 +89,29 @@ void radixTreeFreeDataNode(radixTree_t *
+ *
+ * @end
+ *********************************************************************/
+ void * radixTreeNewMaskNode(struct radix_node_head * head)
+ {
+   void * ptr;
+-  L7_uint32 offset_next, value;
++  L7_uint32 offset_next;
++  L7_uint64 value;
+   char *localAddr;
+ 
+   offset_next = RADIX_MASK_NODE_ITEM_OFFSET_NEXT(head->max_keylen);
+   ptr = head->rn_masknodefreelist;
+ 
+   if (ptr == L7_NULLPTR)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_LOG_COMPONENT_DEFAULT,
+             "radixTreeNewMaskNode: unable to allocate mask node");
+     return L7_NULLPTR;
+   }
+   localAddr = (char*)ptr+offset_next;
+-  memcpy(&value, localAddr, sizeof(L7_uint32));
+-  head->rn_masknodefreelist = (void*)value;
++  value = PTR_GET_VALUE(localAddr);
++  //memcpy(&value, localAddr, sizeof(value));
++  head->rn_masknodefreelist = UINT_TO_PTR(value);
+ 
+   return ptr;
+ }
+ 
+ /*********************************************************************
+ * @purpose  Free a mask node
+@@ -124,11 +128,11 @@ void radixTreeFreeMaskNode(struct radix_
+ {
+   L7_uint32 offset_next;
+ 
+   offset_next = RADIX_MASK_NODE_ITEM_OFFSET_NEXT(head->max_keylen);
+   memset((L7_uchar8 *)ptr, 0, RADIX_MASK_NODE_ITEM_SIZE(head->max_keylen));
+ 
+-  *((L7_uint32*)((char*)ptr+offset_next)) = (L7_uint32)(head->rn_masknodefreelist);
++  PTR_SET_VALUE(((char*)ptr+offset_next)) = PTR_TO_UINT64(head->rn_masknodefreelist);
+ 
+   head->rn_masknodefreelist = ptr;
+ }
+ 
+Index: src/system_support/base/l7util/tlv/tlv.c
+===================================================================
+--- src/system_support/base/l7util/tlv/tlv.c	(revision 7768)
++++ src/system_support/base/l7util/tlv/tlv.c	(working copy)
+@@ -179,28 +179,28 @@ L7_RC_t tlvRegister(L7_uint32 tlvSizeMax
+ 
+   /* init size stats */
+   pTlvCtrl->sizeLo = 0;
+   pTlvCtrl->sizeHi = 0;
+ 
+   /* acquire a trace buffer */
+-  sprintf((char *)traceNameStr, "TLV%8.8x", (L7_uint32)pTlvCtrl);
++  sprintf((char *)traceNameStr, "TLV%llx", PTR_TO_UINT64(pTlvCtrl));
+   if (traceBlockCreate(L7_TLV_TRACE_ENTRY_MAX, L7_TLV_TRACE_ENTRY_SIZE_MAX,
+                        traceNameStr, &traceId) != L7_SUCCESS)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_CRITICAL , L7_SIM_COMPONENT_ID, "tlvRegister: Unable to obtain trace buffer "
+-                            "for App ID %u, TLV handle 0x%8.8x. OLTSWITCH trace component is out of trace "
+-                            "buffers.\n", appId, (L7_uint32)pTlvCtrl);
++                            "for App ID %u, TLV handle %p. OLTSWITCH trace component is out of trace "
++                            "buffers.\n", appId, pTlvCtrl);
+     traceId = L7_TLV_TRACE_ID_INVALID;
+   }
+   else
+   {
+     if (traceBlockStart(traceId) != L7_SUCCESS)
+     {
+       L7_LOGF(L7_LOG_SEVERITY_ERROR , L7_SIM_COMPONENT_ID, "tlvRegister: Unable to start tracing for App "
+-              "ID %u, TLV handle 0x%8.8x. Failed to start TLV tracing, most likely due to an invalid trace "
+-              "buffer identifier.\n", appId, (L7_uint32)pTlvCtrl);
++              "ID %u, TLV handle %p. Failed to start TLV tracing, most likely due to an invalid trace "
++              "buffer identifier.\n", appId, pTlvCtrl);
+     }
+   }
+   pTlvCtrl->traceId = traceId;
+ 
+   /* output TLV handle */
+   *pTlvHandle = tlvHandle;
+@@ -859,14 +859,14 @@ L7_RC_t tlvParse(L7_tlv_t *pTlv, L7_tlvU
+    */
+   entrySize = 0;
+   if ((rc = tlvWalk(pTlv, 0, userParseFunc, &entrySize))
+       != L7_SUCCESS)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SIM_COMPONENT_ID, "tlvParse: Error processing contents of TLV"
+-            " 0x%4.4x at address 0x%8.8x, rc=%u. Indicates a malformed type-length-value data block "
+-            "presented by the caller of the TLV utility.\n", tlvType, (L7_uint32)pTlv, rc);
++            " 0x%4.4x at address %p, rc=%u. Indicates a malformed type-length-value data block "
++            "presented by the caller of the TLV utility.\n", tlvType, pTlv, rc);
+     return rc;
+   }
+ 
+   if (totalSize != entrySize)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SIM_COMPONENT_ID, "tlvParse: TLV size mismatch: expected=%u, "
+@@ -1397,26 +1397,26 @@ L7_RC_t tlvCtrlShow(L7_tlvHandle_t tlvHa
+ 
+   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS, "\n");
+   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
+                 "TLV block handle          : %u\n",
+                 (L7_uint32)pTlvCtrl->tlvHandle);
+   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
+-                "TLV block location        : 0x%8.8x\n", (L7_uint32)pTlvCtrl);
++                "TLV block location        : %p\n", pTlvCtrl);
+   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
+                 "TLV block alloc size      : 0x%8.8x (%u)\n",
+                 pTlvCtrl->allocSize, pTlvCtrl->allocSize);
+   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
+                 "TLV block data area size  : 0x%8.8x (%u)\n",
+                 dataAreaSize, dataAreaSize);
+   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
+                 "TLV block data area used  : 0x%8.8x (%u)\n",
+                 dataAreaUsed, dataAreaUsed);
+   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS, "\n");
+   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
+-                "TLV block chain ptr       : 0x%8.8x\n",
+-                (L7_uint32)pTlvCtrl->pChain);
++                "TLV block chain ptr       : %p\n",
++                pTlvCtrl->pChain);
+   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
+                 "TLV block application ID  : %u\n", pTlvCtrl->appId);
+   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
+                 "TLV block application name: %s\n", (char *)pTlvCtrl->appName);
+   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
+                 "TLV block trace ID        : 0x%8.8x\n", pTlvCtrl->traceId);
+@@ -1531,15 +1531,15 @@ void tlvBlockSummaryShow(void)
+   for (i = 1; i <= L7_TLV_HANDLE_MAX; i++)
+   {
+     pTlvCtrl = TlvInUse[i];
+     if (pTlvCtrl != L7_NULLPTR)
+     {
+       SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
+-                    " %4u   %8.8x   %5u     %-3s  %7u    %5u   %5u %-15s\n",
++                    " %4u   %p   %5u     %-3s  %7u    %5u   %5u %-15s\n",
+                     pTlvCtrl->tlvHandle,
+-                    (L7_uint32)pTlvCtrl,
++                    pTlvCtrl,
+                     pTlvCtrl->appId,
+                     (pTlvCtrl->active == L7_YES) ? "Yes" : "No",
+                     L7_TLV_BLK_DATA_MAX(pTlvCtrl),
+                     pTlvCtrl->sizeLo,
+                     pTlvCtrl->sizeHi,
+                     (char *)pTlvCtrl->appName);
+Index: src/system_support/base/l7util/trace/sys_trace.c
+===================================================================
+--- src/system_support/base/l7util/trace/sys_trace.c	(revision 7768)
++++ src/system_support/base/l7util/trace/sys_trace.c	(working copy)
+@@ -249,13 +249,13 @@ L7_RC_t traceBlockDelete(L7_uint32 trace
+     traceData->nextTrace->prevTrace = traceData->prevTrace;
+   }
+   if (osapiSemaDelete(traceData->semaId) != L7_SUCCESS)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
+             "traceBlockDelete(): Unable to delete trace block semaphore, "
+-            "id=0x%8.8x\n", (L7_uint32)traceData->semaId);
++            "id=%p\n", traceData->semaId);
+   }
+ 
+   /*osapiFree(L7_SIM_COMPONENT_ID, (void *)traceData->head);*/
+   osapiFree(L7_SIM_COMPONENT_ID, (void *)traceData);
+   traceControl.traceCount--;
+ 
+Index: src/system_support/base/network/auto_install/auto_install_cnfgr.c
+===================================================================
+--- src/system_support/base/network/auto_install/auto_install_cnfgr.c	(revision 7768)
++++ src/system_support/base/network/auto_install/auto_install_cnfgr.c	(working copy)
+@@ -35,13 +35,13 @@
+ autoInstallCnfgrState_t autoInstallCnfgrState  = AUTO_INSTALL_PHASE_INIT_0;
+ 
+ /* auto_istall message queue ID */
+ void * autoInstallMsgQueue = L7_NULLPTR;
+ 
+ /* auto_istall task queue ID */
+-L7_int32 autoInstallTaskId = 0;
++L7_uint64 autoInstallTaskId = 0;
+ 
+ /* auto-install run time variables/parameters */
+ extern autoInstallRunTimeData_t *autoInstallRunTimeData;
+ 
+ /* auto-install configuration lock */
+ void  *autoInstallCfgSemaphore = L7_NULLPTR;
+Index: src/system_support/base/network/auto_install/auto_install_control.c
+===================================================================
+--- src/system_support/base/network/auto_install/auto_install_control.c	(revision 7768)
++++ src/system_support/base/network/auto_install/auto_install_control.c	(working copy)
+@@ -54,13 +54,13 @@ autoInstallRunTimeData_t *autoInstallRun
+ extern void * autoInstallMsgQueue;
+ 
+ /* auto-install config apply lock */
+ extern void  *autoTxtCfgSyncSemaphore;
+ 
+ /* auto_istall task queue ID */
+-extern L7_int32 autoInstallTaskId;
++extern L7_uint64 autoInstallTaskId;
+ 
+ /* current auto-install configuration phase */
+ extern autoInstallCnfgrState_t autoInstallCnfgrState;
+ 
+ static L7_RC_t autoInstallRegisteredComponentsNotify(autoInstallNotifyEvent_t event);
+ /* Forwards && externals */
+Index: src/system_support/base/network/bootp/bootp_prot.c
+===================================================================
+--- src/system_support/base/network/bootp/bootp_prot.c	(revision 7768)
++++ src/system_support/base/network/bootp/bootp_prot.c	(working copy)
+@@ -149,13 +149,13 @@ L7_BOOL bootpVendorSpecificValuesRequest
+     currentIpAddr = simGetSystemIPAddr();
+     osapiSnprintf(intfName, sizeof(intfName), "%s0", L7_DTL_PORT_IF);	
+   }  
+   bootpConfigSemFree();
+   
+   /*Generate unique Transaction Id */
+-  xid_base = (L7_uint32)bootpReplyPacket;
++  xid_base = PTR_TO_UINT32(bootpReplyPacket);
+   xid = xid_base + (L7_uint32) (0xffffffff & osapiUpTimeRaw());
+ 
+   /*Create a socket*/
+   if (osapiSocketCreate(L7_AF_INET, L7_SOCK_DGRAM, 0, &clientSocket) == L7_FAILURE)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_BOOTP_COMPONENT_ID,
+@@ -440,13 +440,13 @@ L7_bootp_do(const L7_uchar8 *intf, L7_bo
+    * never work again. One might wonder why you would even do a routing table lookup
+    * for a broadcast packet, but there it is. */
+   osapimRouteEntryAdd (buffer, 0xffffffff, 0x0, 0xffffffff, 0, 0, 1);
+ #endif
+ 
+   /*Generate unique Transaction Id */
+-  xid_base = (L7_uint32)res;
++  xid_base = PTR_TO_UINT32(res);
+   xid = xid_base + (L7_uint32) (0xffffffff & osapiUpTimeRaw());
+ 
+   /*Create a socket*/
+   
+ 
+   if (osapiSocketCreate(L7_AF_INET, L7_SOCK_DGRAM, 0, &s) == L7_FAILURE)
+Index: src/system_support/base/network/bootp/bootp_support.c
+===================================================================
+--- src/system_support/base/network/bootp/bootp_support.c	(revision 7768)
++++ src/system_support/base/network/bootp/bootp_support.c	(working copy)
+@@ -23,13 +23,13 @@
+ #include "default_cnfgr.h"
+ #include "l7netapi.h"
+ #include "bspapi.h"
+ #include "usmdb_util_api.h"
+ 
+ #ifndef NO_PRODUCT_BOOTP_SUPPORT
+-L7_int32 L7_BootP_task_id;
++L7_uint64 L7_BootP_task_id;
+ 
+ L7_bootp_t service_bootp_data;
+ L7_bootp_t network_bootp_data;
+ 
+ static L7_uint32 networkConfigStatus = L7_SYSCONFIG_MODE_NOT_COMPLETE;
+ static L7_uint32 servPortConfigStatus = L7_SYSCONFIG_MODE_NOT_COMPLETE;
+@@ -622,13 +622,13 @@ L7_RC_t bootpNotificationRegister( L7_CO
+   {
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_BOOTP_COMPONENT_ID,
+             "BOOTP registrar ID %u, %s greater than Last Component ID\n", component_ID, name);
+     return(L7_FAILURE);
+   }
+ 
+-  if ((L7_uint32)bootpNotifyList[component_ID].notifyFunction != L7_NULL)
++  if (bootpNotifyList[component_ID].notifyFunction != L7_NULLPTR)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_BOOTP_COMPONENT_ID,
+             "BOOTP registrar ID %u, %s already registered\n", component_ID, name);
+     return(L7_FAILURE);
+   }
+ 
+Index: src/system_support/base/network/dhcp/dhcp_prot.c
+===================================================================
+--- src/system_support/base/network/dhcp/dhcp_prot.c	(revision 7768)
++++ src/system_support/base/network/dhcp/dhcp_prot.c	(working copy)
+@@ -654,22 +654,22 @@ next_timeout (dhcpClientInfo_t *clientIn
+ * @returns  void
+ *
+ * @comments none
+ *
+ * @end
+ *************************************************************************/
+-static void next_timeout_function (L7_uint32 data, L7_uint32 arg2)
++static void next_timeout_function (L7_uint64 data, L7_uint64 arg2)
+ {
+   dhcpClientInfo_t *clientIntfInfo = L7_NULLPTR;
+   L7_uint32 intIfNum = 0;
+   L7_MGMT_PORT_TYPE_t mgmtPortType;
+   L7_uint32 nextTimeOut = 0;
+ 
+   DHCPC_TRACE (DHCPC_DEBUG_APIS, "Entry");
+ 
+-  intIfNum = data;
++  intIfNum = (L7_uint32) data;
+   mgmtPortType = (L7_MGMT_PORT_TYPE_t) arg2;
+ 
+   DHCPC_TRACE (DHCPC_DEBUG_TIMER, "Timeout occured for for intIfNum-%d, mgmtPortType-%d",
+                intIfNum, mgmtPortType);
+ 
+   if (osapiSemaTake (dhcpClientCB.clientIntfInfoSem, L7_WAIT_FOREVER)
+@@ -857,23 +857,23 @@ dhcpClientNextTimeoutTimerStop (dhcpClie
+ * @returns  void
+ *
+ * @comments none
+ *
+ * @end
+ *************************************************************************/
+-static void alarm_function (L7_uint32 data, L7_uint32 arg2)
++static void alarm_function (L7_uint64 data, L7_uint64 arg2)
+ {
+   dhcpClientInfo_t *clientIntfInfo = L7_NULLPTR;
+   dhcpLeaseInfo_t *lease = L7_NULLPTR;
+   L7_uint32 intIfNum = 0;
+   L7_MGMT_PORT_TYPE_t mgmtPortType;
+   L7_uint32 timeOut = 0;
+ 
+   DHCPC_TRACE (DHCPC_DEBUG_APIS, "Entry");
+ 
+-  intIfNum = data;
++  intIfNum = (L7_uint32) data;
+   mgmtPortType = (L7_MGMT_PORT_TYPE_t) arg2;
+ 
+   if ((clientIntfInfo = dhcpClientIntfInfoGet (intIfNum, mgmtPortType))
+                      == L7_NULLPTR)
+   {
+     DHCPC_TRACE (DHCPC_DEBUG_FAILURE, "Client Intf Info Get Failed for intIfNum-%d, "
+Index: src/system_support/base/network/dhcp/dhcp_support.c
+===================================================================
+--- src/system_support/base/network/dhcp/dhcp_support.c	(revision 7768)
++++ src/system_support/base/network/dhcp/dhcp_support.c	(working copy)
+@@ -555,13 +555,13 @@ L7_RC_t dhcpNotificationRegister( L7_COM
+   {
+     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_CLIENT_COMPONENT_ID,
+             "Invalid DHCP registrar ID %u.", component_ID);
+     return(L7_FAILURE);
+   }
+ 
+-  if ((L7_uint32)dhcpClientCB.dhcpNotifyList[component_ID].notifyFunction != L7_NULL)
++  if (dhcpClientCB.dhcpNotifyList[component_ID].notifyFunction != L7_NULLPTR)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_CLIENT_COMPONENT_ID,
+             "DHCP registrar ID %u, %s already registered.", component_ID, name);
+ 
+     return(L7_FAILURE);
+   }
+Index: src/system_support/base/network/dhcp/l7_dhcp.h
+===================================================================
+--- src/system_support/base/network/dhcp/l7_dhcp.h	(revision 7768)
++++ src/system_support/base/network/dhcp/l7_dhcp.h	(working copy)
+@@ -340,13 +340,13 @@ typedef struct dhcpClientCB_s
+   dhcpNotifyList_t *dhcpNotifyList;
+ 
+   /* Protection for notifyList */
+   void *notifyListSem;
+ 
+   /* DHCP Client's Task ID */
+-  L7_int32 dhcpClientTaskId;
++  L7_uint64 dhcpClientTaskId;
+ 
+   /* DHCP Client's Message Queue */
+   dhcpClientQueue_t dhcpClientMsgQ;
+ 
+   /* DHCP Vendor Options given by the DHCP Server.
+    * User configuration of client options. Only persistent on products 
+Index: src/system_support/base/network/dns/dns_client.c
+===================================================================
+--- src/system_support/base/network/dns/dns_client.c	(revision 7768)
++++ src/system_support/base/network/dns/dns_client.c	(working copy)
+@@ -25,14 +25,14 @@
+ #include "dns_client_api.h"
+ #include "dns_client_util.h"
+ #include "dns_client_txrx.h"
+ #include "dns_sid/dns_client_sid.h"
+ 
+ 
+-L7_int32               dnsTaskId = 0;
+-L7_int32               dnsRxTaskId = 0;
++L7_uint64             dnsTaskId = 0;
++L7_uint64             dnsRxTaskId = 0;
+ extern void           *dnsQueue;
+ extern void           *dnsSemaphore;
+ extern dnsCnfgrState_t dnsCnfgrState;
+ 
+ /*********************************************************************
+ * @purpose  Start DNS client task
+Index: src/system_support/base/network/dns/dns_client_cnfgr.c
+===================================================================
+--- src/system_support/base/network/dns/dns_client_cnfgr.c	(revision 7768)
++++ src/system_support/base/network/dns/dns_client_cnfgr.c	(working copy)
+@@ -27,14 +27,14 @@
+ #include "dns_client_util.h"
+ #include "dns_client_cache.h"
+ 
+ #include "cli_txt_cfg_api.h"
+ dnsCnfgrState_t                  dnsCnfgrState = DNS_CLIENT_PHASE_INIT_0;
+ extern void                     *dnsQueue;
+-extern L7_int32                  dnsTaskId;
+-extern L7_int32                  dnsRxTaskId;
++extern L7_uint64                 dnsTaskId;
++extern L7_uint64                 dnsRxTaskId;
+ 
+ extern dnsCfgData_t             *dnsCfgData;
+ extern dnsOprData_t             *dnsOprData;
+ extern dnsCacheData_t           *dnsCacheData;
+ extern dnsNotifyEntry_t         *dnsNotifyTbl;
+ extern void                     *dnsSemaphore;
+Index: src/system_support/base/network/ping/ping.c
+===================================================================
+--- src/system_support/base/network/ping/ping.c	(revision 7768)
++++ src/system_support/base/network/ping/ping.c	(working copy)
+@@ -53,13 +53,13 @@ static L7_RC_t pingElapsedTime( pingSess
+ static L7_RC_t pingInetChksum( L7_uchar8 *buff, L7_ushort16 len );
+ 
+ /* Number of outstanding ping requests */
+ static L7_uint32 pingAsyncSessionCount;
+ 
+ /* Task-ID for the task handling ASYNC requests */
+-static L7_int32 pingAsyncTaskId;
++static L7_uint64 pingAsyncTaskId;
+ 
+ /* Table containing ping sessions */
+ pingSessionTable_t   *pingSessionTable_g;
+ 
+ /* Lock to control access to pingSessionTable_g*/
+ osapiRWLock_t        pingSessionLock_g;
+@@ -420,13 +420,13 @@ pingASyncTask( void *param )
+     L7_long32 timeoutSecs;
+     L7_long32 timeoutUSecs;
+     L7_ushort16 i;
+     L7_uint32 elapsedTime;
+     L7_uint32 maxFd;
+     pingSessionTable_t *pingEntry;
+-    L7_uint32 tmpTaskId;
++    L7_uint64 tmpTaskId;
+     L7_int32  error = 0;
+     PING_PATH_TRACE( "%s %d: %s : \n", __FILE__, __LINE__,
+               __FUNCTION__);
+     osapiWriteLockTake( pingSessionLock_g, L7_WAIT_FOREVER );
+     /* Be in the loop until all the ASYNC ping sessions are done */
+     while ( 1 )
+Index: src/system_support/base/network/ping/ping_debug.c
+===================================================================
+--- src/system_support/base/network/ping/ping_debug.c	(revision 7768)
++++ src/system_support/base/network/ping/ping_debug.c	(working copy)
+@@ -413,13 +413,13 @@ dbgPingSync( )
+ 
+ }
+ 
+ static void
+ dbgPingSyncTask( char *argv[], int argc )
+ {
+-    L7_uint32 taskId;
++    L7_uint64 taskId;
+     dbgPingSync();
+     if ( osapiTaskIDSelfGet( &taskId ) == L7_SUCCESS )
+     {
+         osapiTaskDelete( taskId );
+     }
+ }
+@@ -477,13 +477,13 @@ void
+ dbgPingRandom( L7_uint32 num )
+ {
+     L7_uint32 oper;
+     L7_ushort16 handle;
+     L7_uint32 iterations = 0;
+     void *rxArgs[1];
+-    L7_uint32 taskHandle;
++    L7_uint64 taskHandle;
+ 
+     while ( num != 0 )
+     {
+         oper = rand() & 0x3;
+ 
+         switch ( oper )
+Index: src/system_support/base/network/ping/pingdebug.c
+===================================================================
+--- src/system_support/base/network/ping/pingdebug.c	(revision 7768)
++++ src/system_support/base/network/ping/pingdebug.c	(working copy)
+@@ -44,13 +44,13 @@ unsigned short handles[16];
+ void *syncPingTest( void *argv[], int argc )
+ {
+     unsigned short handle;
+     pingSessionResp_t resp;
+     int ret;
+     pingSessionReq_t *req = argv[0];
+-    L7_uint32 taskId;
++    L7_uint64 taskId;
+ 
+     ret = pingSessionStart( req, pingCallback1, NULL, &handle, &resp );
+     SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_ALWAYS,
+            "Ping Sent %d queries Received %d responses. AvgRTT %d MaxRTT %d"
+            " MinRTT %d \n", resp.probeSent, resp.probeSuccess, 
+            resp.avgRtt, resp.maxRtt, resp.minRtt );
+@@ -117,13 +117,13 @@ static L7_RC_t traceRouteCallbackFn1( vo
+ void *syncTraceRouteTest( void *argv[], int argc )
+ {
+     unsigned short handle;
+     traceRouteResp_t resp;
+     int ret;
+     traceRouteReq_t *req = argv[0];
+-    L7_uint32 taskId;
++    L7_uint64 taskId;
+ 
+     ret = traceRouteStart( req, traceRouteCallbackFn1, NULL, &handle, &resp );
+     if ( ret == L7_SUCCESS )
+     {
+         SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_ALWAYS,
+                 "Handle returned %x\n", handle );
+@@ -200,13 +200,13 @@ traceRouteRandomTest()
+         req.probeSize = size;
+         req.probePerHop = count;
+         req.probeInterval = interval;
+         if ( num == 0 )
+         {
+             void *rxArgs[1];
+-            L7_uint32 taskHandle;
++            L7_uint64 taskHandle;
+             traceRouteReq_t *req1;
+ 
+             req1 = malloc( sizeof( traceRouteReq_t ) );
+             memcpy( req1, &req, sizeof( req ) );
+             rxArgs[0] = req1;
+ 
+@@ -314,13 +314,13 @@ randomPingTest()
+        req.probeCount = count;
+        req.probeSize = size;
+        req.probeInterval = interval;
+        if ( num == 0 )
+        {
+             void *rxArgs[1];
+-            L7_uint32 taskHandle;
++            L7_uint64 taskHandle;
+             pingSessionReq_t *req1;
+ 
+             req1 = malloc( sizeof( pingSessionReq_t ) );
+             memcpy( req1, &req, sizeof( req ) );
+             rxArgs[0] = req1;
+ 
+@@ -405,13 +405,13 @@ pingTraceRouteRandomTest()
+ }
+ 
+ L7_RC_t
+ pingStartSync( pingSessionReq_t *req )
+ {
+     void *rxArgs[1];
+-    L7_uint32 taskHandle;
++    L7_uint64 taskHandle;
+     traceRouteReq_t *req1;
+ 
+     req1 = malloc( sizeof( traceRouteReq_t ) );
+     memcpy( req1, &req, sizeof( req ) );
+     rxArgs[0] = req1;
+ 
+Index: src/system_support/base/network/sntp/sntp_cfg.c
+===================================================================
+--- src/system_support/base/network/sntp/sntp_cfg.c	(revision 7768)
++++ src/system_support/base/network/sntp/sntp_cfg.c	(working copy)
+@@ -73,13 +73,13 @@ typedef struct
+         L7_CNFGR_CMD_DATA_t cmdData;
+     } type;
+ } sntpCfgMsg_t;
+ 
+ 
+ /* SNTP Cfg task */
+-static L7_int32  sntpCfgTaskId = 0;
++static L7_uint64  sntpCfgTaskId = 0;
+ 
+ /* SNTP Cfg queue */
+ static void *      sntpCfgQueue = L7_NULL;
+ 
+ /* Different phases of the unit */
+ typedef enum {
+Index: src/system_support/base/network/sntp/sntp_client.c
+===================================================================
+--- src/system_support/base/network/sntp/sntp_client.c	(revision 7768)
++++ src/system_support/base/network/sntp/sntp_client.c	(working copy)
+@@ -156,13 +156,13 @@ static struct sntpServerStats_s *serverS
+ 
+ /* Semaphore Lock to protect access to shared data structures. */
+ static void *sntpTaskSyncSemaphore = L7_NULL;
+ 
+ 
+ /* Task id */
+-static L7_int32  sntpClientTaskId = 0;
++static L7_uint64  sntpClientTaskId = 0;
+ 
+ /* Active server index (0..L7_SNTP_MAX_SERVERS-1) */
+ static L7_int32  sntpActiveServer = NO_SERVER_SELECTED;
+ 
+ /** Our socket. We flag a closed socket with a -1. */
+ static L7_int32 ucastFd = -1;
+@@ -2887,19 +2887,19 @@ L7_RC_t sntpClientInit(struct sntpCfgDat
+     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_SNTP_COMPONENT_ID,"SNTP: Unable to create the task semaphore\n");
+     sntpRC = L7_FAILURE;
+     return sntpRC;
+   }
+ 
+   /** create SNTP client task */
+-  sntpClientTaskId = (L7_uint32)osapiTaskCreate(L7_SNTP_TASK,
+-                                          (void *)sntpTask,
+-                                          L7_NULL,
+-                                          L7_NULL,
+-                                          L7_SNTP_DEFAULT_STACK_SIZE,
+-                                          L7_SNTP_DEFAULT_TASK_PRI,
+-                                          L7_SNTP_DEFAULT_TASK_SLICE);
++  sntpClientTaskId = osapiTaskCreate(L7_SNTP_TASK,
++                                     (void *)sntpTask,
++                                     L7_NULL,
++                                     L7_NULL,
++                                     L7_SNTP_DEFAULT_STACK_SIZE,
++                                     L7_SNTP_DEFAULT_TASK_PRI,
++                                     L7_SNTP_DEFAULT_TASK_SLICE);
+ 
+   if (osapiWaitForTaskInit(L7_SNTP_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_SNTP_COMPONENT_ID,"SNTP: Unable to initialize sntp task\n");
+     sntpRC   = L7_FAILURE;
+   }
+Index: src/system_support/base/network/sysnet/sysnet_util.c
+===================================================================
+--- src/system_support/base/network/sysnet/sysnet_util.c	(revision 7768)
++++ src/system_support/base/network/sysnet/sysnet_util.c	(working copy)
+@@ -358,22 +358,22 @@ L7_RC_t sysNetFindReasonCodeMatch(sysnet
+                                   L7_char8 *data)
+ {
+   L7_uint32   i;
+   L7_RC_t     rc = L7_FAILURE;
+ 
+   if (pdu_process_debug)
+-    PT_LOG_TRACE(LOG_CTX_DTL,"RxReason reference=0x%x",((SYSAPI_NET_MBUF_HEADER_t *)bufHandle)->rxCode);
++    PT_LOG_TRACE(LOG_CTX_DTL,"RxReason reference=0x%x",((SYSAPI_NET_MBUF_HEADER_t *)UINT_TO_PTR(bufHandle))->rxCode);
+ 
+   for (i = 0; i < FD_CNFGR_SYSNET_MAX_REGISTRATIONS; i++)
+   {
+     if (sysnetNotifyList.sysnetNotifyEntries[i].type == SYSNET_PKT_RX_REASON)
+     {
+-      if (sysnetNotifyList.sysnetNotifyEntries[i].u.rxReason & ((SYSAPI_NET_MBUF_HEADER_t *)bufHandle)->rxCode)
++      if (sysnetNotifyList.sysnetNotifyEntries[i].u.rxReason & ((SYSAPI_NET_MBUF_HEADER_t *)UINT_TO_PTR(bufHandle))->rxCode)
+       {
+-        #if (PTIN_BOARD_CXO640G) // PTIN added : This must be done to have capture and inband simultaneously
+-        if (pduInfo->vlanId == 2047 && ((((SYSAPI_NET_MBUF_HEADER_t *)bufHandle)->rxCode) == 0x10) ) 
++        #if (PTIN_BOARD == PTIN_BOARD_CXO640G) // PTIN added : This must be done to have capture and inband simultaneously
++        if (pduInfo->vlanId == 2047 && ((((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(bufHandle))->rxCode) == 0x10) ) 
+         {
+           continue;
+         }
+         #endif
+ 
+         if (pdu_process_debug)
+@@ -1568,33 +1568,38 @@ L7_RC_t sysNetNotifyListDebugShow()
+            sysnetNotifyList.sysnetNotifyEntries[i].u.macAddr[4],
+            sysnetNotifyList.sysnetNotifyEntries[i].u.macAddr[5],
+            sysnetNotifyList.sysnetNotifyEntries[i].u.protocol_type,
+            sysnetNotifyList.sysnetNotifyEntries[i].u.subType,
+            sysnetNotifyList.sysnetNotifyEntries[i].u.dsap,
+            sysnetNotifyList.sysnetNotifyEntries[i].u.rxReason);
+-    printf("  notify_pdu_receive callback = 0x%08x\r\n", (L7_uint32) sysnetNotifyList.sysnetNotifyEntries[i].notify_pdu_receive);
++    printf("  notify_pdu_receive callback = %p\r\n", sysnetNotifyList.sysnetNotifyEntries[i].notify_pdu_receive);
+   }
+   printf("\r\n");
+-  printf("ipMapArpRecvIP          = 0x%08x\r\n", (L7_uint32) ipMapArpRecvIP);
+-  printf("ipMapRecvIP             = 0x%08x\r\n", (L7_uint32) ipMapRecvIP);
+-  printf("dot1sBpduReceive        = 0x%08x\r\n", (L7_uint32) dot1sBpduReceive);
+-  printf("dot1xPduReceive         = 0x%08x\r\n", (L7_uint32) dot1xPduReceive);
+-  printf("dot3adPduReceive        = 0x%08x\r\n", (L7_uint32) dot3adPduReceive);
+-  printf("dtlRecvIP6              = 0x%08x\r\n", (L7_uint32) dtlRecvIP6);
+-  printf("GarpRecvPkt             = 0x%08x\r\n", (L7_uint32) GarpRecvPkt);
+-  //printf("ipv6ProvRecvPkt         = 0x%08x\r\n", (L7_uint32) ipv6ProvRecvPkt);
+-  printf("isdpPduReceive          = 0x%08x\r\n", (L7_uint32) isdpPduReceive);
+-  printf("lldpPduReceiveCallback  = 0x%08x\r\n", (L7_uint32) lldpPduReceiveCallback);
+-  printf("sFlowPduReceive         = 0x%08x\r\n", (L7_uint32) sFlowPduReceive);
+-  printf("pppoePduReceive         = 0x%08x\r\n", (L7_uint32) pppoePduReceive);
+-  printf("ptinMacBcastRecv        = 0x%08x\r\n", (L7_uint32) ptinMacBcastRecv);
++  printf("ipMapArpRecvIP          = %p\r\n", ipMapArpRecvIP);
++  printf("ipMapRecvIP             = %p\r\n", ipMapRecvIP);
++  printf("dot1sBpduReceive        = %p\r\n", dot1sBpduReceive);
++  printf("dot1xPduReceive         = %p\r\n", dot1xPduReceive);
++  printf("dot3adPduReceive        = %p\r\n", dot3adPduReceive);
++  printf("dtlRecvIP6              = %p\r\n", dtlRecvIP6);
++  printf("GarpRecvPkt             = %p\r\n", GarpRecvPkt);
++  //printf("ipv6ProvRecvPkt         = %p\r\n", ipv6ProvRecvPkt);
++  printf("isdpPduReceive          = %p\r\n", isdpPduReceive);
++  printf("lldpPduReceiveCallback  = %p\r\n", lldpPduReceiveCallback);
++  printf("sFlowPduReceive         = %p\r\n", sFlowPduReceive);
++  printf("pppoePduReceive         = %p\r\n", pppoePduReceive);
++  printf("ptinMacBcastRecv        = %p\r\n", ptinMacBcastRecv);
+ #ifdef PTIN_ENABLE_ERPS
+-  printf("ptin_aps_packetRx_callback      = 0x%08x\r\n", (L7_uint32) ptin_aps_packetRx_callback);
+-  printf("ptin_ccm_packetRx_callback      = 0x%08x\r\n", (L7_uint32) ptin_ccm_packetRx_callback);
++  printf("ptin_aps_packetRx_callback      = %p\r\n", ptin_aps_packetRx_callback);
++  printf("ptin_ccm_packetRx_callback      = %p\r\n", ptin_ccm_packetRx_callback);
++#endif
++  printf("common_aps_ccm_packetRx_callback= %p\r\n", common_aps_ccm_packetRx_callback);
++
++#ifdef L7_ROUTING_PACKAGE
++  printf("ipMapArpRecvIP = %p\r\n", ipMapArpRecvIP);
++  printf("ipMapRecvIP    = %p\r\n", ipMapRecvIP);
+ #endif
+-  printf("common_aps_ccm_packetRx_callback= 0x%08x\r\n", (L7_uint32) common_aps_ccm_packetRx_callback);
+ 
+   return L7_SUCCESS;
+ }
+ #endif
+ 
+ /**********
+Index: src/system_support/base/network/traceroute/traceroute.c
+===================================================================
+--- src/system_support/base/network/traceroute/traceroute.c	(revision 7768)
++++ src/system_support/base/network/traceroute/traceroute.c	(working copy)
+@@ -74,13 +74,13 @@ static L7_RC_t traceRouteTimeUSecElapsed
+         L7_clocktime *start, L7_uint32 *elapsedTime );
+ 
+ /* Number of outstanding traceroute requests */
+ static L7_uint32 traceRouteCount;
+ 
+ /* Task-Id for task processing ASYNC reqeusts */
+-static L7_uint32 traceRouteAsyncTaskId;
++static L7_uint64 traceRouteAsyncTaskId;
+ 
+ /* Table containing traceroute sessions */
+ traceRouteTable_t   *traceRouteTable_g;
+ 
+ /* Lock to control access to traceRouteTable_g*/
+ osapiRWLock_t        traceRouteLock_g;
+@@ -442,13 +442,13 @@ traceRouteASyncTask( void *param )
+     L7_uint32 timeoutSecs;
+     L7_uint32 timeoutUSecs;
+     L7_ushort16 i;
+     L7_uint32 elapsedTime;
+     L7_ushort16 maxFd;
+     traceRouteTable_t *traceEntry;
+-    L7_uint32 tmpTaskId;
++    L7_uint64 tmpTaskId;
+     L7_int32 error = 0;
+ 
+     osapiWriteLockTake( traceRouteLock_g, L7_WAIT_FOREVER );
+     /* Be in the loop until all the ASYNC traceroute sessions are done */
+     while ( 1 )
+     {
+Index: src/system_support/base/network/traceroute/traceroute_debug.c
+===================================================================
+--- src/system_support/base/network/traceroute/traceroute_debug.c	(revision 7768)
++++ src/system_support/base/network/traceroute/traceroute_debug.c	(working copy)
+@@ -82,13 +82,13 @@ dbgTraceRouteCallback( void *param, L7_u
+         L7_ushort16 probeCount, L7_uint32 rtt, L7_char8 errSym )
+ {
+   static L7_uint32 lastIpAddr = 0;
+   L7_uchar8  buff[L7_CLI_MAX_STRING_LENGTH];
+   L7_uchar8  ipBuff[L7_CLI_MAX_STRING_LENGTH];
+   L7_uchar8  tmpBuff[L7_CLI_MAX_STRING_LENGTH];
+-  L7_uint32 probePerHop = (L7_uint32)param;
++  L7_uint32 probePerHop = PTR_TO_UINT32(param);
+ 
+   buff[0] = '\0';
+   if ( probeCount == 1 )
+   {
+     lastIpAddr = ipDa;
+     osapiInetNtoa( ipDa, tmpBuff );
+@@ -142,13 +142,13 @@ dbgTraceRouteExec( L7_BOOL mode, L7_uint
+     L7_uchar8 name[10];
+     static L7_uint32 sessionNum = 0;
+ 
+     sprintf( name, "%d", sessionNum++ );
+ 
+     rc = traceRouteAlloc( "dbgTraceRoute", name, mode, 
+-            (traceRouteCallback)dbgTraceRouteCallback, (void *)probeCount, 
++            (traceRouteCallback)dbgTraceRouteCallback, UINT_TO_PTR(probeCount), 
+             handle );
+ 
+     if ( rc == L7_SUCCESS )
+     {
+         dbgTraceRoutePrintf( SYSAPI_APPLICATION_LOGGING_ALWAYS, 
+                 "Handle for session is 0x%x\n", *handle );
+@@ -471,13 +471,13 @@ dbgTraceRouteWalkRespTable( void )
+ void
+ dbgTraceRouteSync( L7_uchar8 *argv[], L7_uint32 argc )
+ {
+     L7_RC_t rc;
+     L7_uint32 addr;
+     L7_ushort16 probes, interval, port, maxTtl, initTtl, handle;
+-    L7_uint32 taskId;
++    L7_uint64 taskId;
+     unsigned char *ipAddr[] = {   "127.0.0.1",
+                             "172.22.75.80",
+                             "172.22.64.8",
+                             "172.22.192.8"
+     };
+ 
+@@ -596,13 +596,13 @@ dbgTraceRouteShowTable( void )
+ void
+ dbgTraceRouteRandom( int count )
+ {
+     L7_ushort16 handle;
+     L7_uint32 iterations = 0;
+     void *rxArgs[1];
+-    L7_uint32 taskHandle;
++    L7_uint64 taskHandle;
+     L7_uint32 oper;
+ 
+     while ( count != 0 )
+     {
+         oper = rand() & 0x3;
+ 
+Index: src/system_support/base/system/base/hpc_util.c
+===================================================================
+--- src/system_support/base/system/base/hpc_util.c	(revision 7768)
++++ src/system_support/base/system/base/hpc_util.c	(working copy)
+@@ -1415,13 +1415,13 @@ void hpcDebugRemoteDevshellTask(void *ar
+ }
+ 
+ void hpcDebugRemoteDevshellCb(L7_enetMacAddr_t src_key,
+                               L7_uchar8* buffer, L7_uint32 msg_len)
+ {
+   void *command_text;
+-  L7_uint32 thread_id;
++  L7_uint64 thread_id;
+ 
+   /* do some checks, reserve the last byte of command_text to hold \0 */
+   if (RMT_DEVSHELL_CMD_MAX_LENGTH < msg_len)
+   {
+     sysapiPrintf("hpcDebugRemoteDevshellCb(): received message too long.\n");
+     return;
+Index: src/system_support/base/system/base/nvstore.c
+===================================================================
+--- src/system_support/base/system/base/nvstore.c	(revision 7768)
++++ src/system_support/base/system/base/nvstore.c	(working copy)
+@@ -33,14 +33,14 @@
+ #include "l7_cnfgr_api.h"
+ 
+ /* for nvStoreDebugDataChanged function*/
+ #include "usmdb_cnfgr_api.h"
+ 
+ extern void sysapiUncombinedCfgRemove(void);
+-extern int tEmWebTid;
+-extern int umRunCfgDlTaskId;
++extern L7_uint64 tEmWebTid;
++extern L7_uint64 umRunCfgDlTaskId;
+ 
+ 
+ /* L7_TRUE when the user has made configuration changes that have not yet been
+  * saved in the startup config. This boolean is necessary because the components'
+  * hasDataChanged flags get reset when the running configuration is saved.
+  * But we need to be able to prompt the user when he might want to save the
+@@ -206,13 +206,13 @@ L7_RC_t nvStoreSave_emWebContext_Request
+  *
+  * @end
+  *********************************************************************/
+ L7_RC_t nvStoreSave(L7_SAVE_CONFIG_TYPE_t generateConfig)
+ {
+   L7_uint32 i;
+-  L7_int32 taskID;
++  L7_uint64 taskID;
+   L7_RC_t   rc = L7_SUCCESS;
+ 
+   nvStoreSaveCfgEvent_t event = REMOTE_SAVE_CFG_SUCCESS;
+   isSaveConfigComplete = L7_FALSE;
+ 
+   if ((L7_SAVE_CONFIG_TYPE_STARTUP == generateConfig) ||
+@@ -610,13 +610,13 @@ L7_RC_t nvStoreConfigDump(void)
+   L7_uint32 i, count = 0;
+ 
+   for (i = 0; i < (L7_uint32)L7_LAST_COMPONENT_ID; i++)
+   {
+     if (nvStoreNotifyList[i].registrar_ID != 0)
+     {
+-      if ((L7_uint32)nvStoreNotifyList[i].notifyConfigDump != L7_NULL)
++      if (nvStoreNotifyList[i].notifyConfigDump != L7_NULLPTR)
+       {
+         if ((*nvStoreNotifyList[i].notifyConfigDump)() != L7_SUCCESS)
+         {
+           L7_RC_t rc;
+           L7_char8 name[L7_COMPONENT_NAME_MAX_LEN];
+ 
+@@ -654,13 +654,13 @@ L7_RC_t nvStoreDebugDump(void)
+   L7_uint32 i, count = 0;
+ 
+   for (i = 0; i < L7_LAST_COMPONENT_ID; i++)
+   {
+     if (nvStoreNotifyList[i].registrar_ID != 0)
+     {
+-      if ((L7_uint32)nvStoreNotifyList[i].notifyDebugDump != L7_NULL)
++      if (nvStoreNotifyList[i].notifyDebugDump != L7_NULLPTR)
+       {
+         if ((*nvStoreNotifyList[i].notifyDebugDump)() != L7_SUCCESS)
+         {
+           L7_RC_t rc;
+           L7_char8 name[L7_COMPONENT_NAME_MAX_LEN];
+ 
+@@ -777,13 +777,13 @@ L7_RC_t nvStoreGetFile(L7_char8 *fileNam
+     L7_uint32 *checkSum, L7_uint32 version, void (*defaultBuild)(L7_uint32))
+ {
+   L7_uint32 chkSum;
+ 
+   if (osapiFsRead(fileName, buffer, (L7_int32)bufferSize) == L7_ERROR)
+   {
+-    if ((L7_uint32)defaultBuild == L7_NULL)
++    if (defaultBuild == L7_NULLPTR)
+     {
+       return(L7_FAILURE);
+     }
+ 
+     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_SIM_COMPONENT_ID, "Building defaults for file %s."
+             " A component's configuration file does not exist or the file's checksum is incorrect"
+@@ -808,13 +808,13 @@ L7_RC_t nvStoreGetFile(L7_char8 *fileNam
+     {
+       L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_SIM_COMPONENT_ID, "File %s corrupted from file system.  "
+                     "Checksum mismatch. The calculated checksum of a component's configuration file in "
+                     "the file system did not match the checksum of the file in memory.\n", fileName);
+ 
+ 
+-      if ((L7_uint32)defaultBuild == L7_NULL)
++      if (defaultBuild == L7_NULLPTR)
+       {
+         return(L7_FAILURE);
+       }
+ 
+       L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_SIM_COMPONENT_ID, "Building defaults for file %s. A component's "
+                             "configuration file does not exist or the file's checksum is incorrect so the "
+Index: src/system_support/base/system/base/registry.c
+===================================================================
+--- src/system_support/base/system/base/registry.c	(revision 7768)
++++ src/system_support/base/system/base/registry.c	(working copy)
+@@ -27,13 +27,13 @@
+ #include "registry.h"
+ #include "osapi.h"
+ 
+ typedef struct registry_entity_t
+ {
+   L7_uint32 type;       /* see reg_entry_type */
+-  L7_uint32 ptr_val;
++  L7_uint64 ptr_val;
+ } REGISTRY_ENTITY;
+ 
+ static REGISTRY_ENTITY *pRegistry;
+ 
+ /**************************************************************************
+ * @purpose  Initialize the system Registry
+@@ -110,18 +110,22 @@ L7_RC_t sysapiRegistryGet(registry_t reg
+     break;
+ 
+   case U32_ENTRY:
+     *( L7_uint32 * )buffer =  ( L7_uint32 )entp->ptr_val;
+     break;
+ 
++  case U64_ENTRY:
++    *( L7_uint64 * )buffer =  ( L7_uint64 )entp->ptr_val;
++    break;
++
+   case MAC_ENTRY:
+-    memcpy (buffer, (void *)entp->ptr_val, 6);
++    memcpy (buffer, (void *) UINT_TO_PTR(entp->ptr_val), 6);
+     break;
+ 
+   case STR_ENTRY:
+-    strcpy ((char *)buffer, (char *)entp->ptr_val );
++    strcpy ((char *)buffer, (char *) UINT_TO_PTR(entp->ptr_val) );
+     break;
+ 
+   case SLOT_ENTRY:
+     *( L7_uint32 * )buffer =  ( L7_uint32 )entp->ptr_val;
+     break;
+ 
+@@ -175,22 +179,26 @@ L7_RC_t sysapiRegistryPut(registry_t reg
+     break;
+ 
+   case U32_ENTRY:
+     entp->ptr_val = *( L7_uint32 * )buffer;
+     break;
+ 
++  case U64_ENTRY:
++    entp->ptr_val = *( L7_uint64 * )buffer;
++    break;
++
+   case MAC_ENTRY:
+-    entp->ptr_val = (L7_uint32)osapiMalloc( L7_SIM_COMPONENT_ID, 6 );
++    entp->ptr_val = PTR_TO_UINT64(osapiMalloc( L7_SIM_COMPONENT_ID, 6 ));
+     if ( entp->ptr_val != L7_NULL )
+-      memcpy ((void *)entp->ptr_val, buffer, 6);
++      memcpy ((void *) UINT_TO_PTR(entp->ptr_val), buffer, 6);
+     break;
+ 
+   case STR_ENTRY:
+-    entp->ptr_val = (L7_uint32)osapiMalloc (L7_SIM_COMPONENT_ID, strlen ( (char *)buffer ) + 1 );
++    entp->ptr_val = PTR_TO_UINT64(osapiMalloc (L7_SIM_COMPONENT_ID, strlen ( (char *)buffer ) + 1 ));
+     if ( entp->ptr_val != L7_NULL )
+-      strcpy ( (char *)entp->ptr_val, (char *)buffer );
++      strcpy ( (char *) UINT_TO_PTR(entp->ptr_val), (char *)buffer );
+     break;
+ 
+   case SLOT_ENTRY:
+     entp->ptr_val = *( L7_uint32 * )buffer;
+     break;
+ 
+Index: src/system_support/base/system/base/sysapi.c
+===================================================================
+--- src/system_support/base/system/base/sysapi.c	(revision 7768)
++++ src/system_support/base/system/base/sysapi.c	(working copy)
+@@ -76,16 +76,16 @@ static L7_BOOL sysapiTxtCfgExists = L7_F
+ static L7_BOOL sysapiTxtCfgEnable = L7_FALSE;
+ static L7_BOOL sysapiTxtCfgValid = L7_FALSE;
+ 
+ /*************************************
+  * Mbuf Queue declarations
+  *************************************/
+-L7_uint32 *pMbufQTop;      /* top of queue */
+-L7_uint32 *pMbufQBot;      /* bottom of queue */
+-L7_uint32 *MbufQHead;
+-L7_uint32 *MbufQTail;
++L7_uint64 *pMbufQTop;      /* top of queue */
++L7_uint64 *pMbufQBot;      /* bottom of queue */
++L7_uint64 *MbufQHead;
++L7_uint64 *MbufQTail;
+ L7_uint32 MbufsFree;
+ L7_uint32 MbufsRxUsed;
+ L7_uint32 MbufsMaxFree;
+ void      *MbufSema;
+ void      *pMbufPool;
+ 
+@@ -98,13 +98,13 @@ void      *pMbufPool;
+ /*  System config mgmt parms */
+ SYSAPI_DIRECTORY_CFG_t *pSysapiCfgTree[SYSAPI_MAX_FILE_ENTRIES];
+ void * sysapiCfgSema = NULL;
+ 
+ /* Static Declarations */
+ 
+-static L7_int32 sysapiTimerTaskID = L7_NULL;
++static L7_uint64 sysapiTimerTaskID = L7_NULL;
+ static void *sysapiWriteToFlashSema = L7_NULL;
+ static L7_SAVE_CONFIG_CODE_t savingConfigToFlashStatus=L7_SAVE_CONFIG_CODE_NONE;
+ 
+ static L7_RC_t sysapiCfgFileSeparate(L7_char8 *cfgFile);
+ static L7_RC_t sysapiCfgFileSeparateFilesV1(L7_int32 file_desc, L7_int32 total_length);
+ static L7_RC_t sysapiCfgFileSeparateFilesV2(L7_int32 file_desc, L7_int32 total_length);
+@@ -354,13 +354,13 @@ L7_RC_t sysapiSystemInit(void)
+   mbufHistory = NULL;    /* Allocated on demand */
+ #endif
+ 
+   /********************************************************
+    * Allocate the "mbuf" Queue. Each entry is a 32 bit ptr
+    *********************************************************/
+-  pMbufQTop = ( L7_uint32 * )osapiMalloc ( L7_SIM_COMPONENT_ID, L7_MAX_NETWORK_BUFF_PER_BOX * 4 );
++  pMbufQTop = ( L7_uint64 * )osapiMalloc ( L7_SIM_COMPONENT_ID, L7_MAX_NETWORK_BUFF_PER_BOX * sizeof(L7_uint64) );
+   if ( pMbufQTop == L7_NULLPTR )
+     return(L7_ERROR);
+ 
+   /***************************************************
+    * Initialize the "mbuf" Queue and counter.
+    ****************************************************/
+@@ -369,13 +369,13 @@ L7_RC_t sysapiSystemInit(void)
+   MbufsMaxFree = L7_MAX_NETWORK_BUFF_PER_BOX;
+   MbufsFree = MbufsMaxFree;
+   MbufsRxUsed = 0;
+ 
+   for ( i=0;i<MbufsMaxFree;i++ )
+   {
+-    *MbufQHead = ( L7_uint32 ) ( (L7_uchar8 *)pMbufPool + i * ( temp32 ));
++    *MbufQHead = PTR_TO_UINT64( (L7_uchar8 *)pMbufPool + i * ( temp32 ));
+     MbufQHead++;
+   }
+   pMbufQBot = --MbufQHead;            /* set bottom of queue ptr */
+   MbufQHead = pMbufQTop;              /* reset head ptr to top */
+ 
+ 
+@@ -1494,13 +1494,13 @@ static L7_RC_t sysapiCfgFileBuildDefault
+     L7_char8 *buffer, L7_uint32 bufferSize,
+     L7_uint32 *checkSum, L7_uint32 version,
+     void (*defaultBuild)(L7_uint32))
+ {
+   L7_fileHdr_t *pFileHdr;
+ 
+-  if ((L7_uint32)defaultBuild == L7_NULL)
++  if (defaultBuild == L7_NULLPTR)
+   {
+     return L7_FAILURE;
+   }
+ 
+   if(sysapiTxtCfgEnable == L7_FALSE)
+   {
+@@ -1629,13 +1629,13 @@ L7_RC_t sysapiCfgFileGetImpl(L7_COMPONEN
+ 
+     savedVersion = ((L7_fileHdr_t *)buffer)->version;
+     /*check for version mismatch*/
+     if ((savedVersion != version) || (fileSize != bufferSize))
+     {
+       /*call migrate function*/
+-      if ((L7_uint32)migrateBuild == L7_NULL)
++      if (migrateBuild == L7_NULLPTR)
+       {
+         buildDefaultFile = L7_TRUE;
+       }
+       else
+       {
+         if(savedVersion == version)
+Index: src/system_support/base/system/base/sysapi_cputil.c
+===================================================================
+--- src/system_support/base/system/base/sysapi_cputil.c	(revision 7768)
++++ src/system_support/base/system/base/sysapi_cputil.c	(working copy)
+@@ -70,13 +70,13 @@ L7_BOOL sysapiCpuUtilMonitorSuspended =
+ *********************************************************************/
+ void sysapiCpuUtilLockTake(void)
+ {
+   if (osapiSemaTake(sysapiCpuUtilTblSema, L7_WAIT_FOREVER) != L7_SUCCESS)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_OSAPI_COMPONENT_ID,
+-            "Failed to take cpuUtilSema %x\n", sysapiCpuUtilTblSema);
++            "Failed to take cpuUtilSema %p\n", sysapiCpuUtilTblSema);
+   }
+ }
+ 
+ 
+ /*********************************************************************
+ * @purpose   Give the cpu utilization table lock
+@@ -92,13 +92,13 @@ void sysapiCpuUtilLockTake(void)
+ *********************************************************************/
+ void sysapiCpuUtilLockGive(void)
+ {
+   if (osapiSemaGive(sysapiCpuUtilTblSema) != L7_SUCCESS)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_OSAPI_COMPONENT_ID,
+-            "Failed to give cpuUtilSema %x\n", sysapiCpuUtilTblSema);
++            "Failed to give cpuUtilSema %p\n", sysapiCpuUtilTblSema);
+   }
+ }
+ 
+ 
+ /*********************************************************************
+ * @purpose  Arrange the utilization time periods in sorted order for 
+@@ -257,13 +257,13 @@ L7_RC_t sysapiTaskCpuUtilTablePeriodRemo
+ *
+ * @comments none
+ *
+ * @end
+ *
+ *********************************************************************/
+-L7_uint32 sysapiTaskCpuUtilTableInsert(L7_int32 taskId)
++L7_uint32 sysapiTaskCpuUtilTableInsert(L7_uint64 taskId)
+ {
+   L7_uint32 taskIdx = sysapiTaskCpuUtilTableNumEntries;
+   L7_uint32 periodIdx;
+ 
+   sysapiTaskCpuUtilTable[taskIdx].taskId = taskId;
+ 
+@@ -337,13 +337,13 @@ void sysapiTaskCpuUtilTableSort()
+ * @comments Search uses binary search (instead of sequential)
+ *           to save cycles.
+ *
+ * @end
+ *
+ *********************************************************************/
+-L7_BOOL sysapiTaskCpuUtilTableFind(L7_int32 taskId, L7_uint32 *index)
++L7_BOOL sysapiTaskCpuUtilTableFind(L7_uint64 taskId, L7_uint32 *index)
+ {
+   L7_int32 i;
+   L7_int32 l = -1;
+   L7_int32 r = sysapiTaskCpuUtilTableNumEntries;     /* l and r are beyond the bounds of list */
+ 
+   /* binary search the list */
+@@ -454,13 +454,13 @@ void sysapiTaskCpuUtilUpdate(L7_uint32 t
+       sysapiTaskCpuUtilTable[taskIdx].periodInfo[periodIdx].expMovingAvg = scaledUtil;
+     }
+ 
+     if (sysapiTaskCpuUtilTable[taskIdx].periodInfo[periodIdx].expMovingAvg  < 0)
+     {
+       L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_OSAPI_COMPONENT_ID,
+-              "Total CPU Utilization %d for period %d task %x has become negative."
++              "Total CPU Utilization %d for period %d task %llx has become negative."
+               " Resettting it to 0\n",
+               sysapiTaskCpuUtilTable[taskIdx].periodInfo[periodIdx].expMovingAvg,
+               sysapiTaskCpuUtilTable[taskIdx].periodInfo[periodIdx].timePeriod,
+               sysapiTaskCpuUtilTable[taskIdx].taskId);
+       sysapiTaskCpuUtilTable[taskIdx].periodInfo[periodIdx].expMovingAvg = 0;
+     }
+@@ -1481,13 +1481,13 @@ L7_uint32 sysapiTotalCpuUtilGet (cpuPeri
+ *********************************************************************/
+ L7_RC_t sysapiCpuUtilTaskStart ()
+ {
+   L7_RC_t   rc = L7_SUCCESS;
+ 
+ #ifndef L7_PRODUCT_SMARTPATH
+-  L7_int32  cpuUtilMonitorTaskPtr;
++  L7_uint64 cpuUtilMonitorTaskPtr;
+   L7_uint32 totalPeriods;
+   L7_uint32 argv[2];
+ 
+   do
+   {
+ 
+Index: src/system_support/base/system/base/sysapi_if_net.c
+===================================================================
+--- src/system_support/base/system/base/sysapi_if_net.c	(revision 7768)
++++ src/system_support/base/system/base/sysapi_if_net.c	(working copy)
+@@ -36,16 +36,16 @@
+ #include "rlim_api.h"
+ #include "ptin_globaldefs.h"
+ 
+ /*************************************
+ * Mbuf Queue declarations
+ *************************************/
+-extern L7_uint32 *pMbufQTop;     /* top of queue */
+-extern L7_uint32 *pMbufQBot;     /* bottom of queue */
+-extern L7_uint32 *MbufQHead;
+-extern L7_uint32 *MbufQTail;
++extern L7_uint64 *pMbufQTop;     /* top of queue */
++extern L7_uint64 *pMbufQBot;     /* bottom of queue */
++extern L7_uint64 *MbufQHead;
++extern L7_uint64 *MbufQTail;
+ extern L7_uint32 MbufsFree;
+ extern L7_uint32 MbufsRxUsed;
+ extern L7_uint32 MbufsMaxFree;
+ extern void      *MbufSema;
+ extern void      *pMbufPool;
+ 
+@@ -230,15 +230,15 @@ void mbufHistoryDump(void *p)
+   for (i = 0; i < mbuf_history_size; i++)
+   {
+     if (mbufHistory[index].mbuf_ptr)
+     {
+       if (!p || (p == mbufHistory[index].mbuf_ptr))
+       {
+-        printf("\n%10u         %#10x     %6s       %16s      %u",
++        printf("\n%10u         %p     %6s       %16s      %u",
+                mbufHistory[index].timestamp,
+-               (L7_uint32) mbufHistory[index].mbuf_ptr,
++               mbufHistory[index].mbuf_ptr,
+                (mbufHistory[index].mbufAction == MBUF_ALLOC) ? "Alloc" : "Free",
+                mbufHistory[index].alloc_file,
+                mbufHistory[index].alloc_line);
+       }
+     }
+     index++;
+@@ -304,14 +304,14 @@ void sysapiMbufDump(L7_int32 show_bufs)
+     for (i = 0; i < MbufsMaxFree; i++)
+     {
+       netMbufHandle = (SYSAPI_NET_MBUF_HEADER_t *)((L7_char8 *)pMbufPool + (i * mbufSize));
+ 
+       if (netMbufHandle->bufStart != L7_NULL)
+       {
+-        printf("Mbuf 0x%x (inUse=%s) at %s alloc (rxBuffer=%s) by task 0x%x in %s:%u at %u secs\n",
+-               (L7_uint32)netMbufHandle,
++        printf("Mbuf %p (inUse=%s) at %s alloc (rxBuffer=%s) by task 0x%llx in %s:%u at %u secs\n",
++               netMbufHandle,
+                netMbufHandle->in_use?"Yes":"False",
+                mbufLocNames[netMbufHandle->mbufLoc],
+                netMbufHandle->rxBuffer?"True":"False",
+                netMbufHandle->taskId,
+                netMbufHandle->last_file,
+                netMbufHandle->last_line,
+@@ -347,15 +347,15 @@ void sysapiMbufDump(L7_int32 show_bufs)
+ * @returns  L7_NULL if none are available
+ *
+ * @comments    Use the Mutex semaphore to inhibit global variable corruption
+ *
+ * @end
+ *************************************************************************/
+-L7_uint32 *sysapiMbufGet(L7_BOOL isRx)
++L7_uint64 *sysapiMbufGet(L7_BOOL isRx)
+ {
+-  L7_uint32 buffer;
++  L7_uint64 buffer;
+ 
+   SYSAPI_MBUF_LOCK();
+ 
+   if ( MbufsFree != 0 )
+   {
+     buffer = *MbufQHead;
+@@ -365,22 +365,22 @@ L7_uint32 *sysapiMbufGet(L7_BOOL isRx)
+       MbufQHead++;        /* move the Q head ptr */
+     MbufsFree--;         /* keep track...       */
+ 
+     if (isRx)
+       MbufsRxUsed++;
+ 
+-    ((SYSAPI_NET_MBUF_HEADER_t *)buffer)->in_use = L7_TRUE;
++    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(buffer))->in_use = L7_TRUE;
+   }
+   else
+   {
+     buffer = L7_NULL;
+   }
+ 
+   SYSAPI_MBUF_UNLOCK();
+ 
+-  return( ( L7_uint32 * )buffer );
++  return( ( L7_uint64 * ) UINT_TO_PTR(buffer) );
+ }
+ 
+ /**************************************************************************
+ * @purpose  Return an mbuf to the mbuf pool
+ *
+ * @param    *mbuf ptr to the mbuf to return
+@@ -389,17 +389,17 @@ L7_uint32 *sysapiMbufGet(L7_BOOL isRx)
+ * @returns  none.
+ *
+ * @comments    Use the Mutex semaphore to inhibit global variable corruption
+ *
+ * @end
+ *************************************************************************/
+-void sysapiMbufFree(  L7_uint32 *mbuf, L7_BOOL isRx )
++void sysapiMbufFree(  L7_uint64 *mbuf, L7_BOOL isRx )
+ {
+   SYSAPI_MBUF_LOCK();
+ 
+-  *MbufQTail = ( L7_uint32 )mbuf;
++  *MbufQTail = PTR_TO_UINT64(mbuf);
+   if ( MbufQTail >= pMbufQBot )
+     MbufQTail = pMbufQTop;    /* wrap the Q tail ptr */
+   else
+     MbufQTail++;        /* move the Q tail ptr */
+   
+   if (isRx)
+@@ -448,13 +448,13 @@ void sysapiMbufFree(  L7_uint32 *mbuf, L
+ *************************************************************************/
+ L7_netBufHandle sysapiNetMbufGetTrack(L7_uchar8 *file, L7_uint32 line)
+ {
+   SYSAPI_NET_MBUF_HEADER_t *netMbufHandle = 0;
+ 
+   /* get the MBUF */
+-  netMbufHandle = (SYSAPI_NET_MBUF_HEADER_t *)sysapiNetMbufGet();
++  netMbufHandle = (SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(sysapiNetMbufGet());
+ 
+   /* store tracking information */
+   if(netMbufHandle)
+   {
+     l7utilsFilenameStrip((L7_char8 **)&file);
+     osapiStrncpySafe(netMbufHandle->last_file, file, sizeof(netMbufHandle->last_file));
+@@ -473,13 +473,13 @@ L7_netBufHandle sysapiNetMbufGetTrack(L7
+       mbufHistoryIndexInc();    /* increment with wrap */
+     }
+     osapiSemaGive(MbufSema);
+ #endif
+   }
+ 
+-  return((L7_uint32)netMbufHandle);
++  return(PTR_TO_UINT64(netMbufHandle));
+ }
+ 
+ /**************************************************************************
+ *
+ * @purpose  Retrieve a network rx mbuf to the caller (and track the caller)
+ *
+@@ -496,13 +496,13 @@ L7_netBufHandle sysapiNetMbufGetTrack(L7
+ *************************************************************************/
+ L7_netBufHandle sysapiNetRxMbufGetTrack(L7_uchar8 *file, L7_uint32 line, L7_MBUF_RX_PRIORITY priority, L7_MBUF_ALIGNMENT  alignType)
+ {
+   SYSAPI_NET_MBUF_HEADER_t *netMbufHandle = 0;
+ 
+   /* get the MBUF */
+-  netMbufHandle = (SYSAPI_NET_MBUF_HEADER_t *)sysapiRxNetMbufGet(priority, alignType);
++  netMbufHandle = (SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(sysapiRxNetMbufGet(priority, alignType));
+ 
+   /* store tracking information */
+   if(netMbufHandle)
+   {
+     l7utilsFilenameStrip((L7_char8 **)&file);
+     osapiStrncpySafe(netMbufHandle->last_file, file, sizeof(netMbufHandle->last_file));
+@@ -521,13 +521,13 @@ L7_netBufHandle sysapiNetRxMbufGetTrack(
+       mbufHistoryIndexInc();    /* increment with wrap */
+     }
+     osapiSemaGive(MbufSema);
+ #endif
+   }
+ 
+-  return((L7_uint32)netMbufHandle);
++  return(PTR_TO_UINT64(netMbufHandle));
+ }
+ 
+ /**************************************************************************
+ * @purpose  Retrieve a network mbuf to the caller
+ *
+ * @param    none.
+@@ -549,13 +549,13 @@ L7_netBufHandle sysapiNetMbufGet( void )
+   netMbufHandle = (SYSAPI_NET_MBUF_HEADER_t *)sysapiMbufGet(isRx);
+   if (netMbufHandle != L7_NULL)
+   {
+     netMbufHandle->bufStart  = (L7_uchar8 *)netMbufHandle + sizeof(SYSAPI_NET_MBUF_HEADER_t) +
+                                 NET_MBUF_START_OFFSET;
+ 
+-    netMbufHandle->bufStart = (L7_char8 *)SYSAPI_BUF_ALIGN(netMbufHandle->bufStart,L7_MBUF_ALIGN_BOUND);
++    netMbufHandle->bufStart = (L7_char8 *)UINT_TO_PTR(SYSAPI_BUF_ALIGN(netMbufHandle->bufStart,L7_MBUF_ALIGN_BOUND));
+ 
+     netMbufHandle->bufLength = 0;
+     netMbufHandle->osBuffer  = L7_NULL;
+     netMbufHandle->taskId    = osapiTaskIdSelf();
+     netMbufHandle->timeStamp = osapiUpTimeRaw();
+     netMbufHandle->rxBuffer  = L7_FALSE;
+@@ -567,13 +567,13 @@ L7_netBufHandle sysapiNetMbufGet( void )
+   }
+   else
+   {
+     mbuf_stats.alloc_tx_failures++;
+   }
+ 
+-  return((L7_uint32)netMbufHandle);
++  return(PTR_TO_UINT64(netMbufHandle));
+ }
+ 
+ /**************************************************************************
+ * @purpose  Retrieve a network mbuf to the caller, for use on receiving packets
+ *
+ * @param    L7_MBUF_RX_PRIORITY priority
+@@ -699,13 +699,13 @@ L7_netBufHandle sysapiRxNetMbufGet( L7_M
+   }
+ 
+   mbufPtr = (SYSAPI_NET_MBUF_HEADER_t *)sysapiMbufGet(is_rx);
+   if ( mbufPtr != L7_NULL)
+   {
+      mbufPtr->bufStart  = (L7_uchar8 *)mbufPtr + sizeof(SYSAPI_NET_MBUF_HEADER_t) + NET_MBUF_START_OFFSET;
+-     mbufPtr->bufStart = (L7_uchar8 *)SYSAPI_BUF_ALIGN(mbufPtr->bufStart,L7_MBUF_ALIGN_BOUND);
++     mbufPtr->bufStart = (L7_uchar8 *)UINT_TO_PTR(SYSAPI_BUF_ALIGN(mbufPtr->bufStart,L7_MBUF_ALIGN_BOUND));
+ 
+      if(alignType ==  L7_MBUF_IP_CORRECTION)
+      {
+        mbufPtr->bufStart  += L7_MBUF_IP_CORRECTION;    /* Compensate for ipheader offset */
+      }
+ 
+@@ -716,13 +716,13 @@ L7_netBufHandle sysapiRxNetMbufGet( L7_M
+      mbufPtr->mbufLoc = MBUF_LOC_ALLOC;
+      mbufPtr->rxBuffer = L7_TRUE;
+   }
+ 
+   osapiSemaGive(MbufSema);
+ 
+-  return (L7_netBufHandle)mbufPtr;
++  return (L7_netBufHandle) PTR_TO_UINT64(mbufPtr);
+ }
+ 
+ /**************************************************************************
+ * @purpose  Retrieve an aligned network mbuf to the caller
+ *
+ * @param    align   @b{(input)}  Alignment indicator, for IP or frame
+@@ -737,13 +737,13 @@ L7_netBufHandle sysapiRxNetMbufGet( L7_M
+ L7_netBufHandle sysapiNetMbufAlignGet(L7_uchar8 *file, L7_uint32 line,
+                                       L7_MBUF_ALIGNMENT alignType)
+ {
+   SYSAPI_NET_MBUF_HEADER_t *netMbufHandle = 0;
+ 
+   /* get the MBUF */
+-  netMbufHandle = (SYSAPI_NET_MBUF_HEADER_t *)sysapiNetMbufGet();
++  netMbufHandle = (SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(sysapiNetMbufGet());
+ 
+   /* store tracking information */
+   if(netMbufHandle)
+   {
+     if (L7_MBUF_IP_ALIGNED == alignType)
+     {
+@@ -767,13 +767,13 @@ L7_netBufHandle sysapiNetMbufAlignGet(L7
+       mbufHistoryIndexInc();    /* increment with wrap */
+     }
+     osapiSemaGive(MbufSema);
+ #endif
+   }
+ 
+-  return((L7_uint32)netMbufHandle);
++  return(PTR_TO_UINT64(netMbufHandle));
+ }
+ 
+ /**************************************************************************
+ * @purpose  Free a network mbuf
+ *
+ * @param    Ptr to network mbuf handle
+@@ -788,32 +788,32 @@ void sysapiNetMbufFree( L7_netBufHandle
+ {
+   L7_BOOL isRx = L7_FALSE;
+ 
+   osapiSemaTake(MbufSema, L7_WAIT_FOREVER);
+   if (netMbufHandle != L7_NULL)
+   {
+-    if (((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer != L7_NULL)
++    if (((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->osBuffer != L7_NULL)
+     {
+-      osapiNetMbufFree ((void *)((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer);
++      osapiNetMbufFree ((void *)((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->osBuffer);
+     }
+     
+-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufStart  = L7_NULL;
+-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufLength = 0;
+-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer  = L7_NULL;
+-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->taskId    = 0;
+-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->timeStamp = 0;
+-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->in_use    = L7_FALSE;
+-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->mbufLoc   = MBUF_LOC_FREE;
++    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufStart  = L7_NULL;
++    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufLength = 0;
++    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->osBuffer  = L7_NULL;
++    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->taskId    = 0;
++    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->timeStamp = 0;
++    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->in_use    = L7_FALSE;
++    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->mbufLoc   = MBUF_LOC_FREE;
+ 
+-    if (((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->rxBuffer == L7_TRUE)
++    if (((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->rxBuffer == L7_TRUE)
+     {
+       isRx = L7_TRUE;     
+-      ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->rxBuffer = L7_FALSE;
++      ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->rxBuffer = L7_FALSE;
+     }
+     
+-    sysapiMbufFree ((L7_uint32 *)netMbufHandle, isRx);
++    sysapiMbufFree ((L7_uint64 *) UINT_TO_PTR(netMbufHandle), isRx);
+   }
+   osapiSemaGive(MbufSema);
+ }
+ 
+ /**************************************************************************
+ * @purpose  Free a network mbuf with debug information.
+@@ -827,13 +827,13 @@ void sysapiNetMbufFree( L7_netBufHandle
+ * @end
+ *************************************************************************/
+ void sysapiNetMbufFreeTrack( L7_netBufHandle netMbufHandle, L7_uchar8 *file, L7_uint32 line)
+ {
+   SYSAPI_NET_MBUF_HEADER_t  *header;
+ 
+-  header = (SYSAPI_NET_MBUF_HEADER_t *) netMbufHandle;
++  header = (SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle);
+ 
+   if (header->in_use == L7_FALSE)
+   {
+     L7_LOG_ERROR(netMbufHandle);
+   }
+ 
+@@ -843,13 +843,13 @@ void sysapiNetMbufFreeTrack( L7_netBufHa
+   header->mbufLoc = MBUF_LOC_FREE;
+ 
+ #ifdef MBUF_HISTORY
+   osapiSemaTake(MbufSema, L7_WAIT_FOREVER);
+   if (mbufHistory)
+   {
+-    mbufHistory[historyIndex].mbuf_ptr = (void*) netMbufHandle;
++    mbufHistory[historyIndex].mbuf_ptr = UINT_TO_PTR(netMbufHandle);
+     mbufHistory[historyIndex].mbufAction = MBUF_FREE;
+     mbufHistory[historyIndex].timestamp = osapiTimeMillisecondsGet();
+     osapiStrncpySafe(mbufHistory[historyIndex].alloc_file, file, MBUF_HISTORY_FILENAME_LEN);
+     mbufHistory[historyIndex].alloc_line = line;
+     mbufHistoryIndexInc();    /* increment with wrap */
+   }
+@@ -873,13 +873,13 @@ void sysapiNetMbufFreeTrack( L7_netBufHa
+ * @end
+ *************************************************************************/
+ L7_uchar8 *sysapiNetMbufGetDataStart( L7_netBufHandle netMbufHandle )
+ {
+   if (netMbufHandle != L7_NULL)
+   {
+-    return(((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufStart);
++    return(((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufStart);
+   } else
+   {
+     L7_LOG_ERROR(0);
+   }
+ 
+   return((L7_uchar8 *)0xFFFFFFFF);
+@@ -898,13 +898,13 @@ L7_uchar8 *sysapiNetMbufGetDataStart( L7
+ * @end
+ *************************************************************************/
+ void sysapiNetMbufSetDataStart( L7_netBufHandle netMbufHandle, L7_uchar8 *dataStart )
+ {
+   if (netMbufHandle != L7_NULL)
+   {
+-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufStart = dataStart;
++    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufStart = dataStart;
+   }
+ }
+ 
+ /**************************************************************************
+ * @purpose  Retrieve Application Specific Variable of network mbuf
+ *
+@@ -917,16 +917,16 @@ void sysapiNetMbufSetDataStart( L7_netBu
+ * @end
+ *************************************************************************/
+ L7_uint32 sysapiNetMbufGetApplSpecVar( L7_netBufHandle netMbufHandle )
+ {
+   if (netMbufHandle != L7_NULL)
+   {
+-    return(((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->applSpecVar);
++    return(((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->applSpecVar);
+   }
+ 
+-  return((L7_uint32)netMbufHandle);
++  return(PTR_TO_UINT64(netMbufHandle));
+ }
+ 
+ /**************************************************************************
+ * @purpose  Set Application Specific Variable of network mbuf
+ *
+ * @param    A ptr to a network mbuf handle
+@@ -939,13 +939,13 @@ L7_uint32 sysapiNetMbufGetApplSpecVar( L
+ * @end
+ *************************************************************************/
+ void sysapiNetMbufSetApplSpecVar( L7_netBufHandle netMbufHandle, L7_uint32 value )
+ {
+   if (netMbufHandle != L7_NULL)
+   {
+-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->applSpecVar = value;
++    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->applSpecVar = value;
+   }
+ }
+ /**************************************************************************
+ * @purpose  Retrieve length of network mbuf
+ *
+ * @param    A ptr to a network mbuf handle
+@@ -957,16 +957,16 @@ void sysapiNetMbufSetApplSpecVar( L7_net
+ * @end
+ *************************************************************************/
+ L7_uint32 sysapiNetMbufGetDataLength( L7_netBufHandle netMbufHandle )
+ {
+   if (netMbufHandle != L7_NULL)
+   {
+-    return(((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufLength);
++    return(((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufLength);
+   }
+ 
+-  return((L7_uint32)netMbufHandle);
++  return(PTR_TO_UINT64(netMbufHandle));
+ }
+ 
+ /**************************************************************************
+ * @purpose  Set length of network mbuf
+ *
+ * @param    A ptr to a network mbuf handle
+@@ -979,13 +979,13 @@ L7_uint32 sysapiNetMbufGetDataLength( L7
+ * @end
+ *************************************************************************/
+ void sysapiNetMbufSetDataLength( L7_netBufHandle netMbufHandle, L7_uint32 size )
+ {
+   if (netMbufHandle != L7_NULL)
+   {
+-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufLength = size;
++    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufLength = size;
+   }
+ }
+ 
+ /**************************************************************************
+ * @purpose  Retrieve the receive reason code(s) of network mbuf
+ *
+@@ -998,16 +998,16 @@ void sysapiNetMbufSetDataLength( L7_netB
+ * @end
+ *************************************************************************/
+ L7_uint32 sysapiNetMbufGetRxReasonCode(L7_netBufHandle netMbufHandle)
+ {
+   if (netMbufHandle != L7_NULL)
+   {
+-    return(((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->rxCode);
++    return(((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->rxCode);
+   }
+ 
+-  return((L7_uint32)netMbufHandle);
++  return(PTR_TO_UINT64(netMbufHandle));
+ }
+ 
+ /**************************************************************************
+ * @purpose  Set the reason code(s) of RX network mbuf
+ *
+ * @param    A ptr to a network mbuf handle
+@@ -1022,13 +1022,13 @@ L7_uint32 sysapiNetMbufGetRxReasonCode(L
+ *************************************************************************/
+ void sysapiNetMbufSetRxReasonCode( L7_netBufHandle netMbufHandle,
+                                    L7_uint32 rxCode )
+ {
+   if (netMbufHandle != L7_NULL)
+   {
+-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->rxCode = rxCode;
++    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->rxCode = rxCode;
+   }
+ }
+ 
+ /**************************************************************************
+ * @purpose  Get next buffer from network mbuf
+ *
+@@ -1045,36 +1045,36 @@ void sysapiNetMbufSetRxReasonCode( L7_ne
+ void sysapiNetMbufGetNextBuffer( L7_netBufHandle netMbufHandle, L7_netBlockHandle *blockHandle, L7_uchar8 **bufData, L7_uint32 *bufSize )
+ {
+   if (netMbufHandle != L7_NULL)
+   {
+     if (*blockHandle == L7_NULL)
+     {
+-      if (((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufLength != 0)
++      if (((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufLength != 0)
+       {
+-        *bufSize = ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufLength;
+-        *bufData = ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufStart;
+-        *blockHandle = (L7_netBlockHandle)((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufStart;
++        *bufSize = ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufLength;
++        *bufData = ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufStart;
++        *blockHandle = (L7_netBlockHandle) PTR_TO_UINT64(((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufStart);
+       }
+-      else if (((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer != L7_NULL)
++      else if (((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->osBuffer != L7_NULL)
+       {
+-        osapiNetMbufGetNextBuffer((void *)((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer, bufData, bufSize);
+-        *blockHandle = (L7_netBlockHandle)((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer;
++        osapiNetMbufGetNextBuffer((void *)((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->osBuffer, bufData, bufSize);
++        *blockHandle = (L7_netBlockHandle) PTR_TO_UINT64(((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->osBuffer);
+       }
+     }
+     else
+     {
+-      if (*blockHandle == (L7_netBlockHandle)((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufStart)
++      if (*blockHandle == (L7_netBlockHandle) PTR_TO_UINT64(((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufStart))
+       {
+-        *blockHandle = (L7_netBlockHandle)((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer;
++        *blockHandle = (L7_netBlockHandle) PTR_TO_UINT64(((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->osBuffer);
+       }
+       else
+-        *blockHandle = (L7_netBlockHandle)osapiNetMbufGetNextMbuf((void *)*blockHandle);
++        *blockHandle = (L7_netBlockHandle) PTR_TO_UINT64(osapiNetMbufGetNextMbuf((void *) UINT_TO_PTR(*blockHandle)));
+ 
+       if (*blockHandle != L7_NULL)
+       {
+-        osapiNetMbufGetNextBuffer((void *)*blockHandle, bufData, bufSize);
++        osapiNetMbufGetNextBuffer((void *) UINT_TO_PTR(*blockHandle), bufData, bufSize);
+       }
+     }
+   }
+   else
+   {
+     bufData = L7_NULL;
+@@ -1094,17 +1094,17 @@ void sysapiNetMbufGetNextBuffer( L7_netB
+ L7_uint32 sysapiNetMbufGetFrameLength( L7_netBufHandle netMbufHandle )
+ {
+   L7_uint32 frameLength = 0;
+ 
+   if (netMbufHandle != L7_NULL)
+   {
+-    frameLength = ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufLength;
++    frameLength = ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufLength;
+ 
+-    if (((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer != L7_NULL)
++    if (((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->osBuffer != L7_NULL)
+     {
+-      frameLength += osapiNetMbufGetFrameLength((void *)((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer);
++      frameLength += osapiNetMbufGetFrameLength((void *)((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->osBuffer);
+     }
+   }
+ 
+   return( frameLength );
+ }
+ 
+Index: src/system_support/base/system/support/support.c
+===================================================================
+--- src/system_support/base/system/support/support.c	(revision 7768)
++++ src/system_support/base/system/support/support.c	(working copy)
+@@ -265,14 +265,14 @@ L7_RC_t supportDebugCategoryRegisterImpl
+      not a match on component IDs.  This allows system routines with the same component ID
+      to register different help routines */
+ 
+   if (supportDebugCategoryEntryExists(pEntry) == L7_TRUE)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
+-            "Debug Help routine %s (%x) already registered\n",
+-            supportDebugCategory.info.supportRoutineName,(L7_int32)supportRoutine);
++            "Debug Help routine %s (%p) already registered\n",
++            supportDebugCategory.info.supportRoutineName,supportRoutine);
+ 
+     bufferPoolFree(supportDebugCategoryBufferPoolId, (L7_uchar8 *)pEntry);
+     return(L7_FAILURE);
+   }
+ 
+   /* Routine was not previously registered. Add it */
+@@ -356,14 +356,14 @@ L7_RC_t supportDebugCategoryDeregisterIm
+   pEntry = supportDebugCategoryEntryDelete(&supportDebugCategory);
+ 
+   if (pEntry == L7_NULLPTR)
+   {
+     /* Registration not found */
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
+-            "Deregistration failed: Debug Help routine %s (%x) not registered\n",
+-            supportDebugCategory.info.supportRoutineName,(L7_int32)supportRoutine);
++            "Deregistration failed: Debug Help routine %s (%p) not registered\n",
++            supportDebugCategory.info.supportRoutineName,supportRoutine);
+     return(L7_FAILURE);
+   }
+ 
+   /* Free the buffer associated with the entry */
+   bufferPoolFree(supportDebugCategoryBufferPoolId, (L7_uchar8 *)pEntry);
+   return L7_SUCCESS;
+@@ -763,14 +763,14 @@ L7_RC_t supportDebugRegisterImpl(support
+     /* This test will catch even the null debugHelp (user control) registrations */
+     if (supportDebugDescrList[i].componentId == componentId)
+     {
+       if (supportDebugDescrList[i].internal.debugHelp == debugHelp)
+       {
+         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
+-                "Debug Help routine %s (%x) already registered\n",
+-                supportDebugDescr.internal.debugHelpRoutineName,(L7_int32)debugHelp);
++                "Debug Help routine %s (%p) already registered\n",
++                supportDebugDescr.internal.debugHelpRoutineName,debugHelp);
+         return(L7_FAILURE);
+       }
+     }
+   }
+ 
+   /* Routine was not previously registered. Copy info into first empty entry */
+@@ -858,14 +858,14 @@ L7_RC_t supportDebugDeregisterImpl(suppo
+     memset(&supportDebugDescrList[i], 0, sizeof(supportDebugDescr));
+     return(L7_SUCCESS);
+   }
+ 
+   /* Registration not found */
+   L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
+-          "Deregistration failed: Component %d, %s,  Debug Help routine %s (%x) not registered\n",
+-          componentId, name, supportDebugDescr.internal.debugHelpRoutineName,(L7_int32)debugHelp);
++          "Deregistration failed: Component %d, %s,  Debug Help routine %s (%p) not registered\n",
++          componentId, name, supportDebugDescr.internal.debugHelpRoutineName,debugHelp);
+   return(L7_FAILURE);
+ 
+ }
+ 
+ 
+ /*********************************************************************
+Index: src/system_support/base/system/support/sysapi_support.c
+===================================================================
+--- src/system_support/base/system/support/sysapi_support.c	(revision 7768)
++++ src/system_support/base/system/support/sysapi_support.c	(working copy)
+@@ -835,13 +835,13 @@ L7_RC_t sysapiSupportCfgFileGet(L7_COMPO
+ 
+       savedVersion = ((L7_fileHdr_t *)buffer)->version;
+       /*check for version mismatch*/
+       if ((savedVersion != version) || (fileSize != bufferSize))
+       {
+         /*call migrate function*/
+-        if ((L7_uint32)migrateBuild == L7_NULL)
++        if (migrateBuild == L7_NULLPTR)
+         {
+           buildDefaultFile = L7_TRUE;
+         }
+         else
+         {
+           if (savedVersion == version)
+@@ -924,13 +924,13 @@ L7_RC_t sysapiSupportCfgFileGet(L7_COMPO
+       }
+   }
+ 
+   if (buildDefaultFile == L7_TRUE)
+   {
+     /* do default build */
+-    if ((L7_uint32)defaultBuild == L7_NULL)
++    if (defaultBuild == L7_NULLPTR)
+       return(L7_FAILURE);
+ 
+     /*  No debug message is needed for the debug cfg file */
+ 
+     /*
+ 
+Index: src/system_support/routing/arp/arp.c
+===================================================================
+--- src/system_support/routing/arp/arp.c	(revision 7768)
++++ src/system_support/routing/arp/arp.c	(working copy)
+@@ -1485,13 +1485,13 @@ e_Err ARP_SendGratARP(t_Handle Id, byte
+     p_Adr = _createGratArpAddrEntry(p_A, (t_IPAddr *)ipAddr, ifIndex);
+     if (p_Adr == NULL)
+         return E_NOMEMORY;
+ 
+     /* send ARP request */
+     if ( TIMER_StartSec(p_Adr->arpRspTimer, 0, FALSE,
+-       _gratArpTimeoutExp, (t_Handle)ipMapArpCtx_g.timerExp.taskId) != E_OK)
++       _gratArpTimeoutExp, (t_Handle)UINT_TO_PTR(ipMapArpCtx_g.timerExp.taskId)) != E_OK)
+     {
+         /* p_Adr won't be freed in timeout callback, so free here */
+         XX_Free(p_Adr);
+         return E_FAILED;
+     }
+ 
+@@ -1560,13 +1560,13 @@ e_Err ARP_AdjustTimeout(t_Handle arpId,
+        deltaTimeout = newAgeTime - entryAgeInSecs;
+      else
+        deltaTimeout = 1;
+ 
+      /* this function automatically restarts a running timer... */
+      e = TIMER_StartSec(p_Adr->arpAgeTimer, deltaTimeout, FALSE,
+-                        _arpAgeTimeExp, (t_Handle)ipMapArpCtx_g.timerExp.taskId);
++                        _arpAgeTimeExp, (t_Handle)UINT_TO_PTR(ipMapArpCtx_g.timerExp.taskId));
+      ASSERT(e == E_OK);
+    }
+ 
+    return E_OK;
+ }
+ 
+@@ -2027,13 +2027,13 @@ e_Err ARP_SetTimer(t_ADR *p_Adr, L7_uint
+ {
+   e_Err e = E_FAILED;
+ 
+   if(p_Adr->arpAgeTimer)
+   {
+     e = TIMER_StartSec(p_Adr->arpAgeTimer, timeout,
+-                       FALSE, _arpAgeTimeExp, (t_Handle)ipMapArpCtx_g.timerExp.taskId);
++                       FALSE, _arpAgeTimeExp, (t_Handle)UINT_TO_PTR(ipMapArpCtx_g.timerExp.taskId));
+   }
+   return e;
+ }
+ 
+ /*----------------------------------------------------------------
+  * ROUTINE:    _createGratArpAddrEntry
+@@ -2389,13 +2389,13 @@ static void  _updateARPCache(t_ARP *p_A,
+    p_Adr->retrNmb = 0;
+ 
+    /* restart ARP age timer */
+    if(p_Adr->permanent != TRUE)
+    {
+        e = TIMER_StartSec(p_Adr->arpAgeTimer, TimerFractVarLessBy10(p_A->arpAgeTime), FALSE,
+-                          _arpAgeTimeExp, (t_Handle)ipMapArpCtx_g.timerExp.taskId);
++                          _arpAgeTimeExp, (t_Handle)UINT_TO_PTR(ipMapArpCtx_g.timerExp.taskId));
+        ASSERT(e == E_OK);
+    }
+ }
+ 
+ /*********************************************************************
+  * @purpose          ARP age timer callback.
+@@ -2813,13 +2813,13 @@ static void  _sendARPReq(t_ADR *p_Adr, L
+    }
+ 
+    if(rxmt == L7_TRUE)
+    {
+      /* start ARP response timeout timer */
+      e = TIMER_StartSec(p_Adr->arpRspTimer, p_A->arpRespTime, FALSE,
+-        _arpTimeoutExp, (t_Handle)ipMapArpCtx_g.timerExp.taskId);
++        _arpTimeoutExp, (t_Handle)UINT_TO_PTR(ipMapArpCtx_g.timerExp.taskId));
+      ASSERT(e == E_OK);
+    }
+ }
+ 
+ /*----------------------------------------------------------------
+  * ROUTINE:    _sendGratARP
+@@ -2921,13 +2921,13 @@ static e_Err  _sendGratARP(t_ADR *p_Adr)
+      p_A->arpReqSentCt++;            /* increment debug counters */
+      p_A->gratArpSentCt++;
+    }
+ 
+    /* start ARP response timeout timer */
+    e = TIMER_StartSec(p_Adr->arpRspTimer, p_A->arpRespTime, FALSE,
+-      _gratArpTimeoutExp, (t_Handle)ipMapArpCtx_g.timerExp.taskId);
++      _gratArpTimeoutExp, (t_Handle)UINT_TO_PTR(ipMapArpCtx_g.timerExp.taskId));
+    if (e != E_OK)
+    {
+        /* p_Adr won't be freed in timeout callback, so free here */
+        XX_Free(p_Adr);
+        return e;
+    }
+Index: src/system_support/routing/tcp/tcpbind.c
+===================================================================
+--- src/system_support/routing/tcp/tcpbind.c	(revision 7768)
++++ src/system_support/routing/tcp/tcpbind.c	(working copy)
+@@ -1385,14 +1385,14 @@ static e_Err checkConnStatus(void *dummy
+              /* socket is non-blocking. Just continue if no message avail. */
+              if((rxLength < 0) && (!IS_NONBLOCKING()) && (!IS_EINVAL()))
+              {
+                peekError++;
+                lastPeekError = osapiErrnoGet();
+                L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_OSPF_MAP_COMPONENT_ID,
+-                        "osapiPktInfoRecv() with MSG_PEEK error %d (%s) on socket %#x",
+-                       lastPeekError, strerror(lastPeekError), (unsigned int)connInfo);
++                        "osapiPktInfoRecv() with MSG_PEEK error %d (%s) on socket %p",
++                       lastPeekError, strerror(lastPeekError), connInfo);
+ 
+                indicateStatusToUser(connInfo, TCPUDP_CONN_STATUS_ERROR);
+              }
+              continue;
+            }
+ 
+@@ -1424,15 +1424,15 @@ static e_Err checkConnStatus(void *dummy
+             if ((rc2 != L7_SUCCESS) || (rxLength < 0))
+             {
+               /* since we peeked above, there should always be a packet available here */
+               recvError++;
+               lastRecvError = osapiErrnoGet();
+               L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_OSPF_MAP_COMPONENT_ID,
+-                      "osapiPktInfoRecv() error %d (%s) on socket %#x rc = %d",
++                      "osapiPktInfoRecv() error %d (%s) on socket %p rc = %d",
+                       lastRecvError, strerror(lastRecvError),
+-                      (unsigned int)connInfo, rc2);
++                      connInfo, rc2);
+               if((rxLength < 0) && (!IS_NONBLOCKING()) && (!IS_EINVAL()))
+               {
+                 indicateStatusToUser(connInfo, TCPUDP_CONN_STATUS_ERROR);
+               }
+               B_Delete(p_buf, TRUE);
+               p_buf = NULLP;
+Index: src/system_support/routing/utils/os_xxcmn.c
+===================================================================
+--- src/system_support/routing/utils/os_xxcmn.c	(revision 7768)
++++ src/system_support/routing/utils/os_xxcmn.c	(working copy)
+@@ -1009,13 +1009,13 @@ static void OS_CMN_IntWrapper31( void )
+ 
+ /*========= Initialization of OS/processor related stuff ============*/
+ e_Err OS_XX_InitAll( void )
+ {
+    if ((lockSem = osapiSemaMCreate(OSAPI_SEM_Q_FIFO)) == NULL)
+    {
+-      L7_LOG_ERROR((L7_uint32)lockSem);
++      L7_LOG_ERROR(PTR_TO_UINT32(lockSem));
+    }
+ 
+ #if ((L7_CORE_CPU == MPC860) || (L7_CORE_CPU == MPC8260)) && NO_CACHE_SIZE && !NO_CACHE_MEMORY
+    extern void * cacheDmaMalloc(size_t bytes);
+ 
+ 
+@@ -1270,14 +1270,14 @@ e_Err OS_XX_Call(t_Handle threadID, void
+ }
+ 
+ char *fptr2name(void *func_ptr, char *func_name, ulng name_size)
+ {
+   L7_uint32 offset;
+ 
+-  if (osapiFunctionLookup((L7_uint32) func_ptr, func_name, name_size,
+-               &offset) != L7_SUCCESS)
++  if (osapiFunctionLookup(PTR_TO_UINT64(func_ptr), func_name, name_size,
++                          &offset) != L7_SUCCESS)
+   {
+     snprintf(func_name, name_size, "Unk");
+   }
+   return func_name;
+ }
+ 
+@@ -1329,31 +1329,31 @@ void XX_DisplayQueue(t_Handle threadID,
+     /* print message info */
+     if(p_info)
+     {
+       memcpy(currFn, p_info->funcName, MAX_FUNCNAME);
+       currFn[MAX_FUNCNAME-1] = 0;
+       if(resolveNames)
+-        printf("\r\nmsg %d queued by %s:%d calls %s(0x%x)",
++        printf("\r\nmsg %d queued by %s:%d calls %s(%p)",
+           currOffset, currFn, (int)p_info->lineNum,
+           fptr2name(p_info->unpackFunc, unpackFnName, MAX_FUNCNAME),
+-          (int)p_info->unpackFunc);
++          p_info->unpackFunc);
+       else
+-        printf("\r\nmsg %d queued by %s:%d calls 0x%x", currOffset, currFn, (int)p_info->lineNum, (unsigned int)p_info->unpackFunc);
++        printf("\r\nmsg %d queued by %s:%d calls %p", currOffset, currFn, (int)p_info->lineNum, p_info->unpackFunc);
+     }
+ 
+     currOffset++;
+   }
+ }
+ 
+ 
+ /*========= Create timer task ===============*/
+ e_Err OS_XX_CreateTmrTsk ( ulng period, e_Err (*f_Tick) (void), t_Handle *p_TimerHndle )
+ {
+    static int timerNum = 0;
+ 
+-   ulng TimerTaskId;
++   unsigned long long TimerTaskId;
+    char TmrTskName[22];
+    L7_uint32 argc = 2;
+    L7_uint32 **Argv = L7_NULL ;   /* Argv[] is an array of pointers */
+ 
+     if (f_Tick == L7_NULL)
+     {
+@@ -1382,22 +1382,22 @@ e_Err OS_XX_CreateTmrTsk ( ulng period,
+ 
+     if (TimerTaskId == L7_ERROR)
+     {
+         return E_FAILED;
+     }
+ 
+-   *p_TimerHndle = (t_Handle)TimerTaskId;
++   *p_TimerHndle = (t_Handle)UINT_TO_PTR(TimerTaskId);
+ 
+    return E_OK;
+ }
+ 
+ 
+ /*============== Kill a timer task routine ============*/
+ e_Err OS_XX_KillTmrTsk (t_Handle timerHandler )
+ {
+-   osapiTaskDelete( (L7_uint32) timerHandler);
++   osapiTaskDelete(PTR_TO_UINT64(timerHandler));
+    return E_OK;
+ }
+ 
+ /*=========== Create a new thread routine =============*/
+ e_Err OS_XX_CreateThread(byte priority, e_Err (*f_Thread) (void *),
+                          Bool Permanent, t_Handle *p_threadId,
+@@ -1512,13 +1512,13 @@ e_Err OS_XX_CreateThread(byte priority,
+ }
+ 
+ /*============== Kill a thread ============*/
+ e_Err OS_XX_DestroyThread(void *p_Info)
+ {
+     e_Err ierror = E_OK;
+-    ulng taskid;
++    unsigned long long taskid;
+     int         i;
+     t_XXCallInfo *xxCallInfo = (t_XXCallInfo *)p_Info;
+     OS_Thread *p_thread;
+ 
+     if (!xxCallInfo)
+     {
+@@ -1818,13 +1818,13 @@ void _handleTask(e_Err (*f_Thread)(void
+           msgsReadFromCurrentQ++;
+           lastQ = currentQ;
+           if (msgsReadFromCurrentQ >= p_thread->QueueWeights[currentQ])
+           {
+             if (debugQueues > 0)
+             {
+-              printf("\n%llu: Task %#lx read %d msgs from q%d",
++              printf("\n%llu: Task %#llx read %d msgs from q%d",
+                      osapiTimeMillisecondsGet64(),
+                      p_thread->TaskID, msgsReadFromCurrentQ, currentQ);
+             }
+             currentQ++;
+             currentQ %= p_thread->numQueues;
+             queuesRead++;
+@@ -1837,16 +1837,16 @@ void _handleTask(e_Err (*f_Thread)(void
+             if (debugQueues > 1)
+             {
+               char currFn[MAX_FUNCNAME];
+               char unpackFnName[MAX_FUNCNAME];
+               memcpy(currFn, p_info->funcName, MAX_FUNCNAME);
+               currFn[MAX_FUNCNAME-1] = 0;
+-              printf("\r\nmsg queued by %s:%d calls %s(0x%x)",
++              printf("\r\nmsg queued by %s:%d calls %s(%p)",
+                      currFn, (int)p_info->lineNum,
+                      fptr2name(p_info->unpackFunc, unpackFnName, MAX_FUNCNAME),
+-                     (int)p_info->unpackFunc);
++                     p_info->unpackFunc);
+             }
+ 
+             if (debugQueues > 0)
+             {
+               execStart = osapiTimeMillisecondsGet();
+             }
+@@ -1855,17 +1855,17 @@ void _handleTask(e_Err (*f_Thread)(void
+             if ((debugQueues > 0) && ((osapiTimeMillisecondsGetOffset(execStart)) > 1000))
+             {
+               char currFn[MAX_FUNCNAME];
+               char unpackFnName[MAX_FUNCNAME];
+               memcpy(currFn, p_info->funcName, MAX_FUNCNAME);
+               currFn[MAX_FUNCNAME-1] = 0;
+-              printf("\r\n%llu: msg queued on queue %d by %s:%d calls %s(0x%x) with exec time %u",
++              printf("\r\n%llu: msg queued on queue %d by %s:%d calls %s(%p) with exec time %u",
+                      osapiTimeMillisecondsGet64(),
+                      lastQ, currFn, (int)p_info->lineNum,
+                      fptr2name(p_info->unpackFunc, unpackFnName, MAX_FUNCNAME),
+-                     (int)p_info->unpackFunc, osapiTimeMillisecondsGetOffset(execStart));
++                     p_info->unpackFunc, osapiTimeMillisecondsGetOffset(execStart));
+             }
+ 
+             /* free the XX_Call parameter block */
+             if (p_info != NULLP)
+             {
+                 XX_Free(p_info);
+Index: src/system_support/routing/utils/os_xxcmn.h
+===================================================================
+--- src/system_support/routing/utils/os_xxcmn.h	(revision 7768)
++++ src/system_support/routing/utils/os_xxcmn.h	(working copy)
+@@ -101,13 +101,13 @@ typedef struct tagt_OS_PoolInfo
+ 
+ /*========= Thread data type =============*/
+ typedef struct tagt_OS_Thread
+ {
+    ulng  QueueID[L7_ROUTING_MAX_QUEUES];
+    ulng  QueueWeights[L7_ROUTING_MAX_QUEUES];
+-   ulng  TaskID;
++   unsigned long long TaskID;
+    ulng  numQueues;
+    void  *MsgQSema;
+ 
+ } OS_Thread;
+ 
+ 
+Index: src/system_support/routing/utils/timer.c
+===================================================================
+--- src/system_support/routing/utils/timer.c	(revision 7768)
++++ src/system_support/routing/utils/timer.c	(working copy)
+@@ -985,13 +985,13 @@ static void _checkTimers( t_TimeTblDesc
+             PACKET_PUT(callInfo, seq);
+             (void) XX_Call(thread, callInfo);  /* May fail if queue full. OK for some queues. */
+          }
+          else
+          {
+            L7_LOGF(L7_LOG_SEVERITY_CRITICAL, L7_IP_MAP_COMPONENT_ID,
+-                   "Memory allocation failure in _checkTimers for queue %d thread 0x%x",
++                   "Memory allocation failure in _checkTimers for queue %lu thread 0x%llx",
+                    p_T->queueId, thread->TaskID);
+          }
+          XX_Freeze();
+       }
+ 
+       /* set p_T to the begin of the table */
+Index: src/system_support/security/radius/client/radius_api.c
+===================================================================
+--- src/system_support/security/radius/client/radius_api.c	(revision 7768)
++++ src/system_support/security/radius/client/radius_api.c	(working copy)
+@@ -60,13 +60,13 @@ L7_RC_t radiusResponseRegister(L7_COMPON
+   {
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_RADIUS_COMPONENT_ID,
+             "RADIUS: Registrar ID %u greater then last component ID\n", registrar_ID);
+     return L7_FAILURE;
+   }
+ 
+-  if ((L7_uint32)radiusNotifyList[registrar_ID].notify_radius_resp != L7_NULL)
++  if (radiusNotifyList[registrar_ID].notify_radius_resp != L7_NULLPTR)
+   {
+     /* Already registered but allow it after the log */
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_RADIUS_COMPONENT_ID,
+             "RADIUS: Registrar ID %u, %s already registered\n", registrar_ID, name);
+   }
+ 
+Index: src/system_support/security/radius/client/radius_cfg.c
+===================================================================
+--- src/system_support/security/radius/client/radius_cfg.c	(revision 7768)
++++ src/system_support/security/radius/client/radius_cfg.c	(working copy)
+@@ -28,15 +28,15 @@ radiusCfg_t radiusCfg;
+ 
+ extern radiusCnfgrState_t radiusCnfgrState;
+ extern void * radius_queue;
+ extern void * radiusClusteringQueue;
+ extern void * radiusTaskSyncSema;
+ extern void * radiusServerDbSyncSema;
+-extern L7_uint32 radius_task_id;
+-extern L7_uint32 radius_rx_task_id;
+-extern L7_uint32 radius_cluster_task_id;
++extern L7_uint64 radius_task_id;
++extern L7_uint64 radius_rx_task_id;
++extern L7_uint64 radius_cluster_task_id;
+ 
+ L7_uint32 radius_sm_bp_id = L7_NULL;
+ L7_uint32 radius_lg_bp_id = L7_NULL;
+ 
+ /*********************************************************************
+ *
+Index: src/system_support/security/radius/client/radius_control.c
+===================================================================
+--- src/system_support/security/radius/client/radius_control.c	(revision 7768)
++++ src/system_support/security/radius/client/radius_control.c	(working copy)
+@@ -28,15 +28,15 @@
+ void * radiusTaskSyncSema = L7_NULL;
+ void *radiusServerDbSyncSema = L7_NULL;
+ 
+ void *radius_queue = L7_NULL;
+ void *radiusClusteringQueue = L7_NULL;
+ 
+-L7_uint32 radius_task_id = L7_ERROR;
+-L7_uint32 radius_rx_task_id = L7_ERROR;
+-L7_uint32 radius_cluster_task_id = L7_ERROR;
++L7_uint64 radius_task_id = L7_ERROR;
++L7_uint64 radius_rx_task_id = L7_ERROR;
++L7_uint64 radius_cluster_task_id = L7_ERROR;
+ 
+ 
+ extern radiusCfg_t radiusCfg;
+ extern L7_uint32 radius_sm_bp_id;
+ extern L7_uint32 radius_lg_bp_id;
+ 
+Index: src/system_support/security/tacacs/client/tacacs_authen.c
+===================================================================
+--- src/system_support/security/tacacs/client/tacacs_authen.c	(revision 7768)
++++ src/system_support/security/tacacs/client/tacacs_authen.c	(working copy)
+@@ -775,13 +775,13 @@ void tacacsServerConnectedProcess(L7_uin
+ *
+ *********************************************************************/
+ static void tacacsConnectionOpen(tacacsAuthSession_t *session,
+                                  L7_uint32            serverIdx)
+ {
+   L7_uint32 socket = 0;
+-  L7_uint32 taskId = L7_ERROR;
++  L7_uint64 taskId = L7_ERROR;
+ 
+   if (tacacsServerSocketOpen(&tacacsCfg->servers[serverIdx],
+                              &socket) != L7_SUCCESS)
+   {
+     /* try another server */
+     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_TACACS_COMPONENT_ID, "TACACS+: failed to open socket to server %s.",
+Index: src/system_support/security/tacacs/client/tacacs_cfg.c
+===================================================================
+--- src/system_support/security/tacacs/client/tacacs_cfg.c	(revision 7768)
++++ src/system_support/security/tacacs/client/tacacs_cfg.c	(working copy)
+@@ -28,14 +28,14 @@
+ #include "tacacs_cfg.h"
+ #include "tacacs_aaa.h"
+ #include "tacacs_control.h"
+ #include "tacacs_cnfgr.h"
+ #include "tacacs_api.h"
+ 
+-extern L7_uint32          tacacsTaskId;
+-extern L7_uint32          tacacsRxTaskId;
++extern L7_uint64          tacacsTaskId;
++extern L7_uint64          tacacsRxTaskId;
+ extern tacacsCnfgrState_t tacacsCnfgrState;
+ 
+ tacacsCfg_t         *tacacsCfg            = L7_NULLPTR;
+ void                *tacacsQueue          = L7_NULLPTR;
+ void                *tacacsSemaphore      = L7_NULLPTR;
+ tacacsNotifyEntry_t *tacacsNotifyList     = L7_NULLPTR;
+Index: src/system_support/security/tacacs/client/tacacs_control.c
+===================================================================
+--- src/system_support/security/tacacs/client/tacacs_control.c	(revision 7768)
++++ src/system_support/security/tacacs/client/tacacs_control.c	(working copy)
+@@ -37,14 +37,14 @@
+ extern void              *tacacsQueue;
+ extern void              *tacacsSemaphore;
+ extern tacacsCfg_t       *tacacsCfg;
+ extern tacacsOprData_t   *tacacsOprData;
+ extern tacacsCnfgrState_t tacacsCnfgrState;
+ 
+-L7_uint32 tacacsTaskId        = L7_ERROR;
+-L7_uint32 tacacsRxTaskId      = L7_ERROR;
++L7_uint64 tacacsTaskId        = L7_ERROR;
++L7_uint64 tacacsRxTaskId      = L7_ERROR;
+ 
+ /* use one timer that wakes up every second, maintain a
+    a reference count and delete the timer when we have no pending sessions */
+ static osapiTimerDescr_t *tacacsTimer       = L7_NULLPTR;
+ static L7_uint32          tacacsTimerCount  = 0;  /* reference count for tacacsTimer */
+ 
+@@ -191,36 +191,36 @@ static void tacacsTimeoutProcess(void)
+ * @end
+ *
+ *********************************************************************/
+ L7_RC_t tacacsStartTasks()
+ {
+   /* create TACACS application task */
+-  tacacsTaskId = (L7_uint32)osapiTaskCreate(TACACS_TASK,
+-                                            (void *)tacacsTask,
+-                                            L7_NULL,
+-                                            L7_NULL,
+-                                            L7_DEFAULT_STACK_SIZE,
+-                                            L7_DEFAULT_TASK_PRIORITY,
+-                                            L7_DEFAULT_TASK_SLICE);
++  tacacsTaskId = osapiTaskCreate(TACACS_TASK,
++                                 (void *)tacacsTask,
++                                 L7_NULL,
++                                 L7_NULL,
++                                 L7_DEFAULT_STACK_SIZE,
++                                 L7_DEFAULT_TASK_PRIORITY,
++                                 L7_DEFAULT_TASK_SLICE);
+ 
+   if ((tacacsTaskId == L7_ERROR) ||
+       (osapiWaitForTaskInit(L7_TACACS_TASK_SYNC, 
+                             L7_WAIT_FOREVER) != L7_SUCCESS))
+   {
+     TACACS_ERROR_SEVERE("TACACS+: Unable to initialize tacacsTask\n");
+     return L7_FAILURE;
+   }
+ 
+   /* create TACACS task to receive session packets */
+-  tacacsRxTaskId = (L7_uint32)osapiTaskCreate(TACACS_RX_TASK,
+-                                              (void *)tacacsRxTask,
+-                                              L7_NULL,
+-                                              L7_NULL,
+-                                              L7_DEFAULT_STACK_SIZE,
+-                                              L7_DEFAULT_TASK_PRIORITY,
+-                                              L7_DEFAULT_TASK_SLICE);
++  tacacsRxTaskId = osapiTaskCreate(TACACS_RX_TASK,
++                                   (void *)tacacsRxTask,
++                                   L7_NULL,
++                                   L7_NULL,
++                                   L7_DEFAULT_STACK_SIZE,
++                                   L7_DEFAULT_TASK_PRIORITY,
++                                   L7_DEFAULT_TASK_SLICE);
+ 
+   if ((tacacsRxTaskId == L7_ERROR) ||
+       (osapiWaitForTaskInit(L7_TACACS_RX_TASK_SYNC, 
+                             L7_WAIT_FOREVER) != L7_SUCCESS))
+   {
+     TACACS_ERROR_SEVERE("TACACS+: Unable to initialize tacacsRxTask\n");
+Index: src/system_support/security/tacacs/include/tacacs_aaa.h
+===================================================================
+--- src/system_support/security/tacacs/include/tacacs_aaa.h	(revision 7768)
++++ src/system_support/security/tacacs/include/tacacs_aaa.h	(working copy)
+@@ -229,13 +229,13 @@ typedef struct tacacsAuthSession_s
+   L7_uchar8            username[L7_TACACS_USER_NAME_MAX];    /* user to authenticate */
+   L7_uchar8            password[L7_TACACS_PASSWORD_MAX];     /* password to authenticate */
+   L7_uchar8            accessLevel;    /* current authenticated access level */
+   L7_uint32            sessionId;      /* random identifier for session */
+   L7_uint32            server;         /* ip address of current server */
+   L7_uchar8            sequenceNo;     /* START = 1, current seqNo in conversation */
+-  L7_uint32            connectTaskId;  /* set when connection task running for this session */
++  L7_uint64            connectTaskId;  /* set when connection task running for this session */
+   L7_uint32            connectTimer;   /* timer set for connection task */
+   L7_uint32            connectArgv[3]; /* copies of server ip, port, socket for connection task */
+   L7_uint32            socket;         /* TCP socket for communication */
+   tacacsTxPacket_t     txPacket;       /* packet ready for transmit */
+   L7_ACCESS_LEVEL_t    mode;
+   L7_uchar8           *port;             /* Name of port -- may be NULL */
+Index: src/system_support/stacking_binds/infrastructure/unitmgr/unitmgr.c
+===================================================================
+--- src/system_support/stacking_binds/infrastructure/unitmgr/unitmgr.c	(revision 7768)
++++ src/system_support/stacking_binds/infrastructure/unitmgr/unitmgr.c	(working copy)
+@@ -29,13 +29,13 @@
+ #include "sysapi_hpc.h"
+ #include "cardmgr_api.h"
+ 
+ /* Reason why the Management unit software was started last */
+ static L7_LAST_STARTUP_REASON_t umSystemStartupReason = L7_STARTUP_POWER_ON;
+ 
+-L7_int32 umRunCfgDlTaskId = 0;
++L7_uint64 umRunCfgDlTaskId = 0;
+ 
+ /*********************************************************************
+ * @purpose  Register a routine to be called when a unit state changes.
+ *
+ * @param    registrar_ID   routine registrar id  (See L7_COMPONENT_ID_t)
+ * @param    *notify        pointer to a routine to be invoked for unit state
+Index: src/system_support/stacking_binds/infrastructure/unitmgr/unitmgr_api.c
+===================================================================
+--- src/system_support/stacking_binds/infrastructure/unitmgr/unitmgr_api.c	(revision 7768)
++++ src/system_support/stacking_binds/infrastructure/unitmgr/unitmgr_api.c	(working copy)
+@@ -936,13 +936,13 @@ L7_RC_t unitMgrEventLogGet(L7_uint32 uni
+ *
+ * @notes none
+ *
+ * @end
+ *
+ *********************************************************************/
+-L7_uint32 unitMgrEventLogEntryNextGet(L7_uint32 UnitIndex, L7_uint32 ptr, L7_char8 *pstring)
++L7_uint32 unitMgrEventLogEntryNextGet(L7_uint32 UnitIndex, L7_uint64 ptr, L7_char8 *pstring)
+ {
+   return L7_event_log_get_next(L7_NULLPTR, ptr, pstring);
+ }
+ 
+ 
+ /*********************************************************************

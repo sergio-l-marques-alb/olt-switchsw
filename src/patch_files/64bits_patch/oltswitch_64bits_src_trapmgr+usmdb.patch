@@ -1,0 +1,38 @@
+Index: src/trapmgr/base/traputil.c
+===================================================================
+--- src/trapmgr/base/traputil.c	(revision 7768)
++++ src/trapmgr/base/traputil.c	(working copy)
+@@ -64,13 +64,13 @@ L7_uint32 coldStartSetTrapNeeded;
+ L7_uint32 stackNewMasterElected_oldUnit    = 0;
+ L7_BOOL   stackNewMasterElected_trapNeeded = L7_FALSE;
+ L7_uint32 stackMasterFailed_oldUnit        = 0;
+ L7_BOOL   stackMasterFailed_trapNeeded     = L7_FALSE;
+ 
+ void *trapMsgQueue;
+-L7_int32 trapTaskId;
++L7_uint64 trapTaskId;
+ L7_uint32 trapMsgQueueLostMsgs = 0;
+ 
+ static trapMgrFunctionList_t   trapMgrNotifyList[L7_LAST_TRAP_ID];
+ 
+ void trapTask();
+ 
+Index: src/usmdb/system_support/base/usmdb_log.c
+===================================================================
+--- src/usmdb/system_support/base/usmdb_log.c	(revision 7768)
++++ src/usmdb/system_support/base/usmdb_log.c	(working copy)
+@@ -1479,13 +1479,13 @@ L7_RC_t usmDbLogMsgPersistentRemoteRetri
+ *
+ * @notes none
+ *
+ * @end
+ *
+ *********************************************************************/
+-L7_uint32 usmDbLogEventLogEntryNextGet(L7_uint32 UnitIndex, L7_uint32 ptr, L7_char8 *pstring)
++L7_uint32 usmDbLogEventLogEntryNextGet(L7_uint32 UnitIndex, L7_uint64 ptr, L7_char8 *pstring)
+ {
+   return unitMgrEventLogEntryNextGet(UnitIndex, ptr, pstring);
+ }
+ /**********************************************************************
+ * @purpose  To set the email Alerting Admin status.
+ *

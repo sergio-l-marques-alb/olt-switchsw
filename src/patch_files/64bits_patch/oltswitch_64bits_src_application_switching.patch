@@ -1,0 +1,1546 @@
+Index: src/application/switching/filtering_db/fdb/fdb.c
+===================================================================
+--- src/application/switching/filtering_db/fdb/fdb.c	(revision 7768)
++++ src/application/switching/filtering_db/fdb/fdb.c	(working copy)
+@@ -54,14 +54,14 @@ L7_BOOL fdbIsValidIntf(L7_uint32 intIfNu
+ static avlTreeTables_t   *fdbTreeHeap;
+ static dot1dTpFdbData_t  *fdbDataHeap;
+ static avlTree_t         fdbTreeData;
+ static fdb_stats_t       fdb_stats;
+ static void       *fdbQueue;
+ static fdbCfgData_t fdbCfgData;
+-static L7_int32          fdb_task_id;
+-static L7_FDB_TYPE_t        fdbType;
++static L7_uint64         fdb_task_id;
++static L7_FDB_TYPE_t     fdbType;
+ 
+ static fdbIdTable_s      *fdbIdTable;
+ static L7_uint32         *fdbIdUsed;
+ static L7_uint32         numberOfFDBIdUsed;
+ 
+ extern L7_BOOL           fdbWarmStart;
+@@ -2029,14 +2029,14 @@ L7_RC_t fdbPhaseTwoInit(void)
+   notifyFunctionList.notifySave     = fdbSave;
+   notifyFunctionList.hasDataChanged = fdbHasDataChanged;
+   notifyFunctionList.resetDataChanged = fdbResetDataChanged;
+ 
+   eventMask = VLAN_ADD_NOTIFY | VLAN_DELETE_NOTIFY | VLAN_ADD_PORT_NOTIFY | VLAN_DELETE_PORT_NOTIFY;
+ 
+-  PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_ADDR_MGMT (%u)",
+-           (L7_uint32) dtlFdbReceiveCallback, DTL_FAMILY_ADDR_MGMT);
++  PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function %p to family DTL_FAMILY_ADDR_MGMT (%u)",
++              dtlFdbReceiveCallback, DTL_FAMILY_ADDR_MGMT);
+ 
+   if ((rc = nvStoreRegister(notifyFunctionList)) != L7_SUCCESS)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_FDB_COMPONENT_ID,
+             "FDB: Unable to register to NVRAM routines\n");
+     rc = L7_FAILURE;
+@@ -2325,13 +2325,13 @@ L7_RC_t fdbIntfAttachProcess(L7_uint32 i
+   else if (intfType == L7_LOGICAL_VLAN_INTF)
+   {
+     if (nimGetIntfL3MacAddress(intIfNum,L7_NULL,fdbMemberInfo.macAddr ) == L7_SUCCESS)
+     {
+       if ( nimGetMacroPortAssignment(intIfNum, &macroPortIntf) == L7_SUCCESS)
+       {
+-        fdbMemberInfo.vlanId    = (L7_uint32)macroPortIntf.macroInfo;
++        fdbMemberInfo.vlanId    = PTR_TO_UINT32(macroPortIntf.macroInfo);
+         fdbMemberInfo.entryType = L7_FDB_ADDR_FLAG_L3_MANAGEMENT;
+         fdbMemberInfo.intIfNum  = intIfNum;
+         (void)fdbAddEntry(&fdbMemberInfo);
+       }
+     }
+   }
+@@ -2472,13 +2472,13 @@ L7_RC_t fdbIntfChangeCallback(L7_uint32
+     {
+       /* Note: The L3 router MAC address is being reserved by adding it to the FDB */
+       if (nimGetIntfL3MacAddress(intIfNum,L7_NULL,fdbMemberInfo.macAddr ) == L7_SUCCESS)
+       {
+         if ( nimGetMacroPortAssignment(intIfNum, &macroPortIntf) == L7_SUCCESS)
+         {
+-          fdbMemberInfo.vlanId    = (L7_uint32)macroPortIntf.macroInfo;
++          fdbMemberInfo.vlanId    = PTR_TO_UINT32(macroPortIntf.macroInfo);
+           fdbMemberInfo.entryType = L7_FDB_ADDR_FLAG_L3_MANAGEMENT;
+           fdbMemberInfo.intIfNum  = intIfNum;
+           (void)fdbDelEntry(&fdbMemberInfo);
+         }
+       }
+     }
+Index: src/application/switching/garp/garp_cnfgr.c
+===================================================================
+--- src/application/switching/garp/garp_cnfgr.c	(revision 7768)
++++ src/application/switching/garp/garp_cnfgr.c	(working copy)
+@@ -556,28 +556,28 @@ L7_RC_t garpCnfgrInitPhase2Process(L7_CN
+ 
+   eventMask = VLAN_ADD_NOTIFY | VLAN_ADD_PORT_NOTIFY | VLAN_DELETE_PENDING_NOTIFY |
+               VLAN_DELETE_PORT_NOTIFY | VLAN_RESTORE_NOTIFY;
+   /*register with vlan to get notifications for vlan create/delete and port added/deleted*/
+   rc = vlanRegisterForChange(garpVlanChangeCallback, L7_GARP_COMPONENT_ID, eventMask);
+ 
+-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register GarpRecvPkt related to type=%u: 0x%08x",
+-           SYSNET_MAC_ENTRY, (L7_uint32) GarpRecvPkt);
++  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register GarpRecvPkt related to type=%u: %p",
++              SYSNET_MAC_ENTRY, GarpRecvPkt);
+ 
+   strcpy(snEntry.funcName, "GvrpRecvPkt");
+   snEntry.notify_pdu_receive = GarpRecvPkt;
+   snEntry.type = SYSNET_MAC_ENTRY;
+   memcpy(snEntry.u.macAddr, Garp_gvrp_mac_address, L7_MAC_ADDR_LEN);
+   if (sysNetRegisterPduReceive(&snEntry) != L7_SUCCESS)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_GARP_COMPONENT_ID,
+             "Unable to register Gvrp pdu receive callback\n");
+     return L7_FAILURE;
+   }
+ 
+-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register GarpRecvPkt related to type=%u: 0x%08x",
+-           SYSNET_MAC_ENTRY, (L7_uint32) GarpRecvPkt);
++  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register GarpRecvPkt related to type=%u: %p",
++              SYSNET_MAC_ENTRY, GarpRecvPkt);
+ 
+   strcpy(snEntry.funcName, "GmrpRecvPkt");
+   snEntry.notify_pdu_receive = GarpRecvPkt;
+   snEntry.type = SYSNET_MAC_ENTRY;
+   memcpy(snEntry.u.macAddr, Garp_gmrp_mac_address, L7_MAC_ADDR_LEN);
+   if (sysNetRegisterPduReceive(&snEntry) != L7_SUCCESS)
+Index: src/application/switching/link_aggregation/core/dot3ad_cnfgr.c
+===================================================================
+--- src/application/switching/link_aggregation/core/dot3ad_cnfgr.c	(revision 7768)
++++ src/application/switching/link_aggregation/core/dot3ad_cnfgr.c	(working copy)
+@@ -75,14 +75,14 @@ void      dot3adPhaseThreeFini(void);
+ L7_RC_t   dot3adPhaseExecuteInit(void);
+ L7_BOOL dot3adCnfgrIsHelperPresent();
+ 
+ /* The last phase that was completed */
+ static L7_CNFGR_STATE_t dot3adState = L7_CNFGR_STATE_NULL;
+ 
+-static L7_uint32 dot3ad_core_task_id = L7_ERROR;
+-static L7_uint32 dot3ad_timer_task_id = L7_ERROR;
++static L7_uint64 dot3ad_core_task_id = L7_ERROR;
++static L7_uint64 dot3ad_timer_task_id = L7_ERROR;
+ 
+ 
+ static NIM_NOTIFY_CB_INFO_t dot3adLastIntfDeleted;
+ static L7_CNFGR_CORRELATOR_t dot3adUnconfigureInProcess = L7_CNFGR_NO_HANDLE;
+ static L7_BOOL globalWarmRestart = L7_FALSE;
+ dot3ad_nsfFuncPtr_t dot3adNsfFuncTable;
+@@ -928,28 +928,28 @@ L7_RC_t   dot3adPhaseOneInit(void)
+   }
+ 
+ 
+ 
+   /* create the tasks */
+   /* create dot3ad_lac_task - to service queue*/
+-  dot3ad_timer_task_id = (L7_uint32)osapiTaskCreate( "dot3ad_timer_task", (void *)dot3ad_timer_task, 0, 0,
+-                                                     dot3adSidTimerTaskStackSizeGet(),
+-                                                     dot3adSidTimerTaskPriorityGet(),
+-                                                     dot3adSidTimerTaskSliceGet());
++  dot3ad_timer_task_id = osapiTaskCreate( "dot3ad_timer_task", (void *)dot3ad_timer_task, 0, 0,
++                                          dot3adSidTimerTaskStackSizeGet(),
++                                          dot3adSidTimerTaskPriorityGet(),
++                                          dot3adSidTimerTaskSliceGet());
+ 
+   if (osapiWaitForTaskInit (L7_DOT3AD_TIMER_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_ALERT, L7_DOT3AD_COMPONENT_ID,
+             "Unable to initialize dot3ad_timer_task()\n");
+     return(L7_FAILURE);
+   }
+ 
+-  dot3ad_core_task_id = (L7_uint32)osapiTaskCreate( "dot3ad_core_lac_task", (void *)dot3ad_lac_task, 0, 0,
+-                                                   dot3adSidLacTaskStackSizeGet(),
+-                                                   dot3adSidLacTaskPriorityGet(),
+-                                                   dot3adSidLacTaskSliceGet());
++  dot3ad_core_task_id = osapiTaskCreate( "dot3ad_core_lac_task", (void *)dot3ad_lac_task, 0, 0,
++                                         dot3adSidLacTaskStackSizeGet(),
++                                         dot3adSidLacTaskPriorityGet(),
++                                         dot3adSidLacTaskSliceGet());
+ 
+   if (osapiWaitForTaskInit (L7_DOT3AD_CORE_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_ALERT, L7_DOT3AD_COMPONENT_ID,
+             "Unable to initialize dot3ad_lac_task()\n");
+     return(L7_FAILURE);
+Index: src/application/switching/link_aggregation/core/dot3ad_debug.c
+===================================================================
+--- src/application/switching/link_aggregation/core/dot3ad_debug.c	(revision 7768)
++++ src/application/switching/link_aggregation/core/dot3ad_debug.c	(working copy)
+@@ -753,13 +753,13 @@ void dot3adIntfEventTrace(L7_uint32 intI
+     return;
+   }
+ 
+   TRACE_BEGIN(dot3adSystem.traceHandle, L7_DOT3AD_COMPONENT_ID);
+   TRACE_ENTER_2BYTE(osapiHtons(DOT3AD_NIMEVENTS_TRACEID));
+   TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
+-  TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
++  TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
+ 
+   TRACE_ENTER_4BYTE(event);
+   TRACE_ENTER_4BYTE(intIfNum);
+ 
+   TRACE_END();
+ 
+@@ -775,13 +775,13 @@ void dot3adAggTrace(L7_uint32 aggId, L7_
+   {
+     return;
+   }
+   TRACE_BEGIN(dot3adSystem.traceHandle, L7_DOT3AD_COMPONENT_ID);
+   TRACE_ENTER_2BYTE(osapiHtons(DOT3AD_AGG_TRACEID));
+   TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
+-  TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
++  TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
+ 
+   TRACE_ENTER_4BYTE(traceCode);
+   TRACE_ENTER_4BYTE(aggId);
+ 
+   TRACE_END();
+ }
+@@ -798,13 +798,13 @@ void dot3adPortTrace(dot3ad_port_t *p, L
+     return;
+   }
+ 
+   TRACE_BEGIN(dot3adSystem.traceHandle, L7_DOT3AD_COMPONENT_ID);
+   TRACE_ENTER_2BYTE(osapiHtons(DOT3AD_PORT_TRACEID));
+   TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
+-  TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
++  TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
+ 
+ 
+   TRACE_ENTER_2BYTE(traceCode);
+   TRACE_ENTER_2BYTE(p->actorPortAggId);
+   TRACE_ENTER_2BYTE(p->actorPortNum);
+   TRACE_ENTER_2BYTE(p->partnerOperPortNumber);
+Index: src/application/switching/link_aggregation/core/dot3ad_helper.c
+===================================================================
+--- src/application/switching/link_aggregation/core/dot3ad_helper.c	(revision 7768)
++++ src/application/switching/link_aggregation/core/dot3ad_helper.c	(working copy)
+@@ -25,13 +25,13 @@
+ 
+ /*#include "sysnet_api.h"*/
+ 
+ dot3adHelperMsg_t *dot3adHelperLocalDb;
+ 
+ static dot3ad_helper_states_t dot3adHelperStates[L7_MAX_PHYSICAL_PORTS_PER_UNIT + 1];
+-static L7_uint32 dot3ad_helper_task_id = L7_ERROR;
++static L7_uint64 dot3ad_helper_task_id = L7_ERROR;
+ 
+ void *dot3ad_helper_queue; /* reference to the helper message queue */
+ L7_uint32 dot3adHelperUsrHandle = ~0;
+ 
+ L7_RC_t dot3adHelperGetPortIndexFromUsp(nimUSP_t *usp, L7_uint32 *portIndex)
+ {
+@@ -89,17 +89,17 @@ L7_RC_t dot3adHelperInit()
+   }
+ 
+   memset(dot3adHelperLocalDb, 0,
+          sizeof(dot3adHelperMsg_t)*(L7_MAX_PHYSICAL_PORTS_PER_UNIT + 1 ));
+   memset(dot3adHelperStates, 0, sizeof(dot3adHelperStates));
+ 
+-  dot3ad_helper_task_id = (L7_uint32)osapiTaskCreate( "dot3ad_helper_task",
+-                                                      (void *)dot3ad_helper_task, 0, 0,
+-                                                      dot3adSidTimerTaskStackSizeGet(),
+-                                                      dot3adSidTimerTaskPriorityGet(),
+-                                                      dot3adSidTimerTaskSliceGet());
++  dot3ad_helper_task_id = osapiTaskCreate( "dot3ad_helper_task",
++                                           (void *)dot3ad_helper_task, 0, 0,
++                                           dot3adSidTimerTaskStackSizeGet(),
++                                           dot3adSidTimerTaskPriorityGet(),
++                                           dot3adSidTimerTaskSliceGet());
+ 
+   if (osapiWaitForTaskInit (L7_DOT3AD_HELPER_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_ALERT, L7_DOT3AD_COMPONENT_ID,
+            "Unable to initialize dot3ad_helper_task");
+     return L7_FAILURE;
+Index: src/application/switching/link_aggregation/core/dot3ad_lac.c
+===================================================================
+--- src/application/switching/link_aggregation/core/dot3ad_lac.c	(revision 7768)
++++ src/application/switching/link_aggregation/core/dot3ad_lac.c	(working copy)
+@@ -4549,26 +4549,26 @@ void dot3adTablesLastChangedRecord(void)
+ *           immediately to the timer task that called this routine. This will 
+ *           avoid any processing on the timer thread.
+ *
+ * @end
+ *
+ *************************************************************************/ 
+-void dot3adCurrentWhileTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm)
++void dot3adCurrentWhileTimerExpiredToQueue(L7_uint64 portNum, L7_uint64 nullParm)
+ {
+   dot3adTimerMsg_t Message;
+   L7_RC_t rc;
+ 
+-  PT_LOG_WARN(LOG_CTX_TRUNKS, "LACP RX expired event generated for portNum %u", portNum);
++  PT_LOG_WARN(LOG_CTX_TRUNKS, "LACP RX expired event generated for portNum %llu", portNum);
+ 
+   Message.msgId = CURRENT_EXPIRED;
+-  Message.parm1 = portNum;
++  Message.parm1 = (L7_uint32) portNum;
+   Message.parm2 = nullParm;
+ 
+   rc = osapiMessageSend(dot3ad_timer_queue,&Message, (L7_uint32)sizeof(dot3adTimerMsg_t),L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+ 
+-  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"LACP RX expired event for portNum %u sent (rc=%d)", portNum, rc);
++  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"LACP RX expired event for portNum %llu sent (rc=%d)", portNum, rc);
+ 
+   if (rc == L7_ERROR)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DOT3AD_COMPONENT_ID,
+             "dot3adTimerTask: Failed to put msg in timer queue....\n");
+   }
+@@ -4587,19 +4587,19 @@ void dot3adCurrentWhileTimerExpiredToQue
+ *           immediately to the timer task that called this routine. This will 
+ *           avoid any processing on the timer thread.
+ *
+ * @end
+ *
+ *************************************************************************/
+-void dot3adPeriodicTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm)
++void dot3adPeriodicTimerExpiredToQueue(L7_uint64 portNum, L7_uint64 nullParm)
+ {
+   dot3adTimerMsg_t Message;
+   L7_RC_t rc;
+ 
+   Message.msgId = PERIODIC_EXPIRED;
+-  Message.parm1 = portNum;
++  Message.parm1 = (L7_uint32) portNum;
+   Message.parm2 = nullParm;
+ 
+   rc = osapiMessageSend(dot3ad_timer_queue,&Message,(L7_uint32)sizeof(dot3adTimerMsg_t),L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+ 
+   if (rc == L7_ERROR)
+   {
+@@ -4620,19 +4620,19 @@ void dot3adPeriodicTimerExpiredToQueue(L
+ * @notes   	Put this timer expiry message on a timer queue, thus returning
+ *           immediately to the timer task that called this routine. This will 
+ *           avoid any processing on the timer thread.
+ * @end
+ *
+ *************************************************************************/
+-void dot3adWaitWhileTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm)
++void dot3adWaitWhileTimerExpiredToQueue(L7_uint64 portNum, L7_uint64 nullParm)
+ {
+   dot3adTimerMsg_t Message;
+   L7_RC_t rc;
+ 
+   Message.msgId = WAIT_EXPIRED;
+-  Message.parm1 = portNum;
++  Message.parm1 = (L7_uint32) portNum;
+   Message.parm2 = nullParm;
+ 
+   rc = osapiMessageSend(dot3ad_timer_queue,&Message, (L7_uint32)sizeof(dot3adTimerMsg_t),L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+ 
+   if (rc == L7_ERROR)
+   {
+@@ -4654,19 +4654,19 @@ void dot3adWaitWhileTimerExpiredToQueue(
+ *           immediately to the timer task that called this routine. This will 
+ *           avoid any processing on the timer thread.
+ *
+ * @end
+ *
+ *************************************************************************/
+-void dot3adNttTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm)
++void dot3adNttTimerExpiredToQueue(L7_uint64 portNum, L7_uint64 nullParm)
+ {
+   dot3adTimerMsg_t Message;
+   L7_RC_t rc;
+ 
+   Message.msgId = NTT_EXPIRED;
+-  Message.parm1 = portNum;
++  Message.parm1 = (L7_uint32) portNum;
+   Message.parm2 = nullParm;
+ 
+   rc = osapiMessageSend(dot3ad_timer_queue,&Message, (L7_uint32)sizeof(dot3adTimerMsg_t),L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+ 
+   if (rc == L7_ERROR)
+   {
+Index: src/application/switching/link_aggregation/core/dot3ad_lacpm.c
+===================================================================
+--- src/application/switching/link_aggregation/core/dot3ad_lacpm.c	(revision 7768)
++++ src/application/switching/link_aggregation/core/dot3ad_lacpm.c	(working copy)
+@@ -614,14 +614,14 @@ L7_RC_t dot3adLacpmTransmit(L7_uint32 in
+ *************************************************************************/
+ L7_RC_t dot3adLacpmInit(void)
+ {
+   L7_RC_t rc;
+   sysnetNotifyEntry_t snEntry;
+ 
+-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register dot3adPduReceive related to type=%u: 0x%08x",
+-           SYSNET_MAC_ENTRY, (L7_uint32) dot3adPduReceive);
++  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register dot3adPduReceive related to type=%u: %p",
++              SYSNET_MAC_ENTRY, dot3adPduReceive);
+ 
+   /*Register the pdu receive function with sysnet utility*/
+   strcpy(snEntry.funcName, "dot3adPduReceive");
+   snEntry.notify_pdu_receive = dot3adPduReceive;
+   snEntry.type = SYSNET_MAC_ENTRY;
+   memcpy(snEntry.u.macAddr, dot3adSlowProtocolsMulticastMacAddr, L7_MAC_ADDR_LEN);
+Index: src/application/switching/link_aggregation/core/dot3ad_transport.c
+===================================================================
+--- src/application/switching/link_aggregation/core/dot3ad_transport.c	(revision 7768)
++++ src/application/switching/link_aggregation/core/dot3ad_transport.c	(working copy)
+@@ -31,13 +31,13 @@
+ void *dot3adTransSema = L7_NULLPTR;
+ void *dot3adTransSyncSema = L7_NULLPTR;
+ void *dot3ad_transportQueue = L7_NULLPTR;
+ dot3adHelperMsg_t *dot3adTransportPduDb = L7_NULLPTR;
+ L7_INTF_MASK_t pduChangedMask;
+ 
+-static L7_uint32 dot3ad_core_tx_task_id = L7_ERROR;
++static L7_uint64 dot3ad_core_tx_task_id = L7_ERROR;
+ /* Global copy for the message . At any time we are going to use only one*/
+ static dot3ad_helper_data_msg_t txMsg;
+ 
+ /*********************************************************************
+ * @purpose  Initializes the dot3ad transport subsystem.
+ *
+@@ -83,17 +83,17 @@ L7_RC_t dot3adTransportInit()
+ 
+   memset(dot3adTransportPduDb, 0, sizeof(dot3adHelperMsg_t)*(L7_MAX_PORT_COUNT + 1));
+   memset(&pduChangedMask,0,sizeof(L7_INTF_MASK_t));
+   memset(&txMsg,0,sizeof(txMsg));
+ 
+ 
+-  dot3ad_core_tx_task_id = (L7_uint32)osapiTaskCreate( "dot3ad_core_tx_task",
+-                                                       (void *)dot3ad_transport_task, 0, 0,
+-                                                       dot3adSidTimerTaskStackSizeGet(),
+-                                                       dot3adSidTimerTaskPriorityGet(),
+-                                                       dot3adSidTimerTaskSliceGet());
++  dot3ad_core_tx_task_id = osapiTaskCreate( "dot3ad_core_tx_task",
++                                            (void *)dot3ad_transport_task, 0, 0,
++                                            dot3adSidTimerTaskStackSizeGet(),
++                                            dot3adSidTimerTaskPriorityGet(),
++                                            dot3adSidTimerTaskSliceGet());
+ 
+   if (osapiWaitForTaskInit (L7_DOT3AD_CORE_TX_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_ALERT, L7_DOT3AD_COMPONENT_ID,
+            "Failed to initialize dot3ad core task");
+     return L7_FAILURE;
+Index: src/application/switching/link_aggregation/core/include/dot3ad_lac.h
+===================================================================
+--- src/application/switching/link_aggregation/core/include/dot3ad_lac.h	(revision 7768)
++++ src/application/switching/link_aggregation/core/include/dot3ad_lac.h	(working copy)
+@@ -1793,13 +1793,13 @@ void dot3adTablesLastChangedRecord(void)
+ *           immediately to the timer task that called this routine. This will
+ *           avoid any processing on the timer thread.
+ *
+ * @end
+ *
+ *************************************************************************/
+-void dot3adCurrentWhileTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm);
++void dot3adCurrentWhileTimerExpiredToQueue(L7_uint64 portNum, L7_uint64 nullParm);
+ 
+ /**************************************************************************
+ *
+ * @purpose    Actions to be performed when the periodic timer expires
+ *
+ * @param      portNum      internal interface number of the port
+@@ -1810,13 +1810,13 @@ void dot3adCurrentWhileTimerExpiredToQue
+ *           immediately to the timer task that called this routine. This will
+ *           avoid any processing on the timer thread.
+ *
+ * @end
+ *
+ *************************************************************************/
+-void dot3adPeriodicTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm);
++void dot3adPeriodicTimerExpiredToQueue(L7_uint64 portNum, L7_uint64 nullParm);
+ 
+ /**************************************************************************
+ *
+ * @purpose    Actions to be performed when the Wait While timer expires
+ *
+ * @param      portNum      internal interface number of the port
+@@ -1826,13 +1826,13 @@ void dot3adPeriodicTimerExpiredToQueue(L
+ * @notes    Put this timer expiry message on a timer queue, thus returning
+ *           immediately to the timer task that called this routine. This will
+ *           avoid any processing on the timer thread.
+ * @end
+ *
+ *************************************************************************/
+-void dot3adWaitWhileTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm);
++void dot3adWaitWhileTimerExpiredToQueue(L7_uint64 portNum, L7_uint64 nullParm);
+ 
+ /**************************************************************************
+ *
+ * @purpose    Sets the txCount to zero
+ *
+ * @param      portNum      internal interface number of the port
+@@ -1843,13 +1843,13 @@ void dot3adWaitWhileTimerExpiredToQueue(
+ *           immediately to the timer task that called this routine. This will
+ *           avoid any processing on the timer thread.
+ *
+ * @end
+ *
+ *************************************************************************/
+-void dot3adNttTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm);
++void dot3adNttTimerExpiredToQueue(L7_uint64 portNum, L7_uint64 nullParm);
+ 
+ /*********************************************************************
+ * @purpose  dot3ad timer task which serves the expired timers
+ *
+ * @param
+ *
+Index: src/application/switching/port_mac_locking/pml.c
+===================================================================
+--- src/application/switching/port_mac_locking/pml.c	(revision 7768)
++++ src/application/switching/port_mac_locking/pml.c	(working copy)
+@@ -32,13 +32,13 @@
+ #include "pml_util.h"
+ #include "pml_sid.h"
+ 
+ 
+ extern pmlCfgData_t *pmlCfgData;
+ extern void         *pmlQueue;
+-L7_int32             pmlTaskId;
++L7_uint64            pmlTaskId;
+ pmlIntfOprData_t    *pmlIntfOprData = L7_NULLPTR;
+ 
+ /*********************************************************************
+ * @purpose  Start Port MAC Locking task
+ *
+ * @param    none
+Index: src/application/switching/port_mac_locking/pml_cnfgr.c
+===================================================================
+--- src/application/switching/port_mac_locking/pml_cnfgr.c	(revision 7768)
++++ src/application/switching/port_mac_locking/pml_cnfgr.c	(working copy)
+@@ -28,13 +28,13 @@
+ #include "pml_util.h"
+ 
+ pmlCnfgrState_t          pmlCnfgrState = PML_PHASE_INIT_0;
+ L7_BOOL                  pmlWarmStart = L7_FALSE;
+ extern void             *pmlQueue;
+ extern L7_uint32        *pmlMapTbl;
+-extern L7_int32          pmlTaskId;
++extern L7_uint64         pmlTaskId;
+ extern pmlCfgData_t     *pmlCfgData;
+ extern pmlIntfOprData_t *pmlIntfOprData;
+ extern PORTEVENT_MASK_t  pmlPortEventMask_g;
+ 
+ 
+ /*********************************************************************
+Index: src/application/switching/pppoe/pppoe_cnfgr.c
+===================================================================
+--- src/application/switching/pppoe/pppoe_cnfgr.c	(revision 7768)
++++ src/application/switching/pppoe/pppoe_cnfgr.c	(working copy)
+@@ -412,14 +412,14 @@ L7_RC_t pppoeCnfgrInitPhase2Process(L7_C
+   L7_RC_t rc = L7_SUCCESS;
+   sysnetNotifyEntry_t snEntry;
+ 
+   *pResponse  = L7_CNFGR_CMD_COMPLETE;
+   *pReason    = 0;
+ 
+-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register pppoePduReceive related to type=%u, protocol_type=%u: 0x%08x",
+-           SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_PPPOE, (L7_uint32) pppoePduReceive);
++  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register pppoePduReceive related to type=%u, protocol_type=%u: %p",
++              SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_PPPOE, pppoePduReceive);
+ 
+   memset(&snEntry, 0x00, sizeof(snEntry));
+   strcpy(snEntry.funcName, "pppoePduReceive");
+   snEntry.notify_pdu_receive = pppoePduReceive;
+   snEntry.type = SYSNET_ETHERTYPE_ENTRY;
+   snEntry.u.protocol_type = L7_ETYPE_PPPOE;
+Index: src/application/switching/snooping/core/include/snooping.h
+===================================================================
+--- src/application/switching/snooping/core/include/snooping.h	(revision 7768)
++++ src/application/switching/snooping/core/include/snooping.h	(working copy)
+@@ -170,17 +170,17 @@ typedef enum
+ 
+ /* Dynamically learnt querier information */
+ typedef struct snoopQuerierTimerData_s
+ {
+   /* Querier Expiry Timer */
+   L7_APP_TMR_HNDL_t      querierExpiryTimer;
+-  L7_uint32              querierExpiryTimerHandle;
++  L7_uint64              querierExpiryTimerHandle;
+ 
+   /* Query Interval Timer */
+   L7_APP_TMR_HNDL_t      queryIntervalTimer;
+-  L7_uint32              queryIntervalTimerHandle;
++  L7_uint64              queryIntervalTimerHandle;
+ } snoopQuerierTimerData_t;
+ 
+ typedef struct snoopQuerierInfo_s
+ {
+   snoopQuerierState_t snoopQuerierOperState; /* Snooping querier state */
+   /* True Querier information. When the snooping querier is in
+@@ -229,13 +229,13 @@ typedef struct snoopGrpTimerData_s
+   L7_sll_member_t          *next;
+   struct snoopInfoData_s   *snoopEntry; /* To reference vidmac and snoopMemberList
+                                     */
+   L7_uint32                 intIfNum;
+   L7_uchar8                 timerType;
+   L7_APP_TMR_HNDL_t         grpTimer;
+-  L7_uint32                 grpTimerHandle;
++  L7_uint64                 grpTimerHandle;
+ } snoopGrpTimerData_t;
+ 
+ /* Mrouter Timer Node Structure */
+ typedef struct snoopMrtrTimerDataKey_s
+ {
+ #ifndef L7_PRODUCT_SMARTPATH
+@@ -249,13 +249,13 @@ typedef struct snoopMrtrTimerDataKey_s
+ 
+ typedef struct snoopMrtrTimerData_s
+ {
+   snoopMrtrTimerDataKey_t  snoopMrtrTimerDataKey;
+   void                    *cbHandle;
+   L7_APP_TMR_HNDL_t        mrtrTimer;
+-  L7_uint32                mrtrTimerHandle;
++  L7_uint64                mrtrTimerHandle;
+   void                    *next;
+ } snoopMrtrTimerData_t;
+ 
+ /* PTin added: IGMP snooping */
+ #if 1
+ #define PTIN_SNOOP_CLIENT_MASK_UNIT              (sizeof(L7_uint32) * 8)
+@@ -337,13 +337,13 @@ typedef struct
+ 
+   L7_uint16             interfaceIdx;
+   snoopPTinL3InfoData_t *groupData;
+ 
+   L7_uchar8         timerType;
+   L7_APP_TMR_HNDL_t timer;
+-  L7_uint32         timerHandle;
++  L7_uint64         timerHandle;
+ } snoopPTinL3Querytimer_t;
+ 
+ typedef struct
+ {
+   L7_sll_member_t       *next;
+ 
+@@ -352,25 +352,25 @@ typedef struct
+   snoopPTinL3InfoData_t *groupData;
+ 
+   L7_uint8              isRunning;
+ 
+   L7_uchar8             timerType;
+   L7_APP_TMR_HNDL_t     timer;
+-  L7_uint32             timerHandle;
++  L7_uint64             timerHandle;
+ } snoopPTinL3Sourcetimer_t;
+ 
+ typedef struct
+ {
+   L7_sll_member_t       *next;
+ 
+   L7_uint16             interfaceIdx;
+   snoopPTinL3InfoData_t *groupData;
+ 
+   L7_uchar8             timerType;
+   L7_APP_TMR_HNDL_t     timer;
+-  L7_uint32             timerHandle;
++  L7_uint64             timerHandle;
+ } snoopPTinL3Grouptimer_t;
+ 
+ typedef struct
+ {
+   L7_uint32                clients[PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE];
+   L7_inet_addr_t           sourceAddr;
+@@ -452,13 +452,13 @@ typedef struct snoopPTinProxyTimer_s
+   L7_BOOL                            isRunning;
+ 
+   L7_BOOL                            isInterface;
+ 
+   L7_uchar8                          timerType;
+   L7_APP_TMR_HNDL_t                  timer;
+-  L7_uint32                          timerHandle;
++  L7_uint64                          timerHandle;
+   
+ } snoopPTinProxyTimer_t;
+ 
+ typedef struct snoopPTinProxySourceKey_s
+ {  
+ #if 0
+@@ -906,13 +906,13 @@ typedef struct snoopL3McastChangeParms_s
+   L7_int32       srcIntfVlan; /* -1 if it is port based rtr interface */
+   L7_VLAN_MASK_t outVlanRtrIntfMask;
+ } snoopL3McastChangeParms_t;
+ 
+ typedef struct snoopTimerParams_s
+ {
+-  L7_uint32 timerCBHandle;
++  L7_uint64 timerCBHandle;
+ } snoopTimerParams_t;
+ #define SNOOP_TIMER_MSG_SIZE         sizeof(snoopTimerParams_t)
+ 
+ /* Snoop Event Message format */
+ typedef struct snoopMgmtMsg_s
+ {
+Index: src/application/switching/snooping/core/include/snooping_util.h
+===================================================================
+--- src/application/switching/snooping/core/include/snooping_util.h	(revision 7768)
++++ src/application/switching/snooping/core/include/snooping_util.h	(working copy)
+@@ -99,13 +99,13 @@ void snoopNotifyL3Mcast(L7_uchar8 *destM
+ void snoopVlanNotifyL3Mcast(L7_uint32 vlanId, L7_BOOL snoopVlanOperState);
+ L7_BOOL snoopVlanOperationalStateGet(L7_uint32 vlanId, L7_uchar8 family);
+ L7_uchar8 snoopGetEndianess(void);
+ /*********************************************************************
+   Timer Routines
+ *********************************************************************/
+-void snoopTimerProcess(L7_uint32 timerCBHandle, snoop_eb_t *pSnoopEB);
++void snoopTimerProcess(L7_uint64 timerCBHandle, snoop_eb_t *pSnoopEB);
+ void snoopTimerUpdate(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
+                          L7_uint32 vlanId, snoop_interface_type_t timerType,
+                          L7_uint32 timerValue, struct snoop_cb_s *pSnoopCB);
+ void     snoopTimerStop(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
+                          L7_uint32 vlanId, snoop_interface_type_t timerType,
+                          struct snoop_cb_s *pSnoopCB);
+@@ -114,13 +114,13 @@ L7_RC_t  snoopTimerStart(snoopInfoData_t
+                          struct snoop_cb_s *pSnoopCB);
+ void     snoopGroupMembershipExpiry(void *param);
+ void     snoopMrtrExpiry(void *param);
+ L7_RC_t  snoopTimerDataDestroy(L7_sll_member_t *ll_member);
+ L7_int32 snoopTimerDataCmp(void *p, void *q, L7_uint32 key);
+ L7_RC_t  snoopTimerDestroy(L7_APP_TMR_CTRL_BLK_t timerCB, L7_APP_TMR_HNDL_t *timer, 
+-                           L7_uint32 *handle);
++                           L7_uint64 *handle);
+ L7_BOOL snoop_is_timer_running(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
+                                L7_uint32 vlanId, snoop_interface_type_t timerType,
+                                snoop_cb_t *pSnoopCB);
+ void     snoopMacToString(L7_uchar8 *macAddr, L7_uchar8 *macAddrStr);
+ /*************************************************************** 
+  IGMP Statistics  
+Index: src/application/switching/snooping/core/snooping_cnfgr.c
+===================================================================
+--- src/application/switching/snooping/core/snooping_cnfgr.c	(revision 7768)
++++ src/application/switching/snooping/core/snooping_cnfgr.c	(working copy)
+@@ -1669,14 +1669,14 @@ L7_RC_t snoopEBInit(void)
+   }
+ 
+   for (idx = 0; idx < SNOOP_ENTRY_TIMER_BLOCKS_COUNT; idx++)
+   {
+     /* Use 1 to SNOOP_ENTRY_TIMER_BLOCKS_COUNT for snoopEntryCBs and 0 for snoopEB->timerCB */
+     pSnoopEB->snoopEntryTimerCBList[idx].timerCB = appTimerInit(L7_SNOOPING_COMPONENT_ID, snoopTimerExpiryHdlr,
+-                                                       (void *)(idx + 1), SNOOP_TIMER_INTERVAL,
+-                                                        pSnoopEB->appTimerBufferPoolId);
++                                                                UINT_TO_PTR(idx + 1), SNOOP_TIMER_INTERVAL,
++                                                                pSnoopEB->appTimerBufferPoolId);
+     if (pSnoopEB->snoopEntryTimerCBList[idx].timerCB == L7_NULLPTR)
+     {
+       L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_SNOOPING_COMPONENT_ID,
+              "snoopEBInit: snoopEntry App Timer[%d] Initialization Failed.\n", idx);
+       return L7_FAILURE;
+     }
+Index: src/application/switching/snooping/core/snooping_ctrl.c
+===================================================================
+--- src/application/switching/snooping/core/snooping_ctrl.c	(revision 7768)
++++ src/application/switching/snooping/core/snooping_ctrl.c	(working copy)
+@@ -2119,13 +2119,13 @@ void snoopTimerExpiryHdlr(L7_APP_TMR_CTR
+ {
+   L7_int32       rc = L7_SUCCESS;
+   snoopTimerParams_t msg;
+   snoop_eb_t    *pSnoopEB = L7_NULLPTR;
+ 
+   pSnoopEB = snoopEBGet();
+-  msg.timerCBHandle = (L7_uint32)ptrData;
++  msg.timerCBHandle = PTR_TO_UINT64(ptrData);
+ 
+ #if 0
+   if ((pSnoopEB = (snoop_eb_t *)ptrData) == L7_NULLPTR)
+     return;
+ #endif
+ #if (!PTIN_SNOOP_USE_MGMD)
+Index: src/application/switching/snooping/core/snooping_ptin_grouptimer.c
+===================================================================
+--- src/application/switching/snooping/core/snooping_ptin_grouptimer.c	(revision 7768)
++++ src/application/switching/snooping/core/snooping_ptin_grouptimer.c	(working copy)
+@@ -360,28 +360,24 @@ void timerCallback(void *param)
+ {
+   char                    debug_buf[46];
+   snoopPTinL3Interface_t  *interfacePtr;
+   L7_uint32               intIfNum;
+ //L7_uint32               vlanId;
+ //L7_inet_addr_t          mcastGroupAddr;
+-
+-  L7_uint32               timerHandle;
++  L7_uint64               timerHandle;
+   snoopPTinL3Grouptimer_t *pTimerData;
+   snoopPTinL3Source_t     *sourcePtr;
+   snoopPTinL3InfoData_t*  groupData;
+-  
+ #if 0
+   L7_uint8              recordType=L7_IGMP_BLOCK_OLD_SOURCES;
+   snoopPTinProxyGroup_t* groupPtr=L7_NULLPTR;       
+   snoopPTinProxyInterface_t* proxyInterfacePtr=L7_NULLPTR;
+   L7_uint32 noOfRecords=0;
+ #endif
+ 
+-
+-
+-  timerHandle = (L7_uint32) param;
++  timerHandle = PTR_TO_UINT64(param);
+   osapiSemaTake(timerSem, L7_WAIT_FOREVER);
+ 
+   /* Get timer handler */
+   pTimerData = (snoopPTinL3Grouptimer_t*) handleListNodeRetrieve(timerHandle);
+   if (pTimerData == L7_NULLPTR)
+   {
+@@ -573,13 +569,13 @@ L7_RC_t snoop_ptin_grouptimer_start(snoo
+     PT_LOG_ERR(LOG_CTX_IGMP,"Could not get the handle node to store the timer data.");
+     return L7_FAILURE;
+   }
+ 
+   /* Add a new timer */
+   pTimer->timer = appTimerAdd(cbTimer, timerCallback,
+-                              (void *) pTimer->timerHandle, timeout,
++                              UINT_TO_PTR(pTimer->timerHandle), timeout,
+                               "PTIN_TIMER");
+   if (pTimer->timer == NULL)
+   {
+     handleListNodeDelete(handleList, &pTimer->timerHandle);
+     pTimer->timerHandle = 0;
+     osapiSemaGive(timerSem);
+Index: src/application/switching/snooping/core/snooping_ptin_proxytimer.c
+===================================================================
+--- src/application/switching/snooping/core/snooping_ptin_proxytimer.c	(revision 7768)
++++ src/application/switching/snooping/core/snooping_ptin_proxytimer.c	(working copy)
+@@ -384,35 +384,33 @@ void timerCallback(void *param)
+   L7_uint8                  robustnessVariable;
+   L7_BOOL                   isInterface;
+   L7_uint8                  reportType;
+   L7_uint32                 noOfRecords;
+   void*                     groupData;
+ 
+-  L7_uint32               timerHandle;
++  L7_uint64               timerHandle;
+   snoopPTinProxyTimer_t *pTimerData;  
+-  timerHandle = (L7_uint32) param;
++  timerHandle = PTR_TO_UINT64(param);
+   osapiSemaTake(timerSem, L7_WAIT_FOREVER);
+ 
+   /* Get timer handler */
+   pTimerData = (snoopPTinProxyTimer_t*) handleListNodeRetrieve(timerHandle);
+   if (pTimerData == L7_NULLPTR)
+   {
+     PT_LOG_DEBUG(LOG_CTX_IGMP,"Failed to retrieve handle");
+     osapiSemaGive(timerSem);
+     return;
+   }
+ 
+-  
+   /* Check if our handle is OK*/
+   if (timerHandle != pTimerData->timerHandle)
+   {
+     PT_LOG_ERR(LOG_CTX_IGMP,"timerHandle and pTimerData->timerHandle do not match!");
+     return;
+   }
+-    
+-
++  
+   if (pTimerData->isInterface)
+   {
+     PT_LOG_TRACE(LOG_CTX_IGMP,"Proxy Interface timer expired (vlan:%u)",
+             ((snoopPTinProxyInterface_t *) pTimerData->groupData)->key.vlanId);    
+     interfacePtr    = (snoopPTinProxyInterface_t *) pTimerData->groupData;
+   }
+@@ -532,13 +530,13 @@ L7_RC_t snoop_ptin_proxytimer_start(snoo
+     PT_LOG_ERR(LOG_CTX_IGMP,"Could not get the handle node to store the timer data.");
+     return L7_FAILURE;
+   }
+ 
+   /* Add a new timer */
+   pTimer->timer = appTimerAdd(cbTimer, timerCallback,
+-                              (void *) pTimer->timerHandle, timeout,
++                              UINT_TO_PTR(pTimer->timerHandle), timeout,
+                               "PTIN_TIMER");
+   if (pTimer->timer == NULL)
+   {
+     handleListNodeDelete(handleList, &pTimer->timerHandle);
+     pTimer->timerHandle = 0;
+     osapiSemaGive(timerSem);
+Index: src/application/switching/snooping/core/snooping_ptin_querytimer.c
+===================================================================
+--- src/application/switching/snooping/core/snooping_ptin_querytimer.c	(revision 7768)
++++ src/application/switching/snooping/core/snooping_ptin_querytimer.c	(working copy)
+@@ -341,18 +341,18 @@ L7_RC_t timerDataDestroy (L7_sll_member_
+  *************************************************************************/
+ void timerCallback(void *param)
+ {
+   char                    debug_buf[46];
+   snoopPTinL3Interface_t  *interfacePtr;
+   L7_uint32               interfaceIdx;
+-  L7_uint32               timerHandle;
++  L7_uint64               timerHandle;
+   snoopPTinL3Querytimer_t *pTimerData;
+   snoopPTinL3Source_t     *sourcePtr;
+   snoopPTinL3InfoData_t*  groupData;
+ 
+-  timerHandle = (L7_uint32) param;
++  timerHandle = PTR_TO_UINT64(param);
+   osapiSemaTake(timerSem, L7_WAIT_FOREVER);
+ 
+   /* Get timer handler */
+   pTimerData = (snoopPTinL3Querytimer_t*) handleListNodeRetrieve(timerHandle);
+   if (pTimerData == L7_NULLPTR)
+   {
+@@ -476,13 +476,13 @@ L7_RC_t snoop_ptin_querytimer_start(snoo
+     PT_LOG_ERR(LOG_CTX_IGMP,"Could not get the handle node to store the timer data.");
+     return L7_FAILURE;
+   }
+ 
+   /* Add a new timer */
+   pTimer->timer = appTimerAdd(cbTimer, timerCallback,
+-                              (void *) pTimer->timerHandle, timeout,
++                              UINT_TO_PTR(pTimer->timerHandle), timeout,
+                               "PTIN_TIMER");
+   if (pTimer->timer == NULL)
+   {
+     handleListNodeDelete(handleList, &pTimer->timerHandle);
+     pTimer->timerHandle = 0;
+     osapiSemaGive(timerSem);
+Index: src/application/switching/snooping/core/snooping_ptin_sourcetimer.c
+===================================================================
+--- src/application/switching/snooping/core/snooping_ptin_sourcetimer.c	(revision 7768)
++++ src/application/switching/snooping/core/snooping_ptin_sourcetimer.c	(working copy)
+@@ -364,39 +364,35 @@ L7_RC_t timerDataDestroy (L7_sll_member_
+  *************************************************************************/
+ void timerCallback(void *param)
+ {
+   L7_uint32                intIfNum, sourceIdx;
+   char                     debug_buf[IPV6_DISP_ADDR_LEN],debug_buf2[IPV6_DISP_ADDR_LEN];
+   snoopPTinL3Interface_t   *interfacePtr;
+-  L7_uint32                timerHandle;
++  L7_uint64                timerHandle;
+   snoopPTinL3Sourcetimer_t *pTimerData;
+   snoopPTinL3Source_t      *sourcePtr;
+   snoopPTinL3InfoData_t*   groupData;
+-
+-
+ #if 0
+   L7_uint8            recordType=L7_IGMP_BLOCK_OLD_SOURCES;
+   snoopPTinProxyGroup_t* groupPtr=L7_NULLPTR;
+   snoopPTinProxyInterface_t* proxyInterfacePtr=L7_NULLPTR;
+   L7_uint32 noOfRecords=0;
+ #endif
+ 
+-  timerHandle = (L7_uint32) param;
++  timerHandle = PTR_TO_UINT64(param);
+   osapiSemaTake(timerSem, L7_WAIT_FOREVER);
+ 
+   /* Get timer handler */
+   pTimerData = (snoopPTinL3Sourcetimer_t*) handleListNodeRetrieve(timerHandle);
+   if (pTimerData == L7_NULLPTR)
+   {
+     PT_LOG_DEBUG(LOG_CTX_IGMP,"Failed to retrieve handle");
+     osapiSemaGive(timerSem);
+     return;
+   }
+ 
+-
+-
+   //Save grouptimer's internal data
+   groupData    = pTimerData->groupData;
+   intIfNum     = pTimerData->interfaceIdx;
+   sourceIdx    = pTimerData->sourceIdx;
+   interfacePtr = &groupData->interfaces[intIfNum];
+   sourcePtr    = &groupData->interfaces[intIfNum].sources[sourceIdx];
+@@ -571,13 +567,13 @@ L7_RC_t snoop_ptin_sourcetimer_start(sno
+     PT_LOG_ERR(LOG_CTX_IGMP,"Could not get the handle node to store the timer data.");
+     return L7_FAILURE;
+   }
+ 
+   /* Add a new timer */
+   pTimer->timer = appTimerAdd(cbTimer, timerCallback,
+-                              (void *) pTimer->timerHandle, timeout,
++                              UINT_TO_PTR(pTimer->timerHandle), timeout,
+                               "PTIN_TIMER");
+   if (pTimer->timer == NULL)
+   {
+     handleListNodeDelete(handleList, &pTimer->timerHandle);
+     pTimer->timerHandle = 0;
+     osapiSemaGive(timerSem);
+Index: src/application/switching/snooping/core/snooping_ptin_util.c
+===================================================================
+--- src/application/switching/snooping/core/snooping_ptin_util.c	(revision 7768)
++++ src/application/switching/snooping/core/snooping_ptin_util.c	(working copy)
+@@ -45,13 +45,13 @@ static L7_RC_t snoopPTinReportSend(L7_ui
+ static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint32 noOfRecords,snoopPTinProxyGroup_t* groupPtr, L7_uint32* newNoOfRecords);
+ 
+ static L7_RC_t snoopPTinGroupRecordSourceIncrementTransmissions(snoopPTinProxyGroup_t* groupPtr);
+ 
+ static snoopPTinProxyGroup_t* snoopPTinBuildCSR(snoopPTinProxyInterface_t *interfacePtr, L7_uint32 *noOfRecords,L7_uint8 robustnessVariable);
+ 
+-void     snoopPTinQuerySend        (L7_uint32 arg1);
++void     snoopPTinQuerySend(L7_uint64 arg1);
+ 
+ /*********************************************************************
+  * @purpose Add a new client to the L2 tables
+  *
+  * @returns  L7_SUCCESS
+  * @returns  L7_FAILURE
+@@ -850,24 +850,24 @@ L7_RC_t snoopPTinPacketBuild(L7_uint32 v
+ /*********************************************************************
+  * @purpose Send LMQC Group or Group/Source Speficic Queries
+  *
+  * @param   arg1  Pointer to a snoopPTinQueryData_t structure
+  *
+  *********************************************************************/
+-void snoopPTinQuerySend(L7_uint32 arg1)
++void snoopPTinQuerySend(L7_uint64 arg1)
+ {
+   L7_uchar8             igmpFrame[L7_MAX_FRAME_SIZE]={0};
+   L7_uint32             igmpFrameLength=0;
+   snoopOperData_t       *pSnoopOperEntry;
+   L7_RC_t               rc = L7_SUCCESS;
+   mgmdSnoopControlPkt_t mcastPacket;
+   snoopPTinQueryData_t  *queryData;
+   snoop_cb_t            *pSnoopCB;
+   ptin_IgmpProxyCfg_t   igmpCfg;
+ 
+-  queryData = (snoopPTinQueryData_t *) arg1;
++  queryData = (snoopPTinQueryData_t *) UINT_TO_PTR(arg1);
+ 
+   /* Validate arguments */
+   if (queryData->vlanId < PTIN_VLAN_MIN || queryData->vlanId > PTIN_VLAN_MAX)
+   {
+     PT_LOG_DEBUG(LOG_CTX_IGMP, "Invalid arguments");
+     return;
+@@ -944,13 +944,13 @@ void snoopPTinQuerySend(L7_uint32 arg1)
+   --queryData->retransmissions;
+ 
+   /* If retransmissions > 0, schedule another Group-Specific Query message. Otherwise free the position in the query buffer */
+   if (queryData->retransmissions > 0)
+   {
+     osapiTimerAdd((void *) snoopPTinQuerySend,
+-                  (L7_uint32) queryData,
++                  PTR_TO_UINT64(queryData),
+                   0,
+                   SNOOP_MAXRESP_INTVL_ROUND(igmpCfg.querier.last_member_query_interval * 1000, SNOOP_IGMP_FP_DIVISOR),
+                   &queryData->queryTimer);
+   }
+   else
+   {
+Index: src/application/switching/snooping/core/snooping_timer.c
+===================================================================
+--- src/application/switching/snooping/core/snooping_timer.c	(revision 7768)
++++ src/application/switching/snooping/core/snooping_timer.c	(working copy)
+@@ -44,13 +44,13 @@
+ * @returns  void
+ *
+ * @notes    This function is called every timer interval, which is 1 second
+ *
+ * @end
+ *********************************************************************/
+-void snoopTimerProcess(L7_uint32 timerCBHandle, snoop_eb_t *pSnoopEB)
++void snoopTimerProcess(L7_uint64 timerCBHandle, snoop_eb_t *pSnoopEB)
+ {
+   if (timerCBHandle == L7_NULL)
+ {
+   /* Invoke all the expired timers here */
+   appTimerProcess(pSnoopEB->timerCB);
+ }
+@@ -134,13 +134,13 @@ void snoopTimerUpdate(snoopInfoData_t *s
+     }
+ 
+     pTimerData->timerType = SNOOP_GROUP_MEMBERSHIP;
+ 
+     if (appTimerUpdate(snoopEntry->timerCB, &pTimerData->grpTimer,
+                        (void *)snoopGroupMembershipExpiry,
+-                       (void *)pTimerData->grpTimerHandle, timerValue,
++                       UINT_TO_PTR(pTimerData->grpTimerHandle), timerValue,
+                        "snoopGroupMembershipExpiry")
+                        != L7_SUCCESS)
+     {
+       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+              "snoopTimerUpdate: Failed to update group membership timer");
+     }
+@@ -187,13 +187,13 @@ void snoopTimerUpdate(snoopInfoData_t *s
+     }
+ 
+     pTimerData->timerType = SNOOP_MAX_RESPONSE;
+ 
+     if (appTimerUpdate(snoopEntry->timerCB, &pTimerData->grpTimer,
+                        (void *)snoopGroupMembershipExpiry,
+-                       (void *)pTimerData->grpTimerHandle, timerValue,
++                       UINT_TO_PTR(pTimerData->grpTimerHandle), timerValue,
+                        "snoopGroupMembershipExpiry") != L7_SUCCESS)
+     {
+       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+              "snoopTimerUpdate: Failed to update group membership timer");
+     }
+ 
+@@ -217,13 +217,13 @@ void snoopTimerUpdate(snoopInfoData_t *s
+                       avlSearchLVL7(&pSnoopCB->snoopMrtrTimerAvlTree, &key,
+                                      L7_MATCH_EXACT);
+     if (pmrtrTimerData != L7_NULLPTR)
+     {
+       if (appTimerUpdate(pSnoopCB->snoopExec->timerCB, &pmrtrTimerData->mrtrTimer,
+                          (void *)snoopMrtrExpiry,
+-                         (void *)pmrtrTimerData->mrtrTimerHandle, timerValue,
++                         UINT_TO_PTR(pmrtrTimerData->mrtrTimerHandle), timerValue,
+                          "snoopMrtrExpiry") != L7_SUCCESS)
+       {
+         L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+                "snoopTimerUpdate: Failed to update mrtr timer ");
+       }
+       SNOOP_TRACE(SNOOP_DEBUG_TIMER, pSnoopCB->family, \
+@@ -318,15 +318,15 @@ void snoopTimerStop(snoopInfoData_t *sno
+ 
+     if (pSnoopMrtrTimerData != L7_NULLPTR)
+     {
+       if (pSnoopMrtrTimerData->mrtrTimer != L7_NULL)
+       {
+         if (snoopTimerDestroy(pSnoopCB->snoopExec->timerCB,
+-                               &pSnoopMrtrTimerData->mrtrTimer,
+-                                &pSnoopMrtrTimerData->mrtrTimerHandle)
+-                                != L7_SUCCESS)
++                              &pSnoopMrtrTimerData->mrtrTimer,
++                              &pSnoopMrtrTimerData->mrtrTimerHandle)
++                              != L7_SUCCESS)
+         {
+            L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+                   "snoopTimerStop: Failed to stop mrtr timer");
+         }
+       } /* timer running ? */
+       if (avlDeleteEntry(&pSnoopCB->snoopMrtrTimerAvlTree, pSnoopMrtrTimerData)
+@@ -403,14 +403,14 @@ L7_RC_t snoopTimerStart(snoopInfoData_t
+        bufferPoolFree(pSnoopCB->snoopExec->snoopTimerBufferPoolId, (L7_uchar8 *)pTimerData);
+        L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+               "snoopTimerStart: Could not get the handle node to store the timer data.");
+        return L7_FAILURE;
+      }
+      pTimerData->grpTimer = appTimerAdd(snoopEntry->timerCB, snoopGroupMembershipExpiry,
+-                                     (void *)pTimerData->grpTimerHandle, timerValue,
+-                                     "SN-GME");
++                                        UINT_TO_PTR(pTimerData->grpTimerHandle), timerValue,
++                                        "SN-GME");
+      if(pTimerData->grpTimer == NULL)
+      {
+         /* Free the previously allocated bufferpool */
+         bufferPoolFree(pSnoopCB->snoopExec->snoopTimerBufferPoolId, (L7_uchar8 *)pTimerData);
+         L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+                "snoopTimerStart: Could not Start the Group timer.");
+@@ -487,14 +487,14 @@ L7_RC_t snoopTimerStart(snoopInfoData_t
+       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+              "snoopTimerStart: Could not get the handle node to store the mrtr timer data.");
+       return L7_FAILURE;
+     }
+ 
+     pData->mrtrTimer = appTimerAdd(pSnoopCB->snoopExec->timerCB, snoopMrtrExpiry,
+-                               (void *)pData->mrtrTimerHandle, timerValue,
+-                               "SN-MRTE");
++                                   UINT_TO_PTR(pData->mrtrTimerHandle), timerValue,
++                                   "SN-MRTE");
+     if(pData->mrtrTimer == NULL)
+     {
+       /* Free the previously allocated tree node */
+       (void)avlDeleteEntry(&pSnoopCB->snoopMrtrTimerAvlTree, pData);
+       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+              "snoopTimerStart: Could not Start the mrtr timer.");
+@@ -522,13 +522,13 @@ L7_RC_t snoopTimerStart(snoopInfoData_t
+ *
+ * @end
+ *************************************************************************/
+ void snoopMrtrExpiry(void *param)
+ {
+   snoopMrtrTimerData_t *pTimerData;
+-  L7_uint32             handle = (L7_uint32)param;
++  L7_uint64             handle = PTR_TO_UINT64(param);
+   snoop_cb_t           *pSnoopCB = L7_NULLPTR;
+   snoopOperData_t      *pSnoopOperEntry  = L7_NULLPTR;
+ 
+   pTimerData = (snoopMrtrTimerData_t *)handleListNodeRetrieve(handle);
+   if (pTimerData == L7_NULLPTR)
+   {
+@@ -577,13 +577,13 @@ void snoopMrtrExpiry(void *param)
+ *
+ * @end
+ *************************************************************************/
+ void snoopGroupMembershipExpiry(void *param)
+ {
+   snoopGrpTimerData_t *pTimerData;
+-  L7_uint32          handle = (L7_uint32)param;
++  L7_uint64          handle = PTR_TO_UINT64(param);
+   L7_ushort16        shortVid;
+   L7_uchar8          mac[L7_MAC_ADDR_LEN];
+   snoop_cb_t        *pSnoopCB;
+ 
+   pTimerData = (snoopGrpTimerData_t *)handleListNodeRetrieve(handle);
+   if (pTimerData == L7_NULLPTR)
+@@ -718,13 +718,13 @@ L7_int32 snoopTimerDataCmp(void *p, void
+ *
+ * @comments none
+ *
+ * @end
+ *************************************************************************/
+ L7_RC_t  snoopTimerDestroy(L7_APP_TMR_CTRL_BLK_t timerCB,
+-                           L7_APP_TMR_HNDL_t *timer, L7_uint32 *handle)
++                           L7_APP_TMR_HNDL_t *timer, L7_uint64 *handle)
+ {
+   snoop_eb_t  *pSnoopEB;
+ 
+   pSnoopEB = snoopEBGet();
+   /* Delete the apptimer node */
+   (void)appTimerDelete(timerCB, *timer);
+@@ -824,15 +824,15 @@ L7_RC_t snoopQuerierTimerStart(snoopOper
+              "snoopQuerierTimerStart: Could not get the handle node to store the expiry timer data.");
+       return L7_FAILURE;
+     }
+ 
+     if ((snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.querierExpiryTimer
+           = appTimerAdd(pSnoopCB->snoopExec->timerCB, snoopQuerierExpiry,
+-                        (void *)snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.querierExpiryTimerHandle,
+-                         interval,
+-                         "SN-QRE"))
++                        UINT_TO_PTR(snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.querierExpiryTimerHandle),
++                        interval,
++                        "SN-QRE"))
+           == L7_NULL)
+     {
+       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+              "snoopQuerierTimerStart: could not start Querier Expiry timer for vlan %d family %d\n",
+               snoopOperEntry->vlanId, pSnoopCB->family);
+     }
+@@ -858,13 +858,13 @@ L7_RC_t snoopQuerierTimerStart(snoopOper
+              "snoopQuerierTimerStart: Could not get the handle node to store the expiry timer data.");
+       return L7_FAILURE;
+     }
+ 
+     if ((snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.queryIntervalTimer
+           = appTimerAdd(pSnoopCB->snoopExec->timerCB, snoopQuerierQueryExpiry,
+-                        (void *)snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.queryIntervalTimerHandle,
++                        UINT_TO_PTR(snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.queryIntervalTimerHandle),
+                         interval,
+                         "SN-QQE")) == L7_NULL
+         )
+     {
+       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+              "snoopQuerierTimerStart: could not start Query interval for vlan %d family %d",
+@@ -919,13 +919,13 @@ L7_RC_t snoopQuerierTimerUpdate(snoopOpe
+              "snoopQuerierTimerUpdate: Querier Expiry Timer not running");
+     }
+ 
+     if (appTimerUpdate(pSnoopCB->snoopExec->timerCB,
+                        &snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.querierExpiryTimer,
+                        (void *)snoopQuerierExpiry,
+-                       (void *)snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.querierExpiryTimerHandle,
++                       UINT_TO_PTR(snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.querierExpiryTimerHandle),
+                        interval,
+                        "snoopQuerierExpiry") != L7_SUCCESS)
+     {
+       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+              "snoopQuerierTimerUpdate: Failed to update Querier Expiry timer for vlan %d family %d",
+               snoopOperEntry->vlanId, pSnoopCB->family);
+@@ -943,13 +943,13 @@ L7_RC_t snoopQuerierTimerUpdate(snoopOpe
+              "snoopQuerierTimerUpdate: Query Interval Timer not running\n");
+     }
+ 
+     if (appTimerUpdate(pSnoopCB->snoopExec->timerCB,
+                        &snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.queryIntervalTimer,
+                       (void *)snoopQuerierQueryExpiry,
+-                      (void *)snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.queryIntervalTimerHandle,
++                      UINT_TO_PTR(snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.queryIntervalTimerHandle),
+                       interval,
+                       "snoopQuerierQueryExpiry") != L7_SUCCESS)
+     {
+       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+              "snoopQuerierTimerUpdate: Failed to update Query interval for vlan %d family %d\n",
+               snoopOperEntry->vlanId, pSnoopCB->family);
+@@ -1061,13 +1061,13 @@ L7_RC_t snoopQuerierTimerStop(snoopOperD
+ *************************************************************************/
+ void snoopQuerierExpiry(void *param)
+ {
+   snoopOperData_t *pSnoopOperEntry;
+   snoop_cb_t      *pSnoopCB = L7_NULLPTR;
+ 
+-  pSnoopOperEntry = (snoopOperData_t *)handleListNodeRetrieve((L7_uint32)param);
++  pSnoopOperEntry = (snoopOperData_t *)handleListNodeRetrieve(PTR_TO_UINT64(param));
+   if (pSnoopOperEntry == L7_NULLPTR)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+            "snoopQuerierExpiry: Failed to retrieve handle");
+     return;
+   }
+@@ -1117,13 +1117,13 @@ void snoopQuerierExpiry(void *param)
+ *************************************************************************/
+ void snoopQuerierQueryExpiry(void *param)
+ {
+   snoopOperData_t *pSnoopOperEntry;
+   snoop_cb_t      *pSnoopCB = L7_NULLPTR;
+ 
+-  pSnoopOperEntry = (snoopOperData_t *)handleListNodeRetrieve((L7_uint32)param);
++  pSnoopOperEntry = (snoopOperData_t *)handleListNodeRetrieve(PTR_TO_UINT64(param));
+   if (pSnoopOperEntry == L7_NULLPTR)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+            "snoopQuerierQueryExpiry: Failed to retrieve handle");
+     return;
+   }
+Index: src/application/switching/spanning_tree/dot1s/core/dot1s_api.c
+===================================================================
+--- src/application/switching/spanning_tree/dot1s/core/dot1s_api.c	(revision 7768)
++++ src/application/switching/spanning_tree/dot1s/core/dot1s_api.c	(working copy)
+@@ -2754,13 +2754,13 @@ L7_RC_t dot1sRegisterIntfChange( L7_COMP
+   {
+     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DOT1S_COMPONENT_ID,
+             "Dot1s registrar ID %u, %s greater than Last Component ID\n", registrar_ID, name);
+     return(L7_FAILURE);
+   }
+ 
+-  if ((L7_uint32)dot1sNotifyList[registrar_ID].notify_intf_change != L7_NULL)
++  if (dot1sNotifyList[registrar_ID].notify_intf_change != L7_NULLPTR)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DOT1S_COMPONENT_ID,
+             "Dot1s registrar ID %u, %s already registered\n", registrar_ID, name);
+     return(L7_FAILURE);
+   }
+ 
+Index: src/application/switching/spanning_tree/dot1s/core/dot1s_cfg.c
+===================================================================
+--- src/application/switching/spanning_tree/dot1s/core/dot1s_cfg.c	(revision 7768)
++++ src/application/switching/spanning_tree/dot1s/core/dot1s_cfg.c	(working copy)
+@@ -53,14 +53,14 @@ const L7_uchar8 dot1sConfigDigSigKey[] =
+ {0x13,0xAC,0x06,0xA6,0x2E,0x47,0xFD,0x51,0xF9,0x5D,0x2B,0xA2,0x43,0xCD,0x03,0x46
+ };
+ void *dot1sTaskSyncSema = L7_NULLPTR;
+ void *dot1s_queue = L7_NULLPTR;  /* reference to the dot1s message queue */
+ void *dot1s_stateCB_queue = L7_NULLPTR;
+ void *dot1s_signal_queue = L7_NULLPTR;
+-static L7_uint32 dot1s_task_id = 0;
+-static L7_uint32 dot1s_timer_task_id = 0;
++static L7_uint64 dot1s_task_id = 0;
++static L7_uint64 dot1s_timer_task_id = 0;
+ extern dot1sCnfgrState_t dot1sCnfgrState;
+ static nimConfigID_t dot1sConfigId[L7_DOT1S_MAX_INTERFACE_COUNT];
+ 
+ /*********************************************************************
+ * @purpose  Saves dot1s configuration
+ *
+Index: src/application/switching/spanning_tree/dot1s/core/dot1s_debug.c
+===================================================================
+--- src/application/switching/spanning_tree/dot1s/core/dot1s_debug.c	(revision 7768)
++++ src/application/switching/spanning_tree/dot1s/core/dot1s_debug.c	(working copy)
+@@ -1874,13 +1874,13 @@ L7_RC_t dot1sDebugEventsTrace(DOT1S_PORT
+     if (dot1sEventTraceHdl != ~0)
+     {
+ 
+       TRACE_BEGIN(dot1sEventTraceHdl, L7_DOT1S_COMPONENT_ID);
+       TRACE_ENTER_2BYTE(osapiHtons(traceId));
+       TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
+-      TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
++      TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
+      /* End Trace Header*/
+ 
+ 
+ 
+       TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)depth));
+       TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)dot1sEvent));
+@@ -2152,13 +2152,13 @@ L7_RC_t dot1sNsfTrace(L7_uchar8 *pString
+   if (dot1sNsfTraceHdl != ~0)
+   {
+ 
+     TRACE_BEGIN(dot1sNsfTraceHdl, L7_DOT1S_COMPONENT_ID);
+     TRACE_ENTER_2BYTE(osapiHtons(traceId));
+     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
+-    TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
++    TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
+    /* End Trace Header*/
+ 
+     max = strlen(pString);
+     /* make sure strlen is no bigger than the max - header + null term */
+     if (max > (dot1sNsfTraceWidth - (sizeof(do1sTraceHeader_t) + 1)))
+       max = (dot1sNsfTraceWidth - (sizeof(do1sTraceHeader_t) + 1));
+Index: src/application/switching/spanning_tree/dot1s/core/dot1s_helper.c
+===================================================================
+--- src/application/switching/spanning_tree/dot1s/core/dot1s_helper.c	(revision 7768)
++++ src/application/switching/spanning_tree/dot1s/core/dot1s_helper.c	(working copy)
+@@ -19,13 +19,13 @@
+ #include "dot1s_debug.h"
+ #include "sim_pts_api.h"
+ #include "dtl_helper.h"
+ 
+ dot1s_helper_msg_t *dot1sHelperLocalDb = L7_NULLPTR;
+ void *dot1s_helper_queue; /* reference to the helper message queue */
+-static L7_uint32 dot1s_helper_task_id = 0;
++static L7_uint64 dot1s_helper_task_id = 0;
+ L7_uint32 dot1sUserHandle = ~0;
+ 
+ L7_BOOL dot1sIsPortLag(nimUSP_t *usp)
+ {
+   return (usp->slot == L7_LAG_SLOT_NUM);
+ }
+@@ -104,17 +104,17 @@ L7_RC_t dot1sHelperInit()
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DOT1S_COMPONENT_ID,
+             "dot1sInit: msgQueue creation error.\n");
+     return L7_FAILURE;
+   }
+ 
+   /* task create*/
+-  dot1s_helper_task_id = (L7_uint32)osapiTaskCreate("dot1s_helper_task",
+-                                                    (void *)dot1sHelperTask, 0, 0,
+-                                                    L7_DEFAULT_STACK_SIZE,
+-                                                    L7_DOT1S_DEFAULT_DOT1S_TIMER_TASK_PRI,
+-                                                    L7_DEFAULT_TASK_SLICE);
++  dot1s_helper_task_id = osapiTaskCreate("dot1s_helper_task",
++                                         (void *)dot1sHelperTask, 0, 0,
++                                         L7_DEFAULT_STACK_SIZE,
++                                         L7_DOT1S_DEFAULT_DOT1S_TIMER_TASK_PRI,
++                                         L7_DEFAULT_TASK_SLICE);
+ 
+   if (dot1s_helper_task_id == L7_ERROR)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DOT1S_COMPONENT_ID,
+             "dot1sInit: timer task creation error.\n");
+     return L7_FAILURE;
+Index: src/application/switching/spanning_tree/dot1s/core/dot1s_ih.c
+===================================================================
+--- src/application/switching/spanning_tree/dot1s/core/dot1s_ih.c	(revision 7768)
++++ src/application/switching/spanning_tree/dot1s/core/dot1s_ih.c	(working copy)
+@@ -2312,15 +2312,15 @@ L7_BOOL dot1sIsPortDiscarding(L7_uint32
+ *            The critical section with in the semaphore protection must be
+ *            short
+ *           
+ *
+ * @end
+ *********************************************************************/
+-void dot1sStateSetTimerExpired(L7_uint32 intIfNum, L7_uint32 state)
++void dot1sStateSetTimerExpired(L7_uint64 intIfNum, L7_uint64 state)
+ {
+-  dot1sIssueCmd(dot1sStateSetError, intIfNum, L7_NULL, L7_NULLPTR);
++  dot1sIssueCmd(dot1sStateSetError, (L7_int32) intIfNum, L7_NULL, L7_NULLPTR);
+ }
+ 
+ /*********************************************************************
+ * @purpose  The dot1s state set timer has expired disable the affected interface
+ *           
+ *          
+Index: src/application/switching/spanning_tree/dot1s/core/dot1s_transport.c
+===================================================================
+--- src/application/switching/spanning_tree/dot1s/core/dot1s_transport.c	(revision 7768)
++++ src/application/switching/spanning_tree/dot1s/core/dot1s_transport.c	(working copy)
+@@ -38,13 +38,13 @@ dot1s_helper_msg_t *dot1sTransportPduDb
+ 
+ L7_INTF_MASK_t dot1sPduChangedMask;
+ 
+ 
+ /* Global copy for the message . At any time we are going to use only one*/
+ static dot1s_helper_data_msg_t txMsg;
+-static L7_uint32 dot1s_transport_task_id = 0;
++static L7_uint64 dot1s_transport_task_id = 0;
+ 
+ /*********************************************************************
+ * @purpose  Initializes the dot1s transport subsystem.
+ *
+ * @param    None
+ *
+Index: src/application/switching/spanning_tree/dot1s/core/dot1s_txrx.c
+===================================================================
+--- src/application/switching/spanning_tree/dot1s/core/dot1s_txrx.c	(revision 7768)
++++ src/application/switching/spanning_tree/dot1s/core/dot1s_txrx.c	(working copy)
+@@ -202,14 +202,14 @@ L7_RC_t dot1sBpduReceive(L7_netBufHandle
+ *************************************************************************/
+ L7_RC_t dot1sTxRxInit(void)
+ {
+   L7_RC_t rc;
+   sysnetNotifyEntry_t snEntry;
+ 
+-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register dot1sBpduReceive related to type=%u: 0x%08x",
+-           SYSNET_MAC_ENTRY, (L7_uint32) dot1sBpduReceive);
++  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register dot1sBpduReceive related to type=%u: %p",
++              SYSNET_MAC_ENTRY, dot1sBpduReceive);
+ 
+   /*Register the pdu receive function with sysnet utility*/
+   strcpy(snEntry.funcName, "dot1sPduReceive");
+   snEntry.notify_pdu_receive = dot1sBpduReceive;
+   snEntry.type = SYSNET_MAC_ENTRY;
+   memcpy(snEntry.u.macAddr, dot1sBpduMulticastMacAddr, L7_MAC_ADDR_LEN);
+Index: src/application/switching/spanning_tree/dot1s/include/dot1s_ih.h
+===================================================================
+--- src/application/switching/spanning_tree/dot1s/include/dot1s_ih.h	(revision 7768)
++++ src/application/switching/spanning_tree/dot1s/include/dot1s_ih.h	(working copy)
+@@ -60,13 +60,13 @@ L7_RC_t dot1sIntfDetach(L7_uint32 intIfN
+ L7_BOOL dot1sMapIntfIsConfigurable(L7_uint32 intIfNum, DOT1S_PORT_COMMON_CFG_t **pCfg);
+ L7_RC_t dot1sIntfCfgToPortCopy(DOT1S_PORT_COMMON_CFG_t *pPortCfg);
+ L7_BOOL dot1sIsPortForwarding(L7_uint32 intIfNum, L7_uint32 instIndex);
+ L7_BOOL dot1sIsPortDiscarding(L7_uint32 intIfNum, L7_uint32 instIndex);
+ L7_RC_t dot1sDiagDisablePort(L7_uint32 errIntIfNum);
+ void dot1sIhStateSet(L7_uint32 mstID, L7_uint32 intIfNum, L7_uint32 state);
+-void dot1sStateSetTimerExpired(L7_uint32 intIfNum, L7_uint32 state);
++void dot1sStateSetTimerExpired(L7_uint64 intIfNum, L7_uint64 state);
+ void dot1sStateSetTimerExpiredProcess(L7_uint32 intIfNum);
+ L7_RC_t dot1sStateSetCallback(L7_uint32 intIfNum, 
+ 							  L7_uint32 instance, 
+ 							  L7_uint32 state, 
+ 							  dot1s_stateCB_t stateStatus);
+ L7_RC_t dot1sStateSetCallbackProcess(L7_uint32 intIfNum, 
+Index: src/application/switching/spanning_tree/dot1s/nsf/dot1s_reconcile.c
+===================================================================
+--- src/application/switching/spanning_tree/dot1s/nsf/dot1s_reconcile.c	(revision 7768)
++++ src/application/switching/spanning_tree/dot1s/nsf/dot1s_reconcile.c	(working copy)
+@@ -237,15 +237,15 @@ L7_RC_t dot1sNsfReconcileFailed()
+   }/* while*/
+ 
+   return rc;
+ 
+ }
+ 
+-void dot1sReconcileTimerCallback(L7_uint32 intf, L7_uint32 state)
++void dot1sReconcileTimerCallback(L7_uint64 intf, L7_uint64 state)
+ {
+-  dot1sIssueCmd(dot1sReconError, intf, L7_NULL, L7_NULLPTR);
++  dot1sIssueCmd(dot1sReconError, (L7_uint32) intf, L7_NULL, L7_NULLPTR);
+ }
+ /*********************************************************************
+ * @purpose  Handle the timer callback
+ *
+ * @param    intIfNum  @b{(input)}   internal intf of the lag
+ * @param    state  @b{(input)}
+Index: src/application/switching/vlan/dot1q/dot1q_cnfgr.c
+===================================================================
+--- src/application/switching/vlan/dot1q/dot1q_cnfgr.c	(revision 7768)
++++ src/application/switching/vlan/dot1q/dot1q_cnfgr.c	(working copy)
+@@ -56,13 +56,13 @@ extern dot1qVidList_t      *pVidList;
+ 
+ 
+ dot1qCnfgrState_t   dot1qCnfgrState; 
+ osapiRWLock_t       dot1qCfgRWLock;
+ void *dot1qMsgQueue = L7_NULLPTR;
+ 
+-static L7_uint32 dot1qTaskId = 0;
++static L7_uint64 dot1qTaskId = 0;
+ 
+ 
+ /*********************************************************************
+ *
+ * @purpose  Initialize the dot1q task and create message queue
+ *
+@@ -86,16 +86,16 @@ L7_RC_t dot1qInit(L7_CNFGR_CMD_DATA_t *p
+     {
+       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DOT1Q_COMPONENT_ID,"dot1qInit: msgQueue creation error.\n");
+       return L7_FAILURE;
+     }
+ 
+     /* create dot1qTask - to service dot1q message queue */
+-    dot1qTaskId = (L7_uint32)osapiTaskCreate("dot1qTask", (void *)dot1qTask, 0, 0,
+-                                           dot1qSidTaskStackSizeGet(),
+-                                           dot1qSidTaskPriorityGet(),
+-                                           dot1qSidTaskSliceGet());
++    dot1qTaskId = osapiTaskCreate("dot1qTask", (void *)dot1qTask, 0, 0,
++                                  dot1qSidTaskStackSizeGet(),
++                                  dot1qSidTaskPriorityGet(),
++                                  dot1qSidTaskSliceGet());
+ 
+     if (dot1qTaskId == L7_ERROR)
+     {
+       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DOT1Q_COMPONENT_ID,"Failed to create dot1q task\n");
+       return L7_FAILURE;
+     }
+Index: src/application/switching/vlan/dot1q/dot1q_intf.c
+===================================================================
+--- src/application/switching/vlan/dot1q/dot1q_intf.c	(revision 7768)
++++ src/application/switching/vlan/dot1q/dot1q_intf.c	(working copy)
+@@ -797,13 +797,13 @@ L7_RC_t dot1qVlanIntfCreateInNim(L7_uint
+ 
+     memset((void*)&intfDescr.macroPort,0,sizeof(nimMacroPort_t));
+     intfDescr.macroPort.macroPort = 0;            /* This port is the macro port  */
+     intfDescr.macroPort.macroType = L7_LOGICAL_VLAN_INTF;
+     intfDescr.macroPort.macroMtu  = FD_DOT1Q_DEFAULT_VLAN_INTF_IP_MTU;
+     intfDescr.macroPort.macroMaxFrame = FD_DOT1Q_DEFAULT_VLAN_INTF_CFG_MAX_FRAME_SIZE;
+-    intfDescr.macroPort.macroInfo = (void *)vlanId;  /* Overload the data */
++    intfDescr.macroPort.macroInfo = UINT_TO_PTR(vlanId);  /* Overload the data */
+ 
+ 
+     if (dot1qVlanIntfIndexGet(vlanId,&vlanIfIndex) != L7_SUCCESS)
+     {
+         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DOT1Q_COMPONENT_ID,
+                 "Cannot get intfIndex for the vlan %d \n", vlanId);
