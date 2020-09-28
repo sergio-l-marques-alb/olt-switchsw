@@ -27,7 +27,7 @@
 
 extern isdpStats_t        *isdpStats;
 extern isdpEntryTree_t    *isdpEntryTree;
-extern L7_uint32          isdpTaskId;
+extern L7_uint64          isdpTaskId;
 
 extern isdpCnfgrState_t   isdpCnfgrState;
 extern void               *isdpProcessQueue;

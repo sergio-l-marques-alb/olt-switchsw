@@ -54,7 +54,7 @@ rmonAlarmEntry_t *rmonAlarmEntryArray;
 /* Allocate Memory for Event Table */
 rmonEventEntry_t *rmonEventEntryArray;
 
-L7_int32 L7_rmon_task_id;
+L7_uint64 L7_rmon_task_id;
 
 /* Bit mask of NIM events that RMON is registered to receive */
 PORTEVENT_MASK_t rmonNimEventMask;

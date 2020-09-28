@@ -141,7 +141,7 @@ typedef struct SFLOW_poller_DataKey_s
 typedef struct SFLOW_poller_timerData_s
 {
   L7_APP_TMR_HNDL_t      ctrPollTimer;
-  L7_uint32              ctrPollTimerHandle;
+  L7_uint64              ctrPollTimerHandle;
 } SFLOW_poller_timerData_t;
 
 typedef struct SFLOW_poller_s
@@ -197,7 +197,7 @@ typedef struct SFLOW_agent_s
 
 /* Buffer pools, Semaphores, msgQueues, 
    sockets, taskIDs, timerCBs...*/
-  L7_uint32            sFlowTaskHandle;
+  L7_uint64            sFlowTaskHandle;
 
 /* The sFlow thread reads from two queues. sFlow_Event_Queue
  * holds events to be processed. sFlow_Packet_Queue holds incoming

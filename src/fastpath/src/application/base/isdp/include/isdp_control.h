@@ -64,7 +64,7 @@ void isdpDispatchCmd(isdpMsg_t msg);
 void isdpTask();
 L7_RC_t isdpPduReceiveQueue( L7_uint32 intIfNum, L7_netBufHandle bufHandle);
 L7_RC_t isdpProcessMsgQueue(isdpMsg_t msg);
-L7_RC_t isdpTimerExpired(L7_uint32 arg1, L7_uint32 arg2);
+L7_RC_t isdpTimerExpired(L7_uint64 arg1, L7_uint64 arg2);
 L7_RC_t isdpPduReceiveProcess(L7_uint32 intIfNum, L7_netBufHandle bufHandle);
 L7_RC_t isdpPduSend(void);
 L7_RC_t isdpTimerProcess(void);

@@ -199,8 +199,8 @@ L7_RC_t isdpTxRxInit(void)
   L7_RC_t             rc      = L7_SUCCESS;
   sysnetNotifyEntry_t snEntry;
 
-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register isdpPduReceive related to type=%u, protocol_type=%u: 0x%08x",
-           SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_ISDP, (L7_uint32) isdpPduReceive);
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register isdpPduReceive related to type=%u, protocol_type=%u: %p",
+              SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_ISDP, isdpPduReceive);
 
   memset(&snEntry, 0, sizeof(snEntry));
 

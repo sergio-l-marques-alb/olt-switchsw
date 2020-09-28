@@ -32,7 +32,7 @@ extern doSCfgData_t  *doSCfgData;
 doSCnfgrState_t doSCnfgrState = DOS_PHASE_INIT_0;
 PORTEVENT_MASK_t dosPortEventMask_g;
 extern void *dosQueue;
-extern L7_int32                   dosTaskId;
+extern L7_uint64                   dosTaskId;
 extern L7_uint32                  *dosMapTbl;
 
 /*********************************************************************

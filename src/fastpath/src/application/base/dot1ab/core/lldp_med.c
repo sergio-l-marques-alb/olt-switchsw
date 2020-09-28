@@ -82,7 +82,7 @@ L7_RC_t lldpXMedNotificationRegister(L7_COMPONENT_IDS_t component_ID,
     return(L7_FAILURE);
   }
 
-  if ((L7_uint32)lldpXMedNotifyList[component_ID].notify_med_intf != L7_NULL)
+  if (PTR_TO_UINT64(lldpXMedNotifyList[component_ID].notify_med_intf) != L7_NULL)
   {
     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_LLDP_COMPONENT_ID,
             "LLDP-MED registrar ID %u, %s already registered\n", component_ID, name);

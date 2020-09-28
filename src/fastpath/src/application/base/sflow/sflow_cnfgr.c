@@ -622,8 +622,8 @@ L7_RC_t sFlowCnfgrInitPhase2Process(L7_CNFGR_RESPONSE_t *pResponse,
     return sFlowRC;
   }
 
-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register sFlowPduReceive related to type=%u, rx_reason=%u: 0x%08x",
-           SYSNET_PKT_RX_REASON, SFLOW_SAMPLE_INGRESS_REASON_CODE, (L7_uint32) sFlowPduReceive);
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register sFlowPduReceive related to type=%u, rx_reason=%u: %p",
+              SYSNET_PKT_RX_REASON, SFLOW_SAMPLE_INGRESS_REASON_CODE, sFlowPduReceive);
 
   /* register with sysnet for sampled packets */
   bzero((char *)&snEntry, sizeof(sysnetNotifyEntry_t));

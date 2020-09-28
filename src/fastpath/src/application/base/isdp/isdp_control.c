@@ -597,7 +597,7 @@ L7_RC_t isdpDataPduRead(L7_uint32 intIfNum, L7_uchar8 *data, L7_uint32 length,
 * @end
 *
 *************************************************************************/
-L7_RC_t isdpTimerExpired(L7_uint32 arg1, L7_uint32 arg2)
+L7_RC_t isdpTimerExpired(L7_uint64 arg1, L7_uint64 arg2)
 {
   L7_RC_t   rc = L7_SUCCESS;
   isdpMsg_t msg;

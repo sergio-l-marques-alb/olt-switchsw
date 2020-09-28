@@ -38,7 +38,7 @@
 
 extern lldpCfgData_t  *lldpCfgData;
 extern void           *lldpQueue;
-L7_int32               lldpTaskId;
+L7_uint64              lldpTaskId;
 
 /*********************************************************************
 * @purpose  Start 802.1AB task

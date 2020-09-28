@@ -275,8 +275,8 @@ L7_RC_t dhcpsListDebugPrint(dhcpsLink_t * link)
 
   while(tempLink != L7_NULLPTR)
   {
-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_MED, "Node %d\tobj  %d\nprev %d\tnext %d\n\n",
-      (int)tempLink, (int)tempLink->object, (int)tempLink->prev, (int)tempLink->next);
+    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_MED, "Node %p\tobj %p\nprev %p\tnext %p\n\n",
+      tempLink, tempLink->object, tempLink->prev, tempLink->next);
 
     tempLink = tempLink->next;
   }

@@ -1998,7 +1998,7 @@ void dhcpsCfgDataShow(int showAll)
       break;
     }
 
-    sysapiPrintf("\npoolName..........................%s", (L7_uint32)pDhcpsMapCfgData->pool[index].poolName);
+    sysapiPrintf("\npoolName..........................%s", pDhcpsMapCfgData->pool[index].poolName);
     sysapiPrintf("\nleaseTime.........................%d", (L7_uint32)pDhcpsMapCfgData->pool[index].leaseTime);
 
     for(i = 0; i < L7_DHCPS_DNS_SERVER_MAX; i++)

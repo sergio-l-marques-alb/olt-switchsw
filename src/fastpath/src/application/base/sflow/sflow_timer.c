@@ -25,7 +25,7 @@
 #include "sflow_ctrl.h"
 #include "sflow_debug.h"
 extern SFLOW_agent_t agent;
-static L7_RC_t  sFlowTimerDestroy(L7_APP_TMR_HNDL_t *timer, L7_uint32 *handle);
+static L7_RC_t  sFlowTimerDestroy(L7_APP_TMR_HNDL_t *timer, L7_uint64 *handle);
 /*************************************************************************
 * @purpose  Starts the specified poll timer with specified time period
 *           and allocates related timer nodes
@@ -42,12 +42,14 @@ static L7_RC_t  sFlowTimerDestroy(L7_APP_TMR_HNDL_t *timer, L7_uint32 *handle);
 *************************************************************************/
 L7_RC_t sFlowPollerTimerStart(SFLOW_poller_t *pPoller, L7_uint32 interval)
 {
-  if (pPoller->timerData.ctrPollTimer != L7_NULL)
+  if (pPoller->timerData.ctrPollTimer != L7_NULLPTR)
   {
-    if (appTimerUpdate(agent.timerCB, &pPoller->timerData.ctrPollTimer,
+    if (appTimerUpdate(agent.timerCB,
+                       &pPoller->timerData.ctrPollTimer,
                        (void *)sFlowPollerTimerExpiry,
-                       (void *)pPoller->timerData.ctrPollTimerHandle, interval,
-                        "sFlowPollerTimerExpiry")
+                       UINT_TO_PTR(pPoller->timerData.ctrPollTimerHandle),
+                       interval,
+                       "sFlowPollerTimerExpiry")
                        != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SFLOW_COMPONENT_ID,
@@ -68,8 +70,8 @@ L7_RC_t sFlowPollerTimerStart(SFLOW_poller_t *pPoller, L7_uint32 interval)
 
   if ((pPoller->timerData.ctrPollTimer
         = appTimerAdd(agent.timerCB, sFlowPollerTimerExpiry,
-                      (void *)pPoller->timerData.ctrPollTimerHandle,
-                       interval, "sFlowPollerTimerExpiry"))
+                      UINT_TO_PTR(pPoller->timerData.ctrPollTimerHandle),
+                      interval, "sFlowPollerTimerExpiry"))
         == L7_NULL)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SFLOW_COMPONENT_ID,
@@ -129,7 +131,7 @@ void sFlowPollerTimerExpiry(void *param)
 {
   SFLOW_poller_t *pPoller;
 
-  pPoller = (SFLOW_poller_t *)handleListNodeRetrieve((L7_uint32)param);
+  pPoller = (SFLOW_poller_t *)handleListNodeRetrieve(PTR_TO_UINT64(param));
   if (pPoller == L7_NULLPTR)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SFLOW_COMPONENT_ID,
@@ -169,7 +171,7 @@ void sFlowPollerTimerExpiry(void *param)
 *
 * @end
 *************************************************************************/
-static L7_RC_t  sFlowTimerDestroy(L7_APP_TMR_HNDL_t *timer, L7_uint32 *handle)
+static L7_RC_t  sFlowTimerDestroy(L7_APP_TMR_HNDL_t *timer, L7_uint64 *handle)
 {
   /* Delete the apptimer node */
   (void)appTimerDelete(agent.timerCB, *timer);

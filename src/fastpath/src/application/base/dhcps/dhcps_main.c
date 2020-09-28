@@ -1937,31 +1937,31 @@ L7_RC_t dhcpsTransitionLeaseState(dhcpsLeaseNode_t * pLease, L7_int32 newState)
   switch(LEASE_DATA(pLease)->state)
   {
   case FREE_LEASE:
-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) exiting FREE state\n", (L7_uint32)pLease);
+    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) exiting FREE state\n", pLease);
     break;
 
   case EXPIRED_LEASE:
-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) exiting EXPIRED state\n", (L7_uint32)pLease);
+    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) exiting EXPIRED state\n", pLease);
     break;
 
   case OFFERED_LEASE:
-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) exiting OFFERED state\n", (L7_uint32)pLease);
+    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) exiting OFFERED state\n", pLease);
     dhcpsUnscheduleLease(pLease);
     break;
 
   case ACTIVE_LEASE:
-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) exiting ACTIVE state\n", (L7_uint32)pLease);
+    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) exiting ACTIVE state\n", pLease);
     dhcpsUnscheduleLease(pLease);
     break;
 
   case ABANDONED_LEASE:
-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) exiting ABANDONED state\n", (L7_uint32)pLease);
+    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) exiting ABANDONED state\n", pLease);
     /* reset ticks */
     pLease->leaseStartTime = 0;
     break;
 
   default:
-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_MED,"Lease (%u) exiting UNKNOWN state\n", (L7_uint32)pLease);
+    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_MED,"Lease (%p) exiting UNKNOWN state\n", pLease);
   }
 
   LEASE_DATA(pLease)->state = newState;
@@ -1970,31 +1970,31 @@ L7_RC_t dhcpsTransitionLeaseState(dhcpsLeaseNode_t * pLease, L7_int32 newState)
   switch(LEASE_DATA(pLease)->state)
   {
   case FREE_LEASE:
-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) entering FREE state\n", (L7_uint32)pLease);
+    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) entering FREE state\n", pLease);
     break;
 
   case EXPIRED_LEASE:
-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) entering EXPIRED state\n", (L7_uint32)pLease);
+    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) entering EXPIRED state\n", pLease);
     break;
 
   case OFFERED_LEASE:
-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) entering OFFERED state\n", (L7_uint32)pLease);
+    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) entering OFFERED state\n", pLease);
     dhcpsScheduleLease(pLease, DHCPS_OFFER_VALIDITY_DURATION_SECS);
     break;
 
   case ACTIVE_LEASE:
-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) entering ACTIVE state\n", (L7_uint32)pLease);
+    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) entering ACTIVE state\n", pLease);
     dhcpsScheduleLease(pLease, LEASE_DATA(pLease)->leaseTime);
     break;
 
   case ABANDONED_LEASE:
-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%u) entering ABANDONED state\n", (L7_uint32)pLease);
+    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_LO,"Lease (%p) entering ABANDONED state\n", pLease);
     /* set ticks at which abandoned */
     pLease->leaseStartTime = simSystemUpTimeGet();
     break;
 
   default:
-    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_MED,"Lease (%u) entering UNKNOWN state\n", (L7_uint32)pLease);
+    DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_MED,"Lease (%p) entering UNKNOWN state\n", pLease);
   }
 
   return L7_SUCCESS;

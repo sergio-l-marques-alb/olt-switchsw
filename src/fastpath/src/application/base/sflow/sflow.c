@@ -81,7 +81,7 @@ L7_RC_t sFlowPduReceive(L7_netBufHandle netBufHandle,
     msg.msgId      = SFLOW_SAMPLE_RX;
     msg.dsIndex    = dsIndex;
     msg.instance   = FD_SFLOW_INSTANCE;
-    msg.direction  = ((SYSAPI_NET_MBUF_HEADER_t *)netBufHandle)->rxCode;
+    msg.direction  = ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netBufHandle))->rxCode;
     /* Get start and length of incoming frame */
     SYSAPI_NET_MBUF_GET_DATASTART(netBufHandle, data);
     SYSAPI_NET_MBUF_GET_DATALENGTH(netBufHandle, dataLength);

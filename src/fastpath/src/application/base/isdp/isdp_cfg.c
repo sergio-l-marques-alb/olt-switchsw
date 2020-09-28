@@ -29,7 +29,7 @@ void                    *isdpTaskSyncSema   = L7_NULLPTR;
 void                    *isdpProcessQueue   = L7_NULLPTR;
 void                    *isdpPduQueue       = L7_NULLPTR;
 void                    *isdpSemaphore      = L7_NULLPTR;
-L7_uint32               isdpTaskId          = 0;
+L7_uint64               isdpTaskId          = 0;
 L7_uint32               isdpIpAddrPoolId    = 0;
 isdpDebugCfg_t          isdpDebugCfg;
 
@@ -163,10 +163,10 @@ L7_RC_t isdpInit(L7_CNFGR_CMD_DATA_t *pCmdData)
     return L7_FAILURE;
   }
 
-  isdpTaskId = (L7_uint32)osapiTaskCreate("isdpTask", (void *)isdpTask, 0, 0,
-                                             L7_ISDP_STACK_SIZE,
-                                             L7_ISDP_DEFAULT_ISDP_TASK_PRI,
-                                             L7_DEFAULT_TASK_SLICE);
+  isdpTaskId = osapiTaskCreate("isdpTask", (void *)isdpTask, 0, 0,
+                               L7_ISDP_STACK_SIZE,
+                               L7_ISDP_DEFAULT_ISDP_TASK_PRI,
+                               L7_DEFAULT_TASK_SLICE);
   if (isdpTaskId == L7_ERROR)
   {
     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_ISDP_COMPONENT_ID,

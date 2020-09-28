@@ -36,7 +36,7 @@
 extern doSCfgData_t *doSCfgData;
 extern doSCnfgrState_t doSCnfgrState;
 osapiRWLock_t       doSCfgRWLock;
-L7_int32            dosTaskId;
+L7_uint64           dosTaskId;
 void *dosQueue = L7_NULLPTR;
 L7_uint32 *dosMapTbl = L7_NULLPTR;
 
