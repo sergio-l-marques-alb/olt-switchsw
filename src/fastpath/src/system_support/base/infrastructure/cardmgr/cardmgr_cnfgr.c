@@ -694,7 +694,7 @@ L7_RC_t cmgrCnfgrNoopProccess( L7_CNFGR_RESPONSE_t *pResponse,
  *********************************************************************/
 L7_RC_t cmgrStartTask(L7_CNFGR_CMD_DATA_t *pCmdData)
 {
-  L7_int32 taskId;
+  L7_uint64 taskId;
   cmgrQueue = (void *)osapiMsgQueueCreate(L7_CMGR_QUEUE_NAME,
       L7_CMGR_MSGQ_COUNT_f,
       L7_CMGR_MSGQ_SIZE_f);

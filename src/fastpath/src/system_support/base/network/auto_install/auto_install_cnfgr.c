@@ -38,7 +38,7 @@ autoInstallCnfgrState_t autoInstallCnfgrState  = AUTO_INSTALL_PHASE_INIT_0;
 void * autoInstallMsgQueue = L7_NULLPTR;
 
 /* auto_istall task queue ID */
-L7_int32 autoInstallTaskId = 0;
+L7_uint64 autoInstallTaskId = 0;
 
 /* auto-install run time variables/parameters */
 extern autoInstallRunTimeData_t *autoInstallRunTimeData;

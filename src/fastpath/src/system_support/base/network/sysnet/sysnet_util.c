@@ -361,16 +361,16 @@ L7_RC_t sysNetFindReasonCodeMatch(sysnet_pdu_info_t *pduInfo, L7_netBufHandle bu
   L7_RC_t     rc = L7_FAILURE;
 
   if (pdu_process_debug)
-    PT_LOG_TRACE(LOG_CTX_DTL,"RxReason reference=0x%x",((SYSAPI_NET_MBUF_HEADER_t *)bufHandle)->rxCode);
+    PT_LOG_TRACE(LOG_CTX_DTL,"RxReason reference=0x%x",((SYSAPI_NET_MBUF_HEADER_t *)UINT_TO_PTR(bufHandle))->rxCode);
 
   for (i = 0; i < FD_CNFGR_SYSNET_MAX_REGISTRATIONS; i++)
   {
     if (sysnetNotifyList.sysnetNotifyEntries[i].type == SYSNET_PKT_RX_REASON)
     {
-      if (sysnetNotifyList.sysnetNotifyEntries[i].u.rxReason & ((SYSAPI_NET_MBUF_HEADER_t *)bufHandle)->rxCode)
+      if (sysnetNotifyList.sysnetNotifyEntries[i].u.rxReason & ((SYSAPI_NET_MBUF_HEADER_t *)UINT_TO_PTR(bufHandle))->rxCode)
       {
-        #if (PTIN_BOARD_CXO640G) // PTIN added : This must be done to have capture and inband simultaneously
-        if (pduInfo->vlanId == 2047 && ((((SYSAPI_NET_MBUF_HEADER_t *)bufHandle)->rxCode) == 0x10) ) 
+        #if (PTIN_BOARD == PTIN_BOARD_CXO640G) // PTIN added : This must be done to have capture and inband simultaneously
+        if (pduInfo->vlanId == 2047 && ((((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(bufHandle))->rxCode) == 0x10) ) 
         {
           continue;
         }
@@ -1571,27 +1571,32 @@ L7_RC_t sysNetNotifyListDebugShow()
            sysnetNotifyList.sysnetNotifyEntries[i].u.subType,
            sysnetNotifyList.sysnetNotifyEntries[i].u.dsap,
            sysnetNotifyList.sysnetNotifyEntries[i].u.rxReason);
-    printf("  notify_pdu_receive callback = 0x%08x\r\n", (L7_uint32) sysnetNotifyList.sysnetNotifyEntries[i].notify_pdu_receive);
+    printf("  notify_pdu_receive callback = %p\r\n", sysnetNotifyList.sysnetNotifyEntries[i].notify_pdu_receive);
   }
   printf("\r\n");
-  printf("ipMapArpRecvIP          = 0x%08x\r\n", (L7_uint32) ipMapArpRecvIP);
-  printf("ipMapRecvIP             = 0x%08x\r\n", (L7_uint32) ipMapRecvIP);
-  printf("dot1sBpduReceive        = 0x%08x\r\n", (L7_uint32) dot1sBpduReceive);
-  printf("dot1xPduReceive         = 0x%08x\r\n", (L7_uint32) dot1xPduReceive);
-  printf("dot3adPduReceive        = 0x%08x\r\n", (L7_uint32) dot3adPduReceive);
-  printf("dtlRecvIP6              = 0x%08x\r\n", (L7_uint32) dtlRecvIP6);
-  printf("GarpRecvPkt             = 0x%08x\r\n", (L7_uint32) GarpRecvPkt);
-  //printf("ipv6ProvRecvPkt         = 0x%08x\r\n", (L7_uint32) ipv6ProvRecvPkt);
-  printf("isdpPduReceive          = 0x%08x\r\n", (L7_uint32) isdpPduReceive);
-  printf("lldpPduReceiveCallback  = 0x%08x\r\n", (L7_uint32) lldpPduReceiveCallback);
-  printf("sFlowPduReceive         = 0x%08x\r\n", (L7_uint32) sFlowPduReceive);
-  printf("pppoePduReceive         = 0x%08x\r\n", (L7_uint32) pppoePduReceive);
-  printf("ptinMacBcastRecv        = 0x%08x\r\n", (L7_uint32) ptinMacBcastRecv);
+  printf("ipMapArpRecvIP          = %p\r\n", ipMapArpRecvIP);
+  printf("ipMapRecvIP             = %p\r\n", ipMapRecvIP);
+  printf("dot1sBpduReceive        = %p\r\n", dot1sBpduReceive);
+  printf("dot1xPduReceive         = %p\r\n", dot1xPduReceive);
+  printf("dot3adPduReceive        = %p\r\n", dot3adPduReceive);
+  printf("dtlRecvIP6              = %p\r\n", dtlRecvIP6);
+  printf("GarpRecvPkt             = %p\r\n", GarpRecvPkt);
+  //printf("ipv6ProvRecvPkt         = %p\r\n", ipv6ProvRecvPkt);
+  printf("isdpPduReceive          = %p\r\n", isdpPduReceive);
+  printf("lldpPduReceiveCallback  = %p\r\n", lldpPduReceiveCallback);
+  printf("sFlowPduReceive         = %p\r\n", sFlowPduReceive);
+  printf("pppoePduReceive         = %p\r\n", pppoePduReceive);
+  printf("ptinMacBcastRecv        = %p\r\n", ptinMacBcastRecv);
 #ifdef PTIN_ENABLE_ERPS
-  printf("ptin_aps_packetRx_callback      = 0x%08x\r\n", (L7_uint32) ptin_aps_packetRx_callback);
-  printf("ptin_ccm_packetRx_callback      = 0x%08x\r\n", (L7_uint32) ptin_ccm_packetRx_callback);
+  printf("ptin_aps_packetRx_callback      = %p\r\n", ptin_aps_packetRx_callback);
+  printf("ptin_ccm_packetRx_callback      = %p\r\n", ptin_ccm_packetRx_callback);
 #endif
-  printf("common_aps_ccm_packetRx_callback= 0x%08x\r\n", (L7_uint32) common_aps_ccm_packetRx_callback);
+  printf("common_aps_ccm_packetRx_callback= %p\r\n", common_aps_ccm_packetRx_callback);
+
+#ifdef L7_ROUTING_PACKAGE
+  printf("ipMapArpRecvIP = %p\r\n", ipMapArpRecvIP);
+  printf("ipMapRecvIP    = %p\r\n", ipMapRecvIP);
+#endif
 
   return L7_SUCCESS;
 }

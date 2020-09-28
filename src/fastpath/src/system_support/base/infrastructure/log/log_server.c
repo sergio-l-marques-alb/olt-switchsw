@@ -178,7 +178,7 @@ static L7_uint32  logSyslogMessageDeliveredTimestamp = 0;
 static void * logTaskSyncSemaphore = L7_NULL;
 
 /* Our task id */
-static L7_int32  logServerTaskId = 0;
+static L7_uint64 logServerTaskId = 0;
 
 /** Local variables used for communication */
 
@@ -941,7 +941,7 @@ void l7_log(L7_LOG_SEVERITY_t severity, L7_COMPONENT_IDS_t component,
   l7utilsFilenameStrip(&fileName);
 
   logmsg(logDefaultFacilityGet(), severity, component, ct,
-         unit, (L7_uint32)osapiTaskIdSelf(), fileName,
+         unit, osapiTaskIdSelf(), fileName,
          lineNum, nfo);
 
   unitMgrLogMsg(fileName, lineNum, nfo, severity, component);
@@ -990,9 +990,9 @@ void log_user_trace(L7_COMPONENT_IDS_t component, L7_char8 * fileName,
 
     l7utilsFilenameStrip(&fileName);
     len = osapiSnprintf(logInitBuf, L7_LOG_MESSAGE_LENGTH,
-                        "%.15s %s[%d]: %s(%d) --  %s",
+                        "%.15s %s[%llu]: %s(%d) --  %s",
                         logDateString(ct.seconds),
-                        mnemonic, (L7_uint32)osapiTaskIdSelf(),
+                        mnemonic, osapiTaskIdSelf(),
                         fileName, lineNum, nfo);
 
 
@@ -1035,7 +1035,7 @@ void log_user_trace(L7_COMPONENT_IDS_t component, L7_char8 * fileName,
  *********************************************************************/
 void logmsg(L7_LOG_FACILITY_t facility, L7_LOG_SEVERITY_t severity,
             L7_COMPONENT_IDS_t component, L7_clocktime ttime,
-            L7_uint32 stk, L7_uint32 tid, L7_char8 * fileName,
+            L7_uint32 stk, L7_uint64 tid, L7_char8 * fileName,
             L7_uint32 lineNum, L7_char8 * nfo)
 {
   L7_BOOL logPers = PERSISTENT_LOG_ACTIVE(severity);
@@ -1056,7 +1056,7 @@ void logmsg(L7_LOG_FACILITY_t facility, L7_LOG_SEVERITY_t severity,
 
   if (logf_debug)	/* PTin added: debug */
   {
-    printf("L7_LOGF: cid=%u stk=%u tid=%u file=%s line=%u msg=\"%s\"\r\n",component,stk,tid,fileName,lineNum,nfo);
+    printf("L7_LOGF: cid=%u stk=%u tid=%llu file=%s line=%u msg=\"%s\"\r\n",component,stk,tid,fileName,lineNum,nfo);
   }
 
   /* NOTE: This function uses the fileName parm as is (caller is responsible
@@ -1118,14 +1118,14 @@ void logmsg(L7_LOG_FACILITY_t facility, L7_LOG_SEVERITY_t severity,
       if (fileName != L7_NULL)
       {
         len = osapiSnprintf(buf + LOG_STACK_HEADER_LEN, bufsiz,
-                            "<%d> %.15s %s-%d %s[%d]: %s(%d) %d %%%% ",
+                            "<%d> %.15s %s-%d %s[%llu]: %s(%d) %d %%%% ",
                             facility * 8 + severity, logDateString(ttime.seconds),
                             addr, stk, mnemonic, tid, fileName, lineNum, logMessagesReceived);
       }
       else
       {
         len = osapiSnprintf(buf + LOG_STACK_HEADER_LEN, bufsiz,
-                            "<%d> %.15s %s-%d %s[%d]: %d %%%% ",
+                            "<%d> %.15s %s-%d %s[%llu]: %d %%%% ",
                             facility * 8 + severity, logDateString(ttime.seconds),
                             addr, stk, mnemonic, tid, logMessagesReceived);
       }
@@ -2018,13 +2018,13 @@ L7_RC_t logServerInit(struct logCfg_s * cfg)
   }
 
   /** create LOG client task */
-  logServerTaskId = (L7_uint32)osapiTaskCreate("LOG",
-                                               (void *)logTask,
-                                               L7_NULL,
-                                               L7_NULL,
-                                               L7_DEFAULT_STACK_SIZE,
-                                               L7_DEFAULT_TASK_PRIORITY,
-                                               L7_DEFAULT_TASK_SLICE);
+  logServerTaskId = osapiTaskCreate("LOG",
+                                    (void *)logTask,
+                                    L7_NULL,
+                                    L7_NULL,
+                                    L7_DEFAULT_STACK_SIZE,
+                                    L7_DEFAULT_TASK_PRIORITY,
+                                    L7_DEFAULT_TASK_SLICE);
 
   if (logServerTaskId == L7_NULL)
   {

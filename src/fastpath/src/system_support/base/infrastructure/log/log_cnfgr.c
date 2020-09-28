@@ -105,7 +105,7 @@ void (*logNvStoreFuncPtr)(L7_uchar8 *buf) = L7_NULLPTR;
 static void (*logNvRetrieveFuncPtr)(L7_uchar8 *buf) = L7_NULLPTR;
 
 /* The log config task id. */
-static L7_int32  logCfgTaskId = 0;
+static L7_uint64   logCfgTaskId = 0;
 
 /* The log config queue. */
 static void *      logCfgQueue = L7_NULL;
@@ -917,7 +917,7 @@ void loggingInit()
              L7_LOG_COMPONENT_DEFAULT,
              ct,
              0,
-             (L7_uint32)osapiTaskIdSelf(),
+             osapiTaskIdSelf(),
              file_name,
              line_num,
              buf);
@@ -986,7 +986,7 @@ void loggingInit()
              L7_LOG_COMPONENT_DEFAULT,
              ct,
              0,
-             (L7_uint32)osapiTaskIdSelf(),
+             osapiTaskIdSelf(),
              file_name,
              line_num,
              buf);

@@ -31,9 +31,9 @@ extern void * radius_queue;
 extern void * radiusClusteringQueue;
 extern void * radiusTaskSyncSema;
 extern void * radiusServerDbSyncSema;
-extern L7_uint32 radius_task_id;
-extern L7_uint32 radius_rx_task_id;
-extern L7_uint32 radius_cluster_task_id;
+extern L7_uint64 radius_task_id;
+extern L7_uint64 radius_rx_task_id;
+extern L7_uint64 radius_cluster_task_id;
 
 L7_uint32 radius_sm_bp_id = L7_NULL;
 L7_uint32 radius_lg_bp_id = L7_NULL;

@@ -41,7 +41,8 @@ extern struct radix_node * rn_match_count(void *v_arg, struct radix_node_head *h
 *********************************************************************/
 void radixPurgeTree(radixTree_t * tree)
 {
-  L7_uint32         i, value;
+  L7_uint64         value;
+  L7_uint32         i;
   L7_uint32         max_keylen;
   L7_uint32         max_entries;
   L7_uint32         offset_next, dataLength;
@@ -72,9 +73,9 @@ void radixPurgeTree(radixTree_t * tree)
   {
     if (dataHeap)
     {
-      value = (L7_uint32)((char*)dataHeap + dataLength);
+      value = PTR_TO_UINT64((char*)dataHeap + dataLength);
       localAddr = (char*)dataHeap + offset_next;
-      memcpy(localAddr, &value, sizeof(L7_uint32));
+      memcpy(localAddr, &value, sizeof(L7_uint64));
       dataHeap = (char *)dataHeap + dataLength;
     }
 
@@ -84,9 +85,9 @@ void radixPurgeTree(radixTree_t * tree)
   }
   for (i = 0; i < (max_keylen*8) - 1; i++)
   {
-  	value = (L7_uint32)((char*)maskNodeHeap + RADIX_MASK_NODE_ITEM_SIZE(max_keylen));
+  	value = PTR_TO_UINT64((char*)maskNodeHeap + RADIX_MASK_NODE_ITEM_SIZE(max_keylen));
   	localAddr = (char*)maskNodeHeap + RADIX_MASK_NODE_ITEM_OFFSET_NEXT(max_keylen);
-  	memcpy(localAddr, &value, sizeof(L7_uint32));
+  	memcpy(localAddr, &value, sizeof(L7_uint64));
     maskNodeHeap = (char *)maskNodeHeap + RADIX_MASK_NODE_ITEM_SIZE(max_keylen);
   }
  
@@ -507,16 +508,16 @@ int dumpNode(struct l7_radix_node * node, void * arg)
   if(node->rn_bit >= 0)
   {
     /* never really comes in here because of the way walk_tree is coded */
-    printf("%x: tree node, test pos %d\tL(%x) R(%x)\n", 
-           (L7_uint32)node, node->rn_u.rn_node.rn_Off, \
-           (L7_uint32)node->rn_u.rn_node.rn_L,
-           (L7_uint32)node->rn_u.rn_node.rn_R);
+    printf("%p: tree node, test pos %d\tL(%p) R(%p)\n", 
+           node, node->rn_u.rn_node.rn_Off, \
+           node->rn_u.rn_node.rn_L,
+           node->rn_u.rn_node.rn_R);
   }
   else
   {
     entryCount++;
 
-    printf("%d)\t%x: leaf key(", entryCount, (L7_uint32)node);
+    printf("%d)\t%p: leaf key(", entryCount, node);
 
     for(i = 0; i < tree->mask_rnhead.max_keylen; i++)
       printf("%2x ", node->rn_u.rn_leaf.rn_Key[i]);

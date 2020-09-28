@@ -30,7 +30,7 @@
 typedef struct registry_entity_t
 {
   L7_uint32 type;       /* see reg_entry_type */
-  L7_uint32 ptr_val;
+  L7_uint64 ptr_val;
 } REGISTRY_ENTITY;
 
 static REGISTRY_ENTITY *pRegistry;
@@ -113,12 +113,16 @@ L7_RC_t sysapiRegistryGet(registry_t reg_key, reg_entry_type entry_type, void *b
     *( L7_uint32 * )buffer =  ( L7_uint32 )entp->ptr_val;
     break;
 
+  case U64_ENTRY:
+    *( L7_uint64 * )buffer =  ( L7_uint64 )entp->ptr_val;
+    break;
+
   case MAC_ENTRY:
-    memcpy (buffer, (void *)entp->ptr_val, 6);
+    memcpy (buffer, (void *) UINT_TO_PTR(entp->ptr_val), 6);
     break;
 
   case STR_ENTRY:
-    strcpy ((char *)buffer, (char *)entp->ptr_val );
+    strcpy ((char *)buffer, (char *) UINT_TO_PTR(entp->ptr_val) );
     break;
 
   case SLOT_ENTRY:
@@ -178,16 +182,20 @@ L7_RC_t sysapiRegistryPut(registry_t reg_key, reg_entry_type entry_type, void *b
     entp->ptr_val = *( L7_uint32 * )buffer;
     break;
 
+  case U64_ENTRY:
+    entp->ptr_val = *( L7_uint64 * )buffer;
+    break;
+
   case MAC_ENTRY:
-    entp->ptr_val = (L7_uint32)osapiMalloc( L7_SIM_COMPONENT_ID, 6 );
+    entp->ptr_val = PTR_TO_UINT64(osapiMalloc( L7_SIM_COMPONENT_ID, 6 ));
     if ( entp->ptr_val != L7_NULL )
-      memcpy ((void *)entp->ptr_val, buffer, 6);
+      memcpy ((void *) UINT_TO_PTR(entp->ptr_val), buffer, 6);
     break;
 
   case STR_ENTRY:
-    entp->ptr_val = (L7_uint32)osapiMalloc (L7_SIM_COMPONENT_ID, strlen ( (char *)buffer ) + 1 );
+    entp->ptr_val = PTR_TO_UINT64(osapiMalloc (L7_SIM_COMPONENT_ID, strlen ( (char *)buffer ) + 1 ));
     if ( entp->ptr_val != L7_NULL )
-      strcpy ( (char *)entp->ptr_val, (char *)buffer );
+      strcpy ( (char *) UINT_TO_PTR(entp->ptr_val), (char *)buffer );
     break;
 
   case SLOT_ENTRY:

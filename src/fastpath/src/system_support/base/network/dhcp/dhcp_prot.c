@@ -657,7 +657,7 @@ next_timeout (dhcpClientInfo_t *clientIntfInfo)
 *
 * @end
 *************************************************************************/
-static void next_timeout_function (L7_uint32 data, L7_uint32 arg2)
+static void next_timeout_function (L7_uint64 data, L7_uint64 arg2)
 {
   dhcpClientInfo_t *clientIntfInfo = L7_NULLPTR;
   L7_uint32 intIfNum = 0;
@@ -666,7 +666,7 @@ static void next_timeout_function (L7_uint32 data, L7_uint32 arg2)
 
   DHCPC_TRACE (DHCPC_DEBUG_APIS, "Entry");
 
-  intIfNum = data;
+  intIfNum = (L7_uint32) data;
   mgmtPortType = (L7_MGMT_PORT_TYPE_t) arg2;
 
   DHCPC_TRACE (DHCPC_DEBUG_TIMER, "Timeout occured for for intIfNum-%d, mgmtPortType-%d",
@@ -860,7 +860,7 @@ dhcpClientNextTimeoutTimerStop (dhcpClientInfo_t *clientIntfInfo)
 *
 * @end
 *************************************************************************/
-static void alarm_function (L7_uint32 data, L7_uint32 arg2)
+static void alarm_function (L7_uint64 data, L7_uint64 arg2)
 {
   dhcpClientInfo_t *clientIntfInfo = L7_NULLPTR;
   dhcpLeaseInfo_t *lease = L7_NULLPTR;
@@ -870,7 +870,7 @@ static void alarm_function (L7_uint32 data, L7_uint32 arg2)
 
   DHCPC_TRACE (DHCPC_DEBUG_APIS, "Entry");
 
-  intIfNum = data;
+  intIfNum = (L7_uint32) data;
   mgmtPortType = (L7_MGMT_PORT_TYPE_t) arg2;
 
   if ((clientIntfInfo = dhcpClientIntfInfoGet (intIfNum, mgmtPortType))

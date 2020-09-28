@@ -674,7 +674,7 @@ L7_RC_t cnfgrApiScheduleCommand(
 
     /* schedule it ! */
     osapiTimerAdd( (void *) cnfgrPendingMsgSend, 
-	(L7_uint32)pMsgData, 
+	PTR_TO_UINT64(pMsgData),
 	L7_NULL, 
 	milliseconds,
 	&pTimerHolder );

@@ -42,8 +42,8 @@ void *boxsReqQ = L7_NULLPTR;
 extern void *boxsSemaphore;
 extern boxsCfg_t * boxsCfg;
 
-L7_uint32 L7_boxs_Req_task_id = 0;
-L7_uint32 L7_boxs_Rsp_task_id = 0;
+L7_uint64 L7_boxs_Req_task_id = 0;
+L7_uint64 L7_boxs_Rsp_task_id = 0;
 
 boxsData_t gBoxsData[L7_ALL_UNITS];    /* index zero not used */
 boxsGlobalStatus_t globalStatus[L7_ALL_UNITS];

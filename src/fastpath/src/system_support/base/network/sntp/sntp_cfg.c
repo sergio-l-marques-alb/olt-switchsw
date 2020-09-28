@@ -76,7 +76,7 @@ typedef struct
 
 
 /* SNTP Cfg task */
-static L7_int32  sntpCfgTaskId = 0;
+static L7_uint64  sntpCfgTaskId = 0;
 
 /* SNTP Cfg queue */
 static void *      sntpCfgQueue = L7_NULL;

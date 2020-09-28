@@ -268,8 +268,8 @@ L7_RC_t supportDebugCategoryRegisterImpl(supportDebugCategory_t supportDebugCate
   if (supportDebugCategoryEntryExists(pEntry) == L7_TRUE)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
-            "Debug Help routine %s (%x) already registered\n",
-            supportDebugCategory.info.supportRoutineName,(L7_int32)supportRoutine);
+            "Debug Help routine %s (%p) already registered\n",
+            supportDebugCategory.info.supportRoutineName,supportRoutine);
 
     bufferPoolFree(supportDebugCategoryBufferPoolId, (L7_uchar8 *)pEntry);
     return(L7_FAILURE);
@@ -359,8 +359,8 @@ L7_RC_t supportDebugCategoryDeregisterImpl(supportDebugCategory_t supportDebugCa
   {
     /* Registration not found */
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
-            "Deregistration failed: Debug Help routine %s (%x) not registered\n",
-            supportDebugCategory.info.supportRoutineName,(L7_int32)supportRoutine);
+            "Deregistration failed: Debug Help routine %s (%p) not registered\n",
+            supportDebugCategory.info.supportRoutineName,supportRoutine);
     return(L7_FAILURE);
   }
 
@@ -766,8 +766,8 @@ L7_RC_t supportDebugRegisterImpl(supportDebugDescr_t supportDebugDescr)
       if (supportDebugDescrList[i].internal.debugHelp == debugHelp)
       {
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
-                "Debug Help routine %s (%x) already registered\n",
-                supportDebugDescr.internal.debugHelpRoutineName,(L7_int32)debugHelp);
+                "Debug Help routine %s (%p) already registered\n",
+                supportDebugDescr.internal.debugHelpRoutineName,debugHelp);
         return(L7_FAILURE);
       }
     }
@@ -861,8 +861,8 @@ L7_RC_t supportDebugDeregisterImpl(supportDebugDescr_t supportDebugDescr)
 
   /* Registration not found */
   L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
-          "Deregistration failed: Component %d, %s,  Debug Help routine %s (%x) not registered\n",
-          componentId, name, supportDebugDescr.internal.debugHelpRoutineName,(L7_int32)debugHelp);
+          "Deregistration failed: Component %d, %s,  Debug Help routine %s (%p) not registered\n",
+          componentId, name, supportDebugDescr.internal.debugHelpRoutineName,debugHelp);
   return(L7_FAILURE);
 
 }

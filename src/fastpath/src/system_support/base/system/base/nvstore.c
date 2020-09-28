@@ -36,8 +36,8 @@
 #include "usmdb_cnfgr_api.h"
 
 extern void sysapiUncombinedCfgRemove(void);
-extern int tEmWebTid;
-extern int umRunCfgDlTaskId;
+extern L7_uint64 tEmWebTid;
+extern L7_uint64 umRunCfgDlTaskId;
 
 
 /* L7_TRUE when the user has made configuration changes that have not yet been
@@ -209,7 +209,7 @@ L7_RC_t nvStoreSave_emWebContext_Request(L7_SAVE_CONFIG_TYPE_t type)
 L7_RC_t nvStoreSave(L7_SAVE_CONFIG_TYPE_t generateConfig)
 {
   L7_uint32 i;
-  L7_int32 taskID;
+  L7_uint64 taskID;
   L7_RC_t   rc = L7_SUCCESS;
 
   nvStoreSaveCfgEvent_t event = REMOTE_SAVE_CFG_SUCCESS;
@@ -613,7 +613,7 @@ L7_RC_t nvStoreConfigDump(void)
   {
     if (nvStoreNotifyList[i].registrar_ID != 0)
     {
-      if ((L7_uint32)nvStoreNotifyList[i].notifyConfigDump != L7_NULL)
+      if (nvStoreNotifyList[i].notifyConfigDump != L7_NULLPTR)
       {
         if ((*nvStoreNotifyList[i].notifyConfigDump)() != L7_SUCCESS)
         {
@@ -657,7 +657,7 @@ L7_RC_t nvStoreDebugDump(void)
   {
     if (nvStoreNotifyList[i].registrar_ID != 0)
     {
-      if ((L7_uint32)nvStoreNotifyList[i].notifyDebugDump != L7_NULL)
+      if (nvStoreNotifyList[i].notifyDebugDump != L7_NULLPTR)
       {
         if ((*nvStoreNotifyList[i].notifyDebugDump)() != L7_SUCCESS)
         {
@@ -780,7 +780,7 @@ L7_RC_t nvStoreGetFile(L7_char8 *fileName, L7_char8 *buffer, L7_uint32 bufferSiz
 
   if (osapiFsRead(fileName, buffer, (L7_int32)bufferSize) == L7_ERROR)
   {
-    if ((L7_uint32)defaultBuild == L7_NULL)
+    if (defaultBuild == L7_NULLPTR)
     {
       return(L7_FAILURE);
     }
@@ -811,7 +811,7 @@ L7_RC_t nvStoreGetFile(L7_char8 *fileName, L7_char8 *buffer, L7_uint32 bufferSiz
                     "the file system did not match the checksum of the file in memory.\n", fileName);
 
 
-      if ((L7_uint32)defaultBuild == L7_NULL)
+      if (defaultBuild == L7_NULLPTR)
       {
         return(L7_FAILURE);
       }

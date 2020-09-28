@@ -2210,8 +2210,8 @@ L7_RC_t timeRangeReadLockTake(osapiRWLock_t rwlock,  char *file, L7_ulong32 line
   {
     l7utilsFilenameStrip(&file);
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_TIMERANGES_COMPONENT_ID,
-            "Read lock take failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
-            file, line, rc, (L7_uint32)rwlock.handle);
+            "Read lock take failure for file %s:%lu, rc=%u, id=%p\n",
+            file, line, rc, rwlock.handle);
   }
   return rc;
 }
@@ -2242,8 +2242,8 @@ L7_RC_t timeRangeReadLockGive(osapiRWLock_t rwlock, char *file, L7_ulong32 line)
   {
     l7utilsFilenameStrip(&file);
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_TIMERANGES_COMPONENT_ID,
-            "Read lock give failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
-            file, line, rc, (L7_uint32)rwlock.handle);
+            "Read lock give failure for file %s:%lu, rc=%u, id=%p\n",
+            file, line, rc, rwlock.handle);
   }
   return rc;
 }
@@ -2278,8 +2278,8 @@ L7_RC_t timeRangeWriteLockTake(osapiRWLock_t rwlock, char *file, L7_ulong32 line
   {
     l7utilsFilenameStrip(&file);
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_TIMERANGES_COMPONENT_ID,
-            "Write lock take failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
-            file, line, rc, (L7_uint32)rwlock.handle);
+            "Write lock take failure for file %s:%lu, rc=%u, id=%p\n",
+            file, line, rc, rwlock.handle);
   }
   return rc;
 }
@@ -2310,8 +2310,8 @@ L7_RC_t timeRangeWriteLockGive(osapiRWLock_t rwlock, char *file, L7_ulong32 line
   {
     l7utilsFilenameStrip(&file);
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_TIMERANGES_COMPONENT_ID,
-            "Write lock give failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
-            file, line, rc, (L7_uint32)rwlock.handle);
+            "Write lock give failure for file %s:%lu, rc=%u, id=%p\n",
+            file, line, rc, rwlock.handle);
   }
   return rc;
 }

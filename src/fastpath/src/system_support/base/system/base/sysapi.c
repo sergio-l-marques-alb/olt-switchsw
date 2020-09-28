@@ -79,10 +79,10 @@ static L7_BOOL sysapiTxtCfgValid = L7_FALSE;
 /*************************************
  * Mbuf Queue declarations
  *************************************/
-L7_uint32 *pMbufQTop;      /* top of queue */
-L7_uint32 *pMbufQBot;      /* bottom of queue */
-L7_uint32 *MbufQHead;
-L7_uint32 *MbufQTail;
+L7_uint64 *pMbufQTop;      /* top of queue */
+L7_uint64 *pMbufQBot;      /* bottom of queue */
+L7_uint64 *MbufQHead;
+L7_uint64 *MbufQTail;
 L7_uint32 MbufsFree;
 L7_uint32 MbufsRxUsed;
 L7_uint32 MbufsMaxFree;
@@ -101,7 +101,7 @@ void * sysapiCfgSema = NULL;
 
 /* Static Declarations */
 
-static L7_int32 sysapiTimerTaskID = L7_NULL;
+static L7_uint64 sysapiTimerTaskID = L7_NULL;
 static void *sysapiWriteToFlashSema = L7_NULL;
 static L7_SAVE_CONFIG_CODE_t savingConfigToFlashStatus=L7_SAVE_CONFIG_CODE_NONE;
 
@@ -357,7 +357,7 @@ L7_RC_t sysapiSystemInit(void)
   /********************************************************
    * Allocate the "mbuf" Queue. Each entry is a 32 bit ptr
    *********************************************************/
-  pMbufQTop = ( L7_uint32 * )osapiMalloc ( L7_SIM_COMPONENT_ID, L7_MAX_NETWORK_BUFF_PER_BOX * 4 );
+  pMbufQTop = ( L7_uint64 * )osapiMalloc ( L7_SIM_COMPONENT_ID, L7_MAX_NETWORK_BUFF_PER_BOX * sizeof(L7_uint64) );
   if ( pMbufQTop == L7_NULLPTR )
     return(L7_ERROR);
 
@@ -372,7 +372,7 @@ L7_RC_t sysapiSystemInit(void)
 
   for ( i=0;i<MbufsMaxFree;i++ )
   {
-    *MbufQHead = ( L7_uint32 ) ( (L7_uchar8 *)pMbufPool + i * ( temp32 ));
+    *MbufQHead = PTR_TO_UINT64( (L7_uchar8 *)pMbufPool + i * ( temp32 ));
     MbufQHead++;
   }
   pMbufQBot = --MbufQHead;            /* set bottom of queue ptr */
@@ -1497,7 +1497,7 @@ static L7_RC_t sysapiCfgFileBuildDefault(L7_COMPONENT_IDS_t component_id, L7_cha
 {
   L7_fileHdr_t *pFileHdr;
 
-  if ((L7_uint32)defaultBuild == L7_NULL)
+  if (defaultBuild == L7_NULLPTR)
   {
     return L7_FAILURE;
   }
@@ -1632,7 +1632,7 @@ L7_RC_t sysapiCfgFileGetImpl(L7_COMPONENT_IDS_t component_id, L7_char8 *fileName
     if ((savedVersion != version) || (fileSize != bufferSize))
     {
       /*call migrate function*/
-      if ((L7_uint32)migrateBuild == L7_NULL)
+      if (migrateBuild == L7_NULLPTR)
       {
         buildDefaultFile = L7_TRUE;
       }

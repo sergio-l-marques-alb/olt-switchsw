@@ -77,7 +77,7 @@ static L7_RC_t traceRouteTimeUSecElapsed( L7_clocktime *end,
 static L7_uint32 traceRouteCount;
 
 /* Task-Id for task processing ASYNC reqeusts */
-static L7_uint32 traceRouteAsyncTaskId;
+static L7_uint64 traceRouteAsyncTaskId;
 
 /* Table containing traceroute sessions */
 traceRouteTable_t   *traceRouteTable_g;
@@ -445,7 +445,7 @@ traceRouteASyncTask( void *param )
     L7_uint32 elapsedTime;
     L7_ushort16 maxFd;
     traceRouteTable_t *traceEntry;
-    L7_uint32 tmpTaskId;
+    L7_uint64 tmpTaskId;
     L7_int32 error = 0;
 
     osapiWriteLockTake( traceRouteLock_g, L7_WAIT_FOREVER );

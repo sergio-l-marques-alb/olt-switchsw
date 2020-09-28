@@ -57,7 +57,7 @@ extern void * autoInstallMsgQueue;
 extern void  *autoTxtCfgSyncSemaphore;
 
 /* auto_istall task queue ID */
-extern L7_int32 autoInstallTaskId;
+extern L7_uint64 autoInstallTaskId;
 
 /* current auto-install configuration phase */
 extern autoInstallCnfgrState_t autoInstallCnfgrState;

@@ -80,7 +80,7 @@ void* avlNewNewDataNode(avlTree_t *avl_tree )
   if (ptr==NULL)
     return NULL;
 
-  avl_tree->currentDataHeap=(void *)(*((L7_uint32*)((char*)ptr+offset_next)));
+  avl_tree->currentDataHeap=(void *) UINT_TO_PTR(PTR_GET_VALUE(((char*)ptr+offset_next)));
   return  ptr;
 }
 
@@ -103,7 +103,7 @@ void avlNewFreeDataNode(avlTree_t * avl_tree, void *ptr)
 
   offset_next=avl_tree->offset_next;
   bzero((L7_uchar8 *)ptr,avl_tree->lengthData);
-  *((L7_uint32*)((char*)ptr+offset_next))=(L7_uint32)(avl_tree->currentDataHeap);
+  PTR_SET_VALUE(((char*)ptr+offset_next)) = PTR_TO_UINT64(avl_tree->currentDataHeap);
   avl_tree->currentDataHeap=ptr;
 
 }

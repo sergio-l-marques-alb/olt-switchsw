@@ -26,7 +26,7 @@
 #include "usmdb_util_api.h"
 
 #ifndef NO_PRODUCT_BOOTP_SUPPORT
-L7_int32 L7_BootP_task_id;
+L7_uint64 L7_BootP_task_id;
 
 L7_bootp_t service_bootp_data;
 L7_bootp_t network_bootp_data;
@@ -625,7 +625,7 @@ L7_RC_t bootpNotificationRegister( L7_COMPONENT_IDS_t component_ID,
     return(L7_FAILURE);
   }
 
-  if ((L7_uint32)bootpNotifyList[component_ID].notifyFunction != L7_NULL)
+  if (bootpNotifyList[component_ID].notifyFunction != L7_NULLPTR)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_BOOTP_COMPONENT_ID,
             "BOOTP registrar ID %u, %s already registered\n", component_ID, name);

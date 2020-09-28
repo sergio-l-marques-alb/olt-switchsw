@@ -175,7 +175,7 @@ L7_RC_t asyncEventHandlerCreate(asyncEventHandler_t *pHandler,
       return L7_FAILURE;
     }
 
-    *handlerId = (ASYNC_EVENT_HANDLER_t)&(pAsyncHandlerDescr[i]) ;
+    *handlerId = (ASYNC_EVENT_HANDLER_t) PTR_TO_UINT64(&(pAsyncHandlerDescr[i]));
 
     return L7_SUCCESS;
 }
@@ -206,7 +206,7 @@ L7_RC_t asyncEventHandlerDelete(ASYNC_EVENT_HANDLER_t handlerId)
       return L7_FAILURE;
    }
 
-   pHandlerEntry = (asyncEventHandlerDescr_t *)handlerId;
+   pHandlerEntry = (asyncEventHandlerDescr_t *) UINT_TO_PTR(handlerId);
 
    /* Delete sequence number to correlator index map */
    if (asyncEventCorrelatorMapDelete(pHandlerEntry) != L7_SUCCESS)
@@ -277,7 +277,7 @@ L7_RC_t asyncEventSyncStart(ASYNC_EVENT_HANDLER_t handlerId,
      return L7_FAILURE;
   }
 
-  pHandlerEntry = (asyncEventHandlerDescr_t *)handlerId;
+  pHandlerEntry = (asyncEventHandlerDescr_t *) UINT_TO_PTR(handlerId);
 
   (void) osapiSemaTake(pHandlerEntry->correlatorLock, L7_WAIT_FOREVER);
   pCorrelator = asyncEventCorrelatorFind(pHandlerEntry, seqno);
@@ -373,7 +373,7 @@ void asyncEventSyncFinish(ASYNC_EVENT_HANDLER_t handlerId,
 
   rc = L7_SUCCESS;
 
-  pHandlerEntry = (asyncEventHandlerDescr_t *)handlerId;
+  pHandlerEntry = (asyncEventHandlerDescr_t *) UINT_TO_PTR(handlerId);
   if (pHandlerEntry == L7_NULLPTR)
   {
      return;
@@ -438,7 +438,7 @@ L7_RC_t asyncEventCompleteTally(ASYNC_EVENT_COMPLETE_INFO_t *pComplete)
       osapiStrncpySafe(name, "Unknown", 8);
   }
 
-  pHandlerEntry = (asyncEventHandlerDescr_t *)pComplete->handlerId;
+  pHandlerEntry = (asyncEventHandlerDescr_t *) UINT_TO_PTR(pComplete->handlerId);
   if (pHandlerEntry == NULL)
   {
     return L7_ERROR;
@@ -577,7 +577,7 @@ L7_RC_t asyncEventCorrelatorCreate(ASYNC_EVENT_HANDLER_t handlerId ,
   rc = L7_SUCCESS;
 
 
-  pHandlerEntry =  (asyncEventHandlerDescr_t *)handlerId;
+  pHandlerEntry =  (asyncEventHandlerDescr_t *) UINT_TO_PTR(handlerId);
 
   if ((pHandlerEntry == L7_NULLPTR) || (pCorrelator == L7_NULLPTR))
   {
@@ -640,7 +640,7 @@ L7_RC_t asyncEventCorrelatorDataSet(ASYNC_EVENT_HANDLER_t handlerId,
   asyncEventHandlerDescr_t *pHandlerEntry;
   asyncCorrelatorData_t *pCorrelator;
 
-  pHandlerEntry = (asyncEventHandlerDescr_t *)handlerId;
+  pHandlerEntry = (asyncEventHandlerDescr_t *) UINT_TO_PTR(handlerId);
   if (pHandlerEntry == L7_NULLPTR)
   {
      return L7_FAILURE;
@@ -687,7 +687,7 @@ L7_RC_t asyncEventCorrelatorDataGet(ASYNC_EVENT_HANDLER_t handlerId,
   rc = L7_SUCCESS;
 
 
-  pHandlerEntry = (asyncEventHandlerDescr_t *)handlerId;
+  pHandlerEntry = (asyncEventHandlerDescr_t *) UINT_TO_PTR(handlerId);
   if (pHandlerEntry == L7_NULLPTR)
   {
      return L7_FAILURE;

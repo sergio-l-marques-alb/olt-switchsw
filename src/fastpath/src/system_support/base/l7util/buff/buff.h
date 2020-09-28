@@ -51,7 +51,7 @@ typedef struct
 typedef struct 
 {
   L7_uint32 id;     /* Buffer pool ID */
-  L7_uint32 addr;   /* Buffer pool address */
+  L7_uint64 addr;   /* Buffer pool address */
   L7_uint32 pool_size; /* Buffer pool size */
   L7_uint32 buf_size;  /* buffer size */
   L7_uint32 total;    /* Total number of buffers in the pool */

@@ -558,7 +558,7 @@ L7_RC_t dhcpNotificationRegister( L7_COMPONENT_IDS_t component_ID,
     return(L7_FAILURE);
   }
 
-  if ((L7_uint32)dhcpClientCB.dhcpNotifyList[component_ID].notifyFunction != L7_NULL)
+  if (dhcpClientCB.dhcpNotifyList[component_ID].notifyFunction != L7_NULLPTR)
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_CLIENT_COMPONENT_ID,
             "DHCP registrar ID %u, %s already registered.", component_ID, name);

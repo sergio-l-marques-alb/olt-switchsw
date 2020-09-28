@@ -1488,7 +1488,7 @@ e_Err ARP_SendGratARP(t_Handle Id, byte *ipAddr, word ifIndex)
 
     /* send ARP request */
     if ( TIMER_StartSec(p_Adr->arpRspTimer, 0, FALSE,
-       _gratArpTimeoutExp, (t_Handle)ipMapArpCtx_g.timerExp.taskId) != E_OK)
+       _gratArpTimeoutExp, (t_Handle)UINT_TO_PTR(ipMapArpCtx_g.timerExp.taskId)) != E_OK)
     {
         /* p_Adr won't be freed in timeout callback, so free here */
         XX_Free(p_Adr);
@@ -1563,7 +1563,7 @@ e_Err ARP_AdjustTimeout(t_Handle arpId, ulng newAgeTime)
 
      /* this function automatically restarts a running timer... */
      e = TIMER_StartSec(p_Adr->arpAgeTimer, deltaTimeout, FALSE,
-                        _arpAgeTimeExp, (t_Handle)ipMapArpCtx_g.timerExp.taskId);
+                        _arpAgeTimeExp, (t_Handle)UINT_TO_PTR(ipMapArpCtx_g.timerExp.taskId));
      ASSERT(e == E_OK);
    }
 
@@ -2030,7 +2030,7 @@ e_Err ARP_SetTimer(t_ADR *p_Adr, L7_uint32 timeout)
   if(p_Adr->arpAgeTimer)
   {
     e = TIMER_StartSec(p_Adr->arpAgeTimer, timeout,
-                       FALSE, _arpAgeTimeExp, (t_Handle)ipMapArpCtx_g.timerExp.taskId);
+                       FALSE, _arpAgeTimeExp, (t_Handle)UINT_TO_PTR(ipMapArpCtx_g.timerExp.taskId));
   }
   return e;
 }
@@ -2392,7 +2392,7 @@ static void  _updateARPCache(t_ARP *p_A, t_IPAddr *ipAddr,
    if(p_Adr->permanent != TRUE)
    {
        e = TIMER_StartSec(p_Adr->arpAgeTimer, TimerFractVarLessBy10(p_A->arpAgeTime), FALSE,
-                          _arpAgeTimeExp, (t_Handle)ipMapArpCtx_g.timerExp.taskId);
+                          _arpAgeTimeExp, (t_Handle)UINT_TO_PTR(ipMapArpCtx_g.timerExp.taskId));
        ASSERT(e == E_OK);
    }
 }
@@ -2816,7 +2816,7 @@ static void  _sendARPReq(t_ADR *p_Adr, L7_BOOL rxmt)
    {
      /* start ARP response timeout timer */
      e = TIMER_StartSec(p_Adr->arpRspTimer, p_A->arpRespTime, FALSE,
-        _arpTimeoutExp, (t_Handle)ipMapArpCtx_g.timerExp.taskId);
+        _arpTimeoutExp, (t_Handle)UINT_TO_PTR(ipMapArpCtx_g.timerExp.taskId));
      ASSERT(e == E_OK);
    }
 }
@@ -2924,7 +2924,7 @@ static e_Err  _sendGratARP(t_ADR *p_Adr)
 
    /* start ARP response timeout timer */
    e = TIMER_StartSec(p_Adr->arpRspTimer, p_A->arpRespTime, FALSE,
-      _gratArpTimeoutExp, (t_Handle)ipMapArpCtx_g.timerExp.taskId);
+      _gratArpTimeoutExp, (t_Handle)UINT_TO_PTR(ipMapArpCtx_g.timerExp.taskId));
    if (e != E_OK)
    {
        /* p_Adr won't be freed in timeout callback, so free here */

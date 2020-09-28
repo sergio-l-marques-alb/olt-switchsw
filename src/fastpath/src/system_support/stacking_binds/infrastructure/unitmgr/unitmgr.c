@@ -32,7 +32,7 @@
 /* Reason why the Management unit software was started last */
 static L7_LAST_STARTUP_REASON_t umSystemStartupReason = L7_STARTUP_POWER_ON;
 
-L7_int32 umRunCfgDlTaskId = 0;
+L7_uint64 umRunCfgDlTaskId = 0;
 
 /*********************************************************************
 * @purpose  Register a routine to be called when a unit state changes.

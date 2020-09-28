@@ -939,7 +939,7 @@ L7_RC_t unitMgrEventLogGet(L7_uint32 unit)
 * @end
 *
 *********************************************************************/
-L7_uint32 unitMgrEventLogEntryNextGet(L7_uint32 UnitIndex, L7_uint32 ptr, L7_char8 *pstring)
+L7_uint32 unitMgrEventLogEntryNextGet(L7_uint32 UnitIndex, L7_uint64 ptr, L7_char8 *pstring)
 {
   return L7_event_log_get_next(L7_NULLPTR, ptr, pstring);
 }

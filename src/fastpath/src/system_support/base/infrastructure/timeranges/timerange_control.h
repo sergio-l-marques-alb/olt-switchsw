@@ -48,7 +48,7 @@ L7_RC_t timeRangeEventNotify(L7_uchar8* timeRangeName, timeRangeEvent_t  event);
 * @end
 *
 *************************************************************************/
-L7_RC_t timeRangeTimerExpired(L7_uint32 arg1, L7_uint32 arg2);
+L7_RC_t timeRangeTimerExpired(L7_uint64 arg1, L7_uint64 arg2);
 
 /*********************************************************************
 * @purpose  Start the time range timer.

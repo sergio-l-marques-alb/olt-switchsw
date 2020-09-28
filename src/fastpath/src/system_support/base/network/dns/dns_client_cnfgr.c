@@ -30,8 +30,8 @@
 #include "cli_txt_cfg_api.h"
 dnsCnfgrState_t                  dnsCnfgrState = DNS_CLIENT_PHASE_INIT_0;
 extern void                     *dnsQueue;
-extern L7_int32                  dnsTaskId;
-extern L7_int32                  dnsRxTaskId;
+extern L7_uint64                 dnsTaskId;
+extern L7_uint64                 dnsRxTaskId;
 
 extern dnsCfgData_t             *dnsCfgData;
 extern dnsOprData_t             *dnsOprData;

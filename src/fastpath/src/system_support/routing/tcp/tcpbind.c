@@ -1388,8 +1388,8 @@ static e_Err checkConnStatus(void *dummy)
                peekError++;
                lastPeekError = osapiErrnoGet();
                L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_OSPF_MAP_COMPONENT_ID,
-                        "osapiPktInfoRecv() with MSG_PEEK error %d (%s) on socket %#x",
-                       lastPeekError, strerror(lastPeekError), (unsigned int)connInfo);
+                        "osapiPktInfoRecv() with MSG_PEEK error %d (%s) on socket %p",
+                       lastPeekError, strerror(lastPeekError), connInfo);
 
                indicateStatusToUser(connInfo, TCPUDP_CONN_STATUS_ERROR);
              }
@@ -1427,9 +1427,9 @@ static e_Err checkConnStatus(void *dummy)
               recvError++;
               lastRecvError = osapiErrnoGet();
               L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_OSPF_MAP_COMPONENT_ID,
-                      "osapiPktInfoRecv() error %d (%s) on socket %#x rc = %d",
+                      "osapiPktInfoRecv() error %d (%s) on socket %p rc = %d",
                       lastRecvError, strerror(lastRecvError),
-                      (unsigned int)connInfo, rc2);
+                      connInfo, rc2);
               if((rxLength < 0) && (!IS_NONBLOCKING()) && (!IS_EINVAL()))
               {
                 indicateStatusToUser(connInfo, TCPUDP_CONN_STATUS_ERROR);

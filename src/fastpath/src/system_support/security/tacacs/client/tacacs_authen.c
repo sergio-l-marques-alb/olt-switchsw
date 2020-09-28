@@ -778,7 +778,7 @@ static void tacacsConnectionOpen(tacacsAuthSession_t *session,
                                  L7_uint32            serverIdx)
 {
   L7_uint32 socket = 0;
-  L7_uint32 taskId = L7_ERROR;
+  L7_uint64 taskId = L7_ERROR;
 
   if (tacacsServerSocketOpen(&tacacsCfg->servers[serverIdx],
                              &socket) != L7_SUCCESS)

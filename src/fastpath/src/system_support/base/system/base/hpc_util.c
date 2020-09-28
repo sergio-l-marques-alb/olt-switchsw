@@ -1418,7 +1418,7 @@ void hpcDebugRemoteDevshellCb(L7_enetMacAddr_t src_key,
                               L7_uchar8* buffer, L7_uint32 msg_len)
 {
   void *command_text;
-  L7_uint32 thread_id;
+  L7_uint64 thread_id;
 
   /* do some checks, reserve the last byte of command_text to hold \0 */
   if (RMT_DEVSHELL_CMD_MAX_LENGTH < msg_len)

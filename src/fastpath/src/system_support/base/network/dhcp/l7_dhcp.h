@@ -343,7 +343,7 @@ typedef struct dhcpClientCB_s
   void *notifyListSem;
 
   /* DHCP Client's Task ID */
-  L7_int32 dhcpClientTaskId;
+  L7_uint64 dhcpClientTaskId;
 
   /* DHCP Client's Message Queue */
   dhcpClientQueue_t dhcpClientMsgQ;

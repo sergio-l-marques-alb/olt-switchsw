@@ -216,11 +216,11 @@ typedef struct  nimSystemData_s
 
   nimNotifyList_t   *nimNotifyList;		/* an array of the routines registered for events by other components */
 
-  L7_uint32         taskId;           /* the task ID for the nimTask */
+  L7_uint64         taskId;           /* the task ID for the nimTask */
 
-  L7_uint32   		  ifTableLastChange;/* ifTableLastChange */
+  L7_uint32         ifTableLastChange;/* ifTableLastChange */
 
-  L7_uint32   		  ifNumber;         /* Number of External interfaces created */
+  L7_uint32         ifNumber;         /* Number of External interfaces created */
 
   NIM_INTF_MASK_t   linkStateMask;    /* mask of port link up/down */
  

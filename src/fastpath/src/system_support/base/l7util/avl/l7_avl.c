@@ -196,7 +196,7 @@ void avlPurgeAvlTree (avlTree_t *avl_tree, L7_uint32 max_entries)
     treeHeap[i].link[L7_LEFT] = L7_NULL;
     treeHeap[i].link[L7_RIGHT] = &treeHeap[i+1];
 
-    *((L7_uint32*)((char*)dataHeap + offset_next)) = (L7_uint32)((char*)dataHeap + lengthData);
+    PTR_SET_VALUE(((char*)dataHeap + offset_next)) = PTR_TO_UINT64((char*)dataHeap + lengthData);
     dataHeap = (char*)dataHeap + lengthData;
   }
   
@@ -205,7 +205,7 @@ void avlPurgeAvlTree (avlTree_t *avl_tree, L7_uint32 max_entries)
   if (i > 0)  /* Added this check to make sure there is no array bound violation */
   {
   treeHeap[i-1].link[L7_RIGHT] = L7_NULL;
-  *(L7_uint32 *)((char*)dataHeap + ((i-1)*lengthData) + offset_next) = L7_NULL;
+  PTR_SET_VALUE((char*)dataHeap + ((i-1)*lengthData) + offset_next) = L7_NULL;
 }
 }
 

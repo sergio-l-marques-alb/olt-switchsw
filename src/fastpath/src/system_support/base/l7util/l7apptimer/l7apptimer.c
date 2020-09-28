@@ -126,14 +126,14 @@ L7_RC_t appTimerDestroy(L7_sll_member_t *node)
 *
 *********************************************************************/
 static
-void appTimerTick(L7_uint32 param1, L7_uint32 param2)
+void appTimerTick(L7_uint64 param1, L7_uint64 param2)
 {
   
   appTmrCtrlBlk_t          *pCtrlBlk;
   L7_app_tmr_dispatcher_fn pFunc;
 
   /* Some basic sanity checks */
-  pCtrlBlk = (appTmrCtrlBlk_t *)param1;
+  pCtrlBlk = (appTmrCtrlBlk_t *) UINT_TO_PTR(param1);
   if(pCtrlBlk == L7_NULLPTR)
     return;
   if(pCtrlBlk->pSelf!= pCtrlBlk)
@@ -148,7 +148,7 @@ void appTimerTick(L7_uint32 param1, L7_uint32 param2)
     return;
 
   /* Invoke the dispatcher function */
-  pFunc((L7_APP_TMR_CTRL_BLK_t)pCtrlBlk, (void *)param2);
+  pFunc((L7_APP_TMR_CTRL_BLK_t)pCtrlBlk, (void *) UINT_TO_PTR(param2));
 }
 
 /*********************************************************************
@@ -236,8 +236,8 @@ L7_APP_TMR_CTRL_BLK_t appTimerInit(L7_COMPONENT_IDS_t       compId,
 
   /* Start the base system tick timer */
   osapiTimerAdd(appTimerTick,
-                (L7_uint32)pCtrlBlk,
-                (L7_uint32)(pCtrlBlk->pParam),
+                PTR_TO_UINT64(pCtrlBlk),
+                PTR_TO_UINT64(pCtrlBlk->pParam),
                 pCtrlBlk->type,
                 &(pCtrlBlk->pSysTimer));
 
@@ -749,8 +749,8 @@ void appTimerProcess(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk)
 
   /* Restart the base system tick timer */
   osapiTimerAdd(appTimerTick,
-                (L7_uint32)pCtrlBlk,
-                (L7_uint32)(pCtrlBlk->pParam),
+                PTR_TO_UINT64(pCtrlBlk),
+                PTR_TO_UINT64(pCtrlBlk->pParam),
                 pCtrlBlk->type,
                 &(pCtrlBlk->pSysTimer));
 }

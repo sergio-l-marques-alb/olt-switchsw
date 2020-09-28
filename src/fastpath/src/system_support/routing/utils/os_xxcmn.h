@@ -104,7 +104,7 @@ typedef struct tagt_OS_Thread
 {
    ulng  QueueID[L7_ROUTING_MAX_QUEUES];
    ulng  QueueWeights[L7_ROUTING_MAX_QUEUES];
-   ulng  TaskID;
+   unsigned long long TaskID;
    ulng  numQueues;
    void  *MsgQSema;
 

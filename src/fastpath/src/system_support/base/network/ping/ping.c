@@ -56,7 +56,7 @@ static L7_RC_t pingInetChksum( L7_uchar8 *buff, L7_ushort16 len );
 static L7_uint32 pingAsyncSessionCount;
 
 /* Task-ID for the task handling ASYNC requests */
-static L7_int32 pingAsyncTaskId;
+static L7_uint64 pingAsyncTaskId;
 
 /* Table containing ping sessions */
 pingSessionTable_t   *pingSessionTable_g;
@@ -423,7 +423,7 @@ pingASyncTask( void *param )
     L7_uint32 elapsedTime;
     L7_uint32 maxFd;
     pingSessionTable_t *pingEntry;
-    L7_uint32 tmpTaskId;
+    L7_uint64 tmpTaskId;
     L7_int32  error = 0;
     PING_PATH_TRACE( "%s %d: %s : \n", __FILE__, __LINE__,
               __FUNCTION__);

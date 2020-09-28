@@ -31,9 +31,9 @@ void *radiusServerDbSyncSema = L7_NULL;
 void *radius_queue = L7_NULL;
 void *radiusClusteringQueue = L7_NULL;
 
-L7_uint32 radius_task_id = L7_ERROR;
-L7_uint32 radius_rx_task_id = L7_ERROR;
-L7_uint32 radius_cluster_task_id = L7_ERROR;
+L7_uint64 radius_task_id = L7_ERROR;
+L7_uint64 radius_rx_task_id = L7_ERROR;
+L7_uint64 radius_cluster_task_id = L7_ERROR;
 
 
 extern radiusCfg_t radiusCfg;

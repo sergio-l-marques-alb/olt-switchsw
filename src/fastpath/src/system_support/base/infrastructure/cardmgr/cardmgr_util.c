@@ -3661,7 +3661,7 @@ void cmgrAllCardsUnplugUnconfigure(void)
  *
  * @end
  *********************************************************************/
-void cmgrTimer(L7_uint32 arg1, L7_uint32 arg2)
+void cmgrTimer(L7_uint64 arg1, L7_uint64 arg2)
 {
   L7_int32 cmgrRC;
   cmgr_cmpdu_t cmpdu;

@@ -40,8 +40,8 @@ extern tacacsCfg_t       *tacacsCfg;
 extern tacacsOprData_t   *tacacsOprData;
 extern tacacsCnfgrState_t tacacsCnfgrState;
 
-L7_uint32 tacacsTaskId        = L7_ERROR;
-L7_uint32 tacacsRxTaskId      = L7_ERROR;
+L7_uint64 tacacsTaskId        = L7_ERROR;
+L7_uint64 tacacsRxTaskId      = L7_ERROR;
 
 /* use one timer that wakes up every second, maintain a
    a reference count and delete the timer when we have no pending sessions */
@@ -194,13 +194,13 @@ static void tacacsTimeoutProcess(void)
 L7_RC_t tacacsStartTasks()
 {
   /* create TACACS application task */
-  tacacsTaskId = (L7_uint32)osapiTaskCreate(TACACS_TASK,
-                                            (void *)tacacsTask,
-                                            L7_NULL,
-                                            L7_NULL,
-                                            L7_DEFAULT_STACK_SIZE,
-                                            L7_DEFAULT_TASK_PRIORITY,
-                                            L7_DEFAULT_TASK_SLICE);
+  tacacsTaskId = osapiTaskCreate(TACACS_TASK,
+                                 (void *)tacacsTask,
+                                 L7_NULL,
+                                 L7_NULL,
+                                 L7_DEFAULT_STACK_SIZE,
+                                 L7_DEFAULT_TASK_PRIORITY,
+                                 L7_DEFAULT_TASK_SLICE);
 
   if ((tacacsTaskId == L7_ERROR) ||
       (osapiWaitForTaskInit(L7_TACACS_TASK_SYNC, 
@@ -211,13 +211,13 @@ L7_RC_t tacacsStartTasks()
   }
 
   /* create TACACS task to receive session packets */
-  tacacsRxTaskId = (L7_uint32)osapiTaskCreate(TACACS_RX_TASK,
-                                              (void *)tacacsRxTask,
-                                              L7_NULL,
-                                              L7_NULL,
-                                              L7_DEFAULT_STACK_SIZE,
-                                              L7_DEFAULT_TASK_PRIORITY,
-                                              L7_DEFAULT_TASK_SLICE);
+  tacacsRxTaskId = osapiTaskCreate(TACACS_RX_TASK,
+                                   (void *)tacacsRxTask,
+                                   L7_NULL,
+                                   L7_NULL,
+                                   L7_DEFAULT_STACK_SIZE,
+                                   L7_DEFAULT_TASK_PRIORITY,
+                                   L7_DEFAULT_TASK_SLICE);
 
   if ((tacacsRxTaskId == L7_ERROR) ||
       (osapiWaitForTaskInit(L7_TACACS_RX_TASK_SYNC, 

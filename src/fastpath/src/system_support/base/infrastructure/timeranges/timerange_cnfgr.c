@@ -40,7 +40,7 @@ extern avlTree_t               *pTimeRangeTree;
 osapiRWLock_t                  timeRangeRwLock;
 timeRangeCnfgrState_t          timeRangeCnfgrState   = TIMERANGE_PHASE_INIT_0;
 void                           *timeRangeProcQueue   = L7_NULLPTR;
-L7_int32                       timeRangeProcTaskId   = 0;
+L7_uint64                      timeRangeProcTaskId   = 0;
 L7_uint32                      timeRangeBufferPoolId = 0;
 
 /*********************************************************************

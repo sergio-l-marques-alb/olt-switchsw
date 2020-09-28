@@ -28,7 +28,7 @@ static L7_uint32 periodicTimerServiceHandle = 0;
 regComps_t *timersList = L7_NULLPTR;
 REG_USERS_t users[PTS_MAX_USERS];
 L7_uint32 debugTimerHelp = 0;
-static L7_uint32 sim_pts_task_id = L7_ERROR;
+static L7_uint64 sim_pts_task_id = L7_ERROR;
 
 L7_RC_t simPts_task();
 

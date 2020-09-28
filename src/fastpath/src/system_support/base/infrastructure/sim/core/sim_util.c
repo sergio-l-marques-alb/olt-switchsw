@@ -71,8 +71,8 @@ extern simAddrChangeNotifyList_t simAddrChangeNotifyList[SIM_ADDR_CHANGE_REGISTR
 
 extern void* simImageSemaphore;
 
-L7_int32 L7_transfer_task_id;
-L7_int32 addrConflictTaskId;
+L7_uint64 L7_transfer_task_id;
+L7_uint64 addrConflictTaskId;
 
 simOperInfo_t     *simOperInfo = NULL;
 

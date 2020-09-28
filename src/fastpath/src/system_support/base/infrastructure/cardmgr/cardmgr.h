@@ -1585,7 +1585,7 @@ L7_RC_t cmgrInitSlotsOnUnit(L7_uint32 unit);
  *       
  * @end
  *********************************************************************/
-void cmgrTimer( L7_uint32 arg1, L7_uint32 arg2 );
+void cmgrTimer( L7_uint64 arg1, L7_uint64 arg2 );
 
 /*********************************************************************
  * @purpose  Card Manager Task

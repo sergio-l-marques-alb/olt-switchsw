@@ -63,7 +63,7 @@ void asyncEventSyncTimerExpire(ASYNC_EVENT_HANDLER_t handlerId,
      return;
   }
 
-  pHandlerEntry = (asyncEventHandlerDescr_t *)handlerId;
+  pHandlerEntry = (asyncEventHandlerDescr_t *) UINT_TO_PTR(handlerId);
 
   osapiSemaTake(pHandlerEntry->correlatorLock, L7_WAIT_FOREVER);
   pCorrelator = asyncEventCorrelatorFind(pHandlerEntry, seqno);
@@ -105,8 +105,8 @@ void asyncEventSyncTimerExpire(ASYNC_EVENT_HANDLER_t handlerId,
   memset(&(pCorrelator->completeData), 0, sizeof(ASYNC_EVENT_COMPLETE_INFO_t) );
   pCorrelator->completeData.handlerId             = handlerId;
   pCorrelator->completeData.correlator            = correlator;
-  pCorrelator->completeData.async_rc.rc            = L7_FAILURE;
-  pCorrelator->completeData.async_rc.reason        = ASYNC_EVENT_REASON_RC_TIMEOUT;
+  pCorrelator->completeData.async_rc.rc           = L7_FAILURE;
+  pCorrelator->completeData.async_rc.reason       = ASYNC_EVENT_REASON_RC_TIMEOUT;
          
   pCorrelator->timerInUse = L7_FALSE;
 

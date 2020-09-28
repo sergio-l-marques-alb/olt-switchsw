@@ -103,6 +103,8 @@ L7_uint32 bufferPoolInit (L7_uint32 num_buffers,L7_uint32 buffer_size,
     L7_LOG_ERROR(rc);
   }
 
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"buff_count=%u num_buffers=%u", buff_count, num_buffers);
+
   /* Since we use bufferPoolSizeCompute function to determine pool size, the
   ** number of buffers in the pool should be equal to the number of buffers we want.
   */
@@ -157,7 +159,7 @@ L7_RC_t bufferPoolCreate (void * buffer_pool_addr,
   L7_uint32 i;
   L7_uchar8 *user_data; /* Start of data buffer area */
   bufferDescrType *descr;
-  L7_uint32 pool_addr;
+  L7_uint64 pool_addr;
 
   if (BufferPoolLockSem == L7_NULL)
   {
@@ -180,7 +182,23 @@ L7_RC_t bufferPoolCreate (void * buffer_pool_addr,
   /* Make sure that buffer pool address is alligned on a four-byte
   ** boundary.
   */
-  pool_addr = (L7_uint32) buffer_pool_addr;
+  pool_addr = PTR_TO_UINT64(buffer_pool_addr);
+
+#ifdef PTRS_ARE_64BITS
+  if (pool_addr != (pool_addr & 0xFFFFFFFFFFFFFFF8))
+  {
+    return  L7_ERROR;
+  }
+
+  /* Make sure that buffer size is a multiple of four.
+  ** Round up the buffer size if necessary.
+  */
+  if (buffer_size != (buffer_size & 0xFFFFFFFFFFFFFFF8))
+  {
+    buffer_size += 8;
+    buffer_size &= 0xFFFFFFFFFFFFFFFC;
+  }
+#else
   if (pool_addr != (pool_addr & 0xFFFFFFFC))
   {
     return  L7_ERROR;
@@ -189,11 +207,12 @@ L7_RC_t bufferPoolCreate (void * buffer_pool_addr,
   /* Make sure that buffer size is a multiple of four.
   ** Round up the buffer size if necessary.
   */
-  if (buffer_size != (buffer_size & 0xFFFFFFC))
+  if (buffer_size != (buffer_size & 0xFFFFFFFC))
   {
     buffer_size += 4;
     buffer_size &= 0xFFFFFFFC;
   }
+#endif
 
   /* Zero out the buffer storage area.
   */
@@ -204,7 +223,7 @@ L7_RC_t bufferPoolCreate (void * buffer_pool_addr,
   */
   tot_buf_size = buffer_size +
                  sizeof (bufferDescrType) +
-                 4;
+                 WORD_SIZE;
 
   /* Determine how many buffer we can allocate.
   */
@@ -252,10 +271,10 @@ L7_RC_t bufferPoolCreate (void * buffer_pool_addr,
 
   /* Set up the buffer pool.
   */
-  pool->addr = (L7_uint32) buffer_pool_addr;
+  pool->addr = PTR_TO_UINT64(buffer_pool_addr);
   pool->buf_size = buffer_size;
   pool->total = num_bufs;
-  strncpy(pool->descr,description,L7_MAX_BUFFER_DESCR_SIZE);
+  strncpy((char *) pool->descr,description,L7_MAX_BUFFER_DESCR_SIZE);
   pool->descr[L7_MAX_BUFFER_DESCR_SIZE-1] = 0;
 
   pool->free_count = num_bufs;
@@ -307,13 +326,13 @@ L7_RC_t bufferPoolCreate (void * buffer_pool_addr,
 *********************************************************************/
 L7_RC_t bufferPoolTerminate (L7_uint32  buffer_pool_id)
 {
-  L7_uint32 buffer_pool_addr;
+  L7_uint64 buffer_pool_addr;
   L7_uint32 pool_id;
 
   pool_id = buffer_pool_id - L7_LOW_BUFFER_POOL_ID;
   buffer_pool_addr = BufferPoolList[pool_id].addr;
 
-  if ((void *)buffer_pool_addr ==  L7_NULLPTR)
+  if (UINT_TO_PTR(buffer_pool_addr) ==  L7_NULLPTR)
   {
       L7_LOG_ERROR(1);
       return L7_FAILURE;
@@ -329,7 +348,7 @@ L7_RC_t bufferPoolTerminate (L7_uint32  buffer_pool_id)
 
   /* Deallocate memory for the buffer pool.
   */
-  osapiFree(L7_SIM_COMPONENT_ID, (void *)buffer_pool_addr);
+  osapiFree(L7_SIM_COMPONENT_ID, (void *) UINT_TO_PTR(buffer_pool_addr));
 
   return L7_SUCCESS;
 }
@@ -484,7 +503,7 @@ L7_RC_t bufferPoolAllocate (L7_uint32 buffer_pool_id,
   */
   if (descr->in_use)
   {
-    L7_LOG_ERROR((L7_uint32) descr);
+    L7_LOG_ERROR(PTR_TO_UINT32(descr));
   }
 
 
@@ -553,12 +572,12 @@ void bufferPoolFree (L7_uint32 buffer_pool_id, L7_uchar8 * buffer_addr)
   */
   if (descr->in_use == 0)
   {
-    L7_LOG_ERROR((L7_uint32) descr);
+    L7_LOG_ERROR(PTR_TO_UINT32(descr));
   }
 
   if (descr->id != (L7_ushort16) buffer_pool_id)
   {
-    L7_LOG_ERROR((L7_uint32) descr);
+    L7_LOG_ERROR(PTR_TO_UINT32(descr));
   }
 
 
@@ -615,7 +634,7 @@ L7_RC_t bufferPoolIdGet (L7_uchar8 * buffer_addr, L7_uint32 *buffer_pool_id)
   */
   if (descr->in_use == 0)
   {
-    L7_LOG_ERROR((L7_uint32) descr);
+    L7_LOG_ERROR(PTR_TO_UINT32(descr));
   }
 
 
@@ -645,6 +664,15 @@ L7_uint32 bufferPoolSizeCompute (L7_uint32 num_buffers,
 {
   L7_uint32 mem_size, tot_buf_size;
 
+#ifdef PTRS_ARE_64BITS
+  /* If buffer size is not a multiple of four then round it up.
+  */
+  if ((buffer_size & 0xFFFFFFFFFFFFFFF8) != buffer_size)
+  {
+    buffer_size += 8;
+    buffer_size &= 0xFFFFFFFFFFFFFFF8;
+  }
+#else
   /* If buffer size is not a multiple of four then round it up.
   */
   if ((buffer_size & 0xFFFFFFFC) != buffer_size)
@@ -652,13 +680,14 @@ L7_uint32 bufferPoolSizeCompute (L7_uint32 num_buffers,
     buffer_size += 4;
     buffer_size &= 0xFFFFFFFC;
   }
+#endif
 
   /* Compute how much memory is required for each buffer. The overhead
   ** includes buffer descriptor and a 4-byte pointer in the free list.
   */
   tot_buf_size = buffer_size +
                  sizeof (bufferDescrType) +
-                 4;
+                 WORD_SIZE;
 
   mem_size = tot_buf_size * num_buffers;
 
@@ -703,7 +732,7 @@ void bufferPoolShow (L7_uint32 buffer_pool_id)
 
       pool = &BufferPoolList[i];
       printf("------\n");
-      printf("Pool ID: %d, Pool Address: 0x%x, Pool Size: %d, Description: %s \n",
+      printf("Pool ID: %d, Pool Address: 0x%llx, Pool Size: %d, Description: %s \n",
              pool->id,
              pool->addr,
              pool->pool_size,
@@ -799,10 +828,10 @@ void bpool1 (void)
 {
   L7_RC_t rc;
   char    *pool_area;
-  int     pool_size = 1000;
-  int     pool_id;
-  int     buff_count;
-  L7_uchar8    *buffer_addr;
+  L7_uint32 pool_size = 1000;
+  L7_uint32 pool_id;
+  L7_uint32 buff_count;
+  L7_uchar8 *buffer_addr;
 
   pool_area = malloc (pool_size);
 
@@ -814,14 +843,14 @@ void bpool1 (void)
                          &buff_count);
 
 
-  printf("bpool1: Create - rc = %d, id = %d, count = %d\n",
+  printf("bpool1: Create - rc = %d, id = %u, count = %u\n",
          rc, pool_id, buff_count);
 
   rc = bufferPoolAllocate (pool_id,  &buffer_addr);
 
 
-  printf("bpool1: Allocate - rc = %d, addr = 0x%x\n",
-         rc, (L7_uint32) buffer_addr);
+  printf("bpool1: Allocate - rc = %d, addr = %p\n",
+         rc, buffer_addr);
 
   bufferPoolShow (0);
 
@@ -845,10 +874,10 @@ void bpool2 (void)
 {
   L7_RC_t rc;
   char    *pool_area;
-  int     pool_size;
-  int     pool_id;
-  int     buff_count;
-  L7_uchar8    *buffer_addr;
+  L7_uint32 pool_size;
+  L7_uint32 pool_id;
+  L7_uint32 buff_count;
+  L7_uchar8 *buffer_addr;
 
   pool_size = bufferPoolSizeCompute (7, 127);
 
@@ -862,7 +891,7 @@ void bpool2 (void)
                          &buff_count);
 
 
-  printf("bpool2: Create - rc = %d, id = %d, count = %d\n",
+  printf("bpool2: Create - rc = %d, id = %u, count = %u\n",
          rc, pool_id, buff_count);
 
 
@@ -870,8 +899,8 @@ void bpool2 (void)
   do
   {
     rc = bufferPoolAllocate (pool_id,  &buffer_addr);
-    printf("bpool2: Allocate - rc = %d, addr = 0x%x\n",
-           rc, (L7_uint32) buffer_addr);
+    printf("bpool2: Allocate - rc = %d, addr = %p\n",
+           rc, buffer_addr);
 
     bufferPoolShow (0);
 
@@ -897,8 +926,8 @@ void bpool3 (void)
 {
   L7_RC_t rc;
   char    *pool_area[L7_MAX_BUFFER_POOLS + 1];
-  int     pool_size;
-  int     buff_count;
+  L7_uint32 pool_size;
+  L7_uint32 buff_count;
   L7_uint32 pool_id[L7_MAX_BUFFER_POOLS + 1];
   int i;
 
@@ -991,10 +1020,10 @@ void bpool4 (void)
 {
   L7_RC_t rc;
   char    *pool_area;
-  int     pool_size = 1000;
-  int     pool_id;
-  int     buff_count;
-  L7_uchar8    *buffer_addr[10];
+  L7_uint32 pool_size = 1000;
+  L7_uint32 pool_id;
+  L7_uint32 buff_count;
+  L7_uchar8 *buffer_addr[10];
   int i, j;
 
   pool_area = malloc (pool_size);
@@ -1007,7 +1036,7 @@ void bpool4 (void)
                          &buff_count);
 
 
-  printf("bpool4: Create - rc = %d, id = %d, count = %d\n",
+  printf("bpool4: Create - rc = %d, id = %u, count = %u\n",
          rc, pool_id, buff_count);
 
   for (j = 0; j < 2; j++)
@@ -1021,8 +1050,8 @@ void bpool4 (void)
       rc = bufferPoolAllocate (pool_id,  &buffer_addr[i]);
 
 
-      printf("bpool4: Allocate - rc = %d, addr = 0x%x\n",
-             rc, (L7_uint32) buffer_addr[i]);
+      printf("bpool4: Allocate - rc = %d, addr = %p\n",
+             rc, buffer_addr[i]);
 
       bufferPoolShow (0);
 
@@ -1060,10 +1089,10 @@ void bpool5 (void)
 {
   L7_RC_t rc;
   char    *pool_area;
-  int     pool_size;
-  int     pool_id;
-  int     buff_count;
-  L7_uchar8    *buffer_addr;
+  L7_uint32 pool_size;
+  L7_uint32 pool_id;
+  L7_uint32 buff_count;
+  L7_uchar8 *buffer_addr;
 
   pool_size = bufferPoolSizeCompute (7, 127);
 
@@ -1077,7 +1106,7 @@ void bpool5 (void)
                          &buff_count);
 
 
-  printf("bpool5: Create - rc = %d, id = %d, count = %d\n",
+  printf("bpool5: Create - rc = %d, id = %u, count = %u\n",
          rc, pool_id, buff_count);
 
   bufferPoolShow (0);
@@ -1091,8 +1120,8 @@ void bpool5 (void)
   do
   {
     rc = bufferPoolAllocate (pool_id,  &buffer_addr);
-    printf("bpool5: Allocate - rc = %d, addr = 0x%x\n",
-           rc, (L7_uint32) buffer_addr);
+    printf("bpool5: Allocate - rc = %d, addr = %p\n",
+           rc, buffer_addr);
 
     bufferPoolShow (0);
 

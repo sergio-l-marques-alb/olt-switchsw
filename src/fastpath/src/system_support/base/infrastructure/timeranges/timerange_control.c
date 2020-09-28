@@ -28,7 +28,7 @@
 #include "timerange_debug.h"
 #include "timerange_cnfgr.h"
 
-extern L7_int32             timeRangeProcTaskId;
+extern L7_uint64            timeRangeProcTaskId;
 extern void                 *timeRangeProcQueue;
 extern avlTree_t            *pTimeRangeTree;
 extern osapiRWLock_t        timeRangeRwLock;
@@ -154,7 +154,7 @@ L7_RC_t timeRangeEventNotify(L7_uchar8* timeRangeName, timeRangeEvent_t  event)
 * @end
 *
 *************************************************************************/
-L7_RC_t timeRangeTimerExpired(L7_uint32 arg1, L7_uint32 arg2)
+L7_RC_t timeRangeTimerExpired(L7_uint64 arg1, L7_uint64 arg2)
 {
   L7_RC_t        rc = L7_SUCCESS;
   timeRangeMsg_t msg;

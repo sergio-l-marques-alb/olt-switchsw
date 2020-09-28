@@ -160,7 +160,7 @@ L7_RC_t handleListDeinit(L7_COMPONENT_IDS_t compId, handle_list_t *list)
 *
 * @end
 *********************************************************************/
-L7_uint32 handleListNodeStore(handle_list_t *list,void *ptr)
+L7_uint64 handleListNodeStore(handle_list_t *list,void *ptr)
 {
   L7_int32    rc,temp;
   if(list == L7_NULLPTR || ptr == L7_NULLPTR)
@@ -187,7 +187,7 @@ L7_uint32 handleListNodeStore(handle_list_t *list,void *ptr)
   list->next_free_node = temp;
   list->numAllocated++;
 
-  return ((L7_uint32)&list->list[rc]);
+  return (PTR_TO_UINT64(&list->list[rc]));
 }
 
 
@@ -204,12 +204,12 @@ L7_uint32 handleListNodeStore(handle_list_t *list,void *ptr)
 *
 * @end
 *********************************************************************/
-void handleListNodeDelete_track(handle_list_t *list,L7_uint32 *handle,
+void handleListNodeDelete_track(handle_list_t *list,L7_uint64 *handle,
                              L7_uchar8 *fileName,
                              L7_uint32 lineNum)
 {
   handle_member_t   *node;
-  L7_int32    index;
+  L7_int64    index;
 
   if(list == L7_NULLPTR || handle == L7_NULLPTR)
   {
@@ -226,7 +226,7 @@ void handleListNodeDelete_track(handle_list_t *list,L7_uint32 *handle,
     return;
   }
 
-  node = ( handle_member_t *)*handle;
+  node = ( handle_member_t *) UINT_TO_PTR(*handle);
   *handle = 0;
   index = node->index;
 
@@ -239,7 +239,7 @@ void handleListNodeDelete_track(handle_list_t *list,L7_uint32 *handle,
     return;
   }
 
-  index = ((L7_uint32)node - (L7_uint32)list->list)/sizeof(handle_member_t);
+  index = (PTR_TO_UINT64(node) - PTR_TO_UINT64(list->list))/sizeof(handle_member_t);
 
   list->list[list->last_free_node].index = index;
 
@@ -265,7 +265,7 @@ void handleListNodeDelete_track(handle_list_t *list,L7_uint32 *handle,
 *
 * @end
 *********************************************************************/
-void* handleListNodeRetrieve_track(L7_uint32 handle,
+void* handleListNodeRetrieve_track(L7_uint64 handle,
                              L7_uchar8 *fileName,
                              L7_uint32 lineNum)
 {
@@ -279,7 +279,7 @@ void* handleListNodeRetrieve_track(L7_uint32 handle,
     return L7_NULLPTR;
   }
 
-  node = (handle_member_t*)handle;
+  node = (handle_member_t*) UINT_TO_PTR(handle);
 
   /* additional validation */
   if(node->index != -1)

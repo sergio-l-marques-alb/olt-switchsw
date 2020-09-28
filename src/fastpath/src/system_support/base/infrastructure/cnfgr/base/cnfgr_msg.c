@@ -76,7 +76,7 @@ static void *pCnfgrMsgQ2Id = L7_NULLPTR;
 #define CNFGR_MSG_HANDLER_THREAD_STACK_SIZE_f  cnfgrSidMsgHandlerThreadStackSizeGet()
 #define CNFGR_MSG_HANDLER_THREAD_SLICE_f       cnfgrSidMsgHandlerThreadSliceGet()
 
-static L7_int32 pCnfgrMsgHandlerTid = (L7_int32)L7_ERROR;
+static L7_uint64 pCnfgrMsgHandlerTid = (L7_uint32) L7_ERROR;
 
 
 /*
@@ -164,7 +164,7 @@ void cnfgrMsgFini()
     /* set up variables and structures */
 
     /* remove the message handler thread */
-    if (pCnfgrMsgHandlerTid != (L7_int32)L7_ERROR)
+    if (pCnfgrMsgHandlerTid != L7_ERROR)
         (void)osapiTaskDelete(pCnfgrMsgHandlerTid);
     cnfgrMsgEIP = L7_FALSE;
 

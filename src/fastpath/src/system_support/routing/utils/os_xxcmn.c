@@ -1012,7 +1012,7 @@ e_Err OS_XX_InitAll( void )
 {
    if ((lockSem = osapiSemaMCreate(OSAPI_SEM_Q_FIFO)) == NULL)
    {
-      L7_LOG_ERROR((L7_uint32)lockSem);
+      L7_LOG_ERROR(PTR_TO_UINT32(lockSem));
    }
 
 #if ((L7_CORE_CPU == MPC860) || (L7_CORE_CPU == MPC8260)) && NO_CACHE_SIZE && !NO_CACHE_MEMORY
@@ -1273,8 +1273,8 @@ char *fptr2name(void *func_ptr, char *func_name, ulng name_size)
 {
   L7_uint32 offset;
 
-  if (osapiFunctionLookup((L7_uint32) func_ptr, func_name, name_size,
-               &offset) != L7_SUCCESS)
+  if (osapiFunctionLookup(PTR_TO_UINT64(func_ptr), func_name, name_size,
+                          &offset) != L7_SUCCESS)
   {
     snprintf(func_name, name_size, "Unk");
   }
@@ -1332,12 +1332,12 @@ void XX_DisplayQueue(t_Handle threadID, ulng queueId, ulng resolveNames, long ma
       memcpy(currFn, p_info->funcName, MAX_FUNCNAME);
       currFn[MAX_FUNCNAME-1] = 0;
       if(resolveNames)
-        printf("\r\nmsg %d queued by %s:%d calls %s(0x%x)",
+        printf("\r\nmsg %d queued by %s:%d calls %s(%p)",
           currOffset, currFn, (int)p_info->lineNum,
           fptr2name(p_info->unpackFunc, unpackFnName, MAX_FUNCNAME),
-          (int)p_info->unpackFunc);
+          p_info->unpackFunc);
       else
-        printf("\r\nmsg %d queued by %s:%d calls 0x%x", currOffset, currFn, (int)p_info->lineNum, (unsigned int)p_info->unpackFunc);
+        printf("\r\nmsg %d queued by %s:%d calls %p", currOffset, currFn, (int)p_info->lineNum, p_info->unpackFunc);
     }
 
     currOffset++;
@@ -1350,7 +1350,7 @@ e_Err OS_XX_CreateTmrTsk ( ulng period, e_Err (*f_Tick) (void), t_Handle *p_Time
 {
    static int timerNum = 0;
 
-   ulng TimerTaskId;
+   unsigned long long TimerTaskId;
    char TmrTskName[22];
    L7_uint32 argc = 2;
    L7_uint32 **Argv = L7_NULL ;   /* Argv[] is an array of pointers */
@@ -1385,7 +1385,7 @@ e_Err OS_XX_CreateTmrTsk ( ulng period, e_Err (*f_Tick) (void), t_Handle *p_Time
         return E_FAILED;
     }
 
-   *p_TimerHndle = (t_Handle)TimerTaskId;
+   *p_TimerHndle = (t_Handle)UINT_TO_PTR(TimerTaskId);
 
    return E_OK;
 }
@@ -1394,7 +1394,7 @@ e_Err OS_XX_CreateTmrTsk ( ulng period, e_Err (*f_Tick) (void), t_Handle *p_Time
 /*============== Kill a timer task routine ============*/
 e_Err OS_XX_KillTmrTsk (t_Handle timerHandler )
 {
-   osapiTaskDelete( (L7_uint32) timerHandler);
+   osapiTaskDelete(PTR_TO_UINT64(timerHandler));
    return E_OK;
 }
 
@@ -1515,7 +1515,7 @@ e_Err OS_XX_CreateThread(byte priority, e_Err (*f_Thread) (void *),
 e_Err OS_XX_DestroyThread(void *p_Info)
 {
     e_Err ierror = E_OK;
-    ulng taskid;
+    unsigned long long taskid;
     int         i;
     t_XXCallInfo *xxCallInfo = (t_XXCallInfo *)p_Info;
     OS_Thread *p_thread;
@@ -1821,7 +1821,7 @@ void _handleTask(e_Err (*f_Thread)(void *), OS_Thread *p_thread)
           {
             if (debugQueues > 0)
             {
-              printf("\n%llu: Task %#lx read %d msgs from q%d",
+              printf("\n%llu: Task %#llx read %d msgs from q%d",
                      osapiTimeMillisecondsGet64(),
                      p_thread->TaskID, msgsReadFromCurrentQ, currentQ);
             }
@@ -1840,10 +1840,10 @@ void _handleTask(e_Err (*f_Thread)(void *), OS_Thread *p_thread)
               char unpackFnName[MAX_FUNCNAME];
               memcpy(currFn, p_info->funcName, MAX_FUNCNAME);
               currFn[MAX_FUNCNAME-1] = 0;
-              printf("\r\nmsg queued by %s:%d calls %s(0x%x)",
+              printf("\r\nmsg queued by %s:%d calls %s(%p)",
                      currFn, (int)p_info->lineNum,
                      fptr2name(p_info->unpackFunc, unpackFnName, MAX_FUNCNAME),
-                     (int)p_info->unpackFunc);
+                     p_info->unpackFunc);
             }
 
             if (debugQueues > 0)
@@ -1858,11 +1858,11 @@ void _handleTask(e_Err (*f_Thread)(void *), OS_Thread *p_thread)
               char unpackFnName[MAX_FUNCNAME];
               memcpy(currFn, p_info->funcName, MAX_FUNCNAME);
               currFn[MAX_FUNCNAME-1] = 0;
-              printf("\r\n%llu: msg queued on queue %d by %s:%d calls %s(0x%x) with exec time %u",
+              printf("\r\n%llu: msg queued on queue %d by %s:%d calls %s(%p) with exec time %u",
                      osapiTimeMillisecondsGet64(),
                      lastQ, currFn, (int)p_info->lineNum,
                      fptr2name(p_info->unpackFunc, unpackFnName, MAX_FUNCNAME),
-                     (int)p_info->unpackFunc, osapiTimeMillisecondsGetOffset(execStart));
+                     p_info->unpackFunc, osapiTimeMillisecondsGetOffset(execStart));
             }
 
             /* free the XX_Call parameter block */

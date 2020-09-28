@@ -31,8 +31,8 @@
 #include "tacacs_cnfgr.h"
 #include "tacacs_api.h"
 
-extern L7_uint32          tacacsTaskId;
-extern L7_uint32          tacacsRxTaskId;
+extern L7_uint64          tacacsTaskId;
+extern L7_uint64          tacacsRxTaskId;
 extern tacacsCnfgrState_t tacacsCnfgrState;
 
 tacacsCfg_t         *tacacsCfg            = L7_NULLPTR;

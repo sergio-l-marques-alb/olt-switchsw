@@ -229,7 +229,7 @@ L7_RC_t cnfgrTallyUnlockResources(
                                   CNFGR_IN CNFGR_CT_RESOURCES_t arg1, 
                                   CNFGR_IN CNFGR_CT_RESOURCES_t arg2
                                  );
-void    cnfgrTallyWdTimerExpired(CNFGR_IN L7_uint32 arg1, CNFGR_IN L7_uint32 arg2);
+void    cnfgrTallyWdTimerExpired(CNFGR_IN L7_uint64 arg1, CNFGR_IN L7_uint64 arg2);
 
 /*
   Internal Funcions 
@@ -498,7 +498,7 @@ L7_RC_t cnfgrTallyUnlockResources(
 *       
 * @end
 *********************************************************************/
-void cnfgrTallyWdTimerExpired( CNFGR_IN L7_uint32 arg1, CNFGR_IN L7_uint32 arg2)
+void cnfgrTallyWdTimerExpired( CNFGR_IN L7_uint64 arg1, CNFGR_IN L7_uint64 arg2)
 {
     /* set up structures and variables */
     

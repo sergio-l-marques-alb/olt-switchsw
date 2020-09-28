@@ -73,7 +73,7 @@ void sysapiCpuUtilLockTake(void)
   if (osapiSemaTake(sysapiCpuUtilTblSema, L7_WAIT_FOREVER) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_OSAPI_COMPONENT_ID,
-            "Failed to take cpuUtilSema %x\n", sysapiCpuUtilTblSema);
+            "Failed to take cpuUtilSema %p\n", sysapiCpuUtilTblSema);
   }
 }
 
@@ -95,7 +95,7 @@ void sysapiCpuUtilLockGive(void)
   if (osapiSemaGive(sysapiCpuUtilTblSema) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_OSAPI_COMPONENT_ID,
-            "Failed to give cpuUtilSema %x\n", sysapiCpuUtilTblSema);
+            "Failed to give cpuUtilSema %p\n", sysapiCpuUtilTblSema);
   }
 }
 
@@ -260,7 +260,7 @@ L7_RC_t sysapiTaskCpuUtilTablePeriodRemove(L7_uint32 taskIdx, L7_uint32 timePeri
 * @end
 *
 *********************************************************************/
-L7_uint32 sysapiTaskCpuUtilTableInsert(L7_int32 taskId)
+L7_uint32 sysapiTaskCpuUtilTableInsert(L7_uint64 taskId)
 {
   L7_uint32 taskIdx = sysapiTaskCpuUtilTableNumEntries;
   L7_uint32 periodIdx;
@@ -340,7 +340,7 @@ void sysapiTaskCpuUtilTableSort()
 * @end
 *
 *********************************************************************/
-L7_BOOL sysapiTaskCpuUtilTableFind(L7_int32 taskId, L7_uint32 *index)
+L7_BOOL sysapiTaskCpuUtilTableFind(L7_uint64 taskId, L7_uint32 *index)
 {
   L7_int32 i;
   L7_int32 l = -1;
@@ -457,7 +457,7 @@ void sysapiTaskCpuUtilUpdate(L7_uint32 taskIdx, L7_int32 scaledUtil)
     if (sysapiTaskCpuUtilTable[taskIdx].periodInfo[periodIdx].expMovingAvg  < 0)
     {
       L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_OSAPI_COMPONENT_ID,
-              "Total CPU Utilization %d for period %d task %x has become negative."
+              "Total CPU Utilization %d for period %d task %llx has become negative."
               " Resettting it to 0\n",
               sysapiTaskCpuUtilTable[taskIdx].periodInfo[periodIdx].expMovingAvg,
               sysapiTaskCpuUtilTable[taskIdx].periodInfo[periodIdx].timePeriod,
@@ -1484,7 +1484,7 @@ L7_RC_t sysapiCpuUtilTaskStart ()
   L7_RC_t   rc = L7_SUCCESS;
 
 #ifndef L7_PRODUCT_SMARTPATH
-  L7_int32  cpuUtilMonitorTaskPtr;
+  L7_uint64 cpuUtilMonitorTaskPtr;
   L7_uint32 totalPeriods;
   L7_uint32 argv[2];
 

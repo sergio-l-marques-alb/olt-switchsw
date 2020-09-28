@@ -391,7 +391,7 @@ L7_RC_t boxsApiTempStatusTrapEnableGet(L7_BOOL *enable)
   if (boxsCfg == L7_NULLPTR)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_BOX_SERVICES_COMPONENT_ID,
-            "invalid value %d\n",enable);
+            "invalid value %p\n", enable);
     return L7_FAILURE;
   }
   /* we don't need any sync for read operation */
@@ -416,8 +416,8 @@ L7_RC_t boxsApiFanStatusTrapEnableGet(L7_BOOL *enable)
 {
   if (boxsCfg == L7_NULLPTR)
   {
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_BOX_SERVICES_COMPONENT_ID,
-              "invalid value %d\n",enable);
+    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_BOX_SERVICES_COMPONENT_ID,
+          "invalid value %p\n", enable);
     return L7_FAILURE;
   }
   /* we don't need any sync for read operation */

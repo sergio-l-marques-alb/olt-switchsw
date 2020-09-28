@@ -30,8 +30,8 @@
 #include "cardmgr_api.h"
 #include <ctype.h> /* for isalpha */
 
-L7_uint32 L7_edb_task_id = 0;
-L7_uint32 L7_edbTrap_task_id = 0;
+L7_uint64 L7_edb_task_id = 0;
+L7_uint64 L7_edbTrap_task_id = 0;
 
 extern PORTEVENT_MASK_t edbNimEventMask;
 

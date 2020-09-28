@@ -838,7 +838,7 @@ L7_RC_t sysapiSupportCfgFileGet(L7_COMPONENT_IDS_t component_id, L7_char8 *fileN
       if ((savedVersion != version) || (fileSize != bufferSize))
       {
         /*call migrate function*/
-        if ((L7_uint32)migrateBuild == L7_NULL)
+        if (migrateBuild == L7_NULLPTR)
         {
           buildDefaultFile = L7_TRUE;
         }
@@ -927,7 +927,7 @@ L7_RC_t sysapiSupportCfgFileGet(L7_COMPONENT_IDS_t component_id, L7_char8 *fileN
   if (buildDefaultFile == L7_TRUE)
   {
     /* do default build */
-    if ((L7_uint32)defaultBuild == L7_NULL)
+    if (defaultBuild == L7_NULLPTR)
       return(L7_FAILURE);
 
     /*  No debug message is needed for the debug cfg file */

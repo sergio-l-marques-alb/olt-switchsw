@@ -47,7 +47,7 @@ void *syncPingTest( void *argv[], int argc )
     pingSessionResp_t resp;
     int ret;
     pingSessionReq_t *req = argv[0];
-    L7_uint32 taskId;
+    L7_uint64 taskId;
 
     ret = pingSessionStart( req, pingCallback1, NULL, &handle, &resp );
     SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_ALWAYS,
@@ -120,7 +120,7 @@ void *syncTraceRouteTest( void *argv[], int argc )
     traceRouteResp_t resp;
     int ret;
     traceRouteReq_t *req = argv[0];
-    L7_uint32 taskId;
+    L7_uint64 taskId;
 
     ret = traceRouteStart( req, traceRouteCallbackFn1, NULL, &handle, &resp );
     if ( ret == L7_SUCCESS )
@@ -203,7 +203,7 @@ traceRouteRandomTest()
         if ( num == 0 )
         {
             void *rxArgs[1];
-            L7_uint32 taskHandle;
+            L7_uint64 taskHandle;
             traceRouteReq_t *req1;
 
             req1 = malloc( sizeof( traceRouteReq_t ) );
@@ -317,7 +317,7 @@ randomPingTest()
        if ( num == 0 )
        {
             void *rxArgs[1];
-            L7_uint32 taskHandle;
+            L7_uint64 taskHandle;
             pingSessionReq_t *req1;
 
             req1 = malloc( sizeof( pingSessionReq_t ) );
@@ -408,7 +408,7 @@ L7_RC_t
 pingStartSync( pingSessionReq_t *req )
 {
     void *rxArgs[1];
-    L7_uint32 taskHandle;
+    L7_uint64 taskHandle;
     traceRouteReq_t *req1;
 
     req1 = malloc( sizeof( traceRouteReq_t ) );

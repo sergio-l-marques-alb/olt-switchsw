@@ -159,7 +159,7 @@ static void *sntpTaskSyncSemaphore = L7_NULL;
 
 
 /* Task id */
-static L7_int32  sntpClientTaskId = 0;
+static L7_uint64  sntpClientTaskId = 0;
 
 /* Active server index (0..L7_SNTP_MAX_SERVERS-1) */
 static L7_int32  sntpActiveServer = NO_SERVER_SELECTED;
@@ -2890,13 +2890,13 @@ L7_RC_t sntpClientInit(struct sntpCfgData_s * cfg)
   }
 
   /** create SNTP client task */
-  sntpClientTaskId = (L7_uint32)osapiTaskCreate(L7_SNTP_TASK,
-                                          (void *)sntpTask,
-                                          L7_NULL,
-                                          L7_NULL,
-                                          L7_SNTP_DEFAULT_STACK_SIZE,
-                                          L7_SNTP_DEFAULT_TASK_PRI,
-                                          L7_SNTP_DEFAULT_TASK_SLICE);
+  sntpClientTaskId = osapiTaskCreate(L7_SNTP_TASK,
+                                     (void *)sntpTask,
+                                     L7_NULL,
+                                     L7_NULL,
+                                     L7_SNTP_DEFAULT_STACK_SIZE,
+                                     L7_SNTP_DEFAULT_TASK_PRI,
+                                     L7_SNTP_DEFAULT_TASK_SLICE);
 
   if (osapiWaitForTaskInit(L7_SNTP_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
   {

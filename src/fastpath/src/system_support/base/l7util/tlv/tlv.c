@@ -182,13 +182,13 @@ L7_RC_t tlvRegister(L7_uint32 tlvSizeMax, L7_uint32 appId, L7_uchar8 *pAppName,
   pTlvCtrl->sizeHi = 0;
 
   /* acquire a trace buffer */
-  sprintf((char *)traceNameStr, "TLV%8.8x", (L7_uint32)pTlvCtrl);
+  sprintf((char *)traceNameStr, "TLV%llx", PTR_TO_UINT64(pTlvCtrl));
   if (traceBlockCreate(L7_TLV_TRACE_ENTRY_MAX, L7_TLV_TRACE_ENTRY_SIZE_MAX,
                        traceNameStr, &traceId) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_CRITICAL , L7_SIM_COMPONENT_ID, "tlvRegister: Unable to obtain trace buffer "
-                            "for App ID %u, TLV handle 0x%8.8x. OLTSWITCH trace component is out of trace "
-                            "buffers.\n", appId, (L7_uint32)pTlvCtrl);
+                            "for App ID %u, TLV handle %p. OLTSWITCH trace component is out of trace "
+                            "buffers.\n", appId, pTlvCtrl);
     traceId = L7_TLV_TRACE_ID_INVALID;
   }
   else
@@ -196,8 +196,8 @@ L7_RC_t tlvRegister(L7_uint32 tlvSizeMax, L7_uint32 appId, L7_uchar8 *pAppName,
     if (traceBlockStart(traceId) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_ERROR , L7_SIM_COMPONENT_ID, "tlvRegister: Unable to start tracing for App "
-              "ID %u, TLV handle 0x%8.8x. Failed to start TLV tracing, most likely due to an invalid trace "
-              "buffer identifier.\n", appId, (L7_uint32)pTlvCtrl);
+              "ID %u, TLV handle %p. Failed to start TLV tracing, most likely due to an invalid trace "
+              "buffer identifier.\n", appId, pTlvCtrl);
     }
   }
   pTlvCtrl->traceId = traceId;
@@ -862,8 +862,8 @@ L7_RC_t tlvParse(L7_tlv_t *pTlv, L7_tlvUserParseFunc_t userParseFunc)
       != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SIM_COMPONENT_ID, "tlvParse: Error processing contents of TLV"
-            " 0x%4.4x at address 0x%8.8x, rc=%u. Indicates a malformed type-length-value data block "
-            "presented by the caller of the TLV utility.\n", tlvType, (L7_uint32)pTlv, rc);
+            " 0x%4.4x at address %p, rc=%u. Indicates a malformed type-length-value data block "
+            "presented by the caller of the TLV utility.\n", tlvType, pTlv, rc);
     return rc;
   }
 
@@ -1400,7 +1400,7 @@ L7_RC_t tlvCtrlShow(L7_tlvHandle_t tlvHandle)
                 "TLV block handle          : %u\n",
                 (L7_uint32)pTlvCtrl->tlvHandle);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "TLV block location        : 0x%8.8x\n", (L7_uint32)pTlvCtrl);
+                "TLV block location        : %p\n", pTlvCtrl);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "TLV block alloc size      : 0x%8.8x (%u)\n",
                 pTlvCtrl->allocSize, pTlvCtrl->allocSize);
@@ -1412,8 +1412,8 @@ L7_RC_t tlvCtrlShow(L7_tlvHandle_t tlvHandle)
                 dataAreaUsed, dataAreaUsed);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS, "\n");
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "TLV block chain ptr       : 0x%8.8x\n",
-                (L7_uint32)pTlvCtrl->pChain);
+                "TLV block chain ptr       : %p\n",
+                pTlvCtrl->pChain);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "TLV block application ID  : %u\n", pTlvCtrl->appId);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
@@ -1534,9 +1534,9 @@ void tlvBlockSummaryShow(void)
     if (pTlvCtrl != L7_NULLPTR)
     {
       SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                    " %4u   %8.8x   %5u     %-3s  %7u    %5u   %5u %-15s\n",
+                    " %4u   %p   %5u     %-3s  %7u    %5u   %5u %-15s\n",
                     pTlvCtrl->tlvHandle,
-                    (L7_uint32)pTlvCtrl,
+                    pTlvCtrl,
                     pTlvCtrl->appId,
                     (pTlvCtrl->active == L7_YES) ? "Yes" : "No",
                     L7_TLV_BLK_DATA_MAX(pTlvCtrl),

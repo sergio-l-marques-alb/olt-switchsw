@@ -232,7 +232,7 @@ typedef struct tacacsAuthSession_s
   L7_uint32            sessionId;      /* random identifier for session */
   L7_uint32            server;         /* ip address of current server */
   L7_uchar8            sequenceNo;     /* START = 1, current seqNo in conversation */
-  L7_uint32            connectTaskId;  /* set when connection task running for this session */
+  L7_uint64            connectTaskId;  /* set when connection task running for this session */
   L7_uint32            connectTimer;   /* timer set for connection task */
   L7_uint32            connectArgv[3]; /* copies of server ip, port, socket for connection task */
   L7_uint32            socket;         /* TCP socket for communication */

@@ -252,7 +252,7 @@ L7_RC_t traceBlockDelete(L7_uint32 traceId)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
             "traceBlockDelete(): Unable to delete trace block semaphore, "
-            "id=0x%8.8x\n", (L7_uint32)traceData->semaId);
+            "id=%p\n", traceData->semaId);
   }
 
   /*osapiFree(L7_SIM_COMPONENT_ID, (void *)traceData->head);*/

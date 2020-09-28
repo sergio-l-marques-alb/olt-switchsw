@@ -1955,25 +1955,25 @@ void dumptree(struct l7_radix_node *x)
   if(x->rn_bit >= 0)
   {
     /* print intenal node */
-    printf("\nN,0x%x,0x%x,0x%x,%d,0x%x,%d,%d,0x%x,0x%x",
-           (L7_uint32)x,
-           (L7_uint32)x->rn_mklist, (L7_uint32)x->rn_parent,
+    printf("\nN,%p,%p,%p,%d,0x%x,%d,%d,%p,%p",
+           x,
+           x->rn_mklist, x->rn_parent,
            x->rn_bit, x->rn_bmask, x->rn_flags,
            x->rn_u.rn_node.rn_Off,
-           (L7_uint32)x->rn_u.rn_node.rn_L,
-           (L7_uint32)x->rn_u.rn_node.rn_R);
+           x->rn_u.rn_node.rn_L,
+           x->rn_u.rn_node.rn_R);
   }
   else
   {
     /* print leaf */
     /* print intenal node */
-    printf("\nL,0x%x,0x%x,0x%x,%d,0x%x,%d,0x%x,0x%x,0x%x",
-           (L7_uint32)x,
-           (L7_uint32)x->rn_mklist, (L7_uint32)x->rn_parent,
+    printf("\nL,%p,%p,%p,%d,0x%x,%d,%p,%p,%p",
+           x,
+           x->rn_mklist, x->rn_parent,
            x->rn_bit, x->rn_bmask, x->rn_flags,
-           (L7_uint32)x->rn_u.rn_leaf.rn_Key,
-           (L7_uint32)x->rn_u.rn_leaf.rn_Mask,
-           (L7_uint32)x->rn_u.rn_leaf.rn_Dupedkey);
+           x->rn_u.rn_leaf.rn_Key,
+           x->rn_u.rn_leaf.rn_Mask,
+           x->rn_u.rn_leaf.rn_Dupedkey);
 
     dumpKey("K", x->rn_u.rn_leaf.rn_Key);
     dumpKey("M", x->rn_u.rn_leaf.rn_Mask);
@@ -1985,18 +1985,18 @@ void dumptree(struct l7_radix_node *x)
 
     while(mk_node)
     {
-      printf("\nm,0x%x,0x%x,,%d,%d,%d,0x%x,,%d",
-             (L7_uint32)mk_node,
-             (L7_uint32)mk_node->rm_mklist,
+      printf("\nm,%p,%p,,%d,%d,%d,%p,,%d",
+             mk_node,
+             mk_node->rm_mklist,
              mk_node->rm_bit,
              mk_node->rm_unused,
              mk_node->rm_flags,
-             (L7_uint32)mk_node->rm_rmu.rmu_mask,
+             mk_node->rm_rmu.rmu_mask,
              mk_node->rm_refs);
       if ((mk_node->rm_flags & RNF_NORMAL) == 0)
         dumpKey("m", mk_node->rm_rmu.rmu_mask);
       else
-        printf("  rmu_leaf:  %#x", (L7_uint32)mk_node->rm_rmu.rmu_leaf);
+        printf("  rmu_leaf:  %p", mk_node->rm_rmu.rmu_leaf);
 
       mk_node = mk_node->rm_mklist;
     }
@@ -2058,7 +2058,7 @@ rn_walktree_all(h,do_pr)
                             sprintf(&buf[2*i],"%02x",*((char *)rn->rn_key+i));
                         }
                         buf[2*i] = 0;
-                        if(do_pr)printf("L%x      %s    \n",(int)rn,buf);
+                        if(do_pr)printf("L%llx      %s    \n",PTR_TO_UINT64(rn),buf);
         }
         rn = save;
 
@@ -2078,11 +2078,11 @@ rn_walktree_all(h,do_pr)
                 /* process internal node */
         if (rn->rn_flags & RNF_ROOT)
                 {
-                    if(do_pr)printf("R%x      %3d    l= %x r= %x\n",(int)rn,rn->rn_bit,(int)rn->rn_left, (int)rn->rn_right);
+                    if(do_pr)printf("R%llx      %3d    l= %llx r= %llx\n",PTR_TO_UINT64(rn),rn->rn_bit,PTR_TO_UINT64(rn->rn_left), PTR_TO_UINT64(rn->rn_right));
                 }
                 else
                 {
-                    if(do_pr)printf("I%x      %3d    l= %x r= %x\n",(int)rn,rn->rn_bit,(int)rn->rn_left, (int)rn->rn_right);
+                    if(do_pr)printf("I%llx      %3d    l= %llx r= %llx\n",PTR_TO_UINT64(rn),rn->rn_bit,PTR_TO_UINT64(rn->rn_left), PTR_TO_UINT64(rn->rn_right));
                 }
                 /* masks */
         m = rn->rn_mklist;

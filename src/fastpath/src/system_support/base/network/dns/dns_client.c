@@ -28,8 +28,8 @@
 #include "dns_sid/dns_client_sid.h"
 
 
-L7_int32               dnsTaskId = 0;
-L7_int32               dnsRxTaskId = 0;
+L7_uint64             dnsTaskId = 0;
+L7_uint64             dnsRxTaskId = 0;
 extern void           *dnsQueue;
 extern void           *dnsSemaphore;
 extern dnsCnfgrState_t dnsCnfgrState;

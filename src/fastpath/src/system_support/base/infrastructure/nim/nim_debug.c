@@ -517,7 +517,7 @@ void nimDebugCfgPort(nimCfgPort_t *configPort)
     sysapiPrintf("MTU = %d\n", configPort->cfgInfo.ipMtu);
 
     sysapiPrintf("Encapsulation type = %d\n", configPort->cfgInfo.encapsType);
-    sysapiPrintf("Ptr to this nimCfgPort_t = 0x%0.8x\n",(L7_uint32)configPort);
+    sysapiPrintf("Ptr to this nimCfgPort_t = %p\n", configPort);
 
   }
 }
@@ -721,7 +721,7 @@ void nimDebugPortIntIfNum(nimIntf_t *port)
         sysapiPrintf("Intf State = Unknown\n");
     }
 
-    sysapiPrintf("Ptr for the nimIntf_t = 0x%0.8x\n",(L7_uint32)port);
+    sysapiPrintf("Ptr for the nimIntf_t = %p\n", port);
   }
 
 }

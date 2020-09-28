@@ -152,7 +152,7 @@ L7_BOOL bootpVendorSpecificValuesRequest(const L7_uchar8 *intf, L7_bootp_t *boot
   bootpConfigSemFree();
   
   /*Generate unique Transaction Id */
-  xid_base = (L7_uint32)bootpReplyPacket;
+  xid_base = PTR_TO_UINT32(bootpReplyPacket);
   xid = xid_base + (L7_uint32) (0xffffffff & osapiUpTimeRaw());
 
   /*Create a socket*/
@@ -443,7 +443,7 @@ L7_bootp_do(const L7_uchar8 *intf, L7_bootp_t *res, L7_int32 timeout)
 #endif
 
   /*Generate unique Transaction Id */
-  xid_base = (L7_uint32)res;
+  xid_base = PTR_TO_UINT32(res);
   xid = xid_base + (L7_uint32) (0xffffffff & osapiUpTimeRaw());
 
   /*Create a socket*/

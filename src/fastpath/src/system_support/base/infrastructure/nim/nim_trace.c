@@ -185,7 +185,7 @@ void nimTracePortEvent(L7_COMPONENT_IDS_t component,
                        NIM_HANDLE_t       handle)
 {
   L7_uint32 info;
-  L7_int32 taskId;
+  L7_uint64 taskId;
 
   /* increments the counter for another event */
   if (start)
@@ -236,7 +236,7 @@ void nimTracePortEventComp(L7_COMPONENT_IDS_t component,
                            NIM_HANDLE_t       handle)
 {
   L7_uint32 info;
-  L7_int32 taskId;
+  L7_uint64 taskId;
 
   /* increments the counter for another event */
   if (start)

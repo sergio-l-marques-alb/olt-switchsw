@@ -63,7 +63,7 @@ L7_RC_t radiusResponseRegister(L7_COMPONENT_IDS_t registrar_ID,
     return L7_FAILURE;
   }
 
-  if ((L7_uint32)radiusNotifyList[registrar_ID].notify_radius_resp != L7_NULL)
+  if (radiusNotifyList[registrar_ID].notify_radius_resp != L7_NULLPTR)
   {
     /* Already registered but allow it after the log */
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_RADIUS_COMPONENT_ID,

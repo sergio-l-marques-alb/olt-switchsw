@@ -547,7 +547,7 @@ void log_error_debug_help(void)
 }
 static int log_interval;   /* In milliseconds */
 static int log_async_exit = 0;
-static int async_task_id = 0;
+static unsigned long long async_task_id = 0;
 static int async_event_number = 0;
 static int log_msg_size = 64;
 int logSizeSet (int size)
@@ -592,13 +592,13 @@ int logAsyncStart(int interval)
  log_interval = interval;
   if (async_task_id == 0)
   {
-    async_task_id = (L7_uint32)osapiTaskCreate("ASYNC_LOG",
-                                            (void *)logAsyncTask,
-                                            L7_NULL,
-                                            L7_NULL,
-                                            L7_DEFAULT_STACK_SIZE,
-                                            L7_DEFAULT_TASK_PRIORITY,
-                                            L7_DEFAULT_TASK_SLICE);
+    async_task_id = osapiTaskCreate("ASYNC_LOG",
+                                    (void *)logAsyncTask,
+                                    L7_NULL,
+                                    L7_NULL,
+                                    L7_DEFAULT_STACK_SIZE,
+                                    L7_DEFAULT_TASK_PRIORITY,
+                                    L7_DEFAULT_TASK_SLICE);
   }
  return 0;
 }

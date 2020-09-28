@@ -901,9 +901,9 @@ void hlDebugShow(void *objId)
   printf("\nKey length (bytes):  %u", p_H->keyLen);
   printf("\nKey offset (bytes):  %u", p_H->keyOffset);
   printf("\nGet index:  %u", p_H->getIndex);
-  printf("\nGet value:  %#x", (L7_uint32) p_H->getValue);
-  printf("\nCurrent value:  %#x", (L7_uint32) p_H->curValue);
-  printf("\nSemaphore:  %#x", (L7_uint32) p_H->semId);
+  printf("\nGet value:  %p", p_H->getValue);
+  printf("\nCurrent value:  %p", p_H->curValue);
+  printf("\nSemaphore:  %p", p_H->semId);
   printf("\nBuffer pool ID:  %#x", p_H->bufferPoolId);
 
   printf("\nMemory use:");

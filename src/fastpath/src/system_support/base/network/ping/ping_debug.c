@@ -416,7 +416,7 @@ dbgPingSync( )
 static void
 dbgPingSyncTask( char *argv[], int argc )
 {
-    L7_uint32 taskId;
+    L7_uint64 taskId;
     dbgPingSync();
     if ( osapiTaskIDSelfGet( &taskId ) == L7_SUCCESS )
     {
@@ -480,7 +480,7 @@ dbgPingRandom( L7_uint32 num )
     L7_ushort16 handle;
     L7_uint32 iterations = 0;
     void *rxArgs[1];
-    L7_uint32 taskHandle;
+    L7_uint64 taskHandle;
 
     while ( num != 0 )
     {

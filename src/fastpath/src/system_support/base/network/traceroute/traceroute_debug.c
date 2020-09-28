@@ -85,7 +85,7 @@ dbgTraceRouteCallback( void *param, L7_ushort16 handle,
   L7_uchar8  buff[L7_CLI_MAX_STRING_LENGTH];
   L7_uchar8  ipBuff[L7_CLI_MAX_STRING_LENGTH];
   L7_uchar8  tmpBuff[L7_CLI_MAX_STRING_LENGTH];
-  L7_uint32 probePerHop = (L7_uint32)param;
+  L7_uint32 probePerHop = PTR_TO_UINT32(param);
 
   buff[0] = '\0';
   if ( probeCount == 1 )
@@ -145,7 +145,7 @@ dbgTraceRouteExec( L7_BOOL mode, L7_uint32 ipDa, L7_ushort16 probes,
     sprintf( name, "%d", sessionNum++ );
 
     rc = traceRouteAlloc( "dbgTraceRoute", name, mode, 
-            (traceRouteCallback)dbgTraceRouteCallback, (void *)probeCount, 
+            (traceRouteCallback)dbgTraceRouteCallback, UINT_TO_PTR(probeCount), 
             handle );
 
     if ( rc == L7_SUCCESS )
@@ -474,7 +474,7 @@ dbgTraceRouteSync( L7_uchar8 *argv[], L7_uint32 argc )
     L7_RC_t rc;
     L7_uint32 addr;
     L7_ushort16 probes, interval, port, maxTtl, initTtl, handle;
-    L7_uint32 taskId;
+    L7_uint64 taskId;
     unsigned char *ipAddr[] = {   "127.0.0.1",
                             "172.22.75.80",
                             "172.22.64.8",
@@ -599,7 +599,7 @@ dbgTraceRouteRandom( int count )
     L7_ushort16 handle;
     L7_uint32 iterations = 0;
     void *rxArgs[1];
-    L7_uint32 taskHandle;
+    L7_uint64 taskHandle;
     L7_uint32 oper;
 
     while ( count != 0 )

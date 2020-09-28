@@ -39,10 +39,10 @@
 /*************************************
 * Mbuf Queue declarations
 *************************************/
-extern L7_uint32 *pMbufQTop;     /* top of queue */
-extern L7_uint32 *pMbufQBot;     /* bottom of queue */
-extern L7_uint32 *MbufQHead;
-extern L7_uint32 *MbufQTail;
+extern L7_uint64 *pMbufQTop;     /* top of queue */
+extern L7_uint64 *pMbufQBot;     /* bottom of queue */
+extern L7_uint64 *MbufQHead;
+extern L7_uint64 *MbufQTail;
 extern L7_uint32 MbufsFree;
 extern L7_uint32 MbufsRxUsed;
 extern L7_uint32 MbufsMaxFree;
@@ -233,9 +233,9 @@ void mbufHistoryDump(void *p)
     {
       if (!p || (p == mbufHistory[index].mbuf_ptr))
       {
-        printf("\n%10u         %#10x     %6s       %16s      %u",
+        printf("\n%10u         %p     %6s       %16s      %u",
                mbufHistory[index].timestamp,
-               (L7_uint32) mbufHistory[index].mbuf_ptr,
+               mbufHistory[index].mbuf_ptr,
                (mbufHistory[index].mbufAction == MBUF_ALLOC) ? "Alloc" : "Free",
                mbufHistory[index].alloc_file,
                mbufHistory[index].alloc_line);
@@ -307,8 +307,8 @@ void sysapiMbufDump(L7_int32 show_bufs)
 
       if (netMbufHandle->bufStart != L7_NULL)
       {
-        printf("Mbuf 0x%x (inUse=%s) at %s alloc (rxBuffer=%s) by task 0x%x in %s:%u at %u secs\n",
-               (L7_uint32)netMbufHandle,
+        printf("Mbuf %p (inUse=%s) at %s alloc (rxBuffer=%s) by task 0x%llx in %s:%u at %u secs\n",
+               netMbufHandle,
                netMbufHandle->in_use?"Yes":"False",
                mbufLocNames[netMbufHandle->mbufLoc],
                netMbufHandle->rxBuffer?"True":"False",
@@ -350,9 +350,9 @@ void sysapiMbufDump(L7_int32 show_bufs)
 *
 * @end
 *************************************************************************/
-L7_uint32 *sysapiMbufGet(L7_BOOL isRx)
+L7_uint64 *sysapiMbufGet(L7_BOOL isRx)
 {
-  L7_uint32 buffer;
+  L7_uint64 buffer;
 
   SYSAPI_MBUF_LOCK();
 
@@ -368,7 +368,7 @@ L7_uint32 *sysapiMbufGet(L7_BOOL isRx)
     if (isRx)
       MbufsRxUsed++;
 
-    ((SYSAPI_NET_MBUF_HEADER_t *)buffer)->in_use = L7_TRUE;
+    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(buffer))->in_use = L7_TRUE;
   }
   else
   {
@@ -377,7 +377,7 @@ L7_uint32 *sysapiMbufGet(L7_BOOL isRx)
 
   SYSAPI_MBUF_UNLOCK();
 
-  return( ( L7_uint32 * )buffer );
+  return( ( L7_uint64 * ) UINT_TO_PTR(buffer) );
 }
 
 /**************************************************************************
@@ -392,11 +392,11 @@ L7_uint32 *sysapiMbufGet(L7_BOOL isRx)
 *
 * @end
 *************************************************************************/
-void sysapiMbufFree(  L7_uint32 *mbuf, L7_BOOL isRx )
+void sysapiMbufFree(  L7_uint64 *mbuf, L7_BOOL isRx )
 {
   SYSAPI_MBUF_LOCK();
 
-  *MbufQTail = ( L7_uint32 )mbuf;
+  *MbufQTail = PTR_TO_UINT64(mbuf);
   if ( MbufQTail >= pMbufQBot )
     MbufQTail = pMbufQTop;    /* wrap the Q tail ptr */
   else
@@ -451,7 +451,7 @@ L7_netBufHandle sysapiNetMbufGetTrack(L7_uchar8 *file, L7_uint32 line)
   SYSAPI_NET_MBUF_HEADER_t *netMbufHandle = 0;
 
   /* get the MBUF */
-  netMbufHandle = (SYSAPI_NET_MBUF_HEADER_t *)sysapiNetMbufGet();
+  netMbufHandle = (SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(sysapiNetMbufGet());
 
   /* store tracking information */
   if(netMbufHandle)
@@ -476,7 +476,7 @@ L7_netBufHandle sysapiNetMbufGetTrack(L7_uchar8 *file, L7_uint32 line)
 #endif
   }
 
-  return((L7_uint32)netMbufHandle);
+  return(PTR_TO_UINT64(netMbufHandle));
 }
 
 /**************************************************************************
@@ -499,7 +499,7 @@ L7_netBufHandle sysapiNetRxMbufGetTrack(L7_uchar8 *file, L7_uint32 line, L7_MBUF
   SYSAPI_NET_MBUF_HEADER_t *netMbufHandle = 0;
 
   /* get the MBUF */
-  netMbufHandle = (SYSAPI_NET_MBUF_HEADER_t *)sysapiRxNetMbufGet(priority, alignType);
+  netMbufHandle = (SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(sysapiRxNetMbufGet(priority, alignType));
 
   /* store tracking information */
   if(netMbufHandle)
@@ -524,7 +524,7 @@ L7_netBufHandle sysapiNetRxMbufGetTrack(L7_uchar8 *file, L7_uint32 line, L7_MBUF
 #endif
   }
 
-  return((L7_uint32)netMbufHandle);
+  return(PTR_TO_UINT64(netMbufHandle));
 }
 
 /**************************************************************************
@@ -552,7 +552,7 @@ L7_netBufHandle sysapiNetMbufGet( void )
     netMbufHandle->bufStart  = (L7_uchar8 *)netMbufHandle + sizeof(SYSAPI_NET_MBUF_HEADER_t) +
                                 NET_MBUF_START_OFFSET;
 
-    netMbufHandle->bufStart = (L7_char8 *)SYSAPI_BUF_ALIGN(netMbufHandle->bufStart,L7_MBUF_ALIGN_BOUND);
+    netMbufHandle->bufStart = (L7_char8 *)UINT_TO_PTR(SYSAPI_BUF_ALIGN(netMbufHandle->bufStart,L7_MBUF_ALIGN_BOUND));
 
     netMbufHandle->bufLength = 0;
     netMbufHandle->osBuffer  = L7_NULL;
@@ -570,7 +570,7 @@ L7_netBufHandle sysapiNetMbufGet( void )
     mbuf_stats.alloc_tx_failures++;
   }
 
-  return((L7_uint32)netMbufHandle);
+  return(PTR_TO_UINT64(netMbufHandle));
 }
 
 /**************************************************************************
@@ -702,7 +702,7 @@ L7_netBufHandle sysapiRxNetMbufGet( L7_MBUF_RX_PRIORITY priority,
   if ( mbufPtr != L7_NULL)
   {
      mbufPtr->bufStart  = (L7_uchar8 *)mbufPtr + sizeof(SYSAPI_NET_MBUF_HEADER_t) + NET_MBUF_START_OFFSET;
-     mbufPtr->bufStart = (L7_uchar8 *)SYSAPI_BUF_ALIGN(mbufPtr->bufStart,L7_MBUF_ALIGN_BOUND);
+     mbufPtr->bufStart = (L7_uchar8 *)UINT_TO_PTR(SYSAPI_BUF_ALIGN(mbufPtr->bufStart,L7_MBUF_ALIGN_BOUND));
 
      if(alignType ==  L7_MBUF_IP_CORRECTION)
      {
@@ -719,7 +719,7 @@ L7_netBufHandle sysapiRxNetMbufGet( L7_MBUF_RX_PRIORITY priority,
 
   osapiSemaGive(MbufSema);
 
-  return (L7_netBufHandle)mbufPtr;
+  return (L7_netBufHandle) PTR_TO_UINT64(mbufPtr);
 }
 
 /**************************************************************************
@@ -740,7 +740,7 @@ L7_netBufHandle sysapiNetMbufAlignGet(L7_uchar8 *file, L7_uint32 line,
   SYSAPI_NET_MBUF_HEADER_t *netMbufHandle = 0;
 
   /* get the MBUF */
-  netMbufHandle = (SYSAPI_NET_MBUF_HEADER_t *)sysapiNetMbufGet();
+  netMbufHandle = (SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(sysapiNetMbufGet());
 
   /* store tracking information */
   if(netMbufHandle)
@@ -770,7 +770,7 @@ L7_netBufHandle sysapiNetMbufAlignGet(L7_uchar8 *file, L7_uint32 line,
 #endif
   }
 
-  return((L7_uint32)netMbufHandle);
+  return(PTR_TO_UINT64(netMbufHandle));
 }
 
 /**************************************************************************
@@ -791,26 +791,26 @@ void sysapiNetMbufFree( L7_netBufHandle netMbufHandle )
   osapiSemaTake(MbufSema, L7_WAIT_FOREVER);
   if (netMbufHandle != L7_NULL)
   {
-    if (((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer != L7_NULL)
+    if (((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->osBuffer != L7_NULL)
     {
-      osapiNetMbufFree ((void *)((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer);
+      osapiNetMbufFree ((void *)((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->osBuffer);
     }
     
-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufStart  = L7_NULL;
-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufLength = 0;
-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer  = L7_NULL;
-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->taskId    = 0;
-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->timeStamp = 0;
-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->in_use    = L7_FALSE;
-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->mbufLoc   = MBUF_LOC_FREE;
+    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufStart  = L7_NULL;
+    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufLength = 0;
+    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->osBuffer  = L7_NULL;
+    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->taskId    = 0;
+    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->timeStamp = 0;
+    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->in_use    = L7_FALSE;
+    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->mbufLoc   = MBUF_LOC_FREE;
 
-    if (((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->rxBuffer == L7_TRUE)
+    if (((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->rxBuffer == L7_TRUE)
     {
       isRx = L7_TRUE;     
-      ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->rxBuffer = L7_FALSE;
+      ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->rxBuffer = L7_FALSE;
     }
     
-    sysapiMbufFree ((L7_uint32 *)netMbufHandle, isRx);
+    sysapiMbufFree ((L7_uint64 *) UINT_TO_PTR(netMbufHandle), isRx);
   }
   osapiSemaGive(MbufSema);
 }
@@ -830,7 +830,7 @@ void sysapiNetMbufFreeTrack( L7_netBufHandle netMbufHandle, L7_uchar8 *file, L7_
 {
   SYSAPI_NET_MBUF_HEADER_t  *header;
 
-  header = (SYSAPI_NET_MBUF_HEADER_t *) netMbufHandle;
+  header = (SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle);
 
   if (header->in_use == L7_FALSE)
   {
@@ -846,7 +846,7 @@ void sysapiNetMbufFreeTrack( L7_netBufHandle netMbufHandle, L7_uchar8 *file, L7_
   osapiSemaTake(MbufSema, L7_WAIT_FOREVER);
   if (mbufHistory)
   {
-    mbufHistory[historyIndex].mbuf_ptr = (void*) netMbufHandle;
+    mbufHistory[historyIndex].mbuf_ptr = UINT_TO_PTR(netMbufHandle);
     mbufHistory[historyIndex].mbufAction = MBUF_FREE;
     mbufHistory[historyIndex].timestamp = osapiTimeMillisecondsGet();
     osapiStrncpySafe(mbufHistory[historyIndex].alloc_file, file, MBUF_HISTORY_FILENAME_LEN);
@@ -876,7 +876,7 @@ L7_uchar8 *sysapiNetMbufGetDataStart( L7_netBufHandle netMbufHandle )
 {
   if (netMbufHandle != L7_NULL)
   {
-    return(((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufStart);
+    return(((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufStart);
   } else
   {
     L7_LOG_ERROR(0);
@@ -901,7 +901,7 @@ void sysapiNetMbufSetDataStart( L7_netBufHandle netMbufHandle, L7_uchar8 *dataSt
 {
   if (netMbufHandle != L7_NULL)
   {
-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufStart = dataStart;
+    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufStart = dataStart;
   }
 }
 
@@ -920,10 +920,10 @@ L7_uint32 sysapiNetMbufGetApplSpecVar( L7_netBufHandle netMbufHandle )
 {
   if (netMbufHandle != L7_NULL)
   {
-    return(((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->applSpecVar);
+    return(((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->applSpecVar);
   }
 
-  return((L7_uint32)netMbufHandle);
+  return(PTR_TO_UINT64(netMbufHandle));
 }
 
 /**************************************************************************
@@ -942,7 +942,7 @@ void sysapiNetMbufSetApplSpecVar( L7_netBufHandle netMbufHandle, L7_uint32 value
 {
   if (netMbufHandle != L7_NULL)
   {
-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->applSpecVar = value;
+    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->applSpecVar = value;
   }
 }
 /**************************************************************************
@@ -960,10 +960,10 @@ L7_uint32 sysapiNetMbufGetDataLength( L7_netBufHandle netMbufHandle )
 {
   if (netMbufHandle != L7_NULL)
   {
-    return(((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufLength);
+    return(((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufLength);
   }
 
-  return((L7_uint32)netMbufHandle);
+  return(PTR_TO_UINT64(netMbufHandle));
 }
 
 /**************************************************************************
@@ -982,7 +982,7 @@ void sysapiNetMbufSetDataLength( L7_netBufHandle netMbufHandle, L7_uint32 size )
 {
   if (netMbufHandle != L7_NULL)
   {
-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufLength = size;
+    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufLength = size;
   }
 }
 
@@ -1001,10 +1001,10 @@ L7_uint32 sysapiNetMbufGetRxReasonCode(L7_netBufHandle netMbufHandle)
 {
   if (netMbufHandle != L7_NULL)
   {
-    return(((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->rxCode);
+    return(((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->rxCode);
   }
 
-  return((L7_uint32)netMbufHandle);
+  return(PTR_TO_UINT64(netMbufHandle));
 }
 
 /**************************************************************************
@@ -1025,7 +1025,7 @@ void sysapiNetMbufSetRxReasonCode( L7_netBufHandle netMbufHandle,
 {
   if (netMbufHandle != L7_NULL)
   {
-    ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->rxCode = rxCode;
+    ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->rxCode = rxCode;
   }
 }
 
@@ -1048,30 +1048,30 @@ void sysapiNetMbufGetNextBuffer( L7_netBufHandle netMbufHandle, L7_netBlockHandl
   {
     if (*blockHandle == L7_NULL)
     {
-      if (((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufLength != 0)
+      if (((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufLength != 0)
       {
-        *bufSize = ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufLength;
-        *bufData = ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufStart;
-        *blockHandle = (L7_netBlockHandle)((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufStart;
+        *bufSize = ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufLength;
+        *bufData = ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufStart;
+        *blockHandle = (L7_netBlockHandle) PTR_TO_UINT64(((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufStart);
       }
-      else if (((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer != L7_NULL)
+      else if (((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->osBuffer != L7_NULL)
       {
-        osapiNetMbufGetNextBuffer((void *)((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer, bufData, bufSize);
-        *blockHandle = (L7_netBlockHandle)((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer;
+        osapiNetMbufGetNextBuffer((void *)((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->osBuffer, bufData, bufSize);
+        *blockHandle = (L7_netBlockHandle) PTR_TO_UINT64(((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->osBuffer);
       }
     }
     else
     {
-      if (*blockHandle == (L7_netBlockHandle)((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufStart)
+      if (*blockHandle == (L7_netBlockHandle) PTR_TO_UINT64(((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufStart))
       {
-        *blockHandle = (L7_netBlockHandle)((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer;
+        *blockHandle = (L7_netBlockHandle) PTR_TO_UINT64(((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->osBuffer);
       }
       else
-        *blockHandle = (L7_netBlockHandle)osapiNetMbufGetNextMbuf((void *)*blockHandle);
+        *blockHandle = (L7_netBlockHandle) PTR_TO_UINT64(osapiNetMbufGetNextMbuf((void *) UINT_TO_PTR(*blockHandle)));
 
       if (*blockHandle != L7_NULL)
       {
-        osapiNetMbufGetNextBuffer((void *)*blockHandle, bufData, bufSize);
+        osapiNetMbufGetNextBuffer((void *) UINT_TO_PTR(*blockHandle), bufData, bufSize);
       }
     }
   }
@@ -1097,11 +1097,11 @@ L7_uint32 sysapiNetMbufGetFrameLength( L7_netBufHandle netMbufHandle )
 
   if (netMbufHandle != L7_NULL)
   {
-    frameLength = ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufLength;
+    frameLength = ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufLength;
 
-    if (((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer != L7_NULL)
+    if (((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->osBuffer != L7_NULL)
     {
-      frameLength += osapiNetMbufGetFrameLength((void *)((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer);
+      frameLength += osapiNetMbufGetFrameLength((void *)((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->osBuffer);
     }
   }
 

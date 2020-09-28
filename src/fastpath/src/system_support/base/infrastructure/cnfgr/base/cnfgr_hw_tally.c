@@ -62,7 +62,7 @@ static L7_uchar8 *phaseNames[L7_CNFGR_HW_APPLY_NUM_PHASES] =
   "L2", "L3", "IP MCAST"
 };
 
-static void cnfgrHwTallyTimerExpired(L7_uint32 phase, L7_uint32 unused);
+static void cnfgrHwTallyTimerExpired(L7_uint64 phase, L7_uint64 unused);
 static L7_uint32 cnfgrHwUpdatePhaseToIndex(L7_CNFGR_HW_APPLY_t phase);
 static void cnfgrHwUpdatePendingSet(L7_COMPONENT_IDS_t cid,
                                     L7_CNFGR_HW_APPLY_t phase);
@@ -385,7 +385,7 @@ L7_RC_t cnfgrApiComponentHwUpdateDone(L7_COMPONENT_IDS_t cid,
   return L7_SUCCESS;
 }
 
-static void cnfgrHwTallyTimerExpired(L7_uint32 phase, L7_uint32 unused)
+static void cnfgrHwTallyTimerExpired(L7_uint64 phase, L7_uint64 unused)
 {
   L7_uint32 i = cnfgrHwUpdatePhaseToIndex(phase);
   L7_uchar8 compStr[512];

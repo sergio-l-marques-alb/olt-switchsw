@@ -988,7 +988,7 @@ static void _checkTimers( t_TimeTblDesc *pTblDesc )
          else
          {
            L7_LOGF(L7_LOG_SEVERITY_CRITICAL, L7_IP_MAP_COMPONENT_ID,
-                   "Memory allocation failure in _checkTimers for queue %d thread 0x%x",
+                   "Memory allocation failure in _checkTimers for queue %lu thread 0x%llx",
                    p_T->queueId, thread->TaskID);
          }
          XX_Freeze();
