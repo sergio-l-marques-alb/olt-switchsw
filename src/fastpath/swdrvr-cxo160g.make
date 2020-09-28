@@ -24,7 +24,7 @@ CROSS_COMPILE = powerpc-fsl-linux-
 
 # Kernel and SDK paths
 KERNEL_PATH ?= $(OLT_DIR)/../lib/kernel/linux-4.1.8-QorIQ-SDK2.0
-SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.15/broadcom
+SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.20/broadcom
 
 # Comilation logging level
 export LVL7_MAKEFILE_LOGGING := N
