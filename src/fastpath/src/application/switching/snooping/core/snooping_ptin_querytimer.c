@@ -344,12 +344,12 @@ void timerCallback(void *param)
   char                    debug_buf[46];
   snoopPTinL3Interface_t  *interfacePtr;
   L7_uint32               interfaceIdx;
-  L7_uint32               timerHandle;
+  L7_uint64               timerHandle;
   snoopPTinL3Querytimer_t *pTimerData;
   snoopPTinL3Source_t     *sourcePtr;
   snoopPTinL3InfoData_t*  groupData;
 
-  timerHandle = (L7_uint32) param;
+  timerHandle = PTR_TO_UINT64(param);
   osapiSemaTake(timerSem, L7_WAIT_FOREVER);
 
   /* Get timer handler */
@@ -479,7 +479,7 @@ L7_RC_t snoop_ptin_querytimer_start(snoopPTinL3Querytimer_t *pTimer, L7_uint16 t
 
   /* Add a new timer */
   pTimer->timer = appTimerAdd(cbTimer, timerCallback,
-                              (void *) pTimer->timerHandle, timeout,
+                              UINT_TO_PTR(pTimer->timerHandle), timeout,
                               "PTIN_TIMER");
   if (pTimer->timer == NULL)
   {

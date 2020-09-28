@@ -173,11 +173,11 @@ typedef struct snoopQuerierTimerData_s
 {
   /* Querier Expiry Timer */
   L7_APP_TMR_HNDL_t      querierExpiryTimer;
-  L7_uint32              querierExpiryTimerHandle;
+  L7_uint64              querierExpiryTimerHandle;
 
   /* Query Interval Timer */
   L7_APP_TMR_HNDL_t      queryIntervalTimer;
-  L7_uint32              queryIntervalTimerHandle;
+  L7_uint64              queryIntervalTimerHandle;
 } snoopQuerierTimerData_t;
 
 typedef struct snoopQuerierInfo_s
@@ -232,7 +232,7 @@ typedef struct snoopGrpTimerData_s
   L7_uint32                 intIfNum;
   L7_uchar8                 timerType;
   L7_APP_TMR_HNDL_t         grpTimer;
-  L7_uint32                 grpTimerHandle;
+  L7_uint64                 grpTimerHandle;
 } snoopGrpTimerData_t;
 
 /* Mrouter Timer Node Structure */
@@ -252,7 +252,7 @@ typedef struct snoopMrtrTimerData_s
   snoopMrtrTimerDataKey_t  snoopMrtrTimerDataKey;
   void                    *cbHandle;
   L7_APP_TMR_HNDL_t        mrtrTimer;
-  L7_uint32                mrtrTimerHandle;
+  L7_uint64                mrtrTimerHandle;
   void                    *next;
 } snoopMrtrTimerData_t;
 
@@ -340,7 +340,7 @@ typedef struct
 
   L7_uchar8         timerType;
   L7_APP_TMR_HNDL_t timer;
-  L7_uint32         timerHandle;
+  L7_uint64         timerHandle;
 } snoopPTinL3Querytimer_t;
 
 typedef struct
@@ -355,7 +355,7 @@ typedef struct
 
   L7_uchar8             timerType;
   L7_APP_TMR_HNDL_t     timer;
-  L7_uint32             timerHandle;
+  L7_uint64             timerHandle;
 } snoopPTinL3Sourcetimer_t;
 
 typedef struct
@@ -367,7 +367,7 @@ typedef struct
 
   L7_uchar8             timerType;
   L7_APP_TMR_HNDL_t     timer;
-  L7_uint32             timerHandle;
+  L7_uint64             timerHandle;
 } snoopPTinL3Grouptimer_t;
 
 typedef struct
@@ -455,7 +455,7 @@ typedef struct snoopPTinProxyTimer_s
 
   L7_uchar8                          timerType;
   L7_APP_TMR_HNDL_t                  timer;
-  L7_uint32                          timerHandle;
+  L7_uint64                          timerHandle;
   
 } snoopPTinProxyTimer_t;
 
@@ -909,7 +909,7 @@ typedef struct snoopL3McastChangeParms_s
 
 typedef struct snoopTimerParams_s
 {
-  L7_uint32 timerCBHandle;
+  L7_uint64 timerCBHandle;
 } snoopTimerParams_t;
 #define SNOOP_TIMER_MSG_SIZE         sizeof(snoopTimerParams_t)
 

@@ -1877,7 +1877,7 @@ L7_RC_t dot1sDebugEventsTrace(DOT1S_PORT_COMMON_t *p, dot1sEvents_t dot1sEvent,
       TRACE_BEGIN(dot1sEventTraceHdl, L7_DOT1S_COMPONENT_ID);
       TRACE_ENTER_2BYTE(osapiHtons(traceId));
       TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
-      TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
+      TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
      /* End Trace Header*/
 
 
@@ -2155,7 +2155,7 @@ L7_RC_t dot1sNsfTrace(L7_uchar8 *pString)
     TRACE_BEGIN(dot1sNsfTraceHdl, L7_DOT1S_COMPONENT_ID);
     TRACE_ENTER_2BYTE(osapiHtons(traceId));
     TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
-    TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
+    TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
    /* End Trace Header*/
 
     max = strlen(pString);

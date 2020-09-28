@@ -1796,7 +1796,7 @@ void dot3adTablesLastChangedRecord(void);
 * @end
 *
 *************************************************************************/
-void dot3adCurrentWhileTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm);
+void dot3adCurrentWhileTimerExpiredToQueue(L7_uint64 portNum, L7_uint64 nullParm);
 
 /**************************************************************************
 *
@@ -1813,7 +1813,7 @@ void dot3adCurrentWhileTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm
 * @end
 *
 *************************************************************************/
-void dot3adPeriodicTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm);
+void dot3adPeriodicTimerExpiredToQueue(L7_uint64 portNum, L7_uint64 nullParm);
 
 /**************************************************************************
 *
@@ -1829,7 +1829,7 @@ void dot3adPeriodicTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm);
 * @end
 *
 *************************************************************************/
-void dot3adWaitWhileTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm);
+void dot3adWaitWhileTimerExpiredToQueue(L7_uint64 portNum, L7_uint64 nullParm);
 
 /**************************************************************************
 *
@@ -1846,7 +1846,7 @@ void dot3adWaitWhileTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm);
 * @end
 *
 *************************************************************************/
-void dot3adNttTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm);
+void dot3adNttTimerExpiredToQueue(L7_uint64 portNum, L7_uint64 nullParm);
 
 /*********************************************************************
 * @purpose  dot3ad timer task which serves the expired timers

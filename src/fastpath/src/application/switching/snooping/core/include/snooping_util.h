@@ -102,7 +102,7 @@ L7_uchar8 snoopGetEndianess(void);
 /*********************************************************************
   Timer Routines
 *********************************************************************/
-void snoopTimerProcess(L7_uint32 timerCBHandle, snoop_eb_t *pSnoopEB);
+void snoopTimerProcess(L7_uint64 timerCBHandle, snoop_eb_t *pSnoopEB);
 void snoopTimerUpdate(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
                          L7_uint32 vlanId, snoop_interface_type_t timerType,
                          L7_uint32 timerValue, struct snoop_cb_s *pSnoopCB);
@@ -117,7 +117,7 @@ void     snoopMrtrExpiry(void *param);
 L7_RC_t  snoopTimerDataDestroy(L7_sll_member_t *ll_member);
 L7_int32 snoopTimerDataCmp(void *p, void *q, L7_uint32 key);
 L7_RC_t  snoopTimerDestroy(L7_APP_TMR_CTRL_BLK_t timerCB, L7_APP_TMR_HNDL_t *timer, 
-                           L7_uint32 *handle);
+                           L7_uint64 *handle);
 L7_BOOL snoop_is_timer_running(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
                                L7_uint32 vlanId, snoop_interface_type_t timerType,
                                snoop_cb_t *pSnoopCB);

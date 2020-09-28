@@ -800,7 +800,7 @@ L7_RC_t dot1qVlanIntfCreateInNim(L7_uint32 vlanId, L7_uint32 *pIntIfNum)
     intfDescr.macroPort.macroType = L7_LOGICAL_VLAN_INTF;
     intfDescr.macroPort.macroMtu  = FD_DOT1Q_DEFAULT_VLAN_INTF_IP_MTU;
     intfDescr.macroPort.macroMaxFrame = FD_DOT1Q_DEFAULT_VLAN_INTF_CFG_MAX_FRAME_SIZE;
-    intfDescr.macroPort.macroInfo = (void *)vlanId;  /* Overload the data */
+    intfDescr.macroPort.macroInfo = UINT_TO_PTR(vlanId);  /* Overload the data */
 
 
     if (dot1qVlanIntfIndexGet(vlanId,&vlanIfIndex) != L7_SUCCESS)

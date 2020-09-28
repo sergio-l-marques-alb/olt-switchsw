@@ -2315,9 +2315,9 @@ L7_BOOL dot1sIsPortDiscarding(L7_uint32 intIfNum, L7_uint32 instIndex)
 *
 * @end
 *********************************************************************/
-void dot1sStateSetTimerExpired(L7_uint32 intIfNum, L7_uint32 state)
+void dot1sStateSetTimerExpired(L7_uint64 intIfNum, L7_uint64 state)
 {
-  dot1sIssueCmd(dot1sStateSetError, intIfNum, L7_NULL, L7_NULLPTR);
+  dot1sIssueCmd(dot1sStateSetError, (L7_int32) intIfNum, L7_NULL, L7_NULLPTR);
 }
 
 /*********************************************************************

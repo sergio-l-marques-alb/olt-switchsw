@@ -363,12 +363,10 @@ void timerCallback(void *param)
   L7_uint32               intIfNum;
 //L7_uint32               vlanId;
 //L7_inet_addr_t          mcastGroupAddr;
-
-  L7_uint32               timerHandle;
+  L7_uint64               timerHandle;
   snoopPTinL3Grouptimer_t *pTimerData;
   snoopPTinL3Source_t     *sourcePtr;
   snoopPTinL3InfoData_t*  groupData;
-  
 #if 0
   L7_uint8              recordType=L7_IGMP_BLOCK_OLD_SOURCES;
   snoopPTinProxyGroup_t* groupPtr=L7_NULLPTR;       
@@ -376,9 +374,7 @@ void timerCallback(void *param)
   L7_uint32 noOfRecords=0;
 #endif
 
-
-
-  timerHandle = (L7_uint32) param;
+  timerHandle = PTR_TO_UINT64(param);
   osapiSemaTake(timerSem, L7_WAIT_FOREVER);
 
   /* Get timer handler */
@@ -576,7 +572,7 @@ L7_RC_t snoop_ptin_grouptimer_start(snoopPTinL3Grouptimer_t* pTimer, L7_uint32 t
 
   /* Add a new timer */
   pTimer->timer = appTimerAdd(cbTimer, timerCallback,
-                              (void *) pTimer->timerHandle, timeout,
+                              UINT_TO_PTR(pTimer->timerHandle), timeout,
                               "PTIN_TIMER");
   if (pTimer->timer == NULL)
   {

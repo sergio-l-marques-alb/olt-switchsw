@@ -47,7 +47,7 @@
 *
 * @end
 *********************************************************************/
-void snoopTimerProcess(L7_uint32 timerCBHandle, snoop_eb_t *pSnoopEB)
+void snoopTimerProcess(L7_uint64 timerCBHandle, snoop_eb_t *pSnoopEB)
 {
   if (timerCBHandle == L7_NULL)
 {
@@ -137,7 +137,7 @@ void snoopTimerUpdate(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
 
     if (appTimerUpdate(snoopEntry->timerCB, &pTimerData->grpTimer,
                        (void *)snoopGroupMembershipExpiry,
-                       (void *)pTimerData->grpTimerHandle, timerValue,
+                       UINT_TO_PTR(pTimerData->grpTimerHandle), timerValue,
                        "snoopGroupMembershipExpiry")
                        != L7_SUCCESS)
     {
@@ -190,7 +190,7 @@ void snoopTimerUpdate(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
 
     if (appTimerUpdate(snoopEntry->timerCB, &pTimerData->grpTimer,
                        (void *)snoopGroupMembershipExpiry,
-                       (void *)pTimerData->grpTimerHandle, timerValue,
+                       UINT_TO_PTR(pTimerData->grpTimerHandle), timerValue,
                        "snoopGroupMembershipExpiry") != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
@@ -220,7 +220,7 @@ void snoopTimerUpdate(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
     {
       if (appTimerUpdate(pSnoopCB->snoopExec->timerCB, &pmrtrTimerData->mrtrTimer,
                          (void *)snoopMrtrExpiry,
-                         (void *)pmrtrTimerData->mrtrTimerHandle, timerValue,
+                         UINT_TO_PTR(pmrtrTimerData->mrtrTimerHandle), timerValue,
                          "snoopMrtrExpiry") != L7_SUCCESS)
       {
         L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
@@ -321,9 +321,9 @@ void snoopTimerStop(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
       if (pSnoopMrtrTimerData->mrtrTimer != L7_NULL)
       {
         if (snoopTimerDestroy(pSnoopCB->snoopExec->timerCB,
-                               &pSnoopMrtrTimerData->mrtrTimer,
-                                &pSnoopMrtrTimerData->mrtrTimerHandle)
-                                != L7_SUCCESS)
+                              &pSnoopMrtrTimerData->mrtrTimer,
+                              &pSnoopMrtrTimerData->mrtrTimerHandle)
+                              != L7_SUCCESS)
         {
            L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
                   "snoopTimerStop: Failed to stop mrtr timer");
@@ -406,8 +406,8 @@ L7_RC_t snoopTimerStart(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
        return L7_FAILURE;
      }
      pTimerData->grpTimer = appTimerAdd(snoopEntry->timerCB, snoopGroupMembershipExpiry,
-                                     (void *)pTimerData->grpTimerHandle, timerValue,
-                                     "SN-GME");
+                                        UINT_TO_PTR(pTimerData->grpTimerHandle), timerValue,
+                                        "SN-GME");
      if(pTimerData->grpTimer == NULL)
      {
         /* Free the previously allocated bufferpool */
@@ -490,8 +490,8 @@ L7_RC_t snoopTimerStart(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
     }
 
     pData->mrtrTimer = appTimerAdd(pSnoopCB->snoopExec->timerCB, snoopMrtrExpiry,
-                               (void *)pData->mrtrTimerHandle, timerValue,
-                               "SN-MRTE");
+                                   UINT_TO_PTR(pData->mrtrTimerHandle), timerValue,
+                                   "SN-MRTE");
     if(pData->mrtrTimer == NULL)
     {
       /* Free the previously allocated tree node */
@@ -525,7 +525,7 @@ L7_RC_t snoopTimerStart(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
 void snoopMrtrExpiry(void *param)
 {
   snoopMrtrTimerData_t *pTimerData;
-  L7_uint32             handle = (L7_uint32)param;
+  L7_uint64             handle = PTR_TO_UINT64(param);
   snoop_cb_t           *pSnoopCB = L7_NULLPTR;
   snoopOperData_t      *pSnoopOperEntry  = L7_NULLPTR;
 
@@ -580,7 +580,7 @@ void snoopMrtrExpiry(void *param)
 void snoopGroupMembershipExpiry(void *param)
 {
   snoopGrpTimerData_t *pTimerData;
-  L7_uint32          handle = (L7_uint32)param;
+  L7_uint64          handle = PTR_TO_UINT64(param);
   L7_ushort16        shortVid;
   L7_uchar8          mac[L7_MAC_ADDR_LEN];
   snoop_cb_t        *pSnoopCB;
@@ -721,7 +721,7 @@ L7_int32 snoopTimerDataCmp(void *p, void *q, L7_uint32 key)
 * @end
 *************************************************************************/
 L7_RC_t  snoopTimerDestroy(L7_APP_TMR_CTRL_BLK_t timerCB,
-                           L7_APP_TMR_HNDL_t *timer, L7_uint32 *handle)
+                           L7_APP_TMR_HNDL_t *timer, L7_uint64 *handle)
 {
   snoop_eb_t  *pSnoopEB;
 
@@ -827,9 +827,9 @@ L7_RC_t snoopQuerierTimerStart(snoopOperData_t *snoopOperEntry,
 
     if ((snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.querierExpiryTimer
           = appTimerAdd(pSnoopCB->snoopExec->timerCB, snoopQuerierExpiry,
-                        (void *)snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.querierExpiryTimerHandle,
-                         interval,
-                         "SN-QRE"))
+                        UINT_TO_PTR(snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.querierExpiryTimerHandle),
+                        interval,
+                        "SN-QRE"))
           == L7_NULL)
     {
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
@@ -861,7 +861,7 @@ L7_RC_t snoopQuerierTimerStart(snoopOperData_t *snoopOperEntry,
 
     if ((snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.queryIntervalTimer
           = appTimerAdd(pSnoopCB->snoopExec->timerCB, snoopQuerierQueryExpiry,
-                        (void *)snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.queryIntervalTimerHandle,
+                        UINT_TO_PTR(snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.queryIntervalTimerHandle),
                         interval,
                         "SN-QQE")) == L7_NULL
         )
@@ -922,7 +922,7 @@ L7_RC_t snoopQuerierTimerUpdate(snoopOperData_t *snoopOperEntry,
     if (appTimerUpdate(pSnoopCB->snoopExec->timerCB,
                        &snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.querierExpiryTimer,
                        (void *)snoopQuerierExpiry,
-                       (void *)snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.querierExpiryTimerHandle,
+                       UINT_TO_PTR(snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.querierExpiryTimerHandle),
                        interval,
                        "snoopQuerierExpiry") != L7_SUCCESS)
     {
@@ -946,7 +946,7 @@ L7_RC_t snoopQuerierTimerUpdate(snoopOperData_t *snoopOperEntry,
     if (appTimerUpdate(pSnoopCB->snoopExec->timerCB,
                        &snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.queryIntervalTimer,
                       (void *)snoopQuerierQueryExpiry,
-                      (void *)snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.queryIntervalTimerHandle,
+                      UINT_TO_PTR(snoopOperEntry->snoopQuerierInfo.snoopQuerierTimerData.queryIntervalTimerHandle),
                       interval,
                       "snoopQuerierQueryExpiry") != L7_SUCCESS)
     {
@@ -1064,7 +1064,7 @@ void snoopQuerierExpiry(void *param)
   snoopOperData_t *pSnoopOperEntry;
   snoop_cb_t      *pSnoopCB = L7_NULLPTR;
 
-  pSnoopOperEntry = (snoopOperData_t *)handleListNodeRetrieve((L7_uint32)param);
+  pSnoopOperEntry = (snoopOperData_t *)handleListNodeRetrieve(PTR_TO_UINT64(param));
   if (pSnoopOperEntry == L7_NULLPTR)
   {
     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
@@ -1120,7 +1120,7 @@ void snoopQuerierQueryExpiry(void *param)
   snoopOperData_t *pSnoopOperEntry;
   snoop_cb_t      *pSnoopCB = L7_NULLPTR;
 
-  pSnoopOperEntry = (snoopOperData_t *)handleListNodeRetrieve((L7_uint32)param);
+  pSnoopOperEntry = (snoopOperData_t *)handleListNodeRetrieve(PTR_TO_UINT64(param));
   if (pSnoopOperEntry == L7_NULLPTR)
   {
     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,

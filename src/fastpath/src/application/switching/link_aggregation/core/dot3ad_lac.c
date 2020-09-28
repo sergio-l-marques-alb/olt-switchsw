@@ -4552,20 +4552,20 @@ void dot3adTablesLastChangedRecord(void)
 * @end
 *
 *************************************************************************/ 
-void dot3adCurrentWhileTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm)
+void dot3adCurrentWhileTimerExpiredToQueue(L7_uint64 portNum, L7_uint64 nullParm)
 {
   dot3adTimerMsg_t Message;
   L7_RC_t rc;
 
-  PT_LOG_WARN(LOG_CTX_TRUNKS, "LACP RX expired event generated for portNum %u", portNum);
+  PT_LOG_WARN(LOG_CTX_TRUNKS, "LACP RX expired event generated for portNum %llu", portNum);
 
   Message.msgId = CURRENT_EXPIRED;
-  Message.parm1 = portNum;
+  Message.parm1 = (L7_uint32) portNum;
   Message.parm2 = nullParm;
 
   rc = osapiMessageSend(dot3ad_timer_queue,&Message, (L7_uint32)sizeof(dot3adTimerMsg_t),L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
 
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"LACP RX expired event for portNum %u sent (rc=%d)", portNum, rc);
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"LACP RX expired event for portNum %llu sent (rc=%d)", portNum, rc);
 
   if (rc == L7_ERROR)
   {
@@ -4590,13 +4590,13 @@ void dot3adCurrentWhileTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm
 * @end
 *
 *************************************************************************/
-void dot3adPeriodicTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm)
+void dot3adPeriodicTimerExpiredToQueue(L7_uint64 portNum, L7_uint64 nullParm)
 {
   dot3adTimerMsg_t Message;
   L7_RC_t rc;
 
   Message.msgId = PERIODIC_EXPIRED;
-  Message.parm1 = portNum;
+  Message.parm1 = (L7_uint32) portNum;
   Message.parm2 = nullParm;
 
   rc = osapiMessageSend(dot3ad_timer_queue,&Message,(L7_uint32)sizeof(dot3adTimerMsg_t),L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
@@ -4623,13 +4623,13 @@ void dot3adPeriodicTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm)
 * @end
 *
 *************************************************************************/
-void dot3adWaitWhileTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm)
+void dot3adWaitWhileTimerExpiredToQueue(L7_uint64 portNum, L7_uint64 nullParm)
 {
   dot3adTimerMsg_t Message;
   L7_RC_t rc;
 
   Message.msgId = WAIT_EXPIRED;
-  Message.parm1 = portNum;
+  Message.parm1 = (L7_uint32) portNum;
   Message.parm2 = nullParm;
 
   rc = osapiMessageSend(dot3ad_timer_queue,&Message, (L7_uint32)sizeof(dot3adTimerMsg_t),L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
@@ -4657,13 +4657,13 @@ void dot3adWaitWhileTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm)
 * @end
 *
 *************************************************************************/
-void dot3adNttTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm)
+void dot3adNttTimerExpiredToQueue(L7_uint64 portNum, L7_uint64 nullParm)
 {
   dot3adTimerMsg_t Message;
   L7_RC_t rc;
 
   Message.msgId = NTT_EXPIRED;
-  Message.parm1 = portNum;
+  Message.parm1 = (L7_uint32) portNum;
   Message.parm2 = nullParm;
 
   rc = osapiMessageSend(dot3ad_timer_queue,&Message, (L7_uint32)sizeof(dot3adTimerMsg_t),L7_NO_WAIT, L7_MSG_PRIORITY_NORM);

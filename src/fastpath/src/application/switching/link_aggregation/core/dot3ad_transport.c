@@ -34,7 +34,7 @@ void *dot3ad_transportQueue = L7_NULLPTR;
 dot3adHelperMsg_t *dot3adTransportPduDb = L7_NULLPTR;
 L7_INTF_MASK_t pduChangedMask;
 
-static L7_uint32 dot3ad_core_tx_task_id = L7_ERROR;
+static L7_uint64 dot3ad_core_tx_task_id = L7_ERROR;
 /* Global copy for the message . At any time we are going to use only one*/
 static dot3ad_helper_data_msg_t txMsg;
 
@@ -86,11 +86,11 @@ L7_RC_t dot3adTransportInit()
   memset(&txMsg,0,sizeof(txMsg));
 
 
-  dot3ad_core_tx_task_id = (L7_uint32)osapiTaskCreate( "dot3ad_core_tx_task",
-                                                       (void *)dot3ad_transport_task, 0, 0,
-                                                       dot3adSidTimerTaskStackSizeGet(),
-                                                       dot3adSidTimerTaskPriorityGet(),
-                                                       dot3adSidTimerTaskSliceGet());
+  dot3ad_core_tx_task_id = osapiTaskCreate( "dot3ad_core_tx_task",
+                                            (void *)dot3ad_transport_task, 0, 0,
+                                            dot3adSidTimerTaskStackSizeGet(),
+                                            dot3adSidTimerTaskPriorityGet(),
+                                            dot3adSidTimerTaskSliceGet());
 
   if (osapiWaitForTaskInit (L7_DOT3AD_CORE_TX_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
   {

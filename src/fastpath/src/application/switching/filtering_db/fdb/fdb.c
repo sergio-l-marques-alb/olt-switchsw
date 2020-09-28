@@ -57,8 +57,8 @@ static avlTree_t         fdbTreeData;
 static fdb_stats_t       fdb_stats;
 static void       *fdbQueue;
 static fdbCfgData_t fdbCfgData;
-static L7_int32          fdb_task_id;
-static L7_FDB_TYPE_t        fdbType;
+static L7_uint64         fdb_task_id;
+static L7_FDB_TYPE_t     fdbType;
 
 static fdbIdTable_s      *fdbIdTable;
 static L7_uint32         *fdbIdUsed;
@@ -2032,8 +2032,8 @@ L7_RC_t fdbPhaseTwoInit(void)
 
   eventMask = VLAN_ADD_NOTIFY | VLAN_DELETE_NOTIFY | VLAN_ADD_PORT_NOTIFY | VLAN_DELETE_PORT_NOTIFY;
 
-  PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_ADDR_MGMT (%u)",
-           (L7_uint32) dtlFdbReceiveCallback, DTL_FAMILY_ADDR_MGMT);
+  PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function %p to family DTL_FAMILY_ADDR_MGMT (%u)",
+              dtlFdbReceiveCallback, DTL_FAMILY_ADDR_MGMT);
 
   if ((rc = nvStoreRegister(notifyFunctionList)) != L7_SUCCESS)
   {
@@ -2328,7 +2328,7 @@ L7_RC_t fdbIntfAttachProcess(L7_uint32 intIfNum)
     {
       if ( nimGetMacroPortAssignment(intIfNum, &macroPortIntf) == L7_SUCCESS)
       {
-        fdbMemberInfo.vlanId    = (L7_uint32)macroPortIntf.macroInfo;
+        fdbMemberInfo.vlanId    = PTR_TO_UINT32(macroPortIntf.macroInfo);
         fdbMemberInfo.entryType = L7_FDB_ADDR_FLAG_L3_MANAGEMENT;
         fdbMemberInfo.intIfNum  = intIfNum;
         (void)fdbAddEntry(&fdbMemberInfo);
@@ -2475,7 +2475,7 @@ L7_RC_t fdbIntfChangeCallback(L7_uint32 intIfNum, L7_uint32 event,NIM_CORRELATOR
       {
         if ( nimGetMacroPortAssignment(intIfNum, &macroPortIntf) == L7_SUCCESS)
         {
-          fdbMemberInfo.vlanId    = (L7_uint32)macroPortIntf.macroInfo;
+          fdbMemberInfo.vlanId    = PTR_TO_UINT32(macroPortIntf.macroInfo);
           fdbMemberInfo.entryType = L7_FDB_ADDR_FLAG_L3_MANAGEMENT;
           fdbMemberInfo.intIfNum  = intIfNum;
           (void)fdbDelEntry(&fdbMemberInfo);

@@ -35,7 +35,7 @@
 
 extern pmlCfgData_t *pmlCfgData;
 extern void         *pmlQueue;
-L7_int32             pmlTaskId;
+L7_uint64            pmlTaskId;
 pmlIntfOprData_t    *pmlIntfOprData = L7_NULLPTR;
 
 /*********************************************************************

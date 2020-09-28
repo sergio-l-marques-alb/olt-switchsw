@@ -387,9 +387,9 @@ void timerCallback(void *param)
   L7_uint32                 noOfRecords;
   void*                     groupData;
 
-  L7_uint32               timerHandle;
+  L7_uint64               timerHandle;
   snoopPTinProxyTimer_t *pTimerData;  
-  timerHandle = (L7_uint32) param;
+  timerHandle = PTR_TO_UINT64(param);
   osapiSemaTake(timerSem, L7_WAIT_FOREVER);
 
   /* Get timer handler */
@@ -401,15 +401,13 @@ void timerCallback(void *param)
     return;
   }
 
-  
   /* Check if our handle is OK*/
   if (timerHandle != pTimerData->timerHandle)
   {
     PT_LOG_ERR(LOG_CTX_IGMP,"timerHandle and pTimerData->timerHandle do not match!");
     return;
   }
-    
-
+  
   if (pTimerData->isInterface)
   {
     PT_LOG_TRACE(LOG_CTX_IGMP,"Proxy Interface timer expired (vlan:%u)",
@@ -535,7 +533,7 @@ L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 tim
 
   /* Add a new timer */
   pTimer->timer = appTimerAdd(cbTimer, timerCallback,
-                              (void *) pTimer->timerHandle, timeout,
+                              UINT_TO_PTR(pTimer->timerHandle), timeout,
                               "PTIN_TIMER");
   if (pTimer->timer == NULL)
   {

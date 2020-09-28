@@ -2757,7 +2757,7 @@ L7_RC_t dot1sRegisterIntfChange( L7_COMPONENT_IDS_t registrar_ID,
     return(L7_FAILURE);
   }
 
-  if ((L7_uint32)dot1sNotifyList[registrar_ID].notify_intf_change != L7_NULL)
+  if (dot1sNotifyList[registrar_ID].notify_intf_change != L7_NULLPTR)
   {
     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DOT1S_COMPONENT_ID,
             "Dot1s registrar ID %u, %s already registered\n", registrar_ID, name);

@@ -1672,8 +1672,8 @@ L7_RC_t snoopEBInit(void)
   {
     /* Use 1 to SNOOP_ENTRY_TIMER_BLOCKS_COUNT for snoopEntryCBs and 0 for snoopEB->timerCB */
     pSnoopEB->snoopEntryTimerCBList[idx].timerCB = appTimerInit(L7_SNOOPING_COMPONENT_ID, snoopTimerExpiryHdlr,
-                                                       (void *)(idx + 1), SNOOP_TIMER_INTERVAL,
-                                                        pSnoopEB->appTimerBufferPoolId);
+                                                                UINT_TO_PTR(idx + 1), SNOOP_TIMER_INTERVAL,
+                                                                pSnoopEB->appTimerBufferPoolId);
     if (pSnoopEB->snoopEntryTimerCBList[idx].timerCB == L7_NULLPTR)
     {
       L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_SNOOPING_COMPONENT_ID,

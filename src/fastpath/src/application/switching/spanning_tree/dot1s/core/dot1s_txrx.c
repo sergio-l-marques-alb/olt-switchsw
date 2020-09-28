@@ -205,8 +205,8 @@ L7_RC_t dot1sTxRxInit(void)
   L7_RC_t rc;
   sysnetNotifyEntry_t snEntry;
 
-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register dot1sBpduReceive related to type=%u: 0x%08x",
-           SYSNET_MAC_ENTRY, (L7_uint32) dot1sBpduReceive);
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register dot1sBpduReceive related to type=%u: %p",
+              SYSNET_MAC_ENTRY, dot1sBpduReceive);
 
   /*Register the pdu receive function with sysnet utility*/
   strcpy(snEntry.funcName, "dot1sPduReceive");

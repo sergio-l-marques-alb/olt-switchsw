@@ -28,7 +28,7 @@
 dot3adHelperMsg_t *dot3adHelperLocalDb;
 
 static dot3ad_helper_states_t dot3adHelperStates[L7_MAX_PHYSICAL_PORTS_PER_UNIT + 1];
-static L7_uint32 dot3ad_helper_task_id = L7_ERROR;
+static L7_uint64 dot3ad_helper_task_id = L7_ERROR;
 
 void *dot3ad_helper_queue; /* reference to the helper message queue */
 L7_uint32 dot3adHelperUsrHandle = ~0;
@@ -92,11 +92,11 @@ L7_RC_t dot3adHelperInit()
          sizeof(dot3adHelperMsg_t)*(L7_MAX_PHYSICAL_PORTS_PER_UNIT + 1 ));
   memset(dot3adHelperStates, 0, sizeof(dot3adHelperStates));
 
-  dot3ad_helper_task_id = (L7_uint32)osapiTaskCreate( "dot3ad_helper_task",
-                                                      (void *)dot3ad_helper_task, 0, 0,
-                                                      dot3adSidTimerTaskStackSizeGet(),
-                                                      dot3adSidTimerTaskPriorityGet(),
-                                                      dot3adSidTimerTaskSliceGet());
+  dot3ad_helper_task_id = osapiTaskCreate( "dot3ad_helper_task",
+                                           (void *)dot3ad_helper_task, 0, 0,
+                                           dot3adSidTimerTaskStackSizeGet(),
+                                           dot3adSidTimerTaskPriorityGet(),
+                                           dot3adSidTimerTaskSliceGet());
 
   if (osapiWaitForTaskInit (L7_DOT3AD_HELPER_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
   {

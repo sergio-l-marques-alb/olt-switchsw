@@ -41,7 +41,7 @@ L7_INTF_MASK_t dot1sPduChangedMask;
 
 /* Global copy for the message . At any time we are going to use only one*/
 static dot1s_helper_data_msg_t txMsg;
-static L7_uint32 dot1s_transport_task_id = 0;
+static L7_uint64 dot1s_transport_task_id = 0;
 
 /*********************************************************************
 * @purpose  Initializes the dot1s transport subsystem.

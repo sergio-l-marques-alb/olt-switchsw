@@ -31,7 +31,7 @@ pmlCnfgrState_t          pmlCnfgrState = PML_PHASE_INIT_0;
 L7_BOOL                  pmlWarmStart = L7_FALSE;
 extern void             *pmlQueue;
 extern L7_uint32        *pmlMapTbl;
-extern L7_int32          pmlTaskId;
+extern L7_uint64         pmlTaskId;
 extern pmlCfgData_t     *pmlCfgData;
 extern pmlIntfOprData_t *pmlIntfOprData;
 extern PORTEVENT_MASK_t  pmlPortEventMask_g;

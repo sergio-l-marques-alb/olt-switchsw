@@ -2122,7 +2122,7 @@ void snoopTimerExpiryHdlr(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk, void* ptrData)
   snoop_eb_t    *pSnoopEB = L7_NULLPTR;
 
   pSnoopEB = snoopEBGet();
-  msg.timerCBHandle = (L7_uint32)ptrData;
+  msg.timerCBHandle = PTR_TO_UINT64(ptrData);
 
 #if 0
   if ((pSnoopEB = (snoop_eb_t *)ptrData) == L7_NULLPTR)

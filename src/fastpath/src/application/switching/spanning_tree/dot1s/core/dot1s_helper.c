@@ -22,7 +22,7 @@
 
 dot1s_helper_msg_t *dot1sHelperLocalDb = L7_NULLPTR;
 void *dot1s_helper_queue; /* reference to the helper message queue */
-static L7_uint32 dot1s_helper_task_id = 0;
+static L7_uint64 dot1s_helper_task_id = 0;
 L7_uint32 dot1sUserHandle = ~0;
 
 L7_BOOL dot1sIsPortLag(nimUSP_t *usp)
@@ -107,11 +107,11 @@ L7_RC_t dot1sHelperInit()
   }
 
   /* task create*/
-  dot1s_helper_task_id = (L7_uint32)osapiTaskCreate("dot1s_helper_task",
-                                                    (void *)dot1sHelperTask, 0, 0,
-                                                    L7_DEFAULT_STACK_SIZE,
-                                                    L7_DOT1S_DEFAULT_DOT1S_TIMER_TASK_PRI,
-                                                    L7_DEFAULT_TASK_SLICE);
+  dot1s_helper_task_id = osapiTaskCreate("dot1s_helper_task",
+                                         (void *)dot1sHelperTask, 0, 0,
+                                         L7_DEFAULT_STACK_SIZE,
+                                         L7_DOT1S_DEFAULT_DOT1S_TIMER_TASK_PRI,
+                                         L7_DEFAULT_TASK_SLICE);
 
   if (dot1s_helper_task_id == L7_ERROR)
   {

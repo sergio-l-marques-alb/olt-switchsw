@@ -240,9 +240,9 @@ L7_RC_t dot1sNsfReconcileFailed()
 
 }
 
-void dot1sReconcileTimerCallback(L7_uint32 intf, L7_uint32 state)
+void dot1sReconcileTimerCallback(L7_uint64 intf, L7_uint64 state)
 {
-  dot1sIssueCmd(dot1sReconError, intf, L7_NULL, L7_NULLPTR);
+  dot1sIssueCmd(dot1sReconError, (L7_uint32) intf, L7_NULL, L7_NULLPTR);
 }
 /*********************************************************************
 * @purpose  Handle the timer callback

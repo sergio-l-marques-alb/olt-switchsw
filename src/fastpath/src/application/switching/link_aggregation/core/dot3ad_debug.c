@@ -756,7 +756,7 @@ void dot3adIntfEventTrace(L7_uint32 intIfNum, L7_uint32 event)
   TRACE_BEGIN(dot3adSystem.traceHandle, L7_DOT3AD_COMPONENT_ID);
   TRACE_ENTER_2BYTE(osapiHtons(DOT3AD_NIMEVENTS_TRACEID));
   TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
-  TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
+  TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
 
   TRACE_ENTER_4BYTE(event);
   TRACE_ENTER_4BYTE(intIfNum);
@@ -778,7 +778,7 @@ void dot3adAggTrace(L7_uint32 aggId, L7_uchar8 traceCode)
   TRACE_BEGIN(dot3adSystem.traceHandle, L7_DOT3AD_COMPONENT_ID);
   TRACE_ENTER_2BYTE(osapiHtons(DOT3AD_AGG_TRACEID));
   TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
-  TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
+  TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
 
   TRACE_ENTER_4BYTE(traceCode);
   TRACE_ENTER_4BYTE(aggId);
@@ -801,7 +801,7 @@ void dot3adPortTrace(dot3ad_port_t *p, L7_uchar8 traceCode)
   TRACE_BEGIN(dot3adSystem.traceHandle, L7_DOT3AD_COMPONENT_ID);
   TRACE_ENTER_2BYTE(osapiHtons(DOT3AD_PORT_TRACEID));
   TRACE_ENTER_4BYTE(osapiHtonl((L7_ulong32)osapiTimeMillisecondsGet()));
-  TRACE_ENTER_4BYTE(osapiHtonl(osapiTaskIdSelf()));
+  TRACE_ENTER_4BYTE(osapiHtonl((L7_uint32) osapiTaskIdSelf()));
 
 
   TRACE_ENTER_2BYTE(traceCode);

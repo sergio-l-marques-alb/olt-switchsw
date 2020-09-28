@@ -63,7 +63,7 @@ L7_BOOL dot1sIsPortForwarding(L7_uint32 intIfNum, L7_uint32 instIndex);
 L7_BOOL dot1sIsPortDiscarding(L7_uint32 intIfNum, L7_uint32 instIndex);
 L7_RC_t dot1sDiagDisablePort(L7_uint32 errIntIfNum);
 void dot1sIhStateSet(L7_uint32 mstID, L7_uint32 intIfNum, L7_uint32 state);
-void dot1sStateSetTimerExpired(L7_uint32 intIfNum, L7_uint32 state);
+void dot1sStateSetTimerExpired(L7_uint64 intIfNum, L7_uint64 state);
 void dot1sStateSetTimerExpiredProcess(L7_uint32 intIfNum);
 L7_RC_t dot1sStateSetCallback(L7_uint32 intIfNum, 
 							  L7_uint32 instance, 

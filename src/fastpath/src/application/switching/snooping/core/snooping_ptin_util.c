@@ -48,7 +48,7 @@ static L7_RC_t snoopPTinGroupRecordSourceIncrementTransmissions(snoopPTinProxyGr
 
 static snoopPTinProxyGroup_t* snoopPTinBuildCSR(snoopPTinProxyInterface_t *interfacePtr, L7_uint32 *noOfRecords,L7_uint8 robustnessVariable);
 
-void     snoopPTinQuerySend        (L7_uint32 arg1);
+void     snoopPTinQuerySend(L7_uint64 arg1);
 
 /*********************************************************************
  * @purpose Add a new client to the L2 tables
@@ -853,7 +853,7 @@ L7_RC_t snoopPTinPacketBuild(L7_uint32 vlanId, snoop_cb_t* pSnoopCB, L7_inet_add
  * @param   arg1  Pointer to a snoopPTinQueryData_t structure
  *
  *********************************************************************/
-void snoopPTinQuerySend(L7_uint32 arg1)
+void snoopPTinQuerySend(L7_uint64 arg1)
 {
   L7_uchar8             igmpFrame[L7_MAX_FRAME_SIZE]={0};
   L7_uint32             igmpFrameLength=0;
@@ -864,7 +864,7 @@ void snoopPTinQuerySend(L7_uint32 arg1)
   snoop_cb_t            *pSnoopCB;
   ptin_IgmpProxyCfg_t   igmpCfg;
 
-  queryData = (snoopPTinQueryData_t *) arg1;
+  queryData = (snoopPTinQueryData_t *) UINT_TO_PTR(arg1);
 
   /* Validate arguments */
   if (queryData->vlanId < PTIN_VLAN_MIN || queryData->vlanId > PTIN_VLAN_MAX)
@@ -947,7 +947,7 @@ void snoopPTinQuerySend(L7_uint32 arg1)
   if (queryData->retransmissions > 0)
   {
     osapiTimerAdd((void *) snoopPTinQuerySend,
-                  (L7_uint32) queryData,
+                  PTR_TO_UINT64(queryData),
                   0,
                   SNOOP_MAXRESP_INTVL_ROUND(igmpCfg.querier.last_member_query_interval * 1000, SNOOP_IGMP_FP_DIVISOR),
                   &queryData->queryTimer);

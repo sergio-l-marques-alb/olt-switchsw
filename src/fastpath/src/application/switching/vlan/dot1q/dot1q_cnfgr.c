@@ -59,7 +59,7 @@ dot1qCnfgrState_t   dot1qCnfgrState;
 osapiRWLock_t       dot1qCfgRWLock;
 void *dot1qMsgQueue = L7_NULLPTR;
 
-static L7_uint32 dot1qTaskId = 0;
+static L7_uint64 dot1qTaskId = 0;
 
 
 /*********************************************************************
@@ -89,10 +89,10 @@ L7_RC_t dot1qInit(L7_CNFGR_CMD_DATA_t *pCmdData)
     }
 
     /* create dot1qTask - to service dot1q message queue */
-    dot1qTaskId = (L7_uint32)osapiTaskCreate("dot1qTask", (void *)dot1qTask, 0, 0,
-                                           dot1qSidTaskStackSizeGet(),
-                                           dot1qSidTaskPriorityGet(),
-                                           dot1qSidTaskSliceGet());
+    dot1qTaskId = osapiTaskCreate("dot1qTask", (void *)dot1qTask, 0, 0,
+                                  dot1qSidTaskStackSizeGet(),
+                                  dot1qSidTaskPriorityGet(),
+                                  dot1qSidTaskSliceGet());
 
     if (dot1qTaskId == L7_ERROR)
     {

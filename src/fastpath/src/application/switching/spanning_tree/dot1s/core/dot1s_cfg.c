@@ -56,8 +56,8 @@ void *dot1sTaskSyncSema = L7_NULLPTR;
 void *dot1s_queue = L7_NULLPTR;  /* reference to the dot1s message queue */
 void *dot1s_stateCB_queue = L7_NULLPTR;
 void *dot1s_signal_queue = L7_NULLPTR;
-static L7_uint32 dot1s_task_id = 0;
-static L7_uint32 dot1s_timer_task_id = 0;
+static L7_uint64 dot1s_task_id = 0;
+static L7_uint64 dot1s_timer_task_id = 0;
 extern dot1sCnfgrState_t dot1sCnfgrState;
 static nimConfigID_t dot1sConfigId[L7_DOT1S_MAX_INTERFACE_COUNT];
 

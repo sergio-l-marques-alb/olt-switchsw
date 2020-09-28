@@ -78,8 +78,8 @@ L7_BOOL dot3adCnfgrIsHelperPresent();
 /* The last phase that was completed */
 static L7_CNFGR_STATE_t dot3adState = L7_CNFGR_STATE_NULL;
 
-static L7_uint32 dot3ad_core_task_id = L7_ERROR;
-static L7_uint32 dot3ad_timer_task_id = L7_ERROR;
+static L7_uint64 dot3ad_core_task_id = L7_ERROR;
+static L7_uint64 dot3ad_timer_task_id = L7_ERROR;
 
 
 static NIM_NOTIFY_CB_INFO_t dot3adLastIntfDeleted;
@@ -931,10 +931,10 @@ L7_RC_t   dot3adPhaseOneInit(void)
 
   /* create the tasks */
   /* create dot3ad_lac_task - to service queue*/
-  dot3ad_timer_task_id = (L7_uint32)osapiTaskCreate( "dot3ad_timer_task", (void *)dot3ad_timer_task, 0, 0,
-                                                     dot3adSidTimerTaskStackSizeGet(),
-                                                     dot3adSidTimerTaskPriorityGet(),
-                                                     dot3adSidTimerTaskSliceGet());
+  dot3ad_timer_task_id = osapiTaskCreate( "dot3ad_timer_task", (void *)dot3ad_timer_task, 0, 0,
+                                          dot3adSidTimerTaskStackSizeGet(),
+                                          dot3adSidTimerTaskPriorityGet(),
+                                          dot3adSidTimerTaskSliceGet());
 
   if (osapiWaitForTaskInit (L7_DOT3AD_TIMER_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
   {
@@ -943,10 +943,10 @@ L7_RC_t   dot3adPhaseOneInit(void)
     return(L7_FAILURE);
   }
 
-  dot3ad_core_task_id = (L7_uint32)osapiTaskCreate( "dot3ad_core_lac_task", (void *)dot3ad_lac_task, 0, 0,
-                                                   dot3adSidLacTaskStackSizeGet(),
-                                                   dot3adSidLacTaskPriorityGet(),
-                                                   dot3adSidLacTaskSliceGet());
+  dot3ad_core_task_id = osapiTaskCreate( "dot3ad_core_lac_task", (void *)dot3ad_lac_task, 0, 0,
+                                         dot3adSidLacTaskStackSizeGet(),
+                                         dot3adSidLacTaskPriorityGet(),
+                                         dot3adSidLacTaskSliceGet());
 
   if (osapiWaitForTaskInit (L7_DOT3AD_CORE_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
   {
