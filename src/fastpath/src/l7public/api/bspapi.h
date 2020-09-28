@@ -365,7 +365,7 @@ L7_RC_t bspapiBootCodeVersionRead(L7_char8 *bootCodeVersion,
  * @end
  *
  *************************************************************************/
-L7_ushort16 bspapiCalcCrc(L7_uint32 address, L7_uint32 size);
+L7_ushort16 bspapiCalcCrc(void *address, L7_uint32 size);
 
 /**************************************************************************
 * @purpose  Read the CPU's MAC address. If MAC address cannot be read,

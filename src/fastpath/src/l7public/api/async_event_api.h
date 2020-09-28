@@ -119,7 +119,7 @@ typedef enum
  * the naming to avoid changing all references to this. */
 typedef L7_uint32 ASYNC_CORRELATOR_t;
 
-typedef L7_uint32  ASYNC_EVENT_HANDLER_t;
+typedef L7_uint64 ASYNC_EVENT_HANDLER_t;
 
 
 

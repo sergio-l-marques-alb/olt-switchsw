@@ -120,7 +120,7 @@ typedef struct
   L7_uchar8  *bufStart;
   L7_uint32   bufLength;
   void       *osBuffer;
-  L7_uint32   taskId;
+  L7_uint64   taskId;
   L7_uint32   timeStamp;
   L7_BOOL     rxBuffer;  /* set to L7_TRUE if this buffer was allocated on Rx side */
   L7_BOOL     in_use;    /* Buffer is curently allocated. */
@@ -199,7 +199,7 @@ typedef enum
 /* L7 NET MBUF MACRO: */
 /* Get a aligned NET MBUF - netMbufHandle output */
 
-#define SYSAPI_BUF_ALIGN(x, align)  (((L7_uint32) (x) + (align - 1)) & ~(align - 1))
+#define SYSAPI_BUF_ALIGN(x, align)  ((PTR_TO_UINT64(x) + (align - 1)) & ~(align - 1))
 
 #define SYSAPI_NET_ALIGN_MBUF_GET(netMbufHandle,__ALIGN_TYPE__)         \
 {                                                                       \
@@ -245,36 +245,36 @@ typedef enum
 /* L7 NET MBUF MACRO: */
 /* Get data pointer for a NET MBUF - netMbufHandle input, dataStart output */
 #define SYSAPI_NET_MBUF_GET_DATASTART(netMbufHandle, dataStart) \
- dataStart = ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufStart
+ dataStart = ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufStart
 
 
 
 /* L7 NET MBUF MACRO: */
 /* Set data pointer for a NET MBUF - netMbufHandle input, dataStart input */
 #define SYSAPI_NET_MBUF_SET_DATASTART(netMbufHandle, dataStart) \
- ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufStart = dataStart
+ ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufStart = dataStart
 
 
 
 /* L7 NET MBUF MACRO: */
 /* Get data length for a NET MBUF - netMbufHandle input, dataLength output */
 #define SYSAPI_NET_MBUF_GET_DATALENGTH(netMbufHandle, dataLength) \
- dataLength = ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufLength
+ dataLength = ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufLength
 
 
 
 /* L7 NET MBUF MACRO: */
 /* Set data length for a NET MBUF - netMbufHandle input, dataLength input */
 #define SYSAPI_NET_MBUF_SET_DATALENGTH(netMbufHandle, dataLength) \
- ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufLength = dataLength
+ ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->bufLength = dataLength
 
 /* Set MBUF location */
 #define SYSAPI_NET_MBUF_SET_LOC(netMbufHandle, loc) \
- ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->mbufLoc = loc
+ ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->mbufLoc = loc
 
 /* Get MBUF location */
 #define SYSAPI_NET_MBUF_GET_LOC(netMbufHandle) \
-  ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->mbufLoc
+  ((SYSAPI_NET_MBUF_HEADER_t *) UINT_TO_PTR(netMbufHandle))->mbufLoc
 
 
 /* Align buffer to 4 byte boundary  */
@@ -515,7 +515,7 @@ void sysapiWriteConfigToFlashStart();
 * @end
 *
 *************************************************************************/
-L7_uint32 *sysapiMbufGet(L7_BOOL isRx );
+L7_uint64 *sysapiMbufGet(L7_BOOL isRx );
 
 /**************************************************************************
 *
@@ -532,7 +532,7 @@ L7_uint32 *sysapiMbufGet(L7_BOOL isRx );
 * @end
 *
 *************************************************************************/
-void      sysapiMbufFree( L7_uint32 *mbuf, L7_BOOL isRx );
+void      sysapiMbufFree( L7_uint64 *mbuf, L7_BOOL isRx );
 
 /**************************************************************************
 *
@@ -1719,7 +1719,7 @@ void sysapiTxtCfgValidSet(L7_BOOL val);
 typedef struct
 {
   L7_uint32 util;
-  L7_uint32 taskId;
+  L7_uint64 taskId;
 } cpuTaskUtilSort_t;
 
 typedef struct
@@ -1742,7 +1742,7 @@ typedef struct
 
 typedef struct
 {
-  L7_int32 taskId;
+  L7_uint64 taskId;
 
   /* Indicates that the task entry needs to be aged out as task has been deleted */
   L7_BOOL  pendingAge;
@@ -1786,8 +1786,8 @@ typedef struct
 void sysapiCpuUtilLockTake(void);
 void sysapiCpuUtilLockGive(void);
 void sysapiTaskCpuUtilTableSort();
-L7_BOOL sysapiTaskCpuUtilTableFind(L7_int32 taskId, L7_uint32 *index);
-L7_uint32 sysapiTaskCpuUtilTableInsert(L7_int32 taskId);
+L7_BOOL sysapiTaskCpuUtilTableFind(L7_uint64 taskId, L7_uint32 *index);
+L7_uint32 sysapiTaskCpuUtilTableInsert(L7_uint64 taskId);
 L7_BOOL sysapiCpuUtilMonitorActive();
 void sysapiCpuUtilTaskAge(void);
 void sysapiTaskCpuUtilUpdate(L7_uint32 taskIdx, L7_int32 scaledUtil);

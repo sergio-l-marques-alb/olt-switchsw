@@ -459,7 +459,7 @@ extern void l7_log(L7_LOG_SEVERITY_t severity, L7_COMPONENT_IDS_t component,
 
 extern void logmsg(L7_LOG_FACILITY_t facility, L7_LOG_SEVERITY_t severity,
                    L7_COMPONENT_IDS_t component, L7_clocktime ttime, L7_uint32 stk,
-                   L7_uint32 tid, L7_char8 * fileName, L7_uint32 line, L7_char8 * nfo);
+                   L7_uint64 tid, L7_char8 * fileName, L7_uint32 line, L7_char8 * nfo);
 
 /*********************************************************************
 * @purpose  Log error and reset the box.

@@ -53,8 +53,8 @@ typedef enum {
 /*       L7_FAILURE: resolution failed                     */
 typedef void (*ipMapArpResCallback_ft)
 (
-L7_uint32       cbParm1,                /* callback parm 1 */
-L7_uint32       cbParm2,                /* callback parm 2 */
+L7_uint64       cbParm1,                /* callback parm 1 */
+L7_uint64       cbParm2,                /* callback parm 2 */
 L7_uchar8       *pMacAddr,              /* ptr to resolved MAC address */
 L7_RC_t         resultStatus            /* return code of resolution attempt */
 );
@@ -265,7 +265,7 @@ extern
 L7_RC_t ipMapArpAddrResolve(L7_uint32 intIfNum, L7_uint32 ipAddr,
                             L7_uchar8 *pMacAddr, 
                             ipMapArpResCallback_ft pCallbackFn,
-                            L7_uint32 cbParm1, L7_uint32 cbParm2);
+                            L7_uint64 cbParm1, L7_uint64 cbParm2);
 
 /*********************************************************************
 * @purpose  Called when an ARP entry is used for software forwarding. 

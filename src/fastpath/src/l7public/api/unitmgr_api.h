@@ -1032,7 +1032,7 @@ L7_RC_t unitMgrEventLogGet(L7_uint32 unit);
 * @end
 *
 *********************************************************************/
-L7_uint32 unitMgrEventLogEntryNextGet(L7_uint32 UnitIndex, L7_uint32 ptr, L7_char8 *pstring);
+L7_uint32 unitMgrEventLogEntryNextGet(L7_uint32 UnitIndex, L7_uint64 ptr, L7_char8 *pstring);
 
 /*********************************************************************
 * @purpose  Will propagate configuration files to other connected units

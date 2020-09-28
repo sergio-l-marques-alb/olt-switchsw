@@ -1280,7 +1280,7 @@ L7_RC_t usmDbLogMsgPersistentRemoteRetrieve(L7_uint32 unit);
 * @end
 *
 *********************************************************************/
-L7_uint32 usmDbLogEventLogEntryNextGet(L7_uint32 UnitIndex, L7_uint32 ptr, L7_char8 *pstring);
+L7_uint32 usmDbLogEventLogEntryNextGet(L7_uint32 UnitIndex, L7_uint64 ptr, L7_char8 *pstring);
 
 
 /**********************************************************************

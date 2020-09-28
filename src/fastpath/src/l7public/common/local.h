@@ -18,7 +18,7 @@
 #ifndef local_h
 #define local_h
 
-
+#include "datatypes.h"
 
 /* List of predefined OS symbols used further for RTOS selection
    0 = no operating system
@@ -373,7 +373,11 @@
  * For example, if the BCLOCK timer has 16 bits the mask is 0xffff.
  */
   #ifndef BCLOCK_MASK
+  #ifdef PTRS_ARE_64BITS
+    #define BCLOCK_MASK 0xffffffffffffffff
+  #else
     #define BCLOCK_MASK 0xffffffff
+  #endif
   #endif
 
 #endif /* L7_BCLOCK */
@@ -383,7 +387,7 @@
  * the given h/w / s/w platform.
  */
 #ifndef POINTER_SIZE
-  #define POINTER_SIZE       4
+  #define POINTER_SIZE  WORD_SIZE
 #endif
 
 #ifndef L7_CORE_CPU

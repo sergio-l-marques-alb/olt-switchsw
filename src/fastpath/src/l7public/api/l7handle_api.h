@@ -120,7 +120,7 @@ L7_RC_t handleListDeinit(L7_COMPONENT_IDS_t compId, handle_list_t *list);
 * @end
 *********************************************************************/
 extern
-L7_uint32 handleListNodeStore(handle_list_t *list,void *ptr);
+L7_uint64 handleListNodeStore(handle_list_t *list,void *ptr);
 
 
 /*********************************************************************
@@ -139,7 +139,7 @@ L7_uint32 handleListNodeStore(handle_list_t *list,void *ptr);
 #define handleListNodeDelete(list, handle)               \
         handleListNodeDelete_track(list, handle, __FILE__, __LINE__)
 extern
-void handleListNodeDelete_track(handle_list_t *list,L7_uint32 *handle,
+void handleListNodeDelete_track(handle_list_t *list,L7_uint64 *handle,
                              L7_uchar8 *fileName,
                              L7_uint32 lineNum);
 
@@ -160,7 +160,7 @@ void handleListNodeDelete_track(handle_list_t *list,L7_uint32 *handle,
 #define handleListNodeRetrieve(index)               \
         handleListNodeRetrieve_track(index, __FILE__, __LINE__)
 extern
-void* handleListNodeRetrieve_track(L7_uint32 index, 
+void* handleListNodeRetrieve_track(L7_uint64 index, 
                              L7_uchar8 *fileName,
                              L7_uint32 lineNum);
 

@@ -438,13 +438,13 @@ EXT_API L7_RC_t osapiMsgQueueGetNumMsgs( void * queue_ptr, L7_int32 *bptr);
 * @end
 *
 *************************************************************************/
-EXT_API L7_int32 osapiTaskCreate(L7_char8 *task_name,
-                                void *task_entry,
-                                /*@null@*/void *argv,
-                                L7_uint32 argc,
-                                L7_uint32 stack_size,
-                                L7_uint32 priority,
-                                L7_uint32 time_slice );
+EXT_API L7_uint64 osapiTaskCreate(L7_char8 *task_name,
+                                 void *task_entry,
+                                 /*@null@*/void *argv,
+                                 L7_uint32 argc,
+                                 L7_uint32 stack_size,
+                                 L7_uint32 priority,
+                                 L7_uint32 time_slice );
 
 /**************************************************************************
 *
@@ -476,7 +476,7 @@ EXT_API L7_RC_t  osapiTaskDelay ( L7_int32 ticks );
 * @end
 *
 *************************************************************************/
-EXT_API void osapiTaskDelete( L7_int32 task_id);
+EXT_API void osapiTaskDelete( L7_uint64 task_id);
 
 /**************************************************************************
 *
@@ -492,7 +492,7 @@ EXT_API void osapiTaskDelete( L7_int32 task_id);
 * @end
 *
 *************************************************************************/
-EXT_API void osapiTaskSignal( L7_int32 task_id, int sig);
+EXT_API void osapiTaskSignal( L7_uint64 task_id, int sig);
 
 /**************************************************************************
 *
@@ -523,7 +523,7 @@ EXT_API void     osapiShowTasks( void );
 * @end
 *
 *************************************************************************/
-EXT_API L7_RC_t osapiTaskIDSelfGet( L7_int32 *TaskIDPtr );
+EXT_API L7_RC_t osapiTaskIDSelfGet( L7_uint64 *TaskIDPtr );
 
 /**************************************************************************
 *
@@ -540,7 +540,7 @@ EXT_API L7_RC_t osapiTaskIDSelfGet( L7_int32 *TaskIDPtr );
 * @end
 *
 *************************************************************************/
-EXT_API L7_RC_t osapiTaskPrioritySet ( L7_int32 TaskID, L7_int32 Priority );
+EXT_API L7_RC_t osapiTaskPrioritySet ( L7_uint64 TaskID, L7_int32 Priority );
 
 /**************************************************************************
 *
@@ -1943,7 +1943,7 @@ EXT_API void     osapiEnableInts  ( L7_uint32 LockKey );
 * @comments
 *
 *********************************************************************/
-typedef void (*osapiTimerCallback_t)( L7_uint32 parm1, L7_uint32 parm2 );
+typedef void (*osapiTimerCallback_t)( L7_uint64 parm1, L7_uint64 parm2 );
 
 /*********************************************************************
 *
@@ -2058,7 +2058,7 @@ EXT_API void osapiTimerHandler(void) ;
 * @end
 *
 *************************************************************************/
-EXT_API void osapiTimerAdd ( void (*func)( L7_uint32, L7_uint32 ), L7_uint32 arg1, L7_uint32 arg2, L7_int32 milliseconds, osapiTimerDescr_t **pTimerHolder );
+EXT_API void osapiTimerAdd ( void (*func)( L7_uint64, L7_uint64 ), L7_uint64 arg1, L7_uint64 arg2, L7_int32 milliseconds, osapiTimerDescr_t **pTimerHolder );
 
 /**************************************************************************
 *
@@ -3415,7 +3415,7 @@ EXT_API L7_RC_t osapiTaskYield ( void );
 * @end
 *
 *************************************************************************/
-EXT_API L7_RC_t  osapiTaskNameGet( L7_int32 task_id, L7_char8 *task_name);
+EXT_API L7_RC_t  osapiTaskNameGet( L7_uint64 task_id, L7_char8 *task_name);
 
 /**************************************************************************
 *
@@ -3432,7 +3432,7 @@ EXT_API L7_RC_t  osapiTaskNameGet( L7_int32 task_id, L7_char8 *task_name);
 * @end
 *
 *************************************************************************/
-EXT_API L7_RC_t  osapiTaskPriorityGet( L7_int32 task_id, L7_uint32 *priority);
+EXT_API L7_RC_t  osapiTaskPriorityGet( L7_uint64 task_id, L7_uint32 *priority);
 
 /**************************************************************************
 *
@@ -3448,7 +3448,7 @@ EXT_API L7_RC_t  osapiTaskPriorityGet( L7_int32 task_id, L7_uint32 *priority);
 * @end
 *
 *************************************************************************/
-EXT_API L7_RC_t  osapiTaskIdVerify( L7_int32 task_id);
+EXT_API L7_RC_t  osapiTaskIdVerify( L7_uint64 task_id);
 
 /**************************************************************************
 *
@@ -3463,7 +3463,7 @@ EXT_API L7_RC_t  osapiTaskIdVerify( L7_int32 task_id);
 * @end
 *
 *************************************************************************/
-EXT_API L7_int32  osapiTaskIdSelf( void );
+EXT_API L7_uint64  osapiTaskIdSelf( void );
 
 /*********************************************************************
 * @purpose  Duplicate a string given Component
@@ -4160,7 +4160,7 @@ void osapiOSVersionRegister(void);
 *
 * @end
 *********************************************************************/
-EXT_API L7_uint32 osapiAddressLookup(L7_char8 *funcName);
+EXT_API L7_uint64 osapiAddressLookup(L7_char8 *funcName);
 
 /*********************************************************************
 * @purpose  Returns the function containing a given address
@@ -4179,8 +4179,8 @@ EXT_API L7_uint32 osapiAddressLookup(L7_char8 *funcName);
 *
 * @end
 *********************************************************************/
-EXT_API L7_RC_t osapiFunctionLookup(L7_uint32 addr, L7_char8 *funcName,
-				    L7_uint32 funcNameLen, L7_uint32 *offset);
+EXT_API L7_RC_t osapiFunctionLookup(L7_uint64 addr, L7_char8 *funcName,
+                                    L7_uint32 funcNameLen, L7_uint32 *offset);
 
 
 /**************************************************************************
@@ -4233,8 +4233,8 @@ EXT_API L7_uint32 osapiStrnlen(const L7_char8 *s, L7_uint32 maxlen);
 *
 * @end
 *********************************************************************/
-EXT_API L7_RC_t osapiWhichStack(L7_uint32 addr, L7_char8 *buf,
-				    L7_uint32 bufSize);
+EXT_API L7_RC_t osapiWhichStack(L7_uint64 addr, L7_char8 *buf,
+                                L7_uint32 bufSize);
 
 /****** Serviceability ******/
 #ifdef LVL7_DEBUG_BREAKIN
@@ -4458,7 +4458,7 @@ void osapiLogStackTraceFlash(L7_char8 *fileName, L7_char8 * format, ...);
 * @end
 *
 *************************************************************************/
-int osapiTaskPidGet( L7_int32 task_id);
+int osapiTaskPidGet( L7_uint64 task_id);
 #endif
 
 /*********************************************************************

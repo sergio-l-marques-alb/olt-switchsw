@@ -50,7 +50,7 @@ extern "C" {
     unsigned long entry_format;
     unsigned char file_name[LOG_FILE_NAME_SIZE];
     unsigned long line_number;
-    unsigned long task_id;
+    unsigned long long task_id;
     unsigned long error_code;
     time_t        time_stamp; /* Number of seconds since IPL */
   };
@@ -115,7 +115,7 @@ extern void Log_Init ( unsigned long flash_event_log_size,
 *
 *************************************************************************/
 extern L7_uint32 L7_event_log_get_next (struct logformat_event *logPtr, 
-                                        L7_uint32 index, L7_char8 *pstring);
+                                        L7_uint64 index, L7_char8 *pstring);
 
 
 

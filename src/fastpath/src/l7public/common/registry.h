@@ -103,6 +103,7 @@ typedef enum
   U8_ENTRY=1, /* entry contains an 8 bit value */
   U16_ENTRY,  /* entry contains a 16 bit value */
   U32_ENTRY,  /* entry contains a 32 bit value */
+  U64_ENTRY,  /* entry contains a 64 bit value */
   MAC_ENTRY,  /* entry contains a ptr to a MAC address */
   STR_ENTRY,  /* entry contains a ptr to a NULL terminated string */
   PORT_ENTRY, /* entry contains a ptr to a slot[x].port_registry struct */

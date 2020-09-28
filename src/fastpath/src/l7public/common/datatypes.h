@@ -88,8 +88,8 @@ typedef double          L7_double64;
 typedef int             L7_int;
 typedef unsigned int    L7_uint;
 
-typedef L7_uint32       L7_netBufHandle;
-typedef L7_uint32       L7_netBlockHandle;
+typedef L7_uint64       L7_netBufHandle;
+typedef L7_uint64       L7_netBlockHandle;
 
 /* Represents a 64 bit unsigned integer. */
 typedef struct
@@ -138,8 +138,8 @@ typedef enum
 typedef L7_RC_t (*L7_FUNCPTR_t) (...); /* ptr to funct returning L7_RC */
 typedef void (*L7_VOIDFUNCPTR_t) (...); /* ptr to fcn rtrning void  */
 #else
-typedef L7_RC_t (*L7_FUNCPTR_t) (); /* ptr to function returning L7_RC*/
-typedef void (*L7_VOIDFUNCPTR_t) (); /* ptr to fcn rtrning void  */
+typedef L7_RC_t (*L7_FUNCPTR_t) ( ); /* ptr to function returning L7_RC*/
+typedef void (*L7_VOIDFUNCPTR_t) ( ); /* ptr to fcn rtrning void  */
 #endif			/* _cplusplus */
 
 #ifdef __cplusplus
@@ -152,8 +152,10 @@ typedef void (*L7_VOIDFUNCPTR_t) (); /* ptr to fcn rtrning void  */
 #if defined(_L7_OS_LINUX_) || defined(_L7_OS_ECOS_)
   #ifdef __cplusplus
 typedef L7_int32    (*L7_FUNCPTR) (...); 
+typedef L7_uint64   (*L7_FUNCPTR64) (...); 
   #else
-typedef L7_int32    (*L7_FUNCPTR) (); 
+typedef L7_int32    (*L7_FUNCPTR) ( ); 
+typedef L7_uint64   (*L7_FUNCPTR64) ( ); 
   #endif
 #endif
 #ifdef L7_METRO_FLEX_PACKAGE

@@ -1203,7 +1203,7 @@ L7_RC_t mcastMapGetHandleListHandle (L7_uint32 family, void** mcastHandleListMem
 *
 * @end
 *********************************************************************/
-L7_uint32 mcastMapHeapIdGet (L7_uint32 family);
+L7_uint64 mcastMapHeapIdGet (L7_uint32 family);
 
 /*********************************************************************
 * @purpose  Checks if any contradictory configuration made for 
