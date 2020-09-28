@@ -203,10 +203,10 @@ L7_RC_t dtlTaskAddr()
 * @end
 *
 *********************************************************************/
-L7_RC_t dtlStartTask(L7_uint32 *taskId)
+L7_RC_t dtlStartTask(L7_uint64 *taskId)
 {
   L7_RC_t     rc = L7_SUCCESS;
-  L7_uint32   dtlAddrTask;
+  L7_uint64   dtlAddrTask;
 
   if ((dtlLockSem = osapiSemaMCreate(OSAPI_SEM_Q_FIFO)) == NULL)
   {

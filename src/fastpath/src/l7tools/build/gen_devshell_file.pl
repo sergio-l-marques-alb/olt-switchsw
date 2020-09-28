@@ -33,7 +33,7 @@ while (my $cur_line = <INPUT>) {
     chomp($cur_line);
     my ($addr, $type, $symbol) = split(/ /, $cur_line);
     next if ($type ne 'T');
-    next if ((length($addr) > 8) || ($addr =~ /[^0-9a-fA-F]/));
+    next if ((length($addr) > 16) || ($addr =~ /[^0-9a-fA-F]/));
     unless ($addr lt $biggest_addr) {
 	$biggest_addr = $addr;
     }

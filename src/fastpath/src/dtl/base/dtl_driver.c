@@ -77,28 +77,32 @@ L7_RC_t dtlDriverInit(L7_ulong32 cpuBoardID)
 
   if (dapiInit(cpuBoardID) == L7_SUCCESS)
   {
-    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_INTF_MGMT (%u)", (L7_uint32) dtlLinkChangeCallback, DTL_FAMILY_INTF_MGMT);
+    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function %p to family DTL_FAMILY_INTF_MGMT (%u)",
+                dtlLinkChangeCallback, DTL_FAMILY_INTF_MGMT);
     rc = dtlCallbackRegistration(DTL_FAMILY_INTF_MGMT,dtlLinkChangeCallback);
     if (rc==L7_FAILURE)
     {
       return rc;
     }
 
-    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_FRAME (%u)", (L7_uint32) dtlPduReceiveCallback, DTL_FAMILY_FRAME);
+    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function %p to family DTL_FAMILY_FRAME (%u)",
+                dtlPduReceiveCallback, DTL_FAMILY_FRAME);
     rc = dtlCallbackRegistration(DTL_FAMILY_FRAME,dtlPduReceiveCallback);
     if (rc==L7_FAILURE)
     {
       return rc;
     }
 
-    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_QVLAN_MGMT (%u)", (L7_uint32) dtlGenericCallback, DTL_FAMILY_QVLAN_MGMT);
+    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function %p to family DTL_FAMILY_QVLAN_MGMT (%u)",
+                dtlGenericCallback, DTL_FAMILY_QVLAN_MGMT);
     rc = dtlCallbackRegistration(DTL_FAMILY_QVLAN_MGMT,dtlGenericCallback);
     if (rc == L7_FAILURE)
     {
       return rc;
     }
 
-    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_SERVICES (%u)", (L7_uint32) dtlGenericCallback, DTL_FAMILY_SERVICES);
+    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function %p to family DTL_FAMILY_SERVICES (%u)",
+                dtlGenericCallback, DTL_FAMILY_SERVICES);
     rc = dtlCallbackRegistration(DTL_FAMILY_SERVICES, dtlGenericCallback);
     if (rc == L7_FAILURE)
     {

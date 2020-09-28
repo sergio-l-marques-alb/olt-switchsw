@@ -55,7 +55,7 @@ L7_RC_t dtlRtrIntIfNumToVlanId(L7_uint32 intIfNum, L7_ushort16 *vlanId)
         {
             if ( nimGetMacroPortAssignment(intIfNum, &macroPortIntf) == L7_SUCCESS)
             {
-                vid    = (L7_uint32)macroPortIntf.macroInfo;
+                vid    = PTR_TO_UINT32(macroPortIntf.macroInfo);
                 *vlanId = (L7_ushort16)vid;
                 return L7_SUCCESS;
             }

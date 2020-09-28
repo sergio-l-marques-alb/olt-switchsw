@@ -67,7 +67,7 @@ L7_uint32 stackMasterFailed_oldUnit        = 0;
 L7_BOOL   stackMasterFailed_trapNeeded     = L7_FALSE;
 
 void *trapMsgQueue;
-L7_int32 trapTaskId;
+L7_uint64 trapTaskId;
 L7_uint32 trapMsgQueueLostMsgs = 0;
 
 static trapMgrFunctionList_t   trapMgrNotifyList[L7_LAST_TRAP_ID];

@@ -361,6 +361,6 @@ L7_RC_t dtlTask();
 * @end
 *
 *********************************************************************/
-L7_RC_t dtlStartTask(L7_uint32 *taskId);
+L7_RC_t dtlStartTask(L7_uint64 *taskId);
 
 #endif    /* INCLUDE_DTLCTRL_CFG_H */
