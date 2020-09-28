@@ -5874,20 +5874,20 @@ L7_RC_t aclTlvParse(L7_tlv_t *pTlv, L7_uint32 intIfNum, L7_uint32 vlanId, L7_uin
   if (intIfNum != 0)
   {
     ACL_PRT(msgLvlReqd,
-            "\nParsing TLV at location 0x%8.8x (intf %u, dir %u):\n\n",
-            (L7_uint32)pTlv, intIfNum, direction);
+            "\nParsing TLV at location 0x%llx (intf %u, dir %u):\n\n",
+            PTR_TO_UINT64(pTlv), intIfNum, direction);
   }
   else if (vlanId != 0)
   {
     ACL_PRT(msgLvlReqd,
-            "\nParsing TLV at location 0x%8.8x (vlan %u, dir %u):\n\n",
-            (L7_uint32)pTlv, vlanId, direction);
+            "\nParsing TLV at location 0x%llx (vlan %u, dir %u):\n\n",
+            PTR_TO_UINT64(pTlv), vlanId, direction);
   }
   else
   {
     ACL_PRT(msgLvlReqd,
-            "\nParsing TLV at location 0x%8.8x:\n\n",
-            (L7_uint32)pTlv);
+            "\nParsing TLV at location 0x%llx:\n\n",
+            PTR_TO_UINT64(pTlv));
   }
 
   /* use the TLV utility to traverse the TLV
@@ -10031,8 +10031,8 @@ L7_RC_t aclSemaTake(void *semId, L7_int32 timeout, char *file, L7_ulong32 line)
   if (rc != L7_SUCCESS)
   {
     l7utilsFilenameStrip(&file);
-    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Semaphore take failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
-            file, line, rc, (L7_uint32)semId);
+    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Semaphore take failure for file %s:%lu, rc=%u, id=%p\n",
+            file, line, rc, semId);
   }
   return rc;
 }
@@ -10062,8 +10062,8 @@ L7_RC_t aclSemaGive(void *semId, char *file, L7_ulong32 line)
   if (rc != L7_SUCCESS)
   {
     l7utilsFilenameStrip(&file);
-    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Semaphore give failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
-            file, line, rc, (L7_uint32)semId);
+    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Semaphore give failure for file %s:%lu, rc=%u, id=%p\n",
+            file, line, rc, semId);
   }
   return rc;
 }
@@ -10099,8 +10099,8 @@ L7_RC_t aclReadLockTake(osapiRWLock_t rwlock, L7_int32 timeout, char *file, L7_u
   if (rc != L7_SUCCESS)
   {
     l7utilsFilenameStrip(&file);
-    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Read lock take failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
-            file, line, rc, (L7_uint32)rwlock.handle);
+    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Read lock take failure for file %s:%lu, rc=%u, id=%p\n",
+            file, line, rc, rwlock.handle);
   }
   return rc;
 }
@@ -10130,8 +10130,8 @@ L7_RC_t aclReadLockGive(osapiRWLock_t rwlock, char *file, L7_ulong32 line)
   if (rc != L7_SUCCESS)
   {
     l7utilsFilenameStrip(&file);
-    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Read lock give failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
-            file, line, rc, (L7_uint32)rwlock.handle);
+    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Read lock give failure for file %s:%lu, rc=%u, id=%p\n",
+            file, line, rc, rwlock.handle);
   }
   return rc;
 }
@@ -10167,8 +10167,8 @@ L7_RC_t aclWriteLockTake(osapiRWLock_t rwlock, L7_int32 timeout, char *file, L7_
   if (rc != L7_SUCCESS)
   {
     l7utilsFilenameStrip(&file);
-    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Write lock take failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
-            file, line, rc, (L7_uint32)rwlock.handle);
+    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Write lock take failure for file %s:%lu, rc=%u, id=%p\n",
+            file, line, rc, rwlock.handle);
   }
   return rc;
 }
@@ -10198,8 +10198,8 @@ L7_RC_t aclWriteLockGive(osapiRWLock_t rwlock, char *file, L7_ulong32 line)
   if (rc != L7_SUCCESS)
   {
     l7utilsFilenameStrip(&file);
-    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Write lock give failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
-            file, line, rc, (L7_uint32)rwlock.handle);
+    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID, "Write lock give failure for file %s:%lu, rc=%u, id=%p\n",
+            file, line, rc, rwlock.handle);
   }
   return rc;
 }

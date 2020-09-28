@@ -483,7 +483,7 @@ L7_RC_t diffServClfrCreate(dsStdMibRowPtr_t *pPathNext)
   {
     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             clfrId, 0, 0,
-                            (L7_uint32)pClfrRow, (L7_uchar8)rc,
+                            PTR_TO_UINT32(pClfrRow), (L7_uchar8)rc,
                             (L7_uchar8)L7_TRUE);
   }
 
@@ -554,7 +554,7 @@ L7_RC_t diffServClfrDelete(dsStdMibRowPtr_t *pPathNext)
   {
     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             clfrId, 0, 0,
-                            (L7_uint32)pClfrRow, (L7_uchar8)rc);
+                            PTR_TO_UINT32(pClfrRow), (L7_uchar8)rc);
   }
 
   return rc;
@@ -944,7 +944,7 @@ L7_RC_t diffServClfrElemCreate(L7_uint32 clfrId,
   {
     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             clfrId, clfrElemId, 0,
-                            (L7_uint32)pClfrElemRow, (L7_uchar8)rc,
+                            PTR_TO_UINT32(pClfrElemRow), (L7_uchar8)rc,
                             (L7_uchar8)L7_TRUE);
   }
 
@@ -1026,7 +1026,7 @@ L7_RC_t diffServClfrElemDelete(dsStdMibRowPtr_t  *pPathNext)
   {
     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             clfrId, clfrElemId, 0,
-                            (L7_uint32)pClfrElemRow, (L7_uchar8)rc);
+                            PTR_TO_UINT32(pClfrElemRow), (L7_uchar8)rc);
   }
 
   return rc;
@@ -1743,7 +1743,7 @@ L7_RC_t diffServAuxMFClfrCreate(dsStdMibAuxMFClfrEntryCtrl_t *pAuxMFClfrRow,
   {
     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             auxMFClfrId, 0, 0,
-                            (L7_uint32)pAuxMFClfrRow, (L7_uchar8)rc,
+                            PTR_TO_UINT32(pAuxMFClfrRow), (L7_uchar8)rc,
                             (L7_uchar8)L7_TRUE);
   }
 
@@ -1816,7 +1816,7 @@ L7_RC_t diffServAuxMFClfrDelete(L7_uint32 auxMFClfrId)
   {
     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             auxMFClfrId, 0, 0,
-                            (L7_uint32)pAuxMFClfrRow, (L7_uchar8)rc);
+                            PTR_TO_UINT32(pAuxMFClfrRow), (L7_uchar8)rc);
   }
 
   return rc;

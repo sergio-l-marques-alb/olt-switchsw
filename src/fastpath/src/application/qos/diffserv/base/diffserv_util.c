@@ -182,8 +182,8 @@ void diffServSemaTake(void *semId, L7_int32 timeout, char *file, L7_ulong32 line
   {
     l7utilsFilenameStrip(&file);
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
-            "Semaphore take failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
-            file, line, rc, (L7_uint32)semId);
+            "Semaphore take failure for file %s:%lu, rc=%u, id=%p\n",
+            file, line, rc, semId);
   }
 }
 
@@ -211,8 +211,8 @@ void diffServSemaGive(void *semId, char *file, L7_ulong32 line)
   {
     l7utilsFilenameStrip(&file);
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
-            "Semaphore give failure for file %s:%lu, rc=%u, id=0x%8.8x\n",
-            file, line, rc, (L7_uint32)semId);
+            "Semaphore give failure for file %s:%lu, rc=%u, id=%p\n",
+            file, line, rc, semId);
   }
 }
 

@@ -37,7 +37,7 @@
 /* externs */
 extern iscsiCfgData_t      *iscsiCfgData;
 extern void                *iscsiQueue;
-extern L7_uint32            iscsiTaskId;
+extern L7_uint64            iscsiTaskId;
 extern L7_uint32            iscsiPacketBufferPoolId;
 extern osapiRWLock_t        iscsiCfgRWLock;
 

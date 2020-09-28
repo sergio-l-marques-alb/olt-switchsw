@@ -38,7 +38,7 @@
 extern iscsiCfgData_t  *iscsiCfgData;
 
 void                   *iscsiQueue        = L7_NULLPTR;
-L7_int32                iscsiTaskId;
+L7_uint64               iscsiTaskId;
 static void            *iscsiSema         = L7_NULL;
 L7_uint32               iscsiDebug = ISCSI_TRACE_ALWAYS_ON;
 

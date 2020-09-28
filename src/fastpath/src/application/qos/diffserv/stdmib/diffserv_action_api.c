@@ -283,7 +283,7 @@ L7_RC_t diffServActionCreate(L7_uint32        intIfNum,
   {
     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             actionId, 0, 0,
-                            (L7_uint32)pActionRow, (L7_uchar8)rc,
+                            PTR_TO_UINT32(pActionRow), (L7_uchar8)rc,
                             (L7_uchar8)L7_TRUE);
   }
 
@@ -359,7 +359,7 @@ L7_RC_t diffServActionDelete(dsStdMibRowPtr_t *pPathNext)
   {
     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             actionId, 0, 0,
-                            (L7_uint32)pActionRow, (L7_uchar8)rc);
+                            PTR_TO_UINT32(pActionRow), (L7_uchar8)rc);
   }
 
   return rc;
@@ -1172,7 +1172,7 @@ L7_RC_t diffServCountActCreate(L7_uint32 policyIndex,
   {
     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             countActId, 0, 0,
-                            (L7_uint32)pCountActRow, (L7_uchar8)rc,
+                            PTR_TO_UINT32(pCountActRow), (L7_uchar8)rc,
                             (L7_uchar8)L7_TRUE);
   }
 
@@ -1231,7 +1231,7 @@ L7_RC_t diffServCountActDelete(L7_uint32 countActId)
   {
     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             countActId, 0, 0,                                                
-                            (L7_uint32)pRow, (L7_uchar8)rc);
+                            PTR_TO_UINT32(pRow), (L7_uchar8)rc);
   }
 
   return rc;
@@ -1640,7 +1640,7 @@ L7_RC_t diffServAssignQueueCreate(L7_uint32 policyIndex,
   {
     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             assignId, 0, 0,
-                            (L7_uint32)pAssignRow, (L7_uchar8)rc,
+                            PTR_TO_UINT32(pAssignRow), (L7_uchar8)rc,
                             (L7_uchar8)L7_TRUE);
   }
 
@@ -1699,7 +1699,7 @@ L7_RC_t diffServAssignQueueDelete(L7_uint32 assignId)
   {
     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             assignId, 0, 0,                                                
-                            (L7_uint32)pRow, (L7_uchar8)rc);
+                            PTR_TO_UINT32(pRow), (L7_uchar8)rc);
   }
 
   return rc;
@@ -2081,7 +2081,7 @@ L7_RC_t diffServRedirectCreate(L7_uint32 policyIndex,
   {
     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             redirectId, 0, 0,
-                            (L7_uint32)pRedirectRow, (L7_uchar8)rc,
+                            PTR_TO_UINT32(pRedirectRow), (L7_uchar8)rc,
                             (L7_uchar8)L7_TRUE);
   }
 
@@ -2140,7 +2140,7 @@ L7_RC_t diffServRedirectDelete(L7_uint32 redirectId)
   {
     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             redirectId, 0, 0,                                                
-                            (L7_uint32)pRow, (L7_uchar8)rc);
+                            PTR_TO_UINT32(pRow), (L7_uchar8)rc);
   }
 
   return rc;
@@ -2521,7 +2521,7 @@ L7_RC_t diffServMirrorCreate(L7_uint32 policyIndex,
   {
     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             mirrorId, 0, 0,
-                            (L7_uint32)pMirrorRow, (L7_uchar8)rc,
+                            PTR_TO_UINT32(pMirrorRow), (L7_uchar8)rc,
                             (L7_uchar8)L7_TRUE);
   }
 
@@ -2580,7 +2580,7 @@ L7_RC_t diffServMirrorDelete(L7_uint32 mirrorId)
   {
     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             mirrorId, 0, 0,                                                
-                            (L7_uint32)pRow, (L7_uchar8)rc);
+                            PTR_TO_UINT32(pRow), (L7_uchar8)rc);
   }
 
   return rc;

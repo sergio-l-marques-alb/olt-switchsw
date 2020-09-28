@@ -41,7 +41,7 @@
 extern voipCfgData_t       *voipCfgData;
 extern L7_uint32           *voipMapTbl;
 extern void                *voipQueue;
-extern L7_int32             voipTaskId;
+extern L7_uint64            voipTaskId;
 extern osapiRWLock_t        voipCfgRWLock;
 extern voipIntfInfo_t      *voipIntfInfo;
 L7_uint32                  voipTimerTaskId;

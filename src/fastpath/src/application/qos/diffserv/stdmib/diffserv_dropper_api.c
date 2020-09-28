@@ -284,7 +284,7 @@ L7_RC_t diffServAlgDropCreate(L7_uint32 policyIndex,
   {
     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             algDropId, 0, 0,
-                            (L7_uint32)pAlgDropRow, (L7_uchar8)rc,
+                            PTR_TO_UINT32(pAlgDropRow), (L7_uchar8)rc,
                             (L7_uchar8)L7_TRUE);
   }
 
@@ -366,7 +366,7 @@ L7_RC_t diffServAlgDropDelete(dsStdMibRowPtr_t *pPathNext)
   {
     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             algDropId, 0, 0,
-                            (L7_uint32)pAlgDropRow, (L7_uchar8)rc);
+                            PTR_TO_UINT32(pAlgDropRow), (L7_uchar8)rc);
   }
 
   return rc;

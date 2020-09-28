@@ -876,8 +876,7 @@ L7_RC_t dsDstlTlvPolicyDel(L7_uint32 policyIndex, L7_uint32 intIfNum,
           /* intf node pointer changed from value we started with */
           L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
                   "dsDstlTlvPolicyDel:  Intf node ptr changed unexpectedly "
-                  "from 0x%8.8x to 0x%8.8x\n", (L7_uint32)pNode,
-                  (L7_uint32)pNodeCheck);
+                  "from %p to %p\n", pNode, pNodeCheck);
           rc = L7_FAILURE;
         }
 
@@ -3602,13 +3601,13 @@ L7_RC_t dsDstlTlvParse(L7_tlv_t *pTlv, L7_uint32 intIfNum)
   /* print a title line */
   if (intIfNum != 0)
   {
-    DIFFSERV_PRT(msgLvlReqd, "\nParsing TLV at location 0x%8.8x (intf %u):\n\n",
-                 (L7_uint32)pTlv, intIfNum);
+    DIFFSERV_PRT(msgLvlReqd, "\nParsing TLV at location 0x%llx (intf %u):\n\n",
+                 PTR_TO_UINT64(pTlv), intIfNum);
   }
   else
   {
-    DIFFSERV_PRT(msgLvlReqd, "\nParsing TLV at location 0x%8.8x:\n\n",
-                 (L7_uint32)pTlv);
+    DIFFSERV_PRT(msgLvlReqd, "\nParsing TLV at location 0x%llx:\n\n",
+                 PTR_TO_UINT64(pTlv));
   }
 
   /* use the TLV utility to traverse the TLV

@@ -98,8 +98,8 @@ void diffServStandardMibFini(void)
     if (osapiSemaDelete(dsStdMibSemId) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
-              "%s: Error freeing standard MIB index table semaphore (0x%8.8x)\n",
-              __FUNCTION__, (L7_uint32)dsStdMibSemId);
+              "%s: Error freeing standard MIB index table semaphore (%p)\n",
+              __FUNCTION__, dsStdMibSemId);
     }
   }
 }
@@ -2671,8 +2671,8 @@ void dsStdMibAvlCtrlShow(void)
     DIFFSERV_PRT(msgLvlReqd, "\n%s Table:\n", dsmibStdTableIdStr[i]);
     DIFFSERV_PRT(msgLvlReqd, "  maxEnt=%u entSize=%u keySize=%u ",
                  pCtrl->entryMaxNum, pCtrl->entrySize, pCtrl->entryKeySize);
-    DIFFSERV_PRT(msgLvlReqd, "pTreeHeap=0x%8.8x pDataHeap=0x%8.8x ",
-                 (L7_uint32)pCtrl->pTreeHeap, (L7_uint32)pCtrl->pDataHeap);
+    DIFFSERV_PRT(msgLvlReqd, "pTreeHeap=0x%llx pDataHeap=0x%llx ",
+                 PTR_TO_UINT64(pCtrl->pTreeHeap), PTR_TO_UINT64(pCtrl->pDataHeap));
     DIFFSERV_PRT(msgLvlReqd, "allocBytes=%u\n", allocBytes);
   }
   DIFFSERV_PRT(msgLvlReqd, "\nTotal standard MIB AVL resource byte allocation:  %u\n\n", totalBytes);

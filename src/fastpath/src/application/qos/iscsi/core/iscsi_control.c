@@ -32,7 +32,7 @@
 #include "dtl_iscsi.h"
 
 extern void            *iscsiQueue;
-extern L7_int32         iscsiTaskId;
+extern L7_uint64        iscsiTaskId;
 
 L7_int32                  iscsiPacketBufferPoolId;
 static osapiTimerDescr_t *iscsiTimer         = L7_NULLPTR;

@@ -765,7 +765,7 @@ L7_RC_t dsmibPolicyPerfInCreate(L7_uint32 policyIndex,
 
   DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
                           policyIndex, policyInstIndex, intIfNum,
-                          (L7_uint32)pRow, (L7_uchar8)rc,
+                          PTR_TO_UINT32(pRow), (L7_uchar8)rc,
                           (L7_uchar8)activateRow);
 
   return rc;
@@ -867,7 +867,7 @@ L7_RC_t dsmibPolicyPerfInDelete(L7_uint32 policyIndex,
 
   DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
                           policyIndex, policyInstIndex, intIfNum,
-                          (L7_uint32)pRow, (L7_uchar8)rc);
+                          PTR_TO_UINT32(pRow), (L7_uchar8)rc);
 
   return rc;
 }
@@ -1124,7 +1124,7 @@ L7_RC_t dsmibPolicyPerfOutCreate(L7_uint32 policyIndex,
 
   DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
                           policyIndex, policyInstIndex, intIfNum,
-                          (L7_uint32)pRow, (L7_uchar8)rc,
+                          PTR_TO_UINT32(pRow), (L7_uchar8)rc,
                           (L7_uchar8)activateRow);
 
   return rc;
@@ -1226,7 +1226,7 @@ L7_RC_t dsmibPolicyPerfOutDelete(L7_uint32 policyIndex,
 
   DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_PRVTMIB, (L7_uchar8)tableId,
                           policyIndex, policyInstIndex, intIfNum,
-                          (L7_uint32)pRow, (L7_uchar8)rc);
+                          PTR_TO_UINT32(pRow), (L7_uchar8)rc);
 
   return rc;
 }

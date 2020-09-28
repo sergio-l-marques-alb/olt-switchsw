@@ -34,8 +34,8 @@
 #include "acl_cluster.h"
 
 aclCnfgrState_t aclCnfgrState = ACL_PHASE_INIT_0;
-L7_int32        aclLogTaskId_g = L7_ERROR;      /* this is what osapi returns */
-L7_int32        aclEventTaskId_g = L7_ERROR;  /* this is what osapi returns */ 
+L7_uint64       aclLogTaskId_g = L7_ERROR;      /* this is what osapi returns */
+L7_uint64       aclEventTaskId_g = L7_ERROR;  /* this is what osapi returns */ 
 /* ACL Queue to post event notifications
  * currently this is used for time range notifications 
 */
@@ -273,7 +273,7 @@ L7_RC_t aclCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
   L7_RC_t aclRC;
   L7_RC_t maxIntf;
   L7_RC_t maxVlan;
-  L7_RC_t i, j, k;
+  int i, j, k;
 
   *pResponse  = L7_CNFGR_CMD_COMPLETE;
   *pReason    = 0;

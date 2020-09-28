@@ -141,8 +141,8 @@ void diffServCallbackFini(void)
       if (osapiSemaDelete(pDiffServCallbackInfo_g->semId) != L7_SUCCESS)
       {
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
-                "%s: Error freeing callback table semaphore (0x%8.8x)\n",
-                __FUNCTION__, (L7_uint32)pDiffServCallbackInfo_g->semId);
+                "%s: Error freeing callback table semaphore (%p)\n",
+                __FUNCTION__, pDiffServCallbackInfo_g->semId);
       }
     }
 
@@ -506,8 +506,8 @@ static L7_RC_t dsCommonCallbackTableShow(diffServCallbackTableId_t tableId,
         osapiSnprintf(compIdStr, sizeof(compIdStr), "<unknown>");
       }
       DIFFSERV_PRT(msgLvlReqd,
-              " [%2u] funcPtr=0x%8.8x comp=%-*s descr=%s\n",
-              i, (L7_uint32)pCbEntry->funcPtr, sizeof(compIdStr), compIdStr, pCbEntry->displayStr);
+              " [%2u] funcPtr=0x%llx comp=%-*s descr=%s\n",
+              i, PTR_TO_UINT64(pCbEntry->funcPtr), sizeof(compIdStr), compIdStr, pCbEntry->displayStr);
     }
   } /* endfor */
 

@@ -56,7 +56,7 @@ static L7_BOOL            aclRxInProg = L7_FALSE; /* indicates Rx operation curr
 static L7_BOOL            aclRxError = L7_FALSE; /* indicates unrecoverable error receiving, drop remaining messages */
 
 
-static L7_int32 aclClusterTaskId = L7_ERROR;
+static L7_uint64 aclClusterTaskId = L7_ERROR;
 static void    *aclClusterQueue  = L7_NULLPTR;
 static L7_BOOL  aclClusterDebug  = L7_FALSE;
 

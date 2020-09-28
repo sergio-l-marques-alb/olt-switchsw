@@ -1740,16 +1740,16 @@ L7_RC_t dsDistillerCtrlShow(void)
 
 
   DIFFSERV_PRT(msgLvlReqd,
-               "\nDisplaying Distiller Ctrl struct from location 0x%8.8x:\n",
-               (L7_uint32)p);
+               "\nDisplaying Distiller Ctrl struct from location 0x%llx:\n",
+               PTR_TO_UINT64(p));
 
   /* general fields */
   DIFFSERV_PRT(msgLvlReqd,
-               "  Service intf OLL tree anchor: 0x%8.8x:\n",
-               (L7_uint32)p->pOLL);
+               "  Service intf OLL tree anchor: 0x%llx:\n",
+               PTR_TO_UINT64(p->pOLL));
   DIFFSERV_PRT(msgLvlReqd,
-               "  OLL mutex semaphore id      : 0x%8.8x:\n",
-               (L7_uint32)p->ollSemId);
+               "  OLL mutex semaphore id      : 0x%llx:\n",
+               PTR_TO_UINT64(p->ollSemId));
   DIFFSERV_PRT(msgLvlReqd,
                "  TLV block handle            : 0x%8.8x:\n",
                (L7_uint32)p->tlvHandle);

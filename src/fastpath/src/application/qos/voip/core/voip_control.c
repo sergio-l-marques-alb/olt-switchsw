@@ -40,7 +40,7 @@
 #include "dtl_voip.h"
 
 void                   *voipQueue        = L7_NULLPTR;
-L7_int32                voipTaskId;
+L7_uint64               voipTaskId;
 
 #define VOIP_TIMER_INTERVAL   1000*60*3  /* wake up every 3 minutes (idle timeout) when there are pending requests */
 #define VOIP_CALL_IDLE_TIMEOUT  VOIP_TIMER_INTERVAL

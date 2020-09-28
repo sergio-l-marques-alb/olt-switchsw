@@ -272,7 +272,7 @@ L7_RC_t diffServMeterCreate(dsStdMibRowPtr_t  *pSucceedNext,
   {
     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             meterId, 0, 0,
-                            (L7_uint32)pMeterRow, (L7_uchar8)rc,
+                            PTR_TO_UINT32(pMeterRow), (L7_uchar8)rc,
                             (L7_uchar8)L7_TRUE);
   }
 
@@ -351,7 +351,7 @@ L7_RC_t diffServMeterDelete(dsStdMibRowPtr_t *pPathNext)
   {
     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             meterId, 0, 0,
-                            (L7_uint32)pMeterRow, (L7_uchar8)rc);
+                            PTR_TO_UINT32(pMeterRow), (L7_uchar8)rc);
   }
 
   return rc;
@@ -805,7 +805,7 @@ L7_RC_t diffServTBParamCreate(L7_uint32 policyIndex, L7_uint32 policyInstIndex,
   {
     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             tbParamId, 0, 0,
-                            (L7_uint32)pTBParamRow, (L7_uchar8)rc,
+                            PTR_TO_UINT32(pTBParamRow), (L7_uchar8)rc,
                             (L7_uchar8)L7_TRUE);
   }
 
@@ -864,7 +864,7 @@ L7_RC_t diffServTBParamDelete(L7_uint32 tbParamId)
   {
     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             tbParamId, 0, 0,
-                            (L7_uint32)pTBParamRow, (L7_uchar8)rc);
+                            PTR_TO_UINT32(pTBParamRow), (L7_uchar8)rc);
   }
 
   return rc;
@@ -1280,7 +1280,7 @@ L7_RC_t diffServColorAwareCreate(L7_uint32 policyIndex,
   {
     DS_TRACE_PT_CREATE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             meterId, 0, 0,
-                            (L7_uint32)pMeterRow, (L7_uchar8)rc,
+                            PTR_TO_UINT32(pMeterRow), (L7_uchar8)rc,
                             (L7_uchar8)L7_TRUE);
   }
 
@@ -1339,7 +1339,7 @@ L7_RC_t diffServColorAwareDelete(L7_uint32 meterId)
   {
     DS_TRACE_PT_DELETE_EXIT(DS_TRACE_SUBID_STDMIB, (L7_uchar8)tableId, 
                             meterId, 0, 0,                                                
-                            (L7_uint32)pRow, (L7_uchar8)rc);
+                            PTR_TO_UINT32(pRow), (L7_uchar8)rc);
   }
 
   return rc;

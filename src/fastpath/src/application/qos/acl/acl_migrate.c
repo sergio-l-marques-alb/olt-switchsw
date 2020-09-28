@@ -358,12 +358,12 @@ aclMigrateConfigData(L7_uint32 oldVer, L7_uint32 ver, L7_char8 *pCfgBuffer)
                 "Configuration structure size mismatch.  Building default configuration.\n " \
                       "sizeof(pCfgCur->cfgParms.aclIntfCfgData) = %u, sizeof(pCfgV6->cfgParms.aclIntfCfgData) = %u\n" \
                       "sizeof(pCfgCur->cfgParms.aclVlanCfgData) = %u, sizeof(pCfgV6->cfgParms.aclVlanCfgData) = %u\n",
-                      sizeof(pCfgCur->cfgParms.aclIntfCfgData), sizeof(pCfgV6->cfgParms.aclIntfCfgData),
-                      sizeof(pCfgCur->cfgParms.aclVlanCfgData), sizeof(pCfgV6->cfgParms.aclVlanCfgData));
+                      (L7_uint32) sizeof(pCfgCur->cfgParms.aclIntfCfgData), (L7_uint32) sizeof(pCfgV6->cfgParms.aclIntfCfgData),
+                      (L7_uint32) sizeof(pCfgCur->cfgParms.aclVlanCfgData), (L7_uint32) sizeof(pCfgV6->cfgParms.aclVlanCfgData));
 #ifdef PROD_USE_BINARY_CONFIGURATION
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_ACL_COMPONENT_ID,
                 "sizeof(pCfgCur->cfgParms.aclData) = %u, sizeof(pCfgV6->cfgParms.aclData) = %u\n",
-                      sizeof(pCfgCur->cfgParms.aclData), sizeof(pCfgV6->cfgParms.aclData));
+                      (L7_uint32) sizeof(pCfgCur->cfgParms.aclData), (L7_uint32) sizeof(pCfgV6->cfgParms.aclData));
 #endif
         buildDefault = L7_TRUE;
       }

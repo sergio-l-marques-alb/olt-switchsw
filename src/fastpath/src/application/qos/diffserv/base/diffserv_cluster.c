@@ -51,7 +51,7 @@ static dsClusterMsgIe_t dsClusterRxCfgIeExpected  = DS_CLUSTER_MSG_IE_NONE; /* n
 static L7_BOOL  dsClusterRxInProg   = L7_FALSE; /* indicates Rx operation currently in progress */
 static L7_BOOL  dsClusterRxError    = L7_FALSE; /* indicates unrecoverable error receiving, drop remaining messages */
 
-static L7_int32 dsClusterTaskId     = L7_ERROR;
+static L7_uint64 dsClusterTaskId    = L7_ERROR;
 static void     *dsClusterQueue     = L7_NULLPTR;
 static L7_BOOL  dsClusterDebug      = L7_FALSE;
 
@@ -480,7 +480,7 @@ L7_RC_t diffServClusterDebugShow(void)
   sysapiPrintf("  dsClusterRxInProg        = %d\n",      dsClusterRxInProg);
   sysapiPrintf("  dsClusterRxError         = %d\n",      dsClusterRxError);
   sysapiPrintf("  dsClusterTaskId          = 0x%x\n",    dsClusterTaskId);
-  sysapiPrintf("  dsClusterQueue           = 0x%x\n",    (L7_uint32)dsClusterQueue);
+  sysapiPrintf("  dsClusterQueue           = %p\n",      dsClusterQueue);
   sysapiPrintf("  dsClusterDebug           = %d\n",      dsClusterDebug);
   sysapiPrintf("\n");
   return L7_SUCCESS;

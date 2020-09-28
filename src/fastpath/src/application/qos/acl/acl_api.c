@@ -5452,8 +5452,8 @@ static L7_RC_t aclCommonCallbackTableShow(aclCallbackTableId_t tableId,
         osapiSnprintf(compIdStr, sizeof(compIdStr), "<unknown>");
       }
       ACL_PRT(msgLvlReqd,
-              " [%2u] funcPtr=0x%8.8x comp=%-*s descr=%s\n",
-              i, (L7_uint32)pCbEntry->funcPtr, sizeof(compIdStr), compIdStr, pCbEntry->displayStr);
+              " [%2u] funcPtr=0x%llx comp=%-*s descr=%s\n",
+              i, PTR_TO_UINT64(pCbEntry->funcPtr), sizeof(compIdStr), compIdStr, pCbEntry->displayStr);
     }
   } /* endfor */
 
