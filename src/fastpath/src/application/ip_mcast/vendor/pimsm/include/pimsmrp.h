@@ -63,7 +63,7 @@ typedef struct pimsmAddrList_s
   L7_BOOL            pimsmOriginFlag;  /* used when originating BSMs,if there is RP with more than one origin */
   void              *pimsmRpGrpNode; /* this is used as pointer to rp details for the grp-rp mapping to get rp details 
                                  this is to point to the bsr when candidate rp advertisement needs to be done */    
-  L7_uint32          pimsmRpGrpExpireTimerHandle; /* This is used to keep track of not deleting 
+  L7_uint64          pimsmRpGrpExpireTimerHandle; /* This is used to keep track of not deleting 
                                                the node when giving this pointer to timeout functions */
   pimsmCB_t     *pimsmCb;  /* pointer to back track*/
 }pimsmAddrList_t;

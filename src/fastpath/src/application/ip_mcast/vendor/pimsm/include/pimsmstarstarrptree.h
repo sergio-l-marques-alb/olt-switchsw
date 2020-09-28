@@ -31,37 +31,37 @@
 
 typedef struct pimsmStarStarRpEntry_s
 {
-  L7_inet_addr_t pimsmStarStarRpRPAddress;
+  L7_inet_addr_t    pimsmStarStarRpRPAddress;
   PIMSM_RP_GRP_MAPPING_ORIGIN_TYPE pimsmStarStarRpRPOrigin;
-  L7_uint32      pimsmStarStarRpCreateTime;
-  pimMode_t      pimsmStarStarRpPimMode;
+  L7_uint32         pimsmStarStarRpCreateTime;
+  pimMode_t         pimsmStarStarRpPimMode;
   pimsmUpStrmStarStarRPStates_t pimsmStarStarRpUpstreamJoinState;
-  L7_APP_TMR_HNDL_t      pimsmStarStarRpUpstreamJoinTimer;
-  L7_uint32      pimsmStarStarRpUpstreamJoinTimerHandle;
-  pimsmTimerData_t pimsmStarStarRpUpstreamJoinTimerParam;    
-  L7_inet_addr_t pimsmStarStarRpUpstreamNeighbor;
-  L7_uint32      pimsmStarStarRpRPFIfIndex;
-  L7_inet_addr_t pimsmStarStarRpRPFNextHop;
+  L7_APP_TMR_HNDL_t pimsmStarStarRpUpstreamJoinTimer;
+  L7_uint64         pimsmStarStarRpUpstreamJoinTimerHandle;
+  pimsmTimerData_t  pimsmStarStarRpUpstreamJoinTimerParam;    
+  L7_inet_addr_t    pimsmStarStarRpUpstreamNeighbor;
+  L7_uint32         pimsmStarStarRpRPFIfIndex;
+  L7_inet_addr_t    pimsmStarStarRpRPFNextHop;
   L7_RTO_PROTOCOL_INDICES_t pimsmStarStarRpRPFRouteProtocol;
-  L7_inet_addr_t pimsmStarStarRpRPFRouteAddress;
-  L7_uint32       pimsmStarStarRpRPFRoutePrefixLength;
-  L7_uint32      pimsmStarStarRpRPFRouteMetricPref;
-  L7_uint32      pimsmStarStarRpRPFRouteMetric;
-  L7_short16     flags;
+  L7_inet_addr_t    pimsmStarStarRpRPFRouteAddress;
+  L7_uint32         pimsmStarStarRpRPFRoutePrefixLength;
+  L7_uint32         pimsmStarStarRpRPFRouteMetricPref;
+  L7_uint32         pimsmStarStarRpRPFRouteMetric;
+  L7_short16        flags;
   interface_bitset_t  immediateOlist;
 } pimsmStarStarRpEntry_t;
 
 typedef struct pimsmStarStarRpIEntry_s
 {
-  L7_uint32   pimsmStarStarRpIIfIndex;
-  L7_uint32      pimsmStarStarRpICreateTime;
+  L7_uint32         pimsmStarStarRpIIfIndex;
+  L7_uint32         pimsmStarStarRpICreateTime;
 /*  L7_BOOL             pimsmStarStarRpILocalMembership; */
   pimsmDnStrmPerIntfStarStarRPStates_t      pimsmStarStarRpIJoinPruneState;
-  L7_APP_TMR_HNDL_t       pimsmStarStarRpIPrunePendingTimer;
-  L7_uint32      pimsmStarStarRpIPrunePendingTimerHandle;    
-  pimsmTimerData_t pimsmStarStarRpIPrunePendingTimerParam;   
-  L7_APP_TMR_HNDL_t       pimsmStarStarRpIJoinExpiryTimer;
-  L7_uint32      pimsmStarStarRpIJoinExpiryTimerHandle;    
+  L7_APP_TMR_HNDL_t pimsmStarStarRpIPrunePendingTimer;
+  L7_uint64         pimsmStarStarRpIPrunePendingTimerHandle;    
+  pimsmTimerData_t  pimsmStarStarRpIPrunePendingTimerParam;   
+  L7_APP_TMR_HNDL_t pimsmStarStarRpIJoinExpiryTimer;
+  L7_uint64         pimsmStarStarRpIJoinExpiryTimerHandle;    
   pimsmTimerData_t pimsmStarStarRpIJoinExpiryTimerParam;    
 } pimsmStarStarRpIEntry_t;
 

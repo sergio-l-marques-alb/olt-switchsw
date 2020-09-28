@@ -64,7 +64,7 @@ static void pimdmMapMcastCommonEventProcess(L7_uint32 event,
 static L7_RC_t pimdmIntfCreate(L7_uint32 intIfNum, 
                                             pimdmMapCB_t *pimdmMapCbPtr); 
 
-static void pimdmMapStartupTimerExpireCallback(L7_uint32 familyType, L7_uint32 arg2);
+static void pimdmMapStartupTimerExpireCallback(L7_uint64 familyType, L7_uint64 arg2);
 
 static void pimdmMapRtrStartupDoneProcess(pimdmMapCB_t *pimdmMapCbPtr);
 
@@ -1738,14 +1738,14 @@ L7_RC_t pimdmMapUIEventSend (pimdmMapCB_t *pimdmMapCbPtr,
 }
 
 
-void pimdmMapStartupTimerExpireCallback(L7_uint32 familyType, L7_uint32 arg2)
+void pimdmMapStartupTimerExpireCallback(L7_uint64 familyType, L7_uint64 arg2)
 {
   pimdmMapCB_t *pimdmMapCbPtr;
   L7_uint32    cbIndex;
   L7_uint32    protoMax;
   L7_BOOL      restartInProgress;
 
-  PIMDM_MAP_DEBUG (PIMDM_MAP_DEBUG_EVENTS, "Startup timer expired for familyType = %d", familyType);
+  PIMDM_MAP_DEBUG (PIMDM_MAP_DEBUG_EVENTS, "Startup timer expired for familyType = %d", (L7_uchar8) familyType);
 
   if (pimdmMapCtrlBlockGet((L7_uchar8) familyType, &pimdmMapCbPtr) != L7_SUCCESS)
   {

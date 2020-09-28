@@ -123,7 +123,7 @@ void mgmd_frame_event_info_and_notify(mgmd_cb_t *mgmdCB,
   else
   {
     mgmd_group->mrpUpdated |= MGMD_MRP_INFORM_FAILED;
-    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void *)mgmdCB->mgmd_mrp_timer_handle,
+    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void *)UINT_TO_PTR(mgmdCB->mgmd_mrp_timer_handle),
                             &mgmdCB->mgmd_mrp_timer, MGMD_MRP_INFORM_TIMEOUT,
                             L7_MGMD_MRP_INFORM_TIMER) != L7_SUCCESS)
     {

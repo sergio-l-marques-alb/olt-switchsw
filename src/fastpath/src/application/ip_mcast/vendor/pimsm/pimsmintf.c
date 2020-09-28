@@ -383,7 +383,7 @@ L7_RC_t pimsmIntfDeInit(pimsmCB_t *pimsmCb)
 static void pimsmIntfHelloTimerExpiresHandler(void *pParam)
 {
   L7_uint32 rtrIfNum;
-  L7_int32      handle = (L7_int32)pParam;
+  L7_uint64  handle = PTR_TO_UINT64(pParam);
   pimsmTimerData_t *pTimerData;
   pimsmCB_t * pimsmCb;
   pimsmInterfaceEntry_t  * pIntfEntry = L7_NULLPTR;
@@ -443,7 +443,7 @@ static void pimsmIntfHelloTimerExpiresHandler(void *pParam)
   pTimerData->pimsmCb = pimsmCb;
   pTimerData->rtrIfNum = rtrIfNum;
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmIntfHelloTimerExpiresHandler,
-                            (void*)pIntfEntry->pimsmHelloTimerHandle,
+                            UINT_TO_PTR(pIntfEntry->pimsmHelloTimerHandle),
                             pIntfEntry->pimsmInterfaceHelloInterval,
                             &(pIntfEntry->pimsmHelloTimer),
                             "SM-HT")
@@ -586,7 +586,7 @@ L7_RC_t pimsmIntfUp(pimsmCB_t *pimsmCb, L7_uint32 rtrIfNum,
   pTimerData->rtrIfNum = rtrIfNum;
   pTimerData->pimsmCb = pimsmCb;
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmIntfHelloTimerExpiresHandler,
-                            (void*)pIntfEntry->pimsmHelloTimerHandle,
+                            UINT_TO_PTR(pIntfEntry->pimsmHelloTimerHandle),
                             helloIntvl,
                             &(pIntfEntry->pimsmHelloTimer),
                             "SM-HT2")
@@ -641,7 +641,7 @@ static L7_RC_t pimsmIntfCleanup(pimsmCB_t *pimsmCb, L7_uint32 rtrIfNum)
 {
   pimsmInterfaceEntry_t *pIntfEntry  = L7_NULLPTR;
   L7_RC_t  rc;
-  L7_uint32 timerHandle;
+  L7_uint64 timerHandle;
 
   PIMSM_TRACE(PIMSM_DEBUG_BIT_INTF_NEIGHBOR,  PIMSM_TRACE_DEBUG,"Enter ");
 
@@ -699,7 +699,7 @@ static L7_RC_t pimsmIntfCleanup(pimsmCB_t *pimsmCb, L7_uint32 rtrIfNum)
   pIntfEntry->pimsmInterfaceIfIndex = MCAST_MAX_INTERFACES;
 
   handleListNodeDelete(pimsmCb->handleList,
-                         &pIntfEntry->pimsmHelloTimerHandle);
+                       (L7_uint64 *) &pIntfEntry->pimsmHelloTimerHandle);
 
   PIMSM_TRACE(PIMSM_DEBUG_BIT_INTF_NEIGHBOR,  PIMSM_TRACE_DEBUG,"Exit ");
   return L7_SUCCESS;

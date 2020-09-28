@@ -288,7 +288,7 @@ static void pimdmDnstrmAssertTimerExpiryHandler (void *mrtEntryDnstrmTmrHndlPara
   PIMDM_TRACE (PIMDM_DEBUG_API, "Entry");
 
   if ((dnstrmIntfInfo = (pimdmDownstrmIntfInfo_t*)
-                         handleListNodeRetrieve ((L7_uint32)mrtEntryDnstrmTmrHndlParam))
+                         handleListNodeRetrieve (PTR_TO_UINT64(mrtEntryDnstrmTmrHndlParam)))
                       == L7_NULLPTR)
   {
     PIMDM_TRACE (PIMDM_DEBUG_FAILURE, "Handle Node retrieval Failed");
@@ -411,7 +411,7 @@ pimdmAssertFsmActionSendAsrtSetAT (pimdmMrtEntry_t* mrtEntry,
 
   if (pimdmUtilAppTimerSet (mrtEntry->pimdmCB,
                             pimdmDnstrmAssertTimerExpiryHandler,
-                            (void*) dnstrmIntfInfo->mrtEntryDnstrmTmrHndlParam,
+                            UINT_TO_PTR(dnstrmIntfInfo->mrtEntryDnstrmTmrHndlParam),
                             assertEventInfo->interval,
                             errMsgBuf, sucMsgBuf,
                             &asrtIntfInfo->assertTimer,
@@ -571,7 +571,7 @@ L7_RC_t pimdmAssertFsmActionSendPrnSetAT (pimdmMrtEntry_t* mrtEntry,
 
   if (pimdmUtilAppTimerSet (mrtEntry->pimdmCB,
                             pimdmDnstrmAssertTimerExpiryHandler,
-                            (void*) dnstrmIntfInfo->mrtEntryDnstrmTmrHndlParam,
+                            UINT_TO_PTR(dnstrmIntfInfo->mrtEntryDnstrmTmrHndlParam),
                             assertEventInfo->interval,
                             errMsgBuf, sucMsgBuf,
                             &asrtIntfInfo->assertTimer,
@@ -650,7 +650,7 @@ L7_RC_t pimdmAssertFsmActionSetAT(pimdmMrtEntry_t* mrtEntry,
 
   if (pimdmUtilAppTimerSet (mrtEntry->pimdmCB,
                             pimdmDnstrmAssertTimerExpiryHandler,
-                            (void*) dnstrmIntfInfo->mrtEntryDnstrmTmrHndlParam,
+                            UINT_TO_PTR(dnstrmIntfInfo->mrtEntryDnstrmTmrHndlParam),
                             assertEventInfo->interval,
                             errMsgBuf, sucMsgBuf,
                             &asrtIntfInfo->assertTimer,
@@ -740,7 +740,7 @@ L7_RC_t  pimdmAssertFsmActionResetAT (pimdmMrtEntry_t* mrtEntry,
 
   if (pimdmUtilAppTimerSet (mrtEntry->pimdmCB,
                             pimdmDnstrmAssertTimerExpiryHandler,
-                            (void*) dnstrmIntfInfo->mrtEntryDnstrmTmrHndlParam,
+                            UINT_TO_PTR(dnstrmIntfInfo->mrtEntryDnstrmTmrHndlParam),
                             assertEventInfo->interval, errMsgBuf, sucMsgBuf,
                             &asrtIntfInfo->assertTimer,
                             "DM-AT5")

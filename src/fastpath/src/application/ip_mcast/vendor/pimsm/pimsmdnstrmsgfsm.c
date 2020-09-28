@@ -225,7 +225,7 @@ static L7_RC_t  pimsmDnStrmPerIntfSGExpireTimerStart(pimsmCB_t     *pimsmCb,
   inetCopy(&pTimerData->addr2, &pSGNode->pimsmSGEntry.pimsmSGGrpAddress);
   pTimerData->pimsmCb = pimsmCb;
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmSGIJoinTimerExpiresHandler,
-                            (void*)pSGIEntry->pimsmSGIJoinExpiryTimerHandle,
+                            UINT_TO_PTR(pSGIEntry->pimsmSGIJoinExpiryTimerHandle),
                             holdtime,
                             &(pSGIEntry->pimsmSGIJoinExpiryTimer),
                             "SGI-JT")
@@ -294,7 +294,7 @@ static L7_RC_t  pimsmDnStrmPerIntfSGExpireTimerRestart(pimsmCB_t    *pimsmCb,
   }
 
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmSGIJoinTimerExpiresHandler,
-                            (void*)pSGIEntry->pimsmSGIJoinExpiryTimerHandle,
+                            UINT_TO_PTR(pSGIEntry->pimsmSGIJoinExpiryTimerHandle),
                             holdtime,
                             &(pSGIEntry->pimsmSGIJoinExpiryTimer),
                             "SGI-JT2")
@@ -364,7 +364,7 @@ static L7_RC_t  pimsmDnStrmPerIntfSGPrunePendingTimerStart(pimsmCB_t     *pimsmC
   inetCopy(&pTimerData->addr2, &pSGNode->pimsmSGEntry.pimsmSGGrpAddress);
   pTimerData->pimsmCb = pimsmCb;
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmSGIPrunePendingTimerExpiresHandler,
-                            (void*)pSGIEntry->pimsmSGIPrunePendingTimerHandle,
+                            UINT_TO_PTR(pSGIEntry->pimsmSGIPrunePendingTimerHandle),
                             timeOut,
                             &(pSGIEntry->pimsmSGIPrunePendingTimer),
                             "SGI-PPT")
@@ -519,7 +519,7 @@ static void pimsmSGIPrunePendingTimerExpiresHandler(void *pParam)
 {
   pimsmCB_t               *pimsmCb;
   pimsmTimerData_t        *pTimerData;
-  L7_int32                 handle = (L7_int32)pParam;
+  L7_uint64                handle = PTR_TO_UINT64(pParam);
   pimsmSGNode_t           *pSGNode;
   pimsmSGIEntry_t         *pSGIEntry = L7_NULLPTR;
   L7_uint32                rtrIfNum;
@@ -622,7 +622,7 @@ static void pimsmSGIJoinTimerExpiresHandler(void *pParam)
 {
   pimsmTimerData_t   *pTimerData;
   pimsmCB_t          *pimsmCb;
-  L7_int32            handle = (L7_int32)pParam;
+  L7_uint64           handle = PTR_TO_UINT64(pParam);
   pimsmSGNode_t      *pSGNode;
   pimsmSGIEntry_t    *pSGIEntry = L7_NULLPTR;
   L7_uint32           rtrIfNum;

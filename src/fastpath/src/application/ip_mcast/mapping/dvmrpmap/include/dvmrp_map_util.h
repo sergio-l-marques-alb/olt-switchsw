@@ -96,7 +96,7 @@ typedef struct dvmrpGblVaribles_s
   L7_uint32                 eventCounters[DVMRP_MAP_COUNTERS_TYPE_MAX];
   void                      *eventCountersSemId;
   void                      *msgQSema;
-  L7_int32                  dvmrpMapTaskId;
+  L7_uint64                 dvmrpMapTaskId;
   dvmrpCnfgrState_t         dvmrpCnfgrState;
   MCAST_CB_HNDL_t           dvmrpCb;
   L7_uchar8                 family;

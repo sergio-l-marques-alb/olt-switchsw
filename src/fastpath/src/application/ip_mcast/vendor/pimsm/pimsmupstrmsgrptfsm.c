@@ -502,7 +502,7 @@ static L7_RC_t  pimsmUpStrmSGRptOverrideTimerSet(pimsmCB_t * pimsmCb,
         &pSGRptNode->pimsmSGRptEntry.pimsmSGRptGrpAddress);
   pTimerData->pimsmCb = pimsmCb;
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmUpStrmSGRptOverrideTimerExpiresHandler,
-                            (void*)pSGRptEntry->pimsmSGRptUpstreamOverrideTimerHandle,
+                            UINT_TO_PTR(pSGRptEntry->pimsmSGRptUpstreamOverrideTimerHandle),
                             timeout,
                             &(pSGRptEntry->pimsmSGRptUpstreamOverrideTimer),
                             "SGr-OT")
@@ -575,10 +575,10 @@ static void pimsmUpStrmSGRptOverrideTimerExpiresHandler(void *pParam)
 {
   pimsmUpStrmSGRptEventInfo_t upStrmSGRptEventInfo;
   pimsmSGRptNode_t *pSGRptNode;
-  pimsmCB_t * pimsmCb;
-  L7_int32    handle = (L7_int32)pParam;
+  pimsmCB_t        *pimsmCb;
+  L7_uint64        handle = PTR_TO_UINT64(pParam);
   pimsmTimerData_t *pTimerData;
-  L7_inet_addr_t *pGrpAddr, *pSrcAddr;
+  L7_inet_addr_t   *pGrpAddr, *pSrcAddr;
   pTimerData = (pimsmTimerData_t*)handleListNodeRetrieve(handle);
   if (pTimerData  == L7_NULLPTR)
   {

@@ -1088,7 +1088,7 @@ void mcastMapDebugRegisteredMulticastInfoDump(void)
 *********************************************************************/
 void mcastMapDebugHeapShow(L7_uchar8 addrFamily)
 {
-  L7_uint32 heapId;
+  L7_uint64 heapId;
 
   /* Basic validations */
   if ((addrFamily != L7_AF_INET) && (addrFamily != L7_AF_INET6))

@@ -161,7 +161,7 @@ typedef struct pimdmDownstrmIntfInfo_s
   pimdmAssertInfo_t    downstrmAssertInfo; 
 
   /*Timer handle */
-  L7_uint32            mrtEntryDnstrmTmrHndlParam; /* Timer Handle Param for the MRT Entry's Downstream Timers */
+  L7_uint64            mrtEntryDnstrmTmrHndlParam; /* Timer Handle Param for the MRT Entry's Downstream Timers */
 
   pimdmStRfrMsg_t      stRfrMsg; /* Storage for the recently relayed State Refresh
                                   * message that will be used to replay when the
@@ -215,9 +215,9 @@ typedef struct pimdmMrtEntry_s
   interface_bitset_t pimExcludeSG;      /* Exclude <S,G> local membership bitmap */
 
   /* Entry's Timer/Handle related Information */
-  L7_uint32         mrtEntryUpstrmTmrHndlParam; /* Timer Handle Param for the MRT Entry's Upstream Timers */
+  L7_uint64         mrtEntryUpstrmTmrHndlParam; /* Timer Handle Param for the MRT Entry's Upstream Timers */
   L7_APP_TMR_HNDL_t mrtEntryExpiryTimer;        /* MRT Entry Expiry Timer */
-  L7_uint32         mrtEntryExpiryTimerHandle;  /* Timer Handle for the MRT Entry's Expiry Timer */
+  L7_uint64         mrtEntryExpiryTimerHandle;  /* Timer Handle for the MRT Entry's Expiry Timer */
   L7_uint32         entryUpTime;                /* Entry's Create Time */
 
   /* Additional Information */

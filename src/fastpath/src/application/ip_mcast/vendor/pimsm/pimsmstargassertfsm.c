@@ -350,7 +350,7 @@ static L7_RC_t  pimsmPerIntfStarGAssertActionA1(pimsmCB_t * pimsmCb,
   pTimerData->rtrIfNum = rtrIfNum;
   pTimerData->pimsmCb = pimsmCb;
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmStarGIAssertTimerExpiresHandler,
-                            (void*)pStarGIEntry->pimsmStarGIAssertTimerHandle,
+                            UINT_TO_PTR(pStarGIEntry->pimsmStarGIAssertTimerHandle),
                             PIMSM_DEFAULT_ASSERT_TIME - PIMSM_DEFAULT_ASSERT_OVERRIDE_INTERVAL,
                             &(pStarGIEntry->pimsmStarGIAssertTimer),
                             "xGI-AT")
@@ -431,7 +431,7 @@ static L7_RC_t  pimsmPerIntfStarGAssertActionA2(pimsmCB_t * pimsmCb,
   pTimerData->pimsmCb = pimsmCb;
 
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmStarGIAssertTimerExpiresHandler,
-                            (void*)pStarGIEntry->pimsmStarGIAssertTimerHandle,
+                            UINT_TO_PTR(pStarGIEntry->pimsmStarGIAssertTimerHandle),
                             PIMSM_DEFAULT_ASSERT_TIME,
                             &(pStarGIEntry->pimsmStarGIAssertTimer),
                             "xGI-AT2")
@@ -509,7 +509,7 @@ static L7_RC_t  pimsmPerIntfStarGAssertActionA3(pimsmCB_t * pimsmCb,
   pTimerData->pimsmCb = pimsmCb;
 
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmStarGIAssertTimerExpiresHandler,
-                            (void*)pStarGIEntry->pimsmStarGIAssertTimerHandle,
+                            UINT_TO_PTR(pStarGIEntry->pimsmStarGIAssertTimerHandle),
                             (PIMSM_DEFAULT_ASSERT_TIME - PIMSM_DEFAULT_ASSERT_OVERRIDE_INTERVAL),
                             &(pStarGIEntry->pimsmStarGIAssertTimer),
                             "xGI-AT3")
@@ -666,7 +666,7 @@ static void  pimsmStarGIAssertTimerExpiresHandler(void *pParam)
   L7_uint32 rtrIfNum;
   pimsmCB_t  * pimsmCb;
   pimsmTimerData_t *pTimerData;
-  L7_int32      handle = (L7_int32)pParam;
+  L7_uint64    handle = PTR_TO_UINT64(pParam);
   L7_inet_addr_t *pGrpAddr;
 
   pTimerData = (pimsmTimerData_t*)handleListNodeRetrieve(handle);

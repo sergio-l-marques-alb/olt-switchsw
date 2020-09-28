@@ -63,7 +63,7 @@ typedef struct heapBuffPool_s
 *
 * @end
 *********************************************************************/
-L7_uint32 heapCreate(L7_COMPONENT_IDS_t compId,
+L7_uint64 heapCreate(L7_COMPONENT_IDS_t compId,
                      size_t             size);
 
 /*********************************************************************
@@ -81,7 +81,7 @@ L7_uint32 heapCreate(L7_COMPONENT_IDS_t compId,
 *
 * @end
 *********************************************************************/
-L7_RC_t heapInit(L7_uint32      heapId,
+L7_RC_t heapInit(L7_uint64      heapId,
                  heapBuffPool_t bList[],
                  heapFlags_t    flags);
 
@@ -99,7 +99,7 @@ L7_RC_t heapInit(L7_uint32      heapId,
 *
 * @end
 *********************************************************************/
-L7_RC_t heapDeInit(L7_uint32 heapId,
+L7_RC_t heapDeInit(L7_uint64 heapId,
 				   L7_BOOL   bForced);
 
 /*********************************************************************
@@ -116,7 +116,7 @@ L7_RC_t heapDeInit(L7_uint32 heapId,
 *
 * @end
 *********************************************************************/
-L7_RC_t heapDestroy(L7_uint32 heapId,
+L7_RC_t heapDestroy(L7_uint64 heapId,
 					L7_BOOL   bForced);
 
 /*********************************************************************
@@ -135,7 +135,7 @@ L7_RC_t heapDestroy(L7_uint32 heapId,
 *
 * @end
 *********************************************************************/
-void *heapAlloc(L7_uint32 heapId,
+void *heapAlloc(L7_uint64 heapId,
                 size_t    size,
                 L7_uchar8 *fileName,
                 L7_uint32 lineNumber);
@@ -153,7 +153,7 @@ void *heapAlloc(L7_uint32 heapId,
 *
 * @end
 *********************************************************************/
-void heapFree(L7_uint32 heapId,
+void heapFree(L7_uint64 heapId,
               void      *pMem);
 
 /*********************************************************************
@@ -170,7 +170,7 @@ void heapFree(L7_uint32 heapId,
 *
 * @end
 *********************************************************************/
-L7_RC_t heapBuffValidate(L7_uint32 heapId,
+L7_RC_t heapBuffValidate(L7_uint64 heapId,
                          void      *pMem);
 
 /*********************************************************************
@@ -185,7 +185,7 @@ L7_RC_t heapBuffValidate(L7_uint32 heapId,
 *
 * @end
 *********************************************************************/
-void  heapShow(L7_uint32 heapId);
+void  heapShow(L7_uint64 heapId);
 
 /*********************************************************************
 *
@@ -200,7 +200,7 @@ void  heapShow(L7_uint32 heapId);
 *
 * @end
 *********************************************************************/
-void heapDbgPrintSet(L7_uint32 heapId,
+void heapDbgPrintSet(L7_uint64 heapId,
                      L7_uint32 dbgPrint);
 
 /*********************************************************************
@@ -215,7 +215,7 @@ void heapDbgPrintSet(L7_uint32 heapId,
 *
 * @end
 *********************************************************************/
-void heapDbgStatsDisplay(L7_uint32 heapId);
+void heapDbgStatsDisplay(L7_uint64 heapId);
 
 /*********************************************************************
 *
@@ -230,7 +230,7 @@ void heapDbgStatsDisplay(L7_uint32 heapId);
 *
 * @end
 *********************************************************************/
-void heapDbgBuffInfo(L7_uint32 heapId,
+void heapDbgBuffInfo(L7_uint64 heapId,
                      void      *pMem);
 
 #endif /* HEAP_API_INCLUDE_H */

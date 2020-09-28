@@ -87,10 +87,10 @@ void pimsmSPTTimerExpiresHandler(void *pParam)
   L7_inet_addr_t   *pSrcAddr;
   L7_inet_addr_t   *pGrpAddr;
   pimsmTimerData_t *pTimerData;
-  L7_int32      handle = (L7_int32)pParam;
+  L7_uint64         handle = PTR_TO_UINT64(pParam);
   pimsmCB_t *pimsmCb = L7_NULLPTR;
 
-  PIMSM_TRACE(PIMSM_DEBUG_BIT_MISC,PIMSM_TRACE_DEBUG, "handle = %d",
+  PIMSM_TRACE(PIMSM_DEBUG_BIT_MISC,PIMSM_TRACE_DEBUG, "handle = %llu",
               handle);
 
   pTimerData = (pimsmTimerData_t*)handleListNodeRetrieve(handle);
@@ -138,7 +138,7 @@ void pimsmSPTTimerExpiresHandler(void *pParam)
   }
 
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmSPTTimerExpiresHandler,
-                            (void*)pimsmCb->pimsmSPTTimerHandle,
+                            UINT_TO_PTR(pimsmCb->pimsmSPTTimerHandle),
                             PIMSM_DEFAULT_CHECK_INTERVAL,
                             &(pimsmCb->pimsmSPTTimer),
                             "SM-SPT2")

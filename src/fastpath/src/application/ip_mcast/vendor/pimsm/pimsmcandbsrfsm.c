@@ -155,7 +155,7 @@ L7_RC_t pimsmPerScopeZoneCandBSRExecute(pimsmCB_t * pimsmCb,
 ******************************************************************************/
 void pimsmBsrCandidateBootStrapTimerExpiresHandler (void *pParam)
 {
-  L7_int32      handle = (L7_int32)pParam;
+  L7_uint64 handle = PTR_TO_UINT64(pParam);
   pimsmBsrPerScopeZone_t                *bsrNode;
   pimsmPerScopeZoneCandBSREventInfo_t    candEventInfo;
 
@@ -221,7 +221,7 @@ L7_RC_t  pimsmPerScopeZoneCandBSRAction1(pimsmCB_t * pimsmCb,
 
   /*Set Bootstrap Timer to BS_timeout;*/
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmBsrCandidateBootStrapTimerExpiresHandler,
-                            (void*)bsrNode->pimsmBSRTimerHandle,
+                            UINT_TO_PTR(bsrNode->pimsmBSRTimerHandle),
                             PIMSM_DEFAULT_BOOTSTRAP_TIMEOUT,
                             &(bsrNode->pimsmBSRTimer),
                             "SM-BSR2")
@@ -262,7 +262,7 @@ L7_RC_t  pimsmPerScopeZoneCandBSRAction2(pimsmCB_t * pimsmCb,
 
   /*Set Bootstrap Timer to BS_timeout;*/
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmBsrCandidateBootStrapTimerExpiresHandler,
-                            (void*)bsrNode->pimsmBSRTimerHandle,
+                            UINT_TO_PTR(bsrNode->pimsmBSRTimerHandle),
                             pimsmBsrRandOverrideIntervalGet(pimsmCb,bsrNode),
                             &(bsrNode->pimsmBSRTimer),
                             "SM-BSR3")
@@ -309,7 +309,7 @@ L7_RC_t  pimsmPerScopeZoneCandBSRAction3(pimsmCB_t * pimsmCb,
 
   /*Set Bootstrap Timer to BS_period;*/
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmBsrCandidateBootStrapTimerExpiresHandler,
-                            (void*)bsrNode->pimsmBSRTimerHandle,
+                            UINT_TO_PTR(bsrNode->pimsmBSRTimerHandle),
                             PIMSM_DEFAULT_BOOTSTRAP_PERIOD,
                             &(bsrNode->pimsmBSRTimer),
                             "SM-BSR4")

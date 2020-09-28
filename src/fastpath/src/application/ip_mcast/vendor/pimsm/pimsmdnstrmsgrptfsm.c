@@ -276,7 +276,7 @@ static L7_RC_t pimsmDnStrmPerIntfSGRptPrunePendTimersStart
 
   PIMSM_TRACE(PIMSM_DEBUG_BIT_S_G_RPT, PIMSM_TRACE_INFO,"Adding Expire timer ");
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmSGRptIPruneExpireTimerExpiresHandler,
-                            (void*)pSGRptIEntry ->pimsmSGRptIPruneExpiryTimerHandle,
+                            UINT_TO_PTR(pSGRptIEntry ->pimsmSGRptIPruneExpiryTimerHandle),
                             holdtime,
                             &(pSGRptIEntry->pimsmSGRptIPruneExpiryTimer),
                             "SGr-PT")
@@ -307,7 +307,7 @@ static L7_RC_t pimsmDnStrmPerIntfSGRptPrunePendTimersStart
   inetCopy(&pTimerData->addr2, &pSGRptNode->pimsmSGRptEntry.pimsmSGRptGrpAddress);
   pTimerData->pimsmCb = pimsmCb;
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmSGRptIPrunePendingTimerExpiresHandler,
-                            (void*)pSGRptIEntry ->pimsmSGRptIPrunePendingTimerHandle,
+                            UINT_TO_PTR(pSGRptIEntry ->pimsmSGRptIPrunePendingTimerHandle),
                             timeOut,
                             &(pSGRptIEntry ->pimsmSGRptIPrunePendingTimer),
                             "SGr-PPT")
@@ -379,7 +379,7 @@ static L7_RC_t pimsmDnStrmPerIntfSGRptPruneExpireTimerRestart(
   pTimerData->pimsmCb = pimsmCb;
 
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmSGRptIPruneExpireTimerExpiresHandler,
-                            (void*)pSGRptIEntry ->pimsmSGRptIPruneExpiryTimerHandle,
+                            UINT_TO_PTR(pSGRptIEntry ->pimsmSGRptIPruneExpiryTimerHandle),
                             holdtime,
                             &(pSGRptIEntry->pimsmSGRptIPruneExpiryTimer),
                             "SGr-PT2")
@@ -458,7 +458,7 @@ static void pimsmSGRptIPrunePendingTimerExpiresHandler(void *pParam)
   L7_uint32           rtrIfNum;
   pimsmTimerData_t   *pTimerData;
   pimsmCB_t          *pimsmCb;
-  L7_int32            handle = (L7_int32)pParam;
+  L7_uint64           handle = PTR_TO_UINT64(pParam);
   pimsmUpStrmSGRptEventInfo_t upStrmSGRptEventInfo;
   L7_BOOL pruneDesired;
   L7_inet_addr_t *pGrpAddr, *pSrcAddr;
@@ -553,7 +553,7 @@ static void  pimsmSGRptIPruneExpireTimerExpiresHandler(void *pParam)
   L7_uint32            rtrIfNum;
   pimsmTimerData_t    *pTimerData;
   pimsmCB_t           *pimsmCb;
-  L7_int32             handle = (L7_int32)pParam;
+  L7_uint64            handle = PTR_TO_UINT64(pParam);
   pimsmUpStrmSGRptEventInfo_t upStrmSGRptEventInfo;
   L7_BOOL pruneDesired;
   L7_inet_addr_t *pGrpAddr, *pSrcAddr;

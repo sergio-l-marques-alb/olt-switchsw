@@ -1502,7 +1502,7 @@ void pimsmJPBundleTimerExpiryHandler(void *pParam)
   pimsmInterfaceEntry_t *   pIntfEntry = L7_NULLPTR;
   pimsmNeighborEntry_t *    pCurrentNbrEntry;
   L7_RC_t rc;
-  L7_int32      handle = (L7_int32)pParam;
+  L7_uint64 handle = PTR_TO_UINT64(pParam);
 
   pTimerData = (pimsmTimerData_t*)handleListNodeRetrieve(handle);
   if(L7_NULLPTR == pTimerData)
@@ -1545,7 +1545,7 @@ void pimsmJPBundleTimerExpiryHandler(void *pParam)
   }
 
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmJPBundleTimerExpiryHandler,
-                            (void*)pimsmCb->pimsmJPBundleTimerHandle,
+                            UINT_TO_PTR(pimsmCb->pimsmJPBundleTimerHandle),
                             PIMSM_DEFAULT_JP_BUNDLE_TIME,
                             &(pimsmCb->pimsmJPBundleTimer),
                             "SM-JPB2")

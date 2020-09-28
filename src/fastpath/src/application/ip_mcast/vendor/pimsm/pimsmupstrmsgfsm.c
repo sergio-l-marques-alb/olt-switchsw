@@ -276,7 +276,7 @@ static L7_RC_t  pimsmUpStrmSGJoinSend(pimsmCB_t * pimsmCb,
   inetCopy(&pTimerData->addr2, &pSGNode->pimsmSGEntry.pimsmSGGrpAddress);
   pTimerData->pimsmCb = pimsmCb;
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmSGUpstreamJoinTimerExpiresHandler,
-                            (void*)pSGEntry->pimsmSGUpstreamJoinTimerHandle,
+                            UINT_TO_PTR(pSGEntry->pimsmSGUpstreamJoinTimerHandle),
                             jpInterval,
                             &(pSGEntry->pimsmSGUpstreamJoinTimer),
                             "SG-JT")
@@ -436,7 +436,7 @@ static L7_RC_t  pimsmUpStrmSGJoinTimerIncrease(pimsmCB_t * pimsmCb,
     inetCopy(&pTimerData->addr2, &pSGNode->pimsmSGEntry.pimsmSGGrpAddress);
     pTimerData->pimsmCb = pimsmCb;
     if (pimsmUtilAppTimerSet (pimsmCb, pimsmSGUpstreamJoinTimerExpiresHandler,
-                              (void*)pSGEntry->pimsmSGUpstreamJoinTimerHandle,
+                              UINT_TO_PTR(pSGEntry->pimsmSGUpstreamJoinTimerHandle),
                               joinSuppress,
                               &(pSGEntry->pimsmSGUpstreamJoinTimer),
                               "SG-JT2")
@@ -499,7 +499,7 @@ static L7_RC_t  pimsmUpStrmSGJoinTimerDecrease (pimsmCB_t * pimsmCb,
     inetCopy(&pTimerData->addr2, &pSGNode->pimsmSGEntry.pimsmSGGrpAddress);
     pTimerData->pimsmCb = pimsmCb;
     if (pimsmUtilAppTimerSet (pimsmCb, pimsmSGUpstreamJoinTimerExpiresHandler,
-                              (void*)pSGEntry->pimsmSGUpstreamJoinTimerHandle,
+                              UINT_TO_PTR(pSGEntry->pimsmSGUpstreamJoinTimerHandle),
                               joinPruneOverrideInterval,
                               &(pSGEntry->pimsmSGUpstreamJoinTimer),
                               "SG-JT3")
@@ -641,7 +641,7 @@ static L7_RC_t  pimsmUpStrmSGJoinPruneSend(pimsmCB_t * pimsmCb,
   inetCopy(&pTimerData->addr2, &pSGNode->pimsmSGEntry.pimsmSGGrpAddress);
   pTimerData->pimsmCb = pimsmCb;
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmSGUpstreamJoinTimerExpiresHandler,
-                            (void*)pSGEntry->pimsmSGUpstreamJoinTimerHandle,
+                            UINT_TO_PTR(pSGEntry->pimsmSGUpstreamJoinTimerHandle),
                             jpInterval,
                             &(pSGEntry->pimsmSGUpstreamJoinTimer),
                             "SG-JT4")
@@ -692,8 +692,8 @@ static void pimsmSGUpstreamJoinTimerExpiresHandler(void *pParam)
 {
   pimsmUpStrmSGEventInfo_t upStrmSGEventInfo;
   pimsmSGNode_t *pSGNode;
-  pimsmCB_t   * pimsmCb;
-  L7_int32      handle = (L7_int32)pParam;
+  pimsmCB_t     *pimsmCb;
+  L7_uint64      handle = PTR_TO_UINT64(pParam);
   L7_inet_addr_t *pGrpAddr, *pSrcAddr;
   pimsmTimerData_t *pTimerData;
 
@@ -755,9 +755,9 @@ void pimsmSGKeepaliveTimerExpiresHandler(void *pParam)
   pimsmPerSGRegisterEventInfo_t perSGRegisterEventInfo;
   pimsmUpStrmSGEventInfo_t upStrmSGEventInfo;
   L7_BOOL joinDesired;
-  L7_int32      handle = (L7_int32)pParam;
+  L7_uint64        handle = PTR_TO_UINT64(pParam);
   pimsmTimerData_t *pTimerData ;
-  pimsmSGEntry_t  *pSGEntry;
+  pimsmSGEntry_t   *pSGEntry;
   pimsmCB_t * pimsmCb;
   L7_inet_addr_t  rpAddr;
   mfcEntry_t mfcEntry;
@@ -801,7 +801,7 @@ void pimsmSGKeepaliveTimerExpiresHandler(void *pParam)
     PIMSM_TRACE(PIMSM_DEBUG_BIT_S_G, PIMSM_TRACE_INFO, "MFC Entry is active" );
 
     if (pimsmUtilAppTimerSet (pimsmCb, pimsmSGKeepaliveTimerExpiresHandler,
-                              (void*) pSGNode->pimsmSGEntry.pimsmSGKeepaliveTimerHandle,
+                              UINT_TO_PTR(pSGNode->pimsmSGEntry.pimsmSGKeepaliveTimerHandle),
                               PIMSM_DEFAULT_KEEPALIVE_PERIOD,
                               &(pSGNode->pimsmSGEntry.pimsmSGKeepaliveTimer),
                               "SM-KAT3")

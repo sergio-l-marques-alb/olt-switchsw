@@ -270,7 +270,7 @@ L7_RC_t dvmrpCacheTableCacheDelete(dvmrp_t *dvmrpcb,L7_inet_addr_t *pSource,
     if (entry->pruneRetransmitimerHandle != L7_NULL)
     {
       handleListNodeDelete(dvmrpcb->handle_list,
-                           &entry->pruneRetransmitimerHandle);
+                           (L7_uint64 *) &entry->pruneRetransmitimerHandle);
     }
     entry->prune_retry_timer=L7_NULLPTR;
 
@@ -282,7 +282,7 @@ L7_RC_t dvmrpCacheTableCacheDelete(dvmrp_t *dvmrpcb,L7_inet_addr_t *pSource,
     if (entry->graftTimeoutHandle != L7_NULL)
     {
       handleListNodeDelete(dvmrpcb->handle_list,
-                           &entry->graftTimeoutHandle);
+                           (L7_uint64 *) &entry->graftTimeoutHandle);
     }
     DVMRP_FREE (L7_AF_INET, (void*) entry->graft_sent);        
     entry->graft_sent=L7_NULLPTR;   
@@ -296,7 +296,7 @@ L7_RC_t dvmrpCacheTableCacheDelete(dvmrp_t *dvmrpcb,L7_inet_addr_t *pSource,
     if (entry->cacheRemoveHandle != L7_NULL)
     {
       handleListNodeDelete(dvmrpcb->handle_list,
-                           &entry->cacheRemoveHandle);
+                           (L7_uint64 *) &entry->cacheRemoveHandle);
     }
     entry->cacheRemove_timer=L7_NULLPTR;    
   }

@@ -262,7 +262,7 @@ L7_RC_t mfcIpv6PktTransmit(L7_uint32 rtrIfNum, struct rtmbuf *pBuf)
     MFC_DEBUG(MFC_DEBUG_FAILURES,
              " Failed to convert to internal interface number for rtrIfNum : %d",
              rtrIfNum);
-    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)(pBuf->rtm_bufhandle));
+    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(pBuf->rtm_bufhandle));
     rtm_freem(pBuf);
     return L7_FAILURE;
   }
@@ -297,12 +297,12 @@ L7_RC_t mfcIpv6PktTransmit(L7_uint32 rtrIfNum, struct rtmbuf *pBuf)
              " Failed to transmit pkt from socket = %d",mfcIp6SendSockId);   
     MFC_DEBUG(MFC_DEBUG_TX,"\n Failed to transmit pkt from socket = %d",
               mfcIp6SendSockId);
-    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)(pBuf->rtm_bufhandle));
+    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(pBuf->rtm_bufhandle));
     rtm_freem(pBuf);
     return L7_FAILURE;
   }
 
-  SYSAPI_NET_MBUF_FREE((L7_netBufHandle)(pBuf->rtm_bufhandle));
+  SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(pBuf->rtm_bufhandle));
   rtm_freem(pBuf);
 
   return L7_SUCCESS;
@@ -329,7 +329,7 @@ L7_RC_t mfcIpv6PktTransmit(L7_uint32 rtrIfNum, struct rtmbuf *pBuf)
              rtrIfNum);
     if ((pBuf->rtm_bufhandle) != L7_NULLPTR)
     {
-      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)(pBuf->rtm_bufhandle));
+      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(pBuf->rtm_bufhandle));
     }
     rtm_freem(pBuf);
     return L7_FAILURE;
@@ -366,7 +366,7 @@ L7_RC_t mfcIpv6PktTransmit(L7_uint32 rtrIfNum, struct rtmbuf *pBuf)
               intIfNum);  
     if ((pBuf->rtm_bufhandle) != L7_NULLPTR)
     {
-      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)(pBuf->rtm_bufhandle));
+      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(pBuf->rtm_bufhandle));
     }
     rtm_freem(pBuf);
     return L7_FAILURE;
@@ -385,14 +385,14 @@ L7_RC_t mfcIpv6PktTransmit(L7_uint32 rtrIfNum, struct rtmbuf *pBuf)
               mfcIp6SendSockId);
     if ((pBuf->rtm_bufhandle) != L7_NULLPTR)
     {
-      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)(pBuf->rtm_bufhandle));
+      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(pBuf->rtm_bufhandle));
     }
     rtm_freem(pBuf);
     return L7_FAILURE;
   }
   if ((pBuf->rtm_bufhandle) != L7_NULLPTR)
   {
-    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)(pBuf->rtm_bufhandle));
+    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(pBuf->rtm_bufhandle));
   }
   rtm_freem(pBuf);
 
@@ -492,7 +492,7 @@ L7_RC_t mfcIpv6PktRecv(void  *pktMsg)
   }
   recvBuf->rtm_bufhandle = (void *)recvFrame;
 
-  SYSAPI_NET_MBUF_GET_DATASTART((L7_netBufHandle)(recvBuf->rtm_bufhandle),
+  SYSAPI_NET_MBUF_GET_DATASTART((L7_netBufHandle)PTR_TO_UINT64(recvBuf->rtm_bufhandle),
                                 pDataStart); 
   
   memset(pDataStart, 0, L7_ENET_HDR_SIZE + 2);
@@ -506,7 +506,7 @@ L7_RC_t mfcIpv6PktRecv(void  *pktMsg)
   recvBuf->rtm_type = MT_DATA;  
   recvBuf->rtm_data = pDataStart + sysNetDataOffsetGet(pDataStart);
   /* this set the rtm_len */
-  SYSAPI_NET_MBUF_SET_DATALENGTH((L7_netBufHandle)(recvBuf->rtm_bufhandle), 
+  SYSAPI_NET_MBUF_SET_DATALENGTH((L7_netBufHandle)PTR_TO_UINT64(recvBuf->rtm_bufhandle), 
                                     inBytes+ L7_ENET_HDR_SIZE + 2);
 
   recvBuf->rtm_pkthdr.rcvif = L7_NULLPTR;
@@ -527,7 +527,7 @@ L7_RC_t mfcIpv6PktRecv(void  *pktMsg)
   {
     if ((recvBuf->rtm_bufhandle) != L7_NULLPTR)
     {
-      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)(recvBuf->rtm_bufhandle));
+      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(recvBuf->rtm_bufhandle));
     }
     bufferPoolFree(bufferPoolId, bufferAddr);  
     return L7_FAILURE;
@@ -540,7 +540,7 @@ L7_RC_t mfcIpv6PktRecv(void  *pktMsg)
                inetAddrPrint(&(mfcEntry.source),src));
     if ((recvBuf->rtm_bufhandle) != L7_NULLPTR)
     {
-      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)(recvBuf->rtm_bufhandle));
+      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(recvBuf->rtm_bufhandle));
     } 
     bufferPoolFree(bufferPoolId, bufferAddr);
     return L7_FAILURE;
@@ -550,7 +550,7 @@ L7_RC_t mfcIpv6PktRecv(void  *pktMsg)
   {
     if ((recvBuf->rtm_bufhandle) != L7_NULLPTR)
     {
-      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)(recvBuf->rtm_bufhandle));
+      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(recvBuf->rtm_bufhandle));
     }
     bufferPoolFree(bufferPoolId, bufferAddr);  
     return L7_FAILURE;
@@ -563,7 +563,7 @@ L7_RC_t mfcIpv6PktRecv(void  *pktMsg)
     MFC_DEBUG_ADDR(MFC_DEBUG_RX, "Rx'ed pkt for non- multicast group : ", &mfcEntry.group);
     if ((recvBuf->rtm_bufhandle) != L7_NULLPTR)
     {
-      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)(recvBuf->rtm_bufhandle));
+      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(recvBuf->rtm_bufhandle));
     }
     bufferPoolFree(bufferPoolId, bufferAddr);  
     return L7_FAILURE;
@@ -578,7 +578,7 @@ L7_RC_t mfcIpv6PktRecv(void  *pktMsg)
     MFC_DEBUG(MFC_DEBUG_RX,"\n Received link local multicast packet,ignoring it");
     if ((recvBuf->rtm_bufhandle) != L7_NULLPTR)
     {
-      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)(recvBuf->rtm_bufhandle));
+      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(recvBuf->rtm_bufhandle));
     }
     bufferPoolFree(bufferPoolId, bufferAddr);
     return L7_FAILURE;
@@ -589,14 +589,14 @@ L7_RC_t mfcIpv6PktRecv(void  *pktMsg)
     MFC_DEBUG(MFC_DEBUG_FAILURES,"\n Failed to forward packet ");
     if ((recvBuf->rtm_bufhandle) != L7_NULLPTR)
     {
-      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)(recvBuf->rtm_bufhandle));
+      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(recvBuf->rtm_bufhandle));
     }
     bufferPoolFree(bufferPoolId, bufferAddr);
     return L7_FAILURE;
   }
   if ((recvBuf->rtm_bufhandle) != L7_NULLPTR)
   {
-    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)(recvBuf->rtm_bufhandle));
+    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(recvBuf->rtm_bufhandle));
   }
   bufferPoolFree(bufferPoolId, bufferAddr);
   return L7_SUCCESS;

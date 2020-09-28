@@ -342,11 +342,11 @@ L7_RC_t pimsmSGDelete(pimsmCB_t * pimsmCb,
   }
 
   handleListNodeDelete(pimsmCb->handleList,
-                       &pSGNodeDelete->pimsmSGEntry.pimsmSGDRRegisterStopTimerHandle);
+                       (L7_uint64 *) &pSGNodeDelete->pimsmSGEntry.pimsmSGDRRegisterStopTimerHandle);
   handleListNodeDelete(pimsmCb->handleList,
-                       &pSGNodeDelete->pimsmSGEntry.pimsmSGKeepaliveTimerHandle);
+                       (L7_uint64 *) &pSGNodeDelete->pimsmSGEntry.pimsmSGKeepaliveTimerHandle);
   handleListNodeDelete(pimsmCb->handleList,
-                       &pSGNodeDelete->pimsmSGEntry.pimsmSGUpstreamJoinTimerHandle);
+                       (L7_uint64 *) &pSGNodeDelete->pimsmSGEntry.pimsmSGUpstreamJoinTimerHandle);
 
   pimsmSGMFCUpdate(pimsmCb, pSGNodeDelete, MFC_DELETE_ENTRY, L7_FALSE);
   pSGNodeDelete->pimsmSGEntry.pimsmSGSPTBit = L7_FALSE;  
@@ -700,7 +700,7 @@ L7_RC_t pimsmSGNodeCreate(pimsmCB_t * pimsmCb,
       if(bStartKAT == L7_TRUE)
       {
         if (pimsmUtilAppTimerSet (pimsmCb, pimsmSGKeepaliveTimerExpiresHandler,
-                                  (void*) pSGNode->pimsmSGEntry.pimsmSGKeepaliveTimerHandle,
+                                  UINT_TO_PTR(pSGNode->pimsmSGEntry.pimsmSGKeepaliveTimerHandle),
                                   PIMSM_DEFAULT_KEEPALIVE_PERIOD,
                                   &(pSGNode->pimsmSGEntry.pimsmSGKeepaliveTimer),
                                   "SM-KAT2")
@@ -891,11 +891,11 @@ L7_RC_t pimsmSGIEntryDelete(pimsmCB_t *pimsmCb,
   pimsmUtilAppTimerCancel (pimsmCb, &(pSGIEntry->pimsmSGIJoinExpiryTimer));
   pimsmUtilAppTimerCancel (pimsmCb, &(pSGIEntry->pimsmSGIAssertTimer));
   handleListNodeDelete(pimsmCb->handleList,
-                       &pSGIEntry->pimsmSGIPrunePendingTimerHandle);     
+                       (L7_uint64 *) &pSGIEntry->pimsmSGIPrunePendingTimerHandle);     
   handleListNodeDelete(pimsmCb->handleList,
-                       &pSGIEntry->pimsmSGIJoinExpiryTimerHandle);     
+                       (L7_uint64 *) &pSGIEntry->pimsmSGIJoinExpiryTimerHandle);     
   handleListNodeDelete(pimsmCb->handleList,
-                       &pSGIEntry->pimsmSGIAssertTimerHandle);  
+                       (L7_uint64 *) &pSGIEntry->pimsmSGIAssertTimerHandle);  
   PIMSM_FREE (pimsmCb->family, (void*) pSGIEntry);
 
   pSGNode->pimsmSGIEntry[rtrIfNum] = L7_NULLPTR;
@@ -933,11 +933,11 @@ L7_RC_t pimsmSGTreePurge(pimsmCB_t * pimsmCb)
     pimsmUtilAppTimerCancel (pimsmCb, &(pSGEntry->pimsmSGDRRegisterStopTimer));
     pimsmUtilAppTimerCancel (pimsmCb, &(pSGEntry->pimsmSGUpstreamJoinTimer));
     handleListNodeDelete(pimsmCb->handleList,
-                         &pSGEntry->pimsmSGDRRegisterStopTimerHandle);
+                         (L7_uint64 *) &pSGEntry->pimsmSGDRRegisterStopTimerHandle);
     handleListNodeDelete(pimsmCb->handleList,
-                         &pSGEntry->pimsmSGKeepaliveTimerHandle);
+                         (L7_uint64 *) &pSGEntry->pimsmSGKeepaliveTimerHandle);
     handleListNodeDelete(pimsmCb->handleList,
-                         &pSGEntry->pimsmSGUpstreamJoinTimerHandle);    
+                         (L7_uint64 *) &pSGEntry->pimsmSGUpstreamJoinTimerHandle);    
 
     for(rtrIfNum = 0; rtrIfNum < MCAST_MAX_INTERFACES; rtrIfNum++)
     {

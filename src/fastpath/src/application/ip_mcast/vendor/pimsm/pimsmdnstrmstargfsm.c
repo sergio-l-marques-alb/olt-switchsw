@@ -228,7 +228,7 @@ static L7_RC_t pimsmDnStrmPerIntfStarGExpireTimerStart(
 
   pTimerData->pimsmCb = pimsmCb;
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmStarGIJoinExpiryTimerExpiresHandler,
-                            (void*)pStarGIEntry->pimsmStarGIJoinExpiryTimerHandle,
+                            UINT_TO_PTR(pStarGIEntry->pimsmStarGIJoinExpiryTimerHandle),
                             holdtime,
                             &(pStarGIEntry->pimsmStarGIJoinExpiryTimer),
                             "xGI-JT")
@@ -297,7 +297,7 @@ static L7_RC_t pimsmDnStrmPerIntfStarGExpireTimerRestart (
   }
 
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmStarGIJoinExpiryTimerExpiresHandler,
-                            (void*)pStarGIEntry->pimsmStarGIJoinExpiryTimerHandle,
+                            UINT_TO_PTR(pStarGIEntry->pimsmStarGIJoinExpiryTimerHandle),
                             holdtime,
                             &(pStarGIEntry->pimsmStarGIJoinExpiryTimer),
                             "xGI-JT2")
@@ -365,7 +365,7 @@ static L7_RC_t pimsmDnStrmPerIntfStarGPrunePendingTimerStart (
 
   pTimerData->pimsmCb = pimsmCb;
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmStarGIPrunePendingTimerExpiresHandler,
-                            (void*)pStarGIEntry->pimsmStarGIPrunePendingTimerHandle,
+                            UINT_TO_PTR(pStarGIEntry->pimsmStarGIPrunePendingTimerHandle),
                             timeOut,
                             &(pStarGIEntry->pimsmStarGIPrunePendingTimer),
                             "xGI-PPT")
@@ -525,7 +525,7 @@ static void pimsmStarGIPrunePendingTimerExpiresHandler(void *pParam)
   pimsmStarGIEntry_t *pStarGIEntry = L7_NULLPTR;
   L7_uint32           rtrIfNum;
   pimsmCB_t          *pimsmCb;
-  L7_int32            handle = (L7_int32)pParam;
+  L7_uint32           handle = PTR_TO_UINT64(pParam);
   pimsmUpStrmStarGEventInfo_t UpStrmStarGEventInfo;
   L7_BOOL  joinDesired =L7_FALSE;
   L7_BOOL couldAssert;
@@ -640,7 +640,7 @@ static void pimsmStarGIJoinExpiryTimerExpiresHandler(void *pParam)
   pimsmStarGIEntry_t *pimsmStarGIEntry =L7_NULLPTR;
   L7_uint32 rtrIfNum;
   pimsmCB_t * pimsmCb;
-  L7_int32      handle = (L7_int32)pParam;
+  L7_uint32 handle = PTR_TO_UINT64(pParam);
   pimsmUpStrmStarGEventInfo_t starGUpStrmEvData;
   L7_BOOL  joinDesired =L7_FALSE;
   L7_inet_addr_t *pGrpAddr;

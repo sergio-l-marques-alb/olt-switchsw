@@ -1572,8 +1572,7 @@ L7_RC_t mfcMroutePktForward(mfcEntry_t *pData)
         if (pData->m->rtm_bufhandle != L7_NULLPTR)
         {
           /* Attempt to forward the packet */
-          SYSAPI_NET_MBUF_GET_DATALENGTH(
-                                        (L7_netBufHandle)(pData->m->rtm_bufhandle), len);
+          SYSAPI_NET_MBUF_GET_DATALENGTH((L7_netBufHandle)PTR_TO_UINT64(pData->m->rtm_bufhandle), len);
           outEntry.iif = tempEntry.iif;
           if (mfcPktTransmit(pData->m, &outEntry) == L7_SUCCESS)
           {

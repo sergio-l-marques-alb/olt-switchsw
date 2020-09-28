@@ -96,7 +96,7 @@ typedef struct pimsmBsrPerScopeZone_s
   L7_ushort16          pimsmBSRHashMasklen; 
   pimsmBSMPacketNode_t pimsmLastBSMPktNode[PIMSM_BSM_PKT_FRAGMENT_COUNT_MAX];
   L7_APP_TMR_HNDL_t    pimsmBSRTimer;    /* the bootstrap timer */
-  L7_uint32            pimsmBSRTimerHandle; /* to safeguard timeout functions */
+  L7_uint64            pimsmBSRTimerHandle; /* to safeguard timeout functions */
   L7_uint32            ctime;        /* creation time */
   pimsmBsrFragmentInfo_t pimsmBSRFragInfo;
 

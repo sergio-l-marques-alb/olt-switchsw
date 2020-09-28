@@ -66,7 +66,7 @@ typedef struct pimdmInterface_s
   L7_uchar8 nbrBitmap[MCAST_BITX_NUM_BITS(PIMDM_MAX_NEIGHBORS)];
                                     /* Bitmap of neighbors on this interface */
   L7_uint32 numNbrs;                /* Total number of neighbors on this interface */
-  L7_uint32 intfTmrHandle;          /* Handle List Timer Handle for the Interface Block */
+  L7_uint64 intfTmrHandle;          /* Handle List Timer Handle for the Interface Block */
 
   L7_uint32  intfStats[PIMDM_CTRL_PKT_MAX][PIMDM_STATS_TYPE_MAX];
 
@@ -133,7 +133,7 @@ typedef struct pimdmNeighbor_s
   L7_uint32      livenessTimerGenId; /* Generation ID of the liveness timer */
   L7_uint32      createTime;        /* Time reference when created */
   L7_uint32      rtrIfNum;        /* Router interface index of the associated interface */
-  L7_uint32      nbrTmrHandle;      /* Handle List Timer Handle for the Neighbor Block */
+  L7_uint64      nbrTmrHandle;      /* Handle List Timer Handle for the Neighbor Block */
   pimdmCB_t      *pimdmCB;          /* Back pointer to the PIM-DM Control Block */
   pimdmJPMsgStoreBuff_t pimdmBuildJPMsg; /* A structure for fairly
                      * complicated Join/Prune

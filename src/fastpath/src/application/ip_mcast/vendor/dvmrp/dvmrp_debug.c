@@ -50,7 +50,7 @@ void dvmrpDebugIntfShow(L7_uint32 addrFamily)
   L7_int32 timeLeft;    
   L7_ulong32 probeExpTime;    
 
-  DVMRP_DEBUG_PRINTF("\n\nMCAST Heap-ID - 0x%x", mcastMapHeapIdGet(addrFamily));
+  DVMRP_DEBUG_PRINTF("\n\nMCAST Heap-ID - 0x%llx", (L7_uint64) mcastMapHeapIdGet(addrFamily));
 
 
   if ((dvmrpcb = dvmrpMapProtocolCtrlBlockGet (addrFamily)) == L7_NULLPTR)
@@ -1075,9 +1075,9 @@ void dvmrpDebugMRTTableShow(L7_uint32 addrFamily, L7_int32 count)
       DVMRP_DEBUG_PRINTF("cahce remove timer not running\n");
     }
 
-    DVMRP_DEBUG_PRINTF("cache remove handle :%x\n",entry->cacheRemoveHandle);
-    DVMRP_DEBUG_PRINTF("prune Retransmitimer Handle:%x\n",entry->pruneRetransmitimerHandle);
-    DVMRP_DEBUG_PRINTF("graft Timeout Handle:%x\n",entry->graftTimeoutHandle);
+    DVMRP_DEBUG_PRINTF("cache remove handle :0x%llx\n",entry->cacheRemoveHandle);
+    DVMRP_DEBUG_PRINTF("prune Retransmitimer Handle:0x%llx\n",entry->pruneRetransmitimerHandle);
+    DVMRP_DEBUG_PRINTF("graft Timeout Handle:0x%llx\n",entry->graftTimeoutHandle);
     DVMRP_DEBUG_PRINTF("\n");      
 
     memcpy(&tmpEntry, entry, sizeof(dvmrp_cache_entry_t));

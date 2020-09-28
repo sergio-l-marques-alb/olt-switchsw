@@ -234,7 +234,7 @@ static L7_RC_t pimsmDnSmPerIntfStartStarRPExpireTimerStart(
   pTimerData->rtrIfNum = rtrIfNum;
   pTimerData->pimsmCb = pimsmCb;
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmStarStarRpIJoinExpiryTimerExpiresHandler,
-                            (void*)pStarStarRPIEntry->pimsmStarStarRpIJoinExpiryTimerHandle,
+                            UINT_TO_PTR(pStarStarRPIEntry->pimsmStarStarRpIJoinExpiryTimerHandle),
                             holdtime,
                             &(pStarStarRPIEntry->pimsmStarStarRpIJoinExpiryTimer),
                             "xRI-JT")
@@ -306,7 +306,7 @@ static L7_RC_t pimsmDnSmPerIntfStartStarRPExpiryTimerRestart(
   }
 
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmStarStarRpIJoinExpiryTimerExpiresHandler,
-                            (void*)pStarStarRPIEntry->pimsmStarStarRpIJoinExpiryTimerHandle,
+                            UINT_TO_PTR(pStarStarRPIEntry->pimsmStarStarRpIJoinExpiryTimerHandle),
                             holdtime,
                             &(pStarStarRPIEntry->pimsmStarStarRpIJoinExpiryTimer),
                             "xRI-JT2")
@@ -379,7 +379,7 @@ static L7_RC_t pimsmDnSmPerIntfStartStarRPPrunePendingTimerStart(
 
   pTimerData->pimsmCb = pimsmCb;
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmStarStarRpIPrunePendingTimerExpiresHandler,
-                            (void*)pStarStarRPIEntry->pimsmStarStarRpIPrunePendingTimerHandle,
+                            UINT_TO_PTR(pStarStarRPIEntry->pimsmStarStarRpIPrunePendingTimerHandle),
                             timeOut,
                             &(pStarStarRPIEntry->pimsmStarStarRpIPrunePendingTimer),
                             "xRI-PPT")
@@ -537,7 +537,7 @@ static void pimsmStarStarRpIPrunePendingTimerExpiresHandler(void *pParam)
   pimsmStarStarRpIEntry_t *pimsmStarStarRpIEntry = L7_NULLPTR;
   L7_uint32  rtrIfNum;
   pimsmCB_t *pimsmCb;
-  L7_int32   handle = (L7_int32)pParam;
+  L7_uint64  handle = PTR_TO_UINT64(pParam);
   pimsmUpStrmStarStarRPEventInfo_t upStrmStarStarRpEventInfo;
   L7_BOOL joinDesired = L7_FALSE;
   L7_inet_addr_t *pRpAddr;
@@ -622,7 +622,7 @@ static void pimsmStarStarRpIJoinExpiryTimerExpiresHandler(void *pParam)
   pimsmStarStarRpIEntry_t *pimsmStarStarRpIEntry = L7_NULLPTR;
   L7_uint32 rtrIfNum;
   pimsmCB_t *pimsmCb;
-  L7_int32   handle = (L7_int32)pParam;
+  L7_uint64  handle = PTR_TO_UINT64(pParam);
   pimsmUpStrmStarStarRPEventInfo_t upStrmStarStarRpEventInfo;
   L7_BOOL joinDesired = L7_FALSE;
   L7_inet_addr_t *pRpAddr;

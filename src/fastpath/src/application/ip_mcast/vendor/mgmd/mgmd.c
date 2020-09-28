@@ -127,7 +127,7 @@ static L7_RC_t mgmdUtilAppTimerLower (mgmd_cb_t *mgmdCB,
                       MGMD_TIMER_t timerType);
 static L7_RC_t  mgmdUtilAppTimerHandleDelete(mgmd_cb_t *mgmdCB,
                                              L7_APP_TMR_HNDL_t *timer,
-                                             L7_uint32 *handle);
+                                             L7_uint64 *handle);
 static L7_RC_t  mgmdUtilAppTimerDelete(mgmd_cb_t *mgmdCB,
                                        L7_APP_TMR_HNDL_t *timer);
 
@@ -175,8 +175,11 @@ void mgmdSourceTimerUpdate(mgmd_cb_t *mgmdCB,
   srcRec->sourceInterval = lastMemQueryCount * lastMemQueryInterval;
 
   if ((srcRec->sourceTimer != L7_NULLPTR) &&
-      (appTimerUpdate(mgmdCB->timerHandle,&srcRec->sourceTimer, mgmd_timeout_sources_event_handler,
-                     (void*)srcRec->src_timer_handle, srcRec->sourceInterval,
+      (appTimerUpdate(mgmdCB->timerHandle,
+                      &srcRec->sourceTimer, 
+                      (void *) mgmd_timeout_sources_event_handler,
+                      UINT_TO_PTR(srcRec->src_timer_handle), 
+                      srcRec->sourceInterval,
                      "MGMD Source Timer2") != L7_SUCCESS))
   {
     MGMD_DEBUG_ADDR(MGMD_DEBUG_APIS, "Src Node Timer Updation Failed for src = \n",
@@ -621,8 +624,11 @@ static void mgmd_v3_is_in_process (mgmd_info_t    *mgmd_info,
     }
     /* 6.4.1: (A)=GMI */
     srcRec->sourceInterval = ((robustnessvar * queryInterval) + (responseInterval));
-    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)srcRec->src_timer_handle,
-                            &srcRec->sourceTimer,srcRec->sourceInterval,
+    if (mgmdUtilAppTimerSet(mgmdCB,
+                            L7_NULL,
+                            (void*) UINT_TO_PTR(srcRec->src_timer_handle),
+                            &srcRec->sourceTimer,
+                            srcRec->sourceInterval,
                             L7_MGMD_SRC_TIMER) != L7_SUCCESS)
     {
       MGMD_DEBUG (MGMD_DEBUG_APIS, "Could not Start the Source timer \n");
@@ -697,7 +703,7 @@ static void mgmd_v3_is_ex_process(mgmd_info_t *mgmd_info,
   mgmd_group->interval = ((robustnessvar * queryInterval) + (responseInterval));
 
   MGMD_DEBUG (MGMD_DEBUG_APIS, " Grp timer = %p", mgmd_group->groupTimer);
-  if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)mgmd_group->grp_timer_handle,
+  if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*) UINT_TO_PTR(mgmd_group->grp_timer_handle),
                           &mgmd_group->groupTimer,  mgmd_group->interval,
                           L7_MGMD_GRP_TIMER) != L7_SUCCESS)
   {
@@ -724,7 +730,7 @@ static void mgmd_v3_is_ex_process(mgmd_info_t *mgmd_info,
           return;
         }
         srcRec->sourceInterval = ((robustnessvar * queryInterval) + (responseInterval));
-        if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)srcRec->src_timer_handle,
+        if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*) UINT_TO_PTR(srcRec->src_timer_handle),
                             &srcRec->sourceTimer,srcRec->sourceInterval,
                             L7_MGMD_SRC_TIMER) != L7_SUCCESS)
         {
@@ -941,7 +947,7 @@ static void mgmd_v3_to_in_process (mgmd_info_t    *mgmd_info,
     /* 6.4.2: (A/B)=GMI */
     srcRec->sourceInterval = ((robustnessvar * queryInterval) + (responseInterval));
 
-    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL,(void*) srcRec->src_timer_handle,
+    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL,(void*) UINT_TO_PTR(srcRec->src_timer_handle),
                             &srcRec->sourceTimer,srcRec->sourceInterval,
                             L7_MGMD_SRC_TIMER) != L7_SUCCESS)
     {
@@ -1091,7 +1097,7 @@ static void mgmd_v3_to_ex_process(mgmd_info_t    *mgmd_info,
   /* 6.4.2: Group Timer=GMI */
   mgmd_group->interval = ((robustnessvar * queryInterval) + (responseInterval));
 
-  if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)mgmd_group->grp_timer_handle,
+  if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(mgmd_group->grp_timer_handle),
                           &mgmd_group->groupTimer, mgmd_group->interval,
                           L7_MGMD_GRP_TIMER) != L7_SUCCESS)
   {
@@ -1226,7 +1232,7 @@ static void mgmd_v3_to_ex_process(mgmd_info_t    *mgmd_info,
           return;
         }
         srcRec->sourceInterval = grpTimeLeft;
-        if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)srcRec->src_timer_handle,
+        if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(srcRec->src_timer_handle),
                                 &srcRec->sourceTimer,srcRec->sourceInterval,
                                 L7_MGMD_SRC_TIMER) != L7_SUCCESS)
         {
@@ -1403,7 +1409,7 @@ static void mgmd_v3_allow_process(mgmd_info_t    *mgmd_info,
     /* 6.4.2: (A/B)=GMI */
     srcRec->sourceInterval = ((robustnessvar * queryInterval) + (responseInterval));
 
-    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void *)srcRec->src_timer_handle,
+    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void *)UINT_TO_PTR(srcRec->src_timer_handle),
                             &srcRec->sourceTimer,srcRec->sourceInterval,
                             L7_MGMD_SRC_TIMER) != L7_SUCCESS)
     {
@@ -1529,7 +1535,7 @@ static void mgmd_v3_block_process (mgmd_info_t    *mgmd_info,
         }
 
         srcRec->sourceInterval = grpTimeLeft;
-        if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)srcRec->src_timer_handle,
+        if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(srcRec->src_timer_handle),
                                 &srcRec->sourceTimer,srcRec->sourceInterval,
                                 L7_MGMD_SRC_TIMER) != L7_SUCCESS)
         {
@@ -1971,7 +1977,7 @@ void mgmd_v2membership_report(mgmd_info_t*    mgmd_info,
 
     mgmd_info->numOfJoins++;
 
-    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)mgmd_group->grp_timer_handle,
+    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(mgmd_group->grp_timer_handle),
                             &mgmd_group->groupTimer, mgmd_group->interval,
                             L7_MGMD_GRP_TIMER) != L7_SUCCESS)
     {
@@ -1979,7 +1985,7 @@ void mgmd_v2membership_report(mgmd_info_t*    mgmd_info,
       return;
     }
 
-    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)mgmd_group->v2host_timer_handle,
+    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(mgmd_group->v2host_timer_handle),
                             &mgmd_group->v2HostTimer, mgmd_group_membership_interval1,
                             L7_MGMD_V2HOST_TIMER) != L7_SUCCESS)
     {
@@ -1995,7 +2001,7 @@ void mgmd_v2membership_report(mgmd_info_t*    mgmd_info,
 
     mgmd_group->v2HostPresentFlag = L7_TRUE;
 
-    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)mgmd_group->v2host_timer_handle,
+    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(mgmd_group->v2host_timer_handle),
                             &mgmd_group->v2HostTimer, mgmd_group_membership_interval1,
                             L7_MGMD_V2HOST_TIMER) != L7_SUCCESS)
     {
@@ -2039,7 +2045,7 @@ void mgmd_v2membership_report(mgmd_info_t*    mgmd_info,
     }
     mgmd_group->interval = mgmd_group_membership_interval1;
 
-    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)mgmd_group->grp_timer_handle,
+    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(mgmd_group->grp_timer_handle),
                             &mgmd_group->groupTimer, mgmd_group->interval,
                             L7_MGMD_GRP_TIMER) != L7_SUCCESS)
     {
@@ -2131,7 +2137,7 @@ static void mgmd_v1membership_report (mgmd_info_t *mgmd_info,
     inetAddrHtop(&group, groupStr);
     MGMD_DEBUG (MGMD_DEBUG_REPORTS, "TR_TRACE: group %s on %d joined\n",groupStr, mgmd_info->ifIndex);
 
-    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL,(void*) mgmd_group->grp_timer_handle,
+    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL,(void*)UINT_TO_PTR(mgmd_group->grp_timer_handle),
                             &mgmd_group->groupTimer, mgmd_group->interval,
                             L7_MGMD_GRP_TIMER) != L7_SUCCESS)
     {
@@ -2144,7 +2150,7 @@ static void mgmd_v1membership_report (mgmd_info_t *mgmd_info,
     {
       queryInterval = mgmd_info->querierQueryInterval;
     }
-    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL,(void*) mgmd_group->v1host_timer_handle,
+    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL,(void*)UINT_TO_PTR(mgmd_group->v1host_timer_handle),
                             &mgmd_group->v1HostTimer, mgmd_group_membership_interval1,
                             L7_MGMD_V1HOST_TIMER) != L7_SUCCESS)
     {
@@ -2183,7 +2189,7 @@ static void mgmd_v1membership_report (mgmd_info_t *mgmd_info,
                 groupStr, mgmd_info->ifIndex);
     mgmd_group->v1HostPresentFlag = L7_TRUE;
 
-    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)mgmd_group->v1host_timer_handle,
+    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(mgmd_group->v1host_timer_handle),
                             &mgmd_group->v1HostTimer, mgmd_group_membership_interval1,
                             L7_MGMD_V1HOST_TIMER) != L7_SUCCESS)
     {
@@ -2193,7 +2199,7 @@ static void mgmd_v1membership_report (mgmd_info_t *mgmd_info,
 
     mgmd_group->interval = mgmd_group_membership_interval1;
 
-    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL,(void*)mgmd_group->grp_timer_handle,
+    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL,(void*)UINT_TO_PTR(mgmd_group->grp_timer_handle),
                             &mgmd_group->groupTimer, mgmd_group->interval,
                             L7_MGMD_GRP_TIMER) != L7_SUCCESS)
     {
@@ -2376,7 +2382,7 @@ static void mgmd_group_src_specific_q_send (mgmd_info_t *mgmd_info,
       return;
     }
 
-    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)qreq->query_timer_handle,
+    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(qreq->query_timer_handle),
                             &qreq->timer, lastMemQueryInterval,
                             L7_MGMD_GRP_QUERY_TIMER) != L7_SUCCESS)
     {
@@ -2518,7 +2524,7 @@ static void mgmd_group_specific_q_send(mgmd_info_t  *mgmd_info,
       return;
     }
 
-    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)qreq->query_timer_handle,
+    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(qreq->query_timer_handle),
                             &qreq->timer, lastMemQueryInterval,
                             L7_MGMD_GRP_QUERY_TIMER) != L7_SUCCESS)
     {
@@ -2530,7 +2536,7 @@ static void mgmd_group_specific_q_send(mgmd_info_t  *mgmd_info,
     }
   }
 
-  if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)mgmd_group->grp_timer_handle,
+  if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(mgmd_group->grp_timer_handle),
                           &mgmd_group->groupTimer, mgmd_group->interval,
                           L7_MGMD_GRP_TIMER) != L7_SUCCESS)
   {
@@ -2825,7 +2831,7 @@ static void mgmd_group_query_timeout_event_handler (void *pParam)
   L7_uint32       lastMemQueryCount;
   L7_uchar8       family;
   void *info;
-  L7_int32      handle = (L7_int32)pParam;
+  L7_uint64 handle = PTR_TO_UINT64(pParam);
 
   MGMD_DEBUG (MGMD_DEBUG_APIS, " Entered");
 
@@ -2937,7 +2943,7 @@ static void mgmd_group_query_timeout_event_handler (void *pParam)
   }
   else
   {
-    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)qreq->query_timer_handle,
+    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(qreq->query_timer_handle),
                             &qreq->timer, lastMemQueryInterval,
                             L7_MGMD_GRP_QUERY_TIMER) != L7_SUCCESS)
     {
@@ -3036,7 +3042,7 @@ void mgmd_v3membership_query(mgmd_info_t *mgmd_info, L7_inet_addr_t group,
   if (result == 0)
   {
     /* Reset other querier present timer */
-    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)mgmd_info->mgmd_querier_timer_handle,
+    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(mgmd_info->mgmd_querier_timer_handle),
                             &mgmd_info->mgmd_querier_timer,
                             mgmd_other_querier_present_interval, L7_MGMD_QUERIER_TIMER) != L7_SUCCESS)
     {
@@ -3047,7 +3053,7 @@ void mgmd_v3membership_query(mgmd_info_t *mgmd_info, L7_inet_addr_t group,
   else if (result > 0)
   {
     /* This querier has lower ip address than the current */
-    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)mgmd_info->mgmd_querier_timer_handle,
+    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(mgmd_info->mgmd_querier_timer_handle),
                             &mgmd_info->mgmd_querier_timer,
                             mgmd_other_querier_present_interval,
                             L7_MGMD_QUERIER_TIMER) != L7_SUCCESS)
@@ -3134,7 +3140,7 @@ void mgmd_v3membership_query(mgmd_info_t *mgmd_info, L7_inet_addr_t group,
 
         if (numSrcs == 0)
         {
-          if (mgmdUtilAppTimerLower(mgmdCB, L7_NULL, (void*)mgmd_group->grp_timer_handle,
+          if (mgmdUtilAppTimerLower(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(mgmd_group->grp_timer_handle),
                                     &mgmd_group->groupTimer, lmqt, L7_MGMD_GRP_TIMER) != L7_SUCCESS)
           {
             MGMD_DEBUG (MGMD_DEBUG_APIS, "Could not lower the Group timer  \n");
@@ -3155,7 +3161,7 @@ void mgmd_v3membership_query(mgmd_info_t *mgmd_info, L7_inet_addr_t group,
                                                      (L7_sll_member_t *)&srcRecSrch);
             if (srcRec != L7_NULLPTR)
             {
-              if (mgmdUtilAppTimerLower(mgmdCB, L7_NULL,(void*)srcRec->src_timer_handle,
+              if (mgmdUtilAppTimerLower(mgmdCB, L7_NULL,(void*)UINT_TO_PTR(srcRec->src_timer_handle),
                                         &srcRec->sourceTimer, lmqt, L7_MGMD_SRC_TIMER) != L7_SUCCESS)
               {
                 MGMD_DEBUG (MGMD_DEBUG_APIS, "Could not lower the Source timer  \n");
@@ -3222,7 +3228,7 @@ void mgmd_membership_query (mgmd_info_t *mgmd_info, L7_inet_addr_t group,
   if (result == 0)
   {
     /* Reset other querier present timer */
-    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)mgmd_info->mgmd_querier_timer_handle,
+    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(mgmd_info->mgmd_querier_timer_handle),
                             &mgmd_info->mgmd_querier_timer,
                             mgmd_other_querier_present_interval,
                             L7_MGMD_QUERIER_TIMER) != L7_SUCCESS)
@@ -3236,7 +3242,7 @@ void mgmd_membership_query (mgmd_info_t *mgmd_info, L7_inet_addr_t group,
   else if (result > 0)
   {
     /* This querier has lower ip address than the current */
-    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)mgmd_info->mgmd_querier_timer_handle,
+    if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(mgmd_info->mgmd_querier_timer_handle),
                             &mgmd_info->mgmd_querier_timer,
                             mgmd_other_querier_present_interval,
                             L7_MGMD_QUERIER_TIMER) != L7_SUCCESS)
@@ -3302,7 +3308,7 @@ void mgmd_membership_query (mgmd_info_t *mgmd_info, L7_inet_addr_t group,
       MGMD_DEBUG_ADDR (MGMD_DEBUG_QUERY, "Found group ", &(mgmd_group->group));
 
       newTime = ((lastMemQueryCount * max_resp_time) );
-      if (mgmdUtilAppTimerLower(mgmdCB, L7_NULL, (void*)mgmd_group->grp_timer_handle,
+      if (mgmdUtilAppTimerLower(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(mgmd_group->grp_timer_handle),
                                 &mgmd_group->groupTimer, newTime, L7_MGMD_GRP_TIMER)
                                 != L7_SUCCESS)
       {
@@ -4035,7 +4041,7 @@ static void mgmd_timeout_groups_event_handler (void *param)
   mgmd_info_t  *mgmd_info;
   mgmd_group_t *mgmd_group = L7_NULLPTR;
 
-  L7_int32      handle = (L7_int32)param;
+  L7_uint64 handle = PTR_TO_UINT64(param);
   mgmd_group_timer_data_t *timerData;
   L7_uint32             proxy_status;
 
@@ -4224,7 +4230,7 @@ static void mgmd_timeout_sources_event_handler(void *param)
   L7_uint32             rtrIfNum;
   mgmd_info_t          *mgmd_info;
   mgmd_group_t         *mgmd_group = L7_NULLPTR;
-  L7_int32      handle = (L7_int32)param;
+  L7_uint64             handle = PTR_TO_UINT64(param);
   mgmd_source_timer_data_t *timerData;
   L7_uint32             proxy_status;
 
@@ -4353,7 +4359,7 @@ static void mgmd_querier_timeout_event_handler(void *param)
   L7_uint32      timeLeft;
   L7_uchar8      inetAddrStr[IPV6_DISP_ADDR_LEN];
   L7_uint32      queryInterval;
-  L7_int32      handle = (L7_int32)param;
+  L7_uint64      handle = PTR_TO_UINT64(param);
 
   MGMD_DEBUG (MGMD_DEBUG_APIS, " Entered");
 
@@ -4410,7 +4416,7 @@ static void mgmd_querier_timeout_event_handler(void *param)
   mgmd_info->querierQueryInterval = 0; /* when the router itself is querier, reset it
                                           so that the default value is used */
 
-  if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)mgmd_info->mgmd_query_timer_handle,
+  if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(mgmd_info->mgmd_query_timer_handle),
                           &mgmd_info->mgmd_query_timer,
                           queryInterval, L7_MGMD_QUERY_TIMER) != L7_SUCCESS)
   {
@@ -4446,7 +4452,7 @@ static void mgmd_query_timeout_event_handler(void *param)
   L7_uint32    startupQueryCount;
   L7_uint32    startupQueryInterval;
   L7_uint32    queryInterval;
-  L7_int32      handle = (L7_int32)param;
+  L7_uint64    handle = PTR_TO_UINT64(param);
 
   MGMD_DEBUG (MGMD_DEBUG_APIS, " Entered");
 
@@ -4483,7 +4489,7 @@ static void mgmd_query_timeout_event_handler(void *param)
     {
       queryInterval = mgmd_info->intfConfig.queryInterval;
 
-      if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)mgmd_info->mgmd_query_timer_handle,
+      if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(mgmd_info->mgmd_query_timer_handle),
                               &mgmd_info->mgmd_query_timer,
                               queryInterval, L7_MGMD_QUERY_TIMER) != L7_SUCCESS)
       {
@@ -4496,7 +4502,7 @@ static void mgmd_query_timeout_event_handler(void *param)
     else if (mgmd_info->mgmd_query_count < startupQueryCount)
     {
       startupQueryInterval = mgmd_info->intfConfig.startupQueryInterval;
-      if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)mgmd_info->mgmd_query_timer_handle,
+      if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(mgmd_info->mgmd_query_timer_handle),
                               &mgmd_info->mgmd_query_timer,
                               startupQueryInterval, L7_MGMD_QUERY_TIMER) != L7_SUCCESS)
       {
@@ -4813,7 +4819,7 @@ static L7_RC_t mgmd_router_interface(mgmd_cb_t *mgmdCB, L7_uint32 rtrIntf, L7_ui
 
     if (mgmd_info->mgmd_query_count < startupQueryCount)
     {
-      if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)mgmd_info->mgmd_query_timer_handle,
+      if (mgmdUtilAppTimerSet(mgmdCB, L7_NULL, (void*)UINT_TO_PTR(mgmd_info->mgmd_query_timer_handle),
                               &mgmd_info->mgmd_query_timer,
                               MGMD_STARTUP_QUERY_DELAY, L7_MGMD_QUERY_TIMER) != L7_SUCCESS)
       {
@@ -4924,7 +4930,7 @@ L7_RC_t mgmd_interface_version_set(mgmd_cb_t  *mgmdCB,
 *********************************************************************/
 static void mgmd_v1host_timeout_event_handler(void *param)
 {
-  L7_int32      handle = (L7_int32)param;
+  L7_uint64 handle = PTR_TO_UINT64(param);
   mgmd_group_t *mgmd_group;
 
   MGMD_DEBUG (MGMD_DEBUG_TIMERS,"Entered ");
@@ -4961,8 +4967,7 @@ static void mgmd_v1host_timeout_event_handler(void *param)
 *********************************************************************/
 static void mgmd_v2host_timeout_event_handler(void *param)
 {
-
-  L7_int32      handle = (L7_int32)param;
+  L7_uint64 handle = PTR_TO_UINT64(param);
   mgmd_group_t *mgmd_group;
 
   MGMD_DEBUG (MGMD_DEBUG_TIMERS,"Entered ");
@@ -5273,7 +5278,7 @@ L7_RC_t  mgmd_start_timer(mgmd_cb_t *mgmdCB,void *data, L7_int32 timerType,  L7_
 * @end
 *********************************************************************/
 
-L7_RC_t  mgmdUtilAppTimerHandleDelete(mgmd_cb_t *mgmdCB,L7_APP_TMR_HNDL_t *timer, L7_uint32 *handle)
+L7_RC_t  mgmdUtilAppTimerHandleDelete(mgmd_cb_t *mgmdCB,L7_APP_TMR_HNDL_t *timer, L7_uint64 *handle)
 {
   MGMD_DEBUG (MGMD_DEBUG_APIS, " Entered, timer = %d", timer);
 
@@ -5634,7 +5639,8 @@ L7_RC_t mgmdMRPGroupInfoGet(mgmd_cb_t *mgmdCB, L7_uint32 *pRtrIfNum)
 void mgmd_mrp_timeout_handler(void *param)
 {
   mgmd_cb_t   *mgmdCB ;
-  L7_uint32    handle = (L7_uint32)param, timeLeft = 0;
+  L7_uint64    handle = PTR_TO_UINT64(param);
+  L7_uint32    timeLeft = 0;
   mgmd_group_t dummyGroup, *mgmdGroup;
 
   mgmdCB = (void*)handleListNodeRetrieve(handle);

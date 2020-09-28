@@ -105,7 +105,7 @@ typedef struct mgmdMapGblVars_s
      mgmdMapMsgQueue or mgmdMapPktQueue or Apptimer Queue. The processing task waits
      on this semaphore before reading from the queues. */
   void              *mgmdMapMsgQSema;
-  L7_int32           mgmdMapTaskId;
+  L7_uint64          mgmdMapTaskId;
   mgmdCnfgrState_t   mgmdCnfgrState;
   L7_BOOL            warmRestart; /* L7_TRUE if last restart was a warm restart */
 } mgmdMapGblVars_t;
@@ -127,7 +127,7 @@ typedef struct mgmdMapCB_s
   osapiTimerDescr_t *mgmdMapStartupTimer;
   MCAST_CB_HNDL_t   cbHandle;
   MCAST_CB_HNDL_t   proxyCbHandle;
-  L7_uint32         mgmdHeapId;
+  L7_uint64         mgmdHeapId;
   mgmdMapGblVars_t *gblVars;
 } mgmdMapCB_t;
 

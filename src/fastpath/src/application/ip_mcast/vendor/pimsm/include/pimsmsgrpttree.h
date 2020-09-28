@@ -38,29 +38,29 @@ typedef struct pimsmSGRptEntry_s
   L7_inet_addr_t  pimsmSGRptGrpAddress;
   L7_inet_addr_t  pimsmSGRptSrcAddress;
   L7_uint32     pimsmSGRptCreateTime;
-  pimsmUpStrmSGRptStates_t pimsmSGRptUpstreamPruneInitState; 
+  pimsmUpStrmSGRptStates_t  pimsmSGRptUpstreamPruneInitState; 
       /* used to initialize pimsmSGRptUpstreamPruneState */
-  pimsmUpStrmSGRptStates_t pimsmSGRptUpstreamPruneState; 
-  L7_APP_TMR_HNDL_t   pimsmSGRptUpstreamOverrideTimer;
-  L7_uint32   pimsmSGRptUpstreamOverrideTimerHandle;
-  pimsmTimerData_t pimsmSGRptUpstreamOverrideTimerParam; 
-  L7_uint32   pimsmSGRptRPFIfIndex; /* = RPF_interface(RP(G))*/
-  L7_inet_addr_t    pimsmSGRptUpstreamNeighbor;   /*RPFDash */
+  pimsmUpStrmSGRptStates_t  pimsmSGRptUpstreamPruneState; 
+  L7_APP_TMR_HNDL_t         pimsmSGRptUpstreamOverrideTimer;
+  L7_uint64                 pimsmSGRptUpstreamOverrideTimerHandle;
+  pimsmTimerData_t          pimsmSGRptUpstreamOverrideTimerParam; 
+  L7_uint32                 pimsmSGRptRPFIfIndex; /* = RPF_interface(RP(G))*/
+  L7_inet_addr_t            pimsmSGRptUpstreamNeighbor;   /*RPFDash */
 } pimsmSGRptEntry_t;
 
 typedef struct pimsmSGRptIEntry_s
 {
   /*L7_ushort16         flags;*/
-  L7_uint32           pimsmSGRptIIfIndex;
-  L7_uint32     pimsmSGRptICreateTime;
-  L7_BOOL           pimsmSGRptILocalMembership;
+  L7_uint32                 pimsmSGRptIIfIndex;
+  L7_uint32                 pimsmSGRptICreateTime;
+  L7_BOOL                   pimsmSGRptILocalMembership;
   pimsmDnStrmPerIntfSGRptStates_t     pimsmSGRptIJoinPruneState;
-  L7_APP_TMR_HNDL_t       pimsmSGRptIPrunePendingTimer;
-  L7_uint32   pimsmSGRptIPrunePendingTimerHandle;   
-  pimsmTimerData_t pimsmSGRptIPrunePendingTimerParam; 
-  L7_APP_TMR_HNDL_t       pimsmSGRptIPruneExpiryTimer;
-  L7_uint32   pimsmSGRptIPruneExpiryTimerHandle;      
-  pimsmTimerData_t pimsmSGRptIPruneExpiryTimerParam;
+  L7_APP_TMR_HNDL_t         pimsmSGRptIPrunePendingTimer;
+  L7_uint64                 pimsmSGRptIPrunePendingTimerHandle;   
+  pimsmTimerData_t          pimsmSGRptIPrunePendingTimerParam; 
+  L7_APP_TMR_HNDL_t         pimsmSGRptIPruneExpiryTimer;
+  L7_uint64                 pimsmSGRptIPruneExpiryTimerHandle;
+  pimsmTimerData_t          pimsmSGRptIPruneExpiryTimerParam;
 } pimsmSGRptIEntry_t;
 typedef struct pimsmSGRptNode_s
 {

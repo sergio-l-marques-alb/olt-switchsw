@@ -303,7 +303,7 @@ L7_RC_t pimsmSGRptDelete(pimsmCB_t * pimsmCb,
 
   pimsmUtilAppTimerCancel (pimsmCb, &(pSGRptNodeDelete->pimsmSGRptEntry.pimsmSGRptUpstreamOverrideTimer));
   handleListNodeDelete(pimsmCb->handleList,
-                       &pSGRptNodeDelete->pimsmSGRptEntry.pimsmSGRptUpstreamOverrideTimerHandle);
+                       (L7_uint64 *) &pSGRptNodeDelete->pimsmSGRptEntry.pimsmSGRptUpstreamOverrideTimerHandle);
   pimsmSGRptMFCUpdate(pimsmCb, pSGRptNodeDelete, MFC_DELETE_ENTRY, L7_FALSE);
   pSGRptNode = avlDeleteEntry(&pimsmCb->pimsmSGRptTree,pSGRptNodeDelete);
   if(osapiSemaGive(pimsmCb->pimsmSGRptTree.semId) != L7_SUCCESS)
@@ -771,11 +771,11 @@ L7_RC_t pimsmSGRptIEntryDelete(pimsmCB_t        *pimsmCb,
   }   
   pimsmUtilAppTimerCancel (pimsmCb, &(pSGRptIEntry->pimsmSGRptIPrunePendingTimer));
   handleListNodeDelete(pimsmCb->handleList,
-                       &pSGRptIEntry->pimsmSGRptIPrunePendingTimerHandle);
+                       (L7_uint64 *) &pSGRptIEntry->pimsmSGRptIPrunePendingTimerHandle);
 
   pimsmUtilAppTimerCancel (pimsmCb, &(pSGRptIEntry->pimsmSGRptIPruneExpiryTimer));
   handleListNodeDelete(pimsmCb->handleList,
-                       &pSGRptIEntry->pimsmSGRptIPruneExpiryTimerHandle);
+                       (L7_uint64 *) &pSGRptIEntry->pimsmSGRptIPruneExpiryTimerHandle);
 
   PIMSM_FREE (pimsmCb->family, (void*) pSGRptIEntry);
   pSGRptNode->pimsmSGRptIEntry[rtrIfNum] = L7_NULLPTR;
@@ -811,7 +811,7 @@ L7_RC_t pimsmSGRptTreePurge(pimsmCB_t * pimsmCb)
     pSGRptEntry = &pSGRptNode->pimsmSGRptEntry;  
     pimsmUtilAppTimerCancel (pimsmCb, &(pSGRptEntry->pimsmSGRptUpstreamOverrideTimer));
     handleListNodeDelete(pimsmCb->handleList,
-                         &pSGRptEntry->pimsmSGRptUpstreamOverrideTimerHandle);
+                         (L7_uint64 *) &pSGRptEntry->pimsmSGRptUpstreamOverrideTimerHandle);
 
     for(rtrIfNum = 0; rtrIfNum < MCAST_MAX_INTERFACES; rtrIfNum++)
     {

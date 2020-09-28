@@ -176,7 +176,7 @@ L7_RC_t pimsmRpGrpAddrNodeDelete(L7_sll_member_t *pEntry)
   if (addrListNode->pimsmRpGrpExpireTimerHandle != L7_NULL)
   {
    handleListNodeDelete(addrListNode->pimsmCb->handleList,
-                       &addrListNode->pimsmRpGrpExpireTimerHandle);
+                        (L7_uint64 *) &addrListNode->pimsmRpGrpExpireTimerHandle);
    addrListNode->pimsmRpGrpExpireTimerHandle = L7_NULL;
   }
   /* remove it from the buffer pool */
@@ -1732,7 +1732,7 @@ L7_RC_t pimsmRpCandRpAdvCreate(pimsmCB_t *pimsmCb, L7_uint32 rpHoldTime)
 static
 void pimsmRpGrpMappingTimerExpiresHandler(void *pParam)
 {
-  L7_int32                 handle = (L7_int32)pParam;
+  L7_uint64 handle = PTR_TO_UINT64(pParam);
   pimsmAddrList_t         *pAddrListNode = L7_NULLPTR;
   pimsmCandRpConfigInfo_t  rpConfigInfo;
   pimsmRpGrpNode_t  *pRpGrpNode;
@@ -2224,7 +2224,7 @@ void pimsmRprGrpMappingExpireTimerSet(pimsmCB_t     *pimsmCb,
     if (rc == L7_SUCCESS)
     {
       if (pimsmUtilAppTimerSet (pimsmCb, pimsmRpGrpMappingTimerExpiresHandler,
-                                (void*)pAddrGrpNode->pimsmRpGrpExpireTimerHandle,
+                                UINT_TO_PTR(pAddrGrpNode->pimsmRpGrpExpireTimerHandle),
                                 timeout,
                                 &(pAddrGrpNode->pimsmRpGrpExpiryTimer),
                                 "RPG-ET")
@@ -2861,7 +2861,7 @@ void pimsmRpGrpMappingPurge(pimsmCB_t *pimsmCb)
     {
       pimsmUtilAppTimerCancel (pimsmCb, &(pAddrListNode->pimsmRpGrpExpiryTimer));
       handleListNodeDelete(pimsmCb->handleList,
-                           &pAddrListNode->pimsmRpGrpExpireTimerHandle);
+                           (L7_uint64 *) &pAddrListNode->pimsmRpGrpExpireTimerHandle);
       pAddrListNodeDelete = pAddrListNode;
       pAddrListNode = (pimsmAddrList_t*)SLLNextGet(&(pRpGrpNode->pimsmGrpList),
                                         (L7_sll_member_t*)pAddrListNode);

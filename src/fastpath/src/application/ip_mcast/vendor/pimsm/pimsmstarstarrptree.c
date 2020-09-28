@@ -267,7 +267,7 @@ L7_RC_t pimsmStarStarRpDelete(pimsmCB_t             *pimsmCb,
                &pStarStarRpNode->pimsmStarStarRpEntry.pimsmStarStarRpRPAddress);   
   pimsmUtilAppTimerCancel (pimsmCb, &(pStarStarRpNode->pimsmStarStarRpEntry.pimsmStarStarRpUpstreamJoinTimer));
   handleListNodeDelete(pimsmCb->handleList,
-  &pStarStarRpNode->pimsmStarStarRpEntry.pimsmStarStarRpUpstreamJoinTimerHandle);
+                       (L7_uint64 *) &pStarStarRpNode->pimsmStarStarRpEntry.pimsmStarStarRpUpstreamJoinTimerHandle);
 
   for(rtrIfNum = 0; rtrIfNum < MCAST_MAX_INTERFACES; rtrIfNum++)
   {
@@ -766,9 +766,9 @@ L7_RC_t pimsmStarStarRpIEntryDelete(pimsmCB_t             *pimsmCb,
   pimsmUtilAppTimerCancel (pimsmCb, &(pStarStarRpIEntry->pimsmStarStarRpIPrunePendingTimer));
   pimsmUtilAppTimerCancel (pimsmCb, &(pStarStarRpIEntry->pimsmStarStarRpIJoinExpiryTimer));
   handleListNodeDelete(pimsmCb->handleList,
-                       &pStarStarRpIEntry->pimsmStarStarRpIPrunePendingTimerHandle);     
+                       (L7_uint64 *) &pStarStarRpIEntry->pimsmStarStarRpIPrunePendingTimerHandle);     
   handleListNodeDelete(pimsmCb->handleList,
-                       &pStarStarRpIEntry->pimsmStarStarRpIJoinExpiryTimerHandle);     
+                       (L7_uint64 *) &pStarStarRpIEntry->pimsmStarStarRpIJoinExpiryTimerHandle);     
 
   PIMSM_TRACE(PIMSM_DEBUG_BIT_STAR_STAR_RP, PIMSM_TRACE_DEBUG,"Address of pointer to be freed is %p\r\n",
               pStarStarRpIEntry);

@@ -495,7 +495,7 @@ pimdmCtrlBlockMembersShow (pimdmCB_t* pimdmCB)
   PIMDM_DEBUG_PRINTF ("    operMode           - %s.\n", ((pimdmCB->operMode == L7_TRUE) ? ("Operational") : ("Not Operational")));
   PIMDM_DEBUG_PRINTF ("    sockFD             - %d.\n", pimdmCB->sockFD);
   PIMDM_DEBUG_PRINTF ("    allRoutersAddr     - %s.\n", inetAddrPrint (&(pimdmCB->allRoutersAddr), addr));
-  PIMDM_DEBUG_PRINTF ("    heapID             - 0x%x.\n", mcastMapHeapIdGet (pimdmCB->addrFamily));
+  PIMDM_DEBUG_PRINTF ("    heapID             - 0x%llx.\n", mcastMapHeapIdGet (pimdmCB->addrFamily));
   PIMDM_DEBUG_PRINTF ("Interface/Neighbor related Information ....\n");
   PIMDM_DEBUG_PRINTF ("    intfInfo           - 0x%x.\n", pimdmCB->intfInfo);
   PIMDM_DEBUG_PRINTF ("    nbrBitmap          - ");

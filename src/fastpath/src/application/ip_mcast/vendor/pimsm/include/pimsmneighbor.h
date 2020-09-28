@@ -65,15 +65,15 @@ typedef struct pimsmNeighborAddrList_s
 typedef struct pimsmNeighborEntry_s
 {
   L7_sll_member_t * next;
-  L7_uint32   pimsmNeighborIfIndex;
+  L7_uint32     pimsmNeighborIfIndex;
   pimsmNeighborAddrList_t pimsmNeighborAddrList;
   /*L7_uint32      pimsmNeighborUpTime;*/
-  L7_uint32   pimsmNeighborCreateTime;
+  L7_uint32     pimsmNeighborCreateTime;
   L7_APP_TMR_HNDL_t pimsmNeighborExpiryTimer;
-  L7_uint32 pimsmNeighborExpiryTimerHandle;
+  L7_uint64     pimsmNeighborExpiryTimerHandle;
   pimsmTimerData_t  pimsmNeighborExpiryTimerParam;
-  L7_uint32   pimsmNeighborGenerationIDValue;
-  L7_uint32   pimsmNeighborDRPriority;    
+  L7_uint32     pimsmNeighborGenerationIDValue;
+  L7_uint32     pimsmNeighborDRPriority;    
   pimsmJPMsgStoreBuff_t pimsmBuildJPMsg; /* A structure for fairly
                      * complicated Join/Prune
                      * message construction.

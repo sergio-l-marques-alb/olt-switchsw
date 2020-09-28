@@ -218,7 +218,7 @@ typedef struct _dvmrp_interface_t
   void *global; 
   L7_int32 igmp_querier;    
 
-  L7_uint32 probePeriodicTimerHandle;
+  L7_uint64 probePeriodicTimerHandle;
   dvmrp_timer_event_t timerBlock;
 } dvmrp_interface_t;
 
@@ -238,7 +238,7 @@ typedef struct _dvmrp_neighbor_t
   L7_APP_TMR_HNDL_t timeout;/* neighbor timeout */
   L7_int32 state;
 
-  L7_uint32 nbrTimeoutHandle;
+  L7_uint64 nbrTimeoutHandle;
 } dvmrp_neighbor_t;
 
 typedef struct _desg_fwd_t
@@ -294,9 +294,9 @@ typedef struct dvmrp_cache_entry_s
   L7_APP_TMR_HNDL_t prune_retry_timer; /* Prune retry timer  */
   L7_APP_TMR_HNDL_t cacheRemove_timer; /* cacheRemove timer  */
 
-  L7_uint32  cacheRemoveHandle;
-  L7_uint32  pruneRetransmitimerHandle;
-  L7_uint32  graftTimeoutHandle;
+  L7_uint64  cacheRemoveHandle;
+  L7_uint64  pruneRetransmitimerHandle;
+  L7_uint64  graftTimeoutHandle;
   /* AVL TREE requires this as last */  
   void *avlData;
 } dvmrp_cache_entry_t;
@@ -409,10 +409,10 @@ typedef struct _dvmrp_t
   L7_BOOL          dvmrpOperFlag; /* DVMRP Current operational flag */
   handle_list_t    *handle_list;     /* create the handle list */
 
-  L7_uint32  updateTimerHandle;
-  L7_uint32  routesTimeoutHandle;
-  L7_uint32  pruneExpireHandle;
-  L7_uint32  flashrUpdateTimerHandle;
+  L7_uint64  updateTimerHandle;
+  L7_uint64  routesTimeoutHandle;
+  L7_uint64  pruneExpireHandle;
+  L7_uint64  flashrUpdateTimerHandle;
 } dvmrp_t;
 
 typedef struct _dvmrp_prune_t 

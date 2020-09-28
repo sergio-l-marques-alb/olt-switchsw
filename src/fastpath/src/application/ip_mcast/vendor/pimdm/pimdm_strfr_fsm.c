@@ -199,7 +199,7 @@ void pimdmStateRefreshTimerExpiryHandler (void *mrtEntryUpstrmTmrHndlParam)
   PIMDM_TRACE (PIMDM_DEBUG_FSM_STRFR, "Entry");
 
   if ((mrtEntry  = (pimdmMrtEntry_t*)
-                   handleListNodeRetrieve ((L7_uint32)mrtEntryUpstrmTmrHndlParam))
+                   handleListNodeRetrieve (PTR_TO_UINT64(mrtEntryUpstrmTmrHndlParam)))
                 == L7_NULLPTR)
   {
     PIMDM_TRACE (PIMDM_DEBUG_FAILURE, "Handle Node retrieval Failed");
@@ -247,7 +247,7 @@ void pimdmSourceActiveTimerExpiryHandler (void *mrtEntryUpstrmTmrHndlParam)
   PIMDM_TRACE (PIMDM_DEBUG_FSM_STRFR, "Entry");
 
   if ((mrtEntry  = (pimdmMrtEntry_t*)
-                   handleListNodeRetrieve ((L7_uint32)mrtEntryUpstrmTmrHndlParam))
+                   handleListNodeRetrieve (PTR_TO_UINT64(mrtEntryUpstrmTmrHndlParam)))
                 == L7_NULLPTR)
   {
     PIMDM_TRACE (PIMDM_DEBUG_FAILURE, "Handle Node retrieval Failed");
@@ -287,7 +287,7 @@ void pimdmSourceActiveTimerExpiryHandler (void *mrtEntryUpstrmTmrHndlParam)
 
     if (pimdmUtilAppTimerSet (mrtEntry->pimdmCB,
                               pimdmSourceActiveTimerExpiryHandler,
-                              (void*) mrtEntry->mrtEntryUpstrmTmrHndlParam,
+                              UINT_TO_PTR(mrtEntry->mrtEntryUpstrmTmrHndlParam),
                               PIMDM_DEFAULT_SOURCE_LIFETIME,
                               errMsgBuf, sucMsgBuf,
                               &(mrtEntry->origStateInfo.srcActiveTimer),
@@ -347,7 +347,7 @@ static L7_RC_t pimdmStateRfrFsmActionSetSRTSetSAT (pimdmMrtEntry_t* mrtEntry,
 
   if (pimdmUtilAppTimerSet (mrtEntry->pimdmCB,
                             pimdmStateRefreshTimerExpiryHandler,
-                            (void*) mrtEntry->mrtEntryUpstrmTmrHndlParam,
+                            UINT_TO_PTR(mrtEntry->mrtEntryUpstrmTmrHndlParam),
                             PIMDM_DEFAULT_REFRESH_INTERVAL,
                             errMsgBuf, sucMsgBuf,
                             &(mrtEntry->origStateInfo.stateRfrTimer),
@@ -370,7 +370,7 @@ static L7_RC_t pimdmStateRfrFsmActionSetSRTSetSAT (pimdmMrtEntry_t* mrtEntry,
 
   if (pimdmUtilAppTimerSet (mrtEntry->pimdmCB,
                             pimdmSourceActiveTimerExpiryHandler,
-                            (void*) mrtEntry->mrtEntryUpstrmTmrHndlParam,
+                            UINT_TO_PTR(mrtEntry->mrtEntryUpstrmTmrHndlParam),
                             PIMDM_DEFAULT_SOURCE_LIFETIME,
                             errMsgBuf, sucMsgBuf,
                             &(mrtEntry->origStateInfo.srcActiveTimer),
@@ -430,7 +430,7 @@ static L7_RC_t pimdmStateRfrFsmActionResetSAT (pimdmMrtEntry_t* mrtEntry,
 
   if (pimdmUtilAppTimerSet (mrtEntry->pimdmCB,
                             pimdmSourceActiveTimerExpiryHandler,
-                            (void*) mrtEntry->mrtEntryUpstrmTmrHndlParam,
+                            UINT_TO_PTR(mrtEntry->mrtEntryUpstrmTmrHndlParam),
                             PIMDM_DEFAULT_SOURCE_LIFETIME,
                             errMsgBuf, sucMsgBuf,
                             &(mrtEntry->origStateInfo.srcActiveTimer),
@@ -509,7 +509,7 @@ static L7_RC_t pimdmStateRfrFsmActionSendStateRefreshResetSRT (
                  inetAddrPrint(srcAddr,src), inetAddrPrint(grpAddr,grp));
 
   if (pimdmUtilAppTimerSet (pimdmCB, pimdmStateRefreshTimerExpiryHandler,
-                            (void*) mrtEntry->mrtEntryUpstrmTmrHndlParam,
+                            UINT_TO_PTR(mrtEntry->mrtEntryUpstrmTmrHndlParam),
                             PIMDM_DEFAULT_REFRESH_INTERVAL,
                             errMsgBuf, sucMsgBuf,
                             &(mrtEntry->origStateInfo.stateRfrTimer),
@@ -710,7 +710,7 @@ static L7_RC_t pimdmStateRfrFsmActionReplayStateRefreshResetSRT (
                  inetAddrPrint(srcAddr,src), inetAddrPrint(grpAddr,grp));
 
   if (pimdmUtilAppTimerSet (pimdmCB, pimdmStateRefreshTimerExpiryHandler,
-                            (void*) mrtEntry->mrtEntryUpstrmTmrHndlParam,
+                            UINT_TO_PTR(mrtEntry->mrtEntryUpstrmTmrHndlParam),
                             PIMDM_DEFAULT_REFRESH_INTERVAL,
                             errMsgBuf, sucMsgBuf,
                             &(mrtEntry->origStateInfo.stateRfrTimer),

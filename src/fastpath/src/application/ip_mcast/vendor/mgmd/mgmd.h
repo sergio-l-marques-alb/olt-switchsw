@@ -184,7 +184,7 @@ typedef struct mgmd_query_req_s
   L7_sll_member_t  *next;
   L7_inet_addr_t    group;
   L7_APP_TMR_HNDL_t timer;
-  L7_uint32         query_timer_handle; /* to safeguard timeout functions */    
+  L7_uint64         query_timer_handle; /* to safeguard timeout functions */    
   L7_int32          count;
   L7_inet_addr_t    *qSrcs[MGMD_MAX_QUERY_SOURCES];
   L7_int32          numSrcs;
@@ -227,13 +227,13 @@ typedef struct mgmd_info_s
   flags_t             flags;              
   L7_uint32           ifIndex;            /* Router interface index */
   L7_APP_TMR_HNDL_t   mgmd_query_timer;
-  L7_uint32           mgmd_query_timer_handle; /* to safeguard timeout functions */    
+  L7_uint64           mgmd_query_timer_handle; /* to safeguard timeout functions */    
   int                 mgmd_query_count;
   L7_inet_addr_t      mgmd_querierIP;
   L7_uint32           querierQueryInterval;  /* Stores querier's query interval when existing 
                                                 router is non-querier */
   L7_APP_TMR_HNDL_t   mgmd_querier_timer;
-  L7_uint32           mgmd_querier_timer_handle; /* to safeguard timeout functions */    
+  L7_uint64           mgmd_querier_timer_handle; /* to safeguard timeout functions */    
   L7_sll_t            ll_query_reqs;      /* Nodes are of the type mgmd_query_req_t */ 
   int                 numOfJoins;         /* The number of times a group membership has been added on this interface*/
   int                 numOfGroups;        /* The current number of groups registered for this interface. */
@@ -333,7 +333,7 @@ typedef struct mgmd_cb_s
      it will again infomred latter after 5 secs.
    */  
   L7_APP_TMR_HNDL_t      mgmd_mrp_timer;                  
-  L7_uint32              mgmd_mrp_timer_handle; /* to safeguard timeout functions */    
+  L7_uint64              mgmd_mrp_timer_handle; /* to safeguard timeout functions */    
   L7_APP_TMR_CTRL_BLK_t  timerHandle;     /* MGMD App Timer Control Block */
   handle_list_t          *handle_list;
   void                   *handleListMem;
@@ -373,10 +373,10 @@ typedef struct mgmd_group_s
   L7_APP_TMR_HNDL_t     v2HostTimer;
   L7_int32              v2HostPresentFlag;
   L7_APP_TMR_HNDL_t     groupTimer;    /* group timeout */  
-  L7_uint32             grp_timer_handle; /* to safeguard timeout functions */
+  L7_uint64             grp_timer_handle; /* to safeguard timeout functions */
 
-  L7_uint32             v2host_timer_handle; /* to safeguard timeout functions */  
-  L7_uint32             v1host_timer_handle; /* to safeguard timeout functions */  
+  L7_uint64             v2host_timer_handle; /* to safeguard timeout functions */  
+  L7_uint64             v1host_timer_handle; /* to safeguard timeout functions */  
   mgmd_group_timer_data_t  timerData;
   mgmd_timer_event_info_t  *grpQueryData;        /* pointer for timer data for grp-specific query*/
   mgmd_timer_event_info_t  *grpSrcQueryData;    /* pointer for timer data for grp-n-src-specific query*/  
@@ -395,7 +395,7 @@ typedef struct mgmd_source_record_s
   time_t              sourceCtime;
   L7_int32            sourceInterval;
   L7_APP_TMR_HNDL_t   sourceTimer;    /* source  timeout */  
-  L7_uint32           src_timer_handle; /* to safeguard timeout functions */
+  L7_uint64           src_timer_handle; /* to safeguard timeout functions */
   void                *mgmdCB;        /* mgmd control block stored to retrieve info 
                                          while destroying the node itself */
   mgmd_source_timer_data_t timerData;

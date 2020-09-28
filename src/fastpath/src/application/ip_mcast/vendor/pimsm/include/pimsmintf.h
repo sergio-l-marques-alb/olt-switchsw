@@ -80,9 +80,9 @@ typedef struct pimsmInterfaceEntry_s
   L7_BOOL       pimsmLANPruneDelayPresent;
   L7_uint32     pimsmPropagationDelay;
   L7_uint32     pimsmOverrideInterval;
-  L7_APP_TMR_HNDL_t  pimsmHelloTimer;
-  pimsmTimerData_t   pimsmHelloTimerParams;
-  L7_uint32  pimsmHelloTimerHandle;   
+  L7_APP_TMR_HNDL_t pimsmHelloTimer;
+  pimsmTimerData_t  pimsmHelloTimerParams;
+  L7_uint64         pimsmHelloTimerHandle;   
 }pimsmInterfaceEntry_t;
 
 

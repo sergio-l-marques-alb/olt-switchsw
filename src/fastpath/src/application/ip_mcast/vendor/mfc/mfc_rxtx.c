@@ -766,7 +766,7 @@ static L7_RC_t mfcIpPktDtlTransmit(L7_uchar8 family, L7_uint32 rtrIfNum, struct 
     MFC_DEBUG(MFC_DEBUG_FAILURES, "Wrong family type");
     if ((pBuf->rtm_bufhandle) != L7_NULLPTR)
     {
-      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)(pBuf->rtm_bufhandle));
+      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(pBuf->rtm_bufhandle));
     }
     rtm_freem(pBuf);
     return L7_FAILURE;
@@ -787,7 +787,7 @@ static L7_RC_t mfcIpPktDtlTransmit(L7_uchar8 family, L7_uint32 rtrIfNum, struct 
               rtrIfNum);
     if ((pBuf->rtm_bufhandle) != L7_NULLPTR)
     {
-      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)(pBuf->rtm_bufhandle));
+      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(pBuf->rtm_bufhandle));
     }
     rtm_freem(pBuf);
     return L7_FAILURE;
@@ -795,7 +795,7 @@ static L7_RC_t mfcIpPktDtlTransmit(L7_uchar8 family, L7_uint32 rtrIfNum, struct 
   }
   if ((pBuf->rtm_bufhandle) != L7_NULLPTR)
   {
-    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)(pBuf->rtm_bufhandle));
+    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(pBuf->rtm_bufhandle));
   }
   rtm_freem(pBuf);
   return L7_SUCCESS;
@@ -1103,7 +1103,7 @@ L7_BOOL mfcIpv4PktRecv(struct ip *pIp,
   /* Verify that MAC address in the packet is correctly formatted
      with respect to the destination multicast IP address.
      If the packet is malformed, then discard it. */
-  SYSAPI_NET_MBUF_GET_DATASTART((L7_netBufHandle)pBuf->rtm_bufhandle, pData);
+  SYSAPI_NET_MBUF_GET_DATASTART((L7_netBufHandle)PTR_TO_UINT64(pBuf->rtm_bufhandle), pData);
 
   if(mcastMacAddressCheck(L7_AF_INET,((L7_uchar8 *)(&(pIp->ip_dst))),pData)== L7_FAILURE)
   {
@@ -1140,7 +1140,7 @@ L7_BOOL mfcIpv4PktRecv(struct ip *pIp,
   sysnetPduInfo.intIfNum = pBuf->rtm_pkthdr.rcvif->if_index;
   if (SYSNET_PDU_INTERCEPT(AF_INET,
                            SYSNET_INET_MFORWARD_IN,
-                           (L7_netBufHandle)(pBuf->rtm_bufhandle),
+                           (L7_netBufHandle)PTR_TO_UINT64(pBuf->rtm_bufhandle),
                            &sysnetPduInfo,
                            L7_NULLPTR,
                            &hookVerdict) == L7_TRUE)

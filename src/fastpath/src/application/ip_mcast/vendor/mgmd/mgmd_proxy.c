@@ -2463,7 +2463,7 @@ void mgmd_proxy_v3membership_query_process (mgmd_cb_t *mgmdCB, L7_inet_addr_t gr
           grpTime = IGMP_PROXY_GROUP_TIMER;
         }
         if (mgmdProxyUtilAppTimerSet(mgmdCB, L7_NULL, 
-                                     (void*)mgmd_host_group->grp_rsp_timer_handle,
+                                     (void*) UINT_TO_PTR(mgmd_host_group->grp_rsp_timer_handle),
                                      &mgmd_host_group->grp_rsp_timer,
                                      grpTime, 
                                      L7_MGMD_GRP_RSP_TIMER) != L7_SUCCESS)
@@ -2504,7 +2504,7 @@ void mgmd_proxy_v3membership_query_process (mgmd_cb_t *mgmdCB, L7_inet_addr_t gr
           }
         } /*End-of-FOR-Loop*/
       }
-      if (mgmdProxyUtilAppTimerLower(mgmdCB, L7_NULL, (void *)mgmd_host_group->grp_rsp_timer_handle,
+      if (mgmdProxyUtilAppTimerLower(mgmdCB, L7_NULL, (void *)UINT_TO_PTR(mgmd_host_group->grp_rsp_timer_handle),
                                      &mgmd_host_group->grp_rsp_timer,selectedDelay, 
                                      L7_MGMD_GRP_RSP_TIMER) != L7_SUCCESS)
       {
@@ -2781,12 +2781,12 @@ void mgmd_proxy_membership_query_process(mgmd_cb_t *mgmdCB, L7_inet_addr_t group
       if (mgmd_host_group != L7_NULL)
       {
         /* reset the group response timer */
-        if (mgmdProxyUtilAppTimerLower(mgmdCB, L7_NULL, (void *)mgmd_host_group->grp_rsp_timer_handle,
+        if (mgmdProxyUtilAppTimerLower(mgmdCB, L7_NULL, (void *)UINT_TO_PTR(mgmd_host_group->grp_rsp_timer_handle),
                                        &mgmd_host_group->grp_rsp_timer,selectedDelay, 
                                        L7_MGMD_GRP_RSP_TIMER) != L7_SUCCESS)
         {
           if (mgmdProxyUtilAppTimerSet(mgmdCB, L7_NULL, 
-                                     (void*)mgmd_host_group->grp_rsp_timer_handle,
+                                     (void*)UINT_TO_PTR(mgmd_host_group->grp_rsp_timer_handle),
                                      &mgmd_host_group->grp_rsp_timer,
                                      selectedDelay, 
                                      L7_MGMD_GRP_RSP_TIMER) != L7_SUCCESS)
@@ -4222,7 +4222,7 @@ static void mgmd_proxy_unsolicited_timer_schedule(mgmd_cb_t *mgmdCB,
     return;
   }
   if (mgmdProxyUtilAppTimerSet(mgmdCB, L7_NULL, 
-                               (void*)rreq->timer_handle,
+                               (void*)UINT_TO_PTR(rreq->timer_handle),
                                &rreq->timer,
                                unsolicitedReportInterval, 
                                L7_MGMD_UNSOLICITED_REPORT_TIMER) != L7_SUCCESS)
@@ -4843,7 +4843,7 @@ void mgmd_proxy_group_response_timer_expiry_handler(void *param)
   L7_BOOL                    grpSrcReport = L7_FALSE, srcTmrFlag;
   L7_inet_addr_t            *sourceSet[MGMD_MAX_QUERY_SOURCES];
   mgmd_host_info_t          *mgmd_host_info; 
-  L7_int32      handle = (L7_int32)param; 
+  L7_uint64                  handle = PTR_TO_UINT64(param);
 
   MGMD_PROXY_DEBUG(MGMD_PROXY_DEBUG_APIS," Entered , handle = %d", handle);
 
@@ -4944,8 +4944,8 @@ void mgmd_proxy_unsolicited_timer_expiry_handler(void *param)
   mgmd_proxy_unsolicited_rpt_t *rreq = L7_NULL;
   mgmd_host_info_t             *mgmd_host_info;
   L7_uint32                     unsolicitedReportInterval;
-  L7_int32      handle = (L7_int32)param; 
-  L7_inet_addr_t              *srcList[MGMD_MAX_QUERY_SOURCES];
+  L7_uint64                     handle = PTR_TO_UINT64(param);
+  L7_inet_addr_t               *srcList[MGMD_MAX_QUERY_SOURCES];
 
   MGMD_PROXY_DEBUG(MGMD_PROXY_DEBUG_APIS," Entered ");
 
@@ -5021,7 +5021,7 @@ void mgmd_proxy_unsolicited_timer_expiry_handler(void *param)
   else
   {
     if (mgmdProxyUtilAppTimerSet(mgmdCB, L7_NULL, 
-                                 (void*)rreq->timer_handle,
+                                 (void*)UINT_TO_PTR(rreq->timer_handle),
                                  &rreq->timer,
                                  unsolicitedReportInterval, 
                                  L7_MGMD_UNSOLICITED_REPORT_TIMER) != L7_SUCCESS)
@@ -5070,7 +5070,7 @@ void mgmd_proxy_querier_update_event_send (mgmd_cb_t  *mgmdCB,
 * @end
 *********************************************************************/
 
-L7_RC_t  mgmdProxyUtilAppTimerHandleDelete(mgmd_cb_t *mgmdCB,L7_APP_TMR_HNDL_t *timer, L7_uint32 *handle)
+L7_RC_t  mgmdProxyUtilAppTimerHandleDelete(mgmd_cb_t *mgmdCB,L7_APP_TMR_HNDL_t *timer, L7_uint64 *handle)
 {
   MGMD_PROXY_DEBUG(MGMD_PROXY_DEBUG_APIS,"\n  Entered ");
   if (timer != L7_NULL && *timer != L7_NULLPTR)

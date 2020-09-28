@@ -54,7 +54,7 @@ L7_uint32 rtmMbufAllocFailed =0;
 struct rtmbuf *rtm_dup(struct rtmbuf *pBuf)
 {
   struct rtmbuf *pDupBuf = L7_NULLPTR;
-  L7_uint32     frameHdl;
+  L7_uint64     frameHdl;
   L7_uchar8     *bufferAddr = L7_NULLPTR;
   L7_uint32     bufferPoolId;
   L7_uint32     dataLen;
@@ -103,17 +103,17 @@ struct rtmbuf *rtm_dup(struct rtmbuf *pBuf)
 
   /* Copy the data from the old data frame over to the new one
      and assign it to the duplicate buffer */
-  pDupBuf->rtm_bufhandle = (void *)frameHdl;
-  SYSAPI_NET_MBUF_GET_DATASTART((L7_netBufHandle)(pDupBuf->rtm_bufhandle), pDataStart);
-  SYSAPI_NET_MBUF_GET_DATASTART((L7_netBufHandle)(pBuf->rtm_bufhandle), pOldDataStart);
-  SYSAPI_NET_MBUF_GET_DATALENGTH((L7_netBufHandle)(pBuf->rtm_bufhandle), dataLen);
+  pDupBuf->rtm_bufhandle = UINT_TO_PTR(frameHdl);
+  SYSAPI_NET_MBUF_GET_DATASTART((L7_netBufHandle)PTR_TO_UINT64(pDupBuf->rtm_bufhandle), pDataStart);
+  SYSAPI_NET_MBUF_GET_DATASTART((L7_netBufHandle)PTR_TO_UINT64(pBuf->rtm_bufhandle), pOldDataStart);
+  SYSAPI_NET_MBUF_GET_DATALENGTH((L7_netBufHandle)PTR_TO_UINT64(pBuf->rtm_bufhandle), dataLen);
   memcpy(pDataStart, pOldDataStart, dataLen);
-  SYSAPI_NET_MBUF_SET_DATALENGTH((L7_netBufHandle)(pDupBuf->rtm_bufhandle), dataLen);
+  SYSAPI_NET_MBUF_SET_DATALENGTH((L7_netBufHandle)PTR_TO_UINT64(pDupBuf->rtm_bufhandle), dataLen);
 
   /* If the packet is vlan tagged then it needs to be stripped for application to process.
      If the outgoing ports are tagged then the lower layer should tag the packets again */
-  if (sysNetDataStripVlanTag((L7_uint32)(pDupBuf->rtm_bufhandle)) == L7_SUCCESS)
-    SYSAPI_NET_MBUF_GET_DATASTART((L7_netBufHandle)(pDupBuf->rtm_bufhandle), pDataStart);
+  if (sysNetDataStripVlanTag(PTR_TO_UINT64(pDupBuf->rtm_bufhandle)) == L7_SUCCESS)
+    SYSAPI_NET_MBUF_GET_DATASTART((L7_netBufHandle)PTR_TO_UINT64(pDupBuf->rtm_bufhandle), pDataStart);
 
   /* Setup the data length and start and return to caller */
   pDupBuf->rtm_data = (caddr_t)(pDataStart + sysNetDataOffsetGet(pDataStart));

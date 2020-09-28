@@ -37,7 +37,7 @@ pimsmMapCB_t        *pimsmMapCB;
 
 pimsmDebugCfg_t pimsmDebugCfg;
 
-static void pimsmMapStartupTimerExpireCallback(L7_uint32 familyType, L7_uint32 arg2);
+static void pimsmMapStartupTimerExpireCallback(L7_uint64 familyType, L7_uint64 arg2);
 static void pimsmMapStartupTimerExpireProcess(pimsmMapCB_t *pimsmMapCbPtr);
 static void pimsmMapRtrStartupDoneProcess(pimsmMapCB_t *pimsmMapCbPtr);
 
@@ -1847,11 +1847,11 @@ void pimsmMapStartupTimerExpireProcess(pimsmMapCB_t *pimsmMapCbPtr)
   return;
 }
 
-void pimsmMapStartupTimerExpireCallback(L7_uint32 familyType, L7_uint32 arg2)
+void pimsmMapStartupTimerExpireCallback(L7_uint64 familyType, L7_uint64 arg2)
 {
   pimsmMapCB_t *pimsmMapCbPtr;
 
-  PIMSM_MAP_DEBUG (PIMSM_MAP_DEBUG_NSF, "Startup timer expired for familyType = %d", familyType);
+  PIMSM_MAP_DEBUG (PIMSM_MAP_DEBUG_NSF, "Startup timer expired for familyType = %d", (L7_uchar8) familyType);
 
   if (pimsmMapCtrlBlockGet((L7_uchar8) familyType, &pimsmMapCbPtr) != L7_SUCCESS)
   {

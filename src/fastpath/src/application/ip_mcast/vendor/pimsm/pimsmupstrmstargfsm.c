@@ -264,7 +264,7 @@ static L7_RC_t  pimsmUpStrmStarGJoinSend(pimsmCB_t * pimsmCb,
   inetCopy(&pTimerData->addr2, &pStarGNode->pimsmStarGEntry.pimsmStarGGrpAddress);
   pTimerData->pimsmCb = pimsmCb;
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmStarGUpstreamJoinTimerExpiresHandler,
-                            (void*)pStarGEntry->pimsmStarGUpstreamJoinTimerHandle,
+                            UINT_TO_PTR(pStarGEntry->pimsmStarGUpstreamJoinTimerHandle),
                             jpInterval,
                             &(pStarGEntry->pimsmStarGUpstreamJoinTimer),
                             "xG-JT")
@@ -406,7 +406,7 @@ static L7_RC_t  pimsmUpStrmStarGJoinTimerIncrease(pimsmCB_t * pimsmCb,
 
     pTimerData->pimsmCb = pimsmCb;
     if (pimsmUtilAppTimerSet (pimsmCb, pimsmStarGUpstreamJoinTimerExpiresHandler,
-                              (void*)pStarGEntry->pimsmStarGUpstreamJoinTimerHandle,
+                              UINT_TO_PTR(pStarGEntry->pimsmStarGUpstreamJoinTimerHandle),
                               joinSuppress,
                               &(pStarGEntry->pimsmStarGUpstreamJoinTimer),
                               "xG-JT2")
@@ -465,7 +465,7 @@ static L7_RC_t  pimsmUpStrmStarGJoinTimerDecrease(pimsmCB_t * pimsmCb,
     pTimerData->pimsmCb = pimsmCb;
 
     if (pimsmUtilAppTimerSet (pimsmCb, pimsmStarGUpstreamJoinTimerExpiresHandler,
-                              (void*)pStarGEntry->pimsmStarGUpstreamJoinTimerHandle,
+                              UINT_TO_PTR(pStarGEntry->pimsmStarGUpstreamJoinTimerHandle),
                               jpOverrideInterval,
                               &(pStarGEntry->pimsmStarGUpstreamJoinTimer),
                               "xG-JT3")
@@ -608,7 +608,7 @@ static L7_RC_t  pimsmUpStrmStarGJoinPruneSend(pimsmCB_t * pimsmCb,
 
   pTimerData->pimsmCb = pimsmCb;
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmStarGUpstreamJoinTimerExpiresHandler,
-                            (void*)pStarGEntry->pimsmStarGUpstreamJoinTimerHandle,
+                            UINT_TO_PTR(pStarGEntry->pimsmStarGUpstreamJoinTimerHandle),
                             jpInterval,
                             &(pStarGEntry->pimsmStarGUpstreamJoinTimer),
                             "xG-JT4")
@@ -659,9 +659,9 @@ static void pimsmStarGUpstreamJoinTimerExpiresHandler(void *pParam)
   pimsmUpStrmStarGEventInfo_t upStrmStarGEventInfo;
   pimsmStarGNode_t *pStarGNode;
   pimsmCB_t * pimsmCb;
-  L7_inet_addr_t *pGrpAddr;
-  L7_int32      handle = (L7_int32)pParam;
-  pimsmTimerData_t *pTimerData;
+  L7_inet_addr_t    *pGrpAddr;
+  L7_uint64         handle = PTR_TO_UINT64(pParam);
+  pimsmTimerData_t  *pTimerData;
 
   pTimerData = (pimsmTimerData_t*)handleListNodeRetrieve(handle);
   if (pTimerData  == L7_NULLPTR)

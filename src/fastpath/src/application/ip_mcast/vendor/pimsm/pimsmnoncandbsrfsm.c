@@ -172,7 +172,7 @@ L7_RC_t pimsmPerScopeZoneNonCandBSRExecute (pimsmCB_t * pimsmCb,
 ******************************************************************************/
 void pimsmBsrNonCandidateBootStrapTimerExpiresHandler(void *pParam)
 {
-  L7_int32      handle = (L7_int32)pParam;
+  L7_uint64 handle = PTR_TO_UINT64(pParam);
   pimsmBsrPerScopeZone_t  *bsr_node;
   pimsmPerScopeZoneNonCandBSREventInfo_t       nonCandEventInfo;
 
@@ -213,7 +213,7 @@ void pimsmBsrNonCandidateBootStrapTimerExpiresHandler(void *pParam)
 ******************************************************************************/
 void pimsmBsrNonCandidateScopeZoneTimerExpiresHandler(void *pParam)
 {
-  L7_int32      handle = (L7_int32)pParam;
+  L7_uint64 handle = PTR_TO_UINT64(pParam);
   pimsmBsrPerScopeZone_t  *bsr_node;
   pimsmPerScopeZoneNonCandBSREventInfo_t       nonCandEventInfo;
 
@@ -271,7 +271,7 @@ L7_RC_t pimsmPerScopeZoneNonCandBSRRpSetStoreBSMFwdTimersSet(pimsmCB_t * pimsmCb
 
   /* set the Bootstrap Timer */
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmBsrNonCandidateBootStrapTimerExpiresHandler,
-                            (void*)nonCandBsrEventInfo->pBsrNode->pimsmBSRTimerHandle,
+                            UINT_TO_PTR(nonCandBsrEventInfo->pBsrNode->pimsmBSRTimerHandle),
                             PIMSM_DEFAULT_BOOTSTRAP_TIMEOUT,
                             &(nonCandBsrEventInfo->pBsrNode->pimsmBSRTimer),
                             "NC-BSR")

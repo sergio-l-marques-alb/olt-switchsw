@@ -1551,7 +1551,7 @@ L7_RC_t pimsmGlobalAdminModeProcess(MCAST_CB_HNDL_t pimsmCbHandle,
   
     timer = appTimerAdd(pimsmCb->timerCb,
                         pimsmJPBundleTimerExpiryHandler,
-                        (void*)pimsmCb->pimsmJPBundleTimerHandle,
+                        UINT_TO_PTR(pimsmCb->pimsmJPBundleTimerHandle),
                         PIMSM_DEFAULT_JP_BUNDLE_TIME,
                         "SM-JPB");
     if(timer != L7_NULLPTR)
@@ -1568,7 +1568,7 @@ L7_RC_t pimsmGlobalAdminModeProcess(MCAST_CB_HNDL_t pimsmCbHandle,
  
     timer = appTimerAdd(pimsmCb->timerCb,
                         pimsmSPTTimerExpiresHandler,
-                        (void*)pimsmCb->pimsmSPTTimerHandle,
+                        UINT_TO_PTR(pimsmCb->pimsmSPTTimerHandle),
                         PIMSM_DEFAULT_CHECK_INTERVAL,
                         "SM-SPT");
     if(timer != L7_NULLPTR)

@@ -355,7 +355,7 @@ static void pimdmUpstrmOverrideTimerExpiryHandler (void *mrtEntryUpstrmTmrHndlPa
   pimdmUpstrmEventInfo_t upstrmFsmEventInfo;
 
   if ((mrtEntry  = (pimdmMrtEntry_t*)
-                   handleListNodeRetrieve ((L7_uint32)mrtEntryUpstrmTmrHndlParam))
+                   handleListNodeRetrieve (PTR_TO_UINT64(mrtEntryUpstrmTmrHndlParam)))
                 == L7_NULLPTR)
   {
     PIMDM_TRACE (PIMDM_DEBUG_FAILURE, "Handle Node retrieval Failed");
@@ -403,7 +403,7 @@ static void pimdmUpstrmGraftRetryTimerExpiryHandler (void *mrtEntryUpstrmTmrHndl
   pimdmUpstrmEventInfo_t upstrmFsmEventInfo;
 
   if ((mrtEntry  = (pimdmMrtEntry_t*)
-                   handleListNodeRetrieve ((L7_uint32)mrtEntryUpstrmTmrHndlParam))
+                   handleListNodeRetrieve (PTR_TO_UINT64(mrtEntryUpstrmTmrHndlParam)))
                 == L7_NULLPTR)
   {
     PIMDM_TRACE (PIMDM_DEBUG_FAILURE, "Handle Node retrieval Failed");
@@ -451,7 +451,7 @@ static void pimdmUpstrmPruneLimitTimerExpiryHandler (void *mrtEntryUpstrmTmrHndl
   pimdmUpstrmEventInfo_t upstrmFsmEventInfo;
 
   if ((mrtEntry  = (pimdmMrtEntry_t*)
-                   handleListNodeRetrieve ((L7_uint32)mrtEntryUpstrmTmrHndlParam))
+                   handleListNodeRetrieve (PTR_TO_UINT64(mrtEntryUpstrmTmrHndlParam)))
                 == L7_NULLPTR)
   {
     PIMDM_TRACE (PIMDM_DEBUG_FAILURE, "Handle Node retrieval Failed");
@@ -512,7 +512,7 @@ pimdmUpstreamAssertTimerExpiryHandler (void *mrtEntryUpstrmTmrHndlParam)
   L7_BOOL isNull = L7_FALSE;
 
   if ((mrtEntry  = (pimdmMrtEntry_t*)
-                   handleListNodeRetrieve ((L7_uint32)mrtEntryUpstrmTmrHndlParam))
+                   handleListNodeRetrieve (PTR_TO_UINT64(mrtEntryUpstrmTmrHndlParam)))
                 == L7_NULLPTR)
   {
     PIMDM_TRACE (PIMDM_DEBUG_FAILURE, "Handle Node retrieval Failed");
@@ -613,7 +613,7 @@ L7_RC_t pimdmUpstrmFsmActionSendPrnSetPLT(
 
   if (pimdmUtilAppTimerSet (mrtEntry->pimdmCB,
                             pimdmUpstrmPruneLimitTimerExpiryHandler,
-                            (void*) mrtEntry->mrtEntryUpstrmTmrHndlParam,
+                            UINT_TO_PTR(mrtEntry->mrtEntryUpstrmTmrHndlParam),
                             PIMDM_PRUNE_LIMIT_TIMER_TIMEOUT,
                             errMsgBuf, sucMsgBuf,
                             &mrtEntry->upstrmGraftPruneStateInfo.prnLmtTimer,
@@ -714,7 +714,7 @@ L7_RC_t pimdmUpstrmFsmActionSetOT (pimdmMrtEntry_t* mrtEntry,
 
     if (pimdmUtilAppTimerSet (mrtEntry->pimdmCB,
                               pimdmUpstrmOverrideTimerExpiryHandler,
-                              (void*) mrtEntry->mrtEntryUpstrmTmrHndlParam,
+                              UINT_TO_PTR(mrtEntry->mrtEntryUpstrmTmrHndlParam),
                               timeout, errMsgBuf, sucMsgBuf,
                               &mrtEntry->upstrmGraftPruneStateInfo.overrideTimer,
                               "DM-OT")
@@ -807,7 +807,7 @@ L7_RC_t pimdmUpstrmFsmActionResetPLT (pimdmMrtEntry_t* mrtEntry,
 
   if (pimdmUtilAppTimerSet (mrtEntry->pimdmCB,
                             pimdmUpstrmPruneLimitTimerExpiryHandler,
-                            (void*) mrtEntry->mrtEntryUpstrmTmrHndlParam,
+                            UINT_TO_PTR(mrtEntry->mrtEntryUpstrmTmrHndlParam),
                             PIMDM_PRUNE_LIMIT_TIMER_TIMEOUT,
                             errMsgBuf, sucMsgBuf,
                             &mrtEntry->upstrmGraftPruneStateInfo.prnLmtTimer,
@@ -872,7 +872,7 @@ L7_RC_t pimdmUpstrmFsmActionSendPruneResetPLT (pimdmMrtEntry_t* mrtEntry,
 
   if (pimdmUtilAppTimerSet (mrtEntry->pimdmCB,
                             pimdmUpstrmPruneLimitTimerExpiryHandler,
-                            (void*) mrtEntry->mrtEntryUpstrmTmrHndlParam,
+                            UINT_TO_PTR(mrtEntry->mrtEntryUpstrmTmrHndlParam),
                             PIMDM_PRUNE_LIMIT_TIMER_TIMEOUT,
                             errMsgBuf, sucMsgBuf,
                             &mrtEntry->upstrmGraftPruneStateInfo.prnLmtTimer,
@@ -969,7 +969,7 @@ L7_RC_t pimdmUpstrmFsmActionSendPrnSetPLTCancelGRT
 
   if (pimdmUtilAppTimerSet (mrtEntry->pimdmCB,
                             pimdmUpstrmPruneLimitTimerExpiryHandler,
-                            (void*) mrtEntry->mrtEntryUpstrmTmrHndlParam,
+                            UINT_TO_PTR(mrtEntry->mrtEntryUpstrmTmrHndlParam),
                             PIMDM_PRUNE_LIMIT_TIMER_TIMEOUT,
                             errMsgBuf, sucMsgBuf,
                             &mrtEntry->upstrmGraftPruneStateInfo.prnLmtTimer,
@@ -1043,7 +1043,7 @@ static L7_RC_t pimdmUpstrmFsmActionCancelPLTSendGraftSetGRT (
 
   if (pimdmUtilAppTimerSet (mrtEntry->pimdmCB,
                             pimdmUpstrmGraftRetryTimerExpiryHandler,
-                            (void*) mrtEntry->mrtEntryUpstrmTmrHndlParam,
+                            UINT_TO_PTR(mrtEntry->mrtEntryUpstrmTmrHndlParam),
                             PIMDM_GRAFT_RETRY_TIMER_TIMEOUT, errMsgBuf,
                             sucMsgBuf,
                             &mrtEntry->upstrmGraftPruneStateInfo.grftRetryTimer,
@@ -1107,7 +1107,7 @@ static L7_RC_t pimdmUpstrmFsmActionSendGraftSetGRT(
 
   if (pimdmUtilAppTimerSet (mrtEntry->pimdmCB,
                             pimdmUpstrmGraftRetryTimerExpiryHandler,
-                            (void*) mrtEntry->mrtEntryUpstrmTmrHndlParam,
+                            UINT_TO_PTR(mrtEntry->mrtEntryUpstrmTmrHndlParam),
                             PIMDM_GRAFT_RETRY_TIMER_TIMEOUT, errMsgBuf,
                             sucMsgBuf,
                             &mrtEntry->upstrmGraftPruneStateInfo.grftRetryTimer,

@@ -269,7 +269,7 @@ static L7_RC_t  pimsmUpStrmPerIntfStarStarRPJoinSend(pimsmCB_t * pimsmCb,
 
   pTimerData->pimsmCb = pimsmCb;
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmStarStarRpUpstreamJoinTimerExpiresHandler,
-                            (void*)pStarStarRpEntry->pimsmStarStarRpUpstreamJoinTimerHandle,
+                            UINT_TO_PTR(pStarStarRpEntry->pimsmStarStarRpUpstreamJoinTimerHandle),
                             jpInterval,
                             &(pStarStarRpEntry->pimsmStarStarRpUpstreamJoinTimer),
                             "xR-JT")
@@ -407,7 +407,7 @@ static L7_RC_t pimsmUpStrmPerIntfStarStarRPJoinTimerIncrease(pimsmCB_t * pimsmCb
 
     pTimerData->pimsmCb = pimsmCb;
     if (pimsmUtilAppTimerSet (pimsmCb, pimsmStarStarRpUpstreamJoinTimerExpiresHandler,
-                              (void*)pStarStarRpEntry->pimsmStarStarRpUpstreamJoinTimerHandle,
+                              UINT_TO_PTR(pStarStarRpEntry->pimsmStarStarRpUpstreamJoinTimerHandle),
                               joinSuppress,
                               &(pStarStarRpEntry->pimsmStarStarRpUpstreamJoinTimer),
                               "xR-JT2")
@@ -471,7 +471,7 @@ static L7_RC_t  pimsmUpStrmPerIntfStarStarRPJoinTimerDecrease(pimsmCB_t * pimsmC
     pTimerData->pimsmCb = pimsmCb;
 
     if (pimsmUtilAppTimerSet (pimsmCb, pimsmStarStarRpUpstreamJoinTimerExpiresHandler,
-                              (void*)pStarStarRpEntry->pimsmStarStarRpUpstreamJoinTimerHandle,
+                              UINT_TO_PTR(pStarStarRpEntry->pimsmStarStarRpUpstreamJoinTimerHandle),
                               jpOverrideInterval,
                               &(pStarStarRpEntry->pimsmStarStarRpUpstreamJoinTimer),
                               "xR-JT3")
@@ -606,7 +606,7 @@ static L7_RC_t  pimsmUpStrmPerIntfStarStarRPJoinPruneSend(pimsmCB_t * pimsmCb,
 
   pTimerData->pimsmCb = pimsmCb;
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmStarStarRpUpstreamJoinTimerExpiresHandler,
-                            (void*)pStarStarRpEntry->pimsmStarStarRpUpstreamJoinTimerHandle,
+                            UINT_TO_PTR(pStarStarRpEntry->pimsmStarStarRpUpstreamJoinTimerHandle),
                             jpInterval,
                             &(pStarStarRpEntry->pimsmStarStarRpUpstreamJoinTimer),
                             "xR-JT4")
@@ -659,8 +659,8 @@ static void pimsmStarStarRpUpstreamJoinTimerExpiresHandler(void *pParam)
   pimsmUpStrmStarStarRPEventInfo_t pUpStrmStarStarRpEventInfo;
   pimsmStarStarRpNode_t *pStarStarRpNode;
   pimsmTimerData_t *pTimerData;
-  pimsmCB_t  * pimsmCb;
-  L7_int32      handle = (L7_int32)pParam;
+  pimsmCB_t      *pimsmCb;
+  L7_uint64      handle = PTR_TO_UINT64(pParam);
   L7_inet_addr_t *pRpAddr;
 
   pTimerData = (pimsmTimerData_t*)handleListNodeRetrieve(handle);

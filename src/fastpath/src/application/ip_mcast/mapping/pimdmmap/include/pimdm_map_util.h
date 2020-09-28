@@ -101,7 +101,7 @@ typedef struct pimdmGblVars_s
   pimdmMapQueue_t            pimdmQueue[PIMDM_MAX_Q];
   void                       *queueCountersSemId;
   pimdmCnfgrState_t          pimdmCnfgrState;
-  L7_int32                   pimdmMapTaskId;
+  L7_uint64                  pimdmMapTaskId;
   void                       *eventCountersSemId;
   L7_uint32                  eventCounters[PIMDM_MAP_COUNTERS_TYPE_MAX];
   L7_BOOL                    warmRestart; /* L7_TRUE if last restart was a warm restart */

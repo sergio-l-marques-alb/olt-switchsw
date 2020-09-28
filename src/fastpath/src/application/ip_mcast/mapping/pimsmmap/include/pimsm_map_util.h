@@ -124,7 +124,7 @@ typedef struct pimsmGblVariables_s
   void                       *queueCountersSemId;
   void                       *msgQSema;
   pimsmCnfgrState_t          pimsmCnfgrState;
-  L7_uint32                  pimsmMapTaskId;
+  L7_uint64                  pimsmMapTaskId;
   void                       *eventCountersSemId;
   L7_uint32                  eventCounters[PIMSM_MAP_COUNTERS_TYPE_MAX];
   L7_BOOL                    warmRestart; /* L7_TRUE if last restart was a warm restart */

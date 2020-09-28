@@ -260,7 +260,7 @@ static void pimdmDnstrmPrunePendingTimerExpiryHandler (void *mrtEntryDnstrmTmrHn
   PIMDM_TRACE (PIMDM_DEBUG_FSM_DNSTRM, "Entry");
 
   if ((dnstrmIntfInfo = (pimdmDownstrmIntfInfo_t*)
-                         handleListNodeRetrieve ((L7_uint32)mrtEntryDnstrmTmrHndlParam))
+                         handleListNodeRetrieve (PTR_TO_UINT64(mrtEntryDnstrmTmrHndlParam)))
                       == L7_NULLPTR)
   {
     PIMDM_TRACE (PIMDM_DEBUG_FAILURE, "Handle Node retrieval Failed");
@@ -315,7 +315,7 @@ static void pimdmDnstrmPruneTimerExpiryHandler (void *mrtEntryDnstrmTmrHndlParam
   PIMDM_TRACE (PIMDM_DEBUG_FSM_DNSTRM, "Entry");
 
   if ((dnstrmIntfInfo = (pimdmDownstrmIntfInfo_t*)
-                         handleListNodeRetrieve ((L7_uint32)mrtEntryDnstrmTmrHndlParam))
+                         handleListNodeRetrieve (PTR_TO_UINT64(mrtEntryDnstrmTmrHndlParam)))
                       == L7_NULLPTR)
   {
     PIMDM_TRACE (PIMDM_DEBUG_FAILURE, "Handle Node retrieval Failed");
@@ -419,7 +419,7 @@ L7_RC_t pimdmDnstrmFsmActionSetPPT(pimdmMrtEntry_t* mrtEntry,
   timeout = ((oiTimeout + lpdTimeout) + 999)/1000;
 
   if (pimdmUtilAppTimerSet (pimdmCB, pimdmDnstrmPrunePendingTimerExpiryHandler,
-                            (void*) dnstrmIntfInfo->mrtEntryDnstrmTmrHndlParam,
+                            UINT_TO_PTR(dnstrmIntfInfo->mrtEntryDnstrmTmrHndlParam),
                             timeout, errMsgBuf, sucMsgBuf,
                             &dnstrmIntfInfo->prunePndTimer,
                             "DM-PPT")
@@ -496,7 +496,7 @@ L7_RC_t pimdmDnstrmFsmActionResetPT (pimdmMrtEntry_t* mrtEntry,
                  rtrIfNum);
 
   if (pimdmUtilAppTimerSet (pimdmCB, pimdmDnstrmPruneTimerExpiryHandler,
-                            (void*) dnstrmIntfInfo->mrtEntryDnstrmTmrHndlParam,
+                            UINT_TO_PTR(dnstrmIntfInfo->mrtEntryDnstrmTmrHndlParam),
                             dnstrmEventInfo->holdTime, errMsgBuf, sucMsgBuf,
                             &dnstrmIntfInfo->pruneTimer,
                             "DM-DnPT")
@@ -753,7 +753,7 @@ L7_RC_t pimdmDnstrmFsmActionSetPT(pimdmMrtEntry_t* mrtEntry,
                  rtrIfNum);
 
   if (pimdmUtilAppTimerSet (pimdmCB, pimdmDnstrmPruneTimerExpiryHandler,
-                            (void*) dnstrmIntfInfo->mrtEntryDnstrmTmrHndlParam,
+                            UINT_TO_PTR(dnstrmIntfInfo->mrtEntryDnstrmTmrHndlParam),
                             timeout, errMsgBuf, sucMsgBuf,
                             &dnstrmIntfInfo->pruneTimer,
                             "DM-DnPT2")

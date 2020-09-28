@@ -43,10 +43,10 @@ typedef struct pimsmSGEntry_s
   pimsmUpStrmSGStates_t 
   pimsmSGUpstreamJoinState;
   L7_APP_TMR_HNDL_t pimsmSGUpstreamJoinTimer;
-  L7_uint32  pimsmSGUpstreamJoinTimerHandle;
+  L7_uint64         pimsmSGUpstreamJoinTimerHandle;
   pimsmTimerData_t  pimsmSGUpstreamJoinTimerParam;
   L7_inet_addr_t    pimsmSGUpstreamNeighbor;
-  L7_uint32     pimsmSGRPFIfIndex;
+  L7_uint32         pimsmSGRPFIfIndex;
   L7_inet_addr_t    pimsmSGRPFNextHop;
   L7_RTO_PROTOCOL_INDICES_t     
   pimsmSGRPFRouteProtocol;
@@ -56,13 +56,13 @@ typedef struct pimsmSGEntry_s
   L7_uint32     pimsmSGRPFRouteMetric;
   L7_BOOL       pimsmSGSPTBit;
   L7_APP_TMR_HNDL_t pimsmSGKeepaliveTimer;
-  pimsmTimerData_t pimsmSGKeepaliveTimerParam;
-  L7_uint32 pimsmSGKeepaliveTimerHandle;
+  pimsmTimerData_t  pimsmSGKeepaliveTimerParam;
+  L7_uint64         pimsmSGKeepaliveTimerHandle;
   pimsmRegPerSGStates_t    
   pimsmSGDRRegisterState;
   L7_APP_TMR_HNDL_t pimsmSGDRRegisterStopTimer;
-  pimsmTimerData_t pimsmSGDRRegisterStopTimerParam; 
-  L7_uint32  pimsmSGDRRegisterStopTimerHandle;
+  pimsmTimerData_t  pimsmSGDRRegisterStopTimerParam; 
+  L7_uint64         pimsmSGDRRegisterStopTimerHandle;
   L7_inet_addr_t    pimsmSGRPRegisterPMBRAddress;
 } pimsmSGEntry_t;
 
@@ -74,16 +74,16 @@ typedef struct pimsmSGIEntry_s
   pimsmDnStrmPerIntfSGStates_t    
   pimsmSGIJoinPruneState;
   L7_APP_TMR_HNDL_t pimsmSGIPrunePendingTimer;
-  L7_uint32  pimsmSGIPrunePendingTimerHandle;   
-  pimsmTimerData_t pimsmSGIPrunePendingTimerParam;  
+  L7_uint64         pimsmSGIPrunePendingTimerHandle;   
+  pimsmTimerData_t  pimsmSGIPrunePendingTimerParam;  
   L7_APP_TMR_HNDL_t pimsmSGIJoinExpiryTimer;
-  L7_uint32  pimsmSGIJoinExpiryTimerHandle;
+  L7_uint64         pimsmSGIJoinExpiryTimerHandle;
   pimsmTimerData_t pimsmSGIJoinExpiryTimerParam;  
   pimsmPerIntfSGAssertStates_t      
   pimsmSGIAssertState;
   L7_APP_TMR_HNDL_t pimsmSGIAssertTimer;
-  L7_uint32 pimsmSGIAssertTimerHandle;
-  pimsmTimerData_t pimsmSGIAssertTimerParam;  
+  L7_uint64         pimsmSGIAssertTimerHandle;
+  pimsmTimerData_t  pimsmSGIAssertTimerParam;  
   L7_inet_addr_t    pimsmSGIAssertWinnerAddress;
   L7_uint32     pimsmSGIAssertWinnerMetricPref;
   L7_uint32     pimsmSGIAssertWinnerMetric;

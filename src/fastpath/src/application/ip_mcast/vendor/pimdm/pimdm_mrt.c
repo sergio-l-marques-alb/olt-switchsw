@@ -833,12 +833,12 @@ pimdmMrtEntryDelete (pimdmCB_t *pimdmCB,
   /* Delete the Upstream Handle List Param */
   if (mrtEntry->mrtEntryUpstrmTmrHndlParam != L7_NULL)
   {
-    handleListNodeDelete (handleList,&mrtEntry->mrtEntryUpstrmTmrHndlParam);
+    handleListNodeDelete (handleList, (L7_uint64 *) &mrtEntry->mrtEntryUpstrmTmrHndlParam);
   }
   /* Delete the Entry Expiry Timer Handle List Param */
   if (mrtEntry->mrtEntryExpiryTimerHandle != L7_NULL)
   {
-    handleListNodeDelete (handleList, &mrtEntry->mrtEntryExpiryTimerHandle);
+    handleListNodeDelete (handleList, (L7_uint64 *) &mrtEntry->mrtEntryExpiryTimerHandle);
   }
 
   /* Cancel the Entry expiry timer */
@@ -987,7 +987,7 @@ pimdmMrtEntryAdd (pimdmCB_t *pimdmCB,
 
     if (pimdmUtilAppTimerSet (mrtEntry->pimdmCB,
                               pimdmMrtEntryExpiryTimerHandler,
-                              (void*) mrtEntry->mrtEntryExpiryTimerHandle,
+                              UINT_TO_PTR(mrtEntry->mrtEntryExpiryTimerHandle),
                               PIMDM_MRT_ENTRY_TIMER_TIMEOUT,
                               errMsgBuf, sucMsgBuf,
                               &mrtEntry->mrtEntryExpiryTimer,
@@ -2894,7 +2894,7 @@ pimdmMrtUpstreamAssertProcess (pimdmMrtEntry_t *mrtEntry,
 
   if (pimdmUtilAppTimerSet (mrtEntry->pimdmCB,
                             pimdmUpstreamAssertTimerExpiryHandler,
-                            (void*) mrtEntry->mrtEntryUpstrmTmrHndlParam,
+                            UINT_TO_PTR(mrtEntry->mrtEntryUpstrmTmrHndlParam),
                             PIMDM_DEFAULT_ASSERT_TIMEOUT, errMsgBuf, sucMsgBuf,
                             &upstrmNbrInfo->assertTimer,
                             "DM-AT")
@@ -3480,7 +3480,7 @@ static void pimdmMrtEntryExpiryTimerHandler (void *handle)
 
   PIMDM_TRACE (PIMDM_DEBUG_API, "Entry");
 
-  mrtEntry  = (pimdmMrtEntry_t*)handleListNodeRetrieve((L7_uint32)handle);
+  mrtEntry  = (pimdmMrtEntry_t*)handleListNodeRetrieve(PTR_TO_UINT64(handle));
   if (mrtEntry == L7_NULLPTR)
   {
     PIMDM_TRACE(PIMDM_DEBUG_FAILURE,
@@ -3523,7 +3523,7 @@ static void pimdmMrtEntryExpiryTimerHandler (void *handle)
 
   if (pimdmUtilAppTimerSet (mrtEntry->pimdmCB,
                             pimdmMrtEntryExpiryTimerHandler,
-                            (void*) mrtEntry->mrtEntryExpiryTimerHandle,
+                            UINT_TO_PTR(mrtEntry->mrtEntryExpiryTimerHandle),
                             PIMDM_MRT_ENTRY_TIMER_TIMEOUT,
                             errMsgBuf, sucMsgBuf,
                             &mrtEntry->mrtEntryExpiryTimer,

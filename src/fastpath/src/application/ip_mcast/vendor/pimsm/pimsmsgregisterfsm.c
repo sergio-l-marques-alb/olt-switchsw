@@ -311,7 +311,7 @@ static L7_RC_t   pimsmRegStopTimerSet (pimsmCB_t * pimsmCb,
   pTimerData->pimsmCb = pimsmCb;
 
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmSGDRRegisterStopTimerExpiresHandler,
-                            (void*)pSGNode->pimsmSGEntry.pimsmSGDRRegisterStopTimerHandle,
+                            UINT_TO_PTR(pSGNode->pimsmSGEntry.pimsmSGDRRegisterStopTimerHandle),
                             regStopTime,
                             &(pSGNode->pimsmSGEntry.pimsmSGDRRegisterStopTimer),
                             "SM-RST")
@@ -485,7 +485,7 @@ static L7_RC_t pimsmPerSGRegisterNullRegisterSend(pimsmCB_t * pimsmCb,
   inetCopy(&pTimerData->addr2, &pSGNode->pimsmSGEntry.pimsmSGGrpAddress);
   pTimerData->pimsmCb = pimsmCb;
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmSGDRRegisterStopTimerExpiresHandler,
-                            (void*)pSGNode->pimsmSGEntry.pimsmSGDRRegisterStopTimerHandle,
+                            UINT_TO_PTR(pSGNode->pimsmSGEntry.pimsmSGDRRegisterStopTimerHandle),
                             regStopTime,
                             &(pSGNode->pimsmSGEntry.pimsmSGDRRegisterStopTimer),
                             "SM-RST2")
@@ -593,7 +593,7 @@ static void pimsmSGDRRegisterStopTimerExpiresHandler(void *pParam)
   pimsmPerSGRegisterEventInfo_t perSGRegisterEventInfo;
   pimsmSGEntry_t *pSGEntry= L7_NULLPTR;
   pimsmCB_t   *pimsmCb;
-  L7_int32     handle = (L7_int32)pParam;
+  L7_uint64     handle = PTR_TO_UINT64(pParam);
   pimsmTimerData_t *pTimerData;
   L7_inet_addr_t *pGrpAddr, *pSrcAddr;
 

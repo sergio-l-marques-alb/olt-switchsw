@@ -148,7 +148,7 @@ L7_RC_t pimsmBsrNodeDelete(pimsmCB_t *pimsmCb,pimsmBsrPerScopeZone_t  *bsrEntry)
 
   /* remove the handle */
   handleListNodeDelete(bsrEntry->pimsmCb->handleList,
-                         &bsrEntry->pimsmBSRTimerHandle);
+                       (L7_uint64 *) &bsrEntry->pimsmBSRTimerHandle);
   /* Delete the entry */
   memset(bsrEntry, 0, sizeof(pimsmBsrPerScopeZone_t));
   inetAddressZeroSet(pimsmCb->family, &bsrEntry->pimsmBSRAddr);
@@ -454,7 +454,7 @@ static L7_RC_t pimsmBsrInfoNodeAdd(pimsmCB_t               *pimsmCb,
       bsrNode->zone.cbsr.pimsmElectedBSRHashMaskLen = bsrHashMasklen;
       inetCopy(&(bsrNode->zone.cbsr.pimsmElectedBSRAddress), &bsrAddr);
       if (pimsmUtilAppTimerSet (pimsmCb, pimsmBsrCandidateBootStrapTimerExpiresHandler,
-                                (void*)bsrNode->pimsmBSRTimerHandle,
+                                UINT_TO_PTR(bsrNode->pimsmBSRTimerHandle),
                                 pimsmBsrRandOverrideIntervalGet(pimsmCb,bsrNode),
                                 &(bsrNode->pimsmBSRTimer),
                                 "SM-BSR") != L7_SUCCESS)
@@ -478,7 +478,7 @@ static L7_RC_t pimsmBsrInfoNodeAdd(pimsmCB_t               *pimsmCb,
 
         /*  start the scope zone timer */
         if (pimsmUtilAppTimerSet (pimsmCb, pimsmBsrNonCandidateScopeZoneTimerExpiresHandler,
-                                  (void*)bsrNode->pimsmBSRTimerHandle,
+                                  UINT_TO_PTR(bsrNode->pimsmBSRTimerHandle),
                                   PIMSM_DEFAULT_BOOTSTRAP_SZ_TIMEOUT,
                                   &(bsrNode->zone.nbsr.pimsmBSRScopeZoneExpireTimer),
                                   "SM-SZT")
@@ -1171,7 +1171,7 @@ L7_uint32 pimsmBsrPacketGrpInfoExtract(L7_uchar8            *pData,
   MCAST_GET_SHORT(reserved, pDataTemp);
   MCAST_UNUSED_PARAM (reserved);
 
-  return((L7_uint32)pDataTemp - (L7_uint32)pData);
+  return (L7_uint32) (PTR_TO_UINT64(pDataTemp) - PTR_TO_UINT64(pData));
 }
 
 /******************************************************************************
@@ -1204,7 +1204,7 @@ L7_uint32 pimsmBsrPacketRpInfoExtract(L7_uchar8           *pData,
   MCAST_GET_BYTE(reserved,pDataTemp);
   MCAST_UNUSED_PARAM (reserved);
 
-  return((L7_uint32)pDataTemp - (L7_uint32)pData);
+  return (L7_uint32) (PTR_TO_UINT64(pDataTemp) - PTR_TO_UINT64(pData));
 }
 
 /******************************************************************************
@@ -1330,7 +1330,7 @@ static L7_uint32 pimsmBsrPacketFragListStore(pimsmCB_t              *pimsmCb,
                 (L7_sll_member_t*)pFragGrpNode);
     }
   }
-  return((L7_uint32)pDataTemp - (L7_uint32)pData);
+  return (L7_uint32) (PTR_TO_UINT64(pDataTemp) - PTR_TO_UINT64(pData));
 }
 
 
@@ -1374,7 +1374,7 @@ void pimsmBsrPacketRpGrpMappingStore(pimsmCB_t              *pimsmCb,
   PIM_GET_EUADDR_INET( &encodBsrAddr,pData);
   inetAddressSet(encodBsrAddr.addr_family,&encodBsrAddr.addr,&bsrAddr);
 
-  while (((L7_uint32)pData - (L7_uint32)pimHeader) < pimPktLen)
+  while (((L7_uint32) (PTR_TO_UINT64(pData) - PTR_TO_UINT64(pimHeader))) < pimPktLen)
   {
     L7_uint32 count;
     pimsmBSMMsgGrpNode_t    grpNode;
@@ -1388,7 +1388,7 @@ void pimsmBsrPacketRpGrpMappingStore(pimsmCB_t              *pimsmCb,
     {
       count=0 ;
       while (count < grpNode.pimsmFragRpCnt && 
-             ((L7_uint32)pData - (L7_uint32)pimHeader) < pimPktLen)
+             ((L7_uint32) (PTR_TO_UINT64(pData) - PTR_TO_UINT64(pimHeader))) < pimPktLen)
       {
         pimsmBSMMsgRpNode_t   bsrRpNode;
         pimsmCandRpConfigInfo_t   rpConfigInfo;
@@ -1765,7 +1765,7 @@ void pimsmBsrPacketOriginate(pimsmCB_t              *pimsmCb,
   PIM_PUT_EUADDR_INET(&pBsrNode->pimsmBSRAddr, pDataTemp);
 
   /* calculate the header offset */
-  bsrHeaderOffset = (L7_uint32)pData - (L7_uint32)pDataTemp;
+  bsrHeaderOffset = (L7_uint32) (PTR_TO_UINT64(pData) - PTR_TO_UINT64(pDataTemp));
 
   inetMaskLenToMask(pimsmCb->family,(L7_uchar8)pBsrNode->pimsmBSRGroupMask,
                     &bsrGrpMask);
@@ -1856,7 +1856,7 @@ void pimsmBsrPacketOriginate(pimsmCB_t              *pimsmCb,
               pimsmRpGrpNode_t     *pRpGrpNode;
               pRpGrpNode = (pimsmRpGrpNode_t*)pRpNode->pimsmRpGrpNode;
 
-              dataLen = (L7_uint32)pDataTemp - (L7_uint32)pData;
+              dataLen = (L7_uint32) (PTR_TO_UINT64(pDataTemp) - PTR_TO_UINT64(pData));
               /* fill the rp details */
               if (dataLen < PIMSM_PKT_SIZE_MAX)
               {
@@ -1906,7 +1906,7 @@ void pimsmBsrPacketOriginate(pimsmCB_t              *pimsmCb,
       noMoreInfo = L7_FALSE;
     }
 
-    dataLen = (L7_uint32)pDataTemp - (L7_uint32)pData;
+    dataLen = (L7_uint32) (PTR_TO_UINT64(pDataTemp) - PTR_TO_UINT64(pData));
     /* send the packet */
     if (rtrIfNum == 0)
     {
@@ -2243,7 +2243,7 @@ L7_RC_t pimsmBsrCandRpAdvRecv(pimsmCB_t       *pimsmCb,
   MCAST_GET_BYTE(prefixCount,pData);
   MCAST_GET_BYTE(rpPriority,pData);
   MCAST_GET_SHORT(rpHoldtime,pData);
-  dataLen = (L7_uint32)pData - (L7_uint32)pimHeader;
+  dataLen = (L7_uint32) (PTR_TO_UINT64(pData) - PTR_TO_UINT64(pimHeader));
 
   if (pimPktLen <= dataLen)
   {

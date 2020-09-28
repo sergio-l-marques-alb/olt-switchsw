@@ -285,7 +285,7 @@ dvmrp_neighbor_t *dvmrp_neighbor_register(dvmrp_interface_t *interface,
     handleListNodeStore(dvmrpcb->handle_list, (void*)nbr);
 
     nbr->timeout = appTimerAdd(dvmrpcb->timerHandle, dvmrp_neighbor_timeout, 
-                               (void *)nbr->nbrTimeoutHandle, expire_interval,
+                               UINT_TO_PTR(nbr->nbrTimeoutHandle), expire_interval,
                                "DV-NLT");
     if (L7_NULLPTR == nbr->timeout)
     {
@@ -368,7 +368,7 @@ void dvmrp_neighbor_recover (dvmrp_interface_t *interface,
     if (nbr->nbrTimeoutHandle != L7_NULL)
     {
       handleListNodeDelete(dvmrpcb->handle_list,
-                           &nbr->nbrTimeoutHandle);
+                           (L7_uint64 *) &nbr->nbrTimeoutHandle);
     }
     nbr->timeout=L7_NULLPTR;
   }
@@ -376,7 +376,8 @@ void dvmrp_neighbor_recover (dvmrp_interface_t *interface,
   handleListNodeStore(dvmrpcb->handle_list, (void*)nbr);
 
   if (L7_NULLPTR == (nbr->timeout = appTimerAdd(dvmrpcb->timerHandle, 
-                                                dvmrp_neighbor_timeout, (void *)nbr->nbrTimeoutHandle,
+                                                dvmrp_neighbor_timeout,
+                                                UINT_TO_PTR(nbr->nbrTimeoutHandle),
                                                 expire_interval,
                                                 "DV-NLT2")))
   {
@@ -596,7 +597,7 @@ void dvmrp_neighbor_cleanup (dvmrp_neighbor_t *nbr)
       if (entry->graftTimeoutHandle != L7_NULL)
       {
         handleListNodeDelete(dvmrpcb->handle_list,
-                             &entry->graftTimeoutHandle);
+                             (L7_uint64 *) &entry->graftTimeoutHandle);
       }
       DVMRP_FREE (L7_AF_INET, (void*) entry->graft_sent);        
       entry->graft_sent=L7_NULLPTR;
@@ -658,7 +659,7 @@ void dvmrp_neighbor_cleanup (dvmrp_neighbor_t *nbr)
 
         if (L7_NULLPTR == (dvmrpcb->age = appTimerAdd(dvmrpcb->timerHandle,
                                                       dvmrp_routes_timeout,
-                                                      (void *)dvmrpcb->routesTimeoutHandle,
+                                                      UINT_TO_PTR(dvmrpcb->routesTimeoutHandle),
                                                       DVMRP_ROUTE_HOLD_TIME,
                                                       "DV-RT2")))
         {
@@ -682,7 +683,7 @@ void dvmrp_neighbor_cleanup (dvmrp_neighbor_t *nbr)
         if (dvmrpcb->routesTimeoutHandle != L7_NULL)
         {
           handleListNodeDelete(dvmrpcb->handle_list,
-                               &dvmrpcb->routesTimeoutHandle);
+                               (L7_uint64 *) &dvmrpcb->routesTimeoutHandle);
         }
         dvmrpcb->age=L7_NULL;
         DVMRP_DEBUG(DVMRP_DEBUG_ROUTE,
@@ -693,7 +694,7 @@ void dvmrp_neighbor_cleanup (dvmrp_neighbor_t *nbr)
 
         if (L7_NULLPTR == (dvmrpcb->age = appTimerAdd(dvmrpcb->timerHandle,
                                                       dvmrp_routes_timeout,
-                                                      (void *)dvmrpcb->routesTimeoutHandle,
+                                                      UINT_TO_PTR(dvmrpcb->routesTimeoutHandle),
                                                       DVMRP_ROUTE_HOLD_TIME,
                                                       "DV-RT3")))
         {
@@ -917,7 +918,7 @@ void dvmrp_neighbor_cleanup (dvmrp_neighbor_t *nbr)
   if (nbr->nbrTimeoutHandle != L7_NULL)
   {
     handleListNodeDelete(dvmrpcb->handle_list,
-                         &nbr->nbrTimeoutHandle);
+                         (L7_uint64 *) &nbr->nbrTimeoutHandle);
   }
   
   nbr->timeout =L7_NULLPTR;

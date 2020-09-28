@@ -235,7 +235,7 @@ L7_RC_t dvmrp_interface_activate (dvmrp_t *dvmrpcb,
 
     if (L7_NULLPTR == (interface->probe = appTimerAdd(dvmrpcb->timerHandle,
                                                       dvmrp_probe_sendHandler,
-                                                      (void *)interface->probePeriodicTimerHandle,
+                                                      UINT_TO_PTR(interface->probePeriodicTimerHandle),
                                                       DVMRP_NEIGHBOR_PROBE_INTERVAL,
                                                       "DV-PRB")))
     {
@@ -276,7 +276,7 @@ L7_RC_t dvmrp_interface_activate (dvmrp_t *dvmrpcb,
     if (interface->probePeriodicTimerHandle != L7_NULL)
     {
       handleListNodeDelete(dvmrpcb->handle_list,
-                           &interface->probePeriodicTimerHandle);
+                           (L7_uint64 *) &interface->probePeriodicTimerHandle);
     }
     interface->probe=L7_NULLPTR;
 
@@ -294,7 +294,7 @@ L7_RC_t dvmrp_interface_activate (dvmrp_t *dvmrpcb,
         if (nbr->nbrTimeoutHandle != L7_NULL)
         {
           handleListNodeDelete(dvmrpcb ->handle_list,
-                               &nbr->nbrTimeoutHandle);
+                               (L7_uint64 *) &nbr->nbrTimeoutHandle);
         }
         nbr->timeout=L7_NULLPTR;
       }

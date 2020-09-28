@@ -175,7 +175,7 @@ L7_RC_t pimsmNeighborDeInit(pimsmCB_t * pimsmCb,
     pimsmJPWorkingBuffReturn(pimsmCb, pCurrNbrEntry);
     pimsmUtilAppTimerCancel (pimsmCb, &(pCurrNbrEntry->pimsmNeighborExpiryTimer));
     handleListNodeDelete(pimsmCb->handleList,
-                         &pCurrNbrEntry->pimsmNeighborExpiryTimerHandle);
+                         (L7_uint64 *) &pCurrNbrEntry->pimsmNeighborExpiryTimerHandle);
     pCurrNbrEntry = (pimsmNeighborEntry_t *)SLLNextGet(pNbrList,
                         (L7_sll_member_t *)pCurrNbrEntry);
   }
@@ -353,7 +353,7 @@ L7_RC_t pimsmNeighborDelete(pimsmCB_t * pimsmCb,
 
   pimsmUtilAppTimerCancel (pimsmCb, &(pNbrEntry->pimsmNeighborExpiryTimer));
   handleListNodeDelete(pimsmCb->handleList,
-                       &pNbrEntry->pimsmNeighborExpiryTimerHandle);
+                       (L7_uint64 *) &pNbrEntry->pimsmNeighborExpiryTimerHandle);
   /* Lock the Table */
   if(osapiSemaTake(pimsmCb->pimsmNbrLock, L7_WAIT_FOREVER)
      != L7_SUCCESS)
@@ -798,7 +798,7 @@ static L7_RC_t pimsmNLTExpiresPostEvent(pimsmCB_t *pimsmCb,
 static void pimsmNeighborTimerExpiresHandler(void *pParam)
 {
   L7_uint32 rtrIfNum;
-  L7_int32      handle = (L7_int32)pParam;
+  L7_uint64 handle = PTR_TO_UINT64(pParam);
   pimsmTimerData_t *pTimerData;
   pimsmCB_t * pimsmCb;
   pimsmInterfaceEntry_t * pIntfEntry = L7_NULLPTR;
@@ -1076,7 +1076,7 @@ L7_RC_t pimsmNeighborCreate(pimsmCB_t * pimsmCb,L7_inet_addr_t * pNbrAddr,
     pTimerData->rtrIfNum = rtrIfNum;
     pTimerData->pimsmCb = pimsmCb;
     if (pimsmUtilAppTimerSet (pimsmCb, pimsmNeighborTimerExpiresHandler,
-                              (void*)pNbrEntry->pimsmNeighborExpiryTimerHandle,
+                              UINT_TO_PTR(pNbrEntry->pimsmNeighborExpiryTimerHandle),
                               holdtime,
                               &(pNbrEntry->pimsmNeighborExpiryTimer),
                               "SM-NLT")
@@ -1342,7 +1342,7 @@ L7_RC_t pimsmNeighborUpdate(pimsmCB_t * pimsmCb,
     pTimerData->rtrIfNum = rtrIfNum;
 
     if (pimsmUtilAppTimerSet (pimsmCb, pimsmNeighborTimerExpiresHandler,
-                              (void*)pNbrEntry->pimsmNeighborExpiryTimerHandle,
+                              UINT_TO_PTR(pNbrEntry->pimsmNeighborExpiryTimerHandle),
                               pHelloParams->holdtime,
                               &(pNbrEntry->pimsmNeighborExpiryTimer),
                               "SM-NLT2")

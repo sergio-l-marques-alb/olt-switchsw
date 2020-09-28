@@ -62,7 +62,7 @@ L7_int32 dvmrpAdminModeSet(dvmrp_t *dvmrpcb)
 
   if (L7_NULLPTR == (dvmrpcb->timer = appTimerAdd(dvmrpcb->timerHandle,
                                                   dvmrp_timer_update,
-                                                  (void *)dvmrpcb->updateTimerHandle,
+                                                  UINT_TO_PTR(dvmrpcb->updateTimerHandle),
                                                   DVMRP_UPDATE_INTERVAL,
                                                   "DV-UPD")))
   {
@@ -76,7 +76,7 @@ L7_int32 dvmrpAdminModeSet(dvmrp_t *dvmrpcb)
     if (dvmrpcb->updateTimerHandle != L7_NULL)
     {
       handleListNodeDelete(dvmrpcb->handle_list,
-                           &dvmrpcb->updateTimerHandle);
+                           (L7_uint64 *) &dvmrpcb->updateTimerHandle);
       dvmrpcb->updateTimerHandle = L7_NULL;
     }
     return L7_FAILURE;
@@ -90,7 +90,7 @@ L7_int32 dvmrpAdminModeSet(dvmrp_t *dvmrpcb)
 
   if (L7_NULLPTR == (dvmrpcb->age = appTimerAdd(dvmrpcb->timerHandle,
                                                 dvmrp_routes_timeout,
-                                                (void *)dvmrpcb->routesTimeoutHandle,
+                                                UINT_TO_PTR(dvmrpcb->routesTimeoutHandle),
                                                 DVMRP_TIMEOUT_INTERVAL,
                                                 "DV-RT")))
   {
@@ -102,14 +102,14 @@ L7_int32 dvmrpAdminModeSet(dvmrp_t *dvmrpcb)
     if (dvmrpcb->routesTimeoutHandle != L7_NULL)
     {
       handleListNodeDelete(dvmrpcb->handle_list,
-                           &dvmrpcb->routesTimeoutHandle);
+                           (L7_uint64 *) &dvmrpcb->routesTimeoutHandle);
       dvmrpcb->routesTimeoutHandle = L7_NULL;
     }
     appTimerDelete(dvmrpcb->timerHandle, dvmrpcb->timer);
     if (dvmrpcb->updateTimerHandle != L7_NULL)
     {
       handleListNodeDelete(dvmrpcb->handle_list,
-                           &dvmrpcb->updateTimerHandle);
+                           (L7_uint64 *) &dvmrpcb->updateTimerHandle);
       dvmrpcb->updateTimerHandle = L7_NULL;
     }
     dvmrpcb->timer=L7_NULLPTR;
@@ -121,7 +121,7 @@ L7_int32 dvmrpAdminModeSet(dvmrp_t *dvmrpcb)
 
   if (L7_NULLPTR == (dvmrpcb->expire = appTimerAdd(dvmrpcb->timerHandle,
                                                    dvmrp_prune_expire,
-                                                   (void *)dvmrpcb->pruneExpireHandle,
+                                                   UINT_TO_PTR(dvmrpcb->pruneExpireHandle),
                                                    DVMRP_PRUNE_TIMEOUT_INTERVAL,
                                                    "DV-PT")))
   {
@@ -133,14 +133,14 @@ L7_int32 dvmrpAdminModeSet(dvmrp_t *dvmrpcb)
     if (dvmrpcb->routesTimeoutHandle != L7_NULL)
     {
       handleListNodeDelete(dvmrpcb->handle_list,
-                           &dvmrpcb->routesTimeoutHandle);
+                           (L7_uint64 *) &dvmrpcb->routesTimeoutHandle);
       dvmrpcb->routesTimeoutHandle = L7_NULL;
     }
     appTimerDelete(dvmrpcb->timerHandle, dvmrpcb->expire);
     if (dvmrpcb->pruneExpireHandle != L7_NULL)
     {
       handleListNodeDelete(dvmrpcb->handle_list,
-                           &dvmrpcb->pruneExpireHandle);
+                           (L7_uint64 *) &dvmrpcb->pruneExpireHandle);
       dvmrpcb->pruneExpireHandle = L7_NULL;
     }
     dvmrpcb->expire=L7_NULLPTR;
@@ -148,7 +148,7 @@ L7_int32 dvmrpAdminModeSet(dvmrp_t *dvmrpcb)
     if (dvmrpcb->updateTimerHandle != L7_NULL)
     {
       handleListNodeDelete(dvmrpcb->handle_list,
-                           &dvmrpcb->updateTimerHandle);
+                           (L7_uint64 *) &dvmrpcb->updateTimerHandle);
       dvmrpcb->updateTimerHandle = L7_NULL;
     }
     dvmrpcb->timer=L7_NULLPTR;
@@ -204,7 +204,7 @@ L7_int32 dvmrpAdminModeReset(dvmrp_t *dvmrpcb)
   if (dvmrpcb->pruneExpireHandle != L7_NULL)
   {
     handleListNodeDelete(dvmrpcb->handle_list,
-                         &dvmrpcb->pruneExpireHandle);
+                         (L7_uint64 *) &dvmrpcb->pruneExpireHandle);
   }
   
   if(dvmrpcb->age != L7_NULLPTR)
@@ -215,7 +215,7 @@ L7_int32 dvmrpAdminModeReset(dvmrp_t *dvmrpcb)
   if (dvmrpcb->routesTimeoutHandle != L7_NULL)
   {
     handleListNodeDelete(dvmrpcb->handle_list,
-                         &dvmrpcb->routesTimeoutHandle);
+                         (L7_uint64 *) &dvmrpcb->routesTimeoutHandle);
   }
   
   if(dvmrpcb->timer != L7_NULLPTR)
@@ -227,7 +227,7 @@ L7_int32 dvmrpAdminModeReset(dvmrp_t *dvmrpcb)
   if (dvmrpcb->updateTimerHandle != L7_NULL)
   {
     handleListNodeDelete(dvmrpcb->handle_list,
-                         &dvmrpcb->updateTimerHandle);
+                         (L7_uint64 *) &dvmrpcb->updateTimerHandle);
   }
   
   DVMRP_DEBUG(DVMRP_DEBUG_APIS,"%s: LEAVING \n",__FUNCTION__);
@@ -374,7 +374,7 @@ L7_RC_t dvmrpEventProcess(L7_uchar8 familyType,
         if (L7_NULLPTR == (entry->cacheRemove_timer = 
                            appTimerAdd(dvmrpcb->timerHandle,
                                        dvmrp_Cache_Remove,
-                                       (void *)entry->cacheRemoveHandle,
+                                       UINT_TO_PTR(entry->cacheRemoveHandle),
                                        expiryTime,
                                        "DV-CT")))
         {

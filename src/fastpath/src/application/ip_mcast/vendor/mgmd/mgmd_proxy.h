@@ -103,7 +103,7 @@ typedef struct mgmd_proxy_unsolicited_rpt_s
   L7_sll_member_t   *next;
   L7_inet_addr_t    group;
   L7_APP_TMR_HNDL_t timer;
-  L7_uint32         timer_handle; /* to safeguard timeout functions */  
+  L7_uint64         timer_handle; /* to safeguard timeout functions */  
   L7_uint32         retryCount;
   L7_uint32         reportId;
   L7_inet_addr_t    srcList[MGMD_MAX_QUERY_SOURCES];
@@ -153,7 +153,7 @@ typedef struct mgmd_host_group_s
   L7_inet_addr_t     last_reporter;  /* last reporter group address */
   MGMD_FILTER_MODE_T filterMode;     /* Source Filter Mode */
   L7_APP_TMR_HNDL_t  grp_rsp_timer;  /* Timer respond to group queries */
-  L7_uint32          grp_rsp_timer_handle; /* to safeguard timeout functions */  
+  L7_uint64          grp_rsp_timer_handle; /* to safeguard timeout functions */  
   interface_bitset_t grpPortList;    /* (GPL) Mask of interfaces configured for this Group Address */
   L7_sll_t           sourceRecords;  /* list of source records for each group */
   MGMD_HOST_STATE_T  hostState;
@@ -488,7 +488,7 @@ void mgmd_proxy_querier_update_event_send(mgmd_cb_t *mgmdCB, L7_int32 intIfNum, 
 * @end
 *********************************************************************/
 
-L7_RC_t  mgmdProxyUtilAppTimerHandleDelete(mgmd_cb_t *mgmdCB,L7_APP_TMR_HNDL_t *timer, L7_uint32 *handle);
+L7_RC_t  mgmdProxyUtilAppTimerHandleDelete(mgmd_cb_t *mgmdCB,L7_APP_TMR_HNDL_t *timer, L7_uint64 *handle);
 
 /*********************************************************************
 *

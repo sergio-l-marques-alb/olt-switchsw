@@ -79,7 +79,7 @@ L7_RC_t pimsmWholePacketEventQueue(L7_uchar8 familyType,
     PIMSM_TRACE(PIMSM_DEBUG_BIT_MFC_INTERACTION, PIMSM_TRACE_INFO,"PIMSM message Queue Send  failed");
     if ((pMfcEntry->m->rtm_bufhandle) != L7_NULLPTR)
     {
-      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)(pMfcEntry->m)->rtm_bufhandle);
+      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64((pMfcEntry->m)->rtm_bufhandle));
     }
     rtm_freem(pMfcEntry->m);
     /*restore original buf pointer */

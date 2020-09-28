@@ -48,7 +48,7 @@ void dvmrp_graft_timeout (void *pParam)
   dvmrp_neighbor_t *nbr = L7_NULLPTR;
   dvmrp_route_t *route = L7_NULLPTR;
   dvmrp_cache_entry_t *entry = L7_NULLPTR;
-  L7_int32  handle = (L7_int32)pParam;
+  L7_uint64 handle = PTR_TO_UINT64(pParam);
   dvmrp_t *dvmrpcb = L7_NULLPTR;  
 
   DVMRP_DEBUG(DVMRP_DEBUG_APIS,"%s: ENTERED \n",__FUNCTION__);
@@ -82,7 +82,7 @@ void dvmrp_graft_timeout (void *pParam)
       if (entry->graftTimeoutHandle != L7_NULL)
       {
         handleListNodeDelete(dvmrpcb->handle_list,
-                             &entry->graftTimeoutHandle);
+                             (L7_uint64 *) &entry->graftTimeoutHandle);
       }
       DVMRP_FREE (L7_AF_INET, (void*) graft);        
       entry->graft_sent =L7_NULLPTR;     
@@ -119,7 +119,7 @@ void dvmrp_graft_timeout (void *pParam)
 
     if (L7_NULLPTR == (entry->graft_timer = appTimerAdd(dvmrpcb->timerHandle,
                                                         dvmrp_graft_timeout,
-                                                        (void *)entry->graftTimeoutHandle,
+                                                        UINT_TO_PTR(entry->graftTimeoutHandle),
                                                         graft->holdtime,
                                                         "DV-GT2")))
     {
@@ -147,7 +147,7 @@ void dvmrp_neighbor_timeout (void *pParam)
 {
   dvmrp_neighbor_t *nbr = L7_NULLPTR;
   dvmrp_t *dvmrpcb = L7_NULLPTR;     
-  L7_int32      handle = (L7_int32)pParam;
+  L7_uint64 handle = PTR_TO_UINT64(pParam);
 
   DVMRP_DEBUG(DVMRP_DEBUG_APIS,"%s: ENTERED \n",__FUNCTION__);
   
@@ -190,7 +190,7 @@ void dvmrp_prune_expire (void *pParam)
   dvmrp_t *dvmrpcb = L7_NULLPTR; 
   L7_uint32 min_prune_interval = 1/*DVMRP_PRUNE_TIMEOUT_INTERVAL*/;
   L7_uint32 now;
-  L7_int32      handle = (L7_int32)pParam;
+  L7_uint64 handle = PTR_TO_UINT64(pParam);
 
   dvmrpcb = (dvmrp_t *)handleListNodeRetrieve(handle);
   if (L7_NULLPTR == dvmrpcb)
@@ -275,7 +275,7 @@ void dvmrp_prune_expire (void *pParam)
 
   if (L7_NULLPTR == (dvmrpcb->expire = appTimerAdd(dvmrpcb->timerHandle,
                                                    dvmrp_prune_expire,
-                                                   (void *)dvmrpcb->pruneExpireHandle,
+                                                   UINT_TO_PTR(dvmrpcb->pruneExpireHandle),
                                                    min_prune_interval,
                                                    "DV-PT3")))
   {
@@ -311,7 +311,7 @@ void dvmrpRestartRoutesTimeoutHandler(dvmrp_t *dvmrpcb,L7_uint32 t)
 
   if (L7_NULLPTR == (dvmrpcb->age = appTimerAdd(dvmrpcb->timerHandle,
                                                 dvmrp_routes_timeout,
-                                                (void *)dvmrpcb->routesTimeoutHandle, t,
+                                                UINT_TO_PTR(dvmrpcb->routesTimeoutHandle), t,
                                                 "DV-RT3")))
   {
     DVMRP_DEBUG(DVMRP_DEBUG_FAILURES,"%s:%d timer instantiation failed \n",
@@ -341,7 +341,7 @@ void dvmrp_routes_timeout (void *pParam)
   dvmrp_cache_entry_t tmpEntry, *entry = L7_NULLPTR;
   dvmrpRouteData_t *pNextData = L7_NULLPTR;
   dvmrp_route_t *route = L7_NULLPTR;
-  L7_int32      handle = (L7_int32)pParam;
+  L7_uint64 handle = PTR_TO_UINT64(pParam);
   dvmrp_t *dvmrpcb = L7_NULLPTR;
 
   DVMRP_DEBUG(DVMRP_DEBUG_APIS,"%s: ENTERED \n",__FUNCTION__);
@@ -514,7 +514,7 @@ void dvmrp_routes_timeout (void *pParam)
 void dvmrp_Cache_Remove (void *pParam)
 {
   dvmrp_cache_entry_t *entry = L7_NULLPTR;
-  L7_int32      handle = (L7_int32)pParam;
+  L7_uint64 handle = PTR_TO_UINT64(pParam);
   dvmrp_t *dvmrpcb=L7_NULLPTR;  
 
   entry = (dvmrp_cache_entry_t *)handleListNodeRetrieve(handle);
@@ -552,7 +552,7 @@ void dvmrp_Cache_Remove (void *pParam)
   if (entry->pruneRetransmitimerHandle != L7_NULL)
   {
     handleListNodeDelete(dvmrpcb ->handle_list,
-                         &entry->pruneRetransmitimerHandle);
+                         (L7_uint64 *) &entry->pruneRetransmitimerHandle);
   }
 
   dvmrpCacheRemove(dvmrpcb ,entry);
@@ -572,7 +572,7 @@ void dvmrp_Cache_Remove (void *pParam)
 *********************************************************************/
 void dvmrp_timer_update (void *pParam )
 {
-  L7_int32      handle = (L7_int32)pParam;
+  L7_uint64 handle = PTR_TO_UINT64(pParam);
   dvmrp_t *dvmrpcb = L7_NULLPTR;
 
   /* DVMRP_DEBUG(DVMRP_DEBUG_APIS,"%s: ENTERED \n",__FUNCTION__); */
@@ -598,7 +598,7 @@ void dvmrp_timer_update (void *pParam )
 
   if (L7_NULLPTR == (dvmrpcb->timer = appTimerAdd(dvmrpcb->timerHandle,
                                                   dvmrp_timer_update,
-                                                  (void *)dvmrpcb->updateTimerHandle,
+                                                  UINT_TO_PTR(dvmrpcb->updateTimerHandle),
                                                   DVMRP_UPDATE_INTERVAL,
                                                   "DV-UPD2")))
   {
@@ -624,7 +624,7 @@ void dvmrp_timer_update (void *pParam )
 *********************************************************************/
 void dvmrp_flash_update (void *pParam)
 {
-  L7_int32      handle = (L7_int32)pParam;
+  L7_uint64 handle = PTR_TO_UINT64(pParam);
   dvmrp_t *dvmrpcb = L7_NULLPTR;
 
   DVMRP_DEBUG(DVMRP_DEBUG_APIS,"%s: ENTERED \n",__FUNCTION__);
@@ -656,7 +656,7 @@ void dvmrp_flash_update (void *pParam)
   if(dvmrpcb->flashrUpdateTimerHandle != L7_NULL)
   {
     handleListNodeDelete(dvmrpcb ->handle_list,
-                         &dvmrpcb->flashrUpdateTimerHandle);
+                         (L7_uint64 *) &dvmrpcb->flashrUpdateTimerHandle);
 
   }
   
@@ -695,7 +695,7 @@ void dvmrp_flash_timer_set (dvmrp_t *dvmrpcb)
 
   if (L7_NULLPTR == (dvmrpcb->flash = appTimerAdd(dvmrpcb->timerHandle,
                                                   dvmrp_flash_update,
-                                                  (void *)dvmrpcb->flashrUpdateTimerHandle,
+                                                  UINT_TO_PTR(dvmrpcb->flashrUpdateTimerHandle),
                                                   DVMRP_FLASH_INTERVAL,
                                                   "DV-FT")))
   {
@@ -727,7 +727,7 @@ void dvmrp_flash_timer_set (dvmrp_t *dvmrpcb)
 void dvmrp_prune_retransmit_timer_expire(void * pParam)
 {
   dvmrp_cache_entry_t *entry = L7_NULLPTR;
-  L7_int32  handle = (L7_int32)pParam;
+  L7_uint64 handle = PTR_TO_UINT64(pParam);
   dvmrp_t           *dvmrpcb = L7_NULLPTR;
 
   entry= (dvmrp_cache_entry_t *)handleListNodeRetrieve(handle);
@@ -778,7 +778,7 @@ void dvmrp_prune_retransmit_timer_expire(void * pParam)
     if (L7_NULLPTR == (entry->cacheRemove_timer =
                            appTimerAdd(dvmrpcb->timerHandle,
                                        dvmrp_Cache_Remove,
-                                       (void *)entry->cacheRemoveHandle,
+                                       UINT_TO_PTR(entry->cacheRemoveHandle),
                                        expiryTime,
                                        "DV-CT")))
     {

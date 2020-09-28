@@ -3664,7 +3664,7 @@ void pimsmRestartKeepaliveTimer(pimsmCB_t *pimsmCb,
   inetCopy(&pTimerData->addr2, &pSGNode->pimsmSGEntry.pimsmSGGrpAddress);
     
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmSGKeepaliveTimerExpiresHandler,
-                            (void*)pSGNode->pimsmSGEntry.pimsmSGKeepaliveTimerHandle,
+                            UINT_TO_PTR(pSGNode->pimsmSGEntry.pimsmSGKeepaliveTimerHandle),
                             timeout,
                             &(pSGNode->pimsmSGEntry.pimsmSGKeepaliveTimer),
                             "SM-KAT")

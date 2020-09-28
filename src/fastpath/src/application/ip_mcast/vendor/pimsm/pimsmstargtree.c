@@ -281,7 +281,7 @@ L7_RC_t pimsmStarGDelete(pimsmCB_t * pimsmCb, L7_inet_addr_t *pGrpAddr)
 
   pimsmUtilAppTimerCancel (pimsmCb, &(pStarGNode->pimsmStarGEntry.pimsmStarGUpstreamJoinTimer));
   handleListNodeDelete(pimsmCb->handleList,
-                       &pStarGNode->pimsmStarGEntry.pimsmStarGUpstreamJoinTimerHandle);
+                       (L7_uint64 *) &pStarGNode->pimsmStarGEntry.pimsmStarGUpstreamJoinTimerHandle);
 
   for(index = 0; index < MCAST_MAX_INTERFACES; index++)
   {
@@ -801,13 +801,13 @@ L7_RC_t pimsmStarGIEntryDelete(pimsmCB_t        *pimsmCb,
 
   pimsmUtilAppTimerCancel (pimsmCb, &(pStarGIEntry->pimsmStarGIPrunePendingTimer));
   handleListNodeDelete(pimsmCb->handleList,
-                         &pStarGIEntry->pimsmStarGIPrunePendingTimerHandle);     
+                       (L7_uint64 *) &pStarGIEntry->pimsmStarGIPrunePendingTimerHandle);     
   pimsmUtilAppTimerCancel (pimsmCb, &(pStarGIEntry->pimsmStarGIJoinExpiryTimer));
   handleListNodeDelete(pimsmCb->handleList,
-                         &pStarGIEntry->pimsmStarGIJoinExpiryTimerHandle);
+                       (L7_uint64 *) &pStarGIEntry->pimsmStarGIJoinExpiryTimerHandle);
   pimsmUtilAppTimerCancel (pimsmCb, &(pStarGIEntry->pimsmStarGIAssertTimer));
   handleListNodeDelete(pimsmCb->handleList,
-                         &pStarGIEntry->pimsmStarGIAssertTimerHandle);
+                       (L7_uint64 *) &pStarGIEntry->pimsmStarGIAssertTimerHandle);
 
   PIMSM_FREE (pimsmCb->family, (void*) pStarGIEntry);
 
@@ -850,7 +850,7 @@ L7_RC_t pimsmStarGTreePurge(pimsmCB_t * pimsmCb)
 
     pimsmUtilAppTimerCancel (pimsmCb, &(pStarGEntry->pimsmStarGUpstreamJoinTimer));
     handleListNodeDelete(pimsmCb->handleList,
-                         &pStarGEntry->pimsmStarGUpstreamJoinTimerHandle);
+                         (L7_uint64 *) &pStarGEntry->pimsmStarGUpstreamJoinTimerHandle);
 
     for(rtrIfNum = 0; rtrIfNum < MCAST_MAX_INTERFACES; rtrIfNum++)
     {

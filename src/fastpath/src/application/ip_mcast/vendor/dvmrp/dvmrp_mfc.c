@@ -349,7 +349,7 @@ void dvmrp_cache_mfc_update (dvmrp_cache_entry_t *entry)
       if (entry->pruneRetransmitimerHandle != L7_NULL)
       {
         handleListNodeDelete(dvmrpcb->handle_list,
-                             &entry->pruneRetransmitimerHandle);
+                             (L7_uint64 *) &entry->pruneRetransmitimerHandle);
       }
       entry->prune_retry_timer=0;      
 

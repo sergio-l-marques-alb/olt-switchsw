@@ -344,7 +344,7 @@ MCAST_CB_HNDL_t pimsmCtrlBlockInit(L7_uchar8 family, L7_BOOL warmRestart)
   pimsmCb->pimsmSPTTimerHandle = 
   handleListNodeStore(pimsmCb->handleList,
                       (void*)&pimsmCb->pimsmSPTTimerParam); 
-  PIMSM_TRACE(PIMSM_DEBUG_BIT_MISC,PIMSM_TRACE_DEBUG, "pimsmCb->pimsmSPTTimerHandle= %d",
+  PIMSM_TRACE(PIMSM_DEBUG_BIT_MISC,PIMSM_TRACE_DEBUG, "pimsmCb->pimsmSPTTimerHandle= 0x%llx",
               pimsmCb->pimsmSPTTimerHandle);   
   /*Initialize the timer */
   pimsmCb->pimsmRateCheckInterval = PIMSM_DEFAULT_CHECK_INTERVAL;
@@ -356,7 +356,7 @@ MCAST_CB_HNDL_t pimsmCtrlBlockInit(L7_uchar8 family, L7_BOOL warmRestart)
   pimsmCb->pimsmJPBundleTimerHandle= 
   handleListNodeStore(pimsmCb->handleList,
                       (void*)&pimsmCb->pimsmJPBundleTimerParam); 
-  PIMSM_TRACE(PIMSM_DEBUG_BIT_MISC,PIMSM_TRACE_DEBUG, "pimsmCb->pimsmJPBundleTimerHandle= %d",
+  PIMSM_TRACE(PIMSM_DEBUG_BIT_MISC,PIMSM_TRACE_DEBUG, "pimsmCb->pimsmJPBundleTimerHandle= 0x%llx",
               pimsmCb->pimsmJPBundleTimerHandle);   
   if(pimsmRouteChangeBufMemAlloc(pimsmCb) != L7_SUCCESS)
   {
@@ -541,7 +541,7 @@ L7_RC_t pimsmEventProcess(L7_uchar8 familyType,
       rc = pimsmMfcWholePktProcess(pimsmCb, pData);
       if ((mbuf->rtm_bufhandle) != L7_NULLPTR)
       {
-        SYSAPI_NET_MBUF_FREE((L7_netBufHandle)mbuf->rtm_bufhandle);
+        SYSAPI_NET_MBUF_FREE((L7_netBufHandle)PTR_TO_UINT64(mbuf->rtm_bufhandle));
       }
       rtm_freem(mbuf);
       break;

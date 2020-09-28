@@ -164,7 +164,7 @@ void dvmrp_route_del (dvmrp_route_t *route)
       if (entry->graftTimeoutHandle != L7_NULL)
       {
         handleListNodeDelete(dvmrpcb->handle_list,
-                             &entry->graftTimeoutHandle);
+                             (L7_uint64 *) &entry->graftTimeoutHandle);
       }
       DVMRP_FREE (L7_AF_INET, (void*) entry->graft_sent);        
       entry->graft_sent = L7_NULLPTR;      
@@ -858,7 +858,7 @@ L7_int32 dvmrp_update_fn_call(L7_int32 code, dvmrp_cache_entry_t *entry,
         if (entry->cacheRemoveHandle != L7_NULL)
         {
           handleListNodeDelete(dvmrpcb->handle_list,
-                               &entry->cacheRemoveHandle);
+                               (L7_uint64 *) &entry->cacheRemoveHandle);
         }
         entry->cacheRemove_timer=L7_NULLPTR;
       }
@@ -967,7 +967,7 @@ L7_int32 dvmrp_update_fn_call(L7_int32 code, dvmrp_cache_entry_t *entry,
           if (entry->cacheRemoveHandle != L7_NULL)
           {
             handleListNodeDelete(dvmrpcb->handle_list,
-                                 &entry->cacheRemoveHandle);
+                                 (L7_uint64 *) &entry->cacheRemoveHandle);
           }
           entry->cacheRemove_timer=L7_NULLPTR;
         }

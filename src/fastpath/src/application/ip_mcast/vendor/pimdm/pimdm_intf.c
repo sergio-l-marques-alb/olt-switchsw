@@ -377,7 +377,7 @@ pimdmIntfHelloTimerExpiryHandler (void *pParam)
 
   PIMDM_TRACE (PIMDM_DEBUG_API, "Entry");
 
-  if ((pIf = (pimdmInterface_t*) handleListNodeRetrieve ((L7_uint32) pParam))
+  if ((pIf = (pimdmInterface_t*) handleListNodeRetrieve (PTR_TO_UINT64(pParam)))
           == L7_NULLPTR)
   {
     PIMDM_TRACE(PIMDM_DEBUG_FAILURE,
@@ -422,14 +422,14 @@ pimdmIntfHelloTimerExpiryHandler (void *pParam)
                  "Hello timer refresh success on rtrIfNum %d", rtrIfNum);
   /* Restart the Hello Timer */
   if (pimdmUtilAppTimerSet (pimdmCB, pimdmIntfHelloTimerExpiryHandler,
-                            (void*) pIf->intfTmrHandle, pIf->helloInterval,
+                            UINT_TO_PTR(pIf->intfTmrHandle), pIf->helloInterval,
                             errMsgBuf, sucMsgBuf, &(pIf->helloTimer),
                             "DM-HT")
                          != L7_SUCCESS)
   {
     PIMDM_TRACE (PIMDM_DEBUG_FAILURE,
                  "Failed to start the Hello Timer for rtrIfNum %d", rtrIfNum);
-    handleListNodeDelete (pimdmCB->handleList, &(pIf->intfTmrHandle));
+    handleListNodeDelete (pimdmCB->handleList, (L7_uint64 *) &(pIf->intfTmrHandle));
     return;
   }
 
@@ -458,7 +458,7 @@ pimdmIntfNbrTimerExpiryHandler (void *pParam)
 
   PIMDM_TRACE (PIMDM_DEBUG_API, "Entry");
 
-  if ((pNbr = (pimdmNeighbor_t*) handleListNodeRetrieve ((L7_uint32) pParam))
+  if ((pNbr = (pimdmNeighbor_t*) handleListNodeRetrieve (PTR_TO_UINT64(pParam)))
           == L7_NULLPTR)
   {
     PIMDM_TRACE(PIMDM_DEBUG_FAILURE,
@@ -1778,7 +1778,7 @@ pimdmIntfHelloMsgProcess (pimdmCB_t          *pimdmCB,
 
       /* Start the NLT */
       if (pimdmUtilAppTimerSet (pimdmCB, pimdmIntfNbrTimerExpiryHandler,
-                                (void*) pNbr->nbrTmrHandle,
+                                UINT_TO_PTR(pNbr->nbrTmrHandle),
                                 pNbrInfo->holdTime, L7_NULLPTR, L7_NULLPTR,
                                 &(pNbr->livenessTimer),
                                 "DM-NLT")
@@ -1810,7 +1810,7 @@ pimdmIntfHelloMsgProcess (pimdmCB_t          *pimdmCB,
 
           /* Update the Hello Timer */
           if (pimdmUtilAppTimerSet (pimdmCB, pimdmIntfHelloTimerExpiryHandler,
-                                    (void*) pIf->intfTmrHandle,
+                                    UINT_TO_PTR(pIf->intfTmrHandle),
                                     nextDelay, errMsgBuf, sucMsgBuf,
                                     &(pIf->helloTimer),
                                     "DM-HT2")
@@ -1849,7 +1849,7 @@ pimdmIntfHelloMsgProcess (pimdmCB_t          *pimdmCB,
       if(pNbr->livenessTimer != L7_NULLPTR)
       {
         pimdmUtilAppTimerCancel (pimdmCB, &(pNbr->livenessTimer));
-        handleListNodeDelete (pimdmCB->handleList, &(pNbr->nbrTmrHandle));
+        handleListNodeDelete (pimdmCB->handleList, (L7_uint64 *) &(pNbr->nbrTmrHandle));
       }
 
       /* Second : Update the interface parameters */
@@ -1908,14 +1908,14 @@ pimdmIntfHelloMsgProcess (pimdmCB_t          *pimdmCB,
                         "Hello timer refresh success on rtrIfNum %d", rtrIfNum);
          /* Restart the Hello Timer */
          if (pimdmUtilAppTimerSet (pimdmCB, pimdmIntfHelloTimerExpiryHandler,
-                                   (void*) pIf->intfTmrHandle, pIf->helloInterval,
+                                   UINT_TO_PTR(pIf->intfTmrHandle), pIf->helloInterval,
                                    errMsgBuf, sucMsgBuf, &(pIf->helloTimer),
                                    "DM-HT")
                                 != L7_SUCCESS)
          {
            PIMDM_TRACE (PIMDM_DEBUG_FAILURE,
                         "Failed to start the Hello Timer for rtrIfNum %d", rtrIfNum);
-           handleListNodeDelete (pimdmCB->handleList, &(pIf->intfTmrHandle));
+           handleListNodeDelete (pimdmCB->handleList, (L7_uint64 *) &(pIf->intfTmrHandle));
          }
 
         /* Handle the Router Failure scenario by invoking the MRT to send
@@ -1931,7 +1931,7 @@ pimdmIntfHelloMsgProcess (pimdmCB_t          *pimdmCB,
       if(pNbrInfo->holdTime == PIMDM_INFINITE_HOLDTIME)
       {
         pimdmUtilAppTimerCancel (pimdmCB, &(pNbr->livenessTimer));
-        handleListNodeDelete (pimdmCB->handleList, &(pNbr->nbrTmrHandle));
+        handleListNodeDelete (pimdmCB->handleList, (L7_uint64 *) &(pNbr->nbrTmrHandle));
       }
       else
       {
@@ -1940,7 +1940,7 @@ pimdmIntfHelloMsgProcess (pimdmCB_t          *pimdmCB,
         if(pNbr->livenessTimer != L7_NULLPTR)
         {
           if (pimdmUtilAppTimerSet (pimdmCB, pimdmIntfNbrTimerExpiryHandler,
-                                    (void*) pNbr->nbrTmrHandle,
+                                    UINT_TO_PTR(pNbr->nbrTmrHandle),
                                     pNbrInfo->holdTime, L7_NULLPTR, L7_NULLPTR,
                                     &(pNbr->livenessTimer),
                                     "DM-NLT2")
@@ -1969,14 +1969,14 @@ pimdmIntfHelloMsgProcess (pimdmCB_t          *pimdmCB,
           else
           {
             if (pimdmUtilAppTimerSet (pimdmCB, pimdmIntfNbrTimerExpiryHandler,
-                                      (void*) pNbr->nbrTmrHandle,
+                                      UINT_TO_PTR(pNbr->nbrTmrHandle),
                                       pNbrInfo->holdTime, L7_NULLPTR, L7_NULLPTR,
                                       &(pNbr->livenessTimer),
                                       "DM-NLT3")
                                    != L7_SUCCESS)
             {
               /* Could not start a liveness timer. Purge the neighbor */
-              handleListNodeDelete (pimdmCB->handleList, &(pNbr->nbrTmrHandle));
+              handleListNodeDelete (pimdmCB->handleList, (L7_uint64 *) &(pNbr->nbrTmrHandle));
               /*pimdmIntfParamsCompute(pCB, pNbr, PIMDM_INTF_NBR_DELETE, pIf);*/
               bChange = pimdmIntfNeighborClear(pimdmCB, rtrIfNum, nbrIndex);
             }
@@ -2146,7 +2146,7 @@ pimdmIntfUp (pimdmCB_t      *pimdmCB,
          "Initial Hello timer set success on rtrIfNum %d", rtrIfNum);
 
   if (pimdmUtilAppTimerSet (pimdmCB, pimdmIntfHelloTimerExpiryHandler,
-                            (void*) pIf->intfTmrHandle, initialDelay, errMsgBuf,
+                            UINT_TO_PTR(pIf->intfTmrHandle), initialDelay, errMsgBuf,
                             sucMsgBuf, &(pIf->helloTimer),
                             "DM-HT4")
                          != L7_SUCCESS)
@@ -2275,7 +2275,7 @@ pimdmIntfDown (pimdmCB_t *pimdmCB,
   PIMDM_TRACE (PIMDM_DEBUG_API, " Deleting Hello timer of Timerhandle : %p",
                pIf->intfTmrHandle);
   pimdmUtilAppTimerCancel (pimdmCB, &(pIf->helloTimer));
-  handleListNodeDelete (pimdmCB->handleList, &(pIf->intfTmrHandle));
+  handleListNodeDelete (pimdmCB->handleList, (L7_uint64 *) &(pIf->intfTmrHandle));
 
   /* Notify PIM-DM MGMD Database of the interface going down */
   if (pimdmMgmdIntfDownUpdate (pimdmCB, rtrIfNum) != L7_SUCCESS)
@@ -2315,7 +2315,7 @@ pimdmIntfDown (pimdmCB_t *pimdmCB,
         {
           /* Clean-up the neighbor structure */
           pimdmUtilAppTimerCancel (pimdmCB, &(pNbr->livenessTimer));
-          handleListNodeDelete (pimdmCB->handleList, &(pNbr->nbrTmrHandle));
+          handleListNodeDelete (pimdmCB->handleList, (L7_uint64 *) &(pNbr->nbrTmrHandle));
           pimdmJPWorkingBuffReturn (pimdmCB, pNbr);
           tmpGenId = pNbr->genID;
           memset(pNbr, 0, sizeof(pimdmNeighbor_t));
@@ -2425,7 +2425,7 @@ pimdmIntfPurge (pimdmCB_t *pimdmCB,
 
   /* Stop the Hello timer */
   pimdmUtilAppTimerCancel (pimdmCB, &(pIf->helloTimer));
-  handleListNodeDelete (pimdmCB->handleList, &(pIf->intfTmrHandle));
+  handleListNodeDelete (pimdmCB->handleList, (L7_uint64 *) &(pIf->intfTmrHandle));
 
   /* Clean-up the interface entry itself */
   tmpGenId = pIf->genID;

@@ -97,15 +97,15 @@ typedef struct mcastGblVar_s
   L7_uint32             mcastV4CtrlPktPoolId;
   L7_uint32             mcastV6CtrlPktPoolId;
   L7_uint32             mcastV6DataPktPoolId;
-  L7_uint32             mcastV4HeapId;
-  L7_uint32             mcastV6HeapId;
+  L7_uint64             mcastV4HeapId;
+  L7_uint64             mcastV6HeapId;
   L7_uint32             mcastAppTimerBufPoolId;
   void                  *mcastHandleListMemHndl;
   void                  *mcastV6HandleListMemHndl;
   L7_uint32             mcastV4MgmdEventsPoolId;
   L7_uint32             mcastV6MgmdEventsPoolId;
-  L7_int32              mcastMapTaskId;
-  L7_int32              pktRcvrTaskId;
+  L7_uint64             mcastMapTaskId;
+  L7_uint64             pktRcvrTaskId;
   L7_PktRcvr_t*         pktRcvr;
  /* Three message queues are created to prioritize the timer events and control msg events ahead of
     data packet reception events so that the operational control events are still

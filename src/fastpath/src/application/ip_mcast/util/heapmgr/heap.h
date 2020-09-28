@@ -45,7 +45,7 @@ typedef struct heapDebugInfo_s
 {
   L7_uchar8 fileName[HEAP_FILENAME_SIZE];
   L7_uint32 lineNumber;
-  L7_uint32 taskId;
+  L7_uint64 taskId;
   L7_uint32 sizeRequest;
 }heapDebugInfo_t;
 
@@ -72,15 +72,15 @@ typedef struct buffPool_s
   L7_uint32   buffCount;       /* Number of buffers in this pool */
   L7_uchar8   descr[HEAP_POOLNAME_SIZE]; /* Name of the pool */
   L7_uint32   flags;           /* Flags defining extra properties of the pool */
-  L7_uint32   startLoc;        /* Start location (absolute address) */
-  L7_uint32   endLoc;          /* End location (absolute address) */
+  L7_uint64   startLoc;        /* Start location (absolute address) */
+  L7_uint64   endLoc;          /* End location (absolute address) */
   heapStats_t stats;           /* Buffer pool statistics */
   void        *freeList;       /* Singly linked free buffers in the pool */
 }buffPool_t;
 
 typedef struct heap_s
 {
-  L7_uint32          validateMem;     /* Need to be first item always */
+  L7_uint64          validateMem;     /* Need to be first item always */
   L7_COMPONENT_IDS_t compId;
   L7_uint32          heapSize;        /* Size of heap, excluding the heap node */
   L7_uint32          inUse;           /* Size of heap initialized; 0 if un-initialized*/

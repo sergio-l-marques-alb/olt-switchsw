@@ -2334,7 +2334,7 @@ L7_RC_t mgmdMapProtocolMRPMembershipEventsNotify(L7_uchar8   family,
 *
 * @end
 *********************************************************************/
-L7_uint32 mgmdMapHeapIdGet (L7_uint32 family)
+L7_uint64 mgmdMapHeapIdGet (L7_uint32 family)
 {
   mgmdMapCB_t *mgmdMapCbPtr = L7_NULLPTR;
 

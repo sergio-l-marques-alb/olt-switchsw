@@ -35,44 +35,44 @@
 typedef struct pimsmStarGEntry_s
 {
   L7_inet_addr_t    pimsmStarGGrpAddress;
-  L7_uint32       pimsmStarGCreateTime;
-  pimMode_t       pimsmStarGPimMode;
+  L7_uint32         pimsmStarGCreateTime;
+  pimMode_t         pimsmStarGPimMode;
   L7_inet_addr_t    pimsmStarGRPAddress;
   PIMSM_RP_GRP_MAPPING_ORIGIN_TYPE pimsmStarGRPOrigin;
-  L7_BOOL       pimsmStarGRPIsLocal;
+  L7_BOOL           pimsmStarGRPIsLocal;
   pimsmUpStrmStarGStates_t pimsmStarGUpstreamJoinState;
   L7_APP_TMR_HNDL_t pimsmStarGUpstreamJoinTimer;
-  L7_uint32 pimsmStarGUpstreamJoinTimerHandle;
-  pimsmTimerData_t        pimsmStarGUpstreamJoinTimerParam;
+  L7_uint64         pimsmStarGUpstreamJoinTimerHandle;
+  pimsmTimerData_t  pimsmStarGUpstreamJoinTimerParam;
   L7_inet_addr_t    pimsmStarGUpstreamNeighbor;
-  L7_uint32       pimsmStarGRPFIfIndex;
+  L7_uint32         pimsmStarGRPFIfIndex;
   L7_inet_addr_t    pimsmStarGRPFNextHop;
   L7_RTO_PROTOCOL_INDICES_t pimsmStarGRPFRouteProtocol;
   L7_inet_addr_t    pimsmStarGRPFRouteAddress;
-  L7_uint32       pimsmStarGRPFRoutePrefixLength;
-  L7_uint32       pimsmStarGRPFRouteMetricPref;
-  L7_uint32       pimsmStarGRPFRouteMetric;
+  L7_uint32         pimsmStarGRPFRoutePrefixLength;
+  L7_uint32         pimsmStarGRPFRouteMetricPref;
+  L7_uint32         pimsmStarGRPFRouteMetric;
 } pimsmStarGEntry_t;
 
 typedef struct pimsmStarGIEntry_s
 {
-  L7_uint32     pimsmStarGIIfIndex;
-  L7_uint32       pimsmStarGICreateTime;  
-  L7_BOOL       pimsmStarGILocalMembership;
+  L7_uint32         pimsmStarGIIfIndex;
+  L7_uint32         pimsmStarGICreateTime;  
+  L7_BOOL           pimsmStarGILocalMembership;
   pimsmDnStrmPerIntfStarGStates_t     pimsmStarGIJoinPruneState;
   L7_APP_TMR_HNDL_t pimsmStarGIPrunePendingTimer;
-  L7_uint32 pimsmStarGIPrunePendingTimerHandle;
+  L7_uint64         pimsmStarGIPrunePendingTimerHandle;
   pimsmTimerData_t  pimsmStarGIPrunePendingTimerParam;
   L7_APP_TMR_HNDL_t pimsmStarGIJoinExpiryTimer;
-  L7_uint32 pimsmStarGIJoinExpiryTimerHandle;
-  pimsmTimerData_t pimsmStarGIJoinExpiryTimerParam;
+  L7_uint64         pimsmStarGIJoinExpiryTimerHandle;
+  pimsmTimerData_t  pimsmStarGIJoinExpiryTimerParam;
   pimsmPerIntfStarGAssertStates_t       pimsmStarGIAssertState;
   L7_APP_TMR_HNDL_t pimsmStarGIAssertTimer;
-  L7_uint32 pimsmStarGIAssertTimerHandle;   
-  pimsmTimerData_t pimsmStarGIAssertTimerParam;
+  L7_uint64         pimsmStarGIAssertTimerHandle;   
+  pimsmTimerData_t  pimsmStarGIAssertTimerParam;
   L7_inet_addr_t    pimsmStarGIAssertWinnerAddress;
-  L7_uint32       pimsmStarGIAssertWinnerMetricPref;
-  L7_uint32       pimsmStarGIAssertWinnerMetric;
+  L7_uint32         pimsmStarGIAssertWinnerMetricPref;
+  L7_uint32         pimsmStarGIAssertWinnerMetric;
 } pimsmStarGIEntry_t;
 
 /* Following data struct and APIs represents data and operations on Tree-B */

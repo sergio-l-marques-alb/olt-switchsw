@@ -361,7 +361,7 @@ static L7_RC_t  pimsmPerIntfSGAssertActionA1 (pimsmCB_t * pimsmCb,
   pTimerData->rtrIfNum = rtrIfNum;
 
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmSGIAssertTimerExpiresHandler,
-                            (void*)pSGIEntry->pimsmSGIAssertTimerHandle,
+                            UINT_TO_PTR(pSGIEntry->pimsmSGIAssertTimerHandle),
                             PIMSM_DEFAULT_ASSERT_TIME - PIMSM_DEFAULT_ASSERT_OVERRIDE_INTERVAL,
                             &(pSGIEntry->pimsmSGIAssertTimer),
                             "SGI-AT")
@@ -448,7 +448,7 @@ static L7_RC_t  pimsmPerIntfSGAssertActionA2Common (pimsmCB_t * pimsmCb,
   pTimerData->rtrIfNum = rtrIfNum;
 
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmSGIAssertTimerExpiresHandler,
-                            (void*)pSGIEntry->pimsmSGIAssertTimerHandle,
+                            UINT_TO_PTR(pSGIEntry->pimsmSGIAssertTimerHandle),
                             PIMSM_DEFAULT_ASSERT_TIME,
                             &(pSGIEntry->pimsmSGIAssertTimer),
                             "SGI-AT2")
@@ -554,7 +554,7 @@ static L7_RC_t  pimsmPerIntfSGAssertActionA3 (pimsmCB_t * pimsmCb,
   pTimerData->rtrIfNum = rtrIfNum;
 
   if (pimsmUtilAppTimerSet (pimsmCb, pimsmSGIAssertTimerExpiresHandler,
-                            (void*)pSGIEntry->pimsmSGIAssertTimerHandle,
+                            UINT_TO_PTR(pSGIEntry->pimsmSGIAssertTimerHandle),
                             PIMSM_DEFAULT_ASSERT_TIME - PIMSM_DEFAULT_ASSERT_OVERRIDE_INTERVAL,
                             &(pSGIEntry->pimsmSGIAssertTimer),
                             "SGI-AT3")
@@ -755,7 +755,7 @@ static void pimsmSGIAssertTimerExpiresHandler(void *pParam)
   L7_uint32 rtrIfNum;
   pimsmCB_t * pimsmCb;
   pimsmTimerData_t *pTimerData;
-  L7_int32      handle = (L7_int32)pParam;
+  L7_uint64      handle = PTR_TO_UINT64(pParam);
   L7_inet_addr_t *pGrpAddr, *pSrcAddr;
 
   pTimerData = (pimsmTimerData_t*)handleListNodeRetrieve(handle);

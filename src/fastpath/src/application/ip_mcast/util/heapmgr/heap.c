@@ -222,7 +222,8 @@ L7_RC_t heapInitialize(heap_t         *heap,
 {
   heapBuffPool_t  *tmpBuffPool= (heapBuffPool_t*)bList;
   buffPool_t      *heapBuffPool, *freeBuffPool, *buffPool;
-  L7_uint32       dataPtr, buffOverhead, i, j, buffSize;
+  L7_uint32       buffOverhead, i, j, buffSize;
+  L7_uint64       dataPtr;
 
   /* Simple validations */
   if((heap == L7_NULLPTR) || (tmpBuffPool == L7_NULLPTR) ||
@@ -234,8 +235,8 @@ L7_RC_t heapInitialize(heap_t         *heap,
   }
 
   /* Set-up the heap structure */
-  memset((void *)((L7_uint32)heap + sizeof(heap_t)), 0, heapSize);
-  heap->buffPool = (buffPool_t *)((L7_uint32)heap + sizeof(heap_t));
+  memset(UINT_TO_PTR(PTR_TO_UINT64(heap) + sizeof(heap_t)), 0, heapSize);
+  heap->buffPool = (buffPool_t *)UINT_TO_PTR(PTR_TO_UINT64(heap) + sizeof(heap_t));
   heap->buffPoolCount = buffPoolCount;
   heap->flags = flags;
   heap->dbgPrint = 0;  /* Turn-off debug prints by default */
@@ -311,7 +312,7 @@ L7_RC_t heapInitialize(heap_t         *heap,
   }
 
   /* Populate the free list and the start & end locs */
-  dataPtr = (L7_uint32)(heap->buffPool) + buffPoolCount * sizeof(buffPool_t);
+  dataPtr = PTR_TO_UINT64(heap->buffPool) + buffPoolCount * sizeof(buffPool_t);
   buffOverhead = heap->headerSize +
                  (((flags & HEAP_DEBUG_MEMORY_GUARD) != 0) ?
                   sizeof(heapDebugMemGuard_t) : 0);
@@ -322,8 +323,8 @@ L7_RC_t heapInitialize(heap_t         *heap,
       (buffPool->buffSize + buffOverhead) * buffPool->buffCount - 1;
     for(j = 0; j < buffPool->buffCount; j++)
     {
-      *(L7_uint32 *)(dataPtr + heap->headerSize) = (L7_uint32)(buffPool->freeList);
-      buffPool->freeList = (void *)(dataPtr + heap->headerSize);
+      PTR_SET_VALUE(UINT_TO_PTR(dataPtr + heap->headerSize)) = PTR_TO_UINT64(buffPool->freeList);
+      buffPool->freeList = UINT_TO_PTR(dataPtr + heap->headerSize);
       dataPtr += buffPool->buffSize + buffOverhead;
     }
   }
@@ -352,10 +353,11 @@ L7_RC_t heapBuffPoolGet(heap_t     *heap,
                         void       *pMem,
                         buffPool_t **buffPool)
 {
-  L7_uint32 pBuff, i;
+  L7_uint64 pBuff;
+  L7_uint32 i;
 
   /* Get the pointer to the whole buffer (including the debug header info) */
-  pBuff =  (L7_uint32)pMem - heap->headerSize;
+  pBuff =  PTR_TO_UINT64(pMem) - heap->headerSize;
 
   /* Iterate through the various pools and see which pool does this buffer belong */
   *buffPool = heap->buffPool;
@@ -411,7 +413,7 @@ L7_RC_t heapBuffPoolGet(heap_t     *heap,
 *
 * @end
 *********************************************************************/
-L7_uint32 heapCreate(L7_COMPONENT_IDS_t compId,
+L7_uint64 heapCreate(L7_COMPONENT_IDS_t compId,
                      size_t             size)
 {
   L7_uint32 heapSize, usrSize;
@@ -437,7 +439,7 @@ L7_uint32 heapCreate(L7_COMPONENT_IDS_t compId,
 
   /* Initialize the heap structure and return the heapID */
   memset(heap, 0, sizeof(heap_t));
-  heap->validateMem = (L7_uint32)heap;
+  heap->validateMem = PTR_TO_UINT64(heap);
   heap->compId = compId;
   heap->heapSize = usrSize;
   heap->inUse = 0;
@@ -456,7 +458,7 @@ L7_uint32 heapCreate(L7_COMPONENT_IDS_t compId,
                __FUNCTION__,__LINE__);
     return L7_FAILURE;
   }
-  return (L7_uint32)heap;
+  return PTR_TO_UINT64(heap);
 }
 
 /*********************************************************************
@@ -474,18 +476,18 @@ L7_uint32 heapCreate(L7_COMPONENT_IDS_t compId,
 *
 * @end
 *********************************************************************/
-L7_RC_t heapInit(L7_uint32      heapId,
+L7_RC_t heapInit(L7_uint64      heapId,
                  heapBuffPool_t bList[],
                  heapFlags_t    flags)
 {
-  heap_t    *heap = (heap_t*)heapId;
+  heap_t    *heap = (heap_t*) UINT_TO_PTR(heapId);
   L7_uint32 heapSize, buffPoolCount;
 
   /* Basic sanity checks */
-  if(heap == L7_NULLPTR || (*((L7_uint32*)heapId) != heapId))
+  if(heap == L7_NULLPTR || (PTR_GET_VALUE(UINT_TO_PTR(heapId)) != heapId))
   {
     HEAP_TRACE(HEAP_PRINT_ALWAYS,
-               "[%s:%u] ERROR: Heap Initialization failed for heapId - %x\n",
+               "[%s:%u] ERROR: Heap Initialization failed for heapId - %llx\n",
                __FUNCTION__,__LINE__,heapId);
     return L7_FAILURE;
   }
@@ -495,7 +497,7 @@ L7_RC_t heapInit(L7_uint32      heapId,
        we dont want this message on the console
      */
     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_FLEX_MCAST_MAP_COMPONENT_ID,
-            "[%s:%u] Heap with ID 0x%x is already in use\n",
+            "[%s:%u] Heap with ID 0x%llx is already in use\n",
                __FUNCTION__,__LINE__,heapId);
 
     return L7_FAILURE;
@@ -532,25 +534,25 @@ L7_RC_t heapInit(L7_uint32      heapId,
 *
 * @end
 *********************************************************************/
-L7_RC_t heapDeInit(L7_uint32 heapId,
+L7_RC_t heapDeInit(L7_uint64 heapId,
                    L7_BOOL   bForced)
 {
-  heap_t     *heap = (heap_t*)heapId;
+  heap_t     *heap = (heap_t*)UINT_TO_PTR(heapId);
   L7_uint32  i;
   buffPool_t *buffPool;
 
   /* Validate the heap */
-  if(heap == L7_NULLPTR || (*((L7_uint32*)heapId) != heapId))
+  if(heap == L7_NULLPTR || (PTR_GET_VALUE(UINT_TO_PTR(heapId)) != heapId))
   {
     HEAP_TRACE(HEAP_PRINT_ALWAYS,
-               "[%s:%u] ERROR: Invalid Heap ID %x. De-Init failed\n",
+               "[%s:%u] ERROR: Invalid Heap ID %llx. De-Init failed\n",
                __FUNCTION__,__LINE__,heapId);
     return L7_FAILURE;
   }
   if(heapIsInUse(heap) == L7_FALSE)
   {
     HEAP_TRACE(HEAP_PRINT_ALWAYS,
-               "[%s:%u] ERROR: Heap %x is not inited yet; De-Init failed.\n",
+               "[%s:%u] ERROR: Heap %llx is not inited yet; De-Init failed.\n",
                __FUNCTION__,__LINE__,heapId);
     return L7_FAILURE;
   }
@@ -560,7 +562,7 @@ L7_RC_t heapDeInit(L7_uint32 heapId,
     if(osapiSemaTake(heap->semId, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
       HEAP_TRACE(HEAP_PRINT_ALWAYS,
-                 "[%s:%u] ERROR: Semaphore acquisition failed for heap 0x%x.\n",
+                 "[%s:%u] ERROR: Semaphore acquisition failed for heap 0x%llx.\n",
                  __FUNCTION__,__LINE__,heapId);
       return L7_FAILURE;
     }
@@ -575,7 +577,7 @@ L7_RC_t heapDeInit(L7_uint32 heapId,
       {
         /* Outstanding allocated buffers */
         HEAP_TRACE(HEAP_PRINT_ALWAYS,
-                   "[%s:%u] Outstanding buffers (%u) allocated in buffpool %s, heap 0x%x. De-Init failed.\n",
+                   "[%s:%u] Outstanding buffers (%u) allocated in buffpool %s, heap 0x%llx. De-Init failed.\n",
                    __FUNCTION__,__LINE__,buffPool->stats.allocCount,buffPool->descr,heapId);
         /* Unlock access */
         if((heap->flags & HEAP_LOCK_GUARD) != 0)
@@ -613,16 +615,16 @@ L7_RC_t heapDeInit(L7_uint32 heapId,
 *
 * @end
 *********************************************************************/
-L7_RC_t heapDestroy(L7_uint32 heapId,
+L7_RC_t heapDestroy(L7_uint64 heapId,
                     L7_BOOL   bForced)
 {
-  heap_t     *heap = (heap_t*)heapId;
+  heap_t     *heap = (heap_t*)UINT_TO_PTR(heapId);
 
   /* Validate the heap */
-  if(heap == L7_NULLPTR || (*((L7_uint32*)heapId) != heapId))
+  if(heap == L7_NULLPTR || (PTR_GET_VALUE(UINT_TO_PTR(heapId)) != heapId))
   {
     HEAP_TRACE(HEAP_PRINT_ALWAYS,
-               "FAILED to destroy the heap with ID - %x. Invalid heapID\n",
+               "FAILED to destroy the heap with ID - %llx. Invalid heapID\n",
                heapId);
     return L7_FAILURE;
   }
@@ -631,13 +633,13 @@ L7_RC_t heapDestroy(L7_uint32 heapId,
   {
     /* Still in use */
     HEAP_TRACE(HEAP_PRINT_ALWAYS,
-               "FAILED to destroy the heap with ID - %x. Heap in use\n",
+               "FAILED to destroy the heap with ID - %llx. Heap in use\n",
                heapId);
     return L7_FAILURE;
   }
 
   /* Invalidate the heap and then free-up the resources */
-  heap->validateMem = (L7_uint32)L7_NULL;
+  heap->validateMem = (L7_uint64)L7_NULL;
   heapSizeUpdate(heap, 0);
 
   osapiSemaDelete(heap->heapSemId);
@@ -667,12 +669,12 @@ L7_RC_t heapDestroy(L7_uint32 heapId,
 *
 * @end
 *********************************************************************/
-void *heapAlloc(L7_uint32 heapId,
+void *heapAlloc(L7_uint64 heapId,
                 size_t    size,
                 L7_uchar8 *fileName,
                 L7_uint32 lineNumber)
 {
-  heap_t     *heap = (heap_t*)heapId;
+  heap_t     *heap = (heap_t*) UINT_TO_PTR(heapId);
   buffPool_t *buffPool;
   void       *output = L7_NULLPTR;
   L7_uint32  i;
@@ -680,7 +682,7 @@ void *heapAlloc(L7_uint32 heapId,
   l7utilsFilenameStrip((L7_char8 **)&fileName);
 
   /* Basic sanity checks */
-  if((heap == L7_NULL) || (*((L7_uint32*)heapId) != heapId) || (size == 0))
+  if((heap == L7_NULL) || (PTR_GET_VALUE(UINT_TO_PTR(heapId)) != heapId) || (size == 0))
   {
     HEAP_TRACE(HEAP_PRINT_ALWAYS,"Failed to allocate memory -Invalid Params\n");
     return L7_NULLPTR;
@@ -718,11 +720,11 @@ void *heapAlloc(L7_uint32 heapId,
 
       /* Extract the free buffer from the freeList */
       output = (void *)buffPool->freeList;
-      buffPool->freeList = (void *)(*(L7_uint32 *)output);
-      *(L7_uint32 *)output = 0;
+      buffPool->freeList = UINT_TO_PTR(PTR_GET_VALUE(output));
+      PTR_SET_VALUE(output) = 0;
 
       /* Setup the debug information */
-      wholeBuff = (void *)((L7_uint32)(output) - heap->headerSize);
+      wholeBuff = (void *)UINT_TO_PTR(PTR_TO_UINT64(output) - heap->headerSize);
       if((heap->flags & HEAP_DEBUG_FILE_INFO) != 0)
       {
         heapDebugInfo_t *dbgInfo = (heapDebugInfo_t *)wholeBuff;
@@ -733,13 +735,13 @@ void *heapAlloc(L7_uint32 heapId,
           dbgInfo->taskId = 0;
         }
         dbgInfo->sizeRequest = size;
-        wholeBuff = (void *)((L7_uint32)(wholeBuff) + sizeof(heapDebugInfo_t));
+        wholeBuff = (void *)UINT_TO_PTR(PTR_TO_UINT64(wholeBuff) + sizeof(heapDebugInfo_t));
       }
       if((heap->flags & HEAP_DEBUG_MEMORY_GUARD) != 0)
       {
         heapDebugMemGuard_t *dbgInfo = (heapDebugMemGuard_t *)wholeBuff;
         dbgInfo->guardWord = HEAP_GUARD_WORD_HEADER;
-        dbgInfo = (heapDebugMemGuard_t *)((L7_uint32)(output) + buffPool->buffSize);
+        dbgInfo = (heapDebugMemGuard_t *)UINT_TO_PTR(PTR_TO_UINT64(output) + buffPool->buffSize);
         dbgInfo->guardWord = HEAP_GUARD_WORD_TRAILER;
       }
 
@@ -770,7 +772,7 @@ void *heapAlloc(L7_uint32 heapId,
     if((heap->flags & HEAP_MALLOC_ENABLE) != 0)
     {
       HEAP_TRACE(heap->dbgPrint,
-                 "Allocating from system memory for heapID - %x and size -%d \n",
+                 "Allocating from system memory for heapID - 0x%llx and size -%d \n",
                  heapId, size);
       output = (void*)osapiMalloc(heap->compId, size);
       if(output != L7_NULLPTR)
@@ -790,7 +792,7 @@ void *heapAlloc(L7_uint32 heapId,
     else
     {
       HEAP_TRACE(heap->dbgPrint,
-                 "Failed: to allocate memory for heapID - %x and size -%d \n",
+                 "Failed: to allocate memory for heapID - 0x%llx and size -%d \n",
                  heapId,size);
       heap->sysMemStats.allocFail++;
     }
@@ -818,15 +820,15 @@ void *heapAlloc(L7_uint32 heapId,
 *
 * @end
 *********************************************************************/
-void heapFree(L7_uint32 heapId,
+void heapFree(L7_uint64 heapId,
               void      *pMem)
 {
-  heap_t     *heap = (heap_t*)heapId;
+  heap_t     *heap = (heap_t*)UINT_TO_PTR(heapId);
   buffPool_t *buffPool;
 
   /* Basic sanity checks */
   if((heap == L7_NULL) || (pMem == L7_NULLPTR) ||
-     (*((L7_uint32*)heapId) != heapId))
+     (PTR_GET_VALUE(UINT_TO_PTR(heapId)) != heapId))
   {
     HEAP_TRACE(HEAP_PRINT_ALWAYS,"Failed to free to heap - Invalid Params\n");
     return;
@@ -851,7 +853,7 @@ void heapFree(L7_uint32 heapId,
   if(heapBuffPoolGet(heap, pMem, &buffPool) == L7_SUCCESS)
   {
     /* Valid buffer to be freed-up */
-    *(L7_uint32 *)pMem = (L7_uint32)(buffPool->freeList);
+    PTR_SET_VALUE(pMem) = PTR_TO_UINT64(buffPool->freeList);
     buffPool->freeList = pMem;
 
     /* Update stats */
@@ -892,16 +894,16 @@ void heapFree(L7_uint32 heapId,
 *
 * @end
 *********************************************************************/
-L7_RC_t heapBuffValidate(L7_uint32 heapId,
+L7_RC_t heapBuffValidate(L7_uint64 heapId,
                          void      *pMem)
 {
-  heap_t     *heap = (heap_t*)heapId;
+  heap_t     *heap = (heap_t*)UINT_TO_PTR(heapId);
   buffPool_t *buffPool;
   L7_RC_t    retVal = L7_FAILURE;
 
   /* Basic sanity checks */
   if((heap == L7_NULL) || (pMem == L7_NULLPTR) ||
-     (*((L7_uint32*)heapId) != heapId))
+     (PTR_GET_VALUE(UINT_TO_PTR(heapId)) != heapId))
   {
     return retVal;
   }
@@ -945,12 +947,12 @@ L7_RC_t heapBuffValidate(L7_uint32 heapId,
 *
 * @end
 *********************************************************************/
-void  heapShow(L7_uint32 heapId)
+void  heapShow(L7_uint64 heapId)
 {
-  heap_t *heap = (heap_t *)heapId;
+  heap_t *heap = (heap_t *)UINT_TO_PTR(heapId);
 
   /* validate heap ID */
-  if((heap == L7_NULLPTR) || (*((L7_uint32*)heapId) != heapId))
+  if((heap == L7_NULLPTR) || (PTR_GET_VALUE(UINT_TO_PTR(heapId)) != heapId))
   {
     sysapiPrintf("Invalid Heap ID : 0x%x\n", heapId);
     return;
@@ -993,13 +995,13 @@ void  heapShow(L7_uint32 heapId)
 *
 * @end
 *********************************************************************/
-void heapDbgPrintSet(L7_uint32 heapId,
+void heapDbgPrintSet(L7_uint64 heapId,
                      L7_uint32 dbgPrint)
 {
-  heap_t *heap = (heap_t*)heapId;
+  heap_t *heap = (heap_t*)UINT_TO_PTR(heapId);
 
   /* validate heap ID */
-  if((heap == L7_NULLPTR) || (*((L7_uint32*)heapId) != heapId))
+  if((heap == L7_NULLPTR) || (PTR_GET_VALUE(UINT_TO_PTR(heapId)) != heapId))
   {
     return;
   }
@@ -1018,22 +1020,22 @@ void heapDbgPrintSet(L7_uint32 heapId,
 *
 * @end
 *********************************************************************/
-void heapDbgStatsDisplay(L7_uint32 heapId)
+void heapDbgStatsDisplay(L7_uint64 heapId)
 {
-  heap_t     *heap = (heap_t*)heapId;
+  heap_t     *heap = (heap_t*)UINT_TO_PTR(heapId);
   buffPool_t *tempPool;
   L7_uint32  i;
 
   /* Basic sanity checks */
-  if(heap == L7_NULLPTR || (*((L7_uint32*)heapId) != heapId))
+  if(heap == L7_NULLPTR || (PTR_GET_VALUE(UINT_TO_PTR(heapId)) != heapId))
   {
-    sysapiPrintf(" \n Invalid Heap ID : 0x%x\n", heapId);
+    sysapiPrintf(" \n Invalid Heap ID : 0x%llx\n", heapId);
     return;
   }
 
   /* First dump the heap structure info */
   sysapiPrintf(" \n *********************** HEAP INFORMATION ********************** \n");
-  sysapiPrintf(" Heap ID                        - 0x%x\n",heapId);
+  sysapiPrintf(" Heap ID                        - 0x%llx\n",heapId);
   sysapiPrintf(" Component ID                   - %u\n",heap->compId);
   sysapiPrintf(" Total heap size                - %u\n",heap->heapSize);
   if(heapIsInUse(heap) == L7_FALSE)
@@ -1061,8 +1063,8 @@ void heapDbgStatsDisplay(L7_uint32 heapId)
       sysapiPrintf("   Number of buffers          - %u\n",tempPool->buffCount);
       sysapiPrintf("   Description of the pool    - %s\n",tempPool->descr);
       sysapiPrintf("   Flags                      - 0x%x\n",tempPool->flags);
-      sysapiPrintf("   Starting Memory Address    - 0x%x\n",tempPool->startLoc);
-      sysapiPrintf("   Ending Memory Address      - 0x%x\n",tempPool->endLoc);
+      sysapiPrintf("   Starting Memory Address    - 0x%llx\n",tempPool->startLoc);
+      sysapiPrintf("   Ending Memory Address      - 0x%llx\n",tempPool->endLoc);
       sysapiPrintf("   Current outstanding allocs - %u\n",tempPool->stats.allocCount);
       sysapiPrintf("   Total successful allocs    - %u\n",tempPool->stats.allocSuccess);
       sysapiPrintf("   Total failed allocs        - %u\n",tempPool->stats.allocFail);
@@ -1086,16 +1088,16 @@ void heapDbgStatsDisplay(L7_uint32 heapId)
 *
 * @end
 *********************************************************************/
-void heapDbgBuffInfo(L7_uint32 heapId,
+void heapDbgBuffInfo(L7_uint64 heapId,
                      void      *pMem)
 {
-  heap_t         *heap = (heap_t*)heapId;
+  heap_t         *heap = (heap_t*)UINT_TO_PTR(heapId);
   buffPool_t     *buffPool;
 
   /* Basic sanity checks */
-  if((heap == L7_NULLPTR) || (*((L7_uint32*)heapId) != heapId))
+  if((heap == L7_NULLPTR) || (PTR_GET_VALUE(UINT_TO_PTR(heapId)) != heapId))
   {
-    sysapiPrintf(" \n Invalid Heap ID : 0x%x\n", heapId);
+    sysapiPrintf(" \n Invalid Heap ID : 0x%llx\n", heapId);
     return;
   }
   if(pMem == L7_NULLPTR)
@@ -1115,7 +1117,7 @@ void heapDbgBuffInfo(L7_uint32 heapId,
   {
     if(osapiSemaTake(heap->semId, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
-      sysapiPrintf(" \n Failed to acquire heap semaphore for heapId 0x%x\n", heapId);
+      sysapiPrintf(" \n Failed to acquire heap semaphore for heapId 0x%llx\n", heapId);
       return;
     }
   }
@@ -1123,22 +1125,22 @@ void heapDbgBuffInfo(L7_uint32 heapId,
   /* Retrieve the buffer pool structure associated with the given buffer */
   if(heapBuffPoolGet(heap, pMem, &buffPool) != L7_SUCCESS)
   {
-    sysapiPrintf(" \n Buffer at 0x%x is not a valid buffer for heapId 0x%x\n",
-           (L7_uint32)pMem, heapId);
+    sysapiPrintf(" \n Buffer at %p is not a valid buffer for heapId 0x%x\n",
+                 pMem, heapId);
   }
   else
   {
-    L7_uint32 wholeBuffAddress;
+    L7_uint64 wholeBuffAddress;
 
-    wholeBuffAddress = (L7_uint32)pMem - heap->headerSize;
+    wholeBuffAddress = PTR_TO_UINT64(pMem) - heap->headerSize;
 
     /* display the info */
     sysapiPrintf(" \n ************************** Memory Details ****************************** \n");
-    sysapiPrintf(" Buffer/memory 0x%x resides in Buffer Pool - %s \n",
-           (L7_uint32)pMem, buffPool->descr);
+    sysapiPrintf(" Buffer/memory %p resides in Buffer Pool - %s \n",
+                 pMem, buffPool->descr);
     if((heap->flags & HEAP_DEBUG_FILE_INFO) != 0)
     {
-      heapDebugInfo_t *pDbgInfo = (heapDebugInfo_t *)wholeBuffAddress;
+      heapDebugInfo_t *pDbgInfo = (heapDebugInfo_t *)UINT_TO_PTR(wholeBuffAddress);
       sysapiPrintf(" Last allocated at File - %s:%d in task - %d and for size - %d \n",
              pDbgInfo->fileName,pDbgInfo->lineNumber,pDbgInfo->taskId,
              pDbgInfo->sizeRequest);
@@ -1146,9 +1148,9 @@ void heapDbgBuffInfo(L7_uint32 heapId,
     if((heap->flags & HEAP_DEBUG_MEMORY_GUARD) != 0)
     {
       heapDebugMemGuard_t *pDbgInfo =
-        (heapDebugMemGuard_t *)((L7_uint32)pMem - sizeof(heapDebugMemGuard_t));
+        (heapDebugMemGuard_t *)UINT_TO_PTR(PTR_TO_UINT64(pMem) - sizeof(heapDebugMemGuard_t));
       sysapiPrintf(" Header Guard Word - 0x%x\n", pDbgInfo->guardWord);
-      pDbgInfo = (heapDebugMemGuard_t *)((L7_uint32)pMem + buffPool->buffSize);
+      pDbgInfo = (heapDebugMemGuard_t *)UINT_TO_PTR(PTR_TO_UINT64(pMem) + buffPool->buffSize);
       sysapiPrintf(" Footer Guard Word - 0x%x\n", pDbgInfo->guardWord);
     }
   }

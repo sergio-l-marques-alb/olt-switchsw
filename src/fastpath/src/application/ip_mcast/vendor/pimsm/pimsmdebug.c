@@ -1277,11 +1277,11 @@ void pimsmDebugCtrlBlockShow ( pimsmCB_t * pimsmCb )
   PIMSM_DEBUG_PRINTF( "isPimsmEnabled: %d \n", pimsmCb->isPimsmEnabled );  
   PIMSM_DEBUG_PRINTF( "isPimsmEnabled: %d \n", pimsmCb->isPimsmEnabled );  
   PIMSM_DEBUG_PRINTF( "pimsmRestartInProgress: %d \n", pimsmCb->pimsmRestartInProgress );  
-  PIMSM_DEBUG_PRINTF( "pimsmSPTTimerHandle: %d \n", 
+  PIMSM_DEBUG_PRINTF( "pimsmSPTTimerHandle: 0x%llx \n", 
                       pimsmCb->pimsmSPTTimerHandle );  
   PIMSM_DEBUG_PRINTF( "pimsmSPTTimerParam Addr: %p \n", 
                       &pimsmCb->pimsmSPTTimerParam );
-  PIMSM_DEBUG_PRINTF( "pimsmJPBundleTimerHandle: %d \n", 
+  PIMSM_DEBUG_PRINTF( "pimsmJPBundleTimerHandle: 0x%llx \n", 
                       pimsmCb->pimsmJPBundleTimerHandle );  
   PIMSM_DEBUG_PRINTF( "pimsmJPBundleTimerParam Addr: %p \n", 
                       &pimsmCb->pimsmJPBundleTimerParam );
@@ -1301,7 +1301,7 @@ void pimsmDebugCtrlBlockShow ( pimsmCB_t * pimsmCb )
   PIMSM_DEBUG_PRINTF( "maxNumOfTimers: %d\n",
                 pimsmCb->maxNumOfTimers);
 
-  PIMSM_DEBUG_PRINTF( "mcastHeapId: 0x%x \n", mcastMapHeapIdGet(pimsmCb->family));
+  PIMSM_DEBUG_PRINTF( "mcastHeapId: 0x%llx \n", mcastMapHeapIdGet(pimsmCb->family));
 }
 
 /******************************************************************************

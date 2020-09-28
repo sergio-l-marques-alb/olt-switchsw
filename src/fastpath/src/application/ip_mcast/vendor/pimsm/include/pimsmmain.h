@@ -57,11 +57,11 @@ typedef struct pimsmCB_s
   struct pimsmBSRBlock_s   *pimsmBsrInfo; /* BSR info. */
   struct pimsmRpBlock_s    *pimsmRpInfo;  /* node type is pimsm_rp_block_t   */ 
 
-  L7_APP_TMR_HNDL_t          pimsmSPTTimer;
-  L7_uint32          pimsmSPTTimerHandle;
-  struct pimsmTimerData_s        pimsmSPTTimerParam; 
-  L7_APP_TMR_HNDL_t          pimsmJPBundleTimer;
-  L7_uint32          pimsmJPBundleTimerHandle;    
+  L7_APP_TMR_HNDL_t         pimsmSPTTimer;
+  L7_uint64                 pimsmSPTTimerHandle;
+  struct pimsmTimerData_s   pimsmSPTTimerParam; 
+  L7_APP_TMR_HNDL_t         pimsmJPBundleTimer;
+  L7_uint64                 pimsmJPBundleTimerHandle;    
   struct pimsmTimerData_s           pimsmJPBundleTimerParam; 
   L7_sll_t             pimsmStarStarRpList;
   /* Semaphore to lock StarStarRpList*/

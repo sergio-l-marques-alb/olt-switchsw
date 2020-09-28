@@ -57,7 +57,7 @@ static L7_RC_t mgmdIntfDelete(mgmdMapCB_t *mgmdMapCbPtr, L7_uint32 intIfNum);
 
 static L7_RC_t mgmdResetCleanUp(mgmdMapCB_t *mgmdMapCbPtr);
 
-static void mgmdMapStartupTimerExpireCallback(L7_uint32 familyType, L7_uint32 arg2);
+static void mgmdMapStartupTimerExpireCallback(L7_uint64 familyType, L7_uint64 arg2);
 
 /*********************************************************************
 *
@@ -1984,14 +1984,14 @@ L7_RC_t mgmdMapAdminScopeEventChangeCallback (L7_uint32 eventType,
 
 }
 
-void mgmdMapStartupTimerExpireCallback(L7_uint32 familyType, L7_uint32 arg2)
+void mgmdMapStartupTimerExpireCallback(L7_uint64 familyType, L7_uint64 arg2)
 {
   mgmdMapCB_t *mgmdMapCbPtr;
   L7_uint32    cbIndex;
   L7_uint32    protoMax;
   L7_BOOL      restartInProgress;
 
-  MGMD_MAP_DEBUG (MGMD_MAP_DEBUG_EVENTS, "Startup timer expired for familyType = %d", familyType);
+  MGMD_MAP_DEBUG (MGMD_MAP_DEBUG_EVENTS, "Startup timer expired for familyType = %d", (L7_uchar8) familyType);
 
   if (mgmdMapCtrlBlockGet((L7_uchar8) familyType, &mgmdMapCbPtr) != L7_SUCCESS)
   {
