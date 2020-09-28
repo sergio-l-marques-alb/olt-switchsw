@@ -28,8 +28,8 @@ typedef struct {
 
 /* Check if database pointer is valid */
 #define FP_POLICY_VALID_PTR(ptr,db)   ( ( (ptr) != L7_NULLPTR ) && \
-                                        ( (L7_uint32) ((char *) (ptr)) >= (L7_uint32) ((char *) (db)->database_base) ) && \
-                                        ( (L7_uint32) ((char *) (ptr)) <= (L7_uint32) ((char *) (db)->database_base) + ((db)->database_num_elems-1)*(db)->database_elem_sizeof) )
+                                        ( PTR_TO_UINT64((char *) (ptr)) >= PTR_TO_UINT64((char *) (db)->database_base) ) && \
+                                        ( PTR_TO_UINT64((char *) (ptr)) <= PTR_TO_UINT64((char *) (db)->database_base) + ((db)->database_num_elems-1)*(db)->database_elem_sizeof) )
 
 
 /**

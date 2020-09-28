@@ -11,7 +11,7 @@
 /* Check if database index is valid */
 #define FP_POLICY_VALID_INDEX(index,db)         ( (index)>=0 && (index)<(db)->database_num_elems )
 /* Get database element index from a pointer */
-#define FP_POLICY_GET_INDEX_FROM_PTR(ptr,db)    ( ((L7_uint32) ((char *) (ptr)) - (L7_uint32) ((char *) (db)->database_base)) / (L7_uint32) (db)->database_elem_sizeof )
+#define FP_POLICY_GET_INDEX_FROM_PTR(ptr,db)    ( (PTR_TO_UINT64((char *) (ptr)) - PTR_TO_UINT64((char *) (db)->database_base)) / (L7_uint32) (db)->database_elem_sizeof )
 /* Get database pointer from an element index */
 #define FP_POLICY_GET_PTR_FROM_INDEX(index,db)  ( (void *) ((char *) (db)->database_base + (index)*(db)->database_elem_sizeof) )
 /* Get database base pointer (first element) */
