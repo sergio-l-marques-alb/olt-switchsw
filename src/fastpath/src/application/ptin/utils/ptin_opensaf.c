@@ -602,7 +602,7 @@ L7_RC_t ptin_opensaf_read_event_teste(int id)
  */
 L7_RC_t ptin_opensaf_event_task_init()
 {
-  L7_uint32 ptin_opensaf_TaskId = 0;
+  L7_uint64 ptin_opensaf_TaskId = 0;
   char *chName,*pubName;
 
   chName        = "ONU_STATE";

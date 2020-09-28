@@ -43,7 +43,7 @@ typedef struct protTimerData_s
 
   L7_uchar8         timerType;
   L7_APP_TMR_HNDL_t timer;
-  L7_uint32         timerHandle;
+  L7_uint64         timerHandle;
 } protTimerData_t;
 
 typedef struct prot_timerMgmt_s
@@ -739,7 +739,7 @@ L7_RC_t ptin_prot_timer_start(L7_uint32 protIdx, L7_uint32 timeout)
 
   /* Add a new timer */
   pTimerData->timer = appTimerAdd( prot_timerMgmt.timerCB, prot_timer_expiry,
-                                   (void *) pTimerData->timerHandle, timeout,
+                                   UINT_TO_PTR(pTimerData->timerHandle), timeout,
                                    "PROT_TIMER");
   if (pTimerData->timer == NULL)
   {
@@ -915,7 +915,7 @@ L7_RC_t ptin_prot_timer_timeout_get(L7_uint32 protIdx, L7_uint32 *timeLeft)
 *************************************************************************/
 void prot_timer_expiry(void *param)
 {
-  L7_uint32 timerHandle = (L7_uint32) param;
+  L7_uint64 timerHandle = PTR_TO_UINT64(param);
   protTimerData_t timerData;
   L7_uint32 protIdx;
 

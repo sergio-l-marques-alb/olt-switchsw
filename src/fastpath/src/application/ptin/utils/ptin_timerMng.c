@@ -24,7 +24,7 @@ struct
 void *ptin_timers_sem = L7_NULLPTR;
 
 /* Timers variables */
-L7_uint32 timersMngmt_TaskId = L7_ERROR;
+L7_uint64 timersMngmt_TaskId = L7_ERROR;
 void     *timersMngmt_queue  = L7_NULLPTR;
 
 typedef struct ptinTimerParams_s
@@ -42,7 +42,7 @@ typedef struct timerData_s
 
   L7_uchar8         timerType;
   L7_APP_TMR_HNDL_t timer;
-  L7_uint32         timerHandle;
+  L7_uint64         timerHandle;
 
   /* User defined */
   void *data;
@@ -634,7 +634,7 @@ L7_RC_t ptin_timerMng_start(ptin_timerMng_context_t *context, void *data, L7_uin
 
   /* Add a new timer */
   pTimerData->timer = appTimerAdd( timersMng.timerCB, context->expiry_callback_fcn,
-                                   (void *) pTimerData->timerHandle, timeout,
+                                   UINT_TO_PTR(pTimerData->timerHandle), timeout,
                                    "PTIN_TIMER");
   if (pTimerData->timer == NULL)
   {
@@ -739,7 +739,7 @@ L7_RC_t ptin_timerMng_stop(ptin_timerMng_context_t *context, void *data)
  */
 void *ptin_timerMng_expiryCallback_data_get(void *param)
 {
-  L7_uint32 timerHandle = (L7_uint32) param;
+  L7_uint64 timerHandle = PTR_TO_UINT64(param);
   timerData_t *pTimerData;
 
   if (param == L7_NULLPTR)

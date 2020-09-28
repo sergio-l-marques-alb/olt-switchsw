@@ -778,8 +778,8 @@ L7_RC_t common_aps_ccm_packetRx_callback_register(void) {
 
   _1st_time=0;
 
-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register common_aps_ccm_packetRx_callback related to type=%u, protocol_type=%u: 0x%08x",
-           SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_CFM, (L7_uint32) common_aps_ccm_packetRx_callback);
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register common_aps_ccm_packetRx_callback related to type=%u, protocol_type=%u: %p",
+              SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_CFM, common_aps_ccm_packetRx_callback);
 
   memset(&snEntry, 0x00, sizeof(snEntry));
   strcpy(snEntry.funcName, "common_aps_ccm_packetRx_callback");

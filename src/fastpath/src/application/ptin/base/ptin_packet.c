@@ -119,8 +119,8 @@ L7_RC_t ptin_packet_init(void)
   }
   PT_LOG_TRACE(LOG_CTX_PACKET,"Task ptin_packet_task initialized");
 
-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register ptinMacBcastRecv related to type=%u: 0x%08x",
-           SYSNET_MAC_ENTRY, (L7_uint32) ptinMacBcastRecv);
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register ptinMacBcastRecv related to type=%u: %p",
+              SYSNET_MAC_ENTRY, ptinMacBcastRecv);
 
   /* Register broadcast packets */
   strcpy(snEntry.funcName, "ptinBcastPduReceive");

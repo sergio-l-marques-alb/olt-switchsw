@@ -817,7 +817,7 @@ typedef struct igmpTimerData_s
 
   L7_uchar8         timerType;
   L7_APP_TMR_HNDL_t timer;
-  L7_uint32         timerHandle;
+  L7_uint64         timerHandle;
 } igmpTimerData_t;
 
 L7_RC_t ptin_igmp_timersMng_init(void);
@@ -1041,7 +1041,7 @@ void ptin_igmp_device_clients_teste(void)
     printf("Port=%u ->", port);
     for (client_idx = 0; client_idx < PTIN_IGMP_CLIENTIDX_MAX; ++client_idx)
     {
-      printf(" %u:0x%08x", client_idx, (L7_uint32) igmpDeviceClients.client_devices[port][client_idx].client);
+      printf(" %u: %p", client_idx, igmpDeviceClients.client_devices[port][client_idx].client);
     }
     printf("\r\n");
   }
@@ -7762,7 +7762,7 @@ L7_RC_t ptin_igmp_timer_start(L7_uint32 ptin_port, L7_uint32 client_idx)
 
   /* Add a new timer */
   pTimerData->timer = appTimerAdd( igmpDeviceClients.timerCB, igmp_timer_expiry,
-                                   (void *) pTimerData->timerHandle, timeout,
+                                   UINT_TO_PTR(pTimerData->timerHandle), timeout,
                                    "PTIN_TIMER");
   if (pTimerData->timer == NULL)
   {
@@ -8013,7 +8013,7 @@ L7_RC_t ptin_igmp_timer_stop(L7_uint32 ptin_port, L7_uint32 client_idx)
 *************************************************************************/
 void igmp_timer_expiry(void *param)
 {
-  L7_uint32 timerHandle = (L7_uint32) param;
+  L7_uint64 timerHandle = PTR_TO_UINT64(param);
   L7_uint ptin_port, client_idx;
 
   igmpTimerData_t *pTimerData;
