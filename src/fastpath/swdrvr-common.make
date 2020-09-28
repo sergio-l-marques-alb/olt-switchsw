@@ -53,7 +53,7 @@ export LVL7_MAKEFILE_DISPLAY_MODE ?= S
 
 .PHONY: welcome all clean cleanall install help h
 
-all: welcome setsdk cli shell mgmd
+all: welcome setsdk mgmd cli shell
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
 	@echo "Compiling switchdrvr for $(BOARD) with $(NUM_CPUS) cores..."
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH)

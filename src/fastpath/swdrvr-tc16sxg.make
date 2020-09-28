@@ -16,21 +16,25 @@ FP_FOLDER    = $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURREN
 OLT_DIR      = $(subst /$(FP_FOLDER),,$(shell pwd))
 
 # Cross-Compiler
-export TOOLCHAIN_BASE_DIR = /opt/eldk/usr
+export TOOLCHAIN_BASE_DIR = /opt/xldk/6.0.1/helix5/usr
 export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
-CROSS_COMPILE = ppc_85xxDP-
+CROSS_COMPILE = aarch64-linux-
+
+export CCACHE_TEMPDIR = /home/olt_shared/switchdrvr/ccache
+export CCACHE_DIR     = /home/olt_shared/switchdrvr/ccache
 
 # Kernel and SDK paths
-KERNEL_PATH ?= $(OLT_DIR)/../lib/kernel/linux-denx-3.18.25_cxo640g-mx
-SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.18/broadcom
+KERNEL_PATH ?= /home/olt_shared/switchdrvr/netband-libs/trunk/linux-tc16sxg/linux-5.4.2
+SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.20/broadcom
 
 # Comilation logging level
 export LVL7_MAKEFILE_LOGGING := N
 export LVL7_MAKEFILE_DISPLAY_MODE := S
 
+#NUM_CPUS=1
+
 INSTALL_SCRIPT=swdrvr-tc16sxg.install
 
 include swdrvr-common.make
 
-# (Trident3-X3) FIXME: using CXO640G's toolchain, kernel and uP arch. It MUST be corrected
