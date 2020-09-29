@@ -1,0 +1,519 @@
+Index: src/system_support/base/infrastructure/cardmgr/cardmgr_util.c
+===================================================================
+--- src/system_support/base/infrastructure/cardmgr/cardmgr_util.c	(revision 7754)
++++ src/system_support/base/infrastructure/cardmgr/cardmgr_util.c	(revision 7755)
+@@ -16,12 +16,16 @@
+  * @author kmcdowell
+  *
+  * @end
+  *
+  **********************************************************************/
+ 
++#if defined(__GNUC__) && (__GNUC__ >= 6) /* PTin added */
++#pragma GCC diagnostic ignored "-Wformat-overflow"
++#endif
++
+ #define L7_MAC_ENET_BCAST
+ #include "cardmgr_include.h"
+ #include "log.h"
+ #include "usmdb_unitmgr_api.h"
+ #include "usmdb_cardmgr_api.h"
+ #include "trap_inventory_api.h"
+@@ -1900,15 +1904,13 @@ L7_RC_t cmgrDoNotifyPortCreate(L7_uint32
+         (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %d %s %d",
+                        "Slot:", slot, "Port:", port);
+ 
+         (void)sprintf (pIntfDescr.ifName, "%d/%d",
+                        slot, port);
+       }
+-      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
+-                     (L7_char8 *)(pIntfDescr.ifDescr),
+-                     IANA_FAST_ETHERNET_DESC);
++      (void) strcat((L7_char8 *)(pIntfDescr.ifDescr), " " IANA_FAST_ETHERNET_DESC);
+       break;
+ 
+     case  L7_IANA_GIGABIT_ETHERNET:
+       pIntfIdInfo.type = L7_PHYSICAL_INTF;
+       if (cnfgrIsFeaturePresent(L7_FLEX_STACKING_COMPONENT_ID,
+                                 L7_STACKING_FEATURE_SUPPORTED) == L7_TRUE)
+@@ -1924,15 +1926,13 @@ L7_RC_t cmgrDoNotifyPortCreate(L7_uint32
+         (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %d %s %d",
+                        "Slot:", slot, "Port:", port);
+ 
+         (void)sprintf (pIntfDescr.ifName, "%d/%d",
+                        slot, port);
+       }
+-      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
+-                     (L7_char8 *)(pIntfDescr.ifDescr),
+-                     IANA_GIGABIT_ETHERNET_DESC);
++      (void) strcat((L7_char8 *)(pIntfDescr.ifDescr), " " IANA_GIGABIT_ETHERNET_DESC);
+       break;
+ 
+     /* PTin added: Speed 2.5G */
+     case  L7_IANA_2G5_ETHERNET:
+       pIntfIdInfo.type = L7_PHYSICAL_INTF;
+       if (cnfgrIsFeaturePresent(L7_FLEX_STACKING_COMPONENT_ID,
+@@ -1949,15 +1949,13 @@ L7_RC_t cmgrDoNotifyPortCreate(L7_uint32
+         (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %d %s %d",
+                        "Slot:", slot, "Port:", port);
+ 
+         (void)sprintf (pIntfDescr.ifName, "%d/%d",
+                        slot, port);
+       }
+-      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
+-                     (L7_char8 *)(pIntfDescr.ifDescr),
+-                     IANA_2G5_ETHERNET_DESC);
++      (void) strcat((L7_char8 *)(pIntfDescr.ifDescr), " " IANA_2G5_ETHERNET_DESC);
+       break;
+     /* PTin end */
+ 
+     case  L7_IANA_10G_ETHERNET:
+       pIntfIdInfo.type = L7_PHYSICAL_INTF;
+       if (cnfgrIsFeaturePresent(L7_FLEX_STACKING_COMPONENT_ID,
+@@ -1974,15 +1972,13 @@ L7_RC_t cmgrDoNotifyPortCreate(L7_uint32
+         (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %d %s %d",
+                        "Slot:", slot, "Port:", port);
+ 
+         (void)sprintf (pIntfDescr.ifName, "%d/%d",
+                        slot, port);
+       }
+-      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
+-                     (L7_char8 *)(pIntfDescr.ifDescr),
+-                     IANA_10G_ETHERNET_DESC);
++      (void) strcat((L7_char8 *)(pIntfDescr.ifDescr), " " IANA_10G_ETHERNET_DESC);
+       break;
+ 
+     /* PTin added: Speed 40G */
+     case  L7_IANA_40G_ETHERNET:
+       pIntfIdInfo.type = L7_PHYSICAL_INTF;
+       if (cnfgrIsFeaturePresent(L7_FLEX_STACKING_COMPONENT_ID,
+@@ -1999,15 +1995,13 @@ L7_RC_t cmgrDoNotifyPortCreate(L7_uint32
+         (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %d %s %d",
+                        "Slot:", slot, "Port:", port);
+ 
+         (void)sprintf (pIntfDescr.ifName, "%d/%d",
+                        slot, port);
+       }
+-      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
+-                     (L7_char8 *)(pIntfDescr.ifDescr),
+-                     IANA_40G_ETHERNET_DESC);
++      (void) strcat((L7_char8 *)(pIntfDescr.ifDescr), " " IANA_40G_ETHERNET_DESC);
+       break;
+ 
+     /* PTin added: Speed 100G */
+     case  L7_IANA_100G_ETHERNET:
+       pIntfIdInfo.type = L7_PHYSICAL_INTF;
+       if (cnfgrIsFeaturePresent(L7_FLEX_STACKING_COMPONENT_ID,
+@@ -2024,15 +2018,13 @@ L7_RC_t cmgrDoNotifyPortCreate(L7_uint32
+         (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %d %s %d",
+                        "Slot:", slot, "Port:", port);
+ 
+         (void)sprintf (pIntfDescr.ifName, "%d/%d",
+                        slot, port);
+       }
+-      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
+-                     (L7_char8 *)(pIntfDescr.ifDescr),
+-                     IANA_100G_ETHERNET_DESC);
++      (void) strcat((L7_char8 *)(pIntfDescr.ifDescr), " " IANA_100G_ETHERNET_DESC);
+       break;
+ 
+     /* PTin end */
+ 
+     case L7_IANA_L2_VLAN:
+       pIntfIdInfo.type = L7_LOGICAL_VLAN_INTF;
+Index: src/system_support/base/infrastructure/nim/nim_events.c
+===================================================================
+--- src/system_support/base/infrastructure/nim/nim_events.c	(revision 7754)
++++ src/system_support/base/infrastructure/nim/nim_events.c	(revision 7755)
+@@ -16,12 +16,16 @@
+ *
+ * @author     mbaucom
+ * @end
+ *
+ **********************************************************************/
+ 
++#if defined(__GNUC__) && (__GNUC__ >= 6) /* PTin added */
++#pragma GCC diagnostic ignored "-Wformat-overflow"
++#endif
++
+ #define L7_MAC_ENET_BCAST
+ #include "l7_common.h"
+ #include "nim_data.h"
+ #include "nim_util.h"
+ #include "nim_events.h"
+ #include "nim_cnfgr.h"
+@@ -177,13 +181,13 @@ void nimDoNotify(NIM_CORRELATOR_t correl
+         cbData.response.reason  = NIM_ERR_RC_TIMEOUT;
+ 
+         for (i=(L7_LAST_COMPONENT_ID / 32); i >= 0 ;i--)
+         {
+           if ((MASK_STRING_LENGTH - strlen(maskString)) >= 15)
+           {
+-            sprintf(maskString,"%s 0x%.8x ",maskString,correlatorTable.remainingMask[i]);
++            sprintf(&maskString[strlen(maskString)]," 0x%.8x ", correlatorTable.remainingMask[i]);
+           }
+         }
+ 
+         PT_LOG_FATAL(LOG_CTX_MISC,"NIM: Timeout event(%d), intIfNum(%d) remainingMask = %s (rc=%d)",
+                       correlatorTable.requestData.event,
+                       correlatorTable.requestData.intIfNum,maskString,
+@@ -2176,17 +2180,13 @@ L7_RC_t   nimCmgrNewIntfChangeCallback(L
+         (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %d %s %d",
+                          "Slot:", slot, "Port:", port);
+ 
+         (void)sprintf (pIntfDescr.ifName, "%d/%d",
+                          slot, port);
+       }
+-      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
+-                     (L7_char8 *)(pIntfDescr.ifDescr),
+-                     IANA_FAST_ETHERNET_DESC);
+-
+-
++      (void) strcat((L7_char8 *)(pIntfDescr.ifDescr), " " IANA_FAST_ETHERNET_DESC);
+ 
+       break;
+ 
+     case  L7_IANA_GIGABIT_ETHERNET:
+       pIntfIdInfo.type = L7_PHYSICAL_INTF;
+       if (cnfgrIsFeaturePresent(L7_FLEX_STACKING_COMPONENT_ID,
+@@ -2205,16 +2205,13 @@ L7_RC_t   nimCmgrNewIntfChangeCallback(L
+                        "Slot:", slot, "Port:", port);
+ 
+ 
+         (void)sprintf (pIntfDescr.ifName, "%d/%d",
+                        slot, port);
+       }
+-      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
+-                   (L7_char8 *)(pIntfDescr.ifDescr),
+-                   IANA_GIGABIT_ETHERNET_DESC);
+-
++      (void) strcat((L7_char8 *)(pIntfDescr.ifDescr), " " IANA_GIGABIT_ETHERNET_DESC);
+ 
+       break;
+ 
+     /* PTin added: Speed 2.5G */
+     case  L7_IANA_2G5_ETHERNET:
+       pIntfIdInfo.type = L7_PHYSICAL_INTF;
+@@ -2234,16 +2231,13 @@ L7_RC_t   nimCmgrNewIntfChangeCallback(L
+                        "Slot:", slot, "Port:", port);
+ 
+ 
+         (void)sprintf (pIntfDescr.ifName, "%d/%d",
+                        slot, port);
+       }
+-      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
+-                   (L7_char8 *)(pIntfDescr.ifDescr),
+-                   IANA_2G5_ETHERNET_DESC);
+-
++      strcat((L7_char8 *)(pIntfDescr.ifDescr), " " IANA_2G5_ETHERNET_DESC);
+ 
+       break;
+     /* PTin end */
+ 
+     case  L7_IANA_10G_ETHERNET:
+       pIntfIdInfo.type = L7_PHYSICAL_INTF;
+@@ -2261,16 +2255,13 @@ L7_RC_t   nimCmgrNewIntfChangeCallback(L
+         (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %d %s %d",
+                        "Slot:", slot, "Port:", port);
+ 
+         (void)sprintf (pIntfDescr.ifName, "%d/%d",
+                        slot, port);
+       }
+-      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
+-                     (L7_char8 *)(pIntfDescr.ifDescr),
+-                     IANA_10G_ETHERNET_DESC);
+-
++      (void) strcat((L7_char8 *)(pIntfDescr.ifDescr), " " IANA_10G_ETHERNET_DESC);
+ 
+       break;
+ 
+     /* PTin added: Speed 40G */
+     case  L7_IANA_40G_ETHERNET:
+       pIntfIdInfo.type = L7_PHYSICAL_INTF;
+@@ -2290,15 +2281,13 @@ L7_RC_t   nimCmgrNewIntfChangeCallback(L
+                        "Slot:", slot, "Port:", port);
+ 
+ 
+         (void)sprintf (pIntfDescr.ifName, "%d/%d",
+                        slot, port);
+       }
+-      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
+-                   (L7_char8 *)(pIntfDescr.ifDescr),
+-                   IANA_40G_ETHERNET_DESC);
++      (void) strcat((L7_char8 *)(pIntfDescr.ifDescr), " " IANA_40G_ETHERNET_DESC);
+ 
+       break;
+ 
+     /* PTin added: Speed 100G */
+     case  L7_IANA_100G_ETHERNET:
+       pIntfIdInfo.type = L7_PHYSICAL_INTF;
+@@ -2318,15 +2307,13 @@ L7_RC_t   nimCmgrNewIntfChangeCallback(L
+                        "Slot:", slot, "Port:", port);
+ 
+ 
+         (void)sprintf (pIntfDescr.ifName, "%d/%d",
+                        slot, port);
+       }
+-      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
+-                   (L7_char8 *)(pIntfDescr.ifDescr),
+-                   IANA_100G_ETHERNET_DESC);
++      (void) strcat((L7_char8 *)(pIntfDescr.ifDescr), " " IANA_100G_ETHERNET_DESC);
+ 
+       break;
+ 
+     /* PTin end */
+ 
+     case L7_IANA_L2_VLAN:
+Index: src/application/switching/vlan/dot1q/dot1q_intf.c
+===================================================================
+--- src/application/switching/vlan/dot1q/dot1q_intf.c	(revision 7754)
++++ src/application/switching/vlan/dot1q/dot1q_intf.c	(revision 7755)
+@@ -786,14 +786,13 @@ L7_RC_t dot1qVlanIntfCreateInNim(L7_uint
+     memcpy (&intfDescr.bcastMacAddr,  &DOT1Q_VLAN_INTF_BCAST_MAC_ADDR, sizeof(DOT1Q_VLAN_INTF_BCAST_MAC_ADDR));
+     intfDescr.frameSize.largestFrameSize = DOT1Q_VLAN_INTF_MAX_FRAME_SIZE_LIMIT;
+     intfDescr.ianaType       = L7_IANA_L2_VLAN;
+     intfDescr.defaultSpeed   =  FD_DOT1Q_DEFAULT_VLAN_INTF_SPEED;
+     intfDescr.phyCapability  =  0;
+     intfDescr.connectorType  =  0;
+-    sprintf ((L7_char8 *)&(intfDescr.ifDescr), "%s %s",
+-             (L7_char8 *)&(intfDescr.ifDescr),
++    sprintf ((L7_char8 *)&(intfDescr.ifDescr[strlen(intfDescr.ifDescr)]), " %s",
+              IANA_L2_VLAN_DESC);
+ 
+     sprintf ((L7_char8 *)&(intfDescr.ifName), "%s %d",
+              DOT1Q_VLAN_INTF_IFNAME_PREFIX,vlanId);
+ 
+     memset((void*)&intfDescr.macroPort,0,sizeof(nimMacroPort_t));
+Index: src/application/switching/vlan/dot1q/dot1q_debug.c
+===================================================================
+--- src/application/switching/vlan/dot1q/dot1q_debug.c	(revision 7754)
++++ src/application/switching/vlan/dot1q/dot1q_debug.c	(revision 7755)
+@@ -523,13 +523,13 @@ void dot1qTraceQueueMsgFormat(DOT1Q_MSG_
+         /* Print each element of the string */
+ 
+         for (i=(L7_MAX_INTERFACE_COUNT / 32); i >= 0 ;i--)
+         {
+           if ((L7_INTF_MASK_STRING_LENGTH - strlen(maskString)) >= 15)
+           {
+-            sprintf(maskString,"%s 0x%.8x ",maskString,remainingMask[i]);
++            sprintf(&maskString[strlen(maskString)]," 0x%.8x ", remainingMask[i]);
+           }
+         }
+ 
+ 
+         DOT1Q_TRACE("%s: dot1q_vlan_tagged_set_static_mask: vlan %d, mode %d\n", 
+                     traceDirection, msg->vlanId, msg->mode ); 
+@@ -543,13 +543,13 @@ void dot1qTraceQueueMsgFormat(DOT1Q_MSG_
+         /* Print each element of the string */
+ 
+         for (i=(L7_MAX_INTERFACE_COUNT / 32); i >= 0 ;i--)
+         {
+           if ((L7_INTF_MASK_STRING_LENGTH - strlen(maskString)) >= 15)
+           {
+-            sprintf(maskString,"%s 0x%.8x ",maskString,remainingMask[i]);
++            sprintf(&maskString[strlen(maskString)]," 0x%.8x ", remainingMask[i]);
+           }
+         }
+ 
+ 
+         DOT1Q_TRACE("%s: dot1q_vlan_member_set_static_mask: vlan %d, mode %d\n", 
+                     traceDirection, msg->vlanId, msg->mode );   
+@@ -702,13 +702,13 @@ void dot1qDebugListToMaskString(L7_ushor
+ 
+     /* Print each element of the string */
+     for (i=(L7_MAX_INTERFACE_COUNT / 32); i >= 0 ;i--)
+     {
+       if ((L7_INTF_MASK_STRING_LENGTH - strlen(maskString)) >= 15)
+       {
+-        sprintf(maskString,"%s 0x%.8x ",maskString, remainingMask[i]);
++        sprintf(&maskString[strlen(maskString)]," 0x%.8x ", remainingMask[i]);
+       }
+     }
+ 
+     osapiStrncpySafe(pMaskString,maskString, sizeof(maskString));
+ 
+ }
+Index: src/mgmt/broadcom/cli/base/common/cli_txtcfg.c
+===================================================================
+--- src/mgmt/broadcom/cli/base/common/cli_txtcfg.c	(revision 7754)
++++ src/mgmt/broadcom/cli/base/common/cli_txtcfg.c	(revision 7755)
+@@ -628,13 +628,13 @@ static L7_RC_t cliTxtCfgWriteFile (L7_ch
+     cmdString[0] = 0;
+     cp = cmdp->cmdString;
+     for (i = 0; i < cmdp->noOfCmds; i++)
+     {
+       if (cp[0] != 0 && cp[0] != ' ')
+       {
+-        sprintf (cmdString, "%s%s\n", cmdString, cp);
++        sprintf(&cmdString[strlen(cmdString)], "%s\n", cp);
+         count++;
+       }
+       cp = cp + strlen (cp) + 1;
+     }
+     length = strlen (cmdString);
+     scrLen += length;
+@@ -1002,13 +1002,13 @@ void cliTxtCfgMemoryTrace (L7_char8 * en
+       cmdString[0] = 0;
+       cp = cmdp->cmdString;
+       for (i = 0; i < cmdp->noOfCmds; i++)
+       {
+         if (cp[0] != 0 && cp[0] != ' ')
+         {
+-          sprintf (cmdString, "%s%s\n", cmdString, cp);
++          sprintf(&cmdString[strlen(cmdString)], "%s\n", cp);
+         }
+         cp = cp + strlen (cp) + 1;
+       }
+       sysapiPrintf ( cmdString);
+       len += strlen (cmdString);
+     }
+Index: src/usmdb/base/dot1ab/usmdb_lldp.c
+===================================================================
+--- src/usmdb/base/dot1ab/usmdb_lldp.c	(revision 7754)
++++ src/usmdb/base/dot1ab/usmdb_lldp.c	(revision 7755)
+@@ -1841,13 +1841,13 @@ void usmDbLldpChassisIdFormat(L7_char8
+   switch (subtype)
+   {
+     case LLDP_CHASSIS_ID_SUBTYPE_MAC_ADDR:
+       sprintf(buffer, "%02X", chassisId[0]);
+       for (i=1; i<length; i++)
+       {
+-        sprintf(buffer, "%s:%02X", buffer, chassisId[i]); 
++        sprintf(&buffer[strlen(buffer)], ":%02X", chassisId[i]); 
+       }
+       break;
+     case LLDP_CHASSIS_ID_SUBTYPE_NET_ADDR:
+      
+        switch (chassisId[netTypeIndex])
+        {
+@@ -1859,67 +1859,67 @@ void usmDbLldpChassisIdFormat(L7_char8
+           break;
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_ASNUMBER:
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_XTPOVERIPV4:
+            sprintf(buffer, "%d", chassisId[netTypeIndex+1]);
+            for (i=netTypeIndex+2; i<=length-1; i++)
+            {
+-             sprintf(buffer, "%s.%d", buffer, chassisId[i]);
++             sprintf(&buffer[strlen(buffer)], ".%d", chassisId[i]);
+            }
+            break;
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_XTPOVERIPV6:
+            
+            sprintf(buffer, "%02X%02X", chassisId[netTypeIndex+1], chassisId[netTypeIndex+2]);
+            for (i=netTypeIndex+3; i<=length-1; i+=2)
+            {
+-             sprintf(buffer, "%s:%02X%02X", buffer, chassisId[i],chassisId[i+1]);
++             sprintf(&buffer[strlen(buffer)], ":%02X%02X", chassisId[i],chassisId[i+1]);
+            }
+            break;
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_NSAP:
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_E164WITHNSAP:
+            sprintf(buffer, "%02X%02X", chassisId[netTypeIndex+1], chassisId[netTypeIndex+2]);
+            for (i=netTypeIndex+3; i<=length-1; i+=2)
+            {
+-             sprintf(buffer, "%s%02X%02X", buffer, chassisId[i],chassisId[i+1]);
++             sprintf(&buffer[strlen(buffer)], "%02X%02X", chassisId[i],chassisId[i+1]);
+            }
+            break;
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_HDLC: /* The address consists of three parts: A Service Access Point (SAP)
+                                                    A Command/Response bit 
+                                                    An address extension bit which is usually set to true to indicate 
+                                                    that the address is of length one byte. 
+                                                    When set to false it indicates an additional byte follows.  */
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_BBN1822: /* 24 bits  8 bits host number 16 bits IMP number*/
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_AFI:
+             sprintf(buffer, "%02X",chassisId[netTypeIndex+1]);
+            for (i=netTypeIndex+2; i<=length-1; i+=1)
+            {
+-             sprintf(buffer,"%s%02X",buffer,chassisId[i]);
++             sprintf(&buffer[strlen(buffer)],"%02X", chassisId[i]);
+            }
+           break;
+ 
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_ALL802:
+            sprintf(buffer, "%02X",chassisId[netTypeIndex+1]);
+            for (i=netTypeIndex+2; i<=length-1; i+=1)
+            {
+-             sprintf(buffer,"%s:%02X",buffer,chassisId[i]);
++             sprintf(&buffer[strlen(buffer)], ":%02X", chassisId[i]);
+            }
+            break;
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_E163:
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_E164:
+            sprintf(buffer, "%d",chassisId[netTypeIndex+1]);
+            for (i=netTypeIndex+2; i<=length-1; i+=1)
+            {
+-             sprintf(buffer,"%s%d",buffer,chassisId[i]);
++             sprintf(&buffer[strlen(buffer)],"%d", chassisId[i]);
+            }
+            break;
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_F69:
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_X121:
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_BANYANVINES:
+            sprintf(buffer, "%02X",chassisId[netTypeIndex+1]);
+            for (i=netTypeIndex+2; i<=length-1; i+=1)
+            {
+-             sprintf(buffer,"%s%02X",buffer,chassisId[i]);
++             sprintf(&buffer[strlen(buffer)], "%02X", chassisId[i]);
+            }
+            break;
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_IPX: /* 80 bit address network:
+                                                   An IPX address is hexidecimal with the format of network.node.node.node
+                                                 */
+             sprintf(buffer, "%02X%02X%02X%02X.%02X%02X.%02X%02X.%02X%02X", 
+@@ -1932,13 +1932,13 @@ void usmDbLldpChassisIdFormat(L7_char8
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_APPLETALK:/* 4 bytes This consisted of a two-byte network number,
+                                                        a one-byte node number, and a one-byte socket number. */
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_DECNETIV:
+            sprintf(buffer, "%d", chassisId[netTypeIndex+1]);
+            for (i=netTypeIndex+2; i<=length-1; i++)
+            {
+-             sprintf(buffer, "%s.%d", buffer, chassisId[i]);
++             sprintf(&buffer[strlen(buffer)], ".%d", chassisId[i]);
+            }
+            break;
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_DNS:
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_DISTINGUISHEDNAME:
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_XTPNATIVEMODEXTP:
+          case LLDP_CHASSIS_ID_SUBTYPE_NET_FIBRECHANNELWWPN:
+@@ -2038,13 +2038,13 @@ void usmDbLldpPortIdFormat(L7_char8
+   switch (subtype)
+   {
+     case LLDP_PORT_ID_SUBTYPE_MAC_ADDR:
+       sprintf(buffer, "%02X", portId[0]);
+       for (i=1; i<length; i++)
+       {
+-        sprintf(buffer, "%s:%02X", buffer, portId[i]); 
++        sprintf(&buffer[strlen(buffer)], ":%02X", portId[i]); 
+       }
+       break;
+     case LLDP_PORT_ID_SUBTYPE_INTF_ALIAS:
+     case LLDP_PORT_ID_SUBTYPE_PORT_COMP:
+     case LLDP_PORT_ID_SUBTYPE_NET_ADDR:
+     case LLDP_PORT_ID_SUBTYPE_INTF_NAME:
+@@ -2212,23 +2212,23 @@ void usmDbLldpManAddrFormat(L7_char8
+   switch (family)
+   {
+     case LLDP_IANA_ADDR_FAMILY_NUMBER_802:
+       sprintf(buffer, "%02X", address[0]);
+       for (i=1; i<length; i++)
+       {
+-        sprintf(buffer, "%s:%02X", buffer, address[i]); 
++        sprintf(&buffer[strlen(buffer)], ":%02X", address[i]); 
+       }
+       break;
+     case LLDP_IANA_ADDR_FAMILY_NUMBER_IPV4:
+     case LLDP_IANA_ADDR_FAMILY_NUMBER_IPV6:
+     case LLDP_IANA_ADDR_FAMILY_NUMBER_RESERVED:
+     default:
+       sprintf(buffer, "%u", address[0]);
+       for (i=1; i<length; i++)
+       {
+-        sprintf(buffer, "%s.%u", buffer, address[i]); 
++        sprintf(&buffer[strlen(buffer)], ".%u", address[i]); 
+       }
+       break;
+   }
+   return;
+ }
+ /*********************************************************************

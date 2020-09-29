@@ -1,0 +1,240 @@
+Index: src/mgmt/broadcom/cli/base/common/config_script_api.c
+===================================================================
+--- src/mgmt/broadcom/cli/base/common/config_script_api.c	(revision 7778)
++++ src/mgmt/broadcom/cli/base/common/config_script_api.c	(revision 7779)
+@@ -410,13 +410,13 @@ L7_uint32 getConfigScriptList(SYSAPI_DIR
+         /* Determine the length of the file name */
+         ptr = strstr(ptok," ");
+         if (ptr == L7_NULLPTR)
+         {
+           continue;
+         }
+-        fileNameLen = (int)ptr - (int)ptok + 1;
++        fileNameLen = (int) (PTR_TO_UINT64(ptr) - PTR_TO_UINT64(ptok) + 1);
+         if (fileNameLen >= L7_MAX_FILENAME)
+           fileNameLen = L7_MAX_FILENAME-1;
+         osapiStrncpySafe(tree[num_files].filename, ptok, fileNameLen);
+ 
+         /* Get the file size */
+         while ( strncmp(ptr, " ", 1) == 0 )  /* Strip off leading blanks */
+Index: src/mgmt/broadcom/cli/base/common/cli_config.c
+===================================================================
+--- src/mgmt/broadcom/cli/base/common/cli_config.c	(revision 7778)
++++ src/mgmt/broadcom/cli/base/common/cli_config.c	(revision 7779)
+@@ -16987,13 +16987,13 @@ static L7_RC_t traceRouteCallbackFn(void
+ {
+ 
+   static L7_uint32 lastIpAddr = 0;
+   L7_uchar8  buff[L7_CLI_MAX_STRING_LENGTH];
+   L7_uchar8  ipBuff[L7_CLI_MAX_STRING_LENGTH];
+   L7_uchar8  tmpBuff[L7_CLI_MAX_STRING_LENGTH];
+-  L7_uint32  probePerHop = (L7_uint32)param;
++  L7_uint32  probePerHop = PTR_TO_UINT32(param);
+   
+   buff[0] = '\0';
+   if(probeCount == 1)
+   {
+     lastIpAddr = ipDa;
+     osapiInetNtoa( ipDa, tmpBuff );
+@@ -17295,13 +17295,13 @@ const L7_char8 *commandTraceRoute(EwsCon
+   memset(str,0,sizeof(str));
+   cliWrite(pStrInfo_common_CrLf);
+ 
+   if ( usmDbTraceRoute( "", "", L7_TRUE, vrfId, ipAddr_check,
+         probeSize, (L7_ushort16)probePerHop, probeInterval, L7_FALSE,
+         port, maxTtl, initTtl, maxFail, traceRouteCallbackFn,
+-        (void *)probePerHop, &handle ) != L7_SUCCESS )
++        UINT_TO_PTR(probePerHop), &handle ) != L7_SUCCESS )
+   {
+     sprintfAddBlanks (0, 1, 0, 0, L7_NULLPTR, str, pStrInfo_base_TracerouteFailed_1 );
+   }
+   else
+   {
+     if ( usmDbTraceRouteQuery( handle, &operStatus, &ttl, &currHopCount, &currProbeCount, &testAttempts, &testSuccess ) != L7_SUCCESS )
+Index: src/mgmt/broadcom/cli/base/common/clidevshell.c
+===================================================================
+--- src/mgmt/broadcom/cli/base/common/clidevshell.c	(revision 7778)
++++ src/mgmt/broadcom/cli/base/common/clidevshell.c	(revision 7779)
+@@ -64,58 +64,62 @@ L7_char8 shell_strings[CMD_MAX_ARGS][CMD
+ L7_int32 cliDevShell(L7_char8 * cmd)
+ {
+    L7_char8 func_name[CMD_MAX_SIZE];
+    L7_FUNCPTR func_ptr;
+    L7_int32 args[CMD_MAX_ARGS];
+    L7_BOOL arg_strings[CMD_MAX_ARGS];
+-   L7_int32 rc;
++   L7_uint32 rc;
++   L7_uint64 func_addr;
+    L7_uint32 arg_index;
+ 
+    func_ptr=NULL;
+ 
+    memset(arg_strings, 0, sizeof(arg_strings));
+ 
+    cliParseCmd(cmd,func_name,args,arg_strings);
+ 
+    if (func_name[0])
+    {
+-    func_ptr = (L7_FUNCPTR)(osapiAddressLookup(func_name));
++      func_addr = osapiAddressLookup(func_name);
++      func_ptr  = (L7_FUNCPTR) UINT_TO_PTR(func_addr);
++      //func_ptr = (L7_FUNCPTR64)(osapiAddressLookup(func_name));
++
+       printf("\n");
+       if (func_ptr)
+       {
+          rc=func_ptr(args[0],args[1],args[2],args[3],args[4],
+                      args[5],args[6],args[7],args[8],args[9],
+                      args[10],args[11],args[12],args[13],args[14],
+                      args[15],args[16],args[17],args[18],args[19],
+                      args[20],args[21],args[22],args[23],args[24]
+ 		     );
+ 
+-         printf("\nvalue = %d = 0x%x\n",rc,rc);
++         printf("\nvalue = %d = 0x%x\n", rc, rc);
+ 
+          for (arg_index=0; arg_index < CMD_MAX_ARGS; arg_index++)
+          {
+            if (arg_strings[arg_index] == L7_TRUE)
+            {
+-             printf("arg %d: %s\n", arg_index+1, (char*)args[arg_index]);
++             printf("arg %d: %s\n", arg_index+1, (char *) UINT_TO_PTR(args[arg_index]));
+            }
+          }
+       }
+       else if ((osapiDevshell(func_name, &rc,
+                               args[0],args[1],args[2],args[3],args[4],
+                               args[5],args[6],args[7],args[8],args[9],
+                               args[10],args[11],args[12],args[13],args[14],
+                               args[15],args[16],args[17],args[18],args[19],
+                               args[20],args[21],args[22],args[23],args[24])) == 0)
+       {
+-         printf("\nvalue = %d = 0x%x\n",rc,rc);
++         printf("\nvalue = %d = 0x%x\n", rc, rc);
+ 
+          for (arg_index=0; arg_index < CMD_MAX_ARGS; arg_index++)
+          {
+            if (arg_strings[arg_index] == L7_TRUE)
+            {
+-             printf("arg %d: %s\n", arg_index+1, (char*)args[arg_index]);
++             printf("arg %d: %s\n", arg_index+1, (char *) UINT_TO_PTR(args[arg_index]));
+            }
+          }
+       }
+       else
+     {
+          printf("Undefined symbol: %s\n",func_name);
+@@ -162,13 +166,13 @@ L7_int32 cliParseCmd(L7_char8 * cmd,L7_c
+           if (j >= 1) {
+             osapiStrncpy(shell_strings[j-1],&cmd[string_start+1],min((string_end-string_start-1),(sizeof(shell_strings[j-1])-1)));
+           }
+           string_start=0;
+           string_end=0;
+           if (j >= 1) {
+-            args[j-1]=(L7_int32)shell_strings[j-1];
++            args[j-1]=(L7_int32) PTR_TO_UINT64(shell_strings[j-1]);
+             arg_strings[j-1] = L7_TRUE;
+             j++;
+           }
+         }
+         else if (k!=i && !string_start) {
+           if (j >= 1) {
+Index: src/mgmt/broadcom/cli/base/common/cli_transfer.c
+===================================================================
+--- src/mgmt/broadcom/cli/base/common/cli_transfer.c	(revision 7778)
++++ src/mgmt/broadcom/cli/base/common/cli_transfer.c	(revision 7779)
+@@ -127,13 +127,13 @@ L7_RC_t unitUrlParser(L7_char8 * str, L7
+   pBuf = strstr(unitNum,"/");
+   if(pBuf == NULL)
+   {
+     return L7_FAILURE;
+   }
+ 
+-  len = ((unsigned int)pBuf - (unsigned int)unitNum);
++  len = (int) (PTR_TO_UINT64(pBuf) - PTR_TO_UINT64(unitNum));
+   if(len != 1)
+   {
+     return L7_FAILURE;
+   }
+ 
+   if( *(unitNum) == '*')
+Index: src/mgmt/broadcom/cli/base/common/cli_txtcfg.c
+===================================================================
+--- src/mgmt/broadcom/cli/base/common/cli_txtcfg.c	(revision 7778)
++++ src/mgmt/broadcom/cli/base/common/cli_txtcfg.c	(revision 7779)
+@@ -1176,14 +1176,14 @@ void txtCfgRegistrants(void)
+ {
+   L7_uint32 i;
+   for (i = 0; i < L7_LAST_COMPONENT_ID; i++)
+   {
+     if (txtCfgNotifyList[i].registrar_ID!= 0)
+     {
+-      printf("\nComponent %u registered with function %#x", i,
+-             (L7_uint32) txtCfgNotifyList[i].notify_txt_cfg_apply_complete);
++      printf("\nComponent %u registered with function %p", i,
++             txtCfgNotifyList[i].notify_txt_cfg_apply_complete);
+     }
+   }
+ }
+ 
+ /*********************************************************************
+  * @purpose  Deregisters the interested components information to inform
+Index: src/mgmt/broadcom/cli/base/common/cliutil.c
+===================================================================
+--- src/mgmt/broadcom/cli/base/common/cliutil.c	(revision 7778)
++++ src/mgmt/broadcom/cli/base/common/cliutil.c	(revision 7779)
+@@ -3389,13 +3389,13 @@ L7_RC_t cliConvertVlanRange(const L7_cha
+   char *hyphen = strchr(vlanRange, '-');
+   memset(vlan1, 0, sizeof(vlan1));
+   memset(vlan2, 0, sizeof(vlan2));
+   if (hyphen)
+   {
+     /* this is a range */
+-    L7_uint32 vlanLen = (L7_uint32) hyphen - (L7_uint32) vlanRange;
++    L7_uint32 vlanLen = (uint32) (PTR_TO_UINT64(hyphen) - PTR_TO_UINT64(vlanRange));
+     osapiStrncpy(vlan1, vlanRange, vlanLen);
+     if (cliConvertTo32BitUnsignedInteger(vlan1, rangeLow) != L7_SUCCESS)
+     {
+       return L7_FAILURE;
+     }
+     osapiStrncpy(vlan2, hyphen + 1, L7_CLI_MAX_STRING_LENGTH);
+Index: src/mgmt/snmp/packages/base/k_mib_smon_api.h
+===================================================================
+--- src/mgmt/snmp/packages/base/k_mib_smon_api.h	(revision 7778)
++++ src/mgmt/snmp/packages/base/k_mib_smon_api.h	(revision 7779)
+@@ -172,16 +172,16 @@ snmpSmonPortCopyDirectionGet(L7_uint32 U
+     /*
+      * No API as of now to Get/Set the Direction, so sending default
+      */
+     if(usmDbMirrorSourcePortDirectionGet(sessionNum, portCopySource, &probeType)
+                                                       == L7_SUCCESS)
+     {
+-      *portCopyDirection = (((L7_uint32)probeType == L7_MIRROR_INGRESS)?
+-           PORTCOPY_INGRESS:(((L7_uint32)probeType == L7_MIRROR_EGRESS)? 
+-           PORTCOPY_EGRESS:(((L7_uint32)probeType == L7_MIRROR_BIDIRECTIONAL)?
+-           PORTCOPY_BIDIRECTIONAL:(L7_uint32)NULL)));
++      *portCopyDirection = ((probeType == L7_MIRROR_INGRESS)?
++           PORTCOPY_INGRESS:((probeType == L7_MIRROR_EGRESS)? 
++           PORTCOPY_EGRESS:((probeType == L7_MIRROR_BIDIRECTIONAL)?
++           PORTCOPY_BIDIRECTIONAL:0 /*NULL*/)));
+ 
+       return L7_SUCCESS;
+     }
+     return L7_FAILURE;
+   }
+   else
+@@ -366,13 +366,13 @@ snmpSmonPortCopyDirectionSet(L7_uint32 U
+        (portCopyDirection == PORTCOPY_EGRESS) ||
+        (portCopyDirection == PORTCOPY_BIDIRECTIONAL)))
+     {
+       probeType = ((probeType == L7_MIRROR_INGRESS)? 
+             PORTCOPY_INGRESS:((probeType == L7_MIRROR_EGRESS)? 
+             PORTCOPY_EGRESS:((probeType == L7_MIRROR_BIDIRECTIONAL)?
+-            PORTCOPY_BIDIRECTIONAL:(L7_uint32)NULL)));
++            PORTCOPY_BIDIRECTIONAL:0 /*NULL*/)));
+ 
+       if((L7_uint32)probeType != portCopyDirection)
+       {
+         portCopyDirection = ((portCopyDirection == PORTCOPY_INGRESS) ?
+             L7_MIRROR_INGRESS : ((portCopyDirection == PORTCOPY_EGRESS) ?
+             L7_MIRROR_EGRESS : L7_MIRROR_BIDIRECTIONAL));

@@ -1,0 +1,319 @@
+Index: src/system_support/base/l7util/hl/l7_hl.c
+===================================================================
+--- src/system_support/base/l7util/hl/l7_hl.c	(revision 7747)
++++ src/system_support/base/l7util/hl/l7_hl.c	(revision 7748)
+@@ -904,14 +904,14 @@ void hlDebugShow(void *objId)
+   printf("\nGet value:  %#x", (L7_uint32) p_H->getValue);
+   printf("\nCurrent value:  %#x", (L7_uint32) p_H->curValue);
+   printf("\nSemaphore:  %#x", (L7_uint32) p_H->semId);
+   printf("\nBuffer pool ID:  %#x", p_H->bufferPoolId);
+ 
+   printf("\nMemory use:");
+-  printf("\n  Hash list:  %u bytes", sizeof(l7_hl_t));
+-  printf("\n  Hash bucket array:  %u bytes", sizeof(hl_value_t **) * p_H->numBuckets);
++  printf("\n  Hash list:  %u bytes", (unsigned int) sizeof(l7_hl_t));
++  printf("\n  Hash bucket array:  %u bytes", (unsigned int) (sizeof(hl_value_t **) * p_H->numBuckets));
+   if (p_H->valContainer)
+   {
+     printf("\n  Val container buffer pool:  %u bytes",
+            bufferPoolSizeCompute(p_H->maxEntries, sizeof(hl_value_t)));
+   }
+ 
+Index: src/application/ptin/base/ptin_utils.c
+===================================================================
+--- src/application/ptin/base/ptin_utils.c	(revision 7747)
++++ src/application/ptin/base/ptin_utils.c	(revision 7748)
+@@ -30,13 +30,13 @@ void hexdump (void *buf, size_t length,
+         if ( NULL != startLine ){ printf("%s", startLine); }
+         printf("%3d: ", (i / 32) + 1);
+      }
+      printf("%02X ", buffer[i]);
+      if ( (i == (length - 1)) && (0 != (length%32)) )
+      {
+-        printf("%*.*s", (32 - (length%32))*3, (32 - (length%32))*3, "");
++        printf("%*.*s", (32 - ((unsigned int) length%32))*3, (32 - ((unsigned int) length%32))*3, "");
+         if ( NULL != endLine ){ printf("%s", endLine); }
+         printf("\n");
+      }
+      else if ( 0 == ((i + 1)%32) )
+      {
+         if ( NULL != endLine ){ printf("%s", endLine); }
+@@ -327,13 +327,13 @@ inline int _bmp_set(bmp_cell_t bmp[], un
+     bmp_cell_t   cellpos;
+     unsigned int bitpos;
+ 
+ #ifdef BITMAP_VALIDATE_SIZE
+     if (bit >= (sizeof(bmp_cell_t) * sizeof_bmp * 8)) {
+         printf("%s(%d) *** CRITICAL *** Bit %u is out of range! Bitmap size = %u bits\n",
+-               __FUNCTION__, __LINE__, bit, (sizeof(bmp_cell_t) * sizeof_bmp * 8));
++               __FUNCTION__, __LINE__, bit, (unsigned int) (sizeof(bmp_cell_t) * sizeof_bmp * 8));
+         return 0;
+     }
+ #endif
+ 
+     cellpos = bit / (sizeof(bmp_cell_t) * 8);
+     bitpos  = bit % (sizeof(bmp_cell_t) * 8);
+@@ -358,13 +358,13 @@ inline int _bmp_clear(bmp_cell_t bmp[],
+     bmp_cell_t   cellpos;
+     unsigned int bitpos;
+ 
+ #ifdef BITMAP_VALIDATE_SIZE
+     if (bit >= (sizeof(bmp_cell_t) * sizeof_bmp * 8)) {
+         printf("%s(%d) *** CRITICAL *** Bit %u is out of range! Bitmap size = %u bits\n",
+-               __FUNCTION__, __LINE__, bit, (sizeof(bmp_cell_t) * sizeof_bmp * 8));
++               __FUNCTION__, __LINE__, bit, (unsigned int) (sizeof(bmp_cell_t) * sizeof_bmp * 8));
+         return 0;
+     }
+ #endif
+ 
+     cellpos = bit / (sizeof(bmp_cell_t) * 8);
+     bitpos  = bit % (sizeof(bmp_cell_t) * 8);
+@@ -389,13 +389,13 @@ inline int _bmp_is_set(bmp_cell_t bmp[],
+     bmp_cell_t   cellpos;
+     unsigned int bitpos;
+ 
+ #ifdef BITMAP_VALIDATE_SIZE
+     if (bit >= (sizeof(bmp_cell_t) * sizeof_bmp * 8)) {
+         printf("%s(%d) *** CRITICAL *** Bit %u is out of range! Bitmap size = %u bits\n",
+-               __FUNCTION__, __LINE__, bit, (sizeof(bmp_cell_t) * sizeof_bmp * 8));
++               __FUNCTION__, __LINE__, bit, (unsigned int) (sizeof(bmp_cell_t) * sizeof_bmp * 8));
+         return 0;
+     }
+ #endif
+ 
+     cellpos = bit / (sizeof(bmp_cell_t) * 8);
+     bitpos  = bit % (sizeof(bmp_cell_t) * 8);
+@@ -419,13 +419,13 @@ inline int _bmp_is_clear(bmp_cell_t bmp[
+     bmp_cell_t   cellpos;
+     unsigned int bitpos;
+ 
+ #ifdef BITMAP_VALIDATE_SIZE
+     if (bit >= (sizeof(bmp_cell_t) * sizeof_bmp * 8)) {
+         printf("%s(%d) *** CRITICAL *** Bit %u is out of range! Bitmap size = %u bits\n",
+-               __FUNCTION__, __LINE__, bit, (sizeof(bmp_cell_t) * sizeof_bmp * 8));
++               __FUNCTION__, __LINE__, bit, (unsigned int) (sizeof(bmp_cell_t) * sizeof_bmp * 8));
+         return 0;
+     }
+ #endif
+ 
+     cellpos = bit / (sizeof(bmp_cell_t) * 8);
+     bitpos  = bit % (sizeof(bmp_cell_t) * 8);
+Index: src/application/ip_mcast/vendor/mfc/mfc.c
+===================================================================
+--- src/application/ip_mcast/vendor/mfc/mfc.c	(revision 7747)
++++ src/application/ip_mcast/vendor/mfc/mfc.c	(revision 7748)
+@@ -120,14 +120,14 @@ mfcCacheEntry_t *mfcEntryGet(L7_inet_add
+ * @comments
+ *
+ * @end
+ *
+ *********************************************************************/
+ static 
+-L7_int32 mfcCacheEntryCompare(const void *pData1, const void *pData2, 
+-                              L7_uint32 size)
++L7_int mfcCacheEntryCompare(const void *pData1, const void *pData2, 
++                            size_t size)
+ {
+   mfcCacheEntry_t *pKey1 = (mfcCacheEntry_t *)pData1;
+   mfcCacheEntry_t *pKey2 = (mfcCacheEntry_t *)pData2;
+   register L7_int32 retVal = 0;
+ 
+   MFC_DEBUG(MFC_DEBUG_APIS,"\n Entry , pData1 = %x , pData2 = %x, size = %d ",
+Index: src/application/ip_mcast/vendor/pimsm/pimsmsgtree.c
+===================================================================
+--- src/application/ip_mcast/vendor/pimsm/pimsmsgtree.c	(revision 7747)
++++ src/application/ip_mcast/vendor/pimsm/pimsmsgtree.c	(revision 7748)
+@@ -41,15 +41,15 @@
+ *            less than zero if node1<node2.
+ *
+ * @comments      
+ *       
+ * @end
+ *********************************************************************/
+-static L7_int32 pimsmSGCompare(const void * pimsmSGNode1, 
+-                               const void * pimsmSGNode2,
+-                               L7_uint32 keySize)
++static int pimsmSGCompare(const void * pimsmSGNode1, 
++                          const void * pimsmSGNode2,
++                          size_t keySize)
+ {
+   pimsmSGNode_t * pSGNode1, *pSGNode2;
+   L7_inet_addr_t  *pSrcAddr1, * pSrcAddr2;
+   L7_inet_addr_t  *pGrpAddr1, * pGrpAddr2;
+   L7_uint32   result;
+ 
+Index: src/application/ip_mcast/vendor/pimsm/pimsmsgrpttree.c
+===================================================================
+--- src/application/ip_mcast/vendor/pimsm/pimsmsgrpttree.c	(revision 7747)
++++ src/application/ip_mcast/vendor/pimsm/pimsmsgrpttree.c	(revision 7748)
+@@ -40,15 +40,15 @@
+ *            less than zero if node1<node2.
+ *
+ * @comments      
+ *       
+ * @end
+ *********************************************************************/
+-static L7_int32 pimsmSGRptCompare(const void *pNode1, 
+-                                  const void *pNode2,
+-                                  L7_uint32   keySize)
++static int pimsmSGRptCompare(const void *pNode1, 
++                             const void *pNode2,
++                             size_t      keySize)
+ {
+   pimsmSGRptNode_t * pSGRptNode1, *pSGRptNode2;
+   L7_inet_addr_t  * pSrcAddr1, * pSrcAddr2;
+   L7_inet_addr_t  * pGrpAddr1, * pGrpAddr2;
+   L7_uint32   result;
+ 
+Index: src/application/ip_mcast/vendor/dvmrp/include/dvmrp_cache_table.h
+===================================================================
+--- src/application/ip_mcast/vendor/dvmrp/include/dvmrp_cache_table.h	(revision 7747)
++++ src/application/ip_mcast/vendor/dvmrp/include/dvmrp_cache_table.h	(revision 7748)
+@@ -46,13 +46,13 @@
+ *          be if they were compared with memcmp() on a big-endian platform.
+ *          It might be more useful to compare them by some other criterion
+ *          (shorter masks first, for example).
+ *
+ * @end
+ *****************************************************************/
+-L7_int32 dvmrpAVLCacheCompare(const void *a, const void *b, L7_uint32 len);
++L7_int dvmrpAVLCacheCompare(const void *a, const void *b, size_t len);
+ 
+ 
+ /*********************************************************************
+ * @purpose  Initializes the cache table
+ *
+ * @param    dvmrpcb  -  @b{(input)}  Pointer to the DVMRP control block.
+Index: src/application/ip_mcast/vendor/dvmrp/dvmrp_cache_table.c
+===================================================================
+--- src/application/ip_mcast/vendor/dvmrp/dvmrp_cache_table.c	(revision 7747)
++++ src/application/ip_mcast/vendor/dvmrp/dvmrp_cache_table.c	(revision 7748)
+@@ -40,13 +40,13 @@
+ *          be if they were compared with memcmp() on a big-endian platform.
+ *          It might be more useful to compare them by some other criterion
+ *          (shorter masks first, for example).
+ *
+ * @end
+ *****************************************************************/
+-L7_int32 dvmrpAVLCacheCompare(const void *a, const void *b, L7_uint32 len)
++L7_int dvmrpAVLCacheCompare(const void *a, const void *b, size_t len)
+ {
+   dvmrp_cache_entry_t *pKey1 = (dvmrp_cache_entry_t *) a;
+   dvmrp_cache_entry_t *pKey2 = (dvmrp_cache_entry_t *) b;
+   register L7_int32 retVal = 0;
+ 
+   if ((pKey1 == L7_NULLPTR) || (pKey2 == L7_NULLPTR))
+Index: src/application/ip_mcast/vendor/dvmrp/dvmrp_igmp_group_table.c
+===================================================================
+--- src/application/ip_mcast/vendor/dvmrp/dvmrp_igmp_group_table.c	(revision 7747)
++++ src/application/ip_mcast/vendor/dvmrp/dvmrp_igmp_group_table.c	(revision 7748)
+@@ -38,13 +38,13 @@
+ *          be if they were compared with memcmp() on a big-endian platform.
+ *          It might be more useful to compare them by some other criterion
+ *          (shorter masks first, for example).
+ *
+ * @end
+ *****************************************************************/
+-L7_int32 dvmrpAVLCompareGroup(const void *a, const void *b, L7_uint32 len)
++L7_int dvmrpAVLCompareGroup(const void *a, const void *b, size_t len)
+ {
+   L7_inet_addr_t source_a, source_b, group_a, group_b;
+   L7_int32 ret = L7_NULL;
+ 
+   inetCopy(&source_a, &(((dvmrp_Group_entry_t *)a)->source));
+   inetCopy(&source_b, &(((dvmrp_Group_entry_t *)b)->source));
+Index: src/mgmt/broadcom/emweb/linux/ewtask.c
+===================================================================
+--- src/mgmt/broadcom/emweb/linux/ewtask.c	(revision 7747)
++++ src/mgmt/broadcom/emweb/linux/ewtask.c	(revision 7748)
+@@ -1039,12 +1039,12 @@ Malloc_Safe(size_t s, const char *file,
+ {
+   void *p;
+ 
+   p = ewaAlloc(s);
+   if (NULL == p)
+     {
+-      EMWEB_ERROR(("malloc_safe: attempted allocation of %d bytes failed\n",
+-                   s));
++      EMWEB_ERROR(("malloc_safe: attempted allocation of %u bytes failed\n",
++                   (unsigned int) s));
+       ERROR_EXIT;
+     }
+   return p;
+ }
+Index: src/mgmt/snmp/packages/base/l7_sitedefs.h
+===================================================================
+--- src/mgmt/snmp/packages/base/l7_sitedefs.h	(revision 7747)
++++ src/mgmt/snmp/packages/base/l7_sitedefs.h	(revision 7748)
+@@ -33,13 +33,13 @@
+ 
+ /* Be sure that stdlib is included first */
+ #include <stdlib.h>
+ 
+ /* define wrappers to osapiFree and osapiMalloc */
+ void snmpFree(void * memory);
+-void *snmpMalloc(L7_uint32 nbytes);
++void *snmpMalloc(size_t nbytes);
+ 
+ #define free(_x)        (snmpFree(_x))
+ #define malloc(nbytes)  (snmpMalloc(nbytes))
+ 
+ /* Switching package specific defines */
+ #include "../switching/common/switching_sitedefs.h"
+Index: src/mgmt/snmp/packages/base/k_private_base.c
+===================================================================
+--- src/mgmt/snmp/packages/base/k_private_base.c	(revision 7747)
++++ src/mgmt/snmp/packages/base/k_private_base.c	(revision 7748)
+@@ -10,13 +10,13 @@ void snmpFree(void * memory)
+   if (memory != NULL) 
+   { 
+     osapiFree(L7_SNMP_COMPONENT_ID, memory);
+   }
+ }
+ 
+-void *snmpMalloc(L7_uint32 nbytes)
++void *snmpMalloc(size_t nbytes)
+ {
+   return osapiMalloc(L7_SNMP_COMPONENT_ID, nbytes);
+ }
+ 
+ L7_BOOL
+ SafeMakeOctetString_track(OctetString **os_ptr, L7_uchar8 *string, L7_uint32 length, char * file, unsigned int line)
+Index: os/linux/mgmt/dtl_tap_monitor.c
+===================================================================
+--- os/linux/mgmt/dtl_tap_monitor.c	(revision 7747)
++++ os/linux/mgmt/dtl_tap_monitor.c	(revision 7748)
+@@ -393,13 +393,13 @@ void tap_monitor_task_fn()
+ 
+             /*
+              *and read the frame out of the appropriate 
+              *file descriptor
+              */
+             frame_length = read(reg_table[i].fd,(void *)frame_data,MAX_FRAME_LEN);
+-            PRINT_CTRL_MSG("frame length is %d bytes\n",frame_length);
++            PRINT_CTRL_MSG("frame length is %u bytes\n", (unsigned int) frame_length);
+ 
+             /*
+              *check to make sure we got something
+              */
+             if(frame_length <= 0) 
+             {
+Index: src/application/ip_mcast/vendor/pimsm/pimsmstargtree.c
+===================================================================
+--- src/application/ip_mcast/vendor/pimsm/pimsmstargtree.c	(revision 7758)
++++ src/application/ip_mcast/vendor/pimsm/pimsmstargtree.c	(revision 7759)
+@@ -45,13 +45,13 @@
+ * @comments      
+ *       
+ * @end
+ *********************************************************************/
+ static L7_int32 pimsmStarGCompare(const void * pNode1, 
+                                   const void * pNode2,
+-                                  L7_uint32 keySize)
++                                  size_t keySize)
+ {
+   pimsmStarGNode_t * pStarGNode1, *pStarGNode2;
+   L7_inet_addr_t  * pGrpAddr1, * pGrpAddr2;
+   L7_uint32   result;
+ 
+   pStarGNode1 = (pimsmStarGNode_t *)pNode1;

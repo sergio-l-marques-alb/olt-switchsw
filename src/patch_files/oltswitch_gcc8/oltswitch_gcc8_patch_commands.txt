@@ -1,0 +1,21 @@
+ 1050  2020-09-29 15:16:41 svn diff --diff-cmd diff -x '-rpN -u6' -c 7747 > ../patch_files/oltswitch_gcc8/oltswitch_gcc8_mixedcodedeclarations_r7747.patch
+ 1051  2020-09-29 15:17:03 svn diff --diff-cmd diff -x '-rpN -u6' -c 7752 > ../patch_files/oltswitch_gcc8/oltswitch_gcc8_mixedcodedeclarations_r7752.patch
+ 1052  2020-09-29 15:17:13 svn diff --diff-cmd diff -x '-rpN -u6' -c 7754 > ../patch_files/oltswitch_gcc8/oltswitch_gcc8_mixedcodedeclarations_r7754.patch
+ 1053  2020-09-29 15:19:42 svn diff --diff-cmd diff -x '-rpN -u6' -c 7758 > ../patch_files/oltswitch_gcc8/oltswitch_gcc8_mixedcodedeclarations_r7758.patch
+ 1054  2020-09-29 15:27:14 svn diff --diff-cmd diff -x '-rpN -u6' -c 7748 > ../patch_files/oltswitch_gcc8/oltswitch_gcc8_sizet_r7748.patch
+ 1055  2020-09-29 15:27:35 svn diff --diff-cmd diff -x '-rpN -u6' -c 7759 > ../patch_files/oltswitch_gcc8/oltswitch_gcc8_sizet_r7759.patch
+ 1056  2020-09-29 15:27:59 svn diff --diff-cmd diff -x '-rpN -u6' -c 7757 > ../patch_files/oltswitch_gcc8/oltswitch_gcc8_others_r7757.patch
+ 1057  2020-09-29 15:28:12 svn diff --diff-cmd diff -x '-rpN -u6' -c 7761 > ../patch_files/oltswitch_gcc8/oltswitch_gcc8_others_r7761.patch
+ 1058  2020-09-29 15:29:12 svn diff --diff-cmd diff -x '-rpN -u6' -r 7748:7751 > ../patch_files/oltswitch_gcc8/oltswitch_gcc8_memcpy_r7749-7751.patch
+ 1059  2020-09-29 15:29:41 svn diff --diff-cmd diff -x '-rpN -u6' -c 7753 > ../patch_files/oltswitch_gcc8/oltswitch_gcc8_strings_r7753.patch
+ 1060  2020-09-29 15:29:57 svn diff --diff-cmd diff -x '-rpN -u6' -c 7755 > ../patch_files/oltswitch_gcc8/oltswitch_gcc8_sprintf_r7755.patch
+ 1061  2020-09-29 15:30:12 svn diff --diff-cmd diff -x '-rpN -u6' -c 7756 > ../patch_files/oltswitch_gcc8/oltswitch_gcc8_indentation_r7756.patch
+ 1062  2020-09-29 15:30:33 svn diff --diff-cmd diff -x '-rpN -u6' -c 7760 > ../patch_files/oltswitch_gcc8/oltswitch_gcc8_inline_r7760.patch
+ 1063  2020-09-29 15:30:48 svn diff --diff-cmd diff -x '-rpN -u6' -c 7762 > ../patch_files/oltswitch_gcc8/oltswitch_gcc8_varinit_r7762.patch
+
+ 1071  2020-09-29 15:32:12 cat oltswitch_gcc8_mixedcodedeclarations_r7747.patch >> oltswitch_gcc8_mixedcodedeclarations_r7747+7752+7754+7758.patch
+ 1073  2020-09-29 15:32:26 cat oltswitch_gcc8_mixedcodedeclarations_r7752.patch >> oltswitch_gcc8_mixedcodedeclarations_r7747+7752+7754+7758.patch
+ 1074  2020-09-29 15:32:33 cat oltswitch_gcc8_mixedcodedeclarations_r7754.patch >> oltswitch_gcc8_mixedcodedeclarations_r7747+7752+7754+7758.patch
+ 1075  2020-09-29 15:32:39 cat oltswitch_gcc8_mixedcodedeclarations_r7758.patch >> oltswitch_gcc8_mixedcodedeclarations_r7747+7752+7754+7758.patch
+ 1079  2020-09-29 15:33:50 cat oltswitch_gcc8_sizet_r7748.patch >> oltswitch_gcc8_sizet_r7748+7759.patch
+ 1081  2020-09-29 15:34:05 cat oltswitch_gcc8_sizet_r7759.patch >> oltswitch_gcc8_sizet_r7748+7759.patch

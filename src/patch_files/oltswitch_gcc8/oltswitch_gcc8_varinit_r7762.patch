@@ -1,0 +1,38 @@
+Index: src/system_support/base/l7util/pw_scramble/pw_scramble.c
+===================================================================
+--- src/system_support/base/l7util/pw_scramble/pw_scramble.c	(revision 7761)
++++ src/system_support/base/l7util/pw_scramble/pw_scramble.c	(revision 7762)
+@@ -368,12 +368,14 @@ void debugTestAes(L7_char8 *str)
+    0x34,0x56,0x78,0x9a,0xbc,0xde,0xf0,0x12};
+   unsigned char iv[16],tmpiv[16];
+   char out[1024],in[1024];
+   AES_KEY aeskey;
+   int lth;
+ 
++  memset(iv, 0x00, sizeof(iv));
++
+   lth = strlen(str) + 1;
+   strncpy(in,str, lth);
+   AES_set_encrypt_key(key16,128,&aeskey);
+   memcpy(tmpiv,iv,sizeof(iv));
+   AES_cbc_encrypt(in,out, lth, &aeskey, tmpiv,AES_ENCRYPT);
+   AES_set_decrypt_key(key16,128,&aeskey);
+Index: src/application/switching/snooping/core/snooping_ctrl.c
+===================================================================
+--- src/application/switching/snooping/core/snooping_ctrl.c	(revision 7761)
++++ src/application/switching/snooping/core/snooping_ctrl.c	(revision 7762)
+@@ -523,13 +523,13 @@ static L7_RC_t snoopIntfVlanEntriesRemov
+ * @end
+ *********************************************************************/
+ L7_RC_t snoopAdminModeApply(L7_uint32 adminMode, L7_uint16 vlan_id /* PTin added: IGMP snooping */, snoop_cb_t *pSnoopCB)
+ {
+   L7_uint32             intIfNum, cfgIndex, mode;
+   L7_uint32             vlanId;
+-  nimConfigID_t         configIdNull;
++  nimConfigID_t         configIdNull={0};
+   L7_RC_t               rc;
+   snoopIntfCfgData_t   *pCfg = L7_NULLPTR;
+   snoopOperData_t      *pSnoopOperEntry  = L7_NULLPTR;
+ 
+   if (adminMode == L7_ENABLE)
+   {

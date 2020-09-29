@@ -1,0 +1,897 @@
+Index: src/application/base/dot1ab/core/lldp_cnfgr.c
+===================================================================
+--- src/application/base/dot1ab/core/lldp_cnfgr.c	(revision 7748)
++++ src/application/base/dot1ab/core/lldp_cnfgr.c	(revision 7751)
+@@ -700,13 +700,13 @@ L7_RC_t lldpCnfgrUconfigPhase2(L7_CNFGR_
+ {
+   *pResponse  = L7_CNFGR_CMD_COMPLETE;
+   *pReason    = 0;
+ 
+   /* TBD - disable Tx/Rx on all interfaces?? */
+ 
+-  memset(lldpCfgData, 0, sizeof(lldpCfgData));
++  memset(lldpCfgData, 0, sizeof(lldpCfgData_t));
+ 
+   lldpCnfgrState = LLDP_PHASE_WMU;
+ 
+   return L7_SUCCESS;
+ }
+ 
+Index: src/application/base/sflow/sflow_api.c
+===================================================================
+--- src/application/base/sflow/sflow_api.c	(revision 7748)
++++ src/application/base/sflow/sflow_api.c	(revision 7751)
+@@ -872,13 +872,13 @@ L7_RC_t sFlowFsEntryGetNext(L7_uint32 Un
+     ifIndex=0;
+     if (usmDbIntIfNumTypeFirstGet(UnitIndex, inclintIfType, exclintIfType,
+                                    &intIfIndex) == L7_SUCCESS)
+     {
+       if( usmDbExtIfNumFromIntIfNum(intIfIndex, &ifIndex) == L7_SUCCESS)
+       {
+-        memset(index, 0, sizeof(index));
++        memset(index, 0, sizeof(*index));
+         sprintf(index,"%s.%d",L7_SFLOW_IFINDEX, ifIndex);
+         *instance =1;
+         return L7_SUCCESS;
+       }
+       return L7_FAILURE;
+     }
+@@ -1246,13 +1246,13 @@ L7_RC_t sFlowCpEntryGetNext(L7_uint32 Un
+     ifIndex=0;
+     if (usmDbIntIfNumTypeFirstGet(UnitIndex, inclintIfType, exclintIfType,
+                                    &intIfIndex) == L7_SUCCESS)
+     {
+       if( usmDbExtIfNumFromIntIfNum(intIfIndex, &ifIndex) == L7_SUCCESS)
+       {
+-        memset(index, 0, sizeof(index));
++        memset(index, 0, sizeof(*index));
+         sprintf(index,"%s.%d",L7_SFLOW_IFINDEX, ifIndex);
+         *instance =1;
+         return L7_SUCCESS;
+       }
+       return L7_FAILURE;
+     }
+Index: src/application/ip_mcast/vendor/pimsm/pimsmrp.c
+===================================================================
+--- src/application/ip_mcast/vendor/pimsm/pimsmrp.c	(revision 7748)
++++ src/application/ip_mcast/vendor/pimsm/pimsmrp.c	(revision 7751)
+@@ -686,13 +686,13 @@ L7_RC_t pimsmRpGrpListGrpNodeAdd(pimsmCB
+                   "Unable to allocate buffer from pimsmRpGrpAddrListPoolId");
+       *ppAddrListNode = L7_NULLPTR;
+       return L7_FAILURE;
+     }
+ 
+     /* 2. populate the rp_node */
+-    memset(pAddrListNode,0,sizeof(pAddrListNode));
++    memset(pAddrListNode,0,sizeof(*pAddrListNode));
+     inetCopy(&pAddrListNode->pimsmIpAddr, &grpAddr);
+     pAddrListNode->pimsmCb = pimsmCb;
+     pAddrListNode->pimsmOrigin = origin;
+     pAddrListNode->pimsmMaskLen = grpMaskLen;
+     pAddrListNode->pimsmRpGrpNode = (void *)pRpGrpNode;
+     /*create the handle */
+@@ -937,13 +937,13 @@ L7_RC_t pimsmRpSetTreeRpNodeAdd(pimsmCB_
+                   "Unable to allocate buffer from pimsmRpGrpAddrListPoolId");
+       *ppAddrListNode = L7_NULLPTR;
+       return L7_FAILURE;
+     }
+ 
+     /* 2. populate the pRpGrpNode */
+-    memset(pAddrListNode,0,sizeof(pAddrListNode));
++    memset(pAddrListNode,0,sizeof(*pAddrListNode));
+     inetCopy(&pAddrListNode->pimsmIpAddr, &rpAddr);
+     pAddrListNode->pimsmCb= pimsmCb;
+     pAddrListNode->pimsmOrigin = origin;
+     pAddrListNode->pimsmRpGrpNode = pRpGrpNode;
+     pAddrListNode->pimsmOriginFlag = L7_FALSE;
+     if (pimsmRpSetTreeRpIsExists(pRpSetNode, rpAddr, &origin) == L7_TRUE)
+Index: src/application/switching/dhcp_snooping/core/ds_cnfgr.c
+===================================================================
+--- src/application/switching/dhcp_snooping/core/ds_cnfgr.c	(revision 7748)
++++ src/application/switching/dhcp_snooping/core/ds_cnfgr.c	(revision 7751)
+@@ -470,25 +470,25 @@ L7_RC_t dsCnfgrInitPhase1Process(L7_CNFG
+   {
+     *pResponse = 0;
+     *pReason = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
+     dsRC = L7_ERROR;
+     return dsRC;
+   }
+-  memset(dsInfo, 0, sizeof(dsInfo));
++  memset(dsInfo, 0, sizeof(dsInfo_t));
+   dsInfoInit();
+   dsBindingsTableCreate();
+ #ifdef L7_IPSG_PACKAGE
+   ipsgInfo = (ipsgInfo_t*) osapiMalloc(L7_DHCP_SNOOPING_COMPONENT_ID, sizeof(ipsgInfo_t));
+   if (!ipsgInfo)
+   {
+     *pResponse = 0;
+     *pReason = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
+     dsRC = L7_ERROR;
+     return dsRC;
+   }
+-  memset(ipsgInfo, 0, sizeof(ipsgInfo));
++  memset(ipsgInfo, 0, sizeof(ipsgInfo_t));
+   ipsgInfoInit();
+   ipsgEntryTableCreate();
+ #endif
+   dsIntfInfo = (dsIntfInfo_t*) osapiMalloc(L7_DHCP_SNOOPING_COMPONENT_ID,
+                                            (DS_MAX_INTF_COUNT+1) * sizeof(dsIntfInfo_t));
+   if (!dsIntfInfo)
+Index: src/application/switching/port_mac_locking/pml_cnfgr.c
+===================================================================
+--- src/application/switching/port_mac_locking/pml_cnfgr.c	(revision 7748)
++++ src/application/switching/port_mac_locking/pml_cnfgr.c	(revision 7751)
+@@ -483,13 +483,13 @@ L7_RC_t pmlCnfgrUconfigPhase2( L7_CNFGR_
+     *pReason    = L7_CNFGR_ERR_RC_FATAL;
+     pmlRC     = L7_ERROR;
+ 
+     return pmlRC;
+   }
+ 
+-  memset(pmlCfgData, 0, sizeof(pmlCfgData));
++  memset(pmlCfgData, 0, sizeof(pmlCfgData_t));
+ 
+   pmlCnfgrState = PML_PHASE_WMU;
+ 
+   return pmlRC;
+ }
+ 
+Index: src/application/switching/snooping/core/snooping_ptin_proxytimer.c
+===================================================================
+--- src/application/switching/snooping/core/snooping_ptin_proxytimer.c	(revision 7748)
++++ src/application/switching/snooping/core/snooping_ptin_proxytimer.c	(revision 7751)
+@@ -552,13 +552,13 @@ L7_RC_t snoop_ptin_proxytimer_start(snoo
+     if (appTimerDelete(cbTimer, pTimer->timer) != L7_SUCCESS)
+     {
+       PT_LOG_ERR(LOG_CTX_IGMP,"Failed to delete timer");
+     }
+     pTimer->timer = L7_NULLPTR;
+     handleListNodeDelete(handleList, &pTimer->timerHandle);
+-    memset(pTimer, 0x00, sizeof(pTimer));
++    memset(pTimer, 0x00, sizeof(snoopPTinProxyTimer_t));
+     osapiSemaGive(timerSem);
+     PT_LOG_WARN(LOG_CTX_IGMP,"Could not add new timer data node");
+     return L7_FAILURE;
+   }
+ 
+   osapiSemaGive(timerSem);
+Index: src/application/switching/snooping/core/snooping_ptin_db.c
+===================================================================
+--- src/application/switching/snooping/core/snooping_ptin_db.c	(revision 7748)
++++ src/application/switching/snooping/core/snooping_ptin_db.c	(revision 7751)
+@@ -675,13 +675,13 @@ L7_RC_t snoopPTinSourceRemove(snoopPTinL
+   {
+     PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments");
+     return L7_FAILURE;
+   }
+ 
+   /* Remove clients associated with this source */
+-  memset(sourcePtr->clients, 0x00, PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE);
++  memset(sourcePtr->clients, 0x00, sizeof(sourcePtr->clients));
+ 
+   snoop_ptin_sourcetimer_stop(&sourcePtr->sourceTimer);
+   memset(sourcePtr, 0x00, sizeof(*sourcePtr));
+   --interfacePtr->numberOfSources;  
+ 
+   return L7_SUCCESS;
+Index: src/application/switching/snooping/core/snooping_db.c
+===================================================================
+--- src/application/switching/snooping/core/snooping_db.c	(revision 7748)
++++ src/application/switching/snooping/core/snooping_db.c	(revision 7751)
+@@ -6079,13 +6079,13 @@ snoopPTinProxyGroup_t *snoopPTinProxyGro
+ 
+ #if 0
+   fdbGetTypeOfVL(&fdbType);
+ #endif
+ 
+ //memcpy(&key.interfacePtr,&interfacePtr, sizeof(snoopPTinProxyInterface_t*));
+-  memcpy(&key.vlanId,&vlanId, sizeof(L7_uint32*));  
++  memcpy(&key.vlanId,&vlanId, sizeof(L7_uint32));
+   memcpy(&key.groupAddr,groupAddr,sizeof(L7_inet_addr_t));
+   memcpy(&key.recordType,&recordType,sizeof(L7_uint8));
+   pData = avlSearchLVL7(&pSnoopEB->snoopPTinProxyGroupAvlTree, &key, flag);
+   if (flag == L7_MATCH_GETNEXT)
+   {
+     while (pData)
+Index: src/application/switching/snooping/core/snooping_ptin_grouptimer.c
+===================================================================
+--- src/application/switching/snooping/core/snooping_ptin_grouptimer.c	(revision 7748)
++++ src/application/switching/snooping/core/snooping_ptin_grouptimer.c	(revision 7751)
+@@ -593,13 +593,13 @@ L7_RC_t snoop_ptin_grouptimer_start(snoo
+     if (appTimerDelete(cbTimer, pTimer->timer) != L7_SUCCESS)
+     {
+       PT_LOG_ERR(LOG_CTX_IGMP,"Failed to delete timer");
+     }
+     pTimer->timer = L7_NULLPTR;
+     handleListNodeDelete(handleList, &pTimer->timerHandle);
+-    memset(pTimer, 0x00, sizeof(pTimer));
++    memset(pTimer, 0x00, sizeof(snoopPTinL3Grouptimer_t));
+     osapiSemaGive(timerSem);
+     PT_LOG_WARN(LOG_CTX_IGMP,"Could not add new timer data node");
+     return L7_FAILURE;
+   }
+ 
+   osapiSemaGive(timerSem);
+Index: src/application/switching/dynamic_arp_inspection/dai_cnfgr.c
+===================================================================
+--- src/application/switching/dynamic_arp_inspection/dai_cnfgr.c	(revision 7748)
++++ src/application/switching/dynamic_arp_inspection/dai_cnfgr.c	(revision 7751)
+@@ -409,13 +409,13 @@ L7_RC_t daiCnfgrInitPhase1Process(L7_CNF
+   {
+     *pResponse = 0;
+     *pReason = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
+     daiRC = L7_ERROR;
+     return daiRC;
+   }
+-  memset(daiInfo, 0, sizeof(daiInfo));
++  memset(daiInfo, 0, sizeof(daiInfo_t));
+   daiInfoInit();
+ 
+   daiIntfInfo = (daiIntfInfo_t*) osapiMalloc(L7_DAI_COMPONENT_ID,
+                                              DAI_MAX_INTF_COUNT * sizeof(daiIntfInfo_t));
+   if (!daiIntfInfo)
+   {
+Index: src/application/switching/link_aggregation/core/dot3ad_debug.c
+===================================================================
+--- src/application/switching/link_aggregation/core/dot3ad_debug.c	(revision 7748)
++++ src/application/switching/link_aggregation/core/dot3ad_debug.c	(revision 7751)
+@@ -852,13 +852,13 @@ char *dot3adDisplayTraceCode(L7_uchar8 t
+     default: return "Unknown ";
+   }
+ }
+ 
+ L7_uchar8* dot3adDisplayState(L7_uchar8 state, L7_uchar8 *buf, L7_uint32 size)
+ {
+- memset(buf,0,sizeof(buf));
++ memset(buf,0,sizeof(*buf));
+ 
+  if (state & DOT3AD_STATE_EXPIRED)
+  {
+   osapiSnprintfcat(buf,size,"Exp,");
+  }
+  if (state & DOT3AD_STATE_DEFAULTED)
+Index: src/application/switching/garp/gid.c
+===================================================================
+--- src/application/switching/garp/gid.c	(revision 7748)
++++ src/application/switching/garp/gid.c	(revision 7751)
+@@ -107,13 +107,13 @@ static L7_BOOL gid_create_gid(Garp *appl
+ 
+    GARP_TRACE_INTERNAL_EVENTS("%s Gid %x created for port no %d application %s \n",
+                                __FUNCTION__, my_port, port_no,
+                               (GARP_GMRP_APP == application->app) ? "GMRP" :
+                               (GARP_GVRP_APP == application->app) ? "GVRP" : "Unknown");
+ 
+-   memset(my_port, 0x00, sizeof(my_port));
++   memset(my_port, 0x00, sizeof(Gid));
+ 
+    my_port->application            = application;
+    my_port->port_no                = port_no;
+    my_port->next_in_port_ring      = my_port;
+    my_port->next_in_connected_ring = my_port;
+ 
+Index: src/application/switching/garp/garp_timer.c
+===================================================================
+--- src/application/switching/garp/garp_timer.c	(revision 7748)
++++ src/application/switching/garp/garp_timer.c	(revision 7751)
+@@ -475,13 +475,13 @@ void garpTimerAdd(L7_uint32 vid, L7_uint
+                     pTimer->timer_status, pTimer->timerType, pTimer->port_no, pTimer->vid);
+         }
+     }
+     else
+     {
+         /* A timer is being added */
+-        memset(pTimer, 0, sizeof(pTimer));
++        memset(pTimer, 0, sizeof(garpTimerDescr_t));
+ 
+         pTimer->timerType    = timer_type;
+         pTimer->vid          = vid;
+         pTimer->port_no      = port_no;
+         pTimer->expiryTime   = newExpiryTime;
+         pTimer->timer_status = GARP_TIMER_PENDING;
+@@ -823,13 +823,13 @@ void garpDebugUnitTestGarpTimerList(L7_u
+ 
+                 milliseconds = rand();
+ 
+                 pTimer = &timerList[index % 20];
+                 index++;
+ 
+-                memset(pTimer, 0, sizeof(pTimer));
++                memset(pTimer, 0, sizeof(garpTimerDescr_t));
+ 
+                 pTimer->timerType    = 4;
+                 pTimer->vid          = 1;
+                 pTimer->port_no      = 21;
+                 pTimer->expiryTime   = milliseconds + osapiTimeMillisecondsGet64();
+                 pTimer->timer_status = GARP_TIMER_PENDING;
+Index: src/application/routing/services/rtproto.c
+===================================================================
+--- src/application/routing/services/rtproto.c	(revision 7748)
++++ src/application/routing/services/rtproto.c	(revision 7751)
+@@ -521,13 +521,13 @@ rtInIPForwardArpTable (L7_uint32 dest_ip
+     ipForwardBufAllocFail++;
+     rc = L7_FAILURE;
+   }
+   else
+   {
+     callbackparam = (cbparam_t *) buffer_addr;
+-    memset(callbackparam,0,sizeof(callbackparam));
++    memset(callbackparam,0,sizeof(cbparam_t));
+     callbackparam->intIfNum = intIfNum;
+     callbackparam->routerIP = dest_ip_addr;
+     callbackparam->srcrt = srcrt;
+ 
+     /* Try to resolve the ARP entry. If it is net directed broadcast packet,
+      there is no need to resolve the arp because, mac is a broadcast mac.
+Index: src/application/security/dot1x/core/dot1x_db.c
+===================================================================
+--- src/application/security/dot1x/core/dot1x_db.c	(revision 7748)
++++ src/application/security/dot1x/core/dot1x_db.c	(revision 7751)
+@@ -408,13 +408,13 @@ L7_RC_t dot1xAuthHistoryLogDbInit(void)
+   avlCreateAvlTree(&(pHistoryLogDb->dot1xAuthHistoryAvlTree), pHistoryLogDb->dot1xAuthHistoryTreeHeap,
+                    pHistoryLogDb->dot1xAuthHistoryDataHeap, L7_DOT1X_AUTHENTICATION_MAX_EVENTS,
+                    sizeof(dot1xAuthHistoryLogInfo_t), 0x10,
+                    sizeof(dot1xAuthHistoryLogInfoKey_t));
+ 
+   /* Initialize History Log Entry Index Array */
+-  memset(dot1xAuthHistEntryIndexIntfCount, 0x00, L7_MAX_PORT_COUNT);
++  memset(dot1xAuthHistEntryIndexIntfCount, 0x00, sizeof(dot1xAuthHistEntryIndexIntfCount));
+ 
+   return L7_SUCCESS;
+ }
+ 
+ /*********************************************************************
+  * * @purpose  Dot1x Auth History Log Db De-initializations
+@@ -450,13 +450,13 @@ void dot1xAuthHistoryLogDbDeInit(void)
+   {
+     avlDeleteAvlTree(&pHistoryLogDb->dot1xAuthHistoryAvlTree);	    
+   }	  
+ 
+ 
+   /* Reset History Log Entry Index Array */
+-  memset(dot1xAuthHistEntryIndexIntfCount, 0x00, L7_MAX_PORT_COUNT);
++  memset(dot1xAuthHistEntryIndexIntfCount, 0x00, sizeof(dot1xAuthHistEntryIndexIntfCount));
+ }
+ 
+ 
+ /*********************************************************************
+  * * @purpose  To Take lock for the History Log Info Node
+  * *
+Index: src/application/security/mgmt_acal/macal_cnfgr.c
+===================================================================
+--- src/application/security/mgmt_acal/macal_cnfgr.c	(revision 7748)
++++ src/application/security/mgmt_acal/macal_cnfgr.c	(revision 7751)
+@@ -419,13 +419,13 @@ L7_RC_t macalCnfgrUconfigPhase2( L7_CNFG
+   *pResponse  = L7_CNFGR_CMD_COMPLETE;
+   *pReason    = 0;
+ 
+   /* Sysnet deregister for Management Access Control and Administration List */
+   (void)macalSysnetRegisterDeregister(L7_FALSE);
+ 
+-  memset(macalCfgData, 0, sizeof(macalCfgData));
++  memset(macalCfgData, 0, sizeof(macalCfgData_t));
+ 
+   macalCnfgrState = MACAL_PHASE_WMU;
+ 
+   return L7_SUCCESS;
+ }
+ 
+Index: src/mgmt/snmp/packages/qos/k_mib_qos_diffserv_private_api.h
+===================================================================
+--- src/mgmt/snmp/packages/qos/k_mib_qos_diffserv_private_api.h	(revision 7748)
++++ src/mgmt/snmp/packages/qos/k_mib_qos_diffserv_private_api.h	(revision 7751)
+@@ -1479,13 +1479,13 @@ L7_RC_t snmpDiffServClassRuleMatchDstIpv
+                                                    L7_uint32 *prefix_len, 
+                                                    L7_uint32 *prefixLen)
+ {
+    L7_in6_addr_t prefix;
+    
+    memset(&prefix, 0x00, sizeof(prefix));
+-   memset(snmp_buffer, 0x00, sizeof(snmp_buffer));
++   memset(snmp_buffer, 0x00, sizeof(L7_uchar8)*SNMP_BUFFER_LEN);
+    if((usmDbDiffServClassRuleMatchDstIpv6AddrGet(UnitIndex, classIndex, classRuleIndex, &prefix) == L7_SUCCESS) &&
+       (usmDbDiffServClassRuleMatchDstIpv6PrefLenGet(UnitIndex, classIndex, classRuleIndex, prefixLen) == L7_SUCCESS))
+    {
+       memcpy(snmp_buffer, prefix.in6.addr8, sizeof(prefix.in6.addr8)); 
+       *prefix_len = sizeof(prefix.in6.addr8);
+       return L7_SUCCESS;
+@@ -1500,13 +1500,13 @@ L7_RC_t snmpDiffServClassRuleMatchSrcIpv
+                                                    L7_uint32 *prefix_len, 
+                                                    L7_uint32 *prefixLen)
+ {
+    L7_in6_addr_t prefix6;
+ 
+    memset(&prefix6, 0x00, sizeof(prefix6));
+-   memset(snmp_buffer, 0x00, sizeof(snmp_buffer));
++   memset(snmp_buffer, 0x00, sizeof(L7_uchar8)*SNMP_BUFFER_LEN);
+    if((usmDbDiffServClassRuleMatchSrcIpv6AddrGet(UnitIndex, classIndex, classRuleIndex, &prefix6) == L7_SUCCESS) &&
+       (usmDbDiffServClassRuleMatchSrcIpv6PrefLenGet(UnitIndex, classIndex, classRuleIndex, prefixLen) == L7_SUCCESS))
+    {
+       memcpy(snmp_buffer, prefix6.in6.addr8, sizeof(prefix6.in6.addr8)); 
+       *prefix_len = sizeof(prefix6.in6.addr8);
+       return L7_SUCCESS;
+Index: src/mgmt/user_mgr/user_mgr_radius.c
+===================================================================
+--- src/mgmt/user_mgr/user_mgr_radius.c	(revision 7748)
++++ src/mgmt/user_mgr/user_mgr_radius.c	(revision 7751)
+@@ -190,13 +190,13 @@ void userMgrRadiusChallengeInfoGet( L7_u
+ {
+   L7_radiusAttrHeader_t *radiusAttr;
+   L7_BOOL done = L7_FALSE;
+ 
+   /* Initialize pChallengeFlag to false in case the challenge phrase is not found. */
+   *pChallengeFlag = L7_FALSE;
+-  memset( pChallengePhrase, 0, sizeof(pChallengePhrase));
++  memset( pChallengePhrase, 0, sizeof(*pChallengePhrase));
+ 
+   /* If no attributes found, exit. */
+   if (attributesLen <= sizeof(L7_radiusAttrHeader_t))
+     return;
+ 
+   radiusAttr = (L7_radiusAttrHeader_t *)attributes;
+Index: src/mgmt/broadcom/cli/switching/dhcp_snooping/cli_show_dhcp_snooping.c
+===================================================================
+--- src/mgmt/broadcom/cli/switching/dhcp_snooping/cli_show_dhcp_snooping.c	(revision 7748)
++++ src/mgmt/broadcom/cli/switching/dhcp_snooping/cli_show_dhcp_snooping.c	(revision 7751)
+@@ -204,15 +204,17 @@ const char *commandShowIpDhcpSnooping(Ew
+         {
+           osapiSnprintf(buf, sizeof(buf), "%-11s  %-13s", stat, pStrInfo_common_No);
+         }
+ 
+         if (usmDbDsIntfLogInvalidGet(intIfNum, &log) == L7_SUCCESS)
+         {
++          int size = sizeof(logbuf);
++
+           osapiSnprintf(logbuf, sizeof(logbuf), "%-16s\r\n", 
+                         log ? pStrInfo_common_Yes : pStrInfo_common_No);
+-          strncat(buf, logbuf, sizeof(logbuf));
++          strncat(buf, logbuf, size);
+         }
+ 
+         ewsTelnetWrite(ewsContext, buf);
+         /*hasInterfaces = L7_TRUE; */
+         count++;
+ 
+@@ -1961,15 +1963,19 @@ const char *commandShowDhcpL2Relay(EwsCo
+           }
+           else if (relayMode == L7_DISABLE)
+           {
+             osapiSnprintf(buf, sizeof(buf), "%-11s  %-13s", stat, pStrInfo_base_Disabled);
+           }
+   
+-          osapiSnprintf(logBuf, sizeof(logBuf), "%-16s\r\n", 
+-                        trustMode ? pStrInfo_switching_DhcpL2RelayTrusted : pStrInfo_switching_DhcpL2RelayUntrusted);
+-          strncat(buf, logBuf, sizeof(logBuf));
++          {
++            int size = sizeof(logBuf);
++
++            osapiSnprintf(logBuf, sizeof(logBuf), "%-16s\r\n", 
++                          trustMode ? pStrInfo_switching_DhcpL2RelayTrusted : pStrInfo_switching_DhcpL2RelayUntrusted);
++            strncat(buf, logBuf, size);
++          }
+   
+           ewsTelnetWrite(ewsContext, buf);
+           /*hasInterfaces = L7_TRUE; */
+           lineCnt++;
+   
+           if (lineCnt == CLI_MAX_LINES_IN_PAGE)
+Index: src/mgmt/broadcom/cli/switching/spanning_tree/cliutil_dot1s.c
+===================================================================
+--- src/mgmt/broadcom/cli/switching/spanning_tree/cliutil_dot1s.c	(revision 7748)
++++ src/mgmt/broadcom/cli/switching/spanning_tree/cliutil_dot1s.c	(revision 7751)
+@@ -547,13 +547,13 @@ L7_RC_t cliSpanTreeGetPortFwdState( L7_u
+     return L7_ERROR;
+   }
+ 
+   if ( usmDbDot1sMstiPortForwardingStateGet(unit, instance,
+                                             iface, &val) == L7_SUCCESS )
+   {
+-    memset (stat, 0,sizeof(stat));
++    memset (stat, 0, size);
+     switch (val)
+     {
+     case L7_DOT1S_DISCARDING:
+       if ((usmDbDot1sMstiPortLoopInconsistentStateGet(unit, instance, iface, &val) == L7_SUCCESS) 
+             && (val == L7_TRUE))
+       {
+Index: src/mgmt/broadcom/cli/switching/vlan/dot1v/cli_show_pbvlan.c
+===================================================================
+--- src/mgmt/broadcom/cli/switching/vlan/dot1v/cli_show_pbvlan.c	(revision 7748)
++++ src/mgmt/broadcom/cli/switching/vlan/dot1v/cli_show_pbvlan.c	(revision 7751)
+@@ -147,13 +147,13 @@ const char *commandShowProtocol(EwsConte
+     ewsTelnetWrite(ewsContext, buf);
+ 
+     ewsTelnetPrintf (ewsContext, "%-8d", groupID);
+ 
+     memset (buf, 0,sizeof(buf));
+     memset (stat, 0,sizeof(stat));
+-    memset(protocol, 0, L7_PBVLAN_MAX_CONFIGURABLE_PROTOCOLS);
++    memset(protocol, 0, sizeof(protocol));
+     commaFlag = L7_FALSE;
+     if ((usmDbPbVlanGroupProtocolGet(unit, groupID, protocol, type)) == L7_SUCCESS)
+     {
+ 
+       for (i = 0; i < L7_PBVLAN_MAX_CONFIGURABLE_PROTOCOLS; i++)
+       {
+@@ -439,13 +439,13 @@ const char *commandShowPortProtocol(EwsC
+         osapiSnprintf(buf, sizeof(buf), "%-6s", pStrInfo_common_Blank);
+       }
+       ewsTelnetWrite(ewsContext, buf);
+ 
+       if(groupFlag == L7_TRUE)
+       {
+-        memset(protocol, 0x00, L7_PBVLAN_MAX_CONFIGURABLE_PROTOCOLS);
++        memset(protocol, 0x00, sizeof(protocol));
+         memset(protocolList, 0x00, sizeof(protocolList));
+         commaFlag = L7_FALSE;
+ 
+         if ((usmDbPbVlanGroupProtocolGet(unit, groupID, protocol, type)) == L7_SUCCESS)
+         {
+           for (i = 0; i < L7_PBVLAN_MAX_CONFIGURABLE_PROTOCOLS; i++)
+Index: src/mgmt/broadcom/cli/switching/vlan/dot1v/cli_show_running_config_pbvlan.c
+===================================================================
+--- src/mgmt/broadcom/cli/switching/vlan/dot1v/cli_show_running_config_pbvlan.c	(revision 7748)
++++ src/mgmt/broadcom/cli/switching/vlan/dot1v/cli_show_running_config_pbvlan.c	(revision 7751)
+@@ -98,13 +98,13 @@ L7_RC_t cliRunningConfigProtocolInfo(Ews
+         memset(buf, 0x00, sizeof(buf));
+         osapiSnprintf(buf, sizeof(buf), "\r\nvlan protocol group name %d \"%s\"", groupID, group_name);
+         EWSWRITEBUFFER(ewsContext, buf);
+       }
+ 
+       memset (buf, 0,sizeof(buf));
+-      memset(protocol, 0, L7_PBVLAN_MAX_CONFIGURABLE_PROTOCOLS);
++      memset(protocol, 0, sizeof(protocol));
+       memset (stat, 0,sizeof(stat));
+       if ((usmDbPbVlanGroupProtocolGet(unit, groupID, protocol, type)) == L7_SUCCESS)
+       {
+ 
+         for (i = 0; i < L7_PBVLAN_MAX_CONFIGURABLE_PROTOCOLS; i++)
+         {
+Index: src/mgmt/broadcom/cli/qos/acl/cli_config_acl.c
+===================================================================
+--- src/mgmt/broadcom/cli/qos/acl/cli_config_acl.c	(revision 7748)
++++ src/mgmt/broadcom/cli/qos/acl/cli_config_acl.c	(revision 7751)
+@@ -1293,13 +1293,13 @@ L7_char8 *  getMacAndMask(EwsContext ews
+     ewsTelnetWrite( ewsContext, buf);
+     cliSyntaxBottom(ewsContext);
+     return NULL;
+   }
+ 
+   osapiStrncpySafe( strMacAddr, argv[index+*relIndex], sizeof(strMacAddr));
+-  memset (macAddr, 0,sizeof(macAddr));
++  memset (macAddr, 0, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
+   *relIndex  = *relIndex+1;
+ 
+   if (cliConvertMac(strMacAddr, macAddr) != L7_TRUE)
+   {
+     sprintfAddBlanks (1, 0, 0, 0, pStrErr_common_IncorrectInput, buf,pStrErr_qos_IncorrectMacAddrType);
+     ewsTelnetWrite( ewsContext, buf);
+Index: src/mgmt/broadcom/cli/qos/diffserv/cliutil_diffserv.c
+===================================================================
+--- src/mgmt/broadcom/cli/qos/diffserv/cliutil_diffserv.c	(revision 7748)
++++ src/mgmt/broadcom/cli/qos/diffserv/cliutil_diffserv.c	(revision 7751)
+@@ -1661,26 +1661,26 @@ void cliConstructPoliceParmsSyntax(L7_ch
+   osapiStrncat(buf, pStrErr_qos_PoliceTx, bufLenMax - strlen(buf) - 1);
+   return;
+ }
+ 
+ void cliConstructAndPrintPoliceSimpleSyntax(EwsContext ewsContext, L7_char8 * buf, L7_int32 bufLenMax)
+ {
+-  memset (buf, 0,sizeof(buf));
++  memset (buf, 0,sizeof(*buf));
+   osapiStrncatAddBlanks (1, 0, 0, 0, pStrErr_common_IncorrectInput, buf, pStrErr_qos_PoliceSimple_1, bufLenMax - strlen(buf) - 1);
+   cliConstructPoliceParmsSyntax(buf, bufLenMax);
+   osapiStrncatAddBlanks (1, 0, 0, 0, L7_NULLPTR, buf, pStrErr_qos_PoliceViolate, bufLenMax - strlen(buf) - 1);
+   cliConstructPoliceParmsSyntax(buf, bufLenMax);
+   osapiStrncat(buf, pStrErr_qos_Close, bufLenMax - strlen(buf) - 1);
+   ewsTelnetWrite( ewsContext, buf);
+   cliSyntaxBottom(ewsContext);
+   return;
+ }
+ 
+ void cliConstructAndPrintPoliceSingleRateSyntax(EwsContext ewsContext, L7_char8 * buf, L7_int32 bufLenMax)
+ {
+-  memset (buf, 0,sizeof(buf));
++  memset (buf, 0,sizeof(*buf));
+   osapiStrncatAddBlanks (1, 0, 0, 0, pStrErr_common_IncorrectInput, buf, pStrErr_qos_PoliceSingleRate_1, bufLenMax - strlen(buf) - 1);
+   cliConstructPoliceParmsSyntax(buf, bufLenMax);
+   osapiStrncatAddBlanks (1, 0, 0, 0, L7_NULLPTR, buf, pStrErr_qos_PoliceExceed, bufLenMax - strlen(buf) - 1);
+   cliConstructPoliceParmsSyntax(buf, bufLenMax);
+   osapiStrncatAddBlanks (1, 0, 0, 0, L7_NULLPTR, buf, pStrErr_qos_PoliceViolate, bufLenMax - strlen(buf) - 1);
+   cliConstructPoliceParmsSyntax(buf, bufLenMax);
+@@ -1689,13 +1689,13 @@ void cliConstructAndPrintPoliceSingleRat
+   cliSyntaxBottom(ewsContext);
+   return;
+ }
+ 
+ void cliConstructAndPrintPoliceTwoRateSyntax(EwsContext ewsContext, L7_char8 * buf, L7_int32 bufLenMax)
+ {
+-  memset (buf, 0,sizeof(buf));
++  memset (buf, 0,sizeof(*buf));
+   osapiStrncatAddBlanks (1, 0, 0, 0, pStrErr_common_IncorrectInput, buf, pStrErr_qos_PoliceTwoRate_1, bufLenMax - strlen(buf) - 1);
+   cliConstructPoliceParmsSyntax(buf, bufLenMax);
+   osapiStrncatAddBlanks (1, 0, 0, 0, L7_NULLPTR, buf, pStrErr_qos_PoliceExceed, bufLenMax - strlen(buf) - 1);
+   cliConstructPoliceParmsSyntax(buf, bufLenMax);
+   osapiStrncatAddBlanks (1, 0, 0, 0, L7_NULLPTR, buf, pStrErr_qos_PoliceViolate, bufLenMax - strlen(buf) - 1);
+   cliConstructPoliceParmsSyntax(buf, bufLenMax);
+Index: src/mgmt/broadcom/cli/base/common/cliutil.c
+===================================================================
+--- src/mgmt/broadcom/cli/base/common/cliutil.c	(revision 7748)
++++ src/mgmt/broadcom/cli/base/common/cliutil.c	(revision 7751)
+@@ -779,13 +779,13 @@ L7_BOOL cliSSHLoginCheck(L7_char8 *enter
+       {
+         rc = L7_FAILURE;
+         challengeFlags= L7_TRUE;
+       }
+       if (L7_SUCCESS == rc)
+         {
+-            memset(challengePhrase, 0, sizeof(challengePhrase));
++            memset(challengePhrase, 0, sizeof(*challengePhrase));
+             /* User is authenticated */
+             usmDbLoginSessionUserSet(U_IDX, cliLoginSessionIndexGet(), userNameSSH);
+ 
+             /* Store access level */
+             cliCommon[cliUtil.handleNum].userAccess = accessLevel; /* for security */
+ 
+Index: src/usmdb/system_support/base/usmdb_util.c
+===================================================================
+--- src/usmdb/system_support/base/usmdb_util.c	(revision 7748)
++++ src/usmdb/system_support/base/usmdb_util.c	(revision 7751)
+@@ -3342,13 +3342,13 @@ L7_RC_t usmDbConvertTimeTicksToDaysHours
+   if(timeTicks == NULL || buf == NULL)
+   {
+     return L7_FAILURE;
+   }
+   
+   memcpy (&timeInSeconds, timeTicks, sizeof (L7_uint32));
+-  memset (buf, 0, sizeof (buf));
++  memset (buf, 0, sizeof (*buf));
+   
+   timeInSeconds = timeInSeconds / 100;  /*to get no of seconds */  
+   days = timeInSeconds / 86400;
+   timeInSeconds = timeInSeconds % 86400;
+   hours = timeInSeconds / 3600;
+   timeInSeconds = timeInSeconds % 3600;
+Index: src/system_support/routing/arp/arp.c
+===================================================================
+--- src/system_support/routing/arp/arp.c	(revision 7748)
++++ src/system_support/routing/arp/arp.c	(revision 7751)
+@@ -1367,13 +1367,13 @@ e_Err ARP_SendARPReq(t_Handle Id, byte *
+    }
+    p_Rqe = (t_RQE *)XX_Malloc(sizeof(t_RQE ));
+    if (p_Rqe == NULL)
+    {
+      return E_NOMEMORY;
+    }
+-   memset(p_Rqe, 0, sizeof(p_Rqe));
++   memset(p_Rqe, 0, sizeof(*p_Rqe));
+    p_Rqe->dstAddrId = p_Adr;
+    p_Rqe->userId = userId;
+    p_Rqe->l3addr.protocolId = 0;
+    memcpy(p_Rqe->l3addr.lay3Addr, ipAddr, sizeof(t_IPAddr));
+    XX_AddToDLList(p_Rqe, p_Adr->request);
+    
+@@ -1417,13 +1417,13 @@ e_Err ARP_SendARPReqNoRxmt(t_Handle Id,
+     p_Adr = XX_Malloc(sizeof(t_ADR));
+     if (p_Adr)
+     {
+       memset(p_Adr, 0, sizeof(t_ADR));
+       p_Adr->p_obj = p_A;
+       p_Adr->status = ARP_ENT_STAT_Valid;
+-      memcpy(p_Adr->ipAddr, ipAddr, sizeof(ipAddr));
++      memcpy(p_Adr->ipAddr, ipAddr, sizeof(t_IPAddr));
+       p_Adr->intfNum = index;
+       p_Adr->entryType = ARP_ENTRY_TYPE_DYNAMIC;
+       temporary = L7_TRUE;
+     }
+   }
+   if (p_Adr)
+Index: src/system_support/base/infrastructure/log/log_cnfgr.c
+===================================================================
+--- src/system_support/base/infrastructure/log/log_cnfgr.c	(revision 7748)
++++ src/system_support/base/infrastructure/log/log_cnfgr.c	(revision 7751)
+@@ -999,13 +999,14 @@ void loggingInit()
+       fault_record.msr   = arg2;
+       fault_record.dsisr = arg4;
+       fault_record.dar   = arg5;
+       /* The fault records "reuses" the event records, but are not structured well for this.
+          This is a workaround to account for the differences in sizes of the structures.*/
+       memset (&fault_event_record, 0, sizeof(fault_event_record));
+-      memcpy(&fault_event_record, &fault_record, sizeof(fault_event_record));
++      /* FIXME: GCC8 */
++      //memcpy(&fault_event_record, &fault_record, sizeof(fault_event_record));
+ 
+       add_flash_log_entry (&fault_event_record,L7_FALSE);
+     }
+     else
+     {
+ #if 0
+Index: src/system_support/base/network/bootp/bootp_support.c
+===================================================================
+--- src/system_support/base/network/bootp/bootp_support.c	(revision 7748)
++++ src/system_support/base/network/bootp/bootp_support.c	(revision 7751)
+@@ -126,13 +126,13 @@ L7_RC_t getParamsFromBootpStruct(L7_boot
+   if(L7_FALSE== L7_bootp_option_get(bootpParams, L7_TAG_GATEWAY, &gateway, sizeof(gateway) ))
+   {
+     /* if no gateway in reply default to 0 */
+     gateway=0;
+   }
+ 
+-  memcpy(&siaddr, &(bootpParams->bp_siaddr), sizeof(bootpParams->bp_siaddr));
++  memcpy(&siaddr, &(bootpParams->bp_siaddr), sizeof(siaddr));
+ 
+   if(L7_FALSE== L7_bootp_option_get( bootpParams, L7_TAG_DOMAIN_SERVER, dnsServerIpAddr, sizeof(dnsServerIpAddr) ))
+   {
+     dnsServerIpAddr[0] = 0;
+   }
+ 
+Index: src/system_support/base/network/dns/dns_client_cnfgr.c
+===================================================================
+--- src/system_support/base/network/dns/dns_client_cnfgr.c	(revision 7748)
++++ src/system_support/base/network/dns/dns_client_cnfgr.c	(revision 7751)
+@@ -546,13 +546,13 @@ L7_RC_t dnsCnfgrUconfigPhase2(L7_CNFGR_R
+   *pReason    = 0;
+ 
+   /* disable the client */
+   dnsClientAdminModeApply(L7_FALSE);
+ 
+   memset(dnsNotifyTbl, 0, L7_LAST_COMPONENT_ID * sizeof(dnsNotifyEntry_t));
+-  memset(dnsCfgData, 0, sizeof(dnsCfgData));
++  memset(dnsCfgData, 0, sizeof(*dnsCfgData));
+ 
+   dnsCnfgrState = DNS_CLIENT_PHASE_WMU;
+ 
+   return L7_SUCCESS;
+ }
+ 
+Index: src/system_support/base/network/dhcp/dhcp_support.c
+===================================================================
+--- src/system_support/base/network/dhcp/dhcp_support.c	(revision 7748)
++++ src/system_support/base/network/dhcp/dhcp_support.c	(revision 7751)
+@@ -167,13 +167,13 @@ L7_RC_t getParamsFromDhcpStruct(struct b
+ 
+   L7_BOOL   tagOptOverExists = L7_FALSE;
+   dhcpOptionOverload optionOverloadVal = L7_NULL;
+ 
+   memset(bootFileName,   0, BOOTP_FILE_LEN + 1);
+   memset(tftpServerName, 0, BOOTP_SNAME_LEN + 1);
+-  memset(defaultGateway, 0, L7_DHCPS_DEFAULT_ROUTER_MAX);
++  memset(defaultGateway, 0, sizeof(defaultGateway));
+   memset(networkParams,  0, sizeof(L7_bootp_dhcp_t));
+ 
+   /* Get subnet mask & default gw from bootp packet*/
+   if (l7_get_bootp_option( dhcpParams, TAG_SUBNET_MASK, &netMask,  sizeof(netMask) ) != L7_TRUE)
+     netMask = osapiHtonl(0xFFFFFF00); /* At least it's not uninitialized */
+   if (l7_get_bootp_option( dhcpParams, TAG_GATEWAY, (void *)defaultGateway, sizeof(defaultGateway)) != L7_TRUE)
+@@ -2171,19 +2171,19 @@ dhcpClientMgmtPortTypeIsOperational (L7_
+ *
+ * @end
+ *********************************************************************/
+ L7_RC_t
+ dhcpClientCleanupIntfInfoByAddress (L7_uint32 ipAddr)
+ {
+-  DHCPC_TRACE (DHCPC_DEBUG_APIS, "Entry");
+-
+ #ifdef L7_ROUTING_PACKAGE
+   dhcpClientInfo_t* clientIntfInfo = L7_NULLPTR;
+   L7_bootp_dhcp_t dhcpParams;
+   L7_uint32 index = 0;
+ 
++  DHCPC_TRACE (DHCPC_DEBUG_APIS, "Entry");
++
+   for (index = 0; index < DHCP_CLIENT_MAX_RTR_INTERFACES; index++)
+   {
+     if ((clientIntfInfo = dhcpClientCB.clientIntfInfo[index]) != L7_NULLPTR)
+     {
+       if (clientIntfInfo->inUse == L7_TRUE)
+       {
+@@ -2197,15 +2197,15 @@ dhcpClientCleanupIntfInfoByAddress (L7_u
+             break;
+           }
+         }
+       }
+     }
+   }
++  DHCPC_TRACE (DHCPC_DEBUG_APIS, "Exit");
+ #endif
+ 
+-  DHCPC_TRACE (DHCPC_DEBUG_APIS, "Exit");
+   return L7_SUCCESS;
+ }
+ 
+ /*********************************************************************
+ * @purpose  Clean-up all the Interface info
+ *
+@@ -2218,28 +2218,29 @@ dhcpClientCleanupIntfInfoByAddress (L7_u
+ *
+ * @end
+ *********************************************************************/
+ L7_RC_t
+ dhcpClientAllIntfInfoCleanup (void)
+ {
+-  DHCPC_TRACE (DHCPC_DEBUG_APIS, "Entry");
+-
+ #ifdef L7_ROUTING_PACKAGE
+   dhcpClientInfo_t* clientIntfInfo = L7_NULLPTR;
+   L7_uint32 index = 0;
+ 
++  DHCPC_TRACE (DHCPC_DEBUG_APIS, "Entry");
++
+   for (index = 0; index < DHCP_CLIENT_MAX_RTR_INTERFACES; index++)
+   {
+     if ((clientIntfInfo = dhcpClientCB.clientIntfInfo[index]) != L7_NULLPTR)
+     {
+       if (clientIntfInfo->inUse == L7_TRUE)
+       {
+         dhcpClientIntfInfoDeInit (clientIntfInfo);
+       }
+     }
+   }
+-#endif
+ 
+   DHCPC_TRACE (DHCPC_DEBUG_APIS, "Exit");
++#endif
++
+   return L7_SUCCESS;
+ }
+ 
+Index: src/l7public/common/ptin/ethsrv_oam.h
+===================================================================
+--- src/l7public/common/ptin/ethsrv_oam.h	(revision 7748)
++++ src/l7public/common/ptin/ethsrv_oam.h	(revision 7751)
+@@ -837,15 +837,17 @@ typedef struct {
+ #define RlyHit  1
+ #define RlyFDB  2
+ #define RlyMPDB 3
+ //IEEE 802.1ag in 802.1Q 21.9.5, table 21-28: respectively reached target MEP, FDB, MEP DB
+ 
+  union {     //We may have a DATA TLV or a TST TLV before the END TLV (or just the END TLV)
+-     u8  nxt_TLV[1];
++     u8  nxt_TLV[40];    // FIXME: To avoid "error: ‘memcpy’ offset 37 is out of the bounds [0, 34] of object ‘ltr’ with type ‘ETH_LTR_OAM_DATAGRM’ {aka ‘struct <anonymous>’} [-Werror=array-bounds]"
+      u8	 end_TLV;        // Set to all ZEROes
+  } __attribute__ ((packed)) tlvs;
++
++ //u8 dummy[16];
+ } __attribute__ ((packed)) ETH_LTR_OAM_DATAGRM;
+ 
+ 
+ 
+ 
+ 
+Index: andl/hapi/esw/ip_mcast/broad_l3_mcast.c
+===================================================================
+--- andl/hapi/esw/ip_mcast/broad_l3_mcast.c	(revision 7748)
++++ andl/hapi/esw/ip_mcast/broad_l3_mcast.c	(revision 7751)
+@@ -1780,13 +1780,13 @@ L7_RC_t hapiBroadRoutingIntfMcastSnoopAs
+       if (memcmp(mcastMacAddr, tempMcastMacAddr, L7_MAC_ADDR_LEN) == 0)
+       {
+ /************** RPF interface modify code ***********************/
+         if (dapiCmd->cmdData.mcastModify.outIntfDirection == DAPI_SNOOP_L3_NOTIFY_INGRESS)
+         {
+           if (memcmp(&(BroadGroupList[tableIndex].rpf_usp),
+-                     outRtrPortUsp, sizeof(outRtrPortUsp)) == 0)
++                     outRtrPortUsp, sizeof(DAPI_USP_t)) == 0)
+           {
+             if (dapiCmd->cmdData.mcastModify.snoopVlanOperState == L7_TRUE)
+             {
+              HAPI_L3_MCAST_DEBUG("\nTable Index %u L2 Bitmap of entries with rpf_us %u/%u/%u modified. Make specified list as part of L2 Bitmap.",
+                                tableIndex,
+                                BroadGroupList[tableIndex].rpf_usp.unit,
+Index: andl/hapi/esw/ip_mcast/broad_l3_mcast_debug.c
+===================================================================
+--- andl/hapi/esw/ip_mcast/broad_l3_mcast_debug.c	(revision 7748)
++++ andl/hapi/esw/ip_mcast/broad_l3_mcast_debug.c	(revision 7751)
+@@ -687,13 +687,13 @@ void hapiDebugMcastAction(int family, un
+     mcastip6.addr.ipv6.in6.addr32[3] = mcastIp;
+ 
+     src   = &srcip6;
+     mcast = &mcastip6;
+   }
+ 
+-  memset(interface, 0x0, 10);
++  memset(interface, 0x0, sizeof(interface));
+   interface[0] = intf1;
+   interface[1] = intf2;
+ 
+   switch(action)
+   {
+     case L7_DEBUG_MCAST_ACTION_ADD: 

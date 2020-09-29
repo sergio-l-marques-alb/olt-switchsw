@@ -1,0 +1,386 @@
+Index: vendor/snmp/linux/src/include/osconf/linux.h
+===================================================================
+--- vendor/snmp/linux/src/include/osconf/linux.h	(revision 7756)
++++ vendor/snmp/linux/src/include/osconf/linux.h	(revision 7757)
+@@ -44,15 +44,21 @@ extern "C" {
+ 
+ /* MANUALLY ADDED */
+ /*
+  * see /usr/include/features.h for the ramifications of setting this
+  * ifndef checks avoid redefinition error messages.
+  */
+-#ifndef _BSD_SOURCE
+-#define _BSD_SOURCE
+-#endif /* _BSD_SOURCE */
++#if defined (__GNUC__) && (__GNUC__ >= 7)
++ #ifndef _DEFAULT_SOURCE
++ #define _DEFAULT_SOURCE
++ #endif
++#else
++ #ifndef _BSD_SOURCE
++ #define _BSD_SOURCE
++ #endif
++#endif
+ 
+ #ifndef _POSIX_SOURCE
+ #define _POSIX_SOURCE
+ #endif /* _POSIX_SOURCE */
+ 
+ /* Define if on AIX 3.
+Index: andl/hapi/esw/base/base/broad_hpc_drv.c
+===================================================================
+--- andl/hapi/esw/base/base/broad_hpc_drv.c	(revision 7756)
++++ andl/hapi/esw/base/base/broad_hpc_drv.c	(revision 7757)
+@@ -1818,13 +1818,13 @@ L7_RC_t hpcHardwareDriverAsfEnable(void)
+ #ifdef BCM_FIELD_SUPPORT
+ extern int mh_opcode0_priority_select(int unit, 
+                                       int group_priority,
+                                       bcm_field_group_t *group,
+                                       bcm_field_entry_t *entry,
+                                       int               *obm_reg_changed);
+-extern void
++extern int
+ mh_opcode0_priority_clear(int unit, 
+                           bcm_field_group_t group,
+                           bcm_field_entry_t entry,
+                           int obm_reg_changed);
+ 
+ extern int hapiBroadXgs3HigigPriorityPatch(int unit);
+@@ -2980,13 +2980,12 @@ int hapiBroadCmCheck(bsl_packed_meta_t m
+  * @param args 
+  * 
+  * @return int 
+  */
+ int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args)
+ {
+-  L7_LOG_SEVERITY_t sev = L7_LOG_SEVERITY_DEBUG;
+   L7_BOOL   logit = L7_FALSE, printit = L7_FALSE;
+   L7_uchar8 buf[LOG_MSG_MAX_MSG_SIZE];
+   log_severity_t ptin_log_sev = LOG_SEV_PRINT;
+ 
+   if( (meta_data == L7_NULLPTR) )
+   {
+@@ -3001,47 +3000,41 @@ int hapiBroadCmPrint(bsl_meta_t *meta_da
+     printit = L7_TRUE;
+   }
+   else if (meta_data->severity <= bslSeverityFatal)
+   {
+     logit = L7_TRUE;
+     printit = printingOverride_g;
+-    sev = L7_LOG_SEVERITY_EMERGENCY; 
+     ptin_log_sev = LOG_SEV_FATAL;
+   }
+   else if (meta_data->severity <= bslSeverityError)
+   {
+     logit = L7_TRUE;
+     printit = printingOverride_g;
+-    sev = L7_LOG_SEVERITY_ERROR; 
+     ptin_log_sev = LOG_SEV_ERROR;
+   }
+   else if (meta_data->severity <= bslSeverityWarn)
+   {
+     logit = L7_TRUE;
+     printit = printingOverride_g;
+-    sev = L7_LOG_SEVERITY_WARNING;
+     ptin_log_sev = LOG_SEV_WARNING;
+   }
+   else if (bsl_check(meta_data->layer, meta_data->source, meta_data->severity, meta_data->unit))
+   {
+     logit = L7_TRUE;
+     printit = printingOverride_g;
+ 
+     if (meta_data->severity <= bslSeverityInfo)
+     {
+-      sev = L7_LOG_SEVERITY_INFO;
+       ptin_log_sev = LOG_SEV_INFO;
+     }
+     if (meta_data->severity <= bslSeverityVerbose)
+     {
+-      sev = L7_LOG_SEVERITY_DEBUG;
+       ptin_log_sev = LOG_SEV_DEBUG;
+     }
+     else
+     {
+-      sev = L7_LOG_SEVERITY_DEBUG;
+       ptin_log_sev = LOG_SEV_TRACE;
+     }
+   }
+ 
+   if (printit)
+   {
+Index: andl/hapi/esw/ptin/ptin_hapi_fp_utils.c
+===================================================================
+--- andl/hapi/esw/ptin/ptin_hapi_fp_utils.c	(revision 7756)
++++ andl/hapi/esw/ptin/ptin_hapi_fp_utils.c	(revision 7757)
+@@ -16,13 +16,13 @@
+ #define FP_POLICY_GET_PTR_FROM_INDEX(index,db)  ( (void *) ((char *) (db)->database_base + (index)*(db)->database_elem_sizeof) )
+ /* Get database base pointer (first element) */
+ #define FP_POLICY_GET_DATABASE_PTR(db)          ( (void *) (db)->database_base )
+ /* Get the following element pointer in database */
+ #define FP_POLICY_GET_PTR_NEXT(ptr,db)          ( (void *) ((char *) (ptr) + (db)->database_elem_sizeof) )
+ /* Increment database element pointer */
+-#define FP_POLICY_INC_PTR(ptr,db)               ( ((void *) ((char *) (ptr))) += (db)->database_elem_sizeof)
++#define FP_POLICY_INC_PTR(ptr,db)               ( (ptr) += (db)->database_elem_sizeof)
+ /* Get the first free element in database */
+ #define FP_FREEPOLICY_GET_INDEX(db)             ( (db)->database_index_first_free )
+ /* Check if database has no free elements */
+ #define FP_FREEPOLICY_HAS_NOVALUE(db)           ( (db)->database_index_first_free<0 )
+ /* Set free element index in database with a new value */
+ #define FP_FREEPOLICY_SET_INDEX(index,db)       { (db)->database_index_first_free = (index); }
+Index: os/linux/transfer/swap.c
+===================================================================
+--- os/linux/transfer/swap.c	(revision 7756)
++++ os/linux/transfer/swap.c	(revision 7757)
+@@ -13,12 +13,17 @@
+ 
+ #define NUM_BYTES 1024
+ #define SWAP32(val) \
+         ((L7_uint32)( \
+                 (((L7_uint32)(val) & (L7_uint32)0x0000ffffUL) << 16) | \
+                 (((L7_uint32)(val) & (L7_uint32)0xffff0000UL) >> 16) ))
++#define SWAP64(val) \
++  ((L7_uint64) \
++   (((L7_uint64)(val) >> 56) | (((L7_uint64)(val) >> 40) & 0x000000000000ff00ULL) | (((L7_uint64)(val) >> 24) & 0x0000000000ff0000ULL) | (((L7_uint64)(val) >> 8) & 0x00000000ff000000ULL) | \
++    ((L7_uint64)(val) << 56) | (((L7_uint64)(val) << 40) & 0x00ff000000000000ULL) | (((L7_uint64)(val) << 24) & 0x0000ff0000000000ULL) | (((L7_uint64)(val) << 8) & 0x000000ff00000000ULL))  \
++  )
+ 
+ L7_RC_t osapiSwapFile(L7_uchar8 *filename) 
+ {
+   int fd;
+   L7_uint32 *dst,i,j,rbytes=0,wbytes=0,totoalbyteswritten=0;
+   unsigned long size,offset;
+Index: src/application/switching/garp/garpapi.c
+===================================================================
+--- src/application/switching/garp/garpapi.c	(revision 7756)
++++ src/application/switching/garp/garpapi.c	(revision 7757)
+@@ -506,13 +506,13 @@ L7_uint32 GarpPktIsTagged(L7_uchar8 *pPk
+ *********************************************************************/
+ void garpIntfStartupCallback(NIM_STARTUP_PHASE_t startupPhase)
+ {
+   GarpPacket   msg;
+   L7_RC_t      rc;
+ 
+-  if (!GarpIsReady() == L7_TRUE)
++  if (GarpIsReady() == L7_FALSE)
+   {
+     nimStartupEventDone(L7_GARP_COMPONENT_ID);
+     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_GARP_COMPONENT_ID,
+             "Received NIM startup %d callback while in init state %s",
+             startupPhase, garpCnfgrStateNames[garpCnfgrState]);
+     return;
+Index: src/application/routing/mapping/ripmap/rip_map.c
+===================================================================
+--- src/application/routing/mapping/ripmap/rip_map.c	(revision 7756)
++++ src/application/routing/mapping/ripmap/rip_map.c	(revision 7757)
+@@ -1681,17 +1681,19 @@ SYSNET_PDU_RC_t ripMapFrameFilter(L7_uin
+                                   sysnet_pdu_info_t *pduInfo,
+                                   L7_FUNCPTR_t continueFunc)
+ {
+   L7_char8 *data;
+   L7_ipHeader_t *ipHeader;
+   L7_udp_header_t *udpHeader;
++#if 0
+   typedef struct netinfo
+   {
+     struct sockaddr rip_dst;
+     int    rip_metric;
+   }NETINFO;
++#endif
+   typedef struct rip_pkt
+   {
+     u_char  rip_cmd;
+     u_char  rip_vers;
+     u_char  rip_domain[2];
+     union
+Index: src/application/routing/vendor/freebsd/rip/rip_porting.h
+===================================================================
+--- src/application/routing/vendor/freebsd/rip/rip_porting.h	(revision 7756)
++++ src/application/routing/vendor/freebsd/rip/rip_porting.h	(revision 7757)
+@@ -28,13 +28,15 @@
+ #ifndef _RIP_PORTING_H_
+ #define _RIP_PORTING_H_
+ 
+ #include "log.h"
+ #include "osapi.h"
+ #ifdef _L7_OS_LINUX_
++#ifndef _STRUCT_TIMESPEC
+ #define _STRUCT_TIMESPEC
++#endif
+ struct timezone {
+     int tz_minuteswest; /* minutes west of Greenwich */
+     int tz_dsttime; /* type of dst correction */
+ };
+ #endif
+ 
+Index: src/mgmt/broadcom/emweb/linux/ewmain.c
+===================================================================
+--- src/mgmt/broadcom/emweb/linux/ewmain.c	(revision 7756)
++++ src/mgmt/broadcom/emweb/linux/ewmain.c	(revision 7757)
+@@ -1827,16 +1827,16 @@ void ewaNetBufferPreAlloc()
+   ewaFree(ptrs);
+ 
+ }
+ 
+ /*********************************************************************
+ *********************************************************************/
+-L7_RC_t L7_ewsPhaseOneInit(arg0 /* max connections - use default */
+-                           ,arg1 /* max buffers - use default */
+-                           ,arg2 /* buffer data size - use default */
+-                           ,arg3 /* port number - use default */
++L7_RC_t L7_ewsPhaseOneInit(int arg0, /* max connections - use default */
++                           int arg1, /* max buffers - use default */
++                           int arg2, /* buffer data size - use default */
++                           int arg3  /* port number - use default */
+                           )
+ {
+ #if defined(L7_WEB_PACKAGE) || defined(L7_XWEB_PACKAGE)
+   EwaStatus             app_status;
+ #endif
+   /*
+Index: src/mgmt/broadcom/emweb/websrc/telnet/ews_cli.c
+===================================================================
+--- src/mgmt/broadcom/emweb/websrc/telnet/ews_cli.c	(revision 7756)
++++ src/mgmt/broadcom/emweb/websrc/telnet/ews_cli.c	(revision 7757)
+@@ -533,13 +533,13 @@ boolean chkIfStillDisplayable(EwsCliStat
+         continue;
+       }
+ 
+       return L7_FALSE;
+     }
+ 
+-    for(y = 0 ; cli->parseList[z]->sameAsNodes[y] != NULL && y < MAX_SAME_AS_PER_NODE; y++)
++    for(y = 0 ; y < MAX_SAME_AS_PER_NODE && cli->parseList[z]->sameAsNodes[y] != NULL; y++)
+     {
+       if(mp == cli->parseList[z]->sameAsNodes[y])
+       {
+         if (--count > 0)
+         {
+           continue;
+Index: src/system_support/routing/utils/buffer.ext
+===================================================================
+--- src/system_support/routing/utils/buffer.ext	(revision 7756)
++++ src/system_support/routing/utils/buffer.ext	(revision 7757)
+@@ -151,13 +151,13 @@ void *B_ReWrap(void *pBuf);
+ #define B_ADDBYTETOSTART(pBuf, d) \
+    ( \
+     ((t_Buffer *)(pBuf))->head != 0 ? \
+     (*(((t_Buffer *)(pBuf))->data + (--((t_Buffer *)(pBuf))->head))=d) :\
+     (*(((t_Buffer *)(pBuf))->data + \
+                   (((t_Buffer *)(pBuf))->head=((t_Buffer *)(pBuf))->size-1))=d),\
+-    B_SETFULL(pBuf),1 \
++    B_SETFULL(pBuf) \
+    )
+ 
+ 
+ /* Add byte to start of the buffer */
+ #ifdef ERRCHK
+ #define B_AddByteToStart(pBuf, d) \
+@@ -191,13 +191,13 @@ word    B_AddToStart( void *pBuf, byte *
+ }
+ 
+ #define B_ADDBYTETOEND(pBuf, d) \
+    (  (((t_Buffer *)(pBuf))->tail == ((t_Buffer *)(pBuf))->size) ? \
+           ((t_Buffer *)(pBuf))->tail = 0 : TRUE, \
+         *(((t_Buffer *)(pBuf))->data + ((t_Buffer *)(pBuf))->tail++)=(d),\
+-        B_SETFULL(pBuf), 1 \
++        B_SETFULL(pBuf) \
+     )
+ 
+ /* Add byte to end  of the buffer */
+ #ifdef ERRCHK
+ #define B_AddByteToEnd(pBuf, d) \
+    (ASSERT(B_GetLength (pBuf) < ((t_Buffer *)(pBuf))->size), \
+Index: src/system_support/routing/utils/common.h
+===================================================================
+--- src/system_support/routing/utils/common.h	(revision 7756)
++++ src/system_support/routing/utils/common.h	(revision 7757)
+@@ -55,12 +55,19 @@
+    (((val)<<8) | ((val)>>8))
+ 
+ #define SWAP32(val) \
+    (((ulng)(val) >> 24) | (((ulng)(val) >> 8) & 0x0000ff00) | \
+     ((ulng)(val) << 24) | (((ulng)(val) << 8) & 0x00ff0000))
+ 
++#define SWAP64(val) \
++  ((unsigned long long) \
++   (((unsigned long long)(val) >> 56) | (((unsigned long long)(val) >> 40) & 0x000000000000ff00ULL) | (((unsigned long long)(val) >> 24) & 0x0000000000ff0000ULL) | (((unsigned long long)(val) >> 8) & 0x00000000ff000000ULL) | \
++    ((unsigned long long)(val) << 56) | (((unsigned long long)(val) << 40) & 0x00ff000000000000ULL) | (((unsigned long long)(val) << 24) & 0x0000ff0000000000ULL) | (((unsigned long long)(val) << 8) & 0x000000ff00000000ULL))  \
++  )
++
++
+ #define MAKE_U16(low, high) ((word)(((byte)(low)) | (((word)((byte)(high))) << 8)))
+ #define MAKE_U32(low, high) ((ulng)(((word)(low)) | (((ulng)((word)(high))) << 16)))
+ 
+ /* X-ENDIAN to Little-Endian conversion */
+ #if BIG_ENDIAN
+ #define WORD_2LE(val)  SWAP16(val)
+Index: src/system_support/routing/utils/ospfv2_decode.c
+===================================================================
+--- src/system_support/routing/utils/ospfv2_decode.c	(revision 7756)
++++ src/system_support/routing/utils/ospfv2_decode.c	(revision 7757)
+@@ -128,13 +128,13 @@ char *v2aseLsaMetricStr = "Metric";
+ char *v2aseLsaMetricStrType="Metric Type";
+ char *v2aseLsaForwAddrStr = "Forwarding Address";
+ char *v2aseLsaTagStr = "Tag";
+ char *v2aseLsaOptionsEBitStr = "E-Bit";
+ 
+ /* graceful restart reasons (RFC 3623) */
+-static char* restartReasonStr(restartReason)
++static char* restartReasonStr(int restartReason)
+ {
+   switch (restartReason)
+   {
+     case 0: return "Unknown";
+     case 1: return "Software restart";
+     case 2: return "Software reload/upgrade";
+Index: src/system_support/base/infrastructure/nim/nim_intf_api.c
+===================================================================
+--- src/system_support/base/infrastructure/nim/nim_intf_api.c	(revision 7756)
++++ src/system_support/base/infrastructure/nim/nim_intf_api.c	(revision 7757)
+@@ -1096,25 +1096,25 @@ L7_RC_t nimGetIntfSpeedStatus(L7_uint32
+ *
+ * @end
+ *********************************************************************/
+ L7_BOOL nimIsIntfSpeedAuto(L7_uint32 intIfNum)
+ {
+   L7_uint32 nimifSpeed = 0;
+-  L7_BOOL rc;
++  L7_RC_t rc;
+ 
+   if (cnfgrIsFeaturePresent(L7_NIM_COMPONENT_ID,L7_NIM_AUTONEG_WITH_SPEED_DUPLEX_FEATURE_ID) != L7_TRUE)
+   {
+     return L7_FALSE;
+   }
+   if (nimPhaseStatusCheck() != L7_TRUE)
+   {
+     return L7_FALSE;
+   }
+ 
+   NIM_CRIT_SEC_READ_ENTER();
+-  IS_INTIFNUM_PRESENT(intIfNum,rc);
++  IS_INTIFNUM_PRESENT(intIfNum, rc);
+ 
+   if (rc == L7_SUCCESS)
+   {
+     nimifSpeed = (L7_uint32)nimCtlBlk_g->nimPorts[intIfNum].configPort.cfgInfo.ifSpeed;
+   }
+   NIM_CRIT_SEC_READ_EXIT();
+Index: src/system_support/base/system/base/hpc_util.c
+===================================================================
+--- src/system_support/base/system/base/hpc_util.c	(revision 7756)
++++ src/system_support/base/system/base/hpc_util.c	(revision 7757)
+@@ -1381,13 +1381,13 @@ void hpcDebugBcastMsgSend(void)
+   L7_uchar8 payload[] = "hpcDebugBcastMsgSend test msg";
+ 
+   /* Send off the packet to all CPUs */
+   hpcBroadcastMessageSend(test_registrarID, sizeof(payload), payload);
+ }
+ 
+-void hpcDebugMsgSend(unit)
++void hpcDebugMsgSend(int unit)
+ {
+   L7_uchar8 payload[] = "hpcDebugMsgSend test msg";
+ 
+   /* Send off the packet to selected CPU */
+   hpcMessageSend(test_registrarID, unit, sizeof(payload), payload);
+ }

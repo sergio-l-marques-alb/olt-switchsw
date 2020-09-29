@@ -1,0 +1,347 @@
+Index: src/application/ip_mcast/mapping/mgmdmap/mgmdmap_debug.c
+===================================================================
+--- src/application/ip_mcast/mapping/mgmdmap/mgmdmap_debug.c	(revision 7752)
++++ src/application/ip_mcast/mapping/mgmdmap/mgmdmap_debug.c	(revision 7753)
+@@ -777,13 +777,13 @@ void mgmdDebugPacketRxTxTrace(L7_uchar8
+   }
+   else if (family == L7_AF_INET6)
+   {
+     switch (pktType)
+     {
+     case MLD_LISTENER_QUERY:
+-      memcpy(str, "MLD Query", MGMD_PKT_TYPE_STR_LEN);
++      strncpy(str, "MLD Query", MGMD_PKT_TYPE_STR_LEN);
+       MCAST_GET_BYTE(code, payLoad);
+       MCAST_GET_SHORT(chksum, payLoad);
+       MCAST_GET_BYTE(maxRespTime, payLoad);
+       if (length >= MLD_V2_PKT_MIN_LENGTH)
+       {
+         version = L7_MGMD_VERSION_2;
+Index: src/application/switching/filtering_db/static_filter/filter_util.c
+===================================================================
+--- src/application/switching/filtering_db/static_filter/filter_util.c	(revision 7752)
++++ src/application/switching/filtering_db/static_filter/filter_util.c	(revision 7753)
+@@ -333,14 +333,14 @@ L7_RC_t filterMfdbEntryAdd(L7_uint32 vla
+   bzero((char*)&mfdbInfo, (L7_int32)sizeof(mfdbMemberInfo_t));
+ 
+   mfdbInfo.vlanId = vlanId;
+   memcpy((void *)mfdbInfo.macAddr, macAddr, L7_MAC_ADDR_LEN);
+   mfdbInfo.user.componentId = L7_MFDB_PROTOCOL_STATIC;
+   mfdbInfo.user.type = L7_MFDB_TYPE_STATIC;
+-  memcpy((void *)mfdbInfo.user.description, 
+-         (void *)L7_MFDB_MGMT_CONFIGURED, L7_MFDB_COMPONENT_DESCR_STRING_LEN);
++  strncpy(mfdbInfo.user.description, 
++          L7_MFDB_MGMT_CONFIGURED, L7_MFDB_COMPONENT_DESCR_STRING_LEN);
+ 
+   if(dstIntfMask != L7_NULLPTR)
+   {
+     memcpy(&mfdbInfo.user.fwdPorts, dstIntfMask, sizeof(L7_INTF_MASK_t));
+   }
+ 
+@@ -435,14 +435,14 @@ L7_RC_t filterMfdbEntryPortsDelete(L7_ui
+   
+ 
+   mfdbInfo.vlanId = vlanId;
+   memcpy((void *)mfdbInfo.macAddr, macAddr, L7_MAC_ADDR_LEN);
+   mfdbInfo.user.componentId = L7_MFDB_PROTOCOL_STATIC;
+   mfdbInfo.user.type = L7_MFDB_TYPE_STATIC;
+-  memcpy((void *)mfdbInfo.user.description, 
+-         (void *)L7_MFDB_MGMT_CONFIGURED, L7_MFDB_COMPONENT_DESCR_STRING_LEN);
++  strncpy(mfdbInfo.user.description, 
++          L7_MFDB_MGMT_CONFIGURED, L7_MFDB_COMPONENT_DESCR_STRING_LEN);
+ 
+   if (dstIntfMask != L7_NULLPTR)
+   {
+     memcpy(&mfdbInfo.user.fwdPorts, dstIntfMask, sizeof(L7_INTF_MASK_t));
+   }
+ 
+Index: src/application/switching/garp/gmrp/gmd.c
+===================================================================
+--- src/application/switching/garp/gmrp/gmd.c	(revision 7752)
++++ src/application/switching/garp/gmrp/gmd.c	(revision 7753)
+@@ -178,13 +178,13 @@ L7_BOOL gmd_create_entry(void *my_gmd, L
+   /*update the structure*/
+   memcpy((void *)&vlanId,(void *)key, 2);
+   memcpy((void *)memInfo.macAddr,(void *)&key[2],L7_MAC_ADDR_LEN);
+ 
+   memInfo.vlanId = vlanId;
+   memInfo.user.componentId = L7_MFDB_PROTOCOL_GMRP;
+-  memcpy((void *)memInfo.user.description,(void *)L7_MFDB_NETWORK_CONFIGURED,L7_MFDB_COMPONENT_DESCR_STRING_LEN);
++  strncpy(memInfo.user.description, L7_MFDB_NETWORK_CONFIGURED, L7_MFDB_COMPONENT_DESCR_STRING_LEN);
+   memInfo.user.type = L7_MFDB_TYPE_DYNAMIC;
+ 
+   /* Set up debug buffer */
+   memset(buf, 0,sizeof(buf));
+   for (i = 0;i < L7_MAC_ADDR_LEN ;i++)
+   {
+Index: src/application/switching/garp/gmrp/gmrp_api.c
+===================================================================
+--- src/application/switching/garp/gmrp/gmrp_api.c	(revision 7752)
++++ src/application/switching/garp/gmrp/gmrp_api.c	(revision 7753)
+@@ -1177,13 +1177,13 @@ L7_RC_t gmrpFwdPortAdd(L7_uint32 vlanId,
+    /*bzero the info structure*/
+    bzero((char*)&memInfo,(L7_int32)sizeof(mfdbMemberInfo_t));
+    /*update the structure*/
+    memcpy((void *)memInfo.macAddr,(void *)macAddr,L7_MAC_ADDR_LEN);
+    memInfo.vlanId = vlanId;
+    memInfo.user.componentId = L7_MFDB_PROTOCOL_GMRP;
+-   memcpy((void *)memInfo.user.description,(void *)L7_MFDB_NETWORK_CONFIGURED,L7_MFDB_COMPONENT_DESCR_STRING_LEN);
++   strncpy(memInfo.user.description, L7_MFDB_NETWORK_CONFIGURED, L7_MFDB_COMPONENT_DESCR_STRING_LEN);
+    memInfo.user.type = L7_MFDB_TYPE_DYNAMIC;
+ 
+    /*now set the mask bit in the fwd mask for this interface */
+    L7_INTF_SETMASKBIT(memInfo.user.fwdPorts, intIfNum);
+ 
+    /*check if this entry exists*/
+@@ -1218,13 +1218,13 @@ L7_RC_t gmrpFwdPortDelete(L7_uint32 vlan
+    /*bzero the info structure*/
+    bzero((char*)&memInfo,(L7_int32)sizeof(mfdbMemberInfo_t));
+    /*update the structure*/
+    memcpy((void *)memInfo.macAddr,(void *)macAddr,L7_MAC_ADDR_LEN);
+    memInfo.vlanId = vlanId;
+    memInfo.user.componentId = L7_MFDB_PROTOCOL_GMRP;
+-   memcpy((void *)memInfo.user.description,(void *)L7_MFDB_NETWORK_CONFIGURED,L7_MFDB_COMPONENT_DESCR_STRING_LEN);
++   strncpy(memInfo.user.description, L7_MFDB_NETWORK_CONFIGURED, L7_MFDB_COMPONENT_DESCR_STRING_LEN);
+    memInfo.user.type = L7_MFDB_TYPE_DYNAMIC;
+ 
+    /*now set the mask bit in the fwd mask for this interface */
+    L7_INTF_SETMASKBIT(memInfo.user.fwdPorts, intIfNum);
+ 
+    rc = mfdbEntryPortsDelete(&memInfo);
+@@ -1255,13 +1255,13 @@ L7_RC_t gmrpEntryDelete(L7_uint32 vlanId
+   /*bzero the info structure*/
+   bzero((char*)&memInfo,(L7_int32)sizeof(mfdbMemberInfo_t));
+   /*update the structure*/
+   memcpy((void *)memInfo.macAddr,(void *)macAddr,L7_MAC_ADDR_LEN);
+   memInfo.vlanId = vlanId;
+   memInfo.user.componentId = L7_MFDB_PROTOCOL_GMRP;
+-  memcpy((void *)memInfo.user.description,(void *)L7_MFDB_NETWORK_CONFIGURED,L7_MFDB_COMPONENT_DESCR_STRING_LEN);
++  strncpy(memInfo.user.description, L7_MFDB_NETWORK_CONFIGURED, L7_MFDB_COMPONENT_DESCR_STRING_LEN);
+   memInfo.user.type = L7_MFDB_TYPE_DYNAMIC;
+ 
+   /* Set up debug buffer */
+   memset(buf, 0,sizeof(buf));
+   for (i = 0;i < L7_MAC_ADDR_LEN ;i++)
+   {
+Index: src/application/switching/snooping/core/snooping_db.c
+===================================================================
+--- src/application/switching/snooping/core/snooping_db.c	(revision 7752)
++++ src/application/switching/snooping/core/snooping_db.c	(revision 7753)
+@@ -535,14 +535,14 @@ L7_RC_t snoopIntfAdd(L7_uchar8 *macAddr,
+   memset((L7_uchar8 *)&mfdb, 0x00, sizeof(mfdb));
+   memcpy(mfdb.macAddr, macAddr, L7_MAC_ADDR_LEN);
+   mfdb.vlanId           = vlanId;
+   mfdb.user.componentId = (pSnoopCB->family == L7_AF_INET) ? L7_MFDB_PROTOCOL_IGMP
+                           : L7_MFDB_PROTOCOL_MLD;
+   mfdb.user.type        = (!snoopEntry->staticGroup) ? L7_MFDB_TYPE_DYNAMIC : L7_MFDB_TYPE_STATIC;  /* PTin modified: IGMP snooping */
+-  memcpy((void *)mfdb.user.description, (void *)L7_MFDB_NETWORK_ASSISTED,
+-         L7_MFDB_COMPONENT_DESCR_STRING_LEN);
++  strncpy(mfdb.user.description, L7_MFDB_NETWORK_ASSISTED,
++          L7_MFDB_COMPONENT_DESCR_STRING_LEN);
+ 
+   /* Set the mask bit in the fwd mask for this interface */
+   L7_INTF_SETMASKBIT(mfdb.user.fwdPorts, intIfNum);
+ 
+   /* Check if this entry exists */
+   if (mfdbEntryExist(macAddr, vlanId) != L7_SUCCESS)
+@@ -721,14 +721,14 @@ L7_RC_t snoopIntfRemove(L7_uchar8* macAd
+   memset( (L7_uchar8 *)&mfdb, 0, sizeof(mfdb) );
+   memcpy(mfdb.macAddr, macAddr, L7_MAC_ADDR_LEN);
+   mfdb.vlanId           = vlanId;
+   mfdb.user.componentId = (pSnoopCB->family == L7_AF_INET) ? L7_MFDB_PROTOCOL_IGMP
+                           : L7_MFDB_PROTOCOL_MLD;
+   mfdb.user.type        = (!snoopEntry->staticGroup) ? L7_MFDB_TYPE_DYNAMIC : L7_MFDB_TYPE_STATIC;  /* PTin modified: IGMP Snooping */
+-  memcpy((void *)mfdb.user.description, (void *)L7_MFDB_NETWORK_ASSISTED,
+-         L7_MFDB_COMPONENT_DESCR_STRING_LEN);
++  strncpy(mfdb.user.description, L7_MFDB_NETWORK_ASSISTED,
++          L7_MFDB_COMPONENT_DESCR_STRING_LEN);
+   /* Set the mask bit in the fwd mask for this interface */
+   L7_INTF_SETMASKBIT(mfdb.user.fwdPorts, intIfNum);
+ 
+   rc = mfdbEntryPortsDelete(&mfdb);
+   if (rc == L7_SUCCESS)
+   {
+@@ -4999,14 +4999,14 @@ L7_RC_t snoopEntryRemove(L7_uchar8 *macA
+   memset( (L7_uchar8 *)&mfdb, 0, sizeof(mfdb) );
+   memcpy(mfdb.macAddr, macAddr, L7_MAC_ADDR_LEN);
+   mfdb.vlanId           = vlanId;
+   mfdb.user.componentId = (family == L7_AF_INET) ? L7_MFDB_PROTOCOL_IGMP
+                           : L7_MFDB_PROTOCOL_MLD;
+   mfdb.user.type        = (!snoopEntry->staticGroup) ? L7_MFDB_TYPE_DYNAMIC : L7_MFDB_TYPE_STATIC;  /* PTin modified: IGMP snooping */
+-  memcpy((void *)mfdb.user.description,(void *)L7_MFDB_NETWORK_ASSISTED,
+-         L7_MFDB_COMPONENT_DESCR_STRING_LEN);
++  strncpy(mfdb.user.description, L7_MFDB_NETWORK_ASSISTED,
++          L7_MFDB_COMPONENT_DESCR_STRING_LEN);
+ 
+   (void)mfdbEntryDelete(&mfdb);
+ 
+   /* Not checking for return code. Remove the snoopEntry even
+    * if mfdbEntryDelete returns failure */
+   rc = snoopEntryDelete(macAddr, vlanId, family);
+Index: src/mgmt/broadcom/cli/base/common/cli_config_usermgr.c
+===================================================================
+--- src/mgmt/broadcom/cli/base/common/cli_config_usermgr.c	(revision 7752)
++++ src/mgmt/broadcom/cli/base/common/cli_config_usermgr.c	(revision 7753)
+@@ -4927,13 +4927,13 @@ L7_RC_t cliUserMgrPasswdErrorStringGet(L
+                {
+                  break; 
+                }
+              }
+              if(rc != L7_SUCCESS)
+              {
+-               memcpy(keyword, "<UNKNOWN KEYWORD>", sizeof(keyword));  
++               strcpy(keyword, "<UNKNOWN KEYWORD>");  
+              } 
+              memset(buf,0x00,len);
+              osapiSnprintf(buf, len, CLI_PASSWD_MUST_NOT_CONTAIN_EXCLUDE_KEYWORDS, keyword);
+              break;
+           case L7_USER_MGR_PASSWD_INVALID_REPEATED_CHAR_LEN:
+              usmDbUserMgrPasswdMaxRepeatedCharsLengthGet(&val);
+Index: src/mgmt/broadcom/cli/base/common/cliutil.c
+===================================================================
+--- src/mgmt/broadcom/cli/base/common/cliutil.c	(revision 7752)
++++ src/mgmt/broadcom/cli/base/common/cliutil.c	(revision 7753)
+@@ -175,28 +175,28 @@ L7_RC_t cliConvertToUpperCase(L7_char8 *
+ *********************************************************************/
+ L7_RC_t cliCheckIfInteger(L7_char8 * buf)
+ {
+   L7_uint32 i;
+   L7_uint32 j = 0;
+ 
+-  if (buf != '\0')
++  if (buf != L7_NULLPTR)
+    {
+       if (buf[j] == '-')
+       {
+          j=1;
+          /* If the string  starts with '-', then there should be at least one digit
+             following '-' like -1, or, -20. */
+       if (strlen(buf) == j)
+       {                     /* No digit after '-' */
+         return L7_FAILURE;
+       }
+       }
+ 
+-      for (i = j; i < strlen(buf) && buf != '\0'; i++)
++      for (i = j; i < strlen(buf); i++)
+       {
+-         if ((buf[i] < '0' || buf[i] > '9') && (buf != '\0'))
++         if (buf[i] < '0' || buf[i] > '9')
+          {
+             return L7_FAILURE;
+          }
+       }
+    }
+   return L7_SUCCESS;
+@@ -4425,13 +4425,13 @@ L7_RC_t cliValidPrefixPrefixLenCheck(con
+   }
+ 
+   input = tmp_buf;
+   p = cliStringSeparateHelp(&input, slash);
+   plen= cliStringSeparateHelp(&input, end);
+ 
+-  if (p != '\0')
++  if (p != L7_NULLPTR)
+   {
+      if (strlen(p) >= sizeof(strIPaddr))
+     {
+       return L7_FAILURE;
+     }
+ 
+@@ -4799,13 +4799,13 @@ if (usmDbFeaturePresentCheck(unit, L7_FL
+     if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID, L7_DIFFSERV_PHB_CS_FEATURE_ID) == L7_TRUE)
+       strcat(buf, pStrInfo_base_0_8_16_24_32_40_48_56);
+     if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID, L7_DIFFSERV_PHB_EF_FEATURE_ID) == L7_TRUE)
+     {
+       strcat(buf, pStrInfo_base_46);
+     }
+-    else if (buf != '\0')
++    else if (buf != L7_NULLPTR)
+     {
+       buflen = strlen(buf);
+       buf[buflen-2] = '.' ;
+       buf[buflen-1] = '\0';
+     }
+     strcat(buf, pStrInfo_base_orDSCPkeyword);
+Index: src/mgmt/broadcom/cli_web_mgr/cli_web_util.c
+===================================================================
+--- src/mgmt/broadcom/cli_web_mgr/cli_web_util.c	(revision 7752)
++++ src/mgmt/broadcom/cli_web_mgr/cli_web_util.c	(revision 7753)
+@@ -1637,13 +1637,13 @@ void cliWebBuildTestConfigData(L7_uint32
+   /*-------------------------------*/
+   /* Build Non-Default Config Data */
+   /*-------------------------------*/
+ 
+   cliWebCfgData.systemWebMode = FD_CLI_WEB_MODE + 1;
+   cliWebCfgData.userPrompt = L7_FALSE + 1;
+-  memcpy(cliWebCfgData.systemCommandPrompt, "TEST PROMPT", L7_PROMPT_SIZE - 1);
++  strncpy(cliWebCfgData.systemCommandPrompt, "TEST PROMPT", L7_PROMPT_SIZE - 1);
+   cliWebCfgData.systemTelnetNewSessions = FD_CLI_WEB_TELNET_NEW_SESSIONS + 1;
+   cliWebCfgData.systemTelnetNumSessions = FD_CLI_WEB_DEFAULT_NUM_SESSIONS + 1;
+   cliWebCfgData.systemTelnetTimeout = FD_CLI_WEB_DEFAULT_REMOTECON_TIMEOUT + 1;
+   cliWebCfgData.systemTelnetAdminMode   = L7_DISABLE;
+   cliWebCfgData.systemJavaMode = L7_DISABLE;
+   bzero(cliWebCfgData.cliBanner, sizeof(cliWebCfgData.cliBanner));
+Index: src/mgmt/broadcom/emweb/websrc/server/ews_str.c
+===================================================================
+--- src/mgmt/broadcom/emweb/websrc/server/ews_str.c	(revision 7752)
++++ src/mgmt/broadcom/emweb/websrc/server/ews_str.c	(revision 7753)
+@@ -58,13 +58,14 @@
+ #include "ews_tah.h"
+ #endif
+ 
+ #include "ews_str.h"
+ #include "ew_lib.h"
+ 
+-extern char *	strncpy (char *__s1, const char *__s2, unsigned int __n);  /*LVL7_P0006*/
++/* PTin removed: GCC8 */
++//extern char *	strncpy (char *__s1, const char *__s2, unsigned int __n);  /*LVL7_P0006*/
+ 
+ /******************************************************************************
+  *
+  * BUFFER STRING LIBRARY
+  *
+  * The EmWeb/Server design attempts to make as few assumptions as possible
+@@ -1720,13 +1721,13 @@ char *ews_strstr(const char *s1, const c
+               s1++;
+             }
+           p = NULL;   /* forget any previous match */
+         }
+     }
+ 
+-  if(*s2 == '\0' && p != '\0')
++  if(*s2 == '\0' && p != NULL)
+     {
+       return (char *) p;
+     }
+   else
+     {
+       return NULL;
+Index: os/linux/transfer/transfer.c
+===================================================================
+--- os/linux/transfer/transfer.c	(revision 7752)
++++ os/linux/transfer/transfer.c	(revision 7753)
+@@ -2071,21 +2071,21 @@ L7_RC_t L7_transfer_start(L7_uint32 dire
+               usmDbTransferSuspendMgmtAccessSet(1,L7_TRUE);
+           }
+ 
+           usmDbTransferModeGet(simGetThisUnit(), &transfer_type);
+ 
+           usmDbTransferFilePathLocalGet(simGetThisUnit(), buf);
+-          strncpy(transfer_fname_local, buf, sizeof(buf));
++          strcpy(transfer_fname_local, buf);
+           buf[(sizeof(buf) - 1)] = '\0';
+ 
+           usmDbTransferFileNameLocalGet(simGetThisUnit(), buf);
+           strncat(transfer_fname_local, buf, (sizeof(buf) - strlen(buf)));
+           buf[(sizeof(buf) - 1)] = '\0';
+ 
+           usmDbTransferFilePathRemoteGet(simGetThisUnit(), buf);
+-          strncpy(transfer_fname_remote, buf, sizeof(buf));
++          strcpy(transfer_fname_remote, buf);
+           buf[(sizeof(buf) - 1)] = '\0';
+ 
+           usmDbTransferFileNameRemoteGet(simGetThisUnit(), buf);
+           strncat(transfer_fname_remote, buf, (sizeof(buf) - strlen(buf)));
+           buf[(sizeof(buf) - 1)] = '\0';
+ 

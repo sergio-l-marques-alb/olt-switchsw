@@ -1,0 +1,21 @@
+Index: src/system_support/base/infrastructure/nim/nim_migrate.c
+===================================================================
+--- src/system_support/base/infrastructure/nim/nim_migrate.c	(revision 7760)
++++ src/system_support/base/infrastructure/nim/nim_migrate.c	(revision 7761)
+@@ -22,12 +22,16 @@
+ 
+ #include <string.h>
+ #include "nim_migrate.h"
+ #include "nim_util.h"
+ #include "defaultconfig.h"
+ 
++#if defined(__GNUC__) && (__GNUC__ >= 7)
++#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
++#endif
++
+ extern L7_RC_t maskShiftRightBits(L7_uchar8 *j, L7_int32 k, L7_int32 m);
+ extern L7_RC_t maskShiftLeftBits(L7_uchar8 *j, L7_int32 k, L7_int32 m);
+ extern L7_RC_t maskOrBits(L7_uchar8 *j, L7_uchar8 *k, L7_int32 m);
+ extern L7_RC_t maskAndBits(L7_uchar8 *j, L7_uchar8 *k, L7_int32 m);
+ extern L7_RC_t maskSetBit (L7_uchar8 * j, L7_int32 k, L7_int32 m);
+ extern L7_RC_t maskClearBit(L7_uchar8 *j, L7_int32 k, L7_int32 m);

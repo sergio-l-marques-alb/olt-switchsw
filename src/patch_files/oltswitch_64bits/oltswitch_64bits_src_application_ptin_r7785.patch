@@ -1,0 +1,238 @@
+Index: src/application/ptin/base/ptin_igmp.c
+===================================================================
+--- src/application/ptin/base/ptin_igmp.c	(revision 7784)
++++ src/application/ptin/base/ptin_igmp.c	(revision 7785)
+@@ -814,13 +814,13 @@ typedef struct igmpTimerData_s
+   L7_sll_member_t   *next;
+   L7_uint32         ptin_port;
+   L7_uint32         client_idx;
+ 
+   L7_uchar8         timerType;
+   L7_APP_TMR_HNDL_t timer;
+-  L7_uint32         timerHandle;
++  L7_uint64         timerHandle;
+ } igmpTimerData_t;
+ 
+ L7_RC_t ptin_igmp_timersMng_init(void);
+ L7_RC_t ptin_igmp_timersMng_deinit(void);
+ #ifndef ONE_MULTICAST_VLAN_RING_SUPPORT
+ L7_RC_t ptin_igmp_timer_start (L7_uint32 ptin_port, L7_uint32 client_idx);
+@@ -1038,13 +1038,13 @@ void ptin_igmp_device_clients_teste(void
+ 
+   for (port = 0; port < PTIN_IGMP_INTFPORT_MAX; port++)
+   {
+     printf("Port=%u ->", port);
+     for (client_idx = 0; client_idx < PTIN_IGMP_CLIENTIDX_MAX; ++client_idx)
+     {
+-      printf(" %u:0x%08x", client_idx, (L7_uint32) igmpDeviceClients.client_devices[port][client_idx].client);
++      printf(" %u: %p", client_idx, igmpDeviceClients.client_devices[port][client_idx].client);
+     }
+     printf("\r\n");
+   }
+ }
+ 
+ #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
+@@ -7759,13 +7759,13 @@ L7_RC_t ptin_igmp_timer_start(L7_uint32
+     PT_LOG_TRACE(LOG_CTX_IGMP,"Stored node in handle list (ptin_port=%u client_idx=%u)", ptin_port, client_idx);
+ 
+   timeout = (igmpProxyCfg.querier.group_membership_interval*3)/2;
+ 
+   /* Add a new timer */
+   pTimerData->timer = appTimerAdd( igmpDeviceClients.timerCB, igmp_timer_expiry,
+-                                   (void *) pTimerData->timerHandle, timeout,
++                                   UINT_TO_PTR(pTimerData->timerHandle), timeout,
+                                    "PTIN_TIMER");
+   if (pTimerData->timer == NULL)
+   {
+     /* Free the previously allocated bufferpool */
+     handleListNodeDelete(igmpDeviceClients.appTimer_handle_list, &pTimerData->timerHandle);
+     pTimerData->timerHandle = 0;
+@@ -8010,13 +8010,13 @@ L7_RC_t ptin_igmp_timer_stop(L7_uint32 p
+ * @comments none
+ *
+ * @end
+ *************************************************************************/
+ void igmp_timer_expiry(void *param)
+ {
+-  L7_uint32 timerHandle = (L7_uint32) param;
++  L7_uint64 timerHandle = PTR_TO_UINT64(param);
+   L7_uint ptin_port, client_idx;
+ 
+   igmpTimerData_t *pTimerData;
+ 
+   if (ptin_debug_igmp_snooping)
+     PT_LOG_TRACE(LOG_CTX_IGMP,"Expiration event ocurred for timerHandle %p!",timerHandle);
+Index: src/application/ptin/base/ptin_packet.c
+===================================================================
+--- src/application/ptin/base/ptin_packet.c	(revision 7784)
++++ src/application/ptin/base/ptin_packet.c	(revision 7785)
+@@ -116,14 +116,14 @@ L7_RC_t ptin_packet_init(void)
+   {
+     PT_LOG_FATAL(LOG_CTX_PACKET,"Unable to initialize ptin_packet_task()\n");
+     return(L7_FAILURE);
+   }
+   PT_LOG_TRACE(LOG_CTX_PACKET,"Task ptin_packet_task initialized");
+ 
+-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register ptinMacBcastRecv related to type=%u: 0x%08x",
+-           SYSNET_MAC_ENTRY, (L7_uint32) ptinMacBcastRecv);
++  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register ptinMacBcastRecv related to type=%u: %p",
++              SYSNET_MAC_ENTRY, ptinMacBcastRecv);
+ 
+   /* Register broadcast packets */
+   strcpy(snEntry.funcName, "ptinBcastPduReceive");
+   snEntry.notify_pdu_receive = ptinMacBcastRecv;
+   snEntry.type = SYSNET_MAC_ENTRY;
+   memcpy(snEntry.u.macAddr, BroadcastMacAddr, L7_MAC_ADDR_LEN);
+Index: src/application/ptin/base/ptin_oam_packet.c
+===================================================================
+--- src/application/ptin/base/ptin_oam_packet.c	(revision 7784)
++++ src/application/ptin/base/ptin_oam_packet.c	(revision 7785)
+@@ -775,14 +775,14 @@ L7_RC_t common_aps_ccm_packetRx_callback
+   static int _1st_time=1;
+ 
+   if (!_1st_time) return L7_SUCCESS;
+ 
+   _1st_time=0;
+ 
+-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register common_aps_ccm_packetRx_callback related to type=%u, protocol_type=%u: 0x%08x",
+-           SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_CFM, (L7_uint32) common_aps_ccm_packetRx_callback);
++  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register common_aps_ccm_packetRx_callback related to type=%u, protocol_type=%u: %p",
++              SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_CFM, common_aps_ccm_packetRx_callback);
+ 
+   memset(&snEntry, 0x00, sizeof(snEntry));
+   strcpy(snEntry.funcName, "common_aps_ccm_packetRx_callback");
+   snEntry.notify_pdu_receive = common_aps_ccm_packetRx_callback;
+   snEntry.type = SYSNET_ETHERTYPE_ENTRY;
+   snEntry.u.protocol_type = L7_ETYPE_CFM;
+Index: src/application/ptin/base/ptin_prot_uplink.c
+===================================================================
+--- src/application/ptin/base/ptin_prot_uplink.c	(revision 7784)
++++ src/application/ptin/base/ptin_prot_uplink.c	(revision 7785)
+@@ -40,13 +40,13 @@ typedef struct protTimerData_s
+ {
+   L7_sll_member_t   *next;
+   L7_uint32         protIdx;
+ 
+   L7_uchar8         timerType;
+   L7_APP_TMR_HNDL_t timer;
+-  L7_uint32         timerHandle;
++  L7_uint64         timerHandle;
+ } protTimerData_t;
+ 
+ typedef struct prot_timerMgmt_s
+ {
+   L7_APP_TMR_CTRL_BLK_t timerCB;       /* Entry App Timer Control Block */
+   L7_sll_t              ll_timerList;  /* Linked list of timer data nodes */
+@@ -736,13 +736,13 @@ L7_RC_t ptin_prot_timer_start(L7_uint32
+   }
+   //if (ptin_debug_igmp_snooping)
+   PT_LOG_TRACE(LOG_CTX_INTF,"Stored node in handle list (protIdx=%u)", protIdx);
+ 
+   /* Add a new timer */
+   pTimerData->timer = appTimerAdd( prot_timerMgmt.timerCB, prot_timer_expiry,
+-                                   (void *) pTimerData->timerHandle, timeout,
++                                   UINT_TO_PTR(pTimerData->timerHandle), timeout,
+                                    "PROT_TIMER");
+   if (pTimerData->timer == NULL)
+   {
+     /* Free the previously allocated bufferpool */
+     handleListNodeDelete(prot_timerMgmt.appTimer_handle_list, &pTimerData->timerHandle);
+     pTimerData->timerHandle = 0;
+@@ -912,13 +912,13 @@ L7_RC_t ptin_prot_timer_timeout_get(L7_u
+ * @comments none
+ *
+ * @end
+ *************************************************************************/
+ void prot_timer_expiry(void *param)
+ {
+-  L7_uint32 timerHandle = (L7_uint32) param;
++  L7_uint64 timerHandle = PTR_TO_UINT64(param);
+   protTimerData_t timerData;
+   L7_uint32 protIdx;
+ 
+   protTimerData_t *pTimerData;
+ 
+   //if (ptin_debug_igmp_snooping)
+Index: src/application/ptin/utils/ptin_timerMng.c
+===================================================================
+--- src/application/ptin/utils/ptin_timerMng.c	(revision 7784)
++++ src/application/ptin/utils/ptin_timerMng.c	(revision 7785)
+@@ -21,13 +21,13 @@ struct
+ 
+ 
+ /* Semaphore for timers access */
+ void *ptin_timers_sem = L7_NULLPTR;
+ 
+ /* Timers variables */
+-L7_uint32 timersMngmt_TaskId = L7_ERROR;
++L7_uint64 timersMngmt_TaskId = L7_ERROR;
+ void     *timersMngmt_queue  = L7_NULLPTR;
+ 
+ typedef struct ptinTimerParams_s
+ {
+   //L7_uint32          igmp_idx;
+   L7_uint32          dummy;
+@@ -39,13 +39,13 @@ typedef struct ptinTimerParams_s
+ typedef struct timerData_s
+ {
+   L7_sll_member_t   *next;
+ 
+   L7_uchar8         timerType;
+   L7_APP_TMR_HNDL_t timer;
+-  L7_uint32         timerHandle;
++  L7_uint64         timerHandle;
+ 
+   /* User defined */
+   void *data;
+ 
+ } timerData_t;
+ 
+@@ -631,13 +631,13 @@ L7_RC_t ptin_timerMng_start(ptin_timerMn
+   }
+   if (ptin_timerMng_debug_snooping)
+     PT_LOG_TRACE(LOG_CTX_MISC,"Stored node in handle list");
+ 
+   /* Add a new timer */
+   pTimerData->timer = appTimerAdd( timersMng.timerCB, context->expiry_callback_fcn,
+-                                   (void *) pTimerData->timerHandle, timeout,
++                                   UINT_TO_PTR(pTimerData->timerHandle), timeout,
+                                    "PTIN_TIMER");
+   if (pTimerData->timer == NULL)
+   {
+     /* Free the previously allocated bufferpool */
+     handleListNodeDelete(timersMng.appTimer_handle_list, &pTimerData->timerHandle);
+     pTimerData->timerHandle = 0;
+@@ -736,13 +736,13 @@ L7_RC_t ptin_timerMng_stop(ptin_timerMng
+  * @param param : param given by the expiry callback
+  * 
+  * @return void* : pointer to data
+  */
+ void *ptin_timerMng_expiryCallback_data_get(void *param)
+ {
+-  L7_uint32 timerHandle = (L7_uint32) param;
++  L7_uint64 timerHandle = PTR_TO_UINT64(param);
+   timerData_t *pTimerData;
+ 
+   if (param == L7_NULLPTR)
+   {
+     PT_LOG_ERR(LOG_CTX_MISC, "param is a null pointer");
+     return L7_NULLPTR;
+Index: src/application/ptin/utils/ptin_opensaf.c
+===================================================================
+--- src/application/ptin/utils/ptin_opensaf.c	(revision 7784)
++++ src/application/ptin/utils/ptin_opensaf.c	(revision 7785)
+@@ -599,13 +599,13 @@ L7_RC_t ptin_opensaf_read_event_teste(in
+  *
+  *
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+ L7_RC_t ptin_opensaf_event_task_init()
+ {
+-  L7_uint32 ptin_opensaf_TaskId = 0;
++  L7_uint64 ptin_opensaf_TaskId = 0;
+   char *chName,*pubName;
+ 
+   chName        = "ONU_STATE";
+   pubName       = "Fastpath"; 
+   ptin_opensaf_eventhandle_init(1, chName, pubName);
+ 

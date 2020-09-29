@@ -1,0 +1,615 @@
+Index: andl/hapi/esw/ptin/ptin_ptp_fpga.c
+===================================================================
+--- andl/hapi/esw/ptin/ptin_ptp_fpga.c	(revision 7759)
++++ andl/hapi/esw/ptin/ptin_ptp_fpga.c	(revision 7760)
+@@ -747,13 +747,13 @@ ptin_dtl_search_ptp_t   *entry;
+ 
+ 
+ 
+ //DTL/APP LAYER**********************************************************************************
+ //extern int search_oam_ptp_add_ptp_entry_pair(T_SEARCH_OAM_PTP_TABLE *t_table, u16 vid_prt, u16 vid, u16 vid_os);
+ //extern int search_oam_ptp_del_ptp_entry_pair(T_SEARCH_OAM_PTP_TABLE *t_table, u16 vid_prt, u16 vid, u16 vid_os);
+-extern inline L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum);
++extern L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum);
+ extern L7_RC_t ptin_xlate_ingress_set( L7_uint port, L7_uint16 outer_vlan, L7_uint op, L7_uint16 newOuterVlanId);
+ extern L7_RC_t ptin_xlate_ingress_clear( L7_uint port, L7_uint16 outer_vlan, L7_uint16 inner_vlan);
+ extern L7_RC_t dtlPtinGeneric(L7_uint32 intIfNum, L7_uint16 msgId, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data);
+ 
+ L7_RC_t ptin_ptp_fpga_entry(ptin_dtl_search_ptp_t *e, DAPI_CMD_GET_SET_t operation) {
+ #if (!PTIN_BOARD_IS_STANDALONE)
+Index: src/application/ptin/base/include/ptin_cfg.h
+===================================================================
+--- src/application/ptin/base/include/ptin_cfg.h	(revision 7759)
++++ src/application/ptin/base/include/ptin_cfg.h	(revision 7760)
+@@ -39,13 +39,13 @@ extern L7_RC_t ptin_cfg_ntw_connectivity
+ 
+ /**
+  * Returns the external inBand VLAN ID
+  * 
+  * @return L7_uint16 inBand VID (zero if not configured)
+  */
+-extern inline L7_uint16 ptin_cfg_inband_vlan_get(void);
++extern L7_uint16 ptin_cfg_inband_vlan_get(void);
+ 
+ /**
+  * Creates a bridge between dtl0 interface and a virtual interface eth0.4093 
+  *  
+  * NOTE: 
+  *  1. virtual interface eth0.4093 is created here 
+Index: src/application/ptin/base/include/ptin_intf.h
+===================================================================
+--- src/application/ptin/base/include/ptin_intf.h	(revision 7759)
++++ src/application/ptin/base/include/ptin_intf.h	(revision 7760)
+@@ -326,161 +326,161 @@ extern L7_RC_t ptin_intf_slotPort2IntIfN
+  * 
+  * @param ptin_port PTin port index
+  * @param intIfNum  FP intIfNum
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-extern inline L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum);
++extern L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum);
+ 
+ /**
+  * Converts FP interface# to PTin port mapping (including LAGs)
+  * 
+  * @param intIfNum  FP intIfNum
+  * @param ptin_port PTin port index
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-extern inline L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *ptin_port);
++extern L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *ptin_port);
+ 
+ /**
+  * Converts ptin_port index to LAG index
+  * 
+  * @param ptin_port PTin port index
+  * @param lag_idx   LAG index
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-extern inline L7_RC_t ptin_intf_port2lag(L7_uint32 ptin_port, L7_uint32 *lag_idx);
++extern L7_RC_t ptin_intf_port2lag(L7_uint32 ptin_port, L7_uint32 *lag_idx);
+ 
+ /**
+  * Converts LAG index to ptin_port
+  *  
+  * @param lag_idx   LAG index 
+  * @param ptin_port PTin port index 
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-inline L7_RC_t ptin_intf_lag2port(L7_uint32 lag_idx, L7_uint32 *ptin_port);
++extern L7_RC_t ptin_intf_lag2port(L7_uint32 lag_idx, L7_uint32 *ptin_port);
+ 
+ /**
+  * Converts ptin_port index to PTin port type and id
+  * 
+  * @param ptin_port PTin port index
+  * @param port_type PTin port type (0 is physical and 1 is LAG) 
+  * @param port_id   PTin port id
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-extern inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf);
++extern L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf);
+ 
+ /**
+  * Converts PTin port type and id to ptin_port index
+  * 
+  * @param port_type PTin port type (0 is physical and 1 is LAG) 
+  * @param port_id   PTin port id
+  * @param ptin_port PTin port index
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-extern inline L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uint32 *ptin_port);
++extern L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uint32 *ptin_port);
+ 
+ /**
+  * Converts PTin port type and id to ptin_port index
+  * 
+  * @param intf_type PTin port type (0 is physical and 1 is LAG) 
+  * @param intf_id   PTin port id
+  * @param ptin_port PTin port index
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-extern inline L7_RC_t ptin_intf_typeId2port(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *ptin_port);
++extern L7_RC_t ptin_intf_typeId2port(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *ptin_port);
+ 
+ /**
+  * Converts ptin_port index to port type and id
+  * 
+  * @param ptin_port PTin port index
+  * @param intf_type PTin port type (out)
+  * @param intf_id   PTin port id (out)
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-extern inline L7_RC_t ptin_intf_port2typeId(L7_uint32 ptin_port, L7_uint8 *intf_type, L7_uint8 *intf_id);
++extern L7_RC_t ptin_intf_port2typeId(L7_uint32 ptin_port, L7_uint8 *intf_type, L7_uint8 *intf_id);
+ 
+ /**
+  * Converts FP interface# to PTin port type and id
+  * 
+  * @param intIfNum  FP intIfNum
+  * @param port_type PTin port type (0 is physical and 1 is LAG) 
+  * @param port_id   PTin port id
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-extern inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_intf);
++extern L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_intf);
+ 
+ /**
+  * Converts PTin port type and id to FP interface#
+  * 
+  * @param port_type PTin port type (0 is physical and 1 is LAG) 
+  * @param port_id   PTin port id
+  * @param intIfNum  FP intIfNum
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-extern inline L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32 *intIfNum);
++extern L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32 *intIfNum);
+ 
+ /**
+  * Converts PTin port type and id to FP interface#
+  * 
+  * @param intf_type PTin port type (0 is physical and 1 is LAG) 
+  * @param intf_id   PTin port id
+  * @param intIfNum  FP intIfNum
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-extern inline L7_RC_t ptin_intf_typeId2intIfNum(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *intIfNum);
++extern L7_RC_t ptin_intf_typeId2intIfNum(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *intIfNum);
+ 
+ /**
+  * Converts LAG index [1..PTIN_SYSTEM_N_LAGS] to FP intIfNum
+  * 
+  * @param intIfNum  FP intIfNum
+  * @param ptin_port PTin port index
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-extern inline L7_RC_t ptin_intf_lag2intIfNum(L7_uint32 lag_idx, L7_uint32 *intIfNum);
++extern L7_RC_t ptin_intf_lag2intIfNum(L7_uint32 lag_idx, L7_uint32 *intIfNum);
+ 
+ /**
+  * Convert intIfNum to LAG index
+  * 
+  * @param intIfNum  FP intIfNum
+  * @param lag_idx   LAG index (output)
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-extern inline L7_RC_t ptin_intf_intIfNum2lag(L7_uint32 intIfNum, L7_uint32 *lag_idx);
++extern L7_RC_t ptin_intf_intIfNum2lag(L7_uint32 intIfNum, L7_uint32 *lag_idx);
+ 
+ #if PTIN_BOARD_IS_MATRIX
+ /**
+  * Converts Slot to LAG index [0..PTIN_SYSTEM_N_LAGS[
+  * 
+  * @param slot      slot
+  * @param lag_idx   LAG index [0..PTIN_SYSTEM_N_LAGS[ (output)
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-extern inline L7_RC_t ptin_intf_slot2lagIdx(L7_uint16 slot, L7_uint32 *lag_idx);
++extern L7_RC_t ptin_intf_slot2lagIdx(L7_uint16 slot, L7_uint32 *lag_idx);
+ #endif
+ 
+ /**
+  * Check if a LAG is created [1..PTIN_SYSTEM_N_LAGS]
+  * 
+  * @param lag_idx   LAG index [1..PTIN_SYSTEM_N_LAGS]
+  * 
+  * @return L7_RC_t L7_TRUE/L7_FALSE
+  */
+-extern inline L7_RC_t ptin_intf_lag_exists(L7_uint32 lag_idx);
++extern L7_RC_t ptin_intf_lag_exists(L7_uint32 lag_idx);
+ 
+ 
+ /**
+  * Check if a particular port is used for uplink protection
+  * 
+  * @author mruas (5/2/2014)
+Index: src/application/ptin/base/include/ptin_xlate_api.h
+===================================================================
+--- src/application/ptin/base/include/ptin_xlate_api.h	(revision 7759)
++++ src/application/ptin/base/include/ptin_xlate_api.h	(revision 7760)
+@@ -17,13 +17,13 @@
+ #define PTIN_XLATE_PORTGROUP_ROOTS        (PTIN_XLATE_PORTGROUP_SPECIAL_BASE+1)     /* Root ports (1G) */
+ #define PTIN_XLATE_PORTGROUP_ROOTS_10G    (PTIN_XLATE_PORTGROUP_SPECIAL_BASE+2)     /* 10G Root ports */
+ 
+ /**
+  * Inline functions
+  */
+-inline char ptin_vlanxlate_action_getchar(ptin_vlanXlate_action_enum action);
++extern char ptin_vlanxlate_action_getchar(ptin_vlanXlate_action_enum action);
+ 
+ /**
+  * Module initialization function
+  * 
+  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+  */
+Index: src/application/ptin/base/ptin_dhcp.c
+===================================================================
+--- src/application/ptin/base/ptin_dhcp.c	(revision 7759)
++++ src/application/ptin/base/ptin_dhcp.c	(revision 7760)
+@@ -225,26 +225,26 @@ static L7_RC_t ptin_dhcp_clientId_conver
+ //static L7_RC_t ptin_dhcp_clientId_restore(ptin_client_id_t *client);
+ 
+ /*********************************************************** 
+  * INLINE FUNCTIONS
+  ***********************************************************/
+ 
+-inline L7_BOOL dhcp_clientIndex_check_free(L7_uint dhcp_idx)
++static L7_BOOL dhcp_clientIndex_check_free(L7_uint dhcp_idx)
+ {
+   /* Validate arguments */
+   if (dhcp_idx >= PTIN_SYSTEM_N_DHCP_INSTANCES)
+   {
+     PT_LOG_ERR(LOG_CTX_DHCP,"Invalid DHCP instance %u", dhcp_idx);
+     return -1;
+   }
+ 
+   return (dhcpClients_unified.number_of_clients < PTIN_SYSTEM_DHCP_MAXCLIENTS &&
+           queue_free_clients.n_elems > 0);
+ }
+ 
+-inline L7_int dhcp_clientIndex_allocate(L7_uint dhcp_idx, ptinDhcpClientInfoData_t *infoData)
++static L7_int dhcp_clientIndex_allocate(L7_uint dhcp_idx, ptinDhcpClientInfoData_t *infoData)
+ {
+   L7_int  client_idx;
+   struct ptin_clientIdx_entry_s  *clientIdx_pool_entry;
+   struct ptin_clientInfo_entry_s *clientInfo_pool_entry;
+   L7_RC_t rc;
+ 
+@@ -303,13 +303,13 @@ inline L7_int dhcp_clientIndex_allocate(
+   dhcpClients_unified.number_of_clients++;
+ 
+   /* Return new client id */
+   return client_idx;
+ }
+ 
+-inline void dhcp_clientIndex_release(L7_uint dhcp_idx, L7_uint32 client_idx)
++static void dhcp_clientIndex_release(L7_uint dhcp_idx, L7_uint32 client_idx)
+ {
+   struct ptin_clientIdx_entry_s  *clientIdx_pool_entry;
+   struct ptin_clientInfo_entry_s *clientInfo_pool_entry;
+   L7_RC_t rc;
+ 
+   /* Validate arguments */
+Index: src/application/ptin/base/ptin_pppoe.c
+===================================================================
+--- src/application/ptin/base/ptin_pppoe.c	(revision 7759)
++++ src/application/ptin/base/ptin_pppoe.c	(revision 7760)
+@@ -223,26 +223,26 @@ static L7_RC_t ptin_pppoe_clientId_conve
+ //static L7_RC_t ptin_pppoe_clientId_restore(ptin_client_id_t *client);
+ 
+ /*********************************************************** 
+  * INLINE FUNCTIONS
+  ***********************************************************/
+ 
+-inline L7_BOOL pppoe_clientIndex_check_free(L7_uint pppoe_idx)
++static L7_BOOL pppoe_clientIndex_check_free(L7_uint pppoe_idx)
+ {
+   /* Validate arguments */
+   if (pppoe_idx >= PTIN_SYSTEM_N_PPPOE_INSTANCES)
+   {
+     PT_LOG_ERR(LOG_CTX_PPPOE,"Invalid PPPOE instance %u", pppoe_idx);
+     return -1;
+   }
+ 
+   return (pppoeClients_unified.number_of_clients < PTIN_SYSTEM_PPPOE_MAXCLIENTS &&
+           queue_free_clients.n_elems > 0);
+ }
+ 
+-inline L7_int pppoe_clientIndex_allocate(L7_uint pppoe_idx, ptinPppoeClientInfoData_t *infoData)
++static L7_int pppoe_clientIndex_allocate(L7_uint pppoe_idx, ptinPppoeClientInfoData_t *infoData)
+ {
+   L7_int  client_idx;
+   struct ptin_clientIdx_entry_s  *clientIdx_pool_entry;
+   struct ptin_clientInfo_entry_s *clientInfo_pool_entry;
+   L7_RC_t rc;
+ 
+@@ -301,13 +301,13 @@ inline L7_int pppoe_clientIndex_allocate
+   pppoeClients_unified.number_of_clients++;
+ 
+   /* Return new client id */
+   return client_idx;
+ }
+ 
+-inline void pppoe_clientIndex_release(L7_uint pppoe_idx, L7_uint32 client_idx)
++static void pppoe_clientIndex_release(L7_uint pppoe_idx, L7_uint32 client_idx)
+ {
+   struct ptin_clientIdx_entry_s  *clientIdx_pool_entry;
+   struct ptin_clientInfo_entry_s *clientInfo_pool_entry;
+   L7_RC_t rc;
+ 
+   /* Validate arguments */
+Index: src/application/ptin/base/ptin_intf.c
+===================================================================
+--- src/application/ptin/base/ptin_intf.c	(revision 7759)
++++ src/application/ptin/base/ptin_intf.c	(revision 7760)
+@@ -2259,13 +2259,13 @@ L7_RC_t ptin_intf_slot_get(L7_uint8 *slo
+  * 
+  * @param ptin_port PTin port index
+  * @param intIfNum  FP intIfNum
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-inline L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
++L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
+ {
+   /* Validate arguments */
+   if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
+       (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
+   {
+     PT_LOG_ERR(LOG_CTX_INTF, "Port# %u is out of range [0..%u]", ptin_port, PTIN_SYSTEM_N_INTERF-1);
+@@ -2292,13 +2292,13 @@ inline L7_RC_t ptin_intf_port2intIfNum(L
+  * 
+  * @param intIfNum  FP intIfNum
+  * @param ptin_port PTin port index
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-inline L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *ptin_port)
++L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *ptin_port)
+ {
+   /* Validate arguments */
+   if (intIfNum==0 || intIfNum >= L7_MAX_INTERFACE_COUNT)
+   {
+     //PT_LOG_ERR(LOG_CTX_INTF, "intIfNum# %u is out of range [1..%u]", intIfNum, L7_MAX_INTERFACE_COUNT);
+     return L7_FAILURE;
+@@ -2325,13 +2325,13 @@ inline L7_RC_t ptin_intf_intIfNum2port(L
+  * 
+  * @param ptin_port PTin port index
+  * @param lag_idx   LAG index
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-inline L7_RC_t ptin_intf_port2lag(L7_uint32 ptin_port, L7_uint32 *lag_idx)
++L7_RC_t ptin_intf_port2lag(L7_uint32 ptin_port, L7_uint32 *lag_idx)
+ {
+   L7_uint32 p_lag;
+ 
+   /* Validate ptin_port */
+   if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
+       (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
+@@ -2370,13 +2370,13 @@ inline L7_RC_t ptin_intf_port2lag(L7_uin
+  *  
+  * @param lag_idx   LAG index 
+  * @param ptin_port PTin port index 
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-inline L7_RC_t ptin_intf_lag2port(L7_uint32 lag_idx, L7_uint32 *ptin_port)
++L7_RC_t ptin_intf_lag2port(L7_uint32 lag_idx, L7_uint32 *ptin_port)
+ {
+   L7_uint32 port;
+ 
+   /* Validate LAG id */
+   if (lag_idx >= PTIN_SYSTEM_N_LAGS)
+   {
+@@ -2412,13 +2412,13 @@ inline L7_RC_t ptin_intf_lag2port(L7_uin
+  * @param ptin_port PTin port index
+  * @param port_type PTin port type (0 is physical and 1 is LAG) 
+  * @param port_id   PTin port id
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf)
++L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf)
+ {
+   /* Validate arguments */
+   if (ptin_intf == L7_NULLPTR)
+   {
+     return L7_FAILURE;
+   }
+@@ -2432,13 +2432,13 @@ inline L7_RC_t ptin_intf_port2ptintf(L7_
+  * @param port_type PTin port type (0 is physical and 1 is LAG) 
+  * @param port_id   PTin port id
+  * @param ptin_port PTin port index
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-inline L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uint32 *ptin_port)
++L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uint32 *ptin_port)
+ {
+   /* Validate arguments */
+   if (ptin_intf == L7_NULLPTR)
+   {
+     return L7_FAILURE;
+   }
+@@ -2452,13 +2452,13 @@ inline L7_RC_t ptin_intf_ptintf2port(con
+  * @param port_type PTin port type (0 is physical and 1 is LAG) 
+  * @param port_id   PTin port id
+  * @param ptin_port PTin port index
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-inline L7_RC_t ptin_intf_typeId2port(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *ptin_port)
++L7_RC_t ptin_intf_typeId2port(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *ptin_port)
+ {
+   L7_uint32 p_port=0;
+ 
+   /* Calculate ptin_port index */
+   if (intf_type == PTIN_EVC_INTF_PHYSICAL )
+   {
+@@ -2503,13 +2503,13 @@ inline L7_RC_t ptin_intf_typeId2port(L7_
+  * @param ptin_port PTin port index
+  * @param intf_type PTin port type (out)
+  * @param intf_id   PTin port id (out)
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-inline L7_RC_t ptin_intf_port2typeId(L7_uint32 ptin_port, L7_uint8 *intf_type, L7_uint8 *intf_id)
++L7_RC_t ptin_intf_port2typeId(L7_uint32 ptin_port, L7_uint8 *intf_type, L7_uint8 *intf_id)
+ {
+   ptin_intf_t p_intf;
+ 
+   /* Validate ptin_port */
+   if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
+       (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
+@@ -2542,13 +2542,13 @@ inline L7_RC_t ptin_intf_port2typeId(L7_
+  * @param intIfNum  FP intIfNum
+  * @param port_type PTin port type (0 is physical and 1 is LAG) 
+  * @param port_id   PTin port id
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_intf)
++L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_intf)
+ {
+   L7_uint32       ptin_port;
+   L7_RC_t         rc;
+   L7_INTF_TYPES_t intfType;
+ 
+   if(nimGetIntfType(intIfNum, &intfType) != L7_SUCCESS)
+@@ -2610,13 +2610,13 @@ inline L7_RC_t ptin_intf_intIfNum2ptintf
+  * @param port_type PTin port type (0 is physical and 1 is LAG) 
+  * @param port_id   PTin port id
+  * @param intIfNum  FP intIfNum
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-inline L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32 *intIfNum)
++L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32 *intIfNum)
+ {
+   /* Validate arguments */
+   if (ptin_intf == L7_NULLPTR)
+   {
+     PT_LOG_ERR(LOG_CTX_INTF, "Invalid argument");
+     return L7_FAILURE;
+@@ -2631,13 +2631,13 @@ inline L7_RC_t ptin_intf_ptintf2intIfNum
+  * @param port_type PTin port type (0 is physical and 1 is LAG) 
+  * @param port_id   PTin port id
+  * @param intIfNum  FP intIfNum
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-inline L7_RC_t ptin_intf_typeId2intIfNum(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *intIfNum)
++L7_RC_t ptin_intf_typeId2intIfNum(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *intIfNum)
+ {
+   L7_uint32       ptin_port=0, intIfNum0;
+   L7_RC_t         rc;
+ 
+   if(intf_type == PTIN_EVC_INTF_ROUTING)
+   {
+@@ -2699,13 +2699,13 @@ inline L7_RC_t ptin_intf_typeId2intIfNum
+  * 
+  * @param lag_idx   LAG index [0..PTIN_SYSTEM_N_LAGS[
+  * @param intIfNum  FP intIfNum (output)
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-inline L7_RC_t ptin_intf_lag2intIfNum(L7_uint32 lag_idx, L7_uint32 *intIfNum)
++L7_RC_t ptin_intf_lag2intIfNum(L7_uint32 lag_idx, L7_uint32 *intIfNum)
+ {
+   if (lag_idx >= PTIN_SYSTEM_N_LAGS)
+   {
+     PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u is out of range [0..%u]", lag_idx, PTIN_SYSTEM_N_LAGS-1);
+     return L7_FAILURE;
+   }
+@@ -2730,13 +2730,13 @@ inline L7_RC_t ptin_intf_lag2intIfNum(L7
+  * 
+  * @param intIfNum  FP intIfNum
+  * @param lag_idx   LAG index (output)
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-inline L7_RC_t ptin_intf_intIfNum2lag(L7_uint32 intIfNum, L7_uint32 *lag_idx)
++L7_RC_t ptin_intf_intIfNum2lag(L7_uint32 intIfNum, L7_uint32 *lag_idx)
+ {
+   L7_uint32 ptin_port;
+   //L7_INTF_TYPES_t sysIntfType;
+ 
+   /* Validate intIfNum */
+   if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
+@@ -2791,13 +2791,13 @@ inline L7_RC_t ptin_intf_intIfNum2lag(L7
+  * 
+  * @param slot      slot
+  * @param lag_idx   LAG index [0..PTIN_SYSTEM_N_LAGS[ (output)
+  * 
+  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+  */
+-inline L7_RC_t ptin_intf_slot2lagIdx(L7_uint16 slot, L7_uint32 *lag_idx)
++L7_RC_t ptin_intf_slot2lagIdx(L7_uint16 slot, L7_uint32 *lag_idx)
+ {
+   L7_uint32 aux;
+ 
+   if ( (slot < PTIN_SYS_LC_SLOT_MIN) || (slot > PTIN_SYS_LC_SLOT_MAX) )
+   {
+     PT_LOG_ERR(LOG_CTX_INTF, "Slot %u is out of range [%u..%u]", slot, PTIN_SYS_LC_SLOT_MIN, PTIN_SYS_LC_SLOT_MAX);
+@@ -2825,13 +2825,13 @@ inline L7_RC_t ptin_intf_slot2lagIdx(L7_
+  * Check if a LAG is created [0..PTIN_SYSTEM_N_LAGS[
+  * 
+  * @param lag_idx   LAG index [0..PTIN_SYSTEM_N_LAGS[
+  * 
+  * @return L7_RC_t L7_TRUE/L7_FALSE
+  */
+-inline L7_RC_t ptin_intf_lag_exists(L7_uint32 lag_idx)
++L7_RC_t ptin_intf_lag_exists(L7_uint32 lag_idx)
+ {
+   if (lag_idx >= PTIN_SYSTEM_N_LAGS)
+   {
+     PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u is out of range [0..%u]", lag_idx, PTIN_SYSTEM_N_LAGS-1);
+     return L7_FAILURE;
+   }
+Index: src/dtl/base/dtl_pdu_landd.c
+===================================================================
+--- src/dtl/base/dtl_pdu_landd.c	(revision 7759)
++++ src/dtl/base/dtl_pdu_landd.c	(revision 7760)
+@@ -59,13 +59,13 @@ L7_BOOL pdu_receive_debug = 0;
+ void pdu_receive_debug_enable(L7_BOOL enable)
+ {
+   pdu_receive_debug = enable;
+ }
+ 
+ static L7_uint8  ptin_debug_dtl = 0;
+-inline void ptin_debug_dtl_set(L7_uint8 enable){ptin_debug_dtl = enable;};
++void ptin_debug_dtl_set(L7_uint8 enable){ptin_debug_dtl = enable;};
+ #endif
+ 
+ 
+ /*
+ **********************************************************************
+ *                           PRIVATE FUNCTIONS PROTOTYPES
+Index: src/l7public/common/ptin/ptin_utils.h
+===================================================================
+--- src/l7public/common/ptin/ptin_utils.h	(revision 7759)
++++ src/l7public/common/ptin/ptin_utils.h	(revision 7760)
+@@ -169,19 +169,19 @@ extern dl_queue_elem_t * dl_queue_get_ne
+ 
+ 
+ /****************************************************************************** 
+  * BITMAPS MANIPULATION
+  ******************************************************************************/
+ 
+-extern inline int _bmp_set(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int bit);
+-extern inline int _bmp_set_all(bmp_cell_t bmp[], unsigned int sizeof_bmp);
++extern int _bmp_set(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int bit);
++extern int _bmp_set_all(bmp_cell_t bmp[], unsigned int sizeof_bmp);
+ 
+-extern inline int _bmp_clear(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int bit);
+-extern inline int _bmp_clear_all(bmp_cell_t bmp[], unsigned int sizeof_bmp);
+-                                    
+-extern inline int _bmp_is_set(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int bit);
+-extern inline int _bmp_is_all_set(bmp_cell_t bmp[], unsigned int sizeof_bmp);
++extern int _bmp_clear(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int bit);
++extern int _bmp_clear_all(bmp_cell_t bmp[], unsigned int sizeof_bmp);
+ 
+-extern inline int _bmp_is_clear(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int bit);
+-extern inline int _bmp_is_all_clear(bmp_cell_t bmp[], unsigned int sizeof_bmp);
++extern int _bmp_is_set(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int bit);
++extern int _bmp_is_all_set(bmp_cell_t bmp[], unsigned int sizeof_bmp);
++
++extern int _bmp_is_clear(bmp_cell_t bmp[], unsigned int sizeof_bmp, unsigned int bit);
++extern int _bmp_is_all_clear(bmp_cell_t bmp[], unsigned int sizeof_bmp);
+ 
+ #endif

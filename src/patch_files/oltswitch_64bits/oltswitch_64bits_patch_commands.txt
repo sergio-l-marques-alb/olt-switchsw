@@ -1,0 +1,12 @@
+ 1021  2020-09-29 15:05:12 svn diff --diff-cmd diff -x '-rpN -u6' -c 7772 > ../patch_files/oltswitch_64bits/oltswitch_64bits_src_systemssupport_r7772.patch
+ 1022  2020-09-29 15:05:34 svn diff --diff-cmd diff -x '-rpN -u6' -c 7779 > ../patch_files/oltswitch_64bits/oltswitch_64bits_src_mgmt_r7779.patch
+ 1023  2020-09-29 15:06:35 svn diff --diff-cmd diff -x '-rpN -u6' -c 7785 > ../patch_files/oltswitch_64bits/oltswitch_64bits_src_application_ptin_r7785.patch
+ 1024  2020-09-29 15:07:29 svn diff --diff-cmd diff -x '-rpN -u6' -c 7780 > ../patch_files/oltswitch_64bits/oltswitch_64bits_os_r7780.patch
+ 1025  2020-09-29 15:08:32 svn diff --diff-cmd diff -x '-rpN -u6' -r 7769:7771 > ../patch_files/oltswitch_64bits/oltswitch_64bits_src_l7public+l7tools+dtl+trapmgmr+usmdb_r7770-7771.patch
+ 1026  2020-09-29 15:09:08 svn diff --diff-cmd diff -x '-rpN -u6' -c 7781 > ../patch_files/oltswitch_64bits/oltswitch_64bits_bsp_r7781.patch
+ 1027  2020-09-29 15:09:37 svn diff --diff-cmd diff -x '-rpN -u6' -c 7763 > ../patch_files/oltswitch_64bits/oltswitch_64bits_aarch64_r7763.patch
+ 1028  2020-09-29 15:10:12 svn diff --diff-cmd diff -x '-rpN -u6' -r 7781:7784 > ../patch_files/oltswitch_64bits/oltswitch_64bits_andl_r7782-7784.patch
+
+ 1036  2020-09-29 15:12:18 cat oltswitch_64bits_aarch64_r7763.patch > oltswitch_64bits_aarch64_bsp_r7763+7781.patch
+ 1038  2020-09-29 15:12:34 cat oltswitch_64bits_bsp_r7781.patch >> oltswitch_64bits_aarch64_bsp_r7763+7781.patch
+

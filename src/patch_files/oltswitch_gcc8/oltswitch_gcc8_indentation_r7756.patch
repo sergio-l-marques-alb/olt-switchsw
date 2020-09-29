@@ -1,0 +1,1158 @@
+Index: andl/hapi/esw/qos/broad_cos.c
+===================================================================
+--- andl/hapi/esw/qos/broad_cos.c	(revision 7755)
++++ andl/hapi/esw/qos/broad_cos.c	(revision 7756)
+@@ -1004,15 +1004,18 @@ static L7_RC_t hapiBroadQosCosApplyPolic
+         result = hapiBroadQosCosIntfTrustIpDscp(dstPortPtr,
+                                                 qos->dscpMap,
+                                                 qosPortPtr->cos.defaultCos,
+                                                 qos->dscpMapDirty);
+         #endif
+ 
++        /* Checkme: GCC8 */
+         if (result == L7_SUCCESS)
++        {
+            qos->dscpMapDirty = L7_FALSE;
+            qosPortPtr->cos.dscpMapDirty = L7_FALSE;   /* PTin added: CoS */
++        }
+         break;
+ 
+ #if defined(FEAT_METRO_CPE_V1_0)
+     case DAPI_QOS_COS_INTF_MODE_TRUST_UNSET_IPDSCP:
+         hapiBroadQosCosResetDscpMapping(dstPortPtr->bcm_unit, dstPortPtr->bcm_port);
+         qosPortPtr->cos.trustMode = DAPI_QOS_COS_INTF_MODE_UNTRUSTED;
+Index: os/linux/osapi/osapi.c
+===================================================================
+--- os/linux/osapi/osapi.c	(revision 7755)
++++ os/linux/osapi/osapi.c	(revision 7756)
+@@ -658,14 +658,17 @@ static void osapiMallocDetailRecord(FILE
+       total_size += mem_alloc->length;
+   
+       if (((comp_id == 0) || (mem_alloc->component_id == comp_id)) &&
+           (mem_alloc->length > size) &&
+           (mem_alloc->time_stamp > time_stamp))
+       {
+-      if (cnt < sizeAllocBuffer)
+-        memcpy(&allocBuffer[cnt++], mem_alloc, sizeof(osapiMemAllocType));
++        /* Checkme: GCC8 */
++        if (cnt < sizeAllocBuffer)
++        {
++          memcpy(&allocBuffer[cnt++], mem_alloc, sizeof(osapiMemAllocType));
++        }
+ 
+         total_blocks_match++;
+         total_size_match += mem_alloc->length;
+       }
+       
+       mem_alloc = mem_alloc->next;
+Index: src/system_support/base/l7util/radix/l7_radix.c
+===================================================================
+--- src/system_support/base/l7util/radix/l7_radix.c	(revision 7755)
++++ src/system_support/base/l7util/radix/l7_radix.c	(revision 7756)
+@@ -239,15 +239,15 @@ rn_refines(m_arg, n_arg)
+ struct radix_node *
+ rn_lookup(v_arg, m_arg, head, type)
+     void *v_arg, *m_arg;
+     struct radix_node_head *head;
+     int type;
+ {
+-    register struct radix_node *x;
+-    register struct radix_node *saved_x;
+-    caddr_t netmask = 0;
++  register struct radix_node *x;
++  register struct radix_node *saved_x;
++  caddr_t netmask = 0;
+   int isDefault = 0;
+   int keyMatch = 0;
+ 
+   if (m_arg) {
+         /* Use rn_addmask in search only mode to find an entry for the netmask */
+         x = rn_addmask(head, m_arg, 1, head->rnh_treetop->rn_offset);
+@@ -283,23 +283,28 @@ rn_lookup(v_arg, m_arg, head, type)
+ 
+   /* if its not an exact match reset x.
+    * note that we still have the match in saved_x. This
+    * serves as a starting point for getting the next entry
+    */
+   if(!keyMatch)
++  {
+     x = 0;
++  }
+ 
+-    if (x && netmask) {
+-        /* walk duplicates e.g. for 1.1.1.0/24 and 1.1.1.0/28 */
+-        while (x && x->rn_mask != netmask)
+-            x = x->rn_dupedkey;
+-    }
++  if (x && netmask)
++  {
++    /* walk duplicates e.g. for 1.1.1.0/24 and 1.1.1.0/28 */
++    while (x && x->rn_mask != netmask)
++      x = x->rn_dupedkey;
++  }
+ 
+   /* exact match? */
+   if(type == L7_RN_EXACT)
+-          return x;
++  {
++    return x;
++  }
+ 
+   /* found an exact match? */
+   if(x && netmask)
+   {
+     /* return next node */
+     while((x = (struct radix_node *)rn_getnext(x)))
+@@ -339,13 +344,13 @@ rn_lookup(v_arg, m_arg, head, type)
+   /* a null netmask means rn_addmask failed. so copy the netmask
+    * from the buffer in which the rn_addmask calculated it!
+    * This is to get the "trimmed" length for the netmask the user
+    * passed in.
+    */
+   if(!netmask)
+-          netmask = head->addmask_key;
++    netmask = head->addmask_key;
+ 
+   /* matched but not found, try to get next */
+   x = saved_x;
+ 
+   /* Open code rn_getnext, to deal with a mask that isn't in the list! */
+ 
+@@ -2157,14 +2162,17 @@ rn_match_count(v_arg, head, rn_bits)
+      * to look up the default.  Ugh!
+      *
+      * Never return the root node itself, it seems to cause a
+      * lot of confusion.
+      */
+     if (t->rn_flags & RNF_ROOT)
+-        t = t->rn_dupedkey;
+-        return t;
++    {
++      t = t->rn_dupedkey;
++    }
++
++    return t;
+ 
+ on1:
+     /* The search tested the bit specified by rn_bmask (rn_bit)
+      * so some other  bit may also vary before it!
+      * So find first bit that differs!
+      * also test is an int so & with 0xff to ensure all leading bits are zero */
+@@ -2175,8 +2183,7 @@ on1:
+     b += matched_off << 3; /* add bits for the bytes skipped */
+ 
+         if(b >= rn_bits)
+             return t;
+         else
+             return L7_NULL;
+-
+ }
+Index: src/application/base/doublevlantag/dvlantag_ih.c
+===================================================================
+--- src/application/base/doublevlantag/dvlantag_ih.c	(revision 7755)
++++ src/application/base/doublevlantag/dvlantag_ih.c	(revision 7756)
+@@ -641,16 +641,21 @@ L7_BOOL dvlantagIntfConfigEntryGet(L7_ui
+     }
+   }
+ 
+   if (i < L7_DVLANTAG_MAX_INTERFACE_COUNT)
+   {
+     dvlantagMapTbl[intIfNum] = i;
++
++    /* CHECKME: GCC8 indentation issue */
+     if (pCfg != L7_NULLPTR)
+-        *pCfg = &dvlantagCfg->intfCfg[i];
+-        return L7_TRUE;
+-      }
++    {
++      *pCfg = &dvlantagCfg->intfCfg[i];
++    }
++
++    return L7_TRUE;
++  }
+ 
+   return L7_FALSE;
+ }
+ 
+ /*********************************************************************
+ *
+Index: src/application/switching/spanning_tree/dot1s/core/dot1s_cfg.c
+===================================================================
+--- src/application/switching/spanning_tree/dot1s/core/dot1s_cfg.c	(revision 7755)
++++ src/application/switching/spanning_tree/dot1s/core/dot1s_cfg.c	(revision 7756)
+@@ -535,86 +535,86 @@ L7_RC_t dot1sApplyConfigData(void)
+       continue;
+     if (nimIntIfFromConfigIDGet(&dot1sCfg->cfg.dot1sCfgPort[i].configId, &intIfNum) != L7_SUCCESS)
+       continue;
+     if (dot1sIsValidIntf(intIfNum) != L7_TRUE)
+       continue;
+ 
+-      pPort = dot1sIntfFind(intIfNum);
++    pPort = dot1sIntfFind(intIfNum);
+ 
+-      if (pPort == L7_NULLPTR)
+-      {
+-        return L7_FAILURE;
+-      }
+-      /* Initialize with the defaults then replace the configured fields
+-       * with their configured values.
+-       */
+-      rc = dot1sPortDefaultPopulate(pPort, intIfNum);
++    if (pPort == L7_NULLPTR)
++    {
++      return L7_FAILURE;
++    }
++    /* Initialize with the defaults then replace the configured fields
++     * with their configured values.
++     */
++    rc = dot1sPortDefaultPopulate(pPort, intIfNum);
+ 
+     pPortCfg = &dot1sCfg->cfg.dot1sCfgPort[intIfNum];
+ 
+-      pPort->portAdminMode = pPortCfg->portAdminMode;
+-      /* notParticipating must be kept in sync with Admin Mode
+-       * up until the time of an IhAcquire or IhRelease
+-       */
+-      if (pPort->portAdminMode == L7_ENABLE)
+-      {
+-        pPort->notParticipating = L7_FALSE;
+-      }
+-      else
+-      {
+-        pPort->notParticipating = L7_TRUE;
+-      }
++    pPort->portAdminMode = pPortCfg->portAdminMode;
++    /* notParticipating must be kept in sync with Admin Mode
++     * up until the time of an IhAcquire or IhRelease
++     */
++    if (pPort->portAdminMode == L7_ENABLE)
++    {
++      pPort->notParticipating = L7_FALSE;
++    }
++    else
++    {
++      pPort->notParticipating = L7_TRUE;
++    }
+ 
+     pPort->portNum = intIfNum;
+-      pPort->adminEdge = pPortCfg->adminEdge;
+-      pPort->autoEdge = pPortCfg->autoEdge;
+-      pPort->restrictedRole = pPortCfg->restrictedRole;
+-      pPort->loopGuard = pPortCfg->loopGuard;
+-      pPort->restrictedTcn = pPortCfg->restrictedTcn;
+-
+-      for (instIndex = DOT1S_CIST_INDEX; instIndex <= L7_MAX_MULTIPLE_STP_INSTANCES; instIndex++)
+-      {
+-        pPort->portInstInfo[instIndex].ExternalPortPathCost = pPortCfg->portInstInfo[instIndex].ExternalPortPathCost;
+-        pPort->portInstInfo[instIndex].InternalPortPathCost = pPortCfg->portInstInfo[instIndex].InternalPortPathCost;
+-        pPort->portInstInfo[instIndex].autoInternalPortPathCost = pPortCfg->portInstInfo[instIndex].autoInternalPortPathCost;
++    pPort->adminEdge = pPortCfg->adminEdge;
++    pPort->autoEdge = pPortCfg->autoEdge;
++    pPort->restrictedRole = pPortCfg->restrictedRole;
++    pPort->loopGuard = pPortCfg->loopGuard;
++    pPort->restrictedTcn = pPortCfg->restrictedTcn;
++
++    for (instIndex = DOT1S_CIST_INDEX; instIndex <= L7_MAX_MULTIPLE_STP_INSTANCES; instIndex++)
++    {
++      pPort->portInstInfo[instIndex].ExternalPortPathCost = pPortCfg->portInstInfo[instIndex].ExternalPortPathCost;
++      pPort->portInstInfo[instIndex].InternalPortPathCost = pPortCfg->portInstInfo[instIndex].InternalPortPathCost;
++      pPort->portInstInfo[instIndex].autoInternalPortPathCost = pPortCfg->portInstInfo[instIndex].autoInternalPortPathCost;
+       pPort->portInstInfo[instIndex].autoExternalPortPathCost = pPortCfg->portInstInfo[instIndex].autoExternalPortPathCost;
+ 
+       pPort->portInstInfo[instIndex].portId = ((pPortCfg->portInstInfo[instIndex].portPriority << 8) | intIfNum);
+-        /* msti */
+-        if (instIndex != DOT1S_CIST_INDEX)
+-        {
++      /* msti */
++      if (instIndex != DOT1S_CIST_INDEX)
++      {
+         priInstId = dot1sCfg->cfg.dot1sInstance.msti[instIndex].BridgeIdentifier.priInstId;
+ 
+-          pPort->portInstInfo[instIndex].inst.msti.mstiDesignatedPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
+-          pPort->portInstInfo[instIndex].inst.msti.mstiDesignatedPriority.regRootId.priInstId = (L7_ushort16)priInstId;
+-          pPort->portInstInfo[instIndex].inst.msti.mstiMsgPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
+-          pPort->portInstInfo[instIndex].inst.msti.mstiMsgPriority.regRootId.priInstId = (L7_ushort16)priInstId;
+-          pPort->portInstInfo[instIndex].inst.msti.mstiPortPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
+-          pPort->portInstInfo[instIndex].inst.msti.mstiPortPriority.regRootId.priInstId = (L7_ushort16)priInstId;
+-        }
+-        else /* cist */
+-        {
++        pPort->portInstInfo[instIndex].inst.msti.mstiDesignatedPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
++        pPort->portInstInfo[instIndex].inst.msti.mstiDesignatedPriority.regRootId.priInstId = (L7_ushort16)priInstId;
++        pPort->portInstInfo[instIndex].inst.msti.mstiMsgPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
++        pPort->portInstInfo[instIndex].inst.msti.mstiMsgPriority.regRootId.priInstId = (L7_ushort16)priInstId;
++        pPort->portInstInfo[instIndex].inst.msti.mstiPortPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
++        pPort->portInstInfo[instIndex].inst.msti.mstiPortPriority.regRootId.priInstId = (L7_ushort16)priInstId;
++      }
++      else /* cist */
++      {
+         priInstId = dot1sCfg->cfg.dot1sInstance.cist.BridgeIdentifier.priInstId;
+ 
+-          pPort->portInstInfo[instIndex].inst.cist.cistDesignatedPriority.rootId.priInstId = (L7_ushort16)priInstId;
+-          pPort->portInstInfo[instIndex].inst.cist.cistDesignatedPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
+-          pPort->portInstInfo[instIndex].inst.cist.cistDesignatedPriority.regRootId.priInstId = (L7_ushort16)priInstId;
+-          pPort->portInstInfo[instIndex].inst.cist.cistMsgPriority.rootId.priInstId = (L7_ushort16)priInstId;
+-          pPort->portInstInfo[instIndex].inst.cist.cistMsgPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
+-          pPort->portInstInfo[instIndex].inst.cist.cistMsgPriority.regRootId.priInstId = (L7_ushort16)priInstId;
+-          pPort->portInstInfo[instIndex].inst.cist.cistPortPriority.rootId.priInstId = (L7_ushort16)priInstId;
+-          pPort->portInstInfo[instIndex].inst.cist.cistPortPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
+-          pPort->portInstInfo[instIndex].inst.cist.cistPortPriority.regRootId.priInstId = (L7_ushort16)priInstId;
+-        }
+-      }/*endfor instIndex*/
+-
+-      /* Handle the current link state for this port in case it is
+-       * already up.
+-       */
+-      if (nimGetIntfLinkState(intIfNum, &portLinkState) == L7_SUCCESS)
+-      {
++        pPort->portInstInfo[instIndex].inst.cist.cistDesignatedPriority.rootId.priInstId = (L7_ushort16)priInstId;
++        pPort->portInstInfo[instIndex].inst.cist.cistDesignatedPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
++        pPort->portInstInfo[instIndex].inst.cist.cistDesignatedPriority.regRootId.priInstId = (L7_ushort16)priInstId;
++        pPort->portInstInfo[instIndex].inst.cist.cistMsgPriority.rootId.priInstId = (L7_ushort16)priInstId;
++        pPort->portInstInfo[instIndex].inst.cist.cistMsgPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
++        pPort->portInstInfo[instIndex].inst.cist.cistMsgPriority.regRootId.priInstId = (L7_ushort16)priInstId;
++        pPort->portInstInfo[instIndex].inst.cist.cistPortPriority.rootId.priInstId = (L7_ushort16)priInstId;
++        pPort->portInstInfo[instIndex].inst.cist.cistPortPriority.dsgBridgeId.priInstId = (L7_ushort16)priInstId;
++        pPort->portInstInfo[instIndex].inst.cist.cistPortPriority.regRootId.priInstId = (L7_ushort16)priInstId;
++      }
++    }/*endfor instIndex*/
++
++    /* Handle the current link state for this port in case it is
++     * already up.
++     */
++    if (nimGetIntfLinkState(intIfNum, &portLinkState) == L7_SUCCESS)
++    {
+       rc = dot1sIhNotifySystem(intIfNum, portLinkState);
+     }
+   }
+   /* Set mode to the saved configured value and generate all necessary events */
+   if (cfgMode == L7_ENABLE)
+   {
+Index: src/application/switching/spanning_tree/dot1s/encryption/md5.c
+===================================================================
+--- src/application/switching/spanning_tree/dot1s/encryption/md5.c	(revision 7755)
++++ src/application/switching/spanning_tree/dot1s/encryption/md5.c	(revision 7756)
+@@ -138,16 +138,19 @@ void L7_MD5Update (L7_MD5_CTX_t *context
+ {
+   L7_uint32 i, index, partLen;
+ 
+   /* Compute number of bytes mod 64 */
+   index = (L7_uint32)((context->count[0] >> 3) & 0x3F);
+ 
++  /* CHECKME: GCC8 indentation issue */
+   /* Update number of bits */
+   if ((context->count[0] += ((L7_uint32)inputLen << 3)) < ((L7_uint32)inputLen << 3))
+-	  context->count[1]++;
+-	  context->count[1] += ((L7_uint32)inputLen >> 29);
++  {
++    context->count[1]++;
++  }
++  context->count[1] += ((L7_uint32)inputLen >> 29);
+ 
+   partLen = 64 - index;
+ 
+   /* Transform as many times as possible.
+ */
+   if (inputLen >= partLen) {
+Index: src/application/routing/protocol/ospf/ospfmib.c
+===================================================================
+--- src/application/routing/protocol/ospf/ospfmib.c	(revision 7755)
++++ src/application/routing/protocol/ospf/ospfmib.c	(revision 7756)
+@@ -917,18 +917,25 @@ e_Err ospfAreaTable_SetTest(word lastOid
+    
+    /* Since OSPF Area configuration parameters are "CREATE_READ" objects, */
+    /* they can be changed (set) only during conceptual row creation.      */
+    /* Rowstatus are "READ_WRITE" objects, so they can be set at any time. */
+ 
+    if ( lastOid == ospfAreaTableRowStatusSubId)  
+-      return E_OK;
++   {
++     return E_OK;
++   }
+    else
++   {
+       if((p_areaEntry->info.rowStatus != notReady) &&
+-         (p_areaEntry->info.rowStatus != notInService))
+-          return E_FAILED;
+-      return E_OK;   
++           (p_areaEntry->info.rowStatus != notInService))
++      {
++         return E_FAILED;
++      }
++   }
++
++   return E_OK;   
+ }
+ 
+ 
+ 
+ 
+ /*********************************************************************
+@@ -4778,22 +4785,30 @@ e_Err ospfVirtIfTable_SetTest(word lastO
+    /* Therefore they can be changed (set) only during conceptual  */
+    /* row creation (i.e. before the row status becomes "active"). */
+ 
+    if (lastOid == ospfVirtIfTableRowStatusSubId)
+    {
+       if (p_virtIfEntry)
++      {
+          if (p_virtIfEntry->info.internalCreated == TRUE)
++         {
+             return E_FAILED;
++         }
++      }
+       return E_OK;
+    }
+    else
++   {
+       if((p_virtIfEntry->info.rowStatus != notReady) &&
+          (p_virtIfEntry->info.rowStatus != notInService))
++      {
+           return E_FAILED;
++      }
++   }
+ 
+-      return E_OK;   
++   return E_OK;
+ }
+ 
+ 
+ 
+ /*********************************************************************
+  * @purpose      Set new value for row status of the ospfVirtIfTable
+@@ -5506,27 +5521,35 @@ e_Err ospfNbrTable_SetTest(word lastOid,
+    
+    /* The first verification: the new value of the object is in range */
+    if (!CheckValueInRange(ospfNbrTestTable, 
+                             sizeof(ospfNbrTestTable)/
+                             sizeof(ospfNbrTestTable[0]),
+                             lastOid, newValue))
++   {
+       return E_FAILED;
++   }
+    
+    /* OSPF Neighbor table fields are "CREATE_READ" objects.         */
+    /* Therefore they can be changed (set) only during conceptual row      */
+    /* creation (i.e. before the row status becomes "active").             */
+    /* Rowstatus are "READ_WRITE" objects, so they can be set at any time. */
+ 
+    if (lastOid == ospfNbrTableRowStatusSubId)  
++   {
+       return E_OK;
++   }
+    else
++   {
+       if((p_nbrEntry->info.rowStatus != notReady) &&
+          (p_nbrEntry->info.rowStatus != notInService))
++      {
+           return E_FAILED;
++      }
++   }
+ 
+-      return E_OK;   
++   return E_OK;   
+ }
+ 
+ 
+ 
+ /*********************************************************************
+  * @purpose      Set new value for row status of the ospfNbrTable
+Index: src/application/routing/protocol/ospf/spifo.c
+===================================================================
+--- src/application/routing/protocol/ospf/spifo.c	(revision 7755)
++++ src/application/routing/protocol/ospf/spifo.c	(revision 7756)
+@@ -346,17 +346,19 @@ Bool IFO_Delete( t_Handle Id, ulng flag)
+   TIMER_Delete( p_IFO->HelloTimer );
+   TIMER_Delete( p_IFO->WaitTimer );
+   TIMER_Delete(p_IFO->grSuppressHelloTimer);
+ 
+    /* if no more Interfaces in this Area */
+    if (p_ARO && flag)
++   {
++      /* CHECKME: GCC8 indentation issue */
+       if (HL_GetFirst(p_ARO->IfoHl, (void *)&p_tmpIfo) != E_OK)
+-      {
++       {
+           if (p_RTO->Cfg.DelAreaOnLastIfDel)
+             ARO_Delete(p_ARO, 1);
+-
++       
+          /* If the deleted area is not the last one of the router */
+          /* Recalculate the appropriate routing table             */
+          if(p_RTO->AreasNum != 0)
+          {
+             if(HL_FindFirst(p_RTO->RtbHl, (byte *) &zero, (void *)&p_RTB) == E_OK)
+             {
+@@ -366,18 +368,19 @@ Bool IFO_Delete( t_Handle Id, ulng flag)
+                  RTB_ComputeCalcDelay(p_RTB, p_RTO);
+                  TIMER_StartSec(p_RTB->RecalcTimer, p_RTB->CalcDelay, 0, RecalcTimerExp,
+                                 p_RTO->OspfRtbThread.threadHndle);
+                }
+             }
+          }
+-      }
++       }
++    }
+ 
+-      if (p_IFO->PendingUpdate)
+-      {
++    if (p_IFO->PendingUpdate)
++    {
+         F_Delete(p_IFO->PendingUpdate);
+-      }
++    }
+ 
+ #if L7_OSPF_TE
+    /* Free the interface TE Link Lsa instance number   */
+    /* (i.e. set the appropriate bit to FALSE)          */
+    if (((t_RTO *)p_IFO->RTO_Id)->TeLsaInstBS)
+       BS_SetBit(((t_RTO *)p_IFO->RTO_Id)->TeLsaInstBS,
+Index: src/application/routing/protocol/ospf/sparo.c
+===================================================================
+--- src/application/routing/protocol/ospf/sparo.c	(revision 7755)
++++ src/application/routing/protocol/ospf/sparo.c	(revision 7756)
+@@ -3891,17 +3891,20 @@ next_interface:
+       /* Remove LSA preparsing elements */
+       if (p_DbEntry->ConnList)
+          LsaParseDel(p_ARO, p_DbEntry);
+ 
+       if (HL_FindFirst(p_RTO->RtbHl, (byte *) &VpnCos, (void *)&p_RTB) == E_OK)
+       {
++        /* CHECKME: GCC8 indentation issue */
+         if(!TIMER_Active(p_RTB->RecalcTimer))
+-          /* Start recalculation timer */
+-          RTB_ComputeCalcDelay(p_RTB, p_RTO);
+-          TIMER_StartSec(p_RTB->RecalcTimer, p_RTB->CalcDelay,
+-                         0, RecalcTimerExp, p_RTO->OspfRtbThread.threadHndle);
++        {
++            /* Start recalculation timer */
++            RTB_ComputeCalcDelay(p_RTB, p_RTO);
++            TIMER_StartSec(p_RTB->RecalcTimer, p_RTB->CalcDelay,
++                           0, RecalcTimerExp, p_RTO->OspfRtbThread.threadHndle);
++        }
+       }
+    }
+      
+    return E_OK;
+ }
+ 
+@@ -4337,17 +4340,22 @@ e_Err FindSummaryOrASExtLsa(t_RTO *p_RTO
+    A_SET_4B(DestAddr, key.LsId);
+    p_DbEntry = NULL;
+    err = AVLH_Find(lsaHashList, (byte *)&key, (void *)&p_DbEntry,0);
+ 
+    if((err == E_OK) && (NetMask == A_GET_4B(p_DbEntry->p_Lsa)))
+    {
++      /* CHECKME: GCC8 indentation issue */
+       if(p_foundLsa)
++      {
+          *p_foundLsa = p_DbEntry;
++      }
+       if(p_LsId)
++      {
+          *p_LsId = A_GET_4B(p_DbEntry->Lsa.LsId);
+-         return E_OK;
++      }
++      return E_OK;
+    }
+ 
+    return E_NOT_FOUND;
+ }
+ 
+ 
+Index: src/application/routing/mapping/ospfmap/core/ospf_vend_exten.c
+===================================================================
+--- src/application/routing/mapping/ospfmap/core/ospf_vend_exten.c	(revision 7755)
++++ src/application/routing/mapping/ospfmap/core/ospf_vend_exten.c	(revision 7756)
+@@ -2374,57 +2374,59 @@ L7_RC_t ospfMapExtenIfStatusSet(L7_uint3
+ 
+   /* There is no change in the set of addresses
+    * to be informed to the vendor code
+    */
+   if(memcmp((void *)prevAddrs, (void *)ifoCfg.addrs,
+      L7_L3_NUM_IP_ADDRS*sizeof(L7_rtrIntfIpAddr_t)) == 0)
++  {
+     return L7_SUCCESS;
++  }
+ 
+-    switch (val)
+-    {
+-        case L7_OSPF_ROW_ACTIVE:
+-            parm = ROW_ACTIVE;
+-            break;
+-
+-        case L7_OSPF_ROW_NOT_IN_SERVICE:
+-            parm = ROW_NOT_IN_SERVICE;
+-            break;
+-
+-        case L7_OSPF_ROW_NOT_READY:
+-            parm = ROW_NOT_READY;
+-            break;
+-
+-        case L7_OSPF_ROW_CREATE_AND_GO:
+-            parm = ROW_CREATE_AND_GO;
+-            break;
+-
+-        case L7_OSPF_ROW_CREATE_AND_WAIT:
+-            parm = ROW_CREATE_AND_WAIT;
+-            break;
+-
+-        case L7_OSPF_ROW_DESTROY:
+-            parm = ROW_DESTROY;
+-            break;
+-
+-        case L7_OSPF_ROW_CHANGE:
+-            parm = ROW_CHANGE;
+-            break;
+-
+-        default:
+-            return L7_FAILURE;
+-            break;
+-    }
+-
+-    ifoCfg.IfStatus = parm;
+-
+-    if (IFO_Config_Pack((t_Handle)p_IFO, &ifoCfg) != E_OK)
+-    {
+-        return L7_FAILURE;
+-    }
++  switch (val)
++  {
++      case L7_OSPF_ROW_ACTIVE:
++          parm = ROW_ACTIVE;
++          break;
++
++      case L7_OSPF_ROW_NOT_IN_SERVICE:
++          parm = ROW_NOT_IN_SERVICE;
++          break;
++
++      case L7_OSPF_ROW_NOT_READY:
++          parm = ROW_NOT_READY;
++          break;
++
++      case L7_OSPF_ROW_CREATE_AND_GO:
++          parm = ROW_CREATE_AND_GO;
++          break;
++
++      case L7_OSPF_ROW_CREATE_AND_WAIT:
++          parm = ROW_CREATE_AND_WAIT;
++          break;
++
++      case L7_OSPF_ROW_DESTROY:
++          parm = ROW_DESTROY;
++          break;
++
++      case L7_OSPF_ROW_CHANGE:
++          parm = ROW_CHANGE;
++          break;
++
++      default:
++          return L7_FAILURE;
++          break;
++  }
++
++  ifoCfg.IfStatus = parm;
++
++  if (IFO_Config_Pack((t_Handle)p_IFO, &ifoCfg) != E_OK)
++  {
++      return L7_FAILURE;
++  }
+ 
+-    return L7_SUCCESS;
++  return L7_SUCCESS;
+ }
+ 
+ /*********************************************************************
+ * @purpose  Test if Ospf multicast forwarding for the specified
+ *           interface is settable.
+ *
+Index: src/application/routing/mapping/ripmap/rip_map_sysctl.c
+===================================================================
+--- src/application/routing/mapping/ripmap/rip_map_sysctl.c	(revision 7755)
++++ src/application/routing/mapping/ripmap/rip_map_sysctl.c	(revision 7756)
+@@ -165,48 +165,54 @@ static int ripMapSysctlTwo(int *name, u_
+     return (EINVAL);
+ 
+   /* perform sysctl_rtable work */
+   name += 3;
+   namelen -= 3;
+ 
++  /* CHECKME: GCC8 Indentation issue */
+   if (new)
++  {
+     return (EPERM);
+-    if (namelen != 3)
+-        return (EINVAL);
+-    af = name[0];
++  }
++  if (namelen != 3)
++  {
++    return (EINVAL);
++  }
++  af = name[0];
+   if (af != AF_INET)
++  {
+     return (ENOPROTOOPT);
+-    bzero((caddr_t)&w, sizeof(w));
++  }
++  bzero((caddr_t)&w, sizeof(w));
+   w.w_where = where;
+   w.w_given = *given;
+   w.w_needed = 0 - w.w_given;
+-    w.w_op = name[1];
+-    w.w_arg = name[2];
+-
+-    /* s = splnet(); */                   /* LVL7_MOD */
+-    switch (w.w_op) {
++  w.w_op = name[1];
++  w.w_arg = name[2];
+ 
++  /* s = splnet(); */                   /* LVL7_MOD */
++  switch (w.w_op) {
+     case NET_RT_IFLIST:
+         error = ripMapSysctl_iflist(af, &w);
+     break;
+ 
+-  default:
++    default:
+     break;
+-    }
+-    /* splx(s); */                        /* LVL7_MOD */
+-    if (w.w_tmem)
+-    osapiFree(L7_RIP_MAP_COMPONENT_ID, w.w_tmem);                /* LVL7_MOD */
++  }
++  /* splx(s); */                        /* LVL7_MOD */
++  if (w.w_tmem)
++  osapiFree(L7_RIP_MAP_COMPONENT_ID, w.w_tmem);                /* LVL7_MOD */
+   w.w_needed += w.w_given;
+   if (where) {
+     *given = w.w_where - where;
+     if (*given < w.w_needed)
+       return (ENOMEM);
+   } else {
+     *given = (w.w_needed * 11) / 10;
+   }
+-    return (error);
++  return (error);
+ }
+ 
+ 
+ /*********************************************************************
+ * @purpose  Prepares the message buffer containing information about all
+ *           currently configured RIP interfaces
+Index: src/mgmt/broadcom/cli/base/common/cli_config_time.c
+===================================================================
+--- src/mgmt/broadcom/cli/base/common/cli_config_time.c	(revision 7755)
++++ src/mgmt/broadcom/cli/base/common/cli_config_time.c	(revision 7756)
+@@ -437,19 +437,22 @@ const L7_char8  *commandClockSummerTimeR
+ 
+   if(numArg > 7)
+     cliConvertToLowerCase((L7_char8 *)argv[index+8]);
+ 
+   /* get switch ID based on presence/absence of STACKING package */
+   if (cliIsStackingSupported () == L7_TRUE)
++  {
+     unit = EWSUNIT (ewsContext);
++  }
+   else
++  {
+     unit = cliGetUnitId ();
+-    if (cliConvertTo32BitUnsignedInteger (argv[index], &stWeek) != L7_SUCCESS)
++  }
++  if (cliConvertTo32BitUnsignedInteger (argv[index], &stWeek) != L7_SUCCESS)
+   {
+-
+-  if (usmDbWeekNumberGet ((L7_char8 *)argv[index], &stWeek) != L7_SUCCESS)
++    if (usmDbWeekNumberGet ((L7_char8 *)argv[index], &stWeek) != L7_SUCCESS)
+     {
+       ewsTelnetWrite (ewsContext, pStrInfo_base_clierror_summertime_startweek);
+       cliSyntaxBottom (ewsContext);
+       return cliPrompt (ewsContext);
+     }
+   }
+Index: src/mgmt/broadcom/cli/base/common/cliutil.c
+===================================================================
+--- src/mgmt/broadcom/cli/base/common/cliutil.c	(revision 7755)
++++ src/mgmt/broadcom/cli/base/common/cliutil.c	(revision 7756)
+@@ -4779,15 +4779,17 @@ L7_RC_t cliValidUnitCheck(const L7_char8
+ void cliDiffservBuildValDscpKeyWords(L7_char8 * buf, L7_uint32 bufSize)
+ {
+   L7_uint32 unit;
+   L7_uint32 buflen;
+ 
+   unit = cliGetUnitId();
+-if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
++  if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
+                                L7_DIFFSERV_PHB_OTHER_FEATURE_ID) == L7_TRUE)
++  {
+     strcpy(buf, "Enter a DSCP value in the range of 0 to 63 or a DSCP keyword (");
++  }
+   else
+   {
+     strcpy (buf, "Enter a DSCP value (");
+     if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID, L7_DIFFSERV_PHB_AF1X_FEATURE_ID) == L7_TRUE)
+       strcat(buf, pStrInfo_base_10_12_14);
+     if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID, L7_DIFFSERV_PHB_AF2X_FEATURE_ID) == L7_TRUE)
+Index: src/mgmt/snmp/packages/base/k_mib_fastpath_timerange.c
+===================================================================
+--- src/mgmt/snmp/packages/base/k_mib_fastpath_timerange.c	(revision 7755)
++++ src/mgmt/snmp/packages/base/k_mib_fastpath_timerange.c	(revision 7756)
+@@ -273,18 +273,20 @@ timeRangeEntry_undo(doList_t *doHead, do
+ 
+   /* we are either trying to undo an add, a delete, or a modify */
+   if ( undodata == NULL )
+   {
+     /* ignore if deleting a non-existant entry */
+     if (data->timeRangeStatus == D_timeRangeStatus_destroy)
++    {
+       return NO_ERROR;
++    }
+ 
+-      /* undoin g an add, so delete */
+-      data->timeRangeStatus = D_timeRangeStatus_destroy;
+-      setdata = data;
+-      function = SR_DELETE;
++    /* undoin g an add, so delete */
++    data->timeRangeStatus = D_timeRangeStatus_destroy;
++    setdata = data;
++    function = SR_DELETE;
+   }
+   else
+   {
+       /* undoing a delete or modify, replace the original data */
+       if ((undodata->timeRangeStatus == D_timeRangeStatus_notReady)
+          || (undodata->timeRangeStatus == D_timeRangeStatus_notInService))
+@@ -677,18 +679,20 @@ timeRangeAbsoluteEntry_undo(doList_t *do
+ 
+   /* we are either trying to undo an add, a delete, or a modify */
+   if ( undodata == NULL )
+   {
+     /* ignore if deleting a non-existant entry */
+     if (data->timeRangeAbsoluteStatus == D_timeRangeAbsoluteStatus_destroy)
++    {
+       return NO_ERROR;
++    }
+ 
+-      /* undoing an add, so delete */
+-      data->timeRangeAbsoluteStatus = D_timeRangeAbsoluteStatus_destroy;
+-      setdata = data;
+-      function = SR_DELETE;
++    /* undoing an add, so delete */
++    data->timeRangeAbsoluteStatus = D_timeRangeAbsoluteStatus_destroy;
++    setdata = data;
++    function = SR_DELETE;
+   }
+   else
+   {
+       /* undoing a delete or modify, replace the original data */
+       if ((undodata->timeRangeAbsoluteStatus == D_timeRangeAbsoluteStatus_notReady)
+          || (undodata->timeRangeAbsoluteStatus == D_timeRangeAbsoluteStatus_notInService))
+@@ -1083,18 +1087,20 @@ timeRangePeriodicEntry_undo(doList_t *do
+ 
+   /* we are either trying to undo an add, a delete, or a modify */
+   if ( undodata == NULL )
+   {
+     /* ignore if deleting a non-existant entry */
+     if (data->timeRangePeriodicStatus == D_timeRangePeriodicStatus_destroy)
++    {
+       return NO_ERROR;
++    }
+ 
+-      /* undoing an add, so delete */
+-      data->timeRangePeriodicStatus = D_timeRangePeriodicStatus_destroy;
+-      setdata = data;
+-      function = SR_DELETE;
++    /* undoing an add, so delete */
++    data->timeRangePeriodicStatus = D_timeRangePeriodicStatus_destroy;
++    setdata = data;
++    function = SR_DELETE;
+   }
+   else
+   {
+       /* undoing a delete or modify, replace the original data */
+       if ((undodata->timeRangePeriodicStatus == D_timeRangePeriodicStatus_notReady)
+          || (undodata->timeRangePeriodicStatus == D_timeRangePeriodicStatus_notInService))
+Index: src/mgmt/snmp/packages/ip_mcast/k_mib_mcast_api.h
+===================================================================
+--- src/mgmt/snmp/packages/ip_mcast/k_mib_mcast_api.h	(revision 7755)
++++ src/mgmt/snmp/packages/ip_mcast/k_mib_mcast_api.h	(revision 7756)
+@@ -289,28 +289,32 @@ snmpMcastMrouteBoundaryStatusSet(L7_uint
+ {
+   L7_RC_t rc = L7_SUCCESS;
+   L7_inet_addr_t inetMRtSrc, inetSrcMask;
+ 
+   inetAddressReset(&inetMRtSrc);
+   if(L7_SUCCESS != inetAddressSet(L7_AF_INET, &ipAddr, &inetMRtSrc))
++  {
+     return L7_FAILURE;
++  }
+   inetAddressReset(&inetSrcMask);
+   if(L7_SUCCESS != inetAddressSet(L7_AF_INET, &ipMask, &inetSrcMask))
++  {
+     return L7_FAILURE;
++  }
+ 
+-    switch (val)
+-    {
+-        case D_ipMRouteBoundaryStatus_active:
+-        case D_ipMRouteBoundaryStatus_createAndGo:
+-			 rc = usmDbMcastMrouteBoundaryAdd(UnitIndex, intIfNum, &inetMRtSrc, &inetSrcMask);
+-             break;
++  switch (val)
++  {
++    case D_ipMRouteBoundaryStatus_active:
++    case D_ipMRouteBoundaryStatus_createAndGo:
++         rc = usmDbMcastMrouteBoundaryAdd(UnitIndex, intIfNum, &inetMRtSrc, &inetSrcMask);
++         break;
+ 
+-        case D_ipMRouteBoundaryStatus_destroy:
+-             rc = usmDbMcastMrouteBoundaryDelete(UnitIndex, intIfNum, &inetMRtSrc, &inetSrcMask);
+-	        break;
+-        default:
+-             rc = L7_FAILURE;
+-    }
++    case D_ipMRouteBoundaryStatus_destroy:
++         rc = usmDbMcastMrouteBoundaryDelete(UnitIndex, intIfNum, &inetMRtSrc, &inetSrcMask);
++        break;
++    default:
++         rc = L7_FAILURE;
++  }
+ 
+   return rc;
+ }
+ #endif
+Index: src/mgmt/snmp/packages/switching/common/k_mib_fastpathswitching_api.h
+===================================================================
+--- src/mgmt/snmp/packages/switching/common/k_mib_fastpathswitching_api.h	(revision 7755)
++++ src/mgmt/snmp/packages/switching/common/k_mib_fastpathswitching_api.h	(revision 7756)
+@@ -13422,14 +13422,16 @@ L7_RC_t snmpAgentSwitchVoiceVlanDeviceEn
+   {
+      if (usmdbVoiceVlanPortDeviceInfoFirstGet(UnitIndex,intIfNum,deviceMacAddr) == L7_SUCCESS )
+      {
+        if (memcmp(deviceMacAddr,macAddress,sizeof(deviceMacAddr))== 0)
+        {
+          if(voiceVlanDeviceDebugFlag== L7_TRUE)
+-          printf("\n %s: Returning success",__FUNCTION__);
+-          return L7_SUCCESS;
++         {
++           printf("\n %s: Returning success",__FUNCTION__);
++         }
++         return L7_SUCCESS;
+        }
+      }
+      else
+      {
+        rc1=usmdbVoiceVlanPortDeviceInfoNextGet(UnitIndex,intIfNum,deviceMacAddr);
+         while(rc1==L7_SUCCESS)
+Index: src/mgmt/snmp/packages/qos/k_mib_qos_acl.c
+===================================================================
+--- src/mgmt/snmp/packages/qos/k_mib_qos_acl.c	(revision 7755)
++++ src/mgmt/snmp/packages/qos/k_mib_qos_acl.c	(revision 7756)
+@@ -225,18 +225,20 @@ aclEntry_undo(doList_t *doHead, doList_t
+ 
+   /* we are either trying to undo an add, a delete, or a modify */
+   if ( undodata == NULL )
+   {
+     /* ignore if deleting a non-existant entry */
+     if (data->aclStatus == D_aclStatus_destroy)
++    {
+       return NO_ERROR;
++    }
+ 
+-      /* undoing an add, so delete */
+-      data->aclStatus = D_aclStatus_destroy;
+-      setdata = data;
+-      function = SR_DELETE;
++    /* undoing an add, so delete */
++    data->aclStatus = D_aclStatus_destroy;
++    setdata = data;
++    function = SR_DELETE;
+   }
+   else
+   {
+       /* undoing a delete or modify, replace the original data */
+       if((undodata->aclStatus == D_aclStatus_notReady)
+          || (undodata->aclStatus == D_aclStatus_notInService))
+@@ -466,18 +468,20 @@ aclIfEntry_undo(doList_t *doHead, doList
+ 
+   /* we are either trying to undo an add, a delete, or a modify */
+   if ( undodata == NULL )
+   {
+     /* ignore if deleting a non-existant entry */
+     if (data->aclIfStatus == D_aclIfStatus_destroy)
++    {
+       return NO_ERROR;
++    }
+ 
+-      /* undoing an add, so delete */
+-      data->aclIfStatus = D_aclIfStatus_destroy;
+-      setdata = data;
+-      function = SR_DELETE;
++    /* undoing an add, so delete */
++    data->aclIfStatus = D_aclIfStatus_destroy;
++    setdata = data;
++    function = SR_DELETE;
+   }
+   else
+   {
+       /* undoing a delete or modify, replace the original data */
+       if((undodata->aclIfStatus == D_aclIfStatus_notReady)
+          || (undodata->aclIfStatus == D_aclIfStatus_notInService))
+@@ -1128,18 +1132,20 @@ aclRuleEntry_undo(doList_t *doHead, doLi
+ 
+   /* we are either trying to undo an add, a delete, or a modify */
+   if ( undodata == NULL )
+   {
+     /* ignore if deleting a non-existant entry */
+     if (data->aclRuleStatus == D_aclRuleStatus_destroy)
++    {
+       return NO_ERROR;
++    }
+ 
+-      /* undoing an add, so delete */
+-      data->aclRuleStatus = D_aclRuleStatus_destroy;
+-      setdata = data;
+-      function = SR_DELETE;
++    /* undoing an add, so delete */
++    data->aclRuleStatus = D_aclRuleStatus_destroy;
++    setdata = data;
++    function = SR_DELETE;
+   }
+   else
+   {
+       /* undoing a delete or modify, replace the original data */
+       if((undodata->aclRuleStatus == D_aclRuleStatus_notReady)
+          || (undodata->aclRuleStatus == D_aclRuleStatus_notInService))
+@@ -1403,25 +1409,29 @@ aclMacEntry_undo(doList_t *doHead, doLis
+     return NO_ERROR;
+   }
+   */
+ 
+   /*Copy valid bits from data to undodata */
+   if ( undodata != NULL && (data->aclMacStatus != D_aclMacStatus_destroy))
+-      memcpy(undodata->valid,data->valid,sizeof(data->valid));
++  {
++    memcpy(undodata->valid,data->valid,sizeof(data->valid));
++  }
+ 
+   /* we are either trying to undo an add, a delete, or a modify */
+   if ( undodata == NULL )
+   {
+     /* ignore if deleting a non-existant entry */
+     if (data->aclMacStatus == D_aclMacStatus_destroy)
++    {
+       return NO_ERROR;
++    }
+ 
+-      /* undoin g an add, so delete */
+-      data->aclMacStatus = D_aclMacStatus_destroy;
+-      setdata = data;
+-      function = SR_DELETE;
++    /* undoin g an add, so delete */
++    data->aclMacStatus = D_aclMacStatus_destroy;
++    setdata = data;
++    function = SR_DELETE;
+   }
+   else
+   {
+       /* undoing a delete or modify, replace the original data */
+       if((undodata->aclMacStatus == D_aclMacStatus_notReady)
+          || (undodata->aclMacStatus == D_aclMacStatus_notInService))
+@@ -2057,25 +2067,29 @@ aclMacRuleEntry_undo(doList_t *doHead, d
+   aclMacRuleEntry_t *undodata = (aclMacRuleEntry_t *) doCur->undodata;
+   aclMacRuleEntry_t *setdata = NULL;
+   L7_int32 function = SR_UNKNOWN;
+ 
+   /*Copy valid bits from data to undodata */
+   if( undodata != NULL  && (data->aclMacRuleStatus != D_aclMacRuleStatus_destroy))
+-      memcpy(undodata->valid,data->valid,sizeof(data->valid));
++  {
++    memcpy(undodata->valid,data->valid,sizeof(data->valid));
++  }
+ 
+   /* we are either trying to undo an add, a delete, or a modify */
+   if ( undodata == NULL )
+   {
+     /* ignore if deleting a non-existant entry */
+     if (data->aclMacRuleStatus == D_aclMacRuleStatus_destroy)
++    {
+       return NO_ERROR;
++    }
+ 
+-      /* undoing an add, so delete */
+-      data->aclMacRuleStatus = D_aclMacRuleStatus_destroy;
+-      setdata = data;
+-      function = SR_DELETE;
++    /* undoing an add, so delete */
++    data->aclMacRuleStatus = D_aclMacRuleStatus_destroy;
++    setdata = data;
++    function = SR_DELETE;
+   }
+   else
+   {
+       /* undoing a delete or modify, replace the original data */
+       if((undodata->aclMacRuleStatus == D_aclMacRuleStatus_notReady)
+          || (undodata->aclMacRuleStatus == D_aclMacRuleStatus_notInService))
+Index: src/mgmt/snmp/packages/routing/vrrp/k_mib_vrrp.c
+===================================================================
+--- src/mgmt/snmp/packages/routing/vrrp/k_mib_vrrp.c	(revision 7755)
++++ src/mgmt/snmp/packages/routing/vrrp/k_mib_vrrp.c	(revision 7756)
+@@ -1441,25 +1441,29 @@ k_agentRouterVrrpTrackRouteEntry_set(age
+       {
+         return(NO_CREATION_ERROR);
+       }
+     }
+   }
+   else
++  {
+     return(NO_CREATION_ERROR);
++  }
+ 
+   if (VALID(I_agentRouterVrrpTrackRtPrioDec, data->valid) &&
+       (snmpVrrpTrackRtPrioSet(USMDB_UNIT_CURRENT, data->vrrpOperVrId,
+                                intIfNum,data->agentRouterVrrpTrackRtPfx, data->agentRouterVrrpTrackRtPfxLen,
+                                data->agentRouterVrrpTrackRtPrioDec) != L7_SUCCESS))
++  {
+     return(COMMIT_FAILED_ERROR);
++  }
+ 
+   if (VALID(I_agentRouterVrrpTrackRtStatus, data->valid) &&
+       (snmpVrrpTrackRtRowStatusSet(USMDB_UNIT_CURRENT, data->vrrpOperVrId,
+                                 intIfNum,data->agentRouterVrrpTrackRtPfx, data->agentRouterVrrpTrackRtPfxLen,
+                                 data->agentRouterVrrpTrackRtStatus) != L7_SUCCESS))
++  {
+     return(COMMIT_FAILED_ERROR);
++  }
+ 
+-
+-
+-    return NO_ERROR;
++  return NO_ERROR;
+ }
+ 
+Index: src/mgmt/snmp/util/ip_mcast/trap_api_ip_mcast.c
+===================================================================
+--- src/mgmt/snmp/util/ip_mcast/trap_api_ip_mcast.c	(revision 7755)
++++ src/mgmt/snmp/util/ip_mcast/trap_api_ip_mcast.c	(revision 7756)
+@@ -111,17 +111,19 @@ L7_RC_t SnmpPimNeighborLossTrapSend(L7_u
+ {
+   L7_SNMP_TRAP_IP_MCAST_PimNeighborLoss_t *trap = L7_NULLPTR;
+ 
+   trap = osapiMalloc(L7_SNMP_COMPONENT_ID, sizeof(L7_SNMP_TRAP_IP_MCAST_PimNeighborLoss_t));
+ 
+   if (trap == L7_NULLPTR)
++  {
+     return L7_ERROR;
++  }
+ 
+-    trap->pimNeighborUpTime = pimNeighborUpTime;
+-     return snmpTrapSend(L7_SNMP_TRAP_IP_MCAST_PimNeighborLoss, (void*)trap, &SnmpTrapSendCallback_ip_mcast);
++  trap->pimNeighborUpTime = pimNeighborUpTime;
+ 
++  return snmpTrapSend(L7_SNMP_TRAP_IP_MCAST_PimNeighborLoss, (void*)trap, &SnmpTrapSendCallback_ip_mcast);
+ }
+ 
+ /*********************************************************************
+ *
+ * @purpose  Send a trap when DVMRP neighbor is not pruning
+ *
