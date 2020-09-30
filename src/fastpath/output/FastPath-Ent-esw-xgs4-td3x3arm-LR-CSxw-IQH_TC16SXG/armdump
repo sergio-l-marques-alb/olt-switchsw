@@ -1,0 +1,11 @@
+#!/bin/sh
+
+if [ "$#" -ne 2 ]; then
+  echo "Usage: $0 <binary unstripped> <error file>"
+  exit 1
+fi
+
+ADDR2LINE="/opt/xldk/6.0.1/helix5/usr/bin/aarch64-broadcom-linux-gnu-addr2line"
+OPTIONS="--exe=$1 -a"
+
+cat $2 | grep '^0x' | xargs $ADDR2LINE $OPTIONS
