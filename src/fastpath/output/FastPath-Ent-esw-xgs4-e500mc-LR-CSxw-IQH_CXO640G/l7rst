@@ -3,7 +3,7 @@
 # arg 0 is stack trace file name
 # arg 1 is binary to run trace against
 
-$ADDR2LINE_PATH=" /opt/eldk/usr/bin/ppc_85xxDP-addr2line ";
+$ADDR2LINE_PATH=" /opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr/bin/ppce500mc-fsl-linux/powerpc-fsl-linux-addr2line ";
 $ADDR2LINE_OPT=" --exe=$ARGV[1] -fs ";
 open(STACK, $ARGV[0]) or die "can't open stack file";
 my $fault;
