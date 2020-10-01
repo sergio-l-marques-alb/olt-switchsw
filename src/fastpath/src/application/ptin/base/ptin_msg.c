@@ -4283,8 +4283,9 @@ L7_RC_t ptin_msg_Lag_create(msg_LACPLagInfo_t *lagInfo)
 #endif
   {
    ptinLagConf.stp_enable       = ENDIAN_SWAP8(lagInfo->stp_enable);
-   ptinLagConf.members_pbmp64   = ENDIAN_SWAP32((L7_uint64)lagInfo->members_pbmp32[0]);
-   ptinLagConf.members_pbmp64  |= ENDIAN_SWAP32(((L7_uint64)lagInfo->members_pbmp32[1]) << 32);
+   ptinLagConf.members_pbmp64   = ENDIAN_SWAP32(lagInfo->members_pbmp32[1]);
+   ptinLagConf.members_pbmp64   <<= 32;
+   ptinLagConf.members_pbmp64  |= ENDIAN_SWAP32(lagInfo->members_pbmp32[0]);
   }
 
   /* Copy data from msg to ptin structure */
@@ -4303,6 +4304,8 @@ L7_RC_t ptin_msg_Lag_create(msg_LACPLagInfo_t *lagInfo)
   PT_LOG_DEBUG(LOG_CTX_MSG, " .loadBalance_mode = %u",     ENDIAN_SWAP8(lagInfo->loadBalance_mode));
   PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[0]  = 0x%08X", ENDIAN_SWAP32(lagInfo->members_pbmp32[0]));
   PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[1]  = 0x%08X", ENDIAN_SWAP32(lagInfo->members_pbmp32[1]));
+
+  PT_LOG_DEBUG(LOG_CTX_MSG, "(ptinLagConf.members_pbmp64 = 0x%016X)", ptinLagConf.members_pbmp64);
 
   if (ptin_intf_Lag_create(&ptinLagConf) != L7_SUCCESS)
   {
@@ -4386,10 +4389,16 @@ L7_RC_t ptin_msg_LagStatus_get(msg_LACPLagStatus_t *lagStatus, L7_uint *nElems)
     lagStatus[array_idx].admin                = ENDIAN_SWAP8(ptinLagStatus.admin);
     lagStatus[array_idx].link_status          = ENDIAN_SWAP8(ptinLagStatus.link_status);
     lagStatus[array_idx].port_channel_type    = ENDIAN_SWAP8(ptinLagStatus.port_channel_type);
-    lagStatus[array_idx].members_pbmp32[0]        = ENDIAN_SWAP32((L7_uint32)ptinLagStatus.members_pbmp64);
-    lagStatus[array_idx].members_pbmp32[1]        = ENDIAN_SWAP32((L7_uint32)(ptinLagStatus.members_pbmp64 >> 32));
-    lagStatus[array_idx].active_members_pbmp32[0] = ENDIAN_SWAP32((L7_uint32)ptinLagStatus.active_members_pbmp64);
-    lagStatus[array_idx].active_members_pbmp32[1] = ENDIAN_SWAP32((L7_uint32)(ptinLagStatus.active_members_pbmp64 >> 32));
+
+    lagStatus[array_idx].members_pbmp32[0]        = ptinLagStatus.members_pbmp64;
+    lagStatus[array_idx].members_pbmp32[0]        = ENDIAN_SWAP32(lagStatus[array_idx].members_pbmp32[0]);
+    lagStatus[array_idx].members_pbmp32[1]        = ptinLagStatus.members_pbmp64 >> 32;
+    lagStatus[array_idx].members_pbmp32[1]        = ENDIAN_SWAP32(lagStatus[array_idx].members_pbmp32[1]);
+
+    lagStatus[array_idx].active_members_pbmp32[0] = ptinLagStatus.active_members_pbmp64;
+    lagStatus[array_idx].active_members_pbmp32[0] = ENDIAN_SWAP32(lagStatus[array_idx].active_members_pbmp32[0]);
+    lagStatus[array_idx].active_members_pbmp32[1] = ptinLagStatus.active_members_pbmp64 >> 32;
+    lagStatus[array_idx].active_members_pbmp32[1] = ENDIAN_SWAP32(lagStatus[array_idx].active_members_pbmp32[1]);
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "LAG# %2u", (L7_uint32) ENDIAN_SWAP8(lagStatus[array_idx].id));
     PT_LOG_DEBUG(LOG_CTX_MSG, " .admin                  = %s",     ENDIAN_SWAP8(lagStatus[array_idx].admin) ? "ON" : "OFF");
