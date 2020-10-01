@@ -56,7 +56,6 @@
 #include "logger.h"
 #include "ptin_fpga_api.h"
 #include "ptin_globaldefs.h"
-#include "ptin_env_api.h"
 #include <sys/resource.h>
 /* PTin end */
 
@@ -918,9 +917,6 @@ int main(int argc, char *argv[], char *envp[])
     perror("chdir " CONFIG_PATH);
 
   }
-
-  /* Read env vars */
-  (void) ptin_env_init();
 
   /* Get kernel information */
   if (uname(&kernel_uname) == 0)
