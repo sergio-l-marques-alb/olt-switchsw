@@ -86,6 +86,9 @@
 #include "soc/phyreg.h"
 #endif
 
+#include "shared/shr_bprof.h"
+#include "appl/diag/shell.h"
+
 /* PTin added: includes */
 #if 1
 #include "logger.h" /* PTin added */
@@ -2112,14 +2115,68 @@ L7_RC_t hpcBroadInit()
   const bcm_sys_board_t       *board_info;
   int                          rc;
 
-  hpcConfigSet();
-
   total_bcom_units = bde->num_devices(BDE_SWITCH_DEVICES);
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  /* TC16SXG board */
+  {
+    char                        *script;
+    int                          rv;
+
+    var_set_integer("units", total_bcom_units, FALSE, FALSE);
+
+    PT_LOG_TRACE(LOG_CTX_STARTUP,"Total bcom_units: %d", total_bcom_units);
+
+    for (bcom_unit = 0; bcom_unit < total_bcom_units; bcom_unit++)
+    {
+      PT_LOG_TRACE(LOG_CTX_STARTUP, "Attaching bcom_unit %d", bcom_unit);
+      /* coverity[stack_use_callee] */
+      /* coverity[stack_use_overflow] */
+      rv = sysconf_attach(bcom_unit);
+      if (rv < 0)
+      {
+          PT_LOG_FATAL(LOG_CTX_STARTUP,"ERROR: SOC unit %d attach failed!", bcom_unit);
+          L7_LOG_ERROR(0);
+      }
+    } /* for */
+
+ #ifndef NO_SAL_APPL
+
+    /* Add backdoor for mem tuner to update system configuration */
+    soc_mem_config_set = sal_config_set;
+
+    /*
+     * If a startup script is given in the boot parameters, attempt to
+     * load it.  This script is for general system configurations such
+     * as host table additions and NFS mounts.
+     */
+
+    if ((script = sal_boot_script()) != NULL) {
+      if (sh_rcload_file(-1, NULL, script, FALSE) != CMD_OK) {
+        PT_LOG_ERR(LOG_CTX_STARTUP,"ERROR loading boot init script: %s\n", script);
+      }
+    }
+
+    if (total_bcom_units <= 0)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP,"No attached units.\n");
+      L7_LOG_ERROR(0);
+    }
+    else
+    {
+      PT_LOG_TRACE(LOG_CTX_STARTUP,"Units attached!");
+    }
+  }
+ #endif /* NO_SAL_APPL */
+#else
+  /* Other boards */
+  hpcConfigSet();
 
   for (bcom_unit=0; bcom_unit<total_bcom_units; bcom_unit++)
   {
     sysconf_attach(bcom_unit);
   }
+#endif
 
   hpcConfigPhySet();
 
@@ -2670,6 +2727,48 @@ systemInit(int unit)
   PT_LOG_INFO(LOG_CTX_STARTUP, "Starting systemInit...");
 
   SYSTEM_INIT_CHECK(soc_reset_init(unit), "Device reset");
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  /* TC16SXG board will look to external config.bcm and load rc.soc base script */
+
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Loading rc.soc file...");
+
+  /*
+   * If a default init file is given, attempt to load it.
+   */
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"Initializing unit %u...", unit);
+  if (soc_attached(SOC_NDEV_IDX2DEV(unit))) {
+    sh_swap_unit_vars(SOC_NDEV_IDX2DEV(unit));
+    if (SOC_IS_RCPU_ONLY(SOC_NDEV_IDX2DEV(unit)))
+    {
+      /* Wait for master unit to establish link */
+      sal_sleep(3);
+    }
+#if 0
+    {
+        FILE *fp;
+
+        if (NULL == (fp=fopen(FILESYSTEM_VAR_PATH "DRAM_tunning_res.soc", "r"))) {
+            (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_NO_DDRAM_TUNE_FILE);
+            PT_LOG_FATAL(LOG_CTX_STARTUP, "No DRAM tunning file found!");
+            exit(L7_FAILURE);
+        }
+        fclose(fp);
+    }
+#endif
+    PT_LOG_TRACE(LOG_CTX_STARTUP,"unit %d (%d): Going to load %src.soc file...", unit, SOC_NDEV_IDX2DEV(unit), FILESYSTEM_VAR_PATH);
+    if (sh_rcload_file(SOC_NDEV_IDX2DEV(unit), NULL, FILESYSTEM_VAR_PATH "rc.soc", FALSE) != CMD_OK)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP,"ERROR loading rc script on unit %d\n", SOC_NDEV_IDX2DEV(unit));
+      return L7_FAILURE;
+    }
+  }
+
+  PT_LOG_INFO(LOG_CTX_STARTUP,"rc.soc file loaded!");
+
+#else
+  /* Other boards will follow the traditional method */
+
   SYSTEM_INIT_CHECK(soc_misc_init(unit), "Misc init");
   SYSTEM_INIT_CHECK(soc_mmu_init(unit), "MMU init");
 
@@ -2710,6 +2809,7 @@ systemInit(int unit)
 #endif  /* BCM_XGS_SWITCH_SUPPORT */
 
   SYSTEM_INIT_CHECK(bcm_init(unit), "BCM driver layer init");
+#endif
 
   if (soc_property_get_str(unit, spn_BCM_LINKSCAN_PBMP) == NULL) {
   SOC_PBMP_ASSIGN(pbmp, PBMP_PORT_ALL(unit));
@@ -2845,12 +2945,17 @@ void hapiBroadCmDefaults(void)
   hapiBroadCmLayerSet(bslLayerSoc,  L7_TRUE);
   hapiBroadCmLayerSet(bslLayerSys,  L7_TRUE);
 
+  hapiBroadCmSourceSet(bslSourceInit,   L7_TRUE);
   hapiBroadCmSourceSet(bslSourceShell,  L7_TRUE);
   hapiBroadCmSourceSet(bslSourceMii,    L7_TRUE);
   hapiBroadCmSourceSet(bslSourceMiim,   L7_TRUE);
   hapiBroadCmSourceSet(bslSourceMim,    L7_TRUE);
   hapiBroadCmSourceSet(bslSourcePhy,    L7_TRUE);
   hapiBroadCmSourceSet(bslSourcePhymod, L7_TRUE);
+  hapiBroadCmSourceSet(bslSourceL2,     L7_TRUE);
+  hapiBroadCmSourceSet(bslSourceL2gre,  L7_TRUE);
+  hapiBroadCmSourceSet(bslSourceL2table,L7_TRUE);
+  hapiBroadCmSourceSet(bslSourceDram,   L7_TRUE);
 
   hapiBroadCmSeveritySet(bslSeverityInfo);
 }
