@@ -1,0 +1,153 @@
+## TC16SXG
+
+cancun_dir=/usr/local/ptin/sbin
+
+#custom_feature_cancun_dir=/usr/local/ptin/sbin/
+
+load_firmware=0x101                           
+parity_enable=0
+
+core_clock_frequency=893
+pbmp_xport_xe=0x1ffffffffffe
+
+
+#Please check 56370 ToO (56370-PG103.pdf), "6.4.1 Physical Port, 6.4.5" ~page 124,...
+#...and https://wiki.ptin.corppt.com/display/PCBDZUU/SoC+-+BCM56370 "Ports"
+
+#*************************PONs******************************
+#MC0[3:0]	MC0-MC3: Physical Ports 49-64 (4*4=16)
+#		MC0-MC3 (TSC3 -- TSC6)
+portmap_1=49:10
+portmap_2=50:10
+portmap_3=51:10
+portmap_4=52:10
+phy_chain_rx_lane_map_physical{49.0}  = 0x2301
+phy_chain_tx_lane_map_physical{49.0}  = 0x1032
+
+#phy_chain_rx_polarity_flip_physical{50.0} = 1
+#phy_chain_rx_polarity_flip_physical{51.0} = 1
+#phy_chain_tx_polarity_flip_physical{50.0} = 1
+#phy_chain_tx_polarity_flip_physical{52.0} = 1
+# ...or...?
+phy_chain_rx_polarity_flip_physical{49.0} = 1
+phy_chain_rx_polarity_flip_physical{52.0} = 1
+phy_chain_tx_polarity_flip_physical{50.0} = 1
+phy_chain_tx_polarity_flip_physical{52.0} = 1
+
+
+#MC1[3:0]
+portmap_5=53:10
+portmap_6=54:10
+portmap_7=55:10
+portmap_8=56:10
+phy_chain_rx_lane_map_physical{53.0}  = 0x1023
+phy_chain_tx_lane_map_physical{53.0}  = 0x1032
+
+#phy_chain_rx_polarity_flip_physical{55.0} = 1
+#phy_chain_tx_polarity_flip_physical{55.0} = 1
+# ...or...?
+phy_chain_rx_polarity_flip_physical{54.0} = 1
+phy_chain_tx_polarity_flip_physical{53.0} = 1
+
+
+#MCQ0[3:0]	MCQ0-MCQ2: Physical Ports 1-48 (3*16=48)
+#		MCQ0  -- MCQ2 (TSC0 -- TSC2)
+portmap_9=1:10
+portmap_10=2:10
+portmap_11=3:10
+portmap_12=4:10
+phy_chain_rx_lane_map_physical{1.0}  = 0x2301
+phy_chain_tx_lane_map_physical{1.0}  = 0x2301
+#phy_chain_rx_polarity_flip_physical{1.0} = 0
+#phy_chain_tx_polarity_flip_physical{4.0} = 0
+
+#MCQ1[3:0]
+portmap_13=17:10
+portmap_14=18:10
+portmap_15=19:10
+portmap_16=20:10
+phy_chain_rx_lane_map_physical{17.0} = 0x2301
+phy_chain_tx_lane_map_physical{17.0} = 0x2301
+#phy_chain_rx_polarity_flip_physical{17.0} = 0
+#phy_chain_tx_polarity_flip_physical{20.0} = 0
+
+#MCQ2[3:0]	UNUSED
+## TSC2
+#phy_chain_rx_lane_map_physical{33.0} = 0x3210
+#phy_chain_tx_lane_map_physical{33.0} = 0x3210
+
+
+
+
+#*************************BACKPLANE******************************
+#**************************WORKING
+#FC0[3:0]	FC0-FC2:   Physical Ports 65-76 (3*4=12)
+#		FC0-FC3 (TSC7 -- TSC9)
+portmap_21=65:10
+portmap_22=66:10
+portmap_23=67:10
+portmap_24=68:10
+phy_chain_rx_lane_map_physical{65.0}  = 0x3120
+phy_chain_tx_lane_map_physical{65.0}  = 0x3120
+
+#phy_chain_tx_polarity_flip_physical{66.0} = 1
+#phy_chain_tx_polarity_flip_physical{68.0} = 1
+# ...or...?
+phy_chain_tx_polarity_flip_physical{67.0} = 1
+phy_chain_tx_polarity_flip_physical{68.0} = 1
+
+
+#FC2[3:0]
+portmap_17=73:10
+portmap_18=74:10
+portmap_19=75:10
+portmap_20=76:10
+phy_chain_rx_lane_map_physical{73.0}  = 0x3021
+phy_chain_tx_lane_map_physical{73.0}  = 0x3021
+
+#phy_chain_tx_polarity_flip_physical{73.0} = 1
+#phy_chain_tx_polarity_flip_physical{75.0} = 1
+#phy_chain_rx_polarity_flip_physical{74.0} = 1
+#phy_chain_rx_polarity_flip_physical{76.0} = 1
+# ...or...?
+phy_chain_tx_polarity_flip_physical{75.0} = 1
+phy_chain_tx_polarity_flip_physical{74.0} = 1
+phy_chain_rx_polarity_flip_physical{73.0} = 1
+phy_chain_rx_polarity_flip_physical{76.0} = 1
+
+
+#*************************PROTECTION
+#FC1[3:0]
+portmap_25=69:10
+portmap_26=70:10
+portmap_27=71:10
+portmap_28=72:10
+phy_chain_rx_lane_map_physical{69.0}  = 0x3120
+phy_chain_tx_lane_map_physical{69.0}  = 0x3120
+
+#phy_chain_tx_polarity_flip_physical{70.0} = 1
+#phy_chain_tx_polarity_flip_physical{72.0} = 1
+# ...or...?
+phy_chain_tx_polarity_flip_physical{71.0} = 1
+phy_chain_tx_polarity_flip_physical{72.0} = 1
+
+
+#MC2[3:0]
+portmap_29=57:10
+portmap_30=58:10
+portmap_31=59:10
+portmap_32=60:10
+phy_chain_rx_lane_map_physical{57.0}  = 0x3120
+phy_chain_tx_lane_map_physical{57.0}  = 0x3120
+#phy_chain_rx_polarity_flip_physical{57.0} = 0
+#phy_chain_tx_polarity_flip_physical{60.0} = 0
+
+#MC3[3:0]	UNUSED
+
+
+
+
+#*************************CPU******************************
+#MC_IP[0]
+#portmap_33=0:1
+
