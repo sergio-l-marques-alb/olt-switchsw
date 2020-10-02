@@ -193,10 +193,10 @@ L7_RC_t bufferPoolCreate (void * buffer_pool_addr,
   /* Make sure that buffer size is a multiple of four.
   ** Round up the buffer size if necessary.
   */
-  if (buffer_size != (buffer_size & 0xFFFFFFFFFFFFFFF8))
+  if (buffer_size != (buffer_size & 0xFFFFFFF8))
   {
     buffer_size += 8;
-    buffer_size &= 0xFFFFFFFFFFFFFFFC;
+    buffer_size &= 0xFFFFFFF8;
   }
 #else
   if (pool_addr != (pool_addr & 0xFFFFFFFC))
@@ -667,10 +667,10 @@ L7_uint32 bufferPoolSizeCompute (L7_uint32 num_buffers,
 #ifdef PTRS_ARE_64BITS
   /* If buffer size is not a multiple of four then round it up.
   */
-  if ((buffer_size & 0xFFFFFFFFFFFFFFF8) != buffer_size)
+  if ((buffer_size & 0xFFFFFFF8) != buffer_size)
   {
     buffer_size += 8;
-    buffer_size &= 0xFFFFFFFFFFFFFFF8;
+    buffer_size &= 0xFFFFFFF8;
   }
 #else
   /* If buffer size is not a multiple of four then round it up.
