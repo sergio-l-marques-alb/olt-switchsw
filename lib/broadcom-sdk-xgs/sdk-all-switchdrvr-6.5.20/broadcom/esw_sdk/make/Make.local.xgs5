@@ -196,8 +196,11 @@ CFGFLAGS += -DBCM_PORT_DEFAULT_DISABLE
 CFGFLAGS += -DSAL_THREAD_NAME_PRINT_DISABLE
 
 # disable runtime reading of flash config.bcm file (even if !NO_FILEIO)
-CFGFLAGS += -DSAL_CONFIG_FILE=\"/usr/local/sbin/config.bcm\" -DSAL_CONFIG_TEMP=\"/usr/local/sbin/config.tmp\"
-#CFGFLAGS += -DSAL_CONFIG_FILE_DISABLE
+ifeq ($(L7_CPU),td3x3arm)
+CFGFLAGS += -DSAL_CONFIG_FILE=\"/usr/local/ptin/sbin/config.bcm\" -DSAL_CONFIG_TEMP=\"/usr/local/ptin/sbin/config.tmp\"
+else
+CFGFLAGS += -DSAL_CONFIG_FILE_DISABLE
+endif
 
 # disable all Application SAL dependencies
 #NO_SAL_APPL=1
@@ -224,7 +227,7 @@ CFGFLAGS += -DSAL_CONFIG_FILE=\"/usr/local/sbin/config.bcm\" -DSAL_CONFIG_TEMP=\
 
 # Turn on BCMX inclusion
 #     INCLUDE_BCMX for any support
-INCLUDE_BCMX=1
+#INCLUDE_BCMX=1
 
 # Telekinesis suite applications for CPU to CPU communication and discovery
 #     CPUDB:         Simple CPU data base manager

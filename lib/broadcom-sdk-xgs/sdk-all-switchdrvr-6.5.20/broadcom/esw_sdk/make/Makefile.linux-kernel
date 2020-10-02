@@ -53,7 +53,10 @@ CFGFLAGS += -I$(SDK)/systems/linux/kernel/modules/include \
 	    -I$(SDK)/systems/bde/linux/include \
 	    -I$(LINUX_INCLUDE)
 
-CFGFLAGS += -DNO_FILEIO -DNO_CTRL_C -DNO_MEMTUNE
+CFGFLAGS += -DNO_CTRL_C -DNO_MEMTUNE
+ifneq ($(L7_CPU),td3x3arm)
+CFGFLAGS += -DNO_FILEIO
+endif
 
 CFGFLAGS += -D$(OSTYPE)
 
