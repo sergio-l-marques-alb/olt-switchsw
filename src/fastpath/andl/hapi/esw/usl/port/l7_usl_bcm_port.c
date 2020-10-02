@@ -1579,10 +1579,8 @@ static uint32 l7_port_wred_percent_to_bytes(int unit, uint8 percent)
     unsigned int totalmem = 32767; /* max cells that can be specified */
     
     /* CXO640G board */
-    if (SOC_IS_TRIDENT(unit)
-        #if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
-        || SOC_IS_TRIDENT2X(unit)
-        #endif
+    /* PTin added: new switch 56370 (Trident3x3) */
+    if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIDENT2X(unit) || SOC_IS_TRIDENT3X(unit)
        )
     {
       cellsize = 208;

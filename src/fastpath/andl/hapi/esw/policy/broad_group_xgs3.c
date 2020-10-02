@@ -899,11 +899,11 @@ static int _policy_super_qset_add_udf(int unit, bcm_field_qualify_t udf)
   bcm_field_data_packet_format_t packet_format;
 
 
-    CHECK_UNIT(unit);
+  CHECK_UNIT(unit);
 
-    if (BROAD_SYSTEM_UDF == udf)
-    {
-        /* add UDF for EtherType */
+  if (BROAD_SYSTEM_UDF == udf)
+  {
+    /* add UDF for EtherType */
     qual_id = policy_udf_id[unit]++;
     bcm_field_data_qualifier_t_init(&data_qualifier);
     data_qualifier.qual_id = qual_id;
@@ -1593,15 +1593,16 @@ static int _policy_super_qset_init_ifp(int unit)
 
     if (policy_stage_supported(unit, BROAD_POLICY_STAGE_LOOKUP))
     {
-      if ( SOC_IS_TRIUMPH2(unit) ||
-           SOC_IS_TRIUMPH(unit)  ||
-           SOC_IS_APOLLO(unit)   ||
-           SOC_IS_ENDURO(unit)   ||
-           SOC_IS_SCORPION(unit) ||
-           SOC_IS_VALKYRIE2(unit)||
-           SOC_IS_TRIDENT(unit)  || /* PTin added: new switch 56843 (Trident) */
-           SOC_IS_TRIUMPH3(unit) || /* PTin added: new switch 5664x and 5634x (Triumph3 and Helix4) */
-           SOC_IS_KATANA2(unit)     /* PTin added: new switch 5645x (Katana2) */
+      if ( SOC_IS_TRIUMPH2(unit)  ||
+           SOC_IS_TRIUMPH(unit)   ||
+           SOC_IS_APOLLO(unit)    ||
+           SOC_IS_ENDURO(unit)    ||
+           SOC_IS_SCORPION(unit)  ||
+           SOC_IS_VALKYRIE2(unit) ||
+           SOC_IS_TRIDENT(unit)   || /* PTin added: new switch 56843 (Trident) */
+           SOC_IS_TRIDENT3X(unit) || /* PTin added: new switch 56370 (Trident3X3) */
+           SOC_IS_TRIUMPH3(unit)  || /* PTin added: new switch 5664x and 5634x (Triumph3 and Helix4) */
+           SOC_IS_KATANA2(unit)      /* PTin added: new switch 5645x (Katana2) */
          )
       {
         rv = _policy_super_qset_add(unit, &l2l3l4Xgs4ClassIdQsetDef, applicable_policy_types);
@@ -1675,16 +1676,17 @@ static int _policy_super_qset_init_ifp(int unit)
   #endif
 
   /* PTin added: new switch 56843 (Trident) */
+  /* PTin added: new switch 56370 (Trident3X3) */
   /* PTin added: new switch 5664x (Triumph3) */
   /* PTin added: new switch 5645x (Katana2) */
-  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIDENT(unit) ||
-      SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
+  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) || 
+      SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit) || SOC_IS_TRIDENT(unit) || SOC_IS_TRIDENT3X(unit))
   {
-    if (SOC_IS_TRIDENT(unit))
+    if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIDENT3(unit) || SOC_IS_TRIDENT3X(unit))
       PT_LOG_WARN(LOG_CTX_MISC, "Using systemQsetTriumph2Def for TRIDENT family!");
 
     if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-      sysapiPrintf("Added qset systemQsetTriumph2\r\n");
+      sysapiPrintf("Adding qset systemQsetTriumph2\r\n");
 
     /* Doublewide mode. */
     rv = _policy_super_qset_add(unit, &systemQsetTriumph2Def, applicable_policy_types);
@@ -1696,7 +1698,7 @@ static int _policy_super_qset_init_ifp(int unit)
     applicable_policy_types[BROAD_POLICY_TYPE_PTIN]        = L7_TRUE;
 
     if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-      sysapiPrintf("Added qset systemQsetPTin\r\n");
+      sysapiPrintf("Adding qset systemQsetPTin\r\n");
 
     /* Singlewide mode. */
     rv = _policy_super_qset_add(unit, &systemQsetPTinDef, applicable_policy_types);
@@ -1707,7 +1709,7 @@ static int _policy_super_qset_init_ifp(int unit)
     applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT] = L7_TRUE;
 
     if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-      sysapiPrintf("Added qset systemQsetStats\r\n");
+      sysapiPrintf("Adding qset systemQsetStats\r\n");
 
     /* Doublewide mode. */
     rv = _policy_super_qset_add(unit, &systemQsetStatsDef, applicable_policy_types);
@@ -1875,6 +1877,7 @@ static int _policy_action_map_init(int unit)
       (SOC_IS_ENDURO(unit)) ||
       (SOC_IS_VALKYRIE2(unit)) ||
       (SOC_IS_TRIDENT(unit)) ||     /* PTin added: new switch 56843 (Trident) */
+      (SOC_IS_TRIDENT3X(unit)) ||   /* PTin added: new switch 56370 (Trident3X3) */
       (SOC_IS_TRIUMPH3(unit)) ||    /* PTin added: new switch 5664x (Triumph3) */
       (SOC_IS_KATANA2(unit))        /* PTin added: new switch 5645x (Katana2) */
      )
@@ -4193,6 +4196,7 @@ int hapiBroadPolicyFirstAclDsGroupGet(int unit)
       !SOC_IS_ENDURO(unit) &&
       !SOC_IS_VALKYRIE2(unit) &&
       !SOC_IS_TRIDENT(unit) &&      /* PTin added: new switch 56843 (Trident) */
+      !SOC_IS_TRIDENT3X(unit) &&    /* PTin added: new switch 56370 (Trident3X3) */
       !SOC_IS_TRIUMPH3(unit) &&     /* PTin added: new switch 5664x (Triumph3) */
       !SOC_IS_KATANA2(unit)         /* PTin added: new switch 5645x (Katana2) */
      )
@@ -4560,6 +4564,7 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
           SOC_IS_ENDURO(unit)   ||
           SOC_IS_VALKYRIE2(unit) ||
           SOC_IS_TRIDENT(unit)  ||      /* PTin added: new switch 56843 (Trident) */
+          SOC_IS_TRIDENT3X(unit) ||     /* PTin added: new switch 56370 (Trident3X3) */
           SOC_IS_TRIUMPH3(unit) ||      /* PTin added: new switch 5664x (Triumph3) */
           SOC_IS_KATANA2(unit)          /* PTin added: new switch 5645x (Katana2) */
          )
@@ -4577,7 +4582,8 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
           SOC_IS_TR_VL(unit) ||
           SOC_IS_RAVEN(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) ||
           SOC_IS_TRIUMPH3(unit) ||      /* PTin added: new switch 5664x (Triumph3) */
-          SOC_IS_KATANA2(unit))         /* PTin added: new switch 5645x (Katana2) */
+          SOC_IS_KATANA2(unit) ||       /* PTin added: new switch 5645x (Katana2) */
+          SOC_IS_TRIDENT3X(unit))       /* PTin added: new switch 56370 (Trident3X3) */
            && !SOC_IS_TRIDENT(unit))    /* PTin added: new switch 56843 (Trident) */
           total_slices = 16;
       else if (SOC_IS_RAPTOR(unit) || SOC_IS_HAWKEYE(unit)) 
@@ -4615,6 +4621,7 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
           SOC_IS_ENDURO(unit)    ||
           SOC_IS_VALKYRIE2(unit) ||
           SOC_IS_TRIDENT(unit)   || /* PTin added: new switch 56843 (Trident) */
+          SOC_IS_TRIDENT3X(unit) || /* PTin added: new switch 56370 (Trident3X3) */
           SOC_IS_TRIUMPH3(unit)  || /* PTin added: new switch 5664x (Triumph3) */
           SOC_IS_KATANA2(unit)      /* PTin added: new switch 5645x (Katana2) */
          )
@@ -4644,6 +4651,7 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
         SOC_IS_ENDURO(unit)    ||
         SOC_IS_VALKYRIE2(unit) ||
         SOC_IS_TRIDENT(unit)   ||   /* PTin added: new switch 56843 (Trident) */
+        SOC_IS_TRIDENT3X(unit) ||   /* PTin added: new switch 56843 (Trident3X3) */
         SOC_IS_TRIUMPH3(unit)  ||   /* PTin added: new switch 5664x (Triumph3) */
         SOC_IS_KATANA2(unit)        /* PTin added: new switch 5645x (Katana2) */
        )
@@ -4665,6 +4673,7 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
         SOC_IS_ENDURO(unit)    ||
         SOC_IS_VALKYRIE2(unit) ||
         SOC_IS_TRIDENT(unit)   ||   /* PTin added: new switch 56843 (Trident) */
+        SOC_IS_TRIDENT3X(unit) ||   /* PTin added: new switch 56370 (Trident3X3) */
         SOC_IS_TRIUMPH3(unit)  ||   /* PTin added: new switch 5664x (Triumph3) */
         SOC_IS_KATANA2(unit)        /* PTin added: new switch 5645x (Katana2) */
        )

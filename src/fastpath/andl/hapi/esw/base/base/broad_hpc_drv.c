@@ -210,6 +210,15 @@ int hapiBroadCpuCosqRateSet(int unit, int cosq, int rate, BROAD_CPU_RATE_LIMIT_T
         }
         else
 #endif /* TRIDENT */
+#if defined (BCM_TRIDENT3_SUPPORT)
+        /* PTin added: new switch 56370 (Trident3x3) */
+        if (SOC_IS_TRIDENT3(unit) || SOC_IS_TRIDENT3X(unit)) {
+          extern int bcm_td3_cosq_port_pps_set(int unit, bcm_port_t port, bcm_cos_queue_t cosq, int pps);
+          PT_LOG_INFO(LOG_CTX_STARTUP, "bcm_td3_cosq_port_pps_set");
+          rv = bcm_td3_cosq_port_pps_set(unit, CMIC_PORT(unit), cosq, rate);
+        }
+        else
+#endif /* TRIDENT3 */
 #if defined (BCM_TRIUMPH_SUPPORT) || defined (BCM_SCORPION_SUPPORT)
         if ((SOC_IS_TR_VL(unit) || SOC_IS_SCORPION(unit))) {
           rv = _bcm_tr_cosq_port_packet_bandwidth_set(unit,CMIC_PORT(unit), cosq, rate, rate);
@@ -945,7 +954,7 @@ void hpcHardwareDefaultConfigApply(void)
 #endif
 
         /* PTin added: debug/test new switch */
-        if (SOC_IS_TRIDENT(i) || SOC_IS_KATANA2(i))
+        if (SOC_IS_TRIDENT(i) || SOC_IS_TRIDENT3(i) || SOC_IS_TRIDENT3X(i) || SOC_IS_KATANA2(i))
         {
           PT_LOG_NOTICE(LOG_CTX_MISC, "bcm_cosq_port_mapping_set invoked for priority %u (of %u)",priority,L7_MAX_CFG_QUEUES_PER_PORT);
           PBMP_PORT_ITER (i, port)
@@ -984,7 +993,7 @@ void hpcHardwareDefaultConfigApply(void)
        schedulerMode = BCM_COSQ_WEIGHTED_ROUND_ROBIN;
 #endif
        /* PTin added: debug/test new switch */
-       if (SOC_IS_TRIDENT(i))
+       if (SOC_IS_TRIDENT(i) || SOC_IS_TRIDENT3(i) || SOC_IS_TRIDENT3X(i))
        {
          bcm_pbmp_t pbmp;
 
@@ -1193,9 +1202,10 @@ void hpcHardwareDefaultConfigApply(void)
         }
         /* PTin added: new switch 56689 (Valkyrie2) */
         /* PTin added: new switch 5664x (Triumph3) */
+        /* PTin added: new switch 56370 (Trident3X3) */
         /* PTin removed: new switch 56843 (Trident) */
-        else if (SOC_IS_TR_VL(i) || SOC_IS_SCORPION(i) || SOC_IS_TRIUMPH2(i) || SOC_IS_APOLLO(i) || SOC_IS_VALKYRIE2(i) /*|| SOC_IS_TRIDENT(i)*/ ||
-                 SOC_IS_TRIUMPH3(i) || SOC_IS_KATANA2(i))
+        else if (SOC_IS_TR_VL(i) || SOC_IS_SCORPION(i) || SOC_IS_TRIUMPH2(i) || SOC_IS_APOLLO(i) || SOC_IS_VALKYRIE2(i) ||
+                 SOC_IS_TRIUMPH3(i) || SOC_IS_KATANA2(i) || SOC_IS_TRIDENT3X(i) /*|| SOC_IS_TRIDENT(i)*/)
         {
           bcm_rx_reasons_t reason, no_reason;
           int              internal_priority;
@@ -1277,8 +1287,9 @@ void hpcHardwareDefaultConfigApply(void)
         /* PTin added: new switch 56689 (Valkyrie2) */
         /* PTin added: new switch 5664x (Triumph3) */
         /* PTin added: new switch 56843 (Trident) */
-        if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) && !SOC_IS_TRIDENT(i) &&
-            !SOC_IS_TRIUMPH3(i) && !SOC_IS_KATANA2(i))
+        /* PTin added: new switch 56370 (Trident3X3) */
+        if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) &&
+            !SOC_IS_TRIUMPH3(i) && !SOC_IS_KATANA2(i) && !SOC_IS_TRIDENT(i) && !SOC_IS_TRIDENT3X(i))
         {
           /* This priority is used for packets that are copied to the CPU with a classifier, 
           ** and for IP traffic destined to the CPU due to IP address in the frames or
@@ -1329,8 +1340,8 @@ void hpcHardwareDefaultConfigApply(void)
         /* PTin added: new switch 56689 (Valkyrie2) */
         /* PTin added: new switch 5664x (Triumph3) */
         /* PTin added: new switch 56843 (Trident) */
-        if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) && !SOC_IS_TRIDENT(i) &&
-            !SOC_IS_TRIUMPH3(i) && !SOC_IS_KATANA2(i))
+        if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) &&
+            !SOC_IS_TRIUMPH3(i) && !SOC_IS_KATANA2(i) && !SOC_IS_TRIDENT(i) && !SOC_IS_TRIDENT3X(i) )
         {
           /* Send unknown SA frames to the CPU with priority 0.
           */
@@ -1422,21 +1433,27 @@ void hpcHardwareDefaultConfigApply(void)
        {
           L7_LOG_ERROR(rv);
        }
-       /* PTin added: new switch 5664x (Triumph3): Execute, only if success */
+
        if (rv == BCM_E_NONE)
        {
-         if (hashControl == BCM_HASH_CRC32L)
-            rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC32U);
-         else if (hashControl == BCM_HASH_CRC32U)
-            rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC32L);
-         else if (hashControl == BCM_HASH_CRC16L)
-            rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC16U);
-         else if (hashControl == BCM_HASH_CRC16U)
-             rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC16L);
-    
-         if (rv != BCM_E_NONE)
+         /* PTin added: new switch 5664x (Triumph3): Execute, only if success */
+#if defined (BCM_TRIUMPH2_SUPPORT) || defined (BCM_TRIUMPH3_SUPPORT)
+         if (SOC_IS_TRIUMPH2(i) || SOC_IS_TRIUMPH3(i))
          {
-            L7_LOG_ERROR(rv);
+           if (hashControl == BCM_HASH_CRC32L)
+              rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC32U);
+           else if (hashControl == BCM_HASH_CRC32U)
+              rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC32L);
+           else if (hashControl == BCM_HASH_CRC16L)
+              rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC16U);
+           else if (hashControl == BCM_HASH_CRC16U)
+               rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC16L);
+      
+           if (rv != BCM_E_NONE)
+           {
+              L7_LOG_ERROR(rv);
+           }
+#endif /*#if defined (BCM_TRIUMPH2_SUPPORT) || defined (BCM_TRIUMPH3_SUPPORT) */
          }
        }
        else
@@ -1454,18 +1471,24 @@ void hpcHardwareDefaultConfigApply(void)
          /* PTin added: new switch 5664x (Triumph3) - Execute, only if success */
          if (rv == BCM_E_NONE)
          {
-           if (hashControl == BCM_HASH_CRC32L)
-              rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC32U);
-           else if (hashControl == BCM_HASH_CRC32U)
-              rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC32L);
-           else if (hashControl == BCM_HASH_CRC16L)
-              rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC16U);
-           else if (hashControl == BCM_HASH_CRC16U)
-              rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC16L);
-
-           if (rv != BCM_E_NONE)
+           /* PTin added: new switch 5664x (Triumph3): Execute, only if success */
+#if defined (BCM_TRIUMPH2_SUPPORT) || defined (BCM_TRIUMPH3_SUPPORT)
+           if (SOC_IS_TRIUMPH2(i) || SOC_IS_TRIUMPH3(i))
            {
-              L7_LOG_ERROR(rv);
+             if (hashControl == BCM_HASH_CRC32L)
+                rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC32U);
+             else if (hashControl == BCM_HASH_CRC32U)
+                rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC32L);
+             else if (hashControl == BCM_HASH_CRC16L)
+                rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC16U);
+             else if (hashControl == BCM_HASH_CRC16U)
+                rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC16L);
+
+             if (rv != BCM_E_NONE)
+             {
+                L7_LOG_ERROR(rv);
+             }
+#endif /*#if defined (BCM_TRIUMPH2_SUPPORT) || defined (BCM_TRIUMPH3_SUPPORT) */
            }
          }
          else
@@ -1476,13 +1499,13 @@ void hpcHardwareDefaultConfigApply(void)
     }
 
     /* PTin added: Hash */
-    #if 1
+#if 1
     if (ptin_hapi_hash_init() != L7_SUCCESS)
     {
       PT_LOG_NOTICE(LOG_CTX_HAPI,"Error initializing hash procedures");
       L7_LOG_ERROR(BCM_E_INIT);
     }
-    #endif
+#endif
 
     if (SOC_IS_RAPTOR(i) || SOC_IS_HAWKEYE(i)) 
     {
