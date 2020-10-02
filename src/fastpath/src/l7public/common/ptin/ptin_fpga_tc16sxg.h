@@ -3,7 +3,8 @@
 /* (Trident3-X3) FIXME  SPI (vs PCI/local bus) interface to a single CPLD/FPGA, wrong ID, ...*/
 
 /* FPGA AND CPLD BASE ADDRESS */
-# define MAP_CPLD
+//#define MAP_FPGA
+//#define MAP_CPLD
 # define CPLD_BASE_ADDR                0xFF500000
 
 /* PLD map registers */

@@ -293,7 +293,7 @@
         /* *soc_brd_info */
     1, 
     { 
-        BCM56846_DEVICE_ID, //BCM56370_DEVICE_ID,   (Trident3-X3) FIXME
+        BCM56370_DEVICE_ID,
         //olt-swdrv/trunk/lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.18/broadcom/esw_sdk/include/soc/devids.h:#define BCM56370_DEVICE_ID      0xb370
     },
         bcm_sys_id_defl,
