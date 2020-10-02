@@ -17500,7 +17500,7 @@ k_agentStaticDsBindingEntry_get(int serialNum, ContextInfo *contextInfo,
   else
   {
    agentStaticDsBindingEntryData.agentStaticDsBindingIfIndex = binding.intIfNum;
-   agentStaticDsBindingEntryData.agentStaticDsBindingVlanId = binding.vlanId;
+   agentStaticDsBindingEntryData.agentStaticDsBindingVlanId = binding.key.vlanId;
    agentStaticDsBindingEntryData.agentStaticDsBindingIpAddr = binding.ipAddr;
 
    SET_VALID(I_agentStaticDsBindingIfIndex, agentStaticDsBindingEntryData.valid);
@@ -17696,7 +17696,7 @@ k_agentDynamicDsBindingEntry_get(int serialNum, ContextInfo *contextInfo,
   else
   {
    agentDynamicDsBindingEntryData.agentDynamicDsBindingIfIndex = binding.intIfNum;
-   agentDynamicDsBindingEntryData.agentDynamicDsBindingVlanId = binding.vlanId;
+   agentDynamicDsBindingEntryData.agentDynamicDsBindingVlanId = binding.key.vlanId;
    agentDynamicDsBindingEntryData.agentDynamicDsBindingIpAddr = binding.ipAddr;
    /* convert remaining time to timeticks (100th of a second) as it is returned in seconds */
    agentDynamicDsBindingEntryData.agentDynamicDsBindingLeaseRemainingTime = binding.remLease * 100;

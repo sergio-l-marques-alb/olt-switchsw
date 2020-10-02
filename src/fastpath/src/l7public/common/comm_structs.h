@@ -320,6 +320,12 @@ typedef struct dhcpSnoopBindingKey_s
   /* A MAC address uniquely identifies a node in the bindings tree. */
   L7_uchar8 macAddr[L7_MAC_ADDR_LEN];
 
+  /* PTin added: RICHARD DHCP */
+  #if 1
+  /* VLAN station is in. */
+  L7_ushort16 vlanId;
+  #endif
+
 #if 1
   /* Binding entry ip type (allows to distinguish between entries with the same MAC) */
   L7_uint8 ipType; 
@@ -331,8 +337,11 @@ typedef struct dhcpSnoopBinding_s
   /* Entry key */
   dhcpSnoopBindingKey_t key;
 
+  /* PTin removed: RICHARD DHCP */
+  #if 0
   /* VLAN station is in. */
   L7_ushort16 vlanId;
+  #endif
 
   /* PTin added: DHCP snooping */
   #if 1

@@ -529,7 +529,7 @@ const char *commandShowIpDhcpSnoopingBinding(EwsContext ewsContext, L7_uint32 ar
 
     /* Restrict to interface and VLAN user specified */
     if ((intIfNum && (binding.intIfNum != intIfNum)) ||
-        (vlanId && (binding.vlanId != vlanId)))
+        (vlanId && (binding.key.vlanId != vlanId)))
     {
       rc =  usmDbDsBindingGetNext(&binding);
       continue;
@@ -557,14 +557,14 @@ const char *commandShowIpDhcpSnoopingBinding(EwsContext ewsContext, L7_uint32 ar
     if (binding.bindingType == DS_BINDING_DYNAMIC)
     {
       osapiSnprintf(buf, sizeof(buf), "%17s  %15s  %4u  %11s  %7s  %11u\r\n", 
-                    macStr, ipAddrStr, binding.vlanId, ifName, 
+                    macStr, ipAddrStr, binding.key.vlanId, ifName, 
                     dsBindingTypeNames[binding.bindingType], binding.remLease);
     }
     else if (binding.bindingType == DS_BINDING_STATIC)
     {
       /* don't print lease time for static entries */
       osapiSnprintf(buf, sizeof(buf), "%17s  %15s  %4u  %11s  %7s\r\n", 
-                    macStr, ipAddrStr, binding.vlanId, ifName, 
+                    macStr, ipAddrStr, binding.key.vlanId, ifName, 
                     dsBindingTypeNames[binding.bindingType]);
     }
     ewsTelnetWrite(ewsContext, buf);

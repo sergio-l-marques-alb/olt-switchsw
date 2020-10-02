@@ -2095,18 +2095,18 @@ L7_RC_t ptin_dhcp82_bindtable_get(ptin_DHCP_bind_entry *table, L7_uint32 *max_en
     if (ptin_intf_intIfNum2ptintf(dsBinding.intIfNum,&ptin_intf)!=L7_SUCCESS)
       continue;
     // Extract vlan and validate it
-    if (dsBinding.vlanId<PTIN_VLAN_MIN || dsBinding.vlanId>PTIN_VLAN_MAX)
+    if (dsBinding.key.vlanId < PTIN_VLAN_MIN || dsBinding.key.vlanId > PTIN_VLAN_MAX)
       continue;
     // Calculate flow id and validate it
-    if (ptin_evc_get_evcIdfromIntVlan(dsBinding.vlanId,&evc_idx)!=L7_SUCCESS)
+    if (ptin_evc_get_evcIdfromIntVlan(dsBinding.key.vlanId,&evc_idx)!=L7_SUCCESS)
       evc_idx = (L7_uint16)-1;
 
     // Fill mac-table entry
     table[index].entry_index    = index;
     table[index].evc_idx        = evc_idx;
     table[index].ptin_intf      = ptin_intf;
-    table[index].outer_vlan     = dsBinding.vlanId;
     table[index].inner_vlan     = dsBinding.innerVlanId;
+    table[index].outer_vlan     = dsBinding.key.vlanId;
     memcpy(table[index].macAddr,dsBinding.key.macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
     table[index].ipAddr.s_addr  = dsBinding.ipAddr;
     table[index].remLeave       = dsBinding.remLease;
@@ -2146,10 +2146,10 @@ L7_RC_t ptin_dhcpv4v6_bindtable_get(ptin_DHCPv4v6_bind_entry *table, L7_uint32 *
     if (ptin_intf_intIfNum2ptintf(dsBinding.intIfNum,&ptin_intf)!=L7_SUCCESS)
       continue;
     // Extract vlan and validate it
-    if (dsBinding.vlanId<PTIN_VLAN_MIN || dsBinding.vlanId>PTIN_VLAN_MAX)
+    if (dsBinding.key.vlanId<PTIN_VLAN_MIN || dsBinding.key.vlanId>PTIN_VLAN_MAX)
       continue;
     // Calculate flow id and validate it
-    if (ptin_evc_get_evcIdfromIntVlan(dsBinding.vlanId,&evc_idx)!=L7_SUCCESS)
+    if (ptin_evc_get_evcIdfromIntVlan(dsBinding.key.vlanId,&evc_idx)!=L7_SUCCESS)
       evc_idx = (L7_uint16)-1;
 
     if(*port!=(L7_uint8)-1) // check if is a intf binding table reading
@@ -2162,7 +2162,7 @@ L7_RC_t ptin_dhcpv4v6_bindtable_get(ptin_DHCPv4v6_bind_entry *table, L7_uint32 *
     table[index].entry_index    = index;
     table[index].evc_idx        = evc_idx;
     table[index].ptin_intf      = ptin_intf;
-    table[index].outer_vlan     = dsBinding.vlanId;
+    table[index].outer_vlan     = dsBinding.key.vlanId;
     table[index].inner_vlan     = dsBinding.innerVlanId;
     memcpy(table[index].macAddr,dsBinding.key.macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
    if ( dsBinding.ipFamily == L7_AF_INET)
@@ -2205,7 +2205,7 @@ L7_RC_t ptin_dhcp82_bindtable_remove(dhcpSnoopBinding_t *dsBinding )
 
   // Remove this entry
   memcpy(macAddr.addr,dsBinding->key.macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
-  if (usmDbDsBindingRemove(&macAddr, dsBinding->key.ipType)!=L7_SUCCESS) {
+  if (usmDbDsBindingRemove(&macAddr, dsBinding->key.ipType, dsBinding->key.vlanId) != L7_SUCCESS) {
     PT_LOG_ERR(LOG_CTX_DHCP, "Error removing entry");
     return L7_FAILURE;
   }

@@ -189,6 +189,7 @@ L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
 
   memset((L7_uchar8 *)&binding, 0, sizeof(binding));
   memcpy(&binding.key.macAddr, macAddr, L7_ENET_MAC_ADDR_LEN);
+  binding.key.vlanId = vlanId;
   binding.key.ipType = L7_AF_INET;
 
   if (dsInfo->bindingsTable.staticBindings == L7_DHCP_SNOOPING_MAX_STATIC_ENTRIES)
@@ -210,7 +211,7 @@ L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
     }
     pNode->bindingType = bindingType;
     inetAddressSet(L7_AF_INET, &ipv4Addr, &pNode->ipAddr);        
-    pNode->vlanId = vlanId;
+    //pNode->vlanId = vlanId; /*PTIN remove*/
     pNode->innerVlanId = innerVlanId;     /* PTin added: DHCP */
     pNode->intIfNum = intIfNum;
     pNode->leaseStart = simSystemUpTimeGet();
@@ -400,6 +401,7 @@ L7_RC_t dsv6BindingAdd(dsBindingType_t bindingType,
 
   memset((L7_uchar8 *)&binding, 0, sizeof(binding));
   memcpy(&binding.key.macAddr, macAddr, L7_ENET_MAC_ADDR_LEN);
+  binding.key.vlanId = vlanId;
   binding.key.ipType = L7_AF_INET6;
 
   if (dsInfo->bindingsTable.staticBindings == L7_DHCP_SNOOPING_MAX_STATIC_ENTRIES)
@@ -423,7 +425,6 @@ L7_RC_t dsv6BindingAdd(dsBindingType_t bindingType,
     pNode->leaseStatus = DS_LEASESTATUS_UNKNOWN;
     pNode->flags       = 0;
     memcpy(&pNode->ipAddr, ipAddr, sizeof(L7_inet_addr_t));    
-    pNode->vlanId = vlanId;
     pNode->innerVlanId = innerVlanId;     /* PTin added: DHCP */
     pNode->intIfNum = intIfNum;
     pNode->leaseStart = simSystemUpTimeGet();
@@ -618,7 +619,7 @@ L7_RC_t dsBindingRemove(dsBindingTreeKey_t *key)
      #ifdef L7_IPSG_PACKAGE    
      ipsgEntryRemove (IPSG_ENTRY_DYNAMIC,
                     pNode->intIfNum,
-                    pNode->vlanId,
+                    key->vlanId,
                     &key->macAddr,
                     &pNode->ipAddr);  
       /* ipsgBindingHwRemove(pNode->intIfNum, pNode->ipAddr);*/
@@ -658,7 +659,7 @@ L7_RC_t dsBindingRemove(dsBindingTreeKey_t *key)
                     "DHCP snooping removing %s binding for %s to %s on "
                     "interface %s in VLAN %u.",
                     dsBindingTypeNames[pNode->bindingType], macAddrStr,
-                    ipAddrStr, ifName, pNode->vlanId);
+                    ipAddrStr, ifName, pNode->key.vlanId);
       dsTraceWrite(dsTrace);
     }
   }
@@ -761,8 +762,8 @@ L7_RC_t dsBindingNthEntryGet (dhcpSnoopBinding_t *dsBinding,
   if ( pNode != L7_NULLPTR)
   {
     memcpy ( &dsBinding->key.macAddr, &pNode->key.macAddr, L7_ENET_MAC_ADDR_LEN);
+    dsBinding->key.vlanId = pNode->key.vlanId;
     dsBinding->ipAddr =  pNode->ipAddr.addr.ipv4.s_addr;
-    dsBinding->vlanId =  pNode->vlanId;
     dsBinding->intIfNum = pNode->intIfNum;
     dsBinding->remLease = ((pNode->leaseTime + pNode->leaseStart)-(simSystemUpTimeGet()))/60;
 
@@ -802,7 +803,7 @@ L7_BOOL dsBindingExists(dsBindingTreeKey_t *key, L7_uint32 ipAddr,
   inet_ipAddr.family = L7_AF_INET;
   inet_ipAddr.addr.ipv4.s_addr = ipAddr;
 
-  return ((L7_INET_ADDR_COMPARE(&binding->ipAddr, &inet_ipAddr) == 0) && (binding->vlanId == vlanId));
+  return ((L7_INET_ADDR_COMPARE(&binding->ipAddr, &inet_ipAddr) == 0) );
 }
 
 /*********************************************************************
@@ -834,7 +835,6 @@ static L7_RC_t dsBindingCopy(dsBindingTreeNode_t *binding,
   {
      memcpy(extBinding->ipv6Addr, binding->ipAddr.addr.ipv6.in6.addr16, 16*sizeof(L7_uchar8));
   }
-  extBinding->vlanId = binding->vlanId;
   extBinding->innerVlanId = binding->innerVlanId;   /* PTin added: DHCP */
   extBinding->intIfNum = binding->intIfNum;
   extBinding->bindingType = binding->bindingType;
@@ -951,8 +951,8 @@ L7_RC_t dsBindingFlagsUpdate(dsBindingTreeKey_t *key, L7_uint8 flags)
 
   if (dsBindingTreeSearch(key, L7_MATCH_EXACT, &binding) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_DHCP, "Unable to find requested entry [macAddr:%02x:%02x:%02x:%02x:%02x:%02x]",
-            key->macAddr.addr[0], key->macAddr.addr[1], key->macAddr.addr[2], key->macAddr.addr[3], key->macAddr.addr[4], key->macAddr.addr[5]);
+    PT_LOG_ERR(LOG_CTX_DHCP, "Unable to find requested entry [macAddr:%02x:%02x:%02x:%02x:%02x:%02x vlanId:%u ipType:%u], ",
+                 key->macAddr.addr[0], key->macAddr.addr[1], key->macAddr.addr[2], key->macAddr.addr[3], key->macAddr.addr[4], key->macAddr.addr[5], key->vlanId, key->ipType);
     return L7_FAILURE;
   }
 
@@ -988,6 +988,7 @@ L7_RC_t dsBindingFind(dhcpSnoopBinding_t *extBinding, L7_uint32 matchType)
   memset(&key, 0x00, sizeof(key));
   memcpy(&key.macAddr.addr, &extBinding->key.macAddr, L7_ENET_MAC_ADDR_LEN);
   key.ipType = extBinding->key.ipType;
+  key.vlanId = extBinding->key.vlanId;
   if (dsBindingTreeSearch(&key, matchType, &binding) != L7_SUCCESS)
     return L7_FAILURE;
 
@@ -1015,6 +1016,7 @@ L7_RC_t dsBindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_uint32 ipv4Addr, L7_ush
 
   memset(&key, 0x00, sizeof(key));
   memcpy(&key.macAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
+  key.vlanId = vlanId;
   key.ipType = L7_AF_INET;
   if (dsBindingTreeSearch(&key, L7_MATCH_EXACT, &binding) != L7_SUCCESS)
     return L7_FAILURE;
@@ -1040,7 +1042,7 @@ L7_RC_t dsBindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_uint32 ipv4Addr, L7_ush
         /*Remove Old Entry*/ 
         ipsgEntryRemove (IPSG_ENTRY_DYNAMIC,
                            binding->intIfNum,
-                           binding->vlanId,
+                           binding->key.vlanId,
                            &binding->key.macAddr,
                            &binding->ipAddr);
       }
@@ -1048,7 +1050,7 @@ L7_RC_t dsBindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_uint32 ipv4Addr, L7_ush
       /*Add New Entry*/
       ipsgEntryAdd (IPSG_ENTRY_DYNAMIC,
                  binding->intIfNum,
-                 binding->vlanId,
+                 binding->key.vlanId,
                  &binding->key.macAddr,
                  &ipAddr);
     }
@@ -1058,7 +1060,7 @@ L7_RC_t dsBindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_uint32 ipv4Addr, L7_ush
   inetCopy(&binding->ipAddr, &ipAddr);
   if ( vlanId != (L7_ushort16)-1 )
   {
-    binding->vlanId = vlanId;
+    binding->key.vlanId = vlanId;
   }
 
   return L7_SUCCESS;
@@ -1084,6 +1086,7 @@ L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t *ipAddr, 
   
   memset(&key, 0x00, sizeof(key));
   memcpy(&key.macAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
+  key.vlanId = vlanId;
   key.ipType = L7_AF_INET6;
   if (dsBindingTreeSearch(&key, L7_MATCH_EXACT, &binding) != L7_SUCCESS)
     return L7_FAILURE;
@@ -1108,7 +1111,7 @@ L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t *ipAddr, 
         /*Remove Old Entry*/
         ipsgEntryRemove (IPSG_ENTRY_DYNAMIC,
                            binding->intIfNum,
-                           binding->vlanId,
+                           binding->key.vlanId,
                            &binding->key.macAddr,
                            &binding->ipAddr);
       }
@@ -1116,7 +1119,7 @@ L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t *ipAddr, 
       /*Add New Entry*/
       ipsgEntryAdd (IPSG_ENTRY_DYNAMIC,
                    binding->intIfNum,
-                   binding->vlanId,
+                   binding->key.vlanId,
                    &binding->key.macAddr,
                    ipAddr);
     }
@@ -1126,7 +1129,7 @@ L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t *ipAddr, 
   memcpy(&binding->ipAddr, ipAddr, sizeof(L7_inet_addr_t));
   if ( vlanId != (L7_ushort16)-1 )
   {
-    binding->vlanId = vlanId;
+    binding->key.vlanId = vlanId;
   }
     
   return L7_SUCCESS;
@@ -1145,12 +1148,13 @@ L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t *ipAddr, 
 *
 * @end
 *********************************************************************/
-L7_RC_t dsv4LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType, L7_uint32 intIfNum)
+L7_RC_t dsv4LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint16 vlanId, L7_uint messageType, L7_uint32 intIfNum)
 {
   dsBindingTreeKey_t key;
 
   memset(&key, 0x00, sizeof(key));
   memcpy(&key.macAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
+  key.vlanId = vlanId;
   key.ipType = L7_AF_INET;
   return dsLeaseStatusUpdate(&key, L7_AF_INET, messageType, intIfNum);
 }
@@ -1168,13 +1172,15 @@ L7_RC_t dsv4LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType, L7
 *
 * @end
 *********************************************************************/
-L7_RC_t dsv6LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType, L7_uint32 intIfNum)
+L7_RC_t dsv6LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint16 vlanId, L7_uint messageType, L7_uint32 intIfNum)
 {
   dsBindingTreeKey_t key;
 
   memset(&key, 0x00, sizeof(key));
   memcpy(&key.macAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
   key.ipType = L7_AF_INET6;
+  key.vlanId = vlanId;
+
   /* 
    * DHCPv6 message types start at value 1.
    * However, in our enum DHCPv6 lease status start at 11. So, we must add an hardcoded 10 to the mesage type
@@ -1421,9 +1427,10 @@ void dsBindingEvcRemoveAll(L7_uint32 ext_evc_id,L7_uint32 innerVlan)
     /* store key for use in next search */
     memcpy(&key, &binding->key, sizeof(dsBindingTreeKey_t));
 
+
 #if 1
     /* If this entry belongs to our service, remove it */
-    if((binding->vlanId == internalVlan) && (binding->innerVlanId == innerVlan))
+    if ((binding->key.vlanId == internalVlan) && (binding->innerVlanId == innerVlan))
     {
       dsBindingRemove(&key);
     }
@@ -1495,7 +1502,7 @@ void dsBindingTableShow(void)
     }
 
     printf("%17s  %-45s  %6u  %9u  %11s %11s %18s %13u\n",
-           macStr, ipAddrStr, binding->vlanId, binding->innerVlanId, ifName,
+           macStr, ipAddrStr, binding->key.vlanId, binding->innerVlanId, ifName, 
            dsBindingTypeNames[binding->bindingType],
            dsLeaseStatusNames[binding->leaseStatus],
            remainingLease / 60);

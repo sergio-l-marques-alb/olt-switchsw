@@ -1110,12 +1110,13 @@ L7_RC_t usmDbDsStaticBindingRemove(L7_enetMacAddr_t *macAddr)
 *
 * @end
 *********************************************************************/
-L7_RC_t usmDbDsBindingRemove(L7_enetMacAddr_t *macAddr , L7_uint8 type)
+L7_RC_t usmDbDsBindingRemove(L7_enetMacAddr_t *macAddr , L7_uint8 type, L7_uint16 vlanId)
 {
   dsBindingTreeKey_t key;
   memset(&key, 0x00, sizeof(key));
   memcpy(&key.macAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
   key.ipType = type;
+  key.vlanId = vlanId;
   return dsBindingRemove(&key);
 }
 #endif

@@ -408,6 +408,7 @@ L7_RC_t _dsBindingClear(L7_uint32 intIfNum,
   L7_RC_t retval = L7_SUCCESS;
   L7_enetMacAddr_t prevMac;
   L7_uint32 prevIntf;
+  L7_uint16 prevVlanId;
   dsBindingType_t prevType;
   dhcpSnoopBinding_t dsBinding;
   dsBindingTreeKey_t key;
@@ -430,6 +431,7 @@ L7_RC_t _dsBindingClear(L7_uint32 intIfNum,
     memcpy(&prevMac, &dsBinding.key.macAddr, sizeof(L7_enetMacAddr_t));
     prevIntf = dsBinding.intIfNum;
     prevType = dsBinding.bindingType;
+    prevVlanId = dsBinding.key.vlanId;
 
     /* Get next before deleting previous */
     rc = dsBindingFind(&dsBinding, L7_MATCH_GETNEXT);
@@ -447,6 +449,8 @@ L7_RC_t _dsBindingClear(L7_uint32 intIfNum,
       memset(&key, 0x00, sizeof(key));
       memcpy(&key.macAddr.addr, &prevMac.addr, L7_ENET_MAC_ADDR_LEN);
       key.ipType = dsBinding.key.ipType;
+      key.vlanId = dsBinding.key.vlanId;
+
       if (dsBindingRemove(&key) != L7_SUCCESS)
       retval = L7_FAILURE;
       dsInfo->debugStats.bindingsRemoved++;
@@ -2123,7 +2127,7 @@ L7_RC_t dsDbRemoteSave()
        memset (tmpBuf, '\0', sizeof(buf));
 
        osapiSnprintf(tmpBuf, sizeof(tmpBuf), "%s %s %u %s %u \n",
-                    macStr, ipAddrStr, binding.vlanId, ifName,
+                    macStr, ipAddrStr, binding.key.vlanId, ifName,
                      binding.remLease);
 
        osapiSnprintf(buf, sizeof(buf), "%u %s",
@@ -2272,7 +2276,7 @@ L7_RC_t dsDbRemoteRestore()
            osapiFsDeleteFile(DHCP_SNOOPING_DOWNLOAD_FILE_NAME);
            return L7_FAILURE;
          }
-         dsBinding.vlanId = vlanId;
+         dsBinding.key.vlanId = vlanId;
          count++;
          tmpBuf = strtok((L7_char8 *)'\0', " ");
        }
@@ -2340,7 +2344,7 @@ L7_RC_t dsDbRemoteRestore()
        rc = dsBindingAdd(DS_BINDING_DYNAMIC,
                          &macAddr,
                          dsBinding.ipAddr,
-                         dsBinding.vlanId, 0 /* PTin modified: DHCP */,
+                         dsBinding.key.vlanId, 0 /* PTin modified: DHCP */,
                         dsBinding.intIfNum);
        if ( rc == L7_FAILURE)
        {
@@ -2399,7 +2403,7 @@ void dsDbLocalSave()
    memcpy((void *)&dsDbCfgData.dsBindingDb[dbIndex].macAddr.addr,
             (void *) binding.key.macAddr, L7_ENET_MAC_ADDR_LEN);
    dsDbCfgData.dsBindingDb[dbIndex].ipAddr = binding.ipAddr;
-   dsDbCfgData.dsBindingDb[dbIndex].vlanId = binding.vlanId;
+   dsDbCfgData.dsBindingDb[dbIndex].vlanId = binding.key.vlanId;
    dsDbCfgData.dsBindingDb[dbIndex].intIfNum = binding.intIfNum;
    dsDbCfgData.dsBindingDb[dbIndex].remLease = binding.remLease;
    dbIndex++;

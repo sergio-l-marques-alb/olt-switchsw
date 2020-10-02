@@ -226,6 +226,19 @@ void dhcpSnoopTask(void)
             osapiWriteLockGive(dsCfgRWLock);
           }
           break;
+        case DS_DHCPS_NACK_EVENT:
+          if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) == L7_SUCCESS)
+          {
+            dsBindingTreeKey_t key;
+
+            memset(&key, 0x00, sizeof(key));
+            memcpy(&key.macAddr.addr, &eventMsg.dsMsgData.dhcpsEvent.chAddr.addr, L7_ENET_MAC_ADDR_LEN);
+            //key.vlanId = //This event is not used.. Where to get vlanId???
+            key.ipType = L7_AF_INET;
+            dsBindingRemove(&key);
+            dsInfo->debugStats.bindingsRemoved++;
+            osapiWriteLockGive(dsCfgRWLock);
+          }
         case DS_CFG_APPLY_EVENT:
           if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) == L7_SUCCESS)
           {
@@ -250,19 +263,6 @@ void dhcpSnoopTask(void)
               key.ipType = L7_AF_INET;
               dsBindingLeaseSet(&key, eventMsg.dsMsgData.dhcpsEvent.leaseTime);
             }
-            osapiWriteLockGive(dsCfgRWLock);
-          }
-          break;
-        case DS_DHCPS_NACK_EVENT:
-          if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) == L7_SUCCESS)
-          {
-            dsBindingTreeKey_t key;
-
-            memset(&key, 0x00, sizeof(key));
-            memcpy(&key.macAddr.addr, &eventMsg.dsMsgData.dhcpsEvent.chAddr.addr, L7_ENET_MAC_ADDR_LEN);
-            key.ipType = L7_AF_INET;
-            dsBindingRemove(&key);
-            dsInfo->debugStats.bindingsRemoved++;
             osapiWriteLockGive(dsCfgRWLock);
           }
           break;
@@ -1614,6 +1614,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
         mac_header = (L7_enetHeader_t*) frame;
         memcpy(&dhcp_binding.key.macAddr, dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
         dhcp_binding.key.ipType = L7_AF_INET;
+        dhcp_binding.key.vlanId = vlanId;
         if (L7_SUCCESS != dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
         {
           if (ptin_debug_dhcp_snooping)
@@ -1667,6 +1668,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
          mac_header = (L7_enetHeader_t*) frame;
          memcpy(&dhcp_binding.key.macAddr, dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
          dhcp_binding.key.ipType = L7_AF_INET;
+         dhcp_binding.key.vlanId = vlanId;
          if (L7_SUCCESS != dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
          {
            if (ptin_debug_dhcp_snooping)
@@ -1750,6 +1752,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
               memset(&key, 0x00, sizeof(key));
               memcpy(&key.macAddr.addr, &dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
               key.ipType = L7_AF_INET;
+              key.vlanId = vlanId;
               dhcp_binding.flags |= DHCP_FLAGS_BIT_CLIENTREQUEST_RELAYOP_ADDED;
               dsBindingFlagsUpdate(&key, dhcp_binding.flags);
            }
@@ -1783,6 +1786,10 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
     }
   }
 #endif //L7_DHCP_L2_RELAY_PACKAGE
+
+  #if 0
+  dsBindingTableShow();
+  #endif
 
   PT_LOG_TRACE(LOG_CTX_DHCP, "Forwarding packet from intIfNum %u to %u (vlanId=%u, innerVlanId=%u)", intIfNum, relayOptIntIfNum, vlanId, innerVlanId);
   if (dsFrameForward(intIfNum, vlanId, frame, frameLen, innerVlanId, client_idx, relayOptIntIfNum) == L7_SUCCESS)
@@ -2003,7 +2010,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
 
    //Add or update an existing entry in the binding table
    dsv6BindingAdd(DS_BINDING_TENTATIVE, &client_mac_addr, &client_ip_addr, vlanId, innerVlanId, intIfNum);
-   dsv6LeaseStatusUpdate(&client_mac_addr, dhcp_msg_hdr_ptr->msg_type, intIfNum );
+   dsv6LeaseStatusUpdate(&client_mac_addr, vlanId, dhcp_msg_hdr_ptr->msg_type, intIfNum );
 
    //Create a new Relay-Agent message. If the received msg is a 'L7_DHCP6_RELAY_FORW', increase hop_count
    relay_agent_header.msg_type  = L7_DHCP6_RELAY_FORW;
@@ -2131,15 +2138,17 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    memcpy(&client_mac_addr,      mac_header->dest.addr, L7_ENET_MAC_ADDR_LEN);
    memcpy(&dhcp_binding.key.macAddr, mac_header->dest.addr, L7_ENET_MAC_ADDR_LEN);
    dhcp_binding.key.ipType = L7_AF_INET6;
+   dhcp_binding.key.vlanId = vlanId;
+
    if (L7_SUCCESS == dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
    {
       intIfNum = dhcp_binding.intIfNum;
    }
    //Get DHCP Options for this client
-   if (ptin_dhcp_client_options_get(intIfNum, dhcp_binding.vlanId, dhcp_binding.innerVlanId, L7_NULLPTR, &isActiveOp37, &isActiveOp18) != L7_SUCCESS)
+   if (ptin_dhcp_client_options_get(intIfNum, dhcp_binding.key.vlanId, dhcp_binding.innerVlanId, L7_NULLPTR, &isActiveOp37, &isActiveOp18) != L7_SUCCESS)
    {
       if (ptin_debug_dhcp_snooping)
-        PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Unable to get client[intfNum:%u oVlan:%u iVlan:%u] options", intIfNum, dhcp_binding.vlanId, dhcp_binding.innerVlanId);
+        PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Unable to get client[intfNum:%u oVlan:%u iVlan:%u] options", intIfNum, dhcp_binding.key.vlanId, dhcp_binding.innerVlanId);
       return L7_FAILURE;
    }
    //If the service is unstacked (client_idx==-1) then we have to determine the client_idx through the inner_vlan in the Binding Table
@@ -2148,7 +2157,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      ptin_client_id_t client;
 
      client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
-     client.outerVlan = dhcp_binding.vlanId;
+     client.outerVlan = dhcp_binding.key.vlanId;
      client.innerVlan = dhcp_binding.innerVlanId;
      client.mask  = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
      client.mask |= (dhcp_binding.innerVlanId !=0 ) ? PTIN_CLIENT_MASK_FIELD_INNERVLAN : 0;
@@ -2336,6 +2345,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      memset(&key, 0x00, sizeof(key));
      memcpy(&key.macAddr.addr, &client_mac_addr.addr, L7_ENET_MAC_ADDR_LEN);
      key.ipType = L7_AF_INET6;
+     key.vlanId = vlanId;
      dsBindingRemove(&key);
    }
    else
@@ -2345,10 +2355,11 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      //Add a new dynamic entry in the binding table
      memset(&key, 0x00, sizeof(key));
      memcpy(&key.macAddr.addr, &client_mac_addr.addr, L7_ENET_MAC_ADDR_LEN);
+     key.vlanId = vlanId;
      key.ipType = L7_AF_INET6;
      dsv6BindingIpAddrSet(&client_mac_addr, &client_ip_addr, vlanId);
      dsBindingLeaseSet(&key, lease_time);
-     dsv6LeaseStatusUpdate(&client_mac_addr, dhcp_msg_hdr_ptr->msg_type, intIfNum);
+     dsv6LeaseStatusUpdate(&client_mac_addr, vlanId, dhcp_msg_hdr_ptr->msg_type, intIfNum);
    }
 
    return L7_SUCCESS;
@@ -2992,6 +3003,7 @@ L7_RC_t dsReplyFrameForward(L7_uint32 intIfNum, L7_uint32 vlanId, L7_uchar8 *mac
   memset(&dsBinding,'\0', sizeof(dhcpSnoopBinding_t));
   memcpy(dsBinding.key.macAddr, macaddr, L7_ENET_MAC_ADDR_LEN);
   dsBinding.key.ipType = L7_AF_INET;
+  dsBinding.key.vlanId = vlanId;
 
   if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
   {
@@ -3019,7 +3031,7 @@ L7_RC_t dsReplyFrameForward(L7_uint32 intIfNum, L7_uint32 vlanId, L7_uchar8 *mac
   {
     /* Forward based on learnt MAC entry.*/
     if ( (dsBinding.intIfNum == intIfNum) ||
-         (dsBinding.vlanId   != vlanIdFwd)
+         (dsBinding.key.vlanId   != vlanIdFwd)
        )
     {
       return L7_FAILURE;
@@ -3968,6 +3980,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
       memcpy(&dhcp_binding.key.macAddr, dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
       dhcp_binding.key.ipType = L7_AF_INET;
+      dhcp_binding.key.vlanId = vlanId;
       if (L7_SUCCESS != dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
       {
         if (ptin_debug_dhcp_snooping)
@@ -3988,7 +4001,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
         /* Client information */
         client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
-        client.outerVlan = dhcp_binding.vlanId;
+        client.outerVlan = dhcp_binding.key.vlanId;
         client.innerVlan = dhcp_binding.innerVlanId;
         client.mask  = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
         client.mask |= (dhcp_binding.innerVlanId != 0) ? PTIN_CLIENT_MASK_FIELD_INNERVLAN : 0;
@@ -4306,6 +4319,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
         memcpy(dsBinding.key.macAddr, srcMacAddr->addr, L7_ENET_MAC_ADDR_LEN);
       }
       dsBinding.key.ipType = L7_AF_INET;
+      dsBinding.key.vlanId = vlanId;
 
       if (dsBindingFind(&dsBinding, L7_MATCH_EXACT) != L7_SUCCESS)
       {
@@ -4338,7 +4352,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
         /* Client should have a binding before sending a RELEASE or DECLINE. Drop msg. */
         return L7_TRUE;
       }
-      if ((dsBinding.intIfNum != intIfNum) || (dsBinding.vlanId != vlanId))
+      if ((dsBinding.intIfNum != intIfNum) || (dsBinding.key.vlanId != vlanId))
       {
 
        if (!dsCfgData->dsVerifyMac) /* to handle the relay agent case */
@@ -4369,7 +4383,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
                     "Client previously bound to interface %s, vlan %u."
            " This message appears when DHCP Snooping untrusted"
                     " message drops the DHCP Decline or Release messages ",
-                    bindIfName, dsBinding.vlanId);
+                    bindIfName, dsBinding.key.vlanId);
             dsLogEthernetHeader((L7_enetHeader_t*) frame, DS_TRACE_LOG);
             dsLogIpHeader(ipHeader, DS_TRACE_LOG);
             dsLogDhcpPacket(dhcpPacket, DS_TRACE_LOG);
@@ -4487,6 +4501,8 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
 
   memcpy(dsBinding.key.macAddr, chaddr.addr, L7_ENET_MAC_ADDR_LEN);
   dsBinding.key.ipType = L7_AF_INET;
+  dsBinding.key.vlanId = vlanId;
+
   if (dsBindingFind(&dsBinding, L7_MATCH_EXACT) == L7_SUCCESS)
   {
      if ( dsBinding.bindingType == DS_BINDING_STATIC)
@@ -4497,7 +4513,11 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
 
   dhcpPktType = dsPacketType(dhcpPacket, pktLen);
 
+  #if 0
   PT_LOG_DEBUG(LOG_CTX_DHCP," %d ",dhcpPktType);
+  #else
+  PT_LOG_DEBUG(LOG_CTX_DHCP,"<<<<< ============= RECEIVED %s ============= >>>>>",dhcpMsgTypeNames[dhcpPktType]);
+  #endif
 
   switch (dhcpPktType)
   {
@@ -4551,9 +4571,11 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
        * move to a new VLAN and port. */
       memcpy(dsBinding.key.macAddr, chaddr.addr, L7_ENET_MAC_ADDR_LEN);
       dsBinding.key.ipType = L7_AF_INET;
+      dsBinding.key.vlanId = vlanId;
+
       if (dsBindingFind(&dsBinding, L7_MATCH_EXACT) == L7_SUCCESS)
       {
-        if ((dsBinding.vlanId != vlanId) || (dsBinding.intIfNum != intIfNum))
+        if ((dsBinding.key.vlanId != vlanId) || (dsBinding.intIfNum != intIfNum))
         {
           /* keep IP address */
           dsBindingAdd(DS_BINDING_TENTATIVE, &chaddr, dsBinding.ipAddr, vlanId, innerVlanId /*PTin modified: DHCP */, intIfNum);
@@ -4612,6 +4634,8 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
          memset(&key, 0x00, sizeof(key));
          memcpy(&key.macAddr.addr, &chaddr.addr, L7_ENET_MAC_ADDR_LEN);
          key.ipType = L7_AF_INET;
+         key.vlanId = vlanId;
+
          leaseTime = dsLeaseTimeGet(dhcpPacket, pktLen);
          dsBindingLeaseSet(&key, leaseTime);
          break;
@@ -4630,6 +4654,7 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
           * port or a port not enabled for DHCP snooping. */
          memset(&key, 0x00, sizeof(key));
          memcpy(&key.macAddr.addr, &chaddr.addr, L7_ENET_MAC_ADDR_LEN);
+         key.vlanId = vlanId;
          key.ipType = L7_AF_INET;
          if (dsBindingRemove(&key) == L7_SUCCESS)
          {
@@ -4647,7 +4672,7 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
   }
 
   //Update the lease status of the binding table entry. Ignore the return code because the entry might not exist if a release was received.
-  dsv4LeaseStatusUpdate(&chaddr, dhcpPktType, intIfNum);
+  dsv4LeaseStatusUpdate(&chaddr, vlanId, dhcpPktType, intIfNum);
 
   return L7_SUCCESS;
 }

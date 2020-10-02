@@ -1655,7 +1655,7 @@ L7_BOOL daiFrameDHCPSnoopingDbFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
   else
   {
     if((senderIpAddr == dsBinding.ipAddr) &&
-       (vlanId       == dsBinding.vlanId) &&
+         (vlanId       == dsBinding.key.vlanId) &&
        (intIfNum     == dsBinding.intIfNum))
     {
       /* Match found for the tuple {IP, MAC, VLAN, Port} */

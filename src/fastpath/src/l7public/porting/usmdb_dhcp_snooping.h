@@ -881,7 +881,7 @@ L7_RC_t usmDbDsStaticBindingRemove(L7_enetMacAddr_t *macAddr);
 *
 * @end
 *********************************************************************/
-L7_RC_t usmDbDsBindingRemove(L7_enetMacAddr_t *macAddr , L7_uint8 type);
+L7_RC_t usmDbDsBindingRemove(L7_enetMacAddr_t *macAddr , L7_uint8 type, L7_uint16 vlanId);
 #endif
 
 /*********************************************************************

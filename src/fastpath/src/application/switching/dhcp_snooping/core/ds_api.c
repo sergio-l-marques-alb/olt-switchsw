@@ -2226,15 +2226,16 @@ L7_RC_t dsStaticBindingAdd(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr,
 *********************************************************************/
 L7_RC_t dsStaticBindingRemove(L7_enetMacAddr_t *macAddr)
 {
-  L7_RC_t rc;
-  dsBindingTreeKey_t key;
+   L7_RC_t rc;
+   dsBindingTreeKey_t key;
 
-  if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) != L7_SUCCESS) 
-    return L7_FAILURE;
+   if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) != L7_SUCCESS) 
+     return L7_FAILURE;
 
-  memset(&key, 0x00, sizeof(key));
-  memcpy(&key.macAddr.addr, &macAddr->addr, sizeof(macAddr->addr));
-  key.ipType = L7_AF_INET;
+   memset(&key, 0x00, sizeof(key));
+   memcpy(&key.macAddr.addr, &macAddr->addr, sizeof(macAddr->addr));
+   key.ipType = L7_AF_INET;
+   //key.vlanId = ??? ////FIXME. Not used yet. See later
    rc = dsBindingRemove(&key);
 
    osapiWriteLockGive(dsCfgRWLock);
@@ -2483,7 +2484,7 @@ void dsRemoveStaticBinding(L7_uchar8 *macStr)
 
   if (dsStringToMac(macStr, &macAddr) == L7_SUCCESS)
   {
-    if (dsStaticBindingRemove(&macAddr) != L7_SUCCESS)
+    if (dsStaticBindingRemove(&macAddr) != L7_SUCCESS) //FIXME Needs vlanId. NOT needed yet because not in use!!! If used needs to be changed
       printf("\nFailed to remove static binding for %s.", macStr);
   }
   else

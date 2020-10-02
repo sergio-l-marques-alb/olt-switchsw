@@ -282,7 +282,7 @@ L7_RC_t cliRunningConfigDhcpSnoopingInfo(EwsContext ewsContext, L7_uint32 unit)
     osapiSnprintf(buf, sizeof(buf), "\r\n%s binding  %s vlan %u %s interface %s",
                      pStrInfo_base_IpDhcpSnooping,
                      macStr,
-                     binding.vlanId,
+                     binding.key.vlanId,
                      strIpAddr,
                      ifName);
     EWSWRITEBUFFER (ewsContext, buf);
