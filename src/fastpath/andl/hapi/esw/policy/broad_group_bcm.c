@@ -386,6 +386,7 @@ int l7_bcm_policy_init()
             tmprv = policy_group_init(unit);
             if (tmprv < rv)
             {
+                PT_LOG_ERR(LOG_CTX_STARTUP, "Error initializing FP: tmprv=%d", tmprv);
                 rv = tmprv;
             }
         }

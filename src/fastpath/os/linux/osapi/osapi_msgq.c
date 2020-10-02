@@ -457,7 +457,7 @@ L7_RC_t osapiMessageSend(void *queue_ptr, void *Message, L7_uint32 Size,
 
     }
     else {/*PTIn added*/
-      PT_LOG_ERR(LOG_CTX_MISC,"osapi_waitq_enqueue()=%u", rc);
+      //PT_LOG_ERR(LOG_CTX_MISC,"osapi_waitq_enqueue()=%u", rc);
     }
   }
   else

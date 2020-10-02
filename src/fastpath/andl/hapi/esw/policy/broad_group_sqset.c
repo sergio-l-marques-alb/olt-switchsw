@@ -341,13 +341,10 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
   bcmFieldQualifyL4DstPort,
   bcmFieldQualifyEtherType,
   bcmFieldQualifyIpProtocol,
-  //bcmFieldQualifyTtl,
-  //bcmFieldQualifyL2StationMove,
 #ifdef L7_IPV6_PACKAGE
   bcmFieldQualifyL3DestRouteHit,
   bcmFieldQualifyL3DestHostHit,
 #endif
-  //bcmFieldQualifyIngressStpState,
   bcmFieldQualifyIpType,
   bcmFieldQualifyVlanFormat,    /* PTin added: FP */
  /* PTin added: SDK 6.3.0 */
