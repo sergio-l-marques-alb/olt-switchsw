@@ -286,6 +286,7 @@
       NO_CONNECTION_LIST
     },
 
+#if (SDK_VERSION_IS >= SDK_VERSION(6,18,0,0))
     /* PTin added: new switch 56370 (Trident3-X3) */
     /* 56370 board */
     {
@@ -303,6 +304,7 @@
         __BROADCOM_56370_ID,
         NO_CONNECTION_LIST
     },
+#endif
 /* }; */
 
 #endif /* HPC_BOARDS_H */
