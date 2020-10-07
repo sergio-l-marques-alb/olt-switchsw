@@ -20,7 +20,7 @@ insert_modules()
 {
     echo "Creating character device..."
     #if [ ! -c /dev/linux-kernel-bde ]; then
-    #  mknod /dev/linux-kernel-bde c 127 0
+       mknod /dev/linux-kernel-bde c 127 0
     #fi
     if [ ! -c /dev/linux-user-bde ]; then
       mknod /dev/linux-user-bde c 126 0
