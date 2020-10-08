@@ -2190,7 +2190,7 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
   for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
   {
     /* refresh any linkscan registrations in the system to assure remote events are sent here */
-    rv = bcm_linkscan_enable_set(bcm_unit, -1);
+    rv = bcm_linkscan_enable_set(bcm_unit, BCM_LINKSCAN_INTERVAL_DEFAULT);
 
     /* PTin removed: BCMX */
 #if 0
