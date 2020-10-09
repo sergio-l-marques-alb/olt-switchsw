@@ -35,7 +35,7 @@ fi
 echo "DEV_BOARD_SW=$DEV_BOARD_SW" >>$LOG_FILE
 
 export DEV_BOARD_SW=$DEV_BOARD_SW
-export DEV_BOARD_OUTPUT=$DEV_BOARD_SW
+export DEV_BOARD_OUTPUT=${DEV_BOARD_SW^^}
 
 if [ "$1" == "cxo640g" ]; then
   DEV_BOARD_OUTPUT="CXO640G-MX"
@@ -43,6 +43,10 @@ fi
 
 if [ "$1" == "olt1t0f" ]; then
   DEV_BOARD_OUTPUT="CXOLT1T0-F"
+fi
+
+if [ "$1" == "olt1t0" ]; then
+  DEV_BOARD_OUTPUT="CXOLT1T0"
 fi
 
 if [ "$1" == "olt1t0" ]; then
@@ -136,6 +140,8 @@ rm -f *.tgz
 cp -uv ../../../../fp.ver ./usr/local/ptin/sbin/
 cp -uv ../../../../fastpath ./usr/local/ptin/sbin/
 cp -uv ../../../../startPcapBridge.sh ./usr/local/scripts/
+echo echo Modular OLT fastpath $DEV_BOARD_SW-$VERSION-r$svn_rev > ./usr/local/ptin/sbin/fp.ver 
+echo echo $DATE >> ./usr/local/ptin/sbin/fp.ver
 echo "echo OLTSWITCH md5sum: "`md5sum ./usr/local/ptin/sbin/$MAIN_BIN | awk '{print $1}'` >> ./usr/local/ptin/sbin/fp.ver
 
 # create tgz file
