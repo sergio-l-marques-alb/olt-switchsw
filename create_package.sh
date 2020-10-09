@@ -35,6 +35,21 @@ fi
 echo "DEV_BOARD_SW=$DEV_BOARD_SW" >>$LOG_FILE
 
 export DEV_BOARD_SW=$DEV_BOARD_SW
+export DEV_BOARD_OUTPUT=$DEV_BOARD_SW
+
+if [ "$1" == "cxo640g" ]; then
+  DEV_BOARD_OUTPUT="CXO640G-MX"
+fi
+
+if [ "$1" == "olt1t0f" ]; then
+  DEV_BOARD_OUTPUT="CXOLT1T0-F"
+fi
+
+if [ "$1" == "olt1t0" ]; then
+  DEV_BOARD_OUTPUT="CXOLT1T0"
+fi
+
+export DEV_BOARD_SW=$DEV_BOARD_SW
 
 BASE_PATH="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
@@ -107,22 +122,21 @@ if [ ! -d $APPS_PATH/image ]; then
   exit 1;
 fi
 
-if [ ! -d $APPS_PATH/image/AG16GA/rootfs ]; then
-  echo "Missing folders 5 in $APPS_PATH/image/$DEV_BOARD_SW/rootfs" >> $LOG_FILE
+if [ ! -d $APPS_PATH/image/$DEV_BOARD_OUTPUT/rootfs ]; then
+  echo "Missing folders  in $APPS_PATH/image/$DEV_BOARD_OUTPUT/rootfs" >> $LOG_FILE
   exit 1;
 fi
 
 # create swdrv.ver
-cd $APPS_PATH/image/AG16GA/rootfs
+cd $APPS_PATH/image/$DEV_BOARD_OUTPUT/rootfs
 mkdir -pv var/log/switchdrvr/
 mkdir -pv usr/local/scripts/swdrv-scripts/
 rm -f *.tgz
 
-cp -uv ../../../../$APPLICATION.ver ./usr/local/scripts/swdrv-scripts/
+cp -uv ../../../../fp.ver ./usr/local/ptin/sbin/
 cp -uv ../../../../fastpath ./usr/local/ptin/sbin/
-cp -uv ../../../../rcS15 ./usr/local/scripts/
 cp -uv ../../../../startPcapBridge.sh ./usr/local/scripts/
-echo "echo OLTSWITCH md5sum: "`md5sum ./usr/local/ptin/sbin/$MAIN_BIN | awk '{print $1}'` >> ./usr/local/scripts/swdrv-scripts/$APPLICATION.ver
+echo "echo OLTSWITCH md5sum: "`md5sum ./usr/local/ptin/sbin/$MAIN_BIN | awk '{print $1}'` >> ./usr/local/ptin/sbin/fp.ver
 
 # create tgz file
 echo "Preparing tarball for $DEV_BOARD_SW..."
