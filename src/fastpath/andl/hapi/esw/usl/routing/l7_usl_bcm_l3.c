@@ -178,6 +178,7 @@ int usl_bcm_l3_intf_create (usl_bcm_l3_intf_t *intf)
         rv = bcm_l3_intf_create (i, &(intf->bcm_data));
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
+          PT_LOG_ERR(LOG_CTX_STARTUP, "Error: unit=%d rv=%d", i, rv);
           break;
         }
       }
@@ -520,6 +521,7 @@ int usl_bcm_l3_egress_create (L7_uint32 flags,
         egr->bcm_data.mpls_label = -1;
         egr->bcm_data.dynamic_scaling_factor=-1;
         egr->bcm_data.dynamic_load_weight=-1;
+        egr->bcm_data.dynamic_queue_size_weight = -1;
 
         rv = bcm_l3_egress_create (i, flags, &(egr->bcm_data), egrId);
 
@@ -527,13 +529,14 @@ int usl_bcm_l3_egress_create (L7_uint32 flags,
         #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
         if (rv == BCM_E_UNAVAIL)
         {
-          PT_LOG_WARN(LOG_CTX_HAPI,"bcm_l3_egress_create is not supported in this version... ignoring!");
+          PT_LOG_ERR(LOG_CTX_HAPI,"bcm_l3_egress_create is not supported in this version... ignoring!");
           rv = BCM_E_INIT;
         }
         #endif
 
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
+          PT_LOG_ERR(LOG_CTX_HAPI,"Error: rv=%d", rv);
           break;
         }
       }

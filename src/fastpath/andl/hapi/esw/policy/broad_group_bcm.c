@@ -1778,11 +1778,14 @@ int l7_bcm_policy_remove_all(int unit, BROAD_POLICY_t policy)
     if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("policy %d remove all\n", policy);
 
+    PT_LOG_DEBUG(LOG_CTX_HAPI,"l7_bcm_policy_remove_all : policy=%u",policy);
+
     _policy_sem_take();
     policyIdx = policy_map_index_map[unit][policy];
     if (policyIdx == BROAD_POLICY_MAP_INVALID)
     {
       _policy_sem_give();
+      PT_LOG_ERR(LOG_CTX_HAPI,"l7_bcm_policy_remove_all");
       return BCM_E_NOT_FOUND;
     }
     policyPtr = &policy_map_table[unit][policyIdx];

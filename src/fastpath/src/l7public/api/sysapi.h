@@ -579,6 +579,15 @@ void      sysapiMbufFree( L7_uint64 *mbuf, L7_BOOL isRx );
 #endif
 
 void sysapiPrintf(const char *format, ...);
+
+#if 0
+void sysapiPrintf(const char *format, ...);
+#else /*Ptin Modifed*/
+#include "logger.h"
+#define sysapiPrintf(format, args...) \
+PT_LOG_TRACE(LOG_CTX_LOGGER, format, ## args)
+#endif
+
 #define SYSAPI_PRINTF(FLG,format,args...)        \
 {                                                \
   /*printf("%s(%d) sysapiPrintf: \"%s\"\r\n",__FUNCTION__,__LINE__,format);*/ \

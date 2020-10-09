@@ -38,6 +38,7 @@
 #include "dot1s_exports.h"
 #include "ibde.h"
 
+#include "broad_policy_common.h"
 
 #ifdef L7_WIRELESS_PACKAGE
 #include "broad_l2_tunnel.h"
@@ -537,6 +538,7 @@ L7_RC_t hapiBroadL3CardInit(L7_ushort16 unitNum,
                                bcm_errmsg(rv));
         if (rv < 0)
         {
+          PT_LOG_ERR(LOG_CTX_STARTUP, "Error: rv=%d", rv);
           L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID,
                   "Failed to create Cpu L3 intf, error code %d"
                   "L3 intf params: vid %d mac %x:%x:%x:%x:%x:%x\n",
@@ -594,6 +596,7 @@ L7_RC_t hapiBroadL3CardInit(L7_ushort16 unitNum,
                                  bcm_errmsg(rv));
           if ((result == L7_FAILURE) || (rv != BCM_E_NONE))
           {
+            PT_LOG_ERR(LOG_CTX_STARTUP, "Error result=%d rv=%d", result, rv);
             HAPI_BROAD_L3_L7_LOG_ERROR(rv);
           }
         }
@@ -604,6 +607,11 @@ L7_RC_t hapiBroadL3CardInit(L7_ushort16 unitNum,
       }
     }
   }
+
+  PT_LOG_INFO(LOG_CTX_STARTUP, "I am here");
+
+
+  hapiBroadDebugPolicyEnable(POLICY_DEBUG_HIGH);
 
   return L7_SUCCESS;
 }

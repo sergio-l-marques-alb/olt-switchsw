@@ -697,9 +697,13 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   if (L7_SUCCESS != result)
       return result;
 
+  PT_LOG_INFO(LOG_CTX_STARTUP,"hapiBroadPolicyCommit policyId = %d",hapiSystem->dynamicArpInspectUntrustedPolicyId);
+
   result = hapiBroadPolicyRemoveFromAll(hapiSystem->dynamicArpInspectUntrustedPolicyId);
   if (L7_SUCCESS != result)
       return result;
+
+  PT_LOG_INFO(LOG_CTX_STARTUP, "hapiBroadPolicyRemoveFromAll");
 
   /* PTin removed: Packets priority not modified */
   #if PTIN_BROAD_INIT_ALLOW_COS_CHANGE
@@ -2814,6 +2818,7 @@ L7_RC_t hapiBroadCpuCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data, 
 #ifdef L7_ROUTING_PACKAGE
   if (hapiBroadL3CardInit(usp.unit, usp.slot, dapi_g) == L7_FAILURE)
   {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error");
     result = L7_FAILURE;
     return result;
   }

@@ -674,7 +674,10 @@ static uint32 color_map[BROAD_COLOR_LAST] =
     BCM_FIELD_COLOR_RED
 };
 
+/* PTin removed: UDF */
+#if 0
 static int policy_udf_id[SOC_MAX_NUM_DEVICES];
+#endif
 
 /* System policies require combination of L2/3/4 fields that are not supported
  * by default, so UDF is required. However, even the UDF is not wide enough
@@ -891,6 +894,8 @@ static int _policy_super_qset_find_free(int unit, int *idx)
     return BCM_E_FAIL;
 }
 
+/* PTin removed: UDF */
+#if 0
 static int _policy_super_qset_add_udf(int unit, bcm_field_qualify_t udf)
 {
     int                  rv = BCM_E_NONE;
@@ -1316,6 +1321,7 @@ static int _policy_super_qset_add_udf(int unit, bcm_field_qualify_t udf)
 
     return rv;
 }
+#endif
 
 static int _policy_super_qset_add(int                      unit,
                                   super_qset_definition_t *sqset_def,
@@ -1518,6 +1524,8 @@ static int _policy_super_qset_add(int                      unit,
     return rv;
 }
 
+/* PTin removed: UDF */
+#if 0
 static int _policy_udf_init(int unit)
 {
     int rv;
@@ -1534,6 +1542,7 @@ static int _policy_udf_init(int unit)
 
     return rv;
 }
+#endif
 
 static int _policy_super_qset_init_vfp(int unit)
 {
@@ -4719,6 +4728,8 @@ int policy_group_init(int unit)
       }
     }
 
+    /* PTin removed: UDF */
+#if 0
     rv = _policy_udf_init(unit);
     if (BCM_E_NONE != rv)
     {
@@ -4726,6 +4737,7 @@ int policy_group_init(int unit)
           sysapiPrintf("_policy_udf_init failed (%d)\n", rv);
       return rv;
     }
+#endif
 
     rv = _policy_super_qset_init(unit);
     if (BCM_E_NONE != rv)
@@ -5068,10 +5080,17 @@ int policy_group_set_pbm(int                  unit,
                          BROAD_ENTRY_t        entry,
                          bcm_pbmp_t           pbm)
 {
+
+    #if 1//Ptin FIXME
+    
+    return  BCM_E_NONE;
+
+    #else
     int               rv;
     group_table_t    *groupPtr;
     bcm_field_entry_t eid;
     bcm_pbmp_t        maskPbm;
+
 
     BCM_PBMP_CLEAR(maskPbm);
 
@@ -5119,6 +5138,7 @@ int policy_group_set_pbm(int                  unit,
                    pbm.pbits[2], pbm.pbits[1], pbm.pbits[0], maskPbm.pbits[2], maskPbm.pbits[1], maskPbm.pbits[0], eid);
 
     return rv;
+    #endif
 }
 
 int policy_group_set_portclass(int                  unit,

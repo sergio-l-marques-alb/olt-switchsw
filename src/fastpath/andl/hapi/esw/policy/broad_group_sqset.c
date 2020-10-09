@@ -31,7 +31,7 @@
 
 bcm_field_qualify_t l2SvtQset[] =   /* single VLAN tag */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     bcmFieldQualifyDstMac,
     bcmFieldQualifySrcMac,
     bcmFieldQualifyEtherType,
@@ -49,7 +49,7 @@ bcm_field_qualify_t l2SvtQset[] =   /* single VLAN tag */
    for system policies (e.g. Hawkeye). */
 bcm_field_qualify_t l2SvtLookupStatusQset[] =   /* single VLAN tag */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     bcmFieldQualifyDstMac,
     bcmFieldQualifySrcMac,
     bcmFieldQualifyEtherType,
@@ -67,7 +67,7 @@ bcm_field_qualify_t l2SvtLookupStatusQset[] =   /* single VLAN tag */
 
 bcm_field_qualify_t l3l4Qset[] =    /* IPv4 six-tuple  */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     bcmFieldQualifySrcIp,
     bcmFieldQualifyDstIp,
     bcmFieldQualifyIpProtocol,
@@ -84,7 +84,7 @@ bcm_field_qualify_t l3l4Qset[] =    /* IPv4 six-tuple  */
 
 bcm_field_qualify_t l2l3SrcQset[] =    /* l2/3 src */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     bcmFieldQualifySrcMac,
     bcmFieldQualifySrcIp,
     bcmFieldQualifyEtherType,
@@ -99,7 +99,7 @@ bcm_field_qualify_t l2l3SrcQset[] =    /* l2/3 src */
 
 bcm_field_qualify_t l2l3DstQset[] =    /* l2/3 dst */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     bcmFieldQualifyDstMac,
     bcmFieldQualifyDstIp,
     bcmFieldQualifyEtherType,
@@ -115,7 +115,7 @@ bcm_field_qualify_t l2l3DstQset[] =    /* l2/3 dst */
 /* SQSet used for double wide mode policies */
 bcm_field_qualify_t l2l3l4Qset[] =    /* l2/l3/l4 */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     bcmFieldQualifySrcMac,
     bcmFieldQualifyDstMac,
     bcmFieldQualifySrcIp,
@@ -142,7 +142,7 @@ bcm_field_qualify_t l2l3l4Qset[] =    /* l2/l3/l4 */
 
 bcm_field_qualify_t l2l3l4SrcMacGroupQset[] =    /* l2/l3/l4 */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     bcmFieldQualifySrcMac,
     bcmFieldQualifyDstMac,
     bcmFieldQualifySrcIp,
@@ -175,7 +175,7 @@ bcm_field_qualify_t l2l3l4SrcMacGroupQset[] =    /* l2/l3/l4 */
    this qset requires removal of the InnerVlan. */
 bcm_field_qualify_t l2l3l4ClassIdQset[] =    /* l2/l3/l4 */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     bcmFieldQualifySrcMac,
     bcmFieldQualifyDstMac,
     bcmFieldQualifySrcIp,
@@ -217,7 +217,7 @@ bcm_field_qualify_t l2l3l4ClassIdQset[] =    /* l2/l3/l4 */
 */
 bcm_field_qualify_t l2l3l4Xgs4ClassIdQset[] =    /* l2/l3/l4 */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     bcmFieldQualifySrcMac,
     bcmFieldQualifyDstMac,
     bcmFieldQualifySrcIp,
@@ -252,7 +252,7 @@ bcm_field_qualify_t l2l3l4Xgs4ClassIdQset[] =    /* l2/l3/l4 */
 #endif
 #endif
   /* PTin added */
-#if (PTIN_BOARD != PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD != PTIN_BOARD_CXO640G && PTIN_BOARD != PTIN_BOARD_TC16SXG)
   bcmFieldQualifySrcIp6,
   bcmFieldQualifyDstIp6,
   bcmFieldQualifyIp6TrafficClass,
@@ -292,7 +292,7 @@ bcm_field_qualify_t vlanl3Qset[] =    /* vlan/l3 */
 /* We use this qset on chips that support doublewide mode (e.g. Helix+, FB_B0, FB2, Triumph, etc.). */
 bcm_field_qualify_t systemQsetDouble[] =  /* System requirement */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     bcmFieldQualifyDstMac,
     bcmFieldQualifyOuterVlan,
     bcmFieldQualifyL4SrcPort,
@@ -315,7 +315,7 @@ bcm_field_qualify_t systemQsetDouble[] =  /* System requirement */
 
 bcm_field_qualify_t systemQset[] =  /* System requirement */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     bcmFieldQualifyL2StationMove,
     bcmFieldQualifyL3DestRouteHit,
     bcmFieldQualifyL3DestHostHit,
@@ -332,7 +332,7 @@ bcm_field_qualify_t systemQset[] =  /* System requirement */
    and adds bcmFieldQualifyTunnelType and bcmFieldQualifyLoopbackType. */
 bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
 {
-  bcmFieldQualifyInPorts,
+  //bcmFieldQualifyInPorts,
   bcmFieldQualifySrcMac,
   bcmFieldQualifyDstMac,
   bcmFieldQualifyOuterVlan,
@@ -381,7 +381,7 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
 #if 1
 bcm_field_qualify_t systemQsetVlanQoS[] =
 {
-  bcmFieldQualifyInPorts,
+  //bcmFieldQualifyInPorts,
   bcmFieldQualifyOuterVlan,
   bcmFieldQualifyEtherType,
   bcmFieldQualifyDSCP,
@@ -400,7 +400,7 @@ bcm_field_qualify_t systemQsetVlanQoS[] =
 
 bcm_field_qualify_t systemQsetPTin[] =  /* System requirement */
 {
-  bcmFieldQualifyInPorts,
+  //bcmFieldQualifyInPorts,
 #if (PTIN_BOARD != PTIN_BOARD_TG16G && PTIN_BOARD != PTIN_BOARD_TG16GF && PTIN_BOARD != PTIN_BOARD_AG16GA)
   bcmFieldQualifySrcTrunk,      /* PTin added: FP */
 #endif
@@ -428,7 +428,7 @@ bcm_field_qualify_t systemQsetPTin[] =  /* System requirement */
 
 bcm_field_qualify_t systemQsetStats[] =  /* System requirement */
 {
-  bcmFieldQualifyInPorts,
+  //bcmFieldQualifyInPorts,
   bcmFieldQualifySrcTrunk,      /* PTin added: FP */
   bcmFieldQualifySrcMac,
   bcmFieldQualifyDstMac,
@@ -454,7 +454,7 @@ custom_field_qualify_t systemCustomQset[] =  /* System requirement */
 
 bcm_field_qualify_t iscsiQset[] =  /* iSCSI requirement */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     bcmFieldQualifyL2StationMove,
     bcmFieldQualifyL3DestRouteHit,
     bcmFieldQualifyL3DestHostHit,
@@ -475,7 +475,7 @@ custom_field_qualify_t iscsiCustomQset[] =  /* iSCSI requirement */
    fit the COS policies in the same slice as the IPv6 system policies. */
 bcm_field_qualify_t ipv6NdQsetScorpion[] =   /* req'd by system policies */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     bcmFieldQualifyIp6HopLimit,    /* IP6_HOPLIMIT   */
     bcmFieldQualifyIp6NextHeader,  /* IP6_NEXTHEADER   */
     bcmFieldQualifyIpType,
@@ -487,7 +487,7 @@ bcm_field_qualify_t ipv6NdQsetScorpion[] =   /* req'd by system policies */
 
 bcm_field_qualify_t ipv6NdQset[] =   /* req'd by system policies */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     bcmFieldQualifyIp6HopLimit,    /* IP6_HOPLIMIT   */
     bcmFieldQualifyIp6NextHeader,  /* IP6_NEXTHEADER   */
     bcmFieldQualifyIpType,
@@ -498,7 +498,7 @@ bcm_field_qualify_t ipv6NdQset[] =   /* req'd by system policies */
 
 bcm_field_qualify_t ipv6L3L4Qset[] =  /* includes VLAN ID */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     bcmFieldQualifyEtherType,
     bcmFieldQualifyOuterVlan,
     bcmFieldQualifySrcIp6,          
@@ -526,7 +526,7 @@ bcm_field_qualify_t ipv6L3L4Qset[] =  /* includes VLAN ID */
    this qset requires removal of the Ethertype. */
 bcm_field_qualify_t ipv6L3L4ClassIdQset[] =  /* includes VLAN ID */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     /*bcmFieldQualifySrcMac,*/        /* PTin added: IPv6 ACL rules */
     /*bcmFieldQualifyDstMac,*/        /* PTin added: IPv6 ACL rules */
     bcmFieldQualifyOuterVlan,
@@ -571,7 +571,7 @@ bcm_field_qualify_t ipv6L3L4ClassIdQset[] =  /* includes VLAN ID */
 
 bcm_field_qualify_t ipv6SrcL4ClassIdQset[] =  /* includes VLAN ID */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     bcmFieldQualifyOuterVlan,
     bcmFieldQualifySrcIp6,          
     bcmFieldQualifyIp6NextHeader,          
@@ -604,7 +604,7 @@ bcm_field_qualify_t ipv6SrcL4ClassIdQset[] =  /* includes VLAN ID */
 
 bcm_field_qualify_t ipv6DstL4ClassIdQset[] =  /* includes VLAN ID */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     bcmFieldQualifyOuterVlan,
     bcmFieldQualifyDstIp6,          
     bcmFieldQualifyIp6NextHeader,          
@@ -637,7 +637,7 @@ bcm_field_qualify_t ipv6DstL4ClassIdQset[] =  /* includes VLAN ID */
 
 bcm_field_qualify_t ipv6SrcL4Qset[] =  /* includes VLAN ID */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     bcmFieldQualifyOuterVlan,
     bcmFieldQualifySrcIp6,          
     bcmFieldQualifyIp6TrafficClass,          
@@ -658,7 +658,7 @@ bcm_field_qualify_t ipv6SrcL4Qset[] =  /* includes VLAN ID */
 
 bcm_field_qualify_t ipv6DstL4Qset[] =  /* includes VLAN ID */
 {
-    bcmFieldQualifyInPorts,
+    //bcmFieldQualifyInPorts,
     bcmFieldQualifyOuterVlan,
     bcmFieldQualifyDstIp6,          
     bcmFieldQualifyIp6TrafficClass,          
@@ -914,7 +914,7 @@ super_qset_definition_t l2l3SrcQsetDef           = {l2l3SrcQset,           l2l3S
 super_qset_definition_t l2l3DstQsetDef           = {l2l3DstQset,           l2l3DstQsetSize,           0, 0};
 super_qset_definition_t vlanl3QsetDef            = {vlanl3Qset,            vlanl3QsetSize,            0, 0};
 super_qset_definition_t iscsiQsetDef             = {iscsiQset,             iscsiQsetSize,             
-                                                    iscsiCustomQset,       iscsiCustomQsetSize};
+                                                    0 /*iscsiCustomQset*/,       0 /*iscsiCustomQsetSize*/};
 
 /* Doublewide */
 super_qset_definition_t l2l3l4QsetDef            = {l2l3l4Qset,            l2l3l4QsetSize,            0, 0};

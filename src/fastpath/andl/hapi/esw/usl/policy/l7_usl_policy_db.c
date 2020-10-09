@@ -1165,6 +1165,8 @@ L7_int32 usl_create_policy_db_elem_bcm(void *dbItem)
   uslPolicyInfo = dbItem;
   policyInfo    = &uslPolicyInfo->policyInfo;
 
+  PT_LOG_DEBUG(LOG_CTX_HAPI,"usl_create_policy_db_elem_bcm: uslPolicyInfo->policyMode=%d policyId=%d\n", uslPolicyInfo->policyMode, uslPolicyInfo->policyId);
+
   tmprv = usl_bcm_policy_create(uslPolicyInfo->policyId, policyInfo);
   if (tmprv < rv)
   {

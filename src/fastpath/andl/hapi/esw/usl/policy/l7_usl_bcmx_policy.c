@@ -379,6 +379,7 @@ int usl_bcmx_policy_remove_all(BROAD_POLICY_t policy)
       hwRv = l7_rpc_client_policy_remove_all(policy);
     }
 
+
     /* Do not update the USL Db if hw add failed */
     if (L7_BCMX_OK(hwRv) != L7_TRUE)
     {
@@ -393,15 +394,22 @@ int usl_bcmx_policy_remove_all(BROAD_POLICY_t policy)
     }
   } while (0);
 
+
   /* Return the worst error code */
   rv = min(hwRv, dbRv);
 
   /* Log the message on error */
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
+#if 1
+    PT_LOG_ERR(LOG_CTX_STARTUP, 
+                "USL: Failed to remove policy %d from all ports, hwRv %d dbRv %d\n",
+                policy, hwRv, dbRv);
+#else
     USL_LOG_MSG(USL_INFO_LOG, 
                 "USL: Failed to remove policy %d from all ports, hwRv %d dbRv %d\n",
                 policy, hwRv, dbRv);
+#endif
   }
 
   USL_POLICY_BCMX_LOCK_GIVE();

@@ -269,6 +269,7 @@ void sysapiTimerTaskStart(void)
  * @end
  *
  *************************************************************************/
+#if 0
 void sysapiPrintf(const L7_char8 *format, ...)
 {
   va_list arg;
@@ -282,7 +283,7 @@ void sysapiPrintf(const L7_char8 *format, ...)
 
   return;
 }
-
+#endif
 
 /**************************************************************************
  * @purpose  Initialize the sysapi component
