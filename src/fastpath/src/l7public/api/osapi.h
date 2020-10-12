@@ -439,12 +439,12 @@ EXT_API L7_RC_t osapiMsgQueueGetNumMsgs( void * queue_ptr, L7_int32 *bptr);
 *
 *************************************************************************/
 EXT_API L7_uint64 osapiTaskCreate(L7_char8 *task_name,
-                                 void *task_entry,
-                                 /*@null@*/void *argv,
-                                 L7_uint32 argc,
-                                 L7_uint32 stack_size,
-                                 L7_uint32 priority,
-                                 L7_uint32 time_slice );
+                                  void *task_entry,
+                                  /*@null@*/void *argv,
+                                  L7_uint32 argc,
+                                  L7_uint32 stack_size,
+                                  L7_uint32 priority,
+                                  L7_uint32 time_slice );
 
 /**************************************************************************
 *
@@ -1957,8 +1957,8 @@ typedef void (*osapiTimerCallback_t)( L7_uint64 parm1, L7_uint64 parm2 );
 typedef struct osapiTimerDescr_s
 {
   osapiTimerCallback_t  callback;
-  L7_uint32         parm1;
-  L7_uint32         parm2;
+  L7_uint64         parm1;
+  L7_uint64         parm2;
   L7_uint32         timer_in_use;
   L7_uint32         timer_running;
   L7_uint32         time_count;
