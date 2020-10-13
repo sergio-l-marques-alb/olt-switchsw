@@ -286,7 +286,7 @@
       NO_CONNECTION_LIST
     },
 
-#if (SDK_VERSION_IS >= SDK_VERSION(6,18,0,0))
+#if (SDK_VERSION_IS >= SDK_VERSION(6,5,18,0))
     /* PTin added: new switch 56370 (Trident3-X3) */
     /* 56370 board */
     {
