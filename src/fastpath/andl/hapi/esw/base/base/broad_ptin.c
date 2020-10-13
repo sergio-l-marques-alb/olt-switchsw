@@ -2302,7 +2302,7 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisGet(DAPI_USP_t *usp, L7_uint16 *preem
   }
 
   /* Restore linkscan mode */
-  rc = bcm_linkscan_enable_set(0, linkscan);
+  rc = bcm_linkscan_enable_set(0, BCM_LINKSCAN_INTERVAL_DEFAULT);
   if (rc != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error restoring linkscan mode to all ports");

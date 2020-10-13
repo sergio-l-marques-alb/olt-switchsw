@@ -2195,6 +2195,16 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
   {
     /* refresh any linkscan registrations in the system to assure remote events are sent here */
     rv = bcm_linkscan_enable_set(bcm_unit, BCM_LINKSCAN_INTERVAL_DEFAULT);
+    if (L7_BCMX_OK(rv) != L7_TRUE)
+    {
+      PT_LOG_INFO(LOG_CTX_STARTUP,
+              "Driver: Failed to register for L2 notifications, error code %d\n", 
+              rv);
+      result = L7_FAILURE;
+    }
+
+    PT_LOG_INFO(LOG_CTX_STARTUP,
+                "Linkscan configured");
 
     /* PTin removed: BCMX */
 #if 0
