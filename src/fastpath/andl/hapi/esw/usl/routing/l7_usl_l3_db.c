@@ -6916,7 +6916,7 @@ L7_RC_t usl_l3_intf_hw_id_generator_init(void)
   ** Until such API is available we use the index from 0 to max number of
   ** L3 Intfs supported by FASTPATH
   */
-  uslL3IntfHwIdMin = 1;
+  uslL3IntfHwIdMin = 1;     /* PTin modified for Trident3x3: L3intf creation */
   uslL3IntfHwIdMax = max - 1;
 
   pUslL3IntfHwIdList = osapiMalloc(L7_DRIVER_COMPONENT_ID,

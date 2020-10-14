@@ -5080,12 +5080,10 @@ int policy_group_set_pbm(int                  unit,
                          BROAD_ENTRY_t        entry,
                          bcm_pbmp_t           pbm)
 {
-
-    #if 1//Ptin FIXME
-    
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+    PT_LOG_WARN(LOG_CTX_STARTUP, "FIXME! InPorts Qual at Field Processor");
     return  BCM_E_NONE;
-
-    #else
+#else
     int               rv;
     group_table_t    *groupPtr;
     bcm_field_entry_t eid;
@@ -5138,7 +5136,7 @@ int policy_group_set_pbm(int                  unit,
                    pbm.pbits[2], pbm.pbits[1], pbm.pbits[0], maskPbm.pbits[2], maskPbm.pbits[1], maskPbm.pbits[0], eid);
 
     return rv;
-    #endif
+#endif
 }
 
 int policy_group_set_portclass(int                  unit,

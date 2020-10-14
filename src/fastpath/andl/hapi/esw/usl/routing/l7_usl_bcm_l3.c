@@ -178,7 +178,7 @@ int usl_bcm_l3_intf_create (usl_bcm_l3_intf_t *intf)
         rv = bcm_l3_intf_create (i, &(intf->bcm_data));
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
-          PT_LOG_ERR(LOG_CTX_STARTUP, "Error: unit=%d rv=%d", i, rv);
+          PT_LOG_ERR(LOG_CTX_STARTUP, "unit %d: Error creating an L3intf (rv=%d)", i, rv);
           break;
         }
       }
@@ -521,7 +521,7 @@ int usl_bcm_l3_egress_create (L7_uint32 flags,
         egr->bcm_data.mpls_label = -1;
         egr->bcm_data.dynamic_scaling_factor=-1;
         egr->bcm_data.dynamic_load_weight=-1;
-        egr->bcm_data.dynamic_queue_size_weight = -1;
+        egr->bcm_data.dynamic_queue_size_weight = -1;   /* PTin modified for Trident3x3: missing initialization! */
 
         rv = bcm_l3_egress_create (i, flags, &(egr->bcm_data), egrId);
 
@@ -536,7 +536,7 @@ int usl_bcm_l3_egress_create (L7_uint32 flags,
 
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
-          PT_LOG_ERR(LOG_CTX_HAPI,"Error: rv=%d", rv);
+          PT_LOG_ERR(LOG_CTX_HAPI,"Error creating L3 egress object (rv=%d)", rv);
           break;
         }
       }

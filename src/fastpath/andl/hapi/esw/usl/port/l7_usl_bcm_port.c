@@ -1580,11 +1580,15 @@ static uint32 l7_port_wred_percent_to_bytes(int unit, uint8 percent)
     
     /* CXO640G board */
     /* PTin added: new switch 56370 (Trident3x3) */
-    if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIDENT2X(unit) || SOC_IS_TRIDENT3X(unit)
-       )
+    if (SOC_IS_TRIDENT(unit))
     {
       cellsize = 208;
       totalmem = 46080;
+    }
+    else if (SOC_IS_TRIDENT3X(unit))
+    {
+      cellsize = 256;
+      totalmem = 32768;
     }
     /* OLT1T0F/TG16GF board */
     else if (SOC_IS_KATANA2(unit))
@@ -1616,7 +1620,7 @@ static uint32 l7_port_wred_percent_to_bytes(int unit, uint8 percent)
       totalmem = 16383;
     }
 
-    if (SOC_IS_KATANA2(unit))
+    if (SOC_IS_KATANA2(unit) /*|| SOC_IS_TRIDENT3X(unit)*/)
     {
       /* Katana2 have 4K queues (56450-DS106-RDS.pdf) */
       conversion_factor = totalmem / (1 + 2 * (NUM_PORT(unit)-1));
@@ -1654,6 +1658,11 @@ int usl_bcm_port_wred_set(int unit, bcm_port_t port,
   bcm_cosq_gport_discard_t    discardParams;
   bcm_gport_t                 gport;
 
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  PT_LOG_WARN(LOG_CTX_STARTUP, "FIXME! unit %u, port %u: WRED configuration",
+              unit, port);
+  return BCM_E_NONE;
+#endif
         
   /* Check if the hardware should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_PORT_DB_ID) == L7_TRUE)
@@ -1667,7 +1676,7 @@ int usl_bcm_port_wred_set(int unit, bcm_port_t port,
         /* Initialize flags */
         discardParams.flags = 0;
 
-        if (SOC_IS_KATANA2(unit))
+        if (SOC_IS_KATANA2(unit) || SOC_IS_TRIDENT3X(unit))
         {
           /* Configure in cell units (no flags assigned) */
         }
@@ -1681,9 +1690,9 @@ int usl_bcm_port_wred_set(int unit, bcm_port_t port,
           discardParams.flags |= BCM_COSQ_DISCARD_CAP_AVERAGE;
         }
         if (wredParams->flags[queueIndex] & BCM_COSQ_DISCARD_ENABLE)
-	    {
+	      {
   	        discardParams.flags |= BCM_COSQ_DISCARD_ENABLE;
-	    }
+	      }
         discardParams.drop_probability = wredParams->dropProb[queueIndex][precIndex];
         discardParams.min_thresh = 
          l7_port_wred_percent_to_bytes(unit, wredParams->minThreshold[queueIndex][precIndex]);
@@ -1747,13 +1756,12 @@ int usl_bcm_port_wred_set(int unit, bcm_port_t port,
         rv = bcm_cosq_gport_discard_set(unit, wredParams->bcm_gport, 
                                         queueIndex, &discardParams);
 
-        PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_port=%u bcm_gport=0x%x queue=%u DP=%u, min=%u max=%u prob=%u flags=0x%x (rv=%d)",
-                    port, wredParams->bcm_gport, queueIndex, precIndex,
-                    discardParams.min_thresh, discardParams.max_thresh, discardParams.drop_probability, discardParams.flags, rv);
-
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
-          break;    
+          PT_LOG_ERR(LOG_CTX_HAPI, "unit %d, bcm_port=%u bcm_gport=0x%x queue=%u DP=%u, min=%u max=%u prob=%u flags=0x%x (rv=%d)",
+                     unit, port, wredParams->bcm_gport, queueIndex, precIndex,
+                     discardParams.min_thresh, discardParams.max_thresh, discardParams.drop_probability, discardParams.flags, rv);
+          break;
         }
       } /* End for each color */
     } /* End for each queue */

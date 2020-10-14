@@ -298,7 +298,7 @@ int usl_bcmx_l3_intf_create(usl_bcm_l3_intf_t *info)
       info->bcm_data.l3a_intf_id = index;
       info->bcm_data.l3a_flags |= BCM_L3_WITH_ID;
 
-      PT_LOG_INFO(LOG_CTX_HAPI, "Using ID %u", index);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "New L3intf: using ID %u", index);
     }
     
     /* Check if the hardware should be configured */
@@ -507,7 +507,7 @@ L7_RC_t usl_bcmx_l3_egress_create(L7_uint32 *pFlags,
                               uslStr);
         pEgrIntf[i] = index;
         pFlags[i] |= BCM_L3_WITH_ID;
-        PT_LOG_INFO(LOG_CTX_HAPI, "Using ID %u", index);
+        PT_LOG_TRACE(LOG_CTX_HAPI, "New L3 egress object: using ID %u", index);
       }
 
       tmpBcmInfo++;
