@@ -998,8 +998,6 @@ void cmgrTaskLocalUnitIsManager(L7_LAST_STARTUP_REASON_t systemStartupReason,
   /* Insert only logical cards and local cards to the driver */
   for (slot = 0 ; slot <= maxSlots; slot++ )
   {
-    PT_LOG_TRACE(LOG_CTX_STARTUP, "Initializing slots: slot=%u", slot);
-
     /* Retreive info about the logical card from the local unit.
      */
     card_id = cmgrCMDBInsertedCardIdGet (L7_LOGICAL_UNIT, slot);
@@ -1008,15 +1006,11 @@ void cmgrTaskLocalUnitIsManager(L7_LAST_STARTUP_REASON_t systemStartupReason,
       continue;
     }
 
-    PT_LOG_TRACE(LOG_CTX_STARTUP, "slot=%u", slot);
-
     cardTypeDb = sysapiHpcCardDbEntryGet(card_id);
     if (cardTypeDb == L7_NULL)
     {
       L7_LOG_ERROR(card_id);
     }
-
-    PT_LOG_TRACE(LOG_CTX_STARTUP, "slot=%u", slot);
 
     if ((cardTypeDb->type == SYSAPI_CARD_TYPE_LOGICAL_CPU) ||
         (cardTypeDb->type == SYSAPI_CARD_TYPE_VLAN_ROUTER) ||
@@ -2259,8 +2253,6 @@ L7_RC_t cmgrInitSlotsOnUnit(L7_uint32 unit)
     return L7_FAILURE;
   }
 
-  PT_LOG_TRACE(LOG_CTX_STARTUP, "cmgrInitSlotsOnUnit: init");
-
   for (slot = 0; slot <= cmgrCMDBUnitMaxSlotsGet(unit); slot++)
   {
     PT_LOG_TRACE(LOG_CTX_STARTUP, "cmgrInitSlotsOnUnit: slot=%d", slot);
@@ -2286,8 +2278,6 @@ L7_RC_t cmgrInitSlotsOnUnit(L7_uint32 unit)
     {
       continue;
     }
-
-    PT_LOG_TRACE(LOG_CTX_STARTUP, "cmgrInitSlotsOnUnit: pluggable=%d", unit_entry.physSlot[sx].pluggable);
 
     if (unit_entry.physSlot[sx].pluggable != L7_TRUE)
     {
@@ -4350,18 +4340,11 @@ L7_RC_t cmgrUnitEntryAndSlotIndexGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 *
     u_entry = sysapiHpcUnitDbEntryGet(unit_id);
   }
 
-  PT_LOG_TRACE(LOG_CTX_STARTUP, "cmgrUnitEntryAndSlotIndexGet: unit=%d slot=%d", unit, slot);
-
   if (L7_NULLPTR == u_entry)
     return L7_FAILURE;
 
-  PT_LOG_TRACE(LOG_CTX_STARTUP, "cmgrUnitEntryAndSlotIndexGet: unit=%d slot=%d", unit, slot);
-
   for (slot_index = 0; slot_index < L7_MAX_PHYSICAL_SLOTS_PER_UNIT; slot_index++)
   {
-    PT_LOG_TRACE(LOG_CTX_STARTUP, "cmgrUnitEntryAndSlotIndexGet: slot_index=%d, u_entry->physSlot[slot_index].slot_number=%d",
-              slot_index, u_entry->physSlot[slot_index].slot_number);
-
     if (u_entry->physSlot[slot_index].slot_number == slot)
     {
       *sx = slot_index;

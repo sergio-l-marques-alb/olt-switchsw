@@ -578,8 +578,7 @@ void      sysapiMbufFree( L7_uint64 *mbuf, L7_BOOL isRx );
   #error illegal logging mask error in sysapi.h
 #endif
 
-void sysapiPrintf(const char *format, ...);
-
+/* PTin modified: LOGs */
 #if 0
 void sysapiPrintf(const char *format, ...);
 #else /*Ptin Modifed*/

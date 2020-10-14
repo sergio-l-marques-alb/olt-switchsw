@@ -37,11 +37,7 @@
 
 static BROAD_POLICY_CUSTOM_DATA_t *rpc_policy_data;
 static L7_uint32 rpc_policy_rule_count;
-#if 0
-static L7_BOOL rpc_debug = L7_TRUE;
-#else
 static L7_BOOL rpc_debug = L7_FALSE;
-#endif
 static hpcHwRpcData_t rpcStatsResponse[L7_MAX_UNITS_PER_STACK+1];
 
 #define RPC_DEBUG_PRINT if (rpc_debug != L7_FALSE) sysapiPrintf
@@ -196,8 +192,6 @@ L7_RC_t l7_rpc_server_policy_handler(L7_uint32 tid,
   if (data->rpcFlags & BROAD_POLICY_LAST)
   {
     RPC_DEBUG_PRINT("l7_rpc_server_policy_handler: Policy-%d received LAST got %d rule(s) total\r\n", 
-                    rpc_policy_data->policyId, rpc_policy_rule_count);
-    PT_LOG_DEBUG(LOG_CTX_HAPI,"l7_rpc_server_policy_handler: Policy=%d received LAST got %d rule(s) total\r\n", 
                     rpc_policy_data->policyId, rpc_policy_rule_count);
     if (rpc_policy_data != L7_NULL)
     {
@@ -1150,7 +1144,6 @@ int usl_bcm_policy_remove_all(BROAD_POLICY_t policy)
     {
       if (SOC_IS_XGS3_SWITCH(i))
       {
-        PT_LOG_DEBUG(LOG_CTX_HAPI,"usl_bcm_policy_remove_all: Unit=%d Policy=%d processing BROAD_CUSTOM_POLICY_REMOVE_ALL\r\n", i, policy);
         tmpRv = l7_bcm_policy_remove_all(i, policy);
       }
       if (tmpRv < rv)
