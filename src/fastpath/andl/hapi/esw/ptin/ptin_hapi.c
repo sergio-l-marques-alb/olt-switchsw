@@ -16,6 +16,8 @@
 
 #include <unistd.h>
 
+#include "unitmgr_api.h"
+
 #include "ptin_globaldefs.h"
 #include "ptin_fpga_api.h"
 #include "logger.h"
@@ -5246,13 +5248,31 @@ L7_RC_t hapiBroadSystemInstallPtin_preInit(void)
  */
 L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 {
-  L7_uint8    port, prio;
+  L7_uint8    prio;
   L7_BOOL     remark_pbits;
-  bcm_port_t  bcm_port;
+  int         bcm_unit, bcm_port;
+  L7_uint32   unit_number;
+  DAPI_USP_t  usp;
+  BROAD_PORT_t *hapiPortPtr;
   bcm_error_t rv;
   L7_RC_t     rc;
+  extern DAPI_t *dapi_g;
 
   rc = L7_SUCCESS;
+
+  /* Run all physical ports, and configure the packet headers to be considered at the Load Balancing algorithms */
+  unitMgrNumberGet(&unit_number);
+  usp.unit = (L7_int8) unit_number;
+  usp.slot = 0;   /* Default hapi usp slot number to phy. intfs. */
+  usp.port = 0;
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR ||
+      dapi_g->unit[usp.unit] == L7_NULLPTR ||
+      dapi_g->unit[usp.unit]->slot[usp.slot] == L7_NULLPTR)
+  {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
+      return L7_FAILURE;
+  }
 
   /* For OLT1T0 */
 #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
@@ -5356,43 +5376,59 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     return L7_FAILURE; 
   }
 
-  /* Apply prio/color (un)mapping */
-  for (port=0; port<ptin_sys_number_of_ports; port++)
+  /* Run all usp ports */
+  for (usp.port = 0;
+       usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;
+       usp.port++)
   {
-    // Get bcm_port format
-    if (hapi_ptin_bcmPort_get(port, &bcm_port)!=BCM_E_NONE) 
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error obtaining bcm_port for port %u", port);
-      continue;
-    }
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+    bcm_port    = hapiPortPtr->bcm_port;
+    bcm_unit    = hapiPortPtr->bcm_unit;
+
+    /* Apply prio/color (un)mapping */
 
     //INGRESS STAGE
-    rv = bcm_port_cfi_color_set(0, bcm_port, 0, bcmColorGreen);
+    rv = bcm_port_cfi_color_set(bcm_unit, bcm_port, 0, bcmColorGreen);
     if (rv != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_cfi_color_set(GREEN): %u", rv);
+      PT_LOG_ERR(LOG_CTX_HAPI, "bcm_unit %u, bcm_port %d: Error with bcm_port_cfi_color_set(GREEN) (%u)",
+                 bcm_unit, bcm_port, rv);
       return L7_FAILURE; 
     }
-    rv = bcm_port_cfi_color_set(0, bcm_port, 1, bcmColorYellow);
+    rv = bcm_port_cfi_color_set(bcm_unit, bcm_port, 1, bcmColorYellow);
     if (rv != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_cfi_color_set(YELLOW): %u", rv);
+      PT_LOG_ERR(LOG_CTX_HAPI, "bcm_unit %u, bcm_port %d: Error with bcm_port_cfi_color_set(YELLOW) (%u)",
+                 bcm_unit, bcm_port, rv);
       return L7_FAILURE; 
     }
 
     //EGRESS STAGE
     for (prio=0; prio<8; prio++)
     {
-      rv = bcm_port_vlan_priority_unmap_set(0, bcm_port, prio, bcmColorGreen, prio, 0);
-      if (rv != BCM_E_NONE)
+      rv = bcm_port_vlan_priority_unmap_set(bcm_unit, bcm_port, prio, bcmColorGreen, prio, 0);
+      if (rv == BCM_E_UNAVAIL)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_vlan_priority_unmap_set(GREEN): %u", rv);
+        PT_LOG_WARN(LOG_CTX_HAPI, "FIXME! bcm_unit %u, bcm_port %d, prio %d: bcm_port_vlan_priority_unmap_set is not supported!",
+                    bcm_unit, bcm_port, prio);
+      }
+      else if (rv != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "bcm_unit %u, bcm_port %d, prio %d: Error with bcm_port_vlan_priority_unmap_set(GREEN) (%d)",
+                   bcm_unit, bcm_port, prio, rv);
         return L7_FAILURE; 
       }
-      rv = bcm_port_vlan_priority_unmap_set(0, bcm_port, prio, bcmColorYellow, prio, 1);
-      if (rv != BCM_E_NONE)
+
+      rv = bcm_port_vlan_priority_unmap_set(bcm_unit, bcm_port, prio, bcmColorYellow, prio, 1);
+      if (rv == BCM_E_UNAVAIL)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_vlan_priority_unmap_set(YELLOW): %u", rv);
+        PT_LOG_WARN(LOG_CTX_HAPI, "FIXME! bcm_unit %u, bcm_port %d, prio %d: bcm_port_vlan_priority_unmap_set is not supported!",
+                    bcm_unit, bcm_port, prio);
+      }
+      else if (rv != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "bcm_unit %u, bcm_port %d, prio %d: Error with bcm_port_vlan_priority_unmap_set(YELLOW) (%d)",
+                   bcm_unit, bcm_port, prio, rv);
         return L7_FAILURE; 
       }
     }
@@ -5402,7 +5438,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 
     /* For linecard uplink ports, or CXO160G downlink ports, remark should be active */
     #if ((PTIN_BOARD_IS_LINECARD) || (PTIN_BOARD == PTIN_BOARD_CXO160G))
-    if ((PTIN_SYSTEM_10G_PORTS_MASK >> port) & 1)
+    if ((PTIN_SYSTEM_10G_PORTS_MASK >> usp.port) & 1)
     /* For standalone equipments (OLT1T0), remark should be active for all ports */
     #elif (PTIN_BOARD_IS_STANDALONE)
     if (1)
@@ -5415,10 +5451,11 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       remark_pbits = L7_TRUE;
     }
     /* Apply remark configuration: this will affect PCP and CFI bits */
-    rv = bcm_port_control_set(0, bcm_port, bcmPortControlEgressVlanPriUsesPktPri, !remark_pbits);
+    rv = bcm_port_control_set(bcm_unit, bcm_port, bcmPortControlEgressVlanPriUsesPktPri, !remark_pbits);
     if (rv != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_control_set: %u", rv);
+      PT_LOG_ERR(LOG_CTX_HAPI, "bcm_unit %u, bcm_port %d: Error with bcm_port_control_set (%u)",
+                 bcm_unit, bcm_port, rv);
       return L7_FAILURE; 
     }
   }
@@ -5676,31 +5713,39 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       //hapiBroadPolicyDelete(policyId);
       //return L7_FAILURE;
     }
-    /* Add only PON ports */
-    for (port = 0; port < ptin_sys_number_of_ports; port++)
-    {
-      if (hapi_ptin_bcmPort_get(port, &bcm_port) == L7_SUCCESS)
-      {
-        /* FIXME: Only applied to unit 0 */
-        if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
-        {
-          printf("Error with unit %d, port %d", 0, bcm_port);
-          return L7_FAILURE;
-        }
 
-        if ((PTIN_SYSTEM_PON_PORTS_MASK >> port) & 1)
+    /* Run all usp ports */
+    for (usp.port = 0;
+         usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;
+         usp.port++)
+    {
+      hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+      bcm_port    = hapiPortPtr->bcm_port;
+      bcm_unit    = hapiPortPtr->bcm_unit;
+
+      /* Add only PON ports */
+
+      /* FIXME: Only applied to unit 0 */
+      if (bcmy_lut_unit_port_to_gport_get(bcm_unit, bcm_port, &gport) != BCMY_E_NONE)
+      {
+        printf("Error with unit %d, port %d", bcm_unit, bcm_port);
+        return L7_FAILURE;
+      }
+
+      if ((PTIN_SYSTEM_PON_PORTS_MASK >> usp.port) & 1)
+      {
+        rc = hapiBroadPolicyApplyToIface(policyId, gport);
+        if (rc != L7_SUCCESS)
         {
-          rc = hapiBroadPolicyApplyToIface(policyId, gport);
-          if (rc != L7_SUCCESS)
-          {
-            PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding port %u: rc=%d", port, rc);
-            //hapiBroadPolicyDelete(policyId);
-            //return L7_FAILURE;
-          }
-          else
-          {
-            PT_LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / gport 0x%x added to Pbit=0 force rule", port, bcm_port, gport);
-          }
+          PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding bcm_unit %d/bcm_port %d/gport 0x%x: rc=%d",
+                     bcm_unit, bcm_port, gport, rc);
+          //hapiBroadPolicyDelete(policyId);
+          //return L7_FAILURE;
+        }
+        else
+        {
+          PT_LOG_TRACE(LOG_CTX_STARTUP, "unit %u / bcm_port %u / gport 0x%x added to Pbit=0 force rule",
+                       bcm_unit, bcm_port, gport);
         }
       }
     }
