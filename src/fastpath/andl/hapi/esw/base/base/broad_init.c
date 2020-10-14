@@ -2190,10 +2190,10 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
   for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
   {
     /* refresh any linkscan registrations in the system to assure remote events are sent here */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,4,3,0))
-    rv = bcm_linkscan_enable_set(0, BCM_LINKSCAN_INTERVAL_DEFAULT);
+#if (SDK_VERSION_IS > SDK_VERSION(6,4,3,0))
+    rv = bcm_linkscan_enable_set(bcm_unit, BCM_LINKSCAN_INTERVAL_DEFAULT);
 #else
-    rv = bcm_linkscan_enable_set(0, 250000);
+    rv = bcm_linkscan_enable_set(bcm_unit, 250000);
 #endif
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
