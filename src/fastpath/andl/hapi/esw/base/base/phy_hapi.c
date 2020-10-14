@@ -255,6 +255,8 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 	hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
 	dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
 
+    PT_LOG_TRACE(LOG_CTX_INTF, "speed=%d duplex=%d", speed, duplex);
+
 	if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_FALSE)
 	{
 		L7_LOG_ERROR(dapiPortPtr->type);
@@ -336,6 +338,7 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 		{
 			rc = bcmx_port_medium_config_get (hapiPortPtr->bcmx_lport,
 					BCM_PORT_MEDIUM_FIBER, &fiber_config);
+            PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_medium_config_get()=%d", rc);
 			if (rc == BCM_E_NONE)
 			{
 				fiber_config.autoneg_enable = 0;
@@ -345,6 +348,7 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 
 				rc = bcmx_port_medium_config_set (hapiPortPtr->bcmx_lport,
 						BCM_PORT_MEDIUM_FIBER, &fiber_config);
+                PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_medium_config_set()=%d", rc);
 				if (rc != BCM_E_NONE)
 				{
 					/* We failed to set fixed speed on Fiber. Disable it */
@@ -354,6 +358,7 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 					rc = bcmx_port_medium_config_set (hapiPortPtr->bcmx_lport,
 							BCM_PORT_MEDIUM_FIBER,
 							&fiber_config);
+                    PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_medium_config_set()=%d", rc);
 					hapiPortPtr->hapiModeparm.physical.fiber_mode_disabled = L7_TRUE;
 				}
 			}
@@ -361,6 +366,7 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 
 		rc = bcmx_port_medium_config_get (hapiPortPtr->bcmx_lport,
 				BCM_PORT_MEDIUM_COPPER, &copper_config);
+        PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_medium_config_get()=%d", rc);
 		if (rc == BCM_E_NONE)
 		{
 			copper_config.autoneg_enable = 0;
@@ -413,6 +419,7 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 			copper_config.force_speed = bcmSpeed;
 
 			rc = bcmx_port_pause_set(hapiPortPtr->bcmx_lport, mac_pause_tx, mac_pause_rx);
+            PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_pause_set()=%d", rc);
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 				L7_LOG_ERROR(rc);
 
@@ -423,15 +430,18 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
                          * configures the PHY, and not the MAC.
                          */
                         rc = bcmx_port_duplex_set(hapiPortPtr->bcmx_lport, bcmDuplex);
+                        PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_duplex_set()=%d", rc);
                         if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
                                 L7_LOG_ERROR(rc);
 
 	                rc = bcmx_port_jam_set(hapiPortPtr->bcmx_lport, jam);
+                    PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_jam_set()=%d", rc);
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 				L7_LOG_ERROR(rc);
 
 			rc = usl_bcmx_port_medium_config_set (hapiPortPtr->bcmx_lport,
 					BCM_PORT_MEDIUM_COPPER, &copper_config);
+            PT_LOG_TRACE(LOG_CTX_INTF, "usl_bcmx_port_medium_config_set()=%d", rc);
 			if (L7_BCMX_OK(rc) != L7_TRUE)
 				L7_LOG_ERROR(rc);
 		}
@@ -444,6 +454,7 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 			 */
 
 			rc = bcmx_port_speed_set(hapiPortPtr->bcmx_lport, bcmSpeed);
+            PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_speed_set()=%d", rc);
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 			{
 #ifdef LVL7_ALPHA8245
@@ -473,14 +484,17 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 							BCM_PORT_DUPLEX_FULL : BCM_PORT_DUPLEX_HALF;
 
 			rc = bcmx_port_duplex_set(hapiPortPtr->bcmx_lport, bcmDuplex);
+            PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_duplex_set()=%d", rc);
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 				L7_LOG_ERROR(rc);
 
 			rc = bcmx_port_mdix_set(hapiPortPtr->bcmx_lport,BCM_PORT_MDIX_FORCE_AUTO);
+            PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_mdix_set()=%d", rc);
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 				L7_LOG_ERROR(rc);
 
 			rc = bcmx_port_ability_get(hapiPortPtr->bcmx_lport,&local_ability_mask);
+            PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_ability_get()=%d", rc);
 			if (L7_BCMX_OK(rc) != L7_TRUE)
 				L7_LOG_ERROR(rc);
 
@@ -520,24 +534,29 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
             #endif
 
 			rc = bcmx_port_advert_set(hapiPortPtr->bcmx_lport,local_ability_mask);
+            PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_advert_set()=%d", rc);
 			if (L7_BCMX_OK(rc) != L7_TRUE)
 				L7_LOG_ERROR(rc);
 
 			rc = bcmx_port_pause_set(hapiPortPtr->bcmx_lport, mac_pause_tx, mac_pause_rx);
+            PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_pause_set()=%d", rc);
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 				L7_LOG_ERROR(rc);
 
 	        rc = bcmx_port_jam_set(hapiPortPtr->bcmx_lport, jam);
+            PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_jam_set()=%d", rc);
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 				L7_LOG_ERROR(rc);
 
 			rc = bcmx_port_autoneg_set(hapiPortPtr->bcmx_lport, FALSE);
+            PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_autoneg_set()=%d", rc);
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 				L7_LOG_ERROR(rc);
 		}
 	}
 	else  /* Autonegotiation enabled */
 	{
+        PT_LOG_TRACE(LOG_CTX_INTF, "Autonegotiation enabled");
 		rc = bcmx_port_medium_config_get (hapiPortPtr->bcmx_lport,
 				BCM_PORT_MEDIUM_COPPER, &copper_config);
 		if (rc == BCM_E_NONE)
@@ -577,10 +596,12 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 
 			rc = usl_bcmx_port_medium_config_set (hapiPortPtr->bcmx_lport,
 					BCM_PORT_MEDIUM_COPPER, &copper_config);
+            PT_LOG_TRACE(LOG_CTX_INTF, "usl_bcmx_port_medium_config_set()=%d", rc);
 			if (L7_BCMX_OK(rc) != L7_TRUE)
 				L7_LOG_ERROR(rc);
 		} else
 		{
+            PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_medium_config_get()=%d", rc);
 			/* port-medium-config command is not supported on this PHY. Use different commands.
 			 */
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
@@ -588,6 +609,7 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 
 			/* get the ability of the port */
 			rc = bcmx_port_ability_get(hapiPortPtr->bcmx_lport,&local_ability_mask);
+            PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_ability_get()=%d", rc);
 			if (L7_BCMX_OK(rc) != L7_TRUE)
 				L7_LOG_ERROR(rc);
 
@@ -613,6 +635,7 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 			}
 
 			rc = bcmx_port_advert_set(hapiPortPtr->bcmx_lport,local_ability_mask);
+            PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_advert_set()=%d", rc);
 			if (L7_BCMX_OK(rc) != L7_TRUE)
 				L7_LOG_ERROR(rc);
 
@@ -639,11 +662,13 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 			* link comes UP*/
 
 			rc = bcmx_port_mdix_set(hapiPortPtr->bcmx_lport,BCM_PORT_MDIX_AUTO);
-			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
+			PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_mdix_set()=%d", rc);
+            if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 				L7_LOG_ERROR(0);
 
 			/* Enable autoneg on port */
 			rc = bcmx_port_autoneg_set(hapiPortPtr->bcmx_lport, TRUE);
+            PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_autoneg_set()=%d", rc);
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 				L7_LOG_ERROR(rc);
 		}
@@ -654,6 +679,7 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 			rc = bcmx_port_medium_config_get (hapiPortPtr->bcmx_lport,
 					BCM_PORT_MEDIUM_FIBER,
 					&fiber_config);
+            PT_LOG_TRACE(LOG_CTX_INTF, "bcmx_port_medium_config_get()=%d", rc);
 			if (rc == BCM_E_NONE)
 			{
 				/* If fiber mode is disabled on the PHY then re-enable it.*/
@@ -664,7 +690,7 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 
 				fiber_config.autoneg_enable = 1;
 				fiber_config.preferred = 1;
-				if(sal_config_get("copper_preffered")!= NULL)
+				if(sal_config_get("copper_preffered")!= NULL)   //"copper_preferred"?
 				{
 					/* Copper preffered - overwriting */
 					fiber_config.preferred = 0;
@@ -674,6 +700,7 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 				rc = usl_bcmx_port_medium_config_set (hapiPortPtr->bcmx_lport,
 						BCM_PORT_MEDIUM_FIBER,
 						&fiber_config);
+                PT_LOG_TRACE(LOG_CTX_INTF, "usl_bcmx_port_medium_config_set()=%d", rc);
 				if (rc == BCM_E_NONE)
 				{
 					hapiPortPtr->hapiModeparm.physical.fiber_mode_disabled = L7_FALSE;
@@ -682,6 +709,7 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 		}
 
 	}
+    PT_LOG_TRACE(LOG_CTX_INTF, " ");
 
 	if (osapiSemaGive(hapiPortPtr->hapiModeparm.physical.phySemaphore) != L7_SUCCESS)
 	{

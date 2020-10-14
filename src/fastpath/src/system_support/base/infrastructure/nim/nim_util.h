@@ -448,8 +448,14 @@ L7_RC_t nimConvertoOldSpeedvalue(L7_uint32 intIfNum, L7_uint32 newintfSpeed, L7_
     value = (usp->unit << 20 | usp->slot <<12 | usp->port); \
   }
 
+#if 0
 #define NIM_LOG_MSG(format, args...) \
           nimLogMsg (L7_FALSE,__FILE__, __LINE__, format, ## args)
+#else   /* PTIn modified */
+#include "logger.h"
+#define NIM_LOG_MSG(format, args...) \
+          PT_LOG_PEDANTIC(LOG_CTX_INTF, format, ## args)
+#endif
 
 #define NIM_L7_LOG_ERROR(format, args...) \
           nimLogMsg (L7_TRUE,__FILE__, __LINE__, format, ## args); \

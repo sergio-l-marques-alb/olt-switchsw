@@ -3483,7 +3483,7 @@ L7_BOOL nimIntfParmCanSet(L7_uint32 intIfNum, L7_uint32 setParms)
 
     NIM_CRIT_SEC_READ_EXIT();
   }
-
+  PT_LOG_PEDANTIC(LOG_CTX_INTF, "canset=%d", canset);
   return(canset);
 }
 
@@ -3634,7 +3634,7 @@ L7_RC_t nimSetIntfAutoNegoStatusCapabilities(L7_uint32 intIfNum, L7_uint32 negoC
   /* check if interface is present */
   IS_INTIFNUM_PRESENT(intIfNum,rc);
   NIM_CRIT_SEC_READ_EXIT();
-
+  PT_LOG_PEDANTIC(LOG_CTX_INTF, "rc=%d", rc);
   if (rc == L7_SUCCESS)
   {
     NIM_CRIT_SEC_WRITE_ENTER();
