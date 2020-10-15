@@ -31,7 +31,9 @@
 
 bcm_field_qualify_t l2SvtQset[] =   /* single VLAN tag */
 {
-    //bcmFieldQualifyInPorts,
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    bcmFieldQualifyInPorts,
+#endif
     bcmFieldQualifyDstMac,
     bcmFieldQualifySrcMac,
     bcmFieldQualifyEtherType,
@@ -49,7 +51,10 @@ bcm_field_qualify_t l2SvtQset[] =   /* single VLAN tag */
    for system policies (e.g. Hawkeye). */
 bcm_field_qualify_t l2SvtLookupStatusQset[] =   /* single VLAN tag */
 {
-    //bcmFieldQualifyInPorts,
+
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    bcmFieldQualifyInPorts,
+#endif
     bcmFieldQualifyDstMac,
     bcmFieldQualifySrcMac,
     bcmFieldQualifyEtherType,
@@ -67,7 +72,10 @@ bcm_field_qualify_t l2SvtLookupStatusQset[] =   /* single VLAN tag */
 
 bcm_field_qualify_t l3l4Qset[] =    /* IPv4 six-tuple  */
 {
-    //bcmFieldQualifyInPorts,
+
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    bcmFieldQualifyInPorts,
+#endif
     bcmFieldQualifySrcIp,
     bcmFieldQualifyDstIp,
     bcmFieldQualifyIpProtocol,
@@ -84,7 +92,10 @@ bcm_field_qualify_t l3l4Qset[] =    /* IPv4 six-tuple  */
 
 bcm_field_qualify_t l2l3SrcQset[] =    /* l2/3 src */
 {
-    //bcmFieldQualifyInPorts,
+
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    bcmFieldQualifyInPorts,
+#endif
     bcmFieldQualifySrcMac,
     bcmFieldQualifySrcIp,
     bcmFieldQualifyEtherType,
@@ -99,7 +110,9 @@ bcm_field_qualify_t l2l3SrcQset[] =    /* l2/3 src */
 
 bcm_field_qualify_t l2l3DstQset[] =    /* l2/3 dst */
 {
-    //bcmFieldQualifyInPorts,
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    bcmFieldQualifyInPorts,
+#endif
     bcmFieldQualifyDstMac,
     bcmFieldQualifyDstIp,
     bcmFieldQualifyEtherType,
@@ -115,7 +128,9 @@ bcm_field_qualify_t l2l3DstQset[] =    /* l2/3 dst */
 /* SQSet used for double wide mode policies */
 bcm_field_qualify_t l2l3l4Qset[] =    /* l2/l3/l4 */
 {
-    //bcmFieldQualifyInPorts,
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    bcmFieldQualifyInPorts,
+#endif
     bcmFieldQualifySrcMac,
     bcmFieldQualifyDstMac,
     bcmFieldQualifySrcIp,
@@ -142,7 +157,10 @@ bcm_field_qualify_t l2l3l4Qset[] =    /* l2/l3/l4 */
 
 bcm_field_qualify_t l2l3l4SrcMacGroupQset[] =    /* l2/l3/l4 */
 {
-    //bcmFieldQualifyInPorts,
+
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    bcmFieldQualifyInPorts,
+#endif
     bcmFieldQualifySrcMac,
     bcmFieldQualifyDstMac,
     bcmFieldQualifySrcIp,
@@ -175,7 +193,10 @@ bcm_field_qualify_t l2l3l4SrcMacGroupQset[] =    /* l2/l3/l4 */
    this qset requires removal of the InnerVlan. */
 bcm_field_qualify_t l2l3l4ClassIdQset[] =    /* l2/l3/l4 */
 {
-    //bcmFieldQualifyInPorts,
+
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    bcmFieldQualifyInPorts,
+#endif
     bcmFieldQualifySrcMac,
     bcmFieldQualifyDstMac,
     bcmFieldQualifySrcIp,
@@ -217,7 +238,10 @@ bcm_field_qualify_t l2l3l4ClassIdQset[] =    /* l2/l3/l4 */
 */
 bcm_field_qualify_t l2l3l4Xgs4ClassIdQset[] =    /* l2/l3/l4 */
 {
-    //bcmFieldQualifyInPorts,
+
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    bcmFieldQualifyInPorts,
+#endif
     bcmFieldQualifySrcMac,
     bcmFieldQualifyDstMac,
     bcmFieldQualifySrcIp,
@@ -292,7 +316,9 @@ bcm_field_qualify_t vlanl3Qset[] =    /* vlan/l3 */
 /* We use this qset on chips that support doublewide mode (e.g. Helix+, FB_B0, FB2, Triumph, etc.). */
 bcm_field_qualify_t systemQsetDouble[] =  /* System requirement */
 {
-    //bcmFieldQualifyInPorts,
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    bcmFieldQualifyInPorts,
+#endif
     bcmFieldQualifyDstMac,
     bcmFieldQualifyOuterVlan,
     bcmFieldQualifyL4SrcPort,
@@ -315,7 +341,9 @@ bcm_field_qualify_t systemQsetDouble[] =  /* System requirement */
 
 bcm_field_qualify_t systemQset[] =  /* System requirement */
 {
-    //bcmFieldQualifyInPorts,
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    bcmFieldQualifyInPorts,
+#endif
     bcmFieldQualifyL2StationMove,
     bcmFieldQualifyL3DestRouteHit,
     bcmFieldQualifyL3DestHostHit,
@@ -332,7 +360,10 @@ bcm_field_qualify_t systemQset[] =  /* System requirement */
    and adds bcmFieldQualifyTunnelType and bcmFieldQualifyLoopbackType. */
 bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
 {
-  //bcmFieldQualifyInPorts,
+
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+  bcmFieldQualifyInPorts,
+#endif
   bcmFieldQualifySrcMac,
   bcmFieldQualifyDstMac,
   bcmFieldQualifyOuterVlan,
@@ -381,7 +412,9 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
 #if 1
 bcm_field_qualify_t systemQsetVlanQoS[] =
 {
-  //bcmFieldQualifyInPorts,
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+  bcmFieldQualifyInPorts,
+#endif
   bcmFieldQualifyOuterVlan,
   bcmFieldQualifyEtherType,
   bcmFieldQualifyDSCP,
@@ -400,7 +433,9 @@ bcm_field_qualify_t systemQsetVlanQoS[] =
 
 bcm_field_qualify_t systemQsetPTin[] =  /* System requirement */
 {
-  //bcmFieldQualifyInPorts,
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+  bcmFieldQualifyInPorts,
+#endif
 #if (PTIN_BOARD != PTIN_BOARD_TG16G && PTIN_BOARD != PTIN_BOARD_TG16GF && PTIN_BOARD != PTIN_BOARD_AG16GA)
   bcmFieldQualifySrcTrunk,      /* PTin added: FP */
 #endif
@@ -428,7 +463,9 @@ bcm_field_qualify_t systemQsetPTin[] =  /* System requirement */
 
 bcm_field_qualify_t systemQsetStats[] =  /* System requirement */
 {
-  //bcmFieldQualifyInPorts,
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+  bcmFieldQualifyInPorts,
+#endif
   bcmFieldQualifySrcTrunk,      /* PTin added: FP */
   bcmFieldQualifySrcMac,
   bcmFieldQualifyDstMac,
@@ -454,7 +491,9 @@ custom_field_qualify_t systemCustomQset[] =  /* System requirement */
 
 bcm_field_qualify_t iscsiQset[] =  /* iSCSI requirement */
 {
-    //bcmFieldQualifyInPorts,
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    bcmFieldQualifyInPorts,
+#endif
     bcmFieldQualifyL2StationMove,
     bcmFieldQualifyL3DestRouteHit,
     bcmFieldQualifyL3DestHostHit,
@@ -475,7 +514,9 @@ custom_field_qualify_t iscsiCustomQset[] =  /* iSCSI requirement */
    fit the COS policies in the same slice as the IPv6 system policies. */
 bcm_field_qualify_t ipv6NdQsetScorpion[] =   /* req'd by system policies */
 {
-    //bcmFieldQualifyInPorts,
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    bcmFieldQualifyInPorts,
+#endif
     bcmFieldQualifyIp6HopLimit,    /* IP6_HOPLIMIT   */
     bcmFieldQualifyIp6NextHeader,  /* IP6_NEXTHEADER   */
     bcmFieldQualifyIpType,
@@ -487,7 +528,9 @@ bcm_field_qualify_t ipv6NdQsetScorpion[] =   /* req'd by system policies */
 
 bcm_field_qualify_t ipv6NdQset[] =   /* req'd by system policies */
 {
-    //bcmFieldQualifyInPorts,
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    bcmFieldQualifyInPorts,
+#endif
     bcmFieldQualifyIp6HopLimit,    /* IP6_HOPLIMIT   */
     bcmFieldQualifyIp6NextHeader,  /* IP6_NEXTHEADER   */
     bcmFieldQualifyIpType,
@@ -498,7 +541,9 @@ bcm_field_qualify_t ipv6NdQset[] =   /* req'd by system policies */
 
 bcm_field_qualify_t ipv6L3L4Qset[] =  /* includes VLAN ID */
 {
-    //bcmFieldQualifyInPorts,
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    bcmFieldQualifyInPorts,
+#endif
     bcmFieldQualifyEtherType,
     bcmFieldQualifyOuterVlan,
     bcmFieldQualifySrcIp6,          
@@ -526,7 +571,9 @@ bcm_field_qualify_t ipv6L3L4Qset[] =  /* includes VLAN ID */
    this qset requires removal of the Ethertype. */
 bcm_field_qualify_t ipv6L3L4ClassIdQset[] =  /* includes VLAN ID */
 {
-    //bcmFieldQualifyInPorts,
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    bcmFieldQualifyInPorts,
+#endif
     /*bcmFieldQualifySrcMac,*/        /* PTin added: IPv6 ACL rules */
     /*bcmFieldQualifyDstMac,*/        /* PTin added: IPv6 ACL rules */
     bcmFieldQualifyOuterVlan,
@@ -571,7 +618,9 @@ bcm_field_qualify_t ipv6L3L4ClassIdQset[] =  /* includes VLAN ID */
 
 bcm_field_qualify_t ipv6SrcL4ClassIdQset[] =  /* includes VLAN ID */
 {
-    //bcmFieldQualifyInPorts,
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    bcmFieldQualifyInPorts,
+#endif
     bcmFieldQualifyOuterVlan,
     bcmFieldQualifySrcIp6,          
     bcmFieldQualifyIp6NextHeader,          
@@ -604,7 +653,10 @@ bcm_field_qualify_t ipv6SrcL4ClassIdQset[] =  /* includes VLAN ID */
 
 bcm_field_qualify_t ipv6DstL4ClassIdQset[] =  /* includes VLAN ID */
 {
-    //bcmFieldQualifyInPorts,
+
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    bcmFieldQualifyInPorts,
+#endif
     bcmFieldQualifyOuterVlan,
     bcmFieldQualifyDstIp6,          
     bcmFieldQualifyIp6NextHeader,          
