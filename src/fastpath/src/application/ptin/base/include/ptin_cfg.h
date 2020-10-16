@@ -73,4 +73,32 @@ extern L7_RC_t ptin_cfg_inband_bridge_set(void);
  */
 extern L7_RC_t ptin_cfg_pcap_bridge_set(void);
 
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+/**
+ * Enable/disable ASPEN packets to be processed
+ * 
+ * @author mruas (15/10/20)
+ * 
+ * @param enable 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_cfg_tc16sxg_aspen_packets(L7_BOOL enable);
+
+/**
+ * Creates a bridge between dtl0 interface and a virtual 
+ * interface eth0.2045 for ASPEN communication 
+ *  
+ * NOTE: 
+ *  1. virtual interface eth0.2045 is created here 2. all
+ *  operations are accomplished through an external shell script
+ *     '/usr/local/ptin/scripts/startAspenBridge.sh'
+ * 
+ * @author alex (4/10/2012)
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_cfg_tc16sxg_aspen_bridge_set(void);
+#endif
+
 #endif /* _PTIN_CFG_H */

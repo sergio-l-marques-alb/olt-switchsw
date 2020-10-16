@@ -4,6 +4,19 @@
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED
 
+/* Info about ASPEN devices */
+#define TC16SXG_ASPEN_BRIDGE_SCRIPT "/bin/sh /usr/local/ptin/scripts/startAspenBridge.sh"  /* Only applicable to TC16SXG */
+
+/* Special EVCs for this equipment */
+#define PTIN_EVC_ASPEN2CPU         (PTIN_SYSTEM_EXT_EVCS_MGMT+0)     /* MACGPON-CPU EVC */
+/* Special VLANs for this equipment */
+#define PTIN_VLAN_ASPEN2CPU           2045
+#define PTIN_VLAN_ASPEN2CPU_EXT       100
+
+/* Special ports for this equipment */
+#define PTIN_PORT_CPU                 (PTIN_SYSTEM_N_PORTS-1)
+
+
 /** Service association AVL Tree */
 #define IGMPASSOC_MULTI_MC_SUPPORTED
 #define IGMP_QUERIER_IN_UC_EVC
@@ -30,7 +43,7 @@
 
 # define PTIN_SYSTEM_PON_PORTS_MASK    0x0000FFFF
 # define PTIN_SYSTEM_ETH_PORTS_MASK    0x00000000
-# define PTIN_SYSTEM_10G_PORTS_MASK    0x000F0000   /* (Trident3-X3) FIXME 33? 49?*/
+# define PTIN_SYSTEM_10G_PORTS_MASK    0xFFFF0000   /* (Trident3-X3) FIXME 33? 49?*/
 # define PTIN_SYSTEM_PORTS_MASK        (PTIN_SYSTEM_PON_PORTS_MASK | PTIN_SYSTEM_ETH_PORTS_MASK | PTIN_SYSTEM_10G_PORTS_MASK)
 
 # define PTIN_SYSTEM_N_EVCS            4002  /* Maximum nr of EVCs allowed in this equipment */

@@ -30,6 +30,7 @@
 #include "snooping_api.h"
 #endif
 
+#include "ptin_cfg.h"
 #include "ptin_packet.h"
 #include "ptin_hal_erps.h"
 
@@ -671,7 +672,62 @@ L7_RC_t ptin_evc_init(void)
 L7_RC_t ptin_evc_startup(void)
 {
   L7_uint32 intIfNum_vport;
-#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  L7_int  i;
+  L7_RC_t rc;
+  ptin_HwEthMef10Evc_t evcConf;
+
+  /* Create a new EVC */
+  memset(&evcConf, 0x00, sizeof(evcConf));
+  evcConf.index         = PTIN_EVC_ASPEN2CPU;
+  evcConf.flags         = PTIN_EVC_MASK_MACLEARNING;
+  evcConf.mc_flood      = PTIN_EVC_MC_FLOOD_ALL;
+  evcConf.internal_vlan = PTIN_VLAN_ASPEN2CPU;
+  evcConf.n_intf        = 8;
+  /* Root port */
+  evcConf.intf[0].intf.format = PTIN_INTF_FORMAT_PORT;
+  evcConf.intf[0].intf.value.ptin_port = PTIN_PORT_CPU;
+  evcConf.intf[0].mef_type    = PTIN_EVC_INTF_ROOT;
+  evcConf.intf[0].vid         = PTIN_VLAN_ASPEN2CPU_EXT;
+  evcConf.intf[0].action_outer= PTIN_XLATE_ACTION_REPLACE;
+  evcConf.intf[0].action_inner= PTIN_XLATE_ACTION_NONE;
+  /* Leaf ports */
+  for (i=1; i<8; i++)
+  {
+    evcConf.intf[i].intf.format = PTIN_INTF_FORMAT_PORT;
+    evcConf.intf[i].intf.value.ptin_port = i;
+    evcConf.intf[i].mef_type    = PTIN_EVC_INTF_LEAF;
+    evcConf.intf[i].vid         = PTIN_VLAN_ASPEN2CPU_EXT;
+    evcConf.intf[i].action_outer= PTIN_XLATE_ACTION_REPLACE;
+    evcConf.intf[i].action_inner= PTIN_XLATE_ACTION_NONE;
+  }
+
+  /* Creates EVC for Broadlights management */
+  rc = ptin_evc_create(&evcConf);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u for ASPEN management purposes", PTIN_EVC_ASPEN2CPU);
+    return rc;
+  }
+  PT_LOG_INFO(LOG_CTX_API, "EVC# %u created for ASPEN management purposes", PTIN_EVC_ASPEN2CPU);
+
+  rc = ptin_cfg_tc16sxg_aspen_packets(L7_ENABLE);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error configuring interception packets for ASPEN Inband management");
+    return rc;
+  }
+  PT_LOG_INFO(LOG_CTX_API, "Interception packets for ASPEN Inband management ready!");
+
+  rc = ptin_cfg_tc16sxg_aspen_bridge_set();
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error configuring bridge for ASPEN Inband management");
+    return rc;
+  }
+  PT_LOG_INFO(LOG_CTX_API, "Bridge for ASPEN Inband management ready!");
+#elif (PTIN_BOARD == PTIN_BOARD_OLT1T0)
   L7_int  i;
   L7_RC_t rc;
   ptin_HwEthMef10Evc_t evcConf;

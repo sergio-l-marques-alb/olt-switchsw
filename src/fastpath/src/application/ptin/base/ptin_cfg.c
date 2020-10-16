@@ -15,6 +15,7 @@
 #include "ptin_evc.h"
 #include "ptin_intf.h"
 #include "ptin_fieldproc.h"
+#include "ptin_ipdtl0_packet.h"
 #include "usmdb_sim_api.h"
 
 /* External VLAN used for inBand management purposes */
@@ -401,4 +402,54 @@ L7_RC_t ptin_cfg_pcap_bridge_set(void)
 
   return L7_SUCCESS;
 }
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+/**
+ * Enable/disable ASPEN packets to be processed
+ * 
+ * @author mruas (15/10/20)
+ * 
+ * @param enable 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_cfg_tc16sxg_aspen_packets(L7_BOOL enable)
+{
+    return ptin_ipdtl0_control(PTIN_VLAN_ASPEN2CPU,       /*dtl0 VID*/
+                               PTIN_VLAN_ASPEN2CPU_EXT,   /*External VID*/
+                               PTIN_VLAN_ASPEN2CPU,       /*Internal VID*/
+                               L7_ALL_INTERFACES,         /*No specific IntIfNum*/
+                               PTIN_IPDTL0_INTERN_INBAND, /*Type*/
+                               enable);                   /*Enable*/
+}
+
+/**
+ * Creates a bridge between dtl0 interface and a virtual 
+ * interface eth0.2045 for ASPEN communication 
+ *  
+ * NOTE: 
+ *  1. virtual interface eth0.2045 is created here 2. all
+ *  operations are accomplished through an external shell script
+ *     '/usr/local/ptin/scripts/startAspenBridge.sh'
+ * 
+ * @author alex (4/10/2012)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_cfg_tc16sxg_aspen_bridge_set(void)
+{
+  int rc;
+
+  rc = system(TC16SXG_ASPEN_BRIDGE_SCRIPT);
+  if (rc != 0)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error executing script " TC16SXG_ASPEN_BRIDGE_SCRIPT " (rc=%d)", rc);
+    return L7_FAILURE;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_API, "InBand bridge script successfully executed");
+
+  return L7_SUCCESS;
+}
+#endif
 

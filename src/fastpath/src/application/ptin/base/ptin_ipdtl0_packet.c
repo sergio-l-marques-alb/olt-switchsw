@@ -364,6 +364,8 @@ static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, ptin_ipdtl0_type_t t
         PTIN_CRASH();
     }    
 
+    memset(&dapiCmd.cmdData.snoopConfig, 0x00, sizeof(cmdData_snoopConfig_t));
+
     /* HW Rule Creation: All packet for this (reserved) VLAN will be trapped */
     if ((type == PTIN_IPDTL0_ETH) || (type == PTIN_IPDTL0_ETH_IPv4_UDP_PTP))
     {
@@ -412,10 +414,44 @@ static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, ptin_ipdtl0_type_t t
         PT_LOG_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
         #endif
     }
+    /* ASPEN-Inband communication */
+    else if (type == PTIN_IPDTL0_INTERN_INBAND)
+    {
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+        dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
+        dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
+        dapiCmd.cmdData.snoopConfig.vlanId      = PTIN_VLAN_ASPEN2CPU;
+        dapiCmd.cmdData.snoopConfig.vlan_mask   = 0xfff;
+        dapiCmd.cmdData.snoopConfig.enable      = enable & 1;
+        memcpy(dapiCmd.cmdData.snoopConfig.macAddr.addr, mac, L7_MAC_ADDR_LEN);
+        dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_IPDTL0;
 
+        rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES, &dapiCmd);
+        if (rc!=L7_SUCCESS)
+        {
+            PT_LOG_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
+            return rc;
+        }
+
+        /* Tell driver to enable IGMP Snooping */
+        dapiCmd.cmdData.snoopConfig.vlanId = L7_NULL;
+        rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
+        if (rc!=L7_SUCCESS)
+        {
+            PT_LOG_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
+            return rc;
+        }
+
+        PT_LOG_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
+#else
+        PT_LOG_ERR(LOG_CTX_API,"Feature not supported for non TC16SXG boards!");
+        return L7_FAILURE;
+#endif
+    }
 
     /* Register IP dtl0 packets */
-    if ((type == PTIN_IPDTL0_ETH) || (type == PTIN_IPDTL0_ETH_IPv4) || (type == PTIN_IPDTL0_ETH_IPv4_UDP_PTP))
+    if ((type == PTIN_IPDTL0_ETH) || (type == PTIN_IPDTL0_ETH_IPv4) || (type == PTIN_IPDTL0_ETH_IPv4_UDP_PTP) ||
+        (type == PTIN_IPDTL0_INTERN_INBAND))
     {
         sysnetPduIntercept_t sysnetPduIntercept;
 
