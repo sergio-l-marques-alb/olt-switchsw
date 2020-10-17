@@ -90,11 +90,14 @@ portmap_24=68:10
 phy_chain_rx_lane_map_physical{65.0}  = 0x3120
 phy_chain_tx_lane_map_physical{65.0}  = 0x3120
 
-#phy_chain_tx_polarity_flip_physical{66.0} = 1
+phy_chain_rx_polarity_flip_physical{65.0} = 1
+phy_chain_rx_polarity_flip_physical{66.0} = 1
+phy_chain_rx_polarity_flip_physical{67.0} = 1
+phy_chain_rx_polarity_flip_physical{68.0} = 1
+phy_chain_tx_polarity_flip_physical{65.0} = 1
+phy_chain_tx_polarity_flip_physical{66.0} = 1
+#phy_chain_tx_polarity_flip_physical{67.0} = 1
 #phy_chain_tx_polarity_flip_physical{68.0} = 1
-# ...or...?
-phy_chain_tx_polarity_flip_physical{67.0} = 1
-phy_chain_tx_polarity_flip_physical{68.0} = 1
 
 
 #FC2[3:0]
