@@ -54,6 +54,47 @@ ptin_ipdtl0_intVidInfo_t ptin_ipdtl0_intVid_info[4096];
 /* Reference of used dtl0 VLAN IDs */
 ptin_ipdtl0_dtl0Info_t ptin_ipdtl0_dtl0Vid_info[4096];
 
+#if 1
+void ptin_ipdtl0_dump(void)
+{
+    int i;
+
+    printf("Printing ptin_ipdtl0_dtl0Vid_info table contents...\r\n");
+    for (i = 0; i < 4096; i++)
+    {
+        if (ptin_ipdtl0_dtl0Vid_info[i].type == PTIN_IPDTL0_NONE ||
+            ptin_ipdtl0_dtl0Vid_info[i].type >= PTIN_IPDTL0_LAST)
+        {
+            continue;
+        }
+
+        printf("dtl0 Vid %-4u: intVid=%-4u  outerVid=%-4u  type=",
+               i, ptin_ipdtl0_dtl0Vid_info[i].intVid, ptin_ipdtl0_dtl0Vid_info[i].outerVid);
+        switch (ptin_ipdtl0_dtl0Vid_info[i].type)
+        {
+            case PTIN_IPDTL0_ETH:
+                printf("PTIN_IPDTL0_ETH");
+                break;
+            case PTIN_IPDTL0_ETH_IPv4_UDP_PTP:
+                printf("PTIN_IPDTL0_ETH_IPv4_UDP_PTP");
+                break;
+            case PTIN_IPDTL0_ETH_IPv4:
+                printf("PTIN_IPDTL0_ETH_IPv4");
+                break;
+            case PTIN_IPDTL0_ETH_IPv6:
+                printf("PTIN_IPDTL0_ETH_IPv6");
+                break;
+            case PTIN_IPDTL0_INTERN_INBAND:
+                printf("PTIN_IPDTL0_INTERN_INBAND");
+                break;
+            default:
+                break;
+        }
+        printf("\r\n");
+    }
+}
+#endif
+
 /***************************************
  * DEBUG ROUTINES
  ***************************************/
@@ -465,18 +506,19 @@ static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, ptin_ipdtl0_type_t t
         {
             /* Register with sysnet */
             sysNetPduInterceptRegister(&sysnetPduIntercept);
-            PT_LOG_TRACE(LOG_CTX_API,"sysNetPduInterceptRegister executed");    
+            PT_LOG_INFO(LOG_CTX_API,"sysNetPduInterceptRegister executed");    
         }
         else
         {
             /* Deregister with sysnet */
             sysNetPduInterceptDeregister(&sysnetPduIntercept);
-            PT_LOG_TRACE(LOG_CTX_API,"sysNetPduInterceptDeregister executed");
+            PT_LOG_INFO(LOG_CTX_API,"sysNetPduInterceptDeregister executed");
         }
     }
 
     /* Register ARP dtl0 packets */
-    if ((type == PTIN_IPDTL0_ETH) || (type == PTIN_IPDTL0_ETH_IPv4_UDP_PTP))
+    if ((type == PTIN_IPDTL0_ETH) || (type == PTIN_IPDTL0_ETH_IPv4_UDP_PTP) ||
+        (type == PTIN_IPDTL0_INTERN_INBAND))
     {
         sysnetPduIntercept_t sysnetPduIntercept;
 
@@ -490,13 +532,13 @@ static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, ptin_ipdtl0_type_t t
         {
             /* Register with sysnet */
             sysNetPduInterceptRegister(&sysnetPduIntercept);
-            PT_LOG_TRACE(LOG_CTX_API,"sysNetPduInterceptRegister executed");    
+            PT_LOG_INFO(LOG_CTX_API,"sysNetPduInterceptRegister executed");    
         }
         else
         {
             /* Deregister with sysnet */
             sysNetPduInterceptDeregister(&sysnetPduIntercept);
-            PT_LOG_TRACE(LOG_CTX_API,"sysNetPduInterceptDeregister executed");
+            PT_LOG_INFO(LOG_CTX_API,"sysNetPduInterceptDeregister executed");
         }
     }
     return L7_SUCCESS;
@@ -658,7 +700,7 @@ L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 int
         ptin_ipdtl0_dtl0Vid_info[dtl0Vid].outerVid = outerVid;
         ptin_ipdtl0_dtl0Vid_info[dtl0Vid].type = type;
 
-        PT_LOG_TRACE(LOG_CTX_API,"(dtl0Vid=%d, outerVid=%d, intfNum=%d, type=%d, enable=%d) internalVid %d\n", dtl0Vid, outerVid, intfNum, type, enable, internalVid);
+        PT_LOG_INFO(LOG_CTX_API,"(dtl0Vid=%d, outerVid=%d, intfNum=%d, type=%d, enable=%d) internalVid %d\n", dtl0Vid, outerVid, intfNum, type, enable, internalVid);
     }
 
     return rc;

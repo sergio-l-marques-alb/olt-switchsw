@@ -681,10 +681,10 @@ L7_RC_t ptin_evc_startup(void)
   /* Create a new EVC */
   memset(&evcConf, 0x00, sizeof(evcConf));
   evcConf.index         = PTIN_EVC_ASPEN2CPU;
-  evcConf.flags         = PTIN_EVC_MASK_MACLEARNING;
+  evcConf.flags         = PTIN_EVC_MASK_MACLEARNING | PTIN_EVC_MASK_CPU_TRAPPING;
   evcConf.mc_flood      = PTIN_EVC_MC_FLOOD_ALL;
   evcConf.internal_vlan = PTIN_VLAN_ASPEN2CPU;
-  evcConf.n_intf        = 8;
+  evcConf.n_intf        = 16;
   /* Root port */
   evcConf.intf[0].intf.format = PTIN_INTF_FORMAT_PORT;
   evcConf.intf[0].intf.value.ptin_port = PTIN_PORT_CPU;
@@ -693,7 +693,7 @@ L7_RC_t ptin_evc_startup(void)
   evcConf.intf[0].action_outer= PTIN_XLATE_ACTION_REPLACE;
   evcConf.intf[0].action_inner= PTIN_XLATE_ACTION_NONE;
   /* Leaf ports */
-  for (i=1; i<8; i++)
+  for (i=1; i<16; i++)
   {
     evcConf.intf[i].intf.format = PTIN_INTF_FORMAT_PORT;
     evcConf.intf[i].intf.value.ptin_port = i;
