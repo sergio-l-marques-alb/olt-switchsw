@@ -142,8 +142,14 @@ portmap_31=59:10
 portmap_32=60:10
 phy_chain_rx_lane_map_physical{57.0}  = 0x3120
 phy_chain_tx_lane_map_physical{57.0}  = 0x3120
-#phy_chain_rx_polarity_flip_physical{57.0} = 0
-#phy_chain_tx_polarity_flip_physical{60.0} = 0
+phy_chain_rx_polarity_flip_physical{57.0} = 1
+phy_chain_rx_polarity_flip_physical{58.0} = 1
+phy_chain_rx_polarity_flip_physical{59.0} = 1
+phy_chain_rx_polarity_flip_physical{60.0} = 1
+phy_chain_tx_polarity_flip_physical{57.0} = 1
+phy_chain_tx_polarity_flip_physical{58.0} = 1
+phy_chain_tx_polarity_flip_physical{59.0} = 1
+phy_chain_tx_polarity_flip_physical{60.0} = 1
 
 #MC3[3:0]	UNUSED
 
