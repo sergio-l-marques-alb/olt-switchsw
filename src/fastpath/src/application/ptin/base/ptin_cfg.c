@@ -415,12 +415,35 @@ L7_RC_t ptin_cfg_pcap_bridge_set(void)
  */
 L7_RC_t ptin_cfg_tc16sxg_aspen_packets(L7_BOOL enable)
 {
-    return ptin_ipdtl0_control(PTIN_VLAN_ASPEN2CPU,       /*dtl0 VID*/
-                               PTIN_VLAN_ASPEN2CPU_EXT,   /*External VID*/
-                               PTIN_VLAN_ASPEN2CPU,       /*Internal VID*/
-                               L7_ALL_INTERFACES,         /*No specific IntIfNum*/
-                               PTIN_IPDTL0_INTERN_INBAND, /*Type*/
-                               enable);                   /*Enable*/
+  int rc = L7_SUCCESS;
+
+  /* ASPEN A */
+  rc = ptin_ipdtl0_control(PTIN_ASPEN2CPU_A_VLAN,       /*dtl0 VID*/
+                           PTIN_ASPEN2CPU_A_VLAN_EXT,   /*External VID*/
+                           PTIN_ASPEN2CPU_A_VLAN,       /*Internal VID*/
+                           L7_ALL_INTERFACES,           /*No specific IntIfNum*/
+                           PTIN_IPDTL0_INTERN_INBAND,   /*Type*/
+                           enable);                     /*Enable*/
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error configuring interceptor and trapping for packets from ASPEN A device");
+    return rc;
+  }
+  
+  /* ASPEN B */
+  rc = ptin_ipdtl0_control(PTIN_ASPEN2CPU_B_VLAN,       /*dtl0 VID*/
+                           PTIN_ASPEN2CPU_B_VLAN_EXT,   /*External VID*/
+                           PTIN_ASPEN2CPU_B_VLAN,       /*Internal VID*/
+                           L7_ALL_INTERFACES,           /*No specific IntIfNum*/
+                           PTIN_IPDTL0_INTERN_INBAND,   /*Type*/
+                           enable);                     /*Enable*/
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error configuring interceptor and trapping for packets from ASPEN B device");
+    return rc;
+  }
+
+  return rc;
 }
 
 /**

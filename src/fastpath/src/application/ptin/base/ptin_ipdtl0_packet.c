@@ -54,46 +54,6 @@ ptin_ipdtl0_intVidInfo_t ptin_ipdtl0_intVid_info[4096];
 /* Reference of used dtl0 VLAN IDs */
 ptin_ipdtl0_dtl0Info_t ptin_ipdtl0_dtl0Vid_info[4096];
 
-#if 1
-void ptin_ipdtl0_dump(void)
-{
-    int i;
-
-    printf("Printing ptin_ipdtl0_dtl0Vid_info table contents...\r\n");
-    for (i = 0; i < 4096; i++)
-    {
-        if (ptin_ipdtl0_dtl0Vid_info[i].type == PTIN_IPDTL0_NONE ||
-            ptin_ipdtl0_dtl0Vid_info[i].type >= PTIN_IPDTL0_LAST)
-        {
-            continue;
-        }
-
-        printf("dtl0 Vid %-4u: intVid=%-4u  outerVid=%-4u  type=",
-               i, ptin_ipdtl0_dtl0Vid_info[i].intVid, ptin_ipdtl0_dtl0Vid_info[i].outerVid);
-        switch (ptin_ipdtl0_dtl0Vid_info[i].type)
-        {
-            case PTIN_IPDTL0_ETH:
-                printf("PTIN_IPDTL0_ETH");
-                break;
-            case PTIN_IPDTL0_ETH_IPv4_UDP_PTP:
-                printf("PTIN_IPDTL0_ETH_IPv4_UDP_PTP");
-                break;
-            case PTIN_IPDTL0_ETH_IPv4:
-                printf("PTIN_IPDTL0_ETH_IPv4");
-                break;
-            case PTIN_IPDTL0_ETH_IPv6:
-                printf("PTIN_IPDTL0_ETH_IPv6");
-                break;
-            case PTIN_IPDTL0_INTERN_INBAND:
-                printf("PTIN_IPDTL0_INTERN_INBAND");
-                break;
-            default:
-                break;
-        }
-        printf("\r\n");
-    }
-}
-#endif
 
 /***************************************
  * DEBUG ROUTINES
@@ -461,7 +421,7 @@ static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, ptin_ipdtl0_type_t t
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
         dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
         dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
-        dapiCmd.cmdData.snoopConfig.vlanId      = PTIN_VLAN_ASPEN2CPU;
+        dapiCmd.cmdData.snoopConfig.vlanId      = vlanId;
         dapiCmd.cmdData.snoopConfig.vlan_mask   = 0xfff;
         dapiCmd.cmdData.snoopConfig.enable      = enable & 1;
         memcpy(dapiCmd.cmdData.snoopConfig.macAddr.addr, mac, L7_MAC_ADDR_LEN);
@@ -882,4 +842,48 @@ L7_uint16 ptin_ipdtl0_dtl0Type_get(L7_uint16 dtl0Vid)
 
 
 #endif /* PTIN_ENABLE_DTL0TRAP */
+
+/**
+ * Dump IPDTL0 routing configurations
+ * 
+ * @author mruas (19/10/20)
+ */
+void ptin_ipdtl0_dump(void)
+{
+    int i;
+
+    printf("Printing ptin_ipdtl0_dtl0Vid_info table contents...\r\n");
+    for (i = 0; i < 4096; i++)
+    {
+        if (ptin_ipdtl0_dtl0Vid_info[i].type == PTIN_IPDTL0_NONE ||
+            ptin_ipdtl0_dtl0Vid_info[i].type >= PTIN_IPDTL0_LAST)
+        {
+            continue;
+        }
+
+        printf("dtl0 Vid %-4u: intVid=%-4u  outerVid=%-4u  type=",
+               i, ptin_ipdtl0_dtl0Vid_info[i].intVid, ptin_ipdtl0_dtl0Vid_info[i].outerVid);
+        switch (ptin_ipdtl0_dtl0Vid_info[i].type)
+        {
+            case PTIN_IPDTL0_ETH:
+                printf("PTIN_IPDTL0_ETH");
+                break;
+            case PTIN_IPDTL0_ETH_IPv4_UDP_PTP:
+                printf("PTIN_IPDTL0_ETH_IPv4_UDP_PTP");
+                break;
+            case PTIN_IPDTL0_ETH_IPv4:
+                printf("PTIN_IPDTL0_ETH_IPv4");
+                break;
+            case PTIN_IPDTL0_ETH_IPv6:
+                printf("PTIN_IPDTL0_ETH_IPv6");
+                break;
+            case PTIN_IPDTL0_INTERN_INBAND:
+                printf("PTIN_IPDTL0_INTERN_INBAND");
+                break;
+            default:
+                break;
+        }
+        printf("\r\n");
+    }
+}
 

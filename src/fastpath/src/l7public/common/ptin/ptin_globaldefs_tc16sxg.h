@@ -8,10 +8,13 @@
 #define TC16SXG_ASPEN_BRIDGE_SCRIPT "/bin/sh /usr/local/ptin/scripts/startAspenBridge.sh"  /* Only applicable to TC16SXG */
 
 /* Special EVCs for this equipment */
-#define PTIN_EVC_ASPEN2CPU         (PTIN_SYSTEM_EXT_EVCS_MGMT+0)     /* MACGPON-CPU EVC */
+#define PTIN_ASPEN2CPU_A_EVC         (PTIN_SYSTEM_EXT_EVCS_MGMT+0)     /* MACGPON-CPU EVC */
+#define PTIN_ASPEN2CPU_B_EVC         (PTIN_SYSTEM_EXT_EVCS_MGMT+1)     /* MACGPON-CPU EVC */
 /* Special VLANs for this equipment */
-#define PTIN_VLAN_ASPEN2CPU           2045
-#define PTIN_VLAN_ASPEN2CPU_EXT       100
+#define PTIN_ASPEN2CPU_A_VLAN           2044
+#define PTIN_ASPEN2CPU_B_VLAN           2045
+#define PTIN_ASPEN2CPU_A_VLAN_EXT       100
+#define PTIN_ASPEN2CPU_B_VLAN_EXT       100
 
 /* Special ports for this equipment */
 #define PTIN_PORT_CPU                 (PTIN_SYSTEM_N_PORTS-1)

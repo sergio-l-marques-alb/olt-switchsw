@@ -574,6 +574,11 @@ L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbyte
       if (dtlNetPtinDebug & DTLNET_PTINDEBUG_RX_LEVEL1)
         PT_LOG_TRACE(LOG_CTX_DTL, "Unknown ERROR!!!");
     }
+    else
+    {
+      if (dtlNetPtinDebug & DTLNET_PTINDEBUG_RX_LEVEL1)
+        PT_LOG_TRACE(LOG_CTX_DTL, "Packet sent to dtl0.%u", dtl0Vid);
+    }
   }
   else
   {

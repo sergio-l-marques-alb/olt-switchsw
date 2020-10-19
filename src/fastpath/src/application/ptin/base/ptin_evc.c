@@ -674,43 +674,70 @@ L7_RC_t ptin_evc_startup(void)
   L7_uint32 intIfNum_vport;
 
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-  L7_int  i;
   L7_RC_t rc;
   ptin_HwEthMef10Evc_t evcConf;
 
-  /* Create a new EVC */
+  /* 2nd EVC for ASPEN A */
   memset(&evcConf, 0x00, sizeof(evcConf));
-  evcConf.index         = PTIN_EVC_ASPEN2CPU;
+  evcConf.index         = PTIN_ASPEN2CPU_A_EVC;
   evcConf.flags         = PTIN_EVC_MASK_MACLEARNING | PTIN_EVC_MASK_CPU_TRAPPING;
   evcConf.mc_flood      = PTIN_EVC_MC_FLOOD_ALL;
-  evcConf.internal_vlan = PTIN_VLAN_ASPEN2CPU;
-  evcConf.n_intf        = 16;
+  evcConf.internal_vlan = PTIN_ASPEN2CPU_A_VLAN;
+  evcConf.n_intf        = 2;
   /* Root port */
   evcConf.intf[0].intf.format = PTIN_INTF_FORMAT_PORT;
   evcConf.intf[0].intf.value.ptin_port = PTIN_PORT_CPU;
   evcConf.intf[0].mef_type    = PTIN_EVC_INTF_ROOT;
-  evcConf.intf[0].vid         = PTIN_VLAN_ASPEN2CPU_EXT;
-  evcConf.intf[0].action_outer= PTIN_XLATE_ACTION_REPLACE;
+  evcConf.intf[0].vid         = PTIN_ASPEN2CPU_A_VLAN;
+  evcConf.intf[0].action_outer= PTIN_XLATE_ACTION_NONE;
   evcConf.intf[0].action_inner= PTIN_XLATE_ACTION_NONE;
   /* Leaf ports */
-  for (i=1; i<16; i++)
-  {
-    evcConf.intf[i].intf.format = PTIN_INTF_FORMAT_PORT;
-    evcConf.intf[i].intf.value.ptin_port = i;
-    evcConf.intf[i].mef_type    = PTIN_EVC_INTF_LEAF;
-    evcConf.intf[i].vid         = PTIN_VLAN_ASPEN2CPU_EXT;
-    evcConf.intf[i].action_outer= PTIN_XLATE_ACTION_REPLACE;
-    evcConf.intf[i].action_inner= PTIN_XLATE_ACTION_NONE;
-  }
+  evcConf.intf[1].intf.format = PTIN_INTF_FORMAT_PORT;
+  evcConf.intf[1].intf.value.ptin_port = 0;
+  evcConf.intf[1].mef_type    = PTIN_EVC_INTF_LEAF;
+  evcConf.intf[1].vid         = PTIN_ASPEN2CPU_A_VLAN_EXT;
+  evcConf.intf[1].action_outer= PTIN_XLATE_ACTION_REPLACE;
+  evcConf.intf[1].action_inner= PTIN_XLATE_ACTION_NONE;
 
   /* Creates EVC for Broadlights management */
   rc = ptin_evc_create(&evcConf);
   if (rc != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u for ASPEN management purposes", PTIN_EVC_ASPEN2CPU);
+    PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u for ASPEN management purposes", PTIN_ASPEN2CPU_A_EVC);
     return rc;
   }
-  PT_LOG_INFO(LOG_CTX_API, "EVC# %u created for ASPEN management purposes", PTIN_EVC_ASPEN2CPU);
+  PT_LOG_INFO(LOG_CTX_API, "EVC# %u created for ASPEN management purposes", PTIN_ASPEN2CPU_A_EVC);
+
+  /* 2nd EVC for ASPEN B */
+  memset(&evcConf, 0x00, sizeof(evcConf));
+  evcConf.index         = PTIN_ASPEN2CPU_B_EVC;
+  evcConf.flags         = PTIN_EVC_MASK_MACLEARNING | PTIN_EVC_MASK_CPU_TRAPPING;
+  evcConf.mc_flood      = PTIN_EVC_MC_FLOOD_ALL;
+  evcConf.internal_vlan = PTIN_ASPEN2CPU_B_VLAN;
+  evcConf.n_intf        = 2;
+  /* Root port */
+  evcConf.intf[0].intf.format = PTIN_INTF_FORMAT_PORT;
+  evcConf.intf[0].intf.value.ptin_port = PTIN_PORT_CPU;
+  evcConf.intf[0].mef_type    = PTIN_EVC_INTF_ROOT;
+  evcConf.intf[0].vid         = PTIN_ASPEN2CPU_B_VLAN;
+  evcConf.intf[0].action_outer= PTIN_XLATE_ACTION_NONE;
+  evcConf.intf[0].action_inner= PTIN_XLATE_ACTION_NONE;
+  /* Leaf ports */
+  evcConf.intf[1].intf.format = PTIN_INTF_FORMAT_PORT;
+  evcConf.intf[1].intf.value.ptin_port = 8;
+  evcConf.intf[1].mef_type    = PTIN_EVC_INTF_LEAF;
+  evcConf.intf[1].vid         = PTIN_ASPEN2CPU_B_VLAN_EXT;
+  evcConf.intf[1].action_outer= PTIN_XLATE_ACTION_REPLACE;
+  evcConf.intf[1].action_inner= PTIN_XLATE_ACTION_NONE;
+
+  /* Creates EVC for Broadlights management */
+  rc = ptin_evc_create(&evcConf);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u for ASPEN management purposes", PTIN_ASPEN2CPU_B_EVC);
+    return rc;
+  }
+  PT_LOG_INFO(LOG_CTX_API, "EVC# %u created for ASPEN management purposes", PTIN_ASPEN2CPU_B_EVC);
 
   rc = ptin_cfg_tc16sxg_aspen_packets(L7_ENABLE);
   if (rc != L7_SUCCESS)

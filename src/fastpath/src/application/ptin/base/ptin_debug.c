@@ -206,6 +206,7 @@ void ptin_debug(void)
   printf("  ptin_traprules_dump                                             - Dump configured trap (to CPU) rules\r\n");
   printf("  ptin_stormcontrol_dump                                          - Dump storm control configurations\r\n");
   printf("  ptin_intf_stormcontrol_dump                                     - Dump storm control's interface configurations\r\n");
+  printf("  ptin_ipdtl0_dump                                                - Dump ipdtl0 routing configurations\r\n");
   printf("  ptin_bwpolicer_dump_debug                                       - Dump configured bandwidth policers\r\n");
   printf("  ptin_bwpolicer_flush_debug                                      - Flush configured EVC/client policers (at request)\r\n");
   printf("  ptin_fpcounters_dump_debug                                      - Dump configured EVC/client counters (at request)\r\n");

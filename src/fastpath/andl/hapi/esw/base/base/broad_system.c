@@ -4728,10 +4728,8 @@ L7_RC_t hapiBroadConfigIpDtl0Trap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uch
 {
   BROAD_POLICY_t          policyId = BROAD_POLICY_INVALID;
   BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
   L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
-                                           FIELD_MASK_ALL,  FIELD_MASK_ALL,  FIELD_MASK_ALL};
-#endif
+                                           FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
   BROAD_METER_ENTRY_t     meterInfo;
   BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
   L7_RC_t                 result = L7_SUCCESS;
@@ -4771,10 +4769,8 @@ L7_RC_t hapiBroadConfigIpDtl0Trap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uch
 
     if (mac_addr != L7_NULLPTR)
     {
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, mac_addr, exact_match);
       if (result != L7_SUCCESS)  break;
-#endif
     }
 
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
