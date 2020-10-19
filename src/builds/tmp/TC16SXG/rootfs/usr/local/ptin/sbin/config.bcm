@@ -89,7 +89,6 @@ portmap_23=67:10
 portmap_24=68:10
 phy_chain_rx_lane_map_physical{65.0}  = 0x3120
 phy_chain_tx_lane_map_physical{65.0}  = 0x3120
-
 phy_chain_rx_polarity_flip_physical{65.0} = 1
 phy_chain_rx_polarity_flip_physical{66.0} = 1
 phy_chain_rx_polarity_flip_physical{67.0} = 1
@@ -107,16 +106,17 @@ portmap_19=75:10
 portmap_20=76:10
 phy_chain_rx_lane_map_physical{73.0}  = 0x3021
 phy_chain_tx_lane_map_physical{73.0}  = 0x3021
-
-#phy_chain_tx_polarity_flip_physical{73.0} = 1
-#phy_chain_tx_polarity_flip_physical{75.0} = 1
-#phy_chain_rx_polarity_flip_physical{74.0} = 1
+# This quad's map was not tested (no PRBS test possible).
+# Assuming, as in FC0 and MC2 maps in https://wiki.ptin.corppt.com/display/PCBDZUU/SoC+-+BCM56370
+# that lane mapping was OK but polarity all otherwise.
+#phy_chain_rx_polarity_flip_physical{73.0} = 1
+phy_chain_rx_polarity_flip_physical{74.0} = 1
+phy_chain_rx_polarity_flip_physical{75.0} = 1
 #phy_chain_rx_polarity_flip_physical{76.0} = 1
-# ...or...?
-phy_chain_tx_polarity_flip_physical{75.0} = 1
-phy_chain_tx_polarity_flip_physical{74.0} = 1
-phy_chain_rx_polarity_flip_physical{73.0} = 1
-phy_chain_rx_polarity_flip_physical{76.0} = 1
+phy_chain_tx_polarity_flip_physical{73.0} = 1
+#phy_chain_tx_polarity_flip_physical{74.0} = 1
+#phy_chain_tx_polarity_flip_physical{75.0} = 1
+phy_chain_tx_polarity_flip_physical{76.0} = 1
 
 
 #*************************PROTECTION
@@ -127,12 +127,17 @@ portmap_27=71:10
 portmap_28=72:10
 phy_chain_rx_lane_map_physical{69.0}  = 0x3120
 phy_chain_tx_lane_map_physical{69.0}  = 0x3120
-
-#phy_chain_tx_polarity_flip_physical{70.0} = 1
+# This quad's map was not tested (no PRBS test possible).
+# Assuming, as in FC0 and MC2 maps in https://wiki.ptin.corppt.com/display/PCBDZUU/SoC+-+BCM56370
+# that lane mapping was OK but polarity all otherwise.
+phy_chain_rx_polarity_flip_physical{69.0} = 1
+phy_chain_rx_polarity_flip_physical{70.0} = 1
+phy_chain_rx_polarity_flip_physical{71.0} = 1
+phy_chain_rx_polarity_flip_physical{72.0} = 1
+phy_chain_tx_polarity_flip_physical{69.0} = 1
+phy_chain_tx_polarity_flip_physical{70.0} = 1
+#phy_chain_tx_polarity_flip_physical{71.0} = 1
 #phy_chain_tx_polarity_flip_physical{72.0} = 1
-# ...or...?
-phy_chain_tx_polarity_flip_physical{71.0} = 1
-phy_chain_tx_polarity_flip_physical{72.0} = 1
 
 
 #MC2[3:0]
