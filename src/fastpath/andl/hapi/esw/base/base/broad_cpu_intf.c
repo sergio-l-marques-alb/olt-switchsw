@@ -82,7 +82,7 @@ extern L7_ushort16 hapiBroadDvlanEthertype;
 
 static int _bcmy_tx_pkt_untagged_set(bcm_pkt_t *pkt, int untagged);
 /* FIXME: BCMX - Check me */
-static int _bcmy_tx_uc(bcm_pkt_t *pkt, bcm_gport_t d_port, uint32 flags);
+static int _bcmy_tx_uc(bcm_pkt_t *pkt, bcm_gport_t d_port, uint8_t untag);
 /* FIXME: BCMX - Check me */
 static int _bcmy_tx_gplist(bcm_pkt_t *pkt, bcmy_gplist_t *tx_ports,
                            bcmy_gplist_t *untagged_ports, uint32 flags);
@@ -1347,9 +1347,9 @@ _bcmy_tx_gplist(bcm_pkt_t *pkt, bcmy_gplist_t *tx_ports,
 }
 
 /* FIXME: BCMX - Check me */
-/* Direct a packet to a logical port. */
+/* Direct a packet to a logical port. untag is TRUE for untagged packets*/
 static int
-_bcmy_tx_uc(bcm_pkt_t *pkt, bcm_gport_t d_port, uint32 flags)
+_bcmy_tx_uc(bcm_pkt_t *pkt, bcm_gport_t d_port, uint8_t untag)
 {
   pbmp_t pbmp_tx;
   int bcm_unit, bcm_port;
@@ -1365,7 +1365,11 @@ _bcmy_tx_uc(bcm_pkt_t *pkt, bcm_gport_t d_port, uint32 flags)
 
   pkt->unit = bcm_unit;
   pkt->tx_pbmp  = pbmp_tx;
-
+  if (untag == TRUE)
+  {
+    pkt->blk_count = 1;
+    pkt->tx_upbmp = pbmp_tx;
+  }
   return bcm_tx(bcm_unit, pkt, L7_NULL);
 }
 
@@ -1884,7 +1888,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
       _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_TRUE);
     }
 
-    rv = _bcmy_tx_uc(&bcm_pkt, hapiPortPtr->bcm_gport, 0 /*BCMX_TX_F_CPU_TUNNEL*/ ); 
+    rv = _bcmy_tx_uc(&bcm_pkt, hapiPortPtr->bcm_gport, L7_TRUE); 
   
     bcmTxRv = rv;
     frameSent = L7_TRUE;
@@ -2043,7 +2047,6 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
       {
         /* Always send mirrored packet w/ tag, to help debug VLAN associations */
         _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_FALSE);
-
         rv = _bcmy_tx_uc(&bcm_pkt, probeHapiPortPtr->bcm_gport, 0 /*BCMX_TX_F_CPU_TUNNEL*/);   
       }
     }
@@ -2116,8 +2119,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
                   rv = bcmy_gplist_index_get(&taggedGplist, mirrorHapiPortPtr->bcm_gport);
                   if (rv >= 0)
                   {
-                    _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_FALSE);
-          
+                    _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_FALSE);        
                     rv = _bcmy_tx_uc(&bcm_pkt, probeHapiPortPtr->bcm_gport, 0 /*BCMX_TX_F_CPU_TUNNEL*/ ); 
                   }
                 }
@@ -6496,6 +6498,7 @@ void hapiBroadPduTransmitTask(DAPI_t *dapi_g, L7_uint32 numArgs)
                        pdu_msg.user_data_size -=4;
                        bcm_pkt.pkt_data->len = pdu_msg.user_data_size;
                     }
+
                     _bcmy_tx_uc(&bcm_pkt, gport, 0 /*BCMX_TX_F_CPU_TUNNEL*/);
                     hapiPort->hapiDot1adIntfStats.numPduTunneled++;
                     if (frameLength > pdu_msg.user_data_size)
