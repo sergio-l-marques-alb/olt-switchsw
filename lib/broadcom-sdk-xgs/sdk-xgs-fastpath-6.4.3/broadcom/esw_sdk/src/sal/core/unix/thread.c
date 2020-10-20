@@ -437,7 +437,7 @@ sal_thread_t
 sal_thread_self(void)
 {
 #ifdef LVL7_FIXUP
-    return (sal_thread_t) osapiTaskIdSelf();
+    return (sal_thread_t) UINT_TO_PTR(osapiTaskIdSelf());
 #else
     return (sal_thread_t) pthread_self();
 #endif /* LVL7_FIXUP */

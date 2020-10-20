@@ -658,6 +658,9 @@
 #define SOC_IS_TR_VL(unit)      (0)
 #endif
 
+#define SOC_IS_TRIDENT3(unit)    (0)
+#define SOC_IS_TRIDENT3X(unit)   (0)
+
 #ifdef  BCM_VALKYRIE_SUPPORT
 #define SOC_IS_VALKYRIE(unit)   ((!SOC_INFO(unit).spi_device) && \
                 (SOC_INFO(unit).chip & SOC_INFO_CHIP_VALKYRIE))
