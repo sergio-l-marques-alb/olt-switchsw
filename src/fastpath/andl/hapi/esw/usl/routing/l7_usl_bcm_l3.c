@@ -521,8 +521,10 @@ int usl_bcm_l3_egress_create (L7_uint32 flags,
         egr->bcm_data.mpls_label = -1;
         egr->bcm_data.dynamic_scaling_factor=-1;
         egr->bcm_data.dynamic_load_weight=-1;
-        egr->bcm_data.dynamic_queue_size_weight = -1;   /* PTin modified for Trident3x3: missing initialization! */
 
+#if (SDK_VERSION_IS > SDK_VERSION(6,4,3,0))
+        egr->bcm_data.dynamic_queue_size_weight = -1;   /* PTin modified for Trident3x3: missing initialization! */
+#endif
         rv = bcm_l3_egress_create (i, flags, &(egr->bcm_data), egrId);
 
         /* PTin added: SDK 6.3.0 */

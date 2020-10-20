@@ -710,7 +710,9 @@ bcm_field_qualify_t ipv6SrcL4Qset[] =  /* includes VLAN ID */
 
 bcm_field_qualify_t ipv6DstL4Qset[] =  /* includes VLAN ID */
 {
-    //bcmFieldQualifyInPorts,
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    bcmFieldQualifyInPorts,
+#endif    
     bcmFieldQualifyOuterVlan,
     bcmFieldQualifyDstIp6,          
     bcmFieldQualifyIp6TrafficClass,          

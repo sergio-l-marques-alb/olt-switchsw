@@ -656,7 +656,11 @@ L7_RC_t ptin_hapi_phy_init_matrix(void)
 #endif
 
   /* Set linkscan interval to 250 ms */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,4,3,0))
   if (bcm_linkscan_enable_set(0, BCM_LINKSCAN_INTERVAL_DEFAULT) != BCM_E_NONE)
+#else
+  if (bcm_linkscan_enable_set(0, 250000) != BCM_E_NONE)
+#endif
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing linkscan interval");
     return L7_FAILURE;
@@ -1676,7 +1680,11 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
 #endif
 
   /* Set linkscan interval to 250 ms */
+#if (SDK_VERSION_IS > SDK_VERSION(6,4,3,0))
   if (bcm_linkscan_enable_set(0, BCM_LINKSCAN_INTERVAL_DEFAULT) != BCM_E_NONE)
+#else
+  if (bcm_linkscan_enable_set(0, 250000) != BCM_E_NONE)
+#endif  
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing linkscan interval");
     return L7_FAILURE;

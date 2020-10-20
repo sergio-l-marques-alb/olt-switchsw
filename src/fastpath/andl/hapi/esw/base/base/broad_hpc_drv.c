@@ -67,6 +67,7 @@
 #include "bcm/custom.h"
 #include "bcm_int/rpc/rlink.h"
 #include "bcm/vlan.h"
+#include "bcm/mirror.h"
 
 //#include "soc/debug.h"
 #include "soc/drv.h"
@@ -2854,7 +2855,7 @@ systemInit(int unit)
 #ifdef L7_STACKING_PACKAGE
   /* Linkscan will be enabled at a later stage */
 #else
-  SYSTEM_INIT_CHECK(bcm_linkscan_enable_set(unit, BCM_LINKSCAN_INTERVAL_DEFAULT), "Linkscan enable");
+  SYSTEM_INIT_CHECK(bcm_linkscan_enable_set(unit, usec), "Linkscan enable");
 #endif
 
   /* For katana2, expand XE ports to 4x1G ports regarding to PON and front 1G ports */

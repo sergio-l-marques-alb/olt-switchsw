@@ -30,6 +30,7 @@
 #include "l7_usl_policy_db.h"
 #include "sysbrds.h"
 #include "appl/stktask/topo_brd.h"
+#include "bcm/mirror.h"
 #include "feature.h"
 
 
