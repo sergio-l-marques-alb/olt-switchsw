@@ -11337,13 +11337,13 @@ _bcm_td_my_station_lookup(int unit, soc_mem_t mem, bcm_mac_t mac, bcm_vlan_t vla
 
     memacc_list = _BCM_TRX_MYSTA_MEMACC_LIST(unit, mem);
 
-    LOG_INFO(BSL_LS_BCM_L2,
-             (BSL_META_U(unit,
-                         "_bcm_td_my_station_lookup: unit=%d "
-                         "mac=%02x:%02x:%02x:%02x:%02x:%02x vlan=%d port=%d "
-                         "index_to_skip=%d\n"),
-              unit, vlan, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5],
-              port, index_to_skip));
+    LOG_VERBOSE(BSL_LS_BCM_L2,
+                (BSL_META_U(unit,
+                            "_bcm_td_my_station_lookup: unit=%d "
+                            "mac=%02x:%02x:%02x:%02x:%02x:%02x vlan=%d port=%d "
+                            "index_to_skip=%d\n"),
+                 unit, vlan, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5],
+                 port, index_to_skip));
 
     sal_memset(&mac_mask, 0xff, sizeof(mac_mask));
 
@@ -11543,11 +11543,11 @@ _bcm_td_my_station_lookup(int unit, soc_mem_t mem, bcm_mac_t mac, bcm_vlan_t vla
     if (alt_index != NULL) {
         *alt_index = index1;
     }
-    LOG_INFO(BSL_LS_BCM_L2,
-             (BSL_META_U(unit,
-                         "_bcm_td_my_station_lookup: not found "
-                         "entry_index=%d alt_index=%d\n"),
-              *entry_index, alt_index != NULL ? *alt_index : -100));
+    LOG_VERBOSE(BSL_LS_BCM_L2,
+                (BSL_META_U(unit,
+                            "_bcm_td_my_station_lookup: not found "
+                            "entry_index=%d alt_index=%d\n"),
+                 *entry_index, alt_index != NULL ? *alt_index : -100));
 
     return BCM_E_NOT_FOUND;
 }
