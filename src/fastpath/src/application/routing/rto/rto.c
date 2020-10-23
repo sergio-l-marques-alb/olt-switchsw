@@ -1080,7 +1080,10 @@ L7_RC_t rtoRouteAdd (L7_routeEntry_t *routeEntry)
     }
     else
     {
-      L7_LOG_ERROR(PTR_TO_UINT32(pData));
+      (void)osapiWriteLockGive(rtoRwLock);
+      L7_LOGF(L7_LOG_SEVERITY_CRITICAL, L7_LOG_COMPONENT_DEFAULT,
+              "Error: rto.c radix corruption detected!\n"); /* Database corruption. */
+      return L7_FAILURE;
     }
 
     /* Find the new entry so that we can attach route info. */
