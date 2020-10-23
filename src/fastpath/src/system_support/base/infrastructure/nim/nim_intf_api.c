@@ -230,18 +230,23 @@ L7_RC_t nimSetIntfSpeed(L7_uint32 intIfNum, L7_uint32 intfSpeed)
     NIM_CRIT_SEC_READ_ENTER();
 
     IS_INTIFNUM_PRESENT(intIfNum,rc);
+    PT_LOG_PEDANTIC(LOG_CTX_INTF,"rc=%d", rc);
 
     if (rc == L7_SUCCESS && !NIM_PARM_CANSET(intIfNum, L7_INTF_PARM_SPEED))
     {
       rc = L7_FAILURE;
     }
     NIM_CRIT_SEC_READ_EXIT();
+    PT_LOG_PEDANTIC(LOG_CTX_INTF,"rc=%d", rc);
 
     newintfSpeed = intfSpeed;
     if (cnfgrIsFeaturePresent(L7_NIM_COMPONENT_ID,L7_NIM_AUTONEG_WITH_SPEED_DUPLEX_FEATURE_ID) == L7_TRUE)
     {
+      PT_LOG_PEDANTIC(LOG_CTX_INTF,"cnfgrIsFeaturePresent()");
       if (nimConvertoOldSpeedvalue(intIfNum, newintfSpeed, &intfSpeed)!= L7_SUCCESS)
          return rc;
+      PT_LOG_PEDANTIC(LOG_CTX_INTF,"newintfSpeed=%u intfSpeed=%u",
+                      newintfSpeed, intfSpeed);
     }
 
     if (rc == L7_SUCCESS)
@@ -268,6 +273,8 @@ L7_RC_t nimSetIntfSpeed(L7_uint32 intIfNum, L7_uint32 intfSpeed)
         case L7_IANA_GIGABIT_ETHERNET:
           rc = nimGetIntfPhyCapability(intIfNum, &portCapability);
 
+          PT_LOG_PEDANTIC(LOG_CTX_INTF,"intIfNum=%u portCapability=0x%x",
+                          intIfNum, portCapability);
           /* PTin modified: autoneg */
           if (((portCapability & L7_PHY_CAP_PORTSPEED_AUTO_NEG) != L7_PHY_CAP_PORTSPEED_AUTO_NEG)
               && (intfSpeed != L7_PORTCTRL_PORTSPEED_FULL_1000SX)
@@ -276,6 +283,7 @@ L7_RC_t nimSetIntfSpeed(L7_uint32 intIfNum, L7_uint32 intfSpeed)
           {
             rc = (L7_FAILURE);
           }
+          PT_LOG_PEDANTIC(LOG_CTX_INTF," ");
           break;
 
         /* PTin added: Speed 2.5G */
@@ -294,6 +302,8 @@ L7_RC_t nimSetIntfSpeed(L7_uint32 intIfNum, L7_uint32 intfSpeed)
           /* PTin added: autoneg */
           rc = nimGetIntfPhyCapability(intIfNum, &portCapability);
 
+          PT_LOG_PEDANTIC(LOG_CTX_INTF,"intIfNum=%u portCapability=0x%x",
+                          intIfNum, portCapability);
           /* PTin modified: autoneg */
           if (intfSpeed != L7_PORTCTRL_PORTSPEED_FULL_10GSX
               && intfSpeed != L7_PORTCTRL_PORTSPEED_FULL_1000SX
@@ -304,6 +314,7 @@ L7_RC_t nimSetIntfSpeed(L7_uint32 intIfNum, L7_uint32 intfSpeed)
           {
             return(L7_FAILURE);
           }
+          PT_LOG_PEDANTIC(LOG_CTX_INTF," ");
           break;
 
         /* PTin added: Speed 40G */
@@ -331,46 +342,59 @@ L7_RC_t nimSetIntfSpeed(L7_uint32 intIfNum, L7_uint32 intfSpeed)
 
         default:
           rc = (L7_FAILURE);
-      break;
+          break;
       }
 
       if (rc == L7_SUCCESS)
       {
-    NIM_CRIT_SEC_WRITE_ENTER();
-
-    if ( nimCtlBlk_g->nimPorts[intIfNum].configPort.cfgInfo.ifSpeed != newintfSpeed )
-    {
-      nimCtlBlk_g->nimPorts[intIfNum].configPort.cfgInfo.ifSpeed = newintfSpeed;
-
-      nimCtlBlk_g->nimConfigData->cfgHdr.dataChanged = L7_TRUE;
-    }
-
-    /* PTin added: autoneg */
-        if (/*(nimCtlBlk_g->nimPorts[intIfNum].operInfo.ianaType != L7_IANA_FAST_ETHERNET_FX &&*/       /* PTin added */
+        NIM_CRIT_SEC_WRITE_ENTER();
+        
+        if ( nimCtlBlk_g->nimPorts[intIfNum].configPort.cfgInfo.ifSpeed != newintfSpeed )
+        {
+          nimCtlBlk_g->nimPorts[intIfNum].configPort.cfgInfo.ifSpeed = newintfSpeed;
+        
+          nimCtlBlk_g->nimConfigData->cfgHdr.dataChanged = L7_TRUE;
+          PT_LOG_PEDANTIC(LOG_CTX_INTF," ");
+        }
+        
+        /* PTin added: autoneg */
+        if (/*nimCtlBlk_g->nimPorts[intIfNum].operInfo.ianaType != L7_IANA_FAST_ETHERNET_FX &&*/       /* PTin added */
+#if (PTIN_BOARD == PTIN_BOARD_AE48GE)
+/*Because of some instability through ...
+  https://jira.ptin.corppt.com/browse/OLTSWITCH-406
+  https://jira.ptin.corppt.com/browse/OLTSWITCH-563
+  ...we'll change just for this board*/
+             nimCtlBlk_g->nimPorts[intIfNum].operInfo.ianaType != L7_IANA_GIGABIT_ETHERNET &&       /* PTin added */
+             nimCtlBlk_g->nimPorts[intIfNum].operInfo.ianaType != L7_IANA_10G_ETHERNET &&          /* PTin added */
+#else
              /*nimCtlBlk_g->nimPorts[intIfNum].operInfo.ianaType != L7_IANA_GIGABIT_ETHERNET &&*/       /* PTin added */
-             /*nimCtlBlk_g->nimPorts[intIfNum].operInfo.ianaType != L7_IANA_10G_ETHERNET) &&*/          /* PTin added */
+             /*nimCtlBlk_g->nimPorts[intIfNum].operInfo.ianaType != L7_IANA_10G_ETHERNET &&*/          /* PTin added */
+#endif
             nimCtlBlk_g->nimPorts[intIfNum].configPort.cfgInfo.negoCapabilities != 0)
         {
           PT_LOG_WARN(LOG_CTX_INTF,"Configuration ignored!");
           rc = (L7_SUCCESS);
 
-      NIM_CRIT_SEC_WRITE_EXIT();
+          NIM_CRIT_SEC_WRITE_EXIT();
         }
         else
         {
-      NIM_CRIT_SEC_WRITE_EXIT();
+          NIM_CRIT_SEC_WRITE_EXIT();
 
           if (dtlIntfSpeedSet(intIfNum, intfSpeed) == L7_SUCCESS)
           {
             rc = (nimNotifyIntfChange(intIfNum, L7_SPEED_CHANGE));
+            PT_LOG_PEDANTIC(LOG_CTX_INTF,"nimNotifyIntfChange()=%d", rc);
           }
           else
           {
             rc = (L7_FAILURE);
+            PT_LOG_PEDANTIC(LOG_CTX_INTF,"dtlIntfSpeedSet() NOK");
           }
         }
 
       }
+      else PT_LOG_PEDANTIC(LOG_CTX_INTF,"rc=%d (switch())", rc);
     } /* interface present */
 
   }

@@ -244,6 +244,11 @@
                                        (L7_PHY_CAP_PORTSPEED_FULL_100G),    \
                                        L7_XLAUI
 
+#if (PTIN_BOARD == PTIN_BOARD_AE48GE)
+/*Because of some instability through ...
+  https://jira.ptin.corppt.com/browse/OLTSWITCH-406
+  https://jira.ptin.corppt.com/browse/OLTSWITCH-563
+  ...we'll change just for this board*/
 #define L7_PORT_DESC_BCOM_XAUI_10G_1G    L7_IANA_10G_ETHERNET,              \
                                          L7_PORTCTRL_PORTSPEED_FULL_10GSX,  \
                                          (/*L7_PHY_CAP_PORTSPEED_SFP | */   \
@@ -251,6 +256,14 @@
                                           L7_PHY_CAP_PORTSPEED_FULL_1000 |  \
                                           L7_PHY_CAP_PORTSPEED_FULL_10G),   \
                                          L7_XAUI
+#else
+#define L7_PORT_DESC_BCOM_XAUI_10G_1G    L7_IANA_10G_ETHERNET,              \
+                                         L7_PORTCTRL_PORTSPEED_FULL_10GSX,  \
+                                         (/*L7_PHY_CAP_PORTSPEED_SFP | */   \
+                                          L7_PHY_CAP_PORTSPEED_FULL_1000 |  \
+                                          L7_PHY_CAP_PORTSPEED_FULL_10G),   \
+                                         L7_XAUI
+#endif
 
 /* PTin added: XE-1G port */
 #define L7_PORT_DESC_BCOM_XAUI_SGMII_1G  L7_IANA_10G_ETHERNET,              \
