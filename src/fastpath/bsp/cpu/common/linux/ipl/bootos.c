@@ -55,6 +55,7 @@
 /* PTin added */
 #include "logger.h"
 #include "ptin_fpga_api.h"
+#include "ptin_env_api.h"
 #include "ptin_globaldefs.h"
 #include <sys/resource.h>
 /* PTin end */
@@ -918,6 +919,10 @@ int main(int argc, char *argv[], char *envp[])
 
   }
 
+  /* Read HW version for T0F cards*/
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0F) 
+   (void) ptin_env_init();
+#endif
   /* Get kernel information */
   if (uname(&kernel_uname) == 0)
   {
