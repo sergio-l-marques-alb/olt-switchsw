@@ -4732,6 +4732,7 @@ L7_RC_t hapiBroadConfigIpDtl0Trap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uch
                                            FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
   BROAD_METER_ENTRY_t     meterInfo;
   BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
+  uint8_t                 packets_tc = CPU_TRAPPED_PACKETS_COS_DEFAULT;
   L7_RC_t                 result = L7_SUCCESS;
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "Starting dtl0 IP packets trapping processing (VLAN ID %d)", vlanId);
@@ -4752,6 +4753,18 @@ L7_RC_t hapiBroadConfigIpDtl0Trap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uch
   {
     meterInfo = ptin_components_meter.ipdtl0;
   }
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  if (vlanId == PTIN_ASPEN2CPU_A_VLAN || vlanId == PTIN_ASPEN2CPU_B_VLAN)
+  {
+    packets_tc = CPU_TRAPPED_PACKETS_COS_HIPRIO;
+
+    meterInfo.cir = RATE_LIMIT_ASPEN;
+    meterInfo.cbs = BUCKET_SIZE_ASPEN;
+    meterInfo.pir = RATE_LIMIT_ASPEN;
+    meterInfo.pbs = BUCKET_SIZE_ASPEN;
+  }
+#endif
 
   do
   {
@@ -4779,7 +4792,7 @@ L7_RC_t hapiBroadConfigIpDtl0Trap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uch
 //  result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipdtl0_ethtype, exact_match);
 //  if (result != L7_SUCCESS)  break;
 
-    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, packets_tc, 0, 0);
     if (result != L7_SUCCESS)  break;
 
     /* Trap the frames to CPU, so that they are not switched */

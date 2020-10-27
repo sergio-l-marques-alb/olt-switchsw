@@ -16,6 +16,10 @@
 #define PTIN_ASPEN2CPU_A_VLAN_EXT       100
 #define PTIN_ASPEN2CPU_B_VLAN_EXT       100
 
+#define RATE_LIMIT_ASPEN    4096
+#define BUCKET_SIZE_ASPEN   1024
+
+
 /* Special ports for this equipment */
 #define PTIN_PORT_CPU                 (PTIN_SYSTEM_N_PORTS-1)
 
