@@ -49,7 +49,7 @@
 **  Start of L2 parameters
 **********************************************************************/
 #define PLAT_MAX_NUM_LAG_INTF                     64
-#define PLAT_MAX_MEMBERS_PER_LAG                  8
+#define PLAT_MAX_MEMBERS_PER_LAG                  16   /* PTin modified: 8 => 16 */
 #define PLAT_MAX_FRAME_SIZE                       9600 /* PTin modified: 9216 */
 #define PLAT_MAX_VLANS                            4093
 

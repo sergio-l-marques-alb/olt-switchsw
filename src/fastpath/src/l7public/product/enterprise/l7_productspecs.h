@@ -64,7 +64,7 @@
 #define PROD_VLAN_IPSUBNET_MAX_VLANS                      128
 #define PROD_VLAN_MAC_MAX_VLANS                           256
 #define PROD_MAX_NUM_LAG_INTF                             36      /* PTin modified: 64 => 36 (CXP360G) */
-#define PROD_MAX_MEMBERS_PER_LAG                          8
+#define PROD_MAX_MEMBERS_PER_LAG                          16      /* PTin modified: 8 => 16 (TC16SXG) */
 #define PROD_MAX_FDB_MAC_ENTRIES                          131072  /* PTin modified: 32768 => 131072 */
 #define PROD_MIN_FRAME_SIZE                               1518
 #define PROD_MAX_FRAME_SIZE                               12288   /* PTin modified: 9216 => 12K */

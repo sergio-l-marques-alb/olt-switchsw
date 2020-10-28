@@ -1989,6 +1989,7 @@ L7_RC_t dot3adLagMemeberAdd(L7_uint32 intIfNum, L7_uint32 count,
   a = dot3adAggIntfFind(intIfNum);
   if (a == L7_NULLPTR || a->inuse == L7_FALSE || a->adminMode == L7_DISABLE)
   {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error: intIfNum=%u",  intIfNum);
     return L7_FAILURE;
   }
 
@@ -1998,16 +1999,20 @@ L7_RC_t dot3adLagMemeberAdd(L7_uint32 intIfNum, L7_uint32 count,
     /* are we adding a physical interface */
     if (dot3adLihIsIntfTypePhy(pMemIntf[i]) == L7_FALSE)
     {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error: intIfNum %u => %u", pMemIntf[i], intIfNum);
       return L7_FAILURE;
     }
     rc = usmDbIfSpecialPortTypeGet(simGetThisUnit(),pMemIntf[i],&portType);
     if (portType != L7_PORT_NORMAL)
     {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error: intIfNum %u => %u", pMemIntf[i], intIfNum);
       return L7_FAILURE;
     }
     /* is there room to add another member */
     if (a->currNumWaitSelectedMembers == L7_MAX_MEMBERS_PER_LAG)
     {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error: intIfNum %u, maxmembers %u reached",
+                 intIfNum, a->currNumWaitSelectedMembers);
       return L7_FAILURE;
     }
 
@@ -2015,12 +2020,14 @@ L7_RC_t dot3adLagMemeberAdd(L7_uint32 intIfNum, L7_uint32 count,
     p = dot3adPortIntfFind(pMemIntf[i]);
     if (p == L7_NULLPTR)
     {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error: intIfNum %u => %u", pMemIntf[i], intIfNum);
       return L7_FAILURE;
     }
 
     /* make sure its not already a member of an aggregation */
     if (p->actorOperPortKey == p->actorPortWaitSelectedAggId && p->actorOperPortKey != 0)
     {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error: intIfNum %u", intIfNum);
       return L7_FAILURE; 
     }
 
@@ -2037,12 +2044,14 @@ L7_RC_t dot3adLagMemeberAdd(L7_uint32 intIfNum, L7_uint32 count,
     /* check lif membership  */
     if (dot3adLihIsLifMember(pMemIntf[i]) == L7_TRUE)
     {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error: intIfNum %u => %u", pMemIntf[i], intIfNum);
       return L7_FAILURE;
     }
 
     /* check mac filtering membership*/
     if (dot3adLihIsFilterMember(pMemIntf[i]) == L7_TRUE)
     {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error: intIfNum %u => %u", pMemIntf[i], intIfNum);
       return L7_REQUEST_DENIED;
     }
 
@@ -2051,6 +2060,7 @@ L7_RC_t dot3adLagMemeberAdd(L7_uint32 intIfNum, L7_uint32 count,
     rc = dot3adAggWaitSelectedAdd(a->aggId,pMemIntf[i]);
     if (rc == L7_FAILURE)
     {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error: intIfNum %u => %u (rc=%d)", pMemIntf[i], intIfNum, rc);
       return L7_FAILURE;
     }
     /*set the wait selected agg id to the chossen agg id*/
@@ -2069,6 +2079,11 @@ L7_RC_t dot3adLagMemeberAdd(L7_uint32 intIfNum, L7_uint32 count,
     /* set the oper key and notify LACP */
     rc = dot3adAggPortActorOperKeySet(pMemIntf[i], intIfNum);
 
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error: intIfNum %u => %u (rc=%d)", pMemIntf[i], intIfNum, rc);
+    }
+    
     /* notify nim of aquire */
     /*
        rc = nimNotifyIntfChange(pMemIntf[i], L7_LAG_ACQUIRE);

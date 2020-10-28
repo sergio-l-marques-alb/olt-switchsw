@@ -1743,18 +1743,26 @@ L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
   {
   case PTIN_INTF_FORMAT_PORT:
     ptin_port = intf->value.ptin_port;
+    PT_LOG_TRACE(LOG_CTX_INTF, "input ptin_port %u", ptin_port);
     break;
 
   case PTIN_INTF_FORMAT_LAGID:
     rc = ptin_intf_lag2port(intf->value.lag_id, &ptin_port);
+    PT_LOG_TRACE(LOG_CTX_INTF, "input lag_id %u => ptin_port %u (rc=%d)", intf->value.lag_id, ptin_port, rc);
     break;
 
   case PTIN_INTF_FORMAT_TYPEID:
     rc = ptin_intf_typeId2port(intf->value.ptin_intf.intf_type, intf->value.ptin_intf.intf_id, &ptin_port);
+    PT_LOG_TRACE(LOG_CTX_INTF, "input ptin_intf %u/%u => ptin_port %u (rc=%d)",
+                 intf->value.ptin_intf.intf_type, intf->value.ptin_intf.intf_id,
+                 ptin_port, rc);
     break;
 
   case PTIN_INTF_FORMAT_SYS_SLOTPORT:
     rc = ptin_intf_slotPort2port(intf->value.slot_port.system_slot, intf->value.slot_port.system_port, &ptin_port);
+    PT_LOG_TRACE(LOG_CTX_INTF, "input slot_port %u/%u => ptin_port %u (rc=%d)",
+                 intf->value.slot_port.system_slot, intf->value.slot_port.system_port,
+                 ptin_port, rc);
     break;
 
   case PTIN_INTF_FORMAT_USP:
@@ -1763,11 +1771,16 @@ L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
     {
       rc = ptin_intf_intIfNum2port(intIfNum, &ptin_port);
     }
-    break; 
+    PT_LOG_TRACE(LOG_CTX_INTF, "input usp {%u,%u,%d} => intIfNum %u, ptin_port %u (rc=%d)",
+                 intf->value.usp.unit, intf->value.usp.slot, intf->value.usp.port,
+                 intIfNum, ptin_port, rc);
+    break;
 
   case PTIN_INTF_FORMAT_INTIFNUM:
     intIfNum = intf->value.intIfNum;
     rc = ptin_intf_intIfNum2port(intIfNum, &ptin_port);
+    PT_LOG_TRACE(LOG_CTX_INTF, "input intIfNum %u => ptin_port %u (rc=%d)",
+                 intIfNum, ptin_port, rc);
     break;
 
   default:
@@ -1804,6 +1817,7 @@ L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
   }
   else
   {
+    PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port %u is not a LAG", ptin_port);
     intf->value.lag_id = -1;
   }
 
@@ -1819,6 +1833,7 @@ L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
     rc_global = rc;
     intf->value.ptin_intf.intf_type = 0xff;
     intf->value.ptin_intf.intf_id   = 0xff;
+    PT_LOG_ERR(LOG_CTX_INTF,"ptin_port %u looks to be invalid", ptin_port);
   }
 
   /* Slot/Port format */
@@ -1827,6 +1842,7 @@ L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
   {
     intf->value.slot_port.system_slot = (L7_uint16)-1;
     intf->value.slot_port.system_port = (L7_uint16)-1;
+    PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port %u is not a physical port", ptin_port);
   }
 
   /* Get board id */
@@ -1842,6 +1858,7 @@ L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
   {
     rc_global = rc;
     intIfNum = 0;
+    PT_LOG_ERR(LOG_CTX_INTF,"ptin_port %u looks to be invalid", ptin_port);
   }
   /* Save intIfNum */
   intf->value.intIfNum = intIfNum;
@@ -1857,6 +1874,7 @@ L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
       intf->value.usp.unit = (L7_uchar8)-1;
       intf->value.usp.slot = (L7_uchar8)-1;
       intf->value.usp.port = (L7_uchar8)-1;
+      PT_LOG_ERR(LOG_CTX_INTF,"intIfNum %u looks to be invalid", intIfNum);
     }
 
     /* IntIfNum type (not supposed to have errors) */
@@ -1869,6 +1887,7 @@ L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
     {
       rc_global = rc;
       intf->intIfNum_type = 0xff;
+      PT_LOG_ERR(LOG_CTX_INTF,"intIfNum %u looks to be invalid", intIfNum);
     }
   }
 
