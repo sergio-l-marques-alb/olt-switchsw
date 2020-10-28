@@ -39,6 +39,8 @@
 #include <bcm/init.h>
 #endif
 
+#include <soc/l2x.h>
+
 /********************************************************************
  * DEFINES
  ********************************************************************/
@@ -315,6 +317,20 @@ L7_RC_t hapi_ptin_config_init(void)
 
   if (hapiBroadSystemInstallPtin_postInit() != L7_SUCCESS)
     rc = L7_FAILURE;
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  /* Reset L2mod interval */
+  if (soc_l2x_stop(0 /*unit*/) != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error resetting L2MOD interval to 3s");
+    rc = L7_FAILURE;
+  }
+  else if (soc_l2x_start(0 /*unit*/, 0 /*flags*/, 3500000 /*us*/) != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error resetting L2MOD interval to 3s");
+    rc = L7_FAILURE;
+  }
+#endif
 
   return rc;
 }
