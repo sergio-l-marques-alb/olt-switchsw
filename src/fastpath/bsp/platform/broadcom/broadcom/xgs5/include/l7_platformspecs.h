@@ -137,6 +137,13 @@
 #define L7_MAX_PHYSICAL_PORTS_PER_SLOT           21
 #define L7_MAX_PHYSICAL_PORTS_PER_UNIT           21
 
+/* PTin added: new switch 56370 (Trident3x3) on TC16SXG */
+#elif (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+#define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
+#define L7_MAX_PORTS_PER_SLOT                    33
+#define L7_MAX_PHYSICAL_PORTS_PER_SLOT           33
+#define L7_MAX_PHYSICAL_PORTS_PER_UNIT           33
+
 /* PTin added: new switch 56450 (Katana2) on AG16GA */
 #elif (PTIN_BOARD == PTIN_BOARD_AG16GA)
 #define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
