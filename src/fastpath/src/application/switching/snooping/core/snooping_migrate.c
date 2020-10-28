@@ -28,6 +28,10 @@
 #include "snooping_migrate.h"
 #include "snooping_outcalls.h"
 
+#if defined(__GNUC__) && (__GNUC__ >= 7)
+#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
+#endif
+
 static L7_RC_t snoopMigrateConfigV1V2Convert (snoopCfgDataV1_t * pCfgV1, snoopCfgDataV2_t * pCfgV2);
 static L7_RC_t snoopMigrateConfigV2V3Convert (snoopCfgDataV2_t * pCfgV2, snoopCfgDataV3_t * pCfgV3);
 static L7_RC_t snoopMigrateConfigV3V4Convert (snoopCfgDataV3_t * pCfgV3, snoopCfgDataV4_t * pCfgV4);
