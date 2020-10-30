@@ -1084,6 +1084,10 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
       case PHY_PORT_10_GBPS:
         speed_mode = L7_PORTCTRL_PORTSPEED_FULL_10GSX;
         strcpy(speedstr, "10G");
+#if (PTIN_BOARD == PTIN_BOARD_AE48GE)
+        phyConf->Mask |= PTIN_PHYCONF_MASK_AUTONEG;
+        phyConf->autoneg = 0;
+#endif
         break;
 
       /* PTin added: Speed 40G */
