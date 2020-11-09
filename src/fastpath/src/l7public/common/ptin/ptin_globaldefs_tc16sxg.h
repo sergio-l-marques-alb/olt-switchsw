@@ -20,6 +20,19 @@
 #define BUCKET_SIZE_ASPEN   1024
 
 
+/* 
+  ASPEN N:1 modes (4:1 or 2:1)
+  In these modes, MAC GPON ASPEN muxes several PONs in a SWITCH<=>ASPEN
+  physical interface
+*/
+#define ASPEN_4_1
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+#if defined(ASPEN_4_1) || defined(ASPEN_2_1)
+    #define TC16SXG_ASPEN_N_1   1
+#endif
+#endif
+
+
 /* Special ports for this equipment */
 #define PTIN_PORT_CPU                 (PTIN_SYSTEM_N_PORTS-1)
 
@@ -39,8 +52,9 @@
 # define PTIN_SLOT_WORK             0
 # define PTIN_SLOT_PROT             1
 
-# define PTIN_SYSTEM_N_PORTS           33   /* (Trident3-X3) FIXME 32? 33? ...*/
-# define PTIN_SYSTEM_N_PONS            16   /* (Trident3-X3) FIXME */
+# define PTIN_SYSTEM_N_PONS            32   /* (Trident3-X3) */
+# define PTIN_SYSTEM_N_PORTS           (32+PTIN_SYSTEM_N_PONS+1)   /* (Trident3-X3) BCKPLN+PONs+CPU */
+# define PTIN_SYSTEM_N_PONS_INTIFN     16
 # define PTIN_SYSTEM_N_ETH             0
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   0
 # define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS
@@ -48,9 +62,9 @@
 # define PTIN_SYSTEM_N_INTERF          (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_N_LAGS)
 # define PTIN_SYSTEM_N_UPLINK_INTERF   (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH)
 
-# define PTIN_SYSTEM_PON_PORTS_MASK    0x0000FFFF
+# define PTIN_SYSTEM_PON_PORTS_MASK    ((1ULL<<PTIN_SYSTEM_N_PONS)-1)   /*0xFFFFFFFF*/
 # define PTIN_SYSTEM_ETH_PORTS_MASK    0x00000000
-# define PTIN_SYSTEM_10G_PORTS_MASK    0xFFFF0000   /* (Trident3-X3) FIXME 33? 49?*/
+# define PTIN_SYSTEM_10G_PORTS_MASK    (0xFFFFULL<<PTIN_SYSTEM_N_PONS) /* (Trident3-X3) FIXME 33? 49?*/
 # define PTIN_SYSTEM_PORTS_MASK        (PTIN_SYSTEM_PON_PORTS_MASK | PTIN_SYSTEM_ETH_PORTS_MASK | PTIN_SYSTEM_10G_PORTS_MASK)
 
 # define PTIN_SYSTEM_N_EVCS            4002  /* Maximum nr of EVCs allowed in this equipment */

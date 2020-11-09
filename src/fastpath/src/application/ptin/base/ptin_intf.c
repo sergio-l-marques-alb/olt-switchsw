@@ -2273,6 +2273,124 @@ L7_RC_t ptin_intf_slot_get(L7_uint8 *slot_id)
 }
 #endif
 
+
+
+
+#ifdef TC16SXG_ASPEN_N_1
+
+/* 0-15 GPON;
+   16-31 XGSPON */
+#define ASPEN_OUTER_VID_SET (4096/ASPEN_OUTER_VID_N_OF_SETS)
+#if defined (ASPEN_4_1) /*ASPEN 4:1*/
+/* Please check
+   https://jira.ptin.corppt.com/secure/attachment/620082/screenshot-1.png
+   https://jira.ptin.corppt.com/browse/OLTSWITCH-1371
+*/
+    #define ASPEN_OUTER_VID_N_OF_SETS 4
+    //const unsigned short aspen_ovid_offset[]={0, ASPEN_OUTER_VID_SET, 2*ASPEN_OUTER_VID_SET, 3*ASPEN_OUTER_VID_SET};
+    static const
+    L7_uint32 i2p[PTIN_SYSTEM_N_PONS_INTIFN][ASPEN_OUTER_VID_N_OF_SETS] = {
+        {16, 0, 17, 1},
+        {-1U, -1U, -1U, -1U},
+        {18, 2, 19, 3},
+        {-1U, -1U, -1U, -1U},
+        {20, 4, 21, 5},
+        {-1U, -1U, -1U, -1U},
+        {22, 6, 23, 7},
+        {-1U, -1U, -1U, -1U},
+        {24, 8, 25, 9},
+        {-1U, -1U, -1U, -1U},
+        {26, 10, 27, 11},
+        {-1U, -1U, -1U, -1U},
+        {28, 12, 29, 13},
+        {-1U, -1U, -1U, -1U},
+        {30, 14, 31, 15},
+        {-1U, -1U, -1U, -1U},
+    };
+
+    static const
+    L7_uint32 p2i[PTIN_SYSTEM_N_PONS] = {
+        0,0, 2,2, 4,4, 6,6, 8,8, 10,10, 12,12, 14,14,
+        0,0, 2,2, 4,4, 6,6, 8,8, 10,10, 12,12, 14,14,
+    };
+#else
+#if defined (ASPEN_2_1) /*ASPEN 2:1*/
+/* Please check
+   https://jira.ptin.corppt.com/secure/attachment/620085/screenshot-2.png
+   https://jira.ptin.corppt.com/browse/OLTSWITCH-1371
+*/
+    #define ASPEN_OUTER_VID_N_OF_SETS 2
+    //const unsigned short aspen_ovid_offset[]={0, ASPEN_OUTER_VID_SET};
+    static const
+    L7_uint32 i2p[PTIN_SYSTEM_N_PONS_INTIFN][ASPEN_OUTER_VID_N_OF_SETS] = {
+        {16, 0},
+        {17, 1},
+        {18, 2},
+        {19, 3},
+        {20, 4},
+        {21, 5},
+        {22, 6},
+        {23, 7},
+        {24, 8},
+        {25, 9},
+        {26, 10},
+        {27, 11},
+        {28, 12},
+        {29, 13},
+        {30, 14},
+        {31, 15},
+    };
+
+    static const
+    L7_uint32 p2i[PTIN_SYSTEM_N_PONS] = {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+    };
+#endif
+#endif
+
+/* 
+  #define ASPEN_OUTER_VID_N_OF_SETS \
+        (sizeof(aspen_ovid_offset)/sizeof(aspen_ovid_offset[0]))
+*/
+
+static
+L7_uint32 tc16sxg_pon_intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem)
+{
+    unsigned char offset;//, xgspon0_gpon1;
+#if 0 /* Already done @function call*/
+    if (!intIfNum_is_pon(intIfNum))
+    {
+        PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u isn't a PON", intIfNum);
+        return -1;
+    }
+#endif
+    if (vlan_gem>=4096)
+    {
+        PT_LOG_DEBUG(LOG_CTX_INTF, "invalid %u vlan_gem", vlan_gem);
+        return -1;
+    }
+
+    offset = vlan_gem / ASPEN_OUTER_VID_SET;
+    //xgspon0_gpon1 = offset%2;
+    
+    return i2p[intIfNum-1][offset];
+}
+
+static
+L7_uint32 tc16sxg_pon_port2intIfNum(L7_uint32 ptin_port) {
+#if 0 /* Already done @function call*/
+    if (!ptin_port_is_pon(ptin_port))
+    {
+        PT_LOG_DEBUG(LOG_CTX_INTF, "ptin_port %u isn't a PON", ptin_port);
+        return -1;
+    }
+#endif
+    return p2i[ptin_port]+1;
+}
+
+#endif /*#ifdef TC16SXG_ASPEN_N_1*/
+
 /**
  * Converts PTin port mapping (including LAGs) to the FP interface#
  * 
@@ -2283,6 +2401,28 @@ L7_RC_t ptin_intf_slot_get(L7_uint8 *slot_id)
  */
 L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
 {
+#ifdef TC16SXG_ASPEN_N_1
+    if (ptin_port_is_pon(ptin_port)) {
+        L7_uint32 _intIfNum;
+
+        _intIfNum=tc16sxg_pon_port2intIfNum(ptin_port);
+        if (_intIfNum>=L7_MAX_INTERFACE_COUNT) {
+            PT_LOG_ERR(LOG_CTX_INTF,
+                       "Port# %u is PON but tc16sxg_pon_port2intIfNum()=%u",
+                       ptin_port, _intIfNum);
+            return L7_FAILURE;
+        }
+        else {
+            PT_LOG_TRACE(LOG_CTX_INTF,
+                         "Port=%u is PON => intIfNum=%u",
+                         ptin_port, _intIfNum);
+            if (intIfNum != L7_NULLPTR) {
+                *intIfNum = _intIfNum;
+            }
+            return L7_SUCCESS;
+        }
+    }
+#endif
   /* Validate arguments */
   if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
       (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
@@ -2314,8 +2454,31 @@ L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *ptin_port)
+L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, /*L7_uint16 vlan_gem,*/
+                                L7_uint32 *ptin_port)
 {
+#ifdef TC16SXG_ASPEN_N_1
+    if (intIfNum_is_pon(intIfNum)) {
+        L7_uint32 _ptin_port;
+
+        _ptin_port=tc16sxg_pon_intIfNum2port(intIfNum, -1);
+        if (_ptin_port>=PTIN_SYSTEM_N_INTERF) {
+            PT_LOG_ERR(LOG_CTX_INTF,
+                       "intIfNum %u is PON but tc16sxg_pon_intIfNum2port()=%u",
+                       intIfNum, _ptin_port);
+            return L7_FAILURE;
+        }
+        else {
+            PT_LOG_TRACE(LOG_CTX_INTF,
+                         "intIfNum=%u is PON => Port=%u",
+                         intIfNum, _ptin_port);
+            if (ptin_port != L7_NULLPTR) {
+                *ptin_port = _ptin_port;
+            }
+            return L7_SUCCESS;
+        }
+    }
+#endif
   /* Validate arguments */
   if (intIfNum==0 || intIfNum >= L7_MAX_INTERFACE_COUNT)
   {

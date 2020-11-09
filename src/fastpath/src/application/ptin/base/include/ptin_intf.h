@@ -321,6 +321,10 @@ extern L7_RC_t ptin_intf_intIfNum2SlotPort(L7_uint32 intIfNum, L7_uint16 *slot_r
  */
 extern L7_RC_t ptin_intf_slotPort2IntIfNum(L7_uint16 slot, L7_uint16 intf, L7_uint32 *intIfNum_ret);
 
+#define intIfNum_is_pon(intIfNum) \
+    ((intIfNum)<=PTIN_SYSTEM_N_PONS_INTIFN && 0<intIfNum)
+#define ptin_port_is_pon(ptin_port) ((ptin_port)<PTIN_SYSTEM_N_PONS)
+
 /**
  * Converts PTin port mapping (including LAGs) to the FP interface#
  * 
@@ -339,7 +343,8 @@ extern L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *ptin_port);
+extern L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, /*L7_uint16 vlan_gem,*/
+                                       L7_uint32 *ptin_port);
 
 /**
  * Converts ptin_port index to LAG index
