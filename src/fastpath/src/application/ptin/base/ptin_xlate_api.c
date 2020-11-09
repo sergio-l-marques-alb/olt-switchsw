@@ -264,20 +264,22 @@ L7_RC_t ptin_xlate_init(void)
 /**
  * Get portgroup of a specific interface
  * 
- * @param intIfNum : interface reference
+ * @param intIfNum :  interface reference
+ * @param vlanId :    GEM vlan ID
  * @param portgroup : port group id (to be returned)
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_xlate_portgroup_get(L7_uint32 intIfNum, L7_uint32 *portgroup)
+L7_RC_t ptin_xlate_portgroup_get(L7_uint32 intIfNum, L7_uint32 *portgroup) /* FIXME TC16SXG */
 {
   L7_uint32 ptin_port;
+  L7_uint16 vlanId = 0;/* FIXME TC16SXG */
 
   if (ptin_debug_xlate)
     PT_LOG_TRACE(LOG_CTX_XLATE, "intIfNum=%u", intIfNum);
 
   /* Validate arguments */
-  if ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS || ptin_port>=ptin_sys_number_of_ports)
+  if ( ptin_intf_intIfNum2port(intIfNum, vlanId, &ptin_port)!=L7_SUCCESS || ptin_port>=ptin_sys_number_of_ports) /* FIXME TC16SXG */
   {
     PT_LOG_ERR(LOG_CTX_XLATE, " ERROR: Invalid interface");
     return L7_FAILURE;
@@ -299,6 +301,7 @@ L7_RC_t ptin_xlate_portgroup_get(L7_uint32 intIfNum, L7_uint32 *portgroup)
  * Set portgroup to a specific interface
  * 
  * @param intIfNum : interface reference
+ * @param vlanId :    GEM vlan ID
  * @param portgroup : port group id 
  *                  (PTIN_XLATE_PORTGROUP_INTERFACE to reset)
  * 
@@ -312,12 +315,13 @@ L7_RC_t ptin_xlate_portgroup_set(L7_uint32 intIfNum, L7_uint32 portgroup)
   L7_uint32 class_id;
   ptin_vlanXlate_classId_t group;
   L7_RC_t rc = L7_SUCCESS;
+  L7_uint16 vlanId = 0;/* FIXME TC16SXG */
 
   if (ptin_debug_xlate)
     PT_LOG_TRACE(LOG_CTX_XLATE, "intIfNum=%u portgroup=%u", intIfNum, portgroup);
 
   /* Validate interface */
-  if ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS )
+  if ( ptin_intf_intIfNum2port(intIfNum, vlanId, &ptin_port)!=L7_SUCCESS )
   {
     PT_LOG_ERR(LOG_CTX_XLATE, " ERROR: Invalid interface");
     return L7_FAILURE;
@@ -386,7 +390,7 @@ L7_RC_t ptin_xlate_portgroup_set(L7_uint32 intIfNum, L7_uint32 portgroup)
     if (dtlPtinVlanTranslateEgressPortsGroup(intf_members[i], &group)==L7_SUCCESS)
     {
       /* If successfull, set the portgroup to each physical port */
-      if ( ptin_intf_intIfNum2port(intf_members[i], &ptin_port_i)==L7_SUCCESS && ptin_port_i<PTIN_SYSTEM_N_PORTS )
+      if ( ptin_intf_intIfNum2port(intf_members[i], vlanId, &ptin_port_i)==L7_SUCCESS && ptin_port_i<PTIN_SYSTEM_N_PORTS ) /* FIXME TC16SXG */
       {
         xlate_table_portgroup[ptin_port_i] = class_id;
       }
@@ -1395,8 +1399,8 @@ L7_RC_t ptin_xlate_egress_add( ptin_HwEthMef10Intf_t *intf_vlan,
   if (rc_aux == L7_SUCCESS) 
   { 
     /* Convert to ptin format*/
-    ptin_intf_intIfNum2port(intIfNum,&ptin_port_src); 
-    ptin_intf_intIfNum2port(intIfNum_Dst,&ptin_port_dst);
+    ptin_intf_intIfNum2port(intIfNum, xlate.outerVlan, &ptin_port_src); 
+    ptin_intf_intIfNum2port(intIfNum_Dst, xlate.outerVlan_new, &ptin_port_dst);
     PT_LOG_TRACE(LOG_CTX_XLATE, "ptin_port_src=%d", ptin_port_src);
     PT_LOG_TRACE(LOG_CTX_XLATE, "ptin_port_dst=%d", ptin_port_dst);
 
@@ -1493,10 +1497,10 @@ L7_RC_t ptin_xlate_egress_delete( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_
   if (rc_aux == L7_TRUE) 
   {
     /* Convert to ptin format*/
-    ptin_intf_intIfNum2port(intIfNum,&ptin_port_src); 
+    ptin_intf_intIfNum2port(intIfNum,outerVlanId, &ptin_port_src); /* FIXME TC16SXG */
 
     /* Convert to ptin format*/
-    ptin_intf_intIfNum2port(intIfNum_Dst,&ptin_port_dst);
+    ptin_intf_intIfNum2port(intIfNum_Dst, outerVlanId, &ptin_port_dst);
     mirrorDestPortGet(1, &intIfNum_Dst); /* 1 -> SessionNum*/
 
     /* Configure xlate to the destination mirror port */
@@ -1917,7 +1921,7 @@ L7_RC_t ptin_xlate_PVID_set(L7_uint32 intIfNum, L7_uint16 vlanId)
   }
 
   /* Get ptin_port */
-  if (ptin_intf_intIfNum2port(intIfNum, &ptin_port) != L7_SUCCESS)
+  if (ptin_intf_intIfNum2port(intIfNum, vlanId, &ptin_port) != L7_SUCCESS)
   {
     PT_LOG_TRACE(LOG_CTX_INTF, "Invalid intIfNum %u", intIfNum);
     return L7_FAILURE;
@@ -2334,7 +2338,7 @@ static L7_RC_t xlate_database_newVlan_get(L7_uint32 intIfNum, ptin_vlanXlate_t *
 
   /* Validate arguments */
   if ( ( vlanXlate_data->stage != PTIN_XLATE_STAGE_INGRESS && vlanXlate_data->stage != PTIN_XLATE_STAGE_EGRESS ) ||
-       ( intIfNum > 0 && intIfNum < L7_ALL_INTERFACES && ptin_intf_intIfNum2port(intIfNum, &ptin_port) != L7_SUCCESS ) ||
+       ( intIfNum > 0 && intIfNum < L7_ALL_INTERFACES && ptin_intf_intIfNum2port(intIfNum, vlanXlate_data->outerVlan, &ptin_port) != L7_SUCCESS ) || /* FIXME TC16SXG */
        ( vlanXlate_data->outerVlan > 4095) )
   {
     PT_LOG_ERR(LOG_CTX_XLATE, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, oVlan=%u)", vlanXlate_data->stage, intIfNum, ptin_port, vlanXlate_data->outerVlan);
@@ -2401,7 +2405,7 @@ static L7_RC_t xlate_database_oldVlan_get(L7_uint32 intIfNum, ptin_vlanXlate_t *
 
   /* Validate arguments */
   if ( ( vlanXlate_data->stage != PTIN_XLATE_STAGE_INGRESS && vlanXlate_data->stage != PTIN_XLATE_STAGE_EGRESS ) ||
-       ( intIfNum > 0 && intIfNum < L7_ALL_INTERFACES && ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS ) ||
+       ( intIfNum > 0 && intIfNum < L7_ALL_INTERFACES && ptin_intf_intIfNum2port(intIfNum, vlanXlate_data->outerVlan, &ptin_port)!=L7_SUCCESS ) || /* FIXME TC16SXG */
        ( vlanXlate_data->outerVlan_new > 4095) )
   {
     PT_LOG_ERR(LOG_CTX_XLATE, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, newOVlan=%u)", vlanXlate_data->stage, intIfNum, ptin_port, vlanXlate_data->outerVlan_new);
@@ -2468,7 +2472,7 @@ static L7_RC_t xlate_database_store(L7_uint32 intIfNum, const ptin_vlanXlate_t *
 
   /* Validate arguments */
   if ( ( vlanXlate_data->stage != PTIN_XLATE_STAGE_INGRESS && vlanXlate_data->stage != PTIN_XLATE_STAGE_EGRESS ) ||
-       ( intIfNum > 0 && intIfNum < L7_ALL_INTERFACES && ptin_intf_intIfNum2port(intIfNum, &ptin_port) != L7_SUCCESS ) ||
+       ( intIfNum > 0 && intIfNum < L7_ALL_INTERFACES && ptin_intf_intIfNum2port(intIfNum, vlanXlate_data->outerVlan, &ptin_port) != L7_SUCCESS ) || /* FIXME TC16SXG */
        ( vlanXlate_data->outerVlan > 4095) )
   {
     PT_LOG_ERR(LOG_CTX_XLATE, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, oVlan=%u.%u, newOVlan=%u.%u)",
@@ -2646,7 +2650,7 @@ static L7_RC_t xlate_database_clear(L7_uint32 intIfNum, const ptin_vlanXlate_t *
   }
 
   if ( ( vlanXlate_data->stage != PTIN_XLATE_STAGE_INGRESS && vlanXlate_data->stage != PTIN_XLATE_STAGE_EGRESS ) ||
-       ( intIfNum > 0 && intIfNum < L7_ALL_INTERFACES && ptin_intf_intIfNum2port(intIfNum, &ptin_port) != L7_SUCCESS ) ||
+       ( intIfNum > 0 && intIfNum < L7_ALL_INTERFACES && ptin_intf_intIfNum2port(intIfNum, vlanXlate_data->outerVlan, &ptin_port) != L7_SUCCESS ) || /* FIXME TC16SXG */
        ( vlanXlate_data->outerVlan > 4095) )
   {
     PT_LOG_ERR(LOG_CTX_XLATE, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, oVlan=%u)", vlanXlate_data->stage, intIfNum, ptin_port, vlanXlate_data->outerVlan);

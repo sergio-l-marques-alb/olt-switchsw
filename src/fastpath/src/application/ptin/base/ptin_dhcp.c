@@ -3736,7 +3736,7 @@ L7_RC_t ptin_dhcp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
   if (intIfNum>0 && intIfNum<L7_MAX_INTERFACE_COUNT)
   {
     /* Check if interface exists */
-    if (ptin_intf_intIfNum2port(intIfNum,&ptin_port)==L7_SUCCESS)
+    if (ptin_intf_intIfNum2port(intIfNum, vlan, &ptin_port)==L7_SUCCESS)/* FIXME TC16SXG If this is the innervlan, then we need another way to get gem_vlan */
     {
       /* Global interface statistics at interface level */
       stat_port_g = &global_stats_intf[ptin_port];

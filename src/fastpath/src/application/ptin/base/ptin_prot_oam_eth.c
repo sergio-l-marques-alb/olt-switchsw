@@ -634,7 +634,7 @@ void ptin_oam_eth_task(void)
              newOuterVlanId = 0;
            }
 
-           if (L7_SUCCESS!=ptin_intf_intIfNum2port(msg.intIfNum, &ptin_port)) {PT_LOG_INFO(LOG_CTX_OAM,"but in invalid port"); break;}
+           if (L7_SUCCESS!=ptin_intf_intIfNum2port(msg.intIfNum, msg.vlanId, &ptin_port)) {PT_LOG_INFO(LOG_CTX_OAM,"but in invalid port"); break;}
            //for (i=0; i<msg.payloadLen; i++) printf(" %2.2x", msg.payload[i]);      printf("\n\r");
            for (i=2*L7_MAC_ADDR_LEN/*, vid=-1*/; i<msg.payloadLen; i+=4) {
                switch (msg.payload[i]<<8 | msg.payload[i+1]) {//ETHtype
@@ -1022,7 +1022,7 @@ dot1dTpFdbData_t fdbEntry;
      (void)usmDbEntryVidMacCombine(vidInternal, MAC, vidMac);
 
      memset(&fdbEntry, 0, sizeof(fdbEntry));
-     if(L7_SUCCESS==fdbFind(vidMac, L7_MATCH_EXACT, &fdbEntry) && L7_SUCCESS==ptin_intf_intIfNum2port(fdbEntry.dot1dTpFdbPort, &ptin_port)) {
+     if(L7_SUCCESS==fdbFind(vidMac, L7_MATCH_EXACT, &fdbEntry) && L7_SUCCESS==ptin_intf_intIfNum2port(fdbEntry.dot1dTpFdbPort, vidInternal, &ptin_port)) { /* FIXME TC16SXG */
        if (NULL!=egress_vid) {
        L7_uint16 newOuterVlanId;
 

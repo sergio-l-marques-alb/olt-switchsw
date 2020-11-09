@@ -1718,6 +1718,7 @@ L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
   L7_INTF_TYPES_t intf_type;
   L7_RC_t rc, rc_global;
 
+  L7_uint16 vlanId = 0;/* FIXME TC16SXG */
 
   /* Validate arguments */
   if (intf == L7_NULLPTR)
@@ -1769,7 +1770,7 @@ L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
     rc = nimGetIntIfNumFromUSP(&intf->value.usp, &intIfNum);
     if (rc == L7_SUCCESS)
     {
-      rc = ptin_intf_intIfNum2port(intIfNum, &ptin_port);
+      rc = ptin_intf_intIfNum2port(intIfNum, vlanId, &ptin_port); /* FIXME TC16SXG */
     }
     PT_LOG_TRACE(LOG_CTX_INTF, "input usp {%u,%u,%d} => intIfNum %u, ptin_port %u (rc=%d)",
                  intf->value.usp.unit, intf->value.usp.slot, intf->value.usp.port,
@@ -1778,7 +1779,7 @@ L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
 
   case PTIN_INTF_FORMAT_INTIFNUM:
     intIfNum = intf->value.intIfNum;
-    rc = ptin_intf_intIfNum2port(intIfNum, &ptin_port);
+    rc = ptin_intf_intIfNum2port(intIfNum, vlanId, &ptin_port);/* FIXME TC16SXG */
     PT_LOG_TRACE(LOG_CTX_INTF, "input intIfNum %u => ptin_port %u (rc=%d)",
                  intIfNum, ptin_port, rc);
     break;
@@ -2454,7 +2455,7 @@ L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, /*L7_uint16 vlan_gem,*/
+L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem,
                                 L7_uint32 *ptin_port)
 {
 #ifdef TC16SXG_ASPEN_N_1
@@ -2732,6 +2733,7 @@ L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_intf)
   L7_uint32       ptin_port;
   L7_RC_t         rc;
   L7_INTF_TYPES_t intfType;
+  L7_uint16       vlanId = 0;/* FIXME TC16SXG */
 
   if(nimGetIntfType(intIfNum, &intfType) != L7_SUCCESS)
   {
@@ -2764,7 +2766,7 @@ L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_intf)
   else
   {
     /* Get ptin_port*/
-    if ((rc=ptin_intf_intIfNum2port(intIfNum, &ptin_port))!=L7_SUCCESS)
+    if ((rc=ptin_intf_intIfNum2port(intIfNum, vlanId, &ptin_port))!=L7_SUCCESS)/* FIXME TC16SXG */
       return rc;
 
     /* Validate ptin_port */
@@ -4151,6 +4153,7 @@ L7_RC_t ptin_intf_LagStatus_get(ptin_LACPLagStatus_t *lagStatus)
   L7_uint64 members_pbmp;
   L7_uint32 members_list[PTIN_SYSTEM_N_PORTS]; /* Internal interface numbers of portChannel members */
   L7_uint   i, nElems;
+  L7_uint16 vlanId = 0; /* FIXME TC16SXG */
 
   /* Validate arguments */
   if (lagStatus == L7_NULLPTR)
@@ -4227,7 +4230,7 @@ L7_RC_t ptin_intf_LagStatus_get(ptin_LACPLagStatus_t *lagStatus)
     {
       /* Validate interface number */
       if ((members_list[i] == 0)
-          || (ptin_intf_intIfNum2port(members_list[i], &value))
+          || (ptin_intf_intIfNum2port(members_list[i], vlanId, &value)) /* FIXME TC16SXG */
           || (value <  PTIN_SYSTEM_N_PONS)
           || (value >= ptin_sys_number_of_ports))
       {
@@ -6847,6 +6850,7 @@ L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
   L7_uint32 ptin_port;
   ptin_hwproc_t hw_proc;
   L7_RC_t   rc = L7_SUCCESS;
+  L7_uint16 vlanId = 0; /* FIXME TC16SXG */
 
   /* Validate interface */
   if (intIfNum == 0 || intIfNum > L7_ALL_INTERFACES)
@@ -6856,7 +6860,7 @@ L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
   }
 
   /* Get ptin_port format */
-  if (ptin_intf_intIfNum2port(intIfNum, &ptin_port) != L7_SUCCESS || ptin_port >= ptin_sys_number_of_ports)
+  if (ptin_intf_intIfNum2port(intIfNum, vlanId, &ptin_port) != L7_SUCCESS || ptin_port >= ptin_sys_number_of_ports) /* FIXME TC16SXG */
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u -> no ptin_port correspondence", intIfNum);
     return L7_FAILURE;

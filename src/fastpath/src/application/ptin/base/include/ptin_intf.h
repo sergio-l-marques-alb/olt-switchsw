@@ -343,7 +343,7 @@ extern L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, /*L7_uint16 vlan_gem,*/
+extern L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem,
                                        L7_uint32 *ptin_port);
 
 /**

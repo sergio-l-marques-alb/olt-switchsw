@@ -1215,7 +1215,7 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
  * 
  * @return L7_RC_t 
  */
-static L7_RC_t ptin_qos_port_bitmap_get(L7_uint32 *ptin_port, L7_uint8 number_of_ports, L7_uint64 *ptin_port_bmp)
+static L7_RC_t ptin_qos_port_bitmap_get(L7_uint32 *ptin_port, L7_uint8 number_of_ports, L7_uint64 *ptin_port_bmp, L7_uint16 vlanId) /* FIXME TC16SXG */
 {
   L7_int    i, j;
   L7_uint32 intIfNum, port;
@@ -1263,7 +1263,7 @@ static L7_RC_t ptin_qos_port_bitmap_get(L7_uint32 *ptin_port, L7_uint8 number_of
       /* Run all members, and add them to the bitmap list */
       for (j = 0; j < number_of_lag_members; j++)
       {
-        if (ptin_intf_intIfNum2port(lag_members_list[j], &port) == L7_SUCCESS)
+        if (ptin_intf_intIfNum2port(lag_members_list[j], vlanId, &port) == L7_SUCCESS) /* FIXME TC16SXG */
         {
           pbmp |= 1ULL << port; 
         }
@@ -1398,7 +1398,7 @@ L7_RC_t ptin_qos_vlan_add(ptin_qos_vlan_t *qos)
   }
 
   /* Get bitmap of ports */
-  if (ptin_qos_port_bitmap_get(qos->ptin_port, qos->number_of_ports, &ptin_port_bmp) != L7_SUCCESS)
+  if (ptin_qos_port_bitmap_get(qos->ptin_port, qos->number_of_ports, &ptin_port_bmp, qos->int_vlan) != L7_SUCCESS) /* FIXME TC16SXG */
   {
     PT_LOG_WARN(LOG_CTX_API, "Error getting bitmap of ports");
     return L7_FAILURE;

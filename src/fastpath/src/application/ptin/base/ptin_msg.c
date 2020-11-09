@@ -16419,9 +16419,10 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
   L7_INTF_MASK_t        srcIntfMask;
   L7_MIRROR_DIRECTION_t type = L7_MIRROR_UNCONFIGURED;
   L7_RC_t               rc = L7_SUCCESS, rc_global = L7_SUCCESS;
-
   L7_uint8              n;
   const L7_uchar8       *dir[]={"None", "In & Out", "In", "Out"};
+
+  L7_uint16             vlanId = 0;/* FIXME TC16SXG */
 
   msg_port_mirror_t *msg = (msg_port_mirror_t *) inbuffer->info;
 
@@ -16573,8 +16574,8 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         if (msg->src_intf[n].intf.intf_type == 1)
         {
-          ptin_intf_intIfNum2port(srcIntfNum, &ptin_port_aux); 
-
+          ptin_intf_intIfNum2port(srcIntfNum, vlanId, &ptin_port_aux); /* FIXME TC16SXG */
+                                                                        
           PT_LOG_TRACE(LOG_CTX_MSG, "Adding intfNum Src %d", ptin_port_aux);
         }
 
@@ -16591,7 +16592,7 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
           if(msg->dst_intf.intf_id == 0)
           {         
             usmDbSwPortMonitorDestPortGet(unit, sessionNum, &auxIntfNum);
-            ptin_intf_intIfNum2port(auxIntfNum, &ptin_port_dst); 
+            ptin_intf_intIfNum2port(auxIntfNum, vlanId, &ptin_port_dst); 
           }
 
           PT_LOG_TRACE(LOG_CTX_MSG, "Dst intfNum %d", msg->dst_intf.intf_id);
@@ -16641,13 +16642,13 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
       usmDbConvertMaskToList(&srcIntfMask, listSrcPorts, &numPorts);
 
       /* Convert to ptin format*/
-      ptin_intf_intIfNum2port(listSrcPorts[0],&ptinSrc_aux); 
+      ptin_intf_intIfNum2port(listSrcPorts[0], vlanId, &ptinSrc_aux); 
 
       /* Get the Dst port(s) of the Monitor session*/
       usmDbSwPortMonitorDestPortGet(unit, sessionNum, &listDstPorts[0]);
 
       /* Convert to ptin format*/
-      ptin_intf_intIfNum2port(listDstPorts[0],&ptinDst_aux);
+      ptin_intf_intIfNum2port(listDstPorts[0], vlanId, &ptinDst_aux);
 
       // Remove egress translations
       xlate_outer_vlan_replicate_Dstport(mode, ptinSrc_aux, ptinDst_aux);

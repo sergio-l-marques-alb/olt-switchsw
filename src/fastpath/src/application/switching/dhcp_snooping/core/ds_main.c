@@ -1543,7 +1543,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   if (ptin_debug_dhcp_snooping)
     PT_LOG_TRACE(LOG_CTX_DHCP, "Packet frameLen = %d, initial UDP length = %d ", frameLen, osapiNtohs(udp_header->length) );
 
-  rc = ptin_intf_intIfNum2port(intIfNum, &ptin_port);
+  rc = ptin_intf_intIfNum2port(intIfNum, vlanId, &ptin_port); /* FIXME TC16SXG vlanId has the same meaning vlan_gem? as in 4.X*/
   if (rc != L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)

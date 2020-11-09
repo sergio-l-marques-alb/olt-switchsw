@@ -633,7 +633,7 @@ static L7_RC_t ptin_packet_frame_flood(L7_uint32 intIfNum, L7_ushort16 vlanId, L
     PT_LOG_TRACE(LOG_CTX_PACKET, "intIfNum=%u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
 
   /* Validate source port */
-  if (ptin_intf_intIfNum2port(intIfNum, &src_port) != L7_SUCCESS)
+  if (ptin_intf_intIfNum2port(intIfNum, vlanId, &src_port) != L7_SUCCESS)
   {
     if (ptin_packet_debug_enable)
       PT_LOG_ERR(LOG_CTX_PACKET, "Can't convert intIfNum=%u to ptin_port format", intIfNum);
@@ -653,7 +653,7 @@ static L7_RC_t ptin_packet_frame_flood(L7_uint32 intIfNum, L7_ushort16 vlanId, L
         }
 
       #if (PTIN_BOARD_IS_GPON)
-        if (ptin_intf_intIfNum2port(i, &dst_port) != L7_SUCCESS)
+        if (ptin_intf_intIfNum2port(i, vlanId, &dst_port) != L7_SUCCESS)
         {
           continue;
         }

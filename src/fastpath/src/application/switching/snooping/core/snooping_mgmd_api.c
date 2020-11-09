@@ -320,6 +320,7 @@ unsigned int snooping_port_resources_available(unsigned int serviceId, unsigned 
   L7_uint32      channelBandwidth;
   L7_uint32      ptin_port;
   L7_RC_t        rc;
+  L7_uint16      int_ovlan;
 
   PT_LOG_TRACE(LOG_CTX_IGMP, "Context [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
  
@@ -335,7 +336,14 @@ unsigned int snooping_port_resources_available(unsigned int serviceId, unsigned 
     return L7_TRUE;
   }
 
-  if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, &ptin_port))
+  //Get outter internal vlan
+  if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &int_ovlan))
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get mcastRootVlan from serviceId");
+    return FAILURE;
+  }
+
+  if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, int_ovlan, &ptin_port))/* FIXME TC16SXG  This internal vlan is what we are looking for??*/
   {
     PT_LOG_ERR(LOG_CTX_IGMP, "Invalid Port Id [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
     return L7_FALSE;
@@ -380,6 +388,7 @@ unsigned int snooping_port_resources_allocate(unsigned int serviceId, unsigned i
   L7_uint32      channelBandwidth;
   L7_uint32      ptin_port;
   L7_RC_t        rc;
+  L7_uint16      int_ovlan;
     
   PT_LOG_TRACE(LOG_CTX_IGMP, "Context [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x ]", serviceId, portId, groupAddr, sourceAddr);
 
@@ -395,7 +404,14 @@ unsigned int snooping_port_resources_allocate(unsigned int serviceId, unsigned i
     return L7_SUCCESS;
   }
 
-  if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, &ptin_port))
+  //Get outter internal vlan
+  if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &int_ovlan))
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get mcastRootVlan from serviceId");
+    return FAILURE;
+  }
+
+  if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, int_ovlan, &ptin_port))/* FIXME TC16SXG  This internal vlan is what we are looking for??*/
   {
     PT_LOG_ERR(LOG_CTX_IGMP, "Invalid Port Id [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
     return L7_FAILURE;
@@ -439,6 +455,7 @@ unsigned int snooping_port_resources_release(unsigned int serviceId, unsigned in
 {  
   L7_uint32      channelBandwidth;
   L7_uint32      ptin_port;
+  L7_uint16      int_ovlan;
   L7_RC_t        rc;
   
   PT_LOG_TRACE(LOG_CTX_IGMP, "Context [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x ]", serviceId, portId, groupAddr, sourceAddr);
@@ -455,7 +472,14 @@ unsigned int snooping_port_resources_release(unsigned int serviceId, unsigned in
     return L7_SUCCESS;
   }
 
-  if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, &ptin_port))
+  //Get outter internal vlan
+  if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &int_ovlan))
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get mcastRootVlan from serviceId");
+    return FAILURE;
+  }
+
+  if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, int_ovlan, &ptin_port))/* FIXME TC16SXG  This internal vlan is what we are looking for??*/
   {
     PT_LOG_ERR(LOG_CTX_IGMP, "Invalid Port Id [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
     return L7_FAILURE;
@@ -499,6 +523,7 @@ unsigned int snooping_client_resources_available(unsigned int serviceId, unsigne
 { 
   L7_uint32      channelBandwidth; 
   L7_uint32      ptin_port;
+  L7_uint16      int_ovlan;
   L7_RC_t        rc;
 
   PT_LOG_TRACE(LOG_CTX_IGMP, "Context [serviceId:%u portId:%u clientId:%u groupAddr:0x%08x sourceAddr:0x%08x noOfClients:%u]", serviceId, portId, clientId, groupAddr, sourceAddr, noOfClients);
@@ -515,7 +540,14 @@ unsigned int snooping_client_resources_available(unsigned int serviceId, unsigne
     return L7_TRUE;
   }
 
-  if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, &ptin_port))
+  //Get outter internal vlan
+  if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &int_ovlan))
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get mcastRootVlan from serviceId");
+    return FAILURE;
+  }
+
+  if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, int_ovlan, &ptin_port))/* FIXME TC16SXG  This internal vlan is what we are looking for??*/
   {
     PT_LOG_ERR(LOG_CTX_IGMP, "Invalid Port Id [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
     return L7_FALSE;
@@ -593,6 +625,7 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
   L7_uint32      channelBandwidth;
   L7_uint32      ptin_port;
   L7_RC_t        rc;
+  L7_uint16      int_ovlan;
   
   PT_LOG_TRACE(LOG_CTX_IGMP, "Context [serviceId:%u portId:%u clientId:%u groupAddr:0x%08x sourceAddr:0x%08x noOfClients:%u]", serviceId, portId, clientId, groupAddr, sourceAddr, noOfClients);
 
@@ -608,7 +641,14 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
     return L7_SUCCESS;
   }
 
-  if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, &ptin_port))
+  //Get outter internal vlan
+  if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &int_ovlan))
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get mcastRootVlan from serviceId");
+    return FAILURE;
+  }
+
+  if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, int_ovlan, &ptin_port))/* FIXME TC16SXG  This internal vlan is what we are looking for??*/
   {
     PT_LOG_ERR(LOG_CTX_IGMP, "Invalid Port Id [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
     return L7_FAILURE;
@@ -686,6 +726,7 @@ unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned 
   L7_uint32      channelBandwidth;
   L7_uint32      ptin_port;
   L7_RC_t        rc;
+  L7_uint16      int_ovlan;
   
   PT_LOG_TRACE(LOG_CTX_IGMP, "Context [serviceId:%u portId:%u clientId:%u groupAddr:0x%08x sourceAddr:0x%08x noOfClients:%u]", serviceId, portId, clientId, groupAddr, sourceAddr, noOfClients);
 
@@ -701,7 +742,14 @@ unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned 
     return L7_SUCCESS;
   }
 
-  if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, &ptin_port))
+  //Get outter internal vlan
+  if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &int_ovlan))
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get mcastRootVlan from serviceId");
+    return FAILURE;
+  }
+
+  if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, int_ovlan, &ptin_port))/* FIXME TC16SXG  This internal vlan is what we are looking for??*/
   {
     PT_LOG_ERR(LOG_CTX_IGMP, "Invalid Port Id [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
     return L7_FAILURE;
@@ -1057,7 +1105,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
       L7_uint32 ptin_port;
 
       /* Convert to ptin_port format */
-      if (ptin_intf_intIfNum2port(portId, &ptin_port) != L7_SUCCESS || ptin_port >= PTIN_SYSTEM_N_INTERF)
+      if (ptin_intf_intIfNum2port(portId, int_ovlan, &ptin_port) != L7_SUCCESS || ptin_port >= PTIN_SYSTEM_N_INTERF)/* FIXME TC16SXG  This internal vlan is what we are looking for??*/
       {
         PT_LOG_ERR(LOG_CTX_IGMP,"Cannot convert intIfNum %u to ptin_port format", portId);
         return L7_FAILURE;

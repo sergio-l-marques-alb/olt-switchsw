@@ -531,10 +531,11 @@ L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 intIfNum, L7_int block_state)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_prot_select_intf(L7_uint32 protIdx, PROT_PortType_t portType)
+L7_RC_t ptin_prot_select_intf(L7_uint32 protIdx, PROT_PortType_t portType/*, L7_uint16 vlanId*/) /* FIXME TC16SXG */
 {
   L7_BOOL block_intfW, block_intfP;
   L7_uint32 portW, portP;
+  L7_uint16 vlanId = 0;/* FIXME TC16SXG */
 
   /* Validate arguments */
   if (protIdx >= MAX_UPLINK_PROT)
@@ -550,8 +551,8 @@ L7_RC_t ptin_prot_select_intf(L7_uint32 protIdx, PROT_PortType_t portType)
   }
 
   /* Get ptin_port format */
-  if (ptin_intf_intIfNum2port(uplinkprot[protIdx].protParams.intIfNumW, &portW) != L7_SUCCESS ||
-      ptin_intf_intIfNum2port(uplinkprot[protIdx].protParams.intIfNumP, &portP) != L7_SUCCESS)
+  if (ptin_intf_intIfNum2port(uplinkprot[protIdx].protParams.intIfNumW, vlanId, &portW) != L7_SUCCESS || /* FIXME TC16SXG */
+      ptin_intf_intIfNum2port(uplinkprot[protIdx].protParams.intIfNumP, vlanId, &portP) != L7_SUCCESS)/* FIXME TC16SXG */
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Error converting intIfNum to ptin_port format");
     return L7_FAILURE;

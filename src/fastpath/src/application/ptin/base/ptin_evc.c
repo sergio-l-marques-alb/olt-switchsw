@@ -879,6 +879,7 @@ L7_BOOL ptin_evc_is_intf_in_use_on_evc(L7_uint32 evc_ext_id, L7_uint intfNum)
 {  
   L7_int evc_id;
   L7_uint32 ptin_port;
+  L7_uint16 vlanId =0; /* FIXME TC16SXG Function NOT USED!!!!*/
 
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
     return L7_FALSE;
@@ -893,7 +894,7 @@ L7_BOOL ptin_evc_is_intf_in_use_on_evc(L7_uint32 evc_ext_id, L7_uint intfNum)
   }
 
   /* Validate interface */
-  if (ptin_intf_intIfNum2port(intfNum,&ptin_port)!=L7_SUCCESS)
+  if (ptin_intf_intIfNum2port(intfNum, vlanId, &ptin_port)!=L7_SUCCESS)/* FIXME TC16SXG Function NOT USED!!!!*/
   {
     PT_LOG_ERR(LOG_CTX_EVC, "intfNum:%u is invalid", intfNum);
     return L7_FALSE;
@@ -918,6 +919,7 @@ L7_BOOL ptin_evc_is_intf_leaf(L7_uint32 evc_ext_id, L7_uint intfNum)
   L7_int evc_id;
   L7_uint32 ptin_port;
   L7_RC_t   rc;
+  L7_uint16 vlanId = 0; /* FIXME TC16SXG */
 
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
     return L7_FALSE;
@@ -941,7 +943,7 @@ L7_BOOL ptin_evc_is_intf_leaf(L7_uint32 evc_ext_id, L7_uint intfNum)
   }
 
   /* Validate interface */
-  if (ptin_intf_intIfNum2port(intfNum,&ptin_port)!=L7_SUCCESS)
+  if (ptin_intf_intIfNum2port(intfNum, vlanId, &ptin_port)!=L7_SUCCESS) /* FIXME TC16SXG */
   {
     PT_LOG_ERR(LOG_CTX_EVC, "intfNum:%u is invalid", intfNum);
     return L7_FALSE;
@@ -972,6 +974,7 @@ L7_RC_t ptin_evc_port_type_get(L7_uint32 evc_ext_id, L7_uint intfNum, L7_uint8 *
 {  
   L7_int evc_id;
   L7_uint32 ptin_port;
+  L7_uint16 vlanId = 0; /* FIXME TC16SXG */
 
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS || intfNum == 0 || intfNum>PTIN_SYSTEM_N_INTERF)
   {
@@ -986,7 +989,7 @@ L7_RC_t ptin_evc_port_type_get(L7_uint32 evc_ext_id, L7_uint intfNum, L7_uint8 *
   }
 
   /* Validate interface */
-  if (ptin_intf_intIfNum2port(intfNum,&ptin_port)!=L7_SUCCESS)
+  if (ptin_intf_intIfNum2port(intfNum, vlanId, &ptin_port)!=L7_SUCCESS)/* FIXME TC16SXG */
   {
     PT_LOG_ERR(LOG_CTX_EVC, "Failed to obtain ptin_port from intfNum:%u", intfNum);
     return L7_FAILURE;
@@ -1039,7 +1042,7 @@ L7_BOOL ptin_evc_internal_vlan_port_type_get(L7_uint32 internalVlan, L7_uint32 i
   }
 
   /* Validate interface */
-  if (ptin_intf_intIfNum2port(intfNum,&ptin_port)!=L7_SUCCESS)
+  if (ptin_intf_intIfNum2port(intfNum, internalVlan, &ptin_port)!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_EVC, "Failed to obtain ptin_port from intfNum:%u", intfNum);
     return L7_FAILURE;
@@ -1780,7 +1783,7 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint3
   }
 
   /* Extract and validate intIfNum */
-  if (ptin_intf_intIfNum2port(intIfNum,&ptin_port)!=L7_SUCCESS)
+  if (ptin_intf_intIfNum2port(intIfNum, innerVlan, &ptin_port)!=L7_SUCCESS) /* FIXME TC16SXG */
   {
     PT_LOG_ERR(LOG_CTX_EVC,"Invalid intIfNum (%u)",intIfNum);
     return L7_FAILURE;
@@ -2632,7 +2635,7 @@ L7_RC_t ptin_evc_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
   }
 
   /* Convert intIfNum to ptin_port format */
-  if ( ptin_intf_intIfNum2port(intIfNum, &ptin_port) != L7_SUCCESS)
+  if ( ptin_intf_intIfNum2port(intIfNum, intVlan, &ptin_port) != L7_SUCCESS)/* FIXME TC16SXG */
   {
     PT_LOG_ERR(LOG_CTX_EVC,"Not valid intIfNum %u",intIfNum);
     return L7_FAILURE;
@@ -2836,7 +2839,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     {
       if (dot3adAggGet(evcConf->intf[i].intf.value.intIfNum, &intIfNum) == L7_SUCCESS)
       {
-        ptin_intf_intIfNum2port(intIfNum, &ptin_port);
+        ptin_intf_intIfNum2port(intIfNum, evcConf->internal_vlan, &ptin_port); /* FIXME TC16SXG */
         PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u: port# %u belongs to LAG# %u", evc_ext_id,
                    evcConf->intf[i].intf.value.ptin_port, ptin_port - PTIN_SYSTEM_N_PORTS);
         return L7_FAILURE;
@@ -6615,7 +6618,7 @@ L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint cl
   if ( intIfNum !=0 && intIfNum != L7_ALL_INTERFACES )
   {
     /* Convert intIfNum to ptin_port format */
-    if ( ptin_intf_intIfNum2port(intIfNum, &ptin_port) != L7_SUCCESS)
+    if ( ptin_intf_intIfNum2port(intIfNum, intVlan, &ptin_port) != L7_SUCCESS)
     {
       if (ptin_packet_debug_enable)
         PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: intIfNum %u is invalid", evc_id, intIfNum);
@@ -9060,7 +9063,8 @@ static L7_RC_t ptin_evc_extEvcInfo_get(L7_uint32 evc_ext_id, ptinExtEvcIdInfoDat
 L7_RC_t ptin_evc_l3_intf_get(L7_uint32 evc_ext_id, L7_uint32 intfNum, L7_int *l3_intf_id)
 {
   L7_uint32   evc_id = (L7_uint32) -1;
-   L7_uint32  ptin_port = (L7_uint32) -1;
+  L7_uint32  ptin_port = (L7_uint32) -1;
+  L7_uint16 vlanId = 0;/* FIXME TC16SXG */
 
   /* Validate arguments */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS || intfNum == 0 || intfNum >= PTIN_SYSTEM_N_INTERF || l3_intf_id == L7_NULLPTR)
@@ -9086,7 +9090,7 @@ L7_RC_t ptin_evc_l3_intf_get(L7_uint32 evc_ext_id, L7_uint32 intfNum, L7_int *l3
     return L7_FAILURE;
   }
 
-  if (ptin_intf_intIfNum2port(intfNum, &ptin_port) != L7_SUCCESS || ptin_port >= PTIN_SYSTEM_N_INTERF)
+  if (ptin_intf_intIfNum2port(intfNum, vlanId, &ptin_port) != L7_SUCCESS || ptin_port >= PTIN_SYSTEM_N_INTERF)/* FIXME TC16SXG */
   {
     PT_LOG_ERR(LOG_CTX_EVC, "Failed to Obtain ptin_port:%u from  intfNum:%u", ptin_port, intfNum);
     return L7_FAILURE;
@@ -11004,7 +11008,7 @@ L7_RC_t ptin_evc_igmp_stats_get_fromIntVlan(L7_uint16 intVlan, L7_uint32 intIfNu
   }
 
   /* Validate interface */
-  if (ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS || ptin_port>=PTIN_SYSTEM_N_INTERF)
+  if (ptin_intf_intIfNum2port(intIfNum, intVlan, &ptin_port)!=L7_SUCCESS || ptin_port>=PTIN_SYSTEM_N_INTERF)
   {
     //PT_LOG_ERR(LOG_CTX_EVC, "intIfNum %u is invalid", intIfNum);
     return L7_FAILURE;

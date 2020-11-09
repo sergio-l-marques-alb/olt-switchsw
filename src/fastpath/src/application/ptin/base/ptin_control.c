@@ -770,6 +770,7 @@ static void monitor_alarms(void)
       L7_uint32 lag_port;
       ptin_intf_t ptin_intf_lag;
       L7_BOOL   isMember, isActiveMember;
+      L7_uint16 vlanId=0;/* FIXME TC16SXG */
 
       // Determine if is an active lag member
       if (interface_is_valid &&
@@ -798,7 +799,7 @@ static void monitor_alarms(void)
       // Check if there is a change in the active member state
       if (lagActiveMembers[port] != isActiveMember)
       {
-        if (ptin_intf_intIfNum2port(lag_intIfNum, &lag_port) == L7_SUCCESS &&
+        if (ptin_intf_intIfNum2port(lag_intIfNum, vlanId, &lag_port) == L7_SUCCESS &&   /* FIXME TC16SXG */
             !ptin_alarms_is_suppressed(lag_port))
         {
           if (send_trap_intf_alarm(PTIN_EVC_INTF_PHYSICAL, port,

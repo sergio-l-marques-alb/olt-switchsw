@@ -1933,12 +1933,12 @@ L7_RC_t daiFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerV
 #if (PTIN_BOARD_IS_GPON)
 
            /* Validate source port */
-           if (ptin_intf_intIfNum2port(intIfNum, &src_port) != L7_SUCCESS)
+           if (ptin_intf_intIfNum2port(intIfNum, vlanId, &src_port) != L7_SUCCESS) /* FIXME TC16SXG vlanId has the same meaning vlan_gem? as in 4.X*/
            {
              return L7_FAILURE;
            }
 
-           if (ptin_intf_intIfNum2port(i, &dst_port) != L7_SUCCESS)
+           if (ptin_intf_intIfNum2port(i, vlanId, &dst_port) != L7_SUCCESS)/* FIXME TC16SXG vlanId has the same meaning vlan_gem? as in 4.X*/
            {
              continue;
            }
