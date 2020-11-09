@@ -844,7 +844,7 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
   L7_uint32  port_id;
   L7_uint8   group_ngpon2_id;
 
-  rc = ptin_intf_intIfNum2port(intIfNum, ext_ovid, &port_id);
+  rc = ptin_intf_intIfNum2port(intIfNum, ext_ovid, &port_id);/* FIXME TC16SXG */
   if ( rc == L7_FAILURE )
   {
     PT_LOG_ERR(LOG_CTX_API, "Error converting intfNum to ptin_port. intfNum = %u", intIfNum);
