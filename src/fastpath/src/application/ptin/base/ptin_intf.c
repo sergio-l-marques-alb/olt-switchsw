@@ -2462,7 +2462,7 @@ L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem,
     if (intIfNum_is_pon(intIfNum)) {
         L7_uint32 _ptin_port;
 
-        _ptin_port=tc16sxg_pon_intIfNum2port(intIfNum, -1);
+        _ptin_port=tc16sxg_pon_intIfNum2port(intIfNum, vlan_gem);
         if (_ptin_port>=PTIN_SYSTEM_N_INTERF) {
             PT_LOG_ERR(LOG_CTX_INTF,
                        "intIfNum %u is PON but tc16sxg_pon_intIfNum2port()=%u",
