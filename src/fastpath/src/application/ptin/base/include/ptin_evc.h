@@ -474,12 +474,12 @@ extern L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L
 
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 /**
- * Get the outer+inner external vlan for a specific evc_id+Vport 
- * (only applicable to QUATTRO services). 
+ * Get the outer+inner external vlan for a specific 
+ * evc_id+l2intf (only applicable to QUATTRO services). 
  * 
  * @param evc_ext_id      : EVC extended index 
  * @param evc_int_id      : EVC internal index  
- * @param vport_id        : Vport_id 
+ * @param l2intf_id       : l2intf_id 
  * @param port            : Physical port for transmission (out)
  * @param extOVlan        : External outer-vlan 
  * @param extIVlan        : External inner-vlan (01 means that there 
@@ -487,7 +487,7 @@ extern L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_extVlans_get_fromVPort(L7_uint32 evc_ext_id, L7_uint32 evc_int_id, L7_uint32 vport_id,
+extern L7_RC_t ptin_evc_extVlans_get_from_l2intf(L7_uint32 evc_ext_id, L7_uint32 evc_int_id, L7_uint32 l2intf_id,
                                                L7_uint32 *port, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
 #endif
 
@@ -743,11 +743,11 @@ extern L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 i
 
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 /**
- * Get the outer+inner external vlan for a specific oVLAN+Vport 
+ * Get the outer+inner external vlan for a specific oVLAN+l2intf 
  * (only applicable to QUATTRO services). 
  *  
  * @param intOVlan   : Internal outer-vlan 
- * @param vport_id   : Vport id 
+ * @param l2intf_id  : l2intf id 
  * @param intIfNum   : Physical port for transmission (out) 
  * @param extOVlan   : External outer-vlan 
  * @param extIVlan   : External inner-vlan (01 means that there 
@@ -755,7 +755,7 @@ extern L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 i
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_extVlans_get_fromIntVlanVPort(L7_uint16 intOVlan, L7_uint32 vport_id,
+extern L7_RC_t ptin_evc_extVlans_get_from_IntVlan_l2intf(L7_uint16 intOVlan, L7_uint32 l2intf_id,
                                                       L7_uint32 *intIfNum, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
 #endif
 
@@ -847,7 +847,7 @@ typedef struct
 } intf_vp_entry_policer_t;
 
 typedef struct {
-    unsigned long   vport_id;
+    unsigned long   l2intf_id;
     ptin_intf_t     pon;
     unsigned short  gem_id;
     unsigned int    onu;
@@ -866,12 +866,12 @@ extern void dump_intf_vp_DB(void);
 /**
  * Set bandwidth policer for one virtual port
  * 
- * @param vport_id
+ * @param l2intf_id
  * @param meter 
  * 
  * @return int : 0>Success, -1>Failed
  */
-extern L7_RC_t ptin_evc_vp_policer(L7_uint32 vport_id, ptin_bw_meter_t *meter);
+extern L7_RC_t ptin_evc_vp_policer(L7_uint32 l2intf_id, ptin_bw_meter_t *meter);
 
 
 /**
@@ -1082,12 +1082,12 @@ extern L7_RC_t ptin_evc_p2p_bridge_replicate(L7_uint32 evc_ext_id, L7_uint32 pti
 extern L7_RC_t ptin_evc_flow_remove_port(L7_uint32 ptin_port, L7_uint32 evc_ext_id);
 extern L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *profile);
 /**
- * Determine vport from pon port and gem id
+ * Determine l2intf_id from pon port and gem id
  * 
  * @param pon_port
  * @param gem_id 
  * 
- * @return vport_id (output) 
+ * @return l2intf_id (output) 
  */
 extern L7_uint32 intf_vp_calc(L7_uint16 pon_port, L7_uint16 gem_id);
 #endif /* _PTIN_EVC_H */

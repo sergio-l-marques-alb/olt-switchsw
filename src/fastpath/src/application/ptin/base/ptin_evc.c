@@ -84,7 +84,7 @@ struct ptin_evc_client_s {
   /* GEM ids which will be flooded the ARP packets */
   L7_uint16  flood_vlan[PTIN_FLOOD_VLANS_MAX];
   L7_int     virtual_gport;
-  L7_uint32  vport_id;
+  L7_uint32  l2intf_id;
   L7_uint32  flags;         /* Client/flow flags */
 
   L7_uint8    macLearnMax;  // Maximum number of Learned MAC addresses                           
@@ -423,7 +423,7 @@ static void    ptin_evc_intf_list_get(L7_uint evc_id, L7_uint8 mef_type, L7_uint
 static void    ptin_evc_find_client(L7_uint16 inn_vlan, dl_queue_t *queue, dl_queue_elem_t **pelem);
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 static void ptin_evc_find_flow(L7_uint16 uni_ovid, dl_queue_t *queue, dl_queue_elem_t **pelem);
-static void ptin_evc_find_flow_fromVPort(L7_uint32 vport_id, dl_queue_t *queue, dl_queue_elem_t **pelem);
+static void ptin_evc_find_flow_from_l2intf(L7_uint32 l2intf_id, dl_queue_t *queue, dl_queue_elem_t **pelem);
 #endif
 
 static L7_RC_t switching_root_add(ptin_HwEthMef10Intf_t *intf_cfg, L7_uint16 int_vlan, L7_uint16 new_innerVlan,
@@ -671,7 +671,7 @@ L7_RC_t ptin_evc_init(void)
  */
 L7_RC_t ptin_evc_startup(void)
 {
-  L7_uint32 intIfNum_vport;
+  L7_uint32 intIfNum_l2intf;
 
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
   L7_RC_t rc;
@@ -807,12 +807,12 @@ L7_RC_t ptin_evc_startup(void)
   PT_LOG_INFO(LOG_CTX_API, "Standard EVCs configured for OLT1T0 equipment");
 
   /* Create intIfNum for Virtual ports */
-  if (L7_SUCCESS != vlan_port_intIfNum_create(1, &intIfNum_vport))
+  if (L7_SUCCESS != vlan_port_intIfNum_create(1, &intIfNum_l2intf))
   {
     PT_LOG_ERR(LOG_CTX_EVC, "Error creating intIfNum for virtual ports");
     return L7_FAILURE;
   }
-  PT_LOG_NOTICE(LOG_CTX_EVC, "Success creating intIfNum for virtual ports: %u", intIfNum_vport);
+  PT_LOG_NOTICE(LOG_CTX_EVC, "Success creating intIfNum for virtual ports: %u", intIfNum_l2intf);
 
   return L7_SUCCESS;
 }
@@ -1847,12 +1847,12 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint3
 
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 /**
- * Get the outer+inner external vlan for a specific evc_id+Vport 
- * (only applicable to QUATTRO services). 
+ * Get the outer+inner external vlan for a specific 
+ * evc_id+l2intf (only applicable to QUATTRO services). 
  *  
  * @param evc_ext_id      : EVC extended index 
  * @param evc_int_id      : EVC internal index  
- * @param vport_id        : Vport_id 
+ * @param l2intf_id       : l2intf_id 
  * @param port            : Physical port for transmission (out)
  * @param extOVlan        : External outer-vlan (out)
  * @param extIVlan        : External inner-vlan (01 means that there 
@@ -1860,7 +1860,7 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint3
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_extVlans_get_fromVPort(L7_uint32 evc_ext_id, L7_uint32 evc_int_id, L7_uint32 vport_id,
+L7_RC_t ptin_evc_extVlans_get_from_l2intf(L7_uint32 evc_ext_id, L7_uint32 evc_int_id, L7_uint32 l2intf_id,
                                         L7_uint32 *port, L7_uint16 *extOVlan, L7_uint16 *extIVlan)
 {
   L7_uint32 ptin_port;
@@ -1909,7 +1909,7 @@ L7_RC_t ptin_evc_extVlans_get_fromVPort(L7_uint32 evc_ext_id, L7_uint32 evc_int_
 
   /* Search for this virtual port */
   memset(&intf_vp_entry, 0x00, sizeof(intf_vp_entry));
-  intf_vp_entry.vport_id = vport_id;
+  intf_vp_entry.l2intf_id = l2intf_id;
 
   if (intf_vp_DB(3, &intf_vp_entry) == 0)
   {
@@ -1929,7 +1929,7 @@ L7_RC_t ptin_evc_extVlans_get_fromVPort(L7_uint32 evc_ext_id, L7_uint32 evc_int_
   }
   else
   {
-    PT_LOG_ERR(LOG_CTX_DAI, "Vport %u not found", vport_id);
+    PT_LOG_ERR(LOG_CTX_DAI, "l2intf_id %u not found", l2intf_id);
     return L7_FAILURE;
   }
 
@@ -1955,10 +1955,10 @@ L7_RC_t ptin_evc_extVlans_get_fromVPort(L7_uint32 evc_ext_id, L7_uint32 evc_int_
   if (evcs[evc_int_id].intf[ptin_port].type == PTIN_EVC_INTF_LEAF)
   {
     /* Find this client vlan in EVC */
-    ptin_evc_find_flow_fromVPort(vport_id, &(evcs[evc_int_id].intf[ptin_port].clients), (dl_queue_elem_t **) &pclientFlow);
+    ptin_evc_find_flow_from_l2intf(l2intf_id, &(evcs[evc_int_id].intf[ptin_port].clients), (dl_queue_elem_t **) &pclientFlow);
     if (pclientFlow==NULL)
     {
-      PT_LOG_ERR(LOG_CTX_EVC,"There is no flow with vport_id=%u in ptin_port=%u and EVC=%u",vport_id,ptin_port,evc_int_id);
+      PT_LOG_ERR(LOG_CTX_EVC,"There is no flow with l2intf_id=%u in ptin_port=%u and EVC=%u",l2intf_id,ptin_port,evc_int_id);
       return L7_FAILURE;
     }
     ovid = pclientFlow->uni_ovid;
@@ -2397,11 +2397,11 @@ L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan
 
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 /**
- * Get the outer+inner external vlan for a specific oVLAN+Vport 
- * (only applicable to QUATTRO services). 
+ * Get the outer+inner external vlan for a specific 
+ * oVLAN+l2intf_id (only applicable to QUATTRO services). 
  * 
  * @param intOVlan   : Internal outer-vlan 
- * @param vport_id   : Vport id 
+ * @param l2intf_id  : l2intf_id
  * @param intIfNum   : Physical port for transmission (out)
  * @param extOVlan   : External outer-vlan 
  * @param extIVlan   : External inner-vlan (01 means that there 
@@ -2409,8 +2409,8 @@ L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_extVlans_get_fromIntVlanVPort(L7_uint16 intOVlan, L7_uint32 vport_id,
-                                               L7_uint32 *intIfNum, L7_uint16 *extOVlan, L7_uint16 *extIVlan)
+L7_RC_t ptin_evc_extVlans_get_from_IntVlan_l2intf(L7_uint16 intOVlan, L7_uint32 l2intf_id,
+                                                  L7_uint32 *intIfNum, L7_uint16 *extOVlan, L7_uint16 *extIVlan)
 {
   L7_uint   evc_int_id;
   L7_uint32 evc_ext_id;
@@ -2434,9 +2434,9 @@ L7_RC_t ptin_evc_extVlans_get_fromIntVlanVPort(L7_uint16 intOVlan, L7_uint32 vpo
   evc_ext_id = evcs[evc_int_id].extended_id;
 
   /* Get external vlans */
-  if (ptin_evc_extVlans_get_fromVPort(evc_ext_id, evc_int_id, vport_id, &ptin_port, extOVlan, extIVlan)!=L7_SUCCESS)
+  if (ptin_evc_extVlans_get_from_l2intf(evc_ext_id, evc_int_id, l2intf_id, &ptin_port, extOVlan, extIVlan)!=L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC,"Error getting external vlans for evc_ext_id=0x%x, vport_id=%u",evc_ext_id,vport_id);
+    PT_LOG_ERR(LOG_CTX_EVC,"Error getting external vlans for evc_ext_id=0x%x, l2intf_id=%u",evc_ext_id,l2intf_id);
     return L7_FAILURE;
   }
 
@@ -4753,31 +4753,31 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 
 #define INTF_VP_MAX   PTIN_SYSTEM_N_CLIENTS
 
-#define INVALID_INTF_VP(pentry)     ((pentry)->vport_id == (unsigned long) -1)
+#define INVALID_INTF_VP(pentry)     ((pentry)->l2intf_id == (unsigned long) -1)
 #define EMPTY_INTF_VP               INVALID_INTF_VP
 #define INVALIDATE_INTF_VP(pentry)  \
   { \
     memset((pentry), 0x00, sizeof(intf_vp_entry_t));  \
-    (pentry)->vport_id = (unsigned long) -1;          \
+    (pentry)->l2intf_id = (unsigned long) -1;          \
   }
 
 /* For INTF_VP_MAX == 8192, modu is defined as 8209.
    Because M=(intf_vp_modu%INTF_VP_MAX)=17, result was always between 0 and 16...
    something is not right with these operations... */
-//#define vportId__2__i(vp, M) ( ((vp)^(vp)<<24) % M)
+//#define l2intfId__2__i(vp, M) ( ((vp)^(vp)<<24) % M)
 
 /* Because vp tends to be between 0 and 8191, the following operation gives us fast searching procedures: */
-#define vportId__2__i(vp, M) ((vp)%(INTF_VP_MAX))
+#define l2intfId__2__i(vp, M) ((vp)%(INTF_VP_MAX))
 
 //static unsigned char invnibble[16]={0, 8, 4, 0xc, 2, 0xa, 6, 0xe, 1, 9, 5, 0xd, 3, 0xb, 7, 0xf};
-//#define vportId__2__i(IfN, M) ( ((IfN) ^ invnibble[IfN&0xf]<<28 ^ invnibble[IfN>>4&0xf]<<24 ^ invnibble[IfN>>8&0xf]<<20) % M)
+//#define l2intfId__2__i(IfN, M) ( ((IfN) ^ invnibble[IfN&0xf]<<28 ^ invnibble[IfN>>4&0xf]<<24 ^ invnibble[IfN>>8&0xf]<<20) % M)
 
 static intf_vp_entry_t  intf_vp_table[INTF_VP_MAX];
 static unsigned long    intf_vp_n = 0;
 static unsigned long    intf_vp_modu = INTF_VP_MAX;
 
 static int              intf_vp_policer(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *meter);
-static intf_vp_entry_t *intf_vp_get(L7_uint32 vport_id);
+static intf_vp_entry_t *intf_vp_get(L7_uint32 l2intf_id);
 
 int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry)
 {
@@ -4800,14 +4800,14 @@ int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry)
   case 1:
   case 2:
   case 3:
-     i=vportId__2__i(entry->vport_id, intf_vp_modu%INTF_VP_MAX);
+     i=l2intfId__2__i(entry->l2intf_id, intf_vp_modu%INTF_VP_MAX);
      for (j=0, k=i, _1st_empty=-1;  j<INTF_VP_MAX;  j++) {
-         if (entry->vport_id==intf_vp_table[k].vport_id) {i=k; break;}
+         if (entry->l2intf_id==intf_vp_table[k].l2intf_id) {i=k; break;}
          if (_1st_empty>=INTF_VP_MAX && EMPTY_INTF_VP(&intf_vp_table[k])) _1st_empty=k;
          if (++k>=INTF_VP_MAX) k=0;
      }
      PT_LOG_TRACE(LOG_CTX_EVC, "IfN_vp_DB (_0init_1insert_2remove_3find=%d)\ti=%lu j=%lu k=%lu\t_1st_empty=%lu\tn=%lu", _0init_1insert_2remove_3find, i,j,k, _1st_empty, intf_vp_n);
-     if (j>=INTF_VP_MAX) {//(entry->vport_id!=intf_vp_table[i].vport_id) {//didn't find it
+     if (j>=INTF_VP_MAX) {//(entry->l2intf_id!=intf_vp_table[i].l2intf_id) {//didn't find it
          if (3==_0init_1insert_2remove_3find) return 2;
          if (2==_0init_1insert_2remove_3find) return 0;
 
@@ -4836,7 +4836,7 @@ int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry)
      printf("Dumping configured virtual ports:\n\r");
      for (i=0; i<INTF_VP_MAX; i++) {
          if (EMPTY_INTF_VP(&intf_vp_table[i])) continue;
-         printf(" <%4lu> vport_id=%-4lu pon=%u/%-2u gem_id=%-4u\n\r", i, intf_vp_table[i].vport_id, intf_vp_table[i].pon.intf_type, intf_vp_table[i].pon.intf_id, intf_vp_table[i].gem_id);
+         printf(" <%4lu> l2intf_id=%-4lu pon=%u/%-2u gem_id=%-4u\n\r", i, intf_vp_table[i].l2intf_id, intf_vp_table[i].pon.intf_type, intf_vp_table[i].pon.intf_id, intf_vp_table[i].gem_id);
      }
      printf("Number of virtual ports: %lu\n\r", intf_vp_n);
      break;
@@ -4855,15 +4855,15 @@ int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry)
  * 
  * @return int : 0>Success, -1>Failed
  */
-L7_RC_t ptin_evc_vp_policer(L7_uint32 vport_id, ptin_bw_meter_t *meter)
+L7_RC_t ptin_evc_vp_policer(L7_uint32 l2intf_id, ptin_bw_meter_t *meter)
 {
   intf_vp_entry_t *intf_vp;
 
-  intf_vp = intf_vp_get(vport_id);
+  intf_vp = intf_vp_get(l2intf_id);
 
   if (intf_vp == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_L2, "Error getting pointer tp vp entry (vp 0x%x)", vport_id);
+    PT_LOG_ERR(LOG_CTX_L2, "Error getting pointer tp vp entry (vp 0x%x)", l2intf_id);
     return L7_FAILURE;
   }
 
@@ -4872,12 +4872,12 @@ L7_RC_t ptin_evc_vp_policer(L7_uint32 vport_id, ptin_bw_meter_t *meter)
 }
 
 /**
- * Determine vport from pon port and gem id
+ * Determine l2intf from pon port and gem id
  * 
  * @param pon_port
  * @param gem_id 
  * 
- * @return vport_id (output) 
+ * @return l2intf_id (output) 
  */
 L7_uint32 intf_vp_calc(L7_uint16 pon_port, L7_uint16 gem_id)
 {
@@ -4918,26 +4918,26 @@ L7_uint32 intf_vp_calc(L7_uint16 pon_port, L7_uint16 gem_id)
   }
 
   /* Return result */
-  return intf_vp_table[i].vport_id;
+  return intf_vp_table[i].l2intf_id;
 }
 
 /**
  * Find a particular entry inside virtual port list
  * 
- * @param vport_id 
+ * @param l2intf_id 
  * 
  * @return entry pointer
  */
-static intf_vp_entry_t *intf_vp_get(L7_uint32 vport_id)
+static intf_vp_entry_t *intf_vp_get(L7_uint32 l2intf_id)
 {
   unsigned long i, j, k;
 
   /* Search for this virtual port */
-  i = vportId__2__i(vport_id, intf_vp_modu%INTF_VP_MAX);
+  i = l2intfId__2__i(l2intf_id, intf_vp_modu%INTF_VP_MAX);
 
   for (j=0, k=i;  j<INTF_VP_MAX;  j++)
   {
-      if (vport_id==intf_vp_table[k].vport_id) {i=k; break;}
+      if (l2intf_id==intf_vp_table[k].l2intf_id) {i=k; break;}
       if (++k>=INTF_VP_MAX) k=0;
   }
 
@@ -5015,7 +5015,7 @@ static int intf_vp_policer(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *meter)
     /* Check if policer exists */
     if (!intf_vp->policer.in_use)
     {
-      PT_LOG_WARN(LOG_CTX_L2, "vport 0x%x already does not have policer", intf_vp->vport_id);
+      PT_LOG_WARN(LOG_CTX_L2, "l2intf_id 0x%x already does not have policer", intf_vp->l2intf_id);
       return L7_SUCCESS;
     }
 
@@ -5054,7 +5054,7 @@ static int intf_vp_policer(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *meter)
     }
 
     /* Check for virtual port id */
-    if (intf_vp->vport_id != fdbEntry.dot1dTpFdbVirtualPort)
+    if (intf_vp->l2intf_id != fdbEntry.dot1dTpFdbVirtualPort)
     {
       continue;
     }
@@ -5087,7 +5087,7 @@ static int intf_vp_policer(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *meter)
   /* If success... */
   if (rc == L7_SUCCESS)
   {
-    PT_LOG_TRACE(LOG_CTX_L2, "Success updating policer to virtual port 0x%08x",intf_vp->vport_id);
+    PT_LOG_TRACE(LOG_CTX_L2, "Success updating policer to virtual port 0x%08x",intf_vp->l2intf_id);
 
     /* Remove policer, if it was that intention */
     if (meter == L7_NULLPTR || meter->cir == (L7_uint32)-1)
@@ -5115,7 +5115,7 @@ static int intf_vp_policer(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *meter)
   }
   else
   {
-    PT_LOG_ERR(LOG_CTX_L2, "Error updating policer to virtual port 0x%08x",intf_vp->vport_id);
+    PT_LOG_ERR(LOG_CTX_L2, "Error updating policer to virtual port 0x%08x",intf_vp->l2intf_id);
   }
 
   PT_LOG_TRACE(LOG_CTX_EVC,"Finished");
@@ -5563,7 +5563,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   {
     L7_uint int_ovid;
-    L7_int  vport_id, multicast_group;
+    L7_int  l2intf_id, multicast_group;
     L7_BOOL igmp_enabled, dhcpv4_enabled, dhcpv6_enabled, pppoe_enabled;
     /* Always add client */
     ptin_client_id_t clientId;
@@ -5594,7 +5594,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
                                 evcFlow->uni_ovid, evcFlow->uni_ivid,
                                 int_ovid, evcFlow->int_ivid,
                                 multicast_group,
-                                &vport_id,
+                                &l2intf_id,
                                 evcFlow->macLearnMax) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error creating virtual port", evc_id);
@@ -5602,42 +5602,42 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
       }
       else
       {
-        intf_vp_entry_t e;
+        intf_vp_entry_t entry;
 
-        e.vport_id  = vport_id & 0xffffff;
-        e.pon       = evcFlow->ptin_intf;
-        e.gem_id    = evcFlow->uni_ovid;
+        entry.l2intf_id  = l2intf_id & 0xffffff;
+        entry.pon        = evcFlow->ptin_intf;
+        entry.gem_id     = evcFlow->uni_ovid;
         //e.onu       = evcFlow->onuId;
-        intf_vp_DB(1, &e);
+        intf_vp_DB(1, &entry);
       }
 
       /* Add client to the EVC struct */
       dl_queue_remove_head(&queue_free_clients, (dl_queue_elem_t**) &pflow);    /* get a free client entry */
-      pflow->in_use     = L7_TRUE;                                              /* update it */
-      pflow->int_ovid   = int_ovid;
-      pflow->int_ivid   = evcFlow->int_ivid;
-      pflow->uni_ovid   = evcFlow->uni_ovid;
-      pflow->uni_ivid   = evcFlow->uni_ivid;
+      pflow->in_use            = L7_TRUE;                                              /* update it */
+      pflow->int_ovid          = int_ovid;
+      pflow->int_ivid          = evcFlow->int_ivid;
+      pflow->uni_ovid          = evcFlow->uni_ovid;
+      pflow->uni_ivid          = evcFlow->uni_ivid;
       pflow->action_outer_vlan = PTIN_XLATE_ACTION_REPLACE;
       pflow->action_inner_vlan = PTIN_XLATE_ACTION_NONE;
-      pflow->client_vid = evcFlow->uni_ivid;
-      pflow->flags      = 0; //evcFlow->flags;    /* Initial value: no flags exist */
-      pflow->virtual_gport = vport_id;
-      pflow->vport_id   = vport_id & 0xffffff;
-      pflow->macLearnMax  = evcFlow->macLearnMax;
-      pflow->onuId        = evcFlow->onuId;
-      pflow->mask         = evcFlow->mask;
-      pflow->maxBandwidth = evcFlow->maxBandwidth;
-      pflow->maxChannels  = evcFlow->maxChannels;
+      pflow->client_vid        = evcFlow->uni_ivid;
+      pflow->flags             = 0; //evcFlow->flags;    /* Initial value: no flags exist */
+      pflow->virtual_gport     = l2intf_id;
+      pflow->l2intf_id         = l2intf_id & 0xffffff;
+      pflow->macLearnMax       = evcFlow->macLearnMax;
+      pflow->onuId             = evcFlow->onuId;
+      pflow->mask              = evcFlow->mask;
+      pflow->maxBandwidth      = evcFlow->maxBandwidth;
+      pflow->maxChannels       = evcFlow->maxChannels;
 
       dl_queue_add_tail(&evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t*) pflow); /* add it to the corresponding interface */
       evcs[evc_id].n_clientflows++;
 
-      PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: flow successfully added (vport_id=%lu\tpon=%u/%u(%lu)\tgem_id=%u\tvirtual_gport=0x%8.8lx)",
+      PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: flow successfully added (l2intf_id=%lu\tpon=%u/%u(%lu)\tgem_id=%u\tvirtual_gport=0x%8.8lx)",
                evc_ext_id,
-               vport_id & 0xffffff,
+               l2intf_id & 0xffffff,
                evcFlow->ptin_intf.intf_type,evcFlow->ptin_intf.intf_id, intIfNum,
-               evcFlow->uni_ovid, vport_id);
+               evcFlow->uni_ovid, l2intf_id);
     }
     else
     {
@@ -5909,10 +5909,10 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
 
   /* Remove virtual port */
   {
-    intf_vp_entry_t e;
+    intf_vp_entry_t entry;
 
-    e.vport_id = pflow->vport_id;
-    intf_vp_DB(2, &e);
+    entry.l2intf_id = pflow->l2intf_id;
+    intf_vp_DB(2, &entry);
   }
   if (ptin_virtual_port_remove(intIfNum, pflow->virtual_gport, multicast_group) != L7_SUCCESS)
   {
@@ -7231,21 +7231,21 @@ L7_RC_t ptin_evc_bwProfile_set(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile,
   /* For QUATTRO services, apply special profiles */
   if (0 /*IS_EVC_QUATTRO(evc_id)*/)
   {
-    L7_uint32 vport_id;
+    L7_uint32 l2intf_id;
 
-    /* Calculate vport */
-    vport_id = intf_vp_calc(profile->ptin_port, profile->outer_vlan_lookup);
+    /* Calculate l2intf */
+    l2intf_id = intf_vp_calc(profile->ptin_port, profile->outer_vlan_lookup);
 
-    if (vport_id == 0 || vport_id == (L7_uint32)-1)
+    if (l2intf_id == 0 || l2intf_id == (L7_uint32)-1)
     {
-      PT_LOG_ERR(LOG_CTX_EVC,"Invalid vport_id 0x%x", vport_id);
+      PT_LOG_ERR(LOG_CTX_EVC,"Invalid l2intf_id 0x%x", l2intf_id);
       return L7_FAILURE;
     }
 
     /* Apply policer */
-    if (ptin_evc_vp_policer(vport_id, meter) != L7_SUCCESS)
+    if (ptin_evc_vp_policer(l2intf_id, meter) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_EVC,"Error applying policer to vport_id 0x%x", vport_id);
+      PT_LOG_ERR(LOG_CTX_EVC,"Error applying policer to l2intf_id 0x%x", l2intf_id);
       return L7_FAILURE;
     }
 
@@ -7302,28 +7302,28 @@ L7_RC_t ptin_evc_bwProfile_delete(L7_uint32 evc_ext_id, ptin_bw_profile_t *profi
   /* For QUATTRO services, apply special profiles */
   if (0 /*IS_EVC_QUATTRO(evc_id)*/)
   {
-    L7_uint32 vport_id;
+    L7_uint32 l2intf_id;
 
-    /* Calculate vport */
-    vport_id = intf_vp_calc(profile->ptin_port, profile->outer_vlan_lookup);
+    /* Calculate l2intf_id */
+    l2intf_id = intf_vp_calc(profile->ptin_port, profile->outer_vlan_lookup);
 
-    if (vport_id == 0 || vport_id == (L7_uint32)-1)
+    if (l2intf_id == 0 || l2intf_id == (L7_uint32)-1)
     {
-      PT_LOG_ERR(LOG_CTX_EVC,"Invalid vport_id 0x%x", vport_id);
+      PT_LOG_ERR(LOG_CTX_EVC,"Invalid l2intf_id 0x%x", l2intf_id);
       return L7_FAILURE;
     }
 
-    PT_LOG_TRACE(LOG_CTX_EVC,"pon_port=%u, gem_id=%u: vport_id=0x%x", profile->ptin_port, profile->outer_vlan_lookup, vport_id);
+    PT_LOG_TRACE(LOG_CTX_EVC,"pon_port=%u, gem_id=%u: l2intf_id=0x%x", profile->ptin_port, profile->outer_vlan_lookup, l2intf_id);
 
     /* Apply policer */
-    if (ptin_evc_vp_policer(vport_id, L7_NULLPTR) != L7_SUCCESS)
+    if (ptin_evc_vp_policer(l2intf_id, L7_NULLPTR) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_EVC,"Error removing policer from vport_id 0x%x", vport_id);
+      PT_LOG_ERR(LOG_CTX_EVC,"Error removing policer from l2intf_id 0x%x", l2intf_id);
       return L7_FAILURE;
     }
 
-    PT_LOG_TRACE(LOG_CTX_EVC,"Success applying meter for pon_port=%u, gem_id=%u (vport_id=0x%x)",
-              profile->ptin_port, profile->outer_vlan_lookup, vport_id);
+    PT_LOG_TRACE(LOG_CTX_EVC,"Success applying meter for pon_port=%u, gem_id=%u (l2intf_id=0x%x)",
+              profile->ptin_port, profile->outer_vlan_lookup, l2intf_id);
 
     return L7_SUCCESS;
   }
@@ -10198,12 +10198,12 @@ static void ptin_evc_find_flow(L7_uint16 uni_ovid, dl_queue_t *queue, dl_queue_e
 }
 
 /**
- * Search flow based on VPort id
+ * Search flow based on l2intf_id
  * 
  * @param queue 
  * @param pelem 
  */
-static void ptin_evc_find_flow_fromVPort(L7_uint32 vport_id, dl_queue_t *queue, dl_queue_elem_t **pelem)
+static void ptin_evc_find_flow_from_l2intf(L7_uint32 l2intf_id, dl_queue_t *queue, dl_queue_elem_t **pelem)
 {
   struct ptin_evc_client_s *pflow = NULL;
 
@@ -10216,7 +10216,7 @@ static void ptin_evc_find_flow_fromVPort(L7_uint32 vport_id, dl_queue_t *queue, 
   while (pflow != NULL)
   {
     /* If inner vlan is null, the first cvlan is returned */
-    if (vport_id == 0 || pflow->vport_id == (vport_id & 0xffff))
+    if (l2intf_id == 0 || pflow->l2intf_id == (l2intf_id & 0xffff))
     {
       *pelem = (dl_queue_elem_t *) pflow;
       break;

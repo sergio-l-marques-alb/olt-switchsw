@@ -18,13 +18,13 @@ static ptin_switch_mac_entry  mac_table[PLAT_MAX_FDB_MAC_ENTRIES];
  * 
  * @param macAddr 
  * @param intIfNum 
- * @param virtual_port 
+ * @param l2intf_id 
  * @param vlanId 
  * @param msgsType 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 virtual_port,
+L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 l2intf_id,
                             L7_uint32 vlanId, L7_uchar8 msgsType)
 {
   L7_INTF_TYPES_t   intf_type;
@@ -47,7 +47,7 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
     return L7_SUCCESS;
   }
 
-  PT_LOG_TRACE(LOG_CTX_L2, "intIfNum %u, vport 0x%x", intIfNum, virtual_port);
+  PT_LOG_TRACE(LOG_CTX_L2, "intIfNum %u, vport 0x%x", intIfNum, l2intf_id);
 
   if (nimGetIntfType(intIfNum, &intf_type) != L7_SUCCESS)
   {
@@ -58,13 +58,13 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
   /* This routine only applies to virtual ports */
   if (intf_type != L7_VLAN_PORT_INTF)
   {
-    PT_LOG_TRACE(LOG_CTX_L2, "Not a virtual port: intIfNum %u, vport 0x%x", intIfNum, virtual_port);
+    PT_LOG_TRACE(LOG_CTX_L2, "Not a l2intf_id: intIfNum %u, vport 0x%x", intIfNum, l2intf_id);
     return L7_SUCCESS;
   }
 
   PT_LOG_TRACE(LOG_CTX_L2, "Processing vlan %u, MAC=%02x:%02x:%02x:%02x:%02x:%02x, intIfNum %u, vport 0x%x",
             vlanId, macAddr[0], macAddr[1], macAddr[2], macAddr[3], macAddr[4], macAddr[5],
-            intIfNum, virtual_port);
+            intIfNum, l2intf_id);
 
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   {
@@ -75,11 +75,11 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
 
     /* Search for this entry */
     memset(&vp_entry, 0x00, sizeof(vp_entry));
-    vp_entry.vport_id = virtual_port & 0xffffff;
+    vp_entry.l2intf_id = l2intf_id & 0xffffff;
 
     if (intf_vp_DB(3, &vp_entry) != 0)
     {
-      PT_LOG_WARN(LOG_CTX_L2, "Virtual port 0x%08x does not exist!", virtual_port);
+      PT_LOG_WARN(LOG_CTX_L2, "l2intf_id 0x%08x does not exist!", l2intf_id);
       return L7_FAILURE;
     }
 
@@ -132,8 +132,8 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
 
     if (msgsType == FDB_ADD)
     {
-      PT_LOG_TRACE(LOG_CTX_L2, "ADD event: MAC=%02x:%02x:%02x:%02x:%02x:%02x VLAN=%u intIfNum=%u virtual_port=0x%08x",
-                macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5], vlanId, intIfNum, virtual_port);
+      PT_LOG_TRACE(LOG_CTX_L2, "ADD event: MAC=%02x:%02x:%02x:%02x:%02x:%02x VLAN=%u intIfNum=%u l2intf_id=0x%08x",
+                macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5], vlanId, intIfNum, l2intf_id);
 
       /* Add policer */
       meter.cir = vp_entry.policer.meter.cir;
@@ -143,8 +143,8 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
     }
     else if (msgsType == FDB_DEL)
     {
-      PT_LOG_TRACE(LOG_CTX_L2, "DEL event: MAC=%02x:%02x:%02x:%02x:%02x:%02x VLAN=%u intIfNum=%u virtual_port=0x%08x",
-                macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5], vlanId, intIfNum, virtual_port);
+      PT_LOG_TRACE(LOG_CTX_L2, "DEL event: MAC=%02x:%02x:%02x:%02x:%02x:%02x VLAN=%u intIfNum=%u l2intf_id=0x%08x",
+                macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5], vlanId, intIfNum, l2intf_id);
 
       /* Remove policer */
       meter.cir = (L7_uint32) -1;
@@ -279,17 +279,17 @@ L7_RC_t ptin_l2_mac_table_load(void)
     /* Convert to ptin interface format */
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     if (intfType==L7_VLAN_PORT_INTF) {
-        intf_vp_entry_t   e;
+        intf_vp_entry_t   entry;
 
-        e.vport_id = fdbEntry.dot1dTpFdbVirtualPort;
-        if (intf_vp_DB(3, &e)) {
+        entry.l2intf_id = fdbEntry.dot1dTpFdbVirtualPort;
+        if (intf_vp_DB(3, &entry)) {
             PT_LOG_WARN(LOG_CTX_L2,"PON&GEMid for intIfNum %lu / vport %lu not found",fdbEntry.dot1dTpFdbPort,fdbEntry.dot1dTpFdbVirtualPort);
             continue;
         }
         else PT_LOG_TRACE(LOG_CTX_L2,"intIfNum %lu / vport %u, PON=%u/%u GEMid=%u",
-                       fdbEntry.dot1dTpFdbPort, fdbEntry.dot1dTpFdbVirtualPort, e.pon.intf_type, e.pon.intf_id, e.gem_id);
-        ptin_intf = e.pon;
-        gem_id    = e.gem_id;
+                       fdbEntry.dot1dTpFdbPort, fdbEntry.dot1dTpFdbVirtualPort, entry.pon.intf_type, entry.pon.intf_id, entry.gem_id);
+        ptin_intf = entry.pon;
+        gem_id    = entry.gem_id;
     }
     else
   #endif

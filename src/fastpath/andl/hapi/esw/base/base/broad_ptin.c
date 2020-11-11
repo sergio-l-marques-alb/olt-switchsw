@@ -38,7 +38,7 @@ typedef L7_RC_t (*broad_ptin_generic_f)(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t oper
 L7_RC_t broad_ptin_example(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l2_maclimit(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l2_maclimit_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
-L7_RC_t broad_ptin_l2_maclimit_vport_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+L7_RC_t broad_ptin_l2_maclimit_l2intf_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l3_intf(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l3_ipmc(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_qos_classify(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
@@ -61,7 +61,7 @@ broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {
   broad_ptin_example,
   broad_ptin_l2_maclimit,
   broad_ptin_l2_maclimit_status,
-  broad_ptin_l2_maclimit_vport_status,
+  broad_ptin_l2_maclimit_l2intf_status,
   broad_ptin_l3_intf,
   broad_ptin_l3_ipmc,
   broad_ptin_qos_classify,
@@ -181,13 +181,13 @@ L7_RC_t broad_ptin_l2_maclimit_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operat
 }
 
 /**
- * Get a state of MAC limit state of a particular vport
+ * Get a state of MAC limit state of a particular l2intf
  * 
  *
  *  
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t broad_ptin_l2_maclimit_vport_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
+L7_RC_t broad_ptin_l2_maclimit_l2intf_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
 {
   L7_RC_t rc = L7_SUCCESS;
   ptin_l2_maclimit_vp_st_t *entry;
@@ -201,10 +201,10 @@ L7_RC_t broad_ptin_l2_maclimit_vport_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t 
                operation,
                 dataSize);
 
-  rc = ptin_hapi_vport_maclimit_status_get(entry->vport_id, &entry->status);
+  rc = ptin_hapi_l2intf_maclimit_status_get(entry->l2intf_id, &entry->status);
   if (rc != L7_SUCCESS)
   {
-     PT_LOG_ERR(LOG_CTX_HAPI, "Failed to get MAC limit state of vport_id %d", entry->vport_id);
+     PT_LOG_ERR(LOG_CTX_HAPI, "Failed to get MAC limit state of l2intf_id %d", entry->l2intf_id);
   }
   return rc;
 }
@@ -1701,49 +1701,49 @@ L7_RC_t hapiBroadPtinMulticastEgressPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, voi
 L7_RC_t hapiBroadPtinVirtualPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
   ptin_dapi_port_t dapiPort;
-  ptin_vport_t *vport = (ptin_vport_t *) data;
+  ptin_l2intf_t *l2intf_id = (ptin_l2intf_t *) data;
   L7_RC_t rc = L7_SUCCESS;
 
   DAPIPORT_SET(&dapiPort, usp, dapi_g);
 
-  switch (vport->oper)
+  switch (l2intf_id->oper)
   {
   case DAPI_CMD_SET:
-    if (vport->cmd == PTIN_VPORT_CMD_VP_OPER)
+    if (l2intf_id->cmd == PTIN_VPORT_CMD_VP_OPER)
     {
 
 
       rc = ptin_hapi_vp_create(&dapiPort, 
-                               vport->ext_ovid, vport->ext_ivid,
-                               vport->int_ovid, vport->int_ivid,
-                               &vport->multicast_group,
-                               &vport->virtual_gport, vport->port_id, vport->type);
+                               l2intf_id->ext_ovid, l2intf_id->ext_ivid,
+                               l2intf_id->int_ovid, l2intf_id->int_ivid,
+                               &l2intf_id->multicast_group,
+                               &l2intf_id->virtual_gport, l2intf_id->port_id, l2intf_id->type);
 
       if (rc == L7_SUCCESS)
       {
-        rc = ptin_hapi_vport_maclimit_setmax(vport->virtual_gport, vport->macLearnMax);
+        rc = ptin_hapi_l2intf_maclimit_setmax(l2intf_id->virtual_gport, l2intf_id->macLearnMax);
       }
     }
-    else if (vport->cmd == PTIN_VPORT_CMD_MAXMAC_SET)
+    else if (l2intf_id->cmd == PTIN_VPORT_CMD_MAXMAC_SET)
     {
-      rc = ptin_hapi_vport_maclimit_setmax(vport->virtual_gport, vport->macLearnMax); 
+      rc = ptin_hapi_l2intf_maclimit_setmax(l2intf_id->virtual_gport, l2intf_id->macLearnMax); 
     }
     break;
 
   case DAPI_CMD_CLEAR:
   case DAPI_CMD_CLEAR_ALL:
-    if (vport->cmd == PTIN_VPORT_CMD_VP_OPER)
+    if (l2intf_id->cmd == PTIN_VPORT_CMD_VP_OPER)
     {
-      rc = ptin_hapi_vp_remove(&dapiPort, vport->ext_ovid, vport->ext_ivid, vport->virtual_gport, vport->multicast_group);
+      rc = ptin_hapi_vp_remove(&dapiPort, l2intf_id->ext_ovid, l2intf_id->ext_ivid, l2intf_id->virtual_gport, l2intf_id->multicast_group);
 
       if (rc == L7_SUCCESS)
       {
-        rc = ptin_hapi_vport_maclimit_reset(vport->virtual_gport);
+        rc = ptin_hapi_l2intf_maclimit_reset(l2intf_id->virtual_gport);
       }
     }
-    else if (vport->cmd == PTIN_VPORT_CMD_MAXMAC_SET)
+    else if (l2intf_id->cmd == PTIN_VPORT_CMD_MAXMAC_SET)
     {
-      rc = ptin_hapi_vport_maclimit_reset(vport->virtual_gport);
+      rc = ptin_hapi_l2intf_maclimit_reset(l2intf_id->virtual_gport);
     }
     break;
 

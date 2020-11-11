@@ -225,7 +225,7 @@ L7_RC_t ptin_hapi_maclimit_init(void)
  */
 L7_RC_t ptin_hapi_maclimit_inc(bcm_l2_addr_t *bcm_l2_addr)
 {
-  L7_uint vport_id      = 0;
+  L7_uint l2intf_id      = 0;
   L7_uint vlan_id       = 0;
   bcm_port_t bcm_port   = 0;
   L7_uint physical_port = 0; 
@@ -233,41 +233,41 @@ L7_RC_t ptin_hapi_maclimit_inc(bcm_l2_addr_t *bcm_l2_addr)
   
   if (BCM_GPORT_IS_VLAN_PORT(bcm_l2_addr->port)) // Check if a Virtual port level
   {
-    vport_id = bcm_l2_addr->port & 0xffff;
+    l2intf_id = bcm_l2_addr->port & 0xffff;
 
     /* Virtual port ID is valid? */
-    if (vport_id >= MAX_GPORTS)
+    if (l2intf_id >= MAX_GPORTS)
     {
-      PT_LOG_NOTICE(LOG_CTX_HAPI, "GPORT is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "GPORT is out of range! (l2intf_id=%u max=%u)", l2intf_id, MAX_GPORTS);
       return L7_FAILURE;
     }
 
     /* Feature enabled? */
-    if (macLearn_info_flow[vport_id].enable == L7_FALSE)
+    if (macLearn_info_flow[l2intf_id].enable == L7_FALSE)
     {
       if(ptin_hapi_l2_enable)
-      PT_LOG_TRACE(LOG_CTX_HAPI, "Count %d in %d ", macLearn_info_flow[vport_id].mac_counter, vport_id);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Count %d in %d ", macLearn_info_flow[l2intf_id].mac_counter, l2intf_id);
 
-      if( macLearn_info_flow[vport_id].mac_counter == (L7_int32) -1)
+      if( macLearn_info_flow[l2intf_id].mac_counter == (L7_int32) -1)
       {
-        macLearn_info_flow[vport_id].mac_counter = 0;
+        macLearn_info_flow[l2intf_id].mac_counter = 0;
       }
 
-      macLearn_info_flow[vport_id].mac_counter++;
-      macLearn_info_flow[vport_id].mac_total++;
+      macLearn_info_flow[l2intf_id].mac_counter++;
+      macLearn_info_flow[l2intf_id].mac_total++;
 
       return L7_FAILURE;
     }
 
     /* Do not accept more mac addresses, if maximum was reached */
-    if (macLearn_info_flow[vport_id].mac_total >= macLearn_info_flow[vport_id].mac_limit)
+    if (macLearn_info_flow[l2intf_id].mac_total >= macLearn_info_flow[l2intf_id].mac_limit)
     {
       PT_LOG_TRACE(LOG_CTX_HAPI, "%s: MAC %02x:%02x:%02x:%02x:%02x:%02x on VID %d and GPORT 0x%x rejected (flags 0x%x)",
               __FUNCTION__, 
               bcm_l2_addr->mac[0], bcm_l2_addr->mac[1], bcm_l2_addr->mac[2], bcm_l2_addr->mac[3], bcm_l2_addr->mac[4], bcm_l2_addr->mac[5], 
               bcm_l2_addr->vid, bcm_l2_addr->port, bcm_l2_addr->flags);
 
-      macLearn_info_flow[vport_id].mac_total++;
+      macLearn_info_flow[l2intf_id].mac_total++;
 
       /* Enable the use of Pending Mechanism but disable FWD */
       PT_LOG_NOTICE(LOG_CTX_HAPI, "Disabling FWD (GPORT=0x%x)", bcm_l2_addr->port);
@@ -276,10 +276,10 @@ L7_RC_t ptin_hapi_maclimit_inc(bcm_l2_addr_t *bcm_l2_addr)
         bcm_port_learn_set(unit, bcm_l2_addr->port, /*BCM_PORT_LEARN_CPU |*/ BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
       }
 
-      if (macLearn_info_flow[vport_id].trap_sent == L7_FALSE)
+      if (macLearn_info_flow[l2intf_id].trap_sent == L7_FALSE)
       {
-        send_trap_switch_event(macLearn_info_flow[vport_id].ptin_intf.intf_type, macLearn_info_flow[vport_id].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_START, macLearn_info_flow[vport_id].uni_ovid);
-        macLearn_info_flow[vport_id].trap_sent = L7_TRUE;
+        send_trap_switch_event(macLearn_info_flow[l2intf_id].ptin_intf.intf_type, macLearn_info_flow[l2intf_id].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_START, macLearn_info_flow[l2intf_id].uni_ovid);
+        macLearn_info_flow[l2intf_id].trap_sent = L7_TRUE;
       }
       return L7_FAILURE;
     }
@@ -289,20 +289,20 @@ L7_RC_t ptin_hapi_maclimit_inc(bcm_l2_addr_t *bcm_l2_addr)
               bcm_l2_addr->mac[0], bcm_l2_addr->mac[1], bcm_l2_addr->mac[2], bcm_l2_addr->mac[3], bcm_l2_addr->mac[4], bcm_l2_addr->mac[5], 
               bcm_l2_addr->vid, bcm_l2_addr->port, bcm_l2_addr->flags);
 
-    if( macLearn_info_flow[vport_id].mac_counter == (L7_int32) -1)
+    if( macLearn_info_flow[l2intf_id].mac_counter == (L7_int32) -1)
     {
-      macLearn_info_flow[vport_id].mac_counter = 0;
+      macLearn_info_flow[l2intf_id].mac_counter = 0;
     }
 
-    macLearn_info_flow[vport_id].mac_counter++;
-    macLearn_info_flow[vport_id].mac_total++;
+    macLearn_info_flow[l2intf_id].mac_counter++;
+    macLearn_info_flow[l2intf_id].mac_total++;
 
-    if (macLearn_info_flow[vport_id].mac_counter == macLearn_info_flow[vport_id].mac_limit)
+    if (macLearn_info_flow[l2intf_id].mac_counter == macLearn_info_flow[l2intf_id].mac_limit)
     {
-      if (macLearn_info_flow[vport_id].trap_sent == L7_FALSE)
+      if (macLearn_info_flow[l2intf_id].trap_sent == L7_FALSE)
       {
-        send_trap_switch_event(macLearn_info_flow[vport_id].ptin_intf.intf_type, macLearn_info_flow[vport_id].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_START, macLearn_info_flow[vport_id].uni_ovid);
-        macLearn_info_flow[vport_id].trap_sent = L7_TRUE;
+        send_trap_switch_event(macLearn_info_flow[l2intf_id].ptin_intf.intf_type, macLearn_info_flow[l2intf_id].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_START, macLearn_info_flow[l2intf_id].uni_ovid);
+        macLearn_info_flow[l2intf_id].trap_sent = L7_TRUE;
       }
     }
     return L7_SUCCESS;
@@ -537,38 +537,38 @@ L7_RC_t ptin_hapi_maclimit_inc(bcm_l2_addr_t *bcm_l2_addr)
  */
 L7_RC_t ptin_hapi_maclimit_dec(bcm_l2_addr_t *bcm_l2_addr)
 {
-  L7_uint vport_id = 0;
+  L7_uint l2intf_id = 0;
   L7_uint vlan_id = 0;
   bcm_port_t bcm_port = 0; 
   L7_uint physical_port = 0;
   
   if (BCM_GPORT_IS_VLAN_PORT(bcm_l2_addr->port))
   {
-    vport_id = bcm_l2_addr->port & 0xffff;
+    l2intf_id = bcm_l2_addr->port & 0xffff;
 
     /* Virtual port ID is valid? */
-    if (vport_id >= MAX_GPORTS)
+    if (l2intf_id >= MAX_GPORTS)
     {
-      PT_LOG_TRACE(LOG_CTX_HAPI, "Virtual port is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Virtual port is out of range! (l2intf_id=%u max=%u)", l2intf_id, MAX_GPORTS);
       return L7_FAILURE;
     }
 
     /* Feature enabled? */
-    if (macLearn_info_flow[vport_id].enable == L7_FALSE)
+    if (macLearn_info_flow[l2intf_id].enable == L7_FALSE)
     {
       if(ptin_hapi_l2_enable)
-      PT_LOG_TRACE(LOG_CTX_HAPI, "Count %d in %d ", macLearn_info_flow[vport_id].mac_counter, vport_id);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Count %d in %d ", macLearn_info_flow[l2intf_id].mac_counter, l2intf_id);
 
     /* Decrement, but only if greater than 0 */
-    if (macLearn_info_flow[vport_id].mac_counter > 0)
+    if (macLearn_info_flow[l2intf_id].mac_counter > 0)
     {
-      macLearn_info_flow[vport_id].mac_counter--;
+      macLearn_info_flow[l2intf_id].mac_counter--;
     }
 
 		    /* Decrement, but only if greater than 0 */
-    if (macLearn_info_flow[vport_id].mac_total > 0)
+    if (macLearn_info_flow[l2intf_id].mac_total > 0)
     {
-      macLearn_info_flow[vport_id].mac_total--;
+      macLearn_info_flow[l2intf_id].mac_total--;
     }
       return L7_FAILURE;
     }
@@ -586,43 +586,43 @@ L7_RC_t ptin_hapi_maclimit_dec(bcm_l2_addr_t *bcm_l2_addr)
                 bcm_l2_addr->vid);
 
     /* Decrement, but only if greater than 0 */
-    if (macLearn_info_flow[vport_id].mac_counter > 0)
+    if (macLearn_info_flow[l2intf_id].mac_counter > 0)
     {
-      macLearn_info_flow[vport_id].mac_counter--;
+      macLearn_info_flow[l2intf_id].mac_counter--;
     }
 
 		    /* Decrement, but only if greater than 0 */
-    if (macLearn_info_flow[vport_id].mac_total > 0)
+    if (macLearn_info_flow[l2intf_id].mac_total > 0)
     {
-      macLearn_info_flow[vport_id].mac_total--;
+      macLearn_info_flow[l2intf_id].mac_total--;
     }
       return L7_FAILURE;
     }
 
     /* Decrement, but only if greater than 0 */
-    if (macLearn_info_flow[vport_id].mac_counter > 0)
+    if (macLearn_info_flow[l2intf_id].mac_counter > 0)
     {
-      macLearn_info_flow[vport_id].mac_counter--;
+      macLearn_info_flow[l2intf_id].mac_counter--;
     }
 
 		    /* Decrement, but only if greater than 0 */
-    if (macLearn_info_flow[vport_id].mac_total > 0)
+    if (macLearn_info_flow[l2intf_id].mac_total > 0)
     {
-      macLearn_info_flow[vport_id].mac_total--;
+      macLearn_info_flow[l2intf_id].mac_total--;
     }
 
     /* Check if maximum was reached */
-    if ( ((macLearn_info_flow[vport_id].mac_counter <= macLearn_info_flow[vport_id].mac_limit)) && (macLearn_info_flow[vport_id].mac_limit!=0) )
+    if ( ((macLearn_info_flow[l2intf_id].mac_counter <= macLearn_info_flow[l2intf_id].mac_limit)) && (macLearn_info_flow[l2intf_id].mac_limit!=0) )
     {
-      if (macLearn_info_flow[vport_id].trap_sent == L7_TRUE)
+      if (macLearn_info_flow[l2intf_id].trap_sent == L7_TRUE)
       {
-        send_trap_switch_event(macLearn_info_flow[vport_id].ptin_intf.intf_type, macLearn_info_flow[vport_id].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_END, macLearn_info_flow[vport_id].uni_ovid);
-        macLearn_info_flow[vport_id].trap_sent = L7_FALSE;
+        send_trap_switch_event(macLearn_info_flow[l2intf_id].ptin_intf.intf_type, macLearn_info_flow[l2intf_id].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_END, macLearn_info_flow[l2intf_id].uni_ovid);
+        macLearn_info_flow[l2intf_id].trap_sent = L7_FALSE;
       }
     }
     #if 0
     /* Check if maximum was reached */
-    if ( (macLearn_info_flow[vport_id].mac_counter < macLearn_info_flow[vport_id].mac_limit) && (macLearn_info_flow[vport_id].mac_total < macLearn_info_flow[vport_id].mac_limit))
+    if ( (macLearn_info_flow[l2intf_id].mac_counter < macLearn_info_flow[l2intf_id].mac_limit) && (macLearn_info_flow[l2intf_id].mac_total < macLearn_info_flow[l2intf_id].mac_limit))
     {
       int unit;
 
@@ -805,19 +805,19 @@ L7_RC_t ptin_hapi_maclimit_dec(bcm_l2_addr_t *bcm_l2_addr)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_hapi_vport_maclimit_reset(bcm_gport_t gport)
+L7_RC_t ptin_hapi_l2intf_maclimit_reset(bcm_gport_t gport)
 {
   int unit;
-  L7_uint vport_id = 0;
+  L7_uint l2intf_id = 0;
 
   if (BCM_GPORT_IS_VLAN_PORT(gport))
   {
-    vport_id = gport & 0xffff;
+    l2intf_id = gport & 0xffff;
 
     /* Virtual port ID is valid? */
-    if (vport_id >= MAX_GPORTS)
+    if (l2intf_id >= MAX_GPORTS)
     {
-      PT_LOG_NOTICE(LOG_CTX_HAPI, "GPORT is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "GPORT is out of range! (l2intf_id=%u max=%u)", l2intf_id, MAX_GPORTS);
       return L7_FAILURE;
     }
 
@@ -829,22 +829,22 @@ L7_RC_t ptin_hapi_vport_maclimit_reset(bcm_gport_t gport)
       bcm_port_learn_set(unit, gport, BCM_PORT_LEARN_FWD | /*BCM_PORT_LEARN_CPU BCM_PORT_LEARN_PENDING |*/ BCM_PORT_LEARN_ARL );
     }
 
-    macLearn_info_flow[vport_id].mac_counter = 0;
-    macLearn_info_flow[vport_id].mac_total = 0;
-    macLearn_info_flow[vport_id].mac_limit = -1; /* no limit */
+    macLearn_info_flow[l2intf_id].mac_counter = 0;
+    macLearn_info_flow[l2intf_id].mac_total = 0;
+    macLearn_info_flow[l2intf_id].mac_limit = -1; /* no limit */
 
-    macLearn_info_flow[vport_id].enable = L7_FALSE;
+    macLearn_info_flow[l2intf_id].enable = L7_FALSE;
 
     /* Close the alarm */
-    if (macLearn_info_flow[vport_id].trap_sent == L7_TRUE)
+    if (macLearn_info_flow[l2intf_id].trap_sent == L7_TRUE)
     {
-      send_trap_switch_event(macLearn_info_flow[vport_id].ptin_intf.intf_type, macLearn_info_flow[vport_id].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_END, 0);
-      macLearn_info_flow[vport_id].trap_sent = L7_FALSE;
+      send_trap_switch_event(macLearn_info_flow[l2intf_id].ptin_intf.intf_type, macLearn_info_flow[l2intf_id].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_END, 0);
+      macLearn_info_flow[l2intf_id].trap_sent = L7_FALSE;
     }
   }
   else
   {
-    PT_LOG_WARN(LOG_CTX_HAPI, "GPORT is not valid! (vport_id)", vport_id);
+    PT_LOG_WARN(LOG_CTX_HAPI, "GPORT is not valid! (l2intf_id)", l2intf_id);
     return L7_FAILURE;
   }
 
@@ -985,13 +985,13 @@ L7_RC_t ptin_hapi_maclimit_reset( mac_learn_info_t *mac_learn_info_ptr)
  */
 L7_RC_t ptin_hapi_maclimit_fdbFlush(bcm_vlan_t vlan_id, bcm_gport_t gport, BROAD_FLUSH_TYPE_t type)
 {
-  L7_uint vport_id = 0;
+  L7_uint l2intf_id = 0;
   BROAD_L2ADDR_FLUSH_t  l2addr_vlan;
 
-  vport_id = gport & 0xffff;
+  l2intf_id = gport & 0xffff;
 
-  macLearn_info_flow[vport_id].mac_total -= macLearn_info_flow[vport_id].mac_counter;
-  macLearn_info_flow[vport_id].mac_counter = 0;
+  macLearn_info_flow[l2intf_id].mac_total -= macLearn_info_flow[l2intf_id].mac_counter;
+  macLearn_info_flow[l2intf_id].mac_counter = 0;
 
   /* Flush FDB */
   /* Fill in the structure */
@@ -1017,40 +1017,40 @@ L7_RC_t ptin_hapi_maclimit_fdbFlush(bcm_vlan_t vlan_id, bcm_gport_t gport, BROAD
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint8 mac_limit)
+L7_RC_t ptin_hapi_l2intf_maclimit_setmax(bcm_gport_t gport, L7_uint8 mac_limit)
 {
   int unit;
-  L7_uint vport_id = 0;
+  L7_uint l2intf_id = 0;
   L7_uint8 mac_limit_old;
   L7_RC_t rc = L7_SUCCESS;
 
   if (BCM_GPORT_IS_VLAN_PORT(gport))
   {
-    vport_id = gport & 0xffff;
+    l2intf_id = gport & 0xffff;
 
     /* Virtual port ID is valid? */
-    if (vport_id >= MAX_GPORTS)
+    if (l2intf_id >= MAX_GPORTS)
     {
-      PT_LOG_NOTICE(LOG_CTX_HAPI, "GPORT is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "GPORT is out of range! (l2intf_id=%u max=%u)", l2intf_id, MAX_GPORTS);
       return L7_FAILURE;
     }
     if (mac_limit == (L7_uint8)-1)
     {
-      rc = ptin_hapi_vport_maclimit_reset(gport);
+      rc = ptin_hapi_l2intf_maclimit_reset(gport);
       return rc;
     }
 
     PT_LOG_NOTICE(LOG_CTX_HAPI, "Enabling Pending Mechanism (GPORT=0x%x) with MAC Learned limit set to %u", gport, mac_limit);
 
-    mac_limit_old = macLearn_info_flow[vport_id].mac_limit;
-    macLearn_info_flow[vport_id].mac_limit = mac_limit;
+    mac_limit_old = macLearn_info_flow[l2intf_id].mac_limit;
+    macLearn_info_flow[l2intf_id].mac_limit = mac_limit;
 
-    macLearn_info_flow[vport_id].enable = L7_TRUE;
+    macLearn_info_flow[l2intf_id].enable = L7_TRUE;
 
     BCM_UNIT_ITER(unit)
     {
       /* Check if maximum was reached */
-      //if (macLearn_info_flow[vport_id].mac_counter >= macLearn_info_flow[vport_id].mac_limit)
+      //if (macLearn_info_flow[l2intf_id].mac_counter >= macLearn_info_flow[l2intf_id].mac_limit)
       //{
         /* Enable the use of Pending Mechanism but disable FWD*/
         //bcm_port_learn_set(unit, gport, /*BCM_PORT_LEARN_CPU |*/ BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
@@ -1076,7 +1076,7 @@ L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint8 mac_limit)
   }
   else
   {
-    PT_LOG_WARN(LOG_CTX_HAPI, "GPORT is not valid! (vport_id)", vport_id);
+    PT_LOG_WARN(LOG_CTX_HAPI, "GPORT is not valid! (l2intf_id)", l2intf_id);
     return L7_FAILURE;
   }
   return L7_SUCCESS;
@@ -1084,41 +1084,41 @@ L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint8 mac_limit)
 
 
 /**
- * Get MAC limit state of a particular vport
+ * Get MAC limit state of a particular l2intf
  * 
- * @param vport_id    : vport_id (virtual port)
+ * @param l2intf_id    : l2intf_id (virtual port)
  * @param over_limit  : if updated to TRUE is over limit (or 
  *                    error), if FALSE is under_limit
  *  
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_hapi_vport_maclimit_status_get(L7_uint32 vport_id, L7_uint8 *over_limit)
+L7_RC_t ptin_hapi_l2intf_maclimit_status_get(L7_uint32 l2intf_id, L7_uint8 *over_limit)
 {
   /* Virtual port ID is valid? */
-  if (vport_id >= MAX_GPORTS)
+  if (l2intf_id >= MAX_GPORTS)
   {
-    PT_LOG_NOTICE(LOG_CTX_HAPI, "GPORT is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
+    PT_LOG_NOTICE(LOG_CTX_HAPI, "GPORT is out of range! (l2intf_id=%u max=%u)", l2intf_id, MAX_GPORTS);
     *over_limit = L7_TRUE;
     return L7_FAILURE;
   }
 
   /* Check if the limit is enable and if is over limit */
-  if (macLearn_info_flow[vport_id].enable == TRUE &&
-      macLearn_info_flow[vport_id].mac_counter >= macLearn_info_flow[vport_id].mac_limit)
+  if (macLearn_info_flow[l2intf_id].enable == TRUE &&
+      macLearn_info_flow[l2intf_id].mac_counter >= macLearn_info_flow[l2intf_id].mac_limit)
   {
 
     PT_LOG_TRACE(LOG_CTX_HAPI, "GPORT=0x%x is over limit (counter %d , limit %d) ",
-                 vport_id,
-                 macLearn_info_flow[vport_id].mac_counter,
-                 macLearn_info_flow[vport_id].mac_limit);
+                 l2intf_id,
+                 macLearn_info_flow[l2intf_id].mac_counter,
+                 macLearn_info_flow[l2intf_id].mac_limit);
     *over_limit = L7_TRUE;
     return L7_SUCCESS;
   }
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "GPORT=0x%x is under limit (counter %d , limit %d) ",
-               vport_id,
-               macLearn_info_flow[vport_id].mac_counter,
-               macLearn_info_flow[vport_id].mac_limit);
+               l2intf_id,
+               macLearn_info_flow[l2intf_id].mac_counter,
+               macLearn_info_flow[l2intf_id].mac_limit);
   *over_limit = L7_FALSE;
   return L7_SUCCESS;  
 }
@@ -1489,7 +1489,7 @@ L7_RC_t ptin_hapi_maclimit_status(DAPI_USP_t *ddUsp, L7_uint32 *mac_learned, L7_
   }
   else if(BCM_GPORT_IS_VLAN_PORT(gport))
   {
-    vport_id = bcm_l2_addr->port & 0xffff;
+    l2intf_id = bcm_l2_addr->port & 0xffff;
   }*/
   else
   {
@@ -1508,40 +1508,40 @@ L7_RC_t ptin_hapi_maclimit_status(DAPI_USP_t *ddUsp, L7_uint32 *mac_learned, L7_
  *  
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_hapi_vport_maclimit_alarmconfig(bcm_gport_t gport, int bcm_port, L7_uint16 outer_vid, L7_uint port_id, L7_uint type)
+L7_RC_t ptin_hapi_l2intf_maclimit_alarmconfig(bcm_gport_t gport, int bcm_port, L7_uint16 outer_vid, L7_uint port_id, L7_uint type)
 {
-  L7_uint vport_id = 0;
+  L7_uint l2intf_id = 0;
   L7_int  port;
   
   if (BCM_GPORT_IS_VLAN_PORT(gport))
   {
-    vport_id = gport & 0xffff;
+    l2intf_id = gport & 0xffff;
 
     /* Virtual port ID is valid? */
-    if (vport_id >= MAX_GPORTS)
+    if (l2intf_id >= MAX_GPORTS)
     {
-      PT_LOG_NOTICE(LOG_CTX_HAPI, "GPORT is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "GPORT is out of range! (l2intf_id=%u max=%u)", l2intf_id, MAX_GPORTS);
       return L7_FAILURE;
     }
     PT_LOG_NOTICE(LOG_CTX_HAPI, "(GPORT=0x%x) MAC Learned limit information %u, bcm_port %u, outer_vid %d", gport, bcm_port, outer_vid);
 
     hapi_ptin_port_get(bcm_port, &port);
 
-    macLearn_info_flow[vport_id].ptin_intf.intf_type =  type;
-    if( macLearn_info_flow[vport_id].ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL)
+    macLearn_info_flow[l2intf_id].ptin_intf.intf_type =  type;
+    if( macLearn_info_flow[l2intf_id].ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL)
     {
-      macLearn_info_flow[vport_id].ptin_intf.intf_id =  port;                   // PON interface
+      macLearn_info_flow[l2intf_id].ptin_intf.intf_id =  port;                   // PON interface
     }
     else
     {
-      macLearn_info_flow[vport_id].ptin_intf.intf_id =  port_id;
+      macLearn_info_flow[l2intf_id].ptin_intf.intf_id =  port_id;
     }
 
-    macLearn_info_flow[vport_id].uni_ovid =             outer_vid;              // GEM id
+    macLearn_info_flow[l2intf_id].uni_ovid =             outer_vid;              // GEM id
   }
   else
   {
-    PT_LOG_WARN(LOG_CTX_HAPI, "GPORT is not valid! (vport_id)", vport_id);
+    PT_LOG_WARN(LOG_CTX_HAPI, "GPORT is not valid! (l2intf_id)", l2intf_id);
     return L7_FAILURE;
   }
   return L7_SUCCESS;

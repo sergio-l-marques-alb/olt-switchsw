@@ -202,7 +202,7 @@ typedef struct
 /* L2 MAC Limiting status */
 typedef struct
 {
-  L7_uint32   vport_id;                /* vport id */
+  L7_uint32   l2intf_id;                /* l2intf_id */
   L7_uint8    status;                  /* Check if is over or within the limit. 0-Over, 1- Within */
 } ptin_l2_maclimit_vp_st_t;
 
@@ -726,7 +726,7 @@ typedef struct
   L7_uint8 macLearnMax;
   L7_int  port_id;
   L7_int  type;
-} ptin_vport_t;
+} ptin_l2intf_t;
 
 /* Struct used to manipulate cross connects via DTL */
 typedef struct

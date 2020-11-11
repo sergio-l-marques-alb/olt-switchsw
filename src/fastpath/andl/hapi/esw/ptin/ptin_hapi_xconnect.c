@@ -723,7 +723,7 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
   }
 
   /* Configures the information needed to generate alarms related to MAC Limit */
-  ptin_hapi_vport_maclimit_alarmconfig(vlan_port.vlan_port_id, hapiPortPtr->bcm_port, match_ovid, port_id, type);
+  ptin_hapi_l2intf_maclimit_alarmconfig(vlan_port.vlan_port_id, hapiPortPtr->bcm_port, match_ovid, port_id, type);
 
   /* Return vport id */
   if (virtual_gport != L7_NULLPTR)

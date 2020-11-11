@@ -1574,20 +1574,20 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
                      vlanId, keyToFind[2], keyToFind[3], keyToFind[4], keyToFind[5], keyToFind[6], keyToFind[7]);
       }
 
-      entry.vport_id = intf_vp_calc(ptin_port, innerVlanId);
-      if (entry.vport_id != 0x0 && 
-          entry.vport_id != (L7_uint32) -1)
+      entry.l2intf_id = intf_vp_calc(ptin_port, innerVlanId);
+      if (entry.l2intf_id != 0x0 && 
+          entry.l2intf_id != (L7_uint32) -1)
       {
-        PT_LOG_TRACE(LOG_CTX_L2, "vport id %d ",
-                     entry.vport_id);
+        PT_LOG_TRACE(LOG_CTX_L2, "l2intf_id id %d ",
+                     entry.l2intf_id);
         rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT_VPORT_STATUS, DAPI_CMD_GET, sizeof(ptin_l2_maclimit_vp_st_t), &entry);
         if (entry.status == L7_TRUE ||
             rc != L7_SUCCESS)
         {
           if (ptin_debug_dhcp_snooping)
           {
-            PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent:Packet reject, vport_id %d has already reached mac limit (status %d)",
-                       entry.vport_id,
+            PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent:Packet reject, l2intf_id %d has already reached mac limit (status %d)",
+                       entry.l2intf_id,
                        entry.status);
           }
           return L7_FAILURE;
