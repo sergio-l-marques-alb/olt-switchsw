@@ -53,7 +53,7 @@
 # define PTIN_SLOT_PROT             1
 
 # define PTIN_SYSTEM_N_PONS            32   /* (Trident3-X3) */
-# define PTIN_SYSTEM_N_PORTS           (32+PTIN_SYSTEM_N_PONS+1)   /* (Trident3-X3) BCKPLN+PONs+CPU */
+# define PTIN_SYSTEM_N_PORTS           (PTIN_SYSTEM_N_PONS+16+1)   /* (Trident3-X3) BCKPLN+PONs+CPU */
 # define PTIN_SYSTEM_N_PONS_INTIFN     16
 # define PTIN_SYSTEM_N_ETH             0
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   0
