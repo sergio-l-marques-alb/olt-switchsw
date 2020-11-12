@@ -198,6 +198,7 @@ unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, 
   L7_uint8 rc;
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
+  /* FIXME TC16SXG: intIfNum->ptin_port */
   if (SUCCESS != ptin_evc_port_type_get(serviceId, portId, &port_type))
   {
     PT_LOG_ERR(LOG_CTX_IGMP,"Unknown port type");
@@ -272,6 +273,7 @@ unsigned int snooping_channel_serviceid_get(unsigned int portId, unsigned int cl
   
   if (ptin_igmp_mcast_evc_id_get(intVlan,portId, isLeafPort, clientId, &groupInetAddr, &sourceInetAddr, serviceId) == L7_SUCCESS)
   {
+    /* FIXME TC16SXG: intIfNum->ptin_port */
     if(L7_TRUE != ptin_evc_is_intf_leaf(*serviceId, portId))
     {
       PT_LOG_ERR(LOG_CTX_IGMP,"This is not a leaf Port (portId=%u, serviceId=%u)", portId, *serviceId);    
@@ -1262,6 +1264,7 @@ L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16
     #if (defined IGMP_QUERIER_IN_UC_EVC)
     {
       /* First client/flow */
+       /* FIXME TC16SXG: intIfNum->ptin_port */
        rc = ptin_evc_vlan_client_next(int_ovlan, portId, &clientFlow, &clientFlow);
 
        PT_LOG_TRACE(LOG_CTX_IGMP,"onuId=%d", onuId);

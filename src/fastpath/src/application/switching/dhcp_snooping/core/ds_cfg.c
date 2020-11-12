@@ -113,6 +113,7 @@ L7_BOOL dsVlanIntfIsSnooping(L7_uint16 vlanId, L7_uint32 intIfNum)
 {
   /* PTin modified: DHCP snooping */
   #if 1
+  /* FIXME TC16SXG: intIfNum->ptin_port */
   return ptin_dhcp_intfVlan_validate(intIfNum,vlanId);
   #else
   ptin_HwEthMef10Evc_t evcConf;
@@ -180,6 +181,7 @@ L7_BOOL _dsIntfL2RelayGet(L7_uint32 intIfNum)
 {
   /* PTin modified: DHCP snooping */
   #if 1
+  /* FIXME TC16SXG: intIfNum->ptin_port */
   return ptin_dhcp_intf_validate(intIfNum);
   #else
   if (L7_INTF_ISMASKBITSET(dsCfgData->dsL2RelayIntfMode, intIfNum))
@@ -456,6 +458,7 @@ L7_BOOL _dsVlanIntfTrustGet(L7_uint16 vlanId, L7_uint32 intIfNum)
 {
   /* PTin modified: DHCP snooping */
   #if 1
+  /* FIXME TC16SXG: intIfNum->ptin_port */
   return ptin_dhcp_is_intfTrusted(intIfNum,vlanId);
   #else
   ptin_HwEthMef10Evc_t evcConf;
@@ -493,6 +496,7 @@ L7_BOOL _dsVlanIntfTrustGet(L7_uint16 vlanId, L7_uint32 intIfNum)
  */
 L7_BOOL _dsVlanIsIntfRoot(L7_uint16 vlanId, L7_uint32 intIfNum)
 {
+  /* FIXME TC16SXG: intIfNum->ptin_port */
   return ptin_evc_intf_isRoot(vlanId, intIfNum);
 }
 

@@ -310,6 +310,7 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
     #endif
     {
       /* Find client index, and validate it */
+      /* FIXME TC16SXG: intIfNum->ptin_port */
       if (ptin_pppoe_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS ||
           client_idx>=PTIN_SYSTEM_DHCP_MAXCLIENTS)
       {
@@ -474,6 +475,7 @@ L7_RC_t pppoeFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
    if (ptin_debug_pppoe_snooping)
      PT_LOG_DEBUG(LOG_CTX_PPPOE, "PPPoE: Received new message");
 
+   /* FIXME TC16SXG: intIfNum->ptin_port */
    if(ptin_pppoe_is_intfRoot(intIfNum, vlanId) == L7_TRUE)
    {
       pppoeProcessServerFrame(frame, frameLen, intIfNum, vlanId, innerVlanId,
@@ -555,6 +557,7 @@ L7_RC_t pppoeAddVendorIdTlv(L7_uchar8 *framePtr, L7_uint32 intIfNum, L7_ushort16
    L7_uint32 vendor_id;
    L7_char8  circuit_id[FD_DS_MAX_REMOTE_ID_STRING], remote_id[FD_DS_MAX_REMOTE_ID_STRING];
 
+   /* FIXME TC16SXG: intIfNum->ptin_port */
    if (ptin_pppoe_stringIds_get(intIfNum, vlanId, innerVlanId , L7_NULLPTR, circuit_id, remote_id) != L7_SUCCESS)
    {
       return L7_FAILURE;
@@ -813,6 +816,7 @@ L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 v
   extIVlan = 0;
 
   /* Extract external outer and inner vlan for this tx interface */
+  /* FIXME TC16SXG: intIfNum->ptin_port */
   if (ptin_pppoe_extVlans_get(intIfNum, vlanId, innerVlanId, client_idx, &extOVlan,&extIVlan) == L7_SUCCESS)
   {
     /* Modify outer vlan */
@@ -890,6 +894,7 @@ L7_RC_t pppoeServerFrameFlood(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 
       continue;
     }
     /* It should be a ROOT interface */
+    /* FIXME TC16SXG: intIfNum->ptin_port */
     if(ptin_pppoe_is_intfRoot(intIfNum, vlanId))
     {
       rc = pppoeServerFrameSend(frame, intIfNum, vlanId, innerVlanId, client_idx);
@@ -980,6 +985,7 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
   frame_len            = sysNetDataOffsetGet(frame) + sizeof(L7_pppoe_header_t) + osapiNtohs(pppoe_header->length);
 
   /* Extract external outer and inner vlan for this tx interface */
+  /* FIXME TC16SXG: intIfNum->ptin_port */
   if (ptin_pppoe_extVlans_get(intIfNum, vlanId, innerVlanId, client_idx, &extOVlan, &extIVlan) == L7_SUCCESS)
   {
     #if 0

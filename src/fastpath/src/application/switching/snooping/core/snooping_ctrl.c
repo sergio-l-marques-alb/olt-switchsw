@@ -367,6 +367,7 @@ void snoopTask(void)
       {
         /*Added to avoid the removal of L3 Interfaces from the EVC Module 
           before removing all the L3 snoop entries associated to this vlanId and intIfNum*/
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         ptin_evc_l3_intf_sem_give(msg.u.vlanData.data.vlanId, msg.intIfNum);     
       }
       break;
@@ -3399,6 +3400,7 @@ static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 intIfN
   }
 
 #ifndef ONE_MULTICAST_VLAN_RING_SUPPORT
+  /* FIXME TC16SXG: intIfNum->ptin_port */
   if( L7_TRUE != ptin_evc_is_intf_leaf(serviceId, intIfNum))
   {
    if (ptin_debug_igmp_snooping)
@@ -3461,6 +3463,7 @@ static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 intIf
   #endif    
 
 #ifndef ONE_MULTICAST_VLAN_RING_SUPPORT
+  /* FIXME TC16SXG: intIfNum->ptin_port */
   if( L7_TRUE != ptin_evc_is_intf_leaf(serviceId, intIfNum))
   {
     if (ptin_debug_igmp_snooping)

@@ -1792,6 +1792,7 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
 
         #if (defined IGMP_QUERIER_IN_UC_EVC)
         /* First client/flow */
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         rc = ptin_evc_vlan_client_next(mcastPacket->vlanId, intf, &clientFlow, &clientFlow);
 
         /* Internal vlans */

@@ -2817,7 +2817,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
           PT_LOG_ERR(LOG_CTX_IGMP, "Failed to get UcastEvcId");
           return L7_FAILURE;
         }
-               
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         if (ptin_evc_l3_intf_get(iptv_evc_id, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
         {
           PT_LOG_ERR(LOG_CTX_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
@@ -2826,6 +2826,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
         if (ptin_debug_igmp_snooping)
           PT_LOG_DEBUG(LOG_CTX_IGMP, "Obtained L3 Interface l3_intf_id:%d", l3_intf_id);          
 
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         rc = ptin_multicast_l3_egress_port_add(intIfNum, multicast_group,  l3_intf_id);
         if ( rc != L7_SUCCESS )
         {
@@ -2833,6 +2834,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
           return L7_FAILURE;
         }
         #else
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         rc = ptin_multicast_l2_egress_port_add(intIfNum, multicast_group);
         if ( rc != L7_SUCCESS )
         {
@@ -2867,7 +2869,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
               PT_LOG_ERR(LOG_CTX_IGMP, "Failed to get UcastEvcId");
               return L7_FAILURE;
             }
-                   
+            /* FIXME TC16SXG: intIfNum->ptin_port */
             if (ptin_evc_l3_intf_get(iptv_evc_id, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
             {
               PT_LOG_ERR(LOG_CTX_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
@@ -2876,13 +2878,15 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
             if (ptin_debug_igmp_snooping)
               PT_LOG_DEBUG(LOG_CTX_IGMP, "Obtained L3 Interface l3_intf_id:%d", l3_intf_id);          
 
+            /* FIXME TC16SXG: intIfNum->ptin_port */
             rc = ptin_multicast_l3_egress_port_add(intf, multicast_group,  l3_intf_id);
             if ( rc != L7_SUCCESS )
             {
               PT_LOG_ERR(LOG_CTX_IGMP, "Failed to add L3 Egress portId:%d to multicastGroup:0x%08x (rc%u)", l3_intf_id, multicast_group, rc);      
               return L7_FAILURE;
             }
-            #else            
+            #else
+            /* FIXME TC16SXG: intIfNum->ptin_port */
             rc = ptin_multicast_l2_egress_port_add(intf, multicast_group);
             if ( rc != L7_SUCCESS )
             {
@@ -2919,7 +2923,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
           PT_LOG_ERR(LOG_CTX_IGMP, "Failed to get UcastEvcId");
           return L7_FAILURE;
         }
-               
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         if (ptin_evc_l3_intf_get(iptv_evc_id, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
         {
           PT_LOG_ERR(LOG_CTX_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
@@ -2928,6 +2932,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
         if (ptin_debug_igmp_snooping)
           PT_LOG_DEBUG(LOG_CTX_IGMP, "Obtained L3 Interface l3_intf_id:%d", l3_intf_id);          
 
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         rc = ptin_multicast_l3_egress_port_add(intIfNum, multicast_group,  l3_intf_id);
         if ( rc != L7_SUCCESS )
         {
@@ -2936,6 +2941,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
         }
       }
       #else
+      /* FIXME TC16SXG: intIfNum->ptin_port */
       rc = ptin_multicast_l2_egress_port_add(intIfNum, multicast_group);
       if ( rc != L7_SUCCESS )
       {
@@ -3033,7 +3039,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
           PT_LOG_ERR(LOG_CTX_IGMP, "Failed to get UcastEvcId");
           return L7_FAILURE;
         }
-               
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         if (ptin_evc_l3_intf_get(iptv_evc_id, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
         {
           PT_LOG_ERR(LOG_CTX_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
@@ -3050,7 +3056,8 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
           PT_LOG_ERR(LOG_CTX_IGMP, "Failed to remove egress portId:%d to multicastGroup:0x%08x (rc%u)", l3_intf_id, pChannelEntry->pChannelIntfMask->multicastGroup, rc);      
           return L7_FAILURE;
         }        
-        #else            
+        #else
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         rc = ptin_multicast_l2_egress_port_add(intf, pChannelEntry->pChannelIntfMask->multicastGroup);
         if ( rc != L7_SUCCESS )
         {
@@ -3355,7 +3362,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
         PT_LOG_ERR(LOG_CTX_IGMP, "Failed to get UcastEvcId");
         return L7_FAILURE;
       }
-             
+      /* FIXME TC16SXG: intIfNum->ptin_port */
       if (ptin_evc_l3_intf_get(iptv_evc_id, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
       {
         PT_LOG_ERR(LOG_CTX_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
@@ -3373,6 +3380,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
         return L7_FAILURE;
       } 
       #else
+      /* FIXME TC16SXG: intIfNum->ptin_port */
       rc = ptin_multicast_l2_egress_port_remove(intIfNum, multicast_group);
       if ( rc != L7_SUCCESS )
       {
@@ -3512,7 +3520,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
               PT_LOG_ERR(LOG_CTX_IGMP, "Failed to get UcastEvcId");
               return L7_FAILURE;
             }
-                   
+            /* FIXME TC16SXG: intIfNum->ptin_port */
             if (ptin_evc_l3_intf_get(iptv_evc_id, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
             {
               PT_LOG_ERR(LOG_CTX_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
@@ -3521,6 +3529,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
             if (ptin_debug_igmp_snooping)
               PT_LOG_DEBUG(LOG_CTX_IGMP, "Obtained L3 Interface l3_intf_id:%d", l3_intf_id);
 
+            /* FIXME TC16SXG: intIfNum->ptin_port */
             rc = ptin_multicast_l3_egress_port_add(intf, multicast_group,  l3_intf_id);
 
             if ( rc != L7_SUCCESS )
@@ -3530,6 +3539,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
             }
           }
           #else
+          /* FIXME TC16SXG: intIfNum->ptin_port */
           rc = ptin_multicast_l2_egress_port_add(intf, multicast_group);
           if ( rc != L7_SUCCESS )
           {
@@ -3568,7 +3578,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
         }
              
         PT_LOG_TRACE(LOG_CTX_IGMP, "iptv_evc_id %d", iptv_evc_id);
-          
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         if (ptin_evc_l3_intf_get(iptv_evc_id, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
         {
           PT_LOG_ERR(LOG_CTX_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
@@ -3587,6 +3597,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
         }       
       }
       #else
+      /* FIXME TC16SXG: intIfNum->ptin_port */
       rc = ptin_multicast_l2_egress_port_remove(intIfNum, pChannelEntry->pChannelIntfMask->multicastGroup);
       if ( rc != L7_SUCCESS )
       {
@@ -3677,7 +3688,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
           PT_LOG_ERR(LOG_CTX_IGMP, "Failed to get UcastEvcId");
           return L7_FAILURE;
         }
-               
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         if (ptin_evc_l3_intf_get(iptv_evc_id, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
         {
           PT_LOG_ERR(LOG_CTX_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
@@ -3695,6 +3706,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
           return L7_FAILURE;
         } 
         #else
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         rc = ptin_multicast_l2_egress_port_remove(intf, pChannelEntry->pChannelIntfMask->multicastGroup);
         if ( rc != L7_SUCCESS )
         {

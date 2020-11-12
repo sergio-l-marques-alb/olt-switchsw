@@ -2038,6 +2038,7 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   if (l2intf_id != 0)
   {
+    /* FIXME TC16SXG: intIfNum->ptin_port */
     if (ptin_evc_extVlans_get_from_IntVlan_l2intf(vlanId, l2intf_id, &intIfNum, &vlanId_list[0][0], &vlanId_list[0][1]) != L7_SUCCESS)
     {
       if (ptin_debug_dai_snooping)
@@ -2047,11 +2048,13 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
     number_of_vlans = 1;
   }
   /* Quattro VLAN, but no l2intf_id? (flooding) */
+  /* FIXME TC16SXG: intIfNum->ptin_port */
   else if (ptin_evc_is_quattro_fromIntVlan(vlanId) && !ptin_evc_intf_isRoot(vlanId, intIfNum))
   {
     ptin_HwEthEvcFlow_t l2intf_flow;
 
     /* Get list of vlans (outer+inner) to be flooded */
+    /* FIXME TC16SXG: intIfNum->ptin_port */
     for (memset(&l2intf_flow, 0x00, sizeof(l2intf_flow));
          ptin_evc_vlan_client_next(vlanId, intIfNum, &l2intf_flow, &l2intf_flow) == L7_SUCCESS && number_of_vlans < 16;
          number_of_vlans++)
@@ -2067,6 +2070,7 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
     L7_BOOL   is_stacked;
     L7_uint8  port_type;
 
+    /* FIXME TC16SXG: intIfNum->ptin_port */
     if (ptin_evc_extVlans_get_fromIntVlan(intIfNum, vlanId, innerVlanId, &vlanId_list[0][0], &vlanId_list[0][1]) != L7_SUCCESS ||
         ptin_evc_check_is_stacked_fromIntVlan(vlanId, &is_stacked) != L7_SUCCESS ||
         ptin_evc_intf_type_get(vlanId, intIfNum, &port_type) != L7_SUCCESS)

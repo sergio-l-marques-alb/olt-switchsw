@@ -723,7 +723,8 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   /* PTin added: IGMP snooping */
 #if 1
    ptin_timer_start(73,"ptin_igmp_clientIntfVlan_validate");
-  /*Get Port Type*/   
+  /*Get Port Type*/
+   /* FIXME TC16SXG: intIfNum->ptin_port */
   rc = ptin_evc_internal_vlan_port_type_get(pduInfo->vlanId, pduInfo->intIfNum, &port_type);
 
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT

@@ -791,7 +791,9 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
     {
       /* Illegal src IP in DHCP packet. Ignore it. */
       dsInfo->debugStats.badSrcAddr++;
+      /* FIXME TC16SXG: intIfNum->ptin_port */
       ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
+      /* FIXME TC16SXG: intIfNum->ptin_port */
       ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
 
       if (ptin_debug_dhcp_snooping || (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX))
@@ -851,7 +853,9 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
       }
       if ( dsRateLimitFilter(pduInfo))
       {
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
         SYSAPI_NET_MBUF_FREE(bufHandle);
         if (ptin_debug_dhcp_snooping || (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX))
@@ -904,13 +908,16 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
         #endif
         {
           /* Find client index, and validate it */
+          /* FIXME TC16SXG: intIfNum->ptin_port */
           if (ptin_dhcp_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS ||
               client_idx>=PTIN_SYSTEM_DHCP_MAXCLIENTS)
           {
             if (ptin_debug_dhcp_snooping)
               PT_LOG_ERR(LOG_CTX_DHCP,"Client not found! (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u extOVlan=%u extIVlan=%u)",
                       pduInfo->intIfNum, client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan, vlanId, client.outerVlan, client.innerVlan);
+            /* FIXME TC16SXG: intIfNum->ptin_port */
             ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
+            /* FIXME TC16SXG: intIfNum->ptin_port */
             ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
             if (ptin_debug_dhcp_snooping)
               PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored");
@@ -932,6 +939,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
       rc = dsPacketQueue(data, len, vlanId, pduInfo->intIfNum, innerVlanId, &client_idx);    /* PTin modified: DHCP snooping */
 
       /* Packet intercepted */
+      /* FIXME TC16SXG: intIfNum->ptin_port */
       ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, DHCP_STAT_FIELD_RX_INTERCEPTED);
 
       if (rc == L7_REQUEST_DENIED) /* DHCP Message got filtered, So Ignore
@@ -941,6 +949,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
         dsInfo->debugStats.msgsInterceptedIntf[pduInfo->intIfNum]++;
         if (ptin_debug_dhcp_snooping)
           PT_LOG_TRACE(LOG_CTX_DHCP,"Incremented DHCP_STAT_FIELD_RX_FILTERED");
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, DHCP_STAT_FIELD_RX_FILTERED);
         SYSAPI_NET_MBUF_FREE(bufHandle);
         if (ptin_debug_dhcp_snooping || (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX))
@@ -1199,7 +1208,9 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
       }
       if ( dsRateLimitFilter(pduInfo))
       {
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
         SYSAPI_NET_MBUF_FREE(bufHandle);
         return SYSNET_PDU_RC_CONSUMED;
@@ -1241,13 +1252,16 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
         #endif
         {
           /* Find client index, and validate it */
+          /* FIXME TC16SXG: intIfNum->ptin_port */
           if (ptin_dhcp_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS ||
               client_idx>=PTIN_SYSTEM_DHCP_MAXCLIENTS)
           {
             if (ptin_debug_dhcp_snooping)
               PT_LOG_ERR(LOG_CTX_DHCP,"Client not found! (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u)",
                       pduInfo->intIfNum, client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, vlanId);
+            /* FIXME TC16SXG: intIfNum->ptin_port */
             ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
+            /* FIXME TC16SXG: intIfNum->ptin_port */
             ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
             if (ptin_debug_dhcp_snooping)
               PT_LOG_ERR(LOG_CTX_DHCP,"Packet ignored.");
@@ -1269,6 +1283,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
       rc = dsPacketQueue(data, len, vlanId, pduInfo->intIfNum, innerVlanId, &client_idx);    /* PTin modified: DHCP snooping */
 
       /* Packet intercepted */
+      /* FIXME TC16SXG: intIfNum->ptin_port */
       ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, DHCP_STAT_FIELD_RX_INTERCEPTED);
 
       if (rc == L7_REQUEST_DENIED) /* DHCP Message got filtered, So Ignore
@@ -1279,6 +1294,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
         dsInfo->debugStats.msgsInterceptedIntf[pduInfo->intIfNum]++;
         if (ptin_debug_dhcp_snooping)
           PT_LOG_TRACE(LOG_CTX_DHCP,"Incremented DHCP_STAT_FIELD_RX_FILTERED");
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, DHCP_STAT_FIELD_RX_FILTERED);
         SYSAPI_NET_MBUF_FREE(bufHandle);
         return SYSNET_PDU_RC_CONSUMED;
@@ -1418,6 +1434,7 @@ L7_RC_t dsPacketQueue(L7_uchar8 *ethHeader, L7_uint32 dataLen,
    }
 
    dsInfo->debugStats.msgsReceived++;
+   /* FIXME TC16SXG: intIfNum->ptin_port */
    ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX);
 
    if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
@@ -1720,6 +1737,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       /* Client requests received with giaddr different from 0 should be forwarded witout modifications */
       if(dhcpPacket->giaddr == L7_NULL)
       {
+         /* FIXME TC16SXG: intIfNum->ptin_port */
          if (ptin_dhcp_client_options_get(intIfNum, vlanId, innerVlanId, &isActiveOp82, L7_NULLPTR, L7_NULLPTR) != L7_SUCCESS)
          {
            if (ptin_debug_dhcp_snooping)
@@ -1741,6 +1759,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
                 PT_LOG_ERR(LOG_CTX_DHCP, "Failed to add DHCP Option-82 for Client request on SVLAN %d", vlanIdFwd);
              return L7_FAILURE;
            }
+           /* FIXME TC16SXG: intIfNum->ptin_port */
            ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION82);
 
            /* Set the relayop_added bit so we know, when processing the server response, that it was us who added the relay option */
@@ -1905,6 +1924,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    {
       if (ptin_debug_dhcp_snooping)
         PT_LOG_WARN(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Discarded client request received on root port");
+      /* FIXME TC16SXG: intIfNum->ptin_port */
       ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_CLIENT_PKTS_ON_TRUSTED_INTF);
       return L7_FAILURE;
    }
@@ -1948,6 +1968,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    //Get DHCP Options for this client
    inetAddressZeroSet(L7_AF_INET6, &client_ip_addr);
    memcpy(&client_mac_addr, mac_header->src.addr, L7_ENET_MAC_ADDR_LEN);
+   /* FIXME TC16SXG: intIfNum->ptin_port */
    if (ptin_dhcp_client_options_get(intIfNum, vlanId, innerVlanId, L7_NULLPTR, &isActiveOp37, &isActiveOp18) != L7_SUCCESS)
    {
       PT_LOG_WARN(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Unknown client [intIfNum:%u vlanId:%u innerVlanId:%u]", intIfNum, vlanId, innerVlanId);
@@ -2006,6 +2027,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    }
 
    //@note (Daniel): Currently, statistics for DHCP are broken. They are to be rewritten in v4.0.
+   /* FIXME TC16SXG: intIfNum->ptin_port */
    ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTIONS);
 
    //Add or update an existing entry in the binding table
@@ -2109,6 +2131,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    {
       if (ptin_debug_dhcp_snooping)
         PT_LOG_WARN(LOG_CTX_DHCP, "DHCP Relay-Agent: Received server reply on untrusted port");
+      /* FIXME TC16SXG: intIfNum->ptin_port */
       ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_PKTS_ON_UNTRUSTED_INTF);
       return L7_FAILURE;
    }
@@ -2145,6 +2168,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
       intIfNum = dhcp_binding.intIfNum;
    }
    //Get DHCP Options for this client
+   /* FIXME TC16SXG: intIfNum->ptin_port */
    if (ptin_dhcp_client_options_get(intIfNum, dhcp_binding.key.vlanId, dhcp_binding.innerVlanId, L7_NULLPTR, &isActiveOp37, &isActiveOp18) != L7_SUCCESS)
    {
       if (ptin_debug_dhcp_snooping)
@@ -2162,12 +2186,15 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      client.mask  = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
      client.mask |= (dhcp_binding.innerVlanId !=0 ) ? PTIN_CLIENT_MASK_FIELD_INNERVLAN : 0;
 
+     /* FIXME TC16SXG: intIfNum->ptin_port */
      if (ptin_dhcp_clientIndex_get(intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS)
      {
        if (ptin_debug_dhcp_snooping)
          PT_LOG_ERR(LOG_CTX_DHCP,"Client not found! (intIfNum=%u, innerVlanId=%u, intVlanId=%u)",
                  intIfNum, dhcp_binding.innerVlanId, vlanId);
+       /* FIXME TC16SXG: intIfNum->ptin_port */
        ptin_dhcp_stat_increment_field(intIfNum, vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
+       /* FIXME TC16SXG: intIfNum->ptin_port */
        ptin_dhcp_stat_increment_field(intIfNum, vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
        return L7_SUCCESS;
      }
@@ -2278,6 +2305,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    //Check if the server reply did not have any options
    if(!op_interfaceid_ptr && !op_remoteid_ptr)
    {
+     /* FIXME TC16SXG: intIfNum->ptin_port */
       ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITHOUT_OPTIONS);
    }
 
@@ -2334,7 +2362,9 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    }
 
    //Increment server tx counters
+   /* FIXME TC16SXG: intIfNum->ptin_port */
    ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS);
+   /* FIXME TC16SXG: intIfNum->ptin_port */
    ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED);
 
    //Remove the entry in the binding table if the client has previously sent a release
@@ -2410,6 +2440,7 @@ L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *fra
    L7_char8 circuit_id[DS_MAX_REMOTE_ID_STRING], remote_id[DS_MAX_REMOTE_ID_STRING];
    L7_dhcp6_option_packet_t dhcp_op_dhcp_relay_be = { 0 };
 
+   /* FIXME TC16SXG: intIfNum->ptin_port */
    if (ptin_dhcp_stringIds_get(intIfNum, vlanId, innerVlanId , macAddr, circuit_id, remote_id) != L7_SUCCESS)
    {
       return L7_FAILURE;
@@ -3059,7 +3090,9 @@ L7_RC_t dsReplyFrameForward(L7_uint32 intIfNum, L7_uint32 vlanId, L7_uchar8 *mac
                          L7_FALSE, innerVlanId, client_idx) == L7_SUCCESS)        /* PTin modified: DHCP snooping */
       {
         dsInfo->debugStats.serverOption82Tx++;
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         ptin_dhcp_stat_increment_field(dsBinding.intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS);
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         ptin_dhcp_stat_increment_field(dsBinding.intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED);
         return L7_SUCCESS;
       }
@@ -3278,6 +3311,7 @@ void dsL2RelayRelayAgentInfoOptionCfgGet(L7_uint32 intIfNum, L7_uint32 vlanId, L
   *cIdFlag = L7_FALSE;
   *rIdFlag = L7_FALSE;
 
+  /* FIXME TC16SXG: intIfNum->ptin_port */
   if (ptin_dhcp_stringIds_get(intIfNum,vlanId,innerVlanId,macAddr,circuitIdStr,remoteIdStr)==L7_SUCCESS)
   {
     if (*circuitIdStr!='\0')  *cIdFlag = L7_TRUE;
@@ -3938,6 +3972,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       }
       if (ptin_debug_dhcp_snooping)
         PT_LOG_ERR(LOG_CTX_DHCP,"DHCP packet dropped here: DHCP snooping dropping DHCP server message received on untrusted interface");
+      /* FIXME TC16SXG: intIfNum->ptin_port */
       ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_SERVER_PKTS_ON_UNTRUSTED_INTF);
       return L7_TRUE;
     }
@@ -4014,6 +4049,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
         {
           /* Find client index, and validate it */
         #if 1 /* PTin modified: flexible circuit-id */
+          /* FIXME TC16SXG: intIfNum->ptin_port */
           if (ptin_dhcp_clientIndex_get(dhcp_binding.intIfNum, vlanId, &client, &client_index)==L7_SUCCESS &&
         #else
           if (ptin_dhcp_clientIndex_get(relayAgentInfo.intIfNum, vlanId, &client, &client_index)==L7_SUCCESS &&
@@ -4043,6 +4079,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       /* The packet is put for filtering as the packet might not have Option-82,
          which is expected on L2 Relay trusted interfaces. So drop the packet.*/
       dsIntfInfo[intIfNum].dsIntfStats.trustedServerFramesWithoutOption82++;
+      /* FIXME TC16SXG: intIfNum->ptin_port */
       ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITHOUT_OPTIONS);
 #if 0 /* PTin removed: DHCPv6 */
       ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITHOUT_OPTIONS);
@@ -4063,6 +4100,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       /* The packet is put for filtering as the packet have Option-82,
          which is not expected on L2 Relay untrusted interfaces. So drop the packet.*/
       dsIntfInfo[intIfNum].dsIntfStats.untrustedServerFramesWithOption82++;
+      /* FIXME TC16SXG: intIfNum->ptin_port */
       ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_SERVER_PKTS_ON_UNTRUSTED_INTF);
       DHCP_L2RELAY_LOG("DHCP L2 Relay dropping server msg with Option-82 rx'ed on L2Relay untrusted",
                          intIfNum, vlanId, (L7_enetHeader_t *)frame, ipHeader, dhcpPacket, DS_TRACE_LOG);
@@ -4104,6 +4142,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
     #endif
     {
       dsInfo->debugStats.serverOption82Rx++;
+      /* FIXME TC16SXG: intIfNum->ptin_port */
       ptin_dhcp_stat_increment_field( intIfNum, vlanId, *client_idx,
                                       DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION82);
       dsL2RelayRelayAgentInfoOptionCfgGet(dhcp_binding.intIfNum,
@@ -4245,6 +4284,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
     {
       if (ptin_debug_dhcp_snooping)
         PT_LOG_TRACE(LOG_CTX_DHCP,"Incremented DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTION82");
+      /* FIXME TC16SXG: intIfNum->ptin_port */
       ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTIONS);
     }
 
@@ -4254,6 +4294,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
        if ((relayFlag == L7_TRUE) && (_dsVlanIntfL2RelayTrustGet(vlanId,intIfNum) == L7_FALSE))   /* PTin modified: DHCP snooping */
        {
          dsIntfInfo[intIfNum].dsIntfStats.untrustedClientFramesWithOption82++;
+         /* FIXME TC16SXG: intIfNum->ptin_port */
          ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_CLIENT_PKTS_WITHOPS_ON_UNTRUSTED_INTF);
          DHCP_L2RELAY_LOG("DHCP L2 Relay dropping client msg with Option-82 and giaddr==0 "
                             "rx'ed on L2 Relay untrusted", intIfNum, vlanId,
@@ -4756,7 +4797,9 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
       if (dsFrameIntfFilterSend(relayOptIntIfNum, vlanId, frame, frameLen, L7_FALSE, innerVlanId, client_idx) == L7_SUCCESS)
       {
         dsInfo->debugStats.serverOption82Tx++;
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         ptin_dhcp_stat_increment_field(relayOptIntIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS);
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         ptin_dhcp_stat_increment_field(relayOptIntIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED);
         return L7_SUCCESS;
       }
@@ -4846,6 +4889,7 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
   /* PTin modified: DHCP snooping */
   #if 1
   /* Only send to trusted ports */
+  /* FIXME TC16SXG: intIfNum->ptin_port */
   if (ptin_dhcp_intfTrusted_getList(vlanId, &portMask) == L7_SUCCESS)
   #else
   if (dot1qVlanEgressPortsGet(vlanId, &portMask) == L7_SUCCESS)
@@ -4909,6 +4953,7 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
           if (dsFrameIntfFilterSend(i, vlanId, frame, frameLen,
                          requestFlag, innerVlanId, client_idx) != L7_SUCCESS)                     /* PTin modified: DHCP snooping */
           {
+            /* FIXME TC16SXG: intIfNum->ptin_port */
             ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FAILED);
             rc = L7_FAILURE;
           }
@@ -4920,6 +4965,7 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
              L7_ushort16 ethHdrLen = sysNetDataOffsetGet(frame);
              L7_uchar8 ipVersion = (0xF0 & *(L7_uchar8*)(frame + ethHdrLen)) >> 4 ;
 
+             /* FIXME TC16SXG: intIfNum->ptin_port */
              if (ptin_dhcp_client_options_get(intIfNum, vlanId, innerVlanId, &isActiveOp82, &isActiveOp37, &isActiveOp18) != L7_SUCCESS)
              {
                 if (ptin_debug_dhcp_snooping)
@@ -4935,10 +4981,12 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
              {
                 if(isActiveOp82)
                 {
+                   /* FIXME TC16SXG: intIfNum->ptin_port */
                    ptin_dhcp_stat_increment_field(i, vlanId, client_idx, DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION82);
                 }
                 if(!isActiveOp82)
                 {
+                   /* FIXME TC16SXG: intIfNum->ptin_port */
                    ptin_dhcp_stat_increment_field(i, vlanId, client_idx, DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITHOUT_OPTIONS);
                 }
              }
@@ -4946,18 +4994,22 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
              {
                 if (isActiveOp37)
                 {
+                   /* FIXME TC16SXG: intIfNum->ptin_port */
                    ptin_dhcp_stat_increment_field(i, vlanId, client_idx, DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION37);
                 }
                 if (isActiveOp18)
                 {
+                   /* FIXME TC16SXG: intIfNum->ptin_port */
                    ptin_dhcp_stat_increment_field(i, vlanId, client_idx, DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION18);
                 }
                 if ( (!isActiveOp18) && (!isActiveOp37) )
                 {
+                   /* FIXME TC16SXG: intIfNum->ptin_port */
                    ptin_dhcp_stat_increment_field(i, vlanId, client_idx, DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITHOUT_OPTIONS);
                 }
              }
 
+             /* FIXME TC16SXG: intIfNum->ptin_port */
              ptin_dhcp_stat_increment_field(i, vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED);
           }
           #endif
@@ -5282,6 +5334,7 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
     /* Don't bother logging this. mbuf alloc failures happen occasionally. DHCP
      * should recover. */
     dsInfo->debugStats.txFail++;
+    /* FIXME TC16SXG: intIfNum->ptin_port */
     ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FAILED);
     return L7_FAILURE;
   }
@@ -5300,6 +5353,7 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
     PT_LOG_TRACE(LOG_CTX_DHCP, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u, frameLen %u", intIfNum, vlanId, innerVlanId, frameLen);
 
   /* Extract external outer and inner vlan for this tx interface */
+  /* FIXME TC16SXG: intIfNum->ptin_port */
   if (ptin_dhcp_extVlans_get(intIfNum, vlanId, innerVlanId, client_idx, &extOVlan,&extIVlan) == L7_SUCCESS)
   {
     /* Modify outer vlan */
