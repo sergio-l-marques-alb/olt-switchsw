@@ -175,7 +175,7 @@ static L7_uint32 pppoe_quattro_stacked_evcs = 0;
  ***********************************************************/
 
 /* Global PPPoE statistics at interface level */
-NIM_INTF_MASK_t pppoe_intIfNum_trusted;
+NIM_INTF_MASK_t pppoe_intf_trusted;
 
 /* PPPOE instances array */
 st_PppoeInstCfg_t  pppoeInstances[PTIN_SYSTEM_N_PPPOE_INSTANCES];
@@ -442,7 +442,7 @@ L7_RC_t ptin_pppoe_init(void)
     return L7_FAILURE;
   }
 
-  PT_LOG_INFO(LOG_CTX_PPPOE, "sizeof(pppoe_intIfNum_trusted)      = %u", sizeof(pppoe_intIfNum_trusted));
+  PT_LOG_INFO(LOG_CTX_PPPOE, "sizeof(pppoe_intf_trusted)          = %u", sizeof(pppoe_intf_trusted));
   PT_LOG_INFO(LOG_CTX_PPPOE, "sizeof(pppoeInstances)              = %u", sizeof(pppoeInstances));
   PT_LOG_INFO(LOG_CTX_PPPOE, "sizeof(global_stats_intf)           = %u", sizeof(global_stats_intf));
   PT_LOG_INFO(LOG_CTX_PPPOE, "sizeof(pppoeClients_unified.avlTree)= %u",
@@ -1097,7 +1097,6 @@ L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_
   L7_uint32 ptin_port;
   ptin_evc_intfCfg_t intfCfg;
   #endif
-  L7_uint32 intIfNum;
 
   /* Validate arguments */
   if (client_id == L7_NULLPTR || PPPOE_CLIENT_MASK_UPDATE(client_id->mask) == 0x00)
@@ -1125,7 +1124,7 @@ L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_
 
   /* Get ptin_port value */
   #if (PPPOE_CLIENT_INTERF_SUPPORTED)
-  ptin_port = 0;
+  ptin_port = (L7_uint32)-1;
   if (client.mask & PTIN_CLIENT_MASK_FIELD_INTF)
   {
     /* Get interface configuration in the UC EVC */
@@ -1154,10 +1153,9 @@ L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_
        (client.mask & PTIN_CLIENT_MASK_FIELD_INTF) &&
        (client.mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) )
   {
-     /* Get interface as intIfNum format */
-    if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
+    if (ptin_port < PTIN_SYSTEM_N_INTERF)
     {
-      if (ptin_evc_extVlans_get(intIfNum, evc_idx,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
+      if (ptin_evc_extVlans_get(ptin_port, evc_idx,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
       {
         PT_LOG_TRACE(LOG_CTX_PPPOE,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
                   client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
@@ -1171,7 +1169,7 @@ L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_
     }
     else
     {
-      PT_LOG_ERR(LOG_CTX_PPPOE,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type,client.ptin_intf.intf_id);
+      PT_LOG_ERR(LOG_CTX_PPPOE,"Invalid ptin_port %u", ptin_port);
     }
   }
 
@@ -1831,7 +1829,7 @@ L7_RC_t ptin_pppoe82_bindtable_remove(pppoeSnoopBinding_t *dsBinding)
 /**
  * Get global PPPOE statistics
  * 
- * @param intIfNum    : interface
+ * @param ptin_intf   : interface
  * @param stat_port_g : statistics (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
@@ -1870,8 +1868,8 @@ L7_RC_t ptin_pppoe_stat_intf_get(ptin_intf_t *ptin_intf, ptin_PPPOE_Statistics_t
  * interface 
  * 
  * @param evc_idx  : Unicast EVC id
- * @param intIfNum    : interface
- * @param stat_port   : statistics (output)
+ * @param ptin_intf : interface
+ * @param stat_port : statistics (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
@@ -2086,7 +2084,7 @@ L7_RC_t ptin_pppoe_stat_instance_clear(L7_uint32 evc_idx)
 /**
  * Clear interface PPPOE statistics
  * 
- * @param intIfNum    : interface 
+ * @param ptin_intf : interface 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
@@ -2152,7 +2150,7 @@ L7_RC_t ptin_pppoe_stat_intf_clear(ptin_intf_t *ptin_intf)
  * Clear statistics of a particular PPPOE instance and interface
  * 
  * @param evc_idx  : Unicast EVC id
- * @param intIfNum    : interface
+ * @param ptin_intf : interface
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
@@ -2323,24 +2321,16 @@ L7_RC_t ptin_pppoe_rootVlan_get(L7_uint16 intVlan, L7_uint16 *rootVlan)
 /**
  * Validate ingress interface for a PPPOE packet 
  * 
- * @param intIfNum    : interface
+ * @param ptin_port : interface
  * 
  * @return L7_BOOL : L7_TRUE/L7_FALSE
  */
-L7_BOOL ptin_pppoe_intf_validate(L7_uint32 intIfNum)
+L7_BOOL ptin_pppoe_intf_validate(L7_uint32 ptin_port)
 {
   /* Validate arguments */
-  if ( intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT )
+  if (ptin_port >= PTIN_SYSTEM_N_PORTS)
   {
-    PT_LOG_ERR(LOG_CTX_PPPOE,"Invalid arguments: intIfNum=%u",intIfNum);
-    return L7_FALSE;
-  }
-
-  /* Convert interface to ptin_port */
-  if (ptin_intf_intIfNum2ptintf(intIfNum,L7_NULLPTR)!=L7_SUCCESS)
-  {
-    if (ptin_debug_pppoe_snooping)
-      PT_LOG_ERR(LOG_CTX_PPPOE,"Invalid intIfNum %u",intIfNum);
+    PT_LOG_ERR(LOG_CTX_PPPOE,"Invalid arguments: ptin_port=%u", ptin_port);
     return L7_FALSE;
   }
 
@@ -2379,7 +2369,7 @@ L7_BOOL ptin_pppoe_vlan_validate(L7_uint16 intVlanId)
  */
 void ptin_pppoe_intfTrusted_init(void)
 {
-  memset(&pppoe_intIfNum_trusted, 0x00, sizeof(pppoe_intIfNum_trusted));
+  memset(&pppoe_intf_trusted, 0x00, sizeof(pppoe_intf_trusted));
 
   PT_LOG_INFO(LOG_CTX_PPPOE,"Trusted ports initialized");
 }
@@ -2387,26 +2377,26 @@ void ptin_pppoe_intfTrusted_init(void)
 /**
  * Set a particular interface as trusted or not
  * 
- * @param intIfNum : interface
+ * @param ptin_port : interface
  * @param trusted  : trusted
  */
-void ptin_pppoe_intfTrusted_set(L7_uint32 intIfNum, L7_BOOL trusted)
+void ptin_pppoe_intfTrusted_set(L7_uint32 ptin_port, L7_BOOL trusted)
 {
-  L7_INTF_SETMASKBIT(pppoe_intIfNum_trusted, intIfNum);
+  L7_INTF_SETMASKBIT(pppoe_intf_trusted, ptin_port);
 }
 
 
 /**
  * Check if a particular interface of one EVC is trusted
  * 
- * @param intIfNum    : interface
+ * @param ptin_port    : interface
  * @param intVlanId   : internal vlan
  * 
  * @return L7_BOOL : L7_TRUE/L7_FALSE
  */
-L7_BOOL ptin_pppoe_is_intfRoot(L7_uint32 intIfNum, L7_uint16 intVlanId)
+L7_BOOL ptin_pppoe_is_intfRoot(L7_uint32 ptin_port, L7_uint16 intVlanId)
 {
-  return ptin_evc_intf_isRoot(intVlanId, intIfNum);
+  return ptin_evc_intf_isRoot(intVlanId, ptin_port);
 }
 
 /**
@@ -2420,7 +2410,7 @@ L7_BOOL ptin_pppoe_is_intfRoot(L7_uint32 intIfNum, L7_uint16 intVlanId)
  */
 L7_BOOL ptin_pppoe_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intfList)
 {
-  L7_uint32             i, intIfNum;
+  L7_uint32             i, ptin_port;
   L7_uint               pppoe_idx;
   st_PppoeInstCfg_t     *pppoeInst;
   L7_uint32             evc_id_ext;
@@ -2472,12 +2462,12 @@ L7_BOOL ptin_pppoe_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *int
   /* Check all EVC ports for trusted ones */
   for (i = 0; i < evcConf.n_intf; i++)
   {
-    intIfNum = evcConf.intf[i].intf.value.intIfNum;
+    ptin_port = evcConf.intf[i].intf.value.ptin_port;
 
     /* Mark interface as trusted, if it is */
-    if (L7_INTF_ISMASKBITSET(pppoe_intIfNum_trusted, intIfNum))
+    if (L7_INTF_ISMASKBITSET(pppoe_intf_trusted, ptin_port))
     {
-      L7_INTF_SETMASKBIT(*intfList, intIfNum);
+      L7_INTF_SETMASKBIT(*intfList, ptin_port);
     }
   }
 
@@ -2487,7 +2477,7 @@ L7_BOOL ptin_pppoe_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *int
 /**
  * Get external vlans
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param intOVlan 
  * @param intIVlan 
  * @param client_idx 
@@ -2496,7 +2486,7 @@ L7_BOOL ptin_pppoe_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *int
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_pppoe_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan,
+L7_RC_t ptin_pppoe_extVlans_get(L7_uint32 ptin_port, L7_uint16 intOVlan, L7_uint16 intIVlan,
                                 L7_int client_idx, L7_uint16 *uni_ovid, L7_uint16 *uni_ivid)
 {
   L7_uint pppoe_idx;
@@ -2506,17 +2496,18 @@ L7_RC_t ptin_pppoe_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint1
   L7_uint8  intf_type;
 
   /* Get interface type */
-  if (ptin_evc_intf_type_get(intOVlan, intIfNum, &intf_type) != L7_SUCCESS)
+  if (ptin_evc_intf_type_get(intOVlan, ptin_port, &intf_type) != L7_SUCCESS)
   {
     if (ptin_debug_pppoe_snooping)
-      PT_LOG_TRACE(LOG_CTX_PPPOE, "Error getting intf configuration for intVlan %u, intIfNum %u", intOVlan, intIfNum);
+      PT_LOG_TRACE(LOG_CTX_PPPOE, "Error getting intf configuration for intVlan %u, ptin_port %u",
+                   intOVlan, ptin_port);
     return L7_FAILURE;
   }
   /* Validate interface type */
   if (intf_type != PTIN_EVC_INTF_ROOT && intf_type != PTIN_EVC_INTF_LEAF)
   {
     if (ptin_debug_pppoe_snooping)
-      PT_LOG_TRACE(LOG_CTX_PPPOE, "intVlan %u / intIfNum %u is not used", intOVlan, intIfNum);
+      PT_LOG_TRACE(LOG_CTX_PPPOE, "intVlan %u / ptin_port %u is not used", intOVlan, ptin_port);
     return L7_FAILURE;
   }
 
@@ -2540,7 +2531,7 @@ L7_RC_t ptin_pppoe_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint1
   /* If no data was retrieved, goto EVC info */
   if (ovid == 0)
   {
-    if (ptin_evc_extVlans_get_fromIntVlan(intIfNum, intOVlan, intIVlan, &ovid, &ivid) != L7_SUCCESS)
+    if (ptin_evc_extVlans_get_fromIntVlan(ptin_port, intOVlan, intIVlan, &ovid, &ivid) != L7_SUCCESS)
     {
       ovid = intOVlan;
       ivid = intIVlan;
@@ -2570,14 +2561,14 @@ L7_RC_t ptin_pppoe_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint1
 /**
  * Get the client index associated to a PPPOE client 
  * 
- * @param intIfNum      : interface number
+ * @param ptin_port     : interface number
  * @param intVlan       : internal vlan
  * @param client        : Client information parameters
  * @param client_index  : Client index to be returned
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_pppoe_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
+L7_RC_t ptin_pppoe_clientIndex_get(L7_uint32 ptin_port, L7_uint16 intVlan,
                                   ptin_client_id_t *client,
                                   L7_uint *client_index)
 {
@@ -2616,19 +2607,16 @@ L7_RC_t ptin_pppoe_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
   #if (PPPOE_CLIENT_INTERF_SUPPORTED)
   if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF)
   {
-    if (intIfNum!=0 && intIfNum!=L7_ALL_INTERFACES)
+    if (ptin_intf_port2ptintf(ptin_port, &ptin_intf) == L7_SUCCESS)
     {
-      if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)==L7_SUCCESS)
-      {
-        client->ptin_intf.intf_type = ptin_intf.intf_type;
-        client->ptin_intf.intf_id   = ptin_intf.intf_id;
-      }
-      else
-      {
-        if (ptin_debug_pppoe_snooping)
-          PT_LOG_ERR(LOG_CTX_PPPOE,"Connot convert client intIfNum %u to ptin_port_format",intIfNum);
-        return L7_FAILURE;
-      }
+      client->ptin_intf.intf_type = ptin_intf.intf_type;
+      client->ptin_intf.intf_id   = ptin_intf.intf_id;
+    }
+    else
+    {
+      if (ptin_debug_pppoe_snooping)
+        PT_LOG_ERR(LOG_CTX_PPPOE,"Connot convert client ptin_port %u to ptin_port_format",ptin_port);
+      return L7_FAILURE;
     }
   }
   #endif
@@ -2784,7 +2772,7 @@ L7_RC_t ptin_pppoe_clientData_get(L7_uint16 intVlan,
 /**
  * Get PPPOE client data (circuit and remote ids)
  * 
- * @param intIfNum    : FP interface
+ * @param ptin_port   : FP interface
  * @param intVlan     : internal vlan
  * @param innerVlan   : inner/client vlan 
  * @param circuitId   : circuit id (output) 
@@ -2792,8 +2780,8 @@ L7_RC_t ptin_pppoe_clientData_get(L7_uint16 intVlan,
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_pppoe_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 innerVlan, L7_uchar8 *macAddr,
-                                L7_char8 *circuitId, L7_char8 *remoteId)
+L7_RC_t ptin_pppoe_stringIds_get(L7_uint32 ptin_port, L7_uint16 intVlan, L7_uint16 innerVlan, L7_uchar8 *macAddr,
+                                 L7_char8 *circuitId, L7_char8 *remoteId)
 {
   L7_uint pppoe_idx;
   ptin_intf_t ptin_intf;
@@ -2801,7 +2789,7 @@ L7_RC_t ptin_pppoe_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint1
   ptinPppoeClientInfoData_t *client_info;
 
   /* Validate arguments */
-  if (intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT ||
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
       intVlan<PTIN_VLAN_MIN || intVlan>PTIN_VLAN_MAX /*||
       innerVlan==0 || innerVlan>=4096*/)
   {
@@ -2811,10 +2799,10 @@ L7_RC_t ptin_pppoe_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint1
   }
 
   /* Convert interface to ptin format */
-  if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)
+  if (ptin_intf_port2ptintf(ptin_port, &ptin_intf) != L7_SUCCESS)
   {
     if (ptin_debug_pppoe_snooping)
-      PT_LOG_ERR(LOG_CTX_PPPOE,"Invalid intIfNum (%u)",intIfNum);
+      PT_LOG_ERR(LOG_CTX_PPPOE,"Invalid ptin_port (%u)", ptin_port);
     return L7_FAILURE;
   }
 
@@ -2926,7 +2914,7 @@ L7_RC_t ptin_pppoe_ethPrty_get(L7_uint16 intVlan, L7_uint8 *ethPrty)
 /**
  * Get PPPOE client data (PPPOE Options)
  *
- * @param intIfNum    : FP interface
+ * @param ptin_port   : FP interface
  * @param intVlan     : internal vlan
  * @param innerVlan   : inner/client vlan
  * @param isActiveOp82: L7_TRUE if op82 is active for this client
@@ -2935,8 +2923,8 @@ L7_RC_t ptin_pppoe_ethPrty_get(L7_uint16 intVlan, L7_uint8 *ethPrty)
  *
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_pppoe_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 innerVlan, L7_BOOL *isActiveOp82,
-                                     L7_BOOL *isActiveOp37, L7_BOOL *isActiveOp18)
+L7_RC_t ptin_pppoe_client_options_get(L7_uint32 ptin_port, L7_uint16 intVlan, L7_uint16 innerVlan, L7_BOOL *isActiveOp82,
+                                      L7_BOOL *isActiveOp37, L7_BOOL *isActiveOp18)
 {
    L7_uint pppoe_idx;
    ptin_intf_t ptin_intf;
@@ -2958,7 +2946,7 @@ L7_RC_t ptin_pppoe_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_
   }
 
    /* Validate arguments */
-   if (intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT || intVlan < PTIN_VLAN_MIN || intVlan > PTIN_VLAN_MAX
+   if (ptin_port >= PTIN_SYSTEM_N_INTERF || intVlan < PTIN_VLAN_MIN || intVlan > PTIN_VLAN_MAX
 #if (PTIN_BOARD_IS_GPON)
        || innerVlan==0 || innerVlan>=4096
 #endif
@@ -2970,10 +2958,10 @@ L7_RC_t ptin_pppoe_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_
    }
 
    /* Convert interface to ptin format */
-   if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf) != L7_SUCCESS)
+   if (ptin_intf_port2ptintf(ptin_port, &ptin_intf) != L7_SUCCESS)
    {
       if (ptin_debug_pppoe_snooping)
-         PT_LOG_ERR(LOG_CTX_PPPOE, "Invalid intIfNum (%u)", intIfNum);
+         PT_LOG_ERR(LOG_CTX_PPPOE, "Invalid ptin_port (%u)", ptin_port);
       return L7_FAILURE;
    }
 
@@ -3052,16 +3040,15 @@ L7_RC_t ptin_pppoe_snooping_trap_interface_update(L7_uint32 evcId, ptin_intf_t *
 /**
  * Increment PPPOE statistics
  * 
- * @param intIfNum   : interface where the packet entered
+ * @param ptin_port  : interface where the packet entered
  * @param vlan       : packet's interval vlan
  * @param client_idx : client index
  * @param field      : field to increment
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_pppoe_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_pppoe_stat_enum_t field)
+L7_RC_t ptin_pppoe_stat_increment_field(L7_uint32 ptin_port, L7_uint16 vlan, L7_uint32 client_idx, ptin_pppoe_stat_enum_t field)
 {
-  L7_uint32 ptin_port;
   st_PppoeInstCfg_t *pppoeInst;
   ptinPppoeClientInfoData_t *client;
   ptin_PPPOE_Statistics_t *stat_port_g = L7_NULLPTR;
@@ -3085,19 +3072,15 @@ L7_RC_t ptin_pppoe_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_u
   }
 
   /* If interface is valid... */
-  if (intIfNum>0 && intIfNum<L7_MAX_INTERFACE_COUNT)
+  if (ptin_port < PTIN_SYSTEM_N_INTERF)
   {
-    /* Check if interface exists */
-      if (ptin_intf_intIfNum2port(intIfNum, pppoeInst->nni_ovid /*vlan*/, &ptin_port) == L7_SUCCESS) /* FIXME TC16SXG Should we use vlan instead?? */
-    {
-      /* Global interface statistics at interface level */
-      stat_port_g = &global_stats_intf[ptin_port];
+    /* Global interface statistics at interface level */
+    stat_port_g = &global_stats_intf[ptin_port];
 
-      if (pppoeInst!=L7_NULLPTR)
-      {
-        /* interface statistics at pppoe instance and interface level */
-        stat_port = &pppoeInst->stats_intf[ptin_port];
-      }
+    if (pppoeInst!=L7_NULLPTR)
+    {
+      /* interface statistics at pppoe instance and interface level */
+      stat_port = &pppoeInst->stats_intf[ptin_port];
     }
   }
 

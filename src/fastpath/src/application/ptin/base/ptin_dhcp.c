@@ -176,7 +176,7 @@ static L7_uint32 dhcp_quattro_stacked_evcs = 0;
  ***********************************************************/
 
 /* Global DHCP statistics at interface level */
-NIM_INTF_MASK_t dhcp_intIfNum_trusted;
+NIM_INTF_MASK_t dhcp_intf_trusted;
 
 /* DHCP instances array */
 st_DhcpInstCfg_t  dhcpInstances[PTIN_SYSTEM_N_DHCP_INSTANCES];
@@ -444,7 +444,7 @@ L7_RC_t ptin_dhcp_init(void)
     return L7_FAILURE;
   }
 
-  PT_LOG_INFO(LOG_CTX_DHCP, "sizeof(dhcp_intIfNum_trusted)      = %u", sizeof(dhcp_intIfNum_trusted));
+  PT_LOG_INFO(LOG_CTX_DHCP, "sizeof(dhcp_intf_trusted)          = %u", sizeof(dhcp_intf_trusted));
   PT_LOG_INFO(LOG_CTX_DHCP, "sizeof(dhcpInstances)              = %u", sizeof(dhcpInstances));
   PT_LOG_INFO(LOG_CTX_DHCP, "sizeof(global_stats_intf)          = %u", sizeof(global_stats_intf));
   PT_LOG_INFO(LOG_CTX_DHCP, "sizeof(dhcpClients_unified.avlTree)= %u",
@@ -1463,7 +1463,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
   ptinDhcpClientsAvlTree_t *avl_tree;
   ptinDhcpClientInfoData_t *avl_infoData;
   #if (DHCP_CLIENT_INTERF_SUPPORTED)
-  L7_uint32 ptin_port, intIfNum;
+  L7_uint32 ptin_port;
   ptin_evc_intfCfg_t intfCfg;
   #endif
 
@@ -1492,7 +1492,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
 
   /* Get ptin_port value */
   #if (DHCP_CLIENT_INTERF_SUPPORTED)
-  ptin_port = 0;
+  ptin_port = (L7_uint32)-1;
   if (client.mask & PTIN_CLIENT_MASK_FIELD_INTF)
   {
     /* Get interface configuration in the UC EVC */
@@ -1521,10 +1521,9 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
        (client.mask & PTIN_CLIENT_MASK_FIELD_INTF) &&
        (client.mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) )
   {
-     /* Get interface as intIfNum format */
-    if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
+    if (ptin_port < PTIN_SYSTEM_N_INTERF)
     {
-      if (ptin_evc_extVlans_get(intIfNum, evc_idx,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
+      if (ptin_evc_extVlans_get(ptin_port, evc_idx,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
       {
         PT_LOG_TRACE(LOG_CTX_DHCP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
                   client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
@@ -2092,7 +2091,7 @@ L7_RC_t ptin_dhcp82_bindtable_get(ptin_DHCP_bind_entry *table, L7_uint32 *max_en
   for (i=0,index=0; i<n_max && usmDbDsBindingGetNext(&dsBinding)==L7_SUCCESS; i++)
   {
     // Calculate port reference and validate it
-    if (ptin_intf_intIfNum2ptintf(dsBinding.intIfNum,&ptin_intf)!=L7_SUCCESS)
+    if (ptin_intf_port2ptintf(dsBinding.ptin_port, &ptin_intf) != L7_SUCCESS)
       continue;
     // Extract vlan and validate it
     if (dsBinding.key.vlanId < PTIN_VLAN_MIN || dsBinding.key.vlanId > PTIN_VLAN_MAX)
@@ -2143,7 +2142,7 @@ L7_RC_t ptin_dhcpv4v6_bindtable_get(ptin_DHCPv4v6_bind_entry *table, L7_uint32 *
   for (i=0,index=0; i<n_max && usmDbDsBindingGetNext(&dsBinding)==L7_SUCCESS; i++)
   {
     // Calculate port reference and validate it
-    if (ptin_intf_intIfNum2ptintf(dsBinding.intIfNum,&ptin_intf)!=L7_SUCCESS)
+    if (ptin_intf_port2ptintf(dsBinding.ptin_port, &ptin_intf) != L7_SUCCESS)
       continue;
     // Extract vlan and validate it
     if (dsBinding.key.vlanId<PTIN_VLAN_MIN || dsBinding.key.vlanId>PTIN_VLAN_MAX)
@@ -2154,7 +2153,7 @@ L7_RC_t ptin_dhcpv4v6_bindtable_get(ptin_DHCPv4v6_bind_entry *table, L7_uint32 *
 
     if(*port!=(L7_uint8)-1) // check if is a intf binding table reading
     {
-      if(*port!=dsBinding.intIfNum)
+      if (*port != dsBinding.ptin_port)
       continue;
     }
 
@@ -2231,7 +2230,7 @@ L7_RC_t ptin_dhcp_bindtable_service_remove(L7_uint32 evc_ext_id)
 /**
  * Get global DHCP statistics
  * 
- * @param intIfNum    : interface
+ * @param ptin_intf   : interface
  * @param stat_port_g : statistics (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
@@ -2270,7 +2269,7 @@ L7_RC_t ptin_dhcp_stat_intf_get(ptin_intf_t *ptin_intf, ptin_DHCP_Statistics_t *
  * interface 
  * 
  * @param evc_idx   : Unicast EVC id
- * @param intIfNum  : interface
+ * @param ptin_intf : interface
  * @param stat_port : statistics (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
@@ -2507,7 +2506,7 @@ L7_RC_t ptin_dhcp_stat_instance_clear(L7_uint32 evc_idx)
 /**
  * Clear interface DHCP statistics
  * 
- * @param intIfNum    : interface 
+ * @param ptin_intf : interface 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
@@ -2573,7 +2572,7 @@ L7_RC_t ptin_dhcp_stat_intf_clear(ptin_intf_t *ptin_intf)
  * Clear statistics of a particular DHCP instance and interface
  * 
  * @param evc_idx  : Unicast EVC id
- * @param intIfNum    : interface
+ * @param ptin_intf : interface
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
@@ -2725,24 +2724,16 @@ L7_RC_t ptin_dhcp_stat_client_clear(L7_uint32 evc_idx, const ptin_client_id_t *c
 /**
  * Validate ingress interface for a DHCP packet 
  * 
- * @param intIfNum    : interface
+ * @param ptin_port : interface
  * 
  * @return L7_BOOL : L7_TRUE/L7_FALSE
  */
-L7_BOOL ptin_dhcp_intf_validate(L7_uint32 intIfNum)
+L7_BOOL ptin_dhcp_intf_validate(L7_uint32 ptin_port)
 {
   /* Validate arguments */
-  if ( intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT )
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF)
   {
-    PT_LOG_ERR(LOG_CTX_DHCP,"Invalid arguments: intIfNum=%u",intIfNum);
-    return L7_FALSE;
-  }
-
-  /* Convert interface to ptin_port */
-  if (ptin_intf_intIfNum2ptintf(intIfNum,L7_NULLPTR)!=L7_SUCCESS)
-  {
-    if (ptin_debug_dhcp_snooping)
-      PT_LOG_ERR(LOG_CTX_DHCP,"Invalid intIfNum %u",intIfNum);
+    PT_LOG_ERR(LOG_CTX_DHCP,"Invalid arguments: ptin_port=%u", ptin_port);
     return L7_FALSE;
   }
 
@@ -2780,13 +2771,13 @@ L7_BOOL ptin_dhcp_vlan_validate(L7_uint16 intVlanId)
  * Validate interface, internal vlan and innervlan received in a 
  * DHCP packet 
  * 
- * @param intIfNum    : interface
+ * @param ptin_port   : interface
  * @param intVlanId   : internal vlan
  * @param innerVlanId : client vlan
  * 
  * @return L7_BOOL : L7_TRUE/L7_FALSE
  */
-L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, L7_uint16 innerVlanId*/)
+L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 ptin_port, L7_uint16 intVlanId /*, L7_uint16 innerVlanId*/)
 {
   L7_uint dhcp_idx;
   L7_uint32 evc_id_ext;
@@ -2795,19 +2786,19 @@ L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, 
   st_DhcpInstCfg_t *dhcpInst;
 
   /* Validate arguments */
-  if ( intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT ||
+  if ( ptin_port >= PTIN_SYSTEM_N_INTERF ||
        intVlanId<PTIN_VLAN_MIN || intVlanId>PTIN_VLAN_MAX )
   {
     if (ptin_debug_dhcp_snooping)
-      PT_LOG_ERR(LOG_CTX_DHCP,"Invalid arguments: intIfNum=%u intVlan=%u",intIfNum,intVlanId);
+      PT_LOG_ERR(LOG_CTX_DHCP,"Invalid arguments: ptin_port=%u intVlan=%u", ptin_port, intVlanId);
     return L7_FALSE;
   }
 
   /* Convert interface to ptin_port */
-  if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf)!=L7_SUCCESS)
+  if (ptin_intf_port2ptintf(ptin_port, &ptin_intf)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      PT_LOG_ERR(LOG_CTX_DHCP,"Invalid intIfNum %u", intIfNum);
+      PT_LOG_ERR(LOG_CTX_DHCP,"Invalid ptin_port %u", ptin_port);
     return L7_FALSE;
   }
 
@@ -2848,8 +2839,8 @@ L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, 
   if (!intfCfg.in_use)
   {
     if (ptin_debug_dhcp_snooping)
-      PT_LOG_ERR(LOG_CTX_DHCP,"Interface %u/%u (intIfNum=%u) is not in use for eEVC %u",
-              ptin_intf.intf_type, ptin_intf.intf_id, intIfNum, evc_id_ext);
+      PT_LOG_ERR(LOG_CTX_DHCP,"Interface %u/%u (ptin_port=%u) is not in use for eEVC %u",
+              ptin_intf.intf_type, ptin_intf.intf_id, ptin_port, evc_id_ext);
     return L7_FALSE;
   }
 
@@ -2862,7 +2853,7 @@ L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, 
 void ptin_dhcp_intfTrusted_init(void)
 {
   /* All ports as untrusted */
-  memset(&dhcp_intIfNum_trusted, 0x00, sizeof(dhcp_intIfNum_trusted));
+  memset(&dhcp_intf_trusted, 0x00, sizeof(dhcp_intf_trusted));
 
   PT_LOG_INFO(LOG_CTX_DHCP,"Trusted ports initialized");
 }
@@ -2870,18 +2861,18 @@ void ptin_dhcp_intfTrusted_init(void)
 /**
  * Set a particular interface as trusted or not
  * 
- * @param intIfNum : interface
+ * @param ptin_port: interface
  * @param trusted  : trusted
  */
-void ptin_dhcp_intfTrusted_set(L7_uint32 intIfNum, L7_BOOL trusted)
+void ptin_dhcp_intfTrusted_set(L7_uint32 ptin_port, L7_BOOL trusted)
 {
   if (trusted)
   {
-    L7_INTF_SETMASKBIT(dhcp_intIfNum_trusted, intIfNum);
+    L7_INTF_SETMASKBIT(dhcp_intf_trusted, ptin_port);
   }
   else
   {
-    L7_INTF_CLRMASKBIT(dhcp_intIfNum_trusted, intIfNum);
+    L7_INTF_CLRMASKBIT(dhcp_intf_trusted, ptin_port);
   }
 }
 
@@ -2889,12 +2880,12 @@ void ptin_dhcp_intfTrusted_set(L7_uint32 intIfNum, L7_BOOL trusted)
 /**
  * Check if a particular interface of one EVC is trusted
  * 
- * @param intIfNum    : interface
+ * @param ptin_port   : interface
  * @param intVlanId   : internal vlan
  * 
  * @return L7_BOOL : L7_TRUE/L7_FALSE
  */
-L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
+L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 ptin_port, L7_uint16 intVlanId)
 {
   L7_uint dhcp_idx;
   L7_uint32 evc_id_ext;
@@ -2903,15 +2894,15 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
   st_DhcpInstCfg_t *dhcpInst;
 
   /* Validate arguments */
-  if ( intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT ||
+  if ( ptin_port >= PTIN_SYSTEM_N_INTERF ||
       (intVlanId != 0 && (intVlanId < PTIN_VLAN_MIN || intVlanId > PTIN_VLAN_MAX)) )
   {
-    PT_LOG_ERR(LOG_CTX_DHCP,"Invalid arguments: intIfNum=%u intVlan=%u",intIfNum,intVlanId);
+    PT_LOG_ERR(LOG_CTX_DHCP,"Invalid arguments: ptin_port=%u intVlan=%u", ptin_port, intVlanId);
     return L7_FALSE;
   }
 
   /* Mask with list of trusted ports */
-  if (!L7_INTF_ISMASKBITSET(dhcp_intIfNum_trusted, intIfNum))
+  if (!L7_INTF_ISMASKBITSET(dhcp_intf_trusted, ptin_port))
   {
     return L7_FALSE;
   }
@@ -2925,10 +2916,10 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
   /* Proceed to vlan validation */
 
   /* Convert interface to ptin_port */
-  if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf)!=L7_SUCCESS)
+  if (ptin_intf_port2ptintf(ptin_port, &ptin_intf)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      PT_LOG_ERR(LOG_CTX_DHCP,"Invalid intIfNum %u", intIfNum);
+      PT_LOG_ERR(LOG_CTX_DHCP,"Invalid ptin_port %u", ptin_port);
     return L7_FALSE;
   }
 
@@ -2969,8 +2960,8 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
   if (!intfCfg.in_use)
   {
     if (ptin_debug_dhcp_snooping)
-      PT_LOG_ERR(LOG_CTX_DHCP,"Interface %u/%u (intIfNum=%u) is not in use for eEVC %u",
-              ptin_intf.intf_type, ptin_intf.intf_id, intIfNum, evc_id_ext);
+      PT_LOG_ERR(LOG_CTX_DHCP,"Interface %u/%u (ptin_port=%u) is not in use for eEVC %u",
+              ptin_intf.intf_type, ptin_intf.intf_id, ptin_port, evc_id_ext);
     return L7_FALSE;
   }
 
@@ -2988,7 +2979,7 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
  */
 L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intfList)
 {
-  L7_uint32             i, intIfNum;
+  L7_uint32             i, ptin_port;
   L7_uint               dhcp_idx;
   st_DhcpInstCfg_t      *dhcpInst;
   L7_uint32             evc_id_ext;
@@ -3045,22 +3036,22 @@ L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intf
   /* Check all EVC ports for trusted ones */
   for (i = 0; i < evcConf.n_intf; i++)
   {
-    intIfNum = evcConf.intf[i].intf.value.intIfNum;
+    ptin_port = evcConf.intf[i].intf.value.ptin_port;
 
     if (ptin_debug_dhcp_snooping)
       PT_LOG_WARN(LOG_CTX_DHCP,"Processing port %u", evcConf.intf[i].intf.value.ptin_port);
 
     /* Mark interface as trusted, if it is */
-    if (L7_INTF_ISMASKBITSET(dhcp_intIfNum_trusted, intIfNum))
+    if (L7_INTF_ISMASKBITSET(dhcp_intf_trusted, ptin_port))
     {
       if (ptin_debug_dhcp_snooping)
-        PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_port %u / intIfNum %u is trusted", evcConf.intf[i].intf.value.ptin_port, intIfNum);
-      L7_INTF_SETMASKBIT(*intfList, intIfNum);
+        PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_port %u is trusted", ptin_port);
+      L7_INTF_SETMASKBIT(*intfList, ptin_port);
     }
     else
     {
       if (ptin_debug_dhcp_snooping)
-        PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_port %u / intIfNum %u is UNtrusted", evcConf.intf[i].intf.value.ptin_port, intIfNum);
+        PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_port %u is UNtrusted", ptin_port);
     }
   }
 
@@ -3070,7 +3061,7 @@ L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intf
 /**
  * Get external vlans
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param intOVlan 
  * @param intIVlan 
  * @param client_idx 
@@ -3079,7 +3070,7 @@ L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intf
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_dhcp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan,
+L7_RC_t ptin_dhcp_extVlans_get(L7_uint32 ptin_port, L7_uint16 intOVlan, L7_uint16 intIVlan,
                                L7_int client_idx, L7_uint16 *uni_ovid, L7_uint16 *uni_ivid)
 {
   L7_uint dhcp_idx;
@@ -3089,17 +3080,18 @@ L7_RC_t ptin_dhcp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
   L7_uint8  intf_type;
 
   /* Get interface type */
-  if (ptin_evc_intf_type_get(intOVlan, intIfNum, &intf_type) != L7_SUCCESS)
+  if (ptin_evc_intf_type_get(intOVlan, ptin_port, &intf_type) != L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      PT_LOG_TRACE(LOG_CTX_DHCP, "Error getting intf configuration for intVlan %u, intIfNum %u", intOVlan, intIfNum);
+      PT_LOG_TRACE(LOG_CTX_DHCP, "Error getting intf configuration for intVlan %u, ptin_port %u",
+                   intOVlan, ptin_port);
     return L7_FAILURE;
   }
   /* Validate interface type */
   if (intf_type != PTIN_EVC_INTF_ROOT && intf_type != PTIN_EVC_INTF_LEAF)
   {
     if (ptin_debug_dhcp_snooping)
-      PT_LOG_TRACE(LOG_CTX_DHCP, "intVlan %u / intIfNum %u is not used", intOVlan, intIfNum);
+      PT_LOG_TRACE(LOG_CTX_DHCP, "intVlan %u / ptin_port %u is not used", intOVlan, ptin_port);
     return L7_FAILURE;
   }
 
@@ -3123,7 +3115,7 @@ L7_RC_t ptin_dhcp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
   /* If no data was retrieved, goto EVC info */
   if (ovid == 0)
   {
-    if (ptin_evc_extVlans_get_fromIntVlan(intIfNum, intOVlan, intIVlan, &ovid, &ivid) != L7_SUCCESS)
+    if (ptin_evc_extVlans_get_fromIntVlan(ptin_port, intOVlan, intIVlan, &ovid, &ivid) != L7_SUCCESS)
     {
       ovid = intOVlan;
       ivid = intIVlan;
@@ -3153,14 +3145,14 @@ L7_RC_t ptin_dhcp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
 /**
  * Get the client index associated to a DHCP client 
  * 
- * @param intIfNum      : interface number
+ * @param ptin_port     : interface number
  * @param intVlan       : internal vlan
  * @param client        : Client information parameters
  * @param client_index  : Client index to be returned
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
+L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 ptin_port, L7_uint16 intVlan,
                                   ptin_client_id_t *client,
                                   L7_uint *client_index)
 {
@@ -3199,9 +3191,9 @@ L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
   #if (DHCP_CLIENT_INTERF_SUPPORTED)
   if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF)
   {
-    if (intIfNum!=0 && intIfNum!=L7_ALL_INTERFACES)
+    if (ptin_port != (L7_uint32)-1 /*All*/)
     {
-      if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)==L7_SUCCESS)
+      if (ptin_intf_port2ptintf(ptin_port, &ptin_intf) == L7_SUCCESS)
       {
         client->ptin_intf.intf_type = ptin_intf.intf_type;
         client->ptin_intf.intf_id   = ptin_intf.intf_id;
@@ -3209,7 +3201,7 @@ L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
       else
       {
         if (ptin_debug_dhcp_snooping)
-          PT_LOG_ERR(LOG_CTX_DHCP,"Connot convert client intIfNum %u to ptin_port_format",intIfNum);
+          PT_LOG_ERR(LOG_CTX_DHCP,"Connot convert client ptin_port %u to ptin_port_format",ptin_port);
         return L7_FAILURE;
       }
     }
@@ -3368,7 +3360,6 @@ L7_RC_t ptin_dhcp_clientData_get(L7_uint16 intVlan,
 /**
  * Get DHCP client data (circuit and remote ids)
  * 
- * @param intIfNum   : FP interface
  * @param intVlan    : internal vlan
  * @param dhcp_flags : DHCP flags (output) 
  * @param evc_flags  : EVC flags (output) 
@@ -3423,7 +3414,7 @@ L7_RC_t ptin_dhcp_flags_get(L7_uint16 intVlan, L7_uint8 *dhcp_flags, L7_uint32 *
 /**
  * Get DHCP client data (circuit and remote ids)
  * 
- * @param intIfNum    : FP interface
+ * @param ptin_port   : FP interface
  * @param intVlan     : internal vlan
  * @param innerVlan   : inner/client vlan 
  * @param circuitId   : circuit id (output) 
@@ -3431,7 +3422,7 @@ L7_RC_t ptin_dhcp_flags_get(L7_uint16 intVlan, L7_uint8 *dhcp_flags, L7_uint32 *
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 innerVlan, L7_uchar8 *macAddr,
+L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 ptin_port, L7_uint16 intVlan, L7_uint16 innerVlan, L7_uchar8 *macAddr,
                                 L7_char8 *circuitId, L7_char8 *remoteId)
 {
   L7_uint dhcp_idx;
@@ -3440,7 +3431,7 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16
   ptinDhcpClientInfoData_t *client_info;
 
   /* Validate arguments */
-  if (intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT ||
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
       intVlan<PTIN_VLAN_MIN || intVlan>PTIN_VLAN_MAX /*||
       innerVlan==0 || innerVlan>=4096*/)
   {
@@ -3450,10 +3441,10 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16
   }
 
   /* Convert interface to ptin format */
-  if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)
+  if (ptin_intf_port2ptintf(ptin_port, &ptin_intf)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      PT_LOG_ERR(LOG_CTX_DHCP,"Invalid intIfNum (%u)",intIfNum);
+      PT_LOG_ERR(LOG_CTX_DHCP,"Invalid ptin_port (%u)", ptin_port);
     return L7_FAILURE;
   }
 
@@ -3569,7 +3560,7 @@ L7_RC_t ptin_dhcp_ethPrty_get(L7_uint16 intVlan, L7_uint8 *ethPrty)
 /**
  * Get DHCP client data (DHCP Options)
  *
- * @param intIfNum    : FP interface
+ * @param ptin_port   : FP interface
  * @param intVlan     : internal vlan
  * @param innerVlan   : inner/client vlan
  * @param isActiveOp82: L7_TRUE if op82 is active for this client
@@ -3578,7 +3569,7 @@ L7_RC_t ptin_dhcp_ethPrty_get(L7_uint16 intVlan, L7_uint8 *ethPrty)
  *
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 innerVlan, L7_BOOL *isActiveOp82,
+L7_RC_t ptin_dhcp_client_options_get(L7_uint32 ptin_port, L7_uint16 intVlan, L7_uint16 innerVlan, L7_BOOL *isActiveOp82,
                                      L7_BOOL *isActiveOp37, L7_BOOL *isActiveOp18)
 {
    L7_uint dhcp_idx;
@@ -3601,7 +3592,7 @@ L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_u
   }
 
    /* Validate arguments */
-   if (intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT || intVlan < PTIN_VLAN_MIN || intVlan > PTIN_VLAN_MAX
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF || intVlan < PTIN_VLAN_MIN || intVlan > PTIN_VLAN_MAX
 #if (PTIN_BOARD_IS_GPON)
        || innerVlan==0 || innerVlan>=4096
 #endif
@@ -3613,10 +3604,10 @@ L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_u
    }
 
    /* Convert interface to ptin format */
-   if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf) != L7_SUCCESS)
+   if (ptin_intf_port2ptintf(ptin_port, &ptin_intf) != L7_SUCCESS)
    {
       if (ptin_debug_dhcp_snooping)
-         PT_LOG_ERR(LOG_CTX_DHCP, "Invalid intIfNum (%u)", intIfNum);
+         PT_LOG_ERR(LOG_CTX_DHCP, "Invalid ptin_port (%u)", ptin_port);
       return L7_FAILURE;
    }
 
@@ -3700,16 +3691,15 @@ L7_RC_t ptin_dhcp_snooping_trap_interface_update(L7_uint32 evc_idx, ptin_intf_t 
 /**
  * Increment DHCP statistics
  * 
- * @param intIfNum   : interface where the packet entered
+ * @param ptin_port  : interface where the packet entered
  * @param vlan       : packet's interval vlan
  * @param client_idx : client index
  * @param field      : field to increment
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_dhcp_stat_enum_t field)
+L7_RC_t ptin_dhcp_stat_increment_field(L7_uint32 ptin_port, L7_uint16 vlan, L7_uint32 client_idx, ptin_dhcp_stat_enum_t field)
 {
-  L7_uint32 ptin_port;
   st_DhcpInstCfg_t *dhcpInst;
   ptinDhcpClientInfoData_t *client;
   ptin_DHCP_Statistics_t *stat_port_g = L7_NULLPTR;
@@ -3733,19 +3723,15 @@ L7_RC_t ptin_dhcp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
   }
 
   /* If interface is valid... */
-  if (intIfNum>0 && intIfNum<L7_MAX_INTERFACE_COUNT)
+  if (ptin_port < PTIN_SYSTEM_N_INTERF)
   {
-    /* Check if interface exists */
-    if (ptin_intf_intIfNum2port(intIfNum, vlan, &ptin_port)==L7_SUCCESS)/* FIXME TC16SXG If this is the innervlan, then we need another way to get gem_vlan */
-    {
-      /* Global interface statistics at interface level */
-      stat_port_g = &global_stats_intf[ptin_port];
+    /* Global interface statistics at interface level */
+    stat_port_g = &global_stats_intf[ptin_port];
 
-      if (dhcpInst!=L7_NULLPTR)
-      {
-        /* interface statistics at dhcp instance and interface level */
-        stat_port = &dhcpInst->stats_intf[ptin_port];
-      }
+    if (dhcpInst!=L7_NULLPTR)
+    {
+      /* interface statistics at dhcp instance and interface level */
+      stat_port = &dhcpInst->stats_intf[ptin_port];
     }
   }
 

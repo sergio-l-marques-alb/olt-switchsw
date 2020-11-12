@@ -412,7 +412,7 @@ L7_RC_t ptin_dhcp_bindtable_service_remove(L7_uint32 evc_ext_id);
 /**
  * Get global DHCP statistics
  * 
- * @param intIfNum    : interface
+ * @param ptin_intf   : interface
  * @param stat_port_g : statistics (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
@@ -424,7 +424,7 @@ L7_RC_t ptin_dhcp_stat_intf_get(ptin_intf_t *ptin_intf, ptin_DHCP_Statistics_t *
  * interface 
  * 
  * @param evc_idx  : Unicast EVC id
- * @param intIfNum    : interface
+ * @param ptin_intf   : interface
  * @param stat_port   : statistics (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
@@ -462,7 +462,7 @@ extern L7_RC_t ptin_dhcp_stat_instance_clear(L7_uint32 evc_idx);
 /**
  * Clear interface DHCP statistics
  * 
- * @param intIfNum    : interface 
+ * @param ptin_intf : interface 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
@@ -472,7 +472,7 @@ extern L7_RC_t ptin_dhcp_stat_intf_clear(ptin_intf_t *ptin_intf);
  * Clear statistics of a particular DHCP instance and interface
  * 
  * @param evc_idx  : Unicast EVC id
- * @param intIfNum    : interface
+ * @param ptin_intf: interface
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
@@ -497,11 +497,11 @@ extern L7_RC_t ptin_dhcp_stat_client_clear(L7_uint32 evc_idx, const ptin_client_
 /**
  * Validate ingress interface for a DHCP packet 
  * 
- * @param intIfNum    : interface
+ * @param ptin_port : interface
  * 
  * @return L7_BOOL : L7_TRUE/L7_FALSE
  */
-L7_BOOL ptin_dhcp_intf_validate(L7_uint32 intIfNum);
+L7_BOOL ptin_dhcp_intf_validate(L7_uint32 ptin_port);
 
 /**
  * Validate internal vlan in a DHCP Packet 
@@ -516,13 +516,13 @@ L7_BOOL ptin_dhcp_vlan_validate(L7_uint16 intVlanId);
  * Validate interface, internal vlan and innervlan received in a 
  * DHCP packet 
  * 
- * @param intIfNum    : interface
+ * @param ptin_port   : interface
  * @param intVlanId   : internal vlan
  * @param innerVlanId : client vlan
  * 
  * @return L7_BOOL : L7_TRUE/L7_FALSE
  */
-L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, L7_uint16 innerVlanId*/);
+L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 ptin_port, L7_uint16 intVlanId /*, L7_uint16 innerVlanId*/);
 
 /**
  * Set all interfaces as untrusted
@@ -532,20 +532,20 @@ void ptin_dhcp_intfTrusted_init(void);
 /**
  * Set a particular interface as trusted or not
  * 
- * @param intIfNum : interface
+ * @param ptin_port: interface
  * @param trusted  : trusted
  */
-void ptin_dhcp_intfTrusted_set(L7_uint32 intIfNum, L7_BOOL trusted);
+void ptin_dhcp_intfTrusted_set(L7_uint32 ptin_port, L7_BOOL trusted);
 
 /**
  * Check if a particular interface of one EVC is trusted
  * 
- * @param intIfNum    : interface
+ * @param ptin_port   : interface
  * @param intVlanId   : internal vlan
  * 
  * @return L7_BOOL : L7_TRUE/L7_FALSE
  */
-L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId);
+L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 ptin_port, L7_uint16 intVlanId);
 
 /**
  * Get the list of trusted interfaces associated to a internal 
@@ -572,7 +572,7 @@ extern L7_RC_t ptin_dhcp_flags_get(L7_uint16 intVlan, L7_uint8 *dhcp_flags, L7_u
 /**
  * Get DHCP client data (circuit and remote ids)
  * 
- * @param intIfNum    : FP interface
+ * @param ptin_port   : FP interface
  * @param intVlan     : internal vlan
  * @param innerVlan   : inner/client vlan 
  * @param circuitId   : circuit id (output) 
@@ -580,7 +580,7 @@ extern L7_RC_t ptin_dhcp_flags_get(L7_uint16 intVlan, L7_uint8 *dhcp_flags, L7_u
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 innerVlan, L7_uchar8 *macAddr,
+extern L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 ptin_port, L7_uint16 intVlan, L7_uint16 innerVlan, L7_uchar8 *macAddr,
                                        L7_char8 *circuitId, L7_char8 *remoteId);
 
 /**
@@ -596,7 +596,7 @@ extern L7_RC_t ptin_dhcp_ethPrty_get(L7_uint16 intVlan, L7_uint8 *ethPrty);
 /**
  * Get DHCP client data (DHCP Options)
  *
- * @param intIfNum    : FP interface
+ * @param ptin_port   : FP interface
  * @param intVlan     : internal vlan
  * @param innerVlan   : inner/client vlan
  * @param isActiveOp82: L7_TRUE if op82 is active for this client
@@ -605,13 +605,13 @@ extern L7_RC_t ptin_dhcp_ethPrty_get(L7_uint16 intVlan, L7_uint8 *ethPrty);
  *
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 innerVlan, L7_BOOL *isActiveOp82,
+extern L7_RC_t ptin_dhcp_client_options_get(L7_uint32 ptin_port, L7_uint16 intVlan, L7_uint16 innerVlan, L7_BOOL *isActiveOp82,
                                             L7_BOOL *isActiveOp37, L7_BOOL *isActiveOp18);
 
 /**
  * Get external vlans
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param intOVlan 
  * @param intIVlan 
  * @param client_idx 
@@ -620,20 +620,20 @@ extern L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVla
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_dhcp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan,
+extern L7_RC_t ptin_dhcp_extVlans_get(L7_uint32 ptin_port, L7_uint16 intOVlan, L7_uint16 intIVlan,
                                       L7_int client_idx, L7_uint16 *uni_ovid, L7_uint16 *uni_ivid);
 
 /**
  * Get the client index associated to a DHCP client 
  * 
- * @param intIfNum      : interface number
+ * @param ptin_port     : interface number
  * @param intVlan       : internal vlan
  * @param client        : Client information parameters
  * @param client_index  : Client index to be returned
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan, ptin_client_id_t *client, L7_uint *client_index);
+extern L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 ptin_port, L7_uint16 intVlan, ptin_client_id_t *client, L7_uint *client_index);
 
 /**
  * Get client information from its index. 
@@ -662,14 +662,14 @@ extern L7_RC_t ptin_dhcp_snooping_trap_interface_update(L7_uint32 evc_idx, ptin_
 /**
  * Increment DHCP statistics
  * 
- * @param intIfNum   : interface where the packet entered
+ * @param ptin_port  : interface where the packet entered
  * @param vlan       : packet's interval vlan
  * @param client_idx : client index
  * @param field      : field to increment
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_dhcp_stat_enum_t field);
+extern L7_RC_t ptin_dhcp_stat_increment_field(L7_uint32 ptin_port, L7_uint16 vlan, L7_uint32 client_idx, ptin_dhcp_stat_enum_t field);
 
 #if 0
 /**
