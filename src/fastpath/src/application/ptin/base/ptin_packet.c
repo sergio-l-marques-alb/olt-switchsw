@@ -193,7 +193,7 @@ L7_RC_t ptinMacBcastRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   L7_uchar8 *payload;
   L7_uint32 payloadLen;
   ptin_PDU_Msg_t msg;
-
+  L7_uint32 ptin_port;
   L7_uint32 intIfNum    = pduInfo->intIfNum;     /* Source port */
   L7_uint16 vlanId      = pduInfo->vlanId;       /* Vlan */
   L7_uint16 innerVlanId = pduInfo->innerVlanId;  /* Inner vlan */
@@ -231,11 +231,20 @@ L7_RC_t ptinMacBcastRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
     return L7_FAILURE;
   }
 
-  /* Validate interface and vlan, as belonging to a valid interface in a valid EVC */
-  if (ptin_evc_intfVlan_validate(intIfNum, vlanId)!=L7_SUCCESS)
+  /* Get ptin_port */
+  if (ptin_intf_intIfNum2port(intIfNum, 0/*Vlan*/, &ptin_port) != L7_SUCCESS) /* FIXME TC16SXG */
   {
     if (ptin_packet_debug_enable)
-      PT_LOG_ERR(LOG_CTX_PACKET,"intIfNum %u and vlan %u does not belong to any valid EVC/interface");
+      PT_LOG_ERR(LOG_CTX_ERPS,"Error converting intIfNum %u to ptin_port", intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* Validate interface and vlan, as belonging to a valid interface in a valid EVC */
+  if (ptin_evc_intfVlan_validate(ptin_port, vlanId)!=L7_SUCCESS)
+  {
+    if (ptin_packet_debug_enable)
+      PT_LOG_ERR(LOG_CTX_PACKET,"ptin_port %u and vlan %u does not belong to any valid EVC/interface",
+                 ptin_port, vlanId);
     return L7_FAILURE;
   }
 

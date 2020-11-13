@@ -421,7 +421,7 @@ L7_RC_t ptin_cfg_tc16sxg_aspen_packets(L7_BOOL enable)
   rc = ptin_ipdtl0_control(PTIN_ASPEN2CPU_A_VLAN,       /*dtl0 VID*/
                            PTIN_ASPEN2CPU_A_VLAN_EXT,   /*External VID*/
                            PTIN_ASPEN2CPU_A_VLAN,       /*Internal VID*/
-                           L7_ALL_INTERFACES,           /*No specific IntIfNum*/
+                           (L7_uint32)-1,               /*No specific port*/
                            PTIN_IPDTL0_INTERN_INBAND,   /*Type*/
                            enable);                     /*Enable*/
   if (rc != L7_SUCCESS)
@@ -434,7 +434,7 @@ L7_RC_t ptin_cfg_tc16sxg_aspen_packets(L7_BOOL enable)
   rc = ptin_ipdtl0_control(PTIN_ASPEN2CPU_B_VLAN,       /*dtl0 VID*/
                            PTIN_ASPEN2CPU_B_VLAN_EXT,   /*External VID*/
                            PTIN_ASPEN2CPU_B_VLAN,       /*Internal VID*/
-                           L7_ALL_INTERFACES,           /*No specific IntIfNum*/
+                           (L7_uint32)-1,               /*No specific port*/
                            PTIN_IPDTL0_INTERN_INBAND,   /*Type*/
                            enable);                     /*Enable*/
   if (rc != L7_SUCCESS)

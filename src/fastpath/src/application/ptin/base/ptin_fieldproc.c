@@ -773,7 +773,7 @@ L7_RC_t ptin_pppoePkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_stormControl_get(L7_BOOL enable, L7_uint32 intIfNum, L7_uint16 vlanId, L7_uint16 vlanId_mask, ptin_stormControl_t *stormControl)
+L7_RC_t ptin_stormControl_get(L7_BOOL enable, L7_uint32 ptin_port, L7_uint16 vlanId, L7_uint16 vlanId_mask, ptin_stormControl_t *stormControl)
 {
   /* NOT IMPLEMENTED */
   memset(stormControl, 0x00, sizeof(ptin_stormControl_t));
@@ -1215,7 +1215,7 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
  * 
  * @return L7_RC_t 
  */
-static L7_RC_t ptin_qos_port_bitmap_get(L7_uint32 *ptin_port, L7_uint8 number_of_ports, L7_uint64 *ptin_port_bmp, L7_uint16 vlanId) /* FIXME TC16SXG */
+static L7_RC_t ptin_qos_port_bitmap_get(L7_uint32 *ptin_port, L7_uint8 number_of_ports, L7_uint64 *ptin_port_bmp, L7_uint16 vlanId)
 {
   L7_int    i, j;
   L7_uint32 intIfNum, port;
@@ -1263,7 +1263,7 @@ static L7_RC_t ptin_qos_port_bitmap_get(L7_uint32 *ptin_port, L7_uint8 number_of
       /* Run all members, and add them to the bitmap list */
       for (j = 0; j < number_of_lag_members; j++)
       {
-        if (ptin_intf_intIfNum2port(lag_members_list[j], vlanId, &port) == L7_SUCCESS) /* FIXME TC16SXG */
+        if (ptin_intf_intIfNum2port(lag_members_list[j], 0/*vlan*/, &port) == L7_SUCCESS) /* FIXME TC16SXG */
         {
           pbmp |= 1ULL << port; 
         }
@@ -1323,20 +1323,28 @@ L7_RC_t ptin_qos_vlan_ports_update(ptin_qos_vlan_t *qos)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_qos_egress_remark(L7_uint32 intIfNum, L7_BOOL enable)
+L7_RC_t ptin_qos_egress_remark(L7_uint32 ptin_port, L7_BOOL enable)
 {
+  L7_uint32 intIfNum;
   L7_uint32 remark_enable;
   L7_RC_t rc;
 
   remark_enable = enable;
 
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_TRACE(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
+    return L7_FAILURE;
+  }
+
   rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_QOS_REMARK, DAPI_CMD_SET, sizeof(L7_uint32), (void *) &remark_enable);
   if (rc != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_INTF, "Error setting remarking for intIfNum %u: rc=%d", intIfNum, rc);
+    PT_LOG_ERR(LOG_CTX_INTF, "Error setting remarking for ptin_port %u: rc=%d", ptin_port, rc);
     return L7_FAILURE;
   }
-  PT_LOG_TRACE(LOG_CTX_INTF, "QoS remark set to %u at intIfNum %u", remark_enable, intIfNum);
+  PT_LOG_TRACE(LOG_CTX_INTF, "QoS remark set to %u at ptin_port %u", remark_enable, ptin_port);
 
   return L7_SUCCESS;
 }
@@ -1398,7 +1406,7 @@ L7_RC_t ptin_qos_vlan_add(ptin_qos_vlan_t *qos)
   }
 
   /* Get bitmap of ports */
-  if (ptin_qos_port_bitmap_get(qos->ptin_port, qos->number_of_ports, &ptin_port_bmp, qos->int_vlan) != L7_SUCCESS) /* FIXME TC16SXG */
+  if (ptin_qos_port_bitmap_get(qos->ptin_port, qos->number_of_ports, &ptin_port_bmp, qos->int_vlan) != L7_SUCCESS)
   {
     PT_LOG_WARN(LOG_CTX_API, "Error getting bitmap of ports");
     return L7_FAILURE;
