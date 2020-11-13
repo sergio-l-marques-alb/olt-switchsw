@@ -350,43 +350,43 @@ extern L7_BOOL ptin_evc_is_intf_in_use(L7_uint intf_idx);
  * Determines if a particular Port/LAG is being used on EVC Id
  *  
  * @param evc_ext_id  
- * @param intfNum 
+ * @param ptin_port 
  * 
  * @return L7_BOOL L7_TRUE/L7_FALSE
  */
-extern L7_BOOL ptin_evc_is_intf_in_use_on_evc(L7_uint32 evc_ext_id, L7_uint intfNum);
+extern L7_BOOL ptin_evc_is_intf_in_use_on_evc(L7_uint32 evc_ext_id, L7_uint ptin_port);
 
 /**
  * Determines if a particular Port/LAG is Leaf on EVC Id
  *  
  * @param evc_ext_id  
- * @param intfNum 
+ * @param ptin_port 
  * 
  * @return L7_BOOL L7_TRUE/L7_FALSE
  */
-extern L7_BOOL ptin_evc_is_intf_leaf(L7_uint32 evc_ext_id, L7_uint intfNum);
+extern L7_BOOL ptin_evc_is_intf_leaf(L7_uint32 evc_ext_id, L7_uint ptin_port);
 
 /**
  * Get port type on EVC Id
  *  
  * @param evc_ext_id  
- * @param intfNum 
+ * @param ptin_port 
  * @param portType  
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_port_type_get(L7_uint32 evc_ext_id, L7_uint intfNum, L7_uint8 *portType);
+extern L7_RC_t ptin_evc_port_type_get(L7_uint32 evc_ext_id, L7_uint ptin_port, L7_uint8 *portType);
 
 /**
  * Get port type on Intenal VLAN Id
  *  
  * @param internalVlan  
- * @param intfNum 
+ * @param ptin_port 
  * @param portType  
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_BOOL ptin_evc_internal_vlan_port_type_get(L7_uint32 internalVlan, L7_uint32 intfNum, L7_uint8 *portType);
+extern L7_BOOL ptin_evc_internal_vlan_port_type_get(L7_uint32 internalVlan, L7_uint32 ptin_port, L7_uint8 *portType);
 
 /**
  * Get interface configuration within an EVC
@@ -460,7 +460,7 @@ extern L7_RC_t ptin_evc_flags_get_fromIntVlan(L7_uint16 intOVlan, L7_uint32 *fla
  * Get the outer+inner external vlan for a specific 
  * interface+evc_id+innerVlan. 
  *  
- * @param intIfNum   : FP interface#
+ * @param ptin_port  : ptin_port
  * @param evc_ext_id : EVC extended index 
  * @param evc_ext_id : EVC internal index 
  * @param innerVlan  : Inner vlan
@@ -470,7 +470,7 @@ extern L7_RC_t ptin_evc_flags_get_fromIntVlan(L7_uint16 intOVlan, L7_uint32 *fla
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint32 evc_int_id, L7_uint16 innerVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
+extern L7_RC_t ptin_evc_extVlans_get(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_uint32 evc_int_id, L7_uint16 innerVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
 
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 /**
@@ -491,27 +491,12 @@ extern L7_RC_t ptin_evc_extVlans_get_from_l2intf(L7_uint32 evc_ext_id, L7_uint32
                                                L7_uint32 *port, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
 #endif
 
-#if 0
-/**
- * Validate outer vlan
- * 
- * @param intIfNum : Interface
- * @param extOVlan : external outer vlan
- * @param innerVlan: external inner vlan
- * 
- * @return L7_RC_t : L7_SUCCESS if extOVlan is valid 
- *                   L7_NOT_EXIST if extOVlan does not exist
- *                   L7_FAILURE if other error
- */
-extern L7_RC_t ptin_evc_extVlan_validate(L7_uint16 evc_id, ptin_intf_t *ptin_intf, L7_uint16 extOVlan, L7_uint16 innerVlan);
-#endif 
-
 /**
  * Get internal vlans, from external vlans and the interface
  * 
  * @author mruas (8/6/2013)
  * 
- * @param intIfNum : Interface
+ * @param ptin_intf: Interface
  * @param extOVlan : external outer vlan
  * @param extIVlan : external inner vlan
  * @param intOVlan : internal outer vlan
@@ -525,7 +510,7 @@ extern L7_RC_t ptin_evc_intVlan_get_fromOVlan(ptin_intf_t *ptin_intf, L7_uint16 
  * Get interface type for a given internal vlan
  * 
  * @param intVlan  : Internal vlan 
- * @param intIfNum : Interface
+ * @param ptin_port: Interface
  * @param type     : Interface type (output)
  *                    PTIN_EVC_INTF_ROOT=0,
  *                    PTIN_EVC_INTF_LEAF=1,
@@ -533,17 +518,17 @@ extern L7_RC_t ptin_evc_intVlan_get_fromOVlan(ptin_intf_t *ptin_intf, L7_uint16 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_intf_type_get(L7_uint16 intVlan, L7_uint32 intIfNum, L7_uint8 *type);
+extern L7_RC_t ptin_evc_intf_type_get(L7_uint16 intVlan, L7_uint32 ptin_port, L7_uint8 *type);
 
 /**
  * Check if the given interface is of type ROOT. 
  * 
- * @param intVlan  : Internal vlan 
- * @param intIfNum : Interface
+ * @param intVlan   : Internal vlan 
+ * @param ptin_port : Interface
  * 
  * @return L7_BOOL : L7_TRUE/L7_FALSE
  */
-extern L7_BOOL ptin_evc_intf_isRoot(L7_uint16 intVlan, L7_uint32 intIfNum);
+extern L7_BOOL ptin_evc_intf_isRoot(L7_uint16 intVlan, L7_uint32 ptin_port);
 
 /**
  * Get the list of interfaces associated to a internal vlan
@@ -627,12 +612,12 @@ extern L7_RC_t switching_fdbFlushVlanByPort(L7_uint8 ptin_port);
  * Get a pointer to IGMP stats
  * 
  * @param intVlan      : internal vlan
- * @param intIfNum     : interface
+ * @param ptin_port    : interface
  * @param stats_intf   : pointer to stats
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE;
  */
-extern L7_RC_t ptin_evc_igmp_stats_get_fromIntVlan(L7_uint16 intVlan, L7_uint32 intIfNum, ptin_IGMP_Statistics_t **stats_intf);
+extern L7_RC_t ptin_evc_igmp_stats_get_fromIntVlan(L7_uint16 intVlan, L7_uint32 ptin_port, ptin_IGMP_Statistics_t **stats_intf);
 
 /**
  * Get a pointer to IGMP stats
@@ -729,7 +714,7 @@ extern L7_RC_t ptin_evc_get_NNIvlan_fromEvcId(L7_uint32 evc_ext_id, L7_uint16 *n
  * Get the outer+inner external vlan for a specific 
  * interface+outer+inner internal vlan. 
  *  
- * @param intIfNum  : FP interface#
+ * @param ptin_port  : FP interface#
  * @param intOVlan   : Internal outer-vlan 
  * @param intIVlan   : Internal inner-vlan (0 means that there 
  *                     is no inner vlan)
@@ -739,7 +724,7 @@ extern L7_RC_t ptin_evc_get_NNIvlan_fromEvcId(L7_uint32 evc_ext_id, L7_uint16 *n
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
+extern L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 ptin_port, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
 
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 /**
@@ -748,7 +733,7 @@ extern L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 i
  *  
  * @param intOVlan   : Internal outer-vlan 
  * @param l2intf_id  : l2intf id 
- * @param intIfNum   : Physical port for transmission (out) 
+ * @param ptin_port  : Physical port for transmission (out) 
  * @param extOVlan   : External outer-vlan 
  * @param extIVlan   : External inner-vlan (01 means that there 
  *                     is no inner vlan)
@@ -756,7 +741,7 @@ extern L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 i
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_evc_extVlans_get_from_IntVlan_l2intf(L7_uint16 intOVlan, L7_uint32 l2intf_id,
-                                                      L7_uint32 *intIfNum, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
+                                                      L7_uint32 *ptin_port, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
 #endif
 
 /**
@@ -812,19 +797,19 @@ extern L7_RC_t ptin_evc_check_is_stacked_fromIntVlan(L7_uint16 intVlan, L7_BOOL 
  * Validate interface and vlan belonging to a valid interface 
  * inside a valid EVC 
  * 
- * @param intIfNum : source interface number
+ * @param ptin_port: source interface number
  * @param intVlan  : internal vlan
  * 
  * @return L7_RC_t : L7_SUCCESS: Parameters are valid
  *                   L7_FAILURE: Not valid
  */
-extern L7_RC_t ptin_evc_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan);
+extern L7_RC_t ptin_evc_intfVlan_validate(L7_uint32 ptin_port, L7_uint16 intVlan);
 
 /**
  * Get next client, belonging to a vlan
  * 
  * @param intVid    : internal vlan
- * @param intIfNum   : intIfNum
+ * @param ptin_port : port
  * @param clientFlow  : Current client data
  * @param clientFlow_next : Next client data
  * 
@@ -836,7 +821,7 @@ extern L7_RC_t ptin_evc_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
  *  L7_FAILURE in case of error
  */
 extern
-L7_RC_t ptin_evc_vlan_client_next( L7_uint intVid, L7_uint32 intIfNum, ptin_HwEthEvcFlow_t *clientFlow, ptin_HwEthEvcFlow_t *clientFlow_next);
+L7_RC_t ptin_evc_vlan_client_next( L7_uint intVid, L7_uint32 ptin_port, ptin_HwEthEvcFlow_t *clientFlow, ptin_HwEthEvcFlow_t *clientFlow_next);
 
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 typedef struct
@@ -915,7 +900,7 @@ extern L7_RC_t ptin_evc_macbridge_client_packages_remove(ptin_evc_macbridge_clie
 /**
  * Gets the flooding vlans list
  * 
- * @param intIfNum    : leaf interface
+ * @param ptin_port   : leaf interface
  * @param intVlan     : internal Vlan
  * @param client_vlan : client vlan to apply this flooding vlan
  * @param outer_vlan  : list of outer vlans
@@ -925,7 +910,7 @@ extern L7_RC_t ptin_evc_macbridge_client_packages_remove(ptin_evc_macbridge_clie
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 extern
-L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint client_vlan,
+L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 ptin_port, L7_uint intVlan, L7_uint client_vlan,
                                  L7_uint16 *outer_vlan, L7_uint16 *inner_vlan, L7_uint16 *number_of_vlans );
 
 
@@ -1028,7 +1013,7 @@ extern L7_RC_t ptin_evc_ext2int(L7_uint32 evc_ext_id, L7_uint32 *evc_id);
  * @author melo (01/06/2015) 
  *  
  * @param evc_ext_id 
- * @param intfNum 
+ * @param ptin_port 
  * @param l3_intf_id 
  * 
  * @return L7_RC_t 
@@ -1036,7 +1021,7 @@ extern L7_RC_t ptin_evc_ext2int(L7_uint32 evc_ext_id, L7_uint32 *evc_id);
  * @notes Disabled the creation of L3 egress ports on  Multicast
  *        Services!!!
  */
-extern L7_RC_t ptin_evc_l3_intf_get(L7_uint32 evc_ext_id, L7_uint32 intfNum, L7_int *l3_intf_id);
+extern L7_RC_t ptin_evc_l3_intf_get(L7_uint32 evc_ext_id, L7_uint32 ptin_port, L7_int *l3_intf_id);
 
 /**
  * Get Multicast Replication Table of an EVC 
@@ -1066,11 +1051,11 @@ extern void *ptin_evc_l3_intf_sem_get(void);
  * Give L3 Intf Sem
  * 
  * @param vlanId 
- * @param intfNum 
+ * @param ptin_port 
  * 
  * @return  
  */
-extern void ptin_evc_l3_intf_sem_give(L7_uint32 vlanId, L7_uint32 intfIfnum);
+extern void ptin_evc_l3_intf_sem_give(L7_uint32 vlanId, L7_uint32 ptin_port);
 
 /**
  * Test EVC functions

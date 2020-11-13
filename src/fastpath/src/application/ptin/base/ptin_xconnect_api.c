@@ -538,19 +538,28 @@ L7_RC_t ptin_multicast_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group
 /**
  * Add ports to Multicast egress
  * 
- * @param intIfNum    : interface to be added
+ * @param ptin_port   : interface to be added
  * @param mcast_group : Multicast group id. 
  * @param l3_intf_id  : L3 Intf Id
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_multicast_l3_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group, L7_int l3_intf_id)
+L7_RC_t ptin_multicast_l3_egress_port_add(L7_uint32 ptin_port, L7_int mcast_group, L7_int l3_intf_id)
 {
+  L7_uint32 intIfNum;
+
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
+    return L7_FAILURE;
+  }
+
   /*Added to prevent issue OLTTS-16796: a switchover will turn off the (internal) lags (to the linecars) 
     for a short amount of period on the standby matrix. This can cause problems on the multicast because it
     will add the lag without members to the multicast replication table. To prevent it we'll directly add the
     members of the lag to the replication table*/ 
-  #if PTIN_BOARD_IS_MATRIX
+#if PTIN_BOARD_IS_MATRIX
   if (usmDbDot3adValidIntfCheck(0, intIfNum))
   {
     static L7_uint32 members_list[PTIN_SYSTEM_N_PORTS] = {0}; /* Internal interface numbers of portChannel members */      
@@ -585,7 +594,7 @@ L7_RC_t ptin_multicast_l3_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group
     }
   }
   else
-  #endif
+#endif
   {
     return (ptin_multicast_egress_port_add(intIfNum, mcast_group, BCM_MULTICAST_TYPE_L3, l3_intf_id));
   }
@@ -594,18 +603,27 @@ L7_RC_t ptin_multicast_l3_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group
 /**
  * Remove port from Multicast egress
  * 
- * @param intIfNum    : interface to be removed
+ * @param ptin_port   : interface to be removed
  * @param mcast_group : Multicast group id. 
  * @param l3_intf_id  : L3 Intf Id*
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_multicast_l3_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group, L7_int l3_intf_id)
+L7_RC_t ptin_multicast_l3_egress_port_remove(L7_uint32 ptin_port, L7_int mcast_group, L7_int l3_intf_id)
 {
+  L7_uint32 intIfNum;
+
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
+    return L7_FAILURE;
+  }
+
   /*Added to prevent issue OLTTS-16796: a switchover will turn off the (internal) lags (to the linecars) 
     for a short amount of period on the standby matrix. This can cause problems on the multicast because it
     will add the lag without members to the multicast replication table. To prevent it we'll directly add the
     members of the lag to the replication table*/ 
-  #if PTIN_BOARD_IS_MATRIX
+#if PTIN_BOARD_IS_MATRIX
   if (usmDbDot3adValidIntfCheck(0, intIfNum))
   {
     static L7_uint32 members_list[PTIN_SYSTEM_N_PORTS] = {0}; /* Internal interface numbers of portChannel members */      
@@ -640,7 +658,7 @@ L7_RC_t ptin_multicast_l3_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_gr
     }
   }
   else
-  #endif
+#endif
   {
     return (ptin_multicast_egress_port_remove(intIfNum, mcast_group, BCM_MULTICAST_TYPE_L3, l3_intf_id));
   }
@@ -649,18 +667,27 @@ L7_RC_t ptin_multicast_l3_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_gr
 /**
  * Add ports to Multicast egress
  * 
- * @param intIfNum    : interface to be added
+ * @param ptin_port   : interface to be added
  * @param mcast_group : Multicast group id. 
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_multicast_l2_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group)
+extern L7_RC_t ptin_multicast_l2_egress_port_add(L7_uint32 ptin_port, L7_int mcast_group)
 {
+  L7_uint32 intIfNum;
+
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
+    return L7_FAILURE;
+  }
+
   /*Added to prevent issue OLTTS-16796: a switchover will turn off the (internal) lags (to the linecars) 
     for a short amount of period on the standby matrix. This can cause problems on the multicast because it
     will add the lag without members to the multicast replication table. To prevent it we'll directly add the
     members of the lag to the replication table*/ 
-  #if PTIN_BOARD_IS_MATRIX
+#if PTIN_BOARD_IS_MATRIX
   if (usmDbDot3adValidIntfCheck(0, intIfNum))
   {
     static L7_uint32 members_list[PTIN_SYSTEM_N_PORTS] = {0}; /* Internal interface numbers of portChannel members */      
@@ -695,7 +722,7 @@ extern L7_RC_t ptin_multicast_l2_egress_port_add(L7_uint32 intIfNum, L7_int mcas
     }
   }
   else
-  #endif
+#endif
   {
     return (ptin_multicast_egress_port_add(intIfNum, mcast_group, BCM_MULTICAST_TYPE_L2, -1));
   }
@@ -704,19 +731,28 @@ extern L7_RC_t ptin_multicast_l2_egress_port_add(L7_uint32 intIfNum, L7_int mcas
 /**
  * Remove port from Multicast egress
  * 
- * @param intIfNum    : interface to be removed
+ * @param ptin_port   : interface to be removed
  * @param mcast_group : Multicast group id. 
  * @param l3_intf_id  : L3 Intf Id
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_multicast_l2_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group)
+extern L7_RC_t ptin_multicast_l2_egress_port_remove(L7_uint32 ptin_port, L7_int mcast_group)
 {
+  L7_uint32 intIfNum;
+
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
+    return L7_FAILURE;
+  }
+
   /*Added to prevent issue OLTTS-16796: a switchover will turn off the (internal) lags (to the linecars) 
     for a short amount of period on the standby matrix. This can cause problems on the multicast because it
     will add the lag without members to the multicast replication table. To prevent it we'll directly add the
     members of the lag to the replication table*/ 
-  #if PTIN_BOARD_IS_MATRIX
+#if PTIN_BOARD_IS_MATRIX
   if (usmDbDot3adValidIntfCheck(0, intIfNum))
   {
     static L7_uint32 members_list[PTIN_SYSTEM_N_PORTS] = {0}; /* Internal interface numbers of portChannel members */      
@@ -751,7 +787,7 @@ extern L7_RC_t ptin_multicast_l2_egress_port_remove(L7_uint32 intIfNum, L7_int m
     }
   }
   else
-  #endif
+#endif
   {
     return (ptin_multicast_egress_port_remove(intIfNum, mcast_group, BCM_MULTICAST_TYPE_L2, -1));
   }
@@ -797,7 +833,7 @@ L7_RC_t ptin_multicast_egress_clean(L7_int mcast_group)
 /**
  * Create Virtual port
  * 
- * @param intIfNum    : interface to be added 
+ * @param ptin_port   : interface to be added 
  * @param ext_ovid    : External outer vlan (GEMid)
  * @param ext_ivid    : External inner vlan (UNIVLAN)
  * @param int_ovid    : Internal outer vlan 
@@ -808,17 +844,19 @@ L7_RC_t ptin_multicast_egress_clean(L7_int mcast_group)
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
+L7_RC_t ptin_virtual_port_add(L7_uint32 ptin_port,
                               L7_int ext_ovid, L7_int ext_ivid,
                               L7_int int_ovid, L7_int int_ivid,
                               L7_int mcast_group,
                               L7_int *l2intf_id,
                               L7_uint8 macLearnMax)
 {
+  L7_uint32 intIfNum;
   ptin_l2intf_t l2intf;
   L7_RC_t rc = L7_SUCCESS;
+
   /* Validate arguments */
-  if ( intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES || 
+  if ( ptin_port >= PTIN_SYSTEM_N_INTERF ||
        int_ovid <= 0 || int_ovid >= 4095 ||
        ext_ovid <= 0 || ext_ovid >= 4095 ||
        mcast_group <= 0)
@@ -826,8 +864,15 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
     PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
     return L7_FAILURE;
   }
-  PT_LOG_TRACE(LOG_CTX_API, "intIfNum=%u, int_ovid=%d, int_ivid=%d, ext_ovid=%d, ext_ivid=%d, mcast_group=%u, macLearnMax=%u",
-            intIfNum, int_ovid, int_ivid, ext_ovid, ext_ivid, mcast_group, macLearnMax);
+  PT_LOG_TRACE(LOG_CTX_API, "ptin_port=%u, int_ovid=%d, int_ivid=%d, ext_ovid=%d, ext_ivid=%d, mcast_group=%u, macLearnMax=%u",
+               ptin_port, int_ovid, int_ivid, ext_ovid, ext_ivid, mcast_group, macLearnMax);
+
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
+    return L7_FAILURE;
+  }
 
   /* Fill structure */
   l2intf.oper             = DAPI_CMD_SET;
@@ -841,25 +886,16 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
   l2intf.macLearnMax      = macLearnMax;
 
 #ifdef NGPON2_SUPPORTED
-  L7_uint32  port_id;
   L7_uint8   group_ngpon2_id;
 
-  rc = ptin_intf_intIfNum2port(intIfNum, ext_ovid, &port_id);/* FIXME TC16SXG */
-  if ( rc == L7_FAILURE )
+  rc = ptin_intf_NGPON2_group_check((L7_uint8)ptin_port, &group_ngpon2_id);
+  if ( rc == L7_SUCCESS )
   {
-    PT_LOG_ERR(LOG_CTX_API, "Error converting intfNum to ptin_port. intfNum = %u", intIfNum);
-  }
-  else
-  {
-    rc = ptin_intf_NGPON2_group_check((L7_uint8)port_id, &group_ngpon2_id);
-    if ( rc == L7_SUCCESS )
-    {
-      l2intf.port_id  = group_ngpon2_id;
-      l2intf.type     = PTIN_EVC_INTF_NGPON2;
-    }
+    l2intf.port_id  = group_ngpon2_id;
+    l2intf.type     = PTIN_EVC_INTF_NGPON2;
   }
 #else
-  l2intf.port_id  = intIfNum;
+  l2intf.port_id  = ptin_port;
   l2intf.type     = PTIN_EVC_INTF_PHYSICAL;
 #endif //NGPON2_SUPPORTED
 
@@ -886,18 +922,26 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
 /**
  * Configure the Maximum Learned MACs foa a Virtual port
  * 
- * @param intIfNum    : interface to be confgured
+ * @param ptin_port   : interface to be confgured
  * @param l2intf_id   : l2intf id 
  * @param macLearnMax : Maximum Learned MACs
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_virtual_macLearnMax_set(L7_uint32 intIfNum, L7_int l2intf_id, L7_uint8 macLearnMax)
+L7_RC_t ptin_virtual_macLearnMax_set(L7_uint32 ptin_port, L7_int l2intf_id, L7_uint8 macLearnMax)
 {
+  L7_uint32 intIfNum;
   ptin_l2intf_t l2intf;
   L7_RC_t rc = L7_SUCCESS;
 
   PT_LOG_TRACE(LOG_CTX_API, "l2intf_id=0x%x, macLearnMax=%u", l2intf_id, macLearnMax);
+
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
+    return L7_FAILURE;
+  }
 
   /* Fill structure */
 
@@ -924,26 +968,34 @@ L7_RC_t ptin_virtual_macLearnMax_set(L7_uint32 intIfNum, L7_int l2intf_id, L7_ui
 /**
  * Remove Virtual port
  * 
- * @param intIfNum      : interface to be removed
+ * @param ptin_port     : interface to be removed
  * @param virtual_gport : Virtual port id 
  * @param mcast_group   : Multicast group id.
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_virtual_port_remove(L7_uint32 intIfNum, L7_int virtual_gport, L7_int mcast_group)
+L7_RC_t ptin_virtual_port_remove(L7_uint32 ptin_port, L7_int virtual_gport, L7_int mcast_group)
 {
+  L7_uint32 intIfNum;
   ptin_l2intf_t l2intf;
   L7_RC_t rc = L7_SUCCESS;
 
   /* Validate arguments */
-  if ( intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES ||
+  if ( ptin_port >= PTIN_SYSTEM_N_INTERF ||
        virtual_gport <= 0 || mcast_group <= 0)
   {
     PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
     return L7_FAILURE;
   }
-  PT_LOG_TRACE(LOG_CTX_API, "intIfNum=%u, virtual_gport=%d, mcast_group=%u",
-            intIfNum, virtual_gport, mcast_group);
+  PT_LOG_TRACE(LOG_CTX_API, "ptin_port=%u, virtual_gport=%d, mcast_group=%u",
+               ptin_port, virtual_gport, mcast_group);
+
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
+    return L7_FAILURE;
+  }
 
   /* Fill structure */
   l2intf.oper             = DAPI_CMD_CLEAR;
@@ -967,28 +1019,36 @@ L7_RC_t ptin_virtual_port_remove(L7_uint32 intIfNum, L7_int virtual_gport, L7_in
 /**
  * Remove Virtual port from vlans info
  * 
- * @param intIfNum    : interface to be removed
+ * @param ptin_port   : interface to be removed
  * @param ext_ovid    : External outer vlan 
  * @param ext_ivid    : External inner vlan 
  * @param mcast_group : Multicast group id.
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_virtual_port_remove_from_vlans(L7_uint32 intIfNum, L7_int ext_ovid, L7_int ext_ivid, L7_int mcast_group)
+L7_RC_t ptin_virtual_port_remove_from_vlans(L7_uint32 ptin_port, L7_int ext_ovid, L7_int ext_ivid, L7_int mcast_group)
 {
+  L7_uint32 intIfNum;
   ptin_l2intf_t l2intf;
   L7_RC_t rc = L7_SUCCESS;
 
   /* Validate arguments */
-  if ( intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES || 
+  if ( ptin_port >= PTIN_SYSTEM_N_INTERF ||
        ext_ovid <= 0 || ext_ovid >= 4095 ||
        mcast_group <= 0)
   {
     PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
     return L7_FAILURE;
   }
-  PT_LOG_TRACE(LOG_CTX_API, "intIfNum=%u, ext_ovid=%d, ext_ivid=%d, mcast_group=%u",
-            intIfNum, ext_ovid, ext_ivid, mcast_group);
+  PT_LOG_TRACE(LOG_CTX_API, "ptin_port=%u, ext_ovid=%d, ext_ivid=%d, mcast_group=%u",
+               ptin_port, ext_ovid, ext_ivid, mcast_group);
+
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
+    return L7_FAILURE;
+  }
 
   /* Fill structure */
   l2intf.oper             = DAPI_CMD_CLEAR;
@@ -1092,18 +1152,19 @@ L7_RC_t ptin_crossconnect_enable(L7_uint16 vlanId, L7_BOOL crossconnect_apply, L
  * 
  * @param outerVlanId : outer vlan id
  * @param innerVlanId : inner vlan id
- * @param intIfNum1 : First interface
- * @param intIfNum2 : Second interface
+ * @param ptin_port1 : First interface
+ * @param ptin_port2 : Second interface
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_crossconnect_add(L7_uint16 outerVlanId, L7_uint16 innerVlanId, L7_uint32 intIfNum1, L7_uint32 intIfNum2)
+L7_RC_t ptin_crossconnect_add(L7_uint16 outerVlanId, L7_uint16 innerVlanId, L7_uint32 ptin_port1, L7_uint32 ptin_port2)
 {
+  L7_uint32 intIfNum1, intIfNum2;
   ptin_bridge_crossconnect_t cc;
   L7_RC_t rc = L7_SUCCESS;
 
-  PT_LOG_TRACE(LOG_CTX_API, "outerVlanId=%u, innerVlanId=%u, intIfNum1=%u, intIfNum2=%u",
-            outerVlanId, innerVlanId, intIfNum1, intIfNum2);
+  PT_LOG_TRACE(LOG_CTX_API, "outerVlanId=%u, innerVlanId=%u, ptin_port1=%u, ptin_port2=%u",
+               outerVlanId, innerVlanId, ptin_port1, ptin_port2);
   /* Validate arguments */
   if ( outerVlanId > 4095 || innerVlanId > 4095 )
   {
@@ -1111,6 +1172,15 @@ L7_RC_t ptin_crossconnect_add(L7_uint16 outerVlanId, L7_uint16 innerVlanId, L7_u
     return L7_FAILURE;
   }
 
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port1, &intIfNum1) != L7_SUCCESS ||
+      ptin_intf_port2intIfNum(ptin_port2, &intIfNum2) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u or %u to intIgNum",
+               ptin_port1, ptin_port2);
+    return L7_FAILURE;
+  }
+  
   /* Fill structure */
   cc.outerVlanId = outerVlanId;
   cc.innerVlanId = innerVlanId;
