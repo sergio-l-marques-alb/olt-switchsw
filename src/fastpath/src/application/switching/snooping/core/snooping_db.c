@@ -1705,7 +1705,7 @@ L7_RC_t snoopChannelClientAdd(snoopInfoData_t *snoopEntry,
   PTIN_INCREMENT_COUNTER(snoopEntry->global.number_of_clients,1);
 
   /* Increment number of active channels for this client */
-  ptin_igmp_stat_increment_field(0, vlan, client, SNOOP_STAT_FIELD_ACTIVE_GROUPS);
+  ptin_igmp_stat_increment_field((L7_uint32)-1, vlan, client, SNOOP_STAT_FIELD_ACTIVE_GROUPS);
 
 #if PTIN_IGMP_DEBUG
   printf("[%s function]\r\n",__FUNCTION__);

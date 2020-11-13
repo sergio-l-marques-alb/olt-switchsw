@@ -668,8 +668,11 @@ static L7_uchar8* snoopPTinGroupRecordV3Build(L7_uint32 vlanId, L7_inet_addr_t* 
     /* Increment Counter on all root interfaces in this VLAN with multicast routers attached */
     for (intf = 1; intf <= L7_MAX_INTERFACE_COUNT; intf++)
     {
-      if (L7_INTF_ISMASKBITSET(mcastRtrAttached,intf)) 
+      if (L7_INTF_ISMASKBITSET(mcastRtrAttached,intf))
+      {
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         ptin_igmp_stat_increment_field(intf, vlanId, (L7_uint32)-1, snoopRecordType2IGMPStatField(recordType,SNOOP_STAT_FIELD_TX));
+      }
     }  
   }
 
@@ -1309,6 +1312,7 @@ static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint
     /*Increment IGMPv3 Stats*/
     for (intf = 1; intf <= noOfActiveInterfaces; intf++)
     {
+      /* FIXME TC16SXG: intIfNum->ptin_port */
       ptin_igmp_stat_increment_field(intIfList[intf], groupPtrAux->key.vlanId, 0, snoopRecordType2IGMPStatField(groupPtrAux->recordType,SNOOP_STAT_FIELD_TX));          
     }
     /*End Stats*/

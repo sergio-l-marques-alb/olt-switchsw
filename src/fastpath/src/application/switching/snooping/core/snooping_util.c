@@ -1300,6 +1300,7 @@ void snoopPacketSend(L7_uint32 intIfNum,
   extIVlan = 0;
 
   /* Extract external outer and inner vlan for this tx interface */
+  /* FIXME TC16SXG: intIfNum->ptin_port */
   if (ptin_igmp_extVlans_get(intIfNum, vlanId, innerVIDUntagged, client_idx, &extOVlan, &extIVlan) == L7_SUCCESS)
   {
     /* Modify outer vlan */
@@ -1621,6 +1622,7 @@ L7_RC_t snoopPacketRtrIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uint8 
   if (ptin_igmp_rootIntfs_getList(mcastPacket->vlanId, &mcastRtrAttached)!=L7_SUCCESS)
   {
     //printf("%s(%d) Error getting list of router interfaces\r\n",__FUNCTION__,__LINE__);
+    /* FIXME TC16SXG: intIfNum->ptin_port */
     ptin_igmp_stat_increment_field(mcastPacket->intIfNum,mcastPacket->vlanId,mcastPacket->client_idx,SNOOP_STAT_FIELD_IGMP_TX_FAILED);
     return L7_FAILURE;
   }
@@ -1655,6 +1657,7 @@ L7_RC_t snoopPacketRtrIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uint8 
       {
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SNOOPING_COMPONENT_ID,
                 "Could not get service type for svid:%d",mcastPacket->vlanId);
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         ptin_igmp_stat_increment_field(mcastPacket->intIfNum,mcastPacket->vlanId,mcastPacket->client_idx,SNOOP_STAT_FIELD_IGMP_TX_FAILED);
         //return L7_SUCCESS;
         return L7_FAILURE;
@@ -1701,22 +1704,28 @@ L7_RC_t snoopPacketRtrIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uint8 
       switch (igmp_type)
       {
       case L7_IGMP_MEMBERSHIP_QUERY:
+          /* FIXME TC16SXG: intIfNum->ptin_port */
           ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);          
           break;      
       case L7_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY:
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX);          
         break;
       case L7_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY:
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX);          
         break;                 
       case L7_IGMP_V1_MEMBERSHIP_REPORT:
       case L7_IGMP_V2_MEMBERSHIP_REPORT:
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,mcastPacket->client_idx,SNOOP_STAT_FIELD_JOINS_SENT);
         break;
       case L7_IGMP_V3_MEMBERSHIP_REPORT:
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,mcastPacket->client_idx,SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX);
         break;
       case L7_IGMP_V2_LEAVE_GROUP:
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,mcastPacket->client_idx,SNOOP_STAT_FIELD_LEAVES_SENT);
         break;
       }
@@ -1769,6 +1778,7 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
   if (ptin_igmp_clientIntfs_getList(mcastPacket->vlanId, &mcastClientAttached)!=L7_SUCCESS)
   {
     //printf("%s(%d) Error getting list of router interfaces\r\n",__FUNCTION__,__LINE__);
+    /* FIXME TC16SXG: intIfNum->ptin_port */
     ptin_igmp_stat_increment_field(mcastPacket->intIfNum,mcastPacket->vlanId,mcastPacket->client_idx,SNOOP_STAT_FIELD_IGMP_TX_FAILED);
     return L7_FAILURE;
   }
@@ -1812,6 +1822,7 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
           if (clientFlow.int_ivid != 0)
           {
             /* Get related client index */
+            /* FIXME TC16SXG: intIfNum->ptin_port */
             if (ptin_igmp_dynamic_client_find(intf, int_ovlan, int_ivlan, L7_NULLPTR, &client_idx)!=L7_SUCCESS)
             {
               client_idx = (L7_uint) -1;
@@ -1862,22 +1873,28 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
           switch (igmp_type)
           {
           case L7_IGMP_MEMBERSHIP_QUERY:
+            /* FIXME TC16SXG: intIfNum->ptin_port */
             ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);          
             break;      
           case L7_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY:
+            /* FIXME TC16SXG: intIfNum->ptin_port */
             ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX);          
             break;
           case L7_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY:
+            /* FIXME TC16SXG: intIfNum->ptin_port */
             ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX);          
             break;            
           case L7_IGMP_V1_MEMBERSHIP_REPORT:
           case L7_IGMP_V2_MEMBERSHIP_REPORT:
+            /* FIXME TC16SXG: intIfNum->ptin_port */
             ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,client_idx,SNOOP_STAT_FIELD_JOINS_SENT);
             break;
           case L7_IGMP_V3_MEMBERSHIP_REPORT:
+            /* FIXME TC16SXG: intIfNum->ptin_port */
             ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,client_idx,SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX);
             break;
           case L7_IGMP_V2_LEAVE_GROUP:
+            /* FIXME TC16SXG: intIfNum->ptin_port */
             ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_LEAVES_SENT);
             break;
           }
