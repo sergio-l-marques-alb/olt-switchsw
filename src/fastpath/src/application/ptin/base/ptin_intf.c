@@ -595,7 +595,7 @@ L7_RC_t ptin_intf_portExt_init(void)
  */
 L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
 {
-  L7_uint32 intIfNum;
+  L7_uint32 intIfNum, ptin_port;
   L7_uint32 unit = 0;
 
   /* Validate arguments */
@@ -683,17 +683,20 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   /*End Port Multicast Admission Control Support*/
 
   /* Get intIfNum */
-  if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum)!=L7_SUCCESS)
+  if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum)!=L7_SUCCESS ||
+      ptin_intf_ptintf2port(ptin_intf, &ptin_port)!=L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_INTF, "Error converting port %u/%u to intIfNum", ptin_intf->intf_type, ptin_intf->intf_id);
+    PT_LOG_ERR(LOG_CTX_INTF, "Error converting ptin_intf %u/%u to intIfNum and ptin_port",
+               ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
-  PT_LOG_TRACE(LOG_CTX_INTF, "Port# %u/%u: intIfNum# %2u", ptin_intf->intf_type,ptin_intf->intf_id, intIfNum);
+  PT_LOG_TRACE(LOG_CTX_INTF, "Port# %u/%u: intIfNum %u, ptin_port %u",
+               ptin_intf->intf_type,ptin_intf->intf_id, intIfNum, ptin_port);
 
   if (mefExt->Mask & PTIN_HWPORTEXT_MASK_DEFVID)
   {
     /* New VID: translation and verification */
-    if ((mefExt->defVid == 0) || (ptin_xlate_PVID_set(intIfNum, mefExt->defVid) != L7_SUCCESS))
+    if ((mefExt->defVid == 0) || (ptin_xlate_PVID_set(ptin_port, mefExt->defVid) != L7_SUCCESS))
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Error converting VID %u", mefExt->defVid);
       return L7_FAILURE;
@@ -749,8 +752,8 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   /* Set trusted state */
   if (mefExt->Mask & PTIN_HWPORTEXT_MASK_DHCP_TRUSTED)
   {
-    ptin_dhcp_intfTrusted_set(intIfNum, mefExt->dhcp_trusted);
-    ptin_pppoe_intfTrusted_set(intIfNum, mefExt->dhcp_trusted);
+    ptin_dhcp_intfTrusted_set(ptin_port, mefExt->dhcp_trusted);
+    ptin_pppoe_intfTrusted_set(ptin_port, mefExt->dhcp_trusted);
   }
 
   /* Apply configuration */
@@ -774,7 +777,7 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
  */
 L7_RC_t ptin_intf_portExt_get(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
 {
-  L7_uint32 intIfNum;
+  L7_uint32 intIfNum, ptin_port;
 
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR || mefExt==L7_NULLPTR)
@@ -784,12 +787,14 @@ L7_RC_t ptin_intf_portExt_get(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   }
 
   /* Get intIfNum */
-  if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum)!=L7_SUCCESS)
+  if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum)!=L7_SUCCESS ||
+      ptin_intf_ptintf2port(ptin_intf, &ptin_port)!=L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_INTF, "Error converting port %u/%u to intIfNum",ptin_intf->intf_type,ptin_intf->intf_id);
+    PT_LOG_ERR(LOG_CTX_INTF, "Error converting ptin_intf %u/%u to intIfNum and ptin_port",ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
-  PT_LOG_TRACE(LOG_CTX_INTF, "Port# %u/%u: intIfNum# %2u", ptin_intf->intf_type,ptin_intf->intf_id, intIfNum);
+  PT_LOG_TRACE(LOG_CTX_INTF, "Port# %u/%u: ptin_port %u, intIfNum# %2u",
+               ptin_intf->intf_type,ptin_intf->intf_id, ptin_port, intIfNum);
 
   /* Apply configuration */
   if (dtlPtinL2PortExtGet(intIfNum, mefExt)!=L7_SUCCESS)
@@ -799,7 +804,7 @@ L7_RC_t ptin_intf_portExt_get(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   }
 
   /* Trusted state */
-  mefExt->dhcp_trusted = ptin_dhcp_is_intfTrusted(intIfNum, L7_NULL);
+  mefExt->dhcp_trusted = ptin_dhcp_is_intfTrusted(ptin_port, L7_NULL);
   mefExt->Mask        |= PTIN_HWPORTEXT_MASK_DHCP_TRUSTED;
 
   PT_LOG_TRACE(LOG_CTX_INTF,"MefExt parameters:");
@@ -1718,8 +1723,6 @@ L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
   L7_INTF_TYPES_t intf_type;
   L7_RC_t rc, rc_global;
 
-  L7_uint16 vlanId = 0;/* FIXME TC16SXG */
-
   /* Validate arguments */
   if (intf == L7_NULLPTR)
   {
@@ -1770,7 +1773,7 @@ L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
     rc = nimGetIntIfNumFromUSP(&intf->value.usp, &intIfNum);
     if (rc == L7_SUCCESS)
     {
-      rc = ptin_intf_intIfNum2port(intIfNum, vlanId, &ptin_port); /* FIXME TC16SXG */
+      rc = ptin_intf_intIfNum2port(intIfNum, 0/*vlan*/, &ptin_port); /* FIXME TC16SXG */
     }
     PT_LOG_TRACE(LOG_CTX_INTF, "input usp {%u,%u,%d} => intIfNum %u, ptin_port %u (rc=%d)",
                  intf->value.usp.unit, intf->value.usp.slot, intf->value.usp.port,
@@ -1779,7 +1782,7 @@ L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
 
   case PTIN_INTF_FORMAT_INTIFNUM:
     intIfNum = intf->value.intIfNum;
-    rc = ptin_intf_intIfNum2port(intIfNum, vlanId, &ptin_port);/* FIXME TC16SXG */
+    rc = ptin_intf_intIfNum2port(intIfNum, 0/*vlanId*/, &ptin_port);/* FIXME TC16SXG */
     PT_LOG_TRACE(LOG_CTX_INTF, "input intIfNum %u => ptin_port %u (rc=%d)",
                  intIfNum, ptin_port, rc);
     break;
@@ -2393,6 +2396,50 @@ L7_uint32 tc16sxg_pon_port2intIfNum(L7_uint32 ptin_port) {
 #endif /*#ifdef TC16SXG_ASPEN_N_1*/
 
 /**
+ * Direct function to convert intIfNum to ptin_port
+ * 
+ * @author mruas (12/11/20)
+ * 
+ * @param intIfNum 
+ * @param vlan_gem 
+ * 
+ * @return L7_uint32 : ptin_port
+ */
+inline L7_uint32 intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem)
+{
+  L7_uint32 ptin_port;
+
+  if (ptin_intf_intIfNum2port(intIfNum, vlan_gem, &ptin_port) != L7_SUCCESS)
+  {
+    return (L7_uint32)-1;
+  }
+
+  return ptin_port;
+}
+
+/**
+ * Direct function to convert ptin_port to intIfNum
+ * 
+ * @author mruas (12/11/20)
+ * 
+ * @param ptin_port
+ * @param vlan_gem 
+ * 
+ * @return L7_uint32 : intIfNum
+ */
+inline L7_uint32 port2intIfNum(L7_uint32 ptin_port)
+{
+  L7_uint32 intIfNum;
+
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    return (L7_uint32)-1;
+  }
+
+  return intIfNum;
+}
+
+/**
  * Converts PTin port mapping (including LAGs) to the FP interface#
  * 
  * @param ptin_port PTin port index
@@ -2733,7 +2780,6 @@ L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_intf)
   L7_uint32       ptin_port;
   L7_RC_t         rc;
   L7_INTF_TYPES_t intfType;
-  L7_uint16       vlanId = 0;/* FIXME TC16SXG */
 
   if(nimGetIntfType(intIfNum, &intfType) != L7_SUCCESS)
   {
@@ -2766,7 +2812,7 @@ L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_intf)
   else
   {
     /* Get ptin_port*/
-    if ((rc=ptin_intf_intIfNum2port(intIfNum, vlanId, &ptin_port))!=L7_SUCCESS)/* FIXME TC16SXG */
+    if ((rc=ptin_intf_intIfNum2port(intIfNum, 0/*vlanId*/, &ptin_port))!=L7_SUCCESS)/* FIXME TC16SXG */
       return rc;
 
     /* Validate ptin_port */
@@ -3131,8 +3177,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
 {
   L7_uint64 members_pbmp_all;
   L7_uint64 members_pbmp;
-  L7_uint32 lag_idx;
-  L7_uint32 lag_intf;
+  L7_uint32 lag_idx, lag_intf, lag_port;
   L7_uint32 port, i;
   L7_uint32 intIfNum=0;
   L7_uint32 maxFrame=0;
@@ -3202,7 +3247,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
           if (ptin_fpga_mx_is_matrixactive())
           {
             /* Enable linkscan */
-            ptin_intf_linkscan_set(intIfNum, L7_ENABLE);
+            ptin_intf_linkscan_set(port, L7_ENABLE);
           }
           #endif
         #endif
@@ -3269,13 +3314,13 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       if (ptin_fpga_mx_is_matrixactive())
       {
         /* Guarantee linkscan is enabled */
-        if (ptin_intf_linkscan_set(intIfNum, L7_ENABLE) != L7_SUCCESS)
+        if (ptin_intf_linkscan_set(port, L7_ENABLE) != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_INTF,"Error disablink linkscan for intIfNum %u", intIfNum);
+          PT_LOG_ERR(LOG_CTX_INTF,"Error disablink linkscan for ptin_port %u", port);
         }
         else
         {
-          PT_LOG_INFO(LOG_CTX_INTF,"Linkscan successfully enabled for intIfNum %u (port %u)", intIfNum, port);
+          PT_LOG_INFO(LOG_CTX_INTF,"Linkscan successfully enabled for ptin_port %u", port);
         }
       }
       #endif
@@ -3410,6 +3455,10 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     UPDATE_LAG_MAP(lag_idx, lag_intf);
     newLag = L7_TRUE;
 
+    lag_port = map_intIfNum2port[intIfNum];
+    ptin_intf.intf_type = PTIN_EVC_INTF_LOGICAL;
+    ptin_intf.intf_id   = lag_idx;
+
     PT_LOG_TRACE(LOG_CTX_INTF, "LAG# %02u created with empty members (interface# %02u)", lag_idx, lag_intf);
 
     /* Configure Max Frame Size on LAG interface
@@ -3432,11 +3481,8 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
         PT_LOG_TRACE(LOG_CTX_INTF, " MaxFrameSize set to %u", maxFrame);
       }
     }
-
+    
     /* QoS initialization */
-    ptin_intf.intf_type = PTIN_EVC_INTF_LOGICAL;
-    ptin_intf.intf_id   = lag_idx;
-
     if (ptin_intf_QoS_init(&ptin_intf)!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u: Error initializing QoS definitions", lag_idx);
@@ -3478,8 +3524,8 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     #endif
     {
      #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
-      ptin_dhcp_intfTrusted_set(lag_intf, L7_TRUE); 
-      ptin_pppoe_intfTrusted_set(lag_intf, L7_TRUE);
+      ptin_dhcp_intfTrusted_set(lag_port, L7_TRUE);
+      ptin_pppoe_intfTrusted_set(lag_port, L7_TRUE);
       /* Internal interfaces of linecards, should always be trusted */
       PT_LOG_TRACE(LOG_CTX_INTF, "LAG# %u is DHCP/PPPoE trusted", lag_idx);
      #endif
@@ -3493,7 +3539,8 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   else
   {
     /* Get intIfNum assigned to this LAG */
-    ptin_intf_lag2intIfNum(lag_idx, &lag_intf);
+    lag_port = lag_idx + PTIN_SYSTEM_N_PORTS;
+    lag_intf = map_port2intIfNum[lag_port];
     newLag = L7_FALSE;
 
     /* Confirm that LAG is actually created */
@@ -3554,7 +3601,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     if (lagConf_data[lag_idx].static_enable != lagInfo->static_enable)
     {
       /* If this lag belongs to a protection group, report error */
-      if (ptin_prot_uplink_index_find(lag_intf, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS)
+      if (ptin_prot_uplink_index_find(lag_port, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u: You are not allowed to change this parameter when this LAG belongs to a protection", lag_idx);
         rc = L7_FAILURE;
@@ -3606,8 +3653,8 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       #endif
       {
         #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
-        ptin_dhcp_intfTrusted_set(lag_intf, L7_FALSE); 
-        ptin_pppoe_intfTrusted_set(lag_intf, L7_FALSE);
+        ptin_dhcp_intfTrusted_set(lag_port, L7_FALSE);
+        ptin_pppoe_intfTrusted_set(lag_port, L7_FALSE);
         PT_LOG_TRACE(LOG_CTX_INTF, "LAG# %u goes back to untrusted", lag_idx);
         #endif
       }
@@ -3728,11 +3775,11 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       }
       /* If this LAG is a static LAG and is part of a protection group, ALS should be disabled, and blocked if necessary */
       if ((lagInfo->static_enable) && 
-          (ptin_prot_uplink_index_find(lag_intf, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS) &&
+          (ptin_prot_uplink_index_find(lag_port, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS) &&
           (dot3adBlockedStateGet(lag_intf, &value) == L7_SUCCESS))
       {
-        (void) ptin_intf_linkfaults_enable(intIfNum, L7_TRUE /*Local faults*/,  L7_FALSE /*Remote faults*/);
-        (void) ptin_prot_uplink_intf_block(intIfNum, value);
+        (void) ptin_intf_linkfaults_enable(port, L7_TRUE /*Local faults*/,  L7_FALSE /*Remote faults*/);
+        (void) ptin_prot_uplink_intf_block(port, value);
       }
       
       #if 0
@@ -3791,14 +3838,14 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       }
       /* If this LAG is a static LAG and is part of a protection group, ALS should be reenabled */
       if ((lagInfo->static_enable) && 
-          (ptin_prot_uplink_index_find(lag_intf, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS))
+          (ptin_prot_uplink_index_find(lag_port, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS))
       {
-        ptin_prot_uplink_intf_block(intIfNum, -1 /* Enable ALS */);
-        (void) ptin_intf_linkfaults_enable(intIfNum, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
+        ptin_prot_uplink_intf_block(port, -1 /* Enable ALS */);
+        (void) ptin_intf_linkfaults_enable(port, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
       }
 
       /* Update PortGroup for the member removed (reset to default value) */
-      if (ptin_xlate_portgroup_set(intIfNum, PTIN_XLATE_PORTGROUP_INTERFACE) != L7_SUCCESS)
+      if (ptin_xlate_portgroup_set(port, PTIN_XLATE_PORTGROUP_INTERFACE) != L7_SUCCESS)
       {
         PT_LOG_CRITIC(LOG_CTX_INTF, "LAG# %u: could not update PortGroup for member port# %u", lag_idx, port);
         rc = L7_FAILURE;
@@ -3810,7 +3857,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   }
 
   /* Update PortGroups (used on egress translations) */
-  if (ptin_xlate_portgroup_set(lag_intf, PTIN_XLATE_PORTGROUP_INTERFACE) != L7_SUCCESS)
+  if (ptin_xlate_portgroup_set(lag_port, PTIN_XLATE_PORTGROUP_INTERFACE) != L7_SUCCESS)
   {
     /* NOTE: if any error occurs during PortGroup set, it originates inconsistency on
      * the portgroups lookup table, which means a CRITICAL or even FATAL situation!
@@ -3892,8 +3939,8 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       #endif
       #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
       {
-        ptin_dhcp_intfTrusted_set(lag_intf, L7_FALSE); 
-        ptin_pppoe_intfTrusted_set(lag_intf, L7_FALSE);
+        ptin_dhcp_intfTrusted_set(lag_port, L7_FALSE);
+        ptin_pppoe_intfTrusted_set(lag_port, L7_FALSE);
         PT_LOG_TRACE(LOG_CTX_INTF, "LAG# %u goes back to untrusted", lag_idx);
       }
       #endif
@@ -3924,7 +3971,6 @@ L7_RC_t ptin_intf_Lag_delete(L7_uint32 lag_idx)
   L7_uint32   value;
   L7_uint     i;
   L7_uint64   ptin_pbmp;
-  L7_uint32   intIfNum = 0;
 
   /* Validate LAG range (LAG index [0..PTIN_SYSTEM_N_LAGS[) */
   if (lag_idx >= PTIN_SYSTEM_N_LAGS)
@@ -3956,25 +4002,19 @@ L7_RC_t ptin_intf_Lag_delete(L7_uint32 lag_idx)
       if (!(ptin_pbmp & 1))
         continue;
       
-      if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_INTF,"Error converting port %u to intIfNum", port);
-        continue;
-      }
-
     #ifdef PTIN_LINKSCAN_CONTROL
       #ifdef MAP_CPLD
       /* Only active matrix will manage linkscan and force links */
       if (ptin_fpga_mx_is_matrixactive())
       {
         /* Enable linkscan */
-        if (ptin_intf_linkscan_set(intIfNum, L7_ENABLE) != L7_SUCCESS)
+        if (ptin_intf_linkscan_set(port, L7_ENABLE) != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_INTF,"Error enabling linkscan for intIfNum %u", intIfNum);
+          PT_LOG_ERR(LOG_CTX_INTF,"Error enabling linkscan for ptin_port %u", port);
         }
         else
         {
-          PT_LOG_INFO(LOG_CTX_INTF,"Linkscan successfully enabled for intIfNum %u (port %u)", intIfNum, port);
+          PT_LOG_INFO(LOG_CTX_INTF,"Linkscan successfully enabled for ptin_port %u", port);
         }
       }
       #endif
@@ -4020,7 +4060,7 @@ L7_RC_t ptin_intf_Lag_delete(L7_uint32 lag_idx)
   }
 
   /* Check if LAG is part of a protection scheme */
-  if (ptin_prot_uplink_index_find(lag_intIfNum, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS)
+  if (ptin_prot_uplink_index_find(lag_port, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u is being used in a protection scheme! Cannot be removed", lag_idx);
     return L7_FAILURE;
@@ -4063,8 +4103,8 @@ L7_RC_t ptin_intf_Lag_delete(L7_uint32 lag_idx)
   #endif
   #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
   {
-    ptin_dhcp_intfTrusted_set(lag_intIfNum, L7_FALSE); 
-    ptin_pppoe_intfTrusted_set(lag_intIfNum, L7_FALSE);
+    ptin_dhcp_intfTrusted_set(lag_port, L7_FALSE);
+    ptin_pppoe_intfTrusted_set(lag_port, L7_FALSE);
     PT_LOG_TRACE(LOG_CTX_INTF, "LAG# %u returns to untrusted", lag_idx);
   }
   #endif
@@ -4075,9 +4115,8 @@ L7_RC_t ptin_intf_Lag_delete(L7_uint32 lag_idx)
   {
     if (ptin_pbmp & 1)
     {
-      ptin_intf_port2intIfNum(i, &intIfNum);
       /* Reset phy#i port group */
-      if (ptin_xlate_portgroup_set(intIfNum, PTIN_XLATE_PORTGROUP_INTERFACE) != L7_SUCCESS)
+      if (ptin_xlate_portgroup_set(i, PTIN_XLATE_PORTGROUP_INTERFACE) != L7_SUCCESS)
       {
         /* NOTE: if any error occurs during PortGroup set, it originates inconsistency on
          * the portgroups lookup table, which means a CRITICAL or even FATAL situation!
@@ -4153,7 +4192,6 @@ L7_RC_t ptin_intf_LagStatus_get(ptin_LACPLagStatus_t *lagStatus)
   L7_uint64 members_pbmp;
   L7_uint32 members_list[PTIN_SYSTEM_N_PORTS]; /* Internal interface numbers of portChannel members */
   L7_uint   i, nElems;
-  L7_uint16 vlanId = 0; /* FIXME TC16SXG */
 
   /* Validate arguments */
   if (lagStatus == L7_NULLPTR)
@@ -4230,7 +4268,7 @@ L7_RC_t ptin_intf_LagStatus_get(ptin_LACPLagStatus_t *lagStatus)
     {
       /* Validate interface number */
       if ((members_list[i] == 0)
-          || (ptin_intf_intIfNum2port(members_list[i], vlanId, &value)) /* FIXME TC16SXG */
+          || (ptin_intf_intIfNum2port(members_list[i], 0/*vlanId*/, &value)) /* FIXME TC16SXG */
           || (value <  PTIN_SYSTEM_N_PONS)
           || (value >= ptin_sys_number_of_ports))
       {
@@ -6407,26 +6445,34 @@ static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf)
 /**
  * Activate PRBS generator/checker
  *  
- * @param intIfNum : Interface
+ * @param ptin_port: Interface
  * @param enable   : L7_TRUE/L7_FALSE
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_pcs_prbs_enable(L7_uint32 intIfNum, L7_BOOL enable)
+L7_RC_t ptin_pcs_prbs_enable(L7_uint32 ptin_port, L7_BOOL enable)
 {
+  L7_uint32 intIfNum;
   DAPI_SYSTEM_CMD_t dapiCmd;
   L7_RC_t rc;
+
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
+    return L7_FAILURE;
+  }
 
   dapiCmd.cmdData.prbsStatus.getOrSet = DAPI_CMD_SET;
   dapiCmd.cmdData.prbsStatus.enable   = enable;
 
   rc=dtlPtinPcsPrbs(intIfNum, &dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    PT_LOG_ERR(LOG_CTX_INTF,"Error setting PRBS enable of intIfNum %u to %u",intIfNum, enable);
+    PT_LOG_ERR(LOG_CTX_INTF,"Error setting PRBS enable of ptin_port %u to %u",ptin_port, enable);
     return rc;
   }
 
-  PT_LOG_TRACE(LOG_CTX_INTF,"Success applying global enable of intIfNum %u to %u",intIfNum,enable);
+  PT_LOG_TRACE(LOG_CTX_INTF,"Success applying global enable of ptin_port %u to %u",ptin_port,enable);
 
   return L7_SUCCESS;
 }
@@ -6434,15 +6480,23 @@ L7_RC_t ptin_pcs_prbs_enable(L7_uint32 intIfNum, L7_BOOL enable)
 /**
  * Read number of PRBS errors
  *  
- * @param intIfNum : Interface
+ * @param ptin_port: Interface
  * @param enable   : L7_TRUE/L7_FALSE
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter)
+L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 ptin_port, L7_uint32 *counter)
 {
+  L7_uint32 intIfNum;
   DAPI_SYSTEM_CMD_t dapiCmd;
   L7_RC_t rc;
+
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
+    return L7_FAILURE;
+  }
 
   dapiCmd.cmdData.prbsStatus.getOrSet = DAPI_CMD_GET;
   dapiCmd.cmdData.prbsStatus.enable   = 0;
@@ -6450,7 +6504,7 @@ L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter)
 
   rc=dtlPtinPcsPrbs(intIfNum, &dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    PT_LOG_ERR(LOG_CTX_INTF,"Error getting PRBS errors of intIfNum %u",intIfNum);
+    PT_LOG_ERR(LOG_CTX_INTF,"Error getting PRBS errors of ptin_port %u",ptin_port);
     return rc;
   }
 
@@ -6466,22 +6520,23 @@ L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter)
 /**
  * Apply linkfaults enable procedure
  *  
- * @param intIfNum : Interface
+ * @param ptin_port : Interface
  * @param local_enable : Local faults processing enable 
  * @param remote_enable : Remote faults processing enable 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_intf_linkfaults_enable(L7_uint32 intIfNum, L7_BOOL local_enable, L7_BOOL remote_enable)
+L7_RC_t ptin_intf_linkfaults_enable(L7_uint32 ptin_port, L7_BOOL local_enable, L7_BOOL remote_enable)
 {
   ptin_hwproc_t hw_proc;
+  L7_uint32       intIfNum;
   L7_INTF_TYPES_t sysIntfType;
   L7_RC_t   rc = L7_SUCCESS;
 
-  /* Validate interface */
-  if (intIfNum == 0 || intIfNum > L7_ALL_INTERFACES)
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u", intIfNum);
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
     return L7_FAILURE;
   }
 
@@ -6535,11 +6590,11 @@ L7_RC_t ptin_intf_linkfaults_enable(L7_uint32 intIfNum, L7_BOOL local_enable, L7
   /* Check return value */
   if (rc == L7_SUCCESS)
   {
-    PT_LOG_TRACE(LOG_CTX_INTF,"HW procedure applied to intIfNum=%u", intIfNum);
+    PT_LOG_TRACE(LOG_CTX_INTF,"HW procedure applied to ptin_port=%u", ptin_port);
   }
   else
   {
-    PT_LOG_ERR(LOG_CTX_INTF,"Error applying HW procedure to intIfNum=%u", intIfNum);
+    PT_LOG_ERR(LOG_CTX_INTF,"Error applying HW procedure to ptin_port=%u", ptin_port);
   }
 
   return rc;
@@ -6562,14 +6617,14 @@ L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable)
   #if (PTIN_BOARD_IS_MATRIX)
   #ifdef MAP_CPLD
   L7_uint16 board_id;
-  L7_uint32 intIfNum;
 
-  if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS)
+  /* Validate port */
+  if (port >= PTIN_SYSTEM_N_INTERF)
   {
-    PT_LOG_ERR(LOG_CTX_INTF, "Error getting intIfNum from port %u", port);
+    PT_LOG_ERR(LOG_CTX_INTF, "Invalid port %u", port);
     return L7_FAILURE;
   }
-
+  
   osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
 
   /* Get board id for this interface */
@@ -6587,19 +6642,19 @@ L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable)
       if (ptin_fpga_mx_is_matrixactive() && PTIN_BOARD_IS_UPLINK(board_id))
       {
         /* Disable force link-up */
-        if ((rc=ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE)) != L7_SUCCESS)
+        if ((rc=ptin_intf_link_force(port, L7_TRUE, L7_DISABLE)) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_INTF, "Uplink port %u: Error disabling force link-up", port);
           break;
         }
         /* Force link-down */
-        if ((rc=ptin_intf_link_force(intIfNum, L7_FALSE, 0)) != L7_SUCCESS)
+        if ((rc=ptin_intf_link_force(port, L7_FALSE, 0)) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_INTF, "Uplink port %u: Error forcing link-down", port);
           break;
         }
         /* Enable linkscan */
-        if ((rc=ptin_intf_linkscan_set(intIfNum, L7_ENABLE)) != L7_SUCCESS)
+        if ((rc=ptin_intf_linkscan_set(port, L7_ENABLE)) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_INTF, "Uplink port %u: Error enabling linkscan", port);
           break;
@@ -6609,19 +6664,19 @@ L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable)
       else
       {
         /* Disable linkscan */
-        if ((rc=ptin_intf_linkscan_set(intIfNum, L7_DISABLE)) != L7_SUCCESS)
+        if ((rc=ptin_intf_linkscan_set(port, L7_DISABLE)) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_INTF, "Board port %u: Error disabling linkscan", port);
           break;
         }
         /* Disable force link-up */
-        if ((rc=ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE)) != L7_SUCCESS)
+        if ((rc=ptin_intf_link_force(port, L7_TRUE, L7_DISABLE)) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_INTF, "Board port %u: Error disabling force link-up", port);
           break;
         }
         /* Force link-down */
-        if ((rc=ptin_intf_link_force(intIfNum, L7_FALSE, 0)) != L7_SUCCESS)
+        if ((rc=ptin_intf_link_force(port, L7_FALSE, 0)) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_INTF, "Board port %u: Error forcing link-down", port);
           break;
@@ -6631,7 +6686,7 @@ L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable)
         if (PTIN_BOARD_IS_PRESENT(board_id))
         {
           /* Force link-up */
-          if ((rc=ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE)) != L7_SUCCESS)
+          if ((rc=ptin_intf_link_force(port, L7_TRUE, L7_ENABLE)) != L7_SUCCESS)
           {
             PT_LOG_ERR(LOG_CTX_INTF, "Board port %u: Error enabling force link-up", port);
             break;
@@ -6643,19 +6698,19 @@ L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable)
     else
     {
       /* Disable force link-up */
-      if ((rc=ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE)) != L7_SUCCESS)
+      if ((rc=ptin_intf_link_force(port, L7_TRUE, L7_DISABLE)) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_INTF, "Port %u: Error disabling link-up force", port);
         break;
       }
       /* Force link-down */
-      if ((rc=ptin_intf_link_force(intIfNum, L7_FALSE, 0)) != L7_SUCCESS)
+      if ((rc=ptin_intf_link_force(port, L7_FALSE, 0)) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_INTF, "Port %u: Error forcing link-down force", port);
         break;
       }
       /* Enable linkscan */
-      if ((rc=ptin_intf_linkscan_set(intIfNum, L7_ENABLE)) != L7_SUCCESS)
+      if ((rc=ptin_intf_linkscan_set(port, L7_ENABLE)) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_INTF, "Port %u: Error enabling linkscan", port);
         break;
@@ -6750,20 +6805,21 @@ L7_RC_t ptin_intf_slot_reset(L7_int slot_id, L7_BOOL force_linkup)
 /**
  * read linkscan status
  *  
- * @param intIfNum : Interface
+ * @param ptin_port : Interface
  * @param enable : enable (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_intf_linkscan_get(L7_uint32 intIfNum, L7_uint8 *enable)
+L7_RC_t ptin_intf_linkscan_get(L7_uint32 ptin_port, L7_uint8 *enable)
 {
+  L7_uint32 intIfNum;
   ptin_hwproc_t hw_proc;
   L7_RC_t   rc = L7_SUCCESS;
 
-  /* Validate interface */
-  if (intIfNum == 0 || intIfNum > L7_ALL_INTERFACES)
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u", intIfNum);
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
     return L7_FAILURE;
   }
 
@@ -6780,7 +6836,7 @@ L7_RC_t ptin_intf_linkscan_get(L7_uint32 intIfNum, L7_uint8 *enable)
 
   if (rc != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_INTF,"Error applying HW procedure to intIfNum=%u", intIfNum);
+    PT_LOG_ERR(LOG_CTX_INTF,"Error applying HW procedure to ptin_port=%u", ptin_port);
   }
   else
   {
@@ -6788,7 +6844,7 @@ L7_RC_t ptin_intf_linkscan_get(L7_uint32 intIfNum, L7_uint8 *enable)
     {
       *enable = (L7_uint8) hw_proc.param1;
     }
-    PT_LOG_TRACE(LOG_CTX_INTF,"HW linkscan get from intIfNum=%u (%u)", intIfNum, hw_proc.param1);
+    PT_LOG_TRACE(LOG_CTX_INTF,"HW linkscan get from ptin_port=%u (%u)", ptin_port, hw_proc.param1);
   }
 
   return rc;
@@ -6797,20 +6853,21 @@ L7_RC_t ptin_intf_linkscan_get(L7_uint32 intIfNum, L7_uint8 *enable)
 /**
  * Apply linkscan procedure
  *  
- * @param intIfNum : Interface
+ * @param ptin_port: Interface
  * @param enable : enable
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable)
+L7_RC_t ptin_intf_linkscan_set(L7_uint32 ptin_port, L7_uint8 enable)
 {
+  L7_uint32 intIfNum;
   ptin_hwproc_t hw_proc;
   L7_RC_t   rc = L7_SUCCESS;
 
-  /* Validate interface */
-  if (intIfNum == 0 || intIfNum > L7_ALL_INTERFACES)
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u", intIfNum);
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
     return L7_FAILURE;
   }
 
@@ -6827,11 +6884,11 @@ L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable)
 
   if (rc != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_INTF,"Error applying HW procedure to intIfNum=%u", intIfNum);
+    PT_LOG_ERR(LOG_CTX_INTF,"Error applying HW procedure to ptin_port=%u", ptin_port);
     return rc;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_INTF,"HW-Linkscan procedure applied to intIfNum=%u", intIfNum);
+  PT_LOG_DEBUG(LOG_CTX_INTF,"HW-Linkscan procedure applied to ptin_port=%u", ptin_port);
 
   return L7_SUCCESS;
 }
@@ -6839,30 +6896,29 @@ L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable)
 /**
  * Apply linkscan procedure
  *  
- * @param intIfNum : Interface 
+ * @param ptin_port : Interface 
  * @param link : link status
  * @param enable : enable
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
+L7_RC_t ptin_intf_link_force(L7_uint32 ptin_port, L7_uint8 link, L7_uint8 enable)
 {
-  L7_uint32 ptin_port;
+  L7_uint32 intIfNum;
   ptin_hwproc_t hw_proc;
   L7_RC_t   rc = L7_SUCCESS;
-  L7_uint16 vlanId = 0; /* FIXME TC16SXG */
 
   /* Validate interface */
-  if (intIfNum == 0 || intIfNum > L7_ALL_INTERFACES)
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF)
   {
-    PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u", intIfNum);
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid ptin_port %u", ptin_port);
     return L7_FAILURE;
   }
 
-  /* Get ptin_port format */
-  if (ptin_intf_intIfNum2port(intIfNum, vlanId, &ptin_port) != L7_SUCCESS || ptin_port >= ptin_sys_number_of_ports) /* FIXME TC16SXG */
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u -> no ptin_port correspondence", intIfNum);
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
     return L7_FAILURE;
   }
 
@@ -6879,7 +6935,7 @@ L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
 
   if (rc != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_INTF,"Error applying link force to %u for intIfNum=%u", enable, intIfNum);
+    PT_LOG_ERR(LOG_CTX_INTF,"Error applying link force to %u for ptin_port=%u", enable, ptin_port);
     return rc;
   }
 
@@ -6895,7 +6951,7 @@ L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
   }
 #endif
 
-  PT_LOG_DEBUG(LOG_CTX_INTF,"Force link to %u, applied to intIfNum=%u", enable, intIfNum);
+  PT_LOG_DEBUG(LOG_CTX_INTF,"Force link to %u, applied to ptin_port=%u", enable, ptin_port);
 
   return rc;
 }
@@ -6914,7 +6970,6 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
 #if (LINKSCAN_MANAGEABLE_BOARD)
 
   L7_int    port_idx, ptin_port = -1;
-  L7_uint32 intIfNum = L7_ALL_INTERFACES;
   L7_RC_t   rc = L7_SUCCESS;
 
   /* Validate input params */
@@ -6932,8 +6987,7 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
     ptin_port = ptin_sys_slotport_to_intf_map[slot_id][port_idx];
 
     /* Validate port */
-    if (ptin_port < 0 || ptin_port >= ptin_sys_number_of_ports ||
-        ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
+    if (ptin_port < 0 || ptin_port >= ptin_sys_number_of_ports)
     {
       PT_LOG_ERR(LOG_CTX_INTF,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
       return L7_FAILURE;
@@ -6944,7 +6998,7 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
     if (!ptin_intf_is_uplinkProtection(ptin_port) ||
          ptin_intf_is_uplinkProtectionActive(ptin_port))
     {
-      rc = ptin_intf_linkscan_set(intIfNum, enable); 
+      rc = ptin_intf_linkscan_set(ptin_port, enable); 
 
       if (rc != L7_SUCCESS)
       {
@@ -6969,8 +7023,7 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
         continue;
 
       /* Validate port */
-      if (ptin_port >= ptin_sys_number_of_ports ||
-          ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
+      if (ptin_port >= ptin_sys_number_of_ports)
       {
         PT_LOG_ERR(LOG_CTX_INTF,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
         return L7_FAILURE;
@@ -6985,7 +7038,7 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
       }
 
       /* Linkscan procedure */
-      rc = ptin_intf_linkscan_set(intIfNum, enable);
+      rc = ptin_intf_linkscan_set(ptin_port, enable);
 
       if (rc != L7_SUCCESS)
       {
@@ -7031,7 +7084,6 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
 #if (LINKSCAN_MANAGEABLE_BOARD)
 
   L7_int    port_idx, ptin_port = -1;
-  L7_uint32 intIfNum = L7_ALL_INTERFACES;
   L7_RC_t   rc = L7_SUCCESS;
 
   /* Validate input params */
@@ -7049,8 +7101,7 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
     ptin_port = ptin_sys_slotport_to_intf_map[slot_id][port_idx];
 
     /* Validate port */
-    if (ptin_port < 0 || ptin_port >= ptin_sys_number_of_ports ||
-        ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
+    if (ptin_port < 0 || ptin_port >= ptin_sys_number_of_ports)
     {
       PT_LOG_ERR(LOG_CTX_INTF,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
       return L7_FAILURE;
@@ -7062,11 +7113,11 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
          ptin_intf_is_uplinkProtectionActive(ptin_port))
     {
       /* Linkscan procedure */
-      rc = ptin_intf_link_force(intIfNum, link, enable);
+      rc = ptin_intf_link_force(ptin_port, link, enable);
 
       if (rc != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_INTF,"Error forcing link to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+        PT_LOG_ERR(LOG_CTX_INTF,"Error forcing link to slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
       }
       else
       {
@@ -7087,8 +7138,7 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
         continue;
 
       /* Validate port */
-      if (ptin_port >= ptin_sys_number_of_ports ||
-          ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
+      if (ptin_port >= ptin_sys_number_of_ports)
       {
         PT_LOG_ERR(LOG_CTX_INTF,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
         return L7_FAILURE;
@@ -7103,16 +7153,16 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
       }
 
       /* Linkscan procedure */
-      rc = ptin_intf_link_force(intIfNum, link, enable);
+      rc = ptin_intf_link_force(ptin_port, link, enable);
 
       if (rc != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_INTF,"Error forcing link to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+        PT_LOG_ERR(LOG_CTX_INTF,"Error forcing link to slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
         break;
       }
       else
       {
-        PT_LOG_TRACE(LOG_CTX_INTF,"Link forced to %u in slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", enable, slot_id, port_idx, ptin_port, intIfNum);
+        PT_LOG_TRACE(LOG_CTX_INTF,"Link forced to %u in slot_id=%d, slot_port=%d -> port=%d", enable, slot_id, port_idx, ptin_port);
         /* Next port */
       }
     }
@@ -7150,7 +7200,6 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
 #if (LINKSCAN_MANAGEABLE_BOARD)
 
   L7_int    port_idx, ptin_port = -1;
-  L7_uint32 intIfNum = L7_ALL_INTERFACES;
   L7_uint16 board_id_current;
   L7_RC_t   rc;
 
@@ -7206,8 +7255,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
       continue;
 
     /* Validate port */
-    if (ptin_port >= ptin_sys_number_of_ports ||
-        ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+    if (ptin_port >= ptin_sys_number_of_ports)
     {
       rc_global = max(L7_FAILURE, rc_global);
       PT_LOG_ERR(LOG_CTX_INTF,"Invalid ptin_port %d", ptin_port);
@@ -7216,7 +7264,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
 
   #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
     /* If board is downlink, activate QoS egress remarking */
-    rc = ptin_qos_egress_remark(intIfNum, PTIN_BOARD_IS_DOWNLINK(board_id));
+    rc = ptin_qos_egress_remark(ptin_port, PTIN_BOARD_IS_DOWNLINK(board_id));
     if (rc != L7_SUCCESS)
     {
       rc_global = max(rc, rc_global);
@@ -7285,8 +7333,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
       continue;
 
     /* Validate port */
-    if (ptin_port >= ptin_sys_number_of_ports ||
-        ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+    if (ptin_port >= ptin_sys_number_of_ports)
     {
       rc_global = max(L7_FAILURE, rc_global);
       PT_LOG_ERR(LOG_CTX_INTF,"Invalid ptin_port %d", ptin_port);
@@ -7308,7 +7355,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
           ptin_vlan_port_remove(ptin_port, 0);
         }
 
-        rc = ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE);
+        rc = ptin_intf_link_force(ptin_port, L7_TRUE, L7_ENABLE);
         if (rc != L7_SUCCESS)
         {
           rc_global = max(rc, rc_global);
@@ -7326,7 +7373,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
       /* Enable linkscan for uplink boards */
       else if (PTIN_BOARD_IS_UPLINK(board_id))
       {
-        rc = ptin_intf_linkscan_set(intIfNum, L7_ENABLE); 
+        rc = ptin_intf_linkscan_set(ptin_port, L7_ENABLE); 
         if (rc != L7_SUCCESS)
         {
           rc_global = max(rc, rc_global);
@@ -7383,7 +7430,6 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
 #if (LINKSCAN_MANAGEABLE_BOARD)
 
   L7_int    port_idx, ptin_port = -1;
-  L7_uint32 intIfNum = L7_ALL_INTERFACES;
   L7_uint16 board_id;
   L7_RC_t   rc;
 
@@ -7444,8 +7490,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
       continue;
 
     /* Validate port */
-    if (ptin_port >= ptin_sys_number_of_ports ||
-        ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+    if (ptin_port >= ptin_sys_number_of_ports)
     {
       rc_global = max(L7_FAILURE, rc_global);
       PT_LOG_ERR(LOG_CTX_INTF,"Invalid ptin_port %d", ptin_port);
@@ -7459,14 +7504,14 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
       if (PTIN_BOARD_IS_DOWNLINK(board_id) || ptin_intf_is_uplinkProtection(ptin_port))
       {
         /* Disable force link-up */
-        rc = ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE);
+        rc = ptin_intf_link_force(ptin_port, L7_TRUE, L7_DISABLE);
         if (rc != L7_SUCCESS)
         {
           rc_global = max(rc, rc_global);
           PT_LOG_ERR(LOG_CTX_INTF, "Error disabling force linkup for port %u (%d)", ptin_port, rc);
         }
         /* Cause link-down */
-        rc = ptin_intf_link_force(intIfNum, L7_FALSE, 0);
+        rc = ptin_intf_link_force(ptin_port, L7_FALSE, 0);
         if (rc != L7_SUCCESS)
         {
           rc_global = max(rc, rc_global);
@@ -7477,7 +7522,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
       /* Disable linkscan for uplink boards */
       else if (PTIN_BOARD_IS_UPLINK(board_id))
       {
-        rc = ptin_intf_linkscan_set(intIfNum, L7_DISABLE); 
+        rc = ptin_intf_linkscan_set(ptin_port, L7_DISABLE); 
         if (rc != L7_SUCCESS)
         {
           rc_global = max(rc, rc_global);
@@ -7485,7 +7530,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
         }
         PT_LOG_INFO(LOG_CTX_INTF, "Linkscan disabled for port %u", ptin_port);
         /* Cause link-down */
-        rc = ptin_intf_link_force(intIfNum, L7_FALSE, L7_DISABLE);
+        rc = ptin_intf_link_force(ptin_port, L7_FALSE, L7_DISABLE);
         if (rc != L7_SUCCESS)
         {
           rc_global = max(rc, rc_global);
@@ -7725,27 +7770,14 @@ L7_RC_t ptin_intf_slotMode_validate(L7_uint32 *slotmodes)
  exclusively by TA48's matrix protection mechanism (so, no LACP
  nor any other one whatsoever).
  */
-L7_BOOL ptin_intf_is_internal_lag_member(L7_uint32 intIfNum)
+L7_BOOL ptin_intf_is_internal_lag_member(L7_uint32 ptin_port)
 {
   /* Only applicable to TA48GE boards */
 #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
-  L7_uint32 i, port, _intIfNum;
-
-  /* We have 4 backplane ports */
-  for (i=0; i<4; i++)
+  if (ptin_port >= PTIN_SYSTEM_N_ETH &&
+      ptin_port < PTIN_SYSTEM_N_ETH+4)
   {
-    port = PTIN_SYSTEM_N_ETH+i;
-    if (ptin_intf_port2intIfNum(port, &_intIfNum) != L7_SUCCESS)
-    {
-      PT_LOG_WARN(LOG_CTX_INTF, "Error getting intIfNum from port %u", port);
-      return L7_FALSE;
-    }
-
-    /* Check if interface is backplane */
-    if (intIfNum == _intIfNum)
-    {
-      return L7_TRUE;
-    }
+    return L7_TRUE;
   }
 #endif
 
@@ -7848,12 +7880,11 @@ L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd)
 L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
 {
 #ifdef PTIN_SYSTEM_PROTECTION_LAGID_BASE
-  L7_uint32 ptin_port, intIfNum;
+  L7_uint32 ptin_port;
   L7_RC_t rc;
 
   /* Get intIfNum from slot/port */
-  if (ptin_intf_slotPort2port(slot, port, &ptin_port) != L7_SUCCESS ||
-      ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  if (ptin_intf_slotPort2port(slot, port, &ptin_port) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Slot/port=%u/%u is not valid", slot, port);
     return L7_FAILURE;
@@ -7884,7 +7915,7 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
     if (ptin_fpga_mx_is_matrixactive())
     {
       /* Enable linkscan for newly active port */
-      rc = ptin_intf_linkscan_set(intIfNum, L7_ENABLE);
+      rc = ptin_intf_linkscan_set(ptin_port, L7_ENABLE);
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_INTF, "Error enabling linkscan for port %u (%d)", ptin_port, rc);
@@ -7915,7 +7946,7 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
     if (ptin_fpga_mx_is_matrixactive())
     {
       /* Deactivate linkscan, and force link up for newly inactive port */
-      rc = ptin_intf_linkscan_set(intIfNum, L7_DISABLE);
+      rc = ptin_intf_linkscan_set(ptin_port, L7_DISABLE);
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_INTF, "Error disabling linkscan for port %u (%d)", ptin_port, rc);
@@ -7923,7 +7954,7 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
       PT_LOG_TRACE(LOG_CTX_INTF, "Linkscan enabled for port %u", ptin_port);
       if (rc == L7_SUCCESS)
       {
-        rc = ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE); 
+        rc = ptin_intf_link_force(ptin_port, L7_TRUE, L7_ENABLE); 
         if (rc != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_INTF, "Error forcing linkup for port %u (%d)", ptin_port, rc);
@@ -7953,18 +7984,15 @@ L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_ui
 {
 #ifdef PTIN_SYSTEM_PROTECTION_LAGID_BASE
   L7_uint32 ptin_port_old, ptin_port_new;
-  L7_uint32 intIfNum_old, intIfNum_new;
   L7_RC_t rc;
 
   /* Get intIfNum from slot/port */
-  if (ptin_intf_slotPort2port(slot_old, port_old, &ptin_port_old) != L7_SUCCESS ||
-      ptin_intf_port2intIfNum(ptin_port_old, &intIfNum_old) != L7_SUCCESS)
+  if (ptin_intf_slotPort2port(slot_old, port_old, &ptin_port_old) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Slot/port=%u/%u is not valid", slot_old, port_old);
     return L7_FAILURE;
   }
-  if (ptin_intf_slotPort2port(slot_new, port_new, &ptin_port_new) != L7_SUCCESS ||
-      ptin_intf_port2intIfNum(ptin_port_new, &intIfNum_new) != L7_SUCCESS)
+  if (ptin_intf_slotPort2port(slot_new, port_new, &ptin_port_new) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Slot/port=%u/%u is not valid", slot_new, port_new);
     return L7_FAILURE;
@@ -8005,7 +8033,7 @@ L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_ui
   if (ptin_fpga_mx_is_matrixactive())
   {
     /* Deactivate linkscan, and force link up for newly inactive port */
-    rc = ptin_intf_linkscan_set(intIfNum_old, L7_DISABLE);
+    rc = ptin_intf_linkscan_set(ptin_port_old, L7_DISABLE);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Error disabling linkscan for port %u (%d)", ptin_port_old, rc);
@@ -8013,7 +8041,7 @@ L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_ui
     PT_LOG_TRACE(LOG_CTX_INTF, "Linkscan enabled for port %u", ptin_port_old);
     if (rc == L7_SUCCESS)
     {
-      rc = ptin_intf_link_force(intIfNum_old, L7_TRUE, L7_ENABLE); 
+      rc = ptin_intf_link_force(ptin_port_old, L7_TRUE, L7_ENABLE); 
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_INTF, "Error forcing linkup for port %u (%d)", ptin_port_old, rc);
@@ -8022,7 +8050,7 @@ L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_ui
     }
 
     /* Enable linkscan for newly active port */
-    rc = ptin_intf_linkscan_set(intIfNum_new, L7_ENABLE);
+    rc = ptin_intf_linkscan_set(ptin_port_new, L7_ENABLE);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Error enabling linkscan for port %u (%d)", ptin_port_new, rc);
@@ -8041,25 +8069,33 @@ L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_ui
 /**
  * Configure Default VLANs using VCAP rules
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param outerVlan 
  * @param innerVlan  
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_intf_vcap_defvid(L7_uint32 intIfNum, L7_uint16 outerVlan, L7_uint16 innerVlan)
+L7_RC_t ptin_intf_vcap_defvid(L7_uint32 ptin_port, L7_uint16 outerVlan, L7_uint16 innerVlan)
 {
   L7_uint         i;
   L7_INTF_TYPES_t intf_type;
+  L7_uint32       intIfNum;
   L7_uint32       intIfNum_list_size;
   L7_uint32       intIfNum_list[PTIN_SYSTEM_N_PORTS];
   ptin_hwproc_t hw_proc;
   L7_RC_t         rc_global = L7_SUCCESS, rc;
 
   /* Validate ports */
-  if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF)
   {
-    PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %d", intIfNum);
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid ptin_port %d", ptin_port);
+    return L7_FAILURE;
+  }
+
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
     return L7_FAILURE;
   }
 
@@ -8169,24 +8205,25 @@ L7_RC_t ptin_intf_clock_recover_set(L7_int ptin_port_main, L7_int ptin_port_bckp
 /**
  * Configure Maximum frame size
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param frame_size 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE/L7_NOT_SUPPORTED
  */
-L7_RC_t ptin_intf_frame_oversize_set(L7_uint32 intIfNum, L7_uint32 frame_size)
+L7_RC_t ptin_intf_frame_oversize_set(L7_uint32 ptin_port, L7_uint32 frame_size)
 {
   L7_uint         i;
   L7_INTF_TYPES_t intf_type;
+  L7_uint32       intIfNum;
   L7_uint32       intIfNum_list_size;
   L7_uint32       intIfNum_list[PTIN_SYSTEM_N_PORTS];
   ptin_hwproc_t hw_proc;
   L7_RC_t         rc_global = L7_SUCCESS, rc;
 
-  /* Validate ports */
-  if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %d", intIfNum);
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
     return L7_FAILURE;
   }
 
@@ -8247,25 +8284,26 @@ L7_RC_t ptin_intf_frame_oversize_set(L7_uint32 intIfNum, L7_uint32 frame_size)
 /**
  * Read Maximum frame size
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param frame_size (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE/L7_NOT_SUPPORTED
  */
-L7_RC_t ptin_intf_frame_oversize_get(L7_uint32 intIfNum, L7_uint32 *frame_size)
+L7_RC_t ptin_intf_frame_oversize_get(L7_uint32 ptin_port, L7_uint32 *frame_size)
 {
   L7_uint         i;
   L7_uint         fsize = L7_MAX_FRAME_SIZE;
   L7_INTF_TYPES_t intf_type;
+  L7_uint32       intIfNum;
   L7_uint32       intIfNum_list_size;
   L7_uint32       intIfNum_list[PTIN_SYSTEM_N_PORTS];
   ptin_hwproc_t   hw_proc;
   L7_RC_t         rc_global = L7_SUCCESS, rc;
 
-  /* Validate ports */
-  if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %d", intIfNum);
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
     return L7_FAILURE;
   }
 
@@ -9097,21 +9135,22 @@ void ptin_intf_stormcontrol_dump(void)
  * Get the maximum bandwidth associated to a interface (physical
  * or LAG) 
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param bandwidth : bandwidth in Kbps 
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_ERROR
  */
-L7_RC_t ptin_intf_max_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth)
+L7_RC_t ptin_intf_max_bandwidth(L7_uint32 ptin_port, L7_uint32 *bandwidth)
 {
   L7_INTF_TYPES_t intf_type;
+  L7_uint32 intIfNum;
   L7_uint32 intf_speed, total_speed = 0;
   L7_uint32 i, number_of_ports, ports_list[PTIN_SYSTEM_N_LAGS];
 
-  /* Validate intIfNum */
-  if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u", intIfNum);
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
     return L7_FAILURE;
   }
 
@@ -9188,21 +9227,22 @@ L7_RC_t ptin_intf_max_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth)
 /**
  * Get the AVAILABLE bandwidth of an interface (physical or LAG)
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param bandwidth : bandwidth in Kbps 
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_ERROR
  */
-L7_RC_t ptin_intf_active_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth)
+L7_RC_t ptin_intf_active_bandwidth(L7_uint32 ptin_port, L7_uint32 *bandwidth)
 {
   L7_INTF_TYPES_t intf_type;
+  L7_uint32 intIfNum;
   L7_uint32 intf_speed, total_speed = 0;
   L7_uint32 i, number_of_ports = 0, ports_list[PTIN_SYSTEM_N_LAGS];
 
-  /* Validate intIfNum */
-  if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u", intIfNum);
+    PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
     return L7_FAILURE;
   }
 

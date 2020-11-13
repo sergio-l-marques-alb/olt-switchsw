@@ -362,7 +362,7 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
 
 #ifndef RAW_MODE
     // Convert to internal VLAN ID
-    if (ptin_xlate_ingress_get( intIfNum, vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR ) != L7_SUCCESS)
+    if (ptin_xlate_ingress_get( port, vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR ) != L7_SUCCESS)
     {
       vidInternal = 0;
     }
@@ -629,12 +629,18 @@ void ptin_oam_eth_task(void)
            L7_uint32 i, ptin_port;//, vid;
            L7_uint16 newOuterVlanId;           
 
-           if (ptin_xlate_egress_get( msg.intIfNum, msg.vlanId, PTIN_XLATE_NOT_DEFINED, &newOuterVlanId, L7_NULLPTR ) != L7_SUCCESS)
+           /* FIXME TC16SXG: intIfNum->ptin_port */
+           if (L7_SUCCESS!=ptin_intf_intIfNum2port(msg.intIfNum, newOuterVlanId /*msg.vlanId*/, &ptin_port))
+           {
+               PT_LOG_INFO(LOG_CTX_OAM,"but in invalid port");
+               break;
+           }
+
+           if (ptin_xlate_egress_get(ptin_port, msg.vlanId, PTIN_XLATE_NOT_DEFINED, &newOuterVlanId, L7_NULLPTR) != L7_SUCCESS)
            {
              newOuterVlanId = 0;
            }
 
-           if (L7_SUCCESS!=ptin_intf_intIfNum2port(msg.intIfNum, newOuterVlanId/*msg.vlanId*/, &ptin_port)) {PT_LOG_INFO(LOG_CTX_OAM,"but in invalid port"); break;}/* FIXME TC16SXG newOuterVlanId ou msg.vlanId*/
            //for (i=0; i<msg.payloadLen; i++) printf(" %2.2x", msg.payload[i]);      printf("\n\r");
            for (i=2*L7_MAC_ADDR_LEN/*, vid=-1*/; i<msg.payloadLen; i+=4) {
                switch (msg.payload[i]<<8 | msg.payload[i+1]) {//ETHtype
@@ -696,14 +702,11 @@ _ptin_oam_eth_task1:;
 
 
 L7_RC_t ptin_ccm_packet_trap(L7_uint16 prt, L7_uint16 vlanId, L7_uint16 oam_level, L7_BOOL enable) {
-L7_uint32 intIfNum;
 L7_uint16 vidInternal;
 
     if (oam_level>=N_OAM_LEVELS
         ||
-        L7_SUCCESS!=ptin_intf_port2intIfNum(prt, &intIfNum)
-        ||
-        L7_SUCCESS!=ptin_xlate_ingress_get( intIfNum, vlanId, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)) return L7_FAILURE;
+        L7_SUCCESS!=ptin_xlate_ingress_get( prt, vlanId, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)) return L7_FAILURE;
 
     if (enable) {
         if (L7_SUCCESS!=ptin_ccm_packet_vlan_trap(vidInternal, oam_level, 1)) {
@@ -1009,24 +1012,25 @@ u8 this_MPs_MAC(u16 oam_prt, u64 vid, u8 mip0_mep1, u8 *mac) {
 
 
 u16 single_egprt_targetMAC(u8 *MAC, u16 ingress_oam_prt, u64 ingress_vid, u64 *egress_vid) {
-L7_uint32 intIfNum, ptin_port;
+L7_uint32 ptin_port;
 L7_uint16 vidInternal;
 L7_uchar8 vidMac[L7_FDB_KEY_SIZE];
 dot1dTpFdbData_t fdbEntry;
 
- if (L7_SUCCESS==ptin_intf_port2intIfNum(ingress_oam_prt, &intIfNum)
-     &&
-     L7_SUCCESS==ptin_xlate_ingress_get(intIfNum, ingress_vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR))
+ if (L7_SUCCESS==ptin_xlate_ingress_get(ingress_oam_prt, ingress_vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR))
  {
      memset(vidMac, 0, L7_FDB_KEY_SIZE);
      (void)usmDbEntryVidMacCombine(vidInternal, MAC, vidMac);
 
      memset(&fdbEntry, 0, sizeof(fdbEntry));
-     if(L7_SUCCESS==fdbFind(vidMac, L7_MATCH_EXACT, &fdbEntry) && L7_SUCCESS==ptin_intf_intIfNum2port(fdbEntry.dot1dTpFdbPort, vidInternal, &ptin_port)) { /* FIXME TC16SXG */
+     /* FIXME TC16SXG: intIfNum->ptin_port */
+     if(L7_SUCCESS==fdbFind(vidMac, L7_MATCH_EXACT, &fdbEntry) &&
+        L7_SUCCESS==ptin_intf_intIfNum2port(fdbEntry.dot1dTpFdbPort, 0/*Vlan*/, &ptin_port))    /* FIXME TC16SXG */
+     {
        if (NULL!=egress_vid) {
        L7_uint16 newOuterVlanId;
 
-           if (L7_SUCCESS==ptin_xlate_egress_get(fdbEntry.dot1dTpFdbPort, vidInternal, PTIN_XLATE_NOT_DEFINED, &newOuterVlanId, L7_NULLPTR))
+           if (L7_SUCCESS==ptin_xlate_egress_get(ptin_port, vidInternal, PTIN_XLATE_NOT_DEFINED, &newOuterVlanId, L7_NULLPTR))
                 *egress_vid = newOuterVlanId;
            else *egress_vid = -1;
          }
@@ -1046,14 +1050,11 @@ u8 ingress_action(u16 oam_prt, u64 vid) {
 }
 
 u8 egress_action(u16 oam_prt, u64 vid) {
-L7_uint32 intIfNum;
 L7_uint16 vidInternal;
 
  if (L7_TRUE!=get_linkStatus(oam_prt)) return EgrDown;
 
-if (L7_SUCCESS!=ptin_intf_port2intIfNum(oam_prt, &intIfNum)
-     ||
-     L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)) return EgrVID;
+ if (L7_SUCCESS!=ptin_xlate_ingress_get(oam_prt, vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)) return EgrVID;
 
  //EgrBlocked: might be in future
  return EgrOK;

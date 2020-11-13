@@ -326,6 +326,30 @@ extern L7_RC_t ptin_intf_slotPort2IntIfNum(L7_uint16 slot, L7_uint16 intf, L7_ui
 #define ptin_port_is_pon(ptin_port) ((ptin_port)<PTIN_SYSTEM_N_PONS)
 
 /**
+ * Direct function to convert intIfNum to ptin_port
+ * 
+ * @author mruas (12/11/20)
+ * 
+ * @param intIfNum 
+ * @param vlan_gem 
+ * 
+ * @return L7_uint32 : ptin_port
+ */
+extern L7_uint32 intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem);
+
+/**
+ * Direct function to convert ptin_port to intIfNum
+ * 
+ * @author mruas (12/11/20)
+ * 
+ * @param ptin_port
+ * @param vlan_gem 
+ * 
+ * @return L7_uint32 : intIfNum
+ */
+extern L7_uint32 port2intIfNum(L7_uint32 ptin_port);
+
+/**
  * Converts PTin port mapping (including LAGs) to the FP interface#
  * 
  * @param ptin_port PTin port index
@@ -769,33 +793,33 @@ extern L7_RC_t ptin_QoS_drop_config_get(const ptin_intf_t *ptin_intf, L7_uint8 c
 /**
  * Activate PRBS generator/checker
  *  
- * @param intIfNum : Interface
+ * @param ptin_port: Interface
  * @param enable   : L7_TRUE/L7_FALSE
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pcs_prbs_enable(L7_uint32 intIfNum, L7_BOOL enable);
+extern L7_RC_t ptin_pcs_prbs_enable(L7_uint32 ptin_port, L7_BOOL enable);
 
 /**
  * Read number of PRBS errors
  *  
- * @param intIfNum : Interface
+ * @param ptin_port: Interface
  * @param enable   : L7_TRUE/L7_FALSE
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter);
+extern L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 ptin_port, L7_uint32 *counter);
 
 /**
  * Configure Default VLANs using VCAP rules
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param outerVlan 
  * @param innerVlan  
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_intf_vcap_defvid(L7_uint32 intIfNum, L7_uint16 outerVlan, L7_uint16 innerVlan);
+extern L7_RC_t ptin_intf_vcap_defvid(L7_uint32 ptin_port, L7_uint16 outerVlan, L7_uint16 innerVlan);
 
 /**
  * Configure clock recovery references
@@ -810,33 +834,33 @@ extern L7_RC_t ptin_intf_clock_recover_set(L7_int ptin_port_main, L7_int ptin_po
 /**
  * Configure Maximum frame size
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param frame_size 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE/L7_NOT_SUPPORTED
  */
-extern L7_RC_t ptin_intf_frame_oversize_set(L7_uint32 intIfNum, L7_uint32 frame_size);
+extern L7_RC_t ptin_intf_frame_oversize_set(L7_uint32 ptin_port, L7_uint32 frame_size);
 
 /**
  * Apply linkfaults enable procedure
  *  
- * @param intIfNum : Interface
+ * @param ptin_port : Interface
  * @param local_enable : Local faults processing enable 
  * @param remote_enable : Remote faults processing enable 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_linkfaults_enable(L7_uint32 intIfNum, L7_BOOL local_enable, L7_BOOL remote_enable);
+extern L7_RC_t ptin_intf_linkfaults_enable(L7_uint32 ptin_port, L7_BOOL local_enable, L7_BOOL remote_enable);
 
 /**
  * Read Maximum frame size
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param frame_size (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE/L7_NOT_SUPPORTED
  */
-extern L7_RC_t ptin_intf_frame_oversize_get(L7_uint32 intIfNum, L7_uint32 *frame_size);
+extern L7_RC_t ptin_intf_frame_oversize_get(L7_uint32 ptin_port, L7_uint32 *frame_size);
 
 /**
  * Enable or disable linkscan control for a particular port
@@ -861,33 +885,33 @@ extern L7_RC_t ptin_intf_slot_reset(L7_int slot_id, L7_BOOL force_linkup);
 /**
  * read linkscan status
  *  
- * @param intIfNum : Interface
+ * @param ptin_port : Interface
  * @param enable : enable (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_linkscan_get(L7_uint32 intIfNum, L7_uint8 *enable);
+extern L7_RC_t ptin_intf_linkscan_get(L7_uint32 ptin_port, L7_uint8 *enable);
 
 /**
  * Apply linkscan procedure
  *  
- * @param intIfNum : Interface 
+ * @param ptin_port : Interface 
  * @param enable : enable
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable);
+extern L7_RC_t ptin_intf_linkscan_set(L7_uint32 ptin_port, L7_uint8 enable);
 
 /**
  * Apply linkscan procedure
  *  
- * @param intIfNum : Interface
+ * @param ptin_port : Interface
  * @param link : link_status 
  * @param enable : enable
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable);
+extern L7_RC_t ptin_intf_link_force(L7_uint32 ptin_port, L7_uint8 link, L7_uint8 enable);
 
 /**
  * Apply linkscan procedure
@@ -999,22 +1023,22 @@ extern L7_BOOL ptin_intf_link_get(L7_uint32 ptin_port);
  * Get the maximum bandwidth associated to a interface (physical
  * or LAG) 
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param bandwidth : bandwidth in Kbps 
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_ERROR
  */
-extern L7_RC_t ptin_intf_max_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth);
+extern L7_RC_t ptin_intf_max_bandwidth(L7_uint32 ptin_port, L7_uint32 *bandwidth);
 
 /**
  * Get the AVAILABLE bandwidth of an interface (physical or LAG)
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param bandwidth : bandwidth in Kbps 
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_ERROR
  */
-extern L7_RC_t ptin_intf_active_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth);
+extern L7_RC_t ptin_intf_active_bandwidth(L7_uint32 ptin_port, L7_uint32 *bandwidth);
 
 /**
  * Set the maximum rate for a port
@@ -1165,7 +1189,7 @@ extern L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old
  exclusively by TA48's matrix protection mechanism (so, no LACP
  nor any other one whatsoever).
  */
-extern L7_BOOL ptin_intf_is_internal_lag_member(L7_uint32 intIfNum);
+extern L7_BOOL ptin_intf_is_internal_lag_member(L7_uint32 ptin_port);
 extern int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp);
 
 #if (PTIN_BOARD == PTIN_BOARD_TA48GE)

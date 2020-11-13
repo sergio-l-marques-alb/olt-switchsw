@@ -110,8 +110,8 @@ typedef struct {
     L7_uint32 alarmsEnFlag;         ///< UPLINK_PortAlarmsMaskEn_t
     L7_uint32 flags;                /// Other flags
 
-    L7_uint32 intIfNumW;
-    L7_uint32 intIfNumP;
+    L7_uint32 ptin_port_w;
+    L7_uint32 ptin_port_p;
 } uplinkprotParams_st;
 
 /// Protection DB
@@ -175,27 +175,27 @@ extern uplinkprot_st uplinkprot[MAX_UPLINK_PROT];
 extern L7_RC_t ptin_prot_uplink_init(void);
 
 /**
- * Search for a protection group with the specified intIfNum
+ * Search for a protection group with the specified ptin_port
  * 
  * @author mruas (19/07/17)
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param protIdx
  * @param portType 
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_NOT_EXIST
  */
-extern L7_RC_t ptin_prot_uplink_index_find(L7_uint32 intIfNum, L7_uint8 *protIdx, L7_uint8 *portType);
+extern L7_RC_t ptin_prot_uplink_index_find(L7_uint32 ptin_port, L7_uint8 *protIdx, L7_uint8 *portType);
 
 /**
  * Blocking mechanism implemented here
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param block_state 
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 intIfNum, L7_int block_state);
+extern L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 ptin_port, L7_int block_state);
 
 /**
  * Create a protection group
@@ -328,11 +328,11 @@ extern L7_RC_t ptin_prot_uplink_resume(void);
  * 
  * @author mruas (26/07/17)
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_prot_uplink_intf_reload(L7_uint32 intIfNum);
+extern L7_RC_t ptin_prot_uplink_intf_reload(L7_uint32 ptin_port);
 
 
 /**

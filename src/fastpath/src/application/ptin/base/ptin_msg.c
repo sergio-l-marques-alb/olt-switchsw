@@ -645,11 +645,8 @@ L7_RC_t ptin_msg_configure_trap(L7_uint16 vlanId, L7_uint8 portId, L7_uint8 prot
  */
 L7_RC_t ptin_msg_typeBprotIntfSwitchNotify(msg_HwTypeBProtSwitchNotify_t *msg)
 {
-
   L7_RC_t   rc;
-
-  L7_uint32 intIfNum;
-
+  L7_uint32 ptin_port;
   L7_uint8  status;
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "Type-B Protection switch notification");
@@ -657,19 +654,14 @@ L7_RC_t ptin_msg_typeBprotIntfSwitchNotify(msg_HwTypeBProtSwitchNotify_t *msg)
   PT_LOG_DEBUG(LOG_CTX_MSG, " portId = %u"   , ENDIAN_SWAP8(msg->portId)); //ptin_port format
   PT_LOG_DEBUG(LOG_CTX_MSG, " cmd    = %08X" , ENDIAN_SWAP8(msg->cmd));
 
-  /* Convert portId to intfNum */
-  if (ptin_intf_port2intIfNum(ENDIAN_SWAP8(msg->portId), &intIfNum)!=L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Non existent port");
-    return L7_FAILURE;
-  }
-
+  /* Port */
+  ptin_port = msg->portId;
 
   /* Get interface status from the first bit of msg->cmd */
   status = ENDIAN_SWAP8(msg->cmd) & 0x0001;
 
   /* Update interface configurations */
-  rc = ptin_prottypeb_intf_switch_notify(intIfNum, status);
+  rc = ptin_prottypeb_intf_switch_notify(ptin_port, status);
 
   if (rc!=L7_SUCCESS)
   {
@@ -690,7 +682,6 @@ L7_RC_t ptin_msg_typeBprotIntfSwitchNotify(msg_HwTypeBProtSwitchNotify_t *msg)
 L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
 {
   L7_RC_t                      rc;
-  L7_int                       ptin_port;
   ptin_prottypeb_intf_config_t ptin_intfConfig;
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "Configurations");
@@ -703,32 +694,22 @@ L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
   memset(&ptin_intfConfig, 0x00, sizeof(ptin_intfConfig));
 
   /* Convert intfId to intfNum */
-  if (ptin_msg_ptinPort_get(ENDIAN_SWAP8(msg->intfId.intf_type), ENDIAN_SWAP8(msg->intfId.intf_id), &ptin_port)!=L7_SUCCESS)
+  if (ptin_msg_ptinPort_get(ENDIAN_SWAP8(msg->intfId.intf_type), ENDIAN_SWAP8(msg->intfId.intf_id), &ptin_intfConfig.ptin_port)!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid port");
-    return L7_FAILURE;
-  }
-  if (ptin_intf_port2intIfNum(ptin_port, &ptin_intfConfig.intfNum)!=L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Non existent port");
     return L7_FAILURE;
   }
 
   /* Convert pairIntfId to intfNum */
-  if (ptin_msg_ptinPort_get(ENDIAN_SWAP8(msg->pairIntfId.intf_type), ENDIAN_SWAP8(msg->pairIntfId.intf_id), &ptin_port)!=L7_SUCCESS)
+  if (ptin_msg_ptinPort_get(ENDIAN_SWAP8(msg->pairIntfId.intf_type), ENDIAN_SWAP8(msg->pairIntfId.intf_id), &ptin_intfConfig.pairPtinPort)!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid port");
     return L7_FAILURE;
   }
-  if (ptin_intf_port2intIfNum(ptin_port, &ptin_intfConfig.pairIntfNum)!=L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Non existent port");
-    return L7_FAILURE;
-  }
 
-  if (ptin_intfConfig.intfNum == ptin_intfConfig.pairIntfNum && ENDIAN_SWAP8(msg->slotId) == ENDIAN_SWAP8(msg->pairSlotId))
+  if (ptin_intfConfig.ptin_port == ptin_intfConfig.pairPtinPort && ENDIAN_SWAP8(msg->slotId) == ENDIAN_SWAP8(msg->pairSlotId))
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Invalid Parameters: slotId=pairSlotId=%u, intfNum=pairIntfNum=%u", ENDIAN_SWAP8(msg->slotId), ptin_intfConfig.intfNum);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid Parameters: slotId=pairSlotId=%u, ptin_port=pairPtinPort=%u", ENDIAN_SWAP8(msg->slotId), ptin_intfConfig.ptin_port);
     return L7_FAILURE;
   }
   
@@ -9896,7 +9877,7 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
   {
     size = PLAT_MAX_FDB_MAC_ENTRIES;
 
-    intf =(ENDIAN_SWAP8(input->mask) == 0x01) ? (ENDIAN_SWAP8(input->intfId) + 1) /* Convertion to ptinIntfNum)*/ : ((uint8) -1); //check if is slot or intf reading
+    intf =(ENDIAN_SWAP8(input->mask) == 0x01) ? (ENDIAN_SWAP8(input->intfId)) : ((uint8) -1); //check if is slot or intf reading
 
     rc = ptin_dhcpv4v6_bindtable_get(dhcpv4v6_bindtable, &size, &intf);
 
@@ -10733,7 +10714,7 @@ L7_RC_t ptin_msg_igmp_instance_remove(msg_IgmpMultcastUnicastLink_t *msgIgmpInst
 L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clients)
 { 
   L7_uint16        i;  
-  L7_uint32        intIfNum;
+  L7_uint32        ptin_port;
   ptin_client_id_t client;  
   L7_uint16        uni_ivid;
   L7_uint16        uni_ovid;
@@ -10830,10 +10811,10 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
             continue;
           }
 
-          /* Get interface as intIfNum format */      
-          if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
+          /* Get interface as intIfNum format */
+          if (ptin_intf_ptintf2port(&client.ptin_intf, &ptin_port)==L7_SUCCESS)
           {
-             if (ptin_evc_extVlans_get(intIfNum, McastClient[i].mcEvcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
+             if (ptin_evc_extVlans_get(ptin_port, McastClient[i].mcEvcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
              { 
                PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
                         client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
@@ -10909,9 +10890,9 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
         }
 
         /* Get interface as intIfNum format */      
-        if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
+        if (ptin_intf_ptintf2port(&client.ptin_intf, &ptin_port)==L7_SUCCESS)
         {
-          if (ptin_evc_extVlans_get(intIfNum, McastClient[i].mcEvcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
+          if (ptin_evc_extVlans_get(ptin_port, McastClient[i].mcEvcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
           {
             PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
                     client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
@@ -12330,15 +12311,19 @@ L7_RC_t ptin_msg_snoop_sync_request(msg_SnoopSyncRequest_t *snoopSyncRequest)
     }
 #if PTIN_BOARD_IS_MATRIX 
   #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
-    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u groupAddr:%08X sourceAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr.addr.ipv4, snoopSyncRequest->sourceAddr.addr.ipv4);
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u groupAddr:%08X sourceAddr:%08X]",
+                  snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr.addr.ipv4, snoopSyncRequest->sourceAddr.addr.ipv4);
   #else
-    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u groupAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr);
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u groupAddr:%08X]",
+                  snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr);
   #endif
 #else
   #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
-    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->portId, snoopSyncRequest->groupAddr.addr.ipv4, snoopSyncRequest->sourceAddr.addr.ipv4);
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]",
+                  snoopSyncRequest->serviceId, snoopSyncRequest->portId, snoopSyncRequest->groupAddr.addr.ipv4, snoopSyncRequest->sourceAddr.addr.ipv4);
   #else
-    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u portId:%u groupAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->portId, snoopSyncRequest->groupAddr);
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u portId:%u groupAddr:%08X]",
+                  snoopSyncRequest->serviceId, snoopSyncRequest->portId, snoopSyncRequest->groupAddr);
   #endif
 #endif
     return rc;
@@ -12502,14 +12487,16 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
 #if PTIN_BOARD_IS_MATRIX    
   if(ptin_fpga_mx_is_matrixactive_rt())//If I'm a Active Matrix
   {
-    PT_LOG_NOTICE(LOG_CTX_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Active Matrix on slotId:%u",ptin_fpga_board_slot_get());
+    PT_LOG_NOTICE(LOG_CTX_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Active Matrix on slotId:%u",
+                  ptin_fpga_board_slot_get());
     return SUCCESS;
   }
 
   /* MX board IP address */
   ipAddr = IPC_MX_PAIR_IPADDR;
   
-  PT_LOG_INFO(LOG_CTX_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u] to ipAddr:%08X (%u) to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, ipAddr, MX_PAIR_SLOT_ID);         
+  PT_LOG_INFO(LOG_CTX_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u] to ipAddr:%08X (%u) to Sync the Remaining Snoop Entries",
+              snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, ipAddr, MX_PAIR_SLOT_ID);
 #else
   {
     ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
@@ -12519,7 +12506,8 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
 
     if(protTypebIntfConfig.status==L7_ENABLE)//If I'm a Protection
     {
-      PT_LOG_NOTICE(LOG_CTX_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Active slotId/intfNum:%u/%u",protTypebIntfConfig.pairSlotId, protTypebIntfConfig.intfNum);
+      PT_LOG_NOTICE(LOG_CTX_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Active slotId/ptin_port:%u/%u",
+                    protTypebIntfConfig.pairSlotId, protTypebIntfConfig.ptin_port);
       return SUCCESS;
     }
       
@@ -12533,9 +12521,11 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
       return L7_FAILURE;
     }
     #endif
-    snoopSyncRequest.portId = protTypebIntfConfig.pairIntfNum;
+    /* FIXME TC16SXG: mgmd portId */
+    snoopSyncRequest.portId = protTypebIntfConfig.pairPtinPort;
 
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u | portId:%u] to ipAddr:%08X to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, snoopSyncRequest.portId, ipAddr);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u | portId:%u] to ipAddr:%08X to Sync the Remaining Snoop Entries",
+                 snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, snoopSyncRequest.portId, ipAddr);
   }
 #endif
               
@@ -12853,10 +12843,10 @@ L7_RC_t ptin_msg_uplink_prot_config_get(ipc_msg *inbuffer, ipc_msg *outbuffer)
     if (ptin_prot_uplink_config_get(protIdx, &prot_config) == L7_SUCCESS)
     {
       /* Convert intIfNum to LagID */
-      if (ptin_intf_intIfNum2ptintf(prot_config.intIfNumW, &intfW) != L7_SUCCESS ||
-          ptin_intf_intIfNum2ptintf(prot_config.intIfNumP, &intfP) != L7_SUCCESS)
+      if (ptin_intf_port2ptintf(prot_config.ptin_port_w, &intfW) != L7_SUCCESS ||
+          ptin_intf_port2ptintf(prot_config.ptin_port_p, &intfP) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "Error getting ptin_intf value for intIfNum %u or %u", prot_config.intIfNumW, prot_config.intIfNumP);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error getting ptin_intf value for intIfNum %u or %u", prot_config.ptin_port_w, prot_config.ptin_port_p);
         rc_global = L7_FAILURE;
         continue;
       }
@@ -13577,7 +13567,7 @@ L7_RC_t ptin_msg_mgmd_sync_ports(msg_HwMgmdPortSync *port_sync_data)
 L7_RC_t ptin_msg_pcs_prbs_enable(msg_ptin_pcs_prbs *msg, L7_int n_msg)
 {
   ptin_intf_t ptin_intf;
-  L7_uint32 i, intIfNum;
+  L7_uint32 i, ptin_port;
   L7_RC_t rc;
 
   for (i=0; i<n_msg; i++)
@@ -13591,13 +13581,13 @@ L7_RC_t ptin_msg_pcs_prbs_enable(msg_ptin_pcs_prbs *msg, L7_int n_msg)
     ptin_intf.intf_id   = ENDIAN_SWAP8(msg[i].intf.intf_id);
 
     /* Get intIfNum */
-    if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum)!=L7_SUCCESS)
+    if (ptin_intf_ptintf2port(&ptin_intf, &ptin_port)!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Non existent port (%u/%u)",ptin_intf.intf_type,ptin_intf.intf_id);
       return L7_FAILURE;
     }
 
-    rc = ptin_pcs_prbs_enable(intIfNum, ENDIAN_SWAP8(msg[i].enable));
+    rc = ptin_pcs_prbs_enable(ptin_port, ENDIAN_SWAP8(msg[i].enable));
     if (rc!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Error settings PRBS enable of port %u/%u to %u", ptin_intf.intf_type, ptin_intf.intf_id, ENDIAN_SWAP8(msg[i].enable));
@@ -13620,7 +13610,7 @@ L7_RC_t ptin_msg_pcs_prbs_enable(msg_ptin_pcs_prbs *msg, L7_int n_msg)
 L7_RC_t ptin_msg_pcs_prbs_status(msg_ptin_pcs_prbs *msg, L7_int n_msg)
 {
   ptin_intf_t ptin_intf;
-  L7_uint32 i, intIfNum, rxStatus;
+  L7_uint32 i, ptin_port, rxStatus;
   L7_RC_t   rc;
 
   for (i=0; i<n_msg; i++)
@@ -13633,14 +13623,14 @@ L7_RC_t ptin_msg_pcs_prbs_status(msg_ptin_pcs_prbs *msg, L7_int n_msg)
     ptin_intf.intf_id   = ENDIAN_SWAP8(msg[i].intf.intf_id);
 
     /* Get intIfNum */
-    if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum)!=L7_SUCCESS)
+    if (ptin_intf_ptintf2port(&ptin_intf, &ptin_port)!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Non existent port (%u/%u)",ptin_intf.intf_type,ptin_intf.intf_id);
       return L7_FAILURE;
     }
 
     /* Read number of PRBS errors */
-    rc = ptin_pcs_prbs_errors_get(intIfNum, &rxStatus);
+    rc = ptin_pcs_prbs_errors_get(ptin_port, &rxStatus);
     if (rc!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Error getting PRBS errors from port %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
@@ -13671,7 +13661,7 @@ L7_RC_t ptin_msg_pcs_prbs_status(msg_ptin_pcs_prbs *msg, L7_int n_msg)
 L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
 {
   L7_uint8  enable;
-  L7_uint32 i, intIfNum, port;
+  L7_uint32 i, port;
   L7_RC_t rc, rc_global = L7_SUCCESS;
 
   if (n_msg == 0)
@@ -13698,15 +13688,7 @@ L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
         continue;
       }
 
-      /* Get intIfNum */
-      if (ptin_intf_port2intIfNum(port, &intIfNum)!=L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_MSG,"Non existent port %u", port);
-        rc_global = L7_FAILURE;
-        continue;
-      }
-
-      rc = ptin_pcs_prbs_enable(intIfNum, enable);
+      rc = ptin_pcs_prbs_enable(port, enable);
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG,"Error settings PRBS enable of port %u to %u", port, enable);
@@ -13737,15 +13719,8 @@ L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
         rc_global = L7_FAILURE;
         continue;
       }
-      /* Get intIfNum */
-      if (ptin_intf_port2intIfNum(port, &intIfNum)!=L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_MSG,"Non existent port %u", port);
-        rc_global = L7_FAILURE;
-        continue;
-      }
 
-      rc = ptin_pcs_prbs_enable(intIfNum, enable);
+      rc = ptin_pcs_prbs_enable(port, enable);
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG,"Error settings PRBS enable of port %u to %u", port, enable);
@@ -13777,7 +13752,7 @@ L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
  */
 L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status *msg_out, L7_int *n_msg)
 {
-  L7_uint32 i, port, intIfNum, rxStatus;
+  L7_uint32 i, port, rxStatus;
   L7_RC_t   rc, rc_global = L7_SUCCESS;
 
   if (*n_msg == 0)
@@ -13800,16 +13775,8 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
         continue;
       }
 
-      /* Get intIfNum */
-      if (ptin_intf_port2intIfNum(port, &intIfNum)!=L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_MSG,"Non existent port %u", port);
-        rc_global = L7_FAILURE;
-        continue;
-      }
-
       /* Read number of PRBS errors */
-      rc = ptin_pcs_prbs_errors_get(intIfNum, &rxStatus);
+      rc = ptin_pcs_prbs_errors_get(port, &rxStatus);
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG,"Error getting PRBS errors from port %u/%u", port);
@@ -13847,16 +13814,9 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
         rc_global = L7_FAILURE;
         continue;
       }
-      /* Get intIfNum */
-      if (ptin_intf_port2intIfNum(port, &intIfNum)!=L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_MSG,"Non existent port %u", port);
-        rc_global = L7_FAILURE;
-        continue;
-      }
 
       /* Read number of PRBS errors */
-      rc = ptin_pcs_prbs_errors_get(intIfNum, &rxStatus);
+      rc = ptin_pcs_prbs_errors_get(port, &rxStatus);
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG,"Error getting PRBS errors from port %u/%u", port);
@@ -14327,7 +14287,7 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
      {
        PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess port2intfNum");
      }
-     else if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)) 
+     else if (L7_SUCCESS!=ptin_xlate_ingress_get(porta, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)) 
      {
        PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess ingress get");
      }
@@ -14520,7 +14480,7 @@ L7_RC_t ptin_msg_wr_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
      {
        PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess port2intfNum");
      }
-     else if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR))
+     else if (L7_SUCCESS!=ptin_xlate_ingress_get(pi[i].bd.prt, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR))
      {
        PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess ingress get");
      }
@@ -14634,7 +14594,7 @@ L7_RC_t ptin_msg_del_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
        {
          PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess port2intfNum");
        }
-       else if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR))
+       else if (L7_SUCCESS!=ptin_xlate_ingress_get(pi[i].bd.prt, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR))
        {
          PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess ingress get");
        }
@@ -14931,7 +14891,7 @@ L7_RC_t ptin_msg_wr_MIP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i) {
           ||
           L7_SUCCESS!=ptin_intf_port2intIfNum(p->prt, &intIfNum)
           ||
-          L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, p->vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)
+          L7_SUCCESS!=ptin_xlate_ingress_get(p->prt, p->vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)
           ||
           L7_SUCCESS!=ptin_MxP_packet_vlan_trap(vidInternal, p->level, 1, 1)) {
 
@@ -14989,7 +14949,7 @@ L7_RC_t ptin_msg_del_MIP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i) {
       ||
       L7_SUCCESS!=ptin_intf_port2intIfNum(p->prt, &intIfNum)
       ||
-      L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, p->vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)
+      L7_SUCCESS!=ptin_xlate_ingress_get(p->prt, p->vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)
       ||
       L7_SUCCESS!=ptin_MxP_packet_vlan_trap(vidInternal, p->level, 1, 0)) r=ERROR_CODE_NOTPRESENT;
 
@@ -16422,8 +16382,6 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
   L7_uint8              n;
   const L7_uchar8       *dir[]={"None", "In & Out", "In", "Out"};
 
-  L7_uint16             vlanId = 0;/* FIXME TC16SXG */
-
   msg_port_mirror_t *msg = (msg_port_mirror_t *) inbuffer->info;
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "Mirror Configurations:");
@@ -16574,7 +16532,7 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         if (msg->src_intf[n].intf.intf_type == 1)
         {
-          ptin_intf_intIfNum2port(srcIntfNum, vlanId, &ptin_port_aux); /* FIXME TC16SXG */
+          ptin_intf_intIfNum2port(srcIntfNum, 0/*vlanId*/, &ptin_port_aux); /* FIXME TC16SXG */
                                                                         
           PT_LOG_TRACE(LOG_CTX_MSG, "Adding intfNum Src %d", ptin_port_aux);
         }
@@ -16592,7 +16550,8 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
           if(msg->dst_intf.intf_id == 0)
           {         
             usmDbSwPortMonitorDestPortGet(unit, sessionNum, &auxIntfNum);
-            ptin_intf_intIfNum2port(auxIntfNum, vlanId, &ptin_port_dst); 
+            /* FIXME TC16SXG: intIfNum->ptin_port */
+            ptin_intf_intIfNum2port(auxIntfNum, 0/*vlanId*/, &ptin_port_dst); /* FIXME TC16SXG */
           }
 
           PT_LOG_TRACE(LOG_CTX_MSG, "Dst intfNum %d", msg->dst_intf.intf_id);
@@ -16642,13 +16601,15 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
       usmDbConvertMaskToList(&srcIntfMask, listSrcPorts, &numPorts);
 
       /* Convert to ptin format*/
-      ptin_intf_intIfNum2port(listSrcPorts[0], vlanId, &ptinSrc_aux); 
+      /* FIXME TC16SXG: intIfNum->ptin_port */
+      ptin_intf_intIfNum2port(listSrcPorts[0], 0/*vlanId*/, &ptinSrc_aux); /* FIXME TC16SXG */
 
       /* Get the Dst port(s) of the Monitor session*/
       usmDbSwPortMonitorDestPortGet(unit, sessionNum, &listDstPorts[0]);
 
       /* Convert to ptin format*/
-      ptin_intf_intIfNum2port(listDstPorts[0], vlanId, &ptinDst_aux);
+      /* FIXME TC16SXG: intIfNum->ptin_port */
+      ptin_intf_intIfNum2port(listDstPorts[0], 0/*vlanId*/, &ptinDst_aux); /* FIXME TC16SXG */
 
       // Remove egress translations
       xlate_outer_vlan_replicate_Dstport(mode, ptinSrc_aux, ptinDst_aux);
@@ -18363,7 +18324,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
 //L7_char8        *charPtr           = packageBmpStr;
   ptin_client_id_t client;
   L7_BOOL          addOrRemove = L7_FALSE;//Add Packages
-  L7_uint32        intIfNum;
+  L7_uint32        ptin_port;
   L7_uint16        uni_ivid;
   L7_uint16        uni_ovid;
   L7_RC_t          rc          = L7_SUCCESS;
@@ -18462,9 +18423,9 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
             }
 
             /* Get interface as intIfNum format */      
-            if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
+            if (ptin_intf_ptintf2port(&client.ptin_intf, &ptin_port)==L7_SUCCESS)
             {
-              if (ptin_evc_extVlans_get(intIfNum, msg[messageIterator].evcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
+              if (ptin_evc_extVlans_get(ptin_port, msg[messageIterator].evcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
               {
                 PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
                           client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
@@ -18554,9 +18515,9 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
         }
 
         /* Get interface as intIfNum format */      
-        if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
+        if (ptin_intf_ptintf2port(&client.ptin_intf, &ptin_port)==L7_SUCCESS)
         {
-          if (ptin_evc_extVlans_get(intIfNum, msg[messageIterator].evcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
+          if (ptin_evc_extVlans_get(ptin_port, msg[messageIterator].evcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
           {
             PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
                       client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
@@ -18621,7 +18582,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
 //L7_char8        *charPtr           = packageBmpStr;
   ptin_client_id_t client;
   L7_BOOL          addOrRemove = L7_TRUE; //Remove Packages
-  L7_uint32        intIfNum;
+  L7_uint32        ptin_port;
   L7_uint16        uni_ivid;
   L7_uint16        uni_ovid;
   L7_RC_t          rc          = L7_SUCCESS;
@@ -18712,9 +18673,9 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
             }
 
             /* Get interface as intIfNum format */
-            if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum) == L7_SUCCESS)
+            if (ptin_intf_ptintf2port(&client.ptin_intf, &ptin_port) == L7_SUCCESS)
             {
-              if (ptin_evc_extVlans_get(intIfNum, ENDIAN_SWAP32(msg[messageIterator].evcId), (L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
+              if (ptin_evc_extVlans_get(ptin_port, ENDIAN_SWAP32(msg[messageIterator].evcId), (L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
               {
                 PT_LOG_TRACE(LOG_CTX_IGMP, "Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
                              client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
@@ -18803,9 +18764,9 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
       }
 
       /* Get interface as intIfNum format */
-      if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum) == L7_SUCCESS)
+      if (ptin_intf_ptintf2port(&client.ptin_intf, &ptin_port) == L7_SUCCESS)
       {
-        if (ptin_evc_extVlans_get(intIfNum, ENDIAN_SWAP32(msg[messageIterator].evcId), (L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
+        if (ptin_evc_extVlans_get(ptin_port, ENDIAN_SWAP32(msg[messageIterator].evcId), (L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
         {
           PT_LOG_TRACE(LOG_CTX_IGMP, "Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
                        client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
@@ -19652,7 +19613,7 @@ L7_RC_t rc;
             }
 
 #if (!PTIN_BOARD_IS_STANDALONE)
-            if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, ib->vid, PTIN_XLATE_NOT_DEFINED, &internalVid, L7_NULLPTR)) {
+            if (L7_SUCCESS!=ptin_xlate_ingress_get(ib->board_port, ib->vid, PTIN_XLATE_NOT_DEFINED, &internalVid, L7_NULLPTR)) {
                 PT_LOG_ERR(LOG_CTX_MSG,"ptin_xlate_ingress_get");
                 return ERROR_CODE_INVALIDPARAM;
             }
@@ -19706,10 +19667,10 @@ L7_RC_t rc;
             }
 
 #if (!PTIN_BOARD_IS_STANDALONE)
-            rc = ptin_ipdtl0_control(ib->dtl0vid, ib->vid, internalVid, intIfNum, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable);
+            rc = ptin_ipdtl0_control(ib->dtl0vid, ib->vid, internalVid, ib->board_port, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable);
             if (L7_SUCCESS!=rc) {
-                PT_LOG_ERR(LOG_CTX_MSG,"ptin_ipdtl0_control(ib->dtl0vid=%u, ib->vid=%u, internalVid=%u, intIfNum=%lu, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable=%u)=%d",
-                                            ib->dtl0vid, ib->vid, internalVid, intIfNum, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable, rc);
+                PT_LOG_ERR(LOG_CTX_MSG,"ptin_ipdtl0_control(ib->dtl0vid=%u, ib->vid=%u, internalVid=%u, ptin_port=%lu, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable=%u)=%d",
+                           ib->dtl0vid, ib->vid, internalVid, ib->board_port, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable, rc);
                 return ERROR_CODE_INVALIDPARAM;
             }
 #endif

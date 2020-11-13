@@ -770,7 +770,6 @@ static void monitor_alarms(void)
       L7_uint32 lag_port;
       ptin_intf_t ptin_intf_lag;
       L7_BOOL   isMember, isActiveMember;
-      L7_uint16 vlanId=0;/* FIXME TC16SXG */
 
       // Determine if is an active lag member
       if (interface_is_valid &&
@@ -799,7 +798,7 @@ static void monitor_alarms(void)
       // Check if there is a change in the active member state
       if (lagActiveMembers[port] != isActiveMember)
       {
-        if (ptin_intf_intIfNum2port(lag_intIfNum, vlanId, &lag_port) == L7_SUCCESS &&   /* FIXME TC16SXG */
+        if (ptin_intf_intIfNum2port(lag_intIfNum, 0/*Vlan*/, &lag_port) == L7_SUCCESS &&   /* FIXME TC16SXG */
             !ptin_alarms_is_suppressed(lag_port))
         {
           if (send_trap_intf_alarm(PTIN_EVC_INTF_PHYSICAL, port,
@@ -1175,20 +1174,19 @@ void ptin_control_switchover_monitor(void)
           if ( ptin_intf_boardid_get(port, &board_id) != L7_SUCCESS ||
                !PTIN_BOARD_IS_PRESENT(board_id)                     ||
                !PTIN_BOARD_LS_CTRL(board_id)                        ||
-               !PTIN_BOARD_IS_UPLINK(board_id)                      ||
-               ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS )
+               !PTIN_BOARD_IS_UPLINK(board_id))
           {
             continue;
           }
           
           /* Disable force link-up, and enable linkscan for uplink boards */
           /* ... except for protected ports */
-          PT_LOG_TRACE(LOG_CTX_CONTROL, "Going to disable force link-up to interface %u", intIfNum); 
-          ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE);
-          PT_LOG_TRACE(LOG_CTX_CONTROL, "Going to enable linkscan to interface %u", intIfNum);
-          ptin_intf_linkscan_set(intIfNum, L7_ENABLE);
-          PT_LOG_INFO(LOG_CTX_CONTROL, "Linkscan enabled for interface %u", intIfNum);
-          PT_LOG_INFO(LOG_CTX_EVENTS , "Linkscan enabled for interface %u", intIfNum);
+          PT_LOG_TRACE(LOG_CTX_CONTROL, "Going to disable force link-up to ptin_port %u", port); 
+          ptin_intf_link_force(port, L7_TRUE, L7_DISABLE);
+          PT_LOG_TRACE(LOG_CTX_CONTROL, "Going to enable linkscan to ptin_port %u", port);
+          ptin_intf_linkscan_set(port, L7_ENABLE);
+          PT_LOG_INFO(LOG_CTX_CONTROL, "Linkscan enabled for ptin_port %u", port);
+          PT_LOG_INFO(LOG_CTX_EVENTS , "Linkscan enabled for ptin_port %u", port);
         }
 
         /* Wait a couple of seconds */
@@ -1229,11 +1227,10 @@ void ptin_control_switchover_monitor(void)
         {
           /* For passive board, disable force linkup */
           if ( ptin_intf_boardid_get(port, &board_id) == L7_SUCCESS &&
-              (!PTIN_BOARD_IS_PRESENT(board_id) || PTIN_BOARD_LS_CTRL(board_id)) &&
-               ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS )
+              (!PTIN_BOARD_IS_PRESENT(board_id) || PTIN_BOARD_LS_CTRL(board_id)))
           {
-            ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE);       /* Disable force link-up */
-            ptin_intf_link_force(intIfNum, L7_FALSE, 0);            /* Cause link down */
+            ptin_intf_link_force(port, L7_TRUE, L7_DISABLE);       /* Disable force link-up */
+            ptin_intf_link_force(port, L7_FALSE, 0);            /* Cause link down */
           }
         }
 
@@ -1243,9 +1240,8 @@ void ptin_control_switchover_monitor(void)
         for (port=0; port<ptin_sys_number_of_ports; port++)
         {
           if ( ptin_intf_boardid_get(port, &board_id) == L7_SUCCESS &&
-              (!PTIN_BOARD_IS_PRESENT(board_id) || PTIN_BOARD_LS_CTRL(board_id)) &&
-               ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS )
-            ptin_intf_linkscan_set(intIfNum, L7_ENABLE);
+              (!PTIN_BOARD_IS_PRESENT(board_id) || PTIN_BOARD_LS_CTRL(board_id)) )
+            ptin_intf_linkscan_set(port, L7_ENABLE);
         }
 
 #if 0
@@ -1296,10 +1292,9 @@ void ptin_control_switchover_monitor(void)
         for (port=0; port<ptin_sys_number_of_ports; port++)
         {
           if ( ptin_intf_boardid_get(port, &board_id) == L7_SUCCESS &&
-              (!PTIN_BOARD_IS_PRESENT(board_id) || PTIN_BOARD_LS_CTRL(board_id)) &&
-               ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
+              (!PTIN_BOARD_IS_PRESENT(board_id) || PTIN_BOARD_LS_CTRL(board_id)))
           {
-            ptin_intf_linkscan_set(intIfNum, L7_DISABLE);
+            ptin_intf_linkscan_set(port, L7_DISABLE);
           }
         }
 
@@ -1465,16 +1460,11 @@ void ptin_control_switchover_monitor(void)
         PT_LOG_TRACE(LOG_CTX_CONTROL, "ptin_port %d is not under linkscan control.", port);
         continue;
       }
-      if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS) 
-      {
-        PT_LOG_ERR(LOG_CTX_CONTROL, "Error getting intIfNum from ptin_port %d!", port);
-        continue;
-      }
       /* Enable/Disable force linkup */
       if (interfaces_active[port])
       {
         PT_LOG_TRACE(LOG_CTX_CONTROL, "Forcing link up to port %u", port);
-        if (ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE) != L7_SUCCESS) 
+        if (ptin_intf_link_force(port, L7_TRUE, L7_ENABLE) != L7_SUCCESS) 
         {
           PT_LOG_ERR(LOG_CTX_CONTROL, "Error setting force link to %u for ptin_port %d!", interfaces_active[port], port);
           continue;
@@ -1485,13 +1475,13 @@ void ptin_control_switchover_monitor(void)
         PT_LOG_TRACE(LOG_CTX_CONTROL, "Forcing link down to port %u", port);
         PT_LOG_TRACE(LOG_CTX_EVENTS , "Forcing link down to port %u", port);
         /* Disable force link-up */
-        if (ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE) != L7_SUCCESS)
+        if (ptin_intf_link_force(port, L7_TRUE, L7_DISABLE) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_CONTROL, "Error disabling force link-up for ptin_port %d!", interfaces_active[port], port);
           continue;
         }
         /* Cause a linkdown */
-        if (ptin_intf_link_force(intIfNum, L7_FALSE, 0) != L7_SUCCESS)
+        if (ptin_intf_link_force(port, L7_FALSE, 0) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_CONTROL, "Error causing change link for ptin_port %d!", interfaces_active[port], port);
           continue;

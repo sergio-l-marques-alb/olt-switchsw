@@ -431,7 +431,7 @@ void ssmStatGet(void *statHandle)
 /*********************************************************************
 * @purpose  Clears the port statistics. 
 *          
-* @param    intIfNum @b{(input)} Internal Interface Number of the port
+* @param    ptin_port @b{(input)} Internal Interface Number of the port
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -440,7 +440,7 @@ void ssmStatGet(void *statHandle)
 *
 * @end
 *********************************************************************/
-L7_RC_t ssmPortStatsClear(L7_uint32 intIfNum)
+L7_RC_t ssmPortStatsClear(L7_uint32 ptin_port)
 {
   L7_RC_t rc = L7_SUCCESS;
 

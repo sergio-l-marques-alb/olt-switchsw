@@ -532,7 +532,8 @@ L7_RC_t ptin_aps_checkOwnNodeId(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
   aps_frame = (aps_frame_t*) pktMsg->payload;
 
   if (ptin_oam_packet_debug_enable)
-    PT_LOG_TRACE(LOG_CTX_ERPS,"erps_idx %d, intIfNum %d, P0intIfNum %d, P1intIfNum %d", erps_idx, pktMsg->intIfNum, tbl_halErps[erps_idx].port0intfNum, tbl_halErps[erps_idx].port1intfNum);
+    PT_LOG_TRACE(LOG_CTX_ERPS,"erps_idx %d, intIfNum %d, P0intIfNum %d, P1intIfNum %d",
+                 erps_idx, pktMsg->intIfNum, tbl_halErps[erps_idx].port0intfNum, tbl_halErps[erps_idx].port1intfNum);
 
   // ERPS Rx Ring port
   if ( pktMsg->intIfNum == tbl_halErps[erps_idx].port0intfNum ) {
@@ -572,6 +573,7 @@ L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   ptin_APS_PDU_Msg_t  msg;
   L7_uchar8           apsMacAddr[L7_MAC_ADDR_LEN] = PTIN_APS_MACADDR;   // Last Byte is the Ring ID
 
+  L7_uint32 ptin_port;
   L7_uint32 intIfNum    = pduInfo->intIfNum;     /* Source port */
   L7_uint16 vlanId      = pduInfo->vlanId;       /* Vlan */
   L7_uint16 innerVlanId = pduInfo->innerVlanId;  /* Inner vlan */
@@ -604,10 +606,19 @@ L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
     return L7_FAILURE;
   }
 
-  /* Validate interface and VLAN, as belonging to a valid interface in a valid EVC */
-  if (ptin_evc_intfVlan_validate(intIfNum, vlanId) != L7_SUCCESS) {
+  /* Get ptin_port */
+  if (ptin_intf_intIfNum2port(intIfNum, 0/*Vlan*/, &ptin_port) != L7_SUCCESS) /* FIXME TC16SXG */
+  {
     if (ptin_oam_packet_debug_enable)
-      PT_LOG_ERR(LOG_CTX_ERPS,"intIfNum %u and vlan %u does not belong to any valid EVC/interface", intIfNum, vlanId);
+      PT_LOG_ERR(LOG_CTX_ERPS,"Error converting intIfNum %u to ptin_port", intIfNum);
+    return L7_FAILURE;
+  }
+  
+  /* Validate interface and VLAN, as belonging to a valid interface in a valid EVC */
+  if (ptin_evc_intfVlan_validate(ptin_port, vlanId) != L7_SUCCESS) {
+    if (ptin_oam_packet_debug_enable)
+      PT_LOG_ERR(LOG_CTX_ERPS,"ptin_port %u and vlan %u does not belong to any valid EVC/interface",
+                 ptin_port, vlanId);
     return L7_FAILURE;
   }
 
@@ -871,26 +882,35 @@ L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_req, L7_uint
 /**
 * Send a packet on a specified interface and VLAN
 *
-* @param    intIfNum   @b{(input)} Outgoing internal interface number
+* @param    ptin_port  @b{(input)} Outgoing internal interface
+*                      number
 * @param    vlanId     @b{(input)} VLAN ID
 * @param    payload    @b{(input)} Message to be forwarded
 * @param    payloadLen @b{(input)} Length of message
 *
 * @return  void
 */
-void ptin_oam_packet_send(L7_uint32 intfNum,
+void ptin_oam_packet_send(L7_uint32 ptin_port,
                           L7_uint32 vlanId,
                           L7_uchar8 *payload,
                           L7_uint32 payloadLen)
 {
+  L7_uint32         intIfNum;
   L7_netBufHandle   bufHandle;
   L7_uchar8        *dataStart;
   L7_INTF_TYPES_t   sysIntfType;
   DTL_CMD_TX_INFO_t dtlCmd;
 
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    if (ptin_oam_packet_debug_enable)
+      PT_LOG_ERR(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
+    return;
+  }
 
   /* If outgoing interface is CPU interface, don't send it */
-  if ( (nimGetIntfType(intfNum, &sysIntfType) == L7_SUCCESS) &&
+  if ( (nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
        (sysIntfType == L7_CPU_INTF) ) {
     return;
   }
@@ -906,9 +926,9 @@ void ptin_oam_packet_send(L7_uint32 intfNum,
 
   memset((L7_uchar8 *)&dtlCmd, 0, sizeof(DTL_CMD_TX_INFO_t));
 
-  dtlCmd.intfNum             = intfNum;
+  dtlCmd.intfNum             = intIfNum;
   dtlCmd.priority            = 1;
-  dtlCmd.typeToSend          = (intfNum == L7_ALL_INTERFACES)? DTL_VLAN_MULTICAST : DTL_NORMAL_UNICAST;
+  dtlCmd.typeToSend          = (intIfNum == L7_ALL_INTERFACES)? DTL_VLAN_MULTICAST : DTL_NORMAL_UNICAST;
   dtlCmd.cmdType.L2.domainId = vlanId;
   dtlCmd.cmdType.L2.vlanId   = vlanId;
   dtlCmd.cmdType.L2.flags    = 0;
@@ -916,7 +936,7 @@ void ptin_oam_packet_send(L7_uint32 intfNum,
   dtlPduTransmit (bufHandle, DTL_CMD_TX_L2, &dtlCmd);
 
   if (ptin_oam_packet_debug_enable) {
-    PT_LOG_TRACE(LOG_CTX_ERPS,"OAM Packet transmited to intIfNum=%u, vlanId=%u", intfNum, vlanId);
+    PT_LOG_TRACE(LOG_CTX_ERPS,"OAM Packet transmited to ptin_port=%u, vlanId=%u", ptin_port, vlanId);
   }
 
   return;

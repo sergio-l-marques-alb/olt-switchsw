@@ -271,7 +271,8 @@ unsigned int snooping_channel_serviceid_get(unsigned int portId, unsigned int cl
   inetAddressSet(L7_AF_INET, &groupAddr,  &groupInetAddr);
   inetAddressSet(L7_AF_INET, &sourceAddr, &sourceInetAddr);
   
-  if (ptin_igmp_mcast_evc_id_get(intVlan,portId, isLeafPort, clientId, &groupInetAddr, &sourceInetAddr, serviceId) == L7_SUCCESS)
+  /* FIXME TC16SXG: intIfNum->ptin_port */
+  if (ptin_igmp_mcast_evc_id_get(intVlan, portId, isLeafPort, clientId, &groupInetAddr, &sourceInetAddr, serviceId) == L7_SUCCESS)
   {
     /* FIXME TC16SXG: intIfNum->ptin_port */
     if(L7_TRUE != ptin_evc_is_intf_leaf(*serviceId, portId))
@@ -300,6 +301,7 @@ unsigned int snooping_clientList_get(unsigned int serviceId, unsigned int portId
   
 #if (!PTIN_BOARD_IS_MATRIX) //Since we do not expose any counters for the packets sent from the MX to the LC it does not make sense to increment them on the MGMD module
   ptin_timer_start(72,"ptin_igmp_groupclients_bmp_get");
+  /* FIXME TC16SXG: intIfNum->ptin_port */
   if(ptin_igmp_groupclients_bmp_get(serviceId, portId, clientList->value, noOfClients)!=L7_SUCCESS)
   {
     ptin_timer_stop(72);
@@ -1032,6 +1034,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
     ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
 
     /* Get  the protection status of this switch port */
+    /* FIXME TC16SXG: intIfNum->ptin_port */
     ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);
     if( protTypebIntfConfig.intfRole != PROT_TYPEB_ROLE_NONE &&  protTypebIntfConfig.status != L7_ENABLE)
     {
@@ -1495,6 +1498,7 @@ L7_RC_t ptin_snoop_l3_sync_port_process_request(L7_uint16 vlanId, L7_inet_addr_t
   ptin_prottypeb_intf_config_t    protTypebIntfConfig = {0};
   
   /* Get the configuration of this portId for the Type B Scheme Protection */
+  /* FIXME TC16SXG: intIfNum->ptin_port */
   ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);   
 
   if(protTypebIntfConfig.status == L7_ENABLE) //I'm Working
@@ -1587,7 +1591,8 @@ L7_RC_t ptin_snoop_l3_sync_port_process_request(L7_uint16 vlanId, L7_inet_addr_t
       snoopSyncReply[numberOfSnoopEntries].serviceId = serviceId;
       fp_to_ptin_ip_notation(&snoopChannelInfoDataKeyPtr->groupAddr, &snoopSyncReply[numberOfSnoopEntries].groupAddr);
       fp_to_ptin_ip_notation(&snoopChannelInfoDataKeyPtr->sourceAddr, &snoopSyncReply[numberOfSnoopEntries].sourceAddr);
-      snoopSyncReply[numberOfSnoopEntries].portId = protTypebIntfConfig.pairIntfNum;
+      /* FIXME TC16SXG: intIfNum->ptin_port */
+      snoopSyncReply[numberOfSnoopEntries].portId = protTypebIntfConfig.pairPtinPort;
     
       if ( (snoopChannelInfoData->flags & SNOOP_CHANNEL_ENTRY_IS_STATIC) == SNOOP_CHANNEL_ENTRY_IS_STATIC)
         snoopSyncReply[numberOfSnoopEntries].isStatic = L7_TRUE;
@@ -1600,7 +1605,8 @@ L7_RC_t ptin_snoop_l3_sync_port_process_request(L7_uint16 vlanId, L7_inet_addr_t
 
   if (numberOfSnoopEntries>0)
   {    
-    PT_LOG_DEBUG(LOG_CTX_IGMP, "Sending a Snoop Sync Reply Message ipAddr:%08X with %u Snoop Entries  to sync slot/port:%u/%u",ipAddr, numberOfSnoopEntries, protTypebIntfConfig.pairSlotId, protTypebIntfConfig.pairIntfNum);
+    PT_LOG_DEBUG(LOG_CTX_IGMP, "Sending a Snoop Sync Reply Message ipAddr:%08X with %u Snoop Entries  to sync slot/port:%u/%u",
+                 ipAddr, numberOfSnoopEntries, protTypebIntfConfig.pairSlotId, protTypebIntfConfig.pairPtinPort);
     /*Send the snoop sync request to the protection matrix */  
     if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REPLY,
                          (char *)(&snoopSyncReply), NULL,
@@ -1806,6 +1812,7 @@ L7_RC_t ptin_snoop_sync_port_process_request(L7_uint16 vlanId, L7_uint32 groupAd
   ptin_prottypeb_intf_config_t   protTypebIntfConfig = {0};
   
   /* Get the configuration of this portId for the Type B Scheme Protection */
+  /* FIXME TC16SXG: intIfNum->ptin_port */
   ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);   
 
   if(protTypebIntfConfig.status == L7_ENABLE) //I'm Working

@@ -40,8 +40,9 @@
 /* PTin added: IGMP snooping */
 #if 1
   #include "logger.h"  
-  #include  "snooping_ptin_db.h"
-  #include  "ptin_igmp.h"
+  #include "snooping_ptin_db.h"
+  #include "ptin_igmp.h"
+  #include "ptin_intf.h"
 #endif
 
 /******************Protection Schemes Support************************************/
@@ -4033,6 +4034,7 @@ L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *g
     ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
 
     /* Sync the status of this switch port on the backup type-b protection port, if it exists */
+    /* FIXME TC16SXG: intIfNum->ptin_port */
     ptin_prottypeb_intf_config_get(intIfNum, &protTypebIntfConfig);
 #endif
 
@@ -4045,8 +4047,23 @@ L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *g
 #elif PTIN_BOARD_IS_LINECARD   
     if(protTypebIntfConfig.status == L7_ENABLE)       
     {
-      __remoteslot_mfdbport_sync(protTypebIntfConfig.slotId, protTypebIntfConfig.pairSlotId, L7_ENABLE, serviceId, intIfNum, protTypebIntfConfig.pairIntfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isStatic);
-      __matrix_mfdbport_sync(L7_ENABLE, PTIN_FPGA_ACTIVE_MATRIX, serviceId, protTypebIntfConfig.pairSlotId, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isStatic);
+      /* FIXME TC16SXG: intIfNum->ptin_port */
+      __remoteslot_mfdbport_sync(protTypebIntfConfig.slotId,
+                                 protTypebIntfConfig.pairSlotId,
+                                 L7_ENABLE,
+                                 serviceId,
+                                 intIfNum2port(intIfNum, 0/*Vlan*/),
+                                 protTypebIntfConfig.pairPtinPort,
+                                 groupAddr->addr.ipv4.s_addr,
+                                 sourceAddr->addr.ipv4.s_addr,
+                                 isStatic);
+      __matrix_mfdbport_sync(L7_ENABLE,
+                             PTIN_FPGA_ACTIVE_MATRIX,
+                             serviceId,
+                             protTypebIntfConfig.pairSlotId,
+                             groupAddr->addr.ipv4.s_addr,
+                             sourceAddr->addr.ipv4.s_addr,
+                             isStatic);
     }
 #elif PTIN_BOARD_IS_STANDALONE
     if(protTypebIntfConfig.status == L7_ENABLE)
@@ -4108,6 +4125,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
 
 
 #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
+/* FIXME TC16SXG: intIfNum->ptin_port */
   ptin_prottypeb_intf_config_get(intIfNum, &protTypebIntfConfig);
 #endif
 
@@ -4171,8 +4189,23 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   /* Sync the status of this switch port on the backup type-b protection port, if it exists */ 
   if(protTypebIntfConfig.status == L7_ENABLE)
   {
-    __remoteslot_mfdbport_sync(protTypebIntfConfig.slotId, protTypebIntfConfig.pairSlotId, L7_DISABLE, serviceId, intIfNum, protTypebIntfConfig.pairIntfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, L7_FALSE);
-    __matrix_mfdbport_sync(L7_DISABLE, 1, serviceId, protTypebIntfConfig.pairSlotId, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, L7_FALSE);
+    /* FIXME TC16SXG: intIfNum->ptin_port */
+    __remoteslot_mfdbport_sync(protTypebIntfConfig.slotId,
+                               protTypebIntfConfig.pairSlotId,
+                               L7_DISABLE,
+                               serviceId,
+                               intIfNum2port(intIfNum, 0/*Vlan*/),
+                               protTypebIntfConfig.pairPtinPort,
+                               groupAddr->addr.ipv4.s_addr,
+                               sourceAddr->addr.ipv4.s_addr,
+                               L7_FALSE);
+    __matrix_mfdbport_sync(L7_DISABLE,
+                           1,
+                           serviceId,
+                           protTypebIntfConfig.pairSlotId,
+                           groupAddr->addr.ipv4.s_addr,
+                           sourceAddr->addr.ipv4.s_addr,
+                           L7_FALSE);
   }
 #elif PTIN_BOARD_IS_STANDALONE
   if(protTypebIntfConfig.status == L7_ENABLE)

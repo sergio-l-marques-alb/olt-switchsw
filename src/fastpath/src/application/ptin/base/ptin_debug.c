@@ -793,7 +793,7 @@ void ptin_intf_dump(void)
     }
 
     /* Get Oversize packets limit */
-    if (ptin_intf_frame_oversize_get(intIfNum, &frameOversize) != L7_SUCCESS)
+    if (ptin_intf_frame_oversize_get(port, &frameOversize) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Failed to get Oversize frame limit of port# %d", port);
       continue;

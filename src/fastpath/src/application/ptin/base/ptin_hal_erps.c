@@ -473,18 +473,26 @@ L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx)
   }
   
   // Convert to internal port
+  tbl_halErps[erps_idx].ptin_port0 = tbl_erps[erps_idx].protParam.port0.idx;
+  tbl_halErps[erps_idx].ptin_port1 = tbl_erps[erps_idx].protParam.port1.idx;
   ptin_intf_port2intIfNum(tbl_erps[erps_idx].protParam.port0.idx, &tbl_halErps[erps_idx].port0intfNum);
   ptin_intf_port2intIfNum(tbl_erps[erps_idx].protParam.port1.idx, &tbl_halErps[erps_idx].port1intfNum);
 
   // Convert Control VID to internal VLAN ID
-  if (ptin_xlate_ingress_get( tbl_halErps[erps_idx].port0intfNum, tbl_erps[erps_idx].protParam.controlVid, PTIN_XLATE_NOT_DEFINED,
-                              &tbl_halErps[erps_idx].controlVidInternal, L7_NULLPTR ) != L7_SUCCESS)
+  if (ptin_xlate_ingress_get( tbl_erps[erps_idx].protParam.port0.idx,
+                              tbl_erps[erps_idx].protParam.controlVid,
+                              PTIN_XLATE_NOT_DEFINED,
+                              &tbl_halErps[erps_idx].controlVidInternal,
+                              L7_NULLPTR ) != L7_SUCCESS)
   {
     tbl_halErps[erps_idx].controlVidInternal = 0;
   }
   erpsIdx_from_controlVidInternal[tbl_halErps[erps_idx].controlVidInternal] = erps_idx;
-  if (ptin_xlate_ingress_get( tbl_halErps[erps_idx].port1intfNum, tbl_erps[erps_idx].protParam.controlVid, PTIN_XLATE_NOT_DEFINED,
-                              &tbl_halErps[erps_idx].controlVidInternal, L7_NULLPTR ) != L7_SUCCESS)
+  if (ptin_xlate_ingress_get( tbl_erps[erps_idx].protParam.port1.idx,
+                              tbl_erps[erps_idx].protParam.controlVid,
+                              PTIN_XLATE_NOT_DEFINED,
+                              &tbl_halErps[erps_idx].controlVidInternal,
+                              L7_NULLPTR ) != L7_SUCCESS)
   {
     tbl_halErps[erps_idx].controlVidInternal = 0;
   }
