@@ -3,6 +3,7 @@
 
 #include "datatypes.h"
 #include "ptin_structs.h"
+#include "ptin_utils.h"
 
 #define PHY_MAX_MAXFRAME              2048
 
@@ -19,6 +20,29 @@
 #define PHY_PORT_1000AN_GBPS          6   /* PTin added: Speed 1G with/ Autoneg */
 #define PHY_PORT_40_GBPS              7   /* PTin added: Speed 40G */
 #define PHY_PORT_100_GBPS             8   /* PTin added: Speed 100G */
+
+typedef struct {
+    bmp_cell_t value[PTIN_SYSTEM_N_INTERF/8 + 1];
+} ptin_port_bmp_t;
+
+#define PTINPORT_BITMAP_SET(ptin_port_bmp,  ptin_port) \
+    BITMAP_SET((ptin_port_bmp).value, ptin_port)
+
+#define PTINPORT_BITMAP_CLEAR(ptin_port_bmp,  ptin_port) \
+    BITMAP_CLEAR((ptin_port_bmp).value, ptin_port)
+
+#define PTINPORT_BITMAP_CLEARALL(ptin_port_bmp) \
+    BITMAP_CLEARALL((ptin_port_bmp).value)
+
+#define PTINPORT_BITMAP_IS_SET(ptin_port_bmp,  ptin_port) \
+    BITMAP_IS_SET((ptin_port_bmp).value, ptin_port)
+
+#define BITMAP_IS_CLEAR(ptin_port_bmp,  ptin_port) \
+    BITMAP_IS_CLEAR((ptin_port_bmp).value, ptin_port)
+
+#define BITMAP_IS_CLEARALL(ptin_port_bmp) \
+    BITMAP_IS_CLEARALL((ptin_port_bmp).value)
+
 
 extern L7_BOOL linkscan_update_control;
 
@@ -323,10 +347,6 @@ extern L7_RC_t ptin_intf_intIfNum2SlotPort(L7_uint32 intIfNum, L7_uint16 *slot_r
  */
 extern L7_RC_t ptin_intf_slotPort2IntIfNum(L7_uint16 slot, L7_uint16 intf, L7_uint32 *intIfNum_ret);
 
-#define intIfNum_is_pon(intIfNum) \
-    ((intIfNum)<=PTIN_SYSTEM_N_PONS_INTIFN && 0<intIfNum)
-#define ptin_port_is_pon(ptin_port) ((ptin_port)<PTIN_SYSTEM_N_PONS)
-
 /**
  * Direct function to convert intIfNum to ptin_port
  * 
@@ -350,6 +370,16 @@ extern L7_uint32 intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem);
  * @return L7_uint32 : intIfNum
  */
 extern L7_uint32 port2intIfNum(L7_uint32 ptin_port);
+
+/**
+ * Convert a ptin_port bitmap to NIM_INTF_MASK_t type
+ * 
+ * @author mruas (16/11/20)
+ * 
+ * @param ptin_port_bmp (in)
+ * @param portMask (out)
+ */
+extern void ptin_intf_portbmp2intIfNumMask(ptin_port_bmp_t *ptin_port_bmp, NIM_INTF_MASK_t *portMask);
 
 /**
  * Converts PTin port mapping (including LAGs) to the FP interface#

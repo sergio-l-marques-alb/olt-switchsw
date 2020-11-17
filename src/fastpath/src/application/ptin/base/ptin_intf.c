@@ -32,6 +32,93 @@
 #include "ptin_fpga_api.h"
 #include "ptin_msg.h"
 
+
+#ifdef PORT_VIRTUALIZATION_N_1
+#if defined (PORT_VIRTUALIZATION_4_1) /*ASPEN 4:1*/
+/* Please check
+   https://jira.ptin.corppt.com/secure/attachment/620082/screenshot-1.png
+   https://jira.ptin.corppt.com/browse/OLTSWITCH-1371
+*/
+    #define PORT_VIRTUALIZATION_VID_N_SETS 4
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+    static const
+    L7_uint32 phy2vport[PTIN_SYSTEM_N_PONS_PHYSICAL][PORT_VIRTUALIZATION_VID_N_SETS] = {
+        { 16,   0,  17,   1},
+        {-1U, -1U, -1U, -1U},
+        { 18,   2,  19,   3},
+        {-1U, -1U, -1U, -1U},
+        { 20,   4,  21,   5},
+        {-1U, -1U, -1U, -1U},
+        { 22,   6,  23,   7},
+        {-1U, -1U, -1U, -1U},
+        { 24,   8,  25,   9},
+        {-1U, -1U, -1U, -1U},
+        { 26,  10,  27,  11},
+        {-1U, -1U, -1U, -1U},
+        { 28,  12,  29,  13},
+        {-1U, -1U, -1U, -1U},
+        { 30,  14,  31,  15},
+        {-1U, -1U, -1U, -1U},
+    };
+
+    static const
+    L7_uint32 vport2phy[PTIN_SYSTEM_N_PONS] = {
+        0, 0, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14,
+        0, 0, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14,
+    };
+#else
+ #error "Port virtualization map not defined!"
+#endif
+
+#elif defined (PORT_VIRTUALIZATION_2_1) /*ASPEN 2:1*/
+/* Please check
+   https://jira.ptin.corppt.com/secure/attachment/620085/screenshot-2.png
+   https://jira.ptin.corppt.com/browse/OLTSWITCH-1371
+*/
+    #define PORT_VIRTUALIZATION_VID_N_SETS 2
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+    static const
+    L7_uint32 phy2vport[PTIN_SYSTEM_N_PONS_PHYSICAL][PORT_VIRTUALIZATION_VID_N_SETS] = {
+        {16, 0},
+        {17, 1},
+        {18, 2},
+        {19, 3},
+        {20, 4},
+        {21, 5},
+        {22, 6},
+        {23, 7},
+        {24, 8},
+        {25, 9},
+        {26, 10},
+        {27, 11},
+        {28, 12},
+        {29, 13},
+        {30, 14},
+        {31, 15},
+    };
+
+    static const
+    L7_uint32 vport2phy[PTIN_SYSTEM_N_PONS] = {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+    };
+#else
+ #error "Port virtualization map not defined!"
+#endif
+
+#else
+ #error "Not supported N:1 scheme!"
+#endif
+
+/* 0-15 GPON;
+   16-31 XGSPON */
+#define PORT_VIRTUALIZATION_VID_SET (4096/PORT_VIRTUALIZATION_VID_N_SETS)
+
+#endif /*#ifdef PORT_VIRTUALIZATION_N_1*/
+
+
 #define LINKSCAN_MANAGEABLE_BOARD (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
 
 #ifdef NGPON2_SUPPORTED 
@@ -183,7 +270,7 @@ static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf);
  */
 L7_RC_t ptin_intf_pre_init(void)
 {
-  L7_uint   i;
+  L7_int    i;
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
@@ -208,20 +295,51 @@ L7_RC_t ptin_intf_pre_init(void)
   
   /* Initialize phy lookup tables */
   PT_LOG_TRACE(LOG_CTX_INTF, "Port <=> intIfNum lookup tables init:");
-  for (i=0; i<ptin_sys_number_of_ports; i++)
+  for (i = ptin_sys_number_of_ports-1; i >= 0; i--)
   {
-    /* Get interface ID */
-    if (usmDbIntIfNumFromUSPGet(1, 0, i+1, &intIfNum) != L7_SUCCESS)
+#ifdef PORT_VIRTUALIZATION_N_1
+    /* Get intIfNum from virtual port */
+    if (i < PTIN_SYSTEM_N_PONS)
     {
-      PT_LOG_ERR(LOG_CTX_INTF, "Failed to get interface of port# %u", i);
-      return L7_FAILURE;
+      intIfNum = vport2phy[i] + 1;
+
+      /* Validate intIfNum */
+      if (intIfNum == 0 || intIfNum > PTIN_SYSTEM_N_PONS_PHYSICAL)
+      {
+          PT_LOG_ERR(LOG_CTX_INTF,"Invalid conversion from ptin_port %u to intIfNum %u",
+                     i, intIfNum);
+          return L7_FAILURE;
+      }
+    }
+    else /*(i >= PTIN_SYSTEM_N_PONS)*/
+    {
+      intIfNum = (i - PTIN_SYSTEM_N_PONS) + PTIN_SYSTEM_N_PONS_PHYSICAL;
+    }
+#else
+    intIfNum = i+1;
+#endif
+
+    /* Validate intIfNum */
+    if (intIfNum == 0 || intIfNum >= L7_MAX_PORT_COUNT)
+    {
+        PT_LOG_ERR(LOG_CTX_INTF,"Invalid conversion from ptin_port %u to intIfNum %u",
+                   i, intIfNum);
+        return L7_FAILURE;
     }
 
     UPDATE_PORT_MAP(i, intIfNum);
-
-    PT_LOG_TRACE(LOG_CTX_INTF, " Port# %02u => intIfNum# %02u", i, intIfNum);
   }
 
+  /* Dump ptin_port <-> intIfNum tables */
+  for (i = 0; i < ptin_sys_number_of_ports; i++)
+  {
+    PT_LOG_TRACE(LOG_CTX_STARTUP, " Port# %02u => intIfNum# %02u", i, map_port2intIfNum[i]);
+  }
+  for (i = 1; i <= L7_MAX_PORT_COUNT; i++)
+  {
+    PT_LOG_TRACE(LOG_CTX_STARTUP, " intIfNum# %02u => Port# %02u", i, map_intIfNum2port[i]);
+  }
+  
   PT_LOG_INFO(LOG_CTX_INTF, "Waiting for interfaces to be attached...");
   for (i=0; i<ptin_sys_number_of_ports; i++)
   {
@@ -2297,123 +2415,6 @@ L7_RC_t ptin_intf_slot_get(L7_uint8 *slot_id)
 #endif
 
 
-
-
-#ifdef TC16SXG_ASPEN_N_1
-
-/* 0-15 GPON;
-   16-31 XGSPON */
-#define ASPEN_OUTER_VID_SET (4096/ASPEN_OUTER_VID_N_OF_SETS)
-#if defined (ASPEN_4_1) /*ASPEN 4:1*/
-/* Please check
-   https://jira.ptin.corppt.com/secure/attachment/620082/screenshot-1.png
-   https://jira.ptin.corppt.com/browse/OLTSWITCH-1371
-*/
-    #define ASPEN_OUTER_VID_N_OF_SETS 4
-    //const unsigned short aspen_ovid_offset[]={0, ASPEN_OUTER_VID_SET, 2*ASPEN_OUTER_VID_SET, 3*ASPEN_OUTER_VID_SET};
-    static const
-    L7_uint32 i2p[PTIN_SYSTEM_N_PONS_INTIFN][ASPEN_OUTER_VID_N_OF_SETS] = {
-        {16, 0, 17, 1},
-        {-1U, -1U, -1U, -1U},
-        {18, 2, 19, 3},
-        {-1U, -1U, -1U, -1U},
-        {20, 4, 21, 5},
-        {-1U, -1U, -1U, -1U},
-        {22, 6, 23, 7},
-        {-1U, -1U, -1U, -1U},
-        {24, 8, 25, 9},
-        {-1U, -1U, -1U, -1U},
-        {26, 10, 27, 11},
-        {-1U, -1U, -1U, -1U},
-        {28, 12, 29, 13},
-        {-1U, -1U, -1U, -1U},
-        {30, 14, 31, 15},
-        {-1U, -1U, -1U, -1U},
-    };
-
-    static const
-    L7_uint32 p2i[PTIN_SYSTEM_N_PONS] = {
-        0,0, 2,2, 4,4, 6,6, 8,8, 10,10, 12,12, 14,14,
-        0,0, 2,2, 4,4, 6,6, 8,8, 10,10, 12,12, 14,14,
-    };
-#else
-#if defined (ASPEN_2_1) /*ASPEN 2:1*/
-/* Please check
-   https://jira.ptin.corppt.com/secure/attachment/620085/screenshot-2.png
-   https://jira.ptin.corppt.com/browse/OLTSWITCH-1371
-*/
-    #define ASPEN_OUTER_VID_N_OF_SETS 2
-    //const unsigned short aspen_ovid_offset[]={0, ASPEN_OUTER_VID_SET};
-    static const
-    L7_uint32 i2p[PTIN_SYSTEM_N_PONS_INTIFN][ASPEN_OUTER_VID_N_OF_SETS] = {
-        {16, 0},
-        {17, 1},
-        {18, 2},
-        {19, 3},
-        {20, 4},
-        {21, 5},
-        {22, 6},
-        {23, 7},
-        {24, 8},
-        {25, 9},
-        {26, 10},
-        {27, 11},
-        {28, 12},
-        {29, 13},
-        {30, 14},
-        {31, 15},
-    };
-
-    static const
-    L7_uint32 p2i[PTIN_SYSTEM_N_PONS] = {
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-    };
-#endif
-#endif
-
-/* 
-  #define ASPEN_OUTER_VID_N_OF_SETS \
-        (sizeof(aspen_ovid_offset)/sizeof(aspen_ovid_offset[0]))
-*/
-
-static
-L7_uint32 tc16sxg_pon_intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem)
-{
-    unsigned char offset;//, xgspon0_gpon1;
-#if 0 /* Already done @function call*/
-    if (!intIfNum_is_pon(intIfNum))
-    {
-        PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u isn't a PON", intIfNum);
-        return -1;
-    }
-#endif
-    if (vlan_gem>=4096)
-    {
-        PT_LOG_DEBUG(LOG_CTX_INTF, "invalid %u vlan_gem", vlan_gem);
-        return -1;
-    }
-
-    offset = vlan_gem / ASPEN_OUTER_VID_SET;
-    //xgspon0_gpon1 = offset%2;
-    
-    return i2p[intIfNum-1][offset];
-}
-
-static
-L7_uint32 tc16sxg_pon_port2intIfNum(L7_uint32 ptin_port) {
-#if 0 /* Already done @function call*/
-    if (!ptin_port_is_pon(ptin_port))
-    {
-        PT_LOG_DEBUG(LOG_CTX_INTF, "ptin_port %u isn't a PON", ptin_port);
-        return -1;
-    }
-#endif
-    return p2i[ptin_port]+1;
-}
-
-#endif /*#ifdef TC16SXG_ASPEN_N_1*/
-
 /**
  * Direct function to convert intIfNum to ptin_port
  * 
@@ -2459,6 +2460,32 @@ inline L7_uint32 port2intIfNum(L7_uint32 ptin_port)
 }
 
 /**
+ * Convert a ptin_port bitmap to NIM_INTF_MASK_t type
+ * 
+ * @author mruas (16/11/20)
+ * 
+ * @param ptin_port_bmp (in)
+ * @param portMask (out)
+ */
+inline void ptin_intf_portbmp2intIfNumMask(ptin_port_bmp_t *ptin_port_bmp, NIM_INTF_MASK_t *portMask)
+{
+    int i;
+    L7_uint32 intIfNum;
+
+    memset(portMask, 0x00, sizeof(NIM_INTF_MASK_t));
+
+    /* Run all ptin ports */
+    for (i = 0; i < PTIN_SYSTEM_N_INTERF; i++)
+    {
+        if (PTINPORT_BITMAP_IS_SET(*ptin_port_bmp, i) &&
+            ptin_intf_port2intIfNum(i, &intIfNum) == L7_SUCCESS)
+        {
+            L7_INTF_SETMASKBIT(*portMask, intIfNum);
+        }
+    }
+}
+
+/**
  * Converts PTin port mapping (including LAGs) to the FP interface#
  * 
  * @param ptin_port PTin port index
@@ -2468,30 +2495,8 @@ inline L7_uint32 port2intIfNum(L7_uint32 ptin_port)
  */
 L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
 {
-#ifdef TC16SXG_ASPEN_N_1
-    if (ptin_port_is_pon(ptin_port)) {
-        L7_uint32 _intIfNum;
-
-        _intIfNum=tc16sxg_pon_port2intIfNum(ptin_port);
-        if (_intIfNum>=L7_MAX_INTERFACE_COUNT) {
-            PT_LOG_ERR(LOG_CTX_INTF,
-                       "Port# %u is PON but tc16sxg_pon_port2intIfNum()=%u",
-                       ptin_port, _intIfNum);
-            return L7_FAILURE;
-        }
-        else {
-            PT_LOG_TRACE(LOG_CTX_INTF,
-                         "Port=%u is PON => intIfNum=%u",
-                         ptin_port, _intIfNum);
-            if (intIfNum != L7_NULLPTR) {
-                *intIfNum = _intIfNum;
-            }
-            return L7_SUCCESS;
-        }
-    }
-#endif
   /* Validate arguments */
-  if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
+  if ( ptin_port >= PTIN_SYSTEM_N_INTERF ||
       (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Port# %u is out of range [0..%u]", ptin_port, PTIN_SYSTEM_N_INTERF-1);
@@ -2524,40 +2529,51 @@ L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
 L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem,
                                 L7_uint32 *ptin_port)
 {
-#ifdef TC16SXG_ASPEN_N_1
-    if (intIfNum_is_pon(intIfNum)) {
-        L7_uint32 _ptin_port;
-
-        _ptin_port=tc16sxg_pon_intIfNum2port(intIfNum, vlan_gem);
-        if (_ptin_port>=PTIN_SYSTEM_N_INTERF) {
-            PT_LOG_ERR(LOG_CTX_INTF,
-                       "intIfNum %u is PON but tc16sxg_pon_intIfNum2port()=%u",
-                       intIfNum, _ptin_port);
-            return L7_FAILURE;
-        }
-        else {
-            PT_LOG_TRACE(LOG_CTX_INTF,
-                         "intIfNum=%u is PON => Port=%u",
-                         intIfNum, _ptin_port);
-            if (ptin_port != L7_NULLPTR) {
-                *ptin_port = _ptin_port;
-            }
-            return L7_SUCCESS;
-        }
-    }
-#endif
   /* Validate arguments */
   if (intIfNum==0 || intIfNum >= L7_MAX_INTERFACE_COUNT)
   {
-    //PT_LOG_ERR(LOG_CTX_INTF, "intIfNum# %u is out of range [1..%u]", intIfNum, L7_MAX_INTERFACE_COUNT);
+    PT_LOG_ERR(LOG_CTX_INTF, "intIfNum# %u is out of range [1..%u]", intIfNum, L7_MAX_INTERFACE_COUNT);
     return L7_FAILURE;
   }
 
+#ifdef PORT_VIRTUALIZATION_N_1
+  if (intIfNum > 0 && intIfNum <= PTIN_SYSTEM_N_PONS_PHYSICAL)
+  {
+    L7_uint32 _ptin_port, offset;
+
+    /* Each inIfNum will map to several virtual ports.
+       Use the vlan_gem to calculate the virtual port offset */
+    offset = vlan_gem / PORT_VIRTUALIZATION_VID_SET;
+
+    if (vlan_gem >= 4096)
+    {
+      vlan_gem = 0;
+    }
+    
+    /* Get virtual port and validate ir */
+    _ptin_port = phy2vport[intIfNum-1][offset];
+    if (_ptin_port >= PTIN_SYSTEM_N_PONS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error: intIfNum# %u / offset %u => _ptin_port %u",
+                 intIfNum, offset, _ptin_port);
+      return L7_FAILURE;
+    }
+
+    /* Return result */
+    if (ptin_port != L7_NULLPTR)
+    {
+      *ptin_port = _ptin_port;
+    }
+
+    return L7_SUCCESS;
+  }
+#endif
+
   /* Validate output */
-  if (map_intIfNum2port[intIfNum] >= PTIN_SYSTEM_N_INTERF ||
+  if ( map_intIfNum2port[intIfNum] >= PTIN_SYSTEM_N_INTERF ||
       (map_intIfNum2port[intIfNum] >= ptin_sys_number_of_ports && map_intIfNum2port[intIfNum] < PTIN_SYSTEM_N_PORTS))
   {
-    //PT_LOG_WARN(LOG_CTX_INTF, "intIfNum# %u is not assigned!", intIfNum);
+    PT_LOG_WARN(LOG_CTX_INTF, "intIfNum# %u is not assigned! (%u)", intIfNum, map_intIfNum2port[intIfNum]);
     return L7_FAILURE;
   }
 
