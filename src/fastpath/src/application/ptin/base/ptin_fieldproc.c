@@ -201,17 +201,17 @@ L7_RC_t ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_meter_t *meter, L
   else
   {
     intIfNum = L7_ALL_INTERFACES;
-    bwPolicer.ptin_port_bmp = profile->ptin_port_bmp;
+    bwPolicer.port_bmp = profile->ptin_port_bmp;
   }
 
   memset(&bwPolicer,0x00,sizeof(ptin_bwPolicer_t));
 
-  bwPolicer.operation     = DAPI_CMD_SET;
-  bwPolicer.ptin_port_bmp = ptin_port_bmp;
-  bwPolicer.profile       = *profile;
-  bwPolicer.meter         = *meter;
-  bwPolicer.policer_id    = policer_id;
-  bwPolicer.policy_ptr    = L7_NULLPTR;
+  bwPolicer.operation  = DAPI_CMD_SET;
+  bwPolicer.port_bmp   = ptin_port_bmp;
+  bwPolicer.profile    = *profile;
+  bwPolicer.meter      = *meter;
+  bwPolicer.policer_id = policer_id;
+  bwPolicer.policy_ptr = L7_NULLPTR;
 
   rc = dtlPtinBWPolicer(intIfNum, &bwPolicer);
 
@@ -241,7 +241,7 @@ L7_RC_t ptin_bwPolicer_delete(ptin_bw_profile_t *profile)
   if(profile->ptin_port_bmp != 0)/*For port bmp ports skip */
   {
     intIfNum = L7_ALL_INTERFACES;
-    bwPolicer.ptin_port_bmp = profile->ptin_port_bmp;
+    bwPolicer.port_bmp = profile->ptin_port_bmp;
   }
   else
   {
@@ -934,6 +934,9 @@ L7_RC_t ptin_qos_vlan_clear(ptin_qos_vlan_t *qos)
 static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7_uint8 cos_map_size,
                                   L7_int8 n_prios, L7_int8 n_cos)
 {
+  nimUSP_t  usp;
+  L7_uint32 ptin_port, intIfNum;
+  L7_uint64 usp_port_bmp;
   L7_uint8 cos;
   L7_RC_t rc;
   L7_uint8 *cos_mask_lookup;
@@ -945,6 +948,20 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
     return L7_FAILURE;
   }
 
+  /* Convert ptin_port bitmap to usp.port format */
+  usp_port_bmp = 0;
+  for (ptin_port = 0; ptin_port < PTIN_SYSTEM_N_PORTS; ptin_port++)
+  {
+    if (((qos_cfg->port_bmp >> ptin_port) & 1) &&
+        ptin_intf_port2intIfNum(ptin_port, &intIfNum) == L7_SUCCESS &&
+        nimGetUnitSlotPort(intIfNum, &usp) == L7_SUCCESS)
+    {
+      usp_port_bmp |= (1ULL << (usp.port-1));
+    }
+  }
+  /* Replace port bitmap with the ddUSP bits */
+  qos_cfg->port_bmp = usp_port_bmp;
+  
   /* Only update port information */
   if (n_prios < 0)
   {
@@ -1414,12 +1431,12 @@ L7_RC_t ptin_qos_vlan_add(ptin_qos_vlan_t *qos)
   PT_LOG_TRACE(LOG_CTX_API, "VLAN %u, Bitmap ports: 0x%llx", qos->int_vlan, ptin_port_bmp);
 
   memset(&qos_cfg, 0x00, sizeof(qos_cfg));
-  qos_cfg.ext_vlan      = qos->nni_vlan;
-  qos_cfg.int_vlan      = qos->int_vlan;
-  qos_cfg.leaf_side     = qos->leaf_side;
-  qos_cfg.trust_mode    = qos->trust_mode;
-  qos_cfg.pbits_remark  = qos->pbits_remark;
-  qos_cfg.ptin_port_bmp = ptin_port_bmp;
+  qos_cfg.ext_vlan     = qos->nni_vlan;
+  qos_cfg.int_vlan     = qos->int_vlan;
+  qos_cfg.leaf_side    = qos->leaf_side;
+  qos_cfg.trust_mode   = qos->trust_mode;
+  qos_cfg.pbits_remark = qos->pbits_remark;
+  qos_cfg.port_bmp     = ptin_port_bmp;
 
   /* Configure QoS */
   rc = cos_vlan_configure(&qos_cfg, qos->cos_map, qos->cos_map_size, n_prios, 8);

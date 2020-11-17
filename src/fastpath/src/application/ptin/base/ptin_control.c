@@ -658,29 +658,29 @@ static void monitor_alarms(void)
     first_time = L7_FALSE;
   }
 
-  /* Get RX activity for all ports */
-  memset(&portActivity, 0x00, sizeof(portActivity));
-  portActivity.ports_mask    = PTIN_SYSTEM_ETH_PORTS_MASK;    /* Only ETH ports */
-  portActivity.activity_mask = PTIN_PORTACTIVITY_MASK_RX_ACTIVITY | PTIN_PORTACTIVITY_MASK_TX_ACTIVITY;  /* Get only rx activity */
-  if (ptin_intf_counters_activity_get(&portActivity)==L7_SUCCESS)
-  {
-    portActivity_valid = L7_TRUE;
-
-    /* Update traffic activity bits for external module access */
-    memcpy(ptin_control_port_activity, portActivity.activity_bmap, sizeof(L7_uint32)*PTIN_SYSTEM_N_PORTS);
-  }
-  else
-  {
-    PT_LOG_ERR(LOG_CTX_CONTROL,"Stat Activity get failed!");
-    portActivity_valid = L7_FALSE;
-  }
-
   /* Run all ports */
   for (port=0; port<PTIN_SYSTEM_N_INTERF; port++)
   {
     /* Skip not valid ports */
     if (port >= ptin_sys_number_of_ports && port < PTIN_SYSTEM_N_PORTS)
       continue;
+
+    /* Get RX activity for all ports */
+    memset(&portActivity, 0x00, sizeof(portActivity));
+    portActivity.activity_mask = PTIN_PORTACTIVITY_MASK_RX_ACTIVITY | PTIN_PORTACTIVITY_MASK_TX_ACTIVITY;  /* Get only rx activity */
+
+    if (ptin_intf_counters_activity_get(port, &portActivity)==L7_SUCCESS)
+    {
+      portActivity_valid = L7_TRUE;
+
+      /* Update traffic activity bits for external module access */
+      memcpy(&ptin_control_port_activity[port], &portActivity.activity_bmap, sizeof(L7_uint32));
+    }
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_CONTROL,"Port %u: Stat Activity get failed!", port);
+      portActivity_valid = L7_FALSE;
+    }
 
     if (ptin_intf_port2intIfNum(port,&intf)!=L7_SUCCESS ||
         ptin_intf_port2ptintf(port,&ptin_intf)!=L7_SUCCESS ||
@@ -833,8 +833,8 @@ static void monitor_alarms(void)
             //PT_LOG_TRACE(LOG_CTX_CONTROL,"Interface %u have link up",port);
 
             /* Blink led */
-            if ((portActivity_valid) && ((portActivity.ports_mask>>port) & 1) &&
-                (portActivity.activity_bmap[port] & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY))
+            if ((portActivity_valid) &&
+                (portActivity.activity_bmap & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY))
             {
               //PT_LOG_TRACE(LOG_CTX_CONTROL,"Activity on interface %u",port);
 
@@ -1930,7 +1930,7 @@ void ptin_control_localLinkStatus_update(void)
       local_counters.RxMask = 0xffff;
       local_counters.TxMask = 0xffff;
 
-      rc = ptin_intf_counters_read(&local_counters);
+      rc = ptin_intf_counters_read(port, &local_counters);
 
       if (rc == L7_SUCCESS)
       {
@@ -2264,7 +2264,7 @@ static void ptin_control_linkstatus_report(void)
       portStats.Mask = 0xff;
       portStats.RxMask = 0xffff;
       portStats.TxMask = 0xffff;
-      if (ptin_intf_counters_read(&portStats) == L7_SUCCESS)
+      if (ptin_intf_counters_read(port, &portStats) == L7_SUCCESS)
       {
         msgLinkStatus.port[i].tx_packets = portStats.Tx.etherStatsPkts;
         msgLinkStatus.port[i].rx_packets = portStats.Rx.etherStatsPkts;

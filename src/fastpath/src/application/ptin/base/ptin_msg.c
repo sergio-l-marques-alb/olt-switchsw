@@ -1202,7 +1202,7 @@ L7_RC_t ptin_msg_PhyState_get(msg_HWEthPhyState_t *msgPhyState)
   portStats.Mask = 0xFF;
   portStats.RxMask = 0xFFFFFFFF;
   portStats.TxMask = 0xFFFFFFFF;
-  if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
+  if (ptin_intf_counters_read(port, &portStats) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
     memset(msgPhyState, 0x00, sizeof(msg_HWEthPhyState_t));
@@ -1273,7 +1273,7 @@ L7_RC_t ptin_msg_PhyActivity_get(msg_HWEthPhyActivity_t *msgPhyAct)
   portStats.Mask = 0xFF;
   portStats.RxMask = 0xFFFFFFFF;
   portStats.TxMask = 0xFFFFFFFF;
-  if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
+  if (ptin_intf_counters_read(ptin_port, &portStats) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
     return L7_FAILURE;
@@ -1333,7 +1333,7 @@ L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus)
   portStats.Mask = 0xFF;
   portStats.RxMask = 0xFFFFFFFF;
   portStats.TxMask = 0xFFFFFFFF;
-  if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
+  if (ptin_intf_counters_read(port, &portStats) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
     memset(msgPhyStatus, 0x00, sizeof(msg_HWEthPhyStatus_t));
@@ -1506,7 +1506,7 @@ L7_RC_t ptin_msg_PhyCounters_read(msg_HwGenReq_t *msgRequest, msg_HWEthRFC2819_P
     portStats.Mask = 0xFF;
     portStats.RxMask = 0xFFFFFFFF;
     portStats.TxMask = 0xFFFFFFFF;
-    if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
+    if (ptin_intf_counters_read(port, &portStats) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
       memset(p_msgPortStats, 0x00, sizeof(msg_HWEthRFC2819_PortStatistics_t));

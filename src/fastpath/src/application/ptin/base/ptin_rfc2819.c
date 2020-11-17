@@ -470,7 +470,7 @@ L7_int ptin_rfc2819_refresh_counters(L7_int Port)
   portStats.Mask = 0xFF;
   portStats.RxMask = 0xFFFFFFFF;
   portStats.TxMask = 0xFFFFFFFF;
-  if (ptin_intf_counters_read(&portStats) != L7_SUCCESS) {
+  if (ptin_intf_counters_read(Port, &portStats) != L7_SUCCESS) {
     PT_LOG_ERR(LOG_CTX_RFC2819, "Error getting statistics of port# %u", portStats.Port);
     return L7_FAILURE;
   }
@@ -545,7 +545,7 @@ L7_int ptin_rfc2819_load_counters(L7_int Port)
       portStats.Mask = 0xFF;
       portStats.RxMask = 0xFFFFFFFF;
       portStats.TxMask = 0xFFFFFFFF;
-      if (ptin_intf_counters_read(&portStats) != L7_SUCCESS) {
+      if (ptin_intf_counters_read(Port, &portStats) != L7_SUCCESS) {
         PT_LOG_ERR(LOG_CTX_RFC2819, "Error getting statistics of port# %u", portStats.Port);
         return L7_FAILURE;
       }

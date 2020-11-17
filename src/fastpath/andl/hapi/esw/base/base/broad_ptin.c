@@ -348,8 +348,8 @@ L7_RC_t broad_ptin_qos_classify(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L
     return L7_FAILURE;
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Input Parameters [port_bmp=0x%016llx intVlan=%u NNIVlan=%u trust_mode=%u priority=%u/0x%x -> int_prio=%u , pRemark_prio=%u ",
-            qos_cfg->ptin_port_bmp, qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->trust_mode, qos_cfg->priority, qos_cfg->priority_mask, qos_cfg->int_priority, qos_cfg->pbits_remark);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Input Parameters [usp_port_bmp=0x%016llx intVlan=%u NNIVlan=%u trust_mode=%u priority=%u/0x%x -> int_prio=%u , pRemark_prio=%u ",
+            qos_cfg->port_bmp, qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->trust_mode, qos_cfg->priority, qos_cfg->priority_mask, qos_cfg->int_priority, qos_cfg->pbits_remark);
 
   dapiPort.usp = usp;
   dapiPort.dapi_g = dapi_g;
@@ -989,9 +989,13 @@ L7_RC_t hapiBroadPtinPortExt(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
  */
 L7_RC_t hapiBroadPtinCountersRead(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
+  ptin_dapi_port_t dapiPort;
   L7_RC_t rc;
 
-  rc = hapi_ptin_counters_read((ptin_HWEthRFC2819_PortStatistics_t *)data);
+  /* Prepare dapiPort structure */
+  DAPIPORT_SET(&dapiPort, usp, dapi_g);
+
+  rc = hapi_ptin_counters_read(&dapiPort, (ptin_HWEthRFC2819_PortStatistics_t *)data);
   if (rc != L7_SUCCESS)
     return L7_FAILURE;
 
@@ -1011,14 +1015,14 @@ L7_RC_t hapiBroadPtinCountersRead(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
  */
 L7_RC_t hapiBroadPtinCountersClear(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
-  ptin_HWEthRFC2819_PortStatistics_t *stat = (ptin_HWEthRFC2819_PortStatistics_t *) data;
-  L7_uint port;
+  ptin_dapi_port_t dapiPort;
 
-  port = stat->Port;
+  /* Prepare dapiPort structure */
+  DAPIPORT_SET(&dapiPort, usp, dapi_g);
 
-  if ( hapi_ptin_counters_clear(port) )
+  if ( hapi_ptin_counters_clear(&dapiPort) != L7_SUCCESS )
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error on hapi_ptin_counters_clear() on port# %u", port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error on hapi_ptin_counters_clear() on port# %u", dapiPort.usp->port);
     return L7_FAILURE;
   }
 
@@ -1038,9 +1042,13 @@ L7_RC_t hapiBroadPtinCountersClear(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
  */
 L7_RC_t hapiBroadPtinCountersActivityGet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
+  ptin_dapi_port_t dapiPort;
   L7_RC_t rc;
 
-  rc = hapi_ptin_counters_activity_get((ptin_HWEth_PortsActivity_t*)data);
+  /* Prepare dapiPort structure */
+  DAPIPORT_SET(&dapiPort, usp, dapi_g);
+
+  rc = hapi_ptin_counters_activity_get(&dapiPort, (ptin_HWEth_PortsActivity_t*)data);
   if (rc != L7_SUCCESS)
     return L7_FAILURE;
 
@@ -1386,7 +1394,7 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
   /* Previous port (Must be physical) */
   if (vlan_mode->ddUsp.unit == 1 &&     /* Unit 0 */
       vlan_mode->ddUsp.slot == 0 &&     /* Physical port */
-      vlan_mode->ddUsp.port >= 0 && vlan_mode->ddUsp.port < PTIN_SYSTEM_N_PORTS)
+      vlan_mode->ddUsp.port >= 0 && vlan_mode->ddUsp.port < L7_MAX_PHYSICAL_PORTS_PER_SLOT)
   {
     dapiPortPtr_prev = DAPI_PORT_GET(&vlan_mode->ddUsp, dapi_g);
     hapiPortPtr_prev = HAPI_PORT_GET(&vlan_mode->ddUsp, dapi_g);
@@ -2436,29 +2444,28 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisSet(DAPI_USP_t *usp, L7_uint16 *preem
  * 
  * @param port 
  */
-void ptin_tapsettings_dump(L7_uint port)
+void ptin_tapsettings_dump(L7_uint usp_port)
 {
   DAPI_USP_t usp;
   L7_uint   i;
   L7_uint16 preemphasys[4] = {0, 0, 0, 0};
 
-  if (port >= ptin_sys_number_of_ports)
+  if (usp_port >= L7_MAX_PHYSICAL_PORTS_PER_SLOT)
   {
-    printf("Invalid port %u\r\n", port);
+    printf("Invalid port %u\r\n", usp_port);
     return;
   }
 
-  usp.unit = 1;
-  usp.slot = 0;
-  usp.port = port;
+  /* Init USP data */
+  hapi_ptin_usp_init(&usp, 0, usp_port);
 
   if (hapiBroadPTinPrbsPreemphasisGet(&usp, preemphasys, 4) != L7_SUCCESS)
   {
-    printf("Error reading current tap settings of port %u\r\n", port);
+    printf("Error reading current tap settings of port %u\r\n", usp_port);
     return;
   }
 
-  printf("Preemphasys for port %u (0x8060 with 0x8063:14=1):\r\n", port);
+  printf("Preemphasys for port %u (0x8060 with 0x8063:14=1):\r\n", usp_port);
   for (i = 0; i < 4; i++)
   {
     printf(" Lane %u: 0x%08x (pre=%2u main=%2u post=%2u)\r\n", i, preemphasys[i],
@@ -2475,19 +2482,19 @@ void ptin_tapsettings_dump(L7_uint port)
  * @param data 
  * @param force 
  */
-void ptin_tapsettings_set(L7_uint port, L7_uint16 pre, L7_uint16 main, L7_uint16 post, L7_uint force)
+void ptin_tapsettings_set(L7_uint usp_port, L7_uint16 pre, L7_uint16 main, L7_uint16 post, L7_uint force)
 {
   DAPI_USP_t usp;
   L7_uint   i;
   L7_uint16 preemphasys[4] = {0, 0, 0, 0};
 
-  if (port >= ptin_sys_number_of_ports)
+  if (usp_port >= L7_MAX_PHYSICAL_PORTS_PER_SLOT)
   {
-    printf("Invalid port %u\r\n", port);
+    printf("Invalid port %u\r\n", usp_port);
     return;
   }
 
-  printf("New preemphasys for port %u (0x82e2):\r\n", port);
+  printf("New preemphasys for port %u (0x82e2):\r\n", usp_port);
   for (i = 0; i < 4; i++)
   {
     preemphasys[i] = (pre & 0xf) | ((main & 0x3f)<<4) | ((post & 0x1f)<<10) | ((force & 1)<<15);
@@ -2496,13 +2503,12 @@ void ptin_tapsettings_set(L7_uint port, L7_uint16 pre, L7_uint16 main, L7_uint16
            preemphasys[i] & 0xf, (preemphasys[i]>>4) & 0x3f, (preemphasys[i]>>10) & 0x1f, (preemphasys[i]>>15) & 1);
   }
 
-  usp.unit = 1;
-  usp.slot = 0;
-  usp.port = port;
+  /* Init USP data */
+  hapi_ptin_usp_init(&usp, 0, usp_port);
 
   if (hapiBroadPTinPrbsPreemphasisSet(&usp, preemphasys, 4, force) != L7_SUCCESS)
   {
-    printf("Error setting new tap settings of port %u\r\n", port);
+    printf("Error setting new tap settings of port %u\r\n", usp_port);
     return;
   }
 

@@ -56,7 +56,7 @@ extern L7_RC_t dtlPtinL2PortExtGet(L7_uint32 intIfNum, ptin_HWPortExt_t *mefExt)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t dtlPtinCountersRead(ptin_HWEthRFC2819_PortStatistics_t *data);
+extern L7_RC_t dtlPtinCountersRead(L7_uint32 intIfNum, ptin_HWEthRFC2819_PortStatistics_t *data);
 
 /**
  * Clear counters (physical interfaces)
@@ -68,19 +68,20 @@ extern L7_RC_t dtlPtinCountersRead(ptin_HWEthRFC2819_PortStatistics_t *data);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t dtlPtinCountersClear(ptin_HWEthRFC2819_PortStatistics_t *data);
+extern L7_RC_t dtlPtinCountersClear(L7_uint32 intIfNum, ptin_HWEthRFC2819_PortStatistics_t *data);
 
 /**
  * Get counters activity (physical interfaces)
  *  
  * Note: currently masks are ignored, but the use of such structure as the 
  * input parameter is to allow selective fields read
- * 
+ *  
+ * @param intIfNum : interface 
  * @param data Structure with port# and masks (port# must be set)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t dtlPtinCountersActivityGet(ptin_HWEth_PortsActivity_t *data);
+extern L7_RC_t dtlPtinCountersActivityGet(L7_uint32 intIfNum, ptin_HWEth_PortsActivity_t *data);
 
 /**
  * Make use of ingress/egress vlan translations

@@ -291,6 +291,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
                                     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
   L7_uint64            profile_macAddr;
   L7_RC_t              result;
+
   DAPI_PORT_t         *dapiPortPtr;
   BROAD_PORT_t        *hapiPortPtr;
   ptin_hapi_intf_t     portDescriptor;
@@ -499,11 +500,10 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   PT_LOG_TRACE(LOG_CTX_HAPI,"New rule added!");
 
   /* Init interfaces mask (for inports field) */
-  hapi_ptin_allportsbmp_get(&pbm_mask);
+  hapi_ptin_get_bcm_from_usp_bitmap(-1 /*All ports*/, &pbm_mask);
 
   /* Port bitmap of uplink interfaces */
-  BCM_PBMP_CLEAR(pbm_uplink);
-  hapi_ptin_bcmPbmPort_get(PTIN_SYSTEM_10G_PORTS_MASK, &pbm_uplink);
+  hapi_ptin_get_bcm_from_usp_bitmap(PTIN_SYSTEM_10G_PORTS_MASK, &pbm_uplink);
 
   BCM_PBMP_CLEAR(pbm);
   portDescriptor.gport    = -1;
@@ -533,15 +533,11 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
     #endif
     }
     /* Use port bitmap, if provided (only at ingress stage) */
-    else if (bwPolicer->ptin_port_bmp != 0)
+    else if (bwPolicer->port_bmp != 0)
     {
-      PT_LOG_TRACE(LOG_CTX_HAPI,"Going to use port bitmap 0x%llx", bwPolicer->ptin_port_bmp);
+      PT_LOG_TRACE(LOG_CTX_HAPI,"Going to use usp_port bitmap 0x%llx", bwPolicer->port_bmp);
 
-      if (hapi_ptin_bcmPbmPort_get(bwPolicer->ptin_port_bmp, &pbm) != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI,"Error getting port bitmap");
-        return L7_FAILURE;
-      }
+      hapi_ptin_get_bcm_from_usp_bitmap(bwPolicer->port_bmp, &pbm);
     }
 
     /* Trunk qualifier is not supported for TG16G boards (to allow using single-wide rules) */

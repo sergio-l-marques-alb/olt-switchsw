@@ -321,7 +321,7 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
   /* AT THIS POINT POLICER_PTR HAS A VALID ADDRESS */
 
   /* Interfaces mask (for inports field) */
-  hapi_ptin_allportsbmp_get(&pbm_mask);
+  hapi_ptin_get_bcm_from_usp_bitmap(-1 /*All ports*/, &pbm_mask);
 
   BCM_PBMP_CLEAR(pbm);
   portDescriptor.gport            = -1;

@@ -123,7 +123,7 @@ typedef struct
 
 typedef struct
 {
-  L7_uint64 ptin_port_bmp;  /* PTIN_PORT bitmap (zero to use specific port, or 0xff..ff to apply to all ports) */
+  L7_uint64 port_bmp;       /* PTIN_PORT bitmap (zero to use specific port, or 0xff..ff to apply to all ports) */
   L7_uint16 ext_vlan;       /* Used to configure VCAP+ICAP */
   L7_uint16 int_vlan;       /* Used to configure only the ICAP */
   L7_int8   leaf_side;      /* -1 for all */
@@ -555,7 +555,6 @@ typedef struct {
 
 typedef struct
 {
-  L7_uint64 ports_mask;     /* Indicates which array indexes are valid */
   L7_uint64 activity_mask;  /* Masks bitmap contents:
                              *   0x0001: Rx activity
                              *   0x0002: Tx activity 
@@ -566,7 +565,7 @@ typedef struct
                              *   0x0040: Rx Oversized packets 
                              *   0x0080: Rx Undersized packets 
                              *   0x0100: Rx Dropped packets */
-  L7_uint32 activity_bmap[PTIN_SYSTEM_N_PORTS]; /* maps each phy port */
+  L7_uint32 activity_bmap;
 } ptin_HWEth_PortsActivity_t;
 
 
@@ -1063,7 +1062,7 @@ typedef struct {
 
 typedef struct {
   L7_int             operation;         // Operation: DAPI_CMD_GET / DAPI_CMD_SET / DAPI_CMD_CLEAR / DAPI_CMD_CLEAR_ALL
-  L7_uint64          ptin_port_bmp;     // List of ports to apply profile
+  L7_uint64          port_bmp;          // List of ports to apply profile
   ptin_bw_profile_t  profile;           // Profile data
   ptin_bw_meter_t    meter;             // Meter info
   ptin_bw_policy_t  *policy_ptr;        // Policy pointer

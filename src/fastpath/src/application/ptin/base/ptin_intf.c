@@ -1388,15 +1388,16 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
 
 /**
  * Read counter of a specific physical interface
- * 
+ *  
+ * @param ptin_port 
  * @param portStats Structure to save port counters (Port member 
  * must be set with the respective port; mask is ignored, but updated!)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_intf_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
+L7_RC_t ptin_intf_counters_read(L7_uint ptin_port, ptin_HWEthRFC2819_PortStatistics_t *portStats)
 {
-  L7_uint port;
+  L7_uint intIfNum;
 
   /* Validate arguments */
   if (portStats == L7_NULLPTR)
@@ -1405,16 +1406,19 @@ L7_RC_t ptin_intf_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
     return L7_FAILURE;
   }
 
-  port = portStats->Port;
-
   /* Validate port range */
-  if (port >= ptin_sys_number_of_ports)
+  if (ptin_port >= ptin_sys_number_of_ports)
   {
-    PT_LOG_ERR(LOG_CTX_INTF, "Port# %u is out of range [0..%u]", port, ptin_sys_number_of_ports-1);
+    PT_LOG_ERR(LOG_CTX_INTF, "Port# %u is out of range [0..%u]", ptin_port, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
-
-  return dtlPtinCountersRead(portStats);
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error converting ptin_port %u to intIfNum", ptin_port);
+    return L7_FAILURE;
+  }
+  
+  return dtlPtinCountersRead(intIfNum, portStats);
 }
 
 
@@ -1427,6 +1431,7 @@ L7_RC_t ptin_intf_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
  */
 L7_RC_t ptin_intf_counters_clear(L7_uint ptin_port)
 {
+  L7_uint32 intIfNum;
   ptin_HWEthRFC2819_PortStatistics_t portStats;
   L7_RC_t rc;
 
@@ -1436,6 +1441,11 @@ L7_RC_t ptin_intf_counters_clear(L7_uint ptin_port)
     PT_LOG_ERR(LOG_CTX_INTF, "Port# %u is out of range [0..%u]", ptin_port, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error converting ptin_port %u to intIfNum", ptin_port);
+    return L7_FAILURE;
+  }
 
   memset(&portStats, 0x00, sizeof(portStats));
   portStats.Port = ptin_port;
@@ -1443,7 +1453,7 @@ L7_RC_t ptin_intf_counters_clear(L7_uint ptin_port)
   portStats.RxMask = 0xFFFFFFFF;
   portStats.TxMask = 0xFFFFFFFF;
 
-  rc = dtlPtinCountersClear(&portStats);
+  rc = dtlPtinCountersClear(intIfNum, &portStats);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Error clearing stats of Port# %u", ptin_port);
@@ -1466,14 +1476,17 @@ L7_RC_t ptin_intf_counters_clear(L7_uint ptin_port)
 
 /**
  * Read counters activity (of physical ports)
- * 
+ *  
+ * @param ptin_port 
  * @param portActivity Structure to save port counters activity (at the 
  * moment, masks are ignored, therefore all values are read for all ports) 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_intf_counters_activity_get(ptin_HWEth_PortsActivity_t *portActivity)
+L7_RC_t ptin_intf_counters_activity_get(L7_uint32 ptin_port, ptin_HWEth_PortsActivity_t *portActivity)
 {
+  L7_uint32 intIfNum;
+
   /* Validate arguments */
   if (portActivity == L7_NULLPTR)
   {
@@ -1481,7 +1494,13 @@ L7_RC_t ptin_intf_counters_activity_get(ptin_HWEth_PortsActivity_t *portActivity
     return L7_FAILURE;
   }
 
-  return dtlPtinCountersActivityGet(portActivity);
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Can't convert ptin_port %u to intIfNum", ptin_port);
+    return L7_FAILURE;
+  }
+  
+  return dtlPtinCountersActivityGet(intIfNum, portActivity);
 }
 
 /****************************************************************************** 
@@ -8166,18 +8185,23 @@ L7_RC_t ptin_intf_vcap_defvid(L7_uint32 ptin_port, L7_uint16 outerVlan, L7_uint1
 L7_RC_t ptin_intf_clock_recover_set(L7_int ptin_port_main, L7_int ptin_port_bckp)
 {
   ptin_hwproc_t hw_proc;
+  nimUSP_t      usp;
+  L7_uint32     intIfNum_main=0, intIfNum_bckp=0;
   L7_RC_t       rc = L7_SUCCESS;
 
   /* Validate ports */
-  if (ptin_port_main < 0 || ptin_port_main >= ptin_sys_number_of_ports)
+  if ((ptin_port_main >= 0 || ptin_port_main < ptin_sys_number_of_ports) &&
+      ptin_intf_port2intIfNum(ptin_port_main, &intIfNum_main) != L7_SUCCESS)
   {
-    PT_LOG_WARN(LOG_CTX_INTF,"Invalid ptin_port %d", ptin_port_main);
-    ptin_port_main = -1;
+    PT_LOG_ERR(LOG_CTX_INTF,"Can't convert ptin_port %u to intIfNum", ptin_port_main);
+    return L7_FAILURE;
   }
-  if (ptin_port_bckp < 0 || ptin_port_bckp >= ptin_sys_number_of_ports)
+
+  if ((ptin_port_bckp >= 0 || ptin_port_bckp < ptin_sys_number_of_ports) &&
+      ptin_intf_port2intIfNum(ptin_port_bckp, &intIfNum_bckp) != L7_SUCCESS)
   {
-    PT_LOG_WARN(LOG_CTX_INTF,"Invalid ptin_port %d", ptin_port_bckp);
-    ptin_port_bckp = -1;
+    PT_LOG_ERR(LOG_CTX_INTF,"Can't convert ptin_port %u to intIfNum", ptin_port_bckp);
+    return L7_FAILURE;
   }
 
   memset(&hw_proc,0x00,sizeof(hw_proc));
@@ -8185,8 +8209,26 @@ L7_RC_t ptin_intf_clock_recover_set(L7_int ptin_port_main, L7_int ptin_port_bckp
   hw_proc.operation = DAPI_CMD_SET;
   hw_proc.procedure = PTIN_HWPROC_CLK_RECVR;
   hw_proc.mask = 0xff;
-  hw_proc.param1 = ptin_port_main;
-  hw_proc.param2 = ptin_port_bckp;
+  /* Main interface */
+  if (intIfNum_main != 0 &&
+      nimGetUnitSlotPort(intIfNum_main, &usp) == L7_SUCCESS)
+  {
+    hw_proc.param1 = usp.port;
+  }
+  else
+  {
+    hw_proc.param1 = -1;
+  }
+  /* Backup interface */
+  if (intIfNum_bckp != 0 &&
+      nimGetUnitSlotPort(intIfNum_bckp, &usp) == L7_SUCCESS)
+  {
+    hw_proc.param2 = usp.port;
+  }
+  else
+  {
+    hw_proc.param2 = -1;
+  }
 
   /* Apply procedure */
   rc = dtlPtinHwProc(L7_ALL_INTERFACES, &hw_proc);

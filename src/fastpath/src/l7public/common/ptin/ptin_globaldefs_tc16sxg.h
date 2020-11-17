@@ -7,6 +7,14 @@
 /* Info about ASPEN devices */
 #define TC16SXG_ASPEN_BRIDGE_SCRIPT "/bin/sh /usr/local/ptin/scripts/startAspenBridge.sh"  /* Only applicable to TC16SXG */
 
+/* 
+  ASPEN N:1 modes (4:1 or 2:1)
+  In these modes, MAC GPON ASPEN muxes several PONs in a SWITCH<=>ASPEN
+  physical interface
+*/
+#define PORT_VIRTUALIZATION_N_1     /* Port virtualization enabled */
+#define PORT_VIRTUALIZATION_4_1     /* Port virtualization mode */
+
 /* Special EVCs for this equipment */
 #define PTIN_ASPEN2CPU_A_EVC         (PTIN_SYSTEM_EXT_EVCS_MGMT+0)     /* MACGPON-CPU EVC */
 #define PTIN_ASPEN2CPU_B_EVC         (PTIN_SYSTEM_EXT_EVCS_MGMT+1)     /* MACGPON-CPU EVC */
@@ -18,19 +26,6 @@
 
 #define RATE_LIMIT_ASPEN    4096
 #define BUCKET_SIZE_ASPEN   1024
-
-
-/* 
-  ASPEN N:1 modes (4:1 or 2:1)
-  In these modes, MAC GPON ASPEN muxes several PONs in a SWITCH<=>ASPEN
-  physical interface
-*/
-#define ASPEN_4_1
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-#if defined(ASPEN_4_1) || defined(ASPEN_2_1)
-    #define TC16SXG_ASPEN_N_1   1
-#endif
-#endif
 
 
 /* Special ports for this equipment */
@@ -54,7 +49,9 @@
 
 # define PTIN_SYSTEM_N_PONS            32   /* (Trident3-X3) */
 # define PTIN_SYSTEM_N_PORTS           (PTIN_SYSTEM_N_PONS+16+1)   /* (Trident3-X3) BCKPLN+PONs+CPU */
-# define PTIN_SYSTEM_N_PONS_INTIFN     16
+# define PTIN_SYSTEM_N_PONS_PHYSICAL   16
+# define PTIN_SYSTEM_N_ETH_PHYSICAL    0
+# define PTIN_SYSTEM_N_PORTS_PHYSICAL  (PTIN_SYSTEM_N_PONS_PHYSICAL+16+1)   /* (Trident3-X3) BCKPLN+PONs+CPU */
 # define PTIN_SYSTEM_N_ETH             0
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   0
 # define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS

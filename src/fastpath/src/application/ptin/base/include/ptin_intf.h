@@ -112,13 +112,14 @@ extern L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState);
 
 /**
  * Read counter of a specific physical interface
- * 
+ *  
+ * @param ptin_port 
  * @param portStats Structure to save port counters (Port member 
  * must be set with the respective port; mask is ignored, but updated!)
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_intf_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats);
+extern L7_RC_t ptin_intf_counters_read(L7_uint ptin_port, ptin_HWEthRFC2819_PortStatistics_t *portStats);
 
 /**
  * Clear counters
@@ -131,13 +132,14 @@ extern L7_RC_t ptin_intf_counters_clear(L7_uint ptin_port);
 
 /**
  * Read counters activity (of physical ports)
- * 
+ *  
+ * @param ptin_port 
  * @param portActivity Structure to save port counters activity (at the 
  * moment, masks are ignored, therefore all values are read for all ports) 
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_intf_counters_activity_get(ptin_HWEth_PortsActivity_t *portActivity);
+extern L7_RC_t ptin_intf_counters_activity_get(L7_uint32 ptin_port, ptin_HWEth_PortsActivity_t *portActivity);
 
 /*
  * Board management

@@ -813,7 +813,7 @@ void ptin_intf_dump(void)
 
     /* Counters */
     portStats.Port = port;
-    ptin_intf_counters_read(&portStats);
+    ptin_intf_counters_read(port, &portStats);
 
     /* Get slot and port id */
     slot = sport = 0;

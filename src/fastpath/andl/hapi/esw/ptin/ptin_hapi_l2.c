@@ -22,6 +22,7 @@
 #include "logger.h"
 #include "ipc.h"
 
+
 /********************************************************************
  * DEFINES
  ********************************************************************/
@@ -56,7 +57,7 @@ typedef struct
 static mac_learn_info_t macLearn_info_system;
 static mac_learn_info_t macLearn_info_vlan[MAX_VLANS];
 static mac_learn_info_t macLearn_info_flow[MAX_GPORTS];
-static mac_learn_info_t macLearn_info_physical[L7_MAX_PORT_COUNT];
+static mac_learn_info_t macLearn_info_physical[L7_MAX_PHYSICAL_PORTS_PER_SLOT];
 static mac_learn_info_t macLearn_info_lag[PTIN_SYSTEM_N_LAGS];
 
 L7_BOOL ptin_hapi_l2_enable = 0;
@@ -166,7 +167,7 @@ L7_RC_t ptin_hapi_maclimit_init(void)
   }
 
   /* MAC learning control at physical port level */
-  for (i=0; i<L7_MAX_PORT_COUNT; i++)
+  for (i=0; i<L7_MAX_PHYSICAL_PORTS_PER_SLOT; i++)
   {
     macLearn_info_physical[i].mac_counter = 0;
     macLearn_info_physical[i].mac_total   = 0;
@@ -227,7 +228,6 @@ L7_RC_t ptin_hapi_maclimit_inc(bcm_l2_addr_t *bcm_l2_addr)
 {
   L7_uint l2intf_id      = 0;
   L7_uint vlan_id       = 0;
-  bcm_port_t bcm_port   = 0;
   L7_uint physical_port = 0; 
   int unit;
   
@@ -395,16 +395,20 @@ L7_RC_t ptin_hapi_maclimit_inc(bcm_l2_addr_t *bcm_l2_addr)
   /* Check if is a physical port */
   else if(BCMY_GPORT_VALID(bcm_l2_addr->port))
   {
-    bcm_port = BCMY_GPORT_BCM_PORT(bcm_l2_addr->port);
-    hapi_ptin_port_get(bcm_port, &physical_port);
-
     if(ptin_hapi_l2_enable)
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Is a Physical port");
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Is a Physical port");
+
+    if (hapi_ptin_get_uspport_from_bcmdata(-1, -1, bcm_l2_addr->port,
+                                           &physical_port) != L7_SUCCESS)
+    {
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "Entry not found");
+      return L7_FAILURE;
+    }
    
     /* Physical port ID is valid? */
-    if (physical_port >= L7_MAX_PORT_COUNT)
+    if (physical_port >= L7_MAX_PHYSICAL_PORTS_PER_SLOT)
     {
-      PT_LOG_NOTICE(LOG_CTX_HAPI, "Physical is out of range! (physical_id=%u max=%u)", physical_port, L7_MAX_PORT_COUNT);
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "Physical is out of range! (physical_id=%u max=%u)", physical_port, L7_MAX_PHYSICAL_PORTS_PER_SLOT);
       return L7_FAILURE;
     }
     else
@@ -539,7 +543,6 @@ L7_RC_t ptin_hapi_maclimit_dec(bcm_l2_addr_t *bcm_l2_addr)
 {
   L7_uint l2intf_id = 0;
   L7_uint vlan_id = 0;
-  bcm_port_t bcm_port = 0; 
   L7_uint physical_port = 0;
   
   if (BCM_GPORT_IS_VLAN_PORT(bcm_l2_addr->port))
@@ -699,13 +702,17 @@ L7_RC_t ptin_hapi_maclimit_dec(bcm_l2_addr_t *bcm_l2_addr)
   /* Check if is a physical port */ 
   else if(BCMY_GPORT_VALID(bcm_l2_addr->port))
   {
-    bcm_port = BCMY_GPORT_BCM_PORT(bcm_l2_addr->port);
-    hapi_ptin_port_get(bcm_port, &physical_port); 
+    if (hapi_ptin_get_uspport_from_bcmdata(-1, -1, bcm_l2_addr->port,
+                                           &physical_port) != L7_SUCCESS)
+    {
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "Entry not found");
+      return L7_FAILURE;
+    }
 
     /* Physical port ID is valid?  */
-    if ( (physical_port >= L7_MAX_PORT_COUNT) )
+    if ( (physical_port >= L7_MAX_PHYSICAL_PORTS_PER_SLOT) )
     {
-      PT_LOG_NOTICE(LOG_CTX_HAPI, "Physical is out of range! (physical_id=%u max=%u)", hapi_ptin_port_get(physical_port, &physical_port), L7_MAX_PORT_COUNT);
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "Physical is out of range! (physical_id=%u max=%u)", physical_port, L7_MAX_PHYSICAL_PORTS_PER_SLOT);
       return L7_FAILURE;
     }
 
@@ -1134,6 +1141,7 @@ L7_RC_t ptin_hapi_l2intf_maclimit_status_get(L7_uint32 l2intf_id, L7_uint8 *over
  */
 L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint32 mac_limit, L7_uint8 action, L7_uint16 send_trap, DAPI_t *dapi_g )
 {
+  L7_uint                physical_port;
   DAPI_PORT_t           *dapiPortPtr;
   BROAD_PORT_t          *hapiPortPtr;
   bcm_l2_learn_limit_t   l2_learn_limit;     
@@ -1141,7 +1149,7 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
   L7_uint32              old_flags;
   L7_uint32              old_limit;
   L7_uint8               old_send_trap;
-  L7_RC_t                rc             = L7_SUCCESS;
+  L7_RC_t                rc = L7_SUCCESS;
   
   #if(PTIN_BOARD != PTIN_BOARD_CXO640G) /*Not supported in Trident(Plus). */
   bcm_error_t           rv;
@@ -1172,12 +1180,16 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
   /* Extract Physical port */
   if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
   {
-    L7_uint  physical_port = -1;
-
-    hapi_ptin_port_get((bcm_port_t) hapiPortPtr->bcm_port, &physical_port);
-    if ( (physical_port < 0) || (physical_port >= L7_MAX_PORT_COUNT) )
+    if (hapi_ptin_get_uspport_from_bcmdata(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, -1,
+                                           &physical_port) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Port is out of range! (physical_port=%u max=%u)", physical_port, L7_MAX_PORT_COUNT);
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "Entry not found");
+      return L7_FAILURE;
+    }
+
+    if ( (physical_port < 0) || (physical_port >= L7_MAX_PHYSICAL_PORTS_PER_SLOT) )
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Port is out of range! (physical_port=%u max=%u)", physical_port, L7_MAX_PHYSICAL_PORTS_PER_SLOT);
       return L7_FAILURE;
     }
     PT_LOG_TRACE(LOG_CTX_HAPI,"Interface {%d,%d,%d} is a physical_port = %d", ddUsp->unit, ddUsp->slot, ddUsp->port, physical_port);
@@ -1453,8 +1465,20 @@ L7_RC_t ptin_hapi_maclimit_status(DAPI_USP_t *ddUsp, L7_uint32 *mac_learned, L7_
   /* Extract Physical port */
   else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
   {
-    bcm_port = hapiPortPtr->bcm_port;
-    hapi_ptin_port_get(bcm_port, &physical_port);
+    if (hapi_ptin_get_uspport_from_bcmdata(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, -1,
+                                           &physical_port) != L7_SUCCESS)
+    {
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "Entry not found");
+      return L7_FAILURE;
+    }
+
+    /* Physical port ID is valid? */
+    if (physical_port >= L7_MAX_PHYSICAL_PORTS_PER_SLOT)
+    {
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "Physical is out of range! (physical_id=%u max=%u)", physical_port, L7_MAX_PHYSICAL_PORTS_PER_SLOT);
+      return L7_FAILURE;
+    }
+
     PT_LOG_TRACE(LOG_CTX_HAPI,"Interface {%d,%d,%d} is a port: bcm_port = %d", ddUsp->unit, ddUsp->slot, ddUsp->port, bcm_port);
 
     if(macLearn_info_physical[physical_port].mac_counter < 0)
@@ -1511,7 +1535,7 @@ L7_RC_t ptin_hapi_maclimit_status(DAPI_USP_t *ddUsp, L7_uint32 *mac_learned, L7_
 L7_RC_t ptin_hapi_l2intf_maclimit_alarmconfig(bcm_gport_t gport, int bcm_port, L7_uint16 outer_vid, L7_uint port_id, L7_uint type)
 {
   L7_uint l2intf_id = 0;
-  L7_int  port;
+  L7_uint port;
   
   if (BCM_GPORT_IS_VLAN_PORT(gport))
   {
@@ -1525,7 +1549,20 @@ L7_RC_t ptin_hapi_l2intf_maclimit_alarmconfig(bcm_gport_t gport, int bcm_port, L
     }
     PT_LOG_NOTICE(LOG_CTX_HAPI, "(GPORT=0x%x) MAC Learned limit information %u, bcm_port %u, outer_vid %d", gport, bcm_port, outer_vid);
 
-    hapi_ptin_port_get(bcm_port, &port);
+    /* FIXME: Missing unit input */
+    if (hapi_ptin_get_uspport_from_bcmdata(-1, bcm_port, -1,
+                                           &port) != L7_SUCCESS)
+    {
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "Entry not found");
+      return L7_FAILURE;
+    }
+
+    /* Physical port ID is valid? */
+    if (port >= L7_MAX_PHYSICAL_PORTS_PER_SLOT)
+    {
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "Physical is out of range! (physical_id=%u max=%u)", port, L7_MAX_PHYSICAL_PORTS_PER_SLOT);
+      return L7_FAILURE;
+    }
 
     macLearn_info_flow[l2intf_id].ptin_intf.intf_type =  type;
     if( macLearn_info_flow[l2intf_id].ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL)
@@ -1597,7 +1634,7 @@ void ptin_l2_maclimit_dump(void)
   }
 
    /* MAC learning control at physical port level */
-  for (i=0; i<L7_MAX_PORT_COUNT; i++) 
+  for (i=0; i<L7_MAX_PHYSICAL_PORTS_PER_SLOT; i++) 
   {
     if (macLearn_info_physical[i].enable != 0)
     {

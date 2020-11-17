@@ -36,6 +36,11 @@ typedef struct {
 #define BCM_UNIT_ITER(unit) \
   for (unit = 0; unit < bde->num_devices(BDE_SWITCH_DEVICES); unit++)
 
+#define USP_PHYPORT_ITERATE(usp, dapi_g) \
+  hapi_ptin_usp_init(&usp, 0, 0); \
+  for (usp.port = 0; \
+       usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot; \
+       usp.port++)
 
 #define DAPIPORT_SET(dapiPort,usp_ref,dapi_g_ref) \
 {                                         \
@@ -125,6 +130,95 @@ extern L7_RC_t ptin_hapi_phy_init(void);
  */
 extern L7_RC_t ptin_hapi_phy_post_init(void);
 
+/**
+ * Initialize USP data
+ * 
+ * @author mruas (17/11/20)
+ * 
+ * @param usp 
+ * @param usp_slot 
+ * @param usp_port 
+ */
+extern
+void hapi_ptin_usp_init(DAPI_USP_t *usp, int usp_slot, int usp_port);
+
+/**
+ * Get bcm_unit and bcm_port from USP 
+ * 
+ * @author mruas (17/11/20)
+ * 
+ * @param usp (in) 
+ * @param dapi_g (in) 
+ * @param bcm_unit (out) 
+ * @param bcm_port (out) 
+ * @param bcm_gport (out) 
+ *  
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE 
+ */
+extern 
+L7_RC_t hapi_ptin_get_bcmdata_from_usp(DAPI_USP_t *usp, DAPI_t *dapi_g,
+                                       L7_uint32 *bcm_unit, L7_uint32 *bcm_port, L7_uint32 *bcm_gport);
+
+/**
+ * Get bcm_unit and bcm_port from USP physical port 
+ * 
+ * @author mruas (17/11/20)
+ * 
+ * @param usp_port (in) 
+ * @param dapi_g (in)  
+ * @param bcm_unit (out) 
+ * @param bcm_port (out) 
+ * @param bcm_gport (out) 
+ *  
+ *  @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern
+L7_RC_t hapi_ptin_get_bcmdata_from_uspport(L7_uint32 usp_port, DAPI_t *dapi_g,
+                                           L7_uint32 *bcm_unit, L7_uint32 *bcm_port, L7_uint32 *bcm_gport);
+
+/**
+ * Get USP from bcm data
+ * 
+ * @author mruas (17/11/20)
+ * 
+ * @param bcm_unit (in) 
+ * @param bcm_port (in) 
+ * @param bcm_gport (in) 
+ * @param usp (out) 
+ *  
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE 
+ */
+extern 
+L7_RC_t hapi_ptin_get_usp_from_bcmdata(L7_uint bcm_unit, L7_uint bcm_port, L7_uint bcm_gport,
+                                       DAPI_USP_t *usp);
+
+/**
+ * Get USP port from bcm data
+ * 
+ * @author mruas (17/11/20)
+ * 
+ * @param bcm_unit (in) 
+ * @param bcm_port (in) 
+ * @param bcm_gport (in) 
+ * @param usp_port (out) 
+ *  
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE 
+ */
+extern 
+L7_RC_t hapi_ptin_get_uspport_from_bcmdata(L7_uint bcm_unit, L7_uint bcm_port, L7_uint bcm_gport,
+                                           L7_uint32 *usp_port);
+
+/**
+ * Get pbmp value for a bitmap of ptin_ports
+ * 
+ * @param port_bmp (in)
+ * @param bcm_pbm (out)
+ */
+extern 
+void hapi_ptin_get_bcm_from_usp_bitmap(L7_uint64 usp_bmp, pbmp_t *bcm_bmp);
+
+/* Not supported functions if port virtualization is enabled */
+#ifndef PORT_VIRTUALIZATION_N_1
 /** 
  * Get bcm unit id for this switch. 
  * Normally is ZERO, but nervertheless it's better to be sure 
@@ -174,6 +268,7 @@ extern L7_RC_t hapi_ptin_port_get(L7_int bcm_port, L7_int *port);
  * @param pbmp_mask : port bitmap
  */
 extern void hapi_ptin_allportsbmp_get(pbmp_t *pbmp_mask);
+#endif /*PORT_VIRTUALIZATION_N_1*/
 
 /**
  * Get port descriptor from ddUsp interface
@@ -319,7 +414,7 @@ extern L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *ma
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats);
+extern L7_RC_t hapi_ptin_counters_read(ptin_dapi_port_t *dapiPort, ptin_HWEthRFC2819_PortStatistics_t *portStats);
 
 /**
  * Clears counters from a physical interface
@@ -328,7 +423,7 @@ extern L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portS
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t hapi_ptin_counters_clear(L7_uint phyPort);
+extern L7_RC_t hapi_ptin_counters_clear(ptin_dapi_port_t *dapiPort);
 
 /**
  * Get counters activity (physical interfaces)
@@ -340,7 +435,7 @@ extern L7_RC_t hapi_ptin_counters_clear(L7_uint phyPort);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t hapi_ptin_counters_activity_get(ptin_HWEth_PortsActivity_t *portsActivity);
+extern L7_RC_t hapi_ptin_counters_activity_get(ptin_dapi_port_t *dapiPort, ptin_HWEth_PortsActivity_t *portsActivity);
 
 /**
  * Configures storm control
@@ -437,6 +532,7 @@ extern L7_RC_t ptin_hapi_temperature_monitor(ptin_dtl_temperature_monitor_t *tem
  */
 extern L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL local_enable, L7_BOOL remote_enable);
 
+#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
 /**
  * AG16g bck static switching 
  * 
@@ -454,7 +550,7 @@ extern L7_RC_t ag16ga_bck_static_switching();
  * @return L7_RC_t 
  */
 extern L7_RC_t ag16ga_frontal_static_switching();
-
+#endif
 
 #endif /*_PTIN_HAPI_H */
 

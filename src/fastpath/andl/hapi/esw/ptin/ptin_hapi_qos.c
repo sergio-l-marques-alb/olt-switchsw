@@ -103,23 +103,18 @@ static dl_queue_t queue_free_classIds;    /* Queue of free Class ID entries */
  * 
  * @return L7_RC_t 
  */
-static L7_RC_t ptin_hapi_port_bitmap_get(ptin_dapi_port_t *dapiPort, L7_uint64 ptin_port_bmp,
+static L7_RC_t ptin_hapi_port_bitmap_get(ptin_dapi_port_t *dapiPort, L7_uint64 usp_port_bmp,
                                          bcm_pbmp_t *pbm, bcm_pbmp_t *pbm_mask)
 {
   L7_int i;
   DAPI_PORT_t  *dapiPortPtr = L7_NULLPTR;
   BROAD_PORT_t *hapiPortPtr = L7_NULLPTR;
 
-  /* TODO: configure rule */
   BCM_PBMP_CLEAR(*pbm);
 
-  if (ptin_port_bmp != 0)
+  if (usp_port_bmp != 0)
   {
-    if (hapi_ptin_bcmPbmPort_get(ptin_port_bmp, pbm) != L7_SUCCESS) 
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error converting port bitmap to pbmp format");;
-      return L7_FAILURE;
-    }
+    hapi_ptin_get_bcm_from_usp_bitmap(usp_port_bmp, pbm);
   }
   else if (dapiPort->usp->port >= 0 && dapiPort->usp->slot >= 0 && dapiPort->usp->port >= 0)
   {
@@ -166,12 +161,7 @@ static L7_RC_t ptin_hapi_port_bitmap_get(ptin_dapi_port_t *dapiPort, L7_uint64 p
   }
 
   /* PBM mask: all ports */
-  BCM_PBMP_CLEAR(*pbm_mask);
-  if (hapi_ptin_bcmPbmPort_get((L7_uint64)-1, pbm_mask) != L7_SUCCESS) 
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error converting port bitmap to pbmp format");
-    return L7_FAILURE;
-  }
+  hapi_ptin_get_bcm_from_usp_bitmap(-1 /*All ports*/, pbm_mask);
 
   return L7_SUCCESS;
 }
@@ -768,11 +758,11 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "intVLAN %u, extVlan %u, leaf:%u, port_pbm=0x%llx, trust_mode=%u, remark=%u, prio=%u/0x%x -> CoS=%u",
             qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->leaf_side,
-            qos_cfg->ptin_port_bmp, qos_cfg->trust_mode, qos_cfg->pbits_remark,
+            qos_cfg->port_bmp, qos_cfg->trust_mode, qos_cfg->pbits_remark,
             qos_cfg->priority, qos_cfg->priority_mask, qos_cfg->int_priority);
 
   /* Get pbm format of ports */
-  if (ptin_hapi_port_bitmap_get(dapiPort, qos_cfg->ptin_port_bmp, &pbm, &pbm_mask) != L7_SUCCESS)
+  if (ptin_hapi_port_bitmap_get(dapiPort, qos_cfg->port_bmp, &pbm, &pbm_mask) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error converting port bitmap to pbmp format");
     return L7_FAILURE;
