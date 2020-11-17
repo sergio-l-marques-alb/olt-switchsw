@@ -4882,6 +4882,7 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
   NIM_INTF_MASK_t portMask;
   L7_uint32 i;
   L7_RC_t rc = L7_SUCCESS;
+  ptin_port_bmp_t ptin_port_bmp;
 
   if (ptin_debug_dhcp_snooping)
     PT_LOG_TRACE(LOG_CTX_DHCP, "Going to flood packet (src_intIfNum %u, vlanId=%u, innerVlanId=%u)", intIfNum, vlanId, innerVlanId);
@@ -4890,11 +4891,15 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
   #if 1
   /* Only send to trusted ports */
   /* FIXME TC16SXG: intIfNum->ptin_port */
-  if (ptin_dhcp_intfTrusted_getList(vlanId, &portMask) == L7_SUCCESS)
+  rc = ptin_dhcp_intfTrusted_getList(vlanId, &ptin_port_bmp);
+  if (rc == L7_SUCCESS)
   #else
   if (dot1qVlanEgressPortsGet(vlanId, &portMask) == L7_SUCCESS)
   #endif
   {
+    /* FIXME TC16SXG: Convert list of ptin_ports to intIfNum */
+    ptin_intf_portbmp2intIfNumMask(&ptin_port_bmp, &portMask);
+    
     for (i = 1; i < DS_MAX_INTF_COUNT; i++)
     {
       if (i == intIfNum)

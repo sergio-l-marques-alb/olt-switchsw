@@ -12,7 +12,6 @@
 
 #include "ptin_evc.h"
 #include "ptin_utils.h"
-#include "ptin_intf.h"
 #include "ptin_xlate_api.h"
 #include "ptin_xconnect_api.h"
 #include "ptin_fieldproc.h"
@@ -2259,7 +2258,7 @@ L7_BOOL ptin_evc_intf_isRoot(L7_uint16 intVlan, L7_uint32 ptin_port)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_intfType_getList(L7_uint16 intVlan, L7_uint8 type, NIM_INTF_MASK_t *intfList)
+L7_RC_t ptin_evc_intfType_getList(L7_uint16 intVlan, L7_uint8 type, ptin_port_bmp_t *intfList)
 {
   ptin_HwEthMef10Evc_t evcCfg;
   L7_uint intf_idx;
@@ -2298,7 +2297,7 @@ L7_RC_t ptin_evc_intfType_getList(L7_uint16 intVlan, L7_uint8 type, NIM_INTF_MAS
   }
 
   /* clear interface list */
-  memset(intfList,0x00,sizeof(NIM_INTF_MASK_t));
+  memset(intfList,0x00,sizeof(ptin_port_bmp_t));
 
   /* Run all interfaces */
   for (intf_idx=0; intf_idx<evcCfg.n_intf; intf_idx++)
@@ -2307,7 +2306,7 @@ L7_RC_t ptin_evc_intfType_getList(L7_uint16 intVlan, L7_uint8 type, NIM_INTF_MAS
     {
       ptin_port = evcCfg.intf[intf_idx].intf.value.ptin_port;
 
-      NIM_INTF_SETMASKBIT(*intfList,ptin_port);
+      PTINPORT_BITMAP_SET(*intfList, ptin_port);
     }
   }
 

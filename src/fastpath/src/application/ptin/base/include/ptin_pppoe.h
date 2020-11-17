@@ -13,6 +13,7 @@
 #define _PTIN_PPPOE_H
 
 #include "ptin_include.h"
+#include "ptin_intf.h"
 
 /*********************************************************** 
  * Defines
@@ -446,7 +447,7 @@ L7_BOOL ptin_pppoe_is_intfRoot(L7_uint32 ptin_port, L7_uint16 intVlanId);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_BOOL ptin_pppoe_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intfList);
+L7_BOOL ptin_pppoe_intfTrusted_getList(L7_uint16 intVlanId, ptin_port_bmp_t *intfList);
 
 /**
  * Get PPPOE client data (circuit and remote ids)

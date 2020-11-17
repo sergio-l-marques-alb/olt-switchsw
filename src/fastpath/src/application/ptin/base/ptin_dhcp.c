@@ -11,7 +11,6 @@
 
 #include "ptin_dhcp.h"
 #include "ptin_xlate_api.h"
-#include "ptin_intf.h"
 #include "ptin_utils.h"
 #include "ptin_evc.h"
 #include "ptin_fieldproc.h"
@@ -176,7 +175,7 @@ static L7_uint32 dhcp_quattro_stacked_evcs = 0;
  ***********************************************************/
 
 /* Global DHCP statistics at interface level */
-NIM_INTF_MASK_t dhcp_intf_trusted;
+ptin_port_bmp_t dhcp_intf_trusted;
 
 /* DHCP instances array */
 st_DhcpInstCfg_t  dhcpInstances[PTIN_SYSTEM_N_DHCP_INSTANCES];
@@ -2866,14 +2865,19 @@ void ptin_dhcp_intfTrusted_init(void)
  */
 void ptin_dhcp_intfTrusted_set(L7_uint32 ptin_port, L7_BOOL trusted)
 {
+  return;
+  PT_LOG_INFO(LOG_CTX_DHCP, "ptin_port %u, NIM_INTF_INDICES=%u",  ptin_port,  NIM_INTF_INDICES);
+
   if (trusted)
   {
-    L7_INTF_SETMASKBIT(dhcp_intf_trusted, ptin_port);
+    PTINPORT_BITMAP_SET(dhcp_intf_trusted, ptin_port);
   }
   else
   {
-    L7_INTF_CLRMASKBIT(dhcp_intf_trusted, ptin_port);
+    PTINPORT_BITMAP_CLEAR(dhcp_intf_trusted, ptin_port);
   }
+
+  PT_LOG_INFO(LOG_CTX_DHCP, "ptin_port %u Done!", ptin_port);
 }
 
 
@@ -2902,7 +2906,7 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 ptin_port, L7_uint16 intVlanId)
   }
 
   /* Mask with list of trusted ports */
-  if (!L7_INTF_ISMASKBITSET(dhcp_intf_trusted, ptin_port))
+  if (!PTINPORT_BITMAP_IS_SET(dhcp_intf_trusted, ptin_port))
   {
     return L7_FALSE;
   }
@@ -2977,7 +2981,7 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 ptin_port, L7_uint16 intVlanId)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intfList)
+L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, ptin_port_bmp_t *intfList)
 {
   L7_uint32             i, ptin_port;
   L7_uint               dhcp_idx;
@@ -3031,7 +3035,7 @@ L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intf
     PT_LOG_WARN(LOG_CTX_DHCP,"eEVC %u, has %u ports", evc_id_ext, evcConf.n_intf);
 
   /* Clear output mask ports */
-  memset(intfList, 0x00, sizeof(NIM_INTF_MASK_t));
+  memset(intfList, 0x00, sizeof(ptin_port_bmp_t));
 
   /* Check all EVC ports for trusted ones */
   for (i = 0; i < evcConf.n_intf; i++)
@@ -3042,11 +3046,11 @@ L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intf
       PT_LOG_WARN(LOG_CTX_DHCP,"Processing port %u", evcConf.intf[i].intf.value.ptin_port);
 
     /* Mark interface as trusted, if it is */
-    if (L7_INTF_ISMASKBITSET(dhcp_intf_trusted, ptin_port))
+    if (PTINPORT_BITMAP_IS_SET(dhcp_intf_trusted, ptin_port))
     {
       if (ptin_debug_dhcp_snooping)
         PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_port %u is trusted", ptin_port);
-      L7_INTF_SETMASKBIT(*intfList, ptin_port);
+      PTINPORT_BITMAP_SET(*intfList, ptin_port);
     }
     else
     {

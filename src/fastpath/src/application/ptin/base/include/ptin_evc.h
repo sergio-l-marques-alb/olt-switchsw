@@ -12,6 +12,7 @@
 #define _PTIN_EVC_H
 
 #include "ptin_include.h"
+#include "ptin_intf.h"
 
 /**********************************************************
  * AVL TREE with Ext "offline" EvcId from NGPON2 groups
@@ -541,7 +542,7 @@ extern L7_BOOL ptin_evc_intf_isRoot(L7_uint16 intVlan, L7_uint32 ptin_port);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_intfType_getList(L7_uint16 intVlan, L7_uint8 type, NIM_INTF_MASK_t *intfList);
+extern L7_RC_t ptin_evc_intfType_getList(L7_uint16 intVlan, L7_uint8 type, ptin_port_bmp_t *intfList);
 
 /**
  * Get next client, belonging to an EVC

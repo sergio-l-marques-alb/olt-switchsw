@@ -11,7 +11,6 @@
 
 #include "ptin_pppoe.h"
 #include "ptin_xlate_api.h"
-#include "ptin_intf.h"
 #include "ptin_utils.h"
 #include "ptin_evc.h"
 #include "ptin_fieldproc.h"
@@ -175,7 +174,7 @@ static L7_uint32 pppoe_quattro_stacked_evcs = 0;
  ***********************************************************/
 
 /* Global PPPoE statistics at interface level */
-NIM_INTF_MASK_t pppoe_intf_trusted;
+ptin_port_bmp_t pppoe_intf_trusted;
 
 /* PPPOE instances array */
 st_PppoeInstCfg_t  pppoeInstances[PTIN_SYSTEM_N_PPPOE_INSTANCES];
@@ -2382,7 +2381,7 @@ void ptin_pppoe_intfTrusted_init(void)
  */
 void ptin_pppoe_intfTrusted_set(L7_uint32 ptin_port, L7_BOOL trusted)
 {
-  L7_INTF_SETMASKBIT(pppoe_intf_trusted, ptin_port);
+  PTINPORT_BITMAP_SET(pppoe_intf_trusted, ptin_port);
 }
 
 
@@ -2408,7 +2407,7 @@ L7_BOOL ptin_pppoe_is_intfRoot(L7_uint32 ptin_port, L7_uint16 intVlanId)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_BOOL ptin_pppoe_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intfList)
+L7_BOOL ptin_pppoe_intfTrusted_getList(L7_uint16 intVlanId, ptin_port_bmp_t *intfList)
 {
   L7_uint32             i, ptin_port;
   L7_uint               pppoe_idx;
@@ -2457,7 +2456,7 @@ L7_BOOL ptin_pppoe_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *int
   }
 
   /* Clear output mask ports */
-  memset(intfList, 0x00, sizeof(NIM_INTF_MASK_t));
+  memset(intfList, 0x00, sizeof(ptin_port_bmp_t));
 
   /* Check all EVC ports for trusted ones */
   for (i = 0; i < evcConf.n_intf; i++)
@@ -2465,9 +2464,9 @@ L7_BOOL ptin_pppoe_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *int
     ptin_port = evcConf.intf[i].intf.value.ptin_port;
 
     /* Mark interface as trusted, if it is */
-    if (L7_INTF_ISMASKBITSET(pppoe_intf_trusted, ptin_port))
+    if (PTINPORT_BITMAP_IS_SET(pppoe_intf_trusted, ptin_port))
     {
-      L7_INTF_SETMASKBIT(*intfList, ptin_port);
+      PTINPORT_BITMAP_SET(*intfList, ptin_port);
     }
   }
 
