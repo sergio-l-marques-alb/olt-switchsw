@@ -29,6 +29,7 @@
 #include "snooping_api.h"
 #endif
 
+#include "ptin_l2.h"
 #include "ptin_cfg.h"
 #include "ptin_packet.h"
 #include "ptin_hal_erps.h"
@@ -675,6 +676,23 @@ L7_RC_t ptin_evc_startup(void)
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
   L7_RC_t rc;
   ptin_HwEthMef10Evc_t evcConf;
+  ptin_switch_mac_entry l2_entry;
+  L7_uint8 smac_aspenA[L7_MAC_ADDR_LEN] = PTIN_ASPEN2CPU_A_SMAC;
+  L7_uint8 smac_aspenB[L7_MAC_ADDR_LEN] = PTIN_ASPEN2CPU_B_SMAC;
+
+  /* Disable temporarily port for Aspens */
+  rc = nimSetIntfAdminState(PTIN_ASPEN2CPU_A_PORT+1, L7_DISABLE);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error disabling temporarily port A");
+    return rc;
+  }
+  rc = nimSetIntfAdminState(PTIN_ASPEN2CPU_B_PORT+1, L7_DISABLE);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error disabling temporarily port B");
+    return rc;
+  }
 
   /* 2nd EVC for ASPEN A */
   memset(&evcConf, 0x00, sizeof(evcConf));
@@ -738,6 +756,38 @@ L7_RC_t ptin_evc_startup(void)
   }
   PT_LOG_INFO(LOG_CTX_API, "EVC# %u created for ASPEN management purposes", PTIN_ASPEN2CPU_B_EVC);
 
+  /* Add static MACs for ASPENs */
+  memset(&l2_entry, 0x00, sizeof(ptin_switch_mac_entry));
+  memcpy(l2_entry.addr, smac_aspenA, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+  l2_entry.evcId          = (L7_uint32)-1;
+  l2_entry.vlanId         = PTIN_ASPEN2CPU_A_VLAN;
+  l2_entry.intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+  l2_entry.intf.intf_id   = PTIN_ASPEN2CPU_A_PORT;
+  l2_entry.static_entry   = L7_TRUE;
+
+  rc = ptin_l2_mac_table_entry_add(&l2_entry);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error adding static MAC address for ASPEN A");
+    return rc;
+  }
+
+  memset(&l2_entry, 0x00, sizeof(ptin_switch_mac_entry));
+  memcpy(l2_entry.addr, smac_aspenB, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+  l2_entry.evcId          = (L7_uint32)-1;
+  l2_entry.vlanId         = PTIN_ASPEN2CPU_B_VLAN;
+  l2_entry.intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+  l2_entry.intf.intf_id   = PTIN_ASPEN2CPU_B_PORT;
+  l2_entry.static_entry   = L7_TRUE;
+
+  rc = ptin_l2_mac_table_entry_add(&l2_entry);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error adding static MAC address for ASPEN A");
+    return rc;
+  }
+
+  /* Configure inband */
   rc = ptin_cfg_tc16sxg_aspen_packets(L7_ENABLE);
   if (rc != L7_SUCCESS)
   {
@@ -752,6 +802,21 @@ L7_RC_t ptin_evc_startup(void)
     PT_LOG_ERR(LOG_CTX_API, "Error configuring bridge for ASPEN Inband management");
     return rc;
   }
+
+  /* Reenable port for Aspens */
+  rc = nimSetIntfAdminState(PTIN_ASPEN2CPU_A_PORT+1, L7_ENABLE);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error reenabling port A");
+    return rc;
+  }
+  rc = nimSetIntfAdminState(PTIN_ASPEN2CPU_B_PORT+1, L7_ENABLE);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error reenabling port B");
+    return rc;
+  }
+
   PT_LOG_INFO(LOG_CTX_API, "Bridge for ASPEN Inband management ready!");
 #elif (PTIN_BOARD == PTIN_BOARD_OLT1T0)
   L7_int  i;
@@ -5011,7 +5076,8 @@ static int intf_vp_policer(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *meter)
     profile.ptin_port           = -1;
     profile.outer_vlan_ingress  = vlanId;
     profile.cos                 = (L7_uint8) -1;
-    memcpy(profile.macAddr, &fdbEntry.dot1dTpFdbAddress[L7_FDB_IVL_ID_LEN], sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+    memcpy(profile.
+    macAddr, &fdbEntry.dot1dTpFdbAddress[L7_FDB_IVL_ID_LEN], sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
 
     PT_LOG_TRACE(LOG_CTX_L2, "Processing vlan %u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
               vlanId, profile.macAddr[0], profile.macAddr[1], profile.macAddr[2], profile.macAddr[3], profile.macAddr[4], profile.macAddr[5]);

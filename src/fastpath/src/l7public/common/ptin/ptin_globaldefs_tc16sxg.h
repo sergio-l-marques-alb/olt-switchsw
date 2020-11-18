@@ -23,6 +23,10 @@
 #define PTIN_ASPEN2CPU_B_VLAN           2045
 #define PTIN_ASPEN2CPU_A_VLAN_EXT       100
 #define PTIN_ASPEN2CPU_B_VLAN_EXT       100
+#define PTIN_ASPEN2CPU_A_SMAC           { 0x00, 0x10, 0x18, 0x00, 0x00, 0x00 }
+#define PTIN_ASPEN2CPU_B_SMAC           { 0x00, 0x10, 0x18, 0x00, 0x00, 0x01 }
+#define PTIN_ASPEN2CPU_A_PORT           0
+#define PTIN_ASPEN2CPU_B_PORT           8
 
 #define RATE_LIMIT_ASPEN    4096
 #define BUCKET_SIZE_ASPEN   1024

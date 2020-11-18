@@ -1492,7 +1492,30 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
    }
 
    /* PTin end */
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+   if (vid == PTIN_ASPEN2CPU_A_VLAN || 
+       vid == PTIN_ASPEN2CPU_B_VLAN)
+   {
+     if (vid == PTIN_ASPEN2CPU_B_VLAN)
+     {
+       info->dtlCmdInfo.intfNum = PTIN_ASPEN2CPU_B_PORT + 1;
+     }
+     else
+     {
+       info->dtlCmdInfo.intfNum = PTIN_ASPEN2CPU_A_PORT + 1;
+     }
+     info->dtlCmdInfo.priority = 7;
+     info->dtlCmdInfo.typeToSend = DTL_NORMAL_UNICAST;
+     info->dtlCmdInfo.cmdType.L2.domainId = vid;       /* This is the internal VID */
+     info->dtlCmdInfo.cmdType.L2.flags = 0;
+     info->dtlCmd = DTL_CMD_TX_L2;
+     info->discard = L7_FALSE;
 
+     PT_LOG_TRACE(LOG_CTX_DTL, "Inband packet received from dtl0: intIfNum %u, vlanID=%u",
+                  info->dtlCmdInfo.intfNum, info->dtlCmdInfo.cmdType.L2.domainId);
+   }
+   else
+#endif
    /*
     *check to see if this is a multicast frame
     */
