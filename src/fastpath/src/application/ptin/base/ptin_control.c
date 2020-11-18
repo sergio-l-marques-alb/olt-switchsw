@@ -669,17 +669,19 @@ static void monitor_alarms(void)
     memset(&portActivity, 0x00, sizeof(portActivity));
     portActivity.activity_mask = PTIN_PORTACTIVITY_MASK_RX_ACTIVITY | PTIN_PORTACTIVITY_MASK_TX_ACTIVITY;  /* Get only rx activity */
 
-    if (ptin_intf_counters_activity_get(port, &portActivity)==L7_SUCCESS)
+    portActivity_valid = L7_FALSE;
+    if (PTIN_PORT_IS_FRONT(port))
     {
-      portActivity_valid = L7_TRUE;
-
-      /* Update traffic activity bits for external module access */
-      memcpy(&ptin_control_port_activity[port], &portActivity.activity_bmap, sizeof(L7_uint32));
-    }
-    else
-    {
-      PT_LOG_ERR(LOG_CTX_CONTROL,"Port %u: Stat Activity get failed!", port);
-      portActivity_valid = L7_FALSE;
+      if (ptin_intf_counters_activity_get(port, &portActivity)==L7_SUCCESS)
+      {
+        portActivity_valid = L7_TRUE;
+        /* Update traffic activity bits for external module access */
+        memcpy(&ptin_control_port_activity[port], &portActivity.activity_bmap, sizeof(L7_uint32));
+      }
+      else
+      {
+        PT_LOG_ERR(LOG_CTX_CONTROL,"Port %u: Stat Activity get failed!", port);
+      }
     }
 
     if (ptin_intf_port2intIfNum(port,&intf)!=L7_SUCCESS ||
@@ -750,11 +752,12 @@ static void monitor_alarms(void)
         }
       }
       #if (PTIN_BOARD_IS_STANDALONE)
-      if ( ((PTIN_SYSTEM_PON_PORTS_MASK >> intf) & 1) || ((PTIN_SYSTEM_BL_INBAND_PORT_MASK >> intf) & 1))
+      if ( PTIN_PORT_IS_PON(port) ||
+           ((PTIN_SYSTEM_BL_INBAND_PORT_MASK >> port) & 1))
       {          
         if (usmDbIfAdminStateSet(1, intf, L7_ENABLE) != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_INTF, "Failed to enable port# %u", intf);           
+          PT_LOG_ERR(LOG_CTX_INTF, "Failed to enable port# %u", port);           
         }
       }        
       #endif
@@ -822,7 +825,7 @@ static void monitor_alarms(void)
       /* Led control */
       #if (PTIN_BOARD == PTIN_BOARD_TA48GE)
       /* (only to physical and valid interfaces) */
-      if (port<PTIN_SYSTEM_N_ETH && interface_is_valid)
+      if (PTIN_PORT_IS_FRONT_ETH(port) && interface_is_valid)
       {
         if (adminState)
         {
