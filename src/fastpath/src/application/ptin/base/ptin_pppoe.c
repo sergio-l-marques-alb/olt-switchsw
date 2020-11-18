@@ -1141,7 +1141,7 @@ L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_
     /* Convert to ptin_port format */
     if (ptin_intf_ptintf2port(&client.ptin_intf,&ptin_port)!=L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_PPPOE,"Cannot convert client intf %u/%u to ptin_port format",client.ptin_intf.intf_type,client.ptin_intf.intf_id);
+      PT_LOG_ERR(LOG_CTX_PPPOE,"Cannot convert client intf %u/%u to ptin_intf format",client.ptin_intf.intf_type,client.ptin_intf.intf_id);
       return L7_FAILURE;
     }
   }

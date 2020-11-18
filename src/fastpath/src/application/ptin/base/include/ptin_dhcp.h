@@ -627,14 +627,14 @@ extern L7_RC_t ptin_dhcp_extVlans_get(L7_uint32 ptin_port, L7_uint16 intOVlan, L
 /**
  * Get the client index associated to a DHCP client 
  * 
- * @param ptin_port     : interface number
+ * @param intIfNum     : interface number
  * @param intVlan       : internal vlan
  * @param client        : Client information parameters
  * @param client_index  : Client index to be returned
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 ptin_port, L7_uint16 intVlan, ptin_client_id_t *client, L7_uint *client_index);
+extern L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan, ptin_client_id_t *client, L7_uint *client_index);
 
 /**
  * Get client information from its index. 

@@ -105,16 +105,15 @@ L7_BOOL _dsVlanEnableGet(L7_uint32 vlanId)
  * part of a DHCP active EVC.
  * 
  * @param vlanId : internal vlan
- * @param intIfNum : interface reference
+ * @param ptin_port : interface reference
  * 
  * @return L7_BOOL : L7_TRUE/L7_FALSE
  */
-L7_BOOL dsVlanIntfIsSnooping(L7_uint16 vlanId, L7_uint32 intIfNum)
+L7_BOOL dsVlanIntfIsSnooping(L7_uint16 vlanId, L7_uint32 ptin_port)  /*FIXME TC16SXG ptin_port or intIfNum Should be normalized*/
 {
   /* PTin modified: DHCP snooping */
   #if 1
-  /* FIXME TC16SXG: intIfNum->ptin_port */
-  return ptin_dhcp_intfVlan_validate(intIfNum,vlanId);
+  return ptin_dhcp_intfVlan_validate(ptin_port, vlanId);
   #else
   ptin_HwEthMef10Evc_t evcConf;
   L7_uint8 port;
@@ -197,13 +196,13 @@ L7_BOOL _dsIntfL2RelayGet(L7_uint32 intIfNum)
  * part of a DHCP active EVC.
  * 
  * @param vlanId : internal vlan
- * @param intIfNum : interface reference
+ * @param ptin_port : interface reference
  * 
  * @return L7_BOOL : L7_TRUE/L7_FALSE
  */
-L7_BOOL _dsVlanIntfL2RelayGet(L7_uint16 vlanId, L7_uint32 intIfNum)
+L7_BOOL _dsVlanIntfL2RelayGet(L7_uint16 vlanId, L7_uint32 ptin_port)
 {
-  return dsVlanIntfIsSnooping(vlanId,intIfNum);
+  return dsVlanIntfIsSnooping(vlanId, ptin_port);
 }
 
 /*********************************************************************
@@ -458,7 +457,6 @@ L7_BOOL _dsVlanIntfTrustGet(L7_uint16 vlanId, L7_uint32 intIfNum)
 {
   /* PTin modified: DHCP snooping */
   #if 1
-  /* FIXME TC16SXG: intIfNum->ptin_port */
   return ptin_dhcp_is_intfTrusted(intIfNum,vlanId);
   #else
   ptin_HwEthMef10Evc_t evcConf;
@@ -496,8 +494,7 @@ L7_BOOL _dsVlanIntfTrustGet(L7_uint16 vlanId, L7_uint32 intIfNum)
  */
 L7_BOOL _dsVlanIsIntfRoot(L7_uint16 vlanId, L7_uint32 intIfNum)
 {
-  /* FIXME TC16SXG: intIfNum->ptin_port */
-  return ptin_evc_intf_isRoot(vlanId, intIfNum);
+  return ptin_evc_intf_isRoot(vlanId, intIfNum2port(intIfNum, 0));
 }
 
 /*********************************************************************

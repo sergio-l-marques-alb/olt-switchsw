@@ -2345,7 +2345,8 @@ L7_RC_t dsDbRemoteRestore()
                          &macAddr,
                          dsBinding.ipAddr,
                          dsBinding.key.vlanId, 0 /* PTin modified: DHCP */,
-                        dsBinding.intIfNum);
+                         dsBinding.intIfNum,
+                         dsBinding.ptin_port);
        if ( rc == L7_FAILURE)
        {
          L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
@@ -2473,7 +2474,8 @@ void dsDbLocalRestore()
                            &dsDbCfgData.dsBindingDb[dbIndex]. macAddr,
                            dsDbCfgData.dsBindingDb[dbIndex].ipAddr,
                            dsDbCfgData.dsBindingDb[dbIndex].vlanId, 0 /* PTin modified: DHCP */,
-                           dsDbCfgData.dsBindingDb[dbIndex].intIfNum);
+                           dsDbCfgData.dsBindingDb[dbIndex].intIfNum,
+                           dsDbCfgData.dsBindingDb[dbIndex].ptin_port);
          memset(&key, 0x00, sizeof(key));
          memcpy(&key.macAddr.addr, &dsDbCfgData.dsBindingDb[dbIndex].macAddr.addr, L7_ENET_MAC_ADDR_LEN);
          key.ipType = L7_AF_INET;

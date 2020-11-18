@@ -66,7 +66,7 @@ typedef struct sysnet_pdu_info_s
   L7_uint32 intIfNum;          /* Receiving intIfNum */
   L7_uint32 rxPort;            /* Physical port where packet was received */
   L7_uint32 vlanId;            /* Receiving VLAN */
-  L7_uint32 innerVlanId;        /* Receiving inner VLAN if the packet is double tagged.*/
+  L7_uint32 innerVlanId;       /* Receiving inner VLAN if the packet is double tagged.*/
 
   L7_uint32 destIntIfNum;      /* Destination intIfNum */
   L7_uint32 destVlanId;        /* Destination VLAN */

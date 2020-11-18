@@ -969,6 +969,7 @@ typedef struct {
 #define PTIN_CLIENT_MASK_FIELD_INNERVLAN  0x04
 #define PTIN_CLIENT_MASK_FIELD_IPADDR     0x08
 #define PTIN_CLIENT_MASK_FIELD_MACADDR    0x10
+#define PTIN_CLIENT_MASK_FIELD_INTIFNUM   0x20
 
 typedef struct {
   L7_uint8    mask;                     /* Mask of fields to identify the client */
@@ -977,6 +978,7 @@ typedef struct {
   L7_uint16   innerVlan;                /* [mask=0x04] Inner Vlan */
   L7_uint32   ipv4_addr;                /* [mask=0x08] IP address */
   L7_uchar8   macAddr[L7_MAC_ADDR_LEN]; /* [mask=0x10] Source MAC */
+  L7_uint32   intIfNum;                 /* [mask=0x20] IntIfNum */
 } ptin_client_id_t;
 
 typedef struct {                    /* Mask values used here come from the variable 'mask' in the struct msg_AccessNodeCircuitId_t */
