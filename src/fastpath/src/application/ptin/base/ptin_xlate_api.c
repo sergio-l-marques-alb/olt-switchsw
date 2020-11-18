@@ -131,7 +131,7 @@ inline char ptin_vlanxlate_action_getchar(ptin_vlanXlate_action_enum action)
 /**
  * Add ingress translation entry
  * 
- * @param intIfNum : interface reference
+ * @param ptin_port : interface reference
  * @param outerVlanId : lookup outer vlan 
  * @param innerVlanId : lookup inner vlan  
  * @param newOuterVlanId : new vlan id 
@@ -140,14 +140,14 @@ inline char ptin_vlanxlate_action_getchar(ptin_vlanXlate_action_enum action)
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_xlate_ingress_add_2( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 innerVlanId, L7_uint16 newOuterVlanId )
+L7_RC_t ptin_xlate_ingress_add_2( L7_uint32 ptin_port, L7_uint16 outerVlanId, L7_uint16 innerVlanId, L7_uint16 newOuterVlanId )
 {
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
 
   if (ptin_debug_xlate)
-    PT_LOG_TRACE(LOG_CTX_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u, newOuterVlanId=%u",
-              intIfNum, outerVlanId, innerVlanId, newOuterVlanId);
+    PT_LOG_TRACE(LOG_CTX_XLATE, "ptin_port=%u, outerVlanId=%u, innerVlanId=%u, newOuterVlanId=%u",
+                 ptin_port, outerVlanId, innerVlanId, newOuterVlanId);
 
   /* Validate arguments */
   if (outerVlanId>4095 || innerVlanId>4095 || newOuterVlanId>4095)
@@ -166,7 +166,7 @@ L7_RC_t ptin_xlate_ingress_add_2( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_
   xlate.outerVlanAction = PTIN_XLATE_ACTION_REPLACE;
   xlate.innerVlanAction = PTIN_XLATE_ACTION_DELETE;
 
-  rc = ptin_xlate_operation(DAPI_CMD_SET, intIfNum, &xlate);
+  rc = ptin_xlate_operation(DAPI_CMD_SET, ptin_port, &xlate);
 
   if (ptin_debug_xlate)
     PT_LOG_TRACE(LOG_CTX_XLATE, "Finished: rc=%d", rc);
@@ -174,18 +174,18 @@ L7_RC_t ptin_xlate_ingress_add_2( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_
   return rc;
 }
 
-L7_RC_t ptin_xlate_egress_add_2( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId )
+L7_RC_t ptin_xlate_egress_add_2( L7_uint32 ptin_port, L7_uint16 outerVlanId, L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId )
 {
   L7_uint32 portgroup;
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
 
   if (ptin_debug_xlate)
-    PT_LOG_TRACE(LOG_CTX_XLATE, "intIfNum=%u, outerVlanId=%u, newOuterVlanId=%u newInnerVlanId=%u",
-              intIfNum, outerVlanId, newOuterVlanId, newInnerVlanId);
+    PT_LOG_TRACE(LOG_CTX_XLATE, "ptin_port=%u, outerVlanId=%u, newOuterVlanId=%u newInnerVlanId=%u",
+                 ptin_port, outerVlanId, newOuterVlanId, newInnerVlanId);
 
   /* Get class id */
-  if (xlate_portgroup_from_intf(intIfNum, &portgroup)!=L7_SUCCESS)
+  if (xlate_portgroup_from_intf(ptin_port, &portgroup)!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_XLATE, " ERROR getting class id");
     return L7_FAILURE;
@@ -215,7 +215,7 @@ L7_RC_t ptin_xlate_egress_add_2( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_u
   xlate.innerVlanAction = PTIN_XLATE_ACTION_ADD;
 
   /* DTL call */
-  rc = ptin_xlate_operation(DAPI_CMD_SET, L7_ALL_INTERFACES, &xlate);
+  rc = ptin_xlate_operation(DAPI_CMD_SET, PTIN_PORT_ALL, &xlate);
 
   if (ptin_debug_xlate)
     PT_LOG_TRACE(LOG_CTX_XLATE, "Finished: rc=%d", rc);
@@ -946,7 +946,7 @@ L7_RC_t ptin_xlate_ingress_add( ptin_HwEthMef10Intf_t *intf_vlan,
   xlate.remove_VLANs = L7_FALSE;
 
   /* DTL call */
-  rc = ptin_xlate_operation(DAPI_CMD_SET, intIfNum, &xlate);
+  rc = ptin_xlate_operation(DAPI_CMD_SET, ptin_port, &xlate);
 
   if (ptin_debug_xlate)
     PT_LOG_TRACE(LOG_CTX_XLATE, "Finished: rc=%d", rc);
@@ -1043,7 +1043,7 @@ L7_RC_t ptin_xlate_ingress_delete_all( void )
   xlate.innerVlanAction = PTIN_XLATE_ACTION_NONE;
 
   /* DTL call */
-  rc = ptin_xlate_operation(DAPI_CMD_CLEAR_ALL, L7_ALL_INTERFACES, &xlate);
+  rc = ptin_xlate_operation(DAPI_CMD_CLEAR_ALL, PTIN_PORT_ALL, &xlate);
 
   if (ptin_debug_xlate)
     PT_LOG_TRACE(LOG_CTX_XLATE, "Finished: rc=%d", rc);
@@ -1054,7 +1054,7 @@ L7_RC_t ptin_xlate_ingress_delete_all( void )
 /**
  * Get egress translation new vlan
  * 
- * @param intIfNum : interface reference
+ * @param ptin_port : interface reference
  * @param outerVlanId : lookup outer vlan
  * @param innerVlanId : lookup inner vlan (0 to not be used)
  * @param newOuterVlanId : new outer vlan id 
@@ -1103,7 +1103,7 @@ L7_RC_t ptin_xlate_egress_get( L7_uint32 ptin_port, L7_uint16 outerVlanId, L7_ui
   xlate.outerVlan = outerVlanId;
   xlate.innerVlan = innerVlanId;
 
-  rc = xlate_database_newVlan_get(L7_ALL_INTERFACES, &xlate);
+  rc = xlate_database_newVlan_get(PTIN_PORT_ALL, &xlate);
 
   if (rc == L7_SUCCESS)
   {
@@ -1189,7 +1189,7 @@ L7_RC_t ptin_xlate_egress_get_originalVlan( L7_uint32 ptin_port, L7_uint16 *oute
   xlate.outerVlan_new = newOuterVlanId;
   xlate.innerVlan_new = newInnerVlanId;
 
-  rc = xlate_database_oldVlan_get(L7_ALL_INTERFACES, &xlate);
+  rc = xlate_database_oldVlan_get(PTIN_PORT_ALL, &xlate);
 
   if (rc == L7_SUCCESS)
   {
@@ -1356,7 +1356,7 @@ L7_RC_t ptin_xlate_egress_add( ptin_HwEthMef10Intf_t *intf_vlan,
   }
 
   /* DTL call */
-  rc = ptin_xlate_operation(DAPI_CMD_SET, L7_ALL_INTERFACES, &xlate);
+  rc = ptin_xlate_operation(DAPI_CMD_SET, PTIN_PORT_ALL, &xlate);
 
   if (ptin_debug_xlate)
     PT_LOG_TRACE(LOG_CTX_XLATE, "Finished: ptin_port=%u, class_id=%u,  rc=%d", ptin_port, class_id, rc);
@@ -1450,7 +1450,7 @@ L7_RC_t ptin_xlate_egress_delete( L7_uint32 ptin_port, L7_uint16 outerVlanId, L7
   xlate.innerVlanAction = PTIN_XLATE_ACTION_NONE;
 
   /* DTL call */
-  rc = ptin_xlate_operation(DAPI_CMD_CLEAR, L7_ALL_INTERFACES, &xlate);
+  rc = ptin_xlate_operation(DAPI_CMD_CLEAR, PTIN_PORT_ALL, &xlate);
 
   #if 0//Already Performed Above
   /* If deletion went well... */
@@ -1816,7 +1816,7 @@ L7_RC_t ptin_xlate_egress_delete_all( void )
   xlate.innerVlanAction = PTIN_XLATE_ACTION_NONE;
 
   /* DTL call */
-  rc = ptin_xlate_operation(DAPI_CMD_CLEAR_ALL, L7_ALL_INTERFACES, &xlate);
+  rc = ptin_xlate_operation(DAPI_CMD_CLEAR_ALL, PTIN_PORT_ALL, &xlate);
 
   if (ptin_debug_xlate)
     PT_LOG_TRACE(LOG_CTX_XLATE, "Finished: rc=%d", rc);
@@ -1848,7 +1848,7 @@ L7_RC_t ptin_xlate_delete_all( void )
   xlate.innerVlanAction = PTIN_XLATE_ACTION_NONE;
 
   /* DTL call */
-  rc = ptin_xlate_operation(DAPI_CMD_CLEAR_ALL, L7_ALL_INTERFACES, &xlate);
+  rc = ptin_xlate_operation(DAPI_CMD_CLEAR_ALL, PTIN_PORT_ALL, &xlate);
 
   if (ptin_debug_xlate)
     PT_LOG_TRACE(LOG_CTX_XLATE, "Finished: rc=%d", rc);
@@ -2043,7 +2043,7 @@ L7_RC_t ptin_xlate_PVID_set(L7_uint32 ptin_port, L7_uint16 vlanId)
       }
 
       /* Apply operation */
-      if (ptin_xlate_operation(DAPI_CMD_SET, L7_ALL_INTERFACES, &xlate) != L7_SUCCESS)
+      if (ptin_xlate_operation(DAPI_CMD_SET, PTIN_PORT_ALL, &xlate) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_XLATE, "Error redefining egress xlate entry for pgroup=%u, OVid=%u, IVid=%u (remove_VLANs=%u)",
                 xlate.portgroup, xlate.outerVlan, xlate.innerVlan, xlate.remove_VLANs);
@@ -2128,7 +2128,7 @@ static L7_RC_t ptin_xlate_PVID_init(void)
  *  
  * @param operation : operation (DAPI_CMD_GET / DAPI_CMD_SET / 
  *                  DAPI_CMD_CLEAR / DAPI_CMD_CLEAR_ALL)
- * @param intIfNum : interface reference
+ * @param ptin_port : interface reference
  * @param vlanXlate_data : VLAN translation info
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
@@ -2143,15 +2143,24 @@ static L7_RC_t ptin_xlate_operation(L7_int operation, L7_uint32 ptin_port, ptin_
     return L7_FAILURE;
   }
 
-  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  if (ptin_port == PTIN_PORT_ALL)
+  {
+    intIfNum = L7_ALL_INTERFACES;
+  }
+  else if (ptin_port >= PTIN_SYSTEM_N_INTERF)
+  {
+    PT_LOG_ERR(LOG_CTX_XLATE, "ptin_port %u is out of valid range", ptin_port);
+    return L7_FAILURE;
+  }
+  else if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_XLATE, "Can't convert ptin_port %u to intIfNum", ptin_port);
     return L7_FAILURE;
   }
   
   if (ptin_debug_xlate)
-    PT_LOG_TRACE(LOG_CTX_XLATE, "oper=%d: ptin_port=%u/pgroup=%u, Vid=%u+%u, newVid=%u.%u+%u.%u (action %u.%u+%u.%u), rem_VLANs=%u",
-              operation, ptin_port, xlate->portgroup,
+    PT_LOG_TRACE(LOG_CTX_XLATE, "oper=%d: ptin_port=%u/intIfNum=%u/pgroup=%u, Vid=%u+%u, newVid=%u.%u+%u.%u (action %u.%u+%u.%u), rem_VLANs=%u",
+              operation, ptin_port, intIfNum, xlate->portgroup,
               xlate->outerVlan, xlate->innerVlan,
               xlate->outerVlan_new  , xlate->outerPrio_new,
               xlate->innerVlan_new  , xlate->innerPrio_new,
@@ -2304,7 +2313,7 @@ static L7_RC_t xlate_database_init(void)
 /**
  * Get new VlanId from local database
  * 
- * @param intIfNum : Interface reference
+ * @param ptin_port : Interface reference
  * @param vlanXlate_data : VLAN translation info
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
@@ -2317,7 +2326,7 @@ static L7_RC_t xlate_database_newVlan_get(L7_uint32 ptin_port, ptin_vlanXlate_t 
 
   /* Validate arguments */
   if ( ( vlanXlate_data->stage != PTIN_XLATE_STAGE_INGRESS && vlanXlate_data->stage != PTIN_XLATE_STAGE_EGRESS ) ||
-       ( ptin_port >= PTIN_SYSTEM_N_INTERF ) ||
+       ( ptin_port != PTIN_PORT_ALL && ptin_port >= PTIN_SYSTEM_N_INTERF ) ||
        ( vlanXlate_data->outerVlan > 4095) )
   {
     PT_LOG_ERR(LOG_CTX_XLATE, " ERROR: Invalid arguments (stage=%d, ptin_port=%u, oVlan=%u)",
@@ -2384,7 +2393,7 @@ static L7_RC_t xlate_database_oldVlan_get(L7_uint32 ptin_port, ptin_vlanXlate_t 
 
   /* Validate arguments */
   if ( ( vlanXlate_data->stage != PTIN_XLATE_STAGE_INGRESS && vlanXlate_data->stage != PTIN_XLATE_STAGE_EGRESS ) ||
-       ( ptin_port >= PTIN_SYSTEM_N_INTERF ) ||
+       ( ptin_port != PTIN_PORT_ALL && ptin_port >= PTIN_SYSTEM_N_INTERF ) ||
        ( vlanXlate_data->outerVlan_new > 4095) )
   {
     PT_LOG_ERR(LOG_CTX_XLATE, " ERROR: Invalid arguments (stage=%d, ptin_port=%u, newOVlan=%u)",
@@ -2438,7 +2447,7 @@ static L7_RC_t xlate_database_oldVlan_get(L7_uint32 ptin_port, ptin_vlanXlate_t 
 /**
  * Save translation entry in local database
  * 
- * @param intIfNum : Interface reference
+ * @param ptin_port : Interface reference
  * @param vlanXlate_data : VLAN translation info
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
@@ -2451,7 +2460,7 @@ static L7_RC_t xlate_database_store(L7_uint32 ptin_port, const ptin_vlanXlate_t 
 
   /* Validate arguments */
   if ( ( vlanXlate_data->stage != PTIN_XLATE_STAGE_INGRESS && vlanXlate_data->stage != PTIN_XLATE_STAGE_EGRESS ) ||
-       ( ptin_port >= PTIN_SYSTEM_N_INTERF ) || 
+       ( ptin_port != PTIN_PORT_ALL && ptin_port >= PTIN_SYSTEM_N_INTERF ) || 
        ( vlanXlate_data->outerVlan > 4095) )
   {
     PT_LOG_ERR(LOG_CTX_XLATE, " ERROR: Invalid arguments (stage=%d, ptin_port=%u, oVlan=%u.%u, newOVlan=%u.%u)",
@@ -2609,7 +2618,7 @@ static L7_RC_t xlate_database_store(L7_uint32 ptin_port, const ptin_vlanXlate_t 
 /**
  * Clear translation entry in local database
  * 
- * @param intIfNum : Interface reference
+ * @param ptin_port : Interface reference
  * @param vlanXlate_data : VLAN translation info
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
@@ -2628,7 +2637,7 @@ static L7_RC_t xlate_database_clear(L7_uint32 ptin_port, const ptin_vlanXlate_t 
   }
 
   if ( ( vlanXlate_data->stage != PTIN_XLATE_STAGE_INGRESS && vlanXlate_data->stage != PTIN_XLATE_STAGE_EGRESS ) ||
-       ( ptin_port >= PTIN_SYSTEM_N_INTERF ) ||
+       ( ptin_port != PTIN_PORT_ALL && ptin_port >= PTIN_SYSTEM_N_INTERF ) ||
        ( vlanXlate_data->outerVlan > 4095) )
   {
     PT_LOG_ERR(LOG_CTX_XLATE, " ERROR: Invalid arguments (stage=%d, ptin_port=%u, oVlan=%u)", vlanXlate_data->stage, ptin_port, vlanXlate_data->outerVlan);
@@ -2782,7 +2791,7 @@ static L7_RC_t xlate_portgroup_from_intf(L7_uint32 ptin_port, L7_uint32 *portgro
   /* Calculate USP */
   if (nimGetUnitSlotPort(intIfNum, &usp)!=L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_XLATE, " Error getting USP (intIfNum=%u)", intIfNum);
+    PT_LOG_ERR(LOG_CTX_XLATE, " Error getting USP (intIfNum=%u, ptin_port=%u)", intIfNum, ptin_port);
     return L7_FAILURE;
   }
 
