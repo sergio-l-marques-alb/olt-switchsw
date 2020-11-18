@@ -6601,7 +6601,7 @@ L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 ptin_port, L7_uint intVlan, L7_uint c
   }
 
   /* Determine leaf ptin_port */
-  if ( ptin_port != (L7_uint32)-1 )
+  if ( ptin_port != PTIN_PORT_ALL )
   {
     /* Validate ptin_port */
     if ( ptin_port >= PTIN_SYSTEM_N_INTERF )
@@ -6626,7 +6626,7 @@ L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 ptin_port, L7_uint intVlan, L7_uint c
   }
   else
   {
-    ptin_port = -1;   /* All ports */
+    ptin_port = PTIN_PORT_ALL;   /* All ports */
   }
 
   /* Determine max number of vlans to be read */
@@ -6644,57 +6644,57 @@ L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 ptin_port, L7_uint intVlan, L7_uint c
   /* Run all Leaf ports */
   for (port=0; port<PTIN_SYSTEM_N_INTERF && index<max_vlans; port++)
   {
+    /* Only apply to specified port, or all of them if not specified */
+    if ( ptin_port < PTIN_SYSTEM_N_INTERF && ptin_port != port )
+      continue;
+
     /* Skip not used ports, or non leafs */
     if ( !evcs[evc_id].intf[ptin_port].in_use ||
          evcs[evc_id].intf[ptin_port].type != PTIN_EVC_INTF_LEAF )
       continue;
 
-    /* Only apply to specified port, or all of them if not specified */
-    if ( ptin_port == port || ptin_port == -1 )
+    /* SEM CLIENTS UP */
+    osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
+
+    /* Clients queue */
+    queue = &evcs[evc_id].intf[port].clients;
+
+    pclient = L7_NULLPTR;
+
+    /* Get clients queue head */
+    /* If error, pclient continues being null */
+    dl_queue_get_head(queue, (dl_queue_elem_t **)&pclient);
+
+    /* Run all clients */
+    while (pclient != L7_NULLPTR && index<max_vlans)
     {
-      /* SEM CLIENTS UP */
-      osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
-
-      /* Clients queue */
-      queue = &evcs[evc_id].intf[port].clients;
-
-      pclient = L7_NULLPTR;
-
-      /* Get clients queue head */
-      /* If error, pclient continues being null */
-      dl_queue_get_head(queue, (dl_queue_elem_t **)&pclient);
-
-      /* Run all clients */
-      while (pclient != L7_NULLPTR && index<max_vlans)
+      /* Only apply to specified client_vlan, or all of them if not specified (if null) */
+      if (client_vlan == 0 || pclient->int_ivid == client_vlan)
       {
-        /* Only apply to specified client_vlan, or all of them if not specified (if null) */
-        if (client_vlan == 0 || pclient->int_ivid == client_vlan)
+        /* Run all vlan elements */
+        for ( i=0; i<PTIN_FLOOD_VLANS_MAX && index<max_vlans; i++)
         {
-          /* Run all vlan elements */
-          for ( i=0; i<PTIN_FLOOD_VLANS_MAX && index<max_vlans; i++)
-          {
-            if ( pclient->flood_vlan[i] < PTIN_VLAN_MIN || pclient->flood_vlan[i] > PTIN_VLAN_MAX )
-              continue;
+          if ( pclient->flood_vlan[i] < PTIN_VLAN_MIN || pclient->flood_vlan[i] > PTIN_VLAN_MAX )
+            continue;
 
-            if ( outer_vlan != L7_NULLPTR )
-              outer_vlan[index] = pclient->flood_vlan[i];
+          if ( outer_vlan != L7_NULLPTR )
+            outer_vlan[index] = pclient->flood_vlan[i];
 
-            if ( inner_vlan != L7_NULLPTR )
-              inner_vlan[index] = 0;
+          if ( inner_vlan != L7_NULLPTR )
+            inner_vlan[index] = 0;
 
-            index++;
-          }
-
-          /* No need to search for more clients, if it was provided */
-          if ( client_vlan != 0 )  break;
+          index++;
         }
-        /* Next client */
-        pclient = (struct ptin_evc_client_s *) dl_queue_get_next(queue, (dl_queue_elem_t *)pclient);
-      }
 
-      /* SEM CLIENTS DOWN */
-      osapiSemaGive(ptin_evc_clients_sem);
+        /* No need to search for more clients, if it was provided */
+        if ( client_vlan != 0 )  break;
+      }
+      /* Next client */
+      pclient = (struct ptin_evc_client_s *) dl_queue_get_next(queue, (dl_queue_elem_t *)pclient);
     }
+
+    /* SEM CLIENTS DOWN */
+    osapiSemaGive(ptin_evc_clients_sem);
   }
 
   /* Return number of read vlans */
@@ -6787,83 +6787,83 @@ L7_RC_t ptin_evc_flood_vlan_add( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, L
   }
   else
   {
-    ptin_port = -1;   /* All ports */
+    ptin_port = PTIN_PORT_ALL;   /* All ports */
   }
 
   /* Run all Leaf ports */
   for (port=0; port<PTIN_SYSTEM_N_INTERF; port++)
   {
+    /* Only apply to specified port, or all of them if not specified */
+    if ( ptin_port < PTIN_SYSTEM_N_INTERF && ptin_port != port )
+      continue;
+
     /* Skip not used ports, or non leafs */
     if ( !evcs[evc_id].intf[ptin_port].in_use ||
          evcs[evc_id].intf[ptin_port].type != PTIN_EVC_INTF_LEAF )
       continue;
 
-    /* Only apply to specified port, or all of them if not specified */
-    if ( ptin_port == port || ptin_port == -1 )
+    /* SEM CLIENTS UP */
+    osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
+
+    /* Clients queue */
+    queue = &evcs[evc_id].intf[port].clients;
+
+    pclient = L7_NULLPTR;
+
+    /* Get clients queue head */
+    /* If error, pclient continues being null */
+    dl_queue_get_head(queue, (dl_queue_elem_t **)&pclient);
+
+    /* Run all clients */
+    while (pclient != L7_NULLPTR)
     {
-      /* SEM CLIENTS UP */
-      osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
-
-      /* Clients queue */
-      queue = &evcs[evc_id].intf[port].clients;
-
-      pclient = L7_NULLPTR;
-
-      /* Get clients queue head */
-      /* If error, pclient continues being null */
-      dl_queue_get_head(queue, (dl_queue_elem_t **)&pclient);
-
-      /* Run all clients */
-      while (pclient != L7_NULLPTR)
+      /* Only apply to specified client_vlan, or all of them if not specified (if null) */
+      if (client_vlan == 0 || pclient->int_ivid == client_vlan)
       {
-        /* Only apply to specified client_vlan, or all of them if not specified (if null) */
-        if (client_vlan == 0 || pclient->int_ivid == client_vlan)
+        /* Only add new flooding vlan, if it is different than the newer one */
+        if ( pclient->uni_ovid != outer_vlan )
         {
-          /* Only add new flooding vlan, if it is different than the newer one */
-          if ( pclient->uni_ovid != outer_vlan )
+          /* Check if this vlan already exists */
+          for ( i=0; i<PTIN_FLOOD_VLANS_MAX && pclient->flood_vlan[i]!=outer_vlan; i++);
+
+          /* Not found: */
+          if ( i >= PTIN_FLOOD_VLANS_MAX )
           {
-            /* Check if this vlan already exists */
-            for ( i=0; i<PTIN_FLOOD_VLANS_MAX && pclient->flood_vlan[i]!=outer_vlan; i++);
+            /* Search for the first free element */
+            for ( i=0; i<PTIN_FLOOD_VLANS_MAX && pclient->flood_vlan[i]!=0; i++);
 
-            /* Not found: */
-            if ( i >= PTIN_FLOOD_VLANS_MAX )
+            if ( i < PTIN_FLOOD_VLANS_MAX)
             {
-              /* Search for the first free element */
-              for ( i=0; i<PTIN_FLOOD_VLANS_MAX && pclient->flood_vlan[i]!=0; i++);
-
-              if ( i < PTIN_FLOOD_VLANS_MAX)
-              {
-                pclient->flood_vlan[i] = outer_vlan;
-                PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: New outer vlan %u added to cvlan %u (port %u) - index=%u", evc_id, outer_vlan, pclient->int_ivid, port, i);
-              }
-              else
-              {
-                PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: No more free elements for cvlan %u (port %u)", evc_id, pclient->int_ivid, port);
-                rc = L7_FAILURE;
-              }
+              pclient->flood_vlan[i] = outer_vlan;
+              PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: New outer vlan %u added to cvlan %u (port %u) - index=%u", evc_id, outer_vlan, pclient->int_ivid, port, i);
             }
-            /* outer vlan found: */
             else
             {
-              PT_LOG_WARN(LOG_CTX_EVC, "EVC# %u: Outer vlan %u already exists for cvlan %u (port %u) - index=%u", evc_id, outer_vlan, pclient->int_ivid, port, i);
+              PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: No more free elements for cvlan %u (port %u)", evc_id, pclient->int_ivid, port);
+              rc = L7_FAILURE;
             }
           }
-          /* Provided outer vlan is repeated */
+          /* outer vlan found: */
           else
           {
-            PT_LOG_WARN(LOG_CTX_EVC, "EVC# %u: Ignored outer vlan %u for cvlan %u (port %u)", evc_id, outer_vlan, pclient->int_ivid, port);
+            PT_LOG_WARN(LOG_CTX_EVC, "EVC# %u: Outer vlan %u already exists for cvlan %u (port %u) - index=%u", evc_id, outer_vlan, pclient->int_ivid, port, i);
           }
-
-          /* No need to search for more clients, if it was provided */
-          if ( client_vlan != 0 )  break;
         }
-        /* Next client */
-        pclient = (struct ptin_evc_client_s *) dl_queue_get_next(queue, (dl_queue_elem_t *)pclient);
-      }
+        /* Provided outer vlan is repeated */
+        else
+        {
+          PT_LOG_WARN(LOG_CTX_EVC, "EVC# %u: Ignored outer vlan %u for cvlan %u (port %u)", evc_id, outer_vlan, pclient->int_ivid, port);
+        }
 
-      /* SEM CLIENTS DOWN */
-      osapiSemaGive(ptin_evc_clients_sem);
+        /* No need to search for more clients, if it was provided */
+        if ( client_vlan != 0 )  break;
+      }
+      /* Next client */
+      pclient = (struct ptin_evc_client_s *) dl_queue_get_next(queue, (dl_queue_elem_t *)pclient);
     }
+
+    /* SEM CLIENTS DOWN */
+    osapiSemaGive(ptin_evc_clients_sem);
   }
 
   PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: Added outer vlan %u to client_vlan %u", evc_ext_id, outer_vlan, client_vlan);
@@ -6948,62 +6948,62 @@ L7_RC_t ptin_evc_flood_vlan_remove( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf
   }
   else
   {
-    ptin_port = -1;   /* All ports */
+    ptin_port = PTIN_PORT_ALL;   /* All ports */
   }
 
   /* Run all Leaf ports */
   for (port=0; port<PTIN_SYSTEM_N_INTERF; port++)
   {
+    /* Only apply to specified port, or all of them if not specified */
+    if ( ptin_port < PTIN_SYSTEM_N_INTERF && ptin_port != port )
+      continue;
+
     /* Skip not used ports, or non leafs */
     if ( !evcs[evc_id].intf[ptin_port].in_use ||
          evcs[evc_id].intf[ptin_port].type != PTIN_EVC_INTF_LEAF )
       continue;
 
-    /* Only apply to specified port, or all of them if not specified */
-    if ( ptin_port == port || ptin_port == -1 )
+    /* SEM CLIENTS UP */
+    osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
+
+    /* Clients queue */
+    queue = &evcs[evc_id].intf[port].clients;
+
+    pclient = L7_NULLPTR;
+
+    /* Get clients queue head */
+    /* If error, pclient continues being null */
+    dl_queue_get_head(queue, (dl_queue_elem_t **)&pclient);
+
+    /* Run all clients */
+    while (pclient != L7_NULLPTR)
     {
-      /* SEM CLIENTS UP */
-      osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
-
-      /* Clients queue */
-      queue = &evcs[evc_id].intf[port].clients;
-
-      pclient = L7_NULLPTR;
-
-      /* Get clients queue head */
-      /* If error, pclient continues being null */
-      dl_queue_get_head(queue, (dl_queue_elem_t **)&pclient);
-
-      /* Run all clients */
-      while (pclient != L7_NULLPTR)
+      /* Only apply to specified client_vlan, or all of them if not specified (if null) */
+      if (client_vlan == 0 || pclient->int_ivid == client_vlan)
       {
-        /* Only apply to specified client_vlan, or all of them if not specified (if null) */
-        if (client_vlan == 0 || pclient->int_ivid == client_vlan)
+        /* Search for the outer vlan */
+        for ( i=0; i<PTIN_FLOOD_VLANS_MAX && pclient->flood_vlan[i]!=outer_vlan; i++);
+
+        if ( i < PTIN_FLOOD_VLANS_MAX)
         {
-          /* Search for the outer vlan */
-          for ( i=0; i<PTIN_FLOOD_VLANS_MAX && pclient->flood_vlan[i]!=outer_vlan; i++);
-
-          if ( i < PTIN_FLOOD_VLANS_MAX)
-          {
-            pclient->flood_vlan[i] = 0;
-            PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed outer vlan %u from cvlan %u (port %u) - index=%u", evc_id, outer_vlan, pclient->int_ivid, port, i);
-          }
-          else
-          {
-            PT_LOG_WARN(LOG_CTX_EVC, "EVC# %u: Outer vlan %u not found for cvlan %u (port %u)", evc_id, outer_vlan, pclient->int_ivid, port);
-          }
-
-          /* No need to search for more clients, if client was provided */
-          if ( client_vlan != 0 )  break;
+          pclient->flood_vlan[i] = 0;
+          PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed outer vlan %u from cvlan %u (port %u) - index=%u", evc_id, outer_vlan, pclient->int_ivid, port, i);
+        }
+        else
+        {
+          PT_LOG_WARN(LOG_CTX_EVC, "EVC# %u: Outer vlan %u not found for cvlan %u (port %u)", evc_id, outer_vlan, pclient->int_ivid, port);
         }
 
-        /* Next client */
-        pclient = (struct ptin_evc_client_s *) dl_queue_get_next(queue, (dl_queue_elem_t *)pclient);
+        /* No need to search for more clients, if client was provided */
+        if ( client_vlan != 0 )  break;
       }
 
-      /* SEM CLIENTS DOWN */
-      osapiSemaGive(ptin_evc_clients_sem);
+      /* Next client */
+      pclient = (struct ptin_evc_client_s *) dl_queue_get_next(queue, (dl_queue_elem_t *)pclient);
     }
+
+    /* SEM CLIENTS DOWN */
+    osapiSemaGive(ptin_evc_clients_sem);
   }
 
   PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: Removed outer vlan %u from client_vlan %u", evc_ext_id, outer_vlan, client_vlan);

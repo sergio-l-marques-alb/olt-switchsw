@@ -13683,7 +13683,7 @@ L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
     for (port = 0; port < ptin_sys_number_of_ports; port++)
     {
       /* Skip non backplane ports */
-      if (!(PTIN_SYSTEM_10G_PORTS_MASK & (1ULL << port)))
+      if (!PTIN_PORT_IS_INTERNAL(port))
       {
         continue;
       }
@@ -13770,7 +13770,7 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
     for (port = 0, i = 0; port < ptin_sys_number_of_ports; port++)
     {
       /* Skip non backplane ports */
-      if (!(PTIN_SYSTEM_10G_PORTS_MASK & (1ULL << port)))
+      if (!PTIN_PORT_IS_INTERNAL(port))
       {
         continue;
       }

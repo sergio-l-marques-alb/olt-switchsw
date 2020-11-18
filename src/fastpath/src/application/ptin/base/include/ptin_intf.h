@@ -21,6 +21,31 @@
 #define PHY_PORT_40_GBPS              7   /* PTin added: Speed 40G */
 #define PHY_PORT_100_GBPS             8   /* PTin added: Speed 100G */
 
+#define PTIN_PORT_ALL       PTIN_SYSTEM_N_INTERF
+#define PTIN_PORT_INVALID   ((L7_uint32)-1)
+
+#define PTIN_PORT_IS_VALID(ptin_port) \
+    ((ptin_port) < PTIN_SYSTEM_N_INTERF)
+
+/* Macros to check interface phy-type */
+#define PTIN_PORT_IS_PON(ptin_port) \
+    ((ptin_port) < PTIN_SYSTEM_N_PONS)
+#define PTIN_PORT_IS_FRONT_ETH(ptin_port) \
+    ((ptin_port) < PTIN_SYSTEM_N_ETH)
+#define PTIN_PORT_IS_FRONT(ptin_port) \
+    ((ptin_port) < PTIN_SYSTEM_N_PONS || (ptin_port) < PTIN_SYSTEM_N_ETH)
+#define PTIN_PORT_IS_INTERNAL(ptin_port) \
+    ((ptin_port) >= PTIN_SYSTEM_N_PONS && (ptin_port) >= PTIN_SYSTEM_N_ETH && (ptin_port) < PTIN_SYSTEM_N_PORTS)
+
+/* Macros to check interface type */
+#define PTIN_PORT_IS_PHY(ptin_port) \
+    ((ptin_port) < PTIN_SYSTEM_N_PORTS)
+#define PTIN_PORT_IS_LAG(ptin_port) \
+    ((ptin_port) >= PTIN_SYSTEM_N_PORTS && (ptin_port) < (PTIN_SYSTEM_N_PORTS+PTIN_SYSTEM_N_LAGS))
+#define PTIN_PORT_IS_OTHER_TYPE(ptin_port) \
+    ((ptin_port) >= (PTIN_SYSTEM_N_PORTS+PTIN_SYSTEM_N_LAGS) && (ptin_port) < PTIN_SYSTEM_N_INTERF)
+
+
 typedef struct {
     bmp_cell_t value[PTIN_SYSTEM_N_INTERF/8 + 1];
 } ptin_port_bmp_t;

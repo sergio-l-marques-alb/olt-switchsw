@@ -413,7 +413,7 @@ L7_RC_t ptin_intf_post_init(void)
 //    phyExt_data[i].inner_tpid = PTIN_TPID_INNER_DEFAULT;
 
     /* Disable front ports */
-    if ((PTIN_SYSTEM_ETH_PORTS_MASK >> i) & 1)
+    if (PTIN_PORT_IS_FRONT_ETH(i))
     {
       rc = usmDbIfAdminStateSet(1, map_port2intIfNum[i], L7_DISABLE);
       if (rc != L7_SUCCESS)
@@ -426,7 +426,7 @@ L7_RC_t ptin_intf_post_init(void)
     #if (PTIN_BOARD_IS_STANDALONE)
     else
     {
-      if ((PTIN_SYSTEM_PON_PORTS_MASK >> i) & 1)
+      if (PTIN_PORT_IS_PON(i))
       {
         rc = usmDbIfAdminStateSet(1, map_port2intIfNum[i], L7_ENABLE);
         if (rc != L7_SUCCESS)
@@ -455,7 +455,7 @@ L7_RC_t ptin_intf_post_init(void)
     /* For internal ports (linecards only) */
   #if (PTIN_BOARD_IS_LINECARD)
     /* Internal interfaces of linecards, should always be trusted */
-    if ((PTIN_SYSTEM_10G_PORTS_MASK >> i) & 1)
+    if (PTIN_PORT_IS_INTERNAL(i))
     {
       rc = usmDbDaiIntfTrustSet(map_port2intIfNum[i], L7_TRUE);
       if (rc != L7_SUCCESS)
@@ -484,7 +484,7 @@ L7_RC_t ptin_intf_post_init(void)
       return L7_FAILURE;
     }
 
-    mtu_size = ((PTIN_SYSTEM_PON_PORTS_MASK >> i) & 1) ? PTIN_SYSTEM_PON_MTU_SIZE : PTIN_SYSTEM_ETH_MTU_SIZE;
+    mtu_size = (PTIN_PORT_IS_PON(i)) ? PTIN_SYSTEM_PON_MTU_SIZE : PTIN_SYSTEM_ETH_MTU_SIZE;
 
     rc = usmDbIfConfigMaxFrameSizeSet(map_port2intIfNum[i], mtu_size);
     if (rc != L7_SUCCESS)
@@ -573,7 +573,7 @@ void ptin_intf_dai_restore_defaults(void)
   for (i=0; i<ptin_sys_number_of_ports; i++)
   { 
     /* Internal interfaces of linecards, should always be trusted */
-    if ((PTIN_SYSTEM_10G_PORTS_MASK >> i) & 1)
+    if (PTIN_PORT_IS_INTERNAL(i))
     {
       rc = usmDbDaiIntfTrustSet(map_port2intIfNum[i], L7_TRUE);
       if (rc != L7_SUCCESS)
@@ -685,7 +685,7 @@ L7_RC_t ptin_intf_portExt_init(void)
     /* Only for linecards at slot systems */
   #if ( PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
     /* If is an internal/backplane port, set as trusted */
-    if (!((PTIN_SYSTEM_PON_PORTS_MASK >> port) & 1) && !((PTIN_SYSTEM_ETH_PORTS_MASK >> port) & 1))
+    if (PTIN_PORT_IS_INTERNAL(port))
     {
       mefExt.dhcp_trusted = L7_TRUE;
     }
@@ -1876,7 +1876,7 @@ L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
 
 
   intIfNum  = 0;
-  ptin_port = (L7_uint32)-1;
+  ptin_port = PTIN_PORT_INVALID;
   rc = L7_SUCCESS;
 
   /* Get reference ptin_port format */
@@ -2431,7 +2431,7 @@ inline L7_uint32 intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem)
 
   if (ptin_intf_intIfNum2port(intIfNum, vlan_gem, &ptin_port) != L7_SUCCESS)
   {
-    return (L7_uint32)-1;
+    return PTIN_PORT_INVALID;
   }
 
   return ptin_port;
@@ -2453,7 +2453,7 @@ inline L7_uint32 port2intIfNum(L7_uint32 ptin_port)
 
   if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    return (L7_uint32)-1;
+    return PTIN_PORT_INVALID;
   }
 
   return intIfNum;

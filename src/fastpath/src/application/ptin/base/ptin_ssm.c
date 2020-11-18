@@ -1016,7 +1016,7 @@ L7_RC_t ssmTimersUpdate(void)
         SHMEM(slot,intf).link  = (linkState==L7_UP);
 
         /* Update activity status (only for SF local ports -> slot 0) */
-        if ((PTIN_SYSTEM_ETH_PORTS_MASK >> ptin_port) & 1)
+        if (PTIN_PORT_IS_FRONT_ETH(ptin_port))
         {
           SHMEM(slot,intf).link |=
                (((ptin_control_port_activity[ptin_port] & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) << 1) |

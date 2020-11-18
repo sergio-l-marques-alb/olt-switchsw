@@ -667,8 +667,7 @@ static L7_RC_t ptin_packet_frame_flood(L7_uint32 intIfNum, L7_ushort16 vlanId, L
           continue;
         }
         /* Prevent both src port and dst port to be PON ports (isolated) */
-        if (((PTIN_SYSTEM_PON_PORTS_MASK >> src_port) & 1) &&
-            ((PTIN_SYSTEM_PON_PORTS_MASK >> dst_port) & 1))
+        if (PTIN_PORT_IS_PON(src_port) && PTIN_PORT_IS_PON(dst_port))
         {
           continue;
         }
