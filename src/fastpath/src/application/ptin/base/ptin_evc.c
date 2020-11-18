@@ -664,7 +664,6 @@ L7_RC_t ptin_evc_init(void)
   return L7_SUCCESS;
 }
 
-
 /**
  * Initializes EVCs for each platform
  * 
@@ -677,10 +676,13 @@ L7_RC_t ptin_evc_startup(void)
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
   L7_RC_t rc;
   ptin_HwEthMef10Evc_t evcConf;
+#if 0
   ptin_switch_mac_entry l2_entry;
   L7_uint8 smac_aspenA[L7_MAC_ADDR_LEN] = PTIN_ASPEN2CPU_A_SMAC;
   L7_uint8 smac_aspenB[L7_MAC_ADDR_LEN] = PTIN_ASPEN2CPU_B_SMAC;
+#endif
 
+#if 0
   /* Disable temporarily port for Aspens */
   rc = nimSetIntfAdminState(PTIN_ASPEN2CPU_A_PORT+1, L7_DISABLE);
   if (rc != L7_SUCCESS)
@@ -694,6 +696,7 @@ L7_RC_t ptin_evc_startup(void)
     PT_LOG_ERR(LOG_CTX_API, "Error disabling temporarily port B");
     return rc;
   }
+#endif
 
   /* 2nd EVC for ASPEN A */
   memset(&evcConf, 0x00, sizeof(evcConf));
@@ -757,6 +760,7 @@ L7_RC_t ptin_evc_startup(void)
   }
   PT_LOG_INFO(LOG_CTX_API, "EVC# %u created for ASPEN management purposes", PTIN_ASPEN2CPU_B_EVC);
 
+#if 0
   /* Add static MACs for ASPENs */
   memset(&l2_entry, 0x00, sizeof(ptin_switch_mac_entry));
   memcpy(l2_entry.addr, smac_aspenA, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
@@ -787,6 +791,7 @@ L7_RC_t ptin_evc_startup(void)
     PT_LOG_ERR(LOG_CTX_API, "Error adding static MAC address for ASPEN A");
     return rc;
   }
+#endif
 
   /* Configure inband */
   rc = ptin_cfg_tc16sxg_aspen_packets(L7_ENABLE);
@@ -804,6 +809,7 @@ L7_RC_t ptin_evc_startup(void)
     return rc;
   }
 
+#if 0
   /* Reenable port for Aspens */
   rc = nimSetIntfAdminState(PTIN_ASPEN2CPU_A_PORT+1, L7_ENABLE);
   if (rc != L7_SUCCESS)
@@ -817,6 +823,7 @@ L7_RC_t ptin_evc_startup(void)
     PT_LOG_ERR(LOG_CTX_API, "Error reenabling port B");
     return rc;
   }
+#endif
 
   PT_LOG_INFO(LOG_CTX_API, "Bridge for ASPEN Inband management ready!");
 #elif (PTIN_BOARD == PTIN_BOARD_OLT1T0)
@@ -12245,7 +12252,7 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
 #endif
 
   /* Number of interfaces */
-  if (evcConf->n_intf==0 || evcConf->n_intf>=PTIN_SYSTEM_N_PORTS_AND_LAGS)
+  if (evcConf->n_intf==0 || evcConf->n_intf>=PTIN_SYSTEM_MAX_N_PORTS)
   {
     PT_LOG_ERR(LOG_CTX_EVC,"Invalid number of interfaces (%u)",evcConf->n_intf);
     return L7_FAILURE;
