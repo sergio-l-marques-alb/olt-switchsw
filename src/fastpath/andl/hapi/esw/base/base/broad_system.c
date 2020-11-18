@@ -4804,11 +4804,13 @@ L7_RC_t hapiBroadConfigIpDtl0Trap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uch
     PT_LOG_INFO(LOG_CTX_HAPI, "hapiBroadPolicyRuleActionAdd: result=%d", result);
     if (result != L7_SUCCESS)  break;
 
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
     result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
     if (result != L7_SUCCESS)  break;
 
     result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
     if (result != L7_SUCCESS)  break;
+#endif
 
     result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
     if (result != L7_SUCCESS)  break;
