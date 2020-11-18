@@ -3531,7 +3531,12 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
       {
         PT_LOG_TRACE(LOG_CTX_HAPI, " Increase learned mac ");
         bcm_l2_addr->flags &= ~((L7_uint32)BCM_L2_PENDING);
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)  /* FIXME: TC16SXG */
+        rv = BCM_E_NONE;
+        PT_LOG_WARN(LOG_CTX_L2, "MAC-Table touching disabled!");
+#else
         rv = usl_bcmx_l2_addr_add(bcm_l2_addr, L7_NULL);
+#endif
       }
       else
       {
@@ -3549,7 +3554,12 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
   }
   else
   {
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)  /* FIXME: TC16SXG */
+    rv = BCM_E_NONE;
+    PT_LOG_WARN(LOG_CTX_L2, "MAC-Table touching disabled!");
+#else
     rv = usl_bcmx_l2_addr_add(bcm_l2_addr, L7_NULL);
+#endif
     //printf("%s(%d) Yeah!\r\n",__FUNCTION__,__LINE__);
   }
 
@@ -3718,8 +3728,11 @@ void hapiBroadAddrMacUpdateAge(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *dap
         {
           /* Clear the HIT bit and add the entry on this unit */
           l2addr.flags &= ~(BCM_L2_HIT | BCM_L2_SRC_HIT);
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)  /* FIXME: TC16SXG */
+          PT_LOG_WARN(LOG_CTX_L2, "MAC-Table touching disabled!");
+#else
           (void)bcm_l2_addr_add(i, &l2addr);
-
+#endif
         }
       }
     }
@@ -3756,7 +3769,12 @@ void hapiBroadAddrMacUpdateAge(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *dap
       PT_LOG_TRACE(LOG_CTX_HAPI, "hapiBroadAddrMacUpdateAge: VID %d, GPORT 0x%08X, flags 0x%x",
                 bcm_l2_addr->vid, bcm_l2_addr->port, bcm_l2_addr->flags);
 
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)  /* FIXME: TC16SXG */
+      rv = BCM_E_NONE;
+      PT_LOG_WARN(LOG_CTX_L2, "MAC-Table touching disabled!");
+#else
       rv = usl_bcmx_l2_addr_delete(bcm_l2_addr->mac,bcm_l2_addr->vid);
+#endif
       /* PTin added: MAC learning limit */
       ptin_hapi_maclimit_dec(bcm_l2_addr);
 
