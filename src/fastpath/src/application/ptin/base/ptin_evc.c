@@ -697,7 +697,7 @@ L7_RC_t ptin_evc_startup(void)
   }
 #endif
 
-  /* 2nd EVC for ASPEN A */
+  /* 1st EVC for ASPEN A */
   memset(&evcConf, 0x00, sizeof(evcConf));
   evcConf.index         = PTIN_ASPEN2CPU_A_EVC;
   evcConf.flags         = PTIN_EVC_MASK_MACLEARNING | PTIN_EVC_MASK_CPU_TRAPPING;
@@ -712,12 +712,20 @@ L7_RC_t ptin_evc_startup(void)
   evcConf.intf[0].action_outer= PTIN_XLATE_ACTION_NONE;
   evcConf.intf[0].action_inner= PTIN_XLATE_ACTION_NONE;
   /* Leaf ports */
-  evcConf.intf[1].intf.format = PTIN_INTF_FORMAT_PORT;
-  evcConf.intf[1].intf.value.ptin_port = 0;
+  evcConf.intf[1].intf.format = PTIN_INTF_FORMAT_INTIFNUM;
+  evcConf.intf[1].intf.value.intIfNum = PTIN_ASPEN2CPU_A_INTIFNUM;
   evcConf.intf[1].mef_type    = PTIN_EVC_INTF_LEAF;
   evcConf.intf[1].vid         = PTIN_ASPEN2CPU_A_VLAN_EXT;
   evcConf.intf[1].action_outer= PTIN_XLATE_ACTION_REPLACE;
   evcConf.intf[1].action_inner= PTIN_XLATE_ACTION_NONE;
+
+  /* Complete intf data (necessary for ptin_intf_any_format_t types) */
+  if (ptin_intf_any_format(&evcConf.intf[0].intf) != L7_SUCCESS ||
+      ptin_intf_any_format(&evcConf.intf[1].intf) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "Error with ptin_intf_any_format");
+    return L7_FAILURE;
+  }
 
   /* Creates EVC for Broadlights management */
   rc = ptin_evc_create(&evcConf);
@@ -743,12 +751,20 @@ L7_RC_t ptin_evc_startup(void)
   evcConf.intf[0].action_outer= PTIN_XLATE_ACTION_NONE;
   evcConf.intf[0].action_inner= PTIN_XLATE_ACTION_NONE;
   /* Leaf ports */
-  evcConf.intf[1].intf.format = PTIN_INTF_FORMAT_PORT;
-  evcConf.intf[1].intf.value.ptin_port = 8;
+  evcConf.intf[1].intf.format = PTIN_INTF_FORMAT_INTIFNUM;
+  evcConf.intf[1].intf.value.intIfNum = PTIN_ASPEN2CPU_B_INTIFNUM;
   evcConf.intf[1].mef_type    = PTIN_EVC_INTF_LEAF;
   evcConf.intf[1].vid         = PTIN_ASPEN2CPU_B_VLAN_EXT;
   evcConf.intf[1].action_outer= PTIN_XLATE_ACTION_REPLACE;
   evcConf.intf[1].action_inner= PTIN_XLATE_ACTION_NONE;
+
+  /* Complete intf data (necessary for ptin_intf_any_format_t types) */
+  if (ptin_intf_any_format(&evcConf.intf[0].intf) != L7_SUCCESS ||
+      ptin_intf_any_format(&evcConf.intf[1].intf) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "Error with ptin_intf_any_format");
+    return L7_FAILURE;
+  }
 
   /* Creates EVC for Broadlights management */
   rc = ptin_evc_create(&evcConf);

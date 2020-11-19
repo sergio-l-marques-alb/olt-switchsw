@@ -1498,11 +1498,11 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
    {
      if (vid == PTIN_ASPEN2CPU_B_VLAN)
      {
-       info->dtlCmdInfo.intfNum = PTIN_ASPEN2CPU_B_PORT + 1;
+       info->dtlCmdInfo.intfNum = PTIN_ASPEN2CPU_B_INTIFNUM;
      }
      else
      {
-       info->dtlCmdInfo.intfNum = PTIN_ASPEN2CPU_A_PORT + 1;
+       info->dtlCmdInfo.intfNum = PTIN_ASPEN2CPU_A_INTIFNUM;
      }
      info->dtlCmdInfo.priority = 7;
      info->dtlCmdInfo.typeToSend = DTL_NORMAL_UNICAST;
