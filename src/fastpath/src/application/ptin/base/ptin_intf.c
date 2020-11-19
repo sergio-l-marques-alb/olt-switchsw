@@ -312,13 +312,13 @@ L7_RC_t ptin_intf_pre_init(void)
 
       UPDATE_PORT_MAP(ptin_port, intIfNum, i);
 
-      PT_LOG_TRACE(LOG_CTX_STARTUP, " intIfNum# %02u / offset %u => Port# %02u",
+      PT_LOG_TRACE(LOG_CTX_STARTUP, " intIfNum# %02u / offset %u => Port# %d",
                    intIfNum, i, map_intIfNum2port[intIfNum][i]);
     }
   }
   for (ptin_port=0; ptin_port<ptin_sys_number_of_ports; ptin_port++)
   {
-    PT_LOG_TRACE(LOG_CTX_STARTUP, " Port# %02u => intIfNum# %02u", ptin_port, map_port2intIfNum[ptin_port]);
+    PT_LOG_TRACE(LOG_CTX_STARTUP, " Port# %02u => intIfNum# %d", ptin_port, map_port2intIfNum[ptin_port]);
   }
   
   PT_LOG_INFO(LOG_CTX_INTF, "Waiting for interfaces to be attached...");
