@@ -32,91 +32,75 @@
 #include "ptin_fpga_api.h"
 #include "ptin_msg.h"
 
-
 #ifdef PORT_VIRTUALIZATION_N_1
-#if defined (PORT_VIRTUALIZATION_4_1) /*ASPEN 4:1*/
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+ #if defined (PORT_VIRTUALIZATION_4_1) /*ASPEN 4:1*/
 /* Please check
    https://jira.ptin.corppt.com/secure/attachment/620082/screenshot-1.png
    https://jira.ptin.corppt.com/browse/OLTSWITCH-1371
 */
-    #define PORT_VIRTUALIZATION_VID_N_SETS 4
+  #define PORT_VIRTUALIZATION_VID_N_SETS 4
 
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-    static const
-    L7_uint32 phy2vport[PTIN_SYSTEM_N_PONS_PHYSICAL][PORT_VIRTUALIZATION_VID_N_SETS] = {
-        { 16,   0,  17,   1},
-        {-1U, -1U, -1U, -1U},
-        { 18,   2,  19,   3},
-        {-1U, -1U, -1U, -1U},
-        { 20,   4,  21,   5},
-        {-1U, -1U, -1U, -1U},
-        { 22,   6,  23,   7},
-        {-1U, -1U, -1U, -1U},
-        { 24,   8,  25,   9},
-        {-1U, -1U, -1U, -1U},
-        { 26,  10,  27,  11},
-        {-1U, -1U, -1U, -1U},
-        { 28,  12,  29,  13},
-        {-1U, -1U, -1U, -1U},
-        { 30,  14,  31,  15},
-        {-1U, -1U, -1U, -1U},
-    };
+  static const
+  L7_uint32 phy2vport[PTIN_SYSTEM_N_PONS_PHYSICAL][PORT_VIRTUALIZATION_VID_N_SETS] = {
+      { 16,   0,  17,   1},
+      {-1U, -1U, -1U, -1U},
+      { 18,   2,  19,   3},
+      {-1U, -1U, -1U, -1U},
+      { 20,   4,  21,   5},
+      {-1U, -1U, -1U, -1U},
+      { 22,   6,  23,   7},
+      {-1U, -1U, -1U, -1U},
+      { 24,   8,  25,   9},
+      {-1U, -1U, -1U, -1U},
+      { 26,  10,  27,  11},
+      {-1U, -1U, -1U, -1U},
+      { 28,  12,  29,  13},
+      {-1U, -1U, -1U, -1U},
+      { 30,  14,  31,  15},
+      {-1U, -1U, -1U, -1U},
+  };
 
-    static const
-    L7_uint32 vport2phy[PTIN_SYSTEM_N_PONS] = {
-        0, 0, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14,
-        0, 0, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14,
-    };
-#else
- #error "Port virtualization map not defined!"
-#endif
-
-#elif defined (PORT_VIRTUALIZATION_2_1) /*ASPEN 2:1*/
+ #elif defined (PORT_VIRTUALIZATION_2_1) /*ASPEN 2:1*/
 /* Please check
    https://jira.ptin.corppt.com/secure/attachment/620085/screenshot-2.png
    https://jira.ptin.corppt.com/browse/OLTSWITCH-1371
 */
-    #define PORT_VIRTUALIZATION_VID_N_SETS 2
+  #define PORT_VIRTUALIZATION_VID_N_SETS 2
 
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-    static const
-    L7_uint32 phy2vport[PTIN_SYSTEM_N_PONS_PHYSICAL][PORT_VIRTUALIZATION_VID_N_SETS] = {
-        {16, 0},
-        {17, 1},
-        {18, 2},
-        {19, 3},
-        {20, 4},
-        {21, 5},
-        {22, 6},
-        {23, 7},
-        {24, 8},
-        {25, 9},
-        {26, 10},
-        {27, 11},
-        {28, 12},
-        {29, 13},
-        {30, 14},
-        {31, 15},
-    };
+  static const
+  L7_uint32 phy2vport[PTIN_SYSTEM_N_PONS_PHYSICAL][PORT_VIRTUALIZATION_VID_N_SETS] = {
+      {16,  0},
+      {17,  1},
+      {18,  2},
+      {19,  3},
+      {20,  4},
+      {21,  5},
+      {22,  6},
+      {23,  7},
+      {24,  8},
+      {25,  9},
+      {26, 10},
+      {27, 11},
+      {28, 12},
+      {29, 13},
+      {30, 14},
+      {31, 15},
+  };
 
-    static const
-    L7_uint32 vport2phy[PTIN_SYSTEM_N_PONS] = {
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-    };
-#else
- #error "Port virtualization map not defined!"
+ #else /*defined (PORT_VIRTUALIZATION_?_1)*/
+  #error "Port virtualization mode not defined!"
+ #endif /* defined (PORT_VIRTUALIZATION_?_1) */
+
+#else /* Other boards */
+ #error "Port virtualization not supported!"
 #endif
 
-#else
- #error "Not supported N:1 scheme!"
-#endif
+#else /*PORT_VIRTUALIZATION_N_1*/
+ /* Default */
+ #define PORT_VIRTUALIZATION_VID_N_SETS 1
+#endif /*PORT_VIRTUALIZATION_N_1*/
 
-/* 0-15 GPON;
-   16-31 XGSPON */
-#define PORT_VIRTUALIZATION_VID_SET (4096/PORT_VIRTUALIZATION_VID_N_SETS)
-
-#endif /*#ifdef PORT_VIRTUALIZATION_N_1*/
 
 
 #define LINKSCAN_MANAGEABLE_BOARD (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
@@ -192,7 +176,7 @@ static ptin_LACPLagConfig_t lagConf_data[PTIN_SYSTEM_N_LAGS];
 static L7_uint32 map_port2intIfNum[PTIN_SYSTEM_N_INTERF];
 
 /* Map: intIfNum => ptin_port */
-static L7_uint32 map_intIfNum2port[L7_MAX_INTERFACE_COUNT][4/*Offset*/];
+static L7_uint32 map_intIfNum2port[L7_MAX_INTERFACE_COUNT+1][PORT_VIRTUALIZATION_VID_N_SETS];
 
 
 /*************** NGPON2 ***************/ 
@@ -238,8 +222,15 @@ L7_uint32 ptin_burst_size[PTIN_SYSTEM_N_INTERF];
 
 /* Updates both port/intIfNum maps */
 #define UPDATE_PORT_MAP(port, intIfNum, offset) { \
-  map_port2intIfNum[port] = intIfNum; \
-  map_intIfNum2port[intIfNum][offset] = port; \
+  if ((port) >= 0 && (port) < PTIN_SYSTEM_N_INTERF) \
+  { \
+    map_port2intIfNum[port] = intIfNum; \
+  } \
+  if (((intIfNum) >= 0 && (intIfNum) <= L7_MAX_INTERFACE_COUNT) && \
+      ((offset) >= 0 && (offset) < PORT_VIRTUALIZATION_VID_N_SETS)) \
+  { \
+    map_intIfNum2port[intIfNum][offset] = port; \
+  } \
 }
 
 #define UPDATE_LAG_MAP(lag_idx, intIfNum) { \
@@ -299,7 +290,7 @@ L7_RC_t ptin_intf_pre_init(void)
   for (intIfNum = 1; intIfNum <= L7_MAX_PORT_COUNT; intIfNum++)
   {
     /* Run offset */
-    for (i = 0; i < 4; i++)
+    for (i = 0; i < PORT_VIRTUALIZATION_VID_N_SETS; i++)
     {
       if (intIfNum <= PTIN_SYSTEM_N_PONS_PHYSICAL)
       {
@@ -313,44 +304,26 @@ L7_RC_t ptin_intf_pre_init(void)
       else
       {
 #ifdef PORT_VIRTUALIZATION_N_1
-        ptin_port = (intIfNum - 1 - PTIN_SYSTEM_N_PONS_PHYSICAL) + PTIN_SYSTEM_N_PONS;
+        ptin_port = ((intIfNum-1) - PTIN_SYSTEM_N_PONS_PHYSICAL) + PTIN_SYSTEM_N_PONS;
 #else
         ptin_port = intIfNum-1;
 #endif
       }
 
-      map_intIfNum2port[intIfNum][i] = ptin_port;
+      UPDATE_PORT_MAP(ptin_port, intIfNum, i);
 
       PT_LOG_TRACE(LOG_CTX_STARTUP, " intIfNum# %02u / offset %u => Port# %02u",
                    intIfNum, i, map_intIfNum2port[intIfNum][i]);
     }
   }
-  
-  for (ptin_port = 0; ptin_port < ptin_sys_number_of_ports; ptin_port++)
+  for (ptin_port=0; ptin_port<ptin_sys_number_of_ports; ptin_port++)
   {
-#ifdef PORT_VIRTUALIZATION_N_1
-    /* Get intIfNum from virtual port */
-    if (ptin_port < PTIN_SYSTEM_N_PONS)
-    {
-      intIfNum = vport2phy[ptin_port] + 1;
-    }
-    else /*(ptin_port >= PTIN_SYSTEM_N_PONS)*/
-    {
-      intIfNum = (ptin_port - PTIN_SYSTEM_N_PONS) + PTIN_SYSTEM_N_PONS_PHYSICAL + 1;
-    }
-#else
-    intIfNum = ptin_port+1;
-#endif
-
-    map_port2intIfNum[ptin_port] = intIfNum;
-
     PT_LOG_TRACE(LOG_CTX_STARTUP, " Port# %02u => intIfNum# %02u", ptin_port, map_port2intIfNum[ptin_port]);
   }
   
   PT_LOG_INFO(LOG_CTX_INTF, "Waiting for interfaces to be attached...");
   for (i=0; i<ptin_sys_number_of_ports; i++)
   {
-    PT_LOG_INFO(LOG_CTX_INTF, "Waiting for Port %u / intIfNum %u to be attached...", i, map_port2intIfNum[i]);
     while (nimGetIntfState(map_port2intIfNum[i])!=L7_INTF_ATTACHED)
     {
       osapiSleep(1);
@@ -2536,7 +2509,8 @@ L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
 L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem,
                                 L7_uint32 *ptin_port)
 {
-  L7_uint32 _ptin_port, offset;
+  L7_uint32 _ptin_port;
+  L7_int offset;
 
   /* Validate arguments */
   if (intIfNum==0 || intIfNum >= L7_MAX_INTERFACE_COUNT)
@@ -2547,17 +2521,22 @@ L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem,
 
   /* Each inIfNum will map to several virtual ports.
      Use the vlan_gem to calculate the virtual port offset */
-  offset = vlan_gem / PORT_VIRTUALIZATION_VID_SET;
-
-#ifdef PORT_VIRTUALIZATION_N_1
-  /* Each inIfNum will map to several virtual ports.
-     Use the vlan_gem to calculate the virtual port offset */
   if (vlan_gem < 4096)
   {
-    offset = vlan_gem / PORT_VIRTUALIZATION_VID_SET;
+    offset = vlan_gem / (4096/PORT_VIRTUALIZATION_VID_N_SETS);
   }
-#endif
-
+  else
+  {
+    offset = 0;
+  }
+  /* Validate offset */
+  if (offset >= PORT_VIRTUALIZATION_VID_N_SETS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "intIfNum# %u: Invalid offset offset %d (>= %u)",
+               intIfNum, offset, PORT_VIRTUALIZATION_VID_N_SETS);
+    return L7_FAILURE;
+  }
+  
   /* Extract port */
   _ptin_port = map_intIfNum2port[intIfNum][offset];
 
