@@ -1113,7 +1113,6 @@ void ptin_control_switchover_monitor(void)
 {
   #ifdef MAP_CPLD
   L7_uint8  port;
-  L7_uint32 intIfNum;
   L7_uint16 board_id, slot_id;
   //L7_RC_t rc;
 

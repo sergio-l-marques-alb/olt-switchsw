@@ -7005,6 +7005,7 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
 #if (LINKSCAN_MANAGEABLE_BOARD)
 
   L7_int    port_idx, ptin_port = -1;
+  L7_uint32 intIfNum = L7_ALL_INTERFACES;
   L7_RC_t   rc = L7_SUCCESS;
 
   /* Validate input params */
@@ -7022,7 +7023,8 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
     ptin_port = ptin_sys_slotport_to_intf_map[slot_id][port_idx];
 
     /* Validate port */
-    if (ptin_port < 0 || ptin_port >= ptin_sys_number_of_ports)
+    if (ptin_port < 0 || ptin_port >= ptin_sys_number_of_ports ||
+        ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_INTF,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
       return L7_FAILURE;
@@ -7156,7 +7158,7 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
       }
       else
       {
-        PT_LOG_TRACE(LOG_CTX_INTF,"Link forced to %u to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", enable, slot_id, port_idx, port_idx, intIfNum);
+        PT_LOG_TRACE(LOG_CTX_INTF,"Link forced to %u to slot_id=%d, slot_port=%d -> port=%d", enable, slot_id, port_idx, port_idx);
       }
     }
   }

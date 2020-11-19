@@ -550,7 +550,7 @@ L7_RC_t ptin_hapi_ptp_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_ptp_
 
     /* Get bcm data from physical USP port */
     if (hapi_ptin_get_bcmdata_from_uspport(entry->key.prt, dapi_g,
-                                           &bcm_unit, &bcm_unit, L7_NULLPT) != L7_SUCCESS)
+                                           &bcm_unit, &bcm_port, L7_NULLPTR) != L7_SUCCESS)
     {
         PT_LOG_ERR(LOG_CTX_HAPI, "Can't get bcm data from usp_port %U", entry->key.prt);
         return L7_FAILURE;
@@ -1008,7 +1008,7 @@ L7_RC_t ptin_hapi_oam_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_oam_
 
       /* Get bcm data from physical USP port */
       if (hapi_ptin_get_bcmdata_from_uspport(entry->key.prt, dapi_g,
-                                             &bcm_unit, &bcm_unit, L7_NULLPT) != L7_SUCCESS)
+                                             &bcm_unit, &bcm_port, L7_NULLPTR) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_HAPI, "Can't get bcm data from usp_port %U", entry->key.prt);
         return L7_FAILURE;

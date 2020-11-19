@@ -692,17 +692,21 @@ L7_RC_t ptin_hapi_phy_init_matrix(void)
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
  #if (SDK_VERSION_IS < SDK_VERSION(6,5,0,0))
  #if (PHY_RECOVERY_PROCEDURE)
-  for (i = PTIN_SYS_LC_SLOT_MIN; i <= PTIN_SYS_LC_SLOT_MAX; i++)
   {
-    if (ptin_hapi_warpcore_reset(i, L7_FALSE) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error resetting warpcore of slot %u", i);
-      rc = L7_FAILURE;
-    }
-    else
-    {
-      PT_LOG_NOTICE(LOG_CTX_HAPI, "Warpcore of slot %u reseted!", i);
-    }
+      int i;
+
+      for (i = PTIN_SYS_LC_SLOT_MIN; i <= PTIN_SYS_LC_SLOT_MAX; i++)
+      {
+        if (ptin_hapi_warpcore_reset(i, L7_FALSE) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error resetting warpcore of slot %u", i);
+          rc = L7_FAILURE;
+        }
+        else
+        {
+          PT_LOG_NOTICE(LOG_CTX_HAPI, "Warpcore of slot %u reseted!", i);
+        }
+      }
   }
  #endif
  #endif /* SDK_VERSION_IS < SDK_VERSION(6,5,0,0) */
@@ -724,7 +728,7 @@ L7_RC_t ptin_hapi_phy_init_matrix(void)
 
   #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
     /* Local ports at 10G XAUI (Only applicable to CXO160G) */
-    if (hapiWCMapPtr[i].slotNum < 0 && hapiWCMapPtr[i].wcSpeedG == 10)
+    if (hapiWCMapPtr[usp.port].slotNum < 0 && hapiWCMapPtr[usp.port].wcSpeedG == 10)
     {
       if (ptin_hapi_xaui_set(bcm_port) != L7_SUCCESS)
       {
@@ -737,7 +741,7 @@ L7_RC_t ptin_hapi_phy_init_matrix(void)
     /* Backplane 10G ports: disable linkscan */
     else
   #endif
-    if (hapiWCMapPtr[i].slotNum >= 0 && hapiWCMapPtr[i].wcSpeedG == 10)
+    if (hapiWCMapPtr[usp.port].slotNum >= 0 && hapiWCMapPtr[usp.port].wcSpeedG == 10)
     {
       /* Init 10G ports at SFI mode */
       if (ptin_hapi_sfi_set(bcm_port) != L7_SUCCESS)
@@ -760,9 +764,9 @@ L7_RC_t ptin_hapi_phy_init_matrix(void)
     #endif
     }
     /* Init 40G ports at KR4 mode */
-    else if (hapiWCMapPtr[i].wcSpeedG == 40)
+    else if (hapiWCMapPtr[usp.port].wcSpeedG == 40)
     {
-      if (hapiWCMapPtr[i].wcMode == BCM_PORT_IF_XLAUI)
+      if (hapiWCMapPtr[usp.port].wcMode == BCM_PORT_IF_XLAUI)
       {
         if (ptin_hapi_xlaui_set(bcm_port)!=L7_SUCCESS)
         {
@@ -1427,7 +1431,7 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
   L7_RC_t       rc = L7_SUCCESS;
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
-  int i, j;
+  int i;
   L7_int     wcSpeedG=-1, wcMode=BCM_PORT_IF_NULL;
   bcm_pbmp_t pbm, pbm_out;
   L7_uint8   number_of_ports;
