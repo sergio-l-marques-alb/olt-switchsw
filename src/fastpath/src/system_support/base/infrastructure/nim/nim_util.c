@@ -1391,7 +1391,7 @@ L7_INTF_STATES_t nimUtilIntfStateGet(L7_uint32 intIfNum)
   }
   else if ((intIfNum < 1) || (intIfNum > platIntfTotalMaxCountGet()))
   {
-    NIM_LOG_MSG("NIM: intIfNum out of range\n");
+    NIM_LOG_MSG("NIM: intIfNum out of range (intUfNum %u)\n", intIfNum);
   }
   else
   {

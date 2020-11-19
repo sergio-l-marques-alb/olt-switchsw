@@ -678,6 +678,7 @@ void ptin_intf_dump(void)
 
   L7_uint   port;
   L7_uint16 slot, sport;
+  nimUSP_t  usp;
   L7_uint32 intIfNum = -1;
   L7_uint32 lagIntfNum = -1;
   L7_uint32 speed_mode;
@@ -697,8 +698,20 @@ void ptin_intf_dump(void)
   printf("+-------+------+------+---------+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
   printf("| Board | Slot | Port | IfN/Lag | bcm_port | MEF Ext.* | Ena | Link | Speed | FOvr/FMax |   RX:  bytes       bps |   TX:  bytes       bps |\r\n");
   printf("+-------+------+------+---------+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
-  for (port=0; port<ptin_sys_number_of_ports; port++)
+  for (port = 0; port < ptin_sys_number_of_ports; port++)
   {
+    /* Get intIfNum and USP */
+    if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS)
+    {
+      //PT_LOG_ERR(LOG_CTX_INTF, "Failed to convert ptin_port %u to intIfNum", port);
+      continue;
+    }
+    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_DTL, "Failed to convert ptin_port %u / intIfnum %u to USP", intIfNum, port);
+      continue;
+    }
+
     #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
     if (!KERNEL_NODE_IS("OLT1T0-AC"))
     {
@@ -709,9 +722,6 @@ void ptin_intf_dump(void)
       }
     }
     #endif
-
-    /* Get intIfNum ID */
-    ptin_intf_port2intIfNum(port, &intIfNum);
 
     /* Admin state */
     if (usmDbIfAdminStateGet(1, intIfNum, &admin) != L7_SUCCESS)
@@ -833,7 +843,7 @@ void ptin_intf_dump(void)
     }
 
     /* bcm_port_t */
-    bcm_port = hapiSlotMapPtr[port].bcm_port;
+    bcm_port = hapiSlotMapPtr[usp.port-1].bcm_port;
 
 #if (PTIN_BOARD_IS_MATRIX)
     L7_uint16 board_type;
@@ -903,7 +913,7 @@ void ptin_intf_dump(void)
     }
 
     /* Switch port: ge/xe (indexes changed according to the board) */
-    sprintf(bcm_port_str,"%.7s", hapiSlotMapPtr[port].portName);
+    sprintf(bcm_port_str,"%.7s", hapiSlotMapPtr[usp.port-1].portName);
 
     printf("|%-7.7s| %2u/%-2u|  %2u  |  %2u/%-3d | %2u (%-4.4s)| %-3.3s-%u/%u/%u | %-3.3s | %4.4s | %5.5s |%5u/%-5u|%s%12llu %9llu%s|%s%12llu %9llu%s|\r\n",
            board_id_str, slot, sport,

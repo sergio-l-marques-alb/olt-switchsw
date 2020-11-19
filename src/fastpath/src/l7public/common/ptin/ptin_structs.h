@@ -774,6 +774,8 @@ typedef struct
     nimUSP_t          usp;
     L7_uint32         intIfNum;
   } value;
+  /* Vlan used to virtualize ports - only necessary for USP and INTIFNUM formats */
+  L7_uint16 vlan_gem;
 
   L7_uint8  port_type;
   L7_uint8  intIfNum_type;

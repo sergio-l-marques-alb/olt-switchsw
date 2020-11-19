@@ -192,7 +192,7 @@ static ptin_LACPLagConfig_t lagConf_data[PTIN_SYSTEM_N_LAGS];
 static L7_uint32 map_port2intIfNum[PTIN_SYSTEM_N_INTERF];
 
 /* Map: intIfNum => ptin_port */
-static L7_uint32 map_intIfNum2port[L7_MAX_INTERFACE_COUNT];
+static L7_uint32 map_intIfNum2port[L7_MAX_INTERFACE_COUNT][4/*Offset*/];
 
 
 /*************** NGPON2 ***************/ 
@@ -237,17 +237,17 @@ L7_uint32 ptin_burst_size[PTIN_SYSTEM_N_INTERF];
  */
 
 /* Updates both port/intIfNum maps */
-#define UPDATE_PORT_MAP(port, intIfNum) { \
-  map_port2intIfNum[port]     = intIfNum; \
-  map_intIfNum2port[intIfNum] = port;     \
+#define UPDATE_PORT_MAP(port, intIfNum, offset) { \
+  map_port2intIfNum[port] = intIfNum; \
+  map_intIfNum2port[intIfNum][offset] = port; \
 }
 
-#define UPDATE_LAG_MAP(lag_idx, intIfNum) {                 \
-  UPDATE_PORT_MAP(PTIN_SYSTEM_N_PORTS + lag_idx, intIfNum)  \
+#define UPDATE_LAG_MAP(lag_idx, intIfNum) { \
+  UPDATE_PORT_MAP(PTIN_SYSTEM_N_PORTS + lag_idx, intIfNum, 0/*Don'tCare*/) \
 }
 
 #define CLEAR_LAG_MAP(lag_idx)  { \
-  map_intIfNum2port[map_port2intIfNum[PTIN_SYSTEM_N_PORTS + lag_idx]] = MAP_EMTPY_ENTRY; \
+  map_intIfNum2port[map_port2intIfNum[PTIN_SYSTEM_N_PORTS + lag_idx]][0/*Don'tCare*/] = MAP_EMTPY_ENTRY; \
   map_port2intIfNum[PTIN_SYSTEM_N_PORTS + lag_idx] = MAP_EMTPY_ENTRY; \
 }
 
@@ -271,7 +271,7 @@ static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf);
 L7_RC_t ptin_intf_pre_init(void)
 {
   L7_int    i;
-  L7_uint32 intIfNum;
+  L7_uint32 ptin_port, intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
   /* Reset structures (everything is set to 0xFF) */
@@ -295,54 +295,62 @@ L7_RC_t ptin_intf_pre_init(void)
   
   /* Initialize phy lookup tables */
   PT_LOG_TRACE(LOG_CTX_INTF, "Port <=> intIfNum lookup tables init:");
-  for (i = ptin_sys_number_of_ports-1; i >= 0; i--)
+
+  for (intIfNum = 1; intIfNum <= L7_MAX_PORT_COUNT; intIfNum++)
+  {
+    /* Run offset */
+    for (i = 0; i < 4; i++)
+    {
+      if (intIfNum <= PTIN_SYSTEM_N_PONS_PHYSICAL)
+      {
+#ifdef PORT_VIRTUALIZATION_N_1
+        /* Get virtual port and validate ir */
+        ptin_port = phy2vport[intIfNum-1][i];
+#else
+        ptin_port = intIfNum-1;
+#endif
+      }
+      else
+      {
+#ifdef PORT_VIRTUALIZATION_N_1
+        ptin_port = (intIfNum - 1 - PTIN_SYSTEM_N_PONS_PHYSICAL) + PTIN_SYSTEM_N_PONS;
+#else
+        ptin_port = intIfNum-1;
+#endif
+      }
+
+      map_intIfNum2port[intIfNum][i] = ptin_port;
+
+      PT_LOG_TRACE(LOG_CTX_STARTUP, " intIfNum# %02u / offset %u => Port# %02u",
+                   intIfNum, i, map_intIfNum2port[intIfNum][i]);
+    }
+  }
+  
+  for (ptin_port = 0; ptin_port < ptin_sys_number_of_ports; ptin_port++)
   {
 #ifdef PORT_VIRTUALIZATION_N_1
     /* Get intIfNum from virtual port */
-    if (i < PTIN_SYSTEM_N_PONS)
+    if (ptin_port < PTIN_SYSTEM_N_PONS)
     {
-      intIfNum = vport2phy[i] + 1;
-
-      /* Validate intIfNum */
-      if (intIfNum == 0 || intIfNum > PTIN_SYSTEM_N_PONS_PHYSICAL)
-      {
-          PT_LOG_ERR(LOG_CTX_INTF,"Invalid conversion from ptin_port %u to intIfNum %u",
-                     i, intIfNum);
-          return L7_FAILURE;
-      }
+      intIfNum = vport2phy[ptin_port] + 1;
     }
-    else /*(i >= PTIN_SYSTEM_N_PONS)*/
+    else /*(ptin_port >= PTIN_SYSTEM_N_PONS)*/
     {
-      intIfNum = (i - PTIN_SYSTEM_N_PONS) + PTIN_SYSTEM_N_PONS_PHYSICAL;
+      intIfNum = (ptin_port - PTIN_SYSTEM_N_PONS) + PTIN_SYSTEM_N_PONS_PHYSICAL + 1;
     }
 #else
-    intIfNum = i+1;
+    intIfNum = ptin_port+1;
 #endif
 
-    /* Validate intIfNum */
-    if (intIfNum == 0 || intIfNum >= L7_MAX_PORT_COUNT)
-    {
-        PT_LOG_ERR(LOG_CTX_INTF,"Invalid conversion from ptin_port %u to intIfNum %u",
-                   i, intIfNum);
-        return L7_FAILURE;
-    }
+    map_port2intIfNum[ptin_port] = intIfNum;
 
-    UPDATE_PORT_MAP(i, intIfNum);
-  }
-
-  /* Dump ptin_port <-> intIfNum tables */
-  for (i = 0; i < ptin_sys_number_of_ports; i++)
-  {
-    PT_LOG_TRACE(LOG_CTX_STARTUP, " Port# %02u => intIfNum# %02u", i, map_port2intIfNum[i]);
-  }
-  for (i = 1; i <= L7_MAX_PORT_COUNT; i++)
-  {
-    PT_LOG_TRACE(LOG_CTX_STARTUP, " intIfNum# %02u => Port# %02u", i, map_intIfNum2port[i]);
+    PT_LOG_TRACE(LOG_CTX_STARTUP, " Port# %02u => intIfNum# %02u", ptin_port, map_port2intIfNum[ptin_port]);
   }
   
   PT_LOG_INFO(LOG_CTX_INTF, "Waiting for interfaces to be attached...");
   for (i=0; i<ptin_sys_number_of_ports; i++)
   {
+    PT_LOG_INFO(LOG_CTX_INTF, "Waiting for Port %u / intIfNum %u to be attached...", i, map_port2intIfNum[i]);
     while (nimGetIntfState(map_port2intIfNum[i])!=L7_INTF_ATTACHED)
     {
       osapiSleep(1);
@@ -1870,10 +1878,9 @@ L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
   /* If already in ALL format, there is nothing to do */
   if (intf->format == PTIN_INTF_FORMAT_ALL)
   {
-    PT_LOG_ERR(LOG_CTX_INTF,"Format is already ALL type");
+    //PT_LOG_ERR(LOG_CTX_INTF,"Format is already ALL type");
     return L7_SUCCESS;
   }
-
 
   intIfNum  = 0;
   ptin_port = PTIN_PORT_INVALID;
@@ -1910,7 +1917,7 @@ L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
     rc = nimGetIntIfNumFromUSP(&intf->value.usp, &intIfNum);
     if (rc == L7_SUCCESS)
     {
-      rc = ptin_intf_intIfNum2port(intIfNum, 0/*vlan*/, &ptin_port); /* FIXME TC16SXG */
+      rc = ptin_intf_intIfNum2port(intIfNum, intf->vlan_gem, &ptin_port);
     }
     PT_LOG_TRACE(LOG_CTX_INTF, "input usp {%u,%u,%d} => intIfNum %u, ptin_port %u (rc=%d)",
                  intf->value.usp.unit, intf->value.usp.slot, intf->value.usp.port,
@@ -1919,7 +1926,7 @@ L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
 
   case PTIN_INTF_FORMAT_INTIFNUM:
     intIfNum = intf->value.intIfNum;
-    rc = ptin_intf_intIfNum2port(intIfNum, 0/*vlanId*/, &ptin_port);/* FIXME TC16SXG */
+    rc = ptin_intf_intIfNum2port(intIfNum, intf->vlan_gem, &ptin_port);
     PT_LOG_TRACE(LOG_CTX_INTF, "input intIfNum %u => ptin_port %u (rc=%d)",
                  intIfNum, ptin_port, rc);
     break;
@@ -2529,6 +2536,8 @@ L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
 L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem,
                                 L7_uint32 *ptin_port)
 {
+  L7_uint32 _ptin_port, offset;
+
   /* Validate arguments */
   if (intIfNum==0 || intIfNum >= L7_MAX_INTERFACE_COUNT)
   {
@@ -2536,50 +2545,33 @@ L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem,
     return L7_FAILURE;
   }
 
+  /* Each inIfNum will map to several virtual ports.
+     Use the vlan_gem to calculate the virtual port offset */
+  offset = vlan_gem / PORT_VIRTUALIZATION_VID_SET;
+
 #ifdef PORT_VIRTUALIZATION_N_1
-  if (intIfNum > 0 && intIfNum <= PTIN_SYSTEM_N_PONS_PHYSICAL)
+  /* Each inIfNum will map to several virtual ports.
+     Use the vlan_gem to calculate the virtual port offset */
+  if (vlan_gem < 4096)
   {
-    L7_uint32 _ptin_port, offset;
-
-    /* Each inIfNum will map to several virtual ports.
-       Use the vlan_gem to calculate the virtual port offset */
     offset = vlan_gem / PORT_VIRTUALIZATION_VID_SET;
-
-    if (vlan_gem >= 4096)
-    {
-      vlan_gem = 0;
-    }
-    
-    /* Get virtual port and validate ir */
-    _ptin_port = phy2vport[intIfNum-1][offset];
-    if (_ptin_port >= PTIN_SYSTEM_N_PONS)
-    {
-      PT_LOG_ERR(LOG_CTX_INTF, "Error: intIfNum# %u / offset %u => _ptin_port %u",
-                 intIfNum, offset, _ptin_port);
-      return L7_FAILURE;
-    }
-
-    /* Return result */
-    if (ptin_port != L7_NULLPTR)
-    {
-      *ptin_port = _ptin_port;
-    }
-
-    return L7_SUCCESS;
   }
 #endif
 
+  /* Extract port */
+  _ptin_port = map_intIfNum2port[intIfNum][offset];
+
   /* Validate output */
-  if ( map_intIfNum2port[intIfNum] >= PTIN_SYSTEM_N_INTERF ||
-      (map_intIfNum2port[intIfNum] >= ptin_sys_number_of_ports && map_intIfNum2port[intIfNum] < PTIN_SYSTEM_N_PORTS))
+  if ( _ptin_port >= PTIN_SYSTEM_N_INTERF ||
+      (_ptin_port >= ptin_sys_number_of_ports && _ptin_port < PTIN_SYSTEM_N_PORTS))
   {
-    PT_LOG_WARN(LOG_CTX_INTF, "intIfNum# %u is not assigned! (%u)", intIfNum, map_intIfNum2port[intIfNum]);
+    PT_LOG_WARN(LOG_CTX_INTF, "intIfNum# %u is not assigned! (%u)", intIfNum, _ptin_port);
     return L7_FAILURE;
   }
 
   if (ptin_port != L7_NULLPTR)
   {
-    *ptin_port = map_intIfNum2port[intIfNum];
+    *ptin_port = _ptin_port;
   }
 
   return L7_SUCCESS;
@@ -3026,7 +3018,7 @@ L7_RC_t ptin_intf_intIfNum2lag(L7_uint32 intIfNum, L7_uint32 *lag_idx)
   #endif
 
   /* Get port index (ptin_port representation) */
-  ptin_port = map_intIfNum2port[intIfNum];
+  ptin_port = map_intIfNum2port[intIfNum][0/*Don'tCare*/];
 
   /* Validate ptin_port */
   if (ptin_port >= PTIN_SYSTEM_N_INTERF)
@@ -3490,7 +3482,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     UPDATE_LAG_MAP(lag_idx, lag_intf);
     newLag = L7_TRUE;
 
-    lag_port = map_intIfNum2port[intIfNum];
+    lag_port = map_intIfNum2port[intIfNum][0/*Don'tCare*/];
     ptin_intf.intf_type = PTIN_EVC_INTF_LOGICAL;
     ptin_intf.intf_id   = lag_idx;
 
@@ -7851,7 +7843,7 @@ L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd)
   }
 
   /* Get ptin_port format, and validate it */
-  ptin_port = map_intIfNum2port[lag_intIfNum];
+  ptin_port = map_intIfNum2port[lag_intIfNum][0/*Don'tCare*/];
 
   if (ptin_port < PTIN_SYSTEM_N_PORTS || ptin_port >= PTIN_SYSTEM_N_INTERF)
   {
