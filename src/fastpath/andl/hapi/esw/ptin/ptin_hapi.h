@@ -9,9 +9,9 @@
 #include <bcm/pkt.h>
 
 /* These are switch-physical ports (not ptin_ports): only to be used at HAPI layer */
-#define HAPI_PHY_PORT_IS_PON(p)  ((((unsigned long long)1 << p) & PTIN_SYSTEM_PON_PORTS_MASK) != 0)
-#define HAPI_PHY_PORT_IS_ETH(p)  ((((unsigned long long)1 << p) & PTIN_SYSTEM_ETH_PORTS_MASK) != 0)
-#define HAPI_PHY_PORT_IS_10G(p)  ((((unsigned long long)1 << p) & PTIN_SYSTEM_10G_PORTS_MASK) != 0)
+#define HAPI_PHY_PORT_IS_PON(p)  ((((unsigned long long)1 << (p)) & PTIN_SYSTEM_PON_PORTS_MASK) != 0)
+#define HAPI_PHY_PORT_IS_ETH(p)  ((((unsigned long long)1 << (p)) & PTIN_SYSTEM_ETH_PORTS_MASK) != 0)
+#define HAPI_PHY_PORT_IS_10G(p)  ((((unsigned long long)1 << (p)) & PTIN_SYSTEM_10G_PORTS_MASK) != 0)
 
 /********************************************************************
  * TYPES DEFINITION

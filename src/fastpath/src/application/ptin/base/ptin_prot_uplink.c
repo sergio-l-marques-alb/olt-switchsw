@@ -442,7 +442,7 @@ L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 ptin_port, L7_int block_state)
   /* Convert to intIfNum */
   if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    PT_LOG_TRACE(LOG_CTX_API, "Error converting ptin_port %u to intIfNum", ptin_port);
+    PT_LOG_TRACE(LOG_CTX_INTF, "Error converting ptin_port %u to intIfNum", ptin_port);
     return L7_FAILURE;
   }
 
