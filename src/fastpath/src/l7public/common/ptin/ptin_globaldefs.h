@@ -44,10 +44,6 @@
 #define PTIN_SYSTEM_EXT_EVCS_MGMT                   (1UL << 22)     /* 17 bits will be used by management */
 #define PTIN_SYSTEM_N_EXTENDED_EVCS                 (PTIN_SYSTEM_EXT_EVCS_MGMT + 64)    /* 64 Extra EVCs */
 
-#define PTIN_IS_PORT_PON(p)           ((((unsigned long long)1 << p) & PTIN_SYSTEM_PON_PORTS_MASK) != 0)
-#define PTIN_IS_PORT_ETH(p)           ((((unsigned long long)1 << p) & PTIN_SYSTEM_ETH_PORTS_MASK) != 0)
-#define PTIN_IS_PORT_10G(p)           ((((unsigned long long)1 << p) & PTIN_SYSTEM_10G_PORTS_MASK) != 0)
-
 #define PTIN_TPID_OUTER_DEFAULT       0x8100
 //#define PTIN_TPID_INNER_DEFAULT       0x8100 NOT USED!
 
@@ -207,12 +203,6 @@ extern int ptin_sys_number_of_ports;
 #define PTIN_VLAN_INBAND              2047  /* L7_DOT1Q_MAX_VLAN_ID - Reserved VLAN for inBand management */
 
 #define PTIN_EVC_INBAND               0 /* inBand EVC id */
-
-/* Global Macros */
-#define PTIN_PORT_IS_VALID(p)         (p < PTIN_SYSTEM_N_INTERF)
-#define PTIN_PORT_IS_PON(p)           (p < PTIN_SYSTEM_PON_PORTS)
-#define PTIN_PORT_IS_PHYSICAL(p)      (p < PTIN_SYSTEM_N_PORTS && p < ptin_sys_number_of_ports)
-#define PTIN_PORT_IS_LAG(p)           (p >= PTIN_SYSTEM_N_PORTS && p < PTIN_SYSTEM_N_INTERF)
 
 # define PTIN_VLAN_IS_ELAN(vlanId)        ((vlanId)>=PTIN_SYSTEM_EVC_ELAN_VLAN_MIN && (vlanId)<=PTIN_SYSTEM_EVC_ELAN_VLAN_MAX)
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED

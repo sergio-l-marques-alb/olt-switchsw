@@ -62,7 +62,7 @@
 # define PTIN_SYSTEM_N_INTERF          (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_N_LAGS)
 # define PTIN_SYSTEM_N_UPLINK_INTERF   (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH)
 
-/* FIXME: To be avoided! */
+/* These are switch-physical ports (not ptin_ports): only to be used at HAPI layer */
 # define PTIN_SYSTEM_PON_PORTS_MASK    ((1ULL<<PTIN_SYSTEM_N_PONS_PHYSICAL)-1)   /*0xFFFFFFFF*/
 # define PTIN_SYSTEM_ETH_PORTS_MASK    0x00000000
 # define PTIN_SYSTEM_10G_PORTS_MASK    (0xFFFFULL<<PTIN_SYSTEM_N_PONS_PHYSICAL) /* (Trident3-X3) FIXME 33? 49?*/

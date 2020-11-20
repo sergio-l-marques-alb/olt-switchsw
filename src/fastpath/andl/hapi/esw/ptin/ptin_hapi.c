@@ -3742,7 +3742,7 @@ L7_RC_t hapi_ptin_counters_read(ptin_dapi_port_t *dapiPort, ptin_HWEthRFC2819_Po
   if (SOC_IS_VALKYRIE2(bcm_unit))
   {
     /* 10G Ethernet bcm_port ? */
-    if (PTIN_IS_PORT_10G(dapiPort->usp->port))
+    if (HAPI_PHY_PORT_IS_10G(dapiPort->usp->port))
     {
       // Rx counters
       soc_counter_get(bcm_unit, bcm_port, IRMEGr , 0, &tmp1);
@@ -3824,7 +3824,7 @@ L7_RC_t hapi_ptin_counters_read(ptin_dapi_port_t *dapiPort, ptin_HWEthRFC2819_Po
       soc_counter_get_rate(bcm_unit, bcm_port, ITBYTr , 0, &tx->Throughput);                  /* Throughput */
     }
     /* 1G or 2.5G Ethernet bcm_port ? */
-    else if (PTIN_IS_PORT_PON(dapiPort->usp->port) || PTIN_IS_PORT_ETH(dapiPort->usp->port))
+    else if (HAPI_PHY_PORT_IS_PON(dapiPort->usp->port) || HAPI_PHY_PORT_IS_ETH(dapiPort->usp->port))
     {
       // Rx counters
       soc_counter_get(bcm_unit, bcm_port, GRMTUEr, 0, &mtuePkts);                             /* Packets > MTU bytes (good and bad) */
@@ -4126,7 +4126,7 @@ L7_RC_t hapi_ptin_counters_clear(ptin_dapi_port_t *dapiPort)
   if (SOC_IS_VALKYRIE2(bcm_unit))
   {
     /* 10G Ethernet bcm_port ? */
-    if (PTIN_IS_PORT_10G(dapiPort->usp->port))
+    if (HAPI_PHY_PORT_IS_10G(dapiPort->usp->port))
     {
       /* Rx counters */
       soc_counter_set(bcm_unit, bcm_port, IRBYTr , 0, 0);
@@ -4164,7 +4164,7 @@ L7_RC_t hapi_ptin_counters_clear(ptin_dapi_port_t *dapiPort)
       soc_counter_set(bcm_unit, bcm_port, IT1023r, 0, 0);
       soc_counter_set(bcm_unit, bcm_port, IT1518r, 0, 0);
     }
-    else if (PTIN_IS_PORT_PON(dapiPort->usp->port) || PTIN_IS_PORT_ETH(dapiPort->usp->port))
+    else if (HAPI_PHY_PORT_IS_PON(dapiPort->usp->port) || HAPI_PHY_PORT_IS_ETH(dapiPort->usp->port))
     {
       /* Rx counters */
       soc_counter_set(bcm_unit, bcm_port, GRBYTr , 0, 0);
@@ -4300,7 +4300,7 @@ L7_RC_t hapi_ptin_counters_activity_get(ptin_dapi_port_t *dapiPort, ptin_HWEth_P
   if (SOC_IS_VALKYRIE2(bcm_unit))
   {
     /* 10G Ethernet port ? */
-    if (PTIN_IS_PORT_10G(dapiPort->usp->port))
+    if (HAPI_PHY_PORT_IS_10G(dapiPort->usp->port))
     {
       if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) {
         soc_counter_get_rate(bcm_unit, bcm_port, IRBYTr , 0, &rate);
@@ -4353,7 +4353,7 @@ L7_RC_t hapi_ptin_counters_activity_get(ptin_dapi_port_t *dapiPort, ptin_HWEth_P
       }
     }
     /* 1G or 2.5G Ethernet dapiPort->usp->port ? */
-    else if (PTIN_IS_PORT_PON(dapiPort->usp->port) || PTIN_IS_PORT_ETH(dapiPort->usp->port))
+    else if (HAPI_PHY_PORT_IS_PON(dapiPort->usp->port) || HAPI_PHY_PORT_IS_ETH(dapiPort->usp->port))
     {
       if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) {
         soc_counter_get_rate(bcm_unit, bcm_port, GRBYTr , 0, &rate);
