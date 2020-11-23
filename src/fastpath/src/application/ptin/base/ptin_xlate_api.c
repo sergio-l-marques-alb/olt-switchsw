@@ -385,7 +385,7 @@ L7_RC_t ptin_xlate_portgroup_set(L7_uint32 ptin_port, L7_uint32 portgroup)
     {
       /* If successfull, set the portgroup to each physical port */
       /* FIXME TC16SXG: intIfNum->ptin_port */
-      if ( ptin_intf_intIfNum2port(intf_members[i], 0 /*vlanId*/, &ptin_port_i)==L7_SUCCESS &&
+      if ( ptin_intf_intIfNum2port(intf_members[i], INVALID_GEM_VID, &ptin_port_i)==L7_SUCCESS &&
            ptin_port_i<PTIN_SYSTEM_N_PORTS )
       {
         xlate_table_portgroup[ptin_port_i] = class_id;

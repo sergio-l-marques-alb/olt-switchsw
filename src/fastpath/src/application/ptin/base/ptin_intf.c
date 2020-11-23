@@ -2818,7 +2818,7 @@ L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_intf)
   else
   {
     /* Get ptin_port*/
-    if ((rc=ptin_intf_intIfNum2port(intIfNum, 0/*vlanId*/, &ptin_port))!=L7_SUCCESS)/* FIXME TC16SXG */
+    if ((rc=ptin_intf_intIfNum2port(intIfNum, INVALID_GEM_VID, &ptin_port))!=L7_SUCCESS)/* FIXME TC16SXG */
       return rc;
 
     /* Validate ptin_port */
@@ -4274,7 +4274,7 @@ L7_RC_t ptin_intf_LagStatus_get(ptin_LACPLagStatus_t *lagStatus)
     {
       /* Validate interface number */
       if ((members_list[i] == 0)
-          || (ptin_intf_intIfNum2port(members_list[i], 0/*vlanId*/, &value)) /* FIXME TC16SXG */
+          || (ptin_intf_intIfNum2port(members_list[i], INVALID_GEM_VID, &value)) /* FIXME TC16SXG */
           || (value <  PTIN_SYSTEM_N_PONS)
           || (value >= ptin_sys_number_of_ports))
       {

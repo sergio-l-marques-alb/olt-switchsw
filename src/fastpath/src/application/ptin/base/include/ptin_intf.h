@@ -424,6 +424,8 @@ extern L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
+#define INVALID_GEM_VID 0
+/* BCM_VLAN_INVALID DOT1Q_VLAN_INTF_INVALID L7_ACL_INVALID_VLAN_ID */
 extern L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem,
                                        L7_uint32 *ptin_port);
 

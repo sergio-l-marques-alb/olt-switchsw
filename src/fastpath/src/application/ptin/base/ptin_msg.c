@@ -16532,7 +16532,7 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         if (msg->src_intf[n].intf.intf_type == 1)
         {
-          ptin_intf_intIfNum2port(srcIntfNum, 0/*vlanId*/, &ptin_port_aux); /* FIXME TC16SXG */
+          ptin_intf_intIfNum2port(srcIntfNum, INVALID_GEM_VID, &ptin_port_aux); /* FIXME TC16SXG */
                                                                         
           PT_LOG_TRACE(LOG_CTX_MSG, "Adding intfNum Src %d", ptin_port_aux);
         }
@@ -16551,7 +16551,7 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
           {         
             usmDbSwPortMonitorDestPortGet(unit, sessionNum, &auxIntfNum);
             /* FIXME TC16SXG: intIfNum->ptin_port */
-            ptin_intf_intIfNum2port(auxIntfNum, 0/*vlanId*/, &ptin_port_dst); /* FIXME TC16SXG */
+            ptin_intf_intIfNum2port(auxIntfNum, INVALID_GEM_VID, &ptin_port_dst); /* FIXME TC16SXG */
           }
 
           PT_LOG_TRACE(LOG_CTX_MSG, "Dst intfNum %d", msg->dst_intf.intf_id);
@@ -16602,14 +16602,14 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       /* Convert to ptin format*/
       /* FIXME TC16SXG: intIfNum->ptin_port */
-      ptin_intf_intIfNum2port(listSrcPorts[0], 0/*vlanId*/, &ptinSrc_aux); /* FIXME TC16SXG */
+      ptin_intf_intIfNum2port(listSrcPorts[0], INVALID_GEM_VID, &ptinSrc_aux); /* FIXME TC16SXG */
 
       /* Get the Dst port(s) of the Monitor session*/
       usmDbSwPortMonitorDestPortGet(unit, sessionNum, &listDstPorts[0]);
 
       /* Convert to ptin format*/
       /* FIXME TC16SXG: intIfNum->ptin_port */
-      ptin_intf_intIfNum2port(listDstPorts[0], 0/*vlanId*/, &ptinDst_aux); /* FIXME TC16SXG */
+      ptin_intf_intIfNum2port(listDstPorts[0], INVALID_GEM_VID, &ptinDst_aux); /* FIXME TC16SXG */
 
       // Remove egress translations
       xlate_outer_vlan_replicate_Dstport(mode, ptinSrc_aux, ptinDst_aux);
