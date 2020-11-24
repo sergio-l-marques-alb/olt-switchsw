@@ -1103,7 +1103,7 @@ L7_RC_t nimIntIfNumDelete(L7_uint32 intIfNum)
 {
   L7_RC_t rc = L7_FAILURE;
 
-  if ((intIfNum > 0) || (intIfNum <= platIntfTotalMaxCountGet()))
+  if ((intIfNum > 0) && (intIfNum <= platIntfTotalMaxCountGet()))
   {
     /* start with known data in the port */
     memset(( void * )&nimCtlBlk_g->nimPorts[intIfNum], 0,sizeof(nimIntf_t)); 
