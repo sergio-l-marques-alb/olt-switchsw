@@ -5641,8 +5641,17 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->members_pbmp = ENDIAN_SWAP32((uint32) valued);
-          ptr->members_pbmp2= ENDIAN_SWAP32((uint32) (valued>>32));
+
+          ptr->members_pbmp32[0] = (uint32) valued;
+          ptr->members_pbmp32[1] = (uint32) (valued>>32);
+
+          printf("sizeof(int)=%u sizeof(long)=%u\r\n", (unsigned int) sizeof(int), (unsigned int) sizeof(long));
+          printf("0x%x 0x%x\r\n", ptr->members_pbmp32[0], ptr->members_pbmp32[1]);
+
+          ptr->members_pbmp32[0] = ENDIAN_SWAP32((uint32) valued);
+          ptr->members_pbmp32[1] = ENDIAN_SWAP32((uint32) (valued>>32));
+
+          printf("0x%x 0x%x\r\n", ptr->members_pbmp32[0], ptr->members_pbmp32[1]);
 
           ptr->admin = ENDIAN_SWAP8(1);
           ptr->stp_enable = ENDIAN_SWAP8(0);
@@ -10005,7 +10014,7 @@ int main (int argc, char *argv[])
             printf("  STP state           = %s\r\n",(ENDIAN_SWAP8(ptr->stp_enable) ? "Enabled" : "Disabled"));
             printf("  LAG type            = %s\r\n",(ENDIAN_SWAP8(ptr->static_enable) ? "Static" : "Dynamic"));
             printf("  LoadBalance profile = %u\r\n",ENDIAN_SWAP8(ptr->loadBalance_mode));
-            printf("  Port bitmap         = 0x%08lx 0x%08lx\r\n", ENDIAN_SWAP32((unsigned long) ptr->members_pbmp2), ENDIAN_SWAP32((unsigned long) ptr->members_pbmp));
+            printf("  Port bitmap         = 0x%08lx 0x%08lx\r\n", ENDIAN_SWAP32((unsigned long) ptr->members_pbmp32[1]), ENDIAN_SWAP32((unsigned long) ptr->members_pbmp32[0]));
           }
           printf(" Switch: LAG configurations read successfully\n\r");
         }
