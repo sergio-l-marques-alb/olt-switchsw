@@ -4285,6 +4285,8 @@ L7_RC_t ptin_msg_Lag_create(msg_LACPLagInfo_t *lagInfo)
   PT_LOG_DEBUG(LOG_CTX_MSG, " .loadBalance_mode = %u",     ENDIAN_SWAP8(lagInfo->loadBalance_mode));
   PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[0]  = 0x%08X", ENDIAN_SWAP32(lagInfo->members_pbmp32[0]));
   PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[1]  = 0x%08X", ENDIAN_SWAP32(lagInfo->members_pbmp32[1]));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[0](!swaped) = 0x%08X", lagInfo->members_pbmp32[0]);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[1](!swaped) = 0x%08X", lagInfo->members_pbmp32[1]);
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "(ptinLagConf.members_pbmp64 = 0x%016X)", ptinLagConf.members_pbmp64);
 
@@ -5784,7 +5786,8 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
   #if (PTIN_BOARD_IS_LINECARD)
     if (!downlink)
     {
-    #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG || PTIN_BOARD == PTIN_BOARD_AG16GA )
+    #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_AG16GA || \
+         PTIN_BOARD == PTIN_BOARD_TT04SXG || PTIN_BOARD == PTIN_BOARD_TC16SXG)
       for (i=PTIN_SYSTEM_N_PONS; i<PTIN_SYSTEM_N_PORTS; i++)
       {
         qos_apply.ptin_port[number_of_ports++] = i;
