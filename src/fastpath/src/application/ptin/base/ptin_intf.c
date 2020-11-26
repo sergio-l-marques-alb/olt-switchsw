@@ -2396,6 +2396,28 @@ L7_RC_t ptin_intf_slot_get(L7_uint8 *slot_id)
 
 
 /**
+ * Direct function to convert ptin_intf_t to ptin_port
+ * 
+ * @author mruas (12/11/20)
+ * 
+ * @param port_type (in) : ptin_intf_t.intf_type
+ * @param port_id (in) : ptin_intf_t.intf_id 
+ * 
+ * @return L7_uint32 : ptin_port
+ */
+inline L7_uint32 ptintf2port(L7_uint8 intf_type, L7_uint8 intf_id)
+{
+  L7_uint32 ptin_port;
+
+  if (ptin_intf_typeId2port(intf_type, intf_id, &ptin_port) != L7_SUCCESS)
+  {
+    return PTIN_PORT_INVALID;
+  }
+
+  return ptin_port;
+}
+
+/**
  * Direct function to convert intIfNum to ptin_port
  * 
  * @author mruas (12/11/20)
@@ -2501,12 +2523,13 @@ L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
 /**
  * Converts FP interface# to PTin port mapping (including LAGs)
  * 
- * @param intIfNum  FP intIfNum
- * @param ptin_port PTin port index
+ * @param intIfNum (in) : FP intIfNum 
+ * @param virtual_vid (in) : Virtualized VLAN (ptin_port related)
+ * @param ptin_port (out) : PTin port index
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem,
+L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 virtual_vid,
                                 L7_uint32 *ptin_port)
 {
   L7_uint32 _ptin_port;
@@ -2520,10 +2543,10 @@ L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem,
   }
 
   /* Each inIfNum will map to several virtual ports.
-     Use the vlan_gem to calculate the virtual port offset */
-  if (vlan_gem < 4096)
+     Use the virtual_vid to calculate the virtual port offset */
+  if (virtual_vid < 4096)
   {
-    offset = vlan_gem / (4096/PORT_VIRTUALIZATION_VID_N_SETS);
+    offset = virtual_vid / (4096/PORT_VIRTUALIZATION_VID_N_SETS);
   }
   else
   {
@@ -2555,6 +2578,88 @@ L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem,
 
   return L7_SUCCESS;
 }
+
+/**
+ * From the virtualized ptin_port and GEM-VLAN id, obtain the 
+ * physical intIfNum and the Virtualized VLAN with an offset 
+ * added (4096/#VirtualPorts_per_PhyPort) 
+ * 
+ * @author mruas (26/11/20)
+ * 
+ * @param ptin_port : Virtualized port
+ * @param gem_vid   : GEM VLAN id
+ * 
+ * @return L7_uint16 : virtual_vid (-1 if error)
+ */
+L7_uint16 ptin_intf_portGem2virtualVid(L7_uint32 ptin_port, L7_uint16 gem_vid)
+{
+  L7_uint32 intIfNum;
+  L7_uint16 virtual_vid;
+  L7_RC_t rc;
+
+  /* Validate arguments */
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Port# %u is out of range [0..%u]", ptin_port, PTIN_SYSTEM_N_INTERF-1);
+    return (L7_uint16)-1;
+  }
+
+  /* Get intIfNum */
+  rc = ptin_intf_port2intIfNum(ptin_port, &intIfNum);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "ptin_port# %u is not assigned to any intIfNum", ptin_port);
+    return (L7_uint16)-1;
+  }
+
+  /* By default virtual_vid = gem_vid */
+  virtual_vid = gem_vid;
+
+#ifdef PORT_VIRTUALIZATION_N_1
+  if (PTIN_PORT_IS_PON(ptin_port) && gem_vid != 0)
+  {
+    int index;
+    L7_uint16 gem_vid_max;
+
+    gem_vid_max = 4096/PORT_VIRTUALIZATION_VID_N_SETS;
+
+    /* Validate gem_vid */
+    if (gem_vid >= gem_vid_max)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "gem vid %u is out of range (max=%u)", gem_vid, gem_vid_max-1);
+      return gem_vid;
+    }
+    
+    /* Search for the offset correspondent to ptin_port */
+    for (index = 0; index < PORT_VIRTUALIZATION_VID_N_SETS; index++)
+    {
+      /* Search for the ptin_port */
+      if (map_intIfNum2port[intIfNum][index] < PTIN_SYSTEM_N_INTERF &&
+          map_intIfNum2port[intIfNum][index] == ptin_port)
+      {
+        break;
+      }
+    }
+
+    /* ptin_port found */
+    if (index < PORT_VIRTUALIZATION_VID_N_SETS)
+    {
+      virtual_vid = (gem_vid_max * index) + gem_vid;
+    }
+    else /* Not found? */
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Offset associated to ptin_port# %u not found... using input vlan %u",
+                 ptin_port, virtual_vid);
+    }
+  }
+#endif
+
+  PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port %u (intIfNum %u) + gem_vid %u => vid %u",
+               ptin_port, intIfNum, gem_vid, virtual_vid);
+
+  return virtual_vid;
+}
+
 
 /**
  * Converts ptin_port index to LAG index
@@ -2818,7 +2923,7 @@ L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_intf)
   else
   {
     /* Get ptin_port*/
-    if ((rc=ptin_intf_intIfNum2port(intIfNum, INVALID_GEM_VID, &ptin_port))!=L7_SUCCESS)/* FIXME TC16SXG */
+    if ((rc=ptin_intf_intIfNum2port(intIfNum, INVALID_SWITCH_VID, &ptin_port))!=L7_SUCCESS)/* FIXME TC16SXG */
       return rc;
 
     /* Validate ptin_port */
@@ -4223,7 +4328,7 @@ L7_RC_t ptin_intf_LagStatus_get(ptin_LACPLagStatus_t *lagStatus)
     {
       /* Validate interface number */
       if ((members_list[i] == 0)
-          || (ptin_intf_intIfNum2port(members_list[i], INVALID_GEM_VID, &value)) /* FIXME TC16SXG */
+          || (ptin_intf_intIfNum2port(members_list[i], INVALID_SWITCH_VID, &value)) /* FIXME TC16SXG */
           || (value <  PTIN_SYSTEM_N_PONS)
           || (value >= ptin_sys_number_of_ports))
       {

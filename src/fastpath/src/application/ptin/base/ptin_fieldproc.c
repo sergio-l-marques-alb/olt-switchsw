@@ -1280,7 +1280,7 @@ static L7_RC_t ptin_qos_port_bitmap_get(L7_uint32 *ptin_port, L7_uint8 number_of
       /* Run all members, and add them to the bitmap list */
       for (j = 0; j < number_of_lag_members; j++)
       {
-        if (ptin_intf_intIfNum2port(lag_members_list[j], INVALID_GEM_VID, &port) == L7_SUCCESS) /* FIXME TC16SXG */
+        if (ptin_intf_intIfNum2port(lag_members_list[j], INVALID_SWITCH_VID, &port) == L7_SUCCESS) /* FIXME TC16SXG */
         {
           pbmp |= 1ULL << port; 
         }

@@ -6108,16 +6108,35 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
     else
 #endif
     {
+      L7_uint16 virtual_vid;
+      ptin_intf_t ptin_intf;
+
+      ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcConf->evc.intf[i].intf_type);
+      ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcConf->evc.intf[i].intf_id);
+      
       // PHY or LAG
       ptinEvcConf.intf[index_port].intf.format = PTIN_INTF_FORMAT_TYPEID;
-      ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcConf->evc.intf[i].intf_type);
-      ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcConf->evc.intf[i].intf_id);
+      ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type = ptin_intf.intf_type;
+      ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_id   = ptin_intf.intf_id;
 
       ptinEvcConf.intf[index_port].mef_type    = ENDIAN_SWAP8 (msgEvcConf->evc.intf[i].mef_type) /*PTIN_EVC_INTF_ROOT*/;
       ptinEvcConf.intf[index_port].vid         = ENDIAN_SWAP16(msgEvcConf->evc.intf[i].vid);
       ptinEvcConf.intf[index_port].vid_inner   = ENDIAN_SWAP16(msgEvcConf->evc.intf[i].inner_vid);
       ptinEvcConf.intf[index_port].action_outer= PTIN_XLATE_ACTION_REPLACE;
       ptinEvcConf.intf[index_port].action_inner= PTIN_XLATE_ACTION_NONE;
+
+      /* Adjust outer VID considering the port virtualization scheme */
+      virtual_vid = ptin_intf_portGem2virtualVid(
+                      ptintf2port(ptin_intf.intf_type, ptin_intf.intf_id),
+                      ptinEvcConf.intf[index_port].vid);
+      if (virtual_vid <= 4095)
+      {
+        ptinEvcConf.intf[index_port].vid = virtual_vid;
+      }
+      else
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u", ptinEvcConf.intf[index_port].vid);
+      }
 
       PT_LOG_DEBUG(LOG_CTX_MSG, "   %s %02u %s VID=%04u/%-04u",
          ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
@@ -7160,13 +7179,26 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
   else
 #endif /*NGPON2_SUPPORTED*/
   {
+    L7_uint16 virtual_vid;
+
+    /* Adjust outer VID considering the port virtualization scheme */
+    virtual_vid = ptin_intf_portGem2virtualVid(
+                    ptintf2port(msgEvcFlow->intf.intf_type, msgEvcFlow->intf.intf_id),
+                    msgEvcFlow->intf.outer_vid);
+    if (virtual_vid <= 4095)
+    {
+      msgEvcFlow->intf.outer_vid = virtual_vid;
+    }
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u", msgEvcFlow->intf.outer_vid);
+    }
+
     /* Copy data */
     ptinEvcFlow.evc_idx             = msgEvcFlow->evcId;
     ptinEvcFlow.flags               = msgEvcFlow->flags;
     ptinEvcFlow.int_ivid            = msgEvcFlow->nni_cvlan;
-
     ptinEvcFlow.ptin_intf.intf_type = msgEvcFlow->intf.intf_type;
-
     ptinEvcFlow.ptin_intf.intf_id   = msgEvcFlow->intf.intf_id;
     ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.outer_vid; /* must be a leaf */
     ptinEvcFlow.uni_ivid            = msgEvcFlow->intf.inner_vid;
@@ -8987,32 +9019,31 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
       client.ptin_intf.intf_id    = ENDIAN_SWAP8(profile->client.intf.intf_id);
       client.mask |= PTIN_CLIENT_MASK_FIELD_INTF; 
   }
-
-    /* Get circuit and remote ids */
-    rc = ptin_dhcp_client_get(evc_idx, &client, &profile->options, &circuitId_data, L7_NULLPTR, profile->remoteId);
-
-    profile->options          = ENDIAN_SWAP16(profile->options);
-    profile->circuitId.onuid  = ENDIAN_SWAP16(circuitId_data.onuid);
-    profile->circuitId.slot   = ENDIAN_SWAP8 (circuitId_data.slot);
-    profile->circuitId.port   = ENDIAN_SWAP16(circuitId_data.port);
-    profile->circuitId.q_vid  = ENDIAN_SWAP16(circuitId_data.q_vid);
-    profile->circuitId.c_vid  = ENDIAN_SWAP16(circuitId_data.c_vid);
-
-    if (rc!=L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining circuit and remote ids");
-      return rc;
-    }
-
-    PT_LOG_DEBUG(LOG_CTX_MSG,"Options                      = %02x",  ENDIAN_SWAP16(profile->options));
-    PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.onuid              = %u",    ENDIAN_SWAP16(profile->circuitId.onuid));
-    PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.slot               = %u",    ENDIAN_SWAP8 (profile->circuitId.slot));
-    PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.port               = %u",    ENDIAN_SWAP16(profile->circuitId.port));
-    PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.q_vid              = %u",    ENDIAN_SWAP16(profile->circuitId.q_vid));
-    PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.c_vid              = %u",    ENDIAN_SWAP16(profile->circuitId.c_vid));
-    PT_LOG_DEBUG(LOG_CTX_MSG,"RemoteId                     = \"%s\"",profile->remoteId);
   
+  /* Get circuit and remote ids */
+  rc = ptin_dhcp_client_get(evc_idx, &client, &profile->options, &circuitId_data, L7_NULLPTR, profile->remoteId);
 
+  profile->options          = ENDIAN_SWAP16(profile->options);
+  profile->circuitId.onuid  = ENDIAN_SWAP16(circuitId_data.onuid);
+  profile->circuitId.slot   = ENDIAN_SWAP8 (circuitId_data.slot);
+  profile->circuitId.port   = ENDIAN_SWAP16(circuitId_data.port);
+  profile->circuitId.q_vid  = ENDIAN_SWAP16(circuitId_data.q_vid);
+  profile->circuitId.c_vid  = ENDIAN_SWAP16(circuitId_data.c_vid);
+
+  if (rc!=L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining circuit and remote ids");
+    return rc;
+  }
+
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Options                      = %02x",  ENDIAN_SWAP16(profile->options));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.onuid              = %u",    ENDIAN_SWAP16(profile->circuitId.onuid));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.slot               = %u",    ENDIAN_SWAP8 (profile->circuitId.slot));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.port               = %u",    ENDIAN_SWAP16(profile->circuitId.port));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.q_vid              = %u",    ENDIAN_SWAP16(profile->circuitId.q_vid));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.c_vid              = %u",    ENDIAN_SWAP16(profile->circuitId.c_vid));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"RemoteId                     = \"%s\"",profile->remoteId);
+  
   return L7_SUCCESS;
 }
 
@@ -14019,7 +14050,15 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
     if ((mask & MSG_HWETH_BWPROFILE_MASK_SVLAN) &&
         (msgBwProfile->service_vlan > 0 && msgBwProfile->service_vlan < 4096))
     {
-      profile->outer_vlan_lookup = msgBwProfile->service_vlan;
+      profile->outer_vlan_lookup = ptin_intf_portGem2virtualVid(
+                                     ptintf2port(msgBwProfile->intf_src.intf_type, msgBwProfile->intf_src.intf_id),
+                                     msgBwProfile->service_vlan);
+      if (profile->outer_vlan_lookup >= 4096)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG,"Error with ptin_intf_portGem2intIfNumVid(type=%u, id=%u, ovid=%u)",
+                   msgBwProfile->intf_src.intf_type, msgBwProfile->intf_src.intf_id, msgBwProfile->service_vlan);
+        return L7_FAILURE;
+      }
       PT_LOG_DEBUG(LOG_CTX_MSG," SVID extracted!");
     }
 
@@ -14066,7 +14105,15 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
     if ((mask & MSG_HWETH_BWPROFILE_MASK_SVLAN) &&
         (msgBwProfile->service_vlan > 0 && msgBwProfile->service_vlan < 4096))
     {
-      profile->outer_vlan_egress = msgBwProfile->service_vlan;
+      profile->outer_vlan_egress = ptin_intf_portGem2virtualVid(
+                                     ptintf2port(msgBwProfile->intf_dst.intf_type, msgBwProfile->intf_dst.intf_id),
+                                     msgBwProfile->service_vlan);
+      if (profile->outer_vlan_egress >= 4096)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG,"Error with ptin_intf_portGem2intIfNumVid(type=%u, id=%u, ovid=%u)",
+                   msgBwProfile->intf_dst.intf_type, msgBwProfile->intf_dst.intf_id, msgBwProfile->service_vlan);
+        return L7_FAILURE;
+      }
       PT_LOG_DEBUG(LOG_CTX_MSG," SVID extracted!");
     }
 
@@ -16535,7 +16582,7 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         if (msg->src_intf[n].intf.intf_type == 1)
         {
-          ptin_intf_intIfNum2port(srcIntfNum, INVALID_GEM_VID, &ptin_port_aux); /* FIXME TC16SXG */
+          ptin_intf_intIfNum2port(srcIntfNum, INVALID_SWITCH_VID, &ptin_port_aux); /* FIXME TC16SXG */
                                                                         
           PT_LOG_TRACE(LOG_CTX_MSG, "Adding intfNum Src %d", ptin_port_aux);
         }
@@ -16554,7 +16601,7 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
           {         
             usmDbSwPortMonitorDestPortGet(unit, sessionNum, &auxIntfNum);
             /* FIXME TC16SXG: intIfNum->ptin_port */
-            ptin_intf_intIfNum2port(auxIntfNum, INVALID_GEM_VID, &ptin_port_dst); /* FIXME TC16SXG */
+            ptin_intf_intIfNum2port(auxIntfNum, INVALID_SWITCH_VID, &ptin_port_dst); /* FIXME TC16SXG */
           }
 
           PT_LOG_TRACE(LOG_CTX_MSG, "Dst intfNum %d", msg->dst_intf.intf_id);
@@ -16605,14 +16652,14 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       /* Convert to ptin format*/
       /* FIXME TC16SXG: intIfNum->ptin_port */
-      ptin_intf_intIfNum2port(listSrcPorts[0], INVALID_GEM_VID, &ptinSrc_aux); /* FIXME TC16SXG */
+      ptin_intf_intIfNum2port(listSrcPorts[0], INVALID_SWITCH_VID, &ptinSrc_aux); /* FIXME TC16SXG */
 
       /* Get the Dst port(s) of the Monitor session*/
       usmDbSwPortMonitorDestPortGet(unit, sessionNum, &listDstPorts[0]);
 
       /* Convert to ptin format*/
       /* FIXME TC16SXG: intIfNum->ptin_port */
-      ptin_intf_intIfNum2port(listDstPorts[0], INVALID_GEM_VID, &ptinDst_aux); /* FIXME TC16SXG */
+      ptin_intf_intIfNum2port(listDstPorts[0], INVALID_SWITCH_VID, &ptinDst_aux); /* FIXME TC16SXG */
 
       // Remove egress translations
       xlate_outer_vlan_replicate_Dstport(mode, ptinSrc_aux, ptinDst_aux);
