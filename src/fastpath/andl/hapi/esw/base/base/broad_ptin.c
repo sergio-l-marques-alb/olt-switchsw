@@ -1208,7 +1208,7 @@ L7_RC_t hapiBroadPtinVlanTranslatePortGroups(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
   switch ((L7_int) classSt->oper)
   {
   case DAPI_CMD_SET:
-    rc = ptin_hapi_xlate_egress_portsGroup_set(classSt->class_id, &usp, 1, dapi_g);
+    rc = ptin_hapi_xlate_egress_portsGroup_set(classSt->class_id, usp, dapi_g);
     break;
 
   case DAPI_CMD_GET:

@@ -69,6 +69,7 @@
 
 #include "ptin_globaldefs.h"
 #include "logger.h"   /* PTin added: trunks */
+#include "ptin_hapi_xlate.h"
 
 extern DAPI_t *dapi_g;
 
@@ -1094,6 +1095,7 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
   L7_int32                      newMemberCnt = 0;
   bcm_chip_family_t             board_family=0; 
   usl_bcm_port_frame_size_t    maxFrameSize;
+  L7_uint32 class_id;
   
   PT_LOG_TRACE(LOG_CTX_TRUNKS, "This function was called");
 
@@ -1229,7 +1231,6 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
         hapiLagMemberPortPtr->hapiModeparm.physical.lagUsp.slot   = usp->slot;
         hapiLagMemberPortPtr->hapiModeparm.physical.lagUsp.port   = usp->port;
 
-
         /* If LAG already has members then add the new member to LAGs VLANs.
         ** If this is the first member of the LAG then it will be added to the 
         ** VLANs when the whole LAG is added to the VLANs.
@@ -1294,6 +1295,15 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
     /* Get the logical port */
     gport = hapiLagMemberPortPtr->bcm_gport;
 
+    /* Configure Class id for translation purposes */
+    class_id = (usp->slot*L7_MAX_PORTS_PER_SLOT) + usp->port + 1;
+    rc = ptin_hapi_xlate_egress_portsGroup_set(class_id,
+                                               &cmdLagPortAdd->cmdData.lagPortAdd.memberSet[entry],
+                                               dapi_g);
+    if (L7_BCMX_OK(rc) != L7_TRUE)
+    {
+      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set class id for port 0x%x, rv = %d", gport, rc);
+    }
 
     /* update LAG ports maxFrameSize */
     maxFrameSize = cmdLagPortAdd->cmdData.lagPortAdd.maxFrameSize;
@@ -1651,6 +1661,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
   L7_BOOL                       removing_first_member;
   bcm_chip_family_t             board_family=0; 
   usl_bcm_port_frame_size_t    maxFrameSize;
+  L7_uint32 class_id;
   L7_BOOL cond0, cond1, cond2, cond3, cond;     /* PTin added: BUG correction */
 
   PT_LOG_TRACE(LOG_CTX_TRUNKS, "This function was called: usp {%d,%d,%d}", usp->unit, usp->slot, usp->port);
@@ -1999,6 +2010,16 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 
     /* Get the logical port */
     gport = hapiLagMemberPortPtr->bcm_gport;
+
+    /* Reset class id for translation purposes */
+    class_id = cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].port + 1;
+    rc = ptin_hapi_xlate_egress_portsGroup_set(class_id,
+                                               &cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry],
+                                               dapi_g);
+    if (L7_BCMX_OK(rc) != L7_TRUE)
+    {
+      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set class id for port 0x%x, rv = %d", gport, rc);
+    }
 
     /* update port config maxFrameSize */
     #if 1

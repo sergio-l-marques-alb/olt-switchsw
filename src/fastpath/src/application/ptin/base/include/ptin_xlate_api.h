@@ -30,33 +30,6 @@ extern char ptin_vlanxlate_action_getchar(ptin_vlanXlate_action_enum action);
 extern L7_RC_t ptin_xlate_init(void);
 
 /**
- * Get portgroup of a specific interface
- * 
- * @param ptin_port : interface reference
- * @param portgroup : port group id (to be returned)
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
-extern L7_RC_t ptin_xlate_portgroup_get(L7_uint32 ptin_port, L7_uint32 *portgroup);
-
-/**
- * Set portgroup to a specific interface
- * 
- * @param ptin_port : interface reference
- * @param portgroup : port group id (PTIN_XLATE_PORTGROUP_INTERFACE to reset)
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
-extern L7_RC_t ptin_xlate_portgroup_set(L7_uint32 ptin_port, L7_uint32 portgroup);
-
-/**
- * Reset class ids to all interfaces
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
-extern L7_RC_t ptin_xlate_portgroup_reset_all(void);
-
-/**
  * Get ingress translation new vlan
  * 
  * @param ptin_port : interface reference

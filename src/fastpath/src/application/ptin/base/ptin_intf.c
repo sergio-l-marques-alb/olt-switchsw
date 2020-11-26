@@ -3850,27 +3850,9 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
         (void) ptin_intf_linkfaults_enable(port, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
       }
 
-      /* Update PortGroup for the member removed (reset to default value) */
-      if (ptin_xlate_portgroup_set(port, PTIN_XLATE_PORTGROUP_INTERFACE) != L7_SUCCESS)
-      {
-        PT_LOG_CRITIC(LOG_CTX_INTF, "LAG# %u: could not update PortGroup for member port# %u", lag_idx, port);
-        rc = L7_FAILURE;
-      }
-
       lagConf_data[lag_idx].members_pbmp64 &= ~((L7_uint64)1 << port);
       PT_LOG_TRACE(LOG_CTX_INTF, " Port# %02u removed", port);
     }
-  }
-
-  /* Update PortGroups (used on egress translations) */
-  if (ptin_xlate_portgroup_set(lag_port, PTIN_XLATE_PORTGROUP_INTERFACE) != L7_SUCCESS)
-  {
-    /* NOTE: if any error occurs during PortGroup set, it originates inconsistency on
-     * the portgroups lookup table, which means a CRITICAL or even FATAL situation!
-     * However, any error should occur ONLY during debug or validation process, and
-     * not during normal operation (under production) */ 
-    PT_LOG_CRITIC(LOG_CTX_INTF, "LAG# %u: could not update PortGroup for this LAG", lag_idx);
-    rc = L7_FAILURE;
   }
 
   /* Remove this interface from VLAN 1 (only if a new LAG was created)
@@ -3976,7 +3958,6 @@ L7_RC_t ptin_intf_Lag_delete(L7_uint32 lag_idx)
   L7_uint     lag_port;
   L7_uint32   value;
   L7_uint     i;
-  L7_uint64   ptin_pbmp;
 
   /* Validate LAG range (LAG index [0..PTIN_SYSTEM_N_LAGS[) */
   if (lag_idx >= PTIN_SYSTEM_N_LAGS)
@@ -3995,11 +3976,12 @@ L7_RC_t ptin_intf_Lag_delete(L7_uint32 lag_idx)
 
   /* Uplink protection */
 #ifdef PTIN_SYSTEM_PROTECTION_LAGID_BASE
-  L7_uint   port;
-
   /* For Uplink ports, only disable linkscan and force link */
   if (lag_idx >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
   {
+    L7_uint   port;
+    L7_uint64 ptin_pbmp;
+
     ptin_pbmp = lag_uplink_protection_ports_bmp[lag_idx - PTIN_SYSTEM_PROTECTION_LAGID_BASE];
 
     /* Loop through all the phy ports and check if any is being added or removed */
@@ -4114,39 +4096,6 @@ L7_RC_t ptin_intf_Lag_delete(L7_uint32 lag_idx)
     PT_LOG_TRACE(LOG_CTX_INTF, "LAG# %u returns to untrusted", lag_idx);
   }
   #endif
-
-  /* Update PortGroups (used on egress translations) */
-  ptin_pbmp = lagConf_data[lag_idx].members_pbmp64;
-  for (i=0; i<ptin_sys_number_of_ports; i++, ptin_pbmp >>= 1)
-  {
-    if (ptin_pbmp & 1)
-    {
-      /* Reset phy#i port group */
-      if (ptin_xlate_portgroup_set(i, PTIN_XLATE_PORTGROUP_INTERFACE) != L7_SUCCESS)
-      {
-        /* NOTE: if any error occurs during PortGroup set, it originates inconsistency on
-         * the portgroups lookup table, which means a CRITICAL or even FATAL situation!
-         * However, any error should occur ONLY during debug or validation process, and
-         * not during normal operation (under production) */ 
-        PT_LOG_CRITIC(LOG_CTX_INTF, "LAG# %u: could not update PortGroup for member port# %u", lag_idx, i);
-      }
-
-      /* To be removed */
-      #if 0
-      /* Uplink protection */
-      #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
-      if (lag_idx >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
-      {
-        /* Disable linkscan */
-        if (ptin_intf_linkscan_set(intIfNum, L7_ENABLE) != L7_SUCCESS)
-        {
-          PT_LOG_ERR(LOG_CTX_INTF,"Error reenabling linkscan for intIfNum %u", intIfNum);
-        }
-      }
-      #endif
-      #endif
-    }
-  }
 
   /* Clear PTin structs */
   CLEAR_LAG_CONF(lag_idx);

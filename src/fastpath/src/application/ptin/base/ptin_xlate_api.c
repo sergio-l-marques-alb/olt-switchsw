@@ -236,20 +236,17 @@ L7_RC_t ptin_xlate_egress_add_2( L7_uint32 ptin_port, L7_uint16 outerVlanId, L7_
  */
 L7_RC_t ptin_xlate_init(void)
 {
-  L7_RC_t rc1, rc2, rc3;
+  L7_RC_t rc1, rc2;
 
   PT_LOG_TRACE(LOG_CTX_XLATE, "Initializing xlate module...");
 
   /* Init data structs */
   rc1 = xlate_database_init();
 
-  /* Reset class ids */
-  rc2 = ptin_xlate_portgroup_reset_all();
-
   /* Reset pvid */
-  rc3 = ptin_xlate_PVID_init();
+  rc2 = ptin_xlate_PVID_init();
 
-  PT_LOG_TRACE(LOG_CTX_XLATE, "Finished: rc1=%d, rc2=%d, rc3=%d", rc1, rc2, rc3);  
+  PT_LOG_TRACE(LOG_CTX_XLATE, "Finished: rc1=%d, rc2=%d", rc1, rc2);  
 
   /* Return result */
   if (rc1!=L7_SUCCESS || rc2!=L7_SUCCESS)
@@ -259,192 +256,6 @@ L7_RC_t ptin_xlate_init(void)
   return L7_SUCCESS;
 }
 
-/**
- * Get portgroup of a specific interface
- * 
- * @param ptin_port :  interface reference
- * @param vlanId :    GEM vlan ID
- * @param portgroup : port group id (to be returned)
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
-L7_RC_t ptin_xlate_portgroup_get(L7_uint32 ptin_port, L7_uint32 *portgroup)
-{
-  if (ptin_debug_xlate)
-    PT_LOG_TRACE(LOG_CTX_XLATE, "ptin_port=%u", ptin_port);
-
-  /* Validate arguments */
-  if (ptin_port>=ptin_sys_number_of_ports)
-  {
-    PT_LOG_ERR(LOG_CTX_XLATE, " ERROR: Invalid interface");
-    return L7_FAILURE;
-  }
-
-  /* Extract class id for this interface */
-  if (portgroup!=L7_NULLPTR)
-  {
-    *portgroup = xlate_table_portgroup[ptin_port];
-  }
-
-  if (ptin_debug_xlate)
-    PT_LOG_TRACE(LOG_CTX_XLATE, "Finished: rc=0");
-
-  return L7_SUCCESS;
-}
-
-/**
- * Set portgroup to a specific interface
- * 
- * @param ptin_port : interface reference
- * @param vlanId :    GEM vlan ID
- * @param portgroup : port group id 
- *                  (PTIN_XLATE_PORTGROUP_INTERFACE to reset)
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
-L7_RC_t ptin_xlate_portgroup_set(L7_uint32 ptin_port, L7_uint32 portgroup)
-{
-  L7_uint32 intIfNum, ptin_port_i;
-  L7_uint32 sysIntfType;
-  L7_uint32 intf_members[PTIN_SYSTEM_N_PORTS], intf_members_n, i;
-  L7_uint32 class_id;
-  ptin_vlanXlate_classId_t group;
-  L7_RC_t rc = L7_SUCCESS;
-
-  if (ptin_debug_xlate)
-    PT_LOG_TRACE(LOG_CTX_XLATE, "ptin_port=%u portgroup=%u", ptin_port, portgroup);
-
-  /* Validate interface */
-  if ( ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS )
-  {
-    PT_LOG_ERR(LOG_CTX_XLATE, " ERROR: Invalid ptin_port %u", ptin_port);
-    return L7_FAILURE;
-  }
-
-  /* Class id to be used */
-  if (portgroup==PTIN_XLATE_PORTGROUP_INTERFACE)
-  {
-    if (xlate_portgroup_from_intf(ptin_port, &class_id)!=L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_XLATE, " Error getting class id");
-      return L7_FAILURE;
-    }
-  }
-  else
-  {
-    class_id = portgroup;
-  }
-
-  /* Interface should be physical or LAG */
-  if ( usmDbIntfTypeGet(intIfNum, &sysIntfType)!=L7_SUCCESS )
-  {
-    PT_LOG_ERR(LOG_CTX_XLATE, " ERROR: Unable to find interface type");
-    return L7_FAILURE;
-  }
-
-  /* Determine list of physical ports to be configured */
-  if (sysIntfType==L7_PHYSICAL_INTF)
-  {
-    intf_members_n  = 1;
-    intf_members[0] = intIfNum;
-  }
-  else if (sysIntfType==L7_LAG_INTF)
-  {
-    intf_members_n = ptin_sys_number_of_ports;
-    dot3adMemberListGet(intIfNum, &intf_members_n, intf_members);
-  }
-  else
-  {
-    PT_LOG_ERR(LOG_CTX_XLATE, " ERROR: Invalid interface type");
-    return L7_FAILURE;
-  }
-
-  /* Check if there is members to be processed */
-  if (intf_members_n==0)
-  {
-    PT_LOG_WARN(LOG_CTX_XLATE, " WARN: No interfaces to be processed");
-    return L7_SUCCESS;
-  }
-
-  /* Set portgroup for all physical ports */
-  for (i=0; i<intf_members_n; i++)
-  {
-    /* Interface should be physical */
-    if ( usmDbIntfTypeGet(intf_members[i], &sysIntfType)!=L7_SUCCESS || 
-         (sysIntfType!=L7_PHYSICAL_INTF /*&& sysIntfType!=L7_LAG_INTF*/))
-    {
-      continue;
-    }
-
-    /* Fill structure */
-    group.oper = DAPI_CMD_SET;
-    group.class_id = class_id;
-  
-    /* DTL call */
-    if (dtlPtinVlanTranslateEgressPortsGroup(intf_members[i], &group)==L7_SUCCESS)
-    {
-      /* If successfull, set the portgroup to each physical port */
-      /* FIXME TC16SXG: intIfNum->ptin_port */
-      if ( ptin_intf_intIfNum2port(intf_members[i], INVALID_GEM_VID, &ptin_port_i)==L7_SUCCESS &&
-           ptin_port_i<PTIN_SYSTEM_N_PORTS )
-      {
-        xlate_table_portgroup[ptin_port_i] = class_id;
-      }
-    }
-    else
-    {
-      rc = L7_FAILURE;
-    }
-  }
-
-  /* Update class id */
-  if (rc==L7_SUCCESS)
-  {
-    /* If successfull, set the portgroup to the "global" port */
-    if (ptin_port < PTIN_SYSTEM_N_PORTS)
-    {
-      xlate_table_portgroup[ptin_port] = class_id;
-    }
-  }
-
-  if (ptin_debug_xlate)
-    PT_LOG_TRACE(LOG_CTX_XLATE, "Finished: rc=%d", rc);
-
-  return rc;
-}
-
-/**
- * Reset class ids to all interfaces
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
-L7_RC_t ptin_xlate_portgroup_reset_all(void)
-{
-  L7_uint32 ptin_port;
-  L7_RC_t rc = L7_SUCCESS;
-
-  if (ptin_debug_xlate)
-    PT_LOG_TRACE(LOG_CTX_XLATE, "Resetting class ids...");
-
-  /* Run all interfaces */
-  for (ptin_port=0; ptin_port<ptin_sys_number_of_ports; ptin_port++ )
-  {
-    /* Default class id */
-    xlate_table_portgroup[ptin_port] = 0;
-
-    /* Apply default class id */
-    if (ptin_xlate_portgroup_set(ptin_port, PTIN_XLATE_PORTGROUP_INTERFACE)!=L7_SUCCESS)
-    {
-      rc = L7_FAILURE;
-      continue;
-    }
-  }
-
-  if (ptin_debug_xlate)
-    PT_LOG_TRACE(LOG_CTX_XLATE, "Finished: rc=%d", rc);
-
-  return rc;
-}
 
 /**
  * Get ingress translation new vlan
@@ -2971,18 +2782,6 @@ void ptin_xlate_dump(ptin_vlanXlate_stage_enum stage, L7_BOOL inv)
   
   printf("Done! Total entries: %u\r\n", avl_tree->number_of_entries);
   fflush(stdout);
-}
-
-L7_RC_t devshell_ptin_xlate_portgroup_get(L7_uint32 ptin_port)
-{
-  L7_uint32 portGroup;
-  L7_RC_t rc;
-
-  rc = ptin_xlate_portgroup_get(ptin_port, &portGroup);
-
-  printf("ptin_xlate_portgroup_get(%u, &portgroup)=>%u portGroup=%u", ptin_port, rc, portGroup);
-
-  return rc;
 }
 
 L7_RC_t devshell_ptin_xlate_ingress_get( L7_uint32 ptin_port, L7_uint16 outerVlanId, L7_uint16 innerVlanId )

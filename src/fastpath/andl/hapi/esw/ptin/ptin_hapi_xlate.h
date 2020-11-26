@@ -321,13 +321,12 @@ extern L7_RC_t ptin_hapi_xlate_egress_delete_all(int unit);
  * Define a group of ports identified by a class id
  *  
  * @param portgroup: class id (positive value)
- * @param usp_list: List of ports that make part of the group 
- * @param usp_list_size: Number of ports
+ * @param usp: port belonging to group 
  * @param dapi_g: System descriptor
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_xlate_egress_portsGroup_set(L7_uint32 portgroup, DAPI_USP_t *usp_list[], L7_uint8 usp_list_size, DAPI_t *dapi_g);
+extern L7_RC_t ptin_hapi_xlate_egress_portsGroup_set(L7_uint32 portgroup, DAPI_USP_t *usp, DAPI_t *dapi_g);
 
 /**
  * Get the class id attributed to a specific port
