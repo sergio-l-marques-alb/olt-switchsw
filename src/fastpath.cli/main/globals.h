@@ -33,7 +33,7 @@
 #define ENDIAN_SWAP16(val) \
   ((unsigned short) (((unsigned short)(val)<<8) | ((unsigned short)(val)>>8)))
 #define ENDIAN_SWAP32(val) \
-  ((unsigned long) (((unsigned int)(val) >> 24) | (((unsigned int)(val) >> 8) & 0x0000ff00UL) | \
+  ((unsigned int)   (((unsigned int)(val) >> 24) | (((unsigned int)(val) >> 8) & 0x0000ff00UL) | \
                     ((unsigned int)(val) << 24) | (((unsigned int)(val) << 8) & 0x00ff0000UL)))
 #define ENDIAN_SWAP64(val) \
   ((unsigned long long) (((unsigned long long)(val) >> 56) | (((unsigned long long)(val) >> 40) & 0x000000000000ff00ULL) | (((unsigned long long)(val) >> 24) & 0x0000000000ff0000ULL) | (((unsigned long long)(val) >> 8) & 0x00000000ff000000ULL) | \

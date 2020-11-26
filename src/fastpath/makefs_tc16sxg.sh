@@ -28,7 +28,7 @@ cd $DST_PATH
 
 # Update rootfs with compiled binaries
 echo "Adding binaries..."
-cp ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko rootfs/usr/local/ptin/sbin/
+cp ipl/switchdrvr ipl/devshell_symbols.gz ipl/fp.cli ipl/fp.shell target/*.ko rootfs/usr/local/ptin/sbin/
 
 # Make tgz
 echo "Building tarball..."
