@@ -193,10 +193,13 @@ L7_RC_t ipstkRtrIfNumGet(L7_uint32 intIfNum,L7_uint32 compId, L7_uint32 *rtrIfNu
   stifi_entry_t    *ifmap;
   stifi_hash_head_t *head;
   L7_INTF_TYPES_t intfType;
-
+  L7_RC_t rc;
 
   if(intIfNum > L7_MAX_INTERFACE_COUNT)
-       return L7_FAILURE;
+  {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error intIfNum= %u > %u", intIfNum, L7_MAX_INTERFACE_COUNT);
+      return L7_FAILURE;
+  }
 
   /* validate component */
   switch(compId){
@@ -207,11 +210,21 @@ L7_RC_t ipstkRtrIfNumGet(L7_uint32 intIfNum,L7_uint32 compId, L7_uint32 *rtrIfNu
        compFl = L7_L3SHARED_COMP_IP6;
        break;
   default:
+       PT_LOG_ERR(LOG_CTX_INTF, "Error, component is not valid (%u)", compId);
        return(L7_FAILURE);
   }
-  if (nimGetIntfType(intIfNum, &intfType) != L7_SUCCESS)
+
+  rc = nimGetIntfType(intIfNum, &intfType);
+  if (rc != L7_SUCCESS)
   {
-       return(L7_FAILURE);
+      if (rc == L7_ERROR)
+      {
+          PT_LOG_ERR(LOG_CTX_INTF, "Error, Interface does not exist (rc=%u)", rc);
+          return(L7_FAILURE);
+      }
+
+      PT_LOG_ERR(LOG_CTX_INTF, "Error with intf type (rc=%u)", rc);
+      return(L7_FAILURE);
   }
 
   if (osapiSemaTake(ipstkSharedLibSema, L7_WAIT_FOREVER) != L7_SUCCESS)
@@ -251,9 +264,9 @@ L7_RC_t ipstkRtrIfNumGet(L7_uint32 intIfNum,L7_uint32 compId, L7_uint32 *rtrIfNu
        /* get stack IfIndex for use with RECVPKTINFO, etc */
        if(ipstkStackIfIndexGet(ifName,&stackIfIndex) != L7_SUCCESS)
        {
-         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
-                 "Failed to get interface index from IP stack for interface %s.",
-                 ifName);
+         PT_LOG_ERR(LOG_CTX_INTF,
+                    "Failed to get interface index from IP stack for interface %s.",
+                    ifName);
        }
        else
        {
@@ -261,8 +274,7 @@ L7_RC_t ipstkRtrIfNumGet(L7_uint32 intIfNum,L7_uint32 compId, L7_uint32 *rtrIfNu
              ifmap->s_intIfNum = intIfNum;
              if (ifmap->s_ifIndex != 0)
              {
-               L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
-                       "Interface index map has been corrupted.");
+               PT_LOG_ERR(LOG_CTX_INTF, "Interface index map has been corrupted.");
              }
              ifmap->s_ifIndex = stackIfIndex;
              /* link into hash bin */
