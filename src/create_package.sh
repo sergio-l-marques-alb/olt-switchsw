@@ -142,6 +142,7 @@ cp -uv ../../../../startPcapBridge.sh ./usr/local/scripts/
 echo echo Modular OLT fastpath $DEV_BOARD_SW-$VERSION-r$svn_rev > ./usr/local/ptin/sbin/fp.ver 
 echo echo $DATE >> ./usr/local/ptin/sbin/fp.ver
 echo "echo OLTSWITCH md5sum: "`md5sum ./usr/local/ptin/sbin/$MAIN_BIN | awk '{print $1}'` >> ./usr/local/ptin/sbin/fp.ver
+chmod 777 ./usr/local/ptin/sbin/fp.ver 
 
 # create tgz file
 echo "Preparing tarball for $DEV_BOARD_SW..."
