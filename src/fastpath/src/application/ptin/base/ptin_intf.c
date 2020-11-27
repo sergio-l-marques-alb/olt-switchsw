@@ -2586,22 +2586,23 @@ L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 virtual_vid,
  * 
  * @author mruas (26/11/20)
  * 
- * @param ptin_port : Virtualized port
- * @param gem_vid   : GEM VLAN id
+ * @param ptin_port (in) : Virtualized port
+ * @param gem_vid (in) : GEM VLAN id 
+ * @param virtual_vid (out): Virtualized GEM-VID
  * 
- * @return L7_uint16 : virtual_vid (-1 if error)
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_uint16 ptin_intf_portGem2virtualVid(L7_uint32 ptin_port, L7_uint16 gem_vid)
+L7_RC_t ptin_intf_portGem2virtualVid(L7_uint32 ptin_port, L7_uint16 gem_vid, L7_uint16 *virtual_vid)
 {
   L7_uint32 intIfNum;
-  L7_uint16 virtual_vid;
+  L7_uint16 _virtual_vid;
   L7_RC_t rc;
 
   /* Validate arguments */
   if (ptin_port >= PTIN_SYSTEM_N_INTERF)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Port# %u is out of range [0..%u]", ptin_port, PTIN_SYSTEM_N_INTERF-1);
-    return (L7_uint16)-1;
+    return L7_FAILURE;
   }
 
   /* Get intIfNum */
@@ -2609,11 +2610,11 @@ L7_uint16 ptin_intf_portGem2virtualVid(L7_uint32 ptin_port, L7_uint16 gem_vid)
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "ptin_port# %u is not assigned to any intIfNum", ptin_port);
-    return (L7_uint16)-1;
+    return L7_FAILURE;
   }
 
   /* By default virtual_vid = gem_vid */
-  virtual_vid = gem_vid;
+  _virtual_vid = gem_vid;
 
 #ifdef PORT_VIRTUALIZATION_N_1
   if (PTIN_PORT_IS_PON(ptin_port) && gem_vid != 0)
@@ -2627,7 +2628,7 @@ L7_uint16 ptin_intf_portGem2virtualVid(L7_uint32 ptin_port, L7_uint16 gem_vid)
     if (gem_vid >= gem_vid_max)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "gem vid %u is out of range (max=%u)", gem_vid, gem_vid_max-1);
-      return gem_vid;
+      return L7_FAILURE;
     }
     
     /* Search for the offset correspondent to ptin_port */
@@ -2644,20 +2645,26 @@ L7_uint16 ptin_intf_portGem2virtualVid(L7_uint32 ptin_port, L7_uint16 gem_vid)
     /* ptin_port found */
     if (index < PORT_VIRTUALIZATION_VID_N_SETS)
     {
-      virtual_vid = (gem_vid_max * index) + gem_vid;
+      _virtual_vid = (gem_vid_max * index) + gem_vid;
     }
     else /* Not found? */
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Offset associated to ptin_port# %u not found... using input vlan %u",
-                 ptin_port, virtual_vid);
+                 ptin_port, _virtual_vid);
     }
   }
 #endif
 
   PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port %u (intIfNum %u) + gem_vid %u => vid %u",
-               ptin_port, intIfNum, gem_vid, virtual_vid);
+               ptin_port, intIfNum, gem_vid, _virtual_vid);
 
-  return virtual_vid;
+  /* Return result */
+  if (virtual_vid != L7_NULLPTR)
+  {
+    *virtual_vid = _virtual_vid;
+  }
+  
+  return L7_SUCCESS;
 }
 
 

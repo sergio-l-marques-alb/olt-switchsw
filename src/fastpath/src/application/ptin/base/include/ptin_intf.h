@@ -449,12 +449,14 @@ extern L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 virtual_vid
  * 
  * @author mruas (26/11/20)
  * 
- * @param ptin_port : Virtualized port
- * @param gem_vid   : GEM VLAN id
+ * @param ptin_port (in) : Virtualized port
+ * @param gem_vid (in) : GEM VLAN id 
+ * @param virtual_vid (out): Virtualized GEM-VID
  * 
- * @return L7_uint16 : virtual_vid (-1 if error)
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_uint16 ptin_intf_portGem2virtualVid(L7_uint32 ptin_port, L7_uint16 gem_vid);
+extern 
+L7_RC_t ptin_intf_portGem2virtualVid(L7_uint32 ptin_port, L7_uint16 gem_vid, L7_uint16 *virtual_vid);
 
 /**
  * Converts ptin_port index to LAG index
