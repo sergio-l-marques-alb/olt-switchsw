@@ -769,6 +769,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
     }
 
     vlanId = pduInfo->vlanId;
+    innerVlanId = pduInfo->innerVlanId;
 
     /*Before Making Any processing let try to get the client_idx*/
       /* PTin added: DHCP snooping */

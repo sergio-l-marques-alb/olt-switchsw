@@ -3184,7 +3184,7 @@ L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
                                   L7_uint *client_index)
 {
   L7_uint     dhcp_idx;
-  ptin_intf_t ptin_intf;
+  //ptin_intf_t ptin_intf;
   L7_uint     client_idx;
   ptinDhcpClientInfoData_t *clientInfo;
 
@@ -3216,22 +3216,31 @@ L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
 
   /* Get intIfNum format for the interface number */
   #if (DHCP_CLIENT_INTERF_SUPPORTED)
-  if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF)
+  if (intIfNum != (L7_uint32)-1 /*All*/)
   {
-    if (intIfNum != (L7_uint32)-1 /*All*/)
-    {
-      if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf) == L7_SUCCESS)
+      client->intIfNum = intIfNum;
+      client->mask |= PTIN_CLIENT_MASK_FIELD_INTIFNUM;
+#if 1
+      client->mask &= ~PTIN_CLIENT_MASK_FIELD_INTF;
+#else
+      if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF)
       {
-        client->ptin_intf.intf_type = ptin_intf.intf_type;
-        client->ptin_intf.intf_id   = ptin_intf.intf_id;
+        if (intIfNum != (L7_uint32)-1 /*All*/)
+        {
+          if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf) == L7_SUCCESS)
+          {
+            client->ptin_intf.intf_type = ptin_intf.intf_type;
+            client->ptin_intf.intf_id   = ptin_intf.intf_id;
+          }
+          else
+          {
+            if (ptin_debug_dhcp_snooping)
+              PT_LOG_ERR(LOG_CTX_DHCP,"Connot convert client intIfNum %u to ptin_intf_format",intIfNum);
+            return L7_FAILURE;
+          }
+        }
       }
-      else
-      {
-        if (ptin_debug_dhcp_snooping)
-          PT_LOG_ERR(LOG_CTX_DHCP,"Connot convert client intIfNum %u to ptin_intf_format",intIfNum);
-        return L7_FAILURE;
-      }
-    }
+#endif
   }
   #endif
 
