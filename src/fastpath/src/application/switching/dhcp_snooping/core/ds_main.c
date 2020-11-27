@@ -1149,7 +1149,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
       return SYSNET_PDU_RC_IGNORED;
     }
     vlanId = pduInfo->vlanId;
-
+    innerVlanId = pduInfo->innerVlanId;
 
     /* PTin added: DHCP snooping */
     /* Only search and validate client for non CXP360G and untrusted interfaces */
