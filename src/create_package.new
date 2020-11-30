@@ -1,0 +1,258 @@
+#!/bin/sh
+############################################################################################
+log_write()
+{
+  echo $1
+  echo $1 >> $LOG_FILE
+}
+############################################################################################
+
+print_help()
+{
+  echo ""
+  echo "Usage :$APP card_name [OPTION]"
+  echo ""
+  echo "Examples:"
+  echo "  $APP cxo640g				# build and create packages for swdrv"
+  echo "  $APP cxo640g -v 			# build and create package with output to console"
+  echo ""
+  echo "card_name:"
+  echo "  cxo640g olt1t0f olt1t0 olt1t0-ac      # available card names"
+  echo ""
+  echo "Options:"
+  echo "-h, --help 		display this help and exit"
+  echo "-v, --verbose 		output to console"
+  echo "-p, --package           create packages"
+  echo ""
+}
+
+############################################################################################
+create_swdrv_tgz()
+{
+  CURRDIR=`pwd`
+  APPLICATION=swdrv
+  BUILDS_FOLDER=./output
+  APPS_PATH=./apps
+  TMP_PATH=./tmp
+  MAIN_BIN=switchdrvr
+  #read switchdrv version
+  FILE=version.txt
+  VERSION=$(cat "$FILE")
+  DATE=`date`
+ 
+  cd $BUILD_PATH
+  SVN_REV=`svnversion .. -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
+  MODULE=swdrv-$DEV_BOARD_SW-$VERSION-r$SVN_REV   
+  IMAGE_TGZ=$MODULE.tgz
+
+  log_write "Going to prepare tarball for $DEV_BOARD_SW ..."
+
+  if [ ! -d $BUILDS_FOLDER ]; then
+    mkdir $BUILDS_FOLDER
+  fi
+
+  log_write "Building $MODULE version switchdrv-$VERSION-r$SVN_REV ..."
+
+  # Check for folder existence
+  if [ ! -d $APPS_PATH ]; then
+    log_write "$APPS_PATH folder is missing!" 
+    exit 1;
+  fi
+  
+  if [ ! -d $APPS_PATH/image ]; then
+    log_write "Missing folders in $APPS_PATH"
+    exit 1;
+  fi
+
+  if [ ! -d $APPS_PATH/image/$DEV_BOARD_OUTPUT/rootfs ]; then
+    log_write "Missing folders  in $APPS_PATH/image/$DEV_BOARD_OUTPUT/rootfs"
+    exit 1;
+  fi
+
+  # create swdrv.ver
+  cd $APPS_PATH/image/$DEV_BOARD_OUTPUT/rootfs
+  mkdir -pv var/log/switchdrvr/ 2>&1 | tee -a $LOG >> $VERBOSE_LOG
+  mkdir -pv usr/local/scripts/swdrv-scripts/ 2>&1 | tee -a $LOG >> $VERBOSE_LOG
+  rm -f *.tgz
+
+  cp -uv ../../../../fastpath ./usr/local/ptin/sbin/ 2>&1 | tee -a $LOG >> $VERBOSE_LOG
+  cp -uv ../../../../startPcapBridge.sh ./usr/local/scripts/ 2>&1 | tee -a $LOG >> $VERBOSE_LOG
+  echo echo Modular OLT fastpath $DEV_BOARD_SW-$VERSION-r$SVN_REV > ./usr/local/ptin/sbin/fp.ver
+  echo echo $DATE >> ./usr/local/ptin/sbin/fp.ver
+  echo "echo OLTSWITCH md5sum: "`md5sum ./usr/local/ptin/sbin/$MAIN_BIN | awk '{print $1}'` >> ./usr/local/ptin/sbin/fp.ver
+  chmod 777 ./usr/local/ptin/sbin/fp.ver 2>&1 | tee -a $LOG >> $VERBOSE_LOG
+
+  # create tgz file
+  log_write "Preparing tarball for $DEV_BOARD_SW..."
+  sync
+  rm -f $BUILDS_FOLDER/$IMAGE_TGZ 2>&1 | tee -a $LOG >> $VERBOSE_LOG
+  sync
+
+  tar czvf $IMAGE_TGZ * --owner=root --group=root 2>&1 | tee -a $LOG >> $VERBOSE_LOG
+  if [ $? -ne 0 ]; then
+    log_write "ERROR creating tarball!!!" 
+    exit 1;
+  fi
+  mv $IMAGE_TGZ $DESTDIR/packages/$IMAGE_TGZ
+  cd - >> $LOG_FILE
+  echo "Tarball of $DEV_BOARD created and moved to $DESTDIR/packages"
+ 
+  return 0
+}
+
+############################################################################################
+build_swdrv()
+{
+  TARGET=$1
+  OPTION=$2
+  CURRDIR=`pwd`
+  DEV_BOARD=$TARGET
+  DEV_BOARD_SW="$(echo $DEV_BOARD | awk -F '-' '{print $1}')"
+  
+  log_write "$APP: compile swdrv for $DEV_BOARD_SW ..."
+  cd $BUILD_PATH
+ 
+  make -C ../fastpath -f swdrvr-$DEV_BOARD_SW.make 2>&1 | tee -a $LOG_FILE >> $VERBOSE_LOG
+  if [ $? -ne 0 ]; then
+    log_write "ERROR compiling SwitchDrv!!!"
+    exit 1;
+  elif [ "$OPTION" == "p" ]; then
+    log_write "$APP: create package swdrv..."
+    make -C ../fastpath -f swdrvr-$DEV_BOARD_SW.make install 2>&1 | tee -a $LOG_FILE >> $VERBOSE_LOG
+    if [ $? -ne 0 ]; then
+      log_write "ERROR creating package for swdrv!!!"
+      exit 1;
+    else
+      cd $CURRDIR
+      create_swdrv_tgz
+      if [ $? -ne 0 ]; then
+        log_write "ERROR creating swdrv tgz"
+        exit 1;
+      fi
+    fi
+  fi
+ return 0
+}
+
+############################################################################################
+
+# These variables are defined by the calling script
+APP=`basename $0`
+# create log file
+LOG_FILE=`pwd`"/"`basename $0 .sh`".log"
+DEBUG=0
+
+rm $LOG_FILE > /dev/null 2>&1
+
+echo "-- start script --" >> $LOG_FILE
+echo "" >> $LOG_FILE
+
+BASE_PATH="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+BUILD_PATH=./builds
+export DESTDIR_SWDRV=$BUILD_PATH/$APPS_PATH
+
+if [ -n "$DEV_BOARD" ]; then
+  DEV_BOARD_SW=$DEV_BOARD
+  log_write "DEV_BOARD_SW=$DEV_BOARD_SW"
+fi
+
+#Arguments
+until [ -z "$1" ]
+do
+  arg=`echo "$1" | cut -f1 -d' '`
+  case $arg in
+    "-h"|"--h"|"-help"|"--help")
+      print_help
+      exit 0
+      ;;
+    "-v"|"--verbose")
+      CONFIG_VERBOSE="1"
+      ;;
+    "-p"|"--package")
+      BUILD_PACKAGE="p"
+      ;;
+    *)
+      if [ -z $DEV_BOARD_SW ]; then
+        DEV_BOARD_SW=$arg
+      else
+        log_write "$APP: invalid option -- '$arg'"
+        print_help
+        exit 1
+      fi
+      ;;
+  esac
+  shift
+done
+
+export DEV_BOARD_SW=$DEV_BOARD_SW
+export DEV_BOARD_OUTPUT=${DEV_BOARD_SW^^}
+
+#Set verbose output
+if [ -z $CONFIG_VERBOSE ]; then
+  VERBOSE_LOG="/dev/null"
+else
+  VERBOSE_LOG="/proc/self/fd/1"
+fi
+
+#Validate card
+if [ -z $DEV_BOARD_SW ];then
+  log_write "$APP: missing card_name"
+  exit 1
+else
+  case $DEV_BOARD_SW in
+    "cxo640g")
+      DEV_BOARD_OUTPUT="CXO640G-MX"
+      ;;
+    "olt1t0f")
+      DEV_BOARD_OUTPUT="CXOLT1T0-F"
+      ;;
+    "olt1t0")
+      DEV_BOARD_OUTPUT="CXOLT1T0"
+      ;;
+    "olt1t0-ac")
+      DEV_BOARD_OUTPUT="CXOLT1T0-AC"
+      ;;
+    *)
+      log_write "$APP: invalid card -- '$DEV_BOARD_SW'"
+      print_help
+      exit 1
+      ;;
+  esac
+fi
+
+export DEV_BOARD_SW=$DEV_BOARD_SW
+
+# DESTDIR will point to build_dir location (external libs and includes)
+if [ -z $DESTDIR ]; then
+ DESTDIR=$BASE_PATH/build_dir/$DEV_BOARD_SW
+fi
+
+# Check if DESTDIR exists
+if [ ! -d $DESTDIR ]; then
+ echo "ERROR!!! $DESTDIR don't exist!" >> $LOG_FILE
+ mkdir -p $DESTDIR
+fi
+# Create package folder if it doesn't exist
+if [ ! -d "$DESTDIR/packages" ]; then
+ echo "$DESTDIR/packages does not exist... Creating it." >> $LOG_FILE
+ mkdir -p $DESTDIR/packages
+fi
+
+build_swdrv $DEV_BOARD_SW $BUILD_PACKAGE
+if [ $? -ne 0 ]; then
+ echo "ERROR compiling SwitchDrv!!!" >> $LOG_FILE
+ exit 1;
+fi
+
+echo "All done without errors!!"
+
+#done without errors
+echo "" >> $LOG_FILE
+echo "-- end script --" >> $LOG_FILE
+
+
+exit 0
+
+
+
+
