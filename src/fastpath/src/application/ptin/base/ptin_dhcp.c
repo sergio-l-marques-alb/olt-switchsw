@@ -3331,8 +3331,6 @@ L7_RC_t ptin_dhcp_clientData_get(L7_uint16 intVlan,
                                  L7_uint client_idx,
                                  ptin_client_id_t *client)
 {
-  ptin_intf_t ptin_intf;
-  //st_DhcpInstCfg_t *dhcpInst;
   ptinDhcpClientInfoData_t *clientInfo;
 
   /* Validate arguments */
@@ -3342,16 +3340,6 @@ L7_RC_t ptin_dhcp_clientData_get(L7_uint16 intVlan,
       PT_LOG_ERR(LOG_CTX_DHCP,"Invalid arguments");
     return L7_FAILURE;
   }
-
-  #if 0
-  /* DHCP instance, from internal vlan */
-  if (ptin_dhcp_inst_get_fromIntVlan(intVlan,&dhcpInst,L7_NULLPTR)!=L7_SUCCESS)
-  {
-    if (ptin_debug_dhcp_snooping)
-      PT_LOG_ERR(LOG_CTX_DHCP,"No DHCP instance associated to intVlan %u",intVlan);
-    return L7_FAILURE;
-  }
-  #endif
 
   /* Get pointer to client structure in AVL tree */
   clientInfo = clientInfo_pool[client_idx].client_info;
@@ -3365,13 +3353,14 @@ L7_RC_t ptin_dhcp_clientData_get(L7_uint16 intVlan,
 
   memset(client,0x00,sizeof(ptin_client_id_t));
   #if (DHCP_CLIENT_INTERF_SUPPORTED)
-  if (ptin_intf_intIfNum2ptintf(clientInfo->dhcpClientDataKey.intIfNum, &ptin_intf)!=L7_SUCCESS)
+  if (ptin_intf_port2typeId(clientInfo->ptin_port,
+                            &client->ptin_intf.intf_type, &client->ptin_intf.intf_id) != L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      PT_LOG_ERR(LOG_CTX_DHCP,"Cannot convert client port %uu to ptin_intf format",clientInfo->dhcpClientDataKey.intIfNum);
+      PT_LOG_ERR(LOG_CTX_DHCP,"Cannot convert client port %u to ptin_intf format",
+                 clientInfo->ptin_port);
     return L7_FAILURE;
   }
-  client->ptin_intf = ptin_intf;
   client->mask |= PTIN_CLIENT_MASK_FIELD_INTF;
   #endif
   #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
@@ -4481,7 +4470,7 @@ void ptin_dhcp_dump(L7_BOOL show_clients)
         {
           printf("   Client#%-5u: "
                  #if (DHCP_CLIENT_INTERF_SUPPORTED)
-                 "ptin_port=%-2u "
+                 "intIfNum=%-2u "
                  #endif
                  #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
                  "svlan=%-4u "
@@ -4495,7 +4484,7 @@ void ptin_dhcp_dump(L7_BOOL show_clients)
                  #if (DHCP_CLIENT_MACADDR_SUPPORTED)
                  "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
                  #endif
-                 ": [uni_vlans=%4u+%-4u] options=0x%04x circuitId=\"%s\" remoteId=\"%s\"\r\n",
+                 ": ptin_port=%-2u [uni_vlans=%4u+%-4u] options=0x%04x circuitId=\"%s\" remoteId=\"%s\"\r\n",
                  avl_info->client_index,
                  #if (DHCP_CLIENT_INTERF_SUPPORTED)
                  avl_info->dhcpClientDataKey.intIfNum,
@@ -4520,6 +4509,7 @@ void ptin_dhcp_dump(L7_BOOL show_clients)
                      avl_info->dhcpClientDataKey.macAddr[4],
                       avl_info->dhcpClientDataKey.macAddr[5],
                  #endif
+                 avl_info->ptin_port,
                  avl_info->uni_ovid, avl_info->uni_ivid,
                  avl_info->client_data.dhcp_options,
                  avl_info->client_data.circuitId_str,

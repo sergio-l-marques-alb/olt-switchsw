@@ -494,7 +494,16 @@ L7_BOOL _dsVlanIntfTrustGet(L7_uint16 vlanId, L7_uint32 intIfNum)
  */
 L7_BOOL _dsVlanIsIntfRoot(L7_uint16 vlanId, L7_uint32 intIfNum)
 {
-  return ptin_evc_intf_isRoot(vlanId, intIfNum2port(intIfNum, 0));
+  L7_uint32 ptin_port;
+
+  /* ATTENTION: For a root interface, it's ok to convert a intIfNum to a ptin_port
+     (for uplink ports there is a 1:1 relation between these two types) */
+  if (ptin_intf_intIfNum2port(intIfNum, 0/*Don't care*/, &ptin_port) != L7_SUCCESS)
+  {
+      return L7_FALSE;
+  }
+  
+  return ptin_evc_intf_isRoot(vlanId, ptin_port);
 }
 
 /*********************************************************************

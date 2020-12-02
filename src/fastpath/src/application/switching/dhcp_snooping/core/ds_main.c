@@ -776,66 +776,65 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
       /* Only search and validate client for non CXP360G and untrusted interfaces */
 #if ( !PTIN_BOARD_IS_MATRIX )
 
-      if (!_dsVlanIsIntfRoot(pduInfo->vlanId, pduInfo->intIfNum))
+    if (!_dsVlanIsIntfRoot(pduInfo->vlanId, pduInfo->intIfNum))
+    {
+      ptin_client_id_t client;
+
+      /* Client information */
+      memset(&client, 0x00, sizeof(client));
+      client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
+      client.outerVlan = vlanId;
+      client.innerVlan = (innerVlanId > 0 && innerVlanId < 4096) ? innerVlanId : 0;
+      client.mask  = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INTIFNUM;
+      client.mask |= (innerVlanId > 0 && innerVlanId < 4096) ? PTIN_CLIENT_MASK_FIELD_INNERVLAN : 0;
+
+      /* Only search for a client, if inner vlan is valid */
+      /* Otherwise, use dynamic DHCP */
+      #if (PTIN_BOARD_IS_GPON)
+      if (innerVlanId >= 0 && innerVlanId < 4096)
+      #else
+      if (1)
+      #endif
       {
-        ptin_client_id_t client;
-
-        /* Client information */
-        memset(&client, 0x00, sizeof(client));
-        client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
-        client.outerVlan = vlanId;
-        client.innerVlan = (innerVlanId > 0 && innerVlanId < 4096) ? innerVlanId : 0;
-        client.mask  = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INTIFNUM;
-        client.mask |= (innerVlanId > 0 && innerVlanId < 4096) ? PTIN_CLIENT_MASK_FIELD_INNERVLAN : 0;
-
-        /* Only search for a client, if inner vlan is valid */
-        /* Otherwise, use dynamic DHCP */
-        #if (PTIN_BOARD_IS_GPON)
-        if (innerVlanId >= 0 && innerVlanId < 4096)
-        #else
-        if (1)
-        #endif
+        /* Find client index, and validate it */
+        if (ptin_dhcp_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS || client_idx>=PTIN_SYSTEM_DHCP_MAXCLIENTS)
         {
-          /* Find client index, and validate it */
-          if (ptin_dhcp_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS || client_idx>=PTIN_SYSTEM_DHCP_MAXCLIENTS)
+          if (ptin_debug_dhcp_snooping)
           {
-            if (ptin_debug_dhcp_snooping)
-            {
-              PT_LOG_ERR(LOG_CTX_DHCP,"Client not found! (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u extOVlan=%u extIVlan=%u)",
-                      pduInfo->intIfNum, client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan, vlanId, client.outerVlan, client.innerVlan);
-              PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored");
-            }
-
-            ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
-            ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
-
-            return SYSNET_PDU_RC_IGNORED;
+            PT_LOG_ERR(LOG_CTX_DHCP,"Client not found! (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u extOVlan=%u extIVlan=%u)",
+                    pduInfo->intIfNum, client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan, vlanId, client.outerVlan, client.innerVlan);
+            PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored");
           }
+
+          ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
+          ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
+
+          return SYSNET_PDU_RC_IGNORED;
         }
       }
+    }
 #endif
 
-      /*Get ptin_port from client_idx*/
-      rc = ptin_dhcp_clientData_get(vlanId, client_idx, &client_info);
-      if (rc != L7_SUCCESS)
+    /*Get ptin_port from client_idx*/
+    rc = ptin_dhcp_clientData_get(vlanId, client_idx, &client_info);
+    if (rc != L7_SUCCESS)
+    {
+      if (ptin_debug_dhcp_snooping)
       {
-        if (ptin_debug_dhcp_snooping)
-        {
-          PT_LOG_ERR(LOG_CTX_DHCP, "Error getting dhcp data");
-        }
-        return L7_FAILURE;
+        PT_LOG_ERR(LOG_CTX_DHCP, "Error getting dhcp data");
       }
-      rc = ptin_intf_ptintf2port(&client_info.ptin_intf, &ptin_port);
-      if (rc != L7_SUCCESS)
+      return L7_FAILURE;
+    }
+    rc = ptin_intf_ptintf2port(&client_info.ptin_intf, &ptin_port);
+    if (rc != L7_SUCCESS)
+    {
+      if (ptin_debug_dhcp_snooping)
       {
-        if (ptin_debug_dhcp_snooping)
-        {
-          PT_LOG_ERR(LOG_CTX_DHCP, "Error getting ptin_port");
-        }
-        return L7_FAILURE;
+        PT_LOG_ERR(LOG_CTX_DHCP, "Error getting ptin_port");
       }
-      
-
+      return L7_FAILURE;
+    }
+    
     /* VLAN is active for DHCP processing */
     /* Check if IPV6 is enabled for this VLAN */
     if (dsVlanIntfIsSnooping(pduInfo->vlanId, ptin_port) == L7_FALSE ||    /*FIXME TC16SXG ptin_port or intIfNum. Need to be Normalized*/
@@ -846,6 +845,8 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
       if (PTIN_VLAN_IS_QUATTRO(pduInfo->vlanId) && !(data[0] & 0x01))
       {
         l2_forward = L7_TRUE;
+        if (ptin_debug_dhcp_snooping)
+          PT_LOG_TRACE(LOG_CTX_DHCP,"Packet will not be processed. Forwarding it according to L2 table...");
       }
       else
       {
@@ -1223,7 +1224,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
 
     /* VLAN is active for DHCP processing */
     /* Check if IPV6 is enabled for this VLAN */
-    if (dsVlanIntfIsSnooping(pduInfo->vlanId, ptin_port) == L7_FALSE ||     /*FIXME TC16SXG ptin_port or intIfNum. Need to be Normalized*/
+    if (dsVlanIntfIsSnooping(pduInfo->vlanId, ptin_port) == L7_FALSE ||
         ptin_dhcp_flags_get(pduInfo->vlanId, L7_NULLPTR, &evc_flags) != L7_SUCCESS ||
         !(evc_flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL))
     {
@@ -1668,7 +1669,8 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   }
 
   /* Update Binding database only when DHCP Snooping is enabled */
-  if ((dsCfgData->dsGlobalAdminMode == L7_ENABLE) && (dsVlanIntfIsSnooping(vlanId, ptin_port) == L7_TRUE))    /*FIXME TC16SXG ptin_port or intIfNum. Need to be Normalized*/
+  if ((dsCfgData->dsGlobalAdminMode == L7_ENABLE) &&
+      (dsVlanIntfIsSnooping(vlanId, ptin_port) == L7_TRUE))
   {
     if (ptin_debug_dhcp_snooping)
       PT_LOG_TRACE(LOG_CTX_DHCP, "ptin_port %u, vlanId=%u valid", ptin_port, vlanId);
@@ -4103,10 +4105,9 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
   /* Do the following binding database processing checks only when DHCP
      Snooping operational on that interface. */
   if (dsCfgData->dsGlobalAdminMode == L7_ENABLE &&
-      dsVlanIntfIsSnooping(vlanId, ptin_port) /*dsIntfIsSnooping(intIfNum)*/ == L7_TRUE       /* PTin modified: DHCP snooping */     /*FIXME TC16SXG ptin_port or intIfNum. Need to be Normalized*/
-      /* && _dsVlanEnableGet(vlanId) == L7_TRUE*/)                                          /* PTin removed: DHCP snooping */
+      dsVlanIntfIsSnooping(vlanId, ptin_port) == L7_TRUE)
   {
-    if (_dsVlanIsIntfRoot(vlanId, ptin_port) /*_dsIntfTrustGet(intIfNum)*/ == L7_FALSE)     /* PTin modified: DHCP snooping */
+    if (_dsVlanIsIntfRoot(vlanId, intIfNum) == L7_FALSE)
     {
       dsIntfInfo[intIfNum].dsIntfStats.untrustedSvrMsg++;
       if (_dsIntfLogInvalidGet(intIfNum))
@@ -4513,11 +4514,10 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
   /* Do the following binding database processing checks only when DHCP
      Snooping operational on that interface. */
   if (dsCfgData->dsGlobalAdminMode == L7_ENABLE &&
-      dsVlanIntfIsSnooping(vlanId,intIfNum) /*dsIntfIsSnooping(intIfNum)*/ == L7_TRUE         /* PTin modified: DHCP snooping */    /*FIXME TC16SXG ptin_port or intIfNum. Need to be Normalized*/
-     /* && _dsVlanEnableGet(vlanId) == L7_TRUE*/ )                                            /* PTin removed: DHCP snooping */
+      dsVlanIntfIsSnooping(vlanId,ptin_port) == L7_TRUE)
 
   {
-    if (_dsVlanIsIntfRoot(vlanId, ptin_port) /*_dsIntfTrustGet(intIfNum)*/ == L7_TRUE)        /* PTin modified: DHCP snooping */    /*FIXME TC16SXG ptin_port or intIfNum. Need to be Normalized*/
+    if (_dsVlanIsIntfRoot(vlanId, intIfNum) == L7_TRUE)
     {
       /* If the interface is trusted Snooping interface, then the database
          related validations are not needed as the binding database is updated
@@ -4651,7 +4651,7 @@ L7_BOOL dsFilterVerifyMac(L7_uint32 intIfNum, L7_ushort16 vlanId,
   dhcpPacket = (L7_dhcp_packet_t*)((L7_char8 *)udp_header + sizeof(L7_udp_header_t));
 
   if ((dhcpPacket->op == L7_DHCP_BOOTP_REQUEST) &&
-      (_dsVlanIsIntfRoot(vlanId,intIfNum) /*_dsIntfTrustGet(intIfNum)*/ == L7_FALSE))     /* PTin modified: DHCP snooping */
+      (_dsVlanIsIntfRoot(vlanId,intIfNum) == L7_FALSE))
   {
     /* client message on untrusted interface */
     srcMacAddr = (L7_enetMacAddr_t*) (frame + L7_ENET_MAC_ADDR_LEN);
