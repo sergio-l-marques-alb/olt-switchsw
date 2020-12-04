@@ -1868,7 +1868,7 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_uint
       ptin_evc_find_flow(innerVlan, &(evcs[evc_int_id].intf[ptin_port].clients), (dl_queue_elem_t **) &pclientFlow);
       if (pclientFlow==NULL)
       {
-        //PT_LOG_ERR(LOG_CTX_EVC,"There is no flow with gemId=%u in ptin_port=%u and EVC=%u",innerVlan,ptin_port,evc_int_id);
+        PT_LOG_ERR(LOG_CTX_EVC,"There is no flow with gemId=%u in ptin_port=%u and EVC=%u",innerVlan,ptin_port,evc_int_id);
         return L7_FAILURE;
       }
       ovid = pclientFlow->uni_ovid;
@@ -1882,7 +1882,7 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_uint
       ptin_evc_find_client(innerVlan, &(evcs[evc_int_id].intf[ptin_port].clients), (dl_queue_elem_t **) &pclientFlow);
       if (pclientFlow==NULL)
       {
-        //PT_LOG_ERR(LOG_CTX_EVC,"There is no client/flow with cvid=%u in ptin_port=%u and EVC=%u",innerVlan,ptin_port,evc_int_id);
+        PT_LOG_ERR(LOG_CTX_EVC,"There is no client/flow with cvid=%u in ptin_port=%u and EVC=%u",innerVlan,ptin_port,evc_int_id);
         return L7_FAILURE;
       }
       ovid = pclientFlow->uni_ovid;
@@ -2448,7 +2448,7 @@ L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 ptin_port, L7_uint16 intOVla
   /* Get external vlans */
   if (ptin_evc_extVlans_get(ptin_port, evc_ext_id, evc_int_id, intIVlan, extOVlan, extIVlan)!=L7_SUCCESS)
   {
-    //PT_LOG_ERR(LOG_CTX_EVC,"Error getting external vlans for ptin_port=%u, evc_ext_id=0x%x, intIVlan=%u",ptin_port,evc_ext_id,intIVlan);
+    PT_LOG_ERR(LOG_CTX_EVC,"Error getting external vlans for ptin_port=%u, evc_ext_id=0x%x, intIVlan=%u",ptin_port,evc_ext_id,intIVlan);
     return L7_FAILURE;
   }
 

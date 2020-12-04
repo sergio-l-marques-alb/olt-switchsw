@@ -457,7 +457,7 @@ L7_BOOL _dsVlanIntfTrustGet(L7_uint16 vlanId, L7_uint32 intIfNum)
 {
   /* PTin modified: DHCP snooping */
   #if 1
-  return ptin_dhcp_is_intfTrusted(intIfNum,vlanId);
+  return ptin_dhcp_is_intfTrusted(intIfNum2port(intIfNum,0/*Don't care*/), vlanId);
   #else
   ptin_HwEthMef10Evc_t evcConf;
   L7_uint8 port;

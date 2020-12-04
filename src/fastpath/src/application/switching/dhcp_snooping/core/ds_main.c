@@ -4353,7 +4353,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       }
     }
 
-    if ((_dsVlanIntfL2RelayTrustGet(vlanId, ptin_port) /*_dsIntfL2RelayTrustGet(intIfNum)*/ == L7_TRUE)   /* PTin modified: DHCP snooping */
+    if ((_dsVlanIntfL2RelayTrustGet(vlanId, intIfNum) /*_dsIntfL2RelayTrustGet(intIfNum)*/ == L7_TRUE)   /* PTin modified: DHCP snooping */
          && (relayFlag == L7_FALSE))
     {
       /* The packet is put for filtering as the packet might not have Option-82,
@@ -4373,7 +4373,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       return L7_FALSE;
 #endif
     }
-    else if ((_dsVlanIntfL2RelayTrustGet(vlanId, ptin_port) /*_dsIntfL2RelayTrustGet(intIfNum)*/ == L7_FALSE)   /* PTin modified: DHCP snooping */ /*FIXME TC16SXG intIfNum or ptin_port????*/
+    else if ((_dsVlanIntfL2RelayTrustGet(vlanId, intIfNum) /*_dsIntfL2RelayTrustGet(intIfNum)*/ == L7_FALSE)   /* PTin modified: DHCP snooping */ /*FIXME TC16SXG intIfNum or ptin_port????*/
              && (relayFlag == L7_TRUE))
     {
       /* The packet is put for filtering as the packet have Option-82,
@@ -4610,7 +4610,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
     /* If giaadr is 0, we MUST drop packets with the relay option recv on untrusted interfaces. */
     if(dhcpPacket->giaddr == 0)
     {
-       if ((relayFlag == L7_TRUE) && (_dsVlanIntfL2RelayTrustGet(vlanId,intIfNum) == L7_FALSE))   /* PTin modified: DHCP snooping */
+       if ((relayFlag == L7_TRUE) && ( ptin_dhcp_is_intfTrusted(ptin_port, vlanId) == L7_FALSE))   /* PTin modified: DHCP snooping */
        {
          dsIntfInfo[intIfNum].dsIntfStats.untrustedClientFramesWithOption82++;
          ptin_dhcp_stat_increment_field(ptin_port, vlanId, *client_idx, DHCP_STAT_FIELD_RX_CLIENT_PKTS_WITHOPS_ON_UNTRUSTED_INTF);
@@ -5164,6 +5164,11 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
       frameEthPrty  = (L7_uint8*)(frame + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
       *frameEthPrty &= 0x1F; //Reset p-bit
       *frameEthPrty |= ((0x7 & ethPrty) << 5); //Set p-bit
+
+      PT_LOG_TRACE(LOG_CTX_DHCP, "(%s)Frame forward inputs for DHCP %s are: intIfNum(%d), vlanId(%d), innerVlanId(%d)"
+                   "relayOptIntIfNum(%d), frameLen(%d) ", __FUNCTION__,
+                   (dhcpPacket->op == L7_DHCP_BOOTP_REQUEST) ? "request":"reply",
+                   intIfNum, vlanId, innerVlanId, relayOptIntIfNum, frameLen);
 
       /* PTin modified: DHCP snooping */
       if (dsFrameIntfFilterSend(relayOptIntIfNum, vlanId, frame, frameLen, L7_FALSE, innerVlanId, client_idx) == L7_SUCCESS)
