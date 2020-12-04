@@ -35,12 +35,19 @@ L7_RC_t ptin_env_init(void)
 {
     char *str;
 
-    PT_LOG_NOTICE(LOG_CTX_STARTUP, "Getting shell variable BOARD_HWVER...");
+    PT_LOG_NOTICE(LOG_CTX_STARTUP, "Getting shell variable %s...",
+                  BOARD_HWVER_STR);
 
-    str = getenv("BOARD_HWVER");
+    str = getenv(BOARD_HWVER_STR);
     if (NULL == str)
     {
-        PT_LOG_CRITIC(LOG_CTX_STARTUP, "BOARD_HWVER not found");
+        PT_LOG_CRITIC(LOG_CTX_STARTUP, "%s not found", BOARD_HWVER_STR);
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+        /* Assume V1 when environment variable isn't there
+           (Agreed with FW_CTRL, as some V1 have this problem.)*/
+        _board_hwver = 1;
+#else
+#endif
         return L7_FAILURE;
     }
 

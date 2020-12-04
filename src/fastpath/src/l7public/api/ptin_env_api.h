@@ -23,6 +23,11 @@
 
 #include "ptin_globaldefs.h"
 
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+#define BOARD_HWVER_STR "BOARD_VER"
+#else
+#define BOARD_HWVER_STR "BOARD_HWVER"
+#endif
 /**
  * Read all environment variables at the beginning
  * 

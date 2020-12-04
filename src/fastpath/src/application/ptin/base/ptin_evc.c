@@ -37,6 +37,7 @@
 #include "dtlinclude.h"
 #include "usmdb_nim_api.h"
 
+#include "ptin_env_api.h"
 
 #include <vlan_port.h>
 #if (PTIN_BOARD_IS_STANDALONE)
@@ -700,7 +701,13 @@ L7_RC_t ptin_evc_startup(void)
   /* 1st EVC for ASPEN A */
   memset(&evcConf, 0x00, sizeof(evcConf));
   evcConf.index         = PTIN_ASPEN2CPU_A_EVC;
-  evcConf.flags         = PTIN_EVC_MASK_MACLEARNING | PTIN_EVC_MASK_CPU_TRAPPING;
+  if (1==ptin_env_board_hwver()) {
+      evcConf.flags = PTIN_EVC_MASK_MACLEARNING | PTIN_EVC_MASK_CPU_TRAPPING;
+  }
+  else {
+      evcConf.flags = PTIN_EVC_MASK_MACLEARNING;
+      //evcConf.flags = PTIN_EVC_MASK_P2P;
+  }
   evcConf.mc_flood      = PTIN_EVC_MC_FLOOD_ALL;
   evcConf.internal_vlan = PTIN_ASPEN2CPU_A_VLAN;
   evcConf.n_intf        = 2;
@@ -739,7 +746,13 @@ L7_RC_t ptin_evc_startup(void)
   /* 2nd EVC for ASPEN B */
   memset(&evcConf, 0x00, sizeof(evcConf));
   evcConf.index         = PTIN_ASPEN2CPU_B_EVC;
-  evcConf.flags         = PTIN_EVC_MASK_MACLEARNING | PTIN_EVC_MASK_CPU_TRAPPING;
+  if (1==ptin_env_board_hwver()) {
+      evcConf.flags = PTIN_EVC_MASK_MACLEARNING | PTIN_EVC_MASK_CPU_TRAPPING;
+  }
+  else {
+      evcConf.flags = PTIN_EVC_MASK_MACLEARNING;
+      //evcConf.flags = PTIN_EVC_MASK_P2P;
+  }
   evcConf.mc_flood      = PTIN_EVC_MC_FLOOD_ALL;
   evcConf.internal_vlan = PTIN_ASPEN2CPU_B_VLAN;
   evcConf.n_intf        = 2;
