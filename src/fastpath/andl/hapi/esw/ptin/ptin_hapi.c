@@ -63,7 +63,7 @@ extern L7_uint64 hapiBroadReceice_dhcpv6_count;
 extern L7_uint64 hapiBroadReceice_pppoe_count;
 
 BROAD_POLICY_t lacp_policyId   = BROAD_POLICY_INVALID;
-BROAD_POLICY_t bl2cpu_policyId[3] = {BROAD_POLICY_INVALID, BROAD_POLICY_INVALID, BROAD_POLICY_INVALID};
+BROAD_POLICY_t internal_inband_policyId[3] = {BROAD_POLICY_INVALID, BROAD_POLICY_INVALID, BROAD_POLICY_INVALID};
 
 /********************************************************************
  * INTERNAL VARIABLES
@@ -5623,8 +5623,58 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       return L7_FAILURE;
   }
 
+  /* For TC16SXG, create a special rule for Aspen traffic */
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  {
+    L7_ushort16 vlanId, vlanMask;
+    BROAD_POLICY_t      policyId;
+    BROAD_POLICY_RULE_t ruleId;
+
+    /* BroadLight packets should have high priority */
+    vlanId   = PTIN_ASPEN2CPU_A_VLAN;
+    vlanMask = 0xffe;
+
+    /* Create policy to give more priority to BL packets */
+    rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+      return L7_FAILURE;
+    }
+    /* Define qualifiers and actions */
+    do
+    {
+      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGHEST);
+      if (rc != L7_SUCCESS)  break;
+      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *) &vlanId, (L7_uchar8 *) &vlanMask);
+      if (rc != L7_SUCCESS)  break;
+      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_HIPRIO, 0, 0);
+      if (rc != L7_SUCCESS)  break;
+      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_PERMIT, 0, 0, 0);
+      if (rc != L7_SUCCESS)  break;
+    } while (0);
+
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error configurating rule.");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+    /* Commit rule */
+    rc = hapiBroadPolicyCommit(&policyId);
+    if (L7_SUCCESS != rc)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error committing policy!");
+      return L7_FAILURE;
+    }
+    /* Save policy */
+    internal_inband_policyId[0] = policyId;
+
+    PT_LOG_NOTICE(LOG_CTX_STARTUP,"ASPEN exception rules added: ruleId:%u policyId:%u",ruleId, policyId);
+  }
+
   /* For OLT1T0 */
-#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#elif (PTIN_BOARD == PTIN_BOARD_OLT1T0)
   {
     L7_ushort16 vlanId, vlanMask;
     BROAD_POLICY_t      policyId;
@@ -5666,7 +5716,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       return L7_FAILURE;
     }
     /* Save policy */
-    bl2cpu_policyId[0] = policyId;
+    internal_inband_policyId[0] = policyId;
     PT_LOG_NOTICE(LOG_CTX_STARTUP,"BL2CPU rule added: ruleId:%u policyId:%u", ruleId, policyId);
 
 
@@ -5708,7 +5758,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       PT_LOG_ERR(LOG_CTX_STARTUP, "Error committing policy!");
       return L7_FAILURE;
     }
-    bl2cpu_policyId[1] = policyId;
+    internal_inband_policyId[1] = policyId;
 
     PT_LOG_NOTICE(LOG_CTX_STARTUP,"BL2CPU exception rules added: ruleId:%u policyId:%u",ruleId, policyId);
   }
