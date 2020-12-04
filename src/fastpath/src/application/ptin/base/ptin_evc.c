@@ -2272,16 +2272,23 @@ L7_RC_t ptin_evc_intf_type_get(L7_uint16 intVlan, L7_uint32 ptin_port, L7_uint8 
 
   /* Get MC EVC configuration */
   memset(&intfCfg, 0x00, sizeof(intfCfg));
+
+  PT_LOG_TRACE(LOG_CTX_EVC,"ptin_evc_intfCfg_get evc %u (intVlan=%u), intf=%u/%u configuration", evc_id, intVlan, ptin_intf.intf_type, ptin_intf.intf_id);
+
   if (ptin_evc_intfCfg_get(evcs[evc_id].extended_id, &ptin_intf, &intfCfg) != L7_SUCCESS)
   {
-    if (ptin_debug_igmp_snooping)
-      PT_LOG_ERR(LOG_CTX_EVC,"Error getting evc %u (intVlan=%u), intf=%u/%u configuration", evc_id, intVlan, ptin_intf.intf_type, ptin_intf.intf_id);
+    PT_LOG_ERR(LOG_CTX_EVC,"Error getting evc %u (intVlan=%u), intf=%u/%u configuration", evc_id, intVlan, ptin_intf.intf_type, ptin_intf.intf_id);
     return L7_FAILURE;
   }
 
   /* type pointer must not be null */
   if (type != L7_NULLPTR)
   {
+    if (ptin_debug_dhcp_snooping)
+    {
+      PT_LOG_TRACE(LOG_CTX_EVC,"intfCfg.in_use=%u intfCfg.type=%u",intfCfg.in_use, intfCfg.type);
+    }
+
     if (!intfCfg.in_use)
     {
       *type = PTIN_EVC_INTF_NOTUSED;
@@ -2318,6 +2325,7 @@ L7_BOOL ptin_evc_intf_isRoot(L7_uint16 intVlan, L7_uint32 ptin_port)
   /* If VLAN is null, return general trusted state */
   if (intVlan == 0)
   {
+    PT_LOG_WARN(LOG_CTX_DHCP, "intVlan=0 return true");
     return L7_TRUE;
   }
 

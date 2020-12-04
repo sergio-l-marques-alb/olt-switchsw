@@ -841,6 +841,7 @@ static L7_RC_t dsBindingCopy(dsBindingTreeNode_t *binding,
   }
   extBinding->innerVlanId = binding->innerVlanId;   /* PTin added: DHCP */
   extBinding->intIfNum = binding->intIfNum;
+  extBinding->ptin_port = binding->ptin_port;
   extBinding->bindingType = binding->bindingType;
   extBinding->remLease = 0;
   extBinding->flags = binding->flags;
@@ -874,6 +875,9 @@ static L7_RC_t dsLeaseStatusUpdate(dsBindingTreeKey_t *key, L7_uint inetFamily, 
 {
   dsBindingTreeNode_t *binding;
 
+  PT_LOG_TRACE(LOG_CTX_DHCP, "Updating lease status key [macAddr:%02x:%02x:%02x:%02x:%02x:%02x, vlanId=%u, messageType:%u]",
+               key->macAddr.addr[0], key->macAddr.addr[1], key->macAddr.addr[2], key->macAddr.addr[3], key->macAddr.addr[4], key->macAddr.addr[5], key->vlanId, messageType);
+
   if (dsBindingTreeSearch(key, L7_MATCH_EXACT, &binding) != L7_SUCCESS)
     return L7_FAILURE;
 
@@ -882,8 +886,12 @@ static L7_RC_t dsLeaseStatusUpdate(dsBindingTreeKey_t *key, L7_uint inetFamily, 
     return L7_SUCCESS;
   }
 
-  PT_LOG_TRACE(LOG_CTX_DHCP, "Updating lease status [macAddr:%02x:%02x:%02x:%02x:%02x:%02x messageType:%u]",
-            key->macAddr.addr[0], key->macAddr.addr[1], key->macAddr.addr[2], key->macAddr.addr[3], key->macAddr.addr[4], key->macAddr.addr[5], messageType);
+  PT_LOG_TRACE(LOG_CTX_DHCP, "Binding To Update: MAC=%02x:%02x:%02x:%02x:%02x:%02x; vlanId=%u"
+                             " ptin_port=%u, intIfNum=%u, innerVlanId=%u, ipAddr=%x",
+               binding->key.macAddr.addr[0], binding->key.macAddr.addr[1], binding->key.macAddr.addr[2],
+               binding->key.macAddr.addr[3], binding->key.macAddr.addr[4], binding->key.macAddr.addr[5],
+               binding->key.vlanId, binding->ptin_port, binding->intIfNum,  binding->innerVlanId,
+               binding->ipAddr);
 
   dsInfo->dsDbDataChanged = L7_TRUE;
   binding->leaseStatus    = messageType;
@@ -953,6 +961,9 @@ L7_RC_t dsBindingFlagsUpdate(dsBindingTreeKey_t *key, L7_uint8 flags)
 {
   dsBindingTreeNode_t *binding;
 
+  PT_LOG_TRACE(LOG_CTX_DHCP, "Updating lease flags key [macAddr:%02x:%02x:%02x:%02x:%02x:%02x flags:%02X]",
+            key->macAddr.addr[0], key->macAddr.addr[1], key->macAddr.addr[2], key->macAddr.addr[3], key->macAddr.addr[4], key->macAddr.addr[5], flags);
+
   if (dsBindingTreeSearch(key, L7_MATCH_EXACT, &binding) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_DHCP, "Unable to find requested entry [macAddr:%02x:%02x:%02x:%02x:%02x:%02x vlanId:%u ipType:%u], ",
@@ -960,8 +971,12 @@ L7_RC_t dsBindingFlagsUpdate(dsBindingTreeKey_t *key, L7_uint8 flags)
     return L7_FAILURE;
   }
 
-  PT_LOG_TRACE(LOG_CTX_DHCP, "Updating lease flags [macAddr:%02x:%02x:%02x:%02x:%02x:%02x flags:%02X]",
-            key->macAddr.addr[0], key->macAddr.addr[1], key->macAddr.addr[2], key->macAddr.addr[3], key->macAddr.addr[4], key->macAddr.addr[5], flags);
+  PT_LOG_TRACE(LOG_CTX_DHCP, "Binding To Update: MAC=%02x:%02x:%02x:%02x:%02x:%02x; vlanId=%u"
+                             " ptin_port=%u, intIfNum=%u, innerVlanId=%u, ipAddr=%x",
+               binding->key.macAddr.addr[0],binding->key.macAddr.addr[1],binding->key.macAddr.addr[2],
+               binding->key.macAddr.addr[3],binding->key.macAddr.addr[4],binding->key.macAddr.addr[5],
+               binding->key.vlanId, binding->ptin_port, binding->intIfNum,  binding->innerVlanId,
+               binding->ipAddr);
 
   dsInfo->dsDbDataChanged = L7_TRUE;
   binding->flags          = flags;
