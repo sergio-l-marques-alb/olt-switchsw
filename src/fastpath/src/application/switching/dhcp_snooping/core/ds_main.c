@@ -1840,7 +1840,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       relayOptIntIfNum = dhcp_binding.ptin_port;
       if (ptin_debug_dhcp_snooping)
       {
-         PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: relayOptIntIfNum=%u ",relayOptIntIfNum);
+         PT_LOG_TRACE(LOG_CTX_DHCP, "DHCP Relay-Agent: relayOptIntIfNum=%u ",relayOptIntIfNum);
       }
 
       /* Remove relay agent info if we added it during the client request */

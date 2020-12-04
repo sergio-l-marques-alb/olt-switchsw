@@ -27,8 +27,6 @@
 
 #define DHCP_INVALID_ENTRY    0xFF
 
-#define DHCP_INVALID_CLIENT_IDX (L7_uint)-1
-
 #define DHCP_CLIENT_DEBUG 1
 L7_BOOL ptin_debug_dhcp_snooping = 0;
 

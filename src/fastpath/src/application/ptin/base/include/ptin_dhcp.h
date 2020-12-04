@@ -44,6 +44,9 @@
 #define CIRCUITID_Q_VID_STR             "$qvid"   
 #define CIRCUITID_C_VID_STR             "$cvid"   
 
+#define DHCP_INVALID_CLIENT_IDX (L7_uint)-1
+
+
 /***********************************************************
  * Typedefs
  ***********************************************************/
