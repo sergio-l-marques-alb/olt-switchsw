@@ -52,6 +52,8 @@ L7_RC_t ptin_env_init(void)
     }
 
     _board_hwver = atoi(str);//strtol(str, NULL, 10);
+    PT_LOG_NOTICE(LOG_CTX_STARTUP, "\"%s\" = getenv(%s) => _board_hwver=%u",
+                  str, BOARD_HWVER_STR, _board_hwver);
 
     return L7_SUCCESS;
 }
