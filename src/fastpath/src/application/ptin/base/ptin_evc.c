@@ -9367,7 +9367,9 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
     {
       if (!is_stacked)
       {
-        intf_vlan.action_outer = PTIN_XLATE_ACTION_ADD;
+        /* Push new Outer VLAN is not supported for Trident3x3 */
+        intf_vlan.action_outer = PTIN_XLATE_ACTION_REPLACE;
+        //intf_vlan.action_outer = PTIN_XLATE_ACTION_ADD;
         intf_vlan.action_inner = PTIN_XLATE_ACTION_NONE;
       }
       else
