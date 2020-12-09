@@ -920,7 +920,7 @@ int main(int argc, char *argv[], char *envp[])
   }
 
   /* Read HW version for T0F cards*/
-#if (PTIN_BOARD == PTIN_BOARD_OLT1T0F) 
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0F) || (PTIN_BOARD == PTIN_BOARD_TC16SXG)
    (void) ptin_env_init();
 #endif
   /* Get kernel information */
