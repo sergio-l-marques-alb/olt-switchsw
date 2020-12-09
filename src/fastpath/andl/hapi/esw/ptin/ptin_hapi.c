@@ -30,6 +30,7 @@
 #include "ptin_ptp_fpga.h"
 #include "ptin_hapi_fp_bwpolicer.h"
 #include "ptin_hapi_fp_counters.h"
+#include "ptin_env_api.h"
 #include "broad_policy.h"
 #include "simapi.h"
 #include "broad_group_bcm.h"
@@ -5625,7 +5626,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 
   /* For TC16SXG, create a special rule for Aspen traffic */
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-  {
+  if (1!=ptin_env_board_hwver()) {
     L7_ushort16 vlanId, vlanMask;
     BROAD_POLICY_t      policyId;
     BROAD_POLICY_RULE_t ruleId;
