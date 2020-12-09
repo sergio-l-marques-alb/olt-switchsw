@@ -1967,6 +1967,7 @@ L7_RC_t ptin_pppoe_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cl
     PT_LOG_ERR(LOG_CTX_PPPOE,
             "Error searching for client {mask=0x%02x,"
             "port=%u/%u,"
+            "ptin_port=%u,"
             "svlan=%u,"
             "cvlan=%u,"
             "ipAddr=%u.%u.%u.%u,"
@@ -1974,6 +1975,7 @@ L7_RC_t ptin_pppoe_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cl
             "in pppoe_idx=%u",
             client.mask,
             client.ptin_intf.intf_type, client.ptin_intf.intf_id,
+            client.ptin_port,
             client.outerVlan,
             client.innerVlan,
             (client.ipv4_addr>>24) & 0xff, (client.ipv4_addr>>16) & 0xff, (client.ipv4_addr>>8) & 0xff, client.ipv4_addr & 0xff,
@@ -2268,6 +2270,7 @@ L7_RC_t ptin_pppoe_stat_client_clear(L7_uint32 evc_idx, const ptin_client_id_t *
     PT_LOG_ERR(LOG_CTX_PPPOE,
             "Error searching for client {mask=0x%02x,"
             "port=%u/%u,"
+            "ptin_port=%u, "
             "svlan=%u,"
             "cvlan=%u,"
             "ipAddr=%u.%u.%u.%u,"
@@ -2275,6 +2278,7 @@ L7_RC_t ptin_pppoe_stat_client_clear(L7_uint32 evc_idx, const ptin_client_id_t *
             "in pppoe_idx=%u",
             client.mask,
             client.ptin_intf.intf_type, client.ptin_intf.intf_id,
+            client.ptin_port,
             client.outerVlan,
             client.innerVlan,
             (client.ipv4_addr>>24) & 0xff, (client.ipv4_addr>>16) & 0xff, (client.ipv4_addr>>8) & 0xff, client.ipv4_addr & 0xff,
@@ -2739,10 +2743,11 @@ L7_RC_t ptin_pppoe_clientData_get(L7_uint16 intVlan,
   if (ptin_intf_port2ptintf(clientInfo->pppoeClientDataKey.ptin_port,&ptin_intf)!=L7_SUCCESS)
   {
     if (ptin_debug_pppoe_snooping)
-      PT_LOG_ERR(LOG_CTX_PPPOE,"Cannot convert client port %uu to ptin_intf format",clientInfo->pppoeClientDataKey.ptin_port);
+      PT_LOG_ERR(LOG_CTX_PPPOE,"Cannot convert client port %u to ptin_intf format",clientInfo->pppoeClientDataKey.ptin_port);
     return L7_FAILURE;
   }
   client->ptin_intf = ptin_intf;
+  client->ptin_port = clientInfo->pppoeClientDataKey.ptin_port;
   client->mask |= PTIN_CLIENT_MASK_FIELD_INTF;
   #endif
   #if (PPPOE_CLIENT_OUTERVLAN_SUPPORTED)

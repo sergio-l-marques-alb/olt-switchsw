@@ -1913,7 +1913,7 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
   #if (DHCP_CLIENT_DEBUG)
   PT_LOG_TRACE(LOG_CTX_DHCP,"Key to search {"
             #if (DHCP_CLIENT_INTERF_SUPPORTED)
-                              "port=%u,"
+                              "intIfNum=%u,"
             #endif
             #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
                               "svlan=%u,"
@@ -1951,7 +1951,7 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
   {
     PT_LOG_WARN(LOG_CTX_DHCP,"This key {"
                 #if (DHCP_CLIENT_INTERF_SUPPORTED)
-                                  "port=%u,"
+                                  "intIfNum=%u,"
                 #endif
                 #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
                                   "svlan=%u,"
@@ -1993,7 +1993,7 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
   {
     PT_LOG_ERR(LOG_CTX_DHCP,"Error removing key {"
             #if (DHCP_CLIENT_INTERF_SUPPORTED)
-                              "port=%u,"
+                              "intIfNum=%u,"
             #endif
             #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
                               "svlan=%u,"
@@ -2032,7 +2032,7 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
 
   PT_LOG_TRACE(LOG_CTX_DHCP,"Success removing Key {"
             #if (DHCP_CLIENT_INTERF_SUPPORTED)
-                              "port=%u,"
+                              "intIfNum=%u,"
             #endif
             #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
                               "svlan=%u,"
@@ -2378,6 +2378,7 @@ L7_RC_t ptin_dhcp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
     PT_LOG_ERR(LOG_CTX_DHCP,
             "Error searching for client {mask=0x%02x,"
             "port=%u/%u,"
+            "ptin_port=%u,"
             "svlan=%u,"
             "cvlan=%u,"
             "ipAddr=%u.%u.%u.%u,"
@@ -2385,6 +2386,7 @@ L7_RC_t ptin_dhcp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
             "in dhcp_idx=%u",
             client.mask,
             client.ptin_intf.intf_type, client.ptin_intf.intf_id,
+            client.ptin_port,
             client.outerVlan,
             client.innerVlan,
             (client.ipv4_addr>>24) & 0xff, (client.ipv4_addr>>16) & 0xff, (client.ipv4_addr>>8) & 0xff, client.ipv4_addr & 0xff,
@@ -2715,6 +2717,7 @@ L7_RC_t ptin_dhcp_stat_client_clear(L7_uint32 evc_idx, const ptin_client_id_t *c
     PT_LOG_ERR(LOG_CTX_DHCP,
             "Error searching for client {mask=0x%02x,"
             "port=%u/%u,"
+            "ptin_port=%u,"
             "svlan=%u,"
             "cvlan=%u,"
             "ipAddr=%u.%u.%u.%u,"
@@ -2722,6 +2725,7 @@ L7_RC_t ptin_dhcp_stat_client_clear(L7_uint32 evc_idx, const ptin_client_id_t *c
             "in dhcp_idx=%u",
             client.mask,
             client.ptin_intf.intf_type, client.ptin_intf.intf_id,
+            client.ptin_port,
             client.outerVlan,
             client.innerVlan,
             (client.ipv4_addr>>24) & 0xff, (client.ipv4_addr>>16) & 0xff, (client.ipv4_addr>>8) & 0xff, client.ipv4_addr & 0xff,
@@ -3191,7 +3195,9 @@ L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
   if ( client==L7_NULLPTR || DHCP_CLIENT_MASK_UPDATE(client->mask)==0x00)
   {
     if (ptin_debug_dhcp_snooping)
+    {
       PT_LOG_ERR(LOG_CTX_DHCP,"Invalid arguments");
+    }
     return L7_FAILURE;
   }
 
@@ -3199,49 +3205,58 @@ L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
   if (ptin_dhcp_inst_get_fromIntVlan(intVlan,L7_NULLPTR,&dhcp_idx)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
+    {
       PT_LOG_ERR(LOG_CTX_DHCP,"No DHCP instance associated to intVlan %u",intVlan);
+    }
     return L7_FAILURE;
   }
 
   /* If the inner vlan is not valid, return -1 as client index */
-  #if DHCP_CLIENT_INNERVLAN_SUPPORTED
+#if DHCP_CLIENT_INNERVLAN_SUPPORTED
   if ((client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) &&
       (client->innerVlan==0 || client->innerVlan>4095))
   {
-    if (client_index!=L7_NULLPTR)  *client_index = (L7_uint)-1;
+    if (client_index!=L7_NULLPTR)
+    {
+      *client_index = (L7_uint)-1;
+    }
     return L7_SUCCESS;
   }
-  #endif
+#endif
 
   /* Get intIfNum format for the interface number */
-  #if (DHCP_CLIENT_INTERF_SUPPORTED)
+#if (DHCP_CLIENT_INTERF_SUPPORTED)
   if (intIfNum != (L7_uint32)-1 /*All*/)
   {
-      client->intIfNum = intIfNum;
-      client->mask |= PTIN_CLIENT_MASK_FIELD_INTIFNUM;
-#if 1
-      client->mask &= ~PTIN_CLIENT_MASK_FIELD_INTF;
-#else
-      if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF)
+    client->intIfNum = intIfNum;
+    client->mask |= PTIN_CLIENT_MASK_FIELD_INTIFNUM;
+ #if 1
+    client->mask &= ~PTIN_CLIENT_MASK_FIELD_INTF;
+ #else
+    if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF)
+    {
+      if (intIfNum != (L7_uint32)-1 /*All*/)
       {
-        if (intIfNum != (L7_uint32)-1 /*All*/)
+        if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf) == L7_SUCCESS)
         {
-          if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf) == L7_SUCCESS)
+          client->ptin_intf.intf_type = ptin_intf.intf_type;
+          client->ptin_intf.intf_id   = ptin_intf.intf_id;
+        }
+        else
+        {
+          if (ptin_debug_dhcp_snooping)
           {
-            client->ptin_intf.intf_type = ptin_intf.intf_type;
-            client->ptin_intf.intf_id   = ptin_intf.intf_id;
+            PT_LOG_ERR(LOG_CTX_DHCP,
+                       "Connot convert client intIfNum %u to ptin_intf_format",
+                       intIfNum);
           }
-          else
-          {
-            if (ptin_debug_dhcp_snooping)
-              PT_LOG_ERR(LOG_CTX_DHCP,"Connot convert client intIfNum %u to ptin_intf_format",intIfNum);
-            return L7_FAILURE;
-          }
+          return L7_FAILURE;
         }
       }
-#endif
+    }
+ #endif
   }
-  #endif
+#endif
 
   //client->intIfNum = intIfNum; /*FIXME TC16SXG*/
 
@@ -3254,6 +3269,7 @@ L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
               "Error searching for client {mask=0x%02x,"
               "intIfNum=%u,"
               "port=%u/%u,"
+              "ptin_port=%u,"
               "svlan=%u,"
               "cvlan=%u,"
               "ipAddr=%u.%u.%u.%u,"
@@ -3262,6 +3278,7 @@ L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
               client->mask,
               client->intIfNum,
               client->ptin_intf.intf_type, client->ptin_intf.intf_id,
+              client->ptin_port,
               client->outerVlan,
               client->innerVlan,
               (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
@@ -3274,47 +3291,50 @@ L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
   /* Update client index in data cell */
   client_idx = clientInfo->client_index;
 
-  #if (DHCP_CLIENT_DEBUG)
+#if (DHCP_CLIENT_DEBUG)
   PT_LOG_TRACE(LOG_CTX_DHCP,"Client_idx=%u for key {"
-            #if (DHCP_CLIENT_INTERF_SUPPORTED)
-                              "port=%u,"
+ #if (DHCP_CLIENT_INTERF_SUPPORTED)
+                              "intIfNum=%u,"
                               "ptin_port=%u,"
-            #endif
-            #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+ #endif
+ #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
                               "svlan=%u,"
-            #endif
-            #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+ #endif
+ #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
                               "cvlan=%u,"
-            #endif
-            #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+ #endif
+ #if (DHCP_CLIENT_IPADDR_SUPPORTED)
                               "ipAddr=%u.%u.%u.%u,"
-            #endif
-            #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+ #endif
+ #if (DHCP_CLIENT_MACADDR_SUPPORTED)
                               "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
-            #endif
+ #endif
                               "}"
             ,client_idx
-            #if (DHCP_CLIENT_INTERF_SUPPORTED)
+ #if (DHCP_CLIENT_INTERF_SUPPORTED)
             ,clientInfo->dhcpClientDataKey.intIfNum
             , clientInfo->ptin_port
-            #endif
-            #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+ #endif
+ #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
             ,clientInfo->dhcpClientDataKey.outerVlan
-            #endif
-            #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+ #endif
+ #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
             ,clientInfo->dhcpClientDataKey.innerVlan
-            #endif
-            #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+ #endif
+ #if (DHCP_CLIENT_IPADDR_SUPPORTED)
             ,(clientInfo->dhcpClientDataKey.ipv4_addr>>24) & 0xff, (clientInfo->dhcpClientDataKey.ipv4_addr>>16) & 0xff, (clientInfo->dhcpClientDataKey.ipv4_addr>>8) & 0xff, clientInfo->dhcpClientDataKey.ipv4_addr & 0xff
-            #endif
-            #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+ #endif
+ #if (DHCP_CLIENT_MACADDR_SUPPORTED)
             ,clientInfo->dhcpClientDataKey.macAddr[0],clientInfo->dhcpClientDataKey.macAddr[1],clientInfo->dhcpClientDataKey.macAddr[2],clientInfo->dhcpClientDataKey.macAddr[3],clientInfo->dhcpClientDataKey.macAddr[4],clientInfo->dhcpClientDataKey.macAddr[5]
-            #endif
+ #endif
             );
-  #endif
+#endif
 
   /* Return client index */
-  if (client_index!=L7_NULLPTR)  *client_index = client_idx;
+  if (client_index!=L7_NULLPTR)
+  {
+      *client_index = client_idx;
+  }
 
   return L7_SUCCESS;
 }
@@ -3350,41 +3370,47 @@ L7_RC_t ptin_dhcp_clientData_get(L7_uint16 intVlan,
   if (clientInfo==L7_NULLPTR)
   {
     if (ptin_debug_dhcp_snooping)
+    {
       PT_LOG_ERR(LOG_CTX_DHCP,"Provided client_idx (%u) does not exist",client_idx);
+    }
     return L7_FAILURE;
   }
 
   memset(client,0x00,sizeof(ptin_client_id_t));
-  #if (DHCP_CLIENT_INTERF_SUPPORTED)
+#if (DHCP_CLIENT_INTERF_SUPPORTED)
   if (ptin_intf_port2typeId(clientInfo->ptin_port,
                             &client->ptin_intf.intf_type, &client->ptin_intf.intf_id) != L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
+    {
       PT_LOG_ERR(LOG_CTX_DHCP,"Cannot convert client port %u to ptin_intf format",
                  clientInfo->ptin_port);
+    }
     return L7_FAILURE;
   }
+
+  client->ptin_port = clientInfo->ptin_port;
   client->mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-  #endif
-  #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
   client->outerVlan = clientInfo->dhcpClientDataKey.outerVlan;
   client->mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-  #endif
-  #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
   if (clientInfo->dhcpClientDataKey.innerVlan > 0 && clientInfo->dhcpClientDataKey.innerVlan < 4096)
   {
     client->innerVlan = clientInfo->dhcpClientDataKey.innerVlan;
     client->mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
   }
-  #endif
-  #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_IPADDR_SUPPORTED)
   client->ipv4_addr = clientInfo->dhcpClientDataKey.ipv4_addr;
   client->mask |= PTIN_CLIENT_MASK_FIELD_IPADDR;
-  #endif
-  #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_MACADDR_SUPPORTED)
   memcpy(client->macAddr,clientInfo->dhcpClientDataKey.macAddr,sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
   client->mask |= PTIN_CLIENT_MASK_FIELD_MACADDR;
-  #endif
+#endif
 
   return L7_SUCCESS;
 }
@@ -3472,7 +3498,9 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 ptin_port, L7_uint16 intVlan, L7_uint1
       innerVlan==0 || innerVlan>=4096*/)
   {
     if (ptin_debug_dhcp_snooping)
+    {
       PT_LOG_ERR(LOG_CTX_DHCP,"Invalid arguments");
+    }
     return L7_FAILURE;
   }
 
@@ -3480,7 +3508,9 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 ptin_port, L7_uint16 intVlan, L7_uint1
   if (ptin_intf_port2ptintf(ptin_port, &ptin_intf)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
+    {
       PT_LOG_ERR(LOG_CTX_DHCP,"Invalid ptin_port (%u)", ptin_port);
+    }
     return L7_FAILURE;
   }
 
@@ -3488,7 +3518,9 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 ptin_port, L7_uint16 intVlan, L7_uint1
   if (ptin_dhcp_inst_get_fromIntVlan(intVlan,L7_NULLPTR,&dhcp_idx)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
+    {
       PT_LOG_ERR(LOG_CTX_DHCP,"Internal vlan %u does not correspond to any DHCP instance",intVlan);
+    }
     return L7_FAILURE;
   }
 
@@ -3502,25 +3534,27 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 ptin_port, L7_uint16 intVlan, L7_uint1
     memset(&client,0x00,sizeof(ptin_client_id_t));
 
 #if DHCP_CLIENT_INTERF_SUPPORTED
-
     if(ptin_intf_ptintf2intIfNum(&ptin_intf, &client.intIfNum) != L7_SUCCESS)
     {
-        if (ptin_debug_dhcp_snooping)
-        {
-            PT_LOG_ERR(LOG_CTX_DHCP, "Cannot convert from ptinf to intIfNum, ptin_intf %u,%u", ptin_intf.intf_type, ptin_intf.intf_id);
-        }
-        return L7_FAILURE;
+      if (ptin_debug_dhcp_snooping)
+      {
+        PT_LOG_ERR(LOG_CTX_DHCP, "Cannot convert from ptinf to intIfNum, ptin_intf %u,%u", 
+                   ptin_intf.intf_type, ptin_intf.intf_id);
+      }
+      return L7_FAILURE;
     }
-    client.mask |= PTIN_CLIENT_MASK_FIELD_INTIFNUM;
 
+    client.mask |= PTIN_CLIENT_MASK_FIELD_INTIFNUM;
     client.ptin_intf.intf_type = ptin_intf.intf_type;
     client.ptin_intf.intf_id   = ptin_intf.intf_id;
     client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
 #endif
+
 #if DHCP_CLIENT_OUTERVLAN_SUPPORTED
-      client.outerVlan = intVlan;
-      client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+    client.outerVlan = intVlan;
+    client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
 #endif
+
 #if DHCP_CLIENT_INNERVLAN_SUPPORTED
     if (innerVlan > 0 && innerVlan < 4096)
     {
@@ -3539,7 +3573,10 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 ptin_port, L7_uint16 intVlan, L7_uint1
     if (ptin_dhcp_client_find(dhcp_idx,&client,&client_info)!=L7_SUCCESS)
     {
       if (ptin_debug_dhcp_snooping)
-        PT_LOG_ERR(LOG_CTX_DHCP,"Non existent client in DHCP instance %u (EVC id %u)",dhcp_idx,dhcpInstances[dhcp_idx].evc_idx);
+      {
+        PT_LOG_ERR(LOG_CTX_DHCP,"Non existent client in DHCP instance %u (EVC id %u)",
+                   dhcp_idx,dhcpInstances[dhcp_idx].evc_idx);
+      }
       return L7_FAILURE;
     }
 
@@ -3553,6 +3590,7 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 ptin_port, L7_uint16 intVlan, L7_uint1
     {
       PT_LOG_ERR(LOG_CTX_DHCP, "circuitId is NULL");
     }
+
     if (remoteId!=L7_NULLPTR)
     {
       strncpy(remoteId ,client_info->client_data.remoteId_str ,FD_DS_MAX_REMOTE_ID_STRING);
@@ -3561,17 +3599,19 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 ptin_port, L7_uint16 intVlan, L7_uint1
   }
   else
   {
-    #if DHCP_ACCEPT_UNSTACKED_PACKETS
+#if DHCP_ACCEPT_UNSTACKED_PACKETS
     if (ptin_dhcp_strings_def_get(&ptin_intf,macAddr,circuitId,remoteId)!=L7_SUCCESS)
     {
       if (ptin_debug_dhcp_snooping)
+      {
         PT_LOG_ERR(LOG_CTX_DHCP,"Error getting default strings");
+      }
       return L7_FAILURE;
     }
-    #else
+#else
     PT_LOG_ERR(LOG_CTX_DHCP,"No client defined!");
     return L7_FAILURE;
-    #endif
+#endif
   }
 
   return L7_SUCCESS;
@@ -3983,9 +4023,6 @@ static L7_RC_t ptin_dhcp_client_find(L7_uint dhcp_idx, ptin_client_id_t *client_
   ptinDhcpClientDataKey_t avl_key;
   ptinDhcpClientsAvlTree_t *avl_tree;
   ptinDhcpClientInfoData_t *clientInfo;
-  #if (DHCP_CLIENT_INTERF_SUPPORTED)
-  L7_uint32 ptin_port;
-  #endif
 
   /* Validate arguments */
   if (dhcp_idx>=PTIN_SYSTEM_N_DHCP_INSTANCES || client_ref==L7_NULLPTR)
@@ -4002,24 +4039,6 @@ static L7_RC_t ptin_dhcp_client_find(L7_uint dhcp_idx, ptin_client_id_t *client_
       PT_LOG_ERR(LOG_CTX_DHCP,"DHCP instance %u is not in use",dhcp_idx);
     return L7_FAILURE;
   }
-
-  /* Get ptin_port value */
-  #if (DHCP_CLIENT_INTERF_SUPPORTED)
-  ptin_port = 0;
-  if (client_ref->mask & PTIN_CLIENT_MASK_FIELD_INTF)
-  {
-    /* Convert to ptin_port format */
-    if (ptin_intf_ptintf2port(&client_ref->ptin_intf,&ptin_port)!=L7_SUCCESS)
-    {
-      if (ptin_debug_dhcp_snooping)
-        PT_LOG_ERR(LOG_CTX_DHCP,"Cannot convert client_ref intf %u/%u to ptin_port format",client_ref->ptin_intf.intf_type,client_ref->ptin_intf.intf_id);
-      return L7_FAILURE;
-    }
-
-  }
-  #endif
-
-  PT_LOG_WARN(LOG_CTX_DHCP, "intIfNum %u, mask %u", client_ref->intIfNum, client_ref->mask);
 
   /* Key to search for */
   avl_tree = &dhcpClients_unified.avlTree;

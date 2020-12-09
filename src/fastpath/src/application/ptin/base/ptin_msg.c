@@ -9012,6 +9012,8 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
   {
       client.ptin_intf.intf_type  = ENDIAN_SWAP8(profile->client.intf.intf_type);
       client.ptin_intf.intf_id    = ENDIAN_SWAP8(profile->client.intf.intf_id);
+      client.ptin_port            = ptintf2port(client.ptin_intf.intf_type, 
+                                                client.ptin_intf.intf_id);
       client.mask |= PTIN_CLIENT_MASK_FIELD_INTF; 
   }
   
@@ -9021,7 +9023,7 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
       (client.mask & PTIN_CLIENT_MASK_FIELD_INTF))
   {
     /* Adjust outer VID considering the port virtualization scheme */
-    if (ptin_intf_portGem2virtualVid(ptintf2port(client.ptin_intf.intf_type, client.ptin_intf.intf_id),
+    if (ptin_intf_portGem2virtualVid(client.ptin_port,
                                      client.innerVlan,
                                      &client.innerVlan) != L7_SUCCESS)
     {
@@ -9161,6 +9163,8 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
           {
             client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
             client.ptin_intf.intf_id    = shift_index;
+            client.ptin_port            = ptintf2port(client.ptin_intf.intf_type, 
+                                                      client.ptin_intf.intf_id);
             client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           }
 
@@ -9216,6 +9220,8 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
       {
         client.ptin_intf.intf_type  = profile[i].client.intf.intf_type;
         client.ptin_intf.intf_id    = profile[i].client.intf.intf_id;
+        client.ptin_port            = ptintf2port(client.ptin_intf.intf_type, 
+                                                  client.ptin_intf.intf_id);
         client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
       }
 
@@ -9225,7 +9231,7 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
           (client.mask & PTIN_CLIENT_MASK_FIELD_INTF))
       {
         /* Adjust outer VID considering the port virtualization scheme */
-        if (ptin_intf_portGem2virtualVid(ptintf2port(client.ptin_intf.intf_type, client.ptin_intf.intf_id),
+        if (ptin_intf_portGem2virtualVid(client.ptin_port,
                                          client.innerVlan,
                                          &client.innerVlan) != L7_SUCCESS)
         {
@@ -9343,6 +9349,8 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
           {
             client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
             client.ptin_intf.intf_id    = shift_index;
+            client.ptin_port            = ptintf2port(client.ptin_intf.intf_type, 
+                                                      client.ptin_intf.intf_id);
             client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           }
 
@@ -9380,6 +9388,8 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
       {
         client.ptin_intf.intf_type  = profile[i].client.intf.intf_type;
         client.ptin_intf.intf_id    = profile[i].client.intf.intf_id;
+        client.ptin_port            = ptintf2port(client.ptin_intf.intf_type, 
+                                                  client.ptin_intf.intf_id);
         client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
       }
 
@@ -9389,7 +9399,7 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
           (client.mask & PTIN_CLIENT_MASK_FIELD_INTF))
       {
         /* Adjust outer VID considering the port virtualization scheme */
-        if (ptin_intf_portGem2virtualVid(ptintf2port(client.ptin_intf.intf_type, client.ptin_intf.intf_id),
+        if (ptin_intf_portGem2virtualVid(client.ptin_port,
                                          client.innerVlan,
                                          &client.innerVlan) != L7_SUCCESS)
         {
@@ -9493,6 +9503,8 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
           j++;
           client.ptin_intf.intf_type  = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
           client.ptin_intf.intf_id    = ENDIAN_SWAP8(shift_index);
+          client.ptin_port            = ptintf2port(client.ptin_intf.intf_type, 
+                                                    client.ptin_intf.intf_id);
           client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
 
           /* Get statistics */
@@ -9546,6 +9558,8 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
     {
       client.ptin_intf.intf_type  = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_type);
       client.ptin_intf.intf_id    = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_id);
+      client.ptin_port            = ptintf2port(client.ptin_intf.intf_type, 
+                                                client.ptin_intf.intf_id);
       client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
     }
   }
@@ -9556,7 +9570,7 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
       (client.mask & PTIN_CLIENT_MASK_FIELD_INTF))
   {
     /* Adjust outer VID considering the port virtualization scheme */
-    if (ptin_intf_portGem2virtualVid(ptintf2port(client.ptin_intf.intf_type, client.ptin_intf.intf_id),
+    if (ptin_intf_portGem2virtualVid(client.ptin_port,
                                      client.innerVlan,
                                      &client.innerVlan) != L7_SUCCESS)
     {
@@ -9685,6 +9699,8 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
         {
           client.ptin_intf.intf_type  = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
           client.ptin_intf.intf_id    = ENDIAN_SWAP8(shift_index);
+          client.ptin_port            = ptintf2port(client.ptin_intf.intf_type, 
+                                                    client.ptin_intf.intf_id);
           client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
         }
 
@@ -9723,6 +9739,8 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
     {
       client.ptin_intf.intf_type  = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_type);
       client.ptin_intf.intf_id    = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_id);
+      client.ptin_port            = ptintf2port(client.ptin_intf.intf_type, 
+                                                client.ptin_intf.intf_id);
       client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
     }
 
@@ -9732,7 +9750,7 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
         (client.mask & PTIN_CLIENT_MASK_FIELD_INTF))
     {
       /* Adjust outer VID considering the port virtualization scheme */
-      if (ptin_intf_portGem2virtualVid(ptintf2port(client.ptin_intf.intf_type, client.ptin_intf.intf_id),
+      if (ptin_intf_portGem2virtualVid(client.ptin_port,
                                        client.innerVlan,
                                        &client.innerVlan) != L7_SUCCESS)
       {

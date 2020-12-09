@@ -976,6 +976,7 @@ typedef struct {
 typedef struct {
   L7_uint8    mask;                     /* Mask of fields to identify the client */
   ptin_intf_t ptin_intf;                /* [mask=0x01] PTin intf, which is attached */
+  L7_uint32   ptin_port;                /* [mask=0x01] PTin ptin_port */
   L7_uint16   outerVlan;                /* [mask=0x02] Outer Vlan  */
   L7_uint16   innerVlan;                /* [mask=0x04] Inner Vlan */
   L7_uint32   ipv4_addr;                /* [mask=0x08] IP address */

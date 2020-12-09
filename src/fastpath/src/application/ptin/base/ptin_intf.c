@@ -2840,7 +2840,10 @@ L7_RC_t ptin_intf_typeId2port(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *p
     return L7_FAILURE;
   }
 
-  if (ptin_port != L7_NULLPTR)  *ptin_port = p_port;
+  if (ptin_port != L7_NULLPTR)
+  {
+    *ptin_port = p_port;
+  }
 
   return L7_SUCCESS;
 }
