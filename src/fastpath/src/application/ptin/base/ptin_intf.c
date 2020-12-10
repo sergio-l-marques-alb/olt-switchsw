@@ -16,6 +16,7 @@
 #include "usmdb_dai_api.h"
 
 #include "dtlapi.h"
+#include "dtl_ptin.h"
 #include "ptin_include.h"
 #include "ptin_control.h"
 #include "ptin_intf.h"
@@ -3576,7 +3577,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     UPDATE_LAG_MAP(lag_idx, lag_intf);
     newLag = L7_TRUE;
 
-    lag_port = map_intIfNum2port[intIfNum][0/*Don'tCare*/];
+    lag_port = map_intIfNum2port[lag_intf][0/*Don'tCare*/];
     ptin_intf.intf_type = PTIN_EVC_INTF_LOGICAL;
     ptin_intf.intf_id   = lag_idx;
 
@@ -3648,7 +3649,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       ptin_dhcp_intfTrusted_set(lag_port, L7_TRUE);
       ptin_pppoe_intfTrusted_set(lag_port, L7_TRUE);
       /* Internal interfaces of linecards, should always be trusted */
-      PT_LOG_TRACE(LOG_CTX_INTF, "LAG# %u is DHCP/PPPoE trusted", lag_idx);
+      PT_LOG_TRACE(LOG_CTX_INTF, "LAG# %u / ptin_port %u is DHCP/PPPoE trusted", lag_idx, lag_port);
      #endif
      #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_MATRIX)
       usmDbDaiIntfTrustSet(lag_intf, L7_TRUE);
@@ -4087,7 +4088,12 @@ L7_RC_t ptin_intf_Lag_delete(L7_uint32 lag_idx)
     return L7_SUCCESS;
   }
   
-  lag_port = PTIN_SYSTEM_N_PORTS + lag_idx;
+  /* LAG idx -> LAG ptin_port */
+  if (ptin_intf_lag2port(lag_idx, &lag_port) != L7_SUCCESS)
+  {
+    PT_LOG_NOTICE(LOG_CTX_INTF, "Cannot convert LAG#%u to ptin_port!", lag_idx);
+    return L7_FAILURE;
+  }
 
   /* Uplink protection */
 #ifdef PTIN_SYSTEM_PROTECTION_LAGID_BASE
