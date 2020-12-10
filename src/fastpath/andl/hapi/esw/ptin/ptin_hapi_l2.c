@@ -1151,10 +1151,6 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
   L7_uint8               old_send_trap;
   L7_RC_t                rc = L7_SUCCESS;
   
-  #if(PTIN_BOARD != PTIN_BOARD_CXO640G) /*Not supported in Trident(Plus). */
-  bcm_error_t           rv;
-  #endif
-
   PT_LOG_TRACE(LOG_CTX_HAPI,"interface {%d,%d,%d}, vlanId=%u, macLimit=%u action=%u send_trap=%u", ddUsp->unit, ddUsp->slot, ddUsp->port, vlan_id, mac_limit, action, send_trap);
 
   bcm_l2_learn_limit_t_init(&l2_learn_limit);
@@ -1180,12 +1176,15 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
   /* Extract Physical port */
   if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
   {
+#if 0
     if (hapi_ptin_get_uspport_from_bcmdata(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, -1,
                                            &physical_port) != L7_SUCCESS)
     {
       PT_LOG_NOTICE(LOG_CTX_HAPI, "Entry not found");
       return L7_FAILURE;
     }
+#endif
+    physical_port = hapiPortPtr->bcm_port;
 
     if ( (physical_port < 0) || (physical_port >= L7_MAX_PHYSICAL_PORTS_PER_SLOT) )
     {
@@ -1203,10 +1202,10 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
     /*Set Flags*/
     l2_learn_limit.flags   = BCM_L2_LEARN_LIMIT_PORT;
 
-   if(action == 1) 
-   {
+    if(action == 1) 
+    {
       l2_learn_limit.flags |= BCM_L2_LEARN_LIMIT_ACTION_DROP; // BCM_L2_LEARN_LIMIT_ACTION_CPU
-   }
+    }
 
   }
   /* Extract Trunk id */
@@ -1365,9 +1364,10 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
 
   PT_LOG_NOTICE(LOG_CTX_HAPI, "newLimit:%u newFlags:0x%.4X (oldLimit:%u oldFlags:0x%.4X %u)",l2_learn_limit.limit, l2_learn_limit.flags, old_limit, old_flags, action);
 
-  #if(PTIN_BOARD != PTIN_BOARD_CXO640G) /*Not supported in Trident(Plus). */
+#if(PTIN_BOARD != PTIN_BOARD_CXO640G && PTIN_BOARD != PTIN_BOARD_TC16SXG) /*Not supported in Trident(Plus). */
   {
     int unit;
+    bcm_error_t rv;
 
     if (l2_learn_limit.flags == 0x00)
     {
@@ -1383,9 +1383,9 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
       }
     }
   }
-  #else
+#else
   PT_LOG_NOTICE(LOG_CTX_HAPI, "Not supported Yet!");
-  #endif
+#endif
 
   macLearn_info_ptr->mask     =  l2_learn_limit.flags;
 
