@@ -443,6 +443,19 @@ extern L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 virtual_vid
                                        L7_uint32 *ptin_port);
 
 /**
+ * Convert virtual VID to GEM VID
+ * 
+ * @author mruas (10/12/20)
+ * 
+ * @param virtual_vid (in)
+ * @param gem_vid (out)
+ * 
+ * @return L7_RC_t 
+ */
+extern 
+L7_RC_t ptin_intf_virtualVid2GemVid(L7_uint16 virtual_vid, L7_uint16 *gem_vid);
+
+/**
  * From the virtualized ptin_port and GEM-VLAN id, obtain the 
  * physical intIfNum and the Virtualized VLAN with an offset 
  * added (4096/#VirtualPorts_per_PhyPort) 

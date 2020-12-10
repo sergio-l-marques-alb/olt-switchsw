@@ -2581,6 +2581,35 @@ L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 virtual_vid,
 }
 
 /**
+ * Convert virtual VID to GEM VID
+ * 
+ * @author mruas (10/12/20)
+ * 
+ * @param virtual_vid (in)
+ * @param gem_vid (out)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_intf_virtualVid2GemVid(L7_uint16 virtual_vid, L7_uint16 *gem_vid)
+{
+  L7_uint16 gem_vid_max, _gem_vid;
+
+  gem_vid_max = 4096/PORT_VIRTUALIZATION_VID_N_SETS;
+
+  _gem_vid = virtual_vid % gem_vid_max;
+
+  PT_LOG_TRACE(LOG_CTX_INTF, "virtual_vid %u => gem_vid %u",
+               virtual_vid, _gem_vid);
+
+  if (gem_vid != L7_NULLPTR)
+  {
+    *gem_vid = _gem_vid;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
  * From the virtualized ptin_port and GEM-VLAN id, obtain the 
  * physical intIfNum and the Virtualized VLAN with an offset 
  * added (4096/#VirtualPorts_per_PhyPort) 

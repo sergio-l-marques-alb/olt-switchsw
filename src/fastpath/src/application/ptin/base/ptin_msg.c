@@ -10054,6 +10054,10 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
   {
 //  memset(&output->bind_table[i],0x00,sizeof(msg_DHCP_bind_entry));
 
+    /* Convert client VLAN (inner) to the real GEM VID */
+    (void) ptin_intf_virtualVid2GemVid(dhcpv4v6_bindtable[first+i].inner_vlan,
+                                       &dhcpv4v6_bindtable[first+i].inner_vlan);
+
     output->bind_table[i].entry_index    = ENDIAN_SWAP16(dhcpv4v6_bindtable[first+i].entry_index);
     output->bind_table[i].evc_idx        = ENDIAN_SWAP32(dhcpv4v6_bindtable[first+i].evc_idx);
     output->bind_table[i].intf.intf_type = ENDIAN_SWAP8 (dhcpv4v6_bindtable[first+i].ptin_intf.intf_type);
