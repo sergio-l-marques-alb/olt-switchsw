@@ -10,6 +10,8 @@ SCRIPT=`readlink -f $0`
 # Absolute path of this script
 SCRIPT_PATH=`dirname $SCRIPT`
 
+echo "Script syntax: $0 [rootfs_dst_path]"
+
 # Change to dir where script is
 echo "Current path is $CURR_PATH"
 echo "Changing to $SCRIPT_PATH..."
@@ -34,9 +36,15 @@ cp ipl/switchdrvr ipl/devshell_symbols.gz ipl/fp.cli ipl/fp.shell target/*.ko ro
 echo "Building tarball..."
 cd rootfs
 tar czvf ../$TGZ_FILE *
+cd ..
+
+echo "Built tarball located at $SCRIPT_PATH/$DST_PATH/$TGZ_FILE"
+
+if [ $# -ge 1 ]; then
+  echo "Decompressing $TGZ_FILE to $1..."
+  tar xzvf $TGZ_FILE -C $1
+fi
 
 # Return to original path
 cd $CURR_PATH
-
-echo "Built tarball located at $SCRIPT_PATH/$DST_PATH/$TGZ_FILE"
 echo "Done!"
