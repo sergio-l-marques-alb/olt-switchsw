@@ -253,7 +253,7 @@ L7_RC_t ptin_l2_mac_table_load(void)
 
     memcpy(keyNext, fdbEntry.dot1dTpFdbAddress, L7_FDB_KEY_SIZE);
 
-    PT_LOG_TRACE(LOG_CTX_L2, "type=%u port=%u vp=0x%x fdbAddress=%02x:%02x/%02x:%02x:%02x:%02x:%02x:%02x",
+    PT_LOG_TRACE(LOG_CTX_L2, "type=%u intIfNum=%u vp=0x%x fdbAddress=%02x:%02x/%02x:%02x:%02x:%02x:%02x:%02x",
               fdbEntry.dot1dTpFdbEntryType,
               fdbEntry.dot1dTpFdbPort,
               fdbEntry.dot1dTpFdbVirtualPort,
@@ -282,14 +282,18 @@ L7_RC_t ptin_l2_mac_table_load(void)
         intf_vp_entry_t   entry;
 
         entry.l2intf_id = fdbEntry.dot1dTpFdbVirtualPort;
-        if (intf_vp_DB(3, &entry)) {
+        if (intf_vp_DB(3, &entry))
+        {
             PT_LOG_WARN(LOG_CTX_L2,"PON&GEMid for intIfNum %lu / vport %lu not found",fdbEntry.dot1dTpFdbPort,fdbEntry.dot1dTpFdbVirtualPort);
             continue;
         }
-        else PT_LOG_TRACE(LOG_CTX_L2,"intIfNum %lu / vport %u, PON=%u/%u GEMid=%u",
+        else
+        {
+          PT_LOG_TRACE(LOG_CTX_L2,"intIfNum %lu / vport %u, PON=%u/%u GEMid=%u",
                        fdbEntry.dot1dTpFdbPort, fdbEntry.dot1dTpFdbVirtualPort, entry.pon.intf_type, entry.pon.intf_id, entry.gem_id);
-        ptin_intf = entry.pon;
-        gem_id    = entry.gem_id;
+          ptin_intf = entry.pon;
+          (void) ptin_intf_virtualVid2GemVid(entry.gem_id, &gem_id);
+        }
     }
     else
   #endif
