@@ -2,6 +2,8 @@
 #define _PTIN_FPGA_TC16SXG_H
 /* (Trident3-X3) FIXME  SPI (vs PCI/local bus) interface to a single CPLD/FPGA, wrong ID, ...*/
 
+#include "fw_shm.h"
+
 /* FPGA AND CPLD BASE ADDRESS */
 //#define MAP_FPGA
 //#define MAP_CPLD
@@ -58,9 +60,9 @@ extern volatile st_cpld_map_t *cpld_map;
 #define CPLD_REG_GET(addr)        0
 #define CPLD_REG_SET(addr, val)
 #define CPLD_ID_GET()             0
-#define CPLD_SLOT_ID_GET()        0
-#define CPLD_SLOT_MATRIX_GET()    1
-#define CPLD_SLOT_MX_ACTIVE_GET() 0
+#define CPLD_SLOT_ID_GET()        ((pfw_shm != L7_NULLPTR) ? pfw_shm->cpld.slot_id : 0)
+#define CPLD_SLOT_MATRIX_GET()    ((pfw_shm != L7_NULLPTR) ? pfw_shm->cpld.slot_matrix : 0)
+#define CPLD_SLOT_MX_ACTIVE_GET() ((pfw_shm != L7_NULLPTR) ? pfw_shm->cpld.mx_is_active : 0)
 #endif
 
 

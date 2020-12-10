@@ -18,7 +18,7 @@
 //Usada se houver problema no acesso a memoria partilhada
 t_fw_shm   fw_shm;
 
-t_fw_shm   *pfw_shm;
+t_fw_shm   *pfw_shm = (void *)0;
 
 //******************************************************************************
 // Iniciar...
