@@ -698,7 +698,9 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
   L7_BOOL l2_forward = L7_FALSE;
   L7_uint client_idx = DHCP_INVALID_CLIENT_IDX;
   L7_uint32           ptin_port=0;
+#if ( !PTIN_BOARD_IS_MATRIX )
   ptin_client_id_t    client_info;
+#endif
 
   if (ptin_debug_dhcp_snooping)
     PT_LOG_TRACE(LOG_CTX_DHCP,"Packet intercepted: intIfNum=%u, vlanId=%u, innerVlanId=%u",

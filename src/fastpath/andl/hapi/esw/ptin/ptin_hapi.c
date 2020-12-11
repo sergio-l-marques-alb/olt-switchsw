@@ -3996,7 +3996,8 @@ L7_RC_t hapi_ptin_counters_read(ptin_dapi_port_t *dapiPort, ptin_HWEthRFC2819_Po
 
     soc_counter_get_rate(bcm_unit, bcm_port, TBYTr , 0, &tx->Throughput);                   /* Throughput */
   }
-  else if (SOC_IS_TRIDENT3X(bcm_unit))
+#ifdef SOC_IS_HELIX5 /* #if (SDK_VERSION_IS >= SDK_VERSION(6,5,7,0)) */
+  else if (SOC_IS_HELIX5(bcm_unit)) //if (SOC_IS_TRIDENT3X(bcm_unit))
   {
     /* Rx counters */
     soc_counter_get(bcm_unit, bcm_port, XLMIB_RMTUEr, 0, &mtuePkts);                              /* Packets > MTU bytes (good and bad) */
@@ -4076,6 +4077,7 @@ L7_RC_t hapi_ptin_counters_read(ptin_dapi_port_t *dapiPort, ptin_HWEthRFC2819_Po
 
     soc_counter_get_rate(bcm_unit, bcm_port, XLMIB_TBYTr , 0, &tx->Throughput);                   /* Throughput */
   }
+#endif
   else
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Switch family not defined");

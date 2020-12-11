@@ -4068,7 +4068,16 @@ L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *g
 #elif PTIN_BOARD_IS_STANDALONE
     if(protTypebIntfConfig.status == L7_ENABLE)
     {
-      msg.intIfNum      = protTypebIntfConfig.pairIntfNum;
+      if (L7_SUCCESS !=
+          (rc = ptin_intf_port2intIfNum(protTypebIntfConfig.pairPtinPort,
+                                        &msg.intIfNum))
+          )
+      {
+          PT_LOG_ERR(LOG_CTX_IGMP,
+                     "protTypebIntfConfig.pairPtinPort=%u => rc=%d",
+                     protTypebIntfConfig.pairPtinPort, rc);
+          return L7_FAILURE;
+      }
       msg.isProtection  = L7_TRUE;
 
       /* Send a Port_Open event to the FP */
@@ -4210,7 +4219,16 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
 #elif PTIN_BOARD_IS_STANDALONE
   if(protTypebIntfConfig.status == L7_ENABLE)
   {
-    msg.intIfNum      = protTypebIntfConfig.pairIntfNum;
+    if (L7_SUCCESS !=
+        (rc = ptin_intf_port2intIfNum(protTypebIntfConfig.pairPtinPort,
+                                      &msg.intIfNum))
+        )
+    {
+        PT_LOG_ERR(LOG_CTX_IGMP,
+                   "protTypebIntfConfig.pairPtinPort=%u => rc=%d",
+                   protTypebIntfConfig.pairPtinPort, rc);
+        return L7_FAILURE;
+    }
     msg.isProtection  = L7_TRUE; 
 
     /* Send a Port_Close event to the FP */
