@@ -4,6 +4,9 @@
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED
 
+/* Allows direct control over port add/remove of a LAG (shortcut to message queues) */
+#define LAG_DIRECT_CONTROL_FEATURE  1
+
 /* Info about ASPEN devices */
 #define TC16SXG_ASPEN_BRIDGE_SCRIPT "/bin/sh /usr/local/ptin/scripts/startAspenBridge.sh"  /* Only applicable to TC16SXG */
 
@@ -52,15 +55,17 @@
 # define PTIN_SLOT_PROT             1
 
 # define PTIN_SYSTEM_N_PONS            32   /* (Trident3-X3) */
-# define PTIN_SYSTEM_N_PORTS           (PTIN_SYSTEM_N_PONS+16+1)   /* (Trident3-X3) BCKPLN+PONs+CPU */
 # define PTIN_SYSTEM_N_ETH             0
+# define PTIN_SYSTEM_N_UPLINK          16
+# define PTIN_SYSTEM_N_INTERNAL        1
+# define PTIN_SYSTEM_N_PORTS           (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_UPLINK + PTIN_SYSTEM_N_INTERNAL)
 # define PTIN_SYSTEM_N_PONS_PHYSICAL   16
 # define PTIN_SYSTEM_N_ETH_PHYSICAL    0
-# define PTIN_SYSTEM_N_PORTS_PHYSICAL  (PTIN_SYSTEM_N_PONS_PHYSICAL+16+1)   /* (Trident3-X3) BCKPLN+PONs+CPU */
+# define PTIN_SYSTEM_N_PORTS_PHYSICAL  (PTIN_SYSTEM_N_PONS_PHYSICAL + PTIN_SYSTEM_N_UPLINK + PTIN_SYSTEM_N_INTERNAL)
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   0
 # define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS_PHYSICAL
 # define PTIN_SYSTEM_N_INTERF          (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_N_LAGS)
-# define PTIN_SYSTEM_N_UPLINK_INTERF   (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH)
+# define PTIN_SYSTEM_N_CLIENT_PORTS    (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH)
 
 /* These are switch-physical ports (not ptin_ports): only to be used at HAPI layer */
 # define PTIN_SYSTEM_PON_PORTS_MASK    ((1ULL<<PTIN_SYSTEM_N_PONS_PHYSICAL)-1)   /*0xFFFFFFFF*/
@@ -114,7 +119,7 @@
 
 # define PTIN_SYSTEM_N_IGMP_INSTANCES                  40     /* Maximum nr of IGMP instances */
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP           (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
-# define PTIN_SYSTEM_IGMP_MAXINTERFACES                PTIN_SYSTEM_N_UPLINK_INTERF                                                 /* Maximum nr of interfaces per multicast group */
+# define PTIN_SYSTEM_IGMP_MAXINTERFACES                PTIN_SYSTEM_N_CLIENT_PORTS                                                 /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF             128   /* 128 ONUs per port */
 # define PTIN_SYSTEM_IGMP_MAXONUS                      (PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF*PTIN_SYSTEM_N_INTERF)
 # define PTIN_SYSTEM_IGMP_MAXDEVICES_PER_ONU           8     /* Settop boxes connected to ONUs */

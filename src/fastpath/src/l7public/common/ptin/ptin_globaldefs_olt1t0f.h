@@ -33,16 +33,18 @@
 #define PTIN_SYS_SLOTS_MAX          1
 #define PTIN_SYS_INTFS_PER_SLOT_MAX 4
 
-# define PTIN_SYSTEM_N_PORTS           17
 # define PTIN_SYSTEM_N_PONS            8 
 # define PTIN_SYSTEM_N_ETH             8
+# define PTIN_SYSTEM_N_UPLINK          PTIN_SYSTEM_N_ETH
+# define PTIN_SYSTEM_N_INTERNAL        1
+# define PTIN_SYSTEM_N_PORTS           (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_UPLINK + PTIN_SYSTEM_N_INTERNAL)
 # define PTIN_SYSTEM_N_PORTS_PHYSICAL  PTIN_SYSTEM_N_PORTS
 # define PTIN_SYSTEM_N_PONS_PHYSICAL   PTIN_SYSTEM_N_PONS
 # define PTIN_SYSTEM_N_ETH_PHYSICAL    PTIN_SYSTEM_N_ETH
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   0
 # define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS_PHYSICAL
 # define PTIN_SYSTEM_N_INTERF          (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_N_LAGS)
-# define PTIN_SYSTEM_N_UPLINK_INTERF   (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH)
+# define PTIN_SYSTEM_N_CLIENT_PORTS    (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH)
 
 # define PTIN_SYSTEM_PROTECTION_LAGID_BASE  10
 
@@ -104,7 +106,7 @@
 
 # define PTIN_SYSTEM_N_IGMP_INSTANCES                  40    /* Maximum nr of IGMP instances */
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP           (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
-# define PTIN_SYSTEM_IGMP_MAXINTERFACES                PTIN_SYSTEM_N_UPLINK_INTERF                                                 /* Maximum nr of interfaces per multicast group */
+# define PTIN_SYSTEM_IGMP_MAXINTERFACES                PTIN_SYSTEM_N_CLIENT_PORTS                                                 /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF             128   /* 128 ONUs per port */
 # define PTIN_SYSTEM_IGMP_MAXONUS                      (PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF*PTIN_SYSTEM_N_INTERF)
 # define PTIN_SYSTEM_IGMP_MAXDEVICES_PER_ONU           8     /* Settop boxes connected to ONUs */
