@@ -1585,10 +1585,10 @@ static uint32 l7_port_wred_percent_to_bytes(int unit, uint8 percent)
       cellsize = 208;
       totalmem = 46080;
     }
-    else if (SOC_IS_TRIDENT3X(unit))
+    else if (SOC_IS_TRIDENT3X(unit)) //if (SOC_IS_HELIX5(unit))
     {
-      cellsize = 256;
-      totalmem = 32768;
+      cellsize = 256;//TD3_MMU_BYTES_PER_CELL;
+      totalmem = 0x40000;//TD3_WRED_CELL_FIELD_MAX;
     }
     /* OLT1T0F/TG16GF board */
     else if (SOC_IS_KATANA2(unit))
@@ -1658,7 +1658,7 @@ int usl_bcm_port_wred_set(int unit, bcm_port_t port,
   bcm_cosq_gport_discard_t    discardParams;
   bcm_gport_t                 gport;
 
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+#if 0 && (PTIN_BOARD == PTIN_BOARD_TC16SXG)
   PT_LOG_WARN(LOG_CTX_STARTUP, "FIXME! unit %u, port %u: WRED configuration",
               unit, port);
   return BCM_E_NONE;
@@ -1669,6 +1669,8 @@ int usl_bcm_port_wred_set(int unit, bcm_port_t port,
   {
     for (queueIndex=0; queueIndex<L7_MAX_CFG_QUEUES_PER_PORT; queueIndex++) 
     {
+      bcm_cosq_gport_discard_t_init(&discardParams);
+
       discardParams.gain = wredParams->gain[queueIndex];
       /* PTin modified: Allow 6 DP levels */
       for (precIndex=0; precIndex<(L7_MAX_CFG_DROP_PREC_LEVELS*2); precIndex++) 
@@ -1676,7 +1678,7 @@ int usl_bcm_port_wred_set(int unit, bcm_port_t port,
         /* Initialize flags */
         discardParams.flags = 0;
 
-        if (SOC_IS_KATANA2(unit) || SOC_IS_TRIDENT3X(unit))
+        if (SOC_IS_KATANA2(unit))
         {
           /* Configure in cell units (no flags assigned) */
         }
@@ -1753,6 +1755,24 @@ int usl_bcm_port_wred_set(int unit, bcm_port_t port,
           }
         }
 
+#if 0
+        {
+            //unsigned char *p;
+            //int i;
+            printf("\n\r*discard(queueIndex=%d, precIndex=%d):",
+                   queueIndex, precIndex);
+            //for (i=0, p=(unsigned char *)&discardParams; i<sizeof(bcm_cosq_gport_discard_t); i++) {
+            //    printf(" 0x%2.2x", p[i]);
+            //}
+            printf(" flags=0x%x thrsh min=%d,max=%d, dropprob=%d, gain=%d, "
+                   "ecnthresh=%d refreshtime=%d use_q_group=%u profile_id=%u",
+                   discardParams.flags, discardParams.min_thresh,
+                   discardParams.max_thresh, discardParams.drop_probability,
+                   discardParams.gain, discardParams.ecn_thresh,
+                   discardParams.refresh_time, discardParams.use_queue_group,
+                   discardParams.profile_id);
+        }
+#endif
         rv = bcm_cosq_gport_discard_set(unit, wredParams->bcm_gport, 
                                         queueIndex, &discardParams);
 
@@ -1763,6 +1783,9 @@ int usl_bcm_port_wred_set(int unit, bcm_port_t port,
                      discardParams.min_thresh, discardParams.max_thresh, discardParams.drop_probability, discardParams.flags, rv);
           break;
         }
+#if 0
+        else PT_LOG_INFO(LOG_CTX_HAPI, "bcm_cosq_gport_discard_set() OK");
+#endif
       } /* End for each color */
     } /* End for each queue */
   }
