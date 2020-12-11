@@ -69,3 +69,29 @@ fw_shm_close( void )
 // FIM
 //******************************************************************************
 
+
+void fw_shm_dump(void)
+{
+  if (pfw_shm == (void *)0)
+  {
+    printf("Shared memory is not initialized\r\n");
+    return;
+  }
+  
+#if (PTIN_BOARD_IS_GPON)
+  {
+      int i;
+
+      for (i = 0; i < PTIN_SYSTEM_MAX_N_PORTS; i++)
+      {
+          printf("intf[i] = {admin=%u link=0x%x port_state=0x%x ssm_rx=0x%x ssm_tx=0x%x }\r\n",
+                 pfw_shm->intf[i].admin, pfw_shm->intf[i].link, pfw_shm->intf[i].port_state, pfw_shm->intf[i].ssm_rx, pfw_shm->intf[i].ssm_tx);
+      }
+
+      printf("SyncE_Recovery_clock[] = { 0x%02x 0x%02x }\r\n", pfw_shm->SyncE_Recovery_clock[0], pfw_shm->SyncE_Recovery_clock[1]);
+
+      printf("CPLD = { slot_id=0x%02x slot_matrix=0x%02x mx_is_active=0x%02x }\r\n",
+             pfw_shm->cpld.slot_id, pfw_shm->cpld.slot_matrix, pfw_shm->cpld.mx_is_active);
+  }
+#endif
+}

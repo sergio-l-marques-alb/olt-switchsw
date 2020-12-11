@@ -295,7 +295,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   /* Send startup trap */
   startup_trap_send();
 
-#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+#if (PTIN_BOARD_IS_SWITCHABLE)
   /* Create 10ms task */
   if (osapiTaskCreate("10ms task", _10msTask, 0, 0,
                       L7_DEFAULT_STACK_SIZE,
@@ -359,8 +359,8 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     /* Monitor throughput */
     monitor_throughput();
 
-    /* Port commutation process for TOLT8G boards */
-#if ( PTIN_BOARD != PTIN_BOARD_TA48GE )
+    /* Port commutation process */
+#if (PTIN_BOARD_IS_MATRIX)
     monitor_matrix_commutation();
 #endif
 
@@ -435,7 +435,7 @@ void _10msTask(void)
 {
   PT_LOG_NOTICE(LOG_CTX_CONTROL,"10ms Task started");
 
-#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+#if (PTIN_BOARD == PTIN_BOARD_TA48GE)
   {
    ptin_LACPLagConfig_t lagInfo;
 
@@ -486,7 +486,7 @@ void _10msTask(void)
     osapiPeriodicUserTimerWait(_10ms_loop_handle);
     //usleep(10000);
 
-#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+#if (PTIN_BOARD_IS_SWITCHABLE)
     monitor_matrix_commutation();
 #endif
   }
@@ -889,15 +889,12 @@ void schedule_matrix_query_send(void)
  */
 static void monitor_matrix_commutation(void)
 {
-#ifdef MAP_CPLD
-#if ( PTIN_BOARD==PTIN_BOARD_TOLT8G || PTIN_BOARD==PTIN_BOARD_TA48GE )
-
+#if (PTIN_BOARD_IS_SWITCHABLE)
   L7_int              cx_work_slot;
   L7_RC_t             rc = L7_SUCCESS;
   static int          cx_work_slot_h = -1;
 
-  #if ( PTIN_BOARD == PTIN_BOARD_TOLT8G )
-
+#if (PTIN_BOARD == PTIN_BOARD_TOLT8G)
   ptin_HWEthPhyConf_t phyConf;
   L7_uint             port, port_border;
 
@@ -925,21 +922,118 @@ static void monitor_matrix_commutation(void)
       phyConf.PortEnable  = (port<port_border) ? L7_FALSE : L7_TRUE;
 
     phyConf.Port = port;
-    if (ptin_intf_PhyConfig_set(&phyConf)!=L7_SUCCESS)
+
+    rc = ptin_intf_PhyConfig_set(&phyConf);
+    if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_CONTROL,"Error setting port %u to enable=%u",port,phyConf.PortEnable);
-      rc = L7_FAILURE;
     }
   }
 
-  #elif ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+#elif (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+
+  L7_uint32 lag_intIfNum, port_intIfNum;
+  int port, first_port_to_add, first_port_to_del;
+  const int first_work_port = PTIN_SYSTEM_N_PONS;
+  const int first_prot_port = PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_UPLINK / 2;
+  const int ports_to_manage = PTIN_SYSTEM_N_UPLINK / 2;
+
+ #if 1
+  ptin_HWEthPhyConf_t phyConf;
+
+  memset(&phyConf,0x00,sizeof(ptin_HWEthPhyConf_t));
+  phyConf.Mask = PTIN_PHYCONF_MASK_PORTEN;
+ #endif
+
+  /* Cannot retrieve lag intIfNum: reset commutation machine */
+  if (ptin_intf_lag2intIfNum(0, &lag_intIfNum) != L7_SUCCESS)
+  {
+    cx_work_slot_h = -1;
+    //PT_LOG_TRACE(LOG_CTX_CONTROL,"Machine reseted");
+    return;
+  }
+
+  cx_work_slot = (ptin_fpga_mx_get_matrixactive()==PTIN_SLOT_WORK); //(cpld_map->reg.slot_matrix >> 4) & 1;
+
+  /* Nothing to do if no change happened */
+  if (cx_work_slot == cx_work_slot_h)
+  {
+    return;
+  }
+
+  PT_LOG_INFO(LOG_CTX_CONTROL, "Going to switch SF board: cx_work_slot=%u", cx_work_slot);
+
+  first_port_to_add = (cx_work_slot) ? first_work_port : first_prot_port;
+  first_port_to_del = (cx_work_slot) ? first_prot_port : first_work_port;
+
+  /* Remove members first */
+  phyConf.PortEnable = L7_FALSE;
+  for (port = first_port_to_del; port < first_port_to_del + ports_to_manage; port++)
+  {
+    if (ptin_intf_port2intIfNum(port, &port_intIfNum) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_CONTROL,"Skipping ptin_port %u", port);
+      continue;
+    }
+
+#if 1
+    /* Select port */
+    phyConf.Port = port;
+
+    rc = ptin_intf_PhyConfig_set(&phyConf);
+#else
+    /* Remove member */
+    rc = dtlDot3adInternalPortDelete(lag_intIfNum, 1, &port_intIfNum, 1);
+#endif
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_CONTROL,"Error deactivating member intIfNum %u from LAG intIfNum %u",
+                 port_intIfNum, lag_intIfNum);
+    }
+    else
+    {
+      PT_LOG_INFO(LOG_CTX_CONTROL,"Deactivated memeber intIfNum %u from LAG intIfNum %u",
+                  port_intIfNum, lag_intIfNum);
+    }
+  }
+  
+  /* Then add active members */
+  phyConf.PortEnable = L7_TRUE;
+  for (port = first_port_to_add; port < first_port_to_add + ports_to_manage; port++)
+  {
+    if (ptin_intf_port2intIfNum(port, &port_intIfNum) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_CONTROL,"Skipping ptin_port %u", port);
+      continue;
+    }
+
+#if 1
+    /* Select port */
+    phyConf.Port = port;
+
+    rc = ptin_intf_PhyConfig_set(&phyConf);
+#else
+    /* Add member */
+    rc = dtlDot3adInternalPortAdd(lag_intIfNum, 1, &port_intIfNum, 1);
+#endif
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_CONTROL,"Error activating member inIfNum %u to LAG intIfNum %u",
+                 port_intIfNum, lag_intIfNum);
+    }
+    else
+    {
+      PT_LOG_INFO(LOG_CTX_CONTROL,"Activated member inIfNum %u to LAG intIfNum %u",
+                  port_intIfNum, lag_intIfNum);
+    }
+  }
+
+#elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
 
   L7_uint32 lag_intf, intIfNum, intIfNum_del;
 
-  rc = ptin_intf_lag2intIfNum(0, &lag_intf);
-
   /* Cannot retrieve lag intIfNum: reset commutation machine */
-  if (rc != L7_SUCCESS)
+  if (ptin_intf_lag2intIfNum(0, &lag_intf) != L7_SUCCESS)
   {
     cx_work_slot_h = -1;
     //PT_LOG_TRACE(LOG_CTX_CONTROL,"Machine reseted");
@@ -965,8 +1059,8 @@ static void monitor_matrix_commutation(void)
     if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+1, &intIfNum) != L7_SUCCESS ||
         ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH, &intIfNum_del) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
       rc = L7_FAILURE;
+      PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
     }
   }
   else
@@ -977,8 +1071,8 @@ static void monitor_matrix_commutation(void)
     if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH, &intIfNum) != L7_SUCCESS ||
         ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+1, &intIfNum_del) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
       rc = L7_FAILURE;
+      PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
     }
   }
 
@@ -991,18 +1085,18 @@ static void monitor_matrix_commutation(void)
     if (dtlDot3adInternalPortAdd(lag_intf, 1, &intIfNum, 1) != L7_SUCCESS ||
         dtlDot3adInternalPortDelete(lag_intf, 1, &intIfNum_del, 1) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
       rc = L7_FAILURE;
+      PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
     }
     else
     {
       PT_LOG_INFO(LOG_CTX_CONTROL,"Success");
     }
   }
-  #endif    //#elif ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+#endif
 
   /* Any error? */
-  if (rc!=L7_SUCCESS)
+  if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_CONTROL,"Error commuting to %s slot",(cx_work_slot) ? "working" : "protection");
     PT_LOG_ERR(LOG_CTX_EVENTS ,"Error commuting to %s slot",(cx_work_slot) ? "working" : "protection");
@@ -1016,12 +1110,11 @@ static void monitor_matrix_commutation(void)
   }
 
   /* if successfull, resend queries */
-  if (rc==L7_SUCCESS)
+  if (rc == L7_SUCCESS)
   {
     ptin_igmp_instances_reactivate();
   }
-#endif
-#endif
+#endif /*PTIN_BOARD_IS_SWITCHABLE*/
 
 #if PTIN_BOARD_IS_MATRIX
   static L7_uint16 schedule_query_tx = 0;   /* Number of seconds to wait before send queries */

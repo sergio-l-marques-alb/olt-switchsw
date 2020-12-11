@@ -307,12 +307,6 @@ L7_uint8 ptin_fpga_mx_get_matrixactive(void)
   int current_state = -1;
   static int previous_state = -1;
 
- #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
-  L7_BOOL olt1t1_backplane;
-  /* Condition for OLT1T1 backplane */  
-  olt1t1_backplane = (ptin_fpga_board_get() == PTIN_BOARD_CXO160G);
- #endif
-
   if((CPLD_SLOT_MX_ACTIVE_GET() & 0x03) == 0x02) {
       //Master Matrix was set to active
       current_state = PTIN_SLOT_WORK;
@@ -328,13 +322,14 @@ L7_uint8 ptin_fpga_mx_get_matrixactive(void)
 
   previous_state = current_state;
 
- #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+#if ( PTIN_BOARD_IS_SWITCHABLE )
   /* Note: the register 18h is not affected by the backplane, however lanes/data plane is inverted */
-  if (olt1t1_backplane)
+  if (current_state >= 0 &&
+      ptin_fpga_board_get() == PTIN_BOARD_CXO160G /*olt1t1_backplane*/)
   {
       return !current_state;
   }
- #endif
+#endif
 
   return current_state;
 }
