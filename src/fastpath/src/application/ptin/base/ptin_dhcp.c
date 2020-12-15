@@ -1462,11 +1462,11 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_c
   ptinDhcpClientDataKey_t avl_key;
   ptinDhcpClientsAvlTree_t *avl_tree;
   ptinDhcpClientInfoData_t *avl_infoData;
-  #if (DHCP_CLIENT_INTERF_SUPPORTED)
+#if (DHCP_CLIENT_INTERF_SUPPORTED)
   L7_uint32 ptin_port;
   L7_uint32 intIfNum;
   ptin_evc_intfCfg_t intfCfg;
-  #endif
+#endif
 
   /* Validate arguments */
   if (client_cfg == L7_NULLPTR || DHCP_CLIENT_MASK_UPDATE(client_cfg->mask) == 0x00)
@@ -1492,7 +1492,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_c
   }
 
   /* Get ptin_port value */
-  #if (DHCP_CLIENT_INTERF_SUPPORTED)
+#if (DHCP_CLIENT_INTERF_SUPPORTED)
   ptin_port = (L7_uint32)-1;
   if (client.mask & PTIN_CLIENT_MASK_FIELD_INTF)
   {
@@ -1508,12 +1508,10 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_c
       PT_LOG_ERR(LOG_CTX_DHCP,"intf %u/%u is not in use or is not a leaf in evc %u",client.ptin_intf.intf_type,client.ptin_intf.intf_id,evc_idx);
       return L7_FAILURE;
     }
-    /* Convert to ptin_port format */
-    if (ptin_intf_ptintf2port(&client.ptin_intf,&ptin_port)!=L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_DHCP,"Cannot convert client intf %u/%u to ptin_port format",client.ptin_intf.intf_type,client.ptin_intf.intf_id);
-      return L7_FAILURE;
-    }
+
+    /* Get ptin_port */
+    ptin_port = client.ptin_port;
+
     /* Convert to intIfNum format */
     if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)!=L7_SUCCESS)
     {
@@ -1522,7 +1520,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_c
     }
 
   }
-  #endif
+#endif
 
   /* If uni vlans are not provided, but interface is, get uni vlans from EVC data */
   if ( (uni_ovid<PTIN_VLAN_MIN || uni_ovid>PTIN_VLAN_MAX) &&
@@ -1577,7 +1575,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_c
   #if (DHCP_CLIENT_DEBUG)
   PT_LOG_TRACE(LOG_CTX_DHCP,"Key {"
             #if (DHCP_CLIENT_INTERF_SUPPORTED)
-                              "port=%u,"
+                              "intIfNum=%u,"
             #endif
             #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
                               "svlan=%u,"
@@ -1616,7 +1614,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_c
     if (ptin_debug_dhcp_snooping)
       PT_LOG_WARN(LOG_CTX_DHCP,"This key {"
                 #if (DHCP_CLIENT_INTERF_SUPPORTED)
-                                  "port=%u,"
+                                  "intIfNum=%u,"
                 #endif
                 #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
                                   "svlan=%u,"
@@ -1665,7 +1663,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_c
     {
       PT_LOG_ERR(LOG_CTX_DHCP,"Error inserting key {"
               #if (DHCP_CLIENT_INTERF_SUPPORTED)
-                                "port=%u,"
+                                "intIfNum=%u,"
               #endif
               #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
                                 "svlan=%u,"
@@ -1704,7 +1702,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_c
     {
       PT_LOG_ERR(LOG_CTX_DHCP,"Cannot find key {"
               #if (DHCP_CLIENT_INTERF_SUPPORTED)
-                                "port=%u,"
+                                "intIfNum=%u,"
               #endif
               #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
                                 "svlan=%u,"
@@ -1794,7 +1792,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_c
 
   PT_LOG_TRACE(LOG_CTX_DHCP,"Success inserting Key {"
             #if (DHCP_CLIENT_INTERF_SUPPORTED)
-                              "port=%u,"
+                              "intIfNum=%u,"
             #endif
             #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
                               "svlan=%u,"
@@ -1844,9 +1842,9 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
   ptinDhcpClientDataKey_t avl_key;
   ptinDhcpClientsAvlTree_t *avl_tree;
   ptinDhcpClientInfoData_t *avl_infoData;
-  #if (DHCP_CLIENT_INTERF_SUPPORTED)
+#if (DHCP_CLIENT_INTERF_SUPPORTED)
   L7_uint32 intIfNum;
-  #endif
+#endif
 
   /* Validate arguments */
   if (client_id == L7_NULLPTR || DHCP_CLIENT_MASK_UPDATE(client_id->mask) == 0x00)
@@ -1872,7 +1870,7 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
   }
 
   /* Convert interface to intIfNum format */
-  #if (DHCP_CLIENT_INTERF_SUPPORTED)
+#if (DHCP_CLIENT_INTERF_SUPPORTED)
   intIfNum = 0;
   if (client.mask & PTIN_CLIENT_MASK_FIELD_INTF)
   {
@@ -1882,7 +1880,7 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
       return L7_FAILURE;
     }
   }
-  #endif
+#endif
 
   /* Check if this key does not exists */
 
@@ -1891,96 +1889,96 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
   memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
 
   avl_key.dhcp_instance = dhcp_idx;
-  #if (DHCP_CLIENT_INTERF_SUPPORTED)
+#if (DHCP_CLIENT_INTERF_SUPPORTED)
   avl_key.intIfNum = intIfNum;
-  #endif
-  #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
   avl_key.outerVlan = (client.mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN) ? client.outerVlan : 0;
-  #endif
-  #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
   avl_key.innerVlan = (client.mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) ? client.innerVlan : 0;
-  #endif
-  #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_IPADDR_SUPPORTED)
   avl_key.ipv4_addr = (client.mask & PTIN_CLIENT_MASK_FIELD_IPADDR   ) ? client.ipv4_addr : 0;
-  #endif
-  #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_MACADDR_SUPPORTED)
   if (client.mask & PTIN_CLIENT_MASK_FIELD_MACADDR)
     memcpy(avl_key.macAddr,client.macAddr,sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
   else
     memset(avl_key.macAddr,0x00,sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
-  #endif
+#endif
 
-  #if (DHCP_CLIENT_DEBUG)
+#if (DHCP_CLIENT_DEBUG)
   PT_LOG_TRACE(LOG_CTX_DHCP,"Key to search {"
-            #if (DHCP_CLIENT_INTERF_SUPPORTED)
+ #if (DHCP_CLIENT_INTERF_SUPPORTED)
                               "intIfNum=%u,"
-            #endif
-            #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+ #endif
+ #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
                               "svlan=%u,"
-            #endif
-            #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+ #endif
+ #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
                               "cvlan=%u,"
-            #endif
-            #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+ #endif
+ #if (DHCP_CLIENT_IPADDR_SUPPORTED)
                               "ipAddr=%u.%u.%u.%u,"
-            #endif
-            #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+ #endif
+ #if (DHCP_CLIENT_MACADDR_SUPPORTED)
                               "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
-            #endif
+ #endif
                               "} in dhcp_idx=%u",
-            #if (DHCP_CLIENT_INTERF_SUPPORTED)
+ #if (DHCP_CLIENT_INTERF_SUPPORTED)
             avl_key.intIfNum,
-            #endif
-            #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+ #endif
+ #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
             avl_key.outerVlan,
-            #endif
-            #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+ #endif
+ #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
             avl_key.innerVlan,
-            #endif
-            #if (DHCP_CLIENT_IPADDR_SUPPORTED)
-            (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
-            #endif
-            #if (DHCP_CLIENT_MACADDR_SUPPORTED)
-            avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
-            #endif
-            dhcp_idx);
   #endif
+  #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+            (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
+  #endif
+  #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+            avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
+  #endif
+            dhcp_idx);
+#endif
 
   /* Check if this entry does not exist in AVL tree */
   if ((avl_infoData=(ptinDhcpClientInfoData_t *) avlSearchLVL7( &(avl_tree->dhcpClientsAvlTree), (void *)&avl_key, AVL_EXACT))==L7_NULLPTR)
   {
     PT_LOG_WARN(LOG_CTX_DHCP,"This key {"
-                #if (DHCP_CLIENT_INTERF_SUPPORTED)
+#if (DHCP_CLIENT_INTERF_SUPPORTED)
                                   "intIfNum=%u,"
-                #endif
-                #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
                                   "svlan=%u,"
-                #endif
-                #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
                                   "cvlan=%u,"
-                #endif
-                #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_IPADDR_SUPPORTED)
                                   "ipAddr=%u.%u.%u.%u,"
-                #endif
-                #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_MACADDR_SUPPORTED)
                                   "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
-                #endif
+#endif
                                   "} does not exist in dhcp_idx=%u",
-                #if (DHCP_CLIENT_INTERF_SUPPORTED)
+#if (DHCP_CLIENT_INTERF_SUPPORTED)
                 avl_key.intIfNum,
-                #endif
-                #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
                 avl_key.outerVlan,
-                #endif
-                #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
                 avl_key.innerVlan,
-                #endif
-                #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_IPADDR_SUPPORTED)
                 (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
-                #endif
-                #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_MACADDR_SUPPORTED)
                 avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
-                #endif
+#endif
                 dhcp_idx);
     return L7_NOT_EXIST;
   }
@@ -1992,37 +1990,37 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
   if (avlDeleteEntry(&(avl_tree->dhcpClientsAvlTree), (void *)&avl_key)==L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_DHCP,"Error removing key {"
-            #if (DHCP_CLIENT_INTERF_SUPPORTED)
+#if (DHCP_CLIENT_INTERF_SUPPORTED)
                               "intIfNum=%u,"
-            #endif
-            #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
                               "svlan=%u,"
-            #endif
-            #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
                               "cvlan=%u,"
-            #endif
-            #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_IPADDR_SUPPORTED)
                               "ipAddr=%u.%u.%u.%u,"
-            #endif
-            #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_MACADDR_SUPPORTED)
                               "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
-            #endif
+#endif
                               "} from dhcp_idx=%u",
-            #if (DHCP_CLIENT_INTERF_SUPPORTED)
+#if (DHCP_CLIENT_INTERF_SUPPORTED)
             avl_key.intIfNum,
-            #endif
-            #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
             avl_key.outerVlan,
-            #endif
-            #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
             avl_key.innerVlan,
-            #endif
-            #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_IPADDR_SUPPORTED)
             (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
-            #endif
-            #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_MACADDR_SUPPORTED)
             avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
-            #endif
+#endif
             dhcp_idx);
     return L7_FAILURE;
   }
@@ -2031,45 +2029,45 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
   dhcp_clientIndex_release(dhcp_idx, client_idx);
 
   PT_LOG_TRACE(LOG_CTX_DHCP,"Success removing Key {"
-            #if (DHCP_CLIENT_INTERF_SUPPORTED)
+#if (DHCP_CLIENT_INTERF_SUPPORTED)
                               "intIfNum=%u,"
-            #endif
-            #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
                               "svlan=%u,"
-            #endif
-            #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
                               "cvlan=%u,"
-            #endif
-            #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_IPADDR_SUPPORTED)
                               "ipAddr=%u.%u.%u.%u,"
-            #endif
-            #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_MACADDR_SUPPORTED)
                               "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
-            #endif
+#endif
                               "} from dhcp_idx=%u",
-            #if (DHCP_CLIENT_INTERF_SUPPORTED)
+#if (DHCP_CLIENT_INTERF_SUPPORTED)
             avl_key.intIfNum ,
-            #endif
-            #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
             avl_key.outerVlan,
-            #endif
-            #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
             avl_key.innerVlan,
-            #endif
-            #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_IPADDR_SUPPORTED)
             (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
-            #endif
-            #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_MACADDR_SUPPORTED)
             avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
-            #endif
+#endif
             dhcp_idx);
 
   /* Remove all associated DHCP leases */
-  #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+#if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
   if (L7_SUCCESS != dsEvcBindingsClear(evc_idx, avl_key.innerVlan))
-  #else
+#else
   if (L7_SUCCESS != dsEvcBindingsClear(evc_idx, 0))
-  #endif
+#endif
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Unable to remove DHCP leases [evc_idx:%u]", evc_idx);
     return L7_FAILURE;
@@ -2542,7 +2540,7 @@ L7_RC_t ptin_dhcp_stat_intf_clear(ptin_intf_t *ptin_intf)
     PT_LOG_ERR(LOG_CTX_DHCP,"Invalid interface %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
-  /* Convert interface to ptin_port */
+  /* Convert interface to intIfNum */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_DHCP,"Invalid interface %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
@@ -2563,7 +2561,7 @@ L7_RC_t ptin_dhcp_stat_intf_clear(ptin_intf_t *ptin_intf)
     memset(&dhcpInstances[dhcp_idx].stats_intf[ptin_port], 0x00, sizeof(ptin_DHCP_Statistics_t));
   }
 
-  #if (DHCP_CLIENT_INTERF_SUPPORTED)
+#if (DHCP_CLIENT_INTERF_SUPPORTED)
   /* Run all cells in AVL tree related to this instance instance */
   memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
   while ( (avl_info = (ptinDhcpClientInfoData_t *)
@@ -2579,7 +2577,7 @@ L7_RC_t ptin_dhcp_stat_intf_clear(ptin_intf_t *ptin_intf)
       memset(&avl_info->client_stats, 0x00, sizeof(ptin_DHCP_Statistics_t));
     }
   }
-  #endif
+#endif
 
   osapiSemaGive(ptin_dhcp_stats_sem);
 
@@ -2616,7 +2614,7 @@ L7_RC_t ptin_dhcp_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t *ptin_i
     PT_LOG_ERR(LOG_CTX_DHCP,"Invalid interface %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
-  /* Convert interface to ptin_port */
+  /* Convert interface to intIfNum */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_DHCP,"Invalid interface %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
@@ -2650,7 +2648,7 @@ L7_RC_t ptin_dhcp_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t *ptin_i
   /* Clear instance statistics */
   memset(&dhcpInst->stats_intf[ptin_port], 0x00, sizeof(ptin_DHCP_Statistics_t));
 
-  #if (DHCP_CLIENT_INTERF_SUPPORTED)
+#if (DHCP_CLIENT_INTERF_SUPPORTED)
   /* Clear statistics of belonging clients */
   clientInfo_entry = NULL;
   dl_queue_get_head(&dhcpInstances[dhcp_idx].queue_clients, (dl_queue_elem_t **)&clientInfo_entry);
@@ -2666,7 +2664,7 @@ L7_RC_t ptin_dhcp_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t *ptin_i
     /* Next queue element */
     clientInfo_entry = (struct ptin_clientInfo_entry_s *) dl_queue_get_next(&dhcpInstances[dhcp_idx].queue_clients, (dl_queue_elem_t *) clientInfo_entry);
   }
-  #endif
+#endif
 
   osapiSemaGive(ptin_dhcp_stats_sem);
 
@@ -4075,37 +4073,37 @@ static L7_RC_t ptin_dhcp_client_find(L7_uint dhcp_idx, ptin_client_id_t *client_
     if (ptin_debug_dhcp_snooping)
     {
       PT_LOG_ERR(LOG_CTX_DHCP,"Key {"
-              #if (DHCP_CLIENT_INTERF_SUPPORTED)
+#if (DHCP_CLIENT_INTERF_SUPPORTED)
                                 "intIfNum=%u"
-              #endif
-              #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
                                 ",svlan=%u"
-              #endif
-              #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
                                 ",cvlan=%u"
-              #endif
-              #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_IPADDR_SUPPORTED)
                                 ",ipAddr=%u.%u.%u.%u"
-              #endif
-              #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_MACADDR_SUPPORTED)
                                 ",MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
-              #endif
+#endif
                                 "} does not exist in dhcp_idx=%u",
-              #if (DHCP_CLIENT_INTERF_SUPPORTED)
+#if (DHCP_CLIENT_INTERF_SUPPORTED)
               avl_key.intIfNum,
-              #endif
-              #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
               avl_key.outerVlan,
-              #endif
-              #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
               avl_key.innerVlan,
-              #endif
-              #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_IPADDR_SUPPORTED)
               (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
-              #endif
-              #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+#endif
+#if (DHCP_CLIENT_MACADDR_SUPPORTED)
               avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
-              #endif
+#endif
               dhcp_idx);
     }
     return L7_NOT_EXIST;
@@ -4616,7 +4614,7 @@ void ptin_dhcpClients_dump(void)
 
     printf("   Client#%-5u: Inst=%-2u "
            #if (DHCP_CLIENT_INTERF_SUPPORTED)
-           "ptin_port=%-2u "
+           "intIfNum=%-2u "
            #endif
            #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
            "svlan=%-4u "

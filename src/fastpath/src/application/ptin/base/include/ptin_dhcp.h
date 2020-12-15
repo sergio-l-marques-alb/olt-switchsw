@@ -349,16 +349,16 @@ extern L7_RC_t ptin_dhcp_client_get(L7_uint32 evc_idx, ptin_client_id_t *client,
  * Add a new DHCP client
  * 
  * @param evc_idx        : Unicast evc id
- * @param client            : client identification parameters
- * @param uni_ovid          : External outer vlan 
- * @param uni_ivid          : External inner vlan  
- * @param options           : PPPOE options
- * @param circuitId         : Circuit ID data 
- * @param remoteId          : remote id
+ * @param client_cfg     : client identification parameters
+ * @param uni_ovid       : External outer vlan 
+ * @param uni_ivid       : External inner vlan  
+ * @param options        : PPPOE options
+ * @param circuitId      : Circuit ID data 
+ * @param remoteId       : remote id
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_id, L7_uint16 uni_ovid, L7_uint16 uni_ivid,
+extern L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_cfg, L7_uint16 uni_ovid, L7_uint16 uni_ivid,
                                     L7_uint16 options, ptin_clientCircuitId_t *circuitId, L7_char8 *remoteId);
 
 /**
