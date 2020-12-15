@@ -63,13 +63,13 @@ static L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ush
 //static L7_RC_t pppoeServerInterfaceGet(L7_uint32 *intIfNum, L7_ushort16 vlanId);
 static L7_RC_t pppoeCommonErrorFrameCreate(L7_uchar8 *originalFramePtr, L7_uchar8 *newFramePtr, L7_uint32 *newFrameLen);
 static L7_RC_t pppoeCopyTlv(L7_uchar8 *originalFramePtr, L7_uchar8 *newFramePtr);
-static L7_RC_t pppoeAddVendorIdTlv(L7_uchar8 *framePtr, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId);
+static L7_RC_t pppoeAddVendorIdTlv(L7_uchar8 *framePtr, L7_uint32 ptin_port, L7_ushort16 vlanId, L7_ushort16 innerVlanId);
 
 
 
 /*********************************************************************
-* @purpose  Main function for the DHCP snooping thread. Read incoming
-*           messages (events and DHCP packets) and process accordingly.
+* @purpose  Main function for the PPPOE snooping thread. Read incoming
+*           messages (events and PPPOE packets) and process accordingly.
 *
 * @param    void
 *
@@ -162,57 +162,63 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   L7_uint32 len, ethHeaderSize;
   L7_uchar8 *data;
   L7_uint16 vlanId, innerVlanId = 0;
+//  L7_uint32           ptin_port=0;
+//  ptin_client_id_t    client_info;
 
   L7_uint client_idx = (L7_uint)-1;   /* PTin added: DHCP snooping */
 
   hapiBroadReceice_pppoe_count++;
 
   if (ptin_debug_pppoe_snooping)
+  {
     PT_LOG_DEBUG(LOG_CTX_PPPOE, "Packet intercepted: intIfNum=%u, vlanId=%u, innerVlanId=%u",
               pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
+  }
 
+#if 0
   /* Shouldn't get packets if PPPoE disabled, but if we do, ignore them. */
-//if (dsCfgData->dsGlobalAdminMode != L7_ENABLE )
-//{
-//  #ifdef L7_DHCP_L2_RELAY_PACKAGE
-//  if (dsCfgData->dsL2RelayAdminMode != L7_ENABLE)
-//  {
-//    if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_EXTERNAL_CALLS)
-//    {
-//      L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
-//      osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
-//                  "(%s)Packet rx'ed is ignored as neither GBL Snooping nor L2 Relay is enabled at DHCP intercept.",
-//                    __FUNCTION__);
-//      dsTraceWrite(traceMsg);
-//    }
-//    return SYSNET_PDU_RC_IGNORED;
-//  }
-//  #else
-//  return SYSNET_PDU_RC_IGNORED;
-//  #endif
-//}
+  if (dsCfgData->dsGlobalAdminMode != L7_ENABLE )
+  {
+ #ifdef L7_DHCP_L2_RELAY_PACKAGE
+    if (dsCfgData->dsL2RelayAdminMode != L7_ENABLE)
+    {
+      if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_EXTERNAL_CALLS)
+      {
+        L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+        osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+                    "(%s)Packet rx'ed is ignored as neither GBL Snooping nor L2 Relay is enabled at DHCP intercept.",
+                      __FUNCTION__);
+        dsTraceWrite(traceMsg);
+      }
+      return SYSNET_PDU_RC_IGNORED;
+    }
+ #else
+    return SYSNET_PDU_RC_IGNORED;
+ #endif
+  }
 
   /* If either DHCP snooping or the L2 Relay is not enabled on
      rx interface, ignore packet. */
-//if (dsVlanIntfIsSnooping(pduInfo->vlanId,pduInfo->intIfNum) /*dsIntfIsSnooping(pduInfo->intIfNum)*/ == L7_FALSE )   /* PTin modified: DHCP snooping */
-//{
-//  #ifdef L7_DHCP_L2_RELAY_PACKAGE
-//  if ( _dsVlanIntfL2RelayGet(pduInfo->vlanId,pduInfo->intIfNum) /*_dsIntfL2RelayGet(pduInfo->intIfNum)*/ == L7_FALSE) /* PTin modified: DHCP snooping */
-//  {
-//    if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_EXTERNAL_CALLS)
-//    {
-//      L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
-//      osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
-//                  "(%s)Packet rx'ed is ignored as neither INTF Snooping nor L2 Relay is enabled at DHCP intercept.",
-//                    __FUNCTION__);
-//      dsTraceWrite(traceMsg);
-//    }
-//    return SYSNET_PDU_RC_IGNORED;
-//  }
-//  #else
-//  return SYSNET_PDU_RC_IGNORED;
-//  #endif
-//}
+  if (dsVlanIntfIsSnooping(pduInfo->vlanId,pduInfo->intIfNum) /*dsIntfIsSnooping(pduInfo->intIfNum)*/ == L7_FALSE )   /* PTin modified: DHCP snooping */
+  {
+ #ifdef L7_DHCP_L2_RELAY_PACKAGE
+    if ( _dsVlanIntfL2RelayGet(pduInfo->vlanId,pduInfo->intIfNum) /*_dsIntfL2RelayGet(pduInfo->intIfNum)*/ == L7_FALSE) /* PTin modified: DHCP snooping */
+    {
+      if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_EXTERNAL_CALLS)
+      {
+        L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+        osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+                    "(%s)Packet rx'ed is ignored as neither INTF Snooping nor L2 Relay is enabled at DHCP intercept.",
+                      __FUNCTION__);
+        dsTraceWrite(traceMsg);
+      }
+      return SYSNET_PDU_RC_IGNORED;
+    }
+ #else
+    return SYSNET_PDU_RC_IGNORED;
+ #endif
+  }
+#endif
 
   SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, data);
   SYSAPI_NET_MBUF_GET_DATALENGTH(bufHandle, len);
@@ -221,19 +227,23 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   /* Convert vlan to root vlan */
   if ( ptin_pppoe_rootVlan_get( pduInfo->vlanId, &vlanId ) != L7_SUCCESS )
   {
-     if (ptin_debug_pppoe_snooping)
-       PT_LOG_ERR(LOG_CTX_PPPOE,"Root vlan not found! (intIfNum=%u, vlanId=%u)", pduInfo->intIfNum, pduInfo->vlanId);
+    if (ptin_debug_pppoe_snooping)
+    {
+      PT_LOG_ERR(LOG_CTX_PPPOE,"Root vlan not found! (intIfNum=%u, vlanId=%u)", pduInfo->intIfNum, pduInfo->vlanId);
+    }
   }
   else
   {
-     pduInfo->vlanId = vlanId;
+    pduInfo->vlanId = vlanId;
   }
 
   /* Ignore inband packets */
   if (pduInfo->vlanId == PTIN_VLAN_INBAND)
   {
     if (ptin_debug_pppoe_snooping)
+    {
       PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored (vlan=%u)", pduInfo->vlanId);
+    }
     return L7_FAILURE;
   }
 
@@ -242,16 +252,20 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   if (L7_TRUE != ptin_pppoe_vlan_validate(vlanId))
   {    
       /* For MX board, ignore DHCP packet */
-  #if (PTIN_BOARD_IS_MATRIX)
+#if (PTIN_BOARD_IS_MATRIX)
     if (ptin_debug_pppoe_snooping)
+    {
       PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
+    }
     return L7_FAILURE;
-  #else
+#else
     if (PTIN_VLAN_IS_QUATTRO(pduInfo->vlanId) && !(data[0] & 0x01))
     {
       /* Make software L2 forwarding */
       if (ptin_debug_pppoe_snooping)
+      {
         PT_LOG_ERR(LOG_CTX_PPPOE, "Going to L2 forward packet from VLAN %u / intIfNum %u", pduInfo->vlanId, pduInfo->intIfNum);
+      }
       /* L2 forward */
       if (ptin_packet_frame_l2forward_nonblocking(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len) == L7_SUCCESS)
       {
@@ -261,13 +275,17 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
       else
       {
         if (ptin_debug_pppoe_snooping)
+        {
           PT_LOG_ERR(LOG_CTX_PPPOE, "Error trying to L2 forward packet");
+        }
         return L7_FAILURE;
       }
     }
-  #endif
+#endif
     if (ptin_debug_pppoe_snooping)
+    {
       PT_LOG_NOTICE(LOG_CTX_PPPOE,"No PPPoE instance found for intVlanId %u. Ignored", vlanId);
+    }
     return L7_FAILURE;
   }
 
@@ -281,7 +299,7 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   {
     ptin_client_id_t client;
 
-    #if 0
+#if 0
     /* Validate inner vlan */
     if (innerVlanId==0 || innerVlanId>=4095)
     {
@@ -292,7 +310,7 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
       ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
       return SYSNET_PDU_RC_IGNORED;
     }
-    #endif
+#endif
 
     /* Client information */
     client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
@@ -303,15 +321,14 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 
     /* Only search for a client, if inner vlan is valid */
     /* Otherwise, use dynamic DHCP */
-    #if (PTIN_BOARD_IS_GPON)
+#if (PTIN_BOARD_IS_GPON)
     if (innerVlanId > 0 && innerVlanId < 4096)
-    #else
+#else
     if (1)
-    #endif
+#endif
     {
       /* Find client index, and validate it */
-      /* FIXME TC16SXG: intIfNum->ptin_port */
-      if (ptin_pppoe_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS ||
+      if (ptin_pppoe_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS ||   
           client_idx>=PTIN_SYSTEM_DHCP_MAXCLIENTS)
       {
         if (ptin_debug_pppoe_snooping)
@@ -472,11 +489,16 @@ L7_RC_t pppoeFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
                           L7_uchar8 *frame, L7_uint32 frameLen,
                           L7_ushort16 innerVlanId, L7_uint client_idx)
 {
-   if (ptin_debug_pppoe_snooping)
-     PT_LOG_DEBUG(LOG_CTX_PPPOE, "PPPoE: Received new message");
+   L7_uint32    ptin_port;
 
-   /* FIXME TC16SXG: intIfNum->ptin_port */
-   if(ptin_pppoe_is_intfRoot(intIfNum, vlanId) == L7_TRUE)
+   if (ptin_debug_pppoe_snooping)
+   {
+     PT_LOG_DEBUG(LOG_CTX_PPPOE, "PPPoE: Received new message");
+   }
+
+   /* ptin_port is only calculated for server packet */
+   ptin_port =  intIfNum2port(intIfNum, 0);
+   if(ptin_pppoe_is_intfRoot(ptin_port, vlanId) == L7_TRUE)
    {
       pppoeProcessServerFrame(frame, frameLen, intIfNum, vlanId, innerVlanId,
                               client_idx);
@@ -550,15 +572,14 @@ L7_BOOL pppoeFrameFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
 *
 * @end
 *********************************************************************/
-L7_RC_t pppoeAddVendorIdTlv(L7_uchar8 *framePtr, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId)
+L7_RC_t pppoeAddVendorIdTlv(L7_uchar8 *framePtr, L7_uint32 ptin_port, L7_ushort16 vlanId, L7_ushort16 innerVlanId)
 {
    L7_uint8  circuitid_code, remoteid_code, circuitid_length, remoteid_length;
    L7_uint16 tlv_tag_type, tlv_length;
    L7_uint32 vendor_id;
    L7_char8  circuit_id[FD_DS_MAX_REMOTE_ID_STRING], remote_id[FD_DS_MAX_REMOTE_ID_STRING];
 
-   /* FIXME TC16SXG: intIfNum->ptin_port */
-   if (ptin_pppoe_stringIds_get(intIfNum, vlanId, innerVlanId , L7_NULLPTR, circuit_id, remote_id) != L7_SUCCESS)
+   if (ptin_pppoe_stringIds_get(ptin_port, vlanId, innerVlanId , L7_NULLPTR, circuit_id, remote_id) != L7_SUCCESS)
    {
       return L7_FAILURE;
    }
@@ -777,8 +798,10 @@ L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 v
   L7_netBufHandle   bufHandle;
   L7_pppoe_header_t *pppoe_header;
   L7_INTF_TYPES_t   sysIntfType;
-  L7_uint32         member_mode;
+  L7_uint32         member_mode, ptin_port;
   L7_uint16         extOVlan, extIVlan;
+  ptin_client_id_t  client_info;
+  L7_RC_t           rc;
 
   /* If outgoing interface is CPU interface, don't send it */
   if ((nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
@@ -786,6 +809,36 @@ L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 v
   {
     return L7_SUCCESS;
   }
+
+  /* Get ptin_port from client_idx */
+  if (client_idx == PPPOE_INVALID_CLIENT_IDX)
+  {
+     ptin_port =  intIfNum2port(intIfNum, innerVlanId);
+     if (ptin_port == PTIN_PORT_INVALID)
+     {
+        if (ptin_debug_pppoe_snooping)
+        {
+           PT_LOG_ERR(LOG_CTX_PPPOE, "Error getting ptin_port"); 
+        }
+        return L7_FAILURE;
+     }
+  }
+  else
+  {
+     rc = ptin_pppoe_clientData_get(vlanId, client_idx, &client_info);
+     if (rc != L7_SUCCESS)
+     {
+        if (ptin_debug_pppoe_snooping)
+        {
+           PT_LOG_ERR(LOG_CTX_PPPOE, "Error getting PPPoE data");
+        }
+        return L7_FAILURE;
+     }
+
+     ptin_port = client_info.ptin_port;
+  }
+
+  PT_LOG_DEBUG(LOG_CTX_PPPOE, "ptin_port %u", ptin_port);
 
   /* Check if this port is associated to the VLAN */
   /* If not a member, don't transmit */
@@ -811,13 +864,12 @@ L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 v
   frame_len            = sysNetDataOffsetGet(frame) + sizeof(L7_pppoe_header_t) + osapiNtohs(pppoe_header->length);
 
   /* PTin added: PPPOE */
-  #if 1
+#if 1
   extOVlan = vlanId;
   extIVlan = 0;
 
   /* Extract external outer and inner vlan for this tx interface */
-  /* FIXME TC16SXG: intIfNum->ptin_port */
-  if (ptin_pppoe_extVlans_get(intIfNum, vlanId, innerVlanId, client_idx, &extOVlan,&extIVlan) == L7_SUCCESS)
+  if (ptin_pppoe_extVlans_get(ptin_port, vlanId, innerVlanId, client_idx, &extOVlan, &extIVlan) == L7_SUCCESS)
   {
     /* Modify outer vlan */
     if (vlanId!=extOVlan)
@@ -846,7 +898,7 @@ L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 v
       //innerVlanId = extIVlan;
     }
   }
-  #endif
+#endif
 
 
   SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, dataStart);
@@ -860,7 +912,9 @@ L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 v
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
     if (ptin_debug_pppoe_snooping)
+    {
       PT_LOG_ERR(LOG_CTX_PPPOE, " Failed to send PPPoE pkt on intf (%s) and vlanID (%d)", ifName, vlanId);
+    }
     return L7_FAILURE;
   }
 
@@ -894,8 +948,7 @@ L7_RC_t pppoeServerFrameFlood(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 
       continue;
     }
     /* It should be a ROOT interface */
-    /* FIXME TC16SXG: intIfNum->ptin_port */
-    if(ptin_pppoe_is_intfRoot(intIfNum, vlanId))
+    if(ptin_pppoe_is_intfRoot(ptinPort, vlanId))
     {
       rc = pppoeServerFrameSend(frame, intIfNum, vlanId, innerVlanId, client_idx);
       if (rc != L7_SUCCESS)
@@ -931,15 +984,15 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
   //L7_BOOL           is_vlan_stacked;
   L7_pppoe_header_t *pppoe_header;
   L7_INTF_TYPES_t   sysIntfType;
-  L7_uint32         member_mode, link_state;
-  
+  L7_uint32         member_mode, link_state, ptin_port=0;
+
   /* Link is up */
   if((L7_SUCCESS != nimGetIntfLinkState(intIfNum, &link_state)) && (link_state == L7_UP) )
   {
     return L7_SUCCESS;
   }
 
-  #if 0
+#if 0
   /* Get uplink interface */
   if(L7_SUCCESS != pppoeServerInterfaceGet(&intIfNum, vlanId))
   {
@@ -947,7 +1000,7 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
        PT_LOG_ERR(LOG_CTX_PPPOE, "Unable to determine server interface for vlanId %u", vlanId);
      return L7_FAILURE;
   }
-  #endif
+#endif
 
   /* If outgoing interface is CPU interface, don't send it */
   if ((nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
@@ -968,6 +1021,17 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
     return L7_SUCCESS;
   }
 
+  /* Get ptin_port from client_idx */
+  ptin_port =  intIfNum2port(intIfNum, 0);
+  if (ptin_port == PTIN_PORT_INVALID)
+  {
+    if (ptin_debug_pppoe_snooping)
+    {
+      PT_LOG_ERR(LOG_CTX_PPPOE, "Error getting ptin_port");
+    }
+    return L7_FAILURE;
+  }
+
   if (ptin_debug_pppoe_snooping)
     PT_LOG_TRACE(LOG_CTX_PPPOE, "Server interface for vlanId %u: intIfNum=%u", vlanId, intIfNum);
 
@@ -985,8 +1049,7 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
   frame_len            = sysNetDataOffsetGet(frame) + sizeof(L7_pppoe_header_t) + osapiNtohs(pppoe_header->length);
 
   /* Extract external outer and inner vlan for this tx interface */
-  /* FIXME TC16SXG: intIfNum->ptin_port */
-  if (ptin_pppoe_extVlans_get(intIfNum, vlanId, innerVlanId, client_idx, &extOVlan, &extIVlan) == L7_SUCCESS)
+  if (ptin_pppoe_extVlans_get(ptin_port, vlanId, innerVlanId, client_idx, &extOVlan, &extIVlan) == L7_SUCCESS)
   {
     #if 0
     /* Check if vlan belongs to a stacked EVC */
@@ -1070,9 +1133,42 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 frameLen, L7_uint32 int
    L7_BOOL                    tlv_vendor_id_found = L7_FALSE;
    ptinPppoeClientDataKey_t   binding_table_key, *result;
    int                        ethHeaderSize;
+   ptin_client_id_t           client_info;
+   L7_uint32                  ptin_port;
+   L7_RC_t                    rc;
+
+   /* Get ptin_port from client_idx */
+   if (client_idx == PPPOE_INVALID_CLIENT_IDX)
+   {
+      ptin_port =  intIfNum2port(intIfNum, 0);
+      if (ptin_port == PTIN_PORT_INVALID)
+      {
+         if (ptin_debug_pppoe_snooping)
+         {
+            PT_LOG_ERR(LOG_CTX_PPPOE, "Error getting ptin_port"); 
+         }
+         return;
+      }
+   }
+   else
+   {
+      rc = ptin_pppoe_clientData_get(vlanId, client_idx, &client_info);
+      if (rc != L7_SUCCESS)
+      {
+         if (ptin_debug_pppoe_snooping)
+         {
+            PT_LOG_ERR(LOG_CTX_PPPOE, "Error getting PPPoE data");
+         }
+         return;
+      }
+
+      ptin_port = client_info.ptin_port;
+   }
 
    if (ptin_debug_pppoe_snooping)
-     PT_LOG_DEBUG(LOG_CTX_PPPOE, "PPPoE: Received new client message");
+   {
+      PT_LOG_DEBUG(LOG_CTX_PPPOE, "PPPoE: Received new client message");
+   }
 
    eth_header_ptr       = frame;
    ethHeaderSize        = sysNetDataOffsetGet(frame);
@@ -1089,14 +1185,18 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 frameLen, L7_uint32 int
    pppoe_header_copy     = (L7_pppoe_header_t*) pppoe_header_copy_ptr;
 
    if (ptin_debug_pppoe_snooping)
-     PT_LOG_INFO(LOG_CTX_PPPOE, "PPPoE: verType=%02x code=%02x sessionId=%04x length=%04x",
+   {
+      PT_LOG_INFO(LOG_CTX_PPPOE, "PPPoE: verType=%02x code=%02x sessionId=%04x length=%04x",
               pppoe_header->verType, pppoe_header->code, osapiNtohs(pppoe_header->sessionId), osapiNtohs(pppoe_header->length));
+   }
 
    /* If we received a PPPoE frame other than PADI/PADR/PADT on a client port, drop it */
    if(pppoe_header->code!=L7_PPPOE_PADI && pppoe_header->code!=L7_PPPOE_PADR && pppoe_header->code!=L7_PPPOE_PADT)
    {
       if (ptin_debug_pppoe_snooping)
-        PT_LOG_ERR(LOG_CTX_PPPOE, "PPPoE: Received invalid message on an untrusted port. Dropped.");
+      {
+         PT_LOG_ERR(LOG_CTX_PPPOE, "PPPoE: Received invalid message on an untrusted port. Dropped.");
+      }
       return;
    }
 
@@ -1110,9 +1210,11 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 frameLen, L7_uint32 int
    if ( result == &binding_table_key )
    {
       if (ptin_debug_pppoe_snooping)
-        PT_LOG_ERR(LOG_CTX_PPPOE, "PPPoE: Unable to register client (macAddr: %02X:%02X:%02X:%02X:%02X:%02X, rootVlan:%u).",
-                   binding_table_key.macAddr[0],binding_table_key.macAddr[1],binding_table_key.macAddr[2],binding_table_key.macAddr[3],binding_table_key.macAddr[4],binding_table_key.macAddr[5],
-                   binding_table_key.rootVlan);
+      {
+         PT_LOG_ERR(LOG_CTX_PPPOE, "PPPoE: Unable to register client (macAddr: %02X:%02X:%02X:%02X:%02X:%02X, rootVlan:%u).",
+                    binding_table_key.macAddr[0],binding_table_key.macAddr[1],binding_table_key.macAddr[2],binding_table_key.macAddr[3],binding_table_key.macAddr[4],binding_table_key.macAddr[5],
+                    binding_table_key.rootVlan);
+      }
    }
    else if (result == L7_NULLPTR )
    {
@@ -1126,9 +1228,11 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 frameLen, L7_uint32 int
       else
       {
          if (ptin_debug_pppoe_snooping)
-           PT_LOG_ERR(LOG_CTX_PPPOE, "PPPoE: Unable to find inserted client (macAddr: %02X:%02X:%02X:%02X:%02X:%02X, rootVlan:%u).",
-                    binding_table_key.macAddr[0],binding_table_key.macAddr[1],binding_table_key.macAddr[2],binding_table_key.macAddr[3],binding_table_key.macAddr[4],binding_table_key.macAddr[5],
-                    binding_table_key.rootVlan);
+         {
+            PT_LOG_ERR(LOG_CTX_PPPOE, "PPPoE: Unable to find inserted client (macAddr: %02X:%02X:%02X:%02X:%02X:%02X, rootVlan:%u).",
+                       binding_table_key.macAddr[0],binding_table_key.macAddr[1],binding_table_key.macAddr[2],binding_table_key.macAddr[3],binding_table_key.macAddr[4],binding_table_key.macAddr[5],
+                       binding_table_key.rootVlan);
+         }
          return;
       }
    }
@@ -1156,9 +1260,10 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 frameLen, L7_uint32 int
       tlv_hdr_len=  osapiNtohs(tlv_header->length);
       tlv_hdr_type= osapiNtohs(tlv_header->type);
 
-      if ( tlv_hdr_len > ( frame_len - sizeof(L7_tlv_header_t) ) ) {
-          PT_LOG_ERR(LOG_CTX_PPPOE, "invalid tlv_hdr_len=%u" , tlv_hdr_len );
-          break;
+      if ( tlv_hdr_len > ( frame_len - sizeof(L7_tlv_header_t) ) ) 
+      {
+         PT_LOG_ERR(LOG_CTX_PPPOE, "invalid tlv_hdr_len=%u" , tlv_hdr_len );
+         break;
       }
 
       /* Debug */
@@ -1172,8 +1277,10 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 frameLen, L7_uint32 int
             L7_uint32       frame_copy_len;
 
             if (ptin_debug_pppoe_snooping)
-              PT_LOG_DEBUG(LOG_CTX_PPPOE, "Found a Vendor ID Tag Type. Replacing.");
-            pppoeAddVendorIdTlv(tlv_header_copy_ptr, intIfNum, vlanId, innerVlanId);
+            {
+               PT_LOG_DEBUG(LOG_CTX_PPPOE, "Found a Vendor ID Tag Type. Replacing.");
+            }
+            pppoeAddVendorIdTlv(tlv_header_copy_ptr, ptin_port, vlanId, innerVlanId);
             tlv_vendor_id_found       = L7_TRUE;
             tlv_header_new            = (L7_tlv_header_t*) tlv_header_copy_ptr;
             tlv_header_copy_ptr       += sizeof(L7_tlv_header_t) + osapiNtohs(tlv_header_new->length);
@@ -1183,7 +1290,9 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 frameLen, L7_uint32 int
             if((sysNetDataOffsetGet(eth_header_ptr) + sizeof(L7_pppoe_header_t) + osapiNtohs(pppoe_header->length) + sizeof(L7_tlv_header_t) + osapiNtohs(tlv_header_new->length)) > PPPOE_PACKET_SIZE_MAX)
             {
                if (ptin_debug_pppoe_snooping)
-                 PT_LOG_ERR(LOG_CTX_PPPOE, "PPPoE: New frame exceeds MTU. Dropping and returning a PADO/PADS with code 0x0203.");
+               {
+                  PT_LOG_ERR(LOG_CTX_PPPOE, "PPPoE: New frame exceeds MTU. Dropping and returning a PADO/PADS with code 0x0203.");
+               }
 
                pppoeCommonErrorFrameCreate(frame, frame_copy, &frame_copy_len);
                pppoeClientFrameSend(intIfNum, frame_copy, vlanId, innerVlanId, client_idx);
@@ -1203,9 +1312,10 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 frameLen, L7_uint32 int
       tlv_header_ptr += sizeof(L7_tlv_header_t) + tlv_hdr_len;
       frame_len      -= sizeof(L7_tlv_header_t) + tlv_hdr_len;
 
-      if (L7_TLV_TAGTYPE_END_OF_LIST == tlv_hdr_type) {
-          PT_LOG_DEBUG(LOG_CTX_PPPOE, "end of tag list");
-          break;
+      if (L7_TLV_TAGTYPE_END_OF_LIST == tlv_hdr_type) 
+      {
+         PT_LOG_DEBUG(LOG_CTX_PPPOE, "end of tag list");
+         break;
       }
    }//while
 
@@ -1215,8 +1325,10 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 frameLen, L7_uint32 int
       L7_tlv_header_t *tlv_header_new;
 
       if (ptin_debug_pppoe_snooping)
-        PT_LOG_DEBUG(LOG_CTX_PPPOE, "Adding vendor ID TLV.");
-      pppoeAddVendorIdTlv(tlv_header_copy_ptr, intIfNum, vlanId, innerVlanId);
+      {
+         PT_LOG_DEBUG(LOG_CTX_PPPOE, "Adding vendor ID TLV.");
+      }
+      pppoeAddVendorIdTlv(tlv_header_copy_ptr, ptin_port, vlanId, innerVlanId);
 
       tlv_header_new            = (L7_tlv_header_t*) tlv_header_copy_ptr;
       pppoe_header_copy->length += osapiHtons(sizeof(L7_tlv_header_t) + osapiNtohs(tlv_header_new->length));
@@ -1290,6 +1402,9 @@ void pppoeProcessServerFrame(L7_uchar8* frame, L7_uint32 frameLen, L7_uint32 int
    {
       intIfNum    = binding_table_data->interface;
       innerVlanId = binding_table_data->inner_vlan;
+      PT_LOG_DEBUG(LOG_CTX_PPPOE,
+                   "PPPoE Binding table: interface=%u, inner_vlan=%u ",
+                   binding_table_data->interface, binding_table_data->inner_vlan);
       avlDeleteEntry(&pppoeBindingTable.avlTree, (void *)&binding_table_key);
    }
    else

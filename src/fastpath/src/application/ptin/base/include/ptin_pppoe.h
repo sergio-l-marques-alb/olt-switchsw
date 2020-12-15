@@ -43,6 +43,8 @@
 #define CIRCUITID_Q_VID_STR             "$qvid"   
 #define CIRCUITID_C_VID_STR             "$cvid"   
 
+#define PPPOE_INVALID_CLIENT_IDX (L7_uint)-1
+
 /***********************************************************
  * Typedefs
  ***********************************************************/
@@ -255,7 +257,7 @@ extern L7_RC_t ptin_pppoe_client_get(L7_uint32 evc_idx, ptin_client_id_t *client
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_id, L7_uint16 uni_ovid, L7_uint16 uni_ivid,
+extern L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_cfg, L7_uint16 uni_ovid, L7_uint16 uni_ivid,
                                      L7_uint16 options, ptin_clientCircuitId_t *circuitId, L7_char8 *remoteId);
 
 /**
@@ -506,14 +508,14 @@ extern L7_RC_t ptin_pppoe_extVlans_get(L7_uint32 ptin_port, L7_uint16 intOVlan, 
 /**
  * Get the client index associated to a PPPOE client 
  * 
- * @param ptin_port     : interface number
+ * @param intIfNum     : interface number
  * @param intVlan       : internal vlan
  * @param client        : Client information parameters
  * @param client_index  : Client index to be returned
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pppoe_clientIndex_get(L7_uint32 ptin_port, L7_uint16 intVlan, ptin_client_id_t *client, L7_uint *client_index);
+extern L7_RC_t ptin_pppoe_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan, ptin_client_id_t *client, L7_uint *client_index);
 
 /**
  * Get client information from its index. 
