@@ -1035,7 +1035,7 @@ extern L7_RC_t ptin_igmp_clientData_get(L7_uint32 ptin_port,
                                         ptin_client_id_t *client);
 
 /**
- * Validate igmp packet checking if the input intIfNum and 
+ * Validate igmp packet checking if the input ptin_port and 
  * internal Vlan are valid
  * 
  * @param ptin_port: source interface number
@@ -1069,8 +1069,8 @@ extern L7_RC_t ptin_igmp_vlan_validate(L7_uint16 intVlan);
 extern L7_RC_t ptin_igmp_vlan_UC_is_unstacked(L7_uint16 intVlan, L7_BOOL *is_unstacked);
 
 /**
- * Validate igmp packet checking if the input intIfNum is a root
- * interface and internal Vlan is valid 
+ * Validate igmp packet checking if the input ptin_port is a 
+ * root interface and internal Vlan is valid 
  * 
  * @param ptin_port: source interface number
  * @param intVlan  : internal vlan
@@ -1081,7 +1081,7 @@ extern L7_RC_t ptin_igmp_vlan_UC_is_unstacked(L7_uint16 intVlan, L7_BOOL *is_uns
 extern L7_RC_t ptin_igmp_rootIntfVlan_validate(L7_uint32 ptin_port, L7_uint16 intVlan);
 
 /**
- * Validate igmp packet checking if the input intIfNum is a 
+ * Validate igmp packet checking if the input ptin_port is a 
  * client (leaf) interface and internal Vlan is valid 
  * 
  * @param ptin_port: source interface number
@@ -1093,7 +1093,7 @@ extern L7_RC_t ptin_igmp_rootIntfVlan_validate(L7_uint32 ptin_port, L7_uint16 in
 extern L7_RC_t ptin_igmp_clientIntfVlan_validate(L7_uint32 ptin_port, L7_uint16 intVlan);
 
 /**
- * Validate igmp packet checking if the input intIfNum is a 
+ * Validate igmp packet checking if the input ptin_port is a 
  * client (leaf) interface and internal Vlan is valid 
  * 
  * @param ptin_port: source interface number
@@ -1393,7 +1393,7 @@ extern mgmdQueryInstances_t* ptin_mgmd_query_instances_get(L7_uint32 *mgmdNumber
  * Get IGMP Client Bitmap
  *  
  * @param extendedEvcId       : Extended EVC Id
- * @param ptin_port           : intIfNum
+ * @param ptin_port           : interface
  * @param clientBmpPtr        : Client Bitmap Pointer
  * 
  * @return  L7_RC_t           : L7_SUCCESS/L7_FAILURE 
