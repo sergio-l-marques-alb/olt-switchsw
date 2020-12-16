@@ -7,6 +7,9 @@
 /* Allows direct control over port add/remove of a LAG (shortcut to message queues) */
 #define LAG_DIRECT_CONTROL_FEATURE  1
 
+/* Activate this flag to select Inports using InterfaceClassId, instead of Inports qualifier */
+#define ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+
 /* Info about ASPEN devices */
 #define TC16SXG_ASPEN_BRIDGE_SCRIPT "/bin/sh /usr/local/ptin/scripts/startAspenBridge.sh"  /* Only applicable to TC16SXG */
 

@@ -135,7 +135,8 @@ int policy_group_set_pbm(int                  unit,
                          BROAD_POLICY_STAGE_t policyStage,
                          BROAD_GROUP_t        group,
                          BROAD_ENTRY_t        entry,
-                         bcm_pbmp_t           pbm);
+                         bcm_pbmp_t           pbm,
+                         unsigned char        portClass);
 
 int policy_group_set_portclass(int                  unit,
                                BROAD_POLICY_STAGE_t policyStage,

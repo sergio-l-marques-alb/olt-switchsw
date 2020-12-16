@@ -3368,11 +3368,11 @@ static int _policy_group_add_std_field(int                   unit,
         break;
     case BROAD_FIELD_PORTCLASS:
         /* PTin modified: SDK 6.3.0 */
-        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
         rv = bcm_field_qualify_InterfaceClassPort(unit, eid, *((uint32*)value), *((uint32*)mask));
-        #else
+#else
         rv = bcm_field_qualify_PortClass(unit, eid, *((uint32*)value), *((uint32*)mask));
-        #endif
+#endif
         break;
     case BROAD_FIELD_DROP:
         rv = bcm_field_qualify_Drop(unit,eid,*((uint8*)value), 1);
@@ -5042,11 +5042,12 @@ int policy_group_add_rule(int                        unit,
        never match rule (as a NULL pbmp would do for ingress) */
     if ((policyStage == BROAD_POLICY_STAGE_INGRESS) || (policyType == BROAD_POLICY_TYPE_VLAN) || (BCM_PBMP_NOT_NULL(pbm)))
     {
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+        sysapiPrintf("Installing rule - eid %u", eid);
+
       rv = bcm_field_entry_install(unit, eid);
 
-      /* PTin added: SDK 6.3.0 */
-      #if 1
-      if ( rv != BCM_E_NONE)
+      if (rv != BCM_E_NONE)
       {
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
           sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
@@ -5059,13 +5060,9 @@ int policy_group_add_rule(int                        unit,
                                         eid, rulePtr->meterSrcEntry,  /* PTin added: Policer/Counter */
                                         rulePtr->policer.policer_id, rulePtr->counter.counter_id);
       }
-      #endif
 
-      /* PTin added: FFP */
-      #if 1
       if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
           sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
-      #endif
     }
 
     if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
@@ -5078,11 +5075,13 @@ int policy_group_set_pbm(int                  unit,
                          BROAD_POLICY_STAGE_t policyStage,
                          BROAD_GROUP_t        group,
                          BROAD_ENTRY_t        entry,
-                         bcm_pbmp_t           pbm)
+                         bcm_pbmp_t           pbm,
+                         unsigned char        portClass)
 {
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-    PT_LOG_WARN(LOG_CTX_STARTUP, "FIXME! InPorts Qual at Field Processor");
-    return  BCM_E_NONE;
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    PT_LOG_WARN(LOG_CTX_INTF, "[policy_group_set_pbm->portclass] portClass: Stage %u, gid %u, eid %u, portClass %u",
+                policyStage, group, entry, portClass);
+    return policy_group_set_portclass(unit, policyStage, group, entry, pbm, portClass);
 #else
     int               rv;
     group_table_t    *groupPtr;
@@ -5122,6 +5121,9 @@ int policy_group_set_pbm(int                  unit,
     if (BCM_E_NONE != rv)
         return rv;
 
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+        sysapiPrintf("Installing rule - eid %u", eid);
+
     rv = bcm_field_entry_install(unit, eid);
 
     /* PTin added: FFP */
@@ -5150,9 +5152,14 @@ int policy_group_set_portclass(int                  unit,
     group_table_t    *groupPtr;
     bcm_field_entry_t eid;
     unsigned int      portMask  = BCM_FIELD_EXACT_MATCH_MASK;
-    unsigned int      portClassBmp;
+    unsigned int      portClass_val, portClass_mask;
     unsigned int      bcm_port;
     int               numPorts;
+    BOOL              install_rule = L7_FALSE;
+
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+      sysapiPrintf("portClass: Stage=%u group=%u entry=%u portClass=%u",
+                   policyStage, group, entry, portClass);
 
     CHECK_GROUP(unit,policyStage,group);
 
@@ -5183,20 +5190,81 @@ int policy_group_set_portclass(int                  unit,
        never match rule (as a NULL pbmp would do for ingress) */
     if (BCM_PBMP_NOT_NULL(pbm))
     {
-      /* Don't burn a portClassId if only one port uses this rule */
+      bcm_pbmp_t tempPbm;
+
+      /* Filter only Ethernet ports */
+      BCM_PBMP_CLEAR(tempPbm);
+      BCM_PBMP_ASSIGN(tempPbm, PBMP_E_ALL(unit));
+      BCM_PBMP_AND(tempPbm, pbm);
+
+      /* Count number of active ports */
       BCM_PBMP_COUNT(pbm, numPorts);
+
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+      /* If port bitmap contain all ethernet ports, there is no need for the ClassId */
+      if (BCM_PBMP_EQ(tempPbm, PBMP_E_ALL(unit)))
+      {
+        if (policyStage == BROAD_POLICY_STAGE_LOOKUP ||
+            policyStage == BROAD_POLICY_STAGE_INGRESS)
+        {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+            sysapiPrintf("stage=%u group=%u entry=%u: Deactivating InPort qualifier",
+                         policyStage, group, entry, bcm_port);
+
+          rv = bcm_field_qualify_InPort(unit, eid, 0, 0);
+          if (BCM_E_NONE != rv)
+            return rv;
+        }
+        else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
+        {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+            sysapiPrintf("stage=%u group=%u entry=%u: Deactivating OutPort qualifier",
+                         policyStage, group, entry, bcm_port);
+
+          rv = bcm_field_qualify_OutPort(unit, eid, 0, 0);
+          if (BCM_E_NONE != rv)
+            return rv;
+        }
+
+        /* PTin modified: SDK 6.3.0 */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+        rv = bcm_field_qualify_InterfaceClassPort(unit, eid, 0, 0);
+#else
+        rv = bcm_field_qualify_PortClass(unit, eid, 0, 0);
+#endif
+        if (BCM_E_NONE != rv)
+            return rv;
+
+        /* Rule will be reinstalled! */
+        install_rule = L7_TRUE;
+      }
+      else
+#endif /*ICAP_INTERFACES_SELECTION_BY_CLASSPORT*/
+      /* Don't burn a portClassId if only one port uses this rule */
       if (numPorts == 1)
       {
         BCM_PBMP_ITER(pbm, bcm_port)
         {
-          if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
+          if (policyStage == BROAD_POLICY_STAGE_LOOKUP
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+              || policyStage == BROAD_POLICY_STAGE_INGRESS
+#endif
+             )
           {
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+              sysapiPrintf("stage=%u group=%u entry=%u: Adding InPort qualifier(bcm_port %u)",
+                           policyStage, group, entry, bcm_port);
+
             rv = bcm_field_qualify_InPort(unit, eid, bcm_port, portMask);
             if (BCM_E_NONE != rv)
                 return rv;
           }
           else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
           {
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+              sysapiPrintf("stage=%u group=%u entry=%u: Adding OutPort qualifier(bcm_port %u)",
+                           policyStage, group, entry, bcm_port);
+
             rv = bcm_field_qualify_OutPort(unit, eid, bcm_port, portMask);
             if (BCM_E_NONE != rv)
                 return rv;
@@ -5204,50 +5272,100 @@ int policy_group_set_portclass(int                  unit,
           break;
         }
 
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+          sysapiPrintf("stage=%u group=%u entry=%u: Deactivating InterfaceClassPort qualifier",
+                       policyStage, group, entry);
+
         /* PTin modified: SDK 6.3.0 */
-        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
         rv = bcm_field_qualify_InterfaceClassPort(unit, eid, 0, 0);
-        #else
+#else
         rv = bcm_field_qualify_PortClass(unit, eid, 0, 0);
-        #endif
+#endif
         if (BCM_E_NONE != rv)
             return rv;
+
+        /* Rule will be reinstalled! */
+        install_rule = L7_TRUE;
       }
-      else
+      /* Multiple ports */
+      else if (portClass != BROAD_INVALID_PORT_CLASS)
       {
-        if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
+        if (policyStage == BROAD_POLICY_STAGE_LOOKUP
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+            || policyStage == BROAD_POLICY_STAGE_INGRESS
+#endif
+            )
         {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+            sysapiPrintf("stage=%u group=%u entry=%u: Deactivating InPort qualifier",
+                         policyStage, group, entry, bcm_port);
+
           rv = bcm_field_qualify_InPort(unit, eid, 0, 0);
           if (BCM_E_NONE != rv)
               return rv;
         }
         else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
         {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+            sysapiPrintf("stage=%u group=%u entry=%u: Deactivating OutPort qualifier",
+                         policyStage, group, entry, bcm_port);
+
           rv = bcm_field_qualify_OutPort(unit, eid, 0, 0);
           if (BCM_E_NONE != rv)
               return rv;
         }
-        portClassBmp = 1 << portClass;
+
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+        portClass_val  = portClass;
+        portClass_mask = 0xff;
+#else
+        portClass_val  = 1 << portClass;
+        portClass_mask = 1 << portClass;
+#endif
+
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+          sysapiPrintf("stage=%u group=%u entry=%u: Adding InterfaceClassPort qualifier(portClass %u)",
+                       policyStage, group, entry, portClass_val);
 
         /* PTin modified: SDK 6.3.0 */
-        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-        rv = bcm_field_qualify_InterfaceClassPort(unit, eid, portClassBmp, portClassBmp);
-        #else
-        rv = bcm_field_qualify_PortClass(unit, eid, portClassBmp, portClassBmp);
-        #endif
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+        rv = bcm_field_qualify_InterfaceClassPort(unit, eid, portClass_val, portClass_mask);
+#else
+        rv = bcm_field_qualify_PortClass(unit, eid, portClass_val, portClass_mask);
+#endif
         if (BCM_E_NONE != rv)
             return rv;
+
+        /* Rule will be reinstalled! */
+        install_rule = L7_TRUE;
       }
-
-      rv = bcm_field_entry_install(unit, eid);
-
-      /* PTin added: FFP */
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-        sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
-
-      if (BCM_E_NONE != rv)
-          return rv;
     }
+
+    /* Only install rule, if port/classId is valid */
+    if (install_rule)
+    {
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+          sysapiPrintf("Installing rule - eid %u", entry);
+
+        rv = bcm_field_entry_install(unit, eid);
+
+        /* PTin added: FFP */
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+          sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
+
+        if (BCM_E_NONE != rv)
+            return rv;
+    }
+    else
+    {
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+          sysapiPrintf("unit=%u eid=%u will NOT be reinstalled", unit, eid);
+    }
+
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+      sysapiPrintf("stage=%u group=%u entry=%u: Done (rv=%d)",
+                   policyStage, group, entry, rv);
 
     return rv;
 }
@@ -5259,6 +5377,17 @@ int policy_port_class_add_remove(int                  unit,
                                  L7_BOOL              add)
 {
     int               rv = BCM_E_NONE;
+
+#if 1 /* ClassId table management modified */
+    if (add)
+    {
+      rv = l7_policy_portclass_port_add(unit, policyStage, portClass, port);
+    }
+    else
+    {
+      rv = l7_policy_portclass_port_remove(unit, policyStage, portClass, port);
+    }
+#else
     L7_uint32         portClassBmp;
     bcm_port_class_t  portClassType;
 
@@ -5266,6 +5395,12 @@ int policy_port_class_add_remove(int                  unit,
     {
       portClassType = bcmPortClassFieldLookup;
     }
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    else if (policyStage == BROAD_POLICY_STAGE_INGRESS)
+    {
+      portClassType = bcmPortClassFieldIngress;
+    }
+#endif
     else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
     {
       portClassType = bcmPortClassFieldEgress;
@@ -5275,12 +5410,27 @@ int policy_port_class_add_remove(int                  unit,
       return BCM_E_PARAM;
     }
 
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    if (!add)
+    {
+      /* No ports should use Class id 0xff */
+      portClassBmp = BROAD_INVALID_PORT_CLASS;
+    }
+    else
+    {
+      portClassBmp = portClass;
+    }
+
+    rv = bcm_port_class_set(unit, port, portClassType, portClassBmp);
+
+#else /*ICAP_INTERFACES_SELECTION_BY_CLASSPORT*/
+
     if (portClass != BROAD_INVALID_PORT_CLASS)
     {
       rv = bcm_port_class_get(unit, port, portClassType, &portClassBmp);
       if (BCM_E_NONE != rv)
           return rv;
-  
+
       if (add)
       {
         portClassBmp |= (1 << portClass);
@@ -5289,10 +5439,11 @@ int policy_port_class_add_remove(int                  unit,
       {
         portClassBmp &= ~(1 << portClass);
       }
-  
+
       rv = bcm_port_class_set(unit, port, portClassType, portClassBmp);
     }
-
+#endif /*ICAP_INTERFACES_SELECTION_BY_CLASSPORT*/
+#endif
     return rv;
 }
 int policy_group_set_outervlan(int                  unit,
@@ -5353,6 +5504,9 @@ int policy_group_set_outervlan(int                  unit,
         (policyStage == BROAD_POLICY_STAGE_INGRESS) ||
         (((policyStage == BROAD_POLICY_STAGE_LOOKUP) || (policyStage == BROAD_POLICY_STAGE_EGRESS)) && BCM_PBMP_NOT_NULL(policyPtr->pbm)))
     {
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+        sysapiPrintf("Installing rule - eid %u", eid);
+
       rv = bcm_field_entry_install(unit, eid);
 
       /* PTin added: FFP */
@@ -5375,6 +5529,10 @@ int policy_port_class_pbmp_update(int                  unit,
 {
   int       rv = BCM_E_NONE;
   L7_uint32 port;
+
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+    sysapiPrintf("Updating portClass: stage=%u oldPortClass=%u newPortClass=%u: Updating class port",
+                 policyStage, oldPortClass, newPortClass);
 
   BCM_PBMP_ITER(pbm, port)
   {
@@ -5741,6 +5899,9 @@ void policy_group_dataplane_cleanup(int                  unit,
       return;
     }
 
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+      sysapiPrintf("Installing rule - eid %u", eid);
+
     rv = bcm_field_entry_install(unit, eid);
 
     /* PTin added: FFP */
@@ -5882,6 +6043,9 @@ int policy_group_create_default_rule(int unit,
                               );
     if (BCM_E_NONE != rv)
       return rv;
+
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+      sysapiPrintf("Installing rule - eid %u", eid);
 
     rv = bcm_field_entry_install(unit, eid);
 

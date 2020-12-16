@@ -20,6 +20,7 @@
 #define BROAD_POLICY_COMMON_H
 
 #include "broad_common.h"
+#include "ptin_globaldefs.h"
 
 /* PTin added: FP */
 #define EFP_STD_CLASS_ID_MAX  8
