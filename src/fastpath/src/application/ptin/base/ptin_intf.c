@@ -2553,6 +2553,7 @@ L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 virtual_vid,
   {
     offset = 0;
   }
+#if 0   /* Unneeded validation */
   /* Validate offset */
   if (offset >= PORT_VIRTUALIZATION_VID_N_SETS)
   {
@@ -2560,7 +2561,7 @@ L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 virtual_vid,
                intIfNum, offset, PORT_VIRTUALIZATION_VID_N_SETS);
     return L7_FAILURE;
   }
-  
+#endif  
   /* Extract port */
   _ptin_port = map_intIfNum2port[intIfNum][offset];
 
@@ -2593,6 +2594,13 @@ L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 virtual_vid,
 L7_RC_t ptin_intf_virtualVid2GemVid(L7_uint16 virtual_vid, L7_uint16 *gem_vid)
 {
   L7_uint16 gem_vid_max, _gem_vid;
+
+  /* Validate arguments */
+  if (virtual_vid >= 4096)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "virtual_vid >= 4096");
+    return L7_FAILURE;
+  }
 
   gem_vid_max = 4096/PORT_VIRTUALIZATION_VID_N_SETS;
 
@@ -2665,7 +2673,7 @@ L7_RC_t ptin_intf_portGem2virtualVid(L7_uint32 ptin_port, L7_uint16 gem_vid, L7_
     for (index = 0; index < PORT_VIRTUALIZATION_VID_N_SETS; index++)
     {
       /* Search for the ptin_port */
-      if (map_intIfNum2port[intIfNum][index] < PTIN_SYSTEM_N_INTERF &&
+      if (//map_intIfNum2port[intIfNum][index] < PTIN_SYSTEM_N_INTERF &&
           map_intIfNum2port[intIfNum][index] == ptin_port)
       {
         break;
@@ -2679,8 +2687,10 @@ L7_RC_t ptin_intf_portGem2virtualVid(L7_uint32 ptin_port, L7_uint16 gem_vid, L7_
     }
     else /* Not found? */
     {
-      PT_LOG_ERR(LOG_CTX_INTF, "Offset associated to ptin_port# %u not found... using input vlan %u",
-                 ptin_port, _virtual_vid);
+      PT_LOG_CRITIC(LOG_CTX_INTF,
+                    "Offset associated to ptin_port %u gem_vid %u not found",
+                    ptin_port, gem_vid);
+      return L7_FAILURE;
     }
   }
 #endif
