@@ -123,7 +123,9 @@ void ptin_control_debug_set(L7_BOOL enable)
 static void startup_trap_send(void);
 static void monitor_throughput(void);
 static void monitor_alarms(void);
+#if (PTIN_BOARD_IS_MATRIX) || (PTIN_BOARD_IS_SWITCHABLE)
 static void monitor_matrix_commutation(void);
+#endif
 #if ( PTIN_BOARD == PTIN_BOARD_CXO640G)
 static void ptin_control_sysMacAddr(void);
 #endif
@@ -883,6 +885,7 @@ void schedule_matrix_query_send(void)
 }
 
 
+#if (PTIN_BOARD_IS_MATRIX) || (PTIN_BOARD_IS_SWITCHABLE)
 /**
  * Matrix Commutation process 
  *  
@@ -1134,6 +1137,7 @@ static void monitor_matrix_commutation(void)
   }
 #endif
 }
+#endif
 
 #if (!PTIN_BOARD_IS_STANDALONE)
 /**

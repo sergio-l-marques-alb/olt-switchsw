@@ -89,9 +89,10 @@ void fw_shm_dump(void)
       }
 
       printf("SyncE_Recovery_clock[] = { 0x%02x 0x%02x }\r\n", pfw_shm->SyncE_Recovery_clock[0], pfw_shm->SyncE_Recovery_clock[1]);
-
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
       printf("CPLD = { slot_id=0x%02x slot_matrix=0x%02x mx_is_active=0x%02x }\r\n",
              pfw_shm->cpld.slot_id, pfw_shm->cpld.slot_matrix, pfw_shm->cpld.mx_is_active);
+#endif
   }
 #endif
 }
