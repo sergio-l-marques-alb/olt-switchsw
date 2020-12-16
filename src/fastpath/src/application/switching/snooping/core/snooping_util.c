@@ -1232,7 +1232,7 @@ L7_BOOL snoopMapIntfConfigEntryGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-void snoopPacketSend(L7_uint32 intIfNum,
+void snoopPacketSend(L7_uint32 ptin_port,
                      L7_uint32 vlanId,
                      L7_uint32 innerVIDUntagged,
                      L7_uchar8 *payload,
@@ -1242,8 +1242,9 @@ void snoopPacketSend(L7_uint32 intIfNum,
   L7_netBufHandle   bufHandle;
   L7_uchar8        *dataStart;
   L7_INTF_TYPES_t   sysIntfType;
-  L7_uint32         member_mode;
+  L7_uint32         member_mode,intIfNum;
   L7_uint16         extOVlan, extIVlan;
+  L7_RC_t           rc;
 
 #if PTIN_BOARD_IS_MATRIX  
   /* Do nothing for slave matrix */
@@ -1254,6 +1255,13 @@ void snoopPacketSend(L7_uint32 intIfNum,
     return;
   }
 #endif
+
+  rc = ptin_intf_port2intIfNum(ptin_port, &intIfNum);
+  if (rc != L7_SUCCESS)
+  {
+     PT_LOG_ERR(LOG_CTX_IGMP, "Error getting intIfNum");
+     return;
+  }
 
   /* Make sure this port has not been enabled for routing, is not the mirror dest port,
   ** is not a LAG member and is active.
@@ -1301,7 +1309,7 @@ void snoopPacketSend(L7_uint32 intIfNum,
 
   /* Extract external outer and inner vlan for this tx interface */
   /* FIXME TC16SXG: intIfNum->ptin_port */
-  if (ptin_igmp_extVlans_get(intIfNum, vlanId, innerVIDUntagged, client_idx, &extOVlan, &extIVlan) == L7_SUCCESS)
+  if (ptin_igmp_extVlans_get(ptin_port, vlanId, innerVIDUntagged, client_idx, &extOVlan, &extIVlan) == L7_SUCCESS)
   {
     /* Modify outer vlan */
     if (vlanId!=extOVlan)

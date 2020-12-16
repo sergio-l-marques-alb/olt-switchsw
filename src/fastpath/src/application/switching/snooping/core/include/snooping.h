@@ -939,6 +939,7 @@ typedef struct snoopMgmtMsg_s
 typedef struct snoopPDU_Msg_s
 {
   L7_uint32        msgId;              /* Of type snoopMgmtMessages_t */
+  L7_uint32        ptin_port;          /* Interface on which PDU was received */
   L7_uint32        intIfNum;           /* Interface on which PDU was received */
   L7_uint32        vlanId;             /* VLAN on which PDU was received */
   L7_uint32        innerVlanId;        /* Inner VLAN if present */  
