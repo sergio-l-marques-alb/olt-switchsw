@@ -3556,6 +3556,8 @@ L7_RC_t ptin_evc_port_remove(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_in
       memset(&clientId, 0x00, sizeof(clientId));
       clientId.ptin_intf.intf_type  = evc_intf->intf.value.ptin_intf.intf_type;
       clientId.ptin_intf.intf_id    = evc_intf->intf.value.ptin_intf.intf_id;
+      clientId.ptin_port            = ptintf2port(clientId.ptin_intf.intf_type,
+                                                  clientId.ptin_intf.intf_id); 
       clientId.outerVlan            = evcs[evc_idx].intf[ptin_port].int_vlan;
       #if 0
       clientId.innerVlan            = evcs[evc_idx].intf[ptin_port].inner_vlan;
@@ -4750,6 +4752,8 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
     memset(&clientId, 0x00, sizeof(clientId));
     clientId.ptin_intf.intf_type  = ptin_intf.intf_type;
     clientId.ptin_intf.intf_id    = ptin_intf.intf_id;
+    clientId.ptin_port            = ptintf2port(clientId.ptin_intf.intf_type,
+                                                clientId.ptin_intf.intf_id); 
     clientId.outerVlan            = pclient->int_ovid;
     clientId.innerVlan            = pclient->int_ivid;
     clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;    
@@ -5275,6 +5279,8 @@ L7_RC_t ptin_evc_macbridge_client_packages_add(ptin_evc_macbridge_client_package
     memset(&clientId, 0x00, sizeof(clientId));
     clientId.ptin_intf.intf_type  = ecvFlow->ptin_intf.intf_type;
     clientId.ptin_intf.intf_id    = ecvFlow->ptin_intf.intf_id;
+    clientId.ptin_port            = ptintf2port(clientId.ptin_intf.intf_type,
+                                                clientId.ptin_intf.intf_id); 
     clientId.outerVlan            = pflow->int_ovid;
     clientId.innerVlan            = pflow->int_ivid;
     clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
@@ -5377,6 +5383,8 @@ L7_RC_t ptin_evc_macbridge_client_packages_remove(ptin_evc_macbridge_client_pack
     memset(&clientId, 0x00, sizeof(clientId));
     clientId.ptin_intf.intf_type  = ecvFlow->ptin_intf.intf_type;
     clientId.ptin_intf.intf_id    = ecvFlow->ptin_intf.intf_id;
+    clientId.ptin_port            = ptintf2port(clientId.ptin_intf.intf_type,
+                                                clientId.ptin_intf.intf_id); 
     clientId.outerVlan            = pflow->int_ovid;
     clientId.innerVlan            = pflow->int_ivid;
     clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
@@ -5679,6 +5687,8 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     memset(&clientId, 0x00, sizeof(clientId));
     clientId.ptin_intf.intf_type  = evcFlow->ptin_intf.intf_type;
     clientId.ptin_intf.intf_id    = evcFlow->ptin_intf.intf_id;
+    clientId.ptin_port            = ptintf2port(clientId.ptin_intf.intf_type,
+                                                clientId.ptin_intf.intf_id); 
     clientId.outerVlan            = pflow->int_ovid;
     clientId.innerVlan            = pflow->int_ivid;
     clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
@@ -5890,6 +5900,8 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
     memset(&clientId, 0x00, sizeof(clientId));
     clientId.ptin_intf.intf_type  = ptin_intf.intf_type;
     clientId.ptin_intf.intf_id    = ptin_intf.intf_id;
+    clientId.ptin_port            = ptintf2port(clientId.ptin_intf.intf_type,
+                                                clientId.ptin_intf.intf_id); 
     clientId.outerVlan            = pflow->int_ovid;
     clientId.innerVlan            = pflow->int_ivid;
     clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;

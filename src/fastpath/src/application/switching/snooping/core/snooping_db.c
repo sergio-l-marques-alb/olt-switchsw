@@ -4743,7 +4743,7 @@ void ptin_igmp_snoop_dump(L7_uint16 index)
             {
               printf(" {");
               if (clientData.mask & PTIN_CLIENT_MASK_FIELD_INTF)
-                printf("intf=%u/%u",clientData.ptin_intf.intf_type,clientData.ptin_intf.intf_id);
+                printf("intf=%u/%u, ptin_port=%u", clientData.ptin_intf.intf_type, clientData.ptin_intf.intf_id, clientData.ptin_port);
               if (clientData.mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN)
                 printf(",ovid=%u",clientData.outerVlan);
               if (clientData.mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN)

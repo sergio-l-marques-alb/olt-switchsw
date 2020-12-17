@@ -165,7 +165,7 @@ static dl_queue_t queue_free_group_client_id[PTIN_IGMP_INTFPORT_MAX];
 typedef struct
 {
 #if (MC_CLIENT_INTERF_SUPPORTED)
-  L7_uint8  ptin_port;                /* PTin port, which is attached */
+  L7_uint8  intIfNum;                /* intIfNum port, which is attached */
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
   L7_uint16 outerVlan;                /* Outer Vlan */
@@ -3558,7 +3558,8 @@ L7_RC_t ptin_igmp_generalquerier_reset(L7_uint32 serviceId, L7_uint32 onuId)
 //static ptin_igmpChannelInfo_t channelList_tmp[L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP];
 
 L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *client_id,
-                                  L7_uint16 channel_index, L7_uint16 *max_number_of_channels, ptin_igmpChannelInfo_t *channel_list,
+                                  L7_uint16 channel_index, L7_uint16 *max_number_of_channels, 
+                                  ptin_igmpChannelInfo_t *channel_list,
                                   L7_uint16 *total_channels)
 {
   L7_uint32         entryId = 0;
@@ -3687,12 +3688,14 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
       PT_LOG_ERR(LOG_CTX_IGMP,
               "Error searching for client {mask=0x%02x,"
               "port=%u/%u,"
+              "ptin_port=%u,"
               "outerVlan=%u,"
               "innerVlan=%u,"
               "ipAddr=%u.%u.%u.%u,"
               "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
               client.mask,
               client.ptin_intf.intf_type, client.ptin_intf.intf_id,
+              client.ptin_port,
               client.outerVlan,
               client.innerVlan,
               (client.ipv4_addr>>24) & 0xff, (client.ipv4_addr>>16) & 0xff, (client.ipv4_addr>>8) & 0xff, client.ipv4_addr & 0xff,
@@ -3707,7 +3710,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
 
     if (noOfClients>0)
     {
-      ptinIgmpClientDataKey_t        avl_key;
+      ptinIgmpClientDataKey_t       avl_key;
       ptinIgmpClientInfoData_t      *device_client;
 
       L7_uint16 noOfClientsFound = 0;
@@ -3735,7 +3738,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
           break;
         }
         /* check if the device client belongs to the desired group client */
-        if( device_client->igmpClientDataKey.ptin_port == clientGroup->igmpClientDataKey.ptin_port &&
+        if( device_client->igmpClientDataKey.intIfNum == clientGroup->igmpClientDataKey.intIfNum &&
             device_client->igmpClientDataKey.innerVlan == clientGroup->igmpClientDataKey.innerVlan &&
             device_client->igmpClientDataKey.outerVlan == clientGroup->igmpClientDataKey.outerVlan )
         {
@@ -4569,6 +4572,7 @@ L7_RC_t ptin_igmp_clientId_build(L7_uint32 ptin_port,
     }
     client->ptin_intf.intf_type = ptin_intf.intf_type;
     client->ptin_intf.intf_id   = ptin_intf.intf_id;
+    client->ptin_port = ptin_port;
     client->mask |= PTIN_CLIENT_MASK_FIELD_INTF;
   }
 #endif
@@ -4645,12 +4649,14 @@ L7_RC_t ptin_igmp_dynamic_client_find(L7_uint32 ptin_port,
       PT_LOG_DEBUG(LOG_CTX_IGMP,
                 "Client not found {mask=0x%02x,"
                 "port=%u/%u,"
+                "ptin_port=%u,"
                 "outerVlan=%u,"
                 "innerVlan=%u,"
                 "ipAddr=%u.%u.%u.%u,"
                 "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
                 client.mask,
                 client.ptin_intf.intf_type, client.ptin_intf.intf_id,
+                client.ptin_port,
                 client.outerVlan,
                 client.innerVlan,
                 (client.ipv4_addr>>24) & 0xff, (client.ipv4_addr>>16) & 0xff, (client.ipv4_addr>>8) & 0xff, client.ipv4_addr & 0xff,
@@ -4666,7 +4672,7 @@ L7_RC_t ptin_igmp_dynamic_client_find(L7_uint32 ptin_port,
   {
     PT_LOG_TRACE(LOG_CTX_IGMP,"Client_idx=%u for key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              "port=%u,"
+              "intIfNum=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               "outerVlan=%u,"
@@ -4683,7 +4689,7 @@ L7_RC_t ptin_igmp_dynamic_client_find(L7_uint32 ptin_port,
               "}"
               ,client_idx
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              ,clientInfo->igmpClientDataKey.ptin_port
+              ,clientInfo->igmpClientDataKey.intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               ,clientInfo->igmpClientDataKey.outerVlan
@@ -4920,30 +4926,26 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
   ptinIgmpClientDataKey_t        avl_key;
   ptinIgmpGroupClientAvlTree_t  *avl_tree = &igmpGroupClients.avlTree;
   ptinIgmpGroupClientInfoData_t *avl_infoData;
-  L7_uint32                      ptin_port;
+  L7_uint32                      ptin_port, intIfNum;
   L7_uint32                      group_client_id;
   L7_BOOL                        newEntry = L7_FALSE;
 
   /* Get ptin_port value */
-  ptin_port = 0;
-  #if (MC_CLIENT_INTERF_SUPPORTED)
-  if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF)
+  ptin_port = client->ptin_port;
+
+  /* Convert to intIfNum format */
+  if (ptin_intf_ptintf2intIfNum(&(client->ptin_intf), &intIfNum)!=L7_SUCCESS)
   {
-    /* Convert to ptin_port format */
-    if (ptin_intf_ptintf2port(&client->ptin_intf, &ptin_port) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_IGMP,"Cannot convert client intf %u/%u to ptin_port format",
-              client->ptin_intf.intf_type, client->ptin_intf.intf_id);
-      return L7_FAILURE;
-    }
+    PT_LOG_ERR(LOG_CTX_IGMP,"Cannot convert client intf %u/%u to intIfNum format",
+               client->ptin_intf.intf_type, client->ptin_intf.intf_id);
+    return L7_FAILURE;
   }
-  #endif
 
   /* Check if this key already exists */
   memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
 
   #if (MC_CLIENT_INTERF_SUPPORTED)
-  avl_key.ptin_port = ptin_port;
+  avl_key.intIfNum = intIfNum;
   #endif
   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
   avl_key.outerVlan = (client->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN) ? client->outerVlan : 0;
@@ -4965,7 +4967,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
   {
     PT_LOG_TRACE(LOG_CTX_IGMP,"Key {"
   #if (MC_CLIENT_INTERF_SUPPORTED)
-              "port=%u,"
+              "intIfNum=%u,"
   #endif
   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               "outerVlan=%u,"
@@ -4981,7 +4983,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
   #endif
               "} will be added"
   #if (MC_CLIENT_INTERF_SUPPORTED)
-              ,avl_key.ptin_port
+              ,avl_key.intIfNum
   #endif
   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               ,avl_key.outerVlan
@@ -5009,7 +5011,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
     {
       PT_LOG_ERR(LOG_CTX_IGMP,"Cannot find key for this package{"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              "port=%u,"
+              "intIfNum=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               "outerVlan=%u,"
@@ -5025,7 +5027,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
 #endif
               "}"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              ,avl_key.ptin_port
+              ,avl_key.intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               ,avl_key.outerVlan
@@ -5050,7 +5052,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
     {
       PT_LOG_ERR(LOG_CTX_IGMP,"Failed to Obtain Group Client Identifier {"              
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              "port=%u,"
+              "intIfNum=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               "outerVlan=%u,"
@@ -5066,7 +5068,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
 #endif
               "}"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              ,avl_key.ptin_port
+              ,avl_key.intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               ,avl_key.outerVlan
@@ -5090,7 +5092,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
     {
       PT_LOG_ERR(LOG_CTX_IGMP,"Error inserting key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              "port=%u,"
+              "intIfNum=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               "outerVlan=%u,"
@@ -5106,7 +5108,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
 #endif
               "}"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              ,avl_key.ptin_port
+              ,avl_key.intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               ,avl_key.outerVlan
@@ -5130,7 +5132,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
     {
       PT_LOG_ERR(LOG_CTX_IGMP,"Cannot find key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              "port=%u,"
+              "intIfNum=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               "outerVlan=%u,"
@@ -5146,7 +5148,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
 #endif
               "}"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              ,avl_key.ptin_port
+              ,avl_key.intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               ,avl_key.outerVlan
@@ -5169,7 +5171,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
     {
       PT_LOG_TRACE(LOG_CTX_IGMP,"Success inserting Key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                "port=%u,"
+                "intIfNum=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                 "outerVlan=%u,"
@@ -5185,7 +5187,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
 #endif
                 "}"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                ,avl_key.ptin_port
+                ,avl_key.intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                 ,avl_key.outerVlan
@@ -5260,7 +5262,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
       {
         PT_LOG_WARN(LOG_CTX_IGMP,"This key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                    "port=%u,"
+                    "intIfNum=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                     "outerVlan=%u,"
@@ -5276,7 +5278,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
 #endif
                     "} already exists"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                    ,avl_key.ptin_port
+                    ,avl_key.intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                     ,avl_key.outerVlan
@@ -5369,7 +5371,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
       {
         PT_LOG_ERR(LOG_CTX_IGMP,"Failed to Add Packages {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                "port=%u,"
+                "intIfNum=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                 "outerVlan=%u,"
@@ -5385,7 +5387,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
 #endif
                 "}"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                ,avl_key.ptin_port
+                ,avl_key.intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                 ,avl_key.outerVlan
@@ -5412,7 +5414,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
       {
         PT_LOG_ERR(LOG_CTX_IGMP,"Failed to Remove Packages {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                "port=%u,"
+                "intIfNum=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                 "outerVlan=%u,"
@@ -5428,7 +5430,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
 #endif
                 "}"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                ,avl_key.ptin_port
+                ,avl_key.intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                 ,avl_key.outerVlan
@@ -5477,6 +5479,8 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
 #if (MC_CLIENT_INTERF_SUPPORTED)
   avl_key.ptin_intf.intf_id   = client->ptin_intf.intf_id;
   avl_key.ptin_intf.intf_type = client->ptin_intf.intf_type;
+  avl_key.ptin_port           = ptintf2port(avl_key.ptin_intf.intf_type,
+                                            avl_key.ptin_intf.intf_id);
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
   avl_key.outerVlan = (client->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN) ? client->outerVlan : 0;
@@ -5500,6 +5504,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
     PT_LOG_TRACE(LOG_CTX_IGMP,"Key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
               "port=%u/%u,"
+              "ptin_port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               "outerVlan=%u,"
@@ -5516,6 +5521,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
               "} will be added"
 #if (MC_CLIENT_INTERF_SUPPORTED)
               ,avl_key.ptin_intf.intf_type,avl_key.ptin_intf.intf_id
+              ,avl_key.ptin_port
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               ,avl_key.outerVlan
@@ -5543,6 +5549,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
       PT_LOG_ERR(LOG_CTX_IGMP,"Error inserting key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
               "port=%u/%u,"
+              "ptin_port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               "outerVlan=%u,"
@@ -5559,6 +5566,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
               "}"
 #if (MC_CLIENT_INTERF_SUPPORTED)
               ,avl_key.ptin_intf.intf_type,avl_key.ptin_intf.intf_id
+              ,avl_key.ptin_port
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               ,avl_key.outerVlan
@@ -5583,6 +5591,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
       PT_LOG_ERR(LOG_CTX_IGMP,"Cannot find key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
               "port=%u/%u,"
+              "ptin_port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               "outerVlan=%u,"
@@ -5599,6 +5608,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
               "}"
 #if (MC_CLIENT_INTERF_SUPPORTED)
               ,avl_key.ptin_intf.intf_type,avl_key.ptin_intf.intf_id
+              ,avl_key.ptin_port
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               ,avl_key.outerVlan
@@ -5622,6 +5632,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
       PT_LOG_TRACE(LOG_CTX_IGMP,"Success inserting Key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
                 "port=%u/%u,"
+                "ptin_port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                 "outerVlan=%u,"
@@ -5638,6 +5649,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
                 "}"
 #if (MC_CLIENT_INTERF_SUPPORTED)
                 ,avl_key.ptin_intf.intf_type,avl_key.ptin_intf.intf_id
+                ,avl_key.ptin_port
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                 ,avl_key.outerVlan
@@ -5662,6 +5674,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
       PT_LOG_WARN(LOG_CTX_IGMP,"This key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
                   "port=%u/%u,"
+                  "ptin_port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                   "outerVlan=%u,"
@@ -5678,6 +5691,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
                   "} already exists"
 #if (MC_CLIENT_INTERF_SUPPORTED)
                   ,avl_key.ptin_intf.intf_type,avl_key.ptin_intf.intf_id
+                  ,avl_key.ptin_port
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                   ,avl_key.outerVlan
@@ -5702,29 +5716,33 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
   return L7_SUCCESS;
 }
 
+/**
+ * Remove a Multicast client group
+ * 
+ * @param client   : client group identification parameters 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
 L7_RC_t ptin_igmp_api_client_remove(ptin_client_id_t *client)
 {
   ptinIgmpClientDataKey_t avl_key;
-  L7_uint32               ptin_port = 0;
+  L7_uint32               ptin_port, intIfNum;
 
   memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
 
   /* Get ptin_port value */
-  #if (MC_CLIENT_INTERF_SUPPORTED)
-  if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF)
+  ptin_port = client->ptin_port;
+
+  /* Convert to intIfNum format */
+  if (ptin_intf_ptintf2intIfNum(&(client->ptin_intf), &intIfNum)!=L7_SUCCESS)
   {
-    /* Convert to ptin_port format */
-    if (ptin_intf_ptintf2port(&client->ptin_intf,&ptin_port)!=L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_IGMP,"Cannot convert client intf %u/%u to ptin_port format",
-              client->ptin_intf.intf_type,client->ptin_intf.intf_id);
-      return L7_FAILURE;
-    }
+    PT_LOG_ERR(LOG_CTX_IGMP, "Cannot convert client intf %u/%u to intIfNum format", 
+               client->ptin_intf.intf_type, client->ptin_intf.intf_id);
+    return L7_FAILURE;
   }
-  #endif
    
   #if (MC_CLIENT_INTERF_SUPPORTED)
-    avl_key.ptin_port = ptin_port;
+    avl_key.intIfNum = intIfNum;
   #endif
   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
     avl_key.outerVlan = (client->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN) ? client->outerVlan : 0;
@@ -5742,7 +5760,8 @@ L7_RC_t ptin_igmp_api_client_remove(ptin_client_id_t *client)
       ptinIgmpGroupClientInfoData_t *avl_infoData = L7_NULLPTR;
       while (L7_SUCCESS == ptin_igmp_group_client_find(L7_NULLPTR, &avl_infoData, AVL_NEXT))
       {
-        if (avl_key.ptin_port == avl_infoData->igmpClientDataKey.ptin_port && avl_key.outerVlan == avl_infoData->igmpClientDataKey.outerVlan)
+        if (avl_key.intIfNum == avl_infoData->igmpClientDataKey.intIfNum
+            && avl_key.outerVlan == avl_infoData->igmpClientDataKey.outerVlan)
         {
           avl_key.innerVlan = avl_infoData->igmpClientDataKey.innerVlan;
           break;
@@ -5769,7 +5788,7 @@ L7_RC_t ptin_igmp_api_client_remove(ptin_client_id_t *client)
   {
       PT_LOG_TRACE(LOG_CTX_IGMP,"Key to search {"
     #if (MC_CLIENT_INTERF_SUPPORTED)
-                  "port=%u,"
+                  "intIfNum=%u,"
     #endif
     #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                   "outerVlan=%u,"
@@ -5785,7 +5804,7 @@ L7_RC_t ptin_igmp_api_client_remove(ptin_client_id_t *client)
     #endif
                   "}"
     #if (MC_CLIENT_INTERF_SUPPORTED)
-                  ,avl_key.ptin_port
+                  ,avl_key.intIfNum
     #endif
     #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                   ,avl_key.outerVlan
@@ -5832,7 +5851,7 @@ L7_RC_t ptin_igmp_group_client_remove(ptinIgmpClientDataKey_t *avl_key)
     {
       PT_LOG_WARN(LOG_CTX_IGMP,"This key {"
       #if (MC_CLIENT_INTERF_SUPPORTED)
-                        "port=%u,"
+                        "intIfNum=%u,"
       #endif
       #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                         "outerVlan=%u,"
@@ -5848,7 +5867,7 @@ L7_RC_t ptin_igmp_group_client_remove(ptinIgmpClientDataKey_t *avl_key)
       #endif
                         "} does not exist"
       #if (MC_CLIENT_INTERF_SUPPORTED)
-                        ,avl_key->ptin_port
+                        ,avl_key->intIfNum
       #endif
       #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                         ,avl_key->outerVlan
@@ -5879,10 +5898,10 @@ L7_RC_t ptin_igmp_group_client_remove(ptinIgmpClientDataKey_t *avl_key)
 #endif
 
   /*Release Group Client Identifier*/
-  ptin_igmp_group_client_identifier_push(avl_infoData->igmpClientDataKey.ptin_port, avl_infoData->groupClientId);
+  ptin_igmp_group_client_identifier_push(avl_infoData->ptin_port, avl_infoData->groupClientId);
 
   /*Remove Group Client Pointer*/
-  igmpGroupClients.group_client[avl_infoData->igmpClientDataKey.ptin_port][avl_infoData->groupClientId] = L7_NULLPTR;
+  igmpGroupClients.group_client[avl_infoData->ptin_port][avl_infoData->groupClientId] = L7_NULLPTR;
 
   /*Remove All Multicast  Packages Attached to this IGMP Client*/
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
@@ -5890,7 +5909,7 @@ L7_RC_t ptin_igmp_group_client_remove(ptinIgmpClientDataKey_t *avl_key)
   {
     PT_LOG_ERR(LOG_CTX_IGMP,"Failed to Remove Packages {"
   #if (MC_CLIENT_INTERF_SUPPORTED)
-            "port=%u,"
+            "intIfNum=%u,"
   #endif
   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
             "outerVlan=%u,"
@@ -5906,7 +5925,7 @@ L7_RC_t ptin_igmp_group_client_remove(ptinIgmpClientDataKey_t *avl_key)
   #endif
             "}"
   #if (MC_CLIENT_INTERF_SUPPORTED)
-            ,avl_key->ptin_port
+            ,avl_key->intIfNum
   #endif
   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
             ,avl_key->outerVlan
@@ -5932,7 +5951,7 @@ L7_RC_t ptin_igmp_group_client_remove(ptinIgmpClientDataKey_t *avl_key)
   {
     PT_LOG_ERR(LOG_CTX_IGMP,"Error removing key {"
   #if (MC_CLIENT_INTERF_SUPPORTED)
-            "port=%u,"
+            "intIfNum=%u,"
   #endif
   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
             "outerVlan=%u,"
@@ -5948,7 +5967,7 @@ L7_RC_t ptin_igmp_group_client_remove(ptinIgmpClientDataKey_t *avl_key)
   #endif
             "}"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-            ,avl_key->ptin_port
+            ,avl_key->intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
             ,avl_key->outerVlan
@@ -5977,7 +5996,7 @@ L7_RC_t ptin_igmp_group_client_remove(ptinIgmpClientDataKey_t *avl_key)
   {
     PT_LOG_TRACE(LOG_CTX_IGMP,"Success removing Key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              "port=%u,"
+              "intIfNum=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               "outerVlan=%u,"
@@ -5993,7 +6012,7 @@ L7_RC_t ptin_igmp_group_client_remove(ptinIgmpClientDataKey_t *avl_key)
 #endif
               "}"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              ,avl_key->ptin_port
+              ,avl_key->intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               ,avl_key->outerVlan
@@ -6197,6 +6216,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_clean(void)
       PT_LOG_ERR(LOG_CTX_IGMP,"Error removing key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
               "port=%u/%u,"
+              "ptin_port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               "outerVlan=%u,"
@@ -6213,6 +6233,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_clean(void)
               "}"
 #if (MC_CLIENT_INTERF_SUPPORTED)
               ,avl_key.ptin_intf.intf_type,avl_key.ptin_intf.intf_id
+              ,avl_key.ptin_port
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               ,avl_key.outerVlan
@@ -6236,6 +6257,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_clean(void)
         PT_LOG_TRACE(LOG_CTX_IGMP,"Success removing Key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
                   "port=%u/%u,"
+                  "ptin_port"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                   "outerVlan=%u,"
@@ -6252,6 +6274,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_clean(void)
                   "}"
 #if (MC_CLIENT_INTERF_SUPPORTED)
                   ,avl_key.ptin_intf.intf_type,avl_key.ptin_intf.intf_id
+                  ,avl_key.ptin_port
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                   ,avl_key.outerVlan
@@ -6470,18 +6493,26 @@ L7_RC_t ptin_igmp_clientData_get(L7_uint32 ptin_port,
   if (clientInfo==L7_NULLPTR)
   {
     if (ptin_debug_igmp_snooping)
-      PT_LOG_ERR(LOG_CTX_IGMP,"Provided client (ptin_port=%u client_idx=%u) does not exist", ptin_port, client_idx);
+    {
+      PT_LOG_ERR(LOG_CTX_IGMP,
+                 "Provided client (ptin_port=%u client_idx=%u) does not exist", 
+                 ptin_port, client_idx);
+    }
     return L7_FAILURE;
   }
 
   memset(client,0x00,sizeof(ptin_client_id_t));
 #if (MC_CLIENT_INTERF_SUPPORTED)
-  if (ptin_intf_port2ptintf(clientInfo->igmpClientDataKey.ptin_port, &ptin_intf) != L7_SUCCESS)
+  if (ptin_intf_port2ptintf(clientInfo->ptin_port, &ptin_intf) != L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
-      PT_LOG_ERR(LOG_CTX_IGMP,"Cannot convert client port %u to ptin_intf format",clientInfo->igmpClientDataKey.ptin_port);
+    {
+      PT_LOG_ERR(LOG_CTX_IGMP,"Cannot convert client port %u to ptin_intf format",
+                 clientInfo->ptin_port);
+    }
     return L7_FAILURE;
   }
+  client->ptin_port = clientInfo->ptin_port;
   client->ptin_intf = ptin_intf;
   client->mask |= PTIN_CLIENT_MASK_FIELD_INTF;
 #endif
@@ -9372,28 +9403,24 @@ static L7_RC_t ptin_igmp_group_client_find(ptin_client_id_t *client_ref, ptinIgm
   ptinIgmpClientDataKey_t        avl_key;
   ptinIgmpGroupClientAvlTree_t  *avl_tree = &igmpGroupClients.avlTree;
   ptinIgmpGroupClientInfoData_t *clientInfo;
+  L7_uint32 ptin_port, intIfNum;
 
   memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
 
   if (client_ref != L7_NULLPTR)
   {
-    /* Get ptin_port value */
-    #if (MC_CLIENT_INTERF_SUPPORTED)
-    L7_uint32 ptin_port = 0;
-    if (client_ref->mask & PTIN_CLIENT_MASK_FIELD_INTF)
+    ptin_port = client_ref->ptin_port;
+
+    /* Convert to intIfNum format */
+    if (ptin_intf_ptintf2intIfNum(&(client_ref->ptin_intf), &intIfNum)!=L7_SUCCESS)
     {
-      /* Convert to ptin_port format */
-      if (ptin_intf_ptintf2port(&client_ref->ptin_intf,&ptin_port)!=L7_SUCCESS)
-      {
-        if (ptin_debug_igmp_snooping)
-          PT_LOG_ERR(LOG_CTX_IGMP,"Cannot convert client_ref intf %u/%u to ptin_port format",client_ref->ptin_intf.intf_type,client_ref->ptin_intf.intf_id);
-        return L7_FAILURE;
-      }
+      PT_LOG_ERR(LOG_CTX_IGMP,"Cannot convert client intf %u/%u to intIfNum format",
+                 client_ref->ptin_intf.intf_type, client_ref->ptin_intf.intf_id);
+      return L7_FAILURE;
     }
-    #endif
    
     #if (MC_CLIENT_INTERF_SUPPORTED)
-    avl_key.ptin_port = ptin_port;
+    avl_key.intIfNum = intIfNum;
     #endif
     #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
     avl_key.outerVlan = (client_ref->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN) ? client_ref->outerVlan : 0;
@@ -9430,7 +9457,7 @@ static L7_RC_t ptin_igmp_group_client_find(ptin_client_id_t *client_ref, ptinIgm
     {
       PT_LOG_ERR(LOG_CTX_IGMP,"Key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              "port=%u"
+              "intIfNum=%u"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               ",outerVlan=%u"
@@ -9446,7 +9473,7 @@ static L7_RC_t ptin_igmp_group_client_find(ptin_client_id_t *client_ref, ptinIgm
 #endif
               "} does not exist"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              ,avl_key.ptin_port
+              ,avl_key.intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               ,avl_key.outerVlan
@@ -9489,35 +9516,31 @@ static L7_RC_t ptin_igmp_group_client_find(ptin_client_id_t *client_ref, ptinIgm
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
-                                    L7_uint16 uni_ovid, L7_uint16 uni_ivid,
-                                    L7_BOOL isDynamic, L7_uint *device_client_id_ret)
+                                           L7_uint16 uni_ovid, L7_uint16 uni_ivid,
+                                           L7_BOOL isDynamic, L7_uint *device_client_id_ret)
 {
-  L7_uint device_client_id;
-  ptinIgmpClientDataKey_t avl_key;
+  L7_uint                        device_client_id;
+  ptinIgmpClientDataKey_t        avl_key;
   ptinIgmpDeviceClientsAvlTree_t *avl_tree;
-  ptinIgmpClientInfoData_t *avl_infoData;
-  L7_uint32 ptin_port;
+  ptinIgmpClientInfoData_t       *avl_infoData;
+  L7_uint32                      ptin_port, intIfNum;
 
   /* Get ptin_port value */
-  ptin_port = 0;
-#if (MC_CLIENT_INTERF_SUPPORTED)
-  if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF)
+  ptin_port = client->ptin_port;
+
+  /* Convert to intIfNum format */
+  if (ptin_intf_ptintf2intIfNum(&(client->ptin_intf), &intIfNum)!=L7_SUCCESS)
   {
-    /* Convert to ptin_port format */
-    if (ptin_intf_ptintf2port(&client->ptin_intf, &ptin_port) != L7_SUCCESS || ptin_port >= PTIN_SYSTEM_N_INTERF)
-    {
-      PT_LOG_ERR(LOG_CTX_IGMP,"Cannot convert client intf %u/%u to ptin_port format",
-              client->ptin_intf.intf_type, client->ptin_intf.intf_id);
-      return L7_FAILURE;
-    }
+    PT_LOG_ERR(LOG_CTX_IGMP,"Cannot convert client intf %u/%u to intIfNum format",
+               client->ptin_intf.intf_type, client->ptin_intf.intf_id);
+    return L7_FAILURE;
   }
-#endif
 
   /* Check if this key already exists */
   avl_tree = &igmpDeviceClients.avlTree;
   memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
 #if (MC_CLIENT_INTERF_SUPPORTED)
-  avl_key.ptin_port = ptin_port;
+  avl_key.intIfNum = intIfNum;
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
   avl_key.outerVlan = (client->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN) ? client->outerVlan : 0;
@@ -9539,7 +9562,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
   {
     PT_LOG_TRACE(LOG_CTX_IGMP,"Key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              "port=%u,"
+              "intIfNum=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               "outerVlan=%u,"
@@ -9555,7 +9578,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
 #endif
               "} will be added"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              ,avl_key.ptin_port
+              ,avl_key.intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               ,avl_key.outerVlan
@@ -9588,7 +9611,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
     /* Client group only has port, outer and inner vlan as identification */
     memset(&avl_key_group, 0x00, sizeof(ptinIgmpClientDataKey_t));
 #if (MC_CLIENT_INTERF_SUPPORTED)
-    avl_key_group.ptin_port = avl_key.ptin_port;
+    avl_key_group.intIfNum = avl_key.intIfNum;
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
     avl_key_group.outerVlan = avl_key.outerVlan;
@@ -9657,7 +9680,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
     {
       PT_LOG_ERR(LOG_CTX_IGMP,"Error inserting key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              "port=%u,"
+              "intIfNum=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               "outerVlan=%u,"
@@ -9673,7 +9696,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
 #endif
               "}"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              ,avl_key.ptin_port
+              ,avl_key.intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               ,avl_key.outerVlan
@@ -9698,7 +9721,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
     {
       PT_LOG_ERR(LOG_CTX_IGMP,"Cannot find key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              "port=%u,"
+              "intIfNum=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               "outerVlan=%u,"
@@ -9714,7 +9737,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
 #endif
               "}"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              ,avl_key.ptin_port
+              ,avl_key.intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               ,avl_key.outerVlan
@@ -9739,7 +9762,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
     {
       PT_LOG_TRACE(LOG_CTX_IGMP,"Success inserting Key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                "port=%u,"
+                "intIfNum=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                 "outerVlan=%u,"
@@ -9755,7 +9778,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
 #endif
                 "} (entry is %s)"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                ,avl_key.ptin_port
+                ,avl_key.intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                 ,avl_key.outerVlan
@@ -9811,7 +9834,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
     {
       PT_LOG_DEBUG(LOG_CTX_IGMP,"This key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                "port=%u,"
+                "intIfNum=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                 "outerVlan=%u,"
@@ -9827,7 +9850,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
 #endif
                 "} already exists (ptin_port=%u client_idx=%u)"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                ,avl_key.ptin_port
+                ,avl_key.intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                 ,avl_key.outerVlan
@@ -10205,7 +10228,7 @@ static L7_RC_t ptin_igmp_device_client_remove_all(L7_BOOL isDynamic, L7_BOOL onl
     {
       PT_LOG_ERR(LOG_CTX_IGMP,"Error removing key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              "port=%u,"
+              "intIfNum=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               "outerVlan=%u,"
@@ -10221,7 +10244,7 @@ static L7_RC_t ptin_igmp_device_client_remove_all(L7_BOOL isDynamic, L7_BOOL onl
 #endif
               "}"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-              ,avl_key.ptin_port
+              ,avl_key.intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
               ,avl_key.outerVlan
@@ -10264,7 +10287,7 @@ static L7_RC_t ptin_igmp_device_client_remove_all(L7_BOOL isDynamic, L7_BOOL onl
       {
         PT_LOG_TRACE(LOG_CTX_IGMP,"Success removing Key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                  "port=%u,"
+                  "intIfNum=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                   "outerVlan=%u,"
@@ -10280,7 +10303,7 @@ static L7_RC_t ptin_igmp_device_client_remove_all(L7_BOOL isDynamic, L7_BOOL onl
 #endif
                   "}"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                  ,avl_key.ptin_port
+                  ,avl_key.intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                   ,avl_key.outerVlan
@@ -10464,7 +10487,7 @@ static L7_RC_t ptin_igmp_device_client_remove(L7_uint ptin_port, L7_uint client_
         if (ptin_debug_igmp_snooping)
           PT_LOG_ERR(LOG_CTX_IGMP,"Error flushing key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                  "port=%u,"
+                  "intIfNum=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                   "outerVlan=%u,"
@@ -10480,7 +10503,7 @@ static L7_RC_t ptin_igmp_device_client_remove(L7_uint ptin_port, L7_uint client_
 #endif
                   "}"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                  ,avl_key->ptin_port
+                  ,avl_key->intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                   ,avl_key->outerVlan
@@ -11327,21 +11350,18 @@ static L7_RC_t ptin_igmp_device_client_find(ptin_client_id_t *client_ref, ptinIg
   ptinIgmpDeviceClientsAvlTree_t *avl_tree;
   ptinIgmpClientInfoData_t *clientInfo;
 #if (MC_CLIENT_INTERF_SUPPORTED)
-  L7_uint32 ptin_port;
+  L7_uint32 ptin_port, intIfNum;
 #endif
 
   /* Get ptin_port value */
 #if (MC_CLIENT_INTERF_SUPPORTED)
-  ptin_port = 0;
-  if (client_ref->mask & PTIN_CLIENT_MASK_FIELD_INTF)
+  ptin_port = client_ref->ptin_port;
+  /* Convert to intIfNum format */
+  if (ptin_intf_ptintf2intIfNum(&(client_ref->ptin_intf), &intIfNum)!=L7_SUCCESS)
   {
-    /* Convert to ptin_port format */
-    if (ptin_intf_ptintf2port(&client_ref->ptin_intf,&ptin_port)!=L7_SUCCESS)
-    {
-      if (ptin_debug_igmp_snooping)
-        PT_LOG_ERR(LOG_CTX_IGMP,"Cannot convert client_ref intf %u/%u to ptin_port format",client_ref->ptin_intf.intf_type,client_ref->ptin_intf.intf_id);
-      return L7_FAILURE;
-    }
+    PT_LOG_ERR(LOG_CTX_IGMP,"Cannot convert client intf %u/%u to intIfNum format",
+               client_ref->ptin_intf.intf_type, client_ref->ptin_intf.intf_id);
+    return L7_FAILURE;
   }
 #endif
 
@@ -11351,7 +11371,7 @@ static L7_RC_t ptin_igmp_device_client_find(ptin_client_id_t *client_ref, ptinIg
   avl_tree = &igmpDeviceClients.avlTree;
   memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
 #if (MC_CLIENT_INTERF_SUPPORTED)
-  avl_key.ptin_port = ptin_port;
+  avl_key.intIfNum = intIfNum;
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
   avl_key.outerVlan = (client_ref->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN) ? client_ref->outerVlan : 0;
@@ -11379,7 +11399,7 @@ static L7_RC_t ptin_igmp_device_client_find(ptin_client_id_t *client_ref, ptinIg
     {
       PT_LOG_DEBUG(LOG_CTX_IGMP,"Key {"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                "port=%u"
+                "intIfNum=%u"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                 ",outerVlan=%u"
@@ -11395,7 +11415,7 @@ static L7_RC_t ptin_igmp_device_client_find(ptin_client_id_t *client_ref, ptinIg
 #endif
                 "} does not exist"
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                ,avl_key.ptin_port
+                ,avl_key.intIfNum
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                 ,avl_key.outerVlan
@@ -11529,7 +11549,7 @@ static L7_RC_t ptin_igmp_clientId_restore(ptin_client_id_t *client)
 {
   L7_uint32 ptin_port;
   L7_uint16 extVlan, innerVlan;
-	L7_uint8  evc_type;
+  L7_uint8  evc_type;
 
   /* Validate client */
   if (client==L7_NULLPTR)
@@ -11538,64 +11558,63 @@ static L7_RC_t ptin_igmp_clientId_restore(ptin_client_id_t *client)
     return L7_FAILURE;
   }
 
-	PT_LOG_ERR(LOG_CTX_IGMP,"Invalid arguments or no parameters provided %d ", client->mask);
+  PT_LOG_ERR(LOG_CTX_IGMP,"Invalid arguments or no parameters provided %d ", client->mask);
   /* Check mask */
-	if (client->mask==0x00)
+  if (client->mask==0x00)
   {
     PT_LOG_WARN(LOG_CTX_IGMP,"Client mask is null");
     return L7_FAILURE;
   }
 
-	ptin_evc_check_evctype_fromIntVlan(client->outerVlan,&evc_type);
+  ptin_evc_check_evctype_fromIntVlan(client->outerVlan,&evc_type);
 
-	PT_LOG_WARN(LOG_CTX_IGMP,"evc_type %d ", evc_type);
-	if((evc_type == PTIN_EVC_TYPE_STD_P2P))
+  PT_LOG_WARN(LOG_CTX_IGMP,"evc_type %d ", evc_type);
+  if((evc_type == PTIN_EVC_TYPE_STD_P2P))
+  {
+    innerVlan = 0;
+#if MC_CLIENT_INNERVLAN_SUPPORTED
+	if (client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN)
 	{
-		innerVlan = 0;
-	#if MC_CLIENT_INNERVLAN_SUPPORTED
-		if (client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN)
-		{
-			/* Validate inner vlan */
-			if (client->innerVlan>4095)
-			{
-				PT_LOG_ERR(LOG_CTX_IGMP,"Invalid inner vlan (%u)",client->innerVlan);
-				return L7_FAILURE;
-			}
-			innerVlan = client->innerVlan;
-		}
-	#endif
+	  /* Validate inner vlan */
+	  if (client->innerVlan>4095)
+	  {
+	    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid inner vlan (%u)",client->innerVlan);
+	    return L7_FAILURE;
+	  }
+	  innerVlan = client->innerVlan;
+	}
+#endif
 
 #if defined(MC_CLIENT_INTERF_SUPPORTED) && defined(MC_CLIENT_OUTERVLAN_SUPPORTED)
-		/* Is interface and outer vlan provided? If so, replace it with the internal vlan */
-		if ( client->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN)
-		{
-			/* Convert to ptin_port format */
-			if (ptin_intf_ptintf2port(&client->ptin_intf, &ptin_port)!=L7_SUCCESS)
-			{
-				return L7_FAILURE;
-			}
-
-			/* Validate outer vlan */
-			if (client->outerVlan < PTIN_VLAN_MIN || client->outerVlan > PTIN_VLAN_MAX)
-			{
-				PT_LOG_ERR(LOG_CTX_IGMP,"Invalid outer vlan (%u)",client->outerVlan);
-				return L7_FAILURE;
-			}
-			/* Replace the outer vlan, with the internal vlan relative to the leaf interface */
-			if (ptin_evc_extVlans_get_fromIntVlan(ptin_port, client->outerVlan, innerVlan, &extVlan, L7_NULLPTR)!=L7_SUCCESS)
-			{
-				PT_LOG_ERR(LOG_CTX_IGMP,"Could not obtain external vlan for intVlan %u, ptin_intf %u/%u",
-								client->outerVlan, client->ptin_intf.intf_type, client->ptin_intf.intf_id);
-			}
-			else
-			{
-				/* Replace outer vlan with the internal one */
-				if (client->outerVlan != extVlan)
-				client->outerVlan = extVlan;
-			}
-		}
-#endif
+	/* Is interface and outer vlan provided? If so, replace it with the internal vlan */
+	if ( client->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN)
+	{
+      /* Get ptin_port */
+      ptin_port = client->ptin_port;
+      
+	  /* Validate outer vlan */
+	  if (client->outerVlan < PTIN_VLAN_MIN || client->outerVlan > PTIN_VLAN_MAX)
+	  {
+	    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid outer vlan (%u)",client->outerVlan);
+	    return L7_FAILURE;
+	  }
+	  /* Replace the outer vlan, with the internal vlan relative to the leaf interface */
+	  if (ptin_evc_extVlans_get_fromIntVlan(ptin_port, client->outerVlan, innerVlan, &extVlan, L7_NULLPTR)!=L7_SUCCESS)
+	  {
+	    PT_LOG_ERR(LOG_CTX_IGMP,"Could not obtain external vlan for intVlan %u, ptin_intf %u/%u",
+	    		   client->outerVlan, client->ptin_intf.intf_type, client->ptin_intf.intf_id);
+	  }
+	  else
+	  {
+	    /* Replace outer vlan with the internal one */
+	    if (client->outerVlan != extVlan)
+        {
+          client->outerVlan = extVlan;
+        }
+	  }
 	}
+#endif
+  }
 
   return L7_SUCCESS;
 }
@@ -11614,7 +11633,7 @@ static L7_RC_t ptin_igmp_clientId_restore(ptin_client_id_t *client)
  */
 L7_RC_t ptin_igmp_stat_intf_get(ptin_intf_t *ptin_intf, PTIN_MGMD_CTRL_STATS_RESPONSE_t *statistics)
 {
-  L7_uint32                       ptin_port;
+  L7_uint32                       ptin_port       = 0;
   PTIN_MGMD_EVENT_t               reqMsg          = {0};
   PTIN_MGMD_EVENT_t               resMsg          = {0};
   PTIN_MGMD_EVENT_CTRL_t          ctrlResMsg      = {0};
@@ -11685,13 +11704,6 @@ L7_RC_t ptin_igmp_stat_intf_get(ptin_intf_t *ptin_intf, PTIN_MGMD_CTRL_STATS_RES
                                                      statistics->igmpDroppedRx + 
                                                      statistics->igmpValidRx;      
   } 
-
-  /* Validate interface */
-  if (ptin_intf_ptintf2port(ptin_intf, &ptin_port)!=L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_INTF, "Error converting port %u/%u to ptin_port",ptin_intf->intf_type,ptin_intf->intf_id);
-    return L7_FAILURE;
-  }
 
   /* Request port statistics to MGMD */
   mgmdStatsReqMsg.portId = ptin_port;
@@ -11799,22 +11811,26 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
   memcpy(&client, client_id, sizeof(ptin_client_id_t));
 
   /* Validate and rearrange clientId info */
-  if (ptin_igmp_clientId_convert(evc_idx, &client) != L7_SUCCESS) {
+  if (ptin_igmp_clientId_convert(evc_idx, &client) != L7_SUCCESS) 
+  {
     PT_LOG_ERR(LOG_CTX_IGMP,"Invalid client id");
     return L7_FAILURE;
   }
 
   /* Get client */
-  if (ptin_igmp_group_client_find(&client, &clientGroup, AVL_EXACT) != L7_SUCCESS) {
+  if (ptin_igmp_group_client_find(&client, &clientGroup, AVL_EXACT) != L7_SUCCESS) 
+  {
     PT_LOG_ERR(LOG_CTX_IGMP,
                "Error searching for client {mask=0x%02x,"
                "port=%u/%u,"
+               "ptin_port=%u,"
                "outerVlan=%u,"
                "innerVlan=%u,"
                "ipAddr=%u.%u.%u.%u,"
                "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
                client.mask,
                client.ptin_intf.intf_type, client.ptin_intf.intf_id,
+               client.ptin_port,
                client.outerVlan,
                client.innerVlan,
                (client.ipv4_addr>>24) & 0xff, (client.ipv4_addr>>16) & 0xff, (client.ipv4_addr>>8) & 0xff, client.ipv4_addr & 0xff,
@@ -11825,11 +11841,12 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
   /*Take Semaphore*/
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
-  /* Validate interface */
-  if (ptin_intf_ptintf2port(&client.ptin_intf, &ptin_port)!=L7_SUCCESS) {
-    PT_LOG_ERR(LOG_CTX_INTF, "Error converting port %u/%u to ptin_port",client.ptin_intf.intf_type,client.ptin_intf.intf_id);
-    /*Give Semaphore*/
-    osapiSemaGive(ptin_igmp_clients_sem);
+  ptin_port = client.ptin_port;
+  /* Validate ptin_port */
+  if ( ptin_port >= PTIN_SYSTEM_N_INTERF ||
+       (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP, "PTin port is out of range: %u", ptin_port);
     return L7_FAILURE;
   }
 
@@ -11898,7 +11915,7 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
       memcpy(&avl_key, &device_client->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
 
 
-      if( device_client->igmpClientDataKey.ptin_port == clientGroup->igmpClientDataKey.ptin_port &&
+      if( device_client->igmpClientDataKey.intIfNum == clientGroup->igmpClientDataKey.intIfNum &&
           device_client->igmpClientDataKey.innerVlan == clientGroup->igmpClientDataKey.innerVlan &&
           device_client->igmpClientDataKey.outerVlan == clientGroup->igmpClientDataKey.outerVlan )
        {
@@ -12256,25 +12273,29 @@ L7_RC_t ptin_igmp_stat_client_clear(L7_uint32 evc_idx, const ptin_client_id_t *c
   if (ptin_igmp_group_client_find(&client, &clientGroup, AVL_EXACT) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_IGMP,
-            "Error searching for client {mask=0x%02x,"
-            "port=%u/%u,"
-            "outerVlan=%u,"
-            "innerVlan=%u,"
-            "ipAddr=%u.%u.%u.%u,"
-            "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
-            client.mask,
-            client.ptin_intf.intf_type, client.ptin_intf.intf_id,
-            client.outerVlan,
-            client.innerVlan,
-            (client.ipv4_addr>>24) & 0xff, (client.ipv4_addr>>16) & 0xff, (client.ipv4_addr>>8) & 0xff, client.ipv4_addr & 0xff,
-            client.macAddr[0],client.macAddr[1],client.macAddr[2],client.macAddr[3],client.macAddr[4],client.macAddr[5]);
+               "Error searching for client {mask=0x%02x,"
+               "port=%u/%u,"
+               "ptin_port=%u,"
+               "outerVlan=%u,"
+               "innerVlan=%u,"
+               "ipAddr=%u.%u.%u.%u,"
+               "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
+               client.mask,
+               client.ptin_intf.intf_type, client.ptin_intf.intf_id,
+               client.ptin_port,
+               client.outerVlan,
+               client.innerVlan,
+               (client.ipv4_addr>>24) & 0xff, (client.ipv4_addr>>16) & 0xff, (client.ipv4_addr>>8) & 0xff, client.ipv4_addr & 0xff,
+               client.macAddr[0],client.macAddr[1],client.macAddr[2],client.macAddr[3],client.macAddr[4],client.macAddr[5]);
     return L7_FAILURE;
   }
 
-  /* Validate interface */
-  if (ptin_intf_ptintf2port(&client.ptin_intf, &ptin_port)!=L7_SUCCESS)
+  ptin_port = client.ptin_port;
+  /* Validate ptin_port */
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
+      (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
   {
-    PT_LOG_ERR(LOG_CTX_INTF, "Error converting port %u/%u to ptin_port",client.ptin_intf.intf_type,client.ptin_intf.intf_id);
+    PT_LOG_ERR(LOG_CTX_IGMP, "PTin port is out of range: %u", ptin_port);
     return L7_FAILURE;
   }
 
@@ -14610,7 +14631,7 @@ void ptin_igmp_group_clients_dump(void)
 
     printf(
 #if (MC_CLIENT_INTERF_SUPPORTED)
-          "ptin_port=%-2u "
+          "intIfNum=%-2u "
 #endif
           "groupClientId=%-2u (OnuId=%u) (#devices=%u) "
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
@@ -14631,7 +14652,7 @@ void ptin_igmp_group_clients_dump(void)
 #endif
           ,          
 #if (MC_CLIENT_INTERF_SUPPORTED)
-          clientGroup->igmpClientDataKey.ptin_port,
+          clientGroup->igmpClientDataKey.intIfNum,
 #endif
           clientGroup->groupClientId, clientGroup->onuId, child_clients,
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
@@ -16748,7 +16769,7 @@ L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 ptin_port, 
     {
       PT_LOG_TRACE(LOG_CTX_IGMP,"      Client#%u: "
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                "ptin_port=%-2u "
+                "intIfNum=%-2u "
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                 "svlan=%-4u (intVlan=%-4u) "
@@ -16762,14 +16783,14 @@ L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 ptin_port, 
 #if (MC_CLIENT_MACADDR_SUPPORTED)
                 "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
 #endif
-                ": port=%-2u/index=%-3u  uni_vid=%4u+%-4u [%s] "
+                ": ptin_port=%-2u/index=%-3u  uni_vid=%4u+%-4u [%s] "
 #if !PTIN_SNOOP_USE_MGMD 
                 "#channels=%u"
 #endif
                 " ",
                 i_client,
 #if (MC_CLIENT_INTERF_SUPPORTED)
-                avl_info->igmpClientDataKey.ptin_port,
+                avl_info->igmpClientDataKey.intIfNum,
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                 avl_info->uni_ovid, avl_info->igmpClientDataKey.outerVlan,
@@ -16803,7 +16824,7 @@ L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 ptin_port, 
 
 
 #if (MC_CLIENT_INTERF_SUPPORTED)
-    clientPort = avl_info->igmpClientDataKey.ptin_port;
+    clientPort = avl_info->ptin_port;
     if (clientPort == ptin_port)
 #endif
     {
@@ -19537,29 +19558,48 @@ RC_t ptin_igmp_debug_multicast_channel_client_add(L7_uint32 packageId, L7_uint32
  * @notes none 
  *  
  */
-RC_t ptin_igmp_multicast_channel_client_add(L7_uint32 packageId, ptinIgmpGroupClientInfoData_t *groupClient, ptinIgmpChannelInfoData_t *channelAvlTreeEntry)
+RC_t ptin_igmp_multicast_channel_client_add(L7_uint32 packageId, 
+                                            ptinIgmpGroupClientInfoData_t *groupClient, 
+                                            ptinIgmpChannelInfoData_t *channelAvlTreeEntry)
 {
-  char                            groupAddrStr[IPV6_DISP_ADDR_LEN]={};
-  char                            sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
+  char groupAddrStr[IPV6_DISP_ADDR_LEN]={};
+  char sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
 
   /* Input Argument validation */
-  if ( packageId >= PTIN_SYSTEM_IGMP_MAXPACKAGES || groupClient == L7_NULLPTR ||  channelAvlTreeEntry == L7_NULLPTR  )
+  if ( packageId >= PTIN_SYSTEM_IGMP_MAXPACKAGES 
+       || groupClient == L7_NULLPTR ||  channelAvlTreeEntry == L7_NULLPTR )
   {
-    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [packageId:%u groupClientPtr:%p channelEntry:%p]",packageId, groupClient, channelAvlTreeEntry);    
+    PT_LOG_ERR(LOG_CTX_IGMP, 
+               "Invalid arguments [packageId:%u groupClientPtr:%p channelEntry:%p]",
+               packageId, groupClient, channelAvlTreeEntry);    
     return L7_FAILURE;
   }
 
   /*Input Parameters*/
   if (ptin_debug_igmp_snooping)
-    PT_LOG_TRACE(LOG_CTX_IGMP, "Input Parameters [packageId:%u ptinPort:%u groupClientId:%u serviceId:%u groupAddr:%s sourceAddr:%s]", packageId,
-              groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId, channelAvlTreeEntry->channelDataKey.evc_mc, 
-              inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_group, groupAddrStr), inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_source, sourceAddrStr));
+  {
+    PT_LOG_TRACE(LOG_CTX_IGMP, 
+                 "Input Parameters [packageId:%u ptin_port:%u groupClientId:%u serviceId:%u groupAddr:%s sourceAddr:%s]", 
+                 packageId, 
+                 groupClient->ptin_port,
+                 groupClient->groupClientId, 
+                 channelAvlTreeEntry->channelDataKey.evc_mc,
+                 inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_group, groupAddrStr), 
+                 inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_source,sourceAddrStr));
+  }
 
-  if (IS_BITMAP_BIT_SET(channelAvlTreeEntry->groupClientBmpPerPort[groupClient->igmpClientDataKey.ptin_port], groupClient->groupClientId, UINT32_BITSIZE) == L7_TRUE)
+  if (IS_BITMAP_BIT_SET(channelAvlTreeEntry->groupClientBmpPerPort[groupClient->ptin_port], groupClient->groupClientId, UINT32_BITSIZE) == L7_TRUE)
   {
     if (ptin_debug_igmp_snooping)
-      PT_LOG_NOTICE(LOG_CTX_IGMP, "This groupClient was already added to this channel [ptin_port:%u groupClientId:%u serviceId:%u groupAddr:%s sourceAddr:%s]", groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId, 
-                 channelAvlTreeEntry->channelDataKey.evc_mc, inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_group, groupAddrStr), inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_source, sourceAddrStr));
+    {
+      PT_LOG_NOTICE(LOG_CTX_IGMP, 
+                    "This groupClient was already added to this channel [ptin_port:%u groupClientId:%u serviceId:%u groupAddr:%s sourceAddr:%s]", 
+                    groupClient->ptin_port, 
+                    groupClient->groupClientId, 
+                    channelAvlTreeEntry->channelDataKey.evc_mc, 
+                    inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_group, groupAddrStr), 
+                    inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_source, sourceAddrStr));
+    }
 #if 0//DO Not Signal this to the Caller
     return L7_ALREADY_CONFIGURED;    
 #else
@@ -19569,22 +19609,22 @@ RC_t ptin_igmp_multicast_channel_client_add(L7_uint32 packageId, ptinIgmpGroupCl
 
   if ( L7_SUCCESS != ptin_igmp_client_channel_conflict_validation(packageId, groupClient, channelAvlTreeEntry) )
   {
-    PT_LOG_ERR(LOG_CTX_IGMP,"Channel Conflict Found [ptinPort:%u clientId:%u serviceId:%u groupAddr:%s sourceAddr:%s]",
-            groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId, channelAvlTreeEntry->channelDataKey.evc_mc, 
+    PT_LOG_ERR(LOG_CTX_IGMP,"Channel Conflict Found [ptin_port:%u clientId:%u serviceId:%u groupAddr:%s sourceAddr:%s]",
+            groupClient->ptin_port, groupClient->groupClientId, channelAvlTreeEntry->channelDataKey.evc_mc, 
             inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_group, groupAddrStr), inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_source, sourceAddrStr));    
     return L7_FAILURE;
   }
 
   /* Set clientId in the client bitmap */
-  BITMAP_BIT_SET(channelAvlTreeEntry->groupClientBmpPerPort[groupClient->igmpClientDataKey.ptin_port], groupClient->groupClientId, UINT32_BITSIZE);
+  BITMAP_BIT_SET(channelAvlTreeEntry->groupClientBmpPerPort[groupClient->ptin_port], groupClient->groupClientId, UINT32_BITSIZE);
 
   /*Increment the Number of Group Clients*/
-  if (channelAvlTreeEntry->noOfGroupClientsPerPort[groupClient->igmpClientDataKey.ptin_port]++ == 0)
+  if (channelAvlTreeEntry->noOfGroupClientsPerPort[groupClient->ptin_port]++ == 0)
   {
-    if (IS_BITMAP_BIT_SET(channelAvlTreeEntry->portBmp, groupClient->igmpClientDataKey.ptin_port, UINT32_BITSIZE) == L7_FALSE)
+    if (IS_BITMAP_BIT_SET(channelAvlTreeEntry->portBmp, groupClient->ptin_port, UINT32_BITSIZE) == L7_FALSE)
     {
       /* Set portId in the port bitmap */
-      BITMAP_BIT_SET(channelAvlTreeEntry->portBmp, groupClient->igmpClientDataKey.ptin_port, UINT32_BITSIZE);
+      BITMAP_BIT_SET(channelAvlTreeEntry->portBmp, groupClient->ptin_port, UINT32_BITSIZE);
 
       /*Increment the Number of Used Ports*/
       channelAvlTreeEntry->noOfPorts++;    
@@ -19668,15 +19708,27 @@ RC_t ptin_igmp_multicast_channel_client_remove(L7_uint32 packageId, ptinIgmpGrou
 
   /*Input Parameters*/
   if (ptin_debug_igmp_snooping)
-    PT_LOG_TRACE(LOG_CTX_IGMP, "Input Parameters [packageId:%u ptinPort:%u groupClientId:%u serviceId:%u groupAddr:%s sourceAddr:%s]", packageId,
-              groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId, channelAvlTreeEntry->channelDataKey.evc_mc, 
-              inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_group, groupAddrStr), inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_source, sourceAddrStr));
-
-
-  if ( IS_BITMAP_BIT_SET(channelAvlTreeEntry->groupClientBmpPerPort[groupClient->igmpClientDataKey.ptin_port], groupClient->groupClientId, UINT32_BITSIZE) == L7_FALSE )
   {
-    PT_LOG_TRACE(LOG_CTX_IGMP, "This groupClient does not exist on this channel [ptin_port:%u groupClientId:%u serviceId:%u groupAddr:%s sourceAddr:%s]", groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId, 
-                channelAvlTreeEntry->channelDataKey.evc_mc, inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_group, groupAddrStr), inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_source, sourceAddrStr));    
+    PT_LOG_TRACE(LOG_CTX_IGMP, 
+                 "Input Parameters [packageId:%u ptin_port:%u groupClientId:%u serviceId:%u groupAddr:%s sourceAddr:%s]", 
+                 packageId,
+                 groupClient->ptin_port, 
+                 groupClient->groupClientId, 
+                 channelAvlTreeEntry->channelDataKey.evc_mc,
+                 inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_group, groupAddrStr), 
+                 inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_source, sourceAddrStr));
+  }
+
+
+  if (IS_BITMAP_BIT_SET(channelAvlTreeEntry->groupClientBmpPerPort[groupClient->ptin_port], groupClient->groupClientId, UINT32_BITSIZE) == L7_FALSE)
+  {
+    PT_LOG_TRACE(LOG_CTX_IGMP, 
+                 "This groupClient does not exist on this channel [ptin_port:%u groupClientId:%u serviceId:%u groupAddr:%s sourceAddr:%s]", 
+                 groupClient->ptin_port, 
+                 groupClient->groupClientId, 
+                 channelAvlTreeEntry->channelDataKey.evc_mc, 
+                 inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_group, groupAddrStr), 
+                 inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_source, sourceAddrStr));    
 #if 0//DO Not Signal this to the Caller
     return L7_NOT_EXIST;    
 #else
@@ -19695,17 +19747,17 @@ RC_t ptin_igmp_multicast_channel_client_remove(L7_uint32 packageId, ptinIgmpGrou
   }
 
   /* Clear clientId in the client bitmap */
-  BITMAP_BIT_CLR(channelAvlTreeEntry->groupClientBmpPerPort[groupClient->igmpClientDataKey.ptin_port], groupClient->groupClientId, UINT32_BITSIZE);
+  BITMAP_BIT_CLR(channelAvlTreeEntry->groupClientBmpPerPort[groupClient->ptin_port], groupClient->groupClientId, UINT32_BITSIZE);
 
   /*Decrement the Number of Group Clients*/
-  if (channelAvlTreeEntry->noOfGroupClientsPerPort[groupClient->igmpClientDataKey.ptin_port] > 0)
+  if (channelAvlTreeEntry->noOfGroupClientsPerPort[groupClient->ptin_port] > 0)
   {
-    if (--channelAvlTreeEntry->noOfGroupClientsPerPort[groupClient->igmpClientDataKey.ptin_port] == 0)
+    if (--channelAvlTreeEntry->noOfGroupClientsPerPort[groupClient->ptin_port] == 0)
     {
-      if (IS_BITMAP_BIT_SET(channelAvlTreeEntry->portBmp, groupClient->igmpClientDataKey.ptin_port, UINT32_BITSIZE) == L7_TRUE)
+      if (IS_BITMAP_BIT_SET(channelAvlTreeEntry->portBmp, groupClient->ptin_port, UINT32_BITSIZE) == L7_TRUE)
       {
         /* Clear portId in the port bitmap */
-        BITMAP_BIT_CLR(channelAvlTreeEntry->portBmp, groupClient->igmpClientDataKey.ptin_port, UINT32_BITSIZE);
+        BITMAP_BIT_CLR(channelAvlTreeEntry->portBmp, groupClient->ptin_port, UINT32_BITSIZE);
 
         if (channelAvlTreeEntry->noOfPorts > 0)
         {
@@ -19813,7 +19865,8 @@ static RC_t ptin_igmp_multicast_client_packages_add(L7_uint32 *packagePtr, L7_ui
     {
       if ( L7_SUCCESS != (rc = ptin_igmp_multicast_client_package_add(packageId, groupClient)) )
       {
-        PT_LOG_ERR(LOG_CTX_IGMP, "Failed to add package [packageId:%p ptin_port:%u groupClientId:%u]",packagePtr, groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId);    
+        PT_LOG_ERR(LOG_CTX_IGMP, "Failed to add package [packageId:%p ptin_port:%u groupClientId:%u]", 
+                   packagePtr, groupClient->ptin_port, groupClient->groupClientId);
         return rc;
       }
 
@@ -19871,7 +19924,8 @@ static RC_t ptin_igmp_multicast_client_packages_remove(L7_uint32 *packagePtr, L7
       {
         if ( L7_SUCCESS != (rc = ptin_igmp_multicast_client_package_remove(packageId, groupClient)) )
         {
-          PT_LOG_ERR(LOG_CTX_IGMP, "Failed to add package [packageId:%p ptin_port:%u groupClientId:%u]",packagePtr, groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId);    
+            PT_LOG_ERR(LOG_CTX_IGMP, "Failed to add package [packageId:%p ptin_port:%u groupClientId:%u]", 
+                       packagePtr, groupClient->ptin_port, groupClient->groupClientId);
           return rc;
         }
 
@@ -19884,7 +19938,7 @@ static RC_t ptin_igmp_multicast_client_packages_remove(L7_uint32 *packagePtr, L7
   }
   else
   {
-    PT_LOG_WARN(LOG_CTX_IGMP, "This client does not have packages associated [packageId:%p ptin_port:%u groupClientId:%u]",packagePtr, groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId);    
+    PT_LOG_WARN(LOG_CTX_IGMP, "This client does not have packages associated [packageId:%p ptin_port:%u groupClientId:%u]",packagePtr, groupClient->ptin_port, groupClient->groupClientId);    
     return rc;
   }
   return rc;
@@ -19981,7 +20035,11 @@ static RC_t ptin_igmp_multicast_client_package_add(L7_uint32 packageId, ptinIgmp
   if ( IS_BITMAP_BIT_SET(groupClient->package_bmp_list, packageId, UINT32_BITSIZE) == L7_TRUE )
   {
     if (ptin_debug_igmp_snooping)
-      PT_LOG_NOTICE(LOG_CTX_IGMP, "This package was already added to this groupClient [packageId:%u ptin_port:%u groupClientId:%u]", packageId, groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId);
+    {
+      PT_LOG_NOTICE(LOG_CTX_IGMP, 
+                    "This package was already added to this groupClient [packageId:%u ptin_port:%u groupClientId:%u]", 
+                    packageId, groupClient->ptin_port, groupClient->groupClientId);
+    }
 #if 0//DO Not Signal this to the Caller
     return L7_ALREADY_CONFIGURED;    
 #else
@@ -20007,17 +20065,17 @@ static RC_t ptin_igmp_multicast_client_package_add(L7_uint32 packageId, ptinIgmp
 
   /*Package Client Bit Map Manipulation*/
   {
-    if ( IS_BITMAP_BIT_SET(multicastPackage[packageId].groupClientBmpPerPort[groupClient->igmpClientDataKey.ptin_port], groupClient->groupClientId, UINT32_BITSIZE) == L7_FALSE )
+    if (IS_BITMAP_BIT_SET(multicastPackage[packageId].groupClientBmpPerPort[groupClient->ptin_port], groupClient->groupClientId, UINT32_BITSIZE) == L7_FALSE)
     {
       /* Set groupClientId bitmap for this package*/
-      BITMAP_BIT_SET(multicastPackage[packageId].groupClientBmpPerPort[groupClient->igmpClientDataKey.ptin_port], groupClient->groupClientId, UINT32_BITSIZE);
+      BITMAP_BIT_SET(multicastPackage[packageId].groupClientBmpPerPort[groupClient->ptin_port], groupClient->groupClientId, UINT32_BITSIZE);
 
       /*Increment the Number of Group Clients per Port for this package*/
-      if ( multicastPackage[packageId].noOfGroupClientsPerPort[groupClient->igmpClientDataKey.ptin_port]++ == 0 &&
-           IS_BITMAP_BIT_SET(multicastPackage[packageId].portBmp, groupClient->igmpClientDataKey.ptin_port, UINT32_BITSIZE) == L7_FALSE )
+      if ( multicastPackage[packageId].noOfGroupClientsPerPort[groupClient->ptin_port]++ == 0 &&
+           IS_BITMAP_BIT_SET(multicastPackage[packageId].portBmp, groupClient->ptin_port, UINT32_BITSIZE) == L7_FALSE )
       {
         /* Set groupClientId in the group client bitmap */
-        BITMAP_BIT_SET(multicastPackage[packageId].portBmp, groupClient->igmpClientDataKey.ptin_port, UINT32_BITSIZE);
+        BITMAP_BIT_SET(multicastPackage[packageId].portBmp, groupClient->ptin_port, UINT32_BITSIZE);
 
         /*Increment the Number of Ports*/
         multicastPackage[packageId].noOfPorts++;
@@ -20091,7 +20149,11 @@ static RC_t ptin_igmp_multicast_client_package_remove(L7_uint32 packageId, ptinI
   if ( IS_BITMAP_BIT_SET(groupClient->package_bmp_list, packageId, UINT32_BITSIZE) == L7_FALSE )
   {
     if (ptin_debug_igmp_snooping)
-      PT_LOG_NOTICE(LOG_CTX_IGMP, "This package does not belong to this groupClient [packageId:%u ptin_port:%u groupClientId:%u]", packageId, groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId);
+    {
+      PT_LOG_NOTICE(LOG_CTX_IGMP, 
+                    "This package does not belong to this groupClient [packageId:%u ptin_port:%u groupClientId:%u]", 
+                    packageId, groupClient->ptin_port, groupClient->groupClientId);
+    }
 #if 0//DO Not Signal this to the Caller
     return L7_NOT_EXIST;    
 #else
@@ -20120,26 +20182,26 @@ static RC_t ptin_igmp_multicast_client_package_remove(L7_uint32 packageId, ptinI
   else
   {
     /*We Should Log a Warning*/
-    PT_LOG_WARN(LOG_CTX_IGMP,"The number of packages in this channel is already zero [packageId:%u ptinPort:%u clientId:%u]",
-                packageId, groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId);    
+    PT_LOG_WARN(LOG_CTX_IGMP,"The number of packages in this channel is already zero [packageId:%u ptin_port:%u clientId:%u]",
+                packageId, groupClient->ptin_port, groupClient->groupClientId);    
 
   }
 
-  if ( IS_BITMAP_BIT_SET(multicastPackage[packageId].groupClientBmpPerPort[groupClient->igmpClientDataKey.ptin_port], groupClient->groupClientId, UINT32_BITSIZE) == L7_TRUE )
+  if ( IS_BITMAP_BIT_SET(multicastPackage[packageId].groupClientBmpPerPort[groupClient->ptin_port], groupClient->groupClientId, UINT32_BITSIZE) == L7_TRUE )
   {
     /* Unset groupClientId in the group client bitmap */
-    BITMAP_BIT_CLR(multicastPackage[packageId].groupClientBmpPerPort[groupClient->igmpClientDataKey.ptin_port], groupClient->groupClientId, UINT32_BITSIZE);
+    BITMAP_BIT_CLR(multicastPackage[packageId].groupClientBmpPerPort[groupClient->ptin_port], groupClient->groupClientId, UINT32_BITSIZE);
 
     /*Decrement the Number of Group Clients*/
-    if (multicastPackage[packageId].noOfGroupClientsPerPort[groupClient->igmpClientDataKey.ptin_port]>0)
-      multicastPackage[packageId].noOfGroupClientsPerPort[groupClient->igmpClientDataKey.ptin_port]--;
+    if (multicastPackage[packageId].noOfGroupClientsPerPort[groupClient->ptin_port]>0)
+      multicastPackage[packageId].noOfGroupClientsPerPort[groupClient->ptin_port]--;
 
 
-    if ( multicastPackage[packageId].noOfGroupClientsPerPort[groupClient->igmpClientDataKey.ptin_port] == 0 && 
-         IS_BITMAP_BIT_SET(multicastPackage[packageId].portBmp, groupClient->igmpClientDataKey.ptin_port, UINT32_BITSIZE) == L7_TRUE )
+    if ( multicastPackage[packageId].noOfGroupClientsPerPort[groupClient->ptin_port] == 0 &&
+         IS_BITMAP_BIT_SET(multicastPackage[packageId].portBmp, groupClient->ptin_port, UINT32_BITSIZE) == L7_TRUE )
     {
       /* Clear the groupClientId bit for this package */
-      BITMAP_BIT_CLR(multicastPackage[packageId].portBmp, groupClient->igmpClientDataKey.ptin_port, UINT32_BITSIZE);
+      BITMAP_BIT_CLR(multicastPackage[packageId].portBmp, groupClient->ptin_port, UINT32_BITSIZE);
 
       /*Decrement the Number of Ports*/
       if (multicastPackage[packageId].noOfPorts > 0)
@@ -20338,7 +20400,7 @@ static RC_t ptin_igmp_client_channel_dependency_validation(L7_uint32 packageId, 
     }
 
     PT_LOG_WARN(LOG_CTX_IGMP,"Dependency not met: Client set within two packages for this channel [ptinPort:%u clientId:%u serviceId:%u groupAddr:%s sourceAddr:%s][packageId1:%u packageId2:%u]",
-                groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId, channelAvlTreeEntry->channelDataKey.evc_mc, 
+                groupClient->ptin_port, groupClient->groupClientId, channelAvlTreeEntry->channelDataKey.evc_mc, 
                 inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_group, groupAddrStr), inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_source, sourceAddrStr),
                 packageId, packageIdAux);    
     return L7_DEPENDENCY_NOT_MET;

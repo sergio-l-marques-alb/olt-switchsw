@@ -980,12 +980,23 @@ extern L7_RC_t ptin_igmp_api_client_add(ptin_client_id_t *client, L7_uint16 uni_
 /**
  * Remove a Multicast client group
  * 
- * @param client       : client group identification parameters 
+ * @param client   : client group identification parameters 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_igmp_api_client_remove(ptin_client_id_t *client);
 
+/**
+ * Validate and rearrange client id info. 
+ * This should only be applied for client infos coming from 
+ * manager. 
+ * 
+ * @author mruas (8/6/2013)
+ * 
+ * @param client : client info
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
 extern L7_RC_t ptin_igmp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *client);
 
 /**
