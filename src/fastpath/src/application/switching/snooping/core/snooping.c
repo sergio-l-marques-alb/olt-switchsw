@@ -441,7 +441,8 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   L7_uint8           port_type;
   L7_uchar8          *buffPtr             = L7_NULLPTR;
   L7_uint16          ipHdrLen             = 0;
- 
+  ptin_client_id_t   clientInfo;
+
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
   L7_uint8           query_count          = 0;
   L7_uint8           local_router_port_id = -1;
@@ -759,17 +760,17 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
    {
      ptin_timer_start(74,"ptin_igmp_clientIndex_get");
      #if ( PTIN_BOARD_IS_MATRIX )
-     /* FIXME TC16SXG: intIfNum->ptin_port */
      rc = ptin_igmp_dynamic_client_find(pduInfo->intIfNum,
                                         L7_NULL, L7_NULL,
                                         L7_NULL,
-                                        &client_idx);
+                                        &client_idx,
+                                        &clientInfo);
      #else
-     /* FIXME TC16SXG: intIfNum->ptin_port */
      rc =ptin_igmp_dynamic_client_find(pduInfo->intIfNum,
                                        pduInfo->vlanId, pduInfo->innerVlanId,
                                        &data[L7_MAC_ADDR_LEN],
-                                       &client_idx);
+                                       &client_idx,
+                                       &clientInfo);
      #endif
      if (rc != L7_SUCCESS)
      {
@@ -826,14 +827,16 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       rc = ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
                                        L7_NULL, L7_NULL,
                                        L7_NULL,
-                                       &client_idx);
+                                       &client_idx,
+                                       &clientInfo);
       #else
       /* For Linecard only: If client was not recognized, add it as dynamic */
       /* FIXME TC16SXG: intIfNum->ptin_port */
       rc = ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
                                        pduInfo->vlanId, pduInfo->innerVlanId,
                                        &data[L7_MAC_ADDR_LEN],
-                                       &client_idx);
+                                       &client_idx,
+                                       &clientInfo);
       #endif
 
       if (rc != L7_SUCCESS)

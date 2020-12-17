@@ -1830,7 +1830,6 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
           if (clientFlow.int_ivid != 0)
           {
             /* Get related client index */
-            /* FIXME TC16SXG: intIfNum->ptin_port */
             if (ptin_igmp_dynamic_client_find(intf, int_ovlan, int_ivlan, L7_NULLPTR, &client_idx)!=L7_SUCCESS)
             {
               client_idx = (L7_uint) -1;

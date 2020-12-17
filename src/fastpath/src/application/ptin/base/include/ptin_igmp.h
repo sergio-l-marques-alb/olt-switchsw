@@ -883,20 +883,40 @@ extern L7_RC_t ptin_igmp_extVlans_get(L7_uint32 ptin_port, L7_uint16 intOVlan, L
 extern L7_RC_t ptin_igmp_client_next(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 inner_vlan,
                                      L7_uint16 *inner_vlan_next, L7_uint16 *uni_ovid, L7_uint16 *uni_ivid);
 #endif
+
 /**
  * Get the client index associated to a Multicast client 
  * 
- * @param ptin_port     : interface number
- * @param intVlan       : internal vlan
- * @param innerVlan     : inner vlan
- * @param client_index  : Client index to be returned
+ * @param [in]  intIfNum      : interface number
+ * @param [in]  intVlan       : internal vlan
+ * @param [in]  innerVlan     : inner vlan 
+ * @param [in]  smac          : 
+ * @param [in]  client_index  : Client index to be returned 
+ * @param [out] client_ret    : returns client info
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_dynamic_client_find(L7_uint32 ptin_port,
-                                             L7_uint16 intVlan, L7_uint16 innerVlan,
+extern L7_RC_t ptin_igmp_dynamic_client_find(L7_uint32 intIfNum,
+                                             L7_uint16 intVlan, 
+                                             L7_uint16 innerVlan,
                                              L7_uchar8 *smac,
-                                             L7_uint *client_index);
+                                             L7_uint *client_index,
+                                             ptin_client_id_t *client_ret);
+/**
+ * Build client id structure
+ * 
+ * @param intIfNum  : interface
+ * @param intVlan   : internal outer vlan
+ * @param innerVlan : inner vlan
+ * @param smac      : source MAC address
+ * @param client    : client id pointer (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_clientId_build(L7_uint32 intIfNum,
+                                        L7_uint16 intVlan, L7_uint16 innerVlan,
+                                        L7_uchar8 *smac,
+                                        ptin_client_id_t *client);
 
 /**
  * Get client type from its index. 
@@ -1002,17 +1022,20 @@ extern L7_RC_t ptin_igmp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *c
 /**
  * Add a dynamic client
  *  
- * @param ptin_port   : interface number  
+ * @param intIfNum   : interface number  
  * @param intVlan     : Internal vlan
  * @param innerVlan   : Inner vlan
  * @param client_idx_ret : client index (output) 
+ * @param client_ret     : client info  (output)  
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 ptin_port,
-                                            L7_uint16 intVlan, L7_uint16 innerVlan,
+extern L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum,
+                                            L7_uint16 intVlan,
+                                            L7_uint16 innerVlan,
                                             L7_uchar8 *smac,
-                                            L7_uint *client_idx_ret);
+                                            L7_uint *client_idx_ret,
+                                            ptin_client_id_t *client_ret);
 
 /**
  * Remove a particular client
