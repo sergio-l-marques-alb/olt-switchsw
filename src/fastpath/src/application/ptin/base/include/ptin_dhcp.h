@@ -51,6 +51,16 @@
  * Typedefs
  ***********************************************************/
 
+/* Protocol enum*/
+enum
+{
+   IGMP_PROTOCOL = 0,
+   DHCP_PROTOCOL    , 
+   DHCPV6_PROTOCOL  , 
+   PPPOE_PROTOCOL   , 
+   LAST_PROTOCOL 
+} protocols_e;
+
 typedef enum
 {
   DHCP_BOOTP_FLAG_NONE=0,

@@ -2261,7 +2261,7 @@ L7_RC_t ptin_evc_intf_type_get(L7_uint16 intVlan, L7_uint32 ptin_port, L7_uint8 
   L7_uint16 evc_id;
   ptin_intf_t ptin_intf;
 
-  /* Validate interface */
+  /* Convert from ptin_port to ptin_intf */
   if (ptin_intf_port2ptintf(ptin_port, &ptin_intf) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_EVC,"Invalid ptin_port %u", ptin_port);

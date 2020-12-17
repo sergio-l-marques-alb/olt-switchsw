@@ -100,6 +100,10 @@ L7_uchar8 *dhcpMsgTypeNames[] = {"UNKNOWN", "DISCOVER", "OFFER", "REQUEST",
 
 L7_RC_t dsVlanEventProcess(dot1qNotifyData_t *pVlanData, L7_uint32 intIfNum, L7_uint32 event);
 
+void
+packet_type_debug( L7_uint32 port , L7_uint32 vlan , int protocol , int packet );
+
+
 static void dsPeriodicStore();
 #ifdef L7_DHCP_L2_RELAY_PACKAGE
 static L7_RC_t dsRelayAgentInfoAdd(L7_uint32 ptin_port, L7_uint32 vlanId,
@@ -1086,7 +1090,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
   L7_BOOL l2_forward = L7_FALSE;
   L7_uint client_idx = DHCP_INVALID_CLIENT_IDX;
   ptin_client_id_t client_info;
-  L7_uint32 ptin_port;
+  L7_uint32 ptin_port=0;
   L7_RC_t rc;
 
   if (ptin_debug_dhcp_snooping)
@@ -1202,24 +1206,34 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
           }
           return SYSNET_PDU_RC_IGNORED;
         }
+        /*Get ptin_port from client_idx*/
+        rc = ptin_dhcp_clientData_get(vlanId, client_idx, &client_info);
+        if (rc != L7_SUCCESS)
+        {
+          if (ptin_debug_dhcp_snooping)
+          {
+            PT_LOG_ERR(LOG_CTX_DHCP, "Error getting dhcp data");
+          }
+          return L7_FAILURE;
+        }
+        ptin_port = client_info.ptin_port;
       }
+    }
+    else
+    {
+        ptin_port =  intIfNum2port(pduInfo->intIfNum, 0);
+        if (ptin_port == PTIN_PORT_INVALID)
+        {
+          if (ptin_debug_dhcp_snooping)
+          {
+            PT_LOG_ERR(LOG_CTX_DHCP, "Error getting ptin_port");
+          }
+          return L7_FAILURE;
+        }
     }
 #endif
 
-    PT_LOG_DEBUG(LOG_CTX_DHCP, "DHCP Relay-Agent: Received server reply");
-
-    /*Get ptin_port from client_idx*/
-    rc = ptin_dhcp_clientData_get(vlanId, client_idx, &client_info);
-    if (rc != L7_SUCCESS)
-    {
-      if (ptin_debug_dhcp_snooping)
-      {
-        PT_LOG_ERR(LOG_CTX_DHCP, "Error getting dhcp data");
-      }
-      return L7_FAILURE;
-    }
-
-    ptin_port = client_info.ptin_port;
+    //PT_LOG_DEBUG(LOG_CTX_DHCP, "DHCP Relay-Agent: Received server reply");
 
     /* VLAN is active for DHCP processing */
     /* Check if IPV6 is enabled for this VLAN */
@@ -1541,6 +1555,111 @@ L7_RC_t dsPacketQueue(L7_uchar8 *ethHeader, L7_uint32 dataLen,
     return L7_SUCCESS;
 }
 
+
+
+
+/*********************************************************************
+* @purpose  Convert type of a DHCP packet to text.
+*
+* @param    pkt_type: Packet type
+*
+* @returns  text
+*
+* @end
+*********************************************************************/
+char*
+dhcp_packet_type_str( L7_dhcp_pkt_type_t pkt_type )
+{
+    switch ( pkt_type ) {
+        case L7_DHCP_DISCOVER: return "DISCOVER";
+        case L7_DHCP_OFFER   : return "OFFER";   
+        case L7_DHCP_REQUEST : return "REQUEST"; 
+        case L7_DHCP_DECLINE : return "DECLINE"; 
+        case L7_DHCP_ACK     : return "ACK";     
+        case L7_DHCP_NACK    : return "NACK";    
+        case L7_DHCP_RELEASE : return "RELEASE"; 
+        case L7_DHCP_INFORM  : return "INFORM";
+        default: return "UNKNOWN";
+    }
+}
+
+/*********************************************************************
+* @purpose  Convert type of a DHCPv6 packet to text.
+*
+* @param    pkt_type: Packet type
+*
+* @returns  text
+*
+* @end
+*********************************************************************/
+char*
+dhcpv6_packet_type_str( L7_dhcp6_pkt_type_t pkt_type )
+{
+    switch ( pkt_type ) {
+        case L7_DHCP6_SOLICIT            : return "SOLICIT";
+        case L7_DHCP6_ADVERTISE          : return "ADVERTISE";
+        case L7_DHCP6_REQUEST            : return "REQUEST";
+        case L7_DHCP6_CONFIRM            : return "CONFIRM";
+        case L7_DHCP6_RENEW              : return "RENEW";
+        case L7_DHCP6_REBIND             : return "REBIND";
+        case L7_DHCP6_REPLY              : return "REPLY";
+        case L7_DHCP6_RELEASE            : return "RELEASE";
+        case L7_DHCP6_DECLINE            : return "DECLINE";
+        case L7_DHCP6_RECONFIGURE        : return "RECONFIGURE";
+        case L7_DHCP6_INFORMATION_REQUEST: return "INFO_REQUEST";
+        case L7_DHCP6_RELAY_FORW         : return "RELAY_FORW";
+        case L7_DHCP6_RELAY_REPL         : return "RELAY_REPL";
+        default: return "UNKNOWN";
+    }
+}
+
+
+/**
+ * Print packet type on log
+ *
+ * @param ctx: uint32_t
+ * @param port: uint32_t
+ * @param vlan: uint32_t
+ * @param protocol: DHCP_PROTOCOL, DHCPV6_PROTOCOL,
+ *                PPPOE_PROTOCOL
+ * @param packet: int
+ *
+ * @return int: RC_SUCCESS/RC_FAILURE
+ */
+void
+packet_type_debug( L7_uint32 port , L7_uint32 vlan , int protocol , int packet )
+{
+    if (ptin_debug_dhcp_snooping) {
+        char spkt[64+1];
+        char sptc[6+1];
+
+        if ( ( port >= PTIN_SYSTEM_N_PORTS ) || ( vlan > 4095 ) ) {
+            return;
+        }
+
+        switch ( protocol ) {
+            case DHCP_PROTOCOL:
+                strcpy( sptc , "DHCP");
+                sprintf( spkt , "%s----------" , dhcp_packet_type_str(packet) );
+                break;
+            case DHCPV6_PROTOCOL:
+                strcpy( sptc , "DHCPv6");
+                sprintf( spkt , "%s----------" , dhcpv6_packet_type_str(packet) );
+                break;
+            default:
+                strcpy( sptc , "????" );
+                strcpy( spkt , "??????""------" );
+                break;
+        }
+        if (!_dsVlanIsIntfRoot(vlan, port)) {
+            PT_LOG_TRACE(LOG_CTX_DHCP, "PktType %-6s [%2d:%4d] cli ---%.12s--> srv" , sptc , port , vlan , spkt );
+        }
+        else {
+            PT_LOG_TRACE(LOG_CTX_DHCP, "PktType %-6s [%2d:%4d] cli <--%.12s--- srv" , sptc , port- PTIN_SYSTEM_N_PONS , vlan , spkt );
+        }
+    }
+}
+
 /*********************************************************************
 * @purpose  Process a DHCP packet on DHCP snooping thread
 *
@@ -1616,6 +1735,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   dot1dTpFdbData_t    fdbEntry;
   L7_uint32           ptin_port;
   ptin_client_id_t    client_info;
+  L7_dhcp_pkt_type_t  dhcpPktType;
 
   memset(&dhcp_binding, 0x00, sizeof(dhcp_binding));   
 
@@ -1630,6 +1750,10 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   {
     PT_LOG_TRACE(LOG_CTX_DHCP, "Packet frameLen = %d, initial UDP length = %d ", frameLen, osapiNtohs(udp_header->length) );
   }
+
+
+  dhcpPktType = dsPacketType(dhcpPacket, frameLen);
+  packet_type_debug( intIfNum , vlanId , DHCP_PROTOCOL , dhcpPktType );
 
 
   if (client_idx != DHCP_INVALID_CLIENT_IDX ) 
@@ -2003,7 +2127,12 @@ L7_RC_t dsDHCPv6FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
    dhcp_header_ptr = frame + sysNetDataOffsetGet(frame) + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t);
 
+
+#if 1
+   packet_type_debug( intIfNum , vlanId , DHCPV6_PROTOCOL , (int)(*dhcp_header_ptr) );
+#else
    PT_LOG_DEBUG(LOG_CTX_DHCP, "Received DHCPv6 message type[%u] [intIfNum:%u clientIdx:%u vlanId:%u innerVlanId:%u]", *dhcp_header_ptr, intIfNum, client_idx, vlanId, innerVlanId);
+#endif
 
    switch(*dhcp_header_ptr)
    {
@@ -2091,6 +2220,11 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
   }
 
   ptin_port = client_info.ptin_port;
+
+  #if 0
+  dhcp_header_ptr = frame + sysNetDataOffsetGet(frame) + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t);
+  packet_type_debug( ptin_port , vlanId , DHCPV6_PROTOCOL , (int)(*dhcp_header_ptr) );
+  #endif
 
   //Check if the port through which the message was received is valid
   if (_dsVlanIsIntfRoot(vlanId, intIfNum))
@@ -2295,33 +2429,10 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    L7_ushort16 ethHdrLen;
    L7_uint8 ethPrty, *frameEthPrty;
    L7_dhcp6_packet_t *dhcp_msg_hdr_ptr = 0;
-   ptin_client_id_t client_info;
    L7_uint32 ptin_port;
-   L7_RC_t rc;
 
    PT_LOG_DEBUG(LOG_CTX_DHCP, "DHCP Relay-Agent: Received server reply");
 
-   /*Get ptin_port from client_idx*/
-   rc = ptin_dhcp_clientData_get(vlanId, client_idx, &client_info);
-   if (rc != L7_SUCCESS)
-   {
-     if (ptin_debug_dhcp_snooping)
-     {
-       PT_LOG_ERR(LOG_CTX_DHCP, "Error getting dhcp data");
-     }
-     return L7_FAILURE;
-   }
-
-   ptin_port = client_info.ptin_port;
-
-   //Check if the port through which the message was received is valid
-   if (_dsVlanIsIntfRoot(vlanId, intIfNum) == L7_FALSE)
-   {
-      if (ptin_debug_dhcp_snooping)
-        PT_LOG_WARN(LOG_CTX_DHCP, "DHCP Relay-Agent: Received server reply on untrusted port");
-      ptin_dhcp_stat_increment_field(ptin_port, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_PKTS_ON_UNTRUSTED_INTF);
-      return L7_FAILURE;
-   }
 
    //Parse the received frame
    eth_header_ptr     = frame;
@@ -2350,10 +2461,38 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    dhcp_binding.key.ipType = L7_AF_INET6;
    dhcp_binding.key.vlanId = vlanId;
 
+
    if (L7_SUCCESS == dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
    {
       ptin_port = dhcp_binding.ptin_port;
    }
+   else
+   {
+      ptin_port =  intIfNum2port(intIfNum, 0);
+      if (ptin_port == PTIN_PORT_INVALID)
+      {
+        if (ptin_debug_dhcp_snooping)
+        {
+          PT_LOG_ERR(LOG_CTX_DHCP, "Error getting ptin_port");
+        }
+        return L7_FAILURE;
+      }
+   }
+
+   #if 0
+   dhcp_header_ptr = frame + sysNetDataOffsetGet(frame) + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t);
+   packet_type_debug( ptin_port , vlanId , DHCPV6_PROTOCOL , (int)(*dhcp_header_ptr) );
+   #endif
+
+   //Check if the port through which the message was received is valid
+   if (_dsVlanIsIntfRoot(vlanId, intIfNum) == L7_FALSE)
+   {
+      if (ptin_debug_dhcp_snooping)
+        PT_LOG_WARN(LOG_CTX_DHCP, "DHCP Relay-Agent: Received server reply on untrusted port");
+      ptin_dhcp_stat_increment_field(ptin_port, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_PKTS_ON_UNTRUSTED_INTF);
+      return L7_FAILURE;
+   }
+
    //Get DHCP Options for this client
    if (ptin_dhcp_client_options_get(ptin_port, dhcp_binding.key.vlanId, dhcp_binding.innerVlanId, L7_NULLPTR, &isActiveOp37, &isActiveOp18) != L7_SUCCESS)
    {
@@ -2362,7 +2501,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
       return L7_FAILURE;
    }
    //If the service is unstacked (client_idx==-1) then we have to determine the client_idx through the inner_vlan in the Binding Table
-   if(client_idx == -1)
+   if(client_idx == DHCP_INVALID_CLIENT_IDX)
    {
      ptin_client_id_t client;
 
@@ -2375,11 +2514,13 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      if (ptin_dhcp_clientIndex_get(ptin_port, vlanId, &client, &client_idx)!=L7_SUCCESS)
      {
        if (ptin_debug_dhcp_snooping)
-         PT_LOG_ERR(LOG_CTX_DHCP,"Client not found! (ptin_port=%u, innerVlanId=%u, intVlanId=%u)",
+       {
+         PT_LOG_TRACE(LOG_CTX_DHCP,"Client not found! (ptin_port=%u, innerVlanId=%u, intVlanId=%u)",
                  ptin_port, dhcp_binding.innerVlanId, vlanId);
-       ptin_dhcp_stat_increment_field(ptin_port, vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
-       ptin_dhcp_stat_increment_field(ptin_port, vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
-       return L7_SUCCESS;
+       }
+       ptin_dhcp_stat_increment_field(ptin_port, vlanId, client_idx, DHCP_STAT_FIELD_RX_INTERCEPTED);
+       ptin_dhcp_stat_increment_field(ptin_port, vlanId, client_idx, DHCP_STAT_FIELD_RX_FILTERED);
+       //return L7_SUCCESS;
      }
    }
 
@@ -2387,7 +2528,9 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    if(osapiNtohs(udp_header->length) < (sizeof(L7_udp_header_t) + sizeof(L7_dhcp6_packet_t)))
    {
       if (ptin_debug_dhcp_snooping)
+      {
         PT_LOG_ERR(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Broken frame received, ignoring (invalid UDP.length).");
+      }
       return L7_SUCCESS;
    }
 
@@ -4860,7 +5003,8 @@ L7_RC_t dsBindingExtract(L7_uint32 ptin_port, L7_ushort16 vlanId, L7_ushort16 in
   dhcpPktType = dsPacketType(dhcpPacket, pktLen);
 
   #if 0
-  PT_LOG_DEBUG(LOG_CTX_DHCP," %d ",dhcpPktType);
+  packet_type_debug( intIfNum , vlanId , DHCP_PROTOCOL , dhcpPktType );
+
   #else
   PT_LOG_DEBUG(LOG_CTX_DHCP,"<<<<< ============= RECEIVED %s ============= >>>>>",dhcpMsgTypeNames[dhcpPktType]);
   #endif
