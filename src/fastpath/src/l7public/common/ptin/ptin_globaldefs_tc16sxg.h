@@ -7,7 +7,7 @@
 /* Allows direct control over port add/remove of a LAG (shortcut to message queues) */
 #define LAG_DIRECT_CONTROL_FEATURE  1
 
-/* Activate this flag to select Inports using InterfaceClassId, instead of Inports qualifier */
+/* Activate this flag to select several ports using Inport+InterfaceClassId qualifiers, instead of Inports */
 #define ICAP_INTERFACES_SELECTION_BY_CLASSPORT
 
 /* Info about ASPEN devices */

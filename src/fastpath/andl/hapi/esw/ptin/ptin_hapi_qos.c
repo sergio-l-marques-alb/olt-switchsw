@@ -799,6 +799,11 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
         }
       }
     }
+
+    /* Update bitmap of ports */
+    qos_entry->usp_port_bmp = qos_cfg->port_bmp;
+    BCM_PBMP_ASSIGN(qos_entry->bcm_port_bmp, pbm);
+
     PT_LOG_TRACE(LOG_CTX_HAPI,"Ports bitmap of intVLAN %u / extVlan %u / leaf:%u updated",
                  qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->leaf_side);
     return L7_SUCCESS;
