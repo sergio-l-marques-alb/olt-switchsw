@@ -1480,7 +1480,7 @@ static int _policy_super_qset_add(int                      unit,
       rv = bcm_field_group_create_mode(unit, qsetPtr->qsetAgg, 0, bcmFieldGroupModeAuto, &gid);
       if (rv != BCM_E_NONE)
       {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
           sysapiPrintf("%s(%d) bcm_field_group_create_mode: gid=%d, rv=%d\n", __FUNCTION__, __LINE__, gid, rv);
         PT_LOG_ERR(LOG_CTX_STARTUP,"Error with group_create: rv=%d", rv);
         break;
@@ -1490,7 +1490,7 @@ static int _policy_super_qset_add(int                      unit,
       rv = bcm_field_group_status_get(unit, gid, &qsetPtr->status);
       if (rv != BCM_E_NONE)
       {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
           sysapiPrintf("%s(%d) bcm_field_group_status_get: gid=%d, rv=%d\n", __FUNCTION__, __LINE__, gid, rv);
         PT_LOG_ERR(LOG_CTX_STARTUP,"Error with status_get: rv=%d", rv);
         break;
@@ -3959,7 +3959,7 @@ static int _policy_group_add_stat(int unit, bcm_field_entry_t eid, bcm_field_gro
     bcm_field_stat_t       stat[2];
     int                    stat_id;
 
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("%s(%d) gid=%u, eid=%u",__FUNCTION__,__LINE__,gid,eid);
 
     counterPtr = &rulePtr->counter.counterInfo;
@@ -4021,7 +4021,7 @@ static int _policy_group_add_stat(int unit, bcm_field_entry_t eid, bcm_field_gro
       return rv;
     }
 
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("%s(%d) Success! rv=%d",__FUNCTION__,__LINE__,rv);
 
     return rv;
@@ -5004,7 +5004,7 @@ int policy_group_add_rule(int                        unit,
         }
         else
         {
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
             sysapiPrintf("%s(%d) Attached global policer_id %d to eid %d\r\n", __FUNCTION__, __LINE__, *policer_id, eid);
         }
       }
@@ -5042,14 +5042,11 @@ int policy_group_add_rule(int                        unit,
        never match rule (as a NULL pbmp would do for ingress) */
     if ((policyStage == BROAD_POLICY_STAGE_INGRESS) || (policyType == BROAD_POLICY_TYPE_VLAN) || (BCM_PBMP_NOT_NULL(pbm)))
     {
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
-        sysapiPrintf("Installing rule - eid %u", eid);
-
       rv = bcm_field_entry_install(unit, eid);
 
       if (rv != BCM_E_NONE)
       {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
           sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
 
         PT_LOG_ERR(LOG_CTX_HAPI, "Error commiting rule: unit=%d stage=%d gid=%d eid=%d (maxgroups=%d)",
@@ -5061,7 +5058,7 @@ int policy_group_add_rule(int                        unit,
                                         rulePtr->policer.policer_id, rulePtr->counter.counter_id);
       }
 
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
           sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
     }
 
@@ -5106,11 +5103,8 @@ int policy_group_set_pbm(int                  unit,
     /* Reinstall only works for actions, so remove and install the entry explicitly. */
     rv = bcm_field_entry_remove(unit, eid);
 
-    /* PTin added: FFP */
-    #if 1
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
         sysapiPrintf("- bcm_field_entry_remove rv = %d (entry=%d)\n", rv, eid);
-    #endif
 
     if (BCM_E_NONE != rv)
         return rv;
@@ -5121,13 +5115,10 @@ int policy_group_set_pbm(int                  unit,
     if (BCM_E_NONE != rv)
         return rv;
 
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
-        sysapiPrintf("Installing rule - eid %u", eid);
-
     rv = bcm_field_entry_install(unit, eid);
 
     /* PTin added: FFP */
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
         sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
 
     if (BCM_E_NONE != rv)
@@ -5157,7 +5148,7 @@ int policy_group_set_portclass(int                  unit,
     int               numPorts;
     BOOL              install_rule = L7_FALSE;
 
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
       sysapiPrintf("portClass: Stage=%u group=%u entry=%u portClass=%u",
                    policyStage, group, entry, portClass);
 
@@ -5176,11 +5167,8 @@ int policy_group_set_portclass(int                  unit,
     /* Reinstall only works for actions, so remove and install the entry explicitly. */
     rv = bcm_field_entry_remove(unit, eid);
 
-    /* PTin added: FFP */
-    #if 1
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
         sysapiPrintf("- bcm_field_entry_remove rv = %d (entry=%d)\n", rv, eid);
-    #endif
 
     if (BCM_E_NONE != rv)
         return rv;
@@ -5207,9 +5195,9 @@ int policy_group_set_portclass(int                  unit,
         if (policyStage == BROAD_POLICY_STAGE_LOOKUP ||
             policyStage == BROAD_POLICY_STAGE_INGRESS)
         {
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
             sysapiPrintf("stage=%u group=%u entry=%u: Deactivating InPort qualifier",
-                         policyStage, group, entry, bcm_port);
+                         policyStage, group, entry);
 
           rv = bcm_field_qualify_InPort(unit, eid, 0, 0);
           if (BCM_E_NONE != rv)
@@ -5217,9 +5205,9 @@ int policy_group_set_portclass(int                  unit,
         }
         else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
         {
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
             sysapiPrintf("stage=%u group=%u entry=%u: Deactivating OutPort qualifier",
-                         policyStage, group, entry, bcm_port);
+                         policyStage, group, entry);
 
           rv = bcm_field_qualify_OutPort(unit, eid, 0, 0);
           if (BCM_E_NONE != rv)
@@ -5251,7 +5239,7 @@ int policy_group_set_portclass(int                  unit,
 #endif
              )
           {
-            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
               sysapiPrintf("stage=%u group=%u entry=%u: Adding InPort qualifier(bcm_port %u)",
                            policyStage, group, entry, bcm_port);
 
@@ -5261,7 +5249,7 @@ int policy_group_set_portclass(int                  unit,
           }
           else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
           {
-            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
               sysapiPrintf("stage=%u group=%u entry=%u: Adding OutPort qualifier(bcm_port %u)",
                            policyStage, group, entry, bcm_port);
 
@@ -5272,7 +5260,7 @@ int policy_group_set_portclass(int                  unit,
           break;
         }
 
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
           sysapiPrintf("stage=%u group=%u entry=%u: Deactivating InterfaceClassPort qualifier",
                        policyStage, group, entry);
 
@@ -5297,9 +5285,9 @@ int policy_group_set_portclass(int                  unit,
 #endif
             )
         {
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
             sysapiPrintf("stage=%u group=%u entry=%u: Deactivating InPort qualifier",
-                         policyStage, group, entry, bcm_port);
+                         policyStage, group, entry);
 
           rv = bcm_field_qualify_InPort(unit, eid, 0, 0);
           if (BCM_E_NONE != rv)
@@ -5307,9 +5295,9 @@ int policy_group_set_portclass(int                  unit,
         }
         else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
         {
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
             sysapiPrintf("stage=%u group=%u entry=%u: Deactivating OutPort qualifier",
-                         policyStage, group, entry, bcm_port);
+                         policyStage, group, entry);
 
           rv = bcm_field_qualify_OutPort(unit, eid, 0, 0);
           if (BCM_E_NONE != rv)
@@ -5324,7 +5312,7 @@ int policy_group_set_portclass(int                  unit,
         portClass_mask = 1 << portClass;
 #endif
 
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
           sysapiPrintf("stage=%u group=%u entry=%u: Adding InterfaceClassPort qualifier(portClass %u)",
                        policyStage, group, entry, portClass_val);
 
@@ -5345,13 +5333,10 @@ int policy_group_set_portclass(int                  unit,
     /* Only install rule, if port/classId is valid */
     if (install_rule)
     {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
-          sysapiPrintf("Installing rule - eid %u", entry);
-
         rv = bcm_field_entry_install(unit, eid);
 
         /* PTin added: FFP */
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
           sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
 
         if (BCM_E_NONE != rv)
@@ -5359,11 +5344,11 @@ int policy_group_set_portclass(int                  unit,
     }
     else
     {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
           sysapiPrintf("unit=%u eid=%u will NOT be reinstalled", unit, eid);
     }
 
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("stage=%u group=%u entry=%u: Done (rv=%d)",
                    policyStage, group, entry, rv);
 
@@ -5479,11 +5464,8 @@ int policy_group_set_outervlan(int                  unit,
     /* Reinstall only works for actions, so remove and install the entry explicitly. */
     rv = bcm_field_entry_remove(unit, eid);
 
-    /* PTin added: FFP */
-    #if 1
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
         sysapiPrintf("- bcm_field_entry_remove rv = %d (entry=%d)\n", rv, eid);
-    #endif
 
     if (BCM_E_NONE != rv)
     {
@@ -5504,13 +5486,10 @@ int policy_group_set_outervlan(int                  unit,
         (policyStage == BROAD_POLICY_STAGE_INGRESS) ||
         (((policyStage == BROAD_POLICY_STAGE_LOOKUP) || (policyStage == BROAD_POLICY_STAGE_EGRESS)) && BCM_PBMP_NOT_NULL(policyPtr->pbm)))
     {
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
-        sysapiPrintf("Installing rule - eid %u", eid);
-
       rv = bcm_field_entry_install(unit, eid);
 
       /* PTin added: FFP */
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
         sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
 
       if (BCM_E_NONE != rv)
@@ -5530,7 +5509,7 @@ int policy_port_class_pbmp_update(int                  unit,
   int       rv = BCM_E_NONE;
   L7_uint32 port;
 
-  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
     sysapiPrintf("Updating portClass: stage=%u oldPortClass=%u newPortClass=%u: Updating class port",
                  policyStage, oldPortClass, newPortClass);
 
@@ -5627,11 +5606,8 @@ int policy_group_delete_rule(int                  unit,
 
     rv = bcm_field_entry_remove(unit, eid);
 
-    /* PTin added: FFP */
-    #if 1
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
         sysapiPrintf("- bcm_field_entry_remove rv = %d (entry=%d)\n", rv, eid);
-    #endif
 
     /* If rv is BCM_E_UNAVAIL, it is possible that we are trying to remove
      * a rule that is not installed in the hardware. So, continue with the
@@ -5862,16 +5838,13 @@ void policy_group_dataplane_cleanup(int                  unit,
 
     eid = BROAD_ENTRY_TO_BCM_ENTRY(entry);
 
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("- new manager notify entry %d, modid %d, modport %d\n", eid, cpu_modid, cpu_modport);
 
     rv = bcm_field_entry_remove(unit, eid);
 
-    /* PTin added: FFP */
-    #if 1
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
         sysapiPrintf("- bcm_field_entry_remove rv = %d (entry=%d)\n", rv, eid);
-    #endif
 
     if (BCM_E_NONE != rv)
     {
@@ -5899,13 +5872,10 @@ void policy_group_dataplane_cleanup(int                  unit,
       return;
     }
 
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
-      sysapiPrintf("Installing rule - eid %u", eid);
-
     rv = bcm_field_entry_install(unit, eid);
 
     /* PTin added: FFP */
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
       sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
 
     if (BCM_E_NONE != rv)
@@ -6044,13 +6014,10 @@ int policy_group_create_default_rule(int unit,
     if (BCM_E_NONE != rv)
       return rv;
 
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
-      sysapiPrintf("Installing rule - eid %u", eid);
-
     rv = bcm_field_entry_install(unit, eid);
 
     /* PTin added: FFP */
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
       sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
 
     if (BCM_E_NONE != rv)

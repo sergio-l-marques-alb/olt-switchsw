@@ -52,6 +52,7 @@ char *hapiBroadPolicyTypeName(BROAD_POLICY_TYPE_t type);
 typedef enum
 {
     POLICY_DEBUG_NONE,
+    POLICY_DEBUG_LIGHT,
     POLICY_DEBUG_LOW,
     POLICY_DEBUG_MED,
     POLICY_DEBUG_HIGH,

@@ -789,7 +789,7 @@ char *hapiBroadPolicyTypeName(BROAD_POLICY_TYPE_t type)
 
 /* Debug */
 
-static BROAD_POLICY_DEBUG_LEVEL_t debugOutput = /*POLICY_DEBUG_HIGH*/ POLICY_DEBUG_NONE;
+static BROAD_POLICY_DEBUG_LEVEL_t debugOutput = /*POLICY_DEBUG_HIGH*/ POLICY_DEBUG_LOW;
 
 void hapiBroadPolicyDebugEnable(BROAD_POLICY_DEBUG_LEVEL_t val)
 {
