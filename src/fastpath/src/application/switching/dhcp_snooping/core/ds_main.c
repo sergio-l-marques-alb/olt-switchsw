@@ -1089,7 +1089,9 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
 #endif
   L7_BOOL l2_forward = L7_FALSE;
   L7_uint client_idx = DHCP_INVALID_CLIENT_IDX;
+#if ( !PTIN_BOARD_IS_MATRIX )
   ptin_client_id_t client_info;
+#endif
   L7_uint32 ptin_port=0;
   L7_RC_t rc;
 
