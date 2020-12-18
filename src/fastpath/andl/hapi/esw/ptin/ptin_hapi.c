@@ -35,6 +35,7 @@
 #include "simapi.h"
 #include "broad_group_bcm.h"
 #include "bcm_int/esw/link.h"
+#include "broad_l2_lag.h"
 #include <bcm/time.h>
 #if 0//Required to init L3 Modules. Not used since FP is already performing the init of those Modules
 #include <bcm/init.h>
@@ -1932,6 +1933,201 @@ L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL l
 
 
 /**
+ * Get port descriptor from ddUsp interface
+ * 
+ * @param ddUsp : unit, slot and port reference
+ * @param dapi_g
+ * @param intf_desc : interface descriptor with gport, bcm_port 
+ *                  (-1 if not physical) and trunk_id (-1 if not
+ *                  trunk)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, ptin_hapi_intf_t *intf_desc,
+                                     DAPI_PORT_t **dapiPortPtr_ret, BROAD_PORT_t **hapiPortPtr_ret)
+{
+  L7_uint       i;
+  DAPI_PORT_t  *dapiPortPtr;
+  BROAD_PORT_t *hapiPortPtr;
+  bcm_gport_t   gport=-1;
+  bcm_trunk_t   trunk_id=-1;
+  bcm_port_t    bcm_port=-1;
+  L7_uint32     /*efp_class_port=0,*/ xlate_class_port=0;
+  L7_uint64     usp_bmp;
+
+  /* Validate interface */
+  if (ddUsp==L7_NULLPTR || (ddUsp->unit<0 && ddUsp->slot<0 && ddUsp->port<0))
+  {
+    PT_LOG_WARN(LOG_CTX_HAPI,"No provided interface!");
+    return L7_SUCCESS;
+  }
+  if (ddUsp->unit<0 || ddUsp->slot<0 || ddUsp->port<0)
+  {
+    PT_LOG_WARN(LOG_CTX_HAPI,"Invalid interface!");
+    return L7_FAILURE;
+  }
+
+  dapiPortPtr = DAPI_PORT_GET( ddUsp, dapi_g );
+  hapiPortPtr = HAPI_PORT_GET( ddUsp, dapi_g );
+
+  /* Extract gport */
+  gport = hapiPortPtr->bcm_gport;
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Analysing interface {%d,%d,%d}: gport=0x%08x",ddUsp->unit,ddUsp->slot,ddUsp->port,gport);
+
+  /* Extract Trunk id */
+  if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
+  {
+    trunk_id = hapiPortPtr->hapiModeparm.lag.tgid;
+    PT_LOG_TRACE(LOG_CTX_HAPI,"Interface {%d,%d,%d} is a lag: trunk_id = %d",ddUsp->unit,ddUsp->slot,ddUsp->port,trunk_id);
+  }
+  /* Extract Physical port */
+  else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
+  {
+    bcm_port = hapiPortPtr->bcm_port;
+    PT_LOG_TRACE(LOG_CTX_HAPI,"Interface {%d,%d,%d} is a port: bcm_port = %d",ddUsp->unit,ddUsp->slot,ddUsp->port,bcm_port);
+  }
+  /* Not valid type */
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI,"Interface has a not valid type: error!");
+    return L7_FAILURE;
+  }
+
+  /* Class port */
+  //efp_class_port   = (ddUsp->slot*L7_MAX_PORTS_PER_SLOT) + ddUsp->port + 1 + EFP_STD_CLASS_ID_MAX;
+  xlate_class_port = (ddUsp->slot*L7_MAX_PORTS_PER_SLOT) + ddUsp->port + 1;
+
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Interface {%d,%d,%d}: xlate_class_port=%d",
+            ddUsp->unit,ddUsp->slot,ddUsp->port,xlate_class_port);
+
+  /* Add physical interface to port bitmap */
+  usp_bmp = 0;
+
+  /* Extract Trunk id */
+  if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
+  {
+    hapiBroadLagCritSecEnter();
+    /* Apply to all member ports */
+    for (i=0; i<L7_MAX_MEMBERS_PER_LAG; i++)
+    {
+      if (!dapiPortPtr->modeparm.lag.memberSet[i].inUse)  continue;
+
+      /* Add this physical port to bitmap */
+      usp_bmp |= (1ULL << dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
+      PT_LOG_TRACE(LOG_CTX_HAPI,"usp_port %d added", dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
+    }
+    hapiBroadLagCritSecExit();
+  }
+  /* Extract Physical port */
+  else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
+  {
+    usp_bmp |= (1ULL << ddUsp->port);
+    PT_LOG_TRACE(LOG_CTX_HAPI,"usp_port %d considered", ddUsp->port);
+  }
+  /* Not valid type */
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI,"Interface has a not valid type: error!");
+    //return L7_FAILURE;
+  }
+
+  /* Update interface descriptor */
+  if (intf_desc != L7_NULLPTR)
+  {
+    intf_desc->gport            = gport;
+    intf_desc->trunk_id         = trunk_id;
+    intf_desc->bcm_port         = bcm_port;
+    //intf_desc->efp_class_port   = efp_class_port;
+    intf_desc->xlate_class_port = xlate_class_port;
+    intf_desc->usp_bmp          = usp_bmp;
+  }
+
+  if (dapiPortPtr_ret != L7_NULLPTR)
+  {
+    *dapiPortPtr_ret = dapiPortPtr;
+  }
+  if (hapiPortPtr_ret != L7_NULLPTR)
+  {
+    *hapiPortPtr_ret = hapiPortPtr;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get pbm format por ports
+ * 
+ * @param dapiPort 
+ * @param ptin_port_bmp 
+ * @param pbm 
+ * @param pbm_mask 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapi_ptin_port_bitmap_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_uint64 usp_port_bmp,
+                                  bcm_pbmp_t *pbm, bcm_pbmp_t *pbm_mask)
+{
+  L7_int i;
+  DAPI_PORT_t  *dapiPortPtr = L7_NULLPTR;
+  BROAD_PORT_t *hapiPortPtr = L7_NULLPTR;
+
+  BCM_PBMP_CLEAR(*pbm);
+
+  if (usp_port_bmp != 0)
+  {
+    hapi_ptin_get_bcm_from_usp_bitmap(usp_port_bmp, pbm);
+  }
+  else if (ddUsp->port >= 0 && ddUsp->slot >= 0 && ddUsp->port >= 0)
+  {
+    BROAD_PORT_t *hapiPortPtr_member;
+
+    dapiPortPtr = DAPI_PORT_GET( ddUsp, dapi_g );
+    hapiPortPtr = HAPI_PORT_GET( ddUsp, dapi_g );
+
+    /* Extract Trunk id */
+    if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
+    {
+      /* Apply to all member ports */
+      for (i=0; i<L7_MAX_MEMBERS_PER_LAG; i++)
+      {
+        if (!dapiPortPtr->modeparm.lag.memberSet[i].inUse)  continue;
+
+        hapiPortPtr_member = HAPI_PORT_GET( &dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
+        if (hapiPortPtr_member==L7_NULLPTR)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error getting HAPI_PORT_GET for usp={%d,%d,%d}",
+                  dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                  dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                  dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
+          return L7_FAILURE;
+        }
+
+        /* Add this physical port to bitmap */
+        BCM_PBMP_PORT_ADD(*pbm, hapiPortPtr_member->bcm_port);
+        PT_LOG_TRACE(LOG_CTX_HAPI,"bcm_port %d added", hapiPortPtr_member->bcm_port);
+      }
+    }
+    /* Extract Physical port */
+    else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
+    {
+      BCM_PBMP_PORT_ADD(*pbm, hapiPortPtr->bcm_port);
+      PT_LOG_TRACE(LOG_CTX_HAPI,"bcm_port %d considered", hapiPortPtr->bcm_port);
+    }
+    /* Not valid type */
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI,"Interface has a not valid type: error!");
+      return L7_FAILURE;
+    }
+  }
+
+  /* PBM mask: all ports */
+  hapi_ptin_get_bcm_from_usp_bitmap(-1 /*All ports*/, pbm_mask);
+
+  return L7_SUCCESS;
+}
+
+/**
  * Initialize USP data
  * 
  * @author mruas (17/11/20)
@@ -2278,141 +2474,6 @@ void hapi_ptin_allportsbmp_get(pbmp_t *pbmp_mask)
   }
 }
 #endif /*PORT_VIRTUALIZATION_N_1*/
-
-/**
- * Get port descriptor from ddUsp interface
- * 
- * @param ddUsp : unit, slot and port reference
- * @param dapi_g
- * @param pbmp : If is a physical port, it will be ADDED to this
- *               port bitmap.
- * @param intf_desc : interface descriptor with gport, bcm_port 
- *                  (-1 if not physical) and trunk_id (-1 if not
- *                  trunk)
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, pbmp_t *pbmp, ptin_hapi_intf_t *intf_desc,
-                                     DAPI_PORT_t **dapiPortPtr_ret, BROAD_PORT_t **hapiPortPtr_ret)
-{
-  DAPI_PORT_t  *dapiPortPtr;
-  BROAD_PORT_t *hapiPortPtr;
-  bcm_gport_t   gport=-1;
-  bcm_trunk_t   trunk_id=-1;
-  bcm_port_t    bcm_port=-1;
-  L7_uint32     /*efp_class_port=0,*/ xlate_class_port=0;
-
-  /* Validate interface */
-  if (ddUsp==L7_NULLPTR || (ddUsp->unit<0 && ddUsp->slot<0 && ddUsp->port<0))
-  {
-    PT_LOG_WARN(LOG_CTX_HAPI,"No provided interface!");
-    return L7_SUCCESS;
-  }
-  if (ddUsp->unit<0 || ddUsp->slot<0 || ddUsp->port<0)
-  {
-    PT_LOG_WARN(LOG_CTX_HAPI,"Invalid interface!");
-    return L7_FAILURE;
-  }
-
-  dapiPortPtr = DAPI_PORT_GET( ddUsp, dapi_g );
-  hapiPortPtr = HAPI_PORT_GET( ddUsp, dapi_g );
-
-  /* Extract gport */
-  gport = hapiPortPtr->bcm_gport;
-  PT_LOG_TRACE(LOG_CTX_HAPI,"Analysing interface {%d,%d,%d}: gport=0x%08x",ddUsp->unit,ddUsp->slot,ddUsp->port,gport);
-
-  /* Extract Trunk id */
-  if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
-  {
-    trunk_id = hapiPortPtr->hapiModeparm.lag.tgid;
-    PT_LOG_TRACE(LOG_CTX_HAPI,"Interface {%d,%d,%d} is a lag: trunk_id = %d",ddUsp->unit,ddUsp->slot,ddUsp->port,trunk_id);
-  }
-  /* Extract Physical port */
-  else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
-  {
-    bcm_port = hapiPortPtr->bcm_port;
-    PT_LOG_TRACE(LOG_CTX_HAPI,"Interface {%d,%d,%d} is a port: bcm_port = %d",ddUsp->unit,ddUsp->slot,ddUsp->port,bcm_port);
-  }
-  /* Not valid type */
-  else
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Interface has a not valid type: error!");
-    return L7_FAILURE;
-  }
-
-  /* Class port */
-  //efp_class_port   = (ddUsp->slot*L7_MAX_PORTS_PER_SLOT) + ddUsp->port + 1 + EFP_STD_CLASS_ID_MAX;
-  xlate_class_port = (ddUsp->slot*L7_MAX_PORTS_PER_SLOT) + ddUsp->port + 1;
-
-  PT_LOG_TRACE(LOG_CTX_HAPI,"Interface {%d,%d,%d}: xlate_class_port=%d",
-            ddUsp->unit,ddUsp->slot,ddUsp->port,xlate_class_port);
-
-  /* Add physical interface to port bitmap */
-  if (pbmp!=L7_NULLPTR)
-  {
-    L7_uint i;
-    BROAD_PORT_t *hapiPortPtr_member;
-
-    BCM_PBMP_CLEAR(*pbmp);
-
-    /* Extract Trunk id */
-    if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
-    {
-      /* Apply to all member ports */
-      for (i=0; i<L7_MAX_MEMBERS_PER_LAG; i++)
-      {
-        if (!dapiPortPtr->modeparm.lag.memberSet[i].inUse)  continue;
-
-        hapiPortPtr_member = HAPI_PORT_GET( &dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
-        if (hapiPortPtr_member==L7_NULLPTR)
-        {
-          PT_LOG_ERR(LOG_CTX_HAPI, "Error getting HAPI_PORT_GET for usp={%d,%d,%d}",
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
-          //return L7_FAILURE;
-        }
-
-        /* Add this physical port to bitmap */
-        BCM_PBMP_PORT_ADD(*pbmp, hapiPortPtr_member->bcm_port);
-        PT_LOG_TRACE(LOG_CTX_HAPI,"bcm_port %d added", hapiPortPtr_member->bcm_port);
-      }
-    }
-    /* Extract Physical port */
-    else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
-    {
-      BCM_PBMP_PORT_ADD(*pbmp, hapiPortPtr->bcm_port);
-      PT_LOG_TRACE(LOG_CTX_HAPI,"bcm_port %d considered", hapiPortPtr->bcm_port);
-    }
-    /* Not valid type */
-    else
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Interface has a not valid type: error!");
-      //return L7_FAILURE;
-    }
-  }
-
-  /* Update interface descriptor */
-  if (intf_desc!=L7_NULLPTR)
-  {
-    intf_desc->gport            = gport;
-    intf_desc->trunk_id         = trunk_id;
-    intf_desc->bcm_port         = bcm_port;
-    //intf_desc->efp_class_port   = efp_class_port;
-    intf_desc->xlate_class_port = xlate_class_port;
-  }
-
-  if (dapiPortPtr_ret != L7_NULLPTR)
-  {
-    *dapiPortPtr_ret = dapiPortPtr;
-  }
-  if (hapiPortPtr_ret != L7_NULLPTR)
-  {
-    *hapiPortPtr_ret = hapiPortPtr;
-  }
-
-  return L7_SUCCESS;
-}
 
 /**
  * get linkscan state
@@ -6037,8 +6098,6 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
      At egressing is important to guarantee PBIT value of outer vlan is null: Multicast GEM of OLTD only deals with pbit=0 */
   {
     /* Multicast services */
-    bcm_gport_t   gport;
-    //L7_uint32     ip_addr = 0xe0000000, ip_addr_mask=0xf0000000;
     L7_uchar8     macAddr_iptv_value[6] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0x00 };
     L7_uchar8     macAddr_iptv_mask[6]  = { 0xff, 0xff, 0xff, 0x80, 0x00, 0x00 };
     L7_uint16     vlan_value, vlan_mask;
@@ -6118,32 +6177,22 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     USP_PHYPORT_ITERATE(usp, dapi_g)
     {
       hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
-      bcm_port    = hapiPortPtr->bcm_port;
-      bcm_unit    = hapiPortPtr->bcm_unit;
 
       /* Add only PON ports */
-
-      /* FIXME: Only applied to unit 0 */
-      if (bcmy_lut_unit_port_to_gport_get(bcm_unit, bcm_port, &gport) != BCMY_E_NONE)
-      {
-        printf("Error with unit %d, port %d", bcm_unit, bcm_port);
-        return L7_FAILURE;
-      }
-
       if ((PTIN_SYSTEM_PON_PORTS_MASK >> usp.port) & 1)
       {
-        rc = hapiBroadPolicyApplyToIface(policyId, gport);
+        rc = hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcm_gport);
         if (rc != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding bcm_unit %d/bcm_port %d/gport 0x%x: rc=%d",
-                     bcm_unit, bcm_port, gport, rc);
+                     hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, hapiPortPtr->bcm_gport, rc);
           //hapiBroadPolicyDelete(policyId);
           //return L7_FAILURE;
         }
         else
         {
           PT_LOG_TRACE(LOG_CTX_STARTUP, "unit %u / bcm_port %u / gport 0x%x added to Pbit=0 force rule",
-                       bcm_unit, bcm_port, gport);
+                       hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, hapiPortPtr->bcm_gport);
         }
       }
     }
@@ -6990,7 +7039,7 @@ L7_RC_t ptin_debug_trap_packets(L7_int usp_port, L7_uint16 ovlan, L7_uint16 ivla
   BROAD_POLICY_t      policyId = BROAD_POLICY_INVALID;
   BROAD_POLICY_RULE_t ruleId = BROAD_POLICY_RULE_INVALID;
   BROAD_METER_ENTRY_t meterInfo;
-  L7_uint32           bcm_unit, bcm_port;
+  L7_uint32           bcm_unit, bcm_port, bcm_port_mask;
   pbmp_t              pbm, pbm_mask;
   L7_uint16           vlan_mask = 0x0fff;
   L7_uint8            drop = 1, drop_mask = 1;
@@ -7017,6 +7066,7 @@ L7_RC_t ptin_debug_trap_packets(L7_int usp_port, L7_uint16 ovlan, L7_uint16 ivla
       PT_LOG_ERR(LOG_CTX_HAPI, "Can't get bcm data from usp_port %d", usp_port);
       return L7_FAILURE;
     }
+    bcm_port_mask = 0xffff;
 
     printf("bcm_unit=%d bcm_port=%d\r\n", bcm_unit, bcm_port);
 
@@ -7073,7 +7123,11 @@ L7_RC_t ptin_debug_trap_packets(L7_int usp_port, L7_uint16 ovlan, L7_uint16 ivla
   if (usp_port>=0)
   {
     printf("Adding port qualifier (port=%u, bcm_port=%d)\r\n",usp_port,bcm_port);
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORT, (L7_uchar8 *)&bcm_port, (L7_uchar8 *)&bcm_port_mask);
+#else
     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uchar8 *)&pbm, (L7_uchar8 *)&pbm_mask);
+#endif
     if (rc != L7_SUCCESS)
     {
       printf("Error adding port qualifier (port=%u, bcm_port=%d)\r\n",usp_port,bcm_port);

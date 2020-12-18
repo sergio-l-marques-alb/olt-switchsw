@@ -26,6 +26,7 @@ typedef struct {
   bcm_trunk_t   trunk_id;
   bcm_port_t    bcm_port;
   L7_uint32     xlate_class_port;
+  L7_uint64     usp_bmp;
 } ptin_hapi_intf_t;
 
 /********************************************************************
@@ -134,6 +135,36 @@ extern L7_RC_t ptin_hapi_phy_init(void);
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 extern L7_RC_t ptin_hapi_phy_post_init(void);
+
+/**
+ * Get port descriptor from ddUsp interface
+ * 
+ * @param ddUsp : unit, slot and port reference
+ * @param dapi_g
+ * @param usp_bmp : Bitmap of USP ports.
+ * @param intf_desc : interface descriptor with gport, bcm_port 
+ *                  (-1 if not physical) and trunk_id (-1 if not
+ *                  trunk)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern
+L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, ptin_hapi_intf_t *intf_desc,
+                                     DAPI_PORT_t **dapiPortPtr_ret, BROAD_PORT_t **hapiPortPtr_ret);
+
+/**
+ * Get pbm format por ports
+ * 
+ * @param dapiPort 
+ * @param ptin_port_bmp 
+ * @param pbm 
+ * @param pbm_mask 
+ * 
+ * @return L7_RC_t 
+ */
+extern 
+L7_RC_t hapi_ptin_port_bitmap_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_uint64 usp_port_bmp,
+                                  bcm_pbmp_t *pbm, bcm_pbmp_t *pbm_mask);
 
 /**
  * Initialize USP data
@@ -274,22 +305,6 @@ extern L7_RC_t hapi_ptin_port_get(L7_int bcm_port, L7_int *port);
  */
 extern void hapi_ptin_allportsbmp_get(pbmp_t *pbmp_mask);
 #endif /*PORT_VIRTUALIZATION_N_1*/
-
-/**
- * Get port descriptor from ddUsp interface
- * 
- * @param ddUsp : unit, slot and port reference
- * @param dapi_g
- * @param pbmp : If is a physical port, it will be ADDED to this
- *             port bitmap.
- * @param intf_desc : interface descriptor with gport, bcm_port 
- *                  (-1 if not physical) and trunk_id (-1 if not
- *                  trunk)
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-extern L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, pbmp_t *pbmp, ptin_hapi_intf_t *intf_desc,
-                                            DAPI_PORT_t **dapiPortPtr_ret, BROAD_PORT_t **hapiPortPtr_ret);
 
 /**
  * Reset a warpcore

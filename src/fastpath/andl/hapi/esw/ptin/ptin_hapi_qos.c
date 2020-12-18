@@ -49,7 +49,8 @@ typedef struct
 
   ptin_hapi_qos_entry_key_t key;
 
-  bcm_pbmp_t      port_bmp;
+  L7_uint64       usp_port_bmp;
+  bcm_pbmp_t      bcm_port_bmp;
   L7_int32        classId;
 
   L7_uint8 number_of_rules;
@@ -92,79 +93,6 @@ static struct classId_entry_s  classId_pool[MAX_CLASS_ID];
 /* Queues */
 static dl_queue_t queue_free_classIds;    /* Queue of free Class ID entries */
 
-
-/**
- * Get pbm format por ports
- * 
- * @param dapiPort 
- * @param ptin_port_bmp 
- * @param pbm 
- * @param pbm_mask 
- * 
- * @return L7_RC_t 
- */
-static L7_RC_t ptin_hapi_port_bitmap_get(ptin_dapi_port_t *dapiPort, L7_uint64 usp_port_bmp,
-                                         bcm_pbmp_t *pbm, bcm_pbmp_t *pbm_mask)
-{
-  L7_int i;
-  DAPI_PORT_t  *dapiPortPtr = L7_NULLPTR;
-  BROAD_PORT_t *hapiPortPtr = L7_NULLPTR;
-
-  BCM_PBMP_CLEAR(*pbm);
-
-  if (usp_port_bmp != 0)
-  {
-    hapi_ptin_get_bcm_from_usp_bitmap(usp_port_bmp, pbm);
-  }
-  else if (dapiPort->usp->port >= 0 && dapiPort->usp->slot >= 0 && dapiPort->usp->port >= 0)
-  {
-    BROAD_PORT_t *hapiPortPtr_member;
-
-    dapiPortPtr = DAPI_PORT_GET( dapiPort->usp, dapiPort->dapi_g );
-    hapiPortPtr = HAPI_PORT_GET( dapiPort->usp, dapiPort->dapi_g );
-
-    /* Extract Trunk id */
-    if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
-    {
-      /* Apply to all member ports */
-      for (i=0; i<L7_MAX_MEMBERS_PER_LAG; i++)
-      {
-        if (!dapiPortPtr->modeparm.lag.memberSet[i].inUse)  continue;
-
-        hapiPortPtr_member = HAPI_PORT_GET( &dapiPortPtr->modeparm.lag.memberSet[i].usp, dapiPort->dapi_g);
-        if (hapiPortPtr_member==L7_NULLPTR)
-        {
-          PT_LOG_ERR(LOG_CTX_HAPI, "Error getting HAPI_PORT_GET for usp={%d,%d,%d}",
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
-          return L7_FAILURE;
-        }
-
-        /* Add this physical port to bitmap */
-        BCM_PBMP_PORT_ADD(*pbm, hapiPortPtr_member->bcm_port);
-        PT_LOG_TRACE(LOG_CTX_HAPI,"bcm_port %d added", hapiPortPtr_member->bcm_port);
-      }
-    }
-    /* Extract Physical port */
-    else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
-    {
-      BCM_PBMP_PORT_ADD(*pbm, hapiPortPtr->bcm_port);
-      PT_LOG_TRACE(LOG_CTX_HAPI,"bcm_port %d considered", hapiPortPtr->bcm_port);
-    }
-    /* Not valid type */
-    else
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Interface has a not valid type: error!");
-      return L7_FAILURE;
-    }
-  }
-
-  /* PBM mask: all ports */
-  hapi_ptin_get_bcm_from_usp_bitmap(-1 /*All ports*/, pbm_mask);
-
-  return L7_SUCCESS;
-}
 
 /**
  * Search for an entry in ClassID table
@@ -762,7 +690,8 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
             qos_cfg->priority, qos_cfg->priority_mask, qos_cfg->int_priority);
 
   /* Get pbm format of ports */
-  if (ptin_hapi_port_bitmap_get(dapiPort, qos_cfg->port_bmp, &pbm, &pbm_mask) != L7_SUCCESS)
+  if (hapi_ptin_port_bitmap_get(dapiPort->usp, dapiPort->dapi_g,
+                                qos_cfg->port_bmp, &pbm, &pbm_mask) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error converting port bitmap to pbmp format");
     return L7_FAILURE;
@@ -809,9 +738,10 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   /* If trust mode was not provided, reconfigure all rules with newer port bitmap */
   if (qos_cfg->trust_mode < 0)
   {
-    bcm_port_t   bcm_port;
-    bcm_gport_t  gport;
-    bcm_pbmp_t   pbmp_result;
+    int           usp_port;
+    L7_uint64     _usp_bmp;
+    DAPI_USP_t    _usp;
+    BROAD_PORT_t *_hapiPortPtr;
 
     /* To reconfigure an entry should be found */
     if (qos_entry == L7_NULLPTR)
@@ -828,32 +758,41 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     {
       if (qos_entry->rule[rule].in_use && qos_entry->rule[rule].policyId_icap != BROAD_POLICY_INVALID)
       {
-        /* Merge bitmaps */
-        BCM_PBMP_ASSIGN(pbmp_result, pbm);
-        BCM_PBMP_OR(pbmp_result, qos_entry->port_bmp);
-        /* Add new bitmap */
-        BCM_PBMP_ITER(pbmp_result, bcm_port)
+        hapi_ptin_usp_init(&_usp, 0, 0);
+
+        /* Merge USP_port bitmaps */
+        _usp_bmp = qos_cfg->port_bmp | qos_entry->usp_port_bmp;
+
+        /* Iterate USP ports */
+        for (usp_port = 0;
+             _usp_bmp != 0;
+             _usp_bmp >>= 1, usp_port++)
         {
-          /* FIXME: Only applied to unit 0 */
-          if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
+          _usp.port = usp_port;
+
+          /* Get port descriptor */
+          _hapiPortPtr = HAPI_PORT_GET(&_usp, dapiPort->dapi_g);
+          if (_hapiPortPtr == L7_NULLPTR)
           {
-            printf("Error with unit %d, port %d", 0, bcm_port);
+            PT_LOG_ERR(LOG_CTX_HAPI, "usp_port %u: invalid hapiPortPtr", usp_port);
             return L7_FAILURE;
           }
 
-          if (BCM_PBMP_MEMBER(pbm, bcm_port) && !BCM_PBMP_MEMBER(qos_entry->port_bmp, bcm_port))
+          /* Port is new (add it) */
+          if ((qos_cfg->port_bmp & usp_port) && !(qos_entry->usp_port_bmp & usp_port))
           {
-            if (hapiBroadPolicyApplyToIface(qos_entry->rule[rule].policyId_icap, gport) != L7_SUCCESS) 
+            if (hapiBroadPolicyApplyToIface(qos_entry->rule[rule].policyId_icap, _hapiPortPtr->bcm_gport) != L7_SUCCESS)
             {
-              PT_LOG_ERR(LOG_CTX_HAPI, "Error adding bcm_port %u to rule %u", bcm_port, rule);
+              PT_LOG_ERR(LOG_CTX_HAPI, "Error adding bcm_gport 0x%x to rule %u", _hapiPortPtr->bcm_gport, rule);
               return L7_FAILURE;
             }
           }
-          else if (!BCM_PBMP_MEMBER(pbm, bcm_port) && BCM_PBMP_MEMBER(qos_entry->port_bmp, bcm_port))
+          /* Port is not present (remove it) */
+          else if (!(qos_cfg->port_bmp & usp_port) && (qos_entry->usp_port_bmp & usp_port))
           {
-            if (hapiBroadPolicyRemoveFromIface(qos_entry->rule[rule].policyId_icap, gport) != L7_SUCCESS) 
+            if (hapiBroadPolicyRemoveFromIface(qos_entry->rule[rule].policyId_icap, _hapiPortPtr->bcm_gport) != L7_SUCCESS) 
             {
-              PT_LOG_ERR(LOG_CTX_HAPI, "Error removing bcm_port %u from rule %u", bcm_port, rule);
+              PT_LOG_ERR(LOG_CTX_HAPI, "Error removing bcm_gport 0x%x from rule %u", _hapiPortPtr->bcm_gport, rule);
               return L7_FAILURE;
             }
           }
@@ -861,7 +800,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       }
     }
     PT_LOG_TRACE(LOG_CTX_HAPI,"Ports bitmap of intVLAN %u / extVlan %u / leaf:%u updated",
-              qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->leaf_side);
+                 qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->leaf_side);
     return L7_SUCCESS;
   }
 
@@ -1030,6 +969,8 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       hapiBroadPolicyCreateCancel();
       break;
     }
+
+#ifndef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
     /* Inports qualifier */
     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uchar8 *)&pbm, (L7_uchar8 *)&pbm_mask);
     if (rc != L7_SUCCESS)
@@ -1039,6 +980,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       break;
     }
     PT_LOG_TRACE(LOG_CTX_HAPI,"Inports qualifier added");
+#endif
 
     /* src class id qualifier */
     if (classId >= 0 && classId < MAX_CLASS_ID)
@@ -1175,6 +1117,43 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       break;
     }
     PT_LOG_TRACE(LOG_CTX_HAPI, "Trap policy commited successfully (policyId_icap=%u)", policyId_icap);
+
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    {
+      int           usp_port;
+      L7_uint64     _usp_bmp;
+      DAPI_USP_t    _usp;
+      BROAD_PORT_t *_hapiPortPtr;
+
+      hapi_ptin_usp_init(&_usp, 0, 0);
+
+      /* Merge USP_port bitmaps */
+      _usp_bmp = qos_cfg->port_bmp;
+
+      /* Iterate USP ports */
+      for (usp_port = 0;
+           _usp_bmp != 0;
+           _usp_bmp >>= 1, usp_port++)
+      {
+        _usp.port = usp_port;
+
+        /* Get port descriptor */
+        _hapiPortPtr = HAPI_PORT_GET(&_usp, dapiPort->dapi_g);
+        if (_hapiPortPtr == L7_NULLPTR)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI, "usp_port %u: invalid hapiPortPtr", usp_port);
+          return L7_FAILURE;
+        }
+
+        /* Port is new (add it) */
+        if (hapiBroadPolicyApplyToIface(qos_entry->rule[rule].policyId_icap, _hapiPortPtr->bcm_gport) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error adding bcm_gport 0x%x to rule %u", _hapiPortPtr->bcm_gport, rule);
+          return L7_FAILURE;
+        }
+      }
+    }
+#endif
   } while (0);
 
   /* Have occurred any error? */
@@ -1198,7 +1177,9 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   qos_entry->key.int_vlan       = qos_cfg->int_vlan;
   qos_entry->key.leaf_side      = qos_cfg->leaf_side;
   qos_entry->key.trust_mode     = qos_cfg->trust_mode;
-  BCM_PBMP_ASSIGN(qos_entry->port_bmp, pbm);
+
+  qos_entry->usp_port_bmp       = qos_cfg->port_bmp;
+  BCM_PBMP_ASSIGN(qos_entry->bcm_port_bmp, pbm);
 
   qos_entry->rule[rule].priority      = qos_cfg->priority;
   qos_entry->rule[rule].priority_mask = qos_cfg->priority_mask;
@@ -1426,13 +1407,14 @@ L7_RC_t ptin_hapi_qos_dump(void)
     if (!qos_entry->entry_active)
       continue;
 
-    printf("Entry %-2u: intVlan=%u extVlan=%u (classId=%d) [%s] TrustMode=%u Pbmp = 0x", entry,
+    printf("Entry %-2u: intVlan=%u extVlan=%u (classId=%d) [%s] TrustMode=%u USPbmp=0x%llx Pbmp = 0x", entry,
            qos_entry->key.int_vlan, qos_entry->key.ext_vlan, qos_entry->classId,
            ((qos_entry->key.leaf_side) ? "LEAF" : "ROOT"),
-           qos_entry->key.trust_mode);
+           qos_entry->key.trust_mode,
+           qos_entry->usp_port_bmp);
     for (j = 0; j < _SHR_PBMP_WORD_MAX; j++)
     {
-      printf("%08x ", qos_entry->port_bmp.pbits[j]);
+      printf("%08x ", qos_entry->bcm_port_bmp.pbits[j]);
     }
     printf("\r\n");
 
