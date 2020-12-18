@@ -52,7 +52,7 @@
  ***********************************************************/
 
 /* Protocol enum*/
-enum
+typedef enum
 {
    IGMP_PROTOCOL = 0,
    DHCP_PROTOCOL    , 
