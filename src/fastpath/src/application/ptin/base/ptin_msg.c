@@ -10953,6 +10953,16 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
 
           ptin_port = client.ptin_port;
 
+          if (ptin_intf_portGem2virtualVid(ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+                       client.innerVlan);
+          }
+          else
+          {
+            PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
+          }
+
           rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
           if (rc != L7_SUCCESS)
           {
@@ -11027,6 +11037,16 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
       }
 
       ptin_port = client.ptin_port;
+
+      if (ptin_intf_portGem2virtualVid(ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+                   client.innerVlan);
+      }
+      else
+      {
+        PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
+      }
       
       rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
       if (rc != L7_SUCCESS)
@@ -11138,6 +11158,16 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
             client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           }
 
+          if (ptin_intf_portGem2virtualVid(client.ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+                       client.innerVlan);
+          }
+          else
+          {
+            PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
+          }
+
           rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
           if (rc != L7_SUCCESS)
           {
@@ -11193,6 +11223,16 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
         client.ptin_port            = ptintf2port(client.ptin_intf.intf_type,
                                                   client.ptin_intf.intf_id); 
         client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+      }
+
+      if (ptin_intf_portGem2virtualVid(client.ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+                   client.innerVlan);
+      }
+      else
+      {
+        PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
       }
 
       rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
@@ -11291,6 +11331,16 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
     client.ptin_port            = ptintf2port(client.ptin_intf.intf_type,
                                               client.ptin_intf.intf_id); 
     client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+  }
+
+  if (ptin_intf_portGem2virtualVid(client.ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+               client.innerVlan);
+  }
+  else
+  {
+    PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
   }
 
   /* Get statistics */
@@ -11411,6 +11461,16 @@ L7_RC_t ptin_msg_IGMP_clientStats_clear(msg_IgmpClientStatistics_t *igmp_stats, 
     client.ptin_port            = ptintf2port(client.ptin_intf.intf_type,
                                               client.ptin_intf.intf_id); 
     client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+  }
+
+  if (ptin_intf_portGem2virtualVid(client.ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+               client.innerVlan);
+  }
+  else
+  {
+    PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
   }
 
   /* Clear client stats */
@@ -12369,6 +12429,16 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
   {
     client.outerVlan = inputPtr->client.outer_vlan;
     client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+  }
+
+  if (ptin_intf_portGem2virtualVid(client.ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+               client.innerVlan);
+  }
+  else
+  {
+    PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
   }
 
   /* Get list of channels */
@@ -18580,6 +18650,16 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
 
             ptin_port = client.ptin_port;
 
+            if (ptin_intf_portGem2virtualVid(ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+            {
+              PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+                         client.innerVlan);
+            }
+            else
+            {
+              PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
+            }
+
             rc = ptin_igmp_clientId_convert(msg[messageIterator].evcId, &client);
             if (rc != L7_SUCCESS)
             {
@@ -18670,6 +18750,16 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
         }
 
         ptin_port = client.ptin_port;
+
+        if (ptin_intf_portGem2virtualVid(ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+                     client.innerVlan);
+        }
+        else
+        {
+          PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
+        }
 
         rc = ptin_igmp_clientId_convert(msg[messageIterator].evcId, &client);
         if (rc != L7_SUCCESS)
@@ -18821,6 +18911,16 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
 
             ptin_port = client.ptin_port;
 
+            if (ptin_intf_portGem2virtualVid(ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+            {
+              PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+                         client.innerVlan);
+            }
+            else
+            {
+              PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
+            }
+
             rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(msg[messageIterator].evcId), &client);
             if (rc != L7_SUCCESS)
             {
@@ -18908,6 +19008,16 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
 
       ptin_port = client.ptin_port;
 
+      if (ptin_intf_portGem2virtualVid(ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+                   client.innerVlan);
+      }
+      else
+      {
+        PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
+      }
+
       rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(msg[messageIterator].evcId), &client);
       if (rc != L7_SUCCESS)
       {
@@ -18966,7 +19076,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
 L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_packages_t *msg, L7_uint32 noOfMessages)
 {
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-  L7_uint32        messageIterator , bmpIterator;
+  L7_uint32        messageIterator , bmpIterator, ptin_port;
 //L7_int32         packageIdIterator;
   L7_char8         packageBmpStr[PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint8)*8)-1]={};
 //L7_char8        *charPtr           = packageBmpStr;
@@ -19050,6 +19160,27 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
           PT_LOG_DEBUG(LOG_CTX_MSG, " noOfPackages       = %u", ptinEvcFlow.noOfPackages);      
           PT_LOG_DEBUG(LOG_CTX_MSG, " packageBmpList:%s", packageBmpStr);
 
+          ptin_port = ptintf2port(ptinEvcFlow.ptin_intf.intf_type, ptinEvcFlow.ptin_intf.intf_id);
+
+          /* Adjust outer VID considering the port virtualization scheme */
+          if (ptin_intf_portGem2virtualVid(ptin_port,
+                                           ptinEvcFlow.uni_ovid,
+                                           &ptinEvcFlow.uni_ovid) != L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", 
+                       ptinEvcFlow.uni_ovid);
+          }
+
+          /* Inner VLAN will identify the client using the GEM-VLAN value.
+          So, we need to add an offset according to the virtual port in use */
+          if (ptin_intf_portGem2virtualVid(ptin_port,
+                                           ptinEvcFlow.int_ivid,
+                                           &ptinEvcFlow.int_ivid) != L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", 
+                       ptinEvcFlow.int_ivid);
+          }
+
           if (ptinEvcFlow.noOfPackages >= 0)
           {
             if ((rc=ptin_evc_macbridge_client_packages_add(&ptinEvcFlow)) != L7_SUCCESS)
@@ -19102,22 +19233,25 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
         ptinEvcFlow.uni_ivid            = ENDIAN_SWAP16(msg[messageIterator].intf.inner_vid);                            
         ptinEvcFlow.onuId               = ENDIAN_SWAP8(msg[messageIterator].onuId);                                      
         ptinEvcFlow.noOfPackages        = ENDIAN_SWAP16(msg[messageIterator].noOfPackages);  
-               
+          
+        ptin_port =  ptintf2port(ptinEvcFlow.ptin_intf.intf_type, ptinEvcFlow.ptin_intf.intf_id);    
 
         /* Adjust outer VID considering the port virtualization scheme */
-        if (ptin_intf_portGem2virtualVid(ptintf2port(ptinEvcFlow.ptin_intf.intf_type, ptinEvcFlow.ptin_intf.intf_id),
+        if (ptin_intf_portGem2virtualVid(ptin_port,
                                          ptinEvcFlow.uni_ovid,
                                          &ptinEvcFlow.uni_ovid) != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u", ptinEvcFlow.uni_ovid);
+          PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", 
+                     ptinEvcFlow.uni_ovid);
         }
         /* Inner VLAN will identify the client using the GEM-VLAN value.
            So, we need to add an offset according to the virtual port in use */
-        if (ptin_intf_portGem2virtualVid(ptintf2port(ptinEvcFlow.ptin_intf.intf_type, ptinEvcFlow.ptin_intf.intf_id),
+        if (ptin_intf_portGem2virtualVid(ptin_port,
                                          ptinEvcFlow.int_ivid,
                                          &ptinEvcFlow.int_ivid) != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u", ptinEvcFlow.int_ivid);
+          PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", 
+                     ptinEvcFlow.int_ivid);
         }
 
         bmpIterator = 0;
@@ -19178,7 +19312,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
 L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client_packages_t *msg, L7_uint32 noOfMessages)
 {
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-  L7_uint32        messageIterator, bmpIterator;
+  L7_uint32        messageIterator, bmpIterator, ptin_port;
 //L7_int32         packageIdIterator;
   L7_char8         packageBmpStr[PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint8)*8)-1]={};
 //L7_char8        *charPtr           = packageBmpStr;
@@ -19268,6 +19402,23 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
           PT_LOG_DEBUG(LOG_CTX_MSG, " noOfPackages       = %u", ptinEvcFlow.noOfPackages);      
           PT_LOG_DEBUG(LOG_CTX_MSG, " packageBmpList:%s", packageBmpStr);
 
+          ptin_port = ptintf2port(ptinEvcFlow.ptin_intf.intf_type, ptinEvcFlow.ptin_intf.intf_id);
+
+          /* Adjust outer VID considering the port virtualization scheme */
+          if (ptin_intf_portGem2virtualVid(ptin_port,
+                                           ptinEvcFlow.uni_ovid,
+                                           &ptinEvcFlow.uni_ovid) != L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", ptinEvcFlow.uni_ovid);
+          }
+          /* Inner VLAN will identify the client using the GEM-VLAN value.
+             So, we need to add an offset according to the virtual port in use */
+          if (ptin_intf_portGem2virtualVid(ptin_port,
+                                           ptinEvcFlow.int_ivid,
+                                           &ptinEvcFlow.int_ivid) != L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", ptinEvcFlow.int_ivid);
+          }
 
           if (ptinEvcFlow.noOfPackages > 0)
           {
@@ -19322,6 +19473,24 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
       ptinEvcFlow.uni_ivid            = ENDIAN_SWAP16(msg[messageIterator].intf.inner_vid);                            
       ptinEvcFlow.onuId               = ENDIAN_SWAP8(msg[messageIterator].onuId);                                      
       ptinEvcFlow.noOfPackages        = ENDIAN_SWAP16(msg[messageIterator].noOfPackages);     
+
+      ptin_port = ptintf2port(ptinEvcFlow.ptin_intf.intf_type, ptinEvcFlow.ptin_intf.intf_id);
+
+      /* Adjust outer VID considering the port virtualization scheme */
+      if (ptin_intf_portGem2virtualVid(ptin_port,
+                                       ptinEvcFlow.uni_ovid,
+                                       &ptinEvcFlow.uni_ovid) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", ptinEvcFlow.uni_ovid);
+      }
+      /* Inner VLAN will identify the client using the GEM-VLAN value.
+         So, we need to add an offset according to the virtual port in use */
+      if (ptin_intf_portGem2virtualVid(ptin_port,
+                                       ptinEvcFlow.int_ivid,
+                                       &ptinEvcFlow.int_ivid) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", ptinEvcFlow.int_ivid);
+      }
 
       bmpIterator = 0;
 
@@ -19469,7 +19638,7 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
       ptinIntf.intf_type = ENDIAN_SWAP8(msg[messageIterator].intf.intf_type);
       ptinIntf.intf_id   = ENDIAN_SWAP8(msg[messageIterator].intf.intf_id);
 
-      /*Convert from ptin intf to otin port*/
+      /*Convert from ptin intf to ptin port*/
       if ( L7_SUCCESS != (rc = ptin_intf_ptintf2port(&ptinIntf, &ptinPort) ) )
       {
         return rc;

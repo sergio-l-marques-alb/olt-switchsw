@@ -439,7 +439,8 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   L7_uchar8          *buffPtr             = L7_NULLPTR;
   L7_uint16          ipHdrLen             = 0;
   ptin_client_id_t   clientInfo;
-
+  L7_uint32          ptin_port;
+  L7_BOOL            is_root;
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
   L7_uint8           query_count          = 0;
   L7_uint8           local_router_port_id = -1;
@@ -473,7 +474,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     PT_LOG_TRACE(LOG_CTX_IGMP, "L7_IGMP_V3_MEMBERSHIP_REPORT");
 
 #if ( (PTIN_BOARD == PTIN_BOARD_CXO160G) || (PTIN_BOARD == PTIN_BOARD_CXO640G) )
-#if 1 //ndef ONE_MULTICAST_VLAN_RING_SUPPORT
   /* Do nothing for slave matrix */
   if (!ptin_fpga_mx_is_matrixactive_rt())
   {
@@ -481,7 +481,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     return SUCCESS;
   }
 #endif
-#endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
   if(igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY && (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_FAILURE) )
   {
@@ -517,7 +516,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   }
   else
   {
-
     /* check if the query is received on client port */
     rc = ptin_igmp_port_type_get(pduInfo->intIfNum-1, &port_type);
 
@@ -722,11 +720,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 #endif
 
   /* PTin added: IGMP snooping */
-#if 1
    ptin_timer_start(73,"ptin_igmp_clientIntfVlan_validate");
-  /*Get Port Type*/
-   /* FIXME TC16SXG: intIfNum->ptin_port */
-  rc = ptin_evc_internal_vlan_port_type_get(pduInfo->vlanId, pduInfo->intIfNum, &port_type);
 
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
   L7_uint32 port;
@@ -737,79 +731,79 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
-  ptin_timer_stop(73);
-  if (rc != L7_SUCCESS)
+  /*Get Port Type from EVC, 
+    FIX ME should have a ptin_igmp function for this*/
+  ptin_port =  intIfNum2port(pduInfo->intIfNum, 0);
+  is_root = ptin_evc_intf_isRoot(pduInfo->vlanId, ptin_port);
+  if (is_root)
   {
-    L7_enetMacAddr_t   clientMacAddr;
-    L7_uchar8 macAddrStr[SNOOP_MAC_STR_LEN];
+    port_type = PTIN_EVC_INTF_ROOT;
+  }
+  else
+  {
+    port_type = PTIN_EVC_INTF_LEAF;
+  }
 
-    memcpy(&clientMacAddr.addr, &data[6], sizeof(clientMacAddr));  
-    snoopMacToString(clientMacAddr.addr, macAddrStr);
+  ptin_timer_stop(73);
 
-    PT_LOG_NOTICE(LOG_CTX_IGMP, "Packet Silently Ignored. Failed to Obtain Port Type! [intIfNum:%u vlanId:%u macAddrStr:%s]", pduInfo->intIfNum, pduInfo->vlanId, macAddrStr);
-    /* FIXME TC16SXG: intIfNum->ptin_port */
-    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);    
-    return L7_FAILURE;
-  }  
-
-  /* Search for client index if this is a leaf port*/
-   if (port_type == PTIN_EVC_INTF_LEAF)
-   {
-     ptin_timer_start(74,"ptin_igmp_clientIndex_get");
-     #if ( PTIN_BOARD_IS_MATRIX )
-     rc = ptin_igmp_dynamic_client_find(pduInfo->intIfNum,
-                                        L7_NULL, L7_NULL,
-                                        L7_NULL,
-                                        &client_idx,
-                                        &clientInfo);
-     #else
-     rc =ptin_igmp_dynamic_client_find(pduInfo->intIfNum,
+  /* Search for client index if this is a leaf port,
+     for leaf port re-write ptin_port to use the ptin_port get from client*/
+  if (port_type == PTIN_EVC_INTF_LEAF)
+  {
+    ptin_timer_start(74, "ptin_igmp_clientIndex_get");
+#if ( PTIN_BOARD_IS_MATRIX )
+    rc = ptin_igmp_dynamic_client_find(pduInfo->intIfNum,
+                                       L7_NULL, L7_NULL,
+                                       L7_NULL,
+                                       &client_idx,
+                                       &clientInfo);
+#else
+    rc = ptin_igmp_dynamic_client_find(pduInfo->intIfNum,
                                        pduInfo->vlanId, pduInfo->innerVlanId,
                                        &data[L7_MAC_ADDR_LEN],
                                        &client_idx,
                                        &clientInfo);
-     #endif
-     if (rc != L7_SUCCESS)
-     {
-       ptin_timer_stop(74);  
-       /*Client Does Not Exist*/
-       if (rc == L7_NOT_EXIST)
-       {
-         #ifdef IGMP_DYNAMIC_CLIENTS_SUPPORTED
-          PT_LOG_TRACE(LOG_CTX_IGMP,"Client Does Not Exist: (intIfNum=%u vlan=%u innerVlanId=%u", rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
-         #else         
-          PT_LOG_ERR(LOG_CTX_IGMP,"Failed (rc:%u) to obtain clientId (intIfNum=%u vlan=%u innerVlanId=%u", rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
-          return L7_FAILURE;
-         #endif
-       }
-       else
-       {
-         /*Abort Here*/
-         /* FIXME TC16SXG: intIfNum->ptin_port */
-         ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
-         PT_LOG_ERR(LOG_CTX_IGMP,"Failed (rc:%u) to obtain clientId  (intIfNum=%u vlan=%u innerVlanId=%u", rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
-         return L7_FAILURE;
-       }
-     }
-     else /*rc == L7_SUCCESS*/
-     {       
-       ptin_timer_stop(74);  
+    ptin_port = clientInfo.ptin_port;
+#endif
+    if (rc != L7_SUCCESS)
+    {
+      ptin_timer_stop(74);
+      /*Client Does Not Exist*/
+      if (rc == L7_NOT_EXIST)
+      {
+#ifdef IGMP_DYNAMIC_CLIENTS_SUPPORTED
+        PT_LOG_TRACE(LOG_CTX_IGMP, "Client Does Not Exist: (intIfNum=%u vlan=%u innerVlanId=%u", rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
+#else
+        PT_LOG_ERR(LOG_CTX_IGMP, "Failed (rc:%u) to obtain clientId (intIfNum=%u vlan=%u innerVlanId=%u", rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
+        return L7_FAILURE;
+#endif
+      } 
+      else
+      {
+        /*Abort Here*/
+        ptin_igmp_stat_increment_field(ptin_port, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+        PT_LOG_ERR(LOG_CTX_IGMP, "Failed (rc:%u) to obtain clientId  (intIfNum=%u vlan=%u innerVlanId=%u", rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
+        return L7_FAILURE;
+      }
+    }
+    else /*rc == L7_SUCCESS*/
+    {
+      ptin_timer_stop(74);
 
-       /* Validate client index */
-       if (client_idx>=PTIN_IGMP_CLIENTIDX_MAX)
-       {
-         /*Abort Here*/
-         /* FIXME TC16SXG: intIfNum->ptin_port */
-         ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
-         PT_LOG_ERR(LOG_CTX_IGMP,"Invalid  clientId:%u : (intIfNum=%u vlan=%u innerVlanId=%u", client_idx, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
-         return L7_FAILURE;
-       }
-       else
-       {
-         PT_LOG_TRACE(LOG_CTX_IGMP,"Obtained  clientId:%u: (intIfNum=%u vlan=%u innerVlanId=%u", client_idx, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
-       }
-     }
-   }  
+      /* Validate client index */
+      if (client_idx >= PTIN_IGMP_CLIENTIDX_MAX)
+      {
+        /*Abort Here*/
+        ptin_igmp_stat_increment_field(ptin_port, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+        PT_LOG_ERR(LOG_CTX_IGMP, "Invalid  clientId:%u : (intIfNum=%u vlan=%u innerVlanId=%u", client_idx, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
+        return L7_FAILURE;
+      } 
+      else
+      {
+        PT_LOG_TRACE(LOG_CTX_IGMP, "Obtained  clientId:%u: (intIfNum=%u vlan=%u innerVlanId=%u", client_idx, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
+      }
+    }
+  }
 
 #ifdef IGMP_DYNAMIC_CLIENTS_SUPPORTED
     /* For leaf interfaces */
@@ -820,27 +814,23 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       ptin_timer_start(75,"ptin_igmp_dynamic_client_add");
       #if (PTIN_BOARD_IS_MATRIX)
       /* If the client does not exist, it will be created in dynamic mode */
-      /* FIXME TC16SXG: intIfNum->ptin_port */
       rc = ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
                                        L7_NULL, L7_NULL,
-                                       L7_NULL,
-                                       &client_idx,
-                                       &clientInfo);
+                                       L7_NULL,                                       &client_idx,
+                                       &clientInfo);      
       #else
       /* For Linecard only: If client was not recognized, add it as dynamic */
-      /* FIXME TC16SXG: intIfNum->ptin_port */
       rc = ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
                                        pduInfo->vlanId, pduInfo->innerVlanId,
                                        &data[L7_MAC_ADDR_LEN],
                                        &client_idx,
-                                       &clientInfo);
+                                       &clientInfo);      
       #endif
 
       if (rc != L7_SUCCESS)
       {        
         ptin_timer_stop(75);
-        /* FIXME TC16SXG: intIfNum->ptin_port */
-        ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+        ptin_igmp_stat_increment_field(ptin_port, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
         PT_LOG_ERR(LOG_CTX_IGMP,"intIfNum=%u,vlan=%u innerVlanId:%u are not accepted", pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);        
         return L7_FAILURE;
       }
@@ -848,14 +838,13 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       {
         if (client_idx>=PTIN_IGMP_CLIENTIDX_MAX)
         {
-          /* FIXME TC16SXG: intIfNum->ptin_port */
-          ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+          ptin_igmp_stat_increment_field(ptin_port, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
           PT_LOG_ERR(LOG_CTX_IGMP, "Invalid client_idx:%u (intIfNum=%u,vlan=%u innerVlanId=%u)", client_idx, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);    
           return L7_FAILURE;
         }
         else
         {
-          PT_LOG_TRACE(LOG_CTX_IGMP,"Created new  clientId:%u: (intIfNum=%u vlan=%u innerVlanId=%u", client_idx, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);    
+          PT_LOG_TRACE(LOG_CTX_IGMP,"Created new  clientId:%u: (intIfNum=%u vlan=%u innerVlanId=%u", client_idx, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId); 
         }
       }
     }
@@ -883,22 +872,19 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       if (dataLength < L7_ENET_HDR_SIZE + L7_ENET_HDR_TYPE_LEN_SIZE + L7_IP_HDR_LEN + SNOOP_IGMPv1v2_HEADER_LENGTH)
       {
         PT_LOG_DEBUG(LOG_CTX_IGMP, "Received pkt is too small %d",dataLength);
-        /* FIXME TC16SXG: intIfNum->ptin_port */
-        ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
+        ptin_igmp_stat_increment_field(ptin_port, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
         return L7_FAILURE;
       }
       if ( ipHdrLen < L7_IP_HDR_LEN)
       {
         PT_LOG_DEBUG(LOG_CTX_IGMP, "IP Header Len is invalid %d",ipHdrLen);
-        /* FIXME TC16SXG: intIfNum->ptin_port */
-        ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
+        ptin_igmp_stat_increment_field(ptin_port, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
         return L7_FAILURE;
       }
       if ((L7_ENET_HDR_SIZE + L7_ENET_HDR_TYPE_LEN_SIZE + ipHdrLen + SNOOP_IGMPv1v2_HEADER_LENGTH) > dataLength)
       {
         PT_LOG_DEBUG(LOG_CTX_IGMP, "IP Header Len is too big (%u) for the packet length (%u)", ipHdrLen, dataLength);
-        /* FIXME TC16SXG: intIfNum->ptin_port */
-        ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
+        ptin_igmp_stat_increment_field(ptin_port, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
         return L7_FAILURE;
       }
       /* Group address */
@@ -948,16 +934,14 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
         {
           PT_LOG_DEBUG(LOG_CTX_IGMP,"Number of Group Records:%u [vlan=%u innerVlan=%u client_idx]: Packet Silently ignored...",
                   noOfGroupRecords, pduInfo->vlanId, pduInfo->innerVlanId, client_idx);
-          /* FIXME TC16SXG: intIfNum->ptin_port */
-          ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
+          ptin_igmp_stat_increment_field(ptin_port, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
           return L7_FAILURE;
         }      
       }
       else
       {
         PT_LOG_ERR(LOG_CTX_IGMP, "Protocol Not Supported :%u [vlan=%u innerVlan=%u client_idx]", igmpPtr[0], pduInfo->vlanId, pduInfo->innerVlanId, client_idx);
-        /* FIXME TC16SXG: intIfNum->ptin_port */
-        ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
+        ptin_igmp_stat_increment_field(ptin_port, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
         return L7_NOT_SUPPORTED;
       }
        
@@ -971,13 +955,11 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                   pduInfo->vlanId, pduInfo->innerVlanId, client_idx, inetAddrPrint(&groupAddr,groupAddrStr));  
         if(igmpPtr!=L7_NULLPTR)
         {
-          /* FIXME TC16SXG: intIfNum->ptin_port */
-          ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_VALID_RX));
+          ptin_igmp_stat_increment_field(ptin_port, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_VALID_RX));
         }
         else
         { 
-          /* FIXME TC16SXG: intIfNum->ptin_port */     
-          ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_VALID);    
+          ptin_igmp_stat_increment_field(ptin_port, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_VALID);    
         }      
         return L7_SUCCESS;
       }
@@ -985,15 +967,13 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     else
     {
       PT_LOG_NOTICE(LOG_CTX_IGMP, "IPv6 not supported yet!");
-      /* FIXME TC16SXG: intIfNum->ptin_port */
-      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
+      ptin_igmp_stat_increment_field(ptin_port, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
       return L7_FAILURE;
     }
 
     ptin_timer_start(76,"ptin_igmp_McastRootVlan_get");
     /* Get multicast root vlan */ 
-    /* FIXME TC16SXG: intIfNum->ptin_port */
-    if ( ptin_igmp_McastRootVlan_get(pduInfo->vlanId, pduInfo->intIfNum, (port_type == PTIN_EVC_INTF_LEAF), client_idx, &groupAddr, &sourceAddr, &mcastRootVlan) == L7_SUCCESS )
+    if ( ptin_igmp_McastRootVlan_get(pduInfo->vlanId, ptin_port, (port_type == PTIN_EVC_INTF_LEAF), client_idx, &groupAddr, &sourceAddr, &mcastRootVlan) == L7_SUCCESS )
     {
       PT_LOG_TRACE(LOG_CTX_IGMP,"Vlan=%u will be converted to %u (grpAddr=%s)",
                 pduInfo->vlanId, mcastRootVlan, inetAddrPrint(&groupAddr,groupAddrStr));
@@ -1008,8 +988,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                   pduInfo->vlanId, inetAddrPrint(&groupAddr,groupAddrStr));    
         if(igmpPtr!=L7_NULLPTR)
         {
-          /* FIXME TC16SXG: intIfNum->ptin_port */
-          ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
+          ptin_igmp_stat_increment_field(ptin_port, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
         }
         else
         {
@@ -1053,8 +1032,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 #else
   ptin_timer_start(76,"ptin_igmp_McastRootVlan_get");
   /* !IGMPASSOC_MULTI_MC_SUPPORTED */
-
-	if (ptin_igmp_McastRootVlanRing_get(pduInfo->vlanId, &mcastRootVlan)==L7_SUCCESS)
+  if (ptin_igmp_McastRootVlanRing_get(pduInfo->vlanId, &mcastRootVlan)==L7_SUCCESS)
   {
     ptin_timer_stop(76);
 
@@ -1065,14 +1043,14 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     ptin_port_aux = pduInfo->intIfNum - 1;
 
     ptin_igmp_port_is_Dynamic(ptin_port_aux, &isDynamic);
-		ptin_igmp_get_local_router_port(&local_router_port_id);
+    ptin_igmp_get_local_router_port(&local_router_port_id);
 
-		/* Support of query process in other services other than multicast and MC proxy */
-		if ( (mcastRootVlan < 512) && (isDynamic == 1) ) 
-		{			
-			mcastRootVlan = 512;
-			PT_LOG_TRACE(LOG_CTX_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId ,mcastRootVlan);
-		}
+    /* Support of query process in other services other than multicast and MC proxy */
+    if ( (mcastRootVlan < 512) && (isDynamic == 1) ) 
+    {			
+   	  mcastRootVlan = 512;
+   	  PT_LOG_TRACE(LOG_CTX_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId ,mcastRootVlan);
+    }
 #endif	
   }
   else
@@ -1081,13 +1059,11 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     PT_LOG_DEBUG(LOG_CTX_IGMP,"Can't get McastRootVlan for vlan=%u. Packet Silently ignored...",pduInfo->vlanId);
     if(igmpPtr!=L7_NULLPTR)
     {
-      /* FIXME TC16SXG: intIfNum->ptin_port */
-      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
+      ptin_igmp_stat_increment_field(ptin_port, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
     }
     else
     {
-      /* FIXME TC16SXG: intIfNum->ptin_port */
-      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);    
+      ptin_igmp_stat_increment_field(ptin_port, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);    
     }          
     return L7_FAILURE;
   }
@@ -1098,25 +1074,21 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
       mcastRootVlan != (L7_uint16) -1 &&
       #endif
-      /* FIXME TC16SXG: intIfNum->ptin_port */
-      ptin_igmp_intfVlan_validate(pduInfo->intIfNum, mcastRootVlan)!=L7_SUCCESS)
+      ptin_igmp_intfVlan_validate(ptin_port, mcastRootVlan)!=L7_SUCCESS)
   {
     PT_LOG_DEBUG(LOG_CTX_IGMP,"intIfNum=%u,vlan=%u are not accepted",pduInfo->intIfNum,pduInfo->vlanId);
 
     if (ptin_igmp_McastRootVlanRing_get(pduInfo->vlanId, &mcastRootVlan)==L7_SUCCESS)
     {
-      /* FIXME TC16SXG: intIfNum->ptin_port */
-      if (ptin_igmp_intfVlan_validate(pduInfo->intIfNum, mcastRootVlan)!=L7_SUCCESS)
+      if (ptin_igmp_intfVlan_validate(ptin_port, mcastRootVlan)!=L7_SUCCESS)
       {	
         if(igmpPtr!=L7_NULLPTR)
         {
-          /* FIXME TC16SXG: intIfNum->ptin_port */
-          ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
+          ptin_igmp_stat_increment_field(ptin_port, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
         }
         else
         {
-          /* FIXME TC16SXG: intIfNum->ptin_port */
-          ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);    
+          ptin_igmp_stat_increment_field(ptin_port, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);    
         }
         return L7_FAILURE;
       }
@@ -1138,11 +1110,10 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   PT_LOG_TRACE(LOG_CTX_IGMP,"Packet intercepted at intIfNum=%u, oVlan=%u, iVlan=%u",
             pduInfo->intIfNum, mcastRootVlan, pduInfo->innerVlanId);
 
-#endif
 
   /* Send packet to MGMD */
   ptin_timer_start(34,"mgmdPacketSend");
-  if(L7_SUCCESS != (rc = mgmdPacketSend(mcastRootVlan, pduInfo->intIfNum, client_idx, (void*) data, dataLength)))
+  if(L7_SUCCESS != (rc = mgmdPacketSend(mcastRootVlan, ptin_port, client_idx, (void*) data, dataLength)))
   {
     PT_LOG_ERR(LOG_CTX_IGMP, "Unable to send packet to MGMD");
   }

@@ -4124,6 +4124,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
           /* intf_type is LAG*/
           newClientEntry.ptin_intf.intf_type = 1;
           newClientEntry.ptin_intf.intf_id = ptinPort;
+          newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
         }
 
 #if  (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_TA48GE)
@@ -4526,7 +4527,7 @@ L7_RC_t ptin_igmp_clientId_build(L7_uint32 intIfNum,
   /* Interface reference */
 #if (MC_CLIENT_INTERF_SUPPORTED)
   client->intIfNum   = intIfNum;
-  client->mask       |= PTIN_CLIENT_MASK_FIELD_INTF;
+  client->mask       |= PTIN_CLIENT_MASK_FIELD_INTIFNUM;
 #endif
 
   /* Outer vlan reference */
@@ -9844,6 +9845,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
     }
     client->ptin_intf.intf_type = ptin_intf.intf_type;
     client->ptin_intf.intf_id   = ptin_intf.intf_id;
+    client->mask                |= PTIN_CLIENT_MASK_FIELD_INTF;
   }
 
   osapiSemaGive(ptin_igmp_clients_sem);
@@ -11375,6 +11377,7 @@ static L7_RC_t ptin_igmp_device_client_find(ptin_client_id_t *client_ref, ptinIg
     }
     client_ref->ptin_intf.intf_type = ptin_intf.intf_type;
     client_ref->ptin_intf.intf_id   = ptin_intf.intf_id;
+    client_ref->mask                |= PTIN_CLIENT_MASK_FIELD_INTF;
   }
 #endif
 
