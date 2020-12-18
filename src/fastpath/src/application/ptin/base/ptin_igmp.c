@@ -2673,46 +2673,11 @@ L7_RC_t ptin_igmp_proxy_reset(void)
 {
   PT_LOG_INFO(LOG_CTX_IGMP,"Multicast queriers reset:");
 
-#if PTIN_SNOOP_USE_MGMD
   if (ptin_igmp_generalquerier_reset( (L7_uint32) -1, (L7_uint32) -1) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_IGMP, "Unable to reset MGMD General Queriers");
     return L7_FAILURE;
   }
-#else
-  L7_uint32 admin;
-
-  /* Read querier admin status */
-  if (usmDbSnoopQuerierAdminModeGet(&admin, L7_AF_INET)!=L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_IGMP,"Error reading Querier Admin status");
-    return L7_FAILURE;
-  }
-  /* If disabled, there is nothing to be done */
-  if (!admin)
-  {
-    PT_LOG_TRACE(LOG_CTX_IGMP,"Multicast querier is disabled... nothing to be done!");
-    return L7_SUCCESS;
-  }
-
-  PT_LOG_INFO(LOG_CTX_IGMP,"Going to reset Multicast queriers...");
-
-  /* Disable, and reenable querier mechanism for all vlans */
-  if (usmDbSnoopQuerierAdminModeSet(L7_DISABLE, L7_AF_INET)!=L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG,"Failed Querier disable operation");
-    return L7_FAILURE;
-  }
-
-  /* Wait a while */
-  //osapiSleepMSec(100);
-
-  if (usmDbSnoopQuerierAdminModeSet(L7_ENABLE, L7_AF_INET)!=L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_IGMP,"Failed Querier reenable operation");
-    return L7_FAILURE;
-  }
-#endif
 
   PT_LOG_INFO(LOG_CTX_IGMP,"Multicast queriers reenabled!");
 
@@ -4699,14 +4664,11 @@ L7_RC_t ptin_igmp_dynamic_client_find(L7_uint32 intIfNum,
              );
   }
 
-#if PTIN_SNOOP_USE_MGMD
   /*Refresh the Timer*/
 #if 0  /*This routine is not refreshing the timers!*/
   ptin_igmp_client_timer_update(intIfNum, client_idx);
 #else
   ptin_igmp_device_client_timer_start(client.ptin_port, client_idx);
-#endif
-
 #endif
 
   /* Return client index */
@@ -6355,7 +6317,6 @@ L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum,
                  ptin_port, intVlan, innerVlan, *client_idx_ret);
   }
 
-  #if PTIN_SNOOP_USE_MGMD
   /*Start the Timer*/
   rc = ptin_igmp_device_client_timer_start(ptin_port, *client_idx_ret);
   if (rc!=L7_SUCCESS)
@@ -6369,7 +6330,6 @@ L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum,
     PT_LOG_TRACE(LOG_CTX_IGMP,"Started client timer: ptin_port %u, intVlan %u, innerVlan %u, client_idx_ret:%u",
                  ptin_port, intVlan, innerVlan, *client_idx_ret);
   }
-  #endif
 
   return rc;
 }
@@ -10204,9 +10164,6 @@ static L7_RC_t ptin_igmp_device_client_remove_all(L7_BOOL isDynamic, L7_BOOL onl
     /* Check only_wo_channels parameter */
     if (only_wo_channels &&
         (avl_infoData->pClientGroup==L7_NULLPTR 
-#if !PTIN_SNOOP_USE_MGMD      
-         || avl_infoData->pClientGroup->stats_client.active_groups>0
-#endif
         ))
       continue;
 
@@ -10274,10 +10231,8 @@ static L7_RC_t ptin_igmp_device_client_remove_all(L7_BOOL isDynamic, L7_BOOL onl
     }
     else
     {
-#if PTIN_SNOOP_USE_MGMD
       /*Remove this Client From MGMD*/
       ptin_igmp_mgmd_client_remove(ptin_port, client_idx);
-#endif
 
       /* Removed not necessary routines to managem device clients */
       #if 0
@@ -10412,9 +10367,6 @@ static L7_RC_t ptin_igmp_device_client_remove(L7_uint ptin_port, L7_uint client_
   /* If there is no channels, or channels are forced to be removed... */
   if ( force_remove ||
        (clientInfo->pClientGroup!=L7_NULLPTR 
-#if !PTIN_SNOOP_USE_MGMD      
-        && clientInfo->pClientGroup->stats_client.active_groups==0
-#endif
        ) )
   {
     if (ptin_debug_igmp_snooping)
@@ -10437,10 +10389,8 @@ static L7_RC_t ptin_igmp_device_client_remove(L7_uint ptin_port, L7_uint client_
     {
       /* Do not insert clients semaphore control here... calling functions already do that! */
 
-      #if PTIN_SNOOP_USE_MGMD
       /*Remove this Client From MGMD*/
       ptin_igmp_mgmd_client_remove(ptin_port, client_idx);
-      #endif
 
       avl_key  = (ptinIgmpClientDataKey_t *) &clientInfo->igmpClientDataKey;
       avl_tree = &igmpDeviceClients.avlTree;
@@ -10534,39 +10484,6 @@ static L7_RC_t ptin_igmp_device_client_remove(L7_uint ptin_port, L7_uint client_
     }
   }
 
-#ifndef PTIN_SNOOP_USE_MGMD
-  /* Only clean channels associated to this client, if force_remove flag is given */
-  if ( force_remove )
-  {
-    if (ptin_debug_igmp_snooping)
-      PT_LOG_TRACE(LOG_CTX_IGMP,"Going to remove channels");
-
-    rc = L7_SUCCESS;
-
-    if ( rc == L7_SUCCESS )
-    {
-      if (ptin_debug_igmp_snooping)
-        PT_LOG_TRACE(LOG_CTX_IGMP,"Proceeding for snoop channels remotion: client_idx=%u, intIfNum=%u (port=%u)",
-                  client_idx, intIfNum, ptin_port);
-
-//    /* Remove client from all snooping entries */
-//    if (ptin_snoop_client_remove(0 /*All vlans*/,client_idx,intIfNum)!=L7_SUCCESS)
-//    {
-//      PT_LOG_ERR(LOG_CTX_IGMP,"Error removing client from snooping entries");
-//    }
-//    else
-//    {
-//      if (ptin_debug_igmp_snooping)
-//        PT_LOG_TRACE(LOG_CTX_IGMP,"Client removed from snooping entries");
-//    }
-    }
-    else
-    {
-      if (ptin_debug_igmp_snooping)
-        PT_LOG_TRACE(LOG_CTX_IGMP,"Cannot proceed to snoop channels remotion");
-    }
-  }
-#endif
 
   if (ptin_debug_igmp_snooping)
     PT_LOG_TRACE(LOG_CTX_IGMP,"Success flushing client (client_idx=%u)", client_idx);
@@ -16802,9 +16719,6 @@ L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 ptin_port, 
                 "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
 #endif
                 ": ptin_port=%-2u/index=%-3u  uni_vid=%4u+%-4u [%s] "
-#if !PTIN_SNOOP_USE_MGMD 
-                "#channels=%u"
-#endif
                 " ",
                 i_client,
 #if (MC_CLIENT_INTERF_SUPPORTED)
@@ -16834,9 +16748,6 @@ L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 ptin_port, 
                 avl_info->deviceClientId,
                 avl_info->uni_ovid, avl_info->uni_ivid,
                 ((avl_info->isDynamic) ? "dynamic" : "static ")
-#if !PTIN_SNOOP_USE_MGMD  
-                ,(avl_info->pClientGroup != L7_NULLPTR) ? avl_info->pClientGroup->stats_client.active_groups : 0
-#endif
                );
     }
 
@@ -17187,9 +17098,6 @@ void ptin_igmp_device_clients_dump(void)
            "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
 #endif
            " uni_vid=%4u+%-4u [%s] "
-#if !PTIN_SNOOP_USE_MGMD 
-           "#channels=%u"
-#endif
            "\r\n",
            avl_info->ptin_port, avl_info->deviceClientId, (avl_info->pClientGroup != L7_NULLPTR) ? avl_info->pClientGroup->onuId : 0,           
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
@@ -17214,9 +17122,6 @@ void ptin_igmp_device_clients_dump(void)
 #endif           
            avl_info->uni_ovid, avl_info->uni_ivid,
            ((avl_info->isDynamic) ? "dynamic" : "static ")
-#if !PTIN_SNOOP_USE_MGMD 
-           ,(avl_info->pClientGroup != L7_NULLPTR) ? avl_info->pClientGroup->stats_client.active_groups : 0
-#endif
           );
 
     i_client++;

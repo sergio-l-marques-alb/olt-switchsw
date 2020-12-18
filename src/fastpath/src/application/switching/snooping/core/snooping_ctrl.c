@@ -2129,10 +2129,6 @@ void snoopTimerExpiryHdlr(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk, void* ptrData)
   if ((pSnoopEB = (snoop_eb_t *)ptrData) == L7_NULLPTR)
     return;
 #endif
-#if (!PTIN_SNOOP_USE_MGMD)
-  rc = osapiMessageSend(pSnoopEB->snoopTimerQueue, &msg, SNOOP_TIMER_MSG_SIZE, L7_NO_WAIT,
-                        L7_MSG_PRIORITY_NORM);
-#endif
   if (rc != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
@@ -3165,10 +3161,6 @@ static L7_RC_t snoopDot1sTCNProcess(L7_uint32 mstID, L7_ushort16 *vidList,
             if ((L7_SUCCESS == dot1qVlanMemberGet(vidList[idx], intIfNum, &mode))
                 && (L7_DOT1Q_FIXED == mode))
             {
-              #ifndef PTIN_SNOOP_USE_MGMD              
-              (void)snoopQuerySend(intIfNum, (L7_uint32)(vidList[idx]),
-                                          pSnoopCB, SNOOP_TCN_QUERY, L7_NULLPTR);
-              #endif
             } /* End of vlan participation check */
           } /* End of snoop operational mode check */
         } /* End of interfaces loop */

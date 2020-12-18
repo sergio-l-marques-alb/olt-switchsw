@@ -426,9 +426,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                           sysnet_pdu_info_t *pduInfo,
                           L7_uchar8 family)
 {
-#ifndef PTIN_SNOOP_USE_MGMD
-  snoopPDU_Msg_t     msg;
-#endif
   L7_uchar8         *data;
   L7_uint32          dataLength;
   L7_uint32          dot1qMode;
@@ -1141,114 +1138,8 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   PT_LOG_TRACE(LOG_CTX_IGMP,"Packet intercepted at intIfNum=%u, oVlan=%u, iVlan=%u",
             pduInfo->intIfNum, mcastRootVlan, pduInfo->innerVlanId);
 
-  #ifndef PTIN_SNOOP_USE_MGMD
-  /* Change Internal vlan with the MC root vlan inside message */
-  if ((*(L7_ushort16 *)&data[12] == 0x8100) ||
-      (*(L7_ushort16 *)&data[12] == 0x88A8) ||
-      (*(L7_ushort16 *)&data[12] == 0x9100))
-  {
-    data[14] &= 0xf0;
-    data[14] |= (msg.vlanId>>8) & 0x0f;
-    data[15]  =  msg.vlanId & 0xff;
-    PT_LOG_TRACE(LOG_CTX_IGMP,"vlan changed inside packet");
-  }
-  #endif
 #endif
 
-#ifndef PTIN_SNOOP_USE_MGMD
-  memset((L7_uchar8 *)&msg, 0, sizeof(msg));
-  msg.msgId    = snoopPDUMsgRecv;
-  msg.intIfNum = pduInfo->intIfNum;
-  msg.innerVlanId = pduInfo->innerVlanId;
-  msg.vlanId   = /*osapiNtohl already done by hapiRx function*/(pduInfo->vlanId);
-  msg.cbHandle = pSnoopCB;
-  msg.client_idx = client_idx;          /* PTin added: IGMP snooping */
-  
-  /* Put a copy of the incoming frame into one of Snooping's buffer pools.
-   * This will allow other components to process the original MBUF
-   */
-  if (dataLength <= SNOOP_SMALL_BUFFER_SIZE)
-  {
-    rc = bufferPoolAllocate(pSnoopCB->snoopExec->snoopSmallBufferPoolId,
-                            &(msg.snoopBuffer));
-    msg.snoopBufferPoolId = pSnoopCB->snoopExec->snoopSmallBufferPoolId;
-  }
-  else if (dataLength <= SNOOP_MED_BUFFER_SIZE)
-  {
-    rc = bufferPoolAllocate(pSnoopCB->snoopExec->snoopMedBufferPoolId,
-                            &(msg.snoopBuffer));
-    msg.snoopBufferPoolId = pSnoopCB->snoopExec->snoopMedBufferPoolId;
-  }
-  else
-  {
-    rc = bufferPoolAllocate(pSnoopCB->snoopExec->snoopLargeBufferPoolId,
-                            &(msg.snoopBuffer));
-    msg.snoopBufferPoolId = pSnoopCB->snoopExec->snoopLargeBufferPoolId;
-  }
-
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_IGMP,"Insufficient buffers");
-    if(igmpPtr!=L7_NULLPTR)
-    {
-      /* FIXME TC16SXG: intIfNum->ptin_port */
-      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
-    }
-    else
-    {
-      /* FIXME TC16SXG: intIfNum->ptin_port */
-      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);    
-    }
-
-    //ptin_igmp_dynamic_client_flush(pduInfo->vlanId,client_idx);
-    return L7_FAILURE;
-  }
-
-  if(ptin_debug_igmp_snooping)
-  {
-    PT_LOG_TRACE(LOG_CTX_IGMP,"Going to send message to queue");
-
-    L7_int32 n_msg = -1;
-    if (osapiMsgQueueGetNumMsgs(pSnoopCB->snoopExec->snoopIGMPQueue, &n_msg)==L7_SUCCESS)
-    {
-      PT_LOG_TRACE(LOG_CTX_IGMP,"Size of IGMP queue = %u messages",n_msg);
-    }
-    else
-    {
-      PT_LOG_ERR(LOG_CTX_IGMP,"Error reading IGMP queue size");
-    }
-  }
-
-  memcpy(msg.snoopBuffer, data, dataLength);
-  msg.dataLength = dataLength;
-
-  if (pSnoopCB->family == L7_AF_INET)
-  {
-    rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue,
-                          &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT,
-                          L7_MSG_PRIORITY_NORM);
-  }
-  else
-  {
-    rc = osapiMessageSend(pSnoopCB->snoopExec->snoopMLDQueue,
-                          &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT,
-                          L7_MSG_PRIORITY_NORM);
-  }
-
-  if (rc == L7_SUCCESS)
-  {
-    PT_LOG_TRACE(LOG_CTX_IGMP,"Message sent to queue");
-    if (osapiSemaGive(pSnoopCB->snoopExec->snoopMsgQSema) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_IGMP,"Failed to give msgQueue semaphore");
-    }
-  }
-  else
-  {    
-    PT_LOG_ERR(LOG_CTX_IGMP,"Failed to post a %s message to queue",pSnoopCB->family==L7_AF_INET?"IGMP":"MLD");
-    bufferPoolFree(msg.snoopBufferPoolId, msg.snoopBuffer);
-  }
-#else
   /* Send packet to MGMD */
   ptin_timer_start(34,"mgmdPacketSend");
   if(L7_SUCCESS != (rc = mgmdPacketSend(mcastRootVlan, pduInfo->intIfNum, client_idx, (void*) data, dataLength)))
@@ -1256,7 +1147,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     PT_LOG_ERR(LOG_CTX_IGMP, "Unable to send packet to MGMD");
   }
   ptin_timer_stop(34);
-#endif
 
   if (ptin_debug_igmp_snooping)
     PT_LOG_TRACE(LOG_CTX_IGMP,"}");

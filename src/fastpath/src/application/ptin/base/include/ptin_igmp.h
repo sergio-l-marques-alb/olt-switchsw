@@ -37,9 +37,6 @@
 
 
 
-/* Set MGMD integration */
-#define PTIN_SNOOP_USE_MGMD 1
-
 #define PTIN_IGMP_STATS_IN_EVCS 0
 
 #define PTIN_IGMP_VERSION_1 1
