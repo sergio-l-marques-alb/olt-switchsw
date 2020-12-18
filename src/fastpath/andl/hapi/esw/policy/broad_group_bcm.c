@@ -1494,6 +1494,75 @@ int l7_bcm_policy_apply(int unit, BROAD_POLICY_t policy, bcm_port_t port)
     return BCM_E_NONE;
 }
 
+int l7_bcm_policy_apply_multi(int unit, BROAD_POLICY_t policy, bcm_pbmp_t pbmp)
+{
+    int                  rv;
+    policy_map_table_t  *policyPtr;
+    bcm_pbmp_t           tempPbm;
+    L7_short16           policyIdx;
+    unsigned int         oldPortClass = BROAD_INVALID_PORT_CLASS;
+
+    CHECK_UNIT(unit);
+    CHECK_POLICY(policy);
+
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+        sysapiPrintf("policy %d apply pbmp\n", policy);
+
+    _policy_sem_take();
+    policyIdx = policy_map_index_map[unit][policy];
+    if (policyIdx == BROAD_POLICY_MAP_INVALID)
+    {
+      _policy_sem_give();
+      return BCM_E_NOT_FOUND;
+    }
+    policyPtr = &policy_map_table[unit][policyIdx];
+
+    BCM_PBMP_ASSIGN(tempPbm, policyPtr->pbm);
+    if (policyPtr->flags & GROUP_MAP_EFP_ON_IFP)
+    {
+      rv = _policy_apply_egress_mask(unit, policy, pbmp, BROAD_POLICY_EPBM_CMD_ADD);
+    }
+    else
+    {
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+        sysapiPrintf("portClass: Stage %u Policy %u - adding new port bitmap", policyPtr->policyStage, policy);
+
+      BCM_PBMP_ASSIGN(policyPtr->pbm, pbmp);
+
+      oldPortClass = policyPtr->portClass; /* save the original portClass */
+      rv = _policy_apply_to_ports(unit, policy);
+    }
+    if (BCM_E_NONE != rv)
+    {
+      /* Restore the PBMP */
+      BCM_PBMP_ASSIGN(policyPtr->pbm, tempPbm);
+      _policy_sem_give();
+      return rv;
+    }
+
+    if ((policyPtr->policyStage == BROAD_POLICY_STAGE_LOOKUP) ||
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+        (policyPtr->policyStage == BROAD_POLICY_STAGE_INGRESS) ||
+#endif
+        (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS))
+    {
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+        sysapiPrintf("Updating portClass: stage=%u oldPortClass=%u newPortClass=%u - adding new pbmp",
+                     policyPtr->policyStage, oldPortClass, policyPtr->portClass);
+
+      rv = policy_port_class_pbmp_update(unit, policyPtr->pbm, policyPtr->policyStage, oldPortClass, policyPtr->portClass);
+      if (BCM_E_NONE != rv)
+      {
+        _policy_sem_give();
+        return rv;
+      }
+    }
+
+    _policy_sem_give();
+    return BCM_E_NONE;
+}
+
+
 int l7_bcm_policy_apply_all(int unit, BROAD_POLICY_t policy)
 {
     int                 rv;

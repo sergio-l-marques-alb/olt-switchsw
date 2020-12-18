@@ -160,6 +160,8 @@ int l7_bcm_policy_destroy(int unit, BROAD_POLICY_t policy);
 
 int l7_bcm_policy_apply(int unit, BROAD_POLICY_t policy, bcm_port_t port);
 
+int l7_bcm_policy_apply_multi(int unit, BROAD_POLICY_t policy, bcm_pbmp_t pbmp);
+
 int l7_bcm_policy_apply_all(int unit, BROAD_POLICY_t policy);
 
 int l7_bcm_policy_remove(int unit, BROAD_POLICY_t policy, bcm_port_t port);

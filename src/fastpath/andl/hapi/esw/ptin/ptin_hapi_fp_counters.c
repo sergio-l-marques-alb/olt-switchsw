@@ -670,45 +670,14 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
     /* Add physical ports for Lookup/Egress rules */
     if (stage == BROAD_POLICY_STAGE_LOOKUP || stage == BROAD_POLICY_STAGE_EGRESS)
     {
-      /* For valid ports */
-      if (usp->unit >= 0 && usp->slot >= 0 && usp->port >= 0)
+      if (BCM_PBMP_NOT_NULL(pbm))
       {
-        L7_uint i;
-
-        /* Remove all ports */
-        hapiBroadPolicyRemoveFromAll(policyId);
-
-        /* Physical port */
-        if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
+        /* Add bitmap of ports to policy */
+        if (hapiBroadPolicyApplyToMultiIface(policyId, pbm) != L7_SUCCESS)
         {
-          if (hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcm_gport) != L7_SUCCESS)
-          {
-            hapiBroadPolicyDelete(policyId);
-            PT_LOG_ERR(LOG_CTX_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u!", usp->unit,usp->slot,usp->port, hapiPortPtr->bcm_port);
-            return L7_FAILURE;
-          }
-        }
-        /* Logical port to be added (add lag members) */
-        else if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_TRUE)
-        {
-          BROAD_PORT_t *hapiLagMemberPortPtr;
-
-          hapiBroadLagCritSecEnter ();
-          for (i = 0; i < L7_MAX_MEMBERS_PER_LAG; i++)
-          {
-            if (dapiPortPtr->modeparm.lag.memberSet[i].inUse == L7_TRUE)
-            {
-              hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
-
-              if (hapiBroadPolicyApplyToIface(policyId, hapiLagMemberPortPtr->bcm_gport) != L7_SUCCESS)
-              {
-                hapiBroadPolicyDelete(policyId);
-                PT_LOG_ERR(LOG_CTX_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u!", usp->unit,usp->slot,usp->port, hapiLagMemberPortPtr->bcm_port);
-                return L7_FAILURE;
-              }
-            }
-          }
-          hapiBroadLagCritSecExit ();
+          hapiBroadPolicyDelete(policyId);
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error adding port bitmap to policyId %u", policyId);
+          return L7_FAILURE;
         }
       }
     }

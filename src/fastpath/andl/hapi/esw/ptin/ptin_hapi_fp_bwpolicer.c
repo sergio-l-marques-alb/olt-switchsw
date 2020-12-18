@@ -755,37 +755,12 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   /* If interfaces are to be set after commiting rule, do it now */
   if (post_commit_intf_set)
   {
-    int           usp_port;
-    L7_uint64     _usp_bmp;
-    DAPI_USP_t    _usp;
-    BROAD_PORT_t *_hapiPortPtr;
-
-    hapi_ptin_usp_init(&_usp, 0, 0);
-
-    /* Merge USP_port bitmaps */
-    _usp_bmp = usp_bmp;
-
-    /* Iterate USP ports */
-    for (usp_port = 0;
-         _usp_bmp != 0;
-         _usp_bmp >>= 1, usp_port++)
+    /* Add bitmap of ports to policy */
+    if (hapiBroadPolicyApplyToMultiIface(policyId, pbm) != L7_SUCCESS)
     {
-      _usp.port = usp_port;
-
-      /* Get port descriptor */
-      _hapiPortPtr = HAPI_PORT_GET(&_usp, dapi_g);
-      if (_hapiPortPtr == L7_NULLPTR)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "usp_port %u: invalid hapiPortPtr", usp_port);
-        return L7_FAILURE;
-      }
-
-      /* Port is new (add it) */
-      if (hapiBroadPolicyApplyToIface(policyId, _hapiPortPtr->bcm_gport) != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error adding bcm_gport 0x%x to policyId %u", _hapiPortPtr->bcm_gport, policyId);
-        return L7_FAILURE;
-      }
+      hapiBroadPolicyDelete(policyId);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error adding port bitmap to policyId %u", policyId);
+      return L7_FAILURE;
     }
   }
 

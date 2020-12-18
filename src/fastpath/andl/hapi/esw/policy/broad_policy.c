@@ -32,7 +32,8 @@
 #include "appl/stktask/topo_brd.h"
 #include "bcm/mirror.h"
 #include "feature.h"
-
+#include "broad_group_bcm.h"
+#include "ibde.h"
 
 extern DAPI_t *dapi_g;
 extern int custom_policy_init();
@@ -1915,6 +1916,34 @@ L7_RC_t hapiBroadPolicyRemoveFromIface(BROAD_POLICY_t policy, bcm_gport_t gport)
     {
         /* Check if the policy has mirror action. If yes, unconfigure */
         hapiBroadPolicySetMirroringPath(policy, gport, L7_DISABLE);
+    }
+
+    return result;
+}
+
+/*********************************************************************
+*
+* @purpose Apply a policy to a bitmap of ports
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t hapiBroadPolicyApplyToMultiIface(BROAD_POLICY_t policy, bcm_pbmp_t pbm)
+{
+    int     unit, rv;
+    L7_RC_t result = L7_SUCCESS;
+
+    CHECK_POLICY(policy);
+
+    /* Apply to all units */
+    for (unit = 0; unit < bde->num_devices(BDE_SWITCH_DEVICES); unit++)
+    {
+      /* apply policy to the specified port */
+      rv = l7_bcm_policy_apply_multi(unit, policy, pbm);
+      if (BCM_E_NONE != rv)
+      {
+        result = L7_FAILURE;
+      }
     }
 
     return result;

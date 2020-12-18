@@ -6098,6 +6098,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
      At egressing is important to guarantee PBIT value of outer vlan is null: Multicast GEM of OLTD only deals with pbit=0 */
   {
     /* Multicast services */
+    bcm_pbmp_t    pbm;
     L7_uchar8     macAddr_iptv_value[6] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0x00 };
     L7_uchar8     macAddr_iptv_mask[6]  = { 0xff, 0xff, 0xff, 0x80, 0x00, 0x00 };
     L7_uint16     vlan_value, vlan_mask;
@@ -6164,37 +6165,20 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 
     PT_LOG_TRACE(LOG_CTX_STARTUP, "PolicyId=%u", policyId);
 
-    /* First, remoe all ports */
-    rc = hapiBroadPolicyRemoveFromAll(policyId);
+    /* Get pbm format of ports */
+    hapi_ptin_get_bcm_from_usp_bitmap(PTIN_SYSTEM_PON_PORTS_MASK, &pbm);
+
+    /* Add PON ports to policy */
+    rc = hapiBroadPolicyApplyToMultiIface(policyId, pbm);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_STARTUP, "XXX Error removing all ports: rc=%d", rc);
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding pon ports: rc=%d", rc);
       //hapiBroadPolicyDelete(policyId);
       //return L7_FAILURE;
     }
-
-    /* Run all usp ports */
-    USP_PHYPORT_ITERATE(usp, dapi_g)
+    else
     {
-      hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
-
-      /* Add only PON ports */
-      if ((PTIN_SYSTEM_PON_PORTS_MASK >> usp.port) & 1)
-      {
-        rc = hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcm_gport);
-        if (rc != L7_SUCCESS)
-        {
-          PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding bcm_unit %d/bcm_port %d/gport 0x%x: rc=%d",
-                     hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, hapiPortPtr->bcm_gport, rc);
-          //hapiBroadPolicyDelete(policyId);
-          //return L7_FAILURE;
-        }
-        else
-        {
-          PT_LOG_TRACE(LOG_CTX_STARTUP, "unit %u / bcm_port %u / gport 0x%x added to Pbit=0 force rule",
-                       hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, hapiPortPtr->bcm_gport);
-        }
-      }
+      PT_LOG_TRACE(LOG_CTX_STARTUP, "Pon ports added to Pbit=0 force rule");
     }
 
     PT_LOG_TRACE(LOG_CTX_STARTUP, "Going to create FP rule to prevent IPTV flooding...");

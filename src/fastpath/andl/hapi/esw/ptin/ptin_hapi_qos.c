@@ -1119,39 +1119,11 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     PT_LOG_TRACE(LOG_CTX_HAPI, "Trap policy commited successfully (policyId_icap=%u)", policyId_icap);
 
 #ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    if (hapiBroadPolicyApplyToMultiIface(qos_entry->rule[rule].policyId_icap, pbm) != L7_SUCCESS)
     {
-      int           usp_port;
-      L7_uint64     _usp_bmp;
-      DAPI_USP_t    _usp;
-      BROAD_PORT_t *_hapiPortPtr;
-
-      hapi_ptin_usp_init(&_usp, 0, 0);
-
-      /* Merge USP_port bitmaps */
-      _usp_bmp = qos_cfg->port_bmp;
-
-      /* Iterate USP ports */
-      for (usp_port = 0;
-           _usp_bmp != 0;
-           _usp_bmp >>= 1, usp_port++)
-      {
-        _usp.port = usp_port;
-
-        /* Get port descriptor */
-        _hapiPortPtr = HAPI_PORT_GET(&_usp, dapiPort->dapi_g);
-        if (_hapiPortPtr == L7_NULLPTR)
-        {
-          PT_LOG_ERR(LOG_CTX_HAPI, "usp_port %u: invalid hapiPortPtr", usp_port);
-          return L7_FAILURE;
-        }
-
-        /* Port is new (add it) */
-        if (hapiBroadPolicyApplyToIface(qos_entry->rule[rule].policyId_icap, _hapiPortPtr->bcm_gport) != L7_SUCCESS)
-        {
-          PT_LOG_ERR(LOG_CTX_HAPI, "Error adding bcm_gport 0x%x to rule %u", _hapiPortPtr->bcm_gport, rule);
-          return L7_FAILURE;
-        }
-      }
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error adding port bitmap to rule %u", rule);
+      rc = L7_FAILURE;
+      break;
     }
 #endif
   } while (0);
