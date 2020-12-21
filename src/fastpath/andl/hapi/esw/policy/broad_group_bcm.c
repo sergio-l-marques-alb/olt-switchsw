@@ -493,7 +493,7 @@ static int _policy_apply_to_ports(int unit, BROAD_POLICY_t policy)
     {
       if (policyPtr->policyStage == BROAD_POLICY_STAGE_INGRESS)
       {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
           sysapiPrintf("[->policy_group_set_pbm] portClass: Stage=%u group=%u entry=%u portClass=%u",
                        policyPtr->policyStage, policyPtr->group, policyPtr->entry[i], policyPtr->portClass);
 
@@ -513,7 +513,7 @@ static int _policy_apply_to_ports(int unit, BROAD_POLICY_t policy)
       {
         if ((oldPortClass != policyPtr->portClass) || (policyPtr->portClass == BROAD_INVALID_PORT_CLASS))
         {
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
             sysapiPrintf("[->policy_group_set_portclass] portClass: Stage=%u group=%u entry=%u portClass=%u",
                          policyPtr->policyStage, policyPtr->group, policyPtr->entry[i], policyPtr->portClass);
 
@@ -566,7 +566,7 @@ static int _policy_apply_to_ports(int unit, BROAD_POLICY_t policy)
     {
       if (policyPtr->policyStage == BROAD_POLICY_STAGE_INGRESS)
       {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
           sysapiPrintf("[->policy_group_set_pbm] portClass: Stage=%u group=%u entry=%u portClass=%u",
                        policyPtr->policyStage, policyPtr->group, policyPtr->entry[i], BROAD_INVALID_PORT_CLASS);
 
@@ -580,7 +580,7 @@ static int _policy_apply_to_ports(int unit, BROAD_POLICY_t policy)
         /* set the portclass */
         if ((oldPortClass != policyPtr->portClass) || (policyPtr->portClass == BROAD_INVALID_PORT_CLASS))
         {
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
             sysapiPrintf("[->policy_group_set_portclass] portClass: Stage=%u group=%u entry=%u portClass=%u",
                          policyPtr->policyStage, policyPtr->group, policyPtr->entry[i], policyPtr->portClass);
 
@@ -698,7 +698,7 @@ static int _policy_apply_egress_mask(int unit, BROAD_POLICY_t policy, bcm_pbmp_t
        Set the inports explicitly to zero to deactivate the rule */
     if(rulePtr->ruleFlags & BROAD_RULE_STATUS_ACTIVE)
     {
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("[->policy_group_set_pbm] portClass: Stage=%u group=%u entry=%u portClass=%u",
                      policyPtr->policyStage, policyPtr->group, policyPtr->entry[i], policyPtr->portClass);
 
@@ -714,7 +714,7 @@ static int _policy_apply_egress_mask(int unit, BROAD_POLICY_t policy, bcm_pbmp_t
     }
     else
     {
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("[->policy_group_set_pbm] portClass: Stage=%u group=%u entry=%u portClass=%u",
                      policyPtr->policyStage, policyPtr->group, policyPtr->entry[i], BROAD_INVALID_PORT_CLASS);
 
@@ -1220,7 +1220,7 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
                   !( ( rulePtr->fieldInfo.flags >> BROAD_FIELD_INPORT) & 1) &&      /* PTin added: ICAP */
                   !( ( rulePtr->fieldInfo.flags >> BROAD_FIELD_SRCTRUNK) & 1) )     /* PTin added: ICAP */
         {
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
             sysapiPrintf("[->policy_group_set_pbm] portClass: Stage=%u group=%u entry=%u portClass=%u",
                          policyPtr->policyStage, group, entry, policyPtr->portClass);
 
@@ -1254,7 +1254,7 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
             (policyData->policyType == BROAD_POLICY_TYPE_IPSG)   ||
             (policyData->policyType == BROAD_POLICY_TYPE_LLPF))
         {
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
             sysapiPrintf("[->policy_group_set_portclass] portClass: Stage=%u group=%u entry=%u portClass=%u",
                          policyPtr->policyStage, group, entry, policyPtr->portClass);
 
@@ -1787,7 +1787,7 @@ int l7_bcm_policy_rule_status_set(int unit, BROAD_POLICY_t policy, BROAD_POLICY_
   {
     if (policyPtr->flags & GROUP_MAP_EFP_ON_IFP)
     {
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("[->policy_group_set_pbm] portClass: Stage=%u group=%u entry=%u portClass=%u",
                      policyPtr->policyStage, policyPtr->group, policyPtr->entry[rule], policyPtr->portClass);
 
@@ -1810,7 +1810,7 @@ int l7_bcm_policy_rule_status_set(int unit, BROAD_POLICY_t policy, BROAD_POLICY_
       {
         if (policyPtr->policyStage == BROAD_POLICY_STAGE_INGRESS)
         {
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
             sysapiPrintf("[->policy_group_set_pbm] portClass: Stage=%u group=%u entry=%u portClass=%u",
                          policyPtr->policyStage, policyPtr->group, policyPtr->entry[rule], policyPtr->portClass);
 
@@ -1883,7 +1883,7 @@ int l7_bcm_policy_rule_status_set(int unit, BROAD_POLICY_t policy, BROAD_POLICY_
   {
     if (policyPtr->flags & GROUP_MAP_EFP_ON_IFP)
     {
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("[->policy_group_set_pbm] portClass: Stage=%u group=%u entry=%u portClass=%u",
                      policyPtr->policyStage, policyPtr->group, policyPtr->entry[rule], BROAD_INVALID_PORT_CLASS);
 
@@ -1905,7 +1905,7 @@ int l7_bcm_policy_rule_status_set(int unit, BROAD_POLICY_t policy, BROAD_POLICY_
       {
         if (policyPtr->policyStage == BROAD_POLICY_STAGE_INGRESS)
         {
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
             sysapiPrintf("[->policy_group_set_pbm] portClass: Stage=%u group=%u entry=%u portClass=%u",
                          policyPtr->policyStage, policyPtr->group, policyPtr->entry[rule], BROAD_INVALID_PORT_CLASS);
 
@@ -2451,7 +2451,7 @@ void debug_policy_efp_on_ifp_table(int unit)
     policy_efp_on_ifp_table_t  *globalPolicyPtr;
 
     globalPolicyPtr = &policy_efp_on_ifp_table[unit];
-    sysapiPrintf("Unit %d\n", unit);
-    sysapiPrintf("Default entry eid = %d\n",globalPolicyPtr->entry);
-    sysapiPrintf("Unit Epbm = %08x\n",SOC_PBMP_WORD_GET(globalPolicyPtr->unitEpbm, 0));
+    printf("Unit %d\n", unit);
+    printf("Default entry eid = %d\n",globalPolicyPtr->entry);
+    printf("Unit Epbm = %08x\n",SOC_PBMP_WORD_GET(globalPolicyPtr->unitEpbm, 0));
 }
