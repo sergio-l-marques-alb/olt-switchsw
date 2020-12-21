@@ -6043,40 +6043,23 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     }
 
 
-    #if 0
-    /* Only apply to downlink interfaces */
-    rc = hapiBroadPolicyRemoveFromAll(policyId);
+#if 0
+    /* Get pbm format of ports */
+    hapi_ptin_get_bcm_from_usp_bitmap(PTIN_SYSTEM_PON_PORTS_MASK | PTIN_SYSTEM_ETH_PORTS_MASK, &pbm);
+
+    /* Add PON ports to policy */
+    rc = hapiBroadPolicyApplyToMultiIface(policyId, pbm);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_STARTUP, "Error removing all interfaces");
-      hapiBroadPolicyDelete(policyId);
-      return L7_FAILURE;
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding pon ports: rc=%d", rc);
+      //hapiBroadPolicyDelete(policyId);
+      //return L7_FAILURE;
     }
-    for (port = 0; port < max(PTIN_SYSTEM_N_PONS, PTIN_SYSTEM_N_ETH); port++)
-    //for (port = 0; port < PTIN_SYSTEM_N_PORTS -1; port++)
+    else
     {
-      rc = hapi_ptin_bcmPort_get(port, &bcm_port);
-      if (rc != L7_SUCCESS)  break;
-
-      /* FIXME: Only applied to unit 0 */
-      if (bcmy_lut_unit_port_to_gport_get(bcm_unit, bcm_port, &gport) != BCMY_E_NONE)
-      {
-        printf("Error with unit %d, port %d", 0, bcm_port);
-        return L7_FAILURE;
-      }
-
-      rc = hapiBroadPolicyApplyToIface(policyId, gport);
-      if (rc != L7_SUCCESS)  break;
-
-      PT_LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / gport 0x%x added to outer->inner prio copy rule", port, bcm_port, gport);
+      PT_LOG_TRACE(LOG_CTX_STARTUP, "Pon/Eth ports added to policy");
     }
-    if (rc != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding ports");
-      hapiBroadPolicyDelete(policyId);
-      return L7_FAILURE;
-    }
-    #endif
+#endif
   }
    
 #endif
@@ -6243,6 +6226,22 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       hapiBroadPolicyCreateCancel();
       return L7_FAILURE;
     }
+
+#if 0
+    /* Get pbm format of backplane ports */
+    hapi_ptin_get_bcm_from_usp_bitmap(PTIN_SYSTEM_10G_PORTS_MASK, &pbm);
+
+    /* Add PON ports to policy */
+    rc = hapiBroadPolicyApplyToMultiIface(policyId, pbm);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding pon ports: rc=%d", rc);
+    }
+    else
+    {
+      PT_LOG_TRACE(LOG_CTX_STARTUP, "Backplane ports added");
+    }
+#endif
 
     PT_LOG_TRACE(LOG_CTX_STARTUP, "PolicyId=%u", policyId);
   }
@@ -6657,6 +6656,7 @@ L7_RC_t teste_case(void)
   L7_RC_t             rc = L7_SUCCESS;
 
   /* Multicast services */
+  bcm_pbmp_t    pbm;
   //L7_uint8      ip_type = BROAD_IP_TYPE_IPV4, ip_type_mask = 0xff;
   L7_uint16     ethertype = 0x0800, ethertype_mask = 0xffff;
   L7_uint32     ip_addr = 0xe0000000, ip_addr_mask=0xf0000000;
@@ -6725,39 +6725,19 @@ L7_RC_t teste_case(void)
 
   PT_LOG_TRACE(LOG_CTX_STARTUP, "PolicyId=%u", policyId);
 
-#if 0
-  /* First, remoe all ports */
-  if (hapiBroadPolicyRemoveFromAll(policyId) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error removing all ports");
-    hapiBroadPolicyDelete(policyId);
-    return L7_FAILURE;
-  }
-  /* Add only PON ports */
-  for (port = 0; port < ptin_sys_number_of_ports; port++)
-  {
-    if (hapi_ptin_bcmPort_get(port, &bcm_port) == L7_SUCCESS)
-    {
-      /* FIXME: Only applied to unit 0 */
-      if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
-      {
-        printf("Error with unit %d, port %d", 0, bcm_port);
-        return L7_FAILURE;
-      }
+  /* Get pbm format of backplane ports */
+  hapi_ptin_get_bcm_from_usp_bitmap(PTIN_SYSTEM_10G_PORTS_MASK, &pbm);
 
-      if ((PTIN_SYSTEM_PON_PORTS_MASK >> port) & 1)
-      {
-        if (hapiBroadPolicyApplyToIface(policyId, gport) != L7_SUCCESS)
-        {
-          PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding port %u", port);
-          hapiBroadPolicyDelete(policyId);
-          return L7_FAILURE;
-        }
-        PT_LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / gport 0x%x added to Pbit=0 force rule", port, bcm_port, gport);
-      }
-    }
+  /* Add PON ports to policy */
+  rc = hapiBroadPolicyApplyToMultiIface(policyId, pbm);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding pon ports: rc=%d", rc);
   }
-#endif
+  else
+  {
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Backplane ports added");
+  }
 
   return L7_SUCCESS;
 }
