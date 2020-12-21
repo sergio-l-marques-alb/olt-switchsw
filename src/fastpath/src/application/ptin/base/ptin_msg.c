@@ -7317,6 +7317,22 @@ L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
     ptinEvcFlow.uni_ovid            = ENDIAN_SWAP16(msgEvcFlow->intf.outer_vid); /* must be a leaf */
     ptinEvcFlow.uni_ivid            = ENDIAN_SWAP16(msgEvcFlow->intf.inner_vid);
 
+    /* Adjust outer VID considering the port virtualization scheme */
+    if (ptin_intf_portGem2virtualVid(ptintf2port(ptinEvcFlow.ptin_intf.intf_type, ptinEvcFlow.ptin_intf.intf_id),
+                                     msgEvcFlow->intf.outer_vid,
+                                     &ptinEvcFlow.uni_ovid) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u", msgEvcFlow->intf.outer_vid);
+    }
+    /* Inner VLAN will identify the client using the GEM-VLAN value.
+       So, we need to add an offset according to the virtual port in use */
+    if (ptin_intf_portGem2virtualVid(ptintf2port(ptinEvcFlow.ptin_intf.intf_type, ptinEvcFlow.ptin_intf.intf_id),
+                                     msgEvcFlow->nni_cvlan,
+                                     &ptinEvcFlow.int_ivid) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u", msgEvcFlow->nni_cvlan);
+    }
+
     PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Flow",   ptinEvcFlow.evc_idx);
     PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",        ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
                                                   ptinEvcFlow.ptin_intf.intf_id);
