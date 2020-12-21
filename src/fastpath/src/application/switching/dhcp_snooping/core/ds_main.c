@@ -1684,6 +1684,28 @@ L7_RC_t dsFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   L7_uchar8 ipVersion;
   L7_RC_t ret = L7_SUCCESS;
 
+  if (ptin_debug_dhcp_snooping)
+  {
+      int row;
+      L7_uchar8 *pkt = frame;
+
+      PT_LOG_TRACE(LOG_CTX_DHCP,"===================");
+      PT_LOG_TRACE(LOG_CTX_DHCP,"======DHCP PKT=====");
+      PT_LOG_TRACE(LOG_CTX_DHCP,"===================");
+      for (row = 0; row < (frameLen/16)+1; row++)
+      {
+          PT_LOG_TRACE(LOG_CTX_DHCP,"%04x   "
+                                    "%2.2x %2.2x %2.2x %2.2x %2.2x %2.2x %2.2x %2.2x "
+                                    "%2.2x %2.2x %2.2x %2.2x %2.2x %2.2x %2.2x %2.2x ",
+                                    row * 16,
+                                    pkt[row*16+0],pkt[row*16+1],pkt[row*16+2],pkt[row*16+3],
+                                    pkt[row*16+4],pkt[row*16+5],pkt[row*16+6],pkt[row*16+7],
+                                    pkt[row*16+8],pkt[row*16+9],pkt[row*16+10],pkt[row*16+11],
+                                    pkt[row*16+12],pkt[row*16+13],pkt[row*16+14],pkt[row*16+15]);
+      }
+      PT_LOG_TRACE(LOG_CTX_DHCP,"===================");
+  }
+
   ethHdrLen = sysNetDataOffsetGet(frame);
   ipVersion = (0xF0 & *(L7_uchar8*)(frame + ethHdrLen)) >> 4 ;
 
@@ -2466,11 +2488,20 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
 
    if (L7_SUCCESS == dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
    {
+       PT_LOG_TRACE(LOG_CTX_DHCP, "Binding Found: MAC=%02x:%02x:%02x:%02x:%02x:%02x; vlanId=%u"
+                                  " ptin_port=%u, intIfNum=%u, innerVlanId=%u, ipAddr=%x",
+                    dhcp_binding.key.macAddr[0], dhcp_binding.key.macAddr[1], dhcp_binding.key.macAddr[2],
+                    dhcp_binding.key.macAddr[3], dhcp_binding.key.macAddr[4], dhcp_binding.key.macAddr[5],
+                    dhcp_binding.key.vlanId, dhcp_binding.ptin_port, dhcp_binding.intIfNum,  dhcp_binding.innerVlanId,
+                    dhcp_binding.ipAddr);
+
       ptin_port = dhcp_binding.ptin_port;
+      PT_LOG_ERR(LOG_CTX_DHCP, "ptin_port=%u",ptin_port);
    }
    else
    {
       ptin_port =  intIfNum2port(intIfNum, 0);
+      PT_LOG_ERR(LOG_CTX_DHCP, "ptin_port=%u",ptin_port);
       if (ptin_port == PTIN_PORT_INVALID)
       {
         if (ptin_debug_dhcp_snooping)
@@ -2513,7 +2544,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      client.mask  = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
      client.mask |= (dhcp_binding.innerVlanId !=0 ) ? PTIN_CLIENT_MASK_FIELD_INNERVLAN : 0;
 
-     if (ptin_dhcp_clientIndex_get(ptin_port, vlanId, &client, &client_idx)!=L7_SUCCESS)
+     if (ptin_dhcp_clientIndex_get(dhcp_binding.intIfNum, vlanId, &client, &client_idx) != L7_SUCCESS)
      {
        if (ptin_debug_dhcp_snooping)
        {
@@ -5946,6 +5977,29 @@ L7_RC_t dsFrameSend(L7_uint32 ptin_port, L7_ushort16 vlanId,
   {
     PT_LOG_TRACE(LOG_CTX_DHCP, "Ready to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u, frame = %u", intIfNum, vlanId, innerVlanId, frameLen);
   }
+
+  if (ptin_debug_dhcp_snooping)
+  {
+      int row;
+      L7_uchar8 *pkt = frame;
+
+      PT_LOG_TRACE(LOG_CTX_DHCP,"===================");
+      PT_LOG_TRACE(LOG_CTX_DHCP,"======DHCP PKT=====");
+      PT_LOG_TRACE(LOG_CTX_DHCP,"===================");
+      for (row = 0; row < (frameLen/16)+1; row++)
+      {
+          PT_LOG_TRACE(LOG_CTX_DHCP,"%04x   "
+                                    "%2.2x %2.2x %2.2x %2.2x %2.2x %2.2x %2.2x %2.2x "
+                                    "%2.2x %2.2x %2.2x %2.2x %2.2x %2.2x %2.2x %2.2x ",
+                                    row * 16,
+                                    pkt[row*16+0],pkt[row*16+1],pkt[row*16+2],pkt[row*16+3],
+                                    pkt[row*16+4],pkt[row*16+5],pkt[row*16+6],pkt[row*16+7],
+                                    pkt[row*16+8],pkt[row*16+9],pkt[row*16+10],pkt[row*16+11],
+                                    pkt[row*16+12],pkt[row*16+13],pkt[row*16+14],pkt[row*16+15]);
+      }
+      PT_LOG_TRACE(LOG_CTX_DHCP,"===================");
+  }
+
 
   if (dtlIpBufSend(intIfNum, vlanId, bufHandle) != L7_SUCCESS)
   {
