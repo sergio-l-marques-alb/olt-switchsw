@@ -67,26 +67,26 @@
    https://jira.ptin.corppt.com/secure/attachment/620085/screenshot-2.png
    https://jira.ptin.corppt.com/browse/OLTSWITCH-1371
 */
-  #define PORT_VIRTUALIZATION_VID_N_SETS 2
+  #define PORT_VIRTUALIZATION_VID_N_SETS 4
 
   static const
   L7_uint32 phy2vport[PTIN_SYSTEM_N_PONS_PHYSICAL][PORT_VIRTUALIZATION_VID_N_SETS] = {
-      {16,  0},
-      {17,  1},
-      {18,  2},
-      {19,  3},
-      {20,  4},
-      {21,  5},
-      {22,  6},
-      {23,  7},
-      {24,  8},
-      {25,  9},
-      {26, 10},
-      {27, 11},
-      {28, 12},
-      {29, 13},
-      {30, 14},
-      {31, 15},
+      { 16,   0, -1U, -1U},
+      {-1U, -1U,  17,   1},
+      { 18,   2, -1U, -1U},
+      {-1U, -1U,  19,   3},
+      { 20,   4, -1U, -1U},
+      {-1U, -1U,  21,   5},
+      { 22,   6, -1U, -1U},
+      {-1U, -1U,  23,   7},
+      { 24,   8, -1U, -1U},
+      {-1U, -1U,  25,   9},
+      { 26,  10, -1U, -1U},
+      {-1U, -1U,  27,  11},
+      { 28,  12, -1U, -1U},
+      {-1U, -1U,  29,  13},
+      { 30,  14, -1U, -1U},
+      {-1U, -1U,  31,  15},
   };
 
  #else /*defined (PORT_VIRTUALIZATION_?_1)*/
