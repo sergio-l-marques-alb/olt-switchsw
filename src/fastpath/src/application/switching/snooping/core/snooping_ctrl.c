@@ -3477,7 +3477,7 @@ static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 ptin_
   isL3Entry = L7_FALSE;
   #endif
   ptin_timer_start(89,"snoopGroupIntfRemove");
-  if(L7_SUCCESS != snoopGroupIntfRemove(serviceId, mcastRootVlan, groupAddr, sourceAddr, ptin_port, isProtection, isL3Entry))
+  if(L7_SUCCESS != snoopGroupptinPortRemove(serviceId, mcastRootVlan, groupAddr, sourceAddr, ptin_port, isProtection, isL3Entry))
   {
     if (ptin_debug_igmp_snooping)
       PT_LOG_ERR(LOG_CTX_IGMP, "Unable to close port on switch for mcastRootVlan:%u [serviceId:%u ptin_port:%u groupAddr:%s sourceAddr:%s isProtection:%s]", mcastRootVlan, serviceId, ptin_port, groupAddrStr, sourceAddrStr, isProtection?"Yes":"No");      

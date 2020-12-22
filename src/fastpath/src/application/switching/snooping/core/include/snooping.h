@@ -40,6 +40,7 @@
 /* PTin added: IGMP Snooping */
 #include "ptin_globaldefs.h"
 #include "ptin_structs.h"
+#include "ptin_intf.h"
 
 #include <pthread.h>
 
@@ -601,20 +602,20 @@ typedef struct snoopPtinEvc_s
 } snoopPtinEvc_t;
 
 /* AVL Tree Snooping  Group Intf Mask Entry Strucutre */
-typedef struct snoopChannelIntfMaskInfoDataKey_s
+typedef struct snoopChannelptinPortMaskInfoDataKey_s
 {
   L7_uint32               vlanId;
-  PTIN_INTF_MASK_t        channelIntfMask;
-} snoopChannelIntfMaskInfoDataKey_t;
+  ptin_port_bmp_t         channelPtinPortMask;
+} snoopChannelptinPortMaskInfoDataKey_t;
 
-typedef struct snoopChannelIntfMaskInfoData_s
+typedef struct snoopChannelptinPortMaskInfoData_s
 {  
-  snoopChannelIntfMaskInfoDataKey_t  snoopChannelIntfMaskInfoDataKey; /*AVL Tree Key*/
+  snoopChannelptinPortMaskInfoDataKey_t  snoopChannelptinPortMaskInfoDataKey; /*AVL Tree Key*/
   L7_uint8                           noOfInterfaces;
   L7_int32                           multicastGroup;   
   L7_int32                           noOfChannelEntries;
   void                              *next;
-} snoopChannelIntfMaskInfoData_t;
+} snoopChannelptinPortMaskInfoData_t;
 
 /* AVL Tree Snooping Channel Entry Strucutre */
 typedef struct snoopChannelInfoDataKey_s
@@ -637,17 +638,17 @@ typedef enum
 typedef struct snoopChannelInfoData_s
 {  
   snoopChannelInfoDataKey_t          snoopChannelInfoDataKey; /*AVL Tree Key*/    
-  PTIN_INTF_MASK_t                   channelIntfMask;
+  ptin_port_bmp_t                    channelPtinPortMask;
   L7_uint8                           noOfInterfaces;  
-  #if PTIN_BOARD_IS_MATRIX//Protection
+#if PTIN_BOARD_IS_MATRIX//Protection
   PTIN_INTF_MASK_t                   channelIntfProtectionMask;
   L7_uint8                           noOfProtectionInterfaces;
   PTIN_INTF_MASK_t                   channelIntfDynamicMask;
   L7_uint8                           noOfDynamicInterfaces;
-  #endif
+#endif
   L7_uint8                           flags;  
-  snoopChannelIntfMaskInfoData_t    *pChannelIntfMask;
-  void                              *next;
+  snoopChannelptinPortMaskInfoData_t *pChannelptinPortMask;
+  void                               *next;
 } snoopChannelInfoData_t;
 
 /* AVL Tree Snooping L3 Entry Strucutre */
@@ -729,9 +730,9 @@ typedef struct snoop_eb_s
   snoopChannelInfoData_t  *snoopChannelDataHeap;
 
   /* ChannelIntfMask AVL Tree data */
-  avlTree_t                      snoopChannelIntfMaskAvlTree;
-  avlTreeTables_t               *snoopChannelIntfMaskTreeHeap;
-  snoopChannelIntfMaskInfoData_t *snoopChannelIntfMaskDataHeap;  
+  avlTree_t                          snoopChannelptinPortMaskAvlTree;
+  avlTreeTables_t                    *snoopChannelptinPortMaskTreeHeap;
+  snoopChannelptinPortMaskInfoData_t *snoopChannelptinPortMaskDataHeap;  
 
   /* Checkpoint/Backup AVL Tree data */
   avlTree_t              snoopCkptAvlTree;

@@ -45,6 +45,8 @@
 #define PTIN_PORT_IS_OTHER_TYPE(ptin_port) \
     ((ptin_port) >= (PTIN_SYSTEM_N_PORTS+PTIN_SYSTEM_N_LAGS) && (ptin_port) < PTIN_SYSTEM_N_INTERF)
 
+/*Bitmap Macro Handlers*/
+#define UCHAR8_BITSIZE  (sizeof(L7_uchar8)*8)
 
 typedef struct {
     bmp_cell_t value[PTIN_SYSTEM_N_INTERF/8 + 1];
@@ -61,6 +63,9 @@ typedef struct {
 
 #define PTINPORT_BITMAP_IS_SET(ptin_port_bmp,  ptin_port) \
     BITMAP_IS_SET((ptin_port_bmp).value, ptin_port)
+
+#define PTINPORT_BITMAP_IS_WORD_SET(ptin_port_bmp, ptin_port) \
+    (ptin_port_bmp.value[((ptin_port)/UCHAR8_BITSIZE)] == 0 ? 0 : 1)
 
 #define BITMAP_IS_CLEAR(ptin_port_bmp,  ptin_port) \
     BITMAP_IS_CLEAR((ptin_port_bmp).value, ptin_port)

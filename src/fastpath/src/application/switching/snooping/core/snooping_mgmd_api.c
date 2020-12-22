@@ -1532,7 +1532,7 @@ L7_RC_t ptin_snoop_l3_sync_port_process_request(L7_uint16 vlanId, L7_inet_addr_t
 
     snoopChannelInfoDataKeyPtr  = &snoopChannelInfoData->snoopChannelInfoDataKey;    
 
-    if (PTIN_IS_MASKBITSET(snoopChannelInfoData->channelIntfMask, portId))
+    if (PTIN_IS_MASKBITSET(snoopChannelInfoData->channelPtinPortMask.value, portId))
     {
       /*If this is a static entry move to the next entry*/
       if ( (snoopChannelInfoData->flags & SNOOP_CHANNEL_ENTRY_IS_STATIC) == SNOOP_CHANNEL_ENTRY_IS_STATIC)

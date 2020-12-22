@@ -147,13 +147,13 @@ L7_RC_t snoopGroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_t*
  * @param vlanId                : Vlan id
  * @param groupAddr             : group Address
  * @param sourceAddr            : source Address 
- * @param intIfNum              : interface 
+ * @param ptin_port             : ptin_port 
  * @param isProtection          : protection 
  * @param isL3Entry             : L2/L3 Entry  
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILRE
  */
-L7_RC_t snoopGroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_t *groupAddr, L7_inet_addr_t* sourceAddr, L7_uint32 intIfNum, L7_BOOL isProtection, L7_BOOL isL3Entry);
+L7_RC_t snoopGroupptinPortRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_t *groupAddr, L7_inet_addr_t* sourceAddr, L7_uint32 ptin_port, L7_BOOL isProtection, L7_BOOL isL3Entry);
 
 /**
  * Add L2 channel and update Snoop Entry database.
@@ -222,9 +222,9 @@ snoopChannelInfoData_t        *snoopChannelEntryFind(L7_uint32 vlanId, L7_inet_a
 L7_RC_t                        snoopChannelEntryDelete(L7_uint32 vlanId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, snoopChannelInfoData_t *pSnoopEntry);
 void                           snoopChannelReset(L7_uint32 vlanId, L7_uint32 intIfNum);
 
-L7_RC_t                         snoopChannelIntfMaskEntryAdd(snoopChannelIntfMaskInfoData_t   **snoopEntry);
-snoopChannelIntfMaskInfoData_t *snoopChannelIntfMaskEntryFind(L7_uint32 vlanId, PTIN_INTF_MASK_t *groupIntfMask, L7_uint8 flag);
-L7_RC_t                         snoopChannelIntfMaskEntryDelete(L7_uint32 vlanId, PTIN_INTF_MASK_t *groupIntfMask, snoopChannelIntfMaskInfoData_t   *pSnoopEntry);
+L7_RC_t                         snoopChannelptinPortMaskEntryAdd(snoopChannelptinPortMaskInfoData_t   **snoopEntry);
+snoopChannelptinPortMaskInfoData_t *snoopChannelptinPortMaskEntryFind(L7_uint32 vlanId, ptin_port_bmp_t *groupPtinMask, L7_uint8 flag);
+L7_RC_t                         snoopChannelptinPortMaskEntryDelete(L7_uint32 vlanId, ptin_port_bmp_t *groupPtinMask, snoopChannelptinPortMaskInfoData_t   *pSnoopEntry);
 
 /******************************************************************************
   SNOOP L3 Mcast DB Entry Processing Routines
