@@ -7319,7 +7319,7 @@ L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
 
     /* Adjust outer VID considering the port virtualization scheme */
     if (ptin_intf_portGem2virtualVid(ptintf2port(ptinEvcFlow.ptin_intf.intf_type, ptinEvcFlow.ptin_intf.intf_id),
-                                     msgEvcFlow->intf.outer_vid,
+                                     ptinEvcFlow.uni_ovid,
                                      &ptinEvcFlow.uni_ovid) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u", msgEvcFlow->intf.outer_vid);
@@ -7327,7 +7327,7 @@ L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
     /* Inner VLAN will identify the client using the GEM-VLAN value.
        So, we need to add an offset according to the virtual port in use */
     if (ptin_intf_portGem2virtualVid(ptintf2port(ptinEvcFlow.ptin_intf.intf_type, ptinEvcFlow.ptin_intf.intf_id),
-                                     msgEvcFlow->nni_cvlan,
+                                     ptinEvcFlow.int_ivid,
                                      &ptinEvcFlow.int_ivid) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u", msgEvcFlow->nni_cvlan);
