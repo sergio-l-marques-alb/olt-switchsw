@@ -973,7 +973,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   L7_uchar8             packet[L7_MAX_FRAME_SIZE];
   L7_uchar8            *dataPtr;
   L7_uint32             packetLength = payloadLength;
-  L7_uint32             dstIpAddr;
+  L7_uint32             dstIpAddr, intIfNum;
   L7_uchar8            *destIpPtr;
   L7_inet_addr_t        destIp;
   L7_uint32             activeState;
@@ -983,6 +983,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   ptin_IgmpProxyCfg_t   igmpCfg;
   ptin_mgmd_port_type_t portType;
   L7_uint32             groupAddress;
+  L7_RC_t               rc;
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
   L7_uint8              isDynamic;
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
@@ -1007,11 +1008,18 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   #error "Not Implemented Yet"
 #endif
 
+  rc = ptin_intf_port2intIfNum(portId, &intIfNum);
+  if (rc != L7_SUCCESS)
+  {
+     PT_LOG_ERR(LOG_CTX_IGMP, "Error getting intIfNum");
+     return FAILURE;
+  }
+
   //Ignore if the port has link down
-  if ( (nimGetIntfActiveState(portId, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE) )
+  if ( (nimGetIntfActiveState(intIfNum, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE) )
   {
     if (ptin_debug_igmp_snooping)
-      PT_LOG_NOTICE(LOG_CTX_IGMP,"Silently ignoring packet transmission. Outgoing interface [portId=%u serviceId=%u] is down!",portId,serviceId );
+      PT_LOG_NOTICE(LOG_CTX_IGMP,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u serviceId=%u] is down!",intIfNum,serviceId );
     return SUCCESS;
   }
 
