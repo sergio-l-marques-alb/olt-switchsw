@@ -15,6 +15,7 @@
 #include "l3_addrdefs.h"
 #include "ptin_mgmd_ctrl.h"
 #include "ptin_globaldefs.h"
+#include "ptin_intf.h"
 
 /*********************************************************** 
  * MACRO TOOLS
@@ -1181,28 +1182,28 @@ extern L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint16 intVlan, L7_uint32 ptin_por
  */
 extern L7_RC_t ptin_igmp_McastRootVlanRing_get(L7_uint16 intVlan, L7_uint16 *McastRootVlan);
 
- /**
- * Get the list of root interfaces associated to a internal vlan
+/**
+ * Get the list of ptin_ports associated to a internal vlan
  * 
  * @param intVlan        : Internal vlan
- * @param intfList       : List of interfaces 
+ * @param ptinPortList   : List of ptin_ports 
  * @param noOfInterfaces : Number of interfaces 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_rootIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList, L7_uint32 *noOfInterfaces);
+extern L7_RC_t ptin_igmp_rootptinPort_getList(L7_uint16 intVlan, ptin_port_bmp_t *ptinPortList, L7_uint32 *noOfInterfaces);
 
 /**
- * Get the list of client (leaf) interfaces associated to a 
+ * Get the list of client (leaf) ptin_ports associated to a 
  * internal vlan 
  * 
- * @param intVlan        : Internal vlan
- * @param intfList       : List of interfaces 
+ * @param intVlan      : Internal vlan
+ * @param ptinPortList : List of ptin_ports
  * @param noOfInterfaces : Number of interfaces  
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList, L7_uint32 *noOfInterfaces);
+extern L7_RC_t ptin_igmp_clientPtinport_getList(L7_uint16 intVlan, ptin_port_bmp_t *ptinPortList, L7_uint32 *noOfInterfaces);
 
 /**
  * Get the external outer+inner vlan asociated to the MC EVC

@@ -462,8 +462,8 @@ L7_RC_t ptin_snoop_static_channel_add(L7_uint16 vlanId, L7_inet_addr_t *channel)
   if (igmp_network_version==3)
   {
     L7_uint32 intIfNum;
-    L7_INTF_MASK_t mcastClientAttached;
-    if (ptin_igmp_clientIntfs_getList(vlanId, &mcastClientAttached, &noOfInterfaces)!=L7_SUCCESS)
+    ptin_port_bmp_t mcastClientAttached;
+    if (ptin_igmp_clientPtinport_getList(vlanId, &mcastClientAttached, &noOfInterfaces)!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_IGMP, "Error getting client interfaces of vlan %u",vlanId);
       return L7_SUCCESS;
@@ -538,8 +538,8 @@ L7_RC_t ptin_snoop_channel_remove(L7_uint16 vlanId, L7_inet_addr_t *channel)
   if (igmp_network_version==3)
   { 
     L7_uint32 intIfNum;
-    L7_INTF_MASK_t mcastClientAttached;
-    if (ptin_igmp_clientIntfs_getList(vlanId, &mcastClientAttached, &noOfInterfaces)!=L7_SUCCESS)
+    ptin_port_bmp_t mcastClientAttached;
+    if (ptin_igmp_clientPtinport_getList(vlanId, &mcastClientAttached, &noOfInterfaces)!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_IGMP, "Error getting client interfaces of vlan %u",vlanId);
       return L7_SUCCESS;

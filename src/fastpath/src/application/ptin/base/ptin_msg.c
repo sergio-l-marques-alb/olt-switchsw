@@ -12409,15 +12409,15 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
   //Short Fix to Support Mac Bridge Services and Unicast Services
   #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
   {
-    #if 0
+    #if 0 /*FIXME TC16SXG*/
     L7_BOOL isMacBridge;    
     if(ptin_evc_mac_bridge_check(inputPtr->evc_id, &isMacBridge)==L7_SUCCESS && isMacBridge==L7_TRUE)
-    #else
     if (inputPtr->client.outer_vlan==0) 
-    #endif
+   
     {        
       inputPtr->client.outer_vlan=inputPtr->client.inner_vlan;        
     }
+    #endif
     if (inputPtr->client.mask != 0)
     {
       inputPtr->client.mask|=MSG_CLIENT_OVLAN_MASK;
@@ -12813,6 +12813,15 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClientsResponse_t *clien
     /* Copy channels to message */
     for (i=0; i<MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX && i<number_of_clients; i++)
     {
+      /* Inner VLAN will identify the client using the GEM-VLAN value.
+      So, we need to add an offset according to the virtual port in use */
+      if (ptin_intf_virtualVid2GemVid(clist[i].innerVlan,
+                                      &clist[i].innerVlan) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", 
+                   clist[i].innerVlan);
+      }
+
       client_list->clients_list[i].mask           = clist[i].mask;
       client_list->clients_list[i].outer_vlan     = ENDIAN_SWAP16(clist[i].outerVlan);
       client_list->clients_list[i].inner_vlan     = ENDIAN_SWAP16(clist[i].innerVlan);

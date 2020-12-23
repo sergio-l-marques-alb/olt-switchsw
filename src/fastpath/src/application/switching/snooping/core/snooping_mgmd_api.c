@@ -116,7 +116,7 @@ unsigned int snooping_cos_set(unsigned char cos)
 
 unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t portType, PTIN_MGMD_PORT_MASK_t *portList, unsigned int *noOfPorts)
 {
-  L7_INTF_MASK_t interfaceBitmap;
+  ptin_port_bmp_t interfaceBitmap;
   L7_uint32      noOfInterfaces = 0;
   L7_uint16      mcastRootVlan;
   L7_RC_t        res = SUCCESS;  
@@ -143,11 +143,11 @@ unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t
   /* Request portList to FP */
   if(PTIN_MGMD_PORT_TYPE_LEAF == portType)
   {
-    res = ptin_igmp_clientIntfs_getList(mcastRootVlan, &interfaceBitmap, &noOfInterfaces);
+    res = ptin_igmp_clientPtinport_getList(mcastRootVlan, &interfaceBitmap, &noOfInterfaces);
   }
   else if(PTIN_MGMD_PORT_TYPE_ROOT == portType)
   {
-    res = ptin_igmp_rootIntfs_getList(mcastRootVlan, &interfaceBitmap, &noOfInterfaces);
+    res = ptin_igmp_rootptinPort_getList(mcastRootVlan, &interfaceBitmap, &noOfInterfaces);
   }
   else
   {   
@@ -1235,7 +1235,6 @@ L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16
     #if (defined IGMP_QUERIER_IN_UC_EVC)
     {
       /* First client/flow */
-       /* FIXME TC16SXG: intIfNum->ptin_port */
        rc = ptin_evc_vlan_client_next(int_ovlan, portId, &clientFlow, &clientFlow);
 
        PT_LOG_TRACE(LOG_CTX_IGMP,"onuId=%d", onuId);
@@ -1283,7 +1282,7 @@ L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16
         client_idx = (L7_uint)-1;
         if (ptin_debug_igmp_snooping)
         {
-          PT_LOG_TRACE(LOG_CTX_IGMP,"Packet will be transmited for intIfNum=%u (intVlan=%u)", portId, int_ovlan);
+          PT_LOG_TRACE(LOG_CTX_IGMP,"Packet will be transmited for ptin_port=%u (intVlan=%u)", portId, int_ovlan);
         }
       }
       else
@@ -1291,7 +1290,7 @@ L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16
         /* An error ocurred */
         if (ptin_debug_igmp_snooping)
         {
-          PT_LOG_TRACE(LOG_CTX_IGMP,"No more transmissions for intIfNum=%u (intVlan=%u), rc=%u", portId, int_ovlan, rc);
+          PT_LOG_TRACE(LOG_CTX_IGMP,"No more transmissions for ptin_port=%u (intVlan=%u), rc=%u", portId, int_ovlan, rc);
         }
         break;
       }

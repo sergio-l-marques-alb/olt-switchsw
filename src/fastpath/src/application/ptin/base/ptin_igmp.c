@@ -13,7 +13,6 @@
 #include "ptin_igmp.h"
 #include "ptin_xlate_api.h"
 #include "ptin_oam_packet.h"
-#include "ptin_intf.h"
 #include "ptin_utils.h"
 #include "ptin_evc.h"
 #include "usmdb_snooping_api.h"
@@ -3969,8 +3968,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
         if (ptinPort >= PTIN_SYSTEM_N_INTERF)
         {
           *number_of_clients=0;
-          PT_LOG_ERR(LOG_CTX_IGMP,
-                     "mgmdGroupsRes->portId [%u] >= PTIN_SYSTEM_N_INTERF",
+          PT_LOG_ERR(LOG_CTX_IGMP, "mgmdGroupsRes->portId [%u] >= [%d]",
                      ptinPort, PTIN_SYSTEM_N_INTERF);
           /*Give Semaphore*/
           osapiSemaGive(ptin_igmp_clients_sem);
@@ -4002,48 +4000,56 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
           PT_LOG_ERR(LOG_CTX_IGMP,"Invalid client returned from MGMD clientId:%u", mgmdGroupsRes->clientId);
 
 
-  #if (MC_CLIENT_INTERF_SUPPORTED)
-
-#ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
-
-  #if    PTIN_BOARD == PTIN_BOARD_CXO160G 
-          if (ptin_intf_port2lag(mgmdGroupsRes->portId,&ptinPort) == L7_SUCCESS)
+#if (MC_CLIENT_INTERF_SUPPORTED)
+ #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
+  #if PTIN_BOARD == PTIN_BOARD_CXO160G
+          if (PTIN_PORT_IS_LAG(mgmdGroupsRes->portId))
           {
-            newClientEntry.ptin_intf.intf_type = 1;
-            newClientEntry.ptin_intf.intf_id = ptinPort;
-            newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+            if (ptin_intf_port2lag(mgmdGroupsRes->portId,&ptinPort) == L7_SUCCESS)
+            {
+              newClientEntry.ptin_intf.intf_type = 1;
+              newClientEntry.ptin_intf.intf_id = ptinPort;
+              newClientEntry.ptin_port = mgmdGroupsRes->portId;
+              newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+            }
           }
           else
           {
             newClientEntry.ptin_intf.intf_type = 0;
             newClientEntry.ptin_intf.intf_id = ptinPort;
+            newClientEntry.ptin_port = mgmdGroupsRes->portId;
             newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           }
   #else // PTIN_BOARD_CXO160G
           newClientEntry.ptin_intf.intf_type = 0;
-          newClientEntry.ptin_intf.intf_id = ptinPort;
+          newClientEntry.ptin_intf.intf_id = mgmdGroupsRes->portId;
+          newClientEntry.ptin_port = mgmdGroupsRes->portId;
           newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
   #endif     
 
-#else  // ONE_MULTICAST_VLAN_RING_SUPPORT
-          
-          if (ptin_intf_port2lag(mgmdGroupsRes->portId,&ptinPort) == L7_SUCCESS)
+ #else  // ONE_MULTICAST_VLAN_RING_SUPPORT
+          if (PTIN_PORT_IS_LAG(mgmdGroupsRes->portId))
           {
-            newClientEntry.ptin_intf.intf_type = 1;
-            newClientEntry.ptin_intf.intf_id = ptinPort;
-            newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+            if (ptin_intf_port2lag(mgmdGroupsRes->portId,&ptinPort) == L7_SUCCESS)
+            {
+              newClientEntry.ptin_intf.intf_type = 1;
+              newClientEntry.ptin_intf.intf_id = ptinPort;
+              newClientEntry.ptin_port = mgmdGroupsRes->portId;
+              newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+            }
           }
           else
           {
             newClientEntry.ptin_intf.intf_type = 0;
-            newClientEntry.ptin_intf.intf_id = ptinPort;
+            newClientEntry.ptin_intf.intf_id = mgmdGroupsRes->portId;
+            newClientEntry.ptin_port = mgmdGroupsRes->portId;
             newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           }
         
-#endif // ONE_MULTICAST_VLAN_RING_SUPPORT
+ #endif // ONE_MULTICAST_VLAN_RING_SUPPORT
+#endif //MC_CLIENT_INTERF_SUPPORTED
 
-  #endif
-  #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+#if (MC_CLIENT_OUTERVLAN_SUPPORTED)
           {
             L7_uint16 nni_ovid;
 
@@ -4052,12 +4058,12 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
             newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
             //PT_LOG_DEBUG(LOG_CTX_IGMP, "oVlan: %u", newClientEntry.outerVlan);
           }
-  #endif
-  #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+#endif
+#if (MC_CLIENT_INNERVLAN_SUPPORTED)
           //newClientEntry.innerVlan = clientGroup->igmpClientDataKey.innerVlan;
           //newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
           //PT_LOG_DEBUG(LOG_CTX_IGMP, "iVlan: %u", newClientEntry.innerVlan);
-  #endif
+#endif
           /*Give Semaphore*/
           //osapiSemaGive(ptin_igmp_clients_sem);
 
@@ -4066,32 +4072,34 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
         }
         else
         {
-  #if (MC_CLIENT_INTERF_SUPPORTED)
-
-#ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
-
+#if (MC_CLIENT_INTERF_SUPPORTED)
+ #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
   #if PTIN_BOARD == PTIN_BOARD_CXO160G 
-          if (ptin_intf_port2ptintf(clientGroup->ptin_port, &newClientEntry.ptin_intf)!=L7_SUCCESS)
+          if (PTIN_PORT_IS_LAG(mgmdGroupsRes->portId))
           {
-            *number_of_clients=0;
-            PT_LOG_ERR(LOG_CTX_IGMP,"Unable to Convert intfNum[%u]", clientGroup->ptin_port);
-
-            /*Give Semaphore*/
-            osapiSemaGive(ptin_igmp_clients_sem);
-
-            return L7_FAILURE;
+            if (ptin_intf_port2lag(mgmdGroupsRes->portId, &ptinPort) == L7_SUCCESS)
+            {
+              newClientEntry.ptin_intf.intf_type = 1;
+              newClientEntry.ptin_intf.intf_id = ptinPort;
+            }
           }
-
-          if (ptin_intf_port2lag(mgmdGroupsRes->portId,&ptinPort) == L7_SUCCESS)
+          else
           {
-            /* intf_type is LAG*/
-            newClientEntry.ptin_intf.intf_type = 1;
-            newClientEntry.ptin_intf.intf_id = ptinPort;
-          }
+              if (ptin_intf_port2ptintf(clientGroup->ptin_port, &newClientEntry.ptin_intf)!=L7_SUCCESS)
+              {
+                *number_of_clients=0;
+                PT_LOG_ERR(LOG_CTX_IGMP,"Unable to Convert intfNum[%u]", clientGroup->ptin_port);
 
+                /*Give Semaphore*/
+                osapiSemaGive(ptin_igmp_clients_sem);
+
+                return L7_FAILURE;
+              }
+          }
+          newClientEntry.ptin_port = mgmdGroupsRes->portId;
           newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           PT_LOG_DEBUG(LOG_CTX_IGMP, "Port: %u", clientGroup->ptin_port);
-  #else 
+  #else //PTIN_BOARD_CXO160G
           if (ptin_intf_port2ptintf(clientGroup->ptin_port, &newClientEntry.ptin_intf)!=L7_SUCCESS)
           {
             *number_of_clients=0;
@@ -4102,49 +4110,51 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
 
             return L7_FAILURE;
           }
+
+          newClientEntry.ptin_port = mgmdGroupsRes->portId;
           newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           PT_LOG_DEBUG(LOG_CTX_IGMP, "Port: %u", clientGroup->ptin_port);
   #endif 
-#endif // ONE_MULTICAST_VLAN_RING_SUPPORT
-//#if  PTIN_BOARD == PTIN_BOARD_CXO640G
+ #endif // ONE_MULTICAST_VLAN_RING_SUPPORT
+          if (PTIN_PORT_IS_LAG(mgmdGroupsRes->portId))
+          {
+            if (ptin_intf_port2lag(mgmdGroupsRes->portId, &ptinPort) == L7_SUCCESS)
+            {
+              /* intf_type is LAG*/
+              newClientEntry.ptin_intf.intf_type = 1;
+              newClientEntry.ptin_intf.intf_id = ptinPort;
+              newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+            }
+          } 
+          else
+          {
+            if (ptin_intf_port2ptintf(clientGroup->ptin_port, &newClientEntry.ptin_intf) != L7_SUCCESS)
+            {
+              *number_of_clients = 0;
+              PT_LOG_ERR(LOG_CTX_IGMP, "Unable to Convert intfNum[%u]", clientGroup->ptin_port);
 
-        if (ptin_intf_port2ptintf(clientGroup->ptin_port, &newClientEntry.ptin_intf)!=L7_SUCCESS)
-        {
-          *number_of_clients=0;
-          PT_LOG_ERR(LOG_CTX_IGMP,"Unable to Convert intfNum[%u]", clientGroup->ptin_port);
+              /*Give Semaphore*/
+              osapiSemaGive(ptin_igmp_clients_sem);
+              return L7_FAILURE;
+            }
+          }
 
-          /*Give Semaphore*/
-          osapiSemaGive(ptin_igmp_clients_sem);
-
-          return L7_FAILURE;
-        }
-
-        if (ptin_intf_port2lag(mgmdGroupsRes->portId,&ptinPort) == L7_SUCCESS)
-        {
-          /* intf_type is LAG*/
-          newClientEntry.ptin_intf.intf_type = 1;
-          newClientEntry.ptin_intf.intf_id = ptinPort;
+ #if  (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_TA48GE)
           newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-        }
-
-#if  (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_TA48GE)
-        newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-#endif
-        PT_LOG_DEBUG(LOG_CTX_IGMP, "Port: %u", clientGroup->ptin_port);
-//#endif // ONE_MULTICAST_VLAN_RING_SUPPORT
-
-  #endif
-  #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+ #endif
+          PT_LOG_DEBUG(LOG_CTX_IGMP, "Port: %u", clientGroup->ptin_port);
+#endif //MC_CLIENT_INTERF_SUPPORTED
+#if (MC_CLIENT_OUTERVLAN_SUPPORTED)
           newClientEntry.outerVlan = clientGroup->igmpClientDataKey.outerVlan;
           newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
           PT_LOG_DEBUG(LOG_CTX_IGMP, "oVlan: %u", newClientEntry.outerVlan);
-  #endif
-  #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+#endif
+#if (MC_CLIENT_INNERVLAN_SUPPORTED)
           newClientEntry.innerVlan = clientGroup->igmpClientDataKey.innerVlan;
           newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
           PT_LOG_DEBUG(LOG_CTX_IGMP, "iVlan: %u", newClientEntry.innerVlan);
-  #endif
-  #if 0
+#endif
+#if 0
   #if (MC_CLIENT_IPADDR_SUPPORTED)
           newClientEntry.ipv4_addr = clientGroup->ipv4_addr;
           newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_IPADDR;
@@ -4153,7 +4163,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
           memcpy(newClientEntry.macAddr, clientGroup->macAddr, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
           newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_MACADDR;
   #endif
-  #endif
+#endif
         }
 
         if (L7_SUCCESS != ptin_igmp_clientGroupSnapshot_add(&newClientEntry))
@@ -7110,20 +7120,20 @@ L7_RC_t ptin_igmp_McastRootVlanRing_get(L7_uint16 intVlan, L7_uint16 *McastRootV
 }
 
 /**
- * Get the list of root interfaces associated to a internal vlan
+ * Get the list of ptin_ports associated to a internal vlan
  * 
  * @param intVlan        : Internal vlan
- * @param intfList       : List of interfaces 
+ * @param ptinPortList   : List of ptin_ports 
  * @param noOfInterfaces : Number of interfaces 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_rootIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList, L7_uint32 *noOfInterfaces)
+L7_RC_t ptin_igmp_rootptinPort_getList(L7_uint16 intVlan, ptin_port_bmp_t *ptinPortList, L7_uint32 *noOfInterfaces)
 {
   st_IgmpInstCfg_t *igmpInst;
   ptin_HwEthMef10Evc_t evcCfg;
-  L7_uint intf_idx;
-  L7_uint32 intIfNum;
+  L7_uint ptinPort_idx;
+  L7_uint32 ptin_port;
 
   /* IGMP instance, from internal vlan */
   if (ptin_igmp_inst_get_fromIntVlan(intVlan,&igmpInst,L7_NULLPTR)!=L7_SUCCESS)
@@ -7144,24 +7154,24 @@ L7_RC_t ptin_igmp_rootIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList,
   }
 
   /* interface list pointer must not be null */
-  if (intfList==L7_NULLPTR || noOfInterfaces==L7_NULLPTR)
+  if (ptinPortList==L7_NULLPTR || noOfInterfaces==L7_NULLPTR)
   {
     return L7_SUCCESS;
   }
 
   /* clear interface list */
-  memset(intfList,0x00,sizeof(L7_INTF_MASK_t));
+  memset(ptinPortList,0x00,sizeof(ptin_port_bmp_t));
 
   *noOfInterfaces = 0;
 
   /* Run all interfaces */
-  for (intf_idx=0; intf_idx<evcCfg.n_intf; intf_idx++)
+  for (ptinPort_idx=0; ptinPort_idx<evcCfg.n_intf; ptinPort_idx++)
   {
-    if (evcCfg.intf[intf_idx].mef_type==PTIN_EVC_INTF_ROOT)
+    if (evcCfg.intf[ptinPort_idx].mef_type==PTIN_EVC_INTF_ROOT)
     {
-      intIfNum = evcCfg.intf[intf_idx].intf.value.intIfNum;
+      ptin_port = evcCfg.intf[ptinPort_idx].intf.value.ptin_port;
 
-      L7_INTF_SETMASKBIT(*intfList,intIfNum);
+      L7_INTF_SETMASKBIT(*ptinPortList, ptin_port);
       (*noOfInterfaces)++;
     }
   }
@@ -7170,15 +7180,15 @@ L7_RC_t ptin_igmp_rootIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList,
 }
 
 /**
- * Get the list of client (leaf) interfaces associated to a 
+ * Get the list of client (leaf) ptin_ports associated to an 
  * internal vlan 
  * 
- * @param intVlan  : Internal vlan
- * @param intfList : List of interfaces
+ * @param intVlan      : Internal vlan
+ * @param ptinPortList : List of ptin_ports
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList, L7_uint32 *noOfInterfaces)
+L7_RC_t ptin_igmp_clientPtinport_getList(L7_uint16 intVlan, ptin_port_bmp_t *ptinPortList, L7_uint32 *noOfInterfaces)
 {
   ptin_HwEthMef10Evc_t evcCfg;
   L7_uint     intf_idx;
@@ -7202,11 +7212,11 @@ L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfLis
 
   /* Get MC EVC configuration */
   memset(&evcCfg,0x00,sizeof(ptin_HwEthMef10Evc_t));
-#if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
+ #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
   evc_idx = igmpInst->UcastEvcId;
-#else
+ #else
   evc_idx = igmpInst->McastEvcId;
-#endif
+ #endif
 
 #else
 
@@ -7229,13 +7239,13 @@ L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfLis
   }
 
   /* interface list pointer must not be null */
-  if (intfList==L7_NULLPTR || noOfInterfaces == L7_NULLPTR)
+  if (ptinPortList==L7_NULLPTR || noOfInterfaces == L7_NULLPTR)
   {
     return L7_SUCCESS;
   }
 
   /* clear interface list */
-  memset(intfList,0x00,sizeof(L7_INTF_MASK_t));
+  memset(ptinPortList,0x00,sizeof(ptin_port_bmp_t));
 
   *noOfInterfaces = 0;
 
@@ -7267,8 +7277,10 @@ L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfLis
 #endif
       {
         if (ptin_debug_igmp_snooping)
-          PT_LOG_DEBUG(LOG_CTX_IGMP,"Port bitmap set intIfNum:%u",intIfNum);
-        L7_INTF_SETMASKBIT(*intfList,intIfNum);
+        {
+          PT_LOG_DEBUG(LOG_CTX_IGMP, "Port bitmap set ptin_port:%u", ptin_port);
+        }
+        L7_INTF_SETMASKBIT(*ptinPortList, ptin_port);
         (*noOfInterfaces)++;
       }
     }
@@ -11431,7 +11443,7 @@ L7_RC_t ptin_igmp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *client)
   if (client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN)
   {
     /* Validate inner vlan */
-    if (client->innerVlan>4095)
+    if (client->innerVlan > 4095)
     {
       PT_LOG_ERR(LOG_CTX_IGMP,"Invalid inner vlan (%u)",client->innerVlan);
       return L7_FAILURE;
@@ -11496,7 +11508,6 @@ static L7_RC_t ptin_igmp_clientId_restore(ptin_client_id_t *client)
     return L7_FAILURE;
   }
 
-  PT_LOG_ERR(LOG_CTX_IGMP,"Invalid arguments or no parameters provided %d ", client->mask);
   /* Check mask */
   if (client->mask==0x00)
   {
@@ -11506,7 +11517,8 @@ static L7_RC_t ptin_igmp_clientId_restore(ptin_client_id_t *client)
 
   ptin_evc_check_evctype_fromIntVlan(client->outerVlan,&evc_type);
 
-  PT_LOG_WARN(LOG_CTX_IGMP,"evc_type %d ", evc_type);
+  PT_LOG_TRACE(LOG_CTX_IGMP, "client->mask=%d, evc_type=%d ", client->mask, evc_type);
+
   if((evc_type == PTIN_EVC_TYPE_STD_P2P))
   {
     innerVlan = 0;
