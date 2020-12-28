@@ -7170,8 +7170,11 @@ L7_RC_t ptin_igmp_rootptinPort_getList(L7_uint16 intVlan, ptin_port_bmp_t *ptinP
     if (evcCfg.intf[ptinPort_idx].mef_type==PTIN_EVC_INTF_ROOT)
     {
       ptin_port = evcCfg.intf[ptinPort_idx].intf.value.ptin_port;
-
-      L7_INTF_SETMASKBIT(*ptinPortList, ptin_port);
+      if (ptin_debug_igmp_snooping)
+      {
+        PT_LOG_DEBUG(LOG_CTX_IGMP, "Port bitmap set ptin_port:%u", ptin_port);
+      }     
+      PTINPORT_BITMAP_SET(*ptinPortList, (ptin_port-1));
       (*noOfInterfaces)++;
     }
   }
@@ -7280,7 +7283,7 @@ L7_RC_t ptin_igmp_clientPtinport_getList(L7_uint16 intVlan, ptin_port_bmp_t *pti
         {
           PT_LOG_DEBUG(LOG_CTX_IGMP, "Port bitmap set ptin_port:%u", ptin_port);
         }
-        L7_INTF_SETMASKBIT(*ptinPortList, ptin_port);
+        PTINPORT_BITMAP_SET(*ptinPortList, ptin_port);
         (*noOfInterfaces)++;
       }
     }

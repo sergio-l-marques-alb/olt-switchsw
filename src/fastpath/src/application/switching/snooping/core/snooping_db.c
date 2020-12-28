@@ -6603,20 +6603,17 @@ void snoopChannelReset(L7_uint32 vlanId, L7_uint32 intIfNum)
         continue;
 
       /*Is this word set?*/
-      if (!PTIN_IS_MASK_WORD_SET(pEntry->channelPtinPortMask.value, intf))
+      if (!PTINPORT_BITMAP_IS_WORD_SET(pEntry->channelPtinPortMask, intf))
       {
          /*Move to Next Position -1 because of the for*/
-        intf += PTIN_SNOOP_PORT_MASK_UNIT -1;
+        intf += UCHAR8_BITSIZE -1;
         continue;
       }
 
       /*Is this interface set?*/
-      if (!PTIN_IS_MASKBITSET(pEntry->channelPtinPortMask.value, intf))
+      if (!PTINPORT_BITMAP_SET(pEntry->channelPtinPortMask, intf))
         continue;
 
-      /*Move to the Next Interface*/
-      if (!PTIN_IS_MASKBITSET(pEntry->channelPtinPortMask.value, intf))
-        continue;
 
       #if PTIN_BOARD_IS_MATRIX//Protection
       if ( PTIN_IS_MASKBITSET(pEntry->channelIntfProtectionMask, intf) && PTIN_IS_MASKBITSET(pEntry->channelIntfDynamicMask, intf) )
@@ -6632,11 +6629,11 @@ void snoopChannelReset(L7_uint32 vlanId, L7_uint32 intIfNum)
       {
         /*Remove Dynamic Entry*/
         snoopL3GroupPtinPortRemove(evcId, pEntry->snoopChannelInfoDataKey.vlanId, &pEntry->snoopChannelInfoDataKey.groupAddr, &pEntry->snoopChannelInfoDataKey.sourceAddr, 
-                                intf, PTIN_IS_MASKBITSET(pEntry->channelIntfProtectionMask, intf));               
+                                   intf, PTIN_IS_MASKBITSET(pEntry->channelIntfProtectionMask, intf));               
       }
       #else
       snoopL3GroupPtinPortRemove(evcId, pEntry->snoopChannelInfoDataKey.vlanId, &pEntry->snoopChannelInfoDataKey.groupAddr, &pEntry->snoopChannelInfoDataKey.sourceAddr, 
-                              intf, 0);       
+                                intf, 0);       
       #endif       
     }
   }  
