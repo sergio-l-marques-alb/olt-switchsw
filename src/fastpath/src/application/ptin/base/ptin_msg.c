@@ -11304,21 +11304,22 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u", igmp_stats->client.intf.intf_type, igmp_stats->client.intf.intf_id);
 
   //Short Fix to Support Mac Bridge Services and Unicast Services 
-  #if PTIN_BOARD_IS_LINECARD
+#if PTIN_BOARD_IS_LINECARD
   {
-    #if 0
+#if 0 /*FIX temporary fix TC16SXG*/
     L7_BOOL isMacBridge;    
     if (ptin_evc_mac_bridge_check(igmp_stats->mcEvcId, &isMacBridge)==L7_SUCCESS && isMacBridge==L7_TRUE)
-    #else
     if (ENDIAN_SWAP16(igmp_stats->client.outer_vlan)==0) 
-    #endif
     {      
       igmp_stats->client.outer_vlan= ENDIAN_SWAP16(igmp_stats->client.inner_vlan);      
-    }    
-    igmp_stats->client.mask|=MSG_CLIENT_OVLAN_MASK;    
+    }  
+      
+#endif
+    igmp_stats->client.mask|=MSG_CLIENT_OVLAN_MASK;  
+    igmp_stats->client.outer_vlan = 0;  
     PT_LOG_DEBUG(LOG_CTX_MSG,"Converted [client.Mask:%u Client.OVlan:%u]",igmp_stats->client.mask, ENDIAN_SWAP16(igmp_stats->client.outer_vlan));
   }  
-  #endif
+#endif
 
   /* Evaluate provided data */
   if ( aux_mcEvcId ==(L7_uint16)-1 ||
