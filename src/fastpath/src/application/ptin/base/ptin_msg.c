@@ -9491,6 +9491,10 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   }
 
   memset(&client,0x00,sizeof(ptin_client_id_t));
+
+  dhcp_stats->client.mask |= MSG_CLIENT_INTF_MASK;  //RICHARD ADDED
+//  dhcp_stats->client.mask |= MSG_CLIENT_OVLAN_MASK;  //RICHARD ADDED
+
   if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_OVLAN_MASK)
   {
     client.outerVlan = ENDIAN_SWAP16(dhcp_stats->client.outer_vlan);
@@ -9501,6 +9505,8 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
     client.innerVlan = ENDIAN_SWAP16(dhcp_stats->client.inner_vlan);
     client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
   }
+
+
   if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_INTF_MASK)
   {
 #ifdef NGPON2_SUPPORTED

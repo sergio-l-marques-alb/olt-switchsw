@@ -4038,14 +4038,21 @@ static L7_RC_t ptin_dhcp_client_find(L7_uint dhcp_idx, ptin_client_id_t *client_
     return L7_FAILURE;
   }
 
+  if ( (client_ref->mask & PTIN_CLIENT_MASK_FIELD_INTF) && !(client_ref->mask & PTIN_CLIENT_MASK_FIELD_INTIFNUM)) 
+  {
+      client_ref->intIfNum = port2intIfNum(client_ref->ptin_port);
+      client_ref->mask |= PTIN_CLIENT_MASK_FIELD_INTIFNUM;
+  }
+
   /* Key to search for */
   avl_tree = &dhcpClients_unified.avlTree;
 
   memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
 
   avl_key.dhcp_instance = dhcp_idx;
+  
   #if (DHCP_CLIENT_INTERF_SUPPORTED)
-  avl_key.intIfNum = (client_ref->mask & PTIN_CLIENT_MASK_FIELD_INTIFNUM) ? client_ref->intIfNum : 0;;
+  avl_key.intIfNum = (client_ref->mask & PTIN_CLIENT_MASK_FIELD_INTIFNUM) ? client_ref->intIfNum : 0;
   #endif
   #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
   avl_key.outerVlan = (client_ref->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN) ? client_ref->outerVlan : 0;

@@ -3353,6 +3353,12 @@ static L7_RC_t ptin_pppoe_client_find(L7_uint pppoe_idx, ptin_client_id_t *clien
     return L7_FAILURE;
   }
 
+  if ( (client_ref->mask & PTIN_CLIENT_MASK_FIELD_INTF) && !(client_ref->mask & PTIN_CLIENT_MASK_FIELD_INTIFNUM)) 
+  {
+      client_ref->intIfNum = port2intIfNum(client_ref->ptin_port);
+      client_ref->mask |= PTIN_CLIENT_MASK_FIELD_INTIFNUM;
+  }
+
   /* Key to search for */
   avl_tree = &pppoeClients_unified.avlTree;
 
