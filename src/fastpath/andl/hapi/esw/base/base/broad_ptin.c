@@ -1313,6 +1313,13 @@ L7_RC_t hapiBroadPtinBridgeVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
     return L7_SUCCESS;
   }
 
+  /* COS queue destination (wired, wireless, etc) */
+  if (mode->mask & PTIN_BRIDGE_VLAN_MODE_MASK_COSQ_DEST)
+  {
+    if (ptin_hapi_bridge_vlan_cosq_set(mode->vlanId, mode->cosq_dest_select) != L7_SUCCESS)
+      rc = L7_FAILURE;
+  }
+
   /* Forward vlan configuration */
   if (mode->mask & PTIN_BRIDGE_VLAN_MODE_MASK_FWDVLAN)
   {

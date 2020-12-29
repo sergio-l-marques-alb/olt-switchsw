@@ -89,11 +89,19 @@ L7_RC_t ptin_hapi_bridge_free_resources(L7_uint16 *crossconnects)
  * @param fwdVlanId : forward vlan to be used when learning MAC 
  *                    addresses
  * @param cross_connects_apply: Use cross-connects to this vlan?
- * @param mac_learning_apply:   Apply mac learning to this vlan?
+ * @param mac_learning_apply:   Apply mac learning to this vlan? 
+ * @param mc_group: Multicast group 
+ * @param cosq_dest: Destination COS queue 
+ *                 (ptin_bridge_vlan_cosq_dest_t)
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_BOOL cross_connects_apply, L7_BOOL mac_learning_apply, L7_int mc_group)
+L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId,
+                                       L7_uint16 fwdVlanId,
+                                       L7_BOOL   cross_connects_apply,
+                                       L7_BOOL   mac_learning_apply,
+                                       L7_int    mc_group,
+                                       ptin_bridge_vlan_cosq_dest_t cosq_dest)
 {
   int unit, error;
   bcm_vlan_control_vlan_t control;
@@ -141,6 +149,22 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7
     /* Forwarding mode */
     control.forwarding_mode = (cross_connects_apply) ?  bcmVlanForwardDoubleCrossConnect : bcmVlanForwardBridging;
 
+    /* COS queue destination */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,5,18,0))
+    if (SOC_IS_TRIDENT3X(unit))
+    {
+      switch (cosq_dest)
+      {
+      case PTIN_BRIDGE_VLAN_COSQ_DEST_WIRED:
+        control.flags2 = BCM_VLAN_FLAGS2_WIRED_COS_MAP_SELECT;
+        break;
+      case PTIN_BRIDGE_VLAN_COSQ_DEST_WIRELESS:
+        control.flags2 = BCM_VLAN_FLAGS2_WIRELESS_COS_MAP_SELECT;
+        break;
+      }
+    }
+#endif
+
     /* Apply new control definitions to this vlan */
     error = bcm_vlan_control_vlan_set(unit, vlanId, control);
     if ( error != BCM_E_NONE )
@@ -151,6 +175,80 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7
   }
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_hapi_bridge_vlan_mode_set returned success");
+
+  return L7_SUCCESS;
+}
+
+/**
+ * For a particular VLAN select queue destination
+ * 
+ * @author mruas (29/12/20)
+ * 
+ * @param vlanId
+ * @param cosq_dest : ptin_bridge_vlan_cosq_dest_t
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_bridge_vlan_cosq_set(L7_uint16 vlanId, ptin_bridge_vlan_cosq_dest_t cosq_dest)
+{
+  /* Nothing to be done! */
+  if (cosq_dest == PTIN_BRIDGE_VLAN_COSQ_DEST_DEFAULT)
+  {
+    return L7_SUCCESS;
+  }
+
+  /* Forwarding vlan, for MAC learning purposes (only if fwdvlan is valid) */
+  if (cosq_dest >= PTIN_BRIDGE_VLAN_COSQ_DEST_MAX)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid COS queue destination %u", cosq_dest);
+    return L7_FAILURE;
+  }
+
+#if (SDK_VERSION_IS >= SDK_VERSION(6,5,18,0))
+  {
+    int unit, error;
+    bcm_vlan_control_vlan_t control;
+    
+    /* Switch is compatible for this operation */
+    if (!SOC_IS_TRIDENT3X(unit))
+    {
+      PT_LOG_WARN(LOG_CTX_HAPI, "Switch not ready for this operation");
+      return L7_SUCCESS;
+    }
+
+    /* Run all units */
+    BCM_UNIT_ITER(unit)
+    {
+      /* Get current control definitions for this vlan */
+      bcm_vlan_control_vlan_t_init(&control);
+
+      /* COS queue destination */
+      switch (cosq_dest)
+      {
+      case PTIN_BRIDGE_VLAN_COSQ_DEST_WIRED:
+        control.flags2 = BCM_VLAN_FLAGS2_WIRED_COS_MAP_SELECT;
+        break;
+      case PTIN_BRIDGE_VLAN_COSQ_DEST_WIRELESS:
+        control.flags2 = BCM_VLAN_FLAGS2_WIRELESS_COS_MAP_SELECT;
+        break;
+      default:
+        PT_LOG_WARN(LOG_CTX_HAPI, "COS queue destination %u not supported", cosq_dest);
+        return L7_SUCCESS;
+      }
+
+      /* Apply new control definitions to this vlan */
+      error = bcm_vlan_control_vlan_set(unit, vlanId, control);
+      if ( error != BCM_E_NONE )
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "unit=%d: Error with bcm_vlan_control_vlan_set: error=%d (%s)",
+                   unit, error, bcm_errmsg(error));
+        return L7_FAILURE;
+      }
+    }
+  }
+#else
+  PT_LOG_WARN(LOG_CTX_HAPI, "This operation is not supported for this SDK version");
+#endif
 
   return L7_SUCCESS;
 }
