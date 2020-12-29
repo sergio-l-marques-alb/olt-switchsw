@@ -816,7 +816,8 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       /* If the client does not exist, it will be created in dynamic mode */
       rc = ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
                                        L7_NULL, L7_NULL,
-                                       L7_NULL,                                       &client_idx,
+                                       L7_NULL,                                       
+                                       &client_idx,
                                        &clientInfo);      
       #else
       /* For Linecard only: If client was not recognized, add it as dynamic */
@@ -824,7 +825,9 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                                        pduInfo->vlanId, pduInfo->innerVlanId,
                                        &data[L7_MAC_ADDR_LEN],
                                        &client_idx,
-                                       &clientInfo);      
+                                       &clientInfo);
+            
+      ptin_port = clientInfo.ptin_port;
       #endif
 
       if (rc != L7_SUCCESS)
@@ -844,7 +847,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
         }
         else
         {
-          PT_LOG_TRACE(LOG_CTX_IGMP,"Created new  clientId:%u: (intIfNum=%u vlan=%u innerVlanId=%u", client_idx, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId); 
+          PT_LOG_TRACE(LOG_CTX_IGMP,"Created new  clientId:%u: (intIfNum=%u vlan=%u innerVlanId=%u", client_idx, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);         
         }
       }
     }
