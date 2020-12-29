@@ -122,6 +122,8 @@ static char *broadActionNameTable[BROAD_ACTION_LAST] =
     "COPY2CPU",
     "TSTOCPU ",
     "SETCOSQ ",
+    "SETUCOSQ",
+    "SETMCOSQ",
     "SETDSCP ",
     "SETTOS  ",
     "SETUSERP",
@@ -789,7 +791,7 @@ char *hapiBroadPolicyTypeName(BROAD_POLICY_TYPE_t type)
 
 /* Debug */
 
-static BROAD_POLICY_DEBUG_LEVEL_t debugOutput = /*POLICY_DEBUG_HIGH*/ POLICY_DEBUG_LOW;
+static BROAD_POLICY_DEBUG_LEVEL_t debugOutput = /*POLICY_DEBUG_HIGH*/ POLICY_DEBUG_NONE;
 
 void hapiBroadPolicyDebugEnable(BROAD_POLICY_DEBUG_LEVEL_t val)
 {
