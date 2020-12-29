@@ -6298,13 +6298,12 @@ L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum,
                                      L7_uint *client_idx_ret,
                                      ptin_client_id_t *client_ret)
 {
-  ptin_client_id_t client;
   L7_uint16 uni_ovid=0, uni_ivid=0;
   L7_uint32 ptin_port;
   L7_RC_t   rc;
 
   /* Build client structure */
-  if (ptin_igmp_clientId_build(intIfNum, intVlan, innerVlan, smac, &client) != L7_SUCCESS)
+  if (ptin_igmp_clientId_build(intIfNum, intVlan, innerVlan, smac, client_ret) != L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
       PT_LOG_ERR(LOG_CTX_IGMP,"Invalid arguments");
@@ -6315,8 +6314,8 @@ L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum,
                intIfNum, intVlan, innerVlan);
 
   /* Add client */
-  rc = ptin_igmp_device_client_add(&client, uni_ovid, uni_ivid, L7_TRUE, client_idx_ret);
-  ptin_port = client.ptin_port;
+  rc = ptin_igmp_device_client_add(client_ret, uni_ovid, uni_ivid, L7_TRUE, client_idx_ret);
+  ptin_port = client_ret->ptin_port;
   if (rc!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_IGMP,"Error adding dynamic client: ptin_port %u, intVlan %u, innerVlan %u", ptin_port, intVlan, innerVlan);
