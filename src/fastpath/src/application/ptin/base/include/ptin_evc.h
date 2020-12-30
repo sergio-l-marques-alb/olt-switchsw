@@ -830,7 +830,7 @@ typedef struct
   L7_BOOL         in_use;
   ptin_bw_meter_t meter;
   L7_int          policer_id;
-} intf_vp_entry_policer_t;
+} l2intf_entry_policer_t;
 
 typedef struct {
     unsigned long   l2intf_id;
@@ -838,8 +838,8 @@ typedef struct {
     unsigned short  gem_id;
     unsigned int    onu;
     /* Policer */
-    intf_vp_entry_policer_t policer;
-} intf_vp_entry_t;
+    l2intf_entry_policer_t policer;
+} l2intf_entry_t;
 
 /**
  * Determine l2intf_id from pon port and gem id
@@ -860,7 +860,7 @@ extern L7_uint32 l2intf_id_get(L7_uint16 pon_port, L7_uint16 gem_id);
  * 
  * @return L7_RC_t : L7_SUCCESS, L7_NOT_EXIST
  */
-extern L7_RC_t l2intf_db_find(intf_vp_entry_t *entry);
+extern L7_RC_t l2intf_db_find(l2intf_entry_t *entry);
 
 /**
  * Insert a new entry in L2intf Database
@@ -871,7 +871,7 @@ extern L7_RC_t l2intf_db_find(intf_vp_entry_t *entry);
  * 
  * @return L7_RC_t : L7_SUCCESS, L7_TABLE_IS_FULL
  */
-extern L7_RC_t l2intf_db_insert(intf_vp_entry_t *entry);
+extern L7_RC_t l2intf_db_insert(l2intf_entry_t *entry);
 
 /**
  * Remove an entry from the L2intf Database
@@ -882,7 +882,7 @@ extern L7_RC_t l2intf_db_insert(intf_vp_entry_t *entry);
  * 
  * @return L7_RC_t : L7_SUCCESS
  */
-extern L7_RC_t l2intf_db_remove(intf_vp_entry_t *entry);
+extern L7_RC_t l2intf_db_remove(l2intf_entry_t *entry);
 #if 0
 extern int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry);
 #endif

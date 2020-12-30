@@ -1935,7 +1935,7 @@ L7_RC_t ptin_evc_extVlans_get_from_l2intf(L7_uint32 evc_ext_id, L7_uint32 evc_in
 {
   L7_uint32 ptin_port;
   L7_uint16 ovid, ivid;
-  intf_vp_entry_t intf_vp_entry;
+  l2intf_entry_t intf_vp_entry;
   struct ptin_evc_client_s *pclientFlow;
 
   /* Validate arguments */
@@ -4820,7 +4820,7 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 #define EMPTY_L2INTF_ID               INVALID_L2INTF_ID
 #define RESET_L2INTF_ID(pentry)  \
   { \
-    memset((pentry), 0x00, sizeof(intf_vp_entry_t));  \
+    memset((pentry), 0x00, sizeof(l2intf_entry_t));  \
     (pentry)->l2intf_id = (unsigned long) -1;          \
   }
 
@@ -4835,11 +4835,11 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 //static unsigned char invnibble[16]={0, 8, 4, 0xc, 2, 0xa, 6, 0xe, 1, 9, 5, 0xd, 3, 0xb, 7, 0xf};
 //#define L2INTFID_2_IDX(IfN, M) ( ((IfN) ^ invnibble[IfN&0xf]<<28 ^ invnibble[IfN>>4&0xf]<<24 ^ invnibble[IfN>>8&0xf]<<20) % M)
 
-static intf_vp_entry_t  l2intf_db[L2INTF_ID_MAX];
+static l2intf_entry_t  l2intf_db[L2INTF_ID_MAX];
 static unsigned long    l2intf_number = 0;
 static unsigned long    l2intf_modu = L2INTF_ID_MAX;
 
-static L7_RC_t l2intf_policer_set(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *meter);
+static L7_RC_t l2intf_policer_set(l2intf_entry_t *intf_vp, ptin_bw_meter_t *meter);
 static L7_RC_t ptin_evc_l2intf_policer(L7_uint32 l2intf_id, ptin_bw_meter_t *meter);
 
 /**
@@ -4853,7 +4853,7 @@ static L7_RC_t ptin_evc_l2intf_policer(L7_uint32 l2intf_id, ptin_bw_meter_t *met
  * 
  * @return int : index of found entry
  */
-static int _l2intf_search_idx(intf_vp_entry_t *entry, int *idx_empty)
+static int _l2intf_search_idx(l2intf_entry_t *entry, int *idx_empty)
 {
   int idx, j, k, _1st_empty;
 
@@ -4949,7 +4949,7 @@ L7_uint32 l2intf_id_get(L7_uint16 pon_port, L7_uint16 gem_id)
  * 
  * @return L7_RC_t : L7_SUCCESS, L7_NOT_EXIST
  */
-L7_RC_t l2intf_db_find(intf_vp_entry_t *entry)
+L7_RC_t l2intf_db_find(l2intf_entry_t *entry)
 {
   int i;
 
@@ -4978,7 +4978,7 @@ L7_RC_t l2intf_db_find(intf_vp_entry_t *entry)
  * 
  * @return L7_RC_t : L7_SUCCESS, L7_TABLE_IS_FULL
  */
-L7_RC_t l2intf_db_insert(intf_vp_entry_t *entry)
+L7_RC_t l2intf_db_insert(l2intf_entry_t *entry)
 {
   int i, _1st_empty;
 
@@ -4995,7 +4995,7 @@ L7_RC_t l2intf_db_insert(intf_vp_entry_t *entry)
       }
       l2intf_number++;
       l2intf_db[_1st_empty]=*entry;
-      memset(&l2intf_db[_1st_empty].policer, 0x00, sizeof(intf_vp_entry_policer_t));   /* No policer for new entries */
+      memset(&l2intf_db[_1st_empty].policer, 0x00, sizeof(l2intf_entry_policer_t));   /* No policer for new entries */
   }
   else //did find it
   {
@@ -5015,7 +5015,7 @@ L7_RC_t l2intf_db_insert(intf_vp_entry_t *entry)
  * 
  * @return L7_RC_t : L7_SUCCESS
  */
-L7_RC_t l2intf_db_remove(intf_vp_entry_t *entry)
+L7_RC_t l2intf_db_remove(l2intf_entry_t *entry)
 {
   int i;
 
@@ -5165,7 +5165,7 @@ static void l2intf_db_init(void)
  * 
  * @return entry pointer
  */
-static intf_vp_entry_t *l2intf_ptr_get(L7_uint32 l2intf_id)
+static l2intf_entry_t *l2intf_ptr_get(L7_uint32 l2intf_id)
 {
   unsigned long i, j, k;
 
@@ -5195,7 +5195,7 @@ static intf_vp_entry_t *l2intf_ptr_get(L7_uint32 l2intf_id)
  * 
  * @return int : 0>Success, -1>Failed
  */
-static L7_RC_t l2intf_policer_set(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *meter)
+static L7_RC_t l2intf_policer_set(l2intf_entry_t *intf_vp, ptin_bw_meter_t *meter)
 {
   /* Search for this virtual port */
   L7_uint32         i;
@@ -5347,7 +5347,7 @@ static L7_RC_t l2intf_policer_set(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *met
       }
 
       /* Clean data */
-      memset(&intf_vp->policer, 0x00, sizeof(intf_vp_entry_policer_t));
+      memset(&intf_vp->policer, 0x00, sizeof(l2intf_entry_policer_t));
       intf_vp->policer.in_use = L7_FALSE;
     }
   }
@@ -5371,7 +5371,7 @@ static L7_RC_t l2intf_policer_set(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *met
  */
 static L7_RC_t ptin_evc_l2intf_policer(L7_uint32 l2intf_id, ptin_bw_meter_t *meter)
 {
-  intf_vp_entry_t *intf_vp;
+  l2intf_entry_t *intf_vp;
 
   intf_vp = l2intf_ptr_get(l2intf_id);
 
@@ -5829,7 +5829,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
       }
       else
       {
-        intf_vp_entry_t entry;
+        l2intf_entry_t entry;
 
         entry.l2intf_id  = l2intf_id & 0x1ffff;
         entry.pon        = evcFlow->ptin_intf;
@@ -6142,7 +6142,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
 
   /* Remove virtual port */
   {
-    intf_vp_entry_t entry;
+    l2intf_entry_t entry;
 
     entry.l2intf_id = pflow->l2intf_id;
     (void) l2intf_db_remove(&entry);

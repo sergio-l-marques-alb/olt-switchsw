@@ -71,7 +71,7 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 l2
     ptin_bw_profile_t profile;
     ptin_bw_meter_t   meter;
     L7_RC_t           rc = L7_SUCCESS;
-    intf_vp_entry_t   vp_entry;
+    l2intf_entry_t   vp_entry;
 
     /* Search for this entry */
     memset(&vp_entry, 0x00, sizeof(vp_entry));
@@ -279,7 +279,7 @@ L7_RC_t ptin_l2_mac_table_load(void)
     /* Convert to ptin interface format */
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     if (intfType==L7_VLAN_PORT_INTF) {
-        intf_vp_entry_t   entry;
+        l2intf_entry_t   entry;
 
         entry.l2intf_id = fdbEntry.dot1dTpFdbVirtualPort;
         if (l2intf_db_find(&entry) != L7_SUCCESS)
