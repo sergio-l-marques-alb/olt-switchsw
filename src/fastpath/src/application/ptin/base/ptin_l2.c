@@ -75,9 +75,9 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 l2
 
     /* Search for this entry */
     memset(&vp_entry, 0x00, sizeof(vp_entry));
-    vp_entry.l2intf_id = l2intf_id & 0xffffff;
+    vp_entry.l2intf_id = l2intf_id & 0x1ffff;
 
-    if (intf_vp_DB(3, &vp_entry) != 0)
+    if (l2intf_db_find(&vp_entry) != L7_SUCCESS)
     {
       PT_LOG_WARN(LOG_CTX_L2, "l2intf_id 0x%08x does not exist!", l2intf_id);
       return L7_FAILURE;
@@ -282,7 +282,7 @@ L7_RC_t ptin_l2_mac_table_load(void)
         intf_vp_entry_t   entry;
 
         entry.l2intf_id = fdbEntry.dot1dTpFdbVirtualPort;
-        if (intf_vp_DB(3, &entry))
+        if (l2intf_db_find(&entry) != L7_SUCCESS)
         {
             PT_LOG_WARN(LOG_CTX_L2,"PON&GEMid for intIfNum %lu / vport %lu not found",fdbEntry.dot1dTpFdbPort,fdbEntry.dot1dTpFdbVirtualPort);
             continue;

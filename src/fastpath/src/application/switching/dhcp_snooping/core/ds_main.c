@@ -1830,7 +1830,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
                      vlanId, keyToFind[2], keyToFind[3], keyToFind[4], keyToFind[5], keyToFind[6], keyToFind[7]);
       }
 
-      entry.l2intf_id = intf_vp_calc(ptin_port, innerVlanId);
+      entry.l2intf_id = l2intf_id_get(ptin_port, innerVlanId);
       if (entry.l2intf_id != 0x0 && 
           entry.l2intf_id != (L7_uint32) -1)
       {

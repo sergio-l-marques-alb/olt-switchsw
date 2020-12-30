@@ -881,7 +881,7 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 ptin_port,
   l2intf.int_ivid         = int_ivid;
   l2intf.ext_ovid         = ext_ovid;
   l2intf.ext_ivid         = ext_ivid;
-  l2intf.virtual_gport    = -1;
+  l2intf.virtual_gport    = -1; /* Not given: HAPI will assign a new one */
   l2intf.multicast_group  = mcast_group;
   l2intf.macLearnMax      = macLearnMax;
 

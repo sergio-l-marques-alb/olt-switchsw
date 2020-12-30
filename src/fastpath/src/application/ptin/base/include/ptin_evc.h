@@ -837,28 +837,56 @@ typedef struct {
     ptin_intf_t     pon;
     unsigned short  gem_id;
     unsigned int    onu;
-    //unsigned int    evc_id;
-    //int             vport_id;
-
     /* Policer */
     intf_vp_entry_policer_t policer;
-    
 } intf_vp_entry_t;
 
-extern int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry);
-extern void dump_intf_vp_DB(void);
-#endif
+/**
+ * Determine l2intf_id from pon port and gem id
+ * 
+ * @param pon_port
+ * @param gem_id 
+ * 
+ * @return l2intf_id (output) 
+ */
+extern L7_uint32 l2intf_id_get(L7_uint16 pon_port, L7_uint16 gem_id);
 
 /**
- * Set bandwidth policer for one virtual port
+ * Search for a specific entry in L2intf Database
  * 
- * @param l2intf_id
- * @param meter 
+ * @author mruas (30/12/20)
  * 
- * @return int : 0>Success, -1>Failed
+ * @param entry 
+ * 
+ * @return L7_RC_t : L7_SUCCESS, L7_NOT_EXIST
  */
-extern L7_RC_t ptin_evc_vp_policer(L7_uint32 l2intf_id, ptin_bw_meter_t *meter);
+extern L7_RC_t l2intf_db_find(intf_vp_entry_t *entry);
 
+/**
+ * Insert a new entry in L2intf Database
+ * 
+ * @author mruas (30/12/20)
+ * 
+ * @param entry 
+ * 
+ * @return L7_RC_t : L7_SUCCESS, L7_TABLE_IS_FULL
+ */
+extern L7_RC_t l2intf_db_insert(intf_vp_entry_t *entry);
+
+/**
+ * Remove an entry from the L2intf Database
+ * 
+ * @author mruas (30/12/20)
+ * 
+ * @param entry 
+ * 
+ * @return L7_RC_t : L7_SUCCESS
+ */
+extern L7_RC_t l2intf_db_remove(intf_vp_entry_t *entry);
+#if 0
+extern int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry);
+#endif
+#endif
 
 /**
  * Adds a flow to the EVC
@@ -1067,13 +1095,5 @@ extern L7_RC_t ptin_evc_flow_replicate(L7_uint32 ptin_port, L7_uint32 evc_ext_id
 extern L7_RC_t ptin_evc_p2p_bridge_replicate(L7_uint32 evc_ext_id, L7_uint32 ptin_port, L7_uint32 ptin_port_ngpon2, ptin_HwEthMef10Intf_t *intf);
 extern L7_RC_t ptin_evc_flow_remove_port(L7_uint32 ptin_port, L7_uint32 evc_ext_id);
 extern L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *profile);
-/**
- * Determine l2intf_id from pon port and gem id
- * 
- * @param pon_port
- * @param gem_id 
- * 
- * @return l2intf_id (output) 
- */
-extern L7_uint32 intf_vp_calc(L7_uint16 pon_port, L7_uint16 gem_id);
+
 #endif /* _PTIN_EVC_H */

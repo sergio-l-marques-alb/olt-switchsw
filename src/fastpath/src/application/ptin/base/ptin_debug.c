@@ -145,7 +145,7 @@ void ptin_debug(void)
   printf("\r\n");                                                          
   printf("  ptin_pvid_dump                                                  - Dump default vlans for all ports\r\n");
   printf("  ptin_xlate_dump <stage> [inv]                                   - Dump translation entries for ingress (1) or egress (2) stage\r\n");
-  printf("  dump_intf_vp_db                                                 - dumps virtual port scratchpad (ifNum, PON, GEMid)\r\n");
+  printf("  l2intf_db_dump                                                  - dumps virtual port scratchpad (ifNum, PON, GEMid)\r\n");
   printf("  dump_uplinkprot_traps                                           - info about ports/MEPs with uplink protection port traps triggered\r\n");
   printf("  ptin_erps_dump <id>                                             - prints info about ERPS (use -1 to display all)\r\n");
   printf("  ptin_intf_boardtype_dump                                        - prints board ids information\r\n");
