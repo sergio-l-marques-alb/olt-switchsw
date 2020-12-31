@@ -842,6 +842,13 @@ typedef struct {
 } l2intf_entry_t;
 
 /**
+ * Initialize L2intf Database
+ * 
+ * @author mruas (30/12/20)
+ */
+extern void l2intf_db_init(void);
+
+/**
  * Determine l2intf_id from pon port and gem id
  * 
  * @param pon_port
@@ -849,18 +856,19 @@ typedef struct {
  * 
  * @return l2intf_id (output) 
  */
-extern L7_uint32 l2intf_id_get(L7_uint16 pon_port, L7_uint16 gem_id);
+extern L7_uint32 l2intf_db_search(L7_uint16 pon_port, L7_uint16 gem_id);
 
 /**
  * Search for a specific entry in L2intf Database
  * 
  * @author mruas (30/12/20)
- * 
- * @param entry 
+ *  
+ * @param l2intf_id (in) 
+ * @param entry (out)
  * 
  * @return L7_RC_t : L7_SUCCESS, L7_NOT_EXIST
  */
-extern L7_RC_t l2intf_db_find(l2intf_entry_t *entry);
+extern L7_RC_t l2intf_db_data_get(L7_uint32 l2intf_id, l2intf_entry_t *entry);
 
 /**
  * Insert a new entry in L2intf Database
@@ -871,18 +879,18 @@ extern L7_RC_t l2intf_db_find(l2intf_entry_t *entry);
  * 
  * @return L7_RC_t : L7_SUCCESS, L7_TABLE_IS_FULL
  */
-extern L7_RC_t l2intf_db_insert(l2intf_entry_t *entry);
+extern L7_RC_t l2intf_db_alloc(l2intf_entry_t *entry);
 
 /**
  * Remove an entry from the L2intf Database
  * 
  * @author mruas (30/12/20)
  * 
- * @param entry 
+ * @param l2intf_id (in)
  * 
  * @return L7_RC_t : L7_SUCCESS
  */
-extern L7_RC_t l2intf_db_remove(l2intf_entry_t *entry);
+extern L7_RC_t l2intf_db_free(L7_uint32 l2intf_id);
 #if 0
 extern int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry);
 #endif

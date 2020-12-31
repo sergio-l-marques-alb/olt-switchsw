@@ -71,13 +71,12 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 l2
     ptin_bw_profile_t profile;
     ptin_bw_meter_t   meter;
     L7_RC_t           rc = L7_SUCCESS;
-    l2intf_entry_t   vp_entry;
+    l2intf_entry_t    l2intf_entry;
 
     /* Search for this entry */
-    memset(&vp_entry, 0x00, sizeof(vp_entry));
-    vp_entry.l2intf_id = l2intf_id & 0x1ffff;
+    memset(&l2intf_entry, 0x00, sizeof(l2intf_entry));
 
-    if (l2intf_db_find(&vp_entry) != L7_SUCCESS)
+    if (l2intf_db_data_get(l2intf_id & 0x1ffff, &l2intf_entry) != L7_SUCCESS)
     {
       PT_LOG_WARN(LOG_CTX_L2, "l2intf_id 0x%08x does not exist!", l2intf_id);
       return L7_FAILURE;
@@ -90,12 +89,12 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 l2
     if (msgsType == ADD_MAC) /* Write a new MAC in a opensaf checkpoint */
     {
       PT_LOG_ERR(LOG_CTX_L2, "Msgtype %d", msgsType);
-      //ptin_opensaf_find_free_element(&position, vp_entry.onu, SWITCHDRVR_ONU /* checkpoint id */);
+      //ptin_opensaf_find_free_element(&position, l2intf_entry.onu, SWITCHDRVR_ONU /* checkpoint id */);
 
       PT_LOG_ERR(LOG_CTX_L2, "Data position to write %d", position);
 
       /* find NGPON2 Group*/
-      ptin_opensaf_write_checkpoint(macAddr, MAC_SIZE_BYTES, vp_entry.onu , position, SWITCHDRVR_ONU, ADD_MAC);
+      ptin_opensaf_write_checkpoint(macAddr, MAC_SIZE_BYTES, l2intf_entry.onu , position, SWITCHDRVR_ONU, ADD_MAC);
     }
     else /* Remove MAC from opensaf checkpoint (fill with 0's) */
     {
@@ -103,10 +102,10 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 l2
       
       PT_LOG_ERR(LOG_CTX_L2, "Msgtype %d", msgsType);
 
-      if(ptin_checkpoint_findDatainSection(SWITCHDRVR_ONU, vp_entry.onu, macAddr, MAC_SIZE_BYTES, &position) == 0) /* Find if the MAC is in opensaf and get is position in the section*/
+      if(ptin_checkpoint_findDatainSection(SWITCHDRVR_ONU, l2intf_entry.onu, macAddr, MAC_SIZE_BYTES, &position) == 0) /* Find if the MAC is in opensaf and get is position in the section*/
       {
         /* find NGPON2 Group*/
-        ptin_opensaf_write_checkpoint(macAddr_aux, MAC_SIZE_BYTES, vp_entry.onu, position, SWITCHDRVR_ONU, REMOVE_MAC);
+        ptin_opensaf_write_checkpoint(macAddr_aux, MAC_SIZE_BYTES, l2intf_entry.onu, position, SWITCHDRVR_ONU, REMOVE_MAC);
       }
       else
       {
@@ -117,7 +116,7 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 l2
 
 
     /* If no policer associated, there is nothing to be done! */
-    if (!vp_entry.policer.in_use || vp_entry.policer.meter.cir == (L7_uint32)-1)
+    if (!l2intf_entry.policer.in_use || l2intf_entry.policer.meter.cir == (L7_uint32)-1)
     {
       return L7_SUCCESS;
     }
@@ -136,10 +135,10 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 l2
                 macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5], vlanId, intIfNum, l2intf_id);
 
       /* Add policer */
-      meter.cir = vp_entry.policer.meter.cir;
-      meter.eir = vp_entry.policer.meter.eir;
-      meter.cbs = vp_entry.policer.meter.cbs;
-      meter.ebs = vp_entry.policer.meter.ebs;
+      meter.cir = l2intf_entry.policer.meter.cir;
+      meter.eir = l2intf_entry.policer.meter.eir;
+      meter.cbs = l2intf_entry.policer.meter.cbs;
+      meter.ebs = l2intf_entry.policer.meter.ebs;
     }
     else if (msgsType == FDB_DEL)
     {
@@ -161,7 +160,7 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 l2
     PT_LOG_TRACE(LOG_CTX_L2, "Going to configure policer");
 
     /* Apply policer */
-    if (ptin_bwPolicer_set(&profile, &meter, vp_entry.policer.policer_id) != L7_SUCCESS)
+    if (ptin_bwPolicer_set(&profile, &meter, l2intf_entry.policer.policer_id) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_L2, "Error applying profile");
       rc = L7_FAILURE;
@@ -278,11 +277,11 @@ L7_RC_t ptin_l2_mac_table_load(void)
 
     /* Convert to ptin interface format */
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-    if (intfType==L7_VLAN_PORT_INTF) {
-        l2intf_entry_t   entry;
+    if (intfType==L7_VLAN_PORT_INTF)
+    {
+        l2intf_entry_t l2intf_entry;
 
-        entry.l2intf_id = fdbEntry.dot1dTpFdbVirtualPort;
-        if (l2intf_db_find(&entry) != L7_SUCCESS)
+        if (l2intf_db_data_get(fdbEntry.dot1dTpFdbVirtualPort, &l2intf_entry) != L7_SUCCESS)
         {
             PT_LOG_WARN(LOG_CTX_L2,"PON&GEMid for intIfNum %lu / vport %lu not found",fdbEntry.dot1dTpFdbPort,fdbEntry.dot1dTpFdbVirtualPort);
             continue;
@@ -290,9 +289,10 @@ L7_RC_t ptin_l2_mac_table_load(void)
         else
         {
           PT_LOG_TRACE(LOG_CTX_L2,"intIfNum %lu / vport %u, PON=%u/%u GEMid=%u",
-                       fdbEntry.dot1dTpFdbPort, fdbEntry.dot1dTpFdbVirtualPort, entry.pon.intf_type, entry.pon.intf_id, entry.gem_id);
-          ptin_intf = entry.pon;
-          (void) ptin_intf_virtualVid2GemVid(entry.gem_id, &gem_id);
+                       fdbEntry.dot1dTpFdbPort, fdbEntry.dot1dTpFdbVirtualPort,
+                       l2intf_entry.pon.intf_type, l2intf_entry.pon.intf_id, l2intf_entry.gem_id);
+          ptin_intf = l2intf_entry.pon;
+          (void) ptin_intf_virtualVid2GemVid(l2intf_entry.gem_id, &gem_id);
         }
     }
     else

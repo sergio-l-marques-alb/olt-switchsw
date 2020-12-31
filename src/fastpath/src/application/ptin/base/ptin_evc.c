@@ -481,9 +481,6 @@ static
 L7_RC_t ptin_evc_update_igmp (L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL igmp_enabled,
                               L7_BOOL just_remove, L7_BOOL look_to_counters);
 
-/** Initialize L2intf Database */
-static void l2intf_db_init(void);
-
 /* Semaphore to access EVC clients */
 void *ptin_evc_clients_sem = L7_NULLPTR;
 
@@ -1935,7 +1932,7 @@ L7_RC_t ptin_evc_extVlans_get_from_l2intf(L7_uint32 evc_ext_id, L7_uint32 evc_in
 {
   L7_uint32 ptin_port;
   L7_uint16 ovid, ivid;
-  l2intf_entry_t intf_vp_entry;
+  l2intf_entry_t l2intf_entry;
   struct ptin_evc_client_s *pclientFlow;
 
   /* Validate arguments */
@@ -1978,22 +1975,21 @@ L7_RC_t ptin_evc_extVlans_get_from_l2intf(L7_uint32 evc_ext_id, L7_uint32 evc_in
   }
 
   /* Search for this virtual port */
-  memset(&intf_vp_entry, 0x00, sizeof(intf_vp_entry));
-  intf_vp_entry.l2intf_id = l2intf_id;
+  memset(&l2intf_entry, 0x00, sizeof(l2intf_entry));
 
-  if (l2intf_db_find(&intf_vp_entry) == L7_SUCCESS)
+  if (l2intf_db_data_get(l2intf_id, &l2intf_entry) == L7_SUCCESS)
   {
     /* Validate interface */
-    if (ptin_intf_ptintf2port(&intf_vp_entry.pon, &ptin_port) != L7_SUCCESS ||
+    if (ptin_intf_ptintf2port(&l2intf_entry.pon, &ptin_port) != L7_SUCCESS ||
         ptin_port >= ptin_sys_number_of_ports)
     {
-      PT_LOG_ERR(LOG_CTX_DAI, "Error obtaining ptin_port from PON interface (%u/%u)", intf_vp_entry.pon.intf_type, intf_vp_entry.pon.intf_id);
+      PT_LOG_ERR(LOG_CTX_DAI, "Error obtaining ptin_port from PON interface (%u/%u)", l2intf_entry.pon.intf_type, l2intf_entry.pon.intf_id);
       return L7_FAILURE;
     }
     /* Validate GEM id */
-    else if (intf_vp_entry.gem_id == 0 || intf_vp_entry.gem_id >= 4095)
+    else if (l2intf_entry.gem_id == 0 || l2intf_entry.gem_id >= 4095)
     {
-      PT_LOG_ERR(LOG_CTX_DAI, "Invalid GEM id %u", intf_vp_entry.gem_id);
+      PT_LOG_ERR(LOG_CTX_DAI, "Invalid GEM id %u", l2intf_entry.gem_id);
       return L7_FAILURE;
     }
   }
@@ -4816,78 +4812,43 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 
 #define L2INTF_ID_MAX   PTIN_SYSTEM_N_CLIENTS
 
-#define INVALID_L2INTF_ID(pentry)     ((pentry)->l2intf_id == (unsigned long) -1)
-#define EMPTY_L2INTF_ID               INVALID_L2INTF_ID
-#define RESET_L2INTF_ID(pentry)  \
+#define L2INTF_DB_ENTRY_IS_ACTIVE(pentry) ((pentry)->l2intf_id < L2INTF_ID_MAX)
+
+#define CLEAR_L2INTF_DB_ENTRY(pentry)  \
   { \
     memset((pentry), 0x00, sizeof(l2intf_entry_t));  \
     (pentry)->l2intf_id = (unsigned long) -1;          \
   }
 
-/* For INTF_VP_MAX == 8192, modu is defined as 8209.
-   Because M=(intf_vp_modu%INTF_VP_MAX)=17, result was always between 0 and 16...
-   something is not right with these operations... */
-//#define L2INTFID_2_IDX(vp, M) ( ((vp)^(vp)<<24) % M)
+static l2intf_entry_t l2intf_db[L2INTF_ID_MAX];
+static unsigned long  l2intf_number = 0;
 
-/* Because vp tends to be between 0 and 8191, the following operation gives us fast searching procedures: */
-#define L2INTFID_2_IDX(l2intf_id, M) ((l2intf_id)%(L2INTF_ID_MAX))
-
-//static unsigned char invnibble[16]={0, 8, 4, 0xc, 2, 0xa, 6, 0xe, 1, 9, 5, 0xd, 3, 0xb, 7, 0xf};
-//#define L2INTFID_2_IDX(IfN, M) ( ((IfN) ^ invnibble[IfN&0xf]<<28 ^ invnibble[IfN>>4&0xf]<<24 ^ invnibble[IfN>>8&0xf]<<20) % M)
-
-static l2intf_entry_t  l2intf_db[L2INTF_ID_MAX];
-static unsigned long    l2intf_number = 0;
-static unsigned long    l2intf_modu = L2INTF_ID_MAX;
-
-static L7_RC_t l2intf_policer_set(l2intf_entry_t *intf_vp, ptin_bw_meter_t *meter);
+static L7_RC_t l2intf_policer_set(l2intf_entry_t *l2intf, ptin_bw_meter_t *meter);
 static L7_RC_t ptin_evc_l2intf_policer(L7_uint32 l2intf_id, ptin_bw_meter_t *meter);
 
+/* Queue management functions */
+static void l2intf_pool_init(void);
+static L7_RC_t l2intf_pool_pop(L7_int ptin_port, L7_uint32 *l2intf_id, l2intf_entry_t **db_entry);
+static L7_RC_t l2intf_pool_push(L7_uint32 l2intf_id);
+
 /**
- * Search for an existent entry, and return its index inside 
- * L2intf database 
+ * Initialize L2intf Database
  * 
  * @author mruas (30/12/20)
- * 
- * @param entry 
- * @param st_empty (out) : 1st empty entry
- * 
- * @return int : index of found entry
  */
-static int _l2intf_search_idx(l2intf_entry_t *entry, int *idx_empty)
+void l2intf_db_init(void)
 {
-  int idx, j, k, _1st_empty;
+  unsigned long i;
 
-  idx = L2INTFID_2_IDX(entry->l2intf_id, l2intf_modu%L2INTF_ID_MAX);
+  l2intf_number=0;
 
-  for (j = 0, k = idx, _1st_empty = -1;
-       j < L2INTF_ID_MAX;
-       j++, k = (k+1)%L2INTF_ID_MAX)
+  for (i = 0; i < L2INTF_ID_MAX; i++)
   {
-      if (entry->l2intf_id == l2intf_db[k].l2intf_id)
-      {
-          idx = k;
-          break;
-      }
-      if (_1st_empty < 0 && EMPTY_L2INTF_ID(&l2intf_db[k]))
-      {
-          _1st_empty = k;
-      }
+    CLEAR_L2INTF_DB_ENTRY(&l2intf_db[i]);
   }
 
-  /* Return free entry index */
-  if (idx_empty != L7_NULLPTR)
-  {
-    *idx_empty = _1st_empty;
-  }
-
-  /* Entry not found? Return -1 for that case */
-  if (j >= L2INTF_ID_MAX)
-  {
-    return -1;
-  }
-
-  /* Return found index */
-  return idx;
+  /* Initialize free L2intf queues */
+  l2intf_pool_init();
 }
 
 /**
@@ -4898,11 +4859,11 @@ static int _l2intf_search_idx(l2intf_entry_t *entry, int *idx_empty)
  * 
  * @return l2intf_id (output) 
  */
-L7_uint32 l2intf_id_get(L7_uint16 pon_port, L7_uint16 gem_id)
+L7_uint32 l2intf_db_search(L7_uint16 pon_port, L7_uint16 gem_id)
 {
   /* Search for this virtual port */
-  L7_uint32         i;
-  ptin_intf_t       ptin_intf;
+  L7_uint32   i;
+  ptin_intf_t ptin_intf;
 
   /* Validate arguments */
   if (pon_port >= PTIN_SYSTEM_N_PORTS || gem_id == 0 || gem_id >= 4096)
@@ -4922,14 +4883,21 @@ L7_uint32 l2intf_id_get(L7_uint16 pon_port, L7_uint16 gem_id)
   for (i = 0; i < L2INTF_ID_MAX; i++)
   {
     /* Skip non used entries */
-    if (INVALID_L2INTF_ID(&l2intf_db[i]))
+    if (!L2INTF_DB_ENTRY_IS_ACTIVE(&l2intf_db[i]))
+    {
       continue;
+    }
 
     /* find pon port and vlan */
-    if (l2intf_db[i].pon.intf_type == ptin_intf.intf_type && l2intf_db[i].pon.intf_id == ptin_intf.intf_id &&
+    if (l2intf_db[i].pon.intf_type == ptin_intf.intf_type &&
+        l2intf_db[i].pon.intf_id == ptin_intf.intf_id &&
         l2intf_db[i].gem_id == gem_id)
+    {
       break;
+    }
   }
+
+  /* Not found? */
   if (i >= L2INTF_ID_MAX)
   {
     PT_LOG_WARN(LOG_CTX_L2, "Matched entry not found: pon_port=%u gem_id=%u", pon_port, gem_id);
@@ -4941,35 +4909,6 @@ L7_uint32 l2intf_id_get(L7_uint16 pon_port, L7_uint16 gem_id)
 }
 
 /**
- * Search for a specific entry in L2intf Database
- * 
- * @author mruas (30/12/20)
- * 
- * @param entry 
- * 
- * @return L7_RC_t : L7_SUCCESS, L7_NOT_EXIST
- */
-L7_RC_t l2intf_db_find(l2intf_entry_t *entry)
-{
-  int i;
-
-  i = _l2intf_search_idx(entry, L7_NULLPTR);
-
-  PT_LOG_TRACE(LOG_CTX_EVC, "i=%d  n=%lu", i, l2intf_number);
-
-  //didn't find it
-  if (i < 0)
-  {
-      return L7_NOT_EXIST;
-  }
-
-  //did find it
-  *entry = l2intf_db[i];
-
-  return L7_SUCCESS;
-}
-
-/**
  * Insert a new entry in L2intf Database
  * 
  * @author mruas (30/12/20)
@@ -4978,30 +4917,82 @@ L7_RC_t l2intf_db_find(l2intf_entry_t *entry)
  * 
  * @return L7_RC_t : L7_SUCCESS, L7_TABLE_IS_FULL
  */
-L7_RC_t l2intf_db_insert(l2intf_entry_t *entry)
+L7_RC_t l2intf_db_alloc(l2intf_entry_t *entry)
 {
-  int i, _1st_empty;
+  L7_uint32 l2intf_id;
+  L7_uint32 ptin_port;
+  l2intf_entry_t *db_entry;
 
-  i = _l2intf_search_idx(entry, &_1st_empty);
-
-  PT_LOG_TRACE(LOG_CTX_EVC, "i=%d _1st_empty=%d  n=%lu", i, _1st_empty, l2intf_number);
-
-  //didn't find it
-  if (i < 0) {
-      //no empty entries
-      if (_1st_empty < 0)
-      {
-          return L7_TABLE_IS_FULL;
-      }
-      l2intf_number++;
-      l2intf_db[_1st_empty]=*entry;
-      memset(&l2intf_db[_1st_empty].policer, 0x00, sizeof(l2intf_entry_policer_t));   /* No policer for new entries */
-  }
-  else //did find it
+  /* If L2intf id is provided, check if it is already present at DB */
+  if (entry->l2intf_id < L2INTF_ID_MAX)
   {
-      entry->policer   = l2intf_db[i].policer;   /* Copy policer data to this entry */
-      l2intf_db[i] = *entry;                     //overwrite
+    l2intf_id = entry->l2intf_id;
+    db_entry  = &l2intf_db[l2intf_id];
+
+    /* Is DB entry active? */
+    if (L2INTF_DB_ENTRY_IS_ACTIVE(db_entry))
+    {
+      /* Check for inconsistencies */
+      if (db_entry->l2intf_id != l2intf_id)
+      {
+        PT_LOG_ERR(LOG_CTX_EVC, "Inconsistency error: [L2intf %u] Invalid l2intf_id (%u) stored at database",
+                   l2intf_id, db_entry->l2intf_id);
+        return L7_FAILURE;
+      }
+
+      /* Update data */
+      entry->policer = db_entry->policer;   /* Copy policer data to this entry */
+      *db_entry      = *entry;              //overwrite DB entry
+
+      PT_LOG_INFO(LOG_CTX_EVC, "L2intf %u: database updated", l2intf_id);
+
+      return L7_SUCCESS;
+    }
   }
+  
+  /* Get ptin_port */
+  if (ptin_intf_typeId2port(entry->pon.intf_type, entry->pon.intf_id, &ptin_port) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "Error with ptin_intf %u/%u", entry->pon.intf_type, entry->pon.intf_id);
+    return L7_FAILURE;
+  }
+  
+  /* Extract a new id for this L2intf */
+  if (l2intf_pool_pop(ptin_port, &l2intf_id, &db_entry) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "Error extracting a new L2intf id");
+    return L7_FAILURE;
+  }
+  
+  /* Check for inconsistencies */
+  if (db_entry == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "Inconsistency error: Null db_entry pointer");
+    return L7_FAILURE;
+  }
+  /* Check for inconsistencies */
+  if (l2intf_id >= L2INTF_ID_MAX)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "Inconsistency error: Invalid l2intf %u extracted from the free queue", l2intf_id);
+    return L7_FAILURE;
+  }
+  /* Check for inconsistencies */
+  if (L2INTF_DB_ENTRY_IS_ACTIVE(db_entry))
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "Inconsistency error: l2intf %u is already in use at database", l2intf_id);
+    return L7_FAILURE;
+  }
+  
+  /* Update l2intf_id field at input struct
+     This will mark this entry as valid */
+  entry->l2intf_id = l2intf_id;
+
+  /* Update database with new entry */
+  *db_entry = *entry;
+  memset(&(db_entry->policer), 0x00, sizeof(l2intf_entry_policer_t));   /* No policer for new entries */
+  l2intf_number++;
+
+  PT_LOG_INFO(LOG_CTX_EVC, "L2intf %u: New entry allocated", l2intf_id);
 
   return L7_SUCCESS;
 }
@@ -5011,151 +5002,105 @@ L7_RC_t l2intf_db_insert(l2intf_entry_t *entry)
  * 
  * @author mruas (30/12/20)
  * 
- * @param entry 
+ * @param l2intf_id (in)
  * 
  * @return L7_RC_t : L7_SUCCESS
  */
-L7_RC_t l2intf_db_remove(l2intf_entry_t *entry)
+L7_RC_t l2intf_db_free(L7_uint32 l2intf_id)
 {
-  int i;
+  l2intf_entry_t *db_entry;
 
-  i = _l2intf_search_idx(entry, L7_NULLPTR);
-
-  PT_LOG_TRACE(LOG_CTX_EVC, "i=%d  n=%lu", i, l2intf_number);
-
-  /* Entry exists? */
-  if (i >= 0)
+  /* If L2intf id is provided, check if it is already present at DB */
+  if (l2intf_id >= L2INTF_ID_MAX)
   {
-      /* Remove policer */
-      (void) l2intf_policer_set(&l2intf_db[i], L7_NULLPTR);
-      /* Empty entry */
-      RESET_L2INTF_ID(&l2intf_db[i]);
-      l2intf_number--;
+    PT_LOG_ERR(LOG_CTX_EVC, "Invalid input L2intf id %u", l2intf_id);
+    return L7_FAILURE;
   }
+
+  /* DB entry */
+  db_entry = &l2intf_db[l2intf_id];
+
+  /* Check if this L2intf id is already inactive */
+  if (!L2INTF_DB_ENTRY_IS_ACTIVE(db_entry))
+  {
+    PT_LOG_WARN(LOG_CTX_EVC, "L2intf id %u is already inactive", l2intf_id);
+    return L7_SUCCESS;
+  }
+
+  /* Check for inconsistencies */
+  if (db_entry->l2intf_id != l2intf_id)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "Inconsistency error: [L2intf %u] Invalid l2intf_id (%u) stored at database",
+               l2intf_id, l2intf_db[l2intf_id].l2intf_id);
+    return L7_FAILURE;
+  }
+
+  /* Mark this L2intf id as free */
+  if (l2intf_pool_push(l2intf_id) != L7_SUCCESS)
+  {
+    PT_LOG_WARN(LOG_CTX_EVC, "Error freeing L2intf id %u", l2intf_id);
+    return L7_FAILURE;
+  }
+
+  /* Remove policer */
+  (void) l2intf_policer_set(db_entry, L7_NULLPTR);
+  /* Empty entry at database */
+  CLEAR_L2INTF_DB_ENTRY(db_entry);
+  if (l2intf_number > 0)
+  {
+    l2intf_number--;
+  }
+  
+  PT_LOG_INFO(LOG_CTX_EVC, "L2intf %u: Entry freed", l2intf_id);
 
   return L7_SUCCESS;
 }
 
 /**
- * Dump the L2intf Database
+ * Search for a specific entry in L2intf Database
  * 
  * @author mruas (30/12/20)
- */
-void l2intf_db_dump(void)
-{
-  unsigned long i;
-
-  printf("Dumping configured virtual ports:\n\r");
-
-  for (i=0; i<L2INTF_ID_MAX; i++)
-  {
-      if (EMPTY_L2INTF_ID(&l2intf_db[i]))
-      {
-        continue;
-      }
-      printf(" <%4lu> l2intf_id=%-4lu pon=%u/%-2u gem_id=%-4u\n\r", i,
-             l2intf_db[i].l2intf_id, l2intf_db[i].pon.intf_type,
-             l2intf_db[i].pon.intf_id, l2intf_db[i].gem_id);
-  }
-
-  printf("Number of virtual ports: %lu\n\r", l2intf_number);
-}
-
-#if 0
-int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry)
-{
-  
-  unsigned long i, j, k, _1st_empty;
-
-  switch (_0init_1insert_2remove_3find) {
-  default: return 1;
-  case 0:
-     intf_vp_n=0;
-     for (i=0; i<INTF_VP_MAX; i++) INVALIDATE_INTF_VP(&intf_vp_table[i])
-
-     for (intf_vp_modu=INTF_VP_MAX; 1;) {                                     //Just to improve modulus
-         for (i=2; i*i<intf_vp_modu; i++) if (0==intf_vp_modu%i) break;
-         if (i*i>=intf_vp_modu) break;
-         intf_vp_modu++;
-     }
-     PT_LOG_INFO(LOG_CTX_EVC, "IfN_vp_DB init(%d)\tN=%lu\tmodu=%lu\tL7_MAX_INTERFACE_COUNT=%lu", _0init_1insert_2remove_3find, INTF_VP_MAX, intf_vp_modu, L7_MAX_INTERFACE_COUNT);
-     break;
-  case 1:
-  case 2:
-  case 3:
-     i=L2INTFID_2_IDX(entry->l2intf_id, intf_vp_modu%INTF_VP_MAX);
-     for (j=0, k=i, _1st_empty=-1;  j<INTF_VP_MAX;  j++) {
-         if (entry->l2intf_id==intf_vp_table[k].l2intf_id) {i=k; break;}
-         if (_1st_empty>=INTF_VP_MAX && EMPTY_INTF_VP(&intf_vp_table[k])) _1st_empty=k;
-         if (++k>=INTF_VP_MAX) k=0;
-     }
-     PT_LOG_TRACE(LOG_CTX_EVC, "IfN_vp_DB (_0init_1insert_2remove_3find=%d)\ti=%lu j=%lu k=%lu\t_1st_empty=%lu\tn=%lu", _0init_1insert_2remove_3find, i,j,k, _1st_empty, intf_vp_n);
-     if (j>=INTF_VP_MAX) {//(entry->l2intf_id!=intf_vp_table[i].l2intf_id) {//didn't find it
-         if (3==_0init_1insert_2remove_3find) return 2;
-         if (2==_0init_1insert_2remove_3find) return 0;
-
-         //1==_0init_1insert_2remove_3find
-         if (_1st_empty>=INTF_VP_MAX) return 3; //if (!EMPTY_IfN_VP(&intf_vp_table[i])) return 3; //if (INTF_VP_MAX==intf_vp_n) return 3;       //no empty entries
-         intf_vp_n++;
-         intf_vp_table[_1st_empty]=*entry;
-         memset(&intf_vp_table[_1st_empty].policer, 0x00, sizeof(intf_vp_entry_policer_t));   /* No policer for new entries */
-     }
-     else {                                             //did find it
-         if (3==_0init_1insert_2remove_3find) {*entry=intf_vp_table[i]; return 0;}
-         if (2==_0init_1insert_2remove_3find)
-         {
-           intf_vp_policer(&intf_vp_table[i], L7_NULLPTR);  /* Remove policer */
-           INVALIDATE_INTF_VP(&intf_vp_table[i]);           /* Empty entry */
-           intf_vp_n--;
-           return 0;
-         }
-
-         //1==_0init_1insert_2remove_3find
-         entry->policer = intf_vp_table[i].policer;   /* Copy policer data to this entry */
-         intf_vp_table[i]=*entry;                     //overwrite
-     }
-     break;
-  case 4:
-     printf("Dumping configured virtual ports:\n\r");
-     for (i=0; i<INTF_VP_MAX; i++) {
-         if (EMPTY_INTF_VP(&intf_vp_table[i])) continue;
-         printf(" <%4lu> l2intf_id=%-4lu pon=%u/%-2u gem_id=%-4u\n\r", i, intf_vp_table[i].l2intf_id, intf_vp_table[i].pon.intf_type, intf_vp_table[i].pon.intf_id, intf_vp_table[i].gem_id);
-     }
-     printf("Number of virtual ports: %lu\n\r", intf_vp_n);
-     break;
-  }//switch
-
-  fflush(stdout);
-
-  return 0;
-}//IfN_vp_DB
-#endif
-
-/**
- * Initialize L2intf Database
+ *  
+ * @param l2intf_id (in)  
+ * @param entry (out)
  * 
- * @author mruas (30/12/20)
+ * @return L7_RC_t : L7_SUCCESS, L7_FAILURE
  */
-static void l2intf_db_init(void)
+L7_RC_t l2intf_db_data_get(L7_uint32 l2intf_id, l2intf_entry_t *entry)
 {
-  unsigned long i;
+  l2intf_entry_t *db_entry;
 
-  l2intf_number=0;
-
-  for (i = 0; i < L2INTF_ID_MAX; i++)
+  /* If L2intf id is provided, check if it is already present at DB */
+  if (l2intf_id >= L2INTF_ID_MAX)
   {
-    RESET_L2INTF_ID(&l2intf_db[i]);
+    PT_LOG_ERR(LOG_CTX_EVC, "Invalid input L2intf id %u", l2intf_id);
+    return L7_FAILURE;
   }
 
-  //Just to improve modulus
-  for (l2intf_modu = L2INTF_ID_MAX; 1;)
+  db_entry = &l2intf_db[l2intf_id];
+
+  /* Check if this L2intf id is already inactive */
+  if (!L2INTF_DB_ENTRY_IS_ACTIVE(db_entry))
   {
-      for (i=2; i*i<l2intf_modu; i++) if (0==l2intf_modu%i) break;
-      if (i*i>=l2intf_modu) break;
-      l2intf_modu++;
+    PT_LOG_ERR(LOG_CTX_EVC, "L2intf id %u is inactive", l2intf_id);
+    return L7_FAILURE;
   }
-  PT_LOG_INFO(LOG_CTX_EVC, "N=%lu  modu=%lu  L7_MAX_INTERFACE_COUNT=%lu",
-              L2INTF_ID_MAX, l2intf_modu, L7_MAX_INTERFACE_COUNT);
+
+  /* Check for inconsistencies */
+  if (db_entry->l2intf_id != l2intf_id)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "Inconsistency error: [L2intf %u] Invalid l2intf_id (%u) stored at database",
+               l2intf_id, db_entry->l2intf_id);
+    return L7_FAILURE;
+  }
+
+  //did find it
+  if (entry != L7_NULLPTR)
+  {
+    *entry = *db_entry;
+  }
+
+  return L7_SUCCESS;
 }
 
 /**
@@ -5165,37 +5110,238 @@ static void l2intf_db_init(void)
  * 
  * @return entry pointer
  */
-static l2intf_entry_t *l2intf_ptr_get(L7_uint32 l2intf_id)
+static l2intf_entry_t *l2intf_db_ptr_get(L7_uint32 l2intf_id)
 {
-  unsigned long i, j, k;
+  l2intf_entry_t *db_entry;
 
-  /* Search for this virtual port */
-  i = L2INTFID_2_IDX(l2intf_id, l2intf_modu%L2INTF_ID_MAX);
-
-  for (j=0, k=i;  j<L2INTF_ID_MAX;  j++)
+  /* If L2intf id is provided, check if it is already present at DB */
+  if (l2intf_id >= L2INTF_ID_MAX)
   {
-      if (l2intf_id==l2intf_db[k].l2intf_id) {i=k; break;}
-      if (++k>=L2INTF_ID_MAX) k=0;
-  }
-
-  /* Not found? */
-  if (j>=L2INTF_ID_MAX)
-  {
+    PT_LOG_ERR(LOG_CTX_EVC, "Invalid input L2intf id %u", l2intf_id);
     return L7_NULLPTR;
   }
 
-  return &l2intf_db[i];
+  db_entry = &l2intf_db[l2intf_id];
+
+  /* Check if this L2intf id is already inactive */
+  if (!L2INTF_DB_ENTRY_IS_ACTIVE(db_entry))
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "L2intf id %u is inactive", l2intf_id);
+    return L7_NULLPTR;
+  }
+
+  /* Check for inconsistencies */
+  if (db_entry->l2intf_id != l2intf_id)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "Inconsistency error: [L2intf %u] Invalid l2intf_id (%u) stored at database",
+               l2intf_id, db_entry->l2intf_id);
+    return L7_NULLPTR;
+  }
+  
+  return &l2intf_db[l2intf_id];
+}
+
+
+/* The following constants will allow L2intf range separation, in order to allow
+   specific QoS configurations for each range.
+   For TC16SXG board, 2 ranges will be defined with the first applied to GPON ports,
+   and the second for XGSPON ports */
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+ #define L2INTF_QUEUES_NUMBER 2
+ #define L2INTF_QUEUE_SELECT_BY_PORT(ptin_port)      (((ptin_port) < (PTIN_SYSTEM_N_PONS/2)) ? 0 : 1)
+ #define L2INTF_QUEUE_SELECT_BY_L2INTF_ID(l2intf_id) (((l2intf_id) < (L2INTF_ID_MAX/2)) ? 0 : 1)
+#else
+ #define L2INTF_QUEUES_NUMBER 1
+ #define L2INTF_QUEUE_SELECT_BY_PORT(ptin_port)      0
+ #define L2INTF_QUEUE_SELECT_BY_L2INTF_ID(l2intf_id) 0
+#endif
+#define L2INTF_ID_MAX_PER_QUEUE (L2INTF_ID_MAX/L2INTF_QUEUES_NUMBER)
+
+/* Pool of L2intf id to be used for the free L2intfs queue */
+typedef struct l2intf_id_pool_entry_s {
+    /* Pointers used in queues manipulation (MUST be placed at the top of the struct) */
+  struct ptin_evc_entry_s *next;
+  struct ptin_evc_entry_s *prev;
+
+  L7_uint32 l2intf_id;
+  l2intf_entry_t *db_entry;
+
+} l2intf_pool_entry_t;
+
+static l2intf_pool_entry_t l2intf_pool[L2INTF_ID_MAX];
+static dl_queue_t          queue_free_l2intf[L2INTF_QUEUES_NUMBER];
+
+/**
+ * Initialize free L2intf id queues
+ * 
+ * @author mruas (30/12/20)
+ */
+static void l2intf_pool_init(void)
+{
+  int i, j, l2intf_id;
+
+  /* Initialize l2intf_id pool */
+  for (l2intf_id = 0; l2intf_id < L2INTF_ID_MAX; l2intf_id++)
+  {
+    /* Fill data at pool entry */
+    l2intf_pool[l2intf_id].l2intf_id = l2intf_id;
+    l2intf_pool[l2intf_id].db_entry  = &l2intf_db[l2intf_id];
+  }
+
+  /* Initialize free L2intf queues */
+  for (i = 0; i < L2INTF_QUEUES_NUMBER; i++)
+  {
+    dl_queue_init(&queue_free_l2intf[i]);
+
+    for (j = 0; j < L2INTF_ID_MAX_PER_QUEUE; j++)
+    {
+      /* Caulate l2intf id */
+      l2intf_id = (L2INTF_ID_MAX_PER_QUEUE * i) + j;
+
+      /* Skip l2intf null */
+      if (l2intf_id == 0)
+      {
+        continue;
+      }
+
+      if (l2intf_id >= L2INTF_ID_MAX)
+      {
+        PT_LOG_ERR(LOG_CTX_EVC, "Invalid L2intf %u for i=%d, j=%d (l2intf_id_max_per_pool=%d)",
+                   l2intf_id, i, j, L2INTF_ID_MAX_PER_QUEUE);
+        return;
+      }
+      
+      /* add pool entry to queue */
+      dl_queue_add(&queue_free_l2intf[i], (dl_queue_elem_t*) &l2intf_pool[l2intf_id]);
+    }
+  }
+}
+
+/**
+ * Extract a new L2intf id from the free queue, according to the 
+ * provided ptin_port 
+ * 
+ * @author mruas (30/12/20)
+ * 
+ * @param ptin_port (in)
+ * @param l2intf_id (out) 
+ * @param db_entry (out) : Pointer to DB entry
+ * 
+ * @return L7_RC_t 
+ */
+static L7_RC_t l2intf_pool_pop(L7_int ptin_port, L7_uint32 *l2intf_id, l2intf_entry_t **db_entry)
+{
+  int queue_sel;
+  l2intf_pool_entry_t *pool_entry;
+  int rc;
+
+  /* Validate ptin_port */
+  if (ptin_port >= PTIN_SYSTEM_N_PONS)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "Invalid ptin_port %u: Only PON ports allowed", ptin_port);
+    return L7_FAILURE;
+  }
+
+  /* Select queue */
+  queue_sel = L2INTF_QUEUE_SELECT_BY_PORT(ptin_port);
+
+  /* Check if there are entries to be used */
+  if (queue_free_l2intf[queue_sel].n_elems == 0)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "Free L2intf queue(%d) is empty", queue_sel);
+    return L7_FAILURE;
+  }
+
+  /* Try to get an entry from the pool of free elements */
+  rc = dl_queue_remove_head(&queue_free_l2intf[queue_sel], (dl_queue_elem_t **) &pool_entry);
+  if (rc != NOERR) {
+    PT_LOG_ERR(LOG_CTX_EVC, "There are no free L2intfs available at queue(%d)! rc=%d", queue_sel, rc);
+    return L7_FAILURE;
+  }
+
+  /* Check for inconsistencies */
+  if (pool_entry->l2intf_id >= L2INTF_ID_MAX)
+  {
+    dl_queue_add_head(&queue_free_l2intf[queue_sel], (dl_queue_elem_t *) pool_entry);
+    PT_LOG_ERR(LOG_CTX_EVC, "Inconsistency error: Invalid l2intf %u extracted", pool_entry->l2intf_id);
+    return L7_FAILURE;
+  }
+
+  /* Return l2intf_id */
+  if (l2intf_id != L7_NULLPTR)
+  {
+    *l2intf_id = pool_entry->l2intf_id;
+  }
+  if (db_entry != L7_NULLPTR)
+  {
+    *db_entry = pool_entry->db_entry;
+  }
+  
+  return L7_SUCCESS;
+}
+
+/**
+ * Push an L2intf id to the free queue)
+ * 
+ * @author mruas (30/12/20)
+ * 
+ * @param l2intf_id (in) 
+ * 
+ * @return L7_RC_t 
+ */
+static L7_RC_t l2intf_pool_push(L7_uint32 l2intf_id)
+{
+  int queue_sel;
+  l2intf_pool_entry_t *pool_entry;
+  int rc;
+
+  /* Validate l2intf */
+  if (l2intf_id >= L2INTF_ID_MAX)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "Invalid l2intf %u", l2intf_id);
+    return L7_FAILURE;
+  }
+
+  /* Extract pool entry */
+  pool_entry = &l2intf_pool[l2intf_id];
+
+  /* Check for inconsistencies */
+  if (pool_entry->l2intf_id != l2intf_id)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "Inconsistency error: [L2intf %u] Invalid l2intf_id (%u) stored at the pool entry",
+               l2intf_id, pool_entry->l2intf_id);
+    return L7_FAILURE;
+  }
+
+  /* Check for inconsistencies */
+  if (pool_entry->prev != NULL || pool_entry->next != NULL)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "Inconsistency error: L2intf %u is already part of a queue", l2intf_id);
+    return L7_FAILURE;
+  }
+  
+  /* Select queue */
+  queue_sel = L2INTF_QUEUE_SELECT_BY_L2INTF_ID(l2intf_id);
+
+  /* Push this entry to the a queue */
+  rc = dl_queue_add_head(&queue_free_l2intf[queue_sel], (dl_queue_elem_t *) pool_entry);
+  if (rc != NOERR) {
+    PT_LOG_ERR(LOG_CTX_EVC, "Error adding L2intf to queue(%d)! rc=%d", queue_sel, rc);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
 }
 
 /**
  * Set bandwidth policer for one virtual port
  * 
- * @param intf_vp
+ * @param l2intf
  * @param meter 
  * 
  * @return int : 0>Success, -1>Failed
  */
-static L7_RC_t l2intf_policer_set(l2intf_entry_t *intf_vp, ptin_bw_meter_t *meter)
+static L7_RC_t l2intf_policer_set(l2intf_entry_t *l2intf, ptin_bw_meter_t *meter)
 {
   /* Search for this virtual port */
   L7_uint32         i;
@@ -5209,7 +5355,7 @@ static L7_RC_t l2intf_policer_set(l2intf_entry_t *intf_vp, ptin_bw_meter_t *mete
   L7_RC_t           rc = L7_SUCCESS;
 
   /* Validate arguments */
-  if (intf_vp == L7_NULLPTR)
+  if (l2intf == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_L2, "Invalid arguments");
     return L7_FAILURE;
@@ -5222,7 +5368,7 @@ static L7_RC_t l2intf_policer_set(l2intf_entry_t *intf_vp, ptin_bw_meter_t *mete
   /* Set meter profile */
   if (meter != L7_NULLPTR && meter->cir != (L7_uint32)-1)
   {
-    policer_id = (intf_vp->policer.in_use) ? intf_vp->policer.policer_id : -1;
+    policer_id = (l2intf->policer.in_use) ? l2intf->policer.policer_id : -1;
 
     PT_LOG_TRACE(LOG_CTX_EVC,"Creating policer (%d)", policer_id);
 
@@ -5242,17 +5388,17 @@ static L7_RC_t l2intf_policer_set(l2intf_entry_t *intf_vp, ptin_bw_meter_t *mete
     PT_LOG_TRACE(LOG_CTX_EVC,"Policer %d created", policer_id);
 
     /* Save meter data */
-    intf_vp->policer.meter      = *meter;
-    intf_vp->policer.policer_id = policer_id;
+    l2intf->policer.meter      = *meter;
+    l2intf->policer.policer_id = policer_id;
     /* New policer */
-    intf_vp->policer.in_use     = L7_TRUE;
+    l2intf->policer.in_use     = L7_TRUE;
   }
   else
   {
     /* Check if policer exists */
-    if (!intf_vp->policer.in_use)
+    if (!l2intf->policer.in_use)
     {
-      PT_LOG_WARN(LOG_CTX_L2, "l2intf_id 0x%x already does not have policer", intf_vp->l2intf_id);
+      PT_LOG_WARN(LOG_CTX_L2, "l2intf_id 0x%x already does not have policer", l2intf->l2intf_id);
       return L7_SUCCESS;
     }
 
@@ -5265,7 +5411,7 @@ static L7_RC_t l2intf_policer_set(l2intf_entry_t *intf_vp, ptin_bw_meter_t *mete
     meter_info.ebs = (L7_uint32) -1;
 
     /* Policer id in use */
-    policer_id = intf_vp->policer.policer_id;
+    policer_id = l2intf->policer.policer_id;
   }
 
   PT_LOG_TRACE(LOG_CTX_EVC,"Running L2 table");
@@ -5291,7 +5437,7 @@ static L7_RC_t l2intf_policer_set(l2intf_entry_t *intf_vp, ptin_bw_meter_t *mete
     }
 
     /* Check for virtual port id */
-    if (intf_vp->l2intf_id != fdbEntry.dot1dTpFdbVirtualPort)
+    if (l2intf->l2intf_id != fdbEntry.dot1dTpFdbVirtualPort)
     {
       continue;
     }
@@ -5325,35 +5471,35 @@ static L7_RC_t l2intf_policer_set(l2intf_entry_t *intf_vp, ptin_bw_meter_t *mete
   /* If success... */
   if (rc == L7_SUCCESS)
   {
-    PT_LOG_TRACE(LOG_CTX_L2, "Success updating policer to virtual port 0x%08x",intf_vp->l2intf_id);
+    PT_LOG_TRACE(LOG_CTX_L2, "Success updating policer to virtual port 0x%08x",l2intf->l2intf_id);
 
     /* Remove policer, if it was that intention */
     if (meter == L7_NULLPTR || meter->cir == (L7_uint32)-1)
     {
-      PT_LOG_TRACE(LOG_CTX_EVC,"Policer %d", intf_vp->policer.policer_id);
+      PT_LOG_TRACE(LOG_CTX_EVC,"Policer %d", l2intf->policer.policer_id);
 
-      if (intf_vp->policer.policer_id > 0)
+      if (l2intf->policer.policer_id > 0)
       {
-        PT_LOG_TRACE(LOG_CTX_EVC,"Going to destroy policer %d", intf_vp->policer.policer_id);
+        PT_LOG_TRACE(LOG_CTX_EVC,"Going to destroy policer %d", l2intf->policer.policer_id);
 
         /* Destroy policer */
-        if (ptin_bwPolicer_destroy(intf_vp->policer.policer_id) != L7_SUCCESS)
+        if (ptin_bwPolicer_destroy(l2intf->policer.policer_id) != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_L2, "Error destroying policer id %d", intf_vp->policer.policer_id);
+          PT_LOG_ERR(LOG_CTX_L2, "Error destroying policer id %d", l2intf->policer.policer_id);
           return L7_FAILURE;
         }
 
-        PT_LOG_TRACE(LOG_CTX_EVC,"Policer %d removed", intf_vp->policer.policer_id);
+        PT_LOG_TRACE(LOG_CTX_EVC,"Policer %d removed", l2intf->policer.policer_id);
       }
 
       /* Clean data */
-      memset(&intf_vp->policer, 0x00, sizeof(l2intf_entry_policer_t));
-      intf_vp->policer.in_use = L7_FALSE;
+      memset(&l2intf->policer, 0x00, sizeof(l2intf_entry_policer_t));
+      l2intf->policer.in_use = L7_FALSE;
     }
   }
   else
   {
-    PT_LOG_ERR(LOG_CTX_L2, "Error updating policer to virtual port 0x%08x",intf_vp->l2intf_id);
+    PT_LOG_ERR(LOG_CTX_L2, "Error updating policer to virtual port 0x%08x",l2intf->l2intf_id);
   }
 
   PT_LOG_TRACE(LOG_CTX_EVC,"Finished");
@@ -5364,25 +5510,50 @@ static L7_RC_t l2intf_policer_set(l2intf_entry_t *intf_vp, ptin_bw_meter_t *mete
 /**
  * Set bandwidth policer for one virtual port
  * 
- * @param intf_vp
+ * @param l2intf
  * @param meter 
  * 
  * @return int : 0>Success, -1>Failed
  */
 static L7_RC_t ptin_evc_l2intf_policer(L7_uint32 l2intf_id, ptin_bw_meter_t *meter)
 {
-  l2intf_entry_t *intf_vp;
+  l2intf_entry_t *l2intf_entry;
 
-  intf_vp = l2intf_ptr_get(l2intf_id);
+  l2intf_entry = l2intf_db_ptr_get(l2intf_id);
 
-  if (intf_vp == L7_NULLPTR)
+  if (l2intf_entry == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_L2, "Error getting pointer tp vp entry (vp 0x%x)", l2intf_id);
     return L7_FAILURE;
   }
 
   /* Process policer */
-  return l2intf_policer_set(intf_vp, meter);
+  return l2intf_policer_set(l2intf_entry, meter);
+}
+
+/**
+ * Dump the L2intf Database
+ * 
+ * @author mruas (30/12/20)
+ */
+void l2intf_db_dump(void)
+{
+  unsigned long i;
+
+  printf("Dumping configured virtual ports:\n\r");
+
+  for (i=0; i<L2INTF_ID_MAX; i++)
+  {
+      if (l2intf_db[i].l2intf_id >= L2INTF_ID_MAX)
+      {
+        continue;
+      }
+      printf(" <%4lu> l2intf_id=%-4lu pon=%u/%-2u gem_id=%-4u\n\r", i,
+             l2intf_db[i].l2intf_id, l2intf_db[i].pon.intf_type,
+             l2intf_db[i].pon.intf_id, l2intf_db[i].gem_id);
+  }
+
+  printf("Number of virtual ports: %lu\n\r", l2intf_number);
 }
 
 #endif
@@ -5809,12 +5980,28 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     /* If flow does it, create it */
     if (pflow == NULL)
     {
+      l2intf_entry_t l2intf_entry;
+
       /* Check if there is available flows */
       if (queue_free_clients.n_elems == 0)
       {
         PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: No available flows", evc_id);
         return L7_FAILURE;
       }
+
+      /* Get a new L2intf id */
+      memset(&l2intf_entry, 0x00, sizeof(l2intf_entry_t));
+      l2intf_entry.l2intf_id = (unsigned long)-1;
+      l2intf_entry.pon       = evcFlow->ptin_intf;
+      l2intf_entry.gem_id    = evcFlow->uni_ovid;
+
+      if (l2intf_db_alloc(&l2intf_entry) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error adding L2intf to DB", evc_id);
+        return L7_FAILURE;
+      }
+      /* After the insertion, the L2intf_id field is updated */
+      l2intf_id = l2intf_entry.l2intf_id;
 
       /* Create virtual port */
       if (ptin_virtual_port_add(leaf_port,
@@ -5824,22 +6011,9 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
                                 &l2intf_id,
                                 evcFlow->macLearnMax) != L7_SUCCESS)
       {
+        (void) l2intf_db_free(l2intf_id);
         PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error creating virtual port", evc_id);
         return L7_FAILURE;
-      }
-      else
-      {
-        l2intf_entry_t entry;
-
-        entry.l2intf_id  = l2intf_id & 0x1ffff;
-        entry.pon        = evcFlow->ptin_intf;
-        entry.gem_id     = evcFlow->uni_ovid;
-        //e.onu       = evcFlow->onuId;
-
-        if (l2intf_db_insert(&entry) != L7_SUCCESS)
-        {
-          PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error adding L2intf to DB", evc_id);
-        }
       }
 
       /* Add client to the EVC struct */
@@ -6141,16 +6315,15 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
   ptin_evc_pclientFlow_clean(evc_id, ptin_port, pflow, L7_TRUE);
 
   /* Remove virtual port */
-  {
-    l2intf_entry_t entry;
-
-    entry.l2intf_id = pflow->l2intf_id;
-    (void) l2intf_db_remove(&entry);
-  }
   if (ptin_virtual_port_remove(ptin_port, pflow->virtual_gport, multicast_group) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error removing virtual port", evc_id);
     return L7_FAILURE;
+  }
+
+  if (l2intf_db_free(pflow->l2intf_id) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error freeing l2intf id %u", pflow->l2intf_id);
   }
 
   /* Delete client from the EVC struct */
@@ -7463,7 +7636,7 @@ L7_RC_t ptin_evc_bwProfile_set(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile,
     L7_uint32 l2intf_id;
 
     /* Calculate l2intf */
-    l2intf_id = l2intf_id_get(profile->ptin_port, profile->outer_vlan_lookup);
+    l2intf_id = l2intf_db_search(profile->ptin_port, profile->outer_vlan_lookup);
 
     if (l2intf_id == 0 || l2intf_id == (L7_uint32)-1)
     {
@@ -7534,7 +7707,7 @@ L7_RC_t ptin_evc_bwProfile_delete(L7_uint32 evc_ext_id, ptin_bw_profile_t *profi
     L7_uint32 l2intf_id;
 
     /* Calculate l2intf_id */
-    l2intf_id = l2intf_id_get(profile->ptin_port, profile->outer_vlan_lookup);
+    l2intf_id = l2intf_db_search(profile->ptin_port, profile->outer_vlan_lookup);
 
     if (l2intf_id == 0 || l2intf_id == (L7_uint32)-1)
     {
