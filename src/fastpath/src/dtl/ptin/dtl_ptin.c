@@ -831,7 +831,7 @@ L7_RC_t dtlPtinVirtualPort(L7_uint32 intIfNum, ptin_l2intf_t *vport )
     ddUsp.port = usp.port - 1;
   }
 
-  rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_L2INTF, (void *) vport);
+  rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_VIRTUAL_PORT, (void *) vport);
 
   return rc;
 }

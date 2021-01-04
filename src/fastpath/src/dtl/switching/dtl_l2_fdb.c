@@ -210,7 +210,7 @@ L7_RC_t dtlFdbReceive(DAPI_USP_t *ddusp,
 #endif
   {
     fdbLearnEntryCallBack(dei->cmdData.unsolLearnedAddress.macAddr.addr,
-                          intIfNum, dei->l2intf_hwid, /* PTin added: L2intf */
+                          intIfNum, dei->virtual_port, /* PTin added: virtual ports */
                           dei->cmdData.unsolLearnedAddress.vlanID,
                           FDB_ADD);
   }
@@ -263,7 +263,7 @@ L7_RC_t dtlFdbReceive(DAPI_USP_t *ddusp,
 #endif
 
     fdbLearnEntryCallBack(dei->cmdData.unsolAgedAddress.macAddr.addr,
-                          intIfNum, dei->l2intf_hwid /* PTin added: L2intf */,
+                          intIfNum, dei->virtual_port /* PTin added: virtual ports */,
                           dei->cmdData.unsolAgedAddress.vlanID,
                           FDB_DEL);
   }

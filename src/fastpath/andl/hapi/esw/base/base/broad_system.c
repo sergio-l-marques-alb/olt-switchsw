@@ -219,7 +219,7 @@ L7_RC_t hapiBroadStdPortInit(DAPI_PORT_t *dapiPortPtr)
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_VLAN_CROSSCONNECT            ] = (HAPICTLFUNCPTR_t)hapiBroadPtinBridgeCrossconnect;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_VLAN_MULTICAST               ] = (HAPICTLFUNCPTR_t)hapiBroadPtinBridgeVlanMulticastSet;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_MULTICAST_EGRESS_PORT        ] = (HAPICTLFUNCPTR_t)hapiBroadPtinMulticastEgressPortSet;
-  dapiPortPtr->cmdTable[DAPI_CMD_PTIN_L2INTF                       ] = (HAPICTLFUNCPTR_t)hapiBroadPtinL2intfSet;
+  dapiPortPtr->cmdTable[DAPI_CMD_PTIN_VIRTUAL_PORT                 ] = (HAPICTLFUNCPTR_t)hapiBroadPtinVirtualPortSet;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_HW_RESOURCES                 ] = (HAPICTLFUNCPTR_t)hapiBroadPtinResourcesGet;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_BW_POLICER                   ] = (HAPICTLFUNCPTR_t)hapiBroadPtinBwPolicer;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_FP_COUNTERS                  ] = (HAPICTLFUNCPTR_t)hapiBroadPtinFpCounters;

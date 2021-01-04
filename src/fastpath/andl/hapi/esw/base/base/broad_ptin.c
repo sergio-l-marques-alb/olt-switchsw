@@ -1704,7 +1704,7 @@ L7_RC_t hapiBroadPtinMulticastEgressPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, voi
 }
 
 /**
- * Configure L2intf's
+ * Configure Virtual ports
  * 
  * @param usp 
  * @param cmd 
@@ -1713,7 +1713,7 @@ L7_RC_t hapiBroadPtinMulticastEgressPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, voi
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t hapiBroadPtinL2intfSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
+L7_RC_t hapiBroadPtinVirtualPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
   ptin_dapi_port_t dapiPort;
   ptin_l2intf_t *l2intf = (ptin_l2intf_t *) data;
@@ -1726,7 +1726,7 @@ L7_RC_t hapiBroadPtinL2intfSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   case DAPI_CMD_SET:
     if (l2intf->cmd == PTIN_VPORT_CMD_VP_OPER)
     {
-      rc = ptin_hapi_l2intf_create(&dapiPort, 
+      rc = ptin_hapi_vp_create(&dapiPort, 
                                l2intf->ext_ovid, l2intf->ext_ivid,
                                l2intf->int_ovid, l2intf->int_ivid,
                                &l2intf->multicast_group,
@@ -1747,7 +1747,7 @@ L7_RC_t hapiBroadPtinL2intfSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   case DAPI_CMD_CLEAR_ALL:
     if (l2intf->cmd == PTIN_VPORT_CMD_VP_OPER)
     {
-      rc = ptin_hapi_l2intf_remove(&dapiPort, l2intf->ext_ovid, l2intf->ext_ivid, l2intf->virtual_gport, l2intf->multicast_group);
+      rc = ptin_hapi_vp_remove(&dapiPort, l2intf->ext_ovid, l2intf->ext_ivid, l2intf->virtual_gport, l2intf->multicast_group);
 
       if (rc == L7_SUCCESS)
       {
