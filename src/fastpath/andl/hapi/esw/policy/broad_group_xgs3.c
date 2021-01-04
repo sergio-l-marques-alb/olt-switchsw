@@ -5608,12 +5608,14 @@ int policy_port_class_pbmp_update(int                  unit,
     rv = policy_port_class_add_remove(unit, port, policyStage, oldPortClass, L7_FALSE);
     if (BCM_E_NONE != rv)
     {
+      PT_LOG_ERR(LOG_CTX_HAPI, " error @policy_port_class_add_remove old port %u", rv);
       break;
     }
     /* Set the new port class. */
     rv = policy_port_class_add_remove(unit, port, policyStage, newPortClass, L7_TRUE);
     if (BCM_E_NONE != rv)
     {
+      PT_LOG_ERR(LOG_CTX_HAPI, " error @policy_port_class_add_remove new port %u", rv);
       break;
     }
   }

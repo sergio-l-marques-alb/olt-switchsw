@@ -1513,6 +1513,7 @@ int l7_bcm_policy_apply_multi(int unit, BROAD_POLICY_t policy, bcm_pbmp_t pbmp)
     if (policyIdx == BROAD_POLICY_MAP_INVALID)
     {
       _policy_sem_give();
+      PT_LOG_ERR(LOG_CTX_HAPI, "Invalid policy %d unit %u",policy, unit);
       return BCM_E_NOT_FOUND;
     }
     policyPtr = &policy_map_table[unit][policyIdx];
@@ -1534,6 +1535,8 @@ int l7_bcm_policy_apply_multi(int unit, BROAD_POLICY_t policy, bcm_pbmp_t pbmp)
     }
     if (BCM_E_NONE != rv)
     {
+
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error %u", rv);
       /* Restore the PBMP */
       BCM_PBMP_ASSIGN(policyPtr->pbm, tempPbm);
       _policy_sem_give();
@@ -1554,6 +1557,7 @@ int l7_bcm_policy_apply_multi(int unit, BROAD_POLICY_t policy, bcm_pbmp_t pbmp)
       if (BCM_E_NONE != rv)
       {
         _policy_sem_give();
+        PT_LOG_ERR(LOG_CTX_HAPI, " error @policy_port_class_pbmp_update %u", rv);
         return rv;
       }
     }

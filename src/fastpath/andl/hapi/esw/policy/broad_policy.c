@@ -1942,6 +1942,7 @@ L7_RC_t hapiBroadPolicyApplyToMultiIface(BROAD_POLICY_t policy, bcm_pbmp_t pbm)
       rv = l7_bcm_policy_apply_multi(unit, policy, pbm);
       if (BCM_E_NONE != rv)
       {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error rv %u unit %u", rv, unit);
         result = L7_FAILURE;
       }
     }
