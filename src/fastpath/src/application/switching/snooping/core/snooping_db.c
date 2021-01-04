@@ -2448,6 +2448,7 @@ L7_RC_t snoopL3GroupPtinPortAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_a
   char                                groupAddrStr[IPV6_DISP_ADDR_LEN]={};
   char                                sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
   L7_RC_t                             rc;
+  L7_uint32                           intIfNum;
 
   /* Validate arguments */
   if (serviceId == 0 || serviceId >= PTIN_SYSTEM_N_EXTENDED_EVCS || vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX || groupAddr==L7_NULLPTR || groupAddr->family!=L7_AF_INET || sourceAddr == L7_NULLPTR || sourceAddr->family != L7_AF_INET
@@ -2456,6 +2457,8 @@ L7_RC_t snoopL3GroupPtinPortAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_a
     PT_LOG_ERR(LOG_CTX_IGMP,"Invalid arguments [evcId:%u vlanId:%u groupAddr:%p sourceAddr:%p ptin_port:%u isStatic:%u isProtection:%u", serviceId, vlanId, groupAddr, sourceAddr, ptin_port, isStatic, isProtection);
     return L7_FAILURE;
   }
+
+  intIfNum = port2intIfNum(ptin_port);
 
   inetAddrPrint(groupAddr, groupAddrStr);
   inetAddrPrint(sourceAddr, sourceAddrStr);
@@ -3081,6 +3084,7 @@ L7_RC_t snoopL3GroupPtinPortRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_ine
   char                                   groupAddrStr[IPV6_DISP_ADDR_LEN]={};
   char                                   sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
   L7_RC_t                                rc;
+  L7_uint32                              intIfNum;
 
   /* Validate arguments */
   if (serviceId == 0 || serviceId >= PTIN_SYSTEM_N_EXTENDED_EVCS || vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX || groupAddr==L7_NULLPTR || groupAddr->family!=L7_AF_INET || sourceAddr == L7_NULLPTR || sourceAddr->family != L7_AF_INET
@@ -3089,6 +3093,8 @@ L7_RC_t snoopL3GroupPtinPortRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_ine
     PT_LOG_ERR(LOG_CTX_IGMP,"Invalid arguments [evcId:%u vlanId:%u groupAddr:%p sourceAddr:%p ptin_port:%u isProtection:%u", serviceId, vlanId, groupAddr, sourceAddr, ptin_port, isProtection);
     return L7_FAILURE;
   }
+
+  intIfNum = port2intIfNum(ptin_port);
 
   inetAddrPrint(groupAddr, groupAddrStr);
   inetAddrPrint(sourceAddr, sourceAddrStr);

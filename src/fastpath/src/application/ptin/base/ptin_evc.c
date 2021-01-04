@@ -471,15 +471,20 @@ static L7_RC_t ptin_evc_probe_get(L7_uint evc_id, ptin_evcStats_profile_t *profi
 static L7_RC_t ptin_evc_probe_add(L7_uint evc_id, ptin_evcStats_profile_t *profile);
 static L7_RC_t ptin_evc_probe_delete(L7_uint evc_id, ptin_evcStats_profile_t *profile);
 
+#if (!PTIN_BOARD_IS_MATRIX)
 static 
 L7_RC_t ptin_evc_update_dhcp (L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL dhcpv4_enabled, L7_BOOL dhcpv6_enabled,
                               L7_BOOL just_remove, L7_BOOL look_to_counters);
 static 
 L7_RC_t ptin_evc_update_pppoe(L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL pppoe_enabled,
                               L7_BOOL just_remove, L7_BOOL look_to_counters);
+#endif
+
+#if defined(IGMPASSOC_MULTI_MC_SUPPORTED) || PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 static 
 L7_RC_t ptin_evc_update_igmp (L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL igmp_enabled,
                               L7_BOOL just_remove, L7_BOOL look_to_counters);
+#endif
 
 /* Semaphore to access EVC clients */
 void *ptin_evc_clients_sem = L7_NULLPTR;
@@ -6379,6 +6384,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
 }
 #endif
 
+#if (!PTIN_BOARD_IS_MATRIX)
 /**
  * DHCP configurations
  * 
@@ -6797,7 +6803,9 @@ L7_RC_t ptin_evc_update_pppoe(L7_uint16 evc_id, L7_uint32 *flags_ref,
 
   return L7_SUCCESS;
 }
+#endif
 
+#if defined(IGMPASSOC_MULTI_MC_SUPPORTED) || PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 /**
  * IGMP configurations
  * 
@@ -6968,6 +6976,7 @@ L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref,
 
   return L7_SUCCESS;
 }
+#endif
 
 /**
  * Gets the flooding vlans list

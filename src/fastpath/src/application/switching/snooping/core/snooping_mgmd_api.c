@@ -1419,7 +1419,11 @@ L7_RC_t ptin_snoop_l3_sync_mx_process_request(L7_uint16 vlanId, L7_inet_addr_t *
       snoopSyncReply[numberOfSnoopEntries].isStatic = L7_TRUE;
     
     snoopSyncReply[numberOfSnoopEntries].numberOfActivePorts = snoopChannelInfoData->noOfInterfaces;
-    memcpy(&snoopSyncReply[numberOfSnoopEntries].intIfNum_mask, &snoopChannelInfoData->channelIntfMask, sizeof(snoopSyncReply[numberOfSnoopEntries].intIfNum_mask)); 
+    {
+        NIM_INTF_MASK_t nmask;
+        ptin_intf_portbmp2intIfNumMask(&snoopChannelInfoData->channelPtinPortMask, &nmask);
+        memcpy(&snoopSyncReply[numberOfSnoopEntries].intIfNum_mask, &nmask, sizeof(snoopSyncReply[numberOfSnoopEntries].intIfNum_mask)); 
+    }
    
     /* Next Snoop entry */
     numberOfSnoopEntries++;       

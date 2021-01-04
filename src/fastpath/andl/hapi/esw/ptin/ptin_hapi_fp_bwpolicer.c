@@ -298,7 +298,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   bcm_pbmp_t           pbm, pbm_mask;
   BROAD_POLICY_STAGE_t stage = BROAD_POLICY_STAGE_INGRESS;
   /* Define if interfaces are set after commiting rule */
-  L7_BOOL              post_commit_intf_set;
+  L7_BOOL              post_commit_intf_set = L7_FALSE;
 
   /* Trident switch only has 10 FP groups... excluding BW policers for this board */
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
