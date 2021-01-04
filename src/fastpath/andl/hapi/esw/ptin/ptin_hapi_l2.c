@@ -1111,7 +1111,7 @@ L7_RC_t ptin_hapi_l2intf_maclimit_status_get(L7_uint32 l2intf_id, L7_uint8 *over
 
   /* Check if the limit is enable and if is over limit */
   if (macLearn_info_flow[l2intf_id].enable == TRUE &&
-      macLearn_info_flow[l2intf_id].mac_counter >= macLearn_info_flow[l2intf_id].mac_limit)
+      macLearn_info_flow[l2intf_id].mac_total >= macLearn_info_flow[l2intf_id].mac_limit)
   {
 
     PT_LOG_TRACE(LOG_CTX_HAPI, "GPORT=0x%x is over limit (counter %d , limit %d) ",
