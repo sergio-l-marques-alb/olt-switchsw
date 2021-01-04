@@ -555,7 +555,7 @@ typedef enum
   DAPI_CMD_PTIN_VLAN_CROSSCONNECT,
   DAPI_CMD_PTIN_VLAN_MULTICAST,
   DAPI_CMD_PTIN_MULTICAST_EGRESS_PORT,
-  DAPI_CMD_PTIN_VIRTUAL_PORT,
+  DAPI_CMD_PTIN_L2INTF,
   DAPI_CMD_PTIN_HW_RESOURCES,
   DAPI_CMD_PTIN_BW_POLICER,
   DAPI_CMD_PTIN_FP_COUNTERS,
@@ -1548,7 +1548,7 @@ typedef struct
 {
   L7_ulong32 appHandle;
 
-  L7_uint32 virtual_port;   /* PTin added: virtual ports */
+  L7_uint32 l2intf_hwid;   /* PTin added: L2intf */
 
   union
   {

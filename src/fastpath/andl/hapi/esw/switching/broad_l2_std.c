@@ -3585,11 +3585,11 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
       /* Save virtual port */
       if (BCM_GPORT_IS_VLAN_PORT(bcm_l2_addr->port))
       {
-        macAddressInfo.virtual_port = _SHR_GPORT_VLAN_PORT_ID_GET(bcm_l2_addr->port);
+        macAddressInfo.l2intf_hwid = _SHR_GPORT_VLAN_PORT_ID_GET(bcm_l2_addr->port);
       }
       else
       {
-        macAddressInfo.virtual_port = 0;
+        macAddressInfo.l2intf_hwid = 0;
       }
       #endif
 
@@ -3806,11 +3806,11 @@ void hapiBroadAddrMacUpdateAge(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *dap
     /* Save virtual port */
     if (BCM_GPORT_IS_VLAN_PORT(bcm_l2_addr->port))
     {
-      macAddressInfo.virtual_port = _SHR_GPORT_VLAN_PORT_ID_GET(bcm_l2_addr->port);
+      macAddressInfo.l2intf_hwid = _SHR_GPORT_VLAN_PORT_ID_GET(bcm_l2_addr->port);
     }
     else
     {
-      macAddressInfo.virtual_port = 0;
+      macAddressInfo.l2intf_hwid = 0;
     }
     #endif
 

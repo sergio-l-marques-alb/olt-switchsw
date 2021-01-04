@@ -635,7 +635,7 @@ L7_RC_t ptin_hapi_bridge_crossconnect_delete_all(void)
 
 
 /**
- * Create Virtual port
+ * Create an L2intf
  * 
  * @param dapiPort      : PON port
  * @param match_ovid    : external outer vlan (GEMid)
@@ -647,11 +647,11 @@ L7_RC_t ptin_hapi_bridge_crossconnect_delete_all(void)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
-                            L7_uint16 match_ovid, L7_uint16 match_ivid,
-                            L7_uint16 egress_ovid, L7_uint16 egress_ivid,
-                            L7_int *mcast_group,
-                            L7_int *virtual_gport, L7_int port_id, L7_int type)
+L7_RC_t ptin_hapi_l2intf_create(ptin_dapi_port_t *dapiPort,
+                                L7_uint16 match_ovid, L7_uint16 match_ivid,
+                                L7_uint16 egress_ovid, L7_uint16 egress_ivid,
+                                L7_int *mcast_group,
+                                L7_int *virtual_gport, L7_int port_id, L7_int type)
 {
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
@@ -842,7 +842,7 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
 }
 
 /**
- * Remove virtual port
+ * Remove an L2intf
  * 
  * @param dapiPort      : PON port
  * @param match_ovid    : external Outer vlan (GEMid)
@@ -852,10 +852,10 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
-                            L7_uint16 match_ovid, L7_uint16 match_ivid,
-                            L7_int virtual_gport,
-                            L7_int mcast_group)
+L7_RC_t ptin_hapi_l2intf_remove(ptin_dapi_port_t *dapiPort,
+                                L7_uint16 match_ovid, L7_uint16 match_ivid,
+                                L7_int virtual_gport,
+                                L7_int mcast_group)
 {
   int unit;
   DAPI_PORT_t  *dapiPortPtr;
