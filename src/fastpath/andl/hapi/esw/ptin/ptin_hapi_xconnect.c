@@ -706,6 +706,8 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
   {
     vlan_port.flags |= BCM_VLAN_PORT_WITH_ID;
     vlan_port.vlan_port_id = 0x44000000 | (*virtual_gport & 0x1ffff);
+
+    PT_LOG_INFO(LOG_CTX_HAPI, "Goin to use vport=0x%x", vlan_port.vlan_port_id);
   }
   
   /* Run all units */
@@ -724,7 +726,7 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
       return L7_FAILURE;
     }
 
-    PT_LOG_TRACE(LOG_CTX_HAPI, "unit %d: vport=0x%x", unit, vlan_port.vlan_port_id);
+    PT_LOG_INFO(LOG_CTX_HAPI, "unit %d: vport=0x%x", unit, vlan_port.vlan_port_id);
 
     #if 0
     /* MAC learning */
