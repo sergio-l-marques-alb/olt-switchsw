@@ -5097,6 +5097,9 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
 #endif
              );
       osapiSemaGive(ptin_igmp_clients_sem);
+
+      PT_LOG_ERR(LOG_CTX_IGMP,"Group client ID (from ptin_port %u): %u >= %u", 
+                 ptin_port, group_client_id, PTIN_IGMP_CLIENTIDX_MAX);
       return L7_FAILURE;
     }
 
@@ -14351,6 +14354,9 @@ static L7_uint16 ptin_igmp_group_client_identifier_pop(L7_uint ptin_port)
   /* Validate port */
   if (ptin_port >= PTIN_SYSTEM_N_INTERF)
   {
+    PT_LOG_ERR(LOG_CTX_IGMP, "Group client queue ptin_port %d, n_elems %d ",
+               ptin_port,
+               queue_free_group_client_id[PTIN_IGMP_CLIENT_PORT(ptin_port)].n_elems);
     return(L7_uint16)-1;
   }
 
@@ -14361,14 +14367,15 @@ static L7_uint16 ptin_igmp_group_client_identifier_pop(L7_uint ptin_port)
     pClientIdx = L7_NULLPTR;
 
     dl_queue_remove_head(&queue_free_group_client_id[PTIN_IGMP_CLIENT_PORT(ptin_port)], (dl_queue_elem_t **) &pClientIdx);
-
+    PT_LOG_TRACE(LOG_CTX_IGMP, "Deleted group client id %u", PTIN_IGMP_CLIENT_PORT(ptin_port));
     /* Check if there is free indexes */
     if (pClientIdx == L7_NULLPTR)
     {
       /* Not found: return -1 */
+      PT_LOG_ERR(LOG_CTX_IGMP, "pClientIdx=%u", pClientIdx);
       return(L7_uint16)-1;
     }
-  } while (pClientIdx->inUse);
+  }while (pClientIdx->inUse);
 
   /* Mark index as being used */
   pClientIdx->inUse = L7_TRUE;
