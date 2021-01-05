@@ -602,8 +602,16 @@ L7_RC_t ptin_hapi_phy_init(void)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing OLT1T0F phys");
   }
+#elif (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  if (ptin_hapi_phy_init_tc16sxg() == L7_SUCCESS)
+  {
+    PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing TC16SXG phys");
+  }
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing TC16SXG phys");
+  }
 #endif
-
   /* Egress port configuration, only for PON boards */
   if (hapi_ptin_egress_ports(max(PTIN_SYSTEM_N_PONS_PHYSICAL,
                                  PTIN_SYSTEM_N_ETH_PHYSICAL)
@@ -1069,6 +1077,48 @@ L7_RC_t ptin_hapi_phy_init_tg16gf(void)
 
   return rc;
 }
+
+
+/**
+ * Initialize PHYs for TC16SXG
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_phy_init_tc16sxg(void)
+{
+  L7_RC_t rc = L7_SUCCESS;
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  DAPI_USP_t  usp;
+  BROAD_PORT_t  *hapiPortPtr;
+  bcm_port_t bcm_unit, bcm_port;
+
+
+  PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing bcm_port at SFI mode");
+  /* Run all ports */
+  USP_PHYPORT_ITERATE(usp, dapi_g)
+  {
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+    bcm_port    = hapiPortPtr->bcm_port;
+    bcm_unit    = hapiPortPtr->bcm_unit;
+
+    if ((PTIN_SYSTEM_10G_PORTS_MASK >> bcm_port) & 1)
+    {
+      /* Set XAUI mode */
+      if (ptin_hapi_sfi_set(bcm_port) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing bcm_port %u at SFI mode", bcm_port);
+        rc = L7_FAILURE;
+        continue;
+      }
+    }
+  }
+#else
+  rc = L7_NOT_SUPPORTED;
+#endif
+  return rc;
+}
+
 
 /**
  * Initialize PHYs for Ag16GA boards
@@ -5421,7 +5471,7 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
     return rc;
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G /*|| PTIN_BOARD == PTIN_BOARD_TG16GF*/)
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_TC16SXG)
   /* Firmware mode 2 */
   rc = bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 2);
   if (rc != BCM_E_NONE)
@@ -5430,6 +5480,17 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
     return rc;
   }
   PT_LOG_DEBUG(LOG_CTX_HAPI, "Success applying Firmware mode 2 to bcm_port %u", bcm_port);
+#endif
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  /* Firmware mode 2 */
+  rc = bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_DFE_ENABLE, 1);
+  if (rc != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error applying DFE to bcm_port %u (rc=%d)", bcm_port, rc);
+    return rc;
+  }
+  PT_LOG_DEBUG(LOG_CTX_HAPI, "Success applying DFE to bcm_port %u", bcm_port);
 #endif
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G)

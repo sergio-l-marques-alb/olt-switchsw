@@ -552,6 +552,13 @@ extern L7_RC_t ptin_hapi_temperature_monitor(ptin_dtl_temperature_monitor_t *tem
  */
 extern L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL local_enable, L7_BOOL remote_enable);
 
+/**
+ * Initialize PHYs for TC16SXG
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_hapi_phy_init_tc16sxg(void);
+
 #if (PTIN_BOARD == PTIN_BOARD_AG16GA)
 /**
  * AG16g bck static switching 
