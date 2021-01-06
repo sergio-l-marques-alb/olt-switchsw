@@ -2668,7 +2668,16 @@ int _policy_group_calc_qset(int                             unit,
       }
       else if (entryPtr->policyStage == BROAD_POLICY_STAGE_INGRESS)
       {
+#ifndef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
         BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyInPorts);
+#else
+        BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyInPort);
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+        BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyInterfaceClassPort);
+        #else
+        BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyPortClass);
+        #endif
+#endif
       }
       else if (entryPtr->policyStage == BROAD_POLICY_STAGE_EGRESS)
       {
