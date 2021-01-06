@@ -15,6 +15,7 @@
 
 #include "ptin_msg.h"
 #include "ptin_intf.h"
+#include "ptin_qos.h"
 #include "ptin_evc.h"
 #include "ptin_igmp.h"
 #include "ptin_dhcp.h"
@@ -1434,6 +1435,7 @@ L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus)
 L7_RC_t ptin_msg_oltd_hw_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
 {
   L7_uint16 i;
+  L7_uint32 ptin_port;
   msg_OLTDHWConfig_t *msgConf = (msg_OLTDHWConfig_t *) inbuffer->info;
   L7_RC_t rc = L7_FAILURE;
 
@@ -1458,11 +1460,18 @@ L7_RC_t ptin_msg_oltd_hw_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
                msgConf->param[4], msgConf->param[5], msgConf->param[6], msgConf->param[7],
                msgConf->param[8], msgConf->param[9]);
 
+  /* Validate interface */
+  if (ptin_intf_typeId2port(msgConf->intf.intf_type, msgConf->intf.intf_id, &ptin_port) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", msgConf->intf.intf_type, msgConf->intf.intf_id);
+    return L7_FAILURE;
+  }
+
   /* Operations */
   if (msgConf->operation == OLTDHWCONFIG_OP_SHAPER_SET)
   {
     PT_LOG_DEBUG(LOG_CTX_MSG, "Applying OLTDHWCONFIG_OP_SHAPER_SET operation...");
-    rc = ptin_intf_shaper_max_set(msgConf->intf.intf_type, msgConf->intf.intf_id, msgConf->param[0], msgConf->param[1]);
+    rc = ptin_qos_intf_shaper_set(ptin_port, msgConf->param[0], msgConf->param[1]);
   }
   
   PT_LOG_DEBUG(LOG_CTX_MSG, "Result = %d", rc);
@@ -1808,6 +1817,7 @@ L7_RC_t ptin_msg_slotMode_apply(void)
 L7_RC_t ptin_msg_portExt_set(msg_HWPortExt_t *portExt, L7_uint nElems)
 {
   L7_uint          i;// rc;
+  L7_uint32        ptin_port;
   ptin_intf_t      ptin_intf;
   ptin_HWPortExt_t portExt_conf;
 
@@ -1838,10 +1848,18 @@ L7_RC_t ptin_msg_portExt_set(msg_HWPortExt_t *portExt, L7_uint nElems)
     ptin_intf.intf_type = ENDIAN_SWAP8(portExt[i].intf.intf_type);
     ptin_intf.intf_id   = ENDIAN_SWAP8(portExt[i].intf.intf_id);
 
-    /* Set MEF parameters */
-    if (ptin_intf_portExt_set(&ptin_intf, &portExt_conf)!=L7_SUCCESS)
+    /* Get ptin_port */
+    if (ptin_intf_typeId2port(ptin_intf.intf_type, ptin_intf.intf_id, &ptin_port) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_MSG,"Error setting MEF EXT configurations");
+      PT_LOG_ERR(LOG_CTX_MSG,"Error converting ptin_intf %u/%u to ptin_port",
+                 ptin_intf.intf_type, ptin_intf.intf_id);
+      return L7_FAILURE;
+    }
+    
+    /* Set MEF parameters */
+    if (ptin_intf_portExt_set(ptin_port, &portExt_conf)!=L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG,"Error setting MEF EXT configurations to ptin_port %u", ptin_port);
       return L7_FAILURE;
     }
 
@@ -1955,9 +1973,10 @@ L7_RC_t ptin_msg_portExt_get(msg_HWPortExt_t *portExt, L7_uint *nElems)
     memset(&portExt_conf, 0x00, sizeof(ptin_HWPortExt_t));
 
     /* Get MEF parameters */
-    if (ptin_intf_portExt_get(&ptin_intf, &portExt_conf)!=L7_SUCCESS)
+    if (ptin_intf_portExt_get(port, &portExt_conf)!=L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_MSG,"Error getting MEF EXT parameters for interface=%u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
+      PT_LOG_ERR(LOG_CTX_MSG,"Error getting MEF EXT parameters for ptin_port %u, interface=%u/%u",
+                 port, ptin_intf.intf_type, ptin_intf.intf_id);
       return L7_FAILURE;
     }
 
@@ -2148,6 +2167,7 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
 {
   L7_int i;
   L7_uint8                slot_id;
+  L7_uint32               ptin_port;
   ptin_intf_t             ptin_intf;
   ptin_QoS_intf_t         qos_intf;
   ptin_QoS_cos_t          qos_cos[8];
@@ -2164,6 +2184,13 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
   ptin_intf.intf_type = qos_msg->intf.intf_type;
   ptin_intf.intf_id   = qos_msg->intf.intf_id;
 
+  /* Validate interface */
+  if (ptin_intf_typeId2port(ptin_intf.intf_type, ptin_intf.intf_id, &ptin_port) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
   /* Clear and initialize message structure */
   memset(qos_msg,0x00,sizeof(msg_QoSConfiguration_t));
   qos_msg->SlotId = slot_id;
@@ -2175,7 +2202,7 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
   memset(qos_cos,0x00,sizeof(ptin_QoS_cos_t)*8);
 
   /* Get Interface configuration */
-  rc = ptin_QoS_intf_config_get(&ptin_intf,&qos_intf);
+  rc = ptin_qos_intf_config_get(ptin_port, &qos_intf);
   if (rc == L7_SUCCESS)
   {
     /* Trust mode */
@@ -2220,7 +2247,7 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
   }
 
   /* QoS configuration */
-  rc = ptin_QoS_cos_config_get(&ptin_intf,(L7_uint8)-1,qos_cos);
+  rc = ptin_qos_cos_config_get(ptin_port, (L7_uint8)-1,qos_cos);
   if (rc == L7_SUCCESS)
   {
     /* Run all QoS */
@@ -2315,6 +2342,7 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
 L7_RC_t ptin_msg_CoS_set(msg_QoSConfiguration_t *qos_msg)
 {
   L7_int i;
+  L7_uint32               ptin_port;
   ptin_intf_t             ptin_intf;
   ptin_QoS_intf_t         qos_intf;
   ptin_QoS_cos_t          qos_cos[8];
@@ -2369,6 +2397,13 @@ L7_RC_t ptin_msg_CoS_set(msg_QoSConfiguration_t *qos_msg)
   ptin_intf.intf_type = qos_msg->intf.intf_type;
   ptin_intf.intf_id   = qos_msg->intf.intf_id;
 
+  /* Validate interface */
+  if (ptin_intf_typeId2port(ptin_intf.intf_type, ptin_intf.intf_id, &ptin_port) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
   /* Interface configuration */
 
   /* Trust mode */
@@ -2410,7 +2445,7 @@ L7_RC_t ptin_msg_CoS_set(msg_QoSConfiguration_t *qos_msg)
   if (qos_intf.mask)
   {
     /* Execute priority map configuration */
-    rc = ptin_QoS_intf_config_set(&ptin_intf,&qos_intf);
+    rc = ptin_qos_intf_config_set(ptin_port, &qos_intf);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Error configuring priority map (rc=%d)", rc);
@@ -2451,7 +2486,7 @@ L7_RC_t ptin_msg_CoS_set(msg_QoSConfiguration_t *qos_msg)
     if (qos_msg->cos_config.mask)
     {
       /* Apply configuration */
-      rc = ptin_QoS_cos_config_set(&ptin_intf, (L7_uint8)-1, qos_cos);
+      rc = ptin_qos_cos_config_set(ptin_port, (L7_uint8)-1, qos_cos);
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG,"Error configuring QoS (rc=%d)",rc);
@@ -2483,6 +2518,7 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
 {
   L7_int                  i, j;
   L7_uint8                slot_id;
+  L7_uint32               ptin_port;
   ptin_intf_t             ptin_intf;
   ptin_QoS_intf_t         qos_intf;
   ptin_QoS_cos_t          qos_cos[8];
@@ -2500,6 +2536,13 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
   ptin_intf.intf_type = qos_msg->intf.intf_type;
   ptin_intf.intf_id   = qos_msg->intf.intf_id;
 
+  /* Validate interface */
+  if (ptin_intf_typeId2port(ptin_intf.intf_type, ptin_intf.intf_id, &ptin_port) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
   /* Clear and initialize message structure */
   memset(qos_msg,0x00,sizeof(msg_QoSConfiguration_t));
   qos_msg->SlotId = slot_id;
@@ -2512,7 +2555,7 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
   memset(qos_drop,0x00,sizeof(qos_drop));
 
   /* Get Interface configuration */
-  rc = ptin_QoS_intf_config_get(&ptin_intf,&qos_intf);
+  rc = ptin_qos_intf_config_get(ptin_port, &qos_intf);
   if (rc == L7_SUCCESS)
   {
     /* Trust mode */
@@ -2557,7 +2600,7 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
   }
 
   /* QoS configuration */
-  rc = ptin_QoS_cos_config_get(&ptin_intf,(L7_uint8)-1,qos_cos);
+  rc = ptin_qos_cos_config_get(ptin_port, (L7_uint8)-1,qos_cos);
   if (rc == L7_SUCCESS)
   {
     /* Run all QoS */
@@ -2605,7 +2648,7 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
   }
 
   /* QoS drop configuration */
-  rc = ptin_QoS_drop_config_get(&ptin_intf, (L7_uint8)-1, qos_drop);
+  rc = ptin_qos_drop_config_get(ptin_port, (L7_uint8)-1, qos_drop);
   if (rc == L7_SUCCESS)
   {
     /* Run all QoS */
@@ -2785,6 +2828,7 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
 L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
 {
   L7_int i, j;
+  L7_uint32               ptin_port;
   ptin_intf_t             ptin_intf;
   ptin_QoS_intf_t         qos_intf;
   ptin_QoS_cos_t          qos_cos[8];
@@ -2898,6 +2942,13 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
   ptin_intf.intf_type = qos_msg->intf.intf_type;
   ptin_intf.intf_id   = qos_msg->intf.intf_id;
 
+  /* Validate interface */
+  if (ptin_intf_typeId2port(ptin_intf.intf_type, ptin_intf.intf_id, &ptin_port) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
   /* Interface configuration */
 
   /* Trust mode */
@@ -2937,7 +2988,7 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
   if (qos_intf.mask)
   {
     /* Execute priority map configuration */
-    rc = ptin_QoS_intf_config_set(&ptin_intf, &qos_intf);
+    rc = ptin_qos_intf_config_set(ptin_port, &qos_intf);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Error configuring priority map (rc=%d)", rc);
@@ -2981,7 +3032,7 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
     }
 
     /* Apply configuration */
-    rc = ptin_QoS_cos_config_set(&ptin_intf, (L7_uint8)-1, qos_cos);
+    rc = ptin_qos_cos_config_set(ptin_port, (L7_uint8)-1, qos_cos);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Error configuring QoS (rc=%d)",rc);
@@ -3049,7 +3100,7 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
     }
 
     /* Apply configuration */
-    rc = ptin_QoS_drop_config_set(&ptin_intf, (L7_uint8)-1, qos_drop);
+    rc = ptin_qos_drop_config_set(ptin_port, (L7_uint8)-1, qos_drop);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Error configuring QoS Drop management (rc=%d)",rc);
@@ -3079,6 +3130,7 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
 L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
 {
   L7_int i, j;
+  L7_uint32               ptin_port;
   ptin_intf_t             ptin_intf;
   L7_uint                 trust_mode;
   ptin_QoS_intf_t         qos_intf;
@@ -3105,6 +3157,13 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
   ptin_intf.intf_id   = qos_msg->intf.intf_id;
   slotId = qos_msg->SlotId;
 
+  /* Validate interface */
+  if (ptin_intf_typeId2port(ptin_intf.intf_type, ptin_intf.intf_id, &ptin_port) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
   /* Clear structure */
   memset(qos_msg,0x00,sizeof(msg_QoSConfiguration3_t));
   /* Pre-fill it */
@@ -3114,7 +3173,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
 
   /* Get current interface configuration */
   memset(&qos_intf,0x00,sizeof(ptin_QoS_intf_t));
-  rc = ptin_QoS_intf_config_get(&ptin_intf, &qos_intf);
+  rc = ptin_qos_intf_config_get(ptin_port, &qos_intf);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Error reading interface configuration (rc=%d)", rc);
@@ -3200,7 +3259,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
 
   /* Clear structures */
   memset(qos_cos,0x00,sizeof(qos_cos));
-  rc = ptin_QoS_cos_config_get(&ptin_intf, (L7_uint8)-1, qos_cos); 
+  rc = ptin_qos_cos_config_get(ptin_port, (L7_uint8)-1, qos_cos); 
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Error reading QoS configurations (rc=%d)",rc);
@@ -3258,7 +3317,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
 
   /* Clear structures */
   memset(qos_drop,0x00,sizeof(qos_drop));
-  rc = ptin_QoS_drop_config_get(&ptin_intf, (L7_uint8)-1, qos_drop);
+  rc = ptin_qos_drop_config_get(ptin_port, (L7_uint8)-1, qos_drop);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Error reading QoS Drop management configurations (rc=%d)",rc);
@@ -3586,6 +3645,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
 L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
 {
   L7_int i, j;
+  L7_uint32               ptin_port;
   ptin_intf_t             ptin_intf;
   L7_uint                 trust_mode;
   ptin_QoS_intf_t         qos_intf, qos_intf_curr;
@@ -3864,9 +3924,16 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   ptin_intf.intf_type = qos_msg->intf.intf_type;
   ptin_intf.intf_id   = qos_msg->intf.intf_id;
 
+  /* Validate interface */
+  if (ptin_intf_typeId2port(ptin_intf.intf_type, ptin_intf.intf_id, &ptin_port) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
   /* Get current interface configuration */
   memset(&qos_intf_curr,0x00,sizeof(ptin_QoS_intf_t));
-  rc = ptin_QoS_intf_config_get(&ptin_intf, &qos_intf_curr);
+  rc = ptin_qos_intf_config_get(ptin_port, &qos_intf_curr);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Error reading interface configuration (rc=%d)", rc);
@@ -3954,7 +4021,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
         meter.cbs = qos_msg->ingress.cos_policer[i].cbs;
         meter.ebs = qos_msg->ingress.cos_policer[i].ebs;
 
-        rc = ptin_QoS_intf_cos_policer_set(&ptin_intf, i, &meter);
+        rc = ptin_qos_cos_policer_set(ptin_port, i, &meter);
         if (rc != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_MSG,"Error applying interface configuration to ptin_intf %u/%u, cos=%u: cir=%u eir=%u cbs=%u ebs=%u (rc=%d)",
@@ -3985,7 +4052,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   {
     PT_LOG_TRACE(LOG_CTX_MSG,"Applying Interface configurations...");
     /* Execute priority map configuration */
-    rc = ptin_QoS_intf_config_set(&ptin_intf, &qos_intf);
+    rc = ptin_qos_intf_config_set(ptin_port, &qos_intf);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Error applying interface configuration (rc=%d)", rc);
@@ -4055,7 +4122,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   if (apply_conf)
   {
     PT_LOG_TRACE(LOG_CTX_MSG,"Applying QoS configurations...");
-    rc = ptin_QoS_cos_config_set(&ptin_intf, (L7_uint8)-1, qos_cos); 
+    rc = ptin_qos_cos_config_set(ptin_port, (L7_uint8)-1, qos_cos); 
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Error configuring QoS (rc=%d)",rc);
@@ -4142,7 +4209,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   if (apply_conf)
   {
     PT_LOG_TRACE(LOG_CTX_MSG,"Applying Drop Management configurations...");
-    rc = ptin_QoS_drop_config_set(&ptin_intf, (L7_uint8)-1, qos_drop);
+    rc = ptin_qos_drop_config_set(ptin_port, (L7_uint8)-1, qos_drop);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Error configuring QoS Drop management (rc=%d)",rc);

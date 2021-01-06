@@ -178,22 +178,22 @@ extern L7_RC_t ptin_intf_portExt_init(void);
 /**
  * Set Port exitension definitions
  * 
- * @param ptin_intf : Interface
+ * @param ptin_port : Interface
  *        mefExt    : MEF Extension parameters
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt);
+extern L7_RC_t ptin_intf_portExt_set(L7_uint32 ptin_port, ptin_HWPortExt_t *mefExt);
 
 /**
  * Get Port exitension definitions
  * 
- * @param ptin_intf : Interface
+ * @param ptin_port : Interface
  *        mefExt    : MEF Extension parameters (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_portExt_get(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt);
+extern L7_RC_t ptin_intf_portExt_get(L7_uint32 ptin_port, ptin_HWPortExt_t *mefExt);
 
 /**
  * Set MAC address
@@ -886,97 +886,6 @@ extern
 L7_RC_t ptin_intf_ucast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL enable, L7_uint32 rate_value, L7_uint32 rate_burst, L7_uint8 rate_units);
 
 /**
- * Apply a policer for interface/CoS
- * 
- * @author mruas (4/2/2015)
- * 
- * @param ptin_intf 
- * @param cos 
- * @param meter 
- * 
- * @return L7_RC_t 
- */
-extern 
-L7_RC_t ptin_QoS_intf_cos_policer_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_bw_meter_t *meter);
-
-/**
- * Remove a policer for interface/CoS
- * 
- * @author mruas (4/2/2015)
- * 
- * @param ptin_intf 
- * @param cos 
- * 
- * @return L7_RC_t 
- */
-extern 
-L7_RC_t ptin_QoS_intf_cos_policer_clear(const ptin_intf_t *ptin_intf, L7_uint8 cos);
-
-/**
- * Configures priority mapping to classes of services 
- * 
- * @param intf : interface
- * @param intfQos : priority map
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *intfQos);
-
-/**
- * Read interface properties for QoS
- * 
- * @param intf : interface
- * @param intfQos : interface configuration
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *intfQos);
-
-/**
- * Configures a class of service
- * 
- * @param intf : interface 
- * @param cos : Class of Service id
- * @param qosConf: configuration
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_QoS_cos_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_QoS_cos_t *qosConf);
-
-/**
- * Reads a class of service QoS configuration
- * 
- * @param intf : interface 
- * @param cos : Class of Service id
- * @param qosConf: configuration
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_QoS_cos_config_get(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_QoS_cos_t *qosConf);
-
-/**
- * Configures a class of service for QoS
- * 
- * @param intf : interface 
- * @param cos : Class of Service id
- * @param qosConf: configuration
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_QoS_drop_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_QoS_drop_t *qosConf);
-
-/**
- * Reads a class of service QoS configuration
- * 
- * @param intf : interface 
- * @param cos : Class of Service id
- * @param qosConf: configuration
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_QoS_drop_config_get(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_QoS_drop_t *qosConf);
-
-/**
  * Activate PRBS generator/checker
  *  
  * @param ptin_port: Interface
@@ -1225,19 +1134,6 @@ extern L7_RC_t ptin_intf_max_bandwidth(L7_uint32 ptin_port, L7_uint32 *bandwidth
  * @return L7_RC_t : L7_SUCCESS / L7_ERROR
  */
 extern L7_RC_t ptin_intf_active_bandwidth(L7_uint32 ptin_port, L7_uint32 *bandwidth);
-
-/**
- * Set the maximum rate for a port
- * 
- * @author mruas (16/08/17)
- * 
- * @param intf_type 
- * @param intf_id 
- * @param max_rate : Percentage
- * 
- * @return L7_RC_t 
- */
-extern L7_RC_t ptin_intf_shaper_max_set(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 max_rate, L7_uint32 burst_size);
 
 #ifdef NGPON2_SUPPORTED
 /**
