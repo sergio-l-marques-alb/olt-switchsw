@@ -37,6 +37,16 @@
 #define PTIN_PORT_IS_INTERNAL(ptin_port) \
     ((ptin_port) >= PTIN_SYSTEM_N_PONS && (ptin_port) >= PTIN_SYSTEM_N_ETH && (ptin_port) < PTIN_SYSTEM_N_PORTS)
 
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+ #define PTIN_PORT_IS_PON_GPON_TYPE(ptin_port) \
+    ((ptin_port) < PTIN_SYSTEM_N_PONS/2)
+ #define PTIN_PORT_IS_PON_XGSPON_TYPE(ptin_port) \
+    ((ptin_port) >= PTIN_SYSTEM_N_PONS/2 && (ptin_port) < PTIN_SYSTEM_N_PONS)
+#else
+ #define PTIN_PORT_IS_PON_GPON_TYPE(ptin_port)   PTIN_PORT_IS_PON(ptin_port)
+ #define PTIN_PORT_IS_PON_XGSPON_TYPE(ptin_port) L7_FALSE
+#endif
+
 /* Macros to check interface type */
 #define PTIN_PORT_IS_PHY(ptin_port) \
     ((ptin_port) < PTIN_SYSTEM_N_PORTS)
@@ -72,6 +82,76 @@ typedef struct {
 
 #define BITMAP_IS_CLEARALL(ptin_port_bmp) \
     BITMAP_IS_CLEARALL((ptin_port_bmp).value)
+
+
+#ifdef PORT_VIRTUALIZATION_N_1
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+ #if defined (PORT_VIRTUALIZATION_4_1) /*ASPEN 4:1*/
+/* Please check
+   https://jira.ptin.corppt.com/secure/attachment/620082/screenshot-1.png
+   https://jira.ptin.corppt.com/browse/OLTSWITCH-1371
+*/
+  #define PORT_VIRTUALIZATION_VID_N_SETS 4
+
+  static const
+  L7_uint32 phy2vport[PTIN_SYSTEM_N_PONS_PHYSICAL][PORT_VIRTUALIZATION_VID_N_SETS] = {
+      { 16,   0,  17,   1},
+      {-1U, -1U, -1U, -1U},
+      { 18,   2,  19,   3},
+      {-1U, -1U, -1U, -1U},
+      { 20,   4,  21,   5},
+      {-1U, -1U, -1U, -1U},
+      { 22,   6,  23,   7},
+      {-1U, -1U, -1U, -1U},
+      { 24,   8,  25,   9},
+      {-1U, -1U, -1U, -1U},
+      { 26,  10,  27,  11},
+      {-1U, -1U, -1U, -1U},
+      { 28,  12,  29,  13},
+      {-1U, -1U, -1U, -1U},
+      { 30,  14,  31,  15},
+      {-1U, -1U, -1U, -1U},
+  };
+
+ #elif defined (PORT_VIRTUALIZATION_2_1) /*ASPEN 2:1*/
+/* Please check
+   https://jira.ptin.corppt.com/secure/attachment/620085/screenshot-2.png
+   https://jira.ptin.corppt.com/browse/OLTSWITCH-1371
+*/
+  #define PORT_VIRTUALIZATION_VID_N_SETS 4
+
+  static const
+  L7_uint32 phy2vport[PTIN_SYSTEM_N_PONS_PHYSICAL][PORT_VIRTUALIZATION_VID_N_SETS] = {
+      { 16,   0, -1U, -1U},
+      {-1U, -1U,  17,   1},
+      { 18,   2, -1U, -1U},
+      {-1U, -1U,  19,   3},
+      { 20,   4, -1U, -1U},
+      {-1U, -1U,  21,   5},
+      { 22,   6, -1U, -1U},
+      {-1U, -1U,  23,   7},
+      { 24,   8, -1U, -1U},
+      {-1U, -1U,  25,   9},
+      { 26,  10, -1U, -1U},
+      {-1U, -1U,  27,  11},
+      { 28,  12, -1U, -1U},
+      {-1U, -1U,  29,  13},
+      { 30,  14, -1U, -1U},
+      {-1U, -1U,  31,  15},
+  };
+
+ #else /*defined (PORT_VIRTUALIZATION_?_1)*/
+  #error "Port virtualization mode not defined!"
+ #endif /* defined (PORT_VIRTUALIZATION_?_1) */
+
+#else /* Other boards */
+ #error "Port virtualization not supported!"
+#endif
+
+#else /*PORT_VIRTUALIZATION_N_1*/
+ /* Default */
+ #define PORT_VIRTUALIZATION_VID_N_SETS 1
+#endif /*PORT_VIRTUALIZATION_N_1*/
 
 
 extern L7_BOOL linkscan_update_control;
@@ -1158,20 +1238,6 @@ extern L7_RC_t ptin_intf_active_bandwidth(L7_uint32 ptin_port, L7_uint32 *bandwi
  * @return L7_RC_t 
  */
 extern L7_RC_t ptin_intf_shaper_max_set(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 max_rate, L7_uint32 burst_size);
-
-/**
- * Get the maximum rate for a port
- * 
- * @author mruas (16/08/17)
- * 
- * @param intf_type 
- * @param intf_id 
- * @param max_rate : Percentage
- * @param eff_max_rate : Percentage
- * 
- * @return L7_RC_t 
- */
-extern L7_RC_t ptin_intf_shaper_max_get(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *max_rate, L7_uint32 *eff_max_rate,  L7_uint32 *burst_size);
 
 #ifdef NGPON2_SUPPORTED
 /**

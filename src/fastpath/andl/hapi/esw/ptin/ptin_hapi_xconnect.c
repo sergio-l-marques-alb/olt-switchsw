@@ -162,11 +162,7 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId,
         control.flags2 = BCM_VLAN_FLAGS2_WIRELESS_COS_MAP_SELECT;
         break;
       default:
-      case PTIN_BRIDGE_VLAN_COSQ_DEST_DEFAULT:
-      case PTIN_BRIDGE_VLAN_COSQ_DEST_TRANSIT:
-      case PTIN_BRIDGE_VLAN_COSQ_DEST_STACKED:
-      case PTIN_BRIDGE_VLAN_COSQ_DEST_MAX:
-          break;
+        break;
       }
     }
 #endif

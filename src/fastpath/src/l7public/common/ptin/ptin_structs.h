@@ -98,8 +98,7 @@ typedef enum
   PTIN_DTL_MSG_OAM_FPGA,
   PTIN_DTL_MSG_TEMPERATURE_MONITOR,   /* ptin_dtl_temperature_monitor_t */
   PTIN_DTL_MSG_OAM_BCM,
-  PTIN_DTL_MSG_SHAPER_MAX_BURST,
-  PTIN_DTL_MSG_SHAPER_MAX_BURST_GET,
+  PTIN_DTL_MSG_SHAPER_SET,
   PTIN_DTL_MSG_MAX
   
 } ptin_dtl_msg_enum;
@@ -205,13 +204,6 @@ typedef struct
   L7_uint32   l2intf_id;                /* l2intf_id */
   L7_uint8    status;                  /* Check if is over or within the limit. 0-Over, 1- Within */
 } ptin_l2_maclimit_vp_st_t;
-
-typedef struct
-{
-  L7_uint32    ptin_port;       // ptin port
-  L7_uint32    max_rate;        // shaper max rate
-  L7_uint32    burst_size;      // burst size           
-} ptin_intf_shaper_t;
 
 
 /* L3 module defines*/
@@ -675,6 +667,15 @@ typedef enum ptin_bridge_vlan_cosq_dest_e {
     PTIN_BRIDGE_VLAN_COSQ_DEST_STACKED =4,
     PTIN_BRIDGE_VLAN_COSQ_DEST_MAX,
 } ptin_bridge_vlan_cosq_dest_t;
+
+typedef struct
+{
+  L7_uint32    rate_min;        // shaper min rate
+  L7_uint32    rate_max;        // shaper max rate
+  L7_uint32    burst_size;      // burst size           
+  L7_int       tc;              // Traffic class (-1 for all)
+  ptin_bridge_vlan_cosq_dest_t cosq_dest; // Destination queue
+} ptin_intf_shaper_t;
 
 /* Struct used to configure vlan mode via DTL */
 typedef struct

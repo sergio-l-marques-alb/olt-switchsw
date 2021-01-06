@@ -1279,54 +1279,126 @@ L7_RC_t ptin_hapi_qos_entry_remove(ptin_dtl_qos_t *qos_cfg)
 
 /**
  * Shaper max rate and burst configuration
- *  
- * @param unit 
- * @param ptin_port 
- * @param max_rate 
+ * 
+ * @author mruas (06/01/21)
+ * 
+ * @param dapiPort 
+ * @param cosq_dest : ptin_bridge_vlan_cosq_dest_t
+ * @param tc : Traffic class
+ * @param rate_min 
+ * @param rate_max 
  * @param burst_size 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_hapi_qos_shaper_max_burst_config(int unit, L7_uint32 ptin_port, L7_uint32 max_rate, L7_uint32 burst_size)
+L7_RC_t 
+ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, ptin_bridge_vlan_cosq_dest_t cosq_dest, L7_int tc,
+                         L7_uint32 rate_min, L7_uint32 rate_max, L7_uint32 burst_size)
 {
-  L7_RC_t rc = L7_SUCCESS;
+  BROAD_PORT_t *hapiPortPtr;
+  bcm_error_t  rv = BCM_E_NONE;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_port:  %u", ptin_port);
-  PT_LOG_TRACE(LOG_CTX_HAPI, "max_rate:   %u", max_rate);
-  PT_LOG_TRACE(LOG_CTX_HAPI, "burst_size: %u", burst_size);
+  hapiPortPtr = HAPI_PORT_GET( dapiPort->usp, dapiPort->dapi_g );
 
-  unit = 0;
-  rc = bcm_port_rate_egress_set(unit, ptin_port, max_rate, burst_size);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d}, bcm_unit=%u bcm_port=%u, cosq_dest=%u, tc=%d: rate_min=%u %rate_max=%u burst_size=%u",
+               dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, 
+               hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+               cosq_dest, tc, rate_min, rate_max, burst_size);
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "rc: %u", rc);
+  /* All traffic classes (port configuration) */
+  if (tc < 0)
+  {
+    rv = bcm_port_rate_egress_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, rate_max, burst_size);
 
-  return rc;
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_rate_egress_set: rv=%d (%s)",
+                 rv, bcm_errmsg(rv));
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    rv = bcm_cosq_port_bandwidth_set(hapiPortPtr->bcm_unit,
+                                     hapiPortPtr->bcm_port,
+                                     tc, 
+                                     rate_min, 
+                                     rate_max, 
+                                     0);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_cosq_port_bandwidth_set: rv=%d (%s)",
+                 rv, bcm_errmsg(rv));
+      return L7_FAILURE;
+    }
+  }
+  
+  return L7_SUCCESS;
 }
 
 /**
- * Get shaper max rate and burst size 
- *  
- * @param unit 
- * @param ptin_port 
- * @param max_rate 
+ * Shaper max rate and burst configuration
+ * 
+ * @author mruas (06/01/21)
+ * 
+ * @param dapiPort 
+ * @param cosq_dest : ptin_bridge_vlan_cosq_dest_t
+ * @param tc : Traffic class
+ * @param rate_min 
+ * @param rate_max 
  * @param burst_size 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_hapi_qos_shaper_max_burst_get(int unit, L7_uint32 ptin_port, L7_uint32 *max_rate, L7_uint32 *burst_size)
+L7_RC_t 
+ptin_hapi_qos_shaper_get(ptin_dapi_port_t *dapiPort, ptin_bridge_vlan_cosq_dest_t cosq_dest, L7_int tc,
+                         L7_uint32 *rate_min, L7_uint32 *rate_max, L7_uint32 *burst_size)
 {
-  L7_RC_t rc = L7_SUCCESS;
+  int _rate_min=0, _rate_max=0, _burst_size=0, _flags=0;
+  BROAD_PORT_t *hapiPortPtr;
+  bcm_error_t  rv = BCM_E_NONE;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_port:  %u", ptin_port);
+  hapiPortPtr = HAPI_PORT_GET( dapiPort->usp, dapiPort->dapi_g );
 
-  unit = 0;
-  rc = bcm_port_rate_egress_get(unit, ptin_port, max_rate, burst_size);
+  /* All traffic classes (port configuration) */
+  if (tc < 0)
+  {
+    rv = bcm_port_rate_egress_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &_rate_max, &_burst_size);
 
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_rate_egress_get: rv=%d (%s)",
+                 rv, bcm_errmsg(rv));
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    rv = bcm_cosq_port_bandwidth_get(hapiPortPtr->bcm_unit,
+                                     hapiPortPtr->bcm_port,
+                                     tc,
+                                     &_rate_min,
+                                     &_rate_max,
+                                     &_flags);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_cosq_port_bandwidth_get: rv=%d (%s)",
+                 rv, bcm_errmsg(rv));
+      return L7_FAILURE;
+    }
+  }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "max_rate:   %u", *max_rate);
-  PT_LOG_TRACE(LOG_CTX_HAPI, "burst_size: %u", *burst_size);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d}, bcm_unit=%u bcm_port=%u, cosq_dest=%u, tc=%d: rate_min=%d %rate_max=%d burst_size=%d",
+               dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, 
+               hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+               cosq_dest, tc, _rate_min, _rate_max, _burst_size);
 
-  return rc;
+  /* Return values */
+  if (rate_min   != L7_NULLPTR)  *rate_min   = _rate_min;
+  if (rate_max   != L7_NULLPTR)  *rate_max   = _rate_max;
+  if (burst_size != L7_NULLPTR)  *burst_size = _burst_size;
+
+  return L7_SUCCESS;
 }
 
 /**

@@ -50,9 +50,7 @@ L7_RC_t broad_ptin_ptp_fpga_entry(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation,
 L7_RC_t broad_ptin_oam_fpga_entry(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_temperature_monitor(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_oam_bcm(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
-L7_RC_t broad_ptin_shaper_max_burst(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
-L7_RC_t broad_ptin_shaper_max_burst_get(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
-
+L7_RC_t broad_ptin_shaper_set(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 
 
 L7_RC_t broadPtin_oam_tx(int unit, int flags, bcm_gport_t gport_dst, bcm_mac_t *mac_dst, bcm_mac_t *mac_src, bcm_oam_endpoint_info_t *endpoint_info);
@@ -73,8 +71,7 @@ broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {
   broad_ptin_oam_fpga_entry,
   broad_ptin_temperature_monitor,
   broad_ptin_oam_bcm,
-  broad_ptin_shaper_max_burst,
-  broad_ptin_shaper_max_burst_get
+  broad_ptin_shaper_set,
 };
 
 /**
@@ -478,122 +475,72 @@ L7_RC_t hapiBroadPtinGeneric(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
  * 
  * @return L7_RC_t 
  */
-L7_RC_t broad_ptin_shaper_max_burst(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
+L7_RC_t broad_ptin_shaper_set(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
 {
-  L7_RC_t rc = L7_SUCCESS;
   ptin_intf_shaper_t *entry;
-  DAPI_PORT_t           *dapiPortPtr;
-  BROAD_PORT_t          *hapiPortPtr;
-  L7_uint32             bcmSpeed = 0;
+  L7_uint32  bcmSpeed, rate_min_kbps, rate_max_kbps, burst_size;
+  ptin_dapi_port_t dapiPort;
+  BROAD_PORT_t *hapiPortPtr;
+  L7_RC_t rc = L7_SUCCESS;
 
   entry = (ptin_intf_shaper_t*) data;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "%s: usp={%d,%d,%d} operation=%u dataSize=%u", __FUNCTION__, usp->unit, usp->slot, usp->port, operation, dataSize);
+  hapiPortPtr = HAPI_PORT_GET( usp, dapi_g );
 
-  dapiPortPtr   = DAPI_PORT_GET( usp, dapi_g );
-  hapiPortPtr   = HAPI_PORT_GET( usp, dapi_g );
-
-  PT_LOG_TRACE(LOG_CTX_HAPI, "speed %d", hapiPortPtr->speed );
-
-  switch ( hapiPortPtr->speed )
-  {
-      case DAPI_PORT_SPEED_GE_1GBPS:
-        bcmSpeed = 1000000;
-        break;
-
-      /* PTin added: Speed 2.5G */
-      case DAPI_PORT_SPEED_GE_2G5BPS:
-        bcmSpeed = 2500000;
-        break;
-      /* PTin end */
-
-      case DAPI_PORT_SPEED_GE_10GBPS:
-        bcmSpeed = 10000000;
-        break;
-
-      /* PTin added: Speed 40G */
-      case DAPI_PORT_SPEED_GE_40GBPS:
-        bcmSpeed = 40000000;
-        break;
-
-      /* PTin added: Speed 100G */
-      case DAPI_PORT_SPEED_GE_100GBPS:
-        bcmSpeed = 100000000;
-        break;
-
-      default:
-        bcmSpeed = 2500000;
-        break;
-  }
-
-  rc = ptin_hapi_qos_shaper_max_burst_config(usp->unit, hapiPortPtr->bcm_port, ((entry->max_rate*bcmSpeed)/100), entry->burst_size);
-
-  return rc;
-}
-
-/**
- * Get shaper max rate and burst size
- * 
- * @param usp 
- * @param operation 
- * @param dataSize 
- * @param data 
- * @param dapi_g 
- * 
- * @return L7_RC_t 
- */
-L7_RC_t broad_ptin_shaper_max_burst_get(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
-{
-  L7_RC_t rc = L7_SUCCESS;
-  DAPI_PORT_t           *dapiPortPtr;
-  BROAD_PORT_t          *hapiPortPtr;
-  L7_uint32             bcmSpeed = 0;// max_rate, burst_size;
-  ptin_intf_shaper_t    *entry;
-
-  entry = (ptin_intf_shaper_t *) data;
-
-  PT_LOG_TRACE(LOG_CTX_HAPI, "%s: usp={%d,%d,%d} operation=%u dataSize=%u", __FUNCTION__, usp->unit, usp->slot, usp->port, operation, dataSize);
-
-  dapiPortPtr   = DAPI_PORT_GET( usp, dapi_g );
-  hapiPortPtr   = HAPI_PORT_GET( usp, dapi_g );
-
-  rc = ptin_hapi_qos_shaper_max_burst_get(usp->unit, hapiPortPtr->bcm_port, &entry->max_rate, &entry->burst_size);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
 
   switch ( hapiPortPtr->speed )
   {
     case DAPI_PORT_SPEED_GE_1GBPS:
       bcmSpeed = 1000000;
       break;
-
-    /* PTin added: Speed 2.5G */
     case DAPI_PORT_SPEED_GE_2G5BPS:
       bcmSpeed = 2500000;
       break;
-    /* PTin end */
-
     case DAPI_PORT_SPEED_GE_10GBPS:
       bcmSpeed = 10000000;
       break;
-
-    /* PTin added: Speed 40G */
     case DAPI_PORT_SPEED_GE_40GBPS:
       bcmSpeed = 40000000;
       break;
-
-    /* PTin added: Speed 100G */
     case DAPI_PORT_SPEED_GE_100GBPS:
       bcmSpeed = 100000000;
       break;
-
     default:
-      bcmSpeed = 2500000;
-      break;
+      PT_LOG_ERR(LOG_CTX_HAPI, "Unknown speed %u", hapiPortPtr->speed);
+      return L7_FAILURE;
   }
 
-  entry->max_rate   = (100 * (entry->max_rate))/(bcmSpeed);
+  dapiPort.usp    = usp;
+  dapiPort.dapi_g = dapi_g;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "entry->max_rate %u",   entry->max_rate);
-  PT_LOG_TRACE(LOG_CTX_HAPI, "entry->burst_size %u", entry->burst_size);
+  /* Get/Set operation */
+  switch (operation)
+  {
+  case DAPI_CMD_SET:
+    rate_min_kbps = (entry->rate_min*bcmSpeed)/100;
+    rate_max_kbps = (entry->rate_max*bcmSpeed)/100;
+    burst_size    = entry->burst_size;
+    rc = ptin_hapi_qos_shaper_set(&dapiPort, entry->cosq_dest, entry->tc,
+                                  rate_min_kbps,
+                                  rate_max_kbps,
+                                  burst_size);
+    break;
+
+  case DAPI_CMD_GET:
+    rc = ptin_hapi_qos_shaper_get(&dapiPort, entry->cosq_dest, entry->tc,
+                                  &rate_min_kbps,
+                                  &rate_max_kbps,
+                                  &burst_size);
+    entry->rate_min   = (rate_min_kbps*100)/bcmSpeed;
+    entry->rate_max   = (rate_max_kbps*100)/bcmSpeed;
+    entry->burst_size = burst_size;
+    break;
+
+  default:
+    PT_LOG_ERR(LOG_CTX_HAPI, "Unknown operation %u", operation);
+    return L7_FAILURE;
+  }
 
   return rc;
 }

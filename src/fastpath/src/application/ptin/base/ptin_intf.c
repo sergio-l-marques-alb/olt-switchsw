@@ -20,6 +20,7 @@
 #include "ptin_include.h"
 #include "ptin_control.h"
 #include "ptin_intf.h"
+#include "ptin_qos.h"
 #include "ptin_prot_uplink.h"
 #include "ptin_evc.h"
 #include "ptin_xlate_api.h"
@@ -32,76 +33,6 @@
 #include "ptin_fieldproc.h"
 #include "ptin_fpga_api.h"
 #include "ptin_msg.h"
-
-#ifdef PORT_VIRTUALIZATION_N_1
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
- #if defined (PORT_VIRTUALIZATION_4_1) /*ASPEN 4:1*/
-/* Please check
-   https://jira.ptin.corppt.com/secure/attachment/620082/screenshot-1.png
-   https://jira.ptin.corppt.com/browse/OLTSWITCH-1371
-*/
-  #define PORT_VIRTUALIZATION_VID_N_SETS 4
-
-  static const
-  L7_uint32 phy2vport[PTIN_SYSTEM_N_PONS_PHYSICAL][PORT_VIRTUALIZATION_VID_N_SETS] = {
-      { 16,   0,  17,   1},
-      {-1U, -1U, -1U, -1U},
-      { 18,   2,  19,   3},
-      {-1U, -1U, -1U, -1U},
-      { 20,   4,  21,   5},
-      {-1U, -1U, -1U, -1U},
-      { 22,   6,  23,   7},
-      {-1U, -1U, -1U, -1U},
-      { 24,   8,  25,   9},
-      {-1U, -1U, -1U, -1U},
-      { 26,  10,  27,  11},
-      {-1U, -1U, -1U, -1U},
-      { 28,  12,  29,  13},
-      {-1U, -1U, -1U, -1U},
-      { 30,  14,  31,  15},
-      {-1U, -1U, -1U, -1U},
-  };
-
- #elif defined (PORT_VIRTUALIZATION_2_1) /*ASPEN 2:1*/
-/* Please check
-   https://jira.ptin.corppt.com/secure/attachment/620085/screenshot-2.png
-   https://jira.ptin.corppt.com/browse/OLTSWITCH-1371
-*/
-  #define PORT_VIRTUALIZATION_VID_N_SETS 4
-
-  static const
-  L7_uint32 phy2vport[PTIN_SYSTEM_N_PONS_PHYSICAL][PORT_VIRTUALIZATION_VID_N_SETS] = {
-      { 16,   0, -1U, -1U},
-      {-1U, -1U,  17,   1},
-      { 18,   2, -1U, -1U},
-      {-1U, -1U,  19,   3},
-      { 20,   4, -1U, -1U},
-      {-1U, -1U,  21,   5},
-      { 22,   6, -1U, -1U},
-      {-1U, -1U,  23,   7},
-      { 24,   8, -1U, -1U},
-      {-1U, -1U,  25,   9},
-      { 26,  10, -1U, -1U},
-      {-1U, -1U,  27,  11},
-      { 28,  12, -1U, -1U},
-      {-1U, -1U,  29,  13},
-      { 30,  14, -1U, -1U},
-      {-1U, -1U,  31,  15},
-  };
-
- #else /*defined (PORT_VIRTUALIZATION_?_1)*/
-  #error "Port virtualization mode not defined!"
- #endif /* defined (PORT_VIRTUALIZATION_?_1) */
-
-#else /* Other boards */
- #error "Port virtualization not supported!"
-#endif
-
-#else /*PORT_VIRTUALIZATION_N_1*/
- /* Default */
- #define PORT_VIRTUALIZATION_VID_N_SETS 1
-#endif /*PORT_VIRTUALIZATION_N_1*/
-
 
 
 #define LINKSCAN_MANAGEABLE_BOARD (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
@@ -215,7 +146,6 @@ L7_uint32 ptin_burst_size[PTIN_SYSTEM_N_INTERF];
 
 #define MAX_BURST_SIZE 16000
 
-//ptin_intf_shaper_t shaper_max_burst[PTIN_SYSTEM_N_INTERF];
 
 /**
  * MACROS
@@ -5415,7 +5345,7 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
   /* Shaping rate */
   if (intfQos->mask & PTIN_QOS_INTF_SHAPINGRATE_MASK)
   {
-    ptin_intf_shaper_t   entry;
+    L7_uint32 rate_max_apply, burst_size_apply;
 
     PT_LOG_NOTICE(LOG_CTX_INTF, "New shaping rate is %u", intfQos->shaping_rate);
 
@@ -5424,40 +5354,36 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
       intfQos->shaping_rate = 100;
     }
 
-    PT_LOG_TRACE(LOG_CTX_INTF, "ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = %u",ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE]);
+    PT_LOG_TRACE(LOG_CTX_INTF, "ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = %u",
+                 ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE]);
     PT_LOG_TRACE(LOG_CTX_INTF, "intfQos->shaping_rate = %u",intfQos->shaping_rate);
 
     //rc = usmDbQosCosQueueIntfShapingRateSet(1, intIfNum, (intfQos->shaping_rate * ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE])/100);
 
-    memset(&entry, 0x00, sizeof(ptin_intf_shaper_t));
-
-    entry.ptin_port  = ptin_port;
-    entry.burst_size = ptin_burst_size[ptin_port]; 
-
-		if (intfQos->shaping_rate <= (ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE]))
-		{
-      entry.max_rate   = intfQos->shaping_rate;
-		}
+    /* Shaper settings */
+    if (intfQos->shaping_rate <= (ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE]))
+    {
+      rate_max_apply = intfQos->shaping_rate;
+    }
     else
     {
-      entry.max_rate   = ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE];
+      rate_max_apply = ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE];
     }
+    burst_size_apply = ptin_burst_size[ptin_port]; 
 
-    PT_LOG_NOTICE(LOG_CTX_INTF, "ptin_port:  %u", entry.ptin_port);
-    PT_LOG_NOTICE(LOG_CTX_INTF, "burst_size: %u", entry.burst_size);
-    PT_LOG_NOTICE(LOG_CTX_INTF, "max_rate:   %u", entry.max_rate);
+    PT_LOG_INFO(LOG_CTX_INTF, "Applying shaper to ptin_port %u: rate_max=%u, burst size=u",
+                ptin_port, rate_max_apply, burst_size_apply);
 
-    dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_SHAPER_MAX_BURST, DAPI_CMD_SET, sizeof(ptin_intf_shaper_t), &entry);
+    rc = ptin_qos_shaper_set(ptin_port, -1 /*All TC*/, 0 /*Rate_min*/, rate_max_apply, burst_size_apply);
 
     if (rc == L7_SUCCESS)
     {
       ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE] = intfQos->shaping_rate;
-      ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = entry.max_rate;
-      PT_LOG_NOTICE(LOG_CTX_INTF, "New shaping rate is %u",intfQos->shaping_rate);
+      ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = rate_max_apply;
     }
     else
     {  
-      PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueIntfShapingRateSet (rc=%d)", rc);
+      PT_LOG_ERR(LOG_CTX_INTF, "Error with ptin_qos_shaper_set (rc=%d)", rc);
       rc_global = rc;
     }
   }
@@ -9488,7 +9414,8 @@ L7_RC_t ptin_intf_active_bandwidth(L7_uint32 ptin_port, L7_uint32 *bandwidth)
 L7_RC_t ptin_intf_shaper_max_set(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 max_rate, L7_uint32 burst_size)
 {
   L7_uint32 ptin_port, intIfNum;
-  ptin_intf_shaper_t   entry;
+  L7_uint32 rate_max_apply;
+  L7_RC_t rc;
 
   /* Validate interface */
   if (ptin_intf_typeId2port(intf_type, intf_id, &ptin_port) != L7_SUCCESS ||
@@ -9519,111 +9446,37 @@ L7_RC_t ptin_intf_shaper_max_set(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32
     return L7_FAILURE;
   }
 #endif
-
-  memset(&entry, 0x00, sizeof(ptin_intf_shaper_t));
-
-  entry.ptin_port  = ptin_port;
-  entry.burst_size = burst_size;
   
-  if (ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE] <= max_rate)
+  if (max_rate > ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE])
   {
-    PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port:  %u", entry.ptin_port);
-    PT_LOG_TRACE(LOG_CTX_INTF, "burst_size: %u", entry.burst_size);
-    PT_LOG_TRACE(LOG_CTX_INTF, "max_rate:   %u", entry.max_rate);
-
-    entry.max_rate   = ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE];
-    ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE];
-
-    dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_SHAPER_MAX_BURST, DAPI_CMD_SET, sizeof(ptin_intf_shaper_t), &entry);
+    rate_max_apply = ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE];
   }
   else
   {
-    PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port:  %u", entry.ptin_port);
-    PT_LOG_TRACE(LOG_CTX_INTF, "burst_size: %u", entry.burst_size);
-    PT_LOG_TRACE(LOG_CTX_INTF, "max_rate:   %u", entry.max_rate);
-
-    entry.max_rate   = max_rate;
-    ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = max_rate;
-
-    dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_SHAPER_MAX_BURST, DAPI_CMD_SET, sizeof(ptin_intf_shaper_t), &entry);
+    rate_max_apply = max_rate;
   }
 
-  /* Save max rate for this interface */
-  ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE] = max_rate;
-  ptin_burst_size[ptin_port] = burst_size;
+  PT_LOG_INFO(LOG_CTX_INTF, "Applying shaper to ptin_port %u: rate_max=%u, burst size=u",
+              ptin_port, rate_max_apply, burst_size);
 
-  return L7_SUCCESS;
+  /* Apply shaper */
+  rc = ptin_qos_shaper_set(ptin_port, -1 /*All TC*/, 0 /*rate_min*/, rate_max_apply, burst_size);
+
+  if (rc == L7_SUCCESS)
+  {
+    /* Save max rate for this interface */
+    ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = rate_max_apply;
+    ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE] = max_rate;
+    ptin_burst_size[ptin_port] = burst_size;
+  }
+  else
+  {  
+    PT_LOG_ERR(LOG_CTX_INTF, "Error with ptin_qos_shaper_set (rc=%d)", rc);
+  }
+
+  return rc;
 }
 
-/**
- * Get the maximum rate for a port
- * 
- * @author mruas (16/08/17)
- * 
- * @param intf_type 
- * @param intf_id 
- * @param max_rate : Percentage
- * @param eff_max_rate : Percentage
- * 
- * @return L7_RC_t 
- */
-L7_RC_t ptin_intf_shaper_max_get(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *max_rate, L7_uint32 *eff_max_rate, L7_uint32 *burst_size)
-{
-  L7_uint32 ptin_port, intIfNum;
-  ptin_intf_shaper_t   entry;
-
-  /* Validate interface */
-  if (ptin_intf_typeId2port(intf_type, intf_id, &ptin_port) != L7_SUCCESS ||
-      ptin_intf_typeId2intIfNum(intf_type, intf_id, &intIfNum) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", intf_type, intf_id);
-    return L7_FAILURE;
-  }
-
-  PT_LOG_TRACE(LOG_CTX_INTF, "Interface %u/%u is ptin_port %u, intIfNum=%u => max_rate=%u",
-               intf_type, intf_id, ptin_port, intIfNum, ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE]);
-
-  /* Limit max rate */
-  if (max_rate != L7_NULLPTR)
-  {
-    *max_rate = ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE];
-  }
-
-  /* Effective max rate */
-  if (eff_max_rate != L7_NULLPTR)
-  {
-    if (usmDbQosCosQueueIntfShapingRateGet(1, intIfNum, eff_max_rate) != L7_SUCCESS)
-    {
-      *eff_max_rate = 0;
-    }
-  }
-#if 0
-  /* Apply correct shaping rate */
-  if (cosQueueIntfShapingRateGet(intIfNum, burst_size) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_INTF, "Error with cosQueueIntfShapingRateGet");
-    *burst_size = 0;
-  }
-#endif
-
-  memset(&entry, 0x00, sizeof(ptin_intf_shaper_t));
-
-  entry.ptin_port  = ptin_port;
-
-  dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_SHAPER_MAX_BURST_GET, DAPI_CMD_GET, sizeof(ptin_intf_shaper_t), &entry);
-
-  *burst_size = entry.burst_size;
-
-  PT_LOG_TRACE(LOG_CTX_INTF, "burst_size: %u", *burst_size);
-
-  /* Save the read value (burst_size) if it's different from the value stored on ptin_burst_size[ptin_port] */
-  if (ptin_burst_size[ptin_port] != *burst_size)
-  {
-    ptin_burst_size[ptin_port] = *burst_size;
-  }
-
-  return L7_SUCCESS;
-}
 
 /**
  * Dump the maximum rate for all interfaces
