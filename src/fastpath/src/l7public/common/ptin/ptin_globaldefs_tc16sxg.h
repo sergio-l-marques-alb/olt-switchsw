@@ -19,7 +19,7 @@
   physical interface
 */
 #define PORT_VIRTUALIZATION_N_1     /* Port virtualization enabled */
-#define PORT_VIRTUALIZATION_4_1     /* Port virtualization mode */
+#define PORT_VIRTUALIZATION_2_1     /* Port virtualization mode */
 
 /* Special EVCs for this equipment */
 #define PTIN_ASPEN2CPU_A_EVC         (PTIN_SYSTEM_EXT_EVCS_MGMT+0)     /* MACGPON-CPU EVC */
