@@ -2300,9 +2300,9 @@ L7_RC_t hapi_ptin_get_usp_from_bcmdata(L7_uint bcm_unit, L7_uint bcm_port, L7_ui
   USP_PHYPORT_ITERATE(_usp, dapi_g)
   {
     hapiPortPtr = HAPI_PORT_GET(&_usp, dapi_g);
-    if ((bcm_unit != (L7_uint)-1 && hapiPortPtr->bcm_unit == bcm_unit ) &&
-        (bcm_port != (L7_uint)-1 && hapiPortPtr->bcm_port == bcm_port ) &&
-        (bcm_gport!= (L7_uint)-1 && hapiPortPtr->bcm_gport== bcm_gport))
+    if ((bcm_unit == (L7_uint)-1 || hapiPortPtr->bcm_unit == bcm_unit ) &&
+        (bcm_port == (L7_uint)-1 || hapiPortPtr->bcm_port == bcm_port ) &&
+        (bcm_gport== (L7_uint)-1 || hapiPortPtr->bcm_gport== bcm_gport))
     {
       if (usp != L7_NULLPTR)
       {
@@ -2344,9 +2344,9 @@ L7_RC_t hapi_ptin_get_uspport_from_bcmdata(L7_uint bcm_unit, L7_uint bcm_port, L
   USP_PHYPORT_ITERATE(usp, dapi_g)
   {
     hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
-    if ((bcm_unit != (L7_uint)-1 && hapiPortPtr->bcm_unit == bcm_unit ) &&
-        (bcm_port != (L7_uint)-1 && hapiPortPtr->bcm_port == bcm_port ) &&
-        (bcm_gport!= (L7_uint)-1 && hapiPortPtr->bcm_gport== bcm_gport))
+    if ((bcm_unit == (L7_uint)-1 || hapiPortPtr->bcm_unit == bcm_unit ) &&
+        (bcm_port == (L7_uint)-1 || hapiPortPtr->bcm_port == bcm_port ) &&
+        (bcm_gport== (L7_uint)-1 || hapiPortPtr->bcm_gport== bcm_gport))
     {
       if (usp_port != L7_NULLPTR)
       {
