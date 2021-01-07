@@ -29,7 +29,7 @@
 #include "ptin_igmp.h" //Added for Admission Control Support
 #include "ptin_fpga_api.h"
 #include "ptin_msg.h"
-
+#include "ptin_env_api.h"
 #include "ptin_qos.h"
 #include "usmdb_mib_vlan_api.h"
 
@@ -207,7 +207,7 @@ L7_RC_t ptin_intf_pre_init(void)
 #ifdef PORT_VIRTUALIZATION_N_1
         L7_uint32 mode;
 
-        mode = ptin_env_board_mode();
+        mode = ptin_env_board_mode_get();
         if (mode < PTIN_CARD_MAX_N_MODES)
         {
           /* Get virtual port and validate ir */
