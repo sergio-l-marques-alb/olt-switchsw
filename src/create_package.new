@@ -13,11 +13,11 @@ print_help()
   echo "Usage :$APP card_name [OPTION]"
   echo ""
   echo "Examples:"
-  echo "  $APP cxo640g				# build and create packages for swdrv"
-  echo "  $APP cxo640g -v 			# build and create package with output to console"
+  echo "  $APP cxo640g				     # build and create packages for swdrv"
+  echo "  $APP cxo640g -v 			     # build and create package with output to console"
   echo ""
   echo "card_name:"
-  echo "  cxo640g olt1t0f olt1t0 olt1t0-ac      # available card names"
+  echo "  cxo640g olt1t0f olt1t0 olt1t0-ac tg16gf    # available card names"
   echo ""
   echo "Options:"
   echo "-h, --help 		display this help and exit"
@@ -211,6 +211,9 @@ else
       ;;
     "olt1t0-ac")
       DEV_BOARD_OUTPUT="CXOLT1T0-AC"
+      ;;
+    "tg16gf")
+      DEV_BOARD_OUTPUT="TG16GF"
       ;;
     *)
       log_write "$APP: invalid card -- '$DEV_BOARD_SW'"
