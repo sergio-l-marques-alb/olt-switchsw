@@ -170,6 +170,7 @@ void ptin_debug(void)
   printf("  ptin_igmp_querier_dump <evc_idx>                                - prints IGMP querier configuration (none/0/-1 for all)\r\n");
   printf("  ptin_igmp_device_clients_dump                                   - prints info about IMGP device clients\r\n");
   printf("  ptin_igmp_group_clients_dump                                    - prints info about IMGP group of clients\r\n");
+  printf("  ptin_igmp_free_groupclient_id_get <ptin_port>                   - prints free group clients ID for ptin_port (-1 for all)\r\n");
   printf("  ptin_igmptimer_show                                             - Show IGMP packet processing time data\r\n");
   printf("  ptin_igmptimer_clear                                            - Initializes IGMP packet processing time data\r\n");
   printf("  dai_settings_get                                                - Get DAI configurations\r\n");

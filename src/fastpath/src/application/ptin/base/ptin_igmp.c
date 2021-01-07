@@ -14555,6 +14555,159 @@ void ptin_igmp_dump(void)
 }
 
 /**
+ * Print free group clients ID for ptin_port in queue 
+ * queue_free_group_client_id (ptin_port = -1 prints all)
+ *  
+ * @param ptin_port : interface 
+ */
+void ptin_igmp_free_groupclient_id_get(L7_int32 ptin_port)
+{
+  struct ptinIgmpClientId_s *pClientIdx;
+  L7_uint i, j, k, n_elems, count_n = 1, count_id = 1;
+  char header_str[]= "Free group client id:";
+  L7_uint str_size = sizeof(header_str)-1;
+  
+  printf("\n");
+
+  /* Validate ptin_port */
+  if (ptin_port >= PTIN_IGMP_INTFPORT_MAX || ptin_port < (L7_int32)-1)
+  {
+    printf("ERROR: ptin_port must be <%u (or -1 for all)\n", PTIN_IGMP_INTFPORT_MAX);
+    fflush(stdout);
+    return;
+  }
+
+  /* Print table with free group client IDs from ptin_port */
+  if (ptin_port >= 0)
+  {
+    n_elems = queue_free_group_client_id[ptin_port].n_elems;
+    printf("Number of group clients free in ptin_port %u: %u\n", ptin_port, n_elems);
+
+    /* Print table header */
+    for (i = 0; i < ((32*4) + str_size); i++)
+    {
+      printf("-");
+    }
+    printf("\n");
+    printf("%-*s", str_size, header_str);
+
+    /* Get first client node */
+    dl_queue_get_head(&queue_free_group_client_id[ptin_port], (dl_queue_elem_t **)&pClientIdx);
+
+    for (i = 1; i <= n_elems; i++)
+    {
+      printf("%4u", i);
+      count_n++;
+      /* End of line = 32 columns */
+      if (count_n == 32 || i == n_elems)
+      {
+        count_n = 1;
+        printf("\n");
+        /* Print IDs */
+        printf("%*s", str_size, " ");
+        /* First ID */
+        printf("%4u", pClientIdx->clientId);
+        /* Run all client nodes */
+        while (pClientIdx != NULL)
+        {
+          pClientIdx = (struct ptinIgmpClientId_s *) dl_queue_get_next(&queue_free_group_client_id[ptin_port], 
+                                                                       (dl_queue_elem_t *) pClientIdx);
+          /* If client index is null, don't print */
+          if (pClientIdx == NULL)
+          {
+            break;
+          }
+        
+          count_id++;
+          /* End of line */
+          if (count_id == 32) 
+          {
+            count_id = 1;
+            printf("\n");
+            for (j = 0; j < ((32*4) + str_size); j++)
+            {
+              printf("-");
+            }
+            printf("\n");
+            printf("%-*s", str_size, header_str);
+            break;
+          }
+          printf("%4u", pClientIdx->clientId);
+        }
+      }
+    }
+  }
+  /* Print tables with free group client ids from every ptin_port */
+  else
+  {
+    for (i = 0; i < PTIN_IGMP_INTFPORT_MAX; i++)
+    {
+      n_elems = queue_free_group_client_id[i].n_elems;
+      printf("Number of group clients free in ptin_port %u: %u\n", i, n_elems);
+
+      /* Print table header */
+      for (j = 0; j < ((32*4) + str_size); j++)
+      {
+        printf("-");
+      }
+      printf("\n");
+      printf("%-*s", str_size, header_str);
+
+      /* Get first client node */
+      dl_queue_get_head(&queue_free_group_client_id[i], (dl_queue_elem_t **)&pClientIdx);
+     
+      for (j = 1; j <= n_elems; j++)
+      {
+        printf("%4u", j);
+        count_n++;
+        /* End of line = 32 columns */
+        if (count_n == 32 || j == n_elems)
+        {
+          count_n = 1;
+          printf("\n");
+          /* Print IDs */
+          printf("%*s", str_size, " ");
+          /* First ID */
+          printf("%4u", pClientIdx->clientId);
+          /* Run all client nodes */
+          while (pClientIdx != NULL)
+          {
+            pClientIdx = (struct ptinIgmpClientId_s *) dl_queue_get_next(&queue_free_group_client_id[i], 
+                                                                        (dl_queue_elem_t *) pClientIdx);
+            /* If client index is null, don't print */
+            if (pClientIdx == NULL)
+            {
+              count_id = 1;
+              break;
+            }
+         
+            count_id++;
+            /* End of line */
+            if (count_id == 32) 
+            {
+              count_id = 1;
+              printf("\n");
+              for (k = 0; k < ((32*4) + str_size); k++)
+              {
+                printf("-");
+              }
+              printf("\n");
+              printf("%-*s", str_size, header_str);
+              break;
+            }
+
+            printf("%4u", pClientIdx->clientId);
+          }
+        }
+      }
+      printf("\n\n");
+    }
+  }
+  printf("\n");
+  fflush(stdout);
+}
+
+/**
  * Dumps EVC detailed info 
  * If evc_idx is invalid, all EVCs are dumped 
  * 
