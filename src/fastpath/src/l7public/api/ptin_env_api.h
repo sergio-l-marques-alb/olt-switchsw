@@ -25,6 +25,7 @@
 
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
 #define BOARD_HWVER_STR "BOARD_VER"
+#define BOARD_MODE_STR  "BOARD_CONFIG_MODE"
 #else
 #define BOARD_HWVER_STR "BOARD_HWVER"
 #endif
@@ -49,5 +50,27 @@ L7_RC_t ptin_env_init(void);
  */
 extern 
 L7_uint32 ptin_env_board_hwver(void);
+
+/**
+ * Return board _board_mode
+ * 
+ * @author rfernandes (06/01/21)
+ * 
+ * @param void 
+ * 
+ * @return unsigned int : board_mode
+ */
+extern
+L7_uint32 ptin_env_board_mode_get(void);
+
+/**
+ * Read board_mode environment variable
+ * 
+ * @author rfernandes (14/06/19)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern
+L7_RC_t ptin_env_board_mode_read(void);
 
 #endif /* _PTIN_ENV_API_H */

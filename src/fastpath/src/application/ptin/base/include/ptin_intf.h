@@ -91,11 +91,12 @@ typedef struct {
    https://jira.ptin.corppt.com/secure/attachment/620082/screenshot-1.png
    https://jira.ptin.corppt.com/browse/OLTSWITCH-1371
 */
+  #define PTIN_CARD_MAX_N_MODES          2 /* 0 - MPM, 1- GPON mode*/
   #define PORT_VIRTUALIZATION_VID_N_SETS 4
 
   static const
-  L7_uint32 phy2vport[PTIN_SYSTEM_N_PONS_PHYSICAL][PORT_VIRTUALIZATION_VID_N_SETS] = {
-      { 16,   0,  17,   1},
+  L7_uint32 phy2vport[PTIN_CARD_MAX_N_MODES][PTIN_SYSTEM_N_PONS_PHYSICAL][PORT_VIRTUALIZATION_VID_N_SETS] = {
+     {{ 16,   0,  17,   1},
       {-1U, -1U, -1U, -1U},
       { 18,   2,  19,   3},
       {-1U, -1U, -1U, -1U},
@@ -110,7 +111,24 @@ typedef struct {
       { 28,  12,  29,  13},
       {-1U, -1U, -1U, -1U},
       { 30,  14,  31,  15},
-      {-1U, -1U, -1U, -1U},
+      {-1U, -1U, -1U, -1U}}, 
+       
+     {{ 0,  -1U,  1,  -1U}, 
+      {-1U, -1U, -1U, -1U},     
+      { 2,  -1U,  3,  -1U},   
+      {-1U, -1U, -1U, -1U},     
+      { 4,  -1U,  5,  -1U},   
+      {-1U, -1U, -1U, -1U},     
+      { 6,  -1U,  7,  -1U},   
+      {-1U, -1U, -1U, -1U},     
+      { 8,  -1U,  9,  -1U},   
+      {-1U, -1U, -1U, -1U},     
+      { 10, -1U,  11, -1U},     
+      {-1U, -1U, -1U, -1U},     
+      { 12, -1U,  13, -1U},     
+      {-1U, -1U, -1U, -1U},     
+      { 14, -1U,  15, -1U},          
+      {-1U, -1U, -1U, -1U}},    
   };
 
  #elif defined (PORT_VIRTUALIZATION_2_1) /*ASPEN 2:1*/
@@ -118,26 +136,45 @@ typedef struct {
    https://jira.ptin.corppt.com/secure/attachment/620085/screenshot-2.png
    https://jira.ptin.corppt.com/browse/OLTSWITCH-1371
 */
+
+  #define PTIN_CARD_MAX_N_MODES          2 /* GPON and MPM mode*/
   #define PORT_VIRTUALIZATION_VID_N_SETS 4
 
   static const
-  L7_uint32 phy2vport[PTIN_SYSTEM_N_PONS_PHYSICAL][PORT_VIRTUALIZATION_VID_N_SETS] = {
-      { 16,   0, -1U, -1U},
-      {-1U, -1U,  17,   1},
-      { 18,   2, -1U, -1U},
-      {-1U, -1U,  19,   3},
-      { 20,   4, -1U, -1U},
-      {-1U, -1U,  21,   5},
-      { 22,   6, -1U, -1U},
-      {-1U, -1U,  23,   7},
-      { 24,   8, -1U, -1U},
-      {-1U, -1U,  25,   9},
-      { 26,  10, -1U, -1U},
-      {-1U, -1U,  27,  11},
-      { 28,  12, -1U, -1U},
-      {-1U, -1U,  29,  13},
-      { 30,  14, -1U, -1U},
-      {-1U, -1U,  31,  15},
+  L7_uint32 phy2vport[PTIN_CARD_MAX_N_MODES][PTIN_SYSTEM_N_PONS_PHYSICAL][PORT_VIRTUALIZATION_VID_N_SETS] = {
+     {{ 16,   0, -1U, -1U},     
+      {-1U, -1U,  17,   1},     
+      { 18,   2, -1U, -1U},     
+      {-1U, -1U,  19,   3},     
+      { 20,   4, -1U, -1U},     
+      {-1U, -1U,  21,   5},     
+      { 22,   6, -1U, -1U},     
+      {-1U, -1U,  23,   7},     
+      { 24,   8, -1U, -1U},     
+      {-1U, -1U,  25,   9},     
+      { 26,  10, -1U, -1U},     
+      {-1U, -1U,  27,  11},     
+      { 28,  12, -1U, -1U},     
+      {-1U, -1U,  29,  13},     
+      { 30,  14, -1U, -1U},     
+      {-1U, -1U,  31,  15}}, 
+
+     {{ 0,  -1U, -1U -1U },    
+      { 1,  -1U, -1U -1U },    
+      { 2,  -1U, -1U -1U },    
+      { 3,  -1U, -1U -1U },    
+      { 4,  -1U, -1U -1U },    
+      { 5,  -1U, -1U -1U },    
+      { 6,  -1U, -1U -1U },    
+      { 7,  -1U, -1U -1U },    
+      { 8,  -1U, -1U -1U },    
+      { 9,  -1U, -1U -1U },    
+      { 10, -1U, -1U -1U },    
+      { 11, -1U, -1U -1U },    
+      { 12, -1U, -1U -1U },    
+      { 13, -1U, -1U -1U },    
+      { 14, -1U, -1U -1U },    
+      { 15, -1U, -1U -1U }},   
   };
 
  #else /*defined (PORT_VIRTUALIZATION_?_1)*/

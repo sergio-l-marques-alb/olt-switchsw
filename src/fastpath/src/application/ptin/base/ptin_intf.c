@@ -190,7 +190,7 @@ L7_RC_t ptin_intf_pre_init(void)
 #ifdef NGPON2_SUPPORTED
   memset(NGPON2_groups_info,  0x00, sizeof(NGPON2_groups_info));
 #endif
-  
+
   /* Initialize QoS module */
   ptin_qos_init();
 
@@ -205,8 +205,19 @@ L7_RC_t ptin_intf_pre_init(void)
       if (intIfNum <= PTIN_SYSTEM_N_PONS_PHYSICAL)
       {
 #ifdef PORT_VIRTUALIZATION_N_1
-        /* Get virtual port and validate ir */
-        ptin_port = phy2vport[intIfNum-1][i];
+        L7_uint32 mode;
+
+        mode = ptin_env_board_mode();
+        if (mode < PTIN_CARD_MAX_N_MODES)
+        {
+          /* Get virtual port and validate ir */
+          ptin_port = phy2vport[mode][intIfNum-1][i];
+        }
+        else
+        {
+          PT_LOG_ERR(LOG_CTX_INTF, "Failed to get board mode");
+          return L7_FAILURE;
+        }
 #else
         ptin_port = intIfNum-1;
 #endif
@@ -393,7 +404,7 @@ L7_RC_t ptin_intf_post_init(void)
     /* QoS initialization */
     if (ptin_qos_intf_default(i) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_INTF, "Phy# %u: Error initializing QoS definitions", i);
+      PT_LOG_ERR(LOG_CTX_INTF, "Phy# %u: Error initializing QoS definitions",i);
       return L7_FAILURE;
     }
 
@@ -484,9 +495,9 @@ void ptin_intf_dai_restore_defaults(void)
  */
 L7_RC_t ptin_intf_portExt_init(void)
 {
-  L7_int           port;
+  L7_int          port;
   ptin_HWPortExt_t mefExt;
-  L7_RC_t          rc = L7_SUCCESS;
+  L7_RC_t         rc = L7_SUCCESS;
 
   /* Default values */
   mefExt.Mask = PTIN_HWPORTEXT_MASK_DEFVID                         |
@@ -633,7 +644,7 @@ L7_RC_t ptin_intf_portExt_set(L7_uint32 ptin_port, ptin_HWPortExt_t *mefExt)
     if (PTIN_PORT_IS_PHY(ptin_port))
     {
       L7_uint8  mask = 0x00;
-      
+
       /*If port is valid*/
       if (ptin_port < PTIN_SYSTEM_N_CLIENT_PORTS)
       {

@@ -12511,6 +12511,15 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
   }
 #endif
 
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  /* Number of interfaces, FIX for TC16SXG */
+  if (evcConf->n_intf==0)
+  {
+    PT_LOG_WARN(LOG_CTX_EVC,"Number of interfaces (%u)",evcConf->n_intf);
+    return L7_SUCCESS;
+  }
+#endif
+
   /* Number of interfaces */
   if (evcConf->n_intf==0 || evcConf->n_intf>=PTIN_SYSTEM_MAX_N_PORTS)
   {
