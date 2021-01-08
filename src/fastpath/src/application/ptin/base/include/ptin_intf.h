@@ -112,7 +112,7 @@ typedef struct {
       {-1U, -1U, -1U, -1U},
       { 30,  14,  31,  15},
       {-1U, -1U, -1U, -1U}}, 
-       
+
      {{ 0,  -1U,  1,  -1U}, 
       {-1U, -1U, -1U, -1U},     
       { 2,  -1U,  3,  -1U},   
@@ -128,7 +128,8 @@ typedef struct {
       { 12, -1U,  13, -1U},     
       {-1U, -1U, -1U, -1U},     
       { 14, -1U,  15, -1U},          
-      {-1U, -1U, -1U, -1U}},    
+      {-1U, -1U, -1U, -1U}},   
+
   };
 
  #elif defined (PORT_VIRTUALIZATION_2_1) /*ASPEN 2:1*/
@@ -137,7 +138,7 @@ typedef struct {
    https://jira.ptin.corppt.com/browse/OLTSWITCH-1371
 */
 
-  #define PTIN_CARD_MAX_N_MODES          2 /* GPON and MPM mode*/
+  #define PTIN_CARD_MAX_N_MODES          2/* 0 - MPM, 1- GPON mode*/
   #define PORT_VIRTUALIZATION_VID_N_SETS 4
 
   static const

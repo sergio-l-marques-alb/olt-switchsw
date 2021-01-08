@@ -181,6 +181,9 @@ L7_RC_t ptin_intf_pre_init(void)
   L7_int    i;
   L7_uint32 ptin_port, intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
+#ifdef PORT_VIRTUALIZATION_N_1
+  L7_uint32 mode = 0;
+#endif
 
   /* Reset structures (everything is set to 0xFF) */
   memset(map_port2intIfNum,   0xFF, sizeof(map_port2intIfNum));
@@ -197,6 +200,11 @@ L7_RC_t ptin_intf_pre_init(void)
   /* Initialize phy lookup tables */
   PT_LOG_TRACE(LOG_CTX_INTF, "Port <=> intIfNum lookup tables init:");
 
+#ifdef PORT_VIRTUALIZATION_N_1
+  mode = ptin_env_board_mode_get();
+#endif
+
+  PT_LOG_ERR(LOG_CTX_INTF, "mode %d", mode);
   for (intIfNum = 1; intIfNum <= L7_MAX_PORT_COUNT; intIfNum++)
   {
     /* Run offset */
@@ -205,9 +213,6 @@ L7_RC_t ptin_intf_pre_init(void)
       if (intIfNum <= PTIN_SYSTEM_N_PONS_PHYSICAL)
       {
 #ifdef PORT_VIRTUALIZATION_N_1
-        L7_uint32 mode;
-
-        mode = ptin_env_board_mode_get();
         if (mode < PTIN_CARD_MAX_N_MODES)
         {
           /* Get virtual port and validate ir */
@@ -225,7 +230,14 @@ L7_RC_t ptin_intf_pre_init(void)
       else
       {
 #ifdef PORT_VIRTUALIZATION_N_1
-        ptin_port = ((intIfNum-1) - PTIN_SYSTEM_N_PONS_PHYSICAL) + PTIN_SYSTEM_N_PONS;
+        if (mode == PTIN_MODE_GPON)
+        {
+          ptin_port = (intIfNum-1);
+        }
+        else
+        {
+          ptin_port = ((intIfNum-1) - PTIN_SYSTEM_N_PONS_PHYSICAL) + PTIN_SYSTEM_N_PONS;
+        }
 #else
         ptin_port = intIfNum-1;
 #endif

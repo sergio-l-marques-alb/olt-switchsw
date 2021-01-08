@@ -92,6 +92,12 @@ L7_RC_t ptin_env_init(void)
     }
 
     _board_mode = atoi(str);
+    /* this only happens (board_mode 0) when fastpath is run
+       via shell very early at beginning*/
+    if(_board_mode != 0)
+    {
+       _board_mode= _board_mode - 1;
+    }
     PT_LOG_NOTICE(LOG_CTX_STARTUP, "\"%s\" = getenv(\"%s\") => _board_mode=%u",
                   str, BOARD_MODE_STR, _board_mode);
 
@@ -135,6 +141,14 @@ L7_RC_t ptin_env_board_mode_read(void)
     }
 
     _board_mode = atoi(str);
+
+    /* this only happens (board_mode 0) when fastpath is run
+       via shell very early at beginning*/
+    if(_board_mode != 0)
+    {
+       _board_mode= _board_mode - 1;
+    }
+
     PT_LOG_NOTICE(LOG_CTX_STARTUP, "\"%s\" = getenv(\"%s\") => _board_mode=%u",
                   str, BOARD_MODE_STR, _board_mode);
 
@@ -168,6 +182,6 @@ L7_uint32 ptin_env_board_hwver(void)
  */
 L7_uint32 ptin_env_board_mode_get(void)
 {
-    return (_board_mode-1);
+    return (_board_mode);
 }
 

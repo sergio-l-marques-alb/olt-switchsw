@@ -21,6 +21,9 @@
 #define PORT_VIRTUALIZATION_N_1     /* Port virtualization enabled */
 #define PORT_VIRTUALIZATION_2_1     /* Port virtualization mode */
 
+#define PTIN_MODE_MPM  0
+#define PTIN_MODE_GPON 1
+
 /* Special EVCs for this equipment */
 #define PTIN_ASPEN2CPU_A_EVC         (PTIN_SYSTEM_EXT_EVCS_MGMT+0)     /* MACGPON-CPU EVC */
 #define PTIN_ASPEN2CPU_B_EVC         (PTIN_SYSTEM_EXT_EVCS_MGMT+1)     /* MACGPON-CPU EVC */
