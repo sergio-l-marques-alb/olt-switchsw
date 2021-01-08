@@ -1498,3 +1498,417 @@ L7_RC_t ptin_hapi_qos_dump(void)
   return L7_SUCCESS;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+/**
+ * EGRESS PORT SCHEDULING HIERARCHY's GPORT TABLE (Originally 
+ * for TC16SXG's BCM56370) 
+ *  
+ *  
+ * https://jira.ptin.corppt.com/browse/OLTSWITCH-1386?focusedCommentId=1582817&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-1582817 
+ * https://jira.ptin.corppt.com/secure/attachment/630858/QoS_TD3X3.png 
+ * https://jira.ptin.corppt.com/browse/OLTSWITCH-1386?focusedCommentId=1580853&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-1580853 
+ *  
+ *  
+ *  
+ *  
+ * SOME NOTES: 
+ *  
+ * Relate HAPI's usp port (ranging 
+ * 0-L7_MAX_PHYSICAL_PORTS_PER_UNIT) with bcm_port via
+ * hapi_ptin_get_uspport_from_bcmdata() 
+ *  
+ *  
+ * find vendor/broadcom_TC16SXG/ -name '*.[h]'|xargs grep -C 5 -n "_NODE_LVL_L0," 
+ *  
+ * leads to 
+ * typedef enum { 
+ *  SOC_HX5_NODE_LVL_ROOT = 0, 
+ *  SOC_HX5_NODE_LVL_L0, 
+ * [...] 
+ * } soc_hx5_node_lvl_e;
+ *  
+ *  
+ *  Table built traversing gports (bcm_cosq_gport_traverse())
+ *  with function bcm_cosq_gport_info_get()
+ *  
+ */
+
+
+
+
+#include "soc/helix5.h"
+
+#define N_L0s   1
+#define N_L1s   2
+#define N_L2s   8
+typedef struct {
+    bcm_gport_t L0; //"L0.0" (SE)
+    struct {
+        bcm_gport_t SE;  /*FIXME: nomes p/ constantes 2 e 8 aqui presentes*/
+        struct {
+            bcm_gport_t SE; 
+            bcm_gport_t UCq;
+            bcm_gport_t MCq;
+        } L2[N_L2s];
+    } L1[N_L1s];
+} eg_prt_sched_hrchy_t;
+
+
+
+static eg_prt_sched_hrchy_t HQoS[L7_MAX_PHYSICAL_PORTS_PER_UNIT];
+/*usp port indexed*/
+
+
+
+void eg_prt_sched_hrchy_t_init(eg_prt_sched_hrchy_t *p) {
+    int i, j;
+
+    p->L0 = BCM_GPORT_INVALID;
+    for (i=0; i<N_L1s; i++) {
+        p->L1[i].SE = BCM_GPORT_INVALID;
+        for (j=0; j<N_L2s; j++) {
+            p->L1[i].L2[j].SE = BCM_GPORT_INVALID;
+            p->L1[i].L2[j].UCq = BCM_GPORT_INVALID;
+            p->L1[i].L2[j].MCq = BCM_GPORT_INVALID;
+        }
+    }
+}
+
+
+
+
+/* 
+To understand the following SE/UCQ/MCQ functions please check: 
+_bcm_hx5_cosq_gport_add()
+ 
+AND 
+ 
+[root@TC16SXG~]# fp.shell hsp pbm=xe
+{code}
+Broadcom shell > hsp pbm=xe
+
+SW Information COSQ - Unit 0
+=== PORT 1
+L0.0: GPORT=0x37800001 HW_INDEX=57 MODE=WRR WT=1
+    L1.0: GPORT=0x37810001 HW_INDEX=82 MODE=WRR WT=1
+       L2.0: GPORT=0x37830001 HW_INDEX=560 MODE=SP WT=0
+          UC.0: GPORT=0x24004000 HW_INDEX=560 MODE=WRR WT=1
+          MC.0: GPORT=0x30004000 HW_INDEX=560 MODE=WRR WT=1
+       L2.1: GPORT=0x37840001 HW_INDEX=561 MODE=SP WT=0
+          UC.1: GPORT=0x24004001 HW_INDEX=561 MODE=WRR WT=1
+          MC.1: GPORT=0x30004001 HW_INDEX=561 MODE=WRR WT=1
+       L2.2: GPORT=0x37850001 HW_INDEX=562 MODE=SP WT=0
+          UC.2: GPORT=0x24004002 HW_INDEX=562 MODE=WRR WT=1
+          MC.2: GPORT=0x30004002 HW_INDEX=562 MODE=WRR WT=1
+       L2.3: GPORT=0x37860001 HW_INDEX=563 MODE=SP WT=0
+          UC.3: GPORT=0x24004003 HW_INDEX=563 MODE=WRR WT=1
+          MC.3: GPORT=0x30004003 HW_INDEX=563 MODE=WRR WT=1
+       L2.4: GPORT=0x37870001 HW_INDEX=564 MODE=SP WT=0
+          UC.4: GPORT=0x24004004 HW_INDEX=564 MODE=WRR WT=1
+          MC.4: GPORT=0x30004004 HW_INDEX=564 MODE=WRR WT=1
+       L2.5: GPORT=0x37880001 HW_INDEX=565 MODE=SP WT=0
+          UC.5: GPORT=0x24004005 HW_INDEX=565 MODE=WRR WT=1
+          MC.5: GPORT=0x30004005 HW_INDEX=565 MODE=WRR WT=1
+       L2.6: GPORT=0x37890001 HW_INDEX=566 MODE=SP WT=0
+          UC.6: GPORT=0x24004006 HW_INDEX=566 MODE=WRR WT=1
+          MC.6: GPORT=0x30004006 HW_INDEX=566 MODE=WRR WT=1
+       L2.7: GPORT=0x378a0001 HW_INDEX=567 MODE=SP WT=0
+          UC.7: GPORT=0x24004007 HW_INDEX=567 MODE=WRR WT=1
+          MC.7: GPORT=0x30004007 HW_INDEX=567 MODE=WRR WT=1
+    L1.1: GPORT=0x37820001 HW_INDEX=83 MODE=WRR WT=1
+       L2.8: GPORT=0x378b0001 HW_INDEX=568 MODE=SP WT=0
+          UC.8: GPORT=0x24004008 HW_INDEX=568 MODE=WRR WT=1
+          MC.8: GPORT=0x30004008 HW_INDEX=568 MODE=WRR WT=1
+       L2.9: GPORT=0x378c0001 HW_INDEX=569 MODE=SP WT=0
+          UC.9: GPORT=0x24004009 HW_INDEX=569 MODE=WRR WT=1
+          MC.9: GPORT=0x30004009 HW_INDEX=569 MODE=WRR WT=1
+       L2.10: GPORT=0x378d0001 HW_INDEX=570 MODE=SP WT=0
+          UC.10: GPORT=0x2400400a HW_INDEX=570 MODE=WRR WT=1
+          MC.10: GPORT=0x3000400a HW_INDEX=570 MODE=WRR WT=1
+       L2.11: GPORT=0x378e0001 HW_INDEX=571 MODE=SP WT=0
+          UC.11: GPORT=0x2400400b HW_INDEX=571 MODE=WRR WT=1
+          MC.11: GPORT=0x3000400b HW_INDEX=571 MODE=WRR WT=1
+       L2.12: GPORT=0x378f0001 HW_INDEX=572 MODE=SP WT=0
+          UC.12: GPORT=0x2400400c HW_INDEX=572 MODE=WRR WT=1
+          MC.12: GPORT=0x3000400c HW_INDEX=572 MODE=WRR WT=1
+       L2.13: GPORT=0x37900001 HW_INDEX=573 MODE=SP WT=0
+          UC.13: GPORT=0x2400400d HW_INDEX=573 MODE=WRR WT=1
+          MC.13: GPORT=0x3000400d HW_INDEX=573 MODE=WRR WT=1
+       L2.14: GPORT=0x37910001 HW_INDEX=574 MODE=SP WT=0
+          UC.14: GPORT=0x2400400e HW_INDEX=574 MODE=WRR WT=1
+          MC.14: GPORT=0x3000400e HW_INDEX=574 MODE=WRR WT=1
+       L2.15: GPORT=0x37920001 HW_INDEX=575 MODE=SP WT=0
+          UC.15: GPORT=0x2400400f HW_INDEX=575 MODE=WRR WT=1
+          MC.15: GPORT=0x3000400f HW_INDEX=575 MODE=WRR WT=1
+=========== 
+[...] 
+
+SW Information COSQ - Unit 0
+=== PORT 32
+L0.0: GPORT=0x37800020 HW_INDEX=68 MODE=WRR WT=1
+    L1.0: GPORT=0x37810020 HW_INDEX=104 MODE=WRR WT=1
+       L2.0: GPORT=0x37830020 HW_INDEX=736 MODE=SP WT=0
+          UC.0: GPORT=0x24080000 HW_INDEX=736 MODE=WRR WT=1
+          MC.0: GPORT=0x30080000 HW_INDEX=736 MODE=WRR WT=1
+[...]
+       L2.7: GPORT=0x378a0020 HW_INDEX=743 MODE=SP WT=0
+          UC.7: GPORT=0x24080007 HW_INDEX=743 MODE=WRR WT=1
+          MC.7: GPORT=0x30080007 HW_INDEX=743 MODE=WRR WT=1
+    L1.1: GPORT=0x37820020 HW_INDEX=105 MODE=WRR WT=1
+       L2.8: GPORT=0x378b0020 HW_INDEX=744 MODE=SP WT=0
+          UC.8: GPORT=0x24080008 HW_INDEX=744 MODE=WRR WT=1
+          MC.8: GPORT=0x30080008 HW_INDEX=744 MODE=WRR WT=1
+[...] 
+       L2.15: GPORT=0x37920020 HW_INDEX=751 MODE=SP WT=0
+          UC.15: GPORT=0x2408000f HW_INDEX=751 MODE=WRR WT=1
+          MC.15: GPORT=0x3008000f HW_INDEX=751 MODE=WRR WT=1
+===========
+*/
+inline
+void BCM_GPORT_SCHEDULER_2_SCHED_id(int gport,
+                                    unsigned int *id1, unsigned int *id2)
+{
+    unsigned int
+        sched_encap,
+        id,
+        r1[SOC_HX5_NUM_SCHEDULER_PER_PORT] = {
+            0,                  //L0
+            0,1,                //L1.0-1
+            0,0,0,0,0,0,0,0,    //L2.0-7
+            1,1,1,1,1,1,1,1,    //L2.8-15
+        },
+        r2[SOC_HX5_NUM_SCHEDULER_PER_PORT] = {
+            -1,                 //L0
+            -1,-1,              //L1.0-1
+            0,1,2,3,4,5,6,7,    //L2.0-7
+            0,1,2,3,4,5,6,7,    //L2.8-15
+        };
+
+
+    //please check _bcm_hx5_cosq_gport_add()
+    sched_encap = BCM_GPORT_SCHEDULER_GET(gport);
+    id = sched_encap >>16;
+
+    if (id < SOC_HX5_NUM_SCHEDULER_PER_PORT) {
+        if (NULL != id1) *id1 = r1[id];
+        if (NULL != id2) *id2 = r2[id];
+    }
+    else {
+        if (NULL != id1) *id1 = -1;
+        if (NULL != id2) *id2 = -1;
+    }
+}//BCM_GPORT_SCHEDULER_2_SCHED_id
+
+
+
+
+inline
+void BCM_GPORT_UCAST_QUEUE_GROUP_2_Qid(int gport,
+                                       unsigned int *id1, unsigned int *id2)
+{
+    unsigned int id;
+    //please check _bcm_hx5_cosq_gport_add()
+    id = BCM_GPORT_UCAST_QUEUE_GROUP_QID_GET(gport);
+    if (id < N_L1s*N_L2s) {
+        if (NULL != id1) *id1 = id/N_L2s;
+        if (NULL != id2) *id2 = id%N_L2s;
+    }
+    else {
+        if (NULL != id1) *id1 = -1;
+        if (NULL != id2) *id2 = -1;
+    }
+}
+
+
+
+
+inline
+void BCM_GPORT_MCAST_QUEUE_GROUP_2_Qid(int gport,
+                                       unsigned int *id1, unsigned int *id2)
+{
+    unsigned int id;
+    //please check _bcm_hx5_cosq_gport_add()
+    id = BCM_GPORT_MCAST_QUEUE_GROUP_QID_GET(gport);
+    if (id < N_L1s*N_L2s) {
+        if (NULL != id1) *id1 = id/N_L2s;
+        if (NULL != id2) *id2 = id%N_L2s;
+    }
+    else {
+        if (NULL != id1) *id1 = -1;
+        if (NULL != id2) *id2 = -1;
+    }
+}
+
+
+
+
+/*
+Adapting hx5_gport_traverse_port.c to our struct 
+This callback follows "bcm_cosq_gport_traverse_cb" typedef prototyping
+*/
+static 
+int gport_callback(int unit, bcm_gport_t port, int numq, uint32 flags,
+                   bcm_gport_t gport, void *user_data) {
+    int local_port;
+    unsigned int id1, id2;
+    L7_uint32 usp_port;
+    L7_RC_t r;
+    int rv;
+    bcm_cosq_gport_level_info_t info;
+
+
+    local_port = BCM_GPORT_MODPORT_PORT_GET(port);
+    //if (local_port == 0) return 0;
+
+    r = hapi_ptin_get_uspport_from_bcmdata(unit, local_port, -1, &usp_port);
+    if (L7_SUCCESS != r) {
+        PT_LOG_CRITIC(LOG_CTX_HAPI,
+                      "hapi_ptin_get_uspport_from_bcmdata(unit=%d, bcm_port=%d,"
+                      " ...) = %d", unit, local_port, r);
+        switch (r) {
+        case L7_NOT_EXIST:  return BCM_E_NOT_FOUND;
+        default:
+        case L7_FAILURE:    return BCM_E_FAIL;
+        }
+    }
+
+    bcm_cosq_gport_level_info_t_init(&info);
+    rv = bcm_cosq_gport_info_get(unit, gport,  &info);
+    if( rv != BCM_E_NONE) {
+        PT_LOG_CRITIC(LOG_CTX_HAPI,
+                      "bcm_cosq_gport_info_get(unit=%d, gport=0x%x,"
+                      " ...) = %d", unit, gport, rv);
+        return rv;
+    }
+
+    PT_LOG_INFO(LOG_CTX_STARTUP, "=== PORT %d", local_port);
+
+    if (flags & BCM_COSQ_GPORT_SCHEDULER)
+    {
+        //if (info.parent_port_type) {
+        //    //"UP-LNK"
+        //}
+        {//else {
+            if(info.level == SOC_HX5_NODE_LVL_L0) {
+                HQoS[usp_port].L0 = gport;
+                PT_LOG_INFO(LOG_CTX_STARTUP, "L0.0: GPORT=0x%x", gport);
+            }
+            else
+            if (info.level == SOC_HX5_NODE_LVL_L1) {
+                BCM_GPORT_SCHEDULER_2_SCHED_id(gport, &id1, NULL);
+                if (id1 >= N_L1s) {
+                    PT_LOG_CRITIC(LOG_CTX_HAPI, "Wrong L1 SE id1 %d", id1);
+                    return BCM_E_FAIL;
+                }
+                HQoS[usp_port].L1[id1].SE = gport;
+                PT_LOG_INFO(LOG_CTX_STARTUP, "\tL1.%1.1u: GPORT=0x%x",
+                            id1, gport);
+            }
+            else
+            if (info.level == SOC_HX5_NODE_LVL_L2) {
+                BCM_GPORT_SCHEDULER_2_SCHED_id(gport, &id1, &id2);
+                if (id1 >= N_L1s) {
+                    PT_LOG_CRITIC(LOG_CTX_HAPI, "Wrong L1 SE id1 %d", id1);
+                    return BCM_E_FAIL;
+                }
+                if (id2 >= N_L2s) {
+                    PT_LOG_CRITIC(LOG_CTX_HAPI, "Wrong L2 SE id2 %d", id2);
+                    return BCM_E_FAIL;
+                }
+                HQoS[usp_port].L1[id1].L2[id2].SE = gport;
+                PT_LOG_INFO(LOG_CTX_STARTUP, "\t\tL2.%1.1u: GPORT=0x%x",
+                            id2, gport);
+            }
+        }
+    }
+    else
+    if (flags & BCM_COSQ_GPORT_UCAST_QUEUE_GROUP) {
+        //if (info.parent_port_type) {
+        //    //"UP-LNK"
+        //}
+        {//else {
+            BCM_GPORT_UCAST_QUEUE_GROUP_2_Qid(gport, &id1, &id2);
+            if (id1 >= N_L1s) {
+                PT_LOG_CRITIC(LOG_CTX_HAPI, "Wrong UCQG id1 %d", id1);
+                return BCM_E_FAIL;
+            }
+            if (id2 >= N_L2s) {
+                PT_LOG_CRITIC(LOG_CTX_HAPI, "Wrong UCQG id2 %d", id2);
+                return BCM_E_FAIL;
+            }
+            HQoS[usp_port].L1[id1].L2[id2].UCq = gport;
+            PT_LOG_INFO(LOG_CTX_STARTUP, "\t\t\tUC.%1.1u (%1.1u): GPORT=0x%x",
+                        id2+id1*N_L2s, id2, gport);
+        }
+    }
+    else
+    if (flags & BCM_COSQ_GPORT_MCAST_QUEUE_GROUP) {
+        //if (info.parent_port_type) {
+        //    //"UP-LNK"
+        //}
+        {//else {
+            BCM_GPORT_MCAST_QUEUE_GROUP_2_Qid(gport, &id1, &id2);
+            if (id1 >= N_L1s) {
+                PT_LOG_CRITIC(LOG_CTX_HAPI, "Wrong MCQG id1 %d", id1);
+                return BCM_E_FAIL;
+            }
+            if (id2 >= N_L2s) {
+                PT_LOG_CRITIC(LOG_CTX_HAPI, "Wrong MCQG id2 %d", id2);
+                return BCM_E_FAIL;
+            }
+            HQoS[usp_port].L1[id1].L2[id2].MCq = gport;
+            PT_LOG_INFO(LOG_CTX_STARTUP, "\t\t\tMC.%1.1u (%1.1u): GPORT=0x%x",
+                        id2+id1*N_L2s, id2, gport);
+        }
+    }
+
+    return 0;
+}//gport_callback
+
+
+
+
+/**
+ * Initializes and fills the Egress Port Scheduling Hierarchy 
+ * table's relevant gports
+ * 
+ * @param 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t eg_prt_sched_hrchy_table_fill(void) {
+    int i;
+    int user_data;
+
+    PT_LOG_INFO(LOG_CTX_STARTUP, "eg_prt_sched_hrchy_t_init()...");
+    for (i=0; i<L7_MAX_PHYSICAL_PORTS_PER_UNIT; i++) {
+        eg_prt_sched_hrchy_t_init(&HQoS[i]);
+    }
+    PT_LOG_INFO(LOG_CTX_STARTUP, "...done");
+
+    PT_LOG_INFO(LOG_CTX_STARTUP, "bcm_cosq_gport_traverse()...");
+    i = bcm_cosq_gport_traverse(0, gport_callback, &user_data);
+    if (i  < BCM_E_NONE) {
+        PT_LOG_CRITIC(LOG_CTX_HAPI, "bcm_cosq_gport_traverse()=%d", i);
+        return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_STARTUP, "...traversed");
+    
+    return L7_SUCCESS;
+}
+#endif //#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+
