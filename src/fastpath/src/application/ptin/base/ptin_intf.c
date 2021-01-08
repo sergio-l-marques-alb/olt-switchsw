@@ -204,7 +204,7 @@ L7_RC_t ptin_intf_pre_init(void)
   mode = ptin_env_board_mode_get();
 #endif
 
-  PT_LOG_ERR(LOG_CTX_INTF, "mode %d", mode);
+  PT_LOG_INFO(LOG_CTX_INTF, "CARD MODE %s", mode ? "GPON": "MPM");
   for (intIfNum = 1; intIfNum <= L7_MAX_PORT_COUNT; intIfNum++)
   {
     /* Run offset */
