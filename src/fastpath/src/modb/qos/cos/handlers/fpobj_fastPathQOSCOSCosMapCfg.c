@@ -112,7 +112,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosMapCfg_GlobalCosMapIpDscpTrafficClass (void *
   /* get the value from application */
   owa.l7rc =
     usmDbQosCosMapIpDscpTrafficClassGet (L7_UNIT_CURRENT,
-                                         L7_ALL_INTERFACES,
+                                         L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, 
                                          keyCosMapIpDscpValueValue,
                                          &objGlobalCosMapIpDscpTrafficClassValue);
 	
@@ -198,7 +198,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosMapCfg_GlobalCosMapIpDscpTrafficClass (void *
   /* get the value from application */
   owa.l7rc =
     usmDbQosCosMapIpDscpTrafficClassSet (L7_UNIT_CURRENT,
-                                         L7_ALL_INTERFACES,
+                                         L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, 
                                          keyCosMapIpDscpValueValue,
                                          objGlobalCosMapIpDscpTrafficClassValue);
 
@@ -233,7 +233,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosMapCfg_CosMapGlobalTrustMode (void *wap, void
   /* get the value from application */
   owa.l7rc =
     usmDbQosCosMapTrustModeGet (L7_UNIT_CURRENT,
-                                L7_ALL_INTERFACES,
+                                L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, 
                                 &objCosMapGlobalTrustModeValue);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -286,7 +286,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosMapCfg_CosMapGlobalTrustMode (void *wap, void
   /* set the value in application */
   owa.l7rc =
     usmDbQosCosMapTrustModeSet (L7_UNIT_CURRENT,
-                                L7_ALL_INTERFACES,
+                                L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, 
                                 objCosMapGlobalTrustModeValue);
 	
   if (owa.l7rc != L7_SUCCESS)
@@ -317,7 +317,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosMapCfg_GlobalCosMapUntrustedTrafficClass (voi
   /* get the value from application */
   owa.l7rc =
     usmDbQosCosMapUntrustedPortDefaultTrafficClassGet (L7_UNIT_CURRENT,
-                                                       L7_ALL_INTERFACES,
+                                                       L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, 
                                                        &objGlobalCosMapUntrustedTrafficClassValue);
 	
   if (owa.l7rc != L7_SUCCESS)
@@ -368,7 +368,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosMapCfg_CosMapGlobalTrustRestoreDefaults (void
   /* if row status object is specified and eual to delete return success */
 
   /* set the value in application */
-   owa.l7rc = usmDbQosCosMapTrustModeSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, FD_QOS_COS_MAP_INTF_TRUST_MODE);
+   owa.l7rc = usmDbQosCosMapTrustModeSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, FD_QOS_COS_MAP_INTF_TRUST_MODE);
 	
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -425,8 +425,8 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosMapCfg_CosMapGlobalIpDscpRestoreDefaults (voi
 
     while((rc == L7_SUCCESS) && (list_cnt < L7_QOS_COS_MAP_NUM_IPDSCP))
     {
-      usmDbQosCosMapIpDscpDefaultTrafficClassGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, dscp, &queueID);
-      rc = usmDbQosCosMapIpDscpTrafficClassSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, dscp, queueID);
+      usmDbQosCosMapIpDscpDefaultTrafficClassGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, dscp, &queueID);
+      rc = usmDbQosCosMapIpDscpTrafficClassSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, dscp, queueID);
       if (rc != L7_SUCCESS)
       {
          owa.l7rc = L7_FAILURE;
@@ -495,8 +495,8 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosMapCfg_CosMapglobalIpPrecRestoreDefaults (voi
 		
     while((rc == L7_SUCCESS) && (list_cnt < L7_QOS_COS_MAP_NUM_IPPREC))
     {
-      usmDbQosCosMapIpPrecDefaultTrafficClassGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, prec, &queueID);
-      rc = usmDbQosCosMapIpPrecTrafficClassSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, prec, queueID);
+      usmDbQosCosMapIpPrecDefaultTrafficClassGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, prec, &queueID);
+      rc = usmDbQosCosMapIpPrecTrafficClassSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, prec, queueID);
       if (rc != L7_SUCCESS)
       {
          owa.l7rc = L7_FAILURE;
@@ -669,7 +669,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosMapCfg_CosMapIpPrecTrafficClass (void *wap,
   /* get the value from application */
   owa.l7rc =
     usmDbQosCosMapIpPrecTrafficClassGet (L7_UNIT_CURRENT,
-                                         keyCosMapIpPrecIntfIndexValue,
+                                         keyCosMapIpPrecIntfIndexValue, L7_QOS_QSET_DEFAULT, 
                                          keyCosMapIpPrecValueValue,
                                          &objCosMapIpPrecTrafficClassValue);
   if (owa.l7rc != L7_SUCCESS)
@@ -745,7 +745,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosMapCfg_CosMapIpPrecTrafficClass (void *wap,
   /* set the value in application */
   owa.l7rc =
     usmDbQosCosMapIpPrecTrafficClassSet (L7_UNIT_CURRENT,
-                                         keyCosMapIpPrecIntfIndexValue,
+                                         keyCosMapIpPrecIntfIndexValue, L7_QOS_QSET_DEFAULT, 
                                          keyCosMapIpPrecValueValue,
                                          objCosMapIpPrecTrafficClassValue);
   if (owa.l7rc != L7_SUCCESS)
@@ -910,7 +910,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosMapCfg_CosMapIpDscpTrafficClass (void *wap,
   /* get the value from application */
   owa.l7rc =
     usmDbQosCosMapIpDscpTrafficClassGet (L7_UNIT_CURRENT,
-                                         keyCosMapIpDscpIntfIndexValue,
+                                         keyCosMapIpDscpIntfIndexValue, L7_QOS_QSET_DEFAULT, 
                                          keyCosMapIpDscpValueValue,
                                          &objCosMapIpDscpTrafficClassValue);
   if (owa.l7rc != L7_SUCCESS)
@@ -987,7 +987,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosMapCfg_CosMapIpDscpTrafficClass (void *wap,
   /* set the value in application */
   owa.l7rc =
     usmDbQosCosMapIpDscpTrafficClassSet (L7_UNIT_CURRENT,
-                                         keyCosMapIpDscpIntfIndexValue,
+                                         keyCosMapIpDscpIntfIndexValue, L7_QOS_QSET_DEFAULT, 
                                          keyCosMapIpDscpValueValue,
                                          objCosMapIpDscpTrafficClassValue);
   if (owa.l7rc != L7_SUCCESS)
@@ -1094,7 +1094,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosMapCfg_CosMapIntfTrustMode (void *wap,
   /* get the value from application */
   owa.l7rc =
     usmDbQosCosMapTrustModeGet (L7_UNIT_CURRENT,
-                                keyCosMapIntfTrustIntfIndexValue,
+                                keyCosMapIntfTrustIntfIndexValue, L7_QOS_QSET_DEFAULT, 
                                 &objCosMapIntfTrustModeValue);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -1158,7 +1158,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosMapCfg_CosMapIntfTrustMode (void *wap,
   /* set the value in application */
   owa.l7rc =
     usmDbQosCosMapTrustModeSet (L7_UNIT_CURRENT,
-                                keyCosMapIntfTrustIntfIndexValue,
+                                keyCosMapIntfTrustIntfIndexValue, L7_QOS_QSET_DEFAULT, 
                                 objCosMapIntfTrustModeValue);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -1207,7 +1207,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosMapCfg_CosMapUntrustedTrafficClass (void
   /* get the value from application */
   owa.l7rc =
     usmDbQosCosMapUntrustedPortDefaultTrafficClassGet (L7_UNIT_CURRENT,
-                                                       keyCosMapIntfTrustIntfIndexValue,
+                                                       keyCosMapIntfTrustIntfIndexValue, L7_QOS_QSET_DEFAULT, 
                                                        &objCosMapUntrustedTrafficClassValue);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -1306,7 +1306,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosMapCfg_CosMapIntfTrustRestoreDefaults (void *
   /* set the value in application */
   if(objCosMapIntfTrustRestoreDefaultsValue)
   {
-   owa.l7rc = usmDbQosCosMapTrustModeSet(L7_UNIT_CURRENT, keyCosMapIntfTrustIntfIndexValue, FD_QOS_COS_MAP_INTF_TRUST_MODE);
+   owa.l7rc = usmDbQosCosMapTrustModeSet(L7_UNIT_CURRENT, keyCosMapIntfTrustIntfIndexValue, L7_QOS_QSET_DEFAULT, FD_QOS_COS_MAP_INTF_TRUST_MODE);
   }
 
   if (owa.l7rc != L7_SUCCESS)
@@ -1373,8 +1373,8 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosMapCfg_CosMapIntfIpDscpRestoreDefaults (void 
 
     while((rc == L7_SUCCESS) && (list_cnt < L7_QOS_COS_MAP_NUM_IPDSCP))
     {
-      usmDbQosCosMapIpDscpDefaultTrafficClassGet(L7_UNIT_CURRENT, keyCosMapIpDscpIntfIndexValue, dscp, &queueID);
-      rc = usmDbQosCosMapIpDscpTrafficClassSet(L7_UNIT_CURRENT, keyCosMapIpDscpIntfIndexValue, dscp, queueID);
+      usmDbQosCosMapIpDscpDefaultTrafficClassGet(L7_UNIT_CURRENT, keyCosMapIpDscpIntfIndexValue, L7_QOS_QSET_DEFAULT, dscp, &queueID);
+      rc = usmDbQosCosMapIpDscpTrafficClassSet(L7_UNIT_CURRENT, keyCosMapIpDscpIntfIndexValue, L7_QOS_QSET_DEFAULT, dscp, queueID);
       if (rc != L7_SUCCESS)
       {
          owa.rc = XLIBRC_FAILURE;
@@ -1449,8 +1449,8 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosMapCfg_CosMapIntfIpPrecRestoreDefaults (void 
 
     while((rc == L7_SUCCESS) && (list_cnt < L7_QOS_COS_MAP_NUM_IPPREC))
     {
-      usmDbQosCosMapIpPrecDefaultTrafficClassGet(L7_UNIT_CURRENT, keyCosMapIpPrecIntfIndexValue, prec, &queueID);
-      rc = usmDbQosCosMapIpPrecTrafficClassSet(L7_UNIT_CURRENT, keyCosMapIpPrecIntfIndexValue, prec, queueID);
+      usmDbQosCosMapIpPrecDefaultTrafficClassGet(L7_UNIT_CURRENT, keyCosMapIpPrecIntfIndexValue, L7_QOS_QSET_DEFAULT, prec, &queueID);
+      rc = usmDbQosCosMapIpPrecTrafficClassSet(L7_UNIT_CURRENT, keyCosMapIpPrecIntfIndexValue, L7_QOS_QSET_DEFAULT, prec, queueID);
       if (rc != L7_SUCCESS)
       {
          owa.rc = XLIBRC_FAILURE;
@@ -1556,7 +1556,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosMapCfg_GlobalCosMapIpPrecTrafficClass (void *
   /* get the value from application */
   owa.l7rc =
     usmDbQosCosMapIpPrecTrafficClassGet (L7_UNIT_CURRENT,
-                                         L7_ALL_INTERFACES,
+                                         L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, 
                                          keyCosMapIpPrecValueValue,
                                          &objGlobalCosMapIpPrecTrafficClassValue);
   
@@ -1642,7 +1642,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosMapCfg_GlobalCosMapIpPrecTrafficClass (void *
   /* get the value from application */
   owa.l7rc =
     usmDbQosCosMapIpPrecTrafficClassSet (L7_UNIT_CURRENT,
-                                         L7_ALL_INTERFACES,
+                                         L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, 
                                          keyCosMapIpPrecValueValue,
                                          objGlobalCosMapIpPrecTrafficClassValue);
 

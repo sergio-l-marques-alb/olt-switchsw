@@ -395,7 +395,12 @@ void dot1qPortDefaultPriorityUpdateNotification(L7_uint32 intIfNum,
                                                 L7_uint32 portDefaultTrafficClass)
 {
 #ifdef L7_QOS_FLEX_PACKAGE_COS
-  cosMapPortDefaultPriorityUpdate(intIfNum, portDefaultPriority, portDefaultTrafficClass);
+  L7_uint8 queueSet;
+
+  for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+  {
+    cosMapPortDefaultPriorityUpdate(intIfNum, queueSet, portDefaultPriority, portDefaultTrafficClass);
+  }
 #endif
 }
 
@@ -416,7 +421,12 @@ void dot1qPortNumTrafficClassesUpdateNotification(L7_uint32 intIfNum,
                                                   L7_uint32 numTrafficClasses)
 {
 #ifdef L7_QOS_FLEX_PACKAGE_COS
-  cosMapNumTrafficClassesUpdate(intIfNum, numTrafficClasses);
+  L7_uint8 queueSet;
+
+  for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+  {
+    cosMapNumTrafficClassesUpdate(intIfNum, queueSet, numTrafficClasses);
+  }
 #endif
 }
 
@@ -464,11 +474,21 @@ void dot1qPortTrafficClassUpdateNotification(L7_uint32 intIfNum,
 *********************************************************************/
 L7_BOOL dot1qDot1pMappingIsActive(L7_uint32 intIfNum)
 {
-  L7_BOOL       rc = L7_TRUE;
 #ifdef L7_QOS_FLEX_PACKAGE_COS
-  rc = cosMapDot1pMappingIsActive(intIfNum);
+  L7_BOOL       rc;
+  L7_uint8      queueSet;
+
+  for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+  {
+    rc = cosMapDot1pMappingIsActive(intIfNum, queueSet);
+
+    if (rc == L7_FALSE)
+    {
+      return L7_FALSE;
+    }
+  }
 #endif
-  return rc;
+  return L7_TRUE;
 }
 extern L7_char8 *nimDebugCompStringGet(L7_COMPONENT_IDS_t cid);
 

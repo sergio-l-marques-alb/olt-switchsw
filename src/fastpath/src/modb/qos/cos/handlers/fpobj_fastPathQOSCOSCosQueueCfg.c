@@ -45,7 +45,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_CosQueueGlobalShapingRate (void *wap
   /* get the value from application */
 	owa.l7rc =
     usmDbQosCosQueueIntfShapingRateGet (L7_UNIT_CURRENT,
-                                        L7_ALL_INTERFACES,
+                                        L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, 
                                         &objCosQueueGlobalShapingRateValue);
 	
    if (owa.l7rc != L7_SUCCESS)
@@ -97,7 +97,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueGlobalShapingRate (void *wap
   /* set the value in application */
   owa.l7rc =
     usmDbQosCosQueueIntfShapingRateSet (L7_UNIT_CURRENT,
-                                        L7_ALL_INTERFACES,
+                                        L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, 
                                         objCosQueueGlobalShapingRateValue);
 	
    if (owa.l7rc != L7_SUCCESS)
@@ -138,7 +138,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueGlobalRestoreDefaults (void 
   /* set the value in application */
   if(objCosQueueGlobalRestoreDefaultsValue == L7_TRUE)
   {
-    owa.l7rc = usmDbQosCosQueueIntfShapingRateSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES,FD_QOS_COS_QCFG_INTF_SHAPING_RATE);
+    owa.l7rc = usmDbQosCosQueueIntfShapingRateSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, FD_QOS_COS_QCFG_INTF_SHAPING_RATE);
     if (owa.l7rc != L7_SUCCESS)
     {
         owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -149,7 +149,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueGlobalRestoreDefaults (void 
     if ((usmDbFeaturePresentCheck(L7_UNIT_CURRENT, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_WRED_SUPPORT_FEATURE_ID) == L7_TRUE) &&
             (usmDbFeaturePresentCheck(L7_UNIT_CURRENT, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_WRED_DECAY_EXP_SYSTEM_ONLY_FEATURE_ID) != L7_TRUE))
     {
-        owa.l7rc = usmDbQosCosQueueWredDecayExponentSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES,FD_QOS_COS_QCFG_WRED_DECAY_EXP);
+        owa.l7rc = usmDbQosCosQueueWredDecayExponentSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, FD_QOS_COS_QCFG_WRED_DECAY_EXP);
 
         if (owa.l7rc != L7_SUCCESS)
         {
@@ -186,7 +186,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_CosQueueMgmtTypeGlobal (void *wap, v
   /* get the value from application */
   owa.l7rc =
     usmDbQosCosQueueMgmtTypePerIntfGet (L7_UNIT_CURRENT,
-                                        L7_ALL_INTERFACES,
+                                        L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, 
                                         &objCosQueueMgmtTypeGlobalValue);
    if (owa.l7rc != L7_SUCCESS)
   {
@@ -239,7 +239,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueMgmtTypeGlobal (void *wap, v
   /* set the value in application */
 	owa.l7rc =
     usmDbQosCosQueueMgmtTypePerIntfSet (L7_UNIT_CURRENT,
-                                        L7_ALL_INTERFACES,
+                                        L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, 
                                         objCosQueueMgmtTypeGlobalValue);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -269,7 +269,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueWredDecayExponent (voi
   /* get the value from application */
 	owa.l7rc =
     usmDbQosCosQueueWredDecayExponentGet (L7_UNIT_CURRENT,
-                                          L7_ALL_INTERFACES,
+                                          L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, 
                                           &objGlobalCosQueueWredDecayExponentValue);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -320,7 +320,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueWredDecayExponent (voi
   /* set the value in application */
   owa.l7rc =
     usmDbQosCosQueueWredDecayExponentSet (L7_UNIT_CURRENT,
-                                          L7_ALL_INTERFACES,
+                                          L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, 
                                           objGlobalCosQueueWredDecayExponentValue);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -377,8 +377,8 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueSchedulerType (void *w
 
   owa.l7rc =
     usmDbQosCosQueueSchedulerTypeListGet (L7_UNIT_CURRENT,
-                                      L7_ALL_INTERFACES,
-                                      &schedTypeList);
+                                          L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, 
+                                          &schedTypeList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -453,7 +453,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueSchedulerType (void *w
   /* set the value in application */
   owa.l7rc =
     usmDbQosCosQueueSchedulerTypeSet (L7_UNIT_CURRENT,
-                                      L7_ALL_INTERFACES,
+                                      L7_ALL_INTERFACES, 0/*Default QueueGroup*/, 
                                       keyCosQueueIndexValue,
                                       objGlobalCosQueueSchedulerTypeValue);
    if (owa.l7rc != L7_SUCCESS)
@@ -502,7 +502,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtType (void *wap, v
   /* get the value from application */
    L7_uint32 listIndex = keyCosQueueIndexValue - L7_QOS_COS_QUEUE_ID_MIN;
   owa.l7rc =
-    usmDbQosCosQueueMgmtTypeListGet (L7_UNIT_CURRENT, L7_ALL_INTERFACES,
+    usmDbQosCosQueueMgmtTypeListGet (L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT,
                                      &MgmtTypeList);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -564,8 +564,8 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtType (void *wap, v
   /* set the value in application */
   owa.l7rc =
     usmDbQosCosQueueMgmtTypeSet (L7_UNIT_CURRENT,
-                                        L7_ALL_INTERFACES, keyCosQueueIndexValue, 
-                                        objGlobalCosQueueMgmtTypeValue);
+                                 L7_ALL_INTERFACES, 0/*Default QueueGroup*/, keyCosQueueIndexValue, 
+                                 objGlobalCosQueueMgmtTypeValue);
 	
    if (owa.l7rc != L7_SUCCESS)
   {
@@ -607,7 +607,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueDefaultsRestore (void 
 
   /* set the value in application */
   owa.l7rc =
-    usmDbQosCosQueueDefaultsRestore (L7_UNIT_CURRENT, L7_ALL_INTERFACES);
+    usmDbQosCosQueueDefaultsRestore (L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -660,7 +660,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMinBandwidth (void *wa
   /* get the value from application */
   owa.l7rc =
     usmDbQosCosQueueMinBandwidthListGet(L7_UNIT_CURRENT,
-                                        L7_ALL_INTERFACES,
+                                        L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT,
                                         &minbwList);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -748,7 +748,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMinBandwidth (void *wa
     FPOBJ_TRACE_EXIT (bufp, owa);
     return owa.rc;
   }
-  (void)usmDbQosCosQueueMinBandwidthListGet(L7_UNIT_CURRENT,L7_ALL_INTERFACES,&minbwList);
+  (void)usmDbQosCosQueueMinBandwidthListGet(L7_UNIT_CURRENT,L7_ALL_INTERFACES,L7_QOS_QSET_DEFAULT,&minbwList);
   listIndex = keyCosQueueIndexValue - L7_QOS_COS_QUEUE_ID_MIN;
   minbwList.bandwidth[listIndex] = objGlobalCosQueueMinBandwidthValue;
   for(i=L7_QOS_COS_QUEUE_ID_MIN;i<=L7_QOS_COS_QUEUE_ID_MAX;i++)
@@ -761,7 +761,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMinBandwidth (void *wa
   }
 
   owa.l7rc =
-    usmDbQosCosQueueMinBandwidthSet (L7_UNIT_CURRENT, L7_ALL_INTERFACES,
+    usmDbQosCosQueueMinBandwidthSet (L7_UNIT_CURRENT, L7_ALL_INTERFACES, 0/*Default QueueGroup*/,
                                      keyCosQueueIndexValue,
                                      objGlobalCosQueueMinBandwidthValue);
  
@@ -813,7 +813,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMaxBandwidth (void *wa
 
   listIndex = keyCosQueueIndexValue - L7_QOS_COS_QUEUE_ID_MIN;
   owa.l7rc = usmDbQosCosQueueMaxBandwidthListGet(L7_UNIT_CURRENT,
-                                                 L7_ALL_INTERFACES,
+                                                 L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT,
                                                  &maxbwList);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -886,9 +886,9 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMaxBandwidth (void *wa
 
   /* set the value in application */
   owa.l7rc =
-    usmDbQosCosQueueMaxBandwidthSet (L7_UNIT_CURRENT, L7_ALL_INTERFACES,
+    usmDbQosCosQueueMaxBandwidthSet (L7_UNIT_CURRENT, L7_ALL_INTERFACES, 0/*Default QueueGroup*/, 
                                      keyCosQueueIndexValue,
-                                     objGlobalCosQueueMaxBandwidthValue);
+                                     objGlobalCosQueueMaxBandwidthValue, 1/*Group queue*/);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -923,7 +923,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMinBandwidthAllocated 
 
   /* get the value from application */
 
-  owa.l7rc = usmDbQosCosQueueMinBandwidthListGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, &qosCosQueueBwList);
+  owa.l7rc = usmDbQosCosQueueMinBandwidthListGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &qosCosQueueBwList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -1076,7 +1076,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_CosQueueMgmtTailDropThreshold (void
 
   /* get the value from application */
   listIndex = keyCosQueueDropPrecIndexValue - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
-  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, &dropParmsList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, &dropParmsList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -1171,7 +1171,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueMgmtTailDropThreshold (void
 
   /* set the value in application */
   listIndex = keyCosQueueDropPrecIndexValue - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
-  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, &dList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, &dList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -1179,7 +1179,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueMgmtTailDropThreshold (void
     return owa.rc;
   }
   dList.queue[keyCosQueueIndexValue].tailDropMaxThreshold[listIndex] = objCosQueueMgmtTailDropThresholdValue;
-  owa.l7rc = usmDbQosCosQueueDropParmsListSet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, &dList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListSet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, &dList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -1255,7 +1255,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_CosQueueMgmtWredMinThreshold (void
 
   /* get the value from application */
   listIndex = keyCosQueueDropPrecIndexValue - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
-  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, &dropParmsList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, &dropParmsList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -1347,7 +1347,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueMgmtWredMinThreshold (void
 
   /* set the value in application */
   listIndex = keyCosQueueDropPrecIndexValue - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
-  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, &dList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, &dList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -1355,7 +1355,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueMgmtWredMinThreshold (void
     return owa.rc;
   }
   dList.queue[keyCosQueueIndexValue].minThreshold[listIndex] = objCosQueueMgmtWredMinThresholdValue;
-  owa.l7rc = usmDbQosCosQueueDropParmsListSet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, &dList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListSet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, &dList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -1431,7 +1431,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_CosQueueMgmtWredMaxThreshold (void
 
   /* get the value from application */
   listIndex = keyCosQueueDropPrecIndexValue - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
-  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, &dropParmsList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, &dropParmsList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -1523,7 +1523,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueMgmtWredMaxThreshold (void
 
   /* set the value in application */
   listIndex = keyCosQueueDropPrecIndexValue - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
-  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, &dList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, &dList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -1531,7 +1531,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueMgmtWredMaxThreshold (void
     return owa.rc;
   }
   dList.queue[keyCosQueueIndexValue].wredMaxThreshold[listIndex] = objCosQueueMgmtWredMaxThresholdValue;
-  owa.l7rc = usmDbQosCosQueueDropParmsListSet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, &dList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListSet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, &dList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -1608,7 +1608,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_CosQueueMgmtWredDropProbScale (void
 
   /* get the value from application */
   listIndex = keyCosQueueDropPrecIndexValue - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
-  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, &dropParmsList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, &dropParmsList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -1701,7 +1701,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueMgmtWredDropProbScale (void
 
   /* set the value in application */
   listIndex = keyCosQueueDropPrecIndexValue - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
-  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, &dList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, &dList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -1709,7 +1709,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueMgmtWredDropProbScale (void
     return owa.rc;
   }
   dList.queue[keyCosQueueIndexValue].dropProb[listIndex] = objCosQueueMgmtWredDropProbScaleValue;
-  owa.l7rc = usmDbQosCosQueueDropParmsListSet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, &dList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListSet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, &dList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -1833,7 +1833,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_CosQueueIntfShapingRate (void *wap,
   /* get the value from application */
   owa.l7rc =
     usmDbQosCosQueueIntfShapingRateGet (L7_UNIT_CURRENT,
-                                        keyCosQueueIntfIndexValue,
+                                        keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, 
                                         &objCosQueueIntfShapingRateValue);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -1927,7 +1927,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueIntfShapingRate (void *wap,
 
   owa.l7rc =
     usmDbQosCosQueueIntfShapingRateSet (L7_UNIT_CURRENT,
-                                        keyCosQueueIntfIndexValue,
+                                        keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, 
                                         objCosQueueIntfShapingRateValue);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -1974,7 +1974,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_CosQueueMgmtTypeIntf (void *wap,
   /* get the value from application */
   owa.l7rc =
     usmDbQosCosQueueMgmtTypePerIntfGet (L7_UNIT_CURRENT,
-                                        keyCosQueueIntfIndexValue,
+                                        keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, 
                                         &objCosQueueMgmtTypeIntfValue);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -2037,7 +2037,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueMgmtTypeIntf (void *wap,
   /* set the value in application */
   owa.l7rc =
     usmDbQosCosQueueMgmtTypePerIntfSet (L7_UNIT_CURRENT,
-                                        keyCosQueueIntfIndexValue,
+                                        keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, 
                                         objCosQueueMgmtTypeIntfValue);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -2085,7 +2085,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_CosQueueWredDecayExponent (void
   /* get the value from application */
   owa.l7rc =
     usmDbQosCosQueueWredDecayExponentGet (L7_UNIT_CURRENT,
-                                          keyCosQueueIntfIndexValue,
+                                          keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, 
                                           &objCosQueueWredDecayExponentValue);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -2149,7 +2149,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueWredDecayExponent (void
   /* set the value in application */
   owa.l7rc =
     usmDbQosCosQueueWredDecayExponentSet (L7_UNIT_CURRENT,
-                                          keyCosQueueIntfIndexValue,
+                                          keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, 
                                           objCosQueueWredDecayExponentValue);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -2255,7 +2255,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueDefaultsRestore (void *wap,
 
   /* set the value in application */
   owa.l7rc =
-    usmDbQosCosQueueDefaultsRestore (L7_UNIT_CURRENT, keyCosQueueIntfIndexValue);
+    usmDbQosCosQueueDefaultsRestore (L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -2428,8 +2428,8 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_CosQueueSchedulerType (void *wap,
 
   owa.l7rc =
     usmDbQosCosQueueSchedulerTypeListGet (L7_UNIT_CURRENT,
-                                      keyCosQueueIntfIndexValue,
-                                      &schedTypeList);
+                                          keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT,
+                                          &schedTypeList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -2504,7 +2504,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueSchedulerType (void *wap,
   /* set the value in application */
   owa.l7rc =
     usmDbQosCosQueueSchedulerTypeSet (L7_UNIT_CURRENT,
-                                      keyCosQueueIntfIndexValue,
+                                      keyCosQueueIntfIndexValue, 0/*Default QueueGroup*/, 
                                       keyCosQueueIndexValue,
                                       objCosQueueSchedulerTypeValue);
   if (owa.l7rc != L7_SUCCESS)
@@ -2574,7 +2574,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_CosQueueMinBandwidth (void *wap,
   /* get the value from application */
   owa.l7rc =
     usmDbQosCosQueueMinBandwidthListGet(L7_UNIT_CURRENT,
-                                        keyCosQueueIntfIndexValue,
+                                        keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT,
                                         &minbwList);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -2662,7 +2662,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueMinBandwidth (void *wap,
           FPOBJ_TRACE_EXIT (bufp, owa);
           return owa.rc;
         }
-        (void)usmDbQosCosQueueMinBandwidthListGet(L7_UNIT_CURRENT,keyCosQueueIntfIndexValue,&minbwList);
+        (void)usmDbQosCosQueueMinBandwidthListGet(L7_UNIT_CURRENT,keyCosQueueIntfIndexValue,L7_QOS_QSET_DEFAULT,&minbwList);
         listIndex = keyCosQueueIndexValue - L7_QOS_COS_QUEUE_ID_MIN;
         minbwList.bandwidth[listIndex] = objCosQueueMinBandwidthValue;
         for(i=L7_QOS_COS_QUEUE_ID_MIN;i<=L7_QOS_COS_QUEUE_ID_MAX;i++)
@@ -2675,7 +2675,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueMinBandwidth (void *wap,
         }
 
   owa.l7rc =
-    usmDbQosCosQueueMinBandwidthSet (L7_UNIT_CURRENT, keyCosQueueIntfIndexValue,
+    usmDbQosCosQueueMinBandwidthSet (L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, 0/*Default QueueGroup*/,
                                      keyCosQueueIndexValue,
                                      objCosQueueMinBandwidthValue);
   if (owa.l7rc != L7_SUCCESS)
@@ -2738,7 +2738,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_CosQueueMaxBandwidth (void *wap,
   /* get the value from application */
    L7_uint32 listIndex = keyCosQueueIndexValue - L7_QOS_COS_QUEUE_ID_MIN;
   owa.l7rc = usmDbQosCosQueueMaxBandwidthListGet(L7_UNIT_CURRENT,
-                                                 keyCosQueueIntfIndexValue,
+                                                 keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT,
                                                  &maxbwList);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -2812,7 +2812,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueMaxBandwidth (void *wap,
 
   /* set the value in application */
   owa.l7rc =
-    usmDbQosCosQueueMaxBandwidthSet (L7_UNIT_CURRENT, keyCosQueueIntfIndexValue,
+    usmDbQosCosQueueMaxBandwidthSet (L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, 0/*Default QueueGroup*/, 
                                      keyCosQueueIndexValue,
                                      objCosQueueMaxBandwidthValue);
   if (owa.l7rc != L7_SUCCESS)
@@ -2875,7 +2875,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_CosQueueMgmtType (void *wap,
   /* get the value from application */
    L7_uint32 listIndex = keyCosQueueIndexValue - L7_QOS_COS_QUEUE_ID_MIN;
   owa.l7rc =
-    usmDbQosCosQueueMgmtTypeListGet (L7_UNIT_CURRENT, keyCosQueueIntfIndexValue,
+    usmDbQosCosQueueMgmtTypeListGet (L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT,
                                      &MgmtTypeList);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -2949,7 +2949,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueMgmtType (void *wap,
 
   /* set the value in application */
   owa.l7rc =
-    usmDbQosCosQueueMgmtTypeSet (L7_UNIT_CURRENT, keyCosQueueIntfIndexValue,
+    usmDbQosCosQueueMgmtTypeSet (L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, 0/*Default QueueGroup*/, 
                                  keyCosQueueIndexValue,
                                  objCosQueueMgmtTypeValue);
   if (owa.l7rc != L7_SUCCESS)
@@ -3059,7 +3059,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueIntfRestoreDefaults (void
   
   if(objCosQueueIntfRestoreDefaultsValue)
   {
-    owa.l7rc = usmDbQosCosQueueIntfShapingRateSet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue,FD_QOS_COS_QCFG_INTF_SHAPING_RATE);
+    owa.l7rc = usmDbQosCosQueueIntfShapingRateSet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, FD_QOS_COS_QCFG_INTF_SHAPING_RATE);
   }
 
   /* set the value in application */
@@ -3075,7 +3075,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueIntfRestoreDefaults (void
     if ((usmDbFeaturePresentCheck(L7_UNIT_CURRENT, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_WRED_SUPPORT_FEATURE_ID) == L7_TRUE) &&
             (usmDbFeaturePresentCheck(L7_UNIT_CURRENT, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_WRED_DECAY_EXP_SYSTEM_ONLY_FEATURE_ID) != L7_TRUE))
     {
-        owa.l7rc = usmDbQosCosQueueWredDecayExponentSet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue,FD_QOS_COS_QCFG_WRED_DECAY_EXP);
+        owa.l7rc = usmDbQosCosQueueWredDecayExponentSet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, FD_QOS_COS_QCFG_WRED_DECAY_EXP);
 
         if (owa.l7rc != L7_SUCCESS)
         {
@@ -3132,7 +3132,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_CosQueueMinBandwidthAllocated (void
   FPOBJ_TRACE_CURRENT_KEY (bufp, &keyCosQueueIntfIndexValue, kwa1.len);
 
   /* get the value from application */
-  owa.l7rc = usmDbQosCosQueueMinBandwidthListGet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, &qosCosQueueBwList);
+  owa.l7rc = usmDbQosCosQueueMinBandwidthListGet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, &qosCosQueueBwList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -3205,7 +3205,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtTailDropThreshold 
 
   /* get the value from application */
   listIndex = keyCosQueueDropPrecIndexValue - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
-  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, &dropParmsList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &dropParmsList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -3286,7 +3286,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtTailDropThreshold 
   FPOBJ_TRACE_CURRENT_KEY (bufp, &keyCosQueueDropPrecIndexValue, kwa3.len);
 
   listIndex = keyCosQueueDropPrecIndexValue - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
-  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, &dList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &dList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -3294,7 +3294,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtTailDropThreshold 
     return owa.rc;
   }
   dList.queue[keyCosQueueIndexValue].tailDropMaxThreshold[listIndex] = objCosQueueMgmtTailDropThresholdValue;
-  owa.l7rc = usmDbQosCosQueueDropParmsListSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, &dList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &dList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -3357,7 +3357,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtWredMinThreshold (
 
   /* get the value from application */
   listIndex = keyCosQueueDropPrecIndexValue - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
-  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, &dropParmsList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &dropParmsList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -3436,7 +3436,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtWredMinThreshold (
 
   /* set the value in application */
   listIndex = keyCosQueueDropPrecIndexValue - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
-  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, &dList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &dList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -3444,7 +3444,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtWredMinThreshold (
     return owa.rc;
   }
   dList.queue[keyCosQueueIndexValue].minThreshold[listIndex] = objCosQueueMgmtWredMinThresholdValue;
-  owa.l7rc = usmDbQosCosQueueDropParmsListSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, &dList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &dList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -3507,7 +3507,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtWredMaxThreshold (
 
   /* get the value from application */
   listIndex = keyCosQueueDropPrecIndexValue - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
-  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, &dropParmsList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &dropParmsList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -3587,7 +3587,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtWredMaxThreshold (
 
   /* set the value in application */
   listIndex = keyCosQueueDropPrecIndexValue - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
-  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, &dList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &dList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -3595,7 +3595,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtWredMaxThreshold (
     return owa.rc;
   }
   dList.queue[keyCosQueueIndexValue].wredMaxThreshold[listIndex] = objCosQueueMgmtWredMaxThresholdValue;
-  owa.l7rc = usmDbQosCosQueueDropParmsListSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, &dList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &dList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -3659,7 +3659,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtWredDropProbScale 
 
   /* get the value from application */
   listIndex = keyCosQueueDropPrecIndexValue - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
-  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, &dropParmsList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &dropParmsList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -3740,7 +3740,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtWredDropProbScale 
 
   /* set the value in application */
   listIndex = keyCosQueueDropPrecIndexValue - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
-  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, &dList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListGet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &dList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -3748,7 +3748,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtWredDropProbScale 
     return owa.rc;
   }
   dList.queue[keyCosQueueIndexValue].dropProb[listIndex] = objCosQueueMgmtWredDropProbScaleValue;
-  owa.l7rc = usmDbQosCosQueueDropParmsListSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, &dList);
+  owa.l7rc = usmDbQosCosQueueDropParmsListSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &dList);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -3795,7 +3795,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_GlobalCosQueueDropPrecRestoreDefault
   }
   FPOBJ_TRACE_CURRENT_KEY (bufp, &keyCosQueueIndexValue, kwa2.len);
 
-  rc = usmDbQosCosQueueDropDefaultsRestore(L7_UNIT_CURRENT, L7_ALL_INTERFACES, keyCosQueueIndexValue);
+  rc = usmDbQosCosQueueDropDefaultsRestore(L7_UNIT_CURRENT, L7_ALL_INTERFACES, 0/*Default QueueGroup*/, keyCosQueueIndexValue);
   if (rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -3854,7 +3854,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueIntfDropPrecRestoreDefaults(
   }
   FPOBJ_TRACE_CURRENT_KEY (bufp, &keyCosQueueIndexValue, kwa2.len);
 
-  rc = usmDbQosCosQueueDropDefaultsRestore(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, keyCosQueueIndexValue);
+  rc = usmDbQosCosQueueDropDefaultsRestore(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, 0/*Default QueueGroup*/, keyCosQueueIndexValue);
   if (rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */

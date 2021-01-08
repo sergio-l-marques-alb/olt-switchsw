@@ -77,6 +77,7 @@ char *cosFeatureString[L7_COS_FEATURE_ID_TOTAL] =
 * @purpose  Find COS config pointer for specified interface (or global)
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    **ppCfg     @b{(output)} Ptr to COS config parms ptr
 *
 * @returns  L7_SUCCESS
@@ -86,7 +87,7 @@ char *cosFeatureString[L7_COS_FEATURE_ID_TOTAL] =
 *
 * @end
 *********************************************************************/
-L7_RC_t cosCfgPtrFind(L7_uint32 intIfNum, L7_cosCfgParms_t **ppCfg)
+L7_RC_t cosCfgPtrFind(L7_uint32 intIfNum, L7_uint8 queueSet, L7_cosCfgParms_t **ppCfg)
 {
   L7_cosCfgIntfParms_t  *pCfgIntf;
 
@@ -500,6 +501,7 @@ L7_RC_t cosMapIntfTrustModeApply(L7_uint32 intIfNum,
 * @purpose  Apply the COS interface parameters for this interface
 *
 * @param    intIfNum        @b{(input)}  Internal interface number
+* @param    queueSet        @b{(input)}  Group of queues
 * @param    intfShapingRate @b{(input)}  Interface shaping rate
 * @param    qMgmtTypeIntf   @b{(input)}  Queue mgmt type (per-interface)
 * @param    wredDecayExp    @b{(input)}  WRED decay exponent
@@ -511,7 +513,7 @@ L7_RC_t cosMapIntfTrustModeApply(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueIntfConfigApply(L7_uint32 intIfNum,
+L7_RC_t cosQueueIntfConfigApply(L7_uint32 intIfNum, L7_uint8 queueSet,
                                 L7_uint32 intfShapingRate,
                                 L7_QOS_COS_QUEUE_MGMT_TYPE_t qMgmtTypeIntf,
                                 L7_uint32 wredDecayExp)
@@ -571,6 +573,7 @@ L7_RC_t cosIntfShapingStatusGet(L7_uint32 intIfNum,
 * @purpose  Apply the COS queue scheduler parameters for this interface
 *
 * @param    intIfNum        @b{(input)}  Internal interface number
+* @param    queueSet        @b{(input)}  Group of queues
 * @param    *pQParms        @b{(input)}  Ptr to queue sched parameters
 *
 * @returns  L7_SUCCESS
@@ -581,7 +584,7 @@ L7_RC_t cosIntfShapingStatusGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueSchedConfigApply(L7_uint32 intIfNum,
+L7_RC_t cosQueueSchedConfigApply(L7_uint32 intIfNum, L7_uint8 queueSet,
                                  L7_cosQueueSchedParms_t *pQParms)
 {
   L7_uint32     i;
@@ -627,6 +630,7 @@ L7_RC_t cosQueueSchedConfigApply(L7_uint32 intIfNum,
 * @purpose  Apply the queue drop config parms list for this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(input)}  Ptr to drop parms list
 *
 * @returns  L7_SUCCESS
@@ -637,7 +641,7 @@ L7_RC_t cosQueueSchedConfigApply(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueDropParmsApply(L7_uint32 intIfNum,
+L7_RC_t cosQueueDropParmsApply(L7_uint32 intIfNum, L7_uint8 queueSet,
                                L7_qosCosDropParmsList_t *pVal)
 {
   L7_uint32     cosIndex,i;

@@ -197,7 +197,7 @@ L7_RC_t dtlQosCosMapIntfTrustModeSet(L7_uint32 intIfNum,
 
   dapiCmd.cmdData.intfTrustModeConfig.getOrSet = DAPI_CMD_SET;
 #if defined(FEAT_METRO_CPE_V1_0)
-  if (cosMapIntfTrustModeGet(L7_ALL_INTERFACES, &globMode) != L7_SUCCESS)
+  if (cosMapIntfTrustModeGet(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &globMode) != L7_SUCCESS)
    return L7_FAILURE;
 
   if (globMode != intfMode)
