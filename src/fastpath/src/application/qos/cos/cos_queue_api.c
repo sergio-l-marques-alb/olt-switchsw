@@ -2424,6 +2424,7 @@ L7_BOOL cosQueueMgmtTypeIsActive(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint3
 * @purpose  Display the current COS Queue Configuration contents
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 *
 * @returns  void
 *
@@ -2434,7 +2435,7 @@ L7_BOOL cosQueueMgmtTypeIsActive(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint3
 *
 * @end
 *********************************************************************/
-void cosQueueConfigShow(L7_uint32 intIfNum)
+void cosQueueConfigShow(L7_uint32 intIfNum, L7_uint8 queueSet)
 {
   L7_cosIntfCfg_t       *pI;
   L7_cosQueueCfg_t      *pQ;
@@ -2463,8 +2464,8 @@ void cosQueueConfigShow(L7_uint32 intIfNum)
   {
     if (cosIntfIsConfigurable(intIfNum, &pCfgIntf) == L7_TRUE)
     {
-      pI = &pCfgIntf->cfg.intf;
-      pQ = pCfgIntf->cfg.queue;
+      pI = &pCfgIntf->cfg[queueSet].intf;
+      pQ = pCfgIntf->cfg[queueSet].queue;
     }
     else
     {

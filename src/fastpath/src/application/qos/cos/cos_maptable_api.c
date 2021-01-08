@@ -1172,7 +1172,8 @@ L7_BOOL cosMapTableContentIsValid(L7_uint32 intIfNum, L7_cosMapCfg_t *pCfgMap)
 * @purpose  Display the current COS Mapping Table contents
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
-*
+* @param    queueSet    @b{(input)}  Group of queues
+* 
 * @returns  void
 *
 * @comments Engineering debug function.
@@ -1182,7 +1183,7 @@ L7_BOOL cosMapTableContentIsValid(L7_uint32 intIfNum, L7_cosMapCfg_t *pCfgMap)
 *
 * @end
 *********************************************************************/
-void cosMapTableShow(L7_uint32 intIfNum)
+void cosMapTableShow(L7_uint32 intIfNum, L7_uint8 queueSet)
 {
   L7_cosMapCfg_t        *pMap;
   L7_uint32             msgLvlReqd;
@@ -1202,12 +1203,12 @@ void cosMapTableShow(L7_uint32 intIfNum)
   {
     if (cosIntfIsConfigurable(intIfNum, &pCfgIntf) == L7_TRUE)
     {
-      pMap = &pCfgIntf->cfg.mapping;
+      pMap = &pCfgIntf->cfg[queueSet].mapping;
     }
     else
     {
-      COS_PRT(msgLvlReqd, "\nCould not find configuration for interface %u\n\n",
-              intIfNum);
+      COS_PRT(msgLvlReqd, "\nCould not find configuration for interface %u, queueSet %u\n\n",
+              intIfNum, queueSet);
       return;
     }
   }
@@ -1215,8 +1216,8 @@ void cosMapTableShow(L7_uint32 intIfNum)
   /* display all relevant mapping tables */
   cosMapPortDefaultPriorityTableShow(intIfNum, msgLvlReqd);
   cosMapDot1pTableShow(intIfNum, msgLvlReqd);
-  cosMapIpPrecTableShow(intIfNum, msgLvlReqd);
-  cosMapIpDscpTableShow(intIfNum, msgLvlReqd);
+  cosMapIpPrecTableShow(intIfNum, queueSet, msgLvlReqd);
+  cosMapIpDscpTableShow(intIfNum, queueSet, msgLvlReqd);
 
   /* display interface trust mode */
   COS_PRT(msgLvlReqd, "  Interface Trust Mode:  %s\n",
@@ -1301,6 +1302,7 @@ void cosMapDot1pTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd)
 * @purpose  Display formatted COS IP precedence mapping table
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    msgLvlReqd  @b{(input)}  COS debug message level required
 *
 * @returns  void
@@ -1312,7 +1314,7 @@ void cosMapDot1pTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd)
 *
 * @end
 *********************************************************************/
-void cosMapIpPrecTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd)
+void cosMapIpPrecTableShow(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 msgLvlReqd)
 {
   L7_cosMapCfg_t        *pMap;
   L7_cosCfgIntfParms_t  *pCfgIntf;
@@ -1329,17 +1331,18 @@ void cosMapIpPrecTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd)
   {
     if (cosIntfIsConfigurable(intIfNum, &pCfgIntf) == L7_TRUE)
     {
-      pMap = &pCfgIntf->cfg.mapping;
+      pMap = &pCfgIntf->cfg[queueSet].mapping;
     }
     else
     {
-      COS_PRT(msgLvlReqd, "\nCould not find configuration for interface %u\n\n",
-              intIfNum);
+      COS_PRT(msgLvlReqd, "\nCould not find configuration for interface %u, queueSet %u\n\n",
+              intIfNum, queueSet);
       return;
     }
   }
 
   /* display IP precedence mapping table */
+  COS_PRT(msgLvlReqd, "intIfNum %u, queueSet %u\n", intIfNum, queueSet);
   COS_PRT(msgLvlReqd, "  IP Precedence Map:  0 1 2 3 4 5 6 7 \n");
   COS_PRT(msgLvlReqd, "                      - - - - - - - - \n");
   COS_PRT(msgLvlReqd, "           queue id:  ");
@@ -1354,6 +1357,7 @@ void cosMapIpPrecTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd)
 * @purpose  Display formatted COS IP DSCP mapping table
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    msgLvlReqd  @b{(input)}  COS debug message level required
 *
 * @returns  void
@@ -1365,7 +1369,7 @@ void cosMapIpPrecTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd)
 *
 * @end
 *********************************************************************/
-void cosMapIpDscpTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd)
+void cosMapIpDscpTableShow(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 msgLvlReqd)
 {
   L7_cosMapCfg_t        *pMap;
   L7_cosCfgIntfParms_t  *pCfgIntf;
@@ -1382,17 +1386,18 @@ void cosMapIpDscpTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd)
   {
     if (cosIntfIsConfigurable(intIfNum, &pCfgIntf) == L7_TRUE)
     {
-      pMap = &pCfgIntf->cfg.mapping;
+      pMap = &pCfgIntf->cfg[queueSet].mapping;
     }
     else
     {
-      COS_PRT(msgLvlReqd, "\nCould not find configuration for interface %u\n\n",
-              intIfNum);
+      COS_PRT(msgLvlReqd, "\nCould not find configuration for interface %u, queueSet %u\n\n",
+              intIfNum, queueSet);
       return;
     }
   }
 
   /* display IP DSCP mapping table */
+  COS_PRT(msgLvlReqd, "intIfNum %u, queueSet %u\n", intIfNum, queueSet);
   COS_PRT(msgLvlReqd, "  IP DSCP Map: \\                       1 1 1 1 1 1 \n");
   COS_PRT(msgLvlReqd, "                \\  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 \n");
   COS_PRT(msgLvlReqd, "                 \\ - - - - - - - - - - - - - - - - ");

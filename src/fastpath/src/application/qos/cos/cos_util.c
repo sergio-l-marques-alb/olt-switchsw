@@ -94,6 +94,9 @@ L7_RC_t cosCfgPtrFind(L7_uint32 intIfNum, L7_uint8 queueSet, L7_cosCfgParms_t **
   if (cosIntfIsValid(intIfNum) != L7_TRUE)
     return L7_FAILURE;
 
+  if (queueSet >= L7_MAX_CFG_GROUP_QUEUES_PER_PORT)
+    return L7_FAILURE;
+  
   if ((ppCfg == L7_NULLPTR) || (pCosCfgData_g == L7_NULLPTR))
     return L7_FAILURE;
 
@@ -106,7 +109,7 @@ L7_RC_t cosCfgPtrFind(L7_uint32 intIfNum, L7_uint8 queueSet, L7_cosCfgParms_t **
     if (cosIntfIsConfigurable(intIfNum, &pCfgIntf) != L7_TRUE)
       return L7_FAILURE;
 
-    *ppCfg = &pCfgIntf->cfg;
+    *ppCfg = &pCfgIntf->cfg[queueSet];
   }
 
   return L7_SUCCESS;
@@ -379,6 +382,7 @@ L7_RC_t cosMapIntfTrustModeApply(L7_uint32 intIfNum,
                                  L7_cosCfgParms_t *pCfg,
                                  L7_BOOL forceDtl)
 {
+  L7_uint8                    queueSet;
   L7_uint32                   msgLvlReqd = COS_MSGLVL_MED;
   L7_QOS_COS_MAP_INTF_MODE_t  mode;
   DTL_QOS_COS_MAP_TABLE_t     mapTable;
@@ -481,12 +485,18 @@ L7_RC_t cosMapIntfTrustModeApply(L7_uint32 intIfNum,
     break;
 
   case L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC:
-    cosMapIpPrecTableShow(intIfNum, msgLvlReqd);
+    for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+    {
+      cosMapIpPrecTableShow(intIfNum, queueSet, msgLvlReqd);
+    }
     cosMapPortDefaultPriorityTableShow(intIfNum, msgLvlReqd);
     break;
 
   case L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP:
-    cosMapIpDscpTableShow(intIfNum, msgLvlReqd);
+    for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+    {
+      cosMapIpDscpTableShow(intIfNum, queueSet, msgLvlReqd);
+    }
     cosMapPortDefaultPriorityTableShow(intIfNum, msgLvlReqd);
     break;
 

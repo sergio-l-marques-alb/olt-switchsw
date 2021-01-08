@@ -168,11 +168,11 @@ void cosConfigDataTestShow(void);
 
 /* cos_maptable_api.c */
 L7_BOOL cosMapTableContentIsValid(L7_uint32 intIfNum, L7_cosMapCfg_t *pCfgMap);
-void cosMapTableShow(L7_uint32 intIfNum);
+void cosMapTableShow(L7_uint32 intIfNum, L7_uint8 queueSet);
 void cosMapPortDefaultPriorityTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd);
 void cosMapDot1pTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd);
-void cosMapIpPrecTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd);
-void cosMapIpDscpTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd);
+void cosMapIpPrecTableShow(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 msgLvlReqd);
+void cosMapIpDscpTableShow(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 msgLvlReqd);
 
 /* cos_migrate.c */
 void cosMigrateConfigData (L7_uint32 oldVer, L7_uint32 ver, L7_char8 * pCfgBuffer);
@@ -180,7 +180,7 @@ void cosMigrateConfigData (L7_uint32 oldVer, L7_uint32 ver, L7_char8 * pCfgBuffe
 /* cos_queue_api.c */
 L7_BOOL cosQueueMgmtTypeIsActive(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 queueId,
                                  L7_QOS_COS_QUEUE_MGMT_TYPE_t qMgmtType);
-void cosQueueConfigShow(L7_uint32 intIfNum);
+void cosQueueConfigShow(L7_uint32 intIfNum, L7_uint8 queueSet);
 
 /* cos_util.c */
 L7_RC_t cosCfgPtrFind(L7_uint32 intIfNum, L7_uint8 queueSet, L7_cosCfgParms_t **ppCfg);
