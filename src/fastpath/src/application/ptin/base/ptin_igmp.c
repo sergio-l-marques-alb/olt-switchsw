@@ -2782,6 +2782,8 @@ L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
 #endif
   }
 
+  /* For TC16SXG is possible to have the same UC EVC indifferent instances */
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
   /* Check if there is an instance with these parameters */
   if (ptin_igmp_instance_find(McastEvcId,UcastEvcId,L7_NULLPTR)==L7_SUCCESS)
   {
@@ -2789,7 +2791,7 @@ L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
       PT_LOG_WARN(LOG_CTX_IGMP,"There is already an instance with [mcEvcId,ucEvcId]=[%u,%u]",McastEvcId,UcastEvcId);
     return L7_SUCCESS;
   }
-
+#endif
   /* Check if there is any conflict with the existent IGMP instances */
   if (!ptin_igmp_instance_conflictFree(McastEvcId,UcastEvcId))
   {
@@ -11263,7 +11265,13 @@ static L7_BOOL ptin_igmp_instance_conflictFree(L7_uint32 McastEvcId, L7_uint32 U
   for (idx=0; idx<PTIN_SYSTEM_N_IGMP_INSTANCES; idx++)
   {
     if (!igmpInstances[idx].inUse)  continue;
-
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+    if (igmpInstances[idx].McastEvcId==McastEvcId &&
+        igmpInstances[idx].UcastEvcId==UcastEvcId)
+    {
+      break;
+    }
+#else
     if (igmpInstances[idx].McastEvcId==McastEvcId
 #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
         || igmpInstances[idx].UcastEvcId==UcastEvcId
@@ -11272,6 +11280,7 @@ static L7_BOOL ptin_igmp_instance_conflictFree(L7_uint32 McastEvcId, L7_uint32 U
 #endif
        )
       break;
+#endif
   }
 
   /* If not found empty instances, return error */
