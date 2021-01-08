@@ -409,11 +409,12 @@ L7_RC_t cosQueueIntfShapingStatusGet(L7_uint32 intIfNum, L7_uint8 queueSet,
                                      L7_uint32 *intfShapingBurstSize)
 {
   if ((intIfNum == L7_ALL_INTERFACES) ||
+      (queueSet >= L7_MAX_CFG_GROUP_QUEUES_PER_PORT) ||
       (intfShapingRate == L7_NULLPTR) ||
       (intfShapingRate == L7_NULLPTR))
     return L7_FAILURE;
 
-  return(cosIntfShapingStatusGet(intIfNum, intfShapingRate, intfShapingBurstSize));
+  return(cosIntfShapingStatusGet(intIfNum, queueSet, intfShapingRate, intfShapingBurstSize));
 }
 
 /*************************************************************************

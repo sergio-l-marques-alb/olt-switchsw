@@ -2707,6 +2707,10 @@ typedef struct
 {
   L7_ulong32 appHandle;
 
+  /* This parameter will identify the queue set inside an interface
+     (for Trident3x3 switch / TC16SXG) */
+  L7_uint8 queueSet;
+
   union
   {
     /***** DiffServ *****/

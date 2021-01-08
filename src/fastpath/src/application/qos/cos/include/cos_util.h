@@ -203,7 +203,7 @@ L7_RC_t cosQueueIntfConfigApply(L7_uint32 intIfNum, L7_uint8 queueSet,
                                 L7_uint32 intfShapingRate,
                                 L7_QOS_COS_QUEUE_MGMT_TYPE_t qMgmtTypeIntf,
                                 L7_uint32 wredDecayExp);
-L7_RC_t cosIntfShapingStatusGet(L7_uint32 intIfNum, 
+L7_RC_t cosIntfShapingStatusGet(L7_uint32 intIfNum, L7_uint8 queueSet,
                                 L7_uint32 *intfShapingRate,
                                 L7_uint32 *intfShapingBurstSize);
 L7_RC_t cosQueueSchedConfigApply(L7_uint32 intIfNum, L7_uint8 queueSet, 

@@ -98,7 +98,8 @@ L7_RC_t dtlQosCosMapIntfTrustModeSet(L7_uint32 intIfNum,
 /*************************************************************************
 * @purpose  Set the COS interface config parameters
 *
-* @param    intIfNum        @b{(input)}  Internal interface number     
+* @param    intIfNum        @b{(input)}  Internal interface number
+* @param    queueSet        @b{(input)}  Group of queues
 * @param    intfShapingRate @b{(input)}  Interface shaping rate
 * @param    qMgmtTypeIntf   @b{(input)}  Queue mgmt type (per-interface)
 * @param    wredDecayExp    @b{(input)}  WRED decay exponent   
@@ -112,7 +113,7 @@ L7_RC_t dtlQosCosMapIntfTrustModeSet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t dtlQosCosIntfConfigSet(L7_uint32 intIfNum, 
+L7_RC_t dtlQosCosIntfConfigSet(L7_uint32 intIfNum, L7_uint8 queueSet,
                                L7_uint32 intfShapingRate,
                                L7_QOS_COS_QUEUE_MGMT_TYPE_t qMgmtTypeIntf,
                                L7_uint32 wredDecayExp);
@@ -120,7 +121,8 @@ L7_RC_t dtlQosCosIntfConfigSet(L7_uint32 intIfNum,
 /*************************************************************************
 * @purpose  Get the COS interface config parameters
 *
-* @param    intIfNum             @b{(input)}  Internal interface number     
+* @param    intIfNum             @b{(input)}  Internal interface number
+* @param    queueSet             @b{(input)}  Group of queues
 * @param    intfShapingRate      @b{(input)}  Interface shaping rate in kbps
 * @param    intfShapingBurstSize @b{(input)}  Interface shaping burst size in kbits
 *
@@ -129,14 +131,15 @@ L7_RC_t dtlQosCosIntfConfigSet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t dtlQosCosIntfStatusGet(L7_uint32 intIfNum, 
+L7_RC_t dtlQosCosIntfStatusGet(L7_uint32 intIfNum, L7_uint8 queueSet,
                                L7_uint32 *intfShapingRate,
                                L7_uint32 *intfShapingBurstSize);
 
 /*************************************************************************
 * @purpose  Set the COS queue scheduler parameters for the interface
 *
-* @param    intIfNum        @b{(input)}  Internal interface number     
+* @param    intIfNum        @b{(input)}  Internal interface number
+* @param    queueSet        @b{(input)}  Group of queues
 * @param    *pMinBwList     @b{(input)}  Ptr to minimum bandwidth parm list
 * @param    *pMaxBwList     @b{(input)}  Ptr to maximum bandwidth parm list
 * @param    *pSchedTypeList @b{(input)}  Ptr to scheduler type list
@@ -150,7 +153,7 @@ L7_RC_t dtlQosCosIntfStatusGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t dtlQosCosQueueSchedConfigSet(L7_uint32 intIfNum, 
+L7_RC_t dtlQosCosQueueSchedConfigSet(L7_uint32 intIfNum, L7_uint8 queueSet,
                                      L7_qosCosQueueBwList_t *pMinBwList,
                                      L7_qosCosQueueBwList_t *pMaxBwList,
                                      L7_qosCosQueueSchedTypeList_t *pSchedTypeList,
@@ -160,7 +163,8 @@ L7_RC_t dtlQosCosQueueSchedConfigSet(L7_uint32 intIfNum,
 * @purpose  Set the COS drop config (taildrop or WRED) parameters
 *           on this interface
 *
-* @param    intIfNum      @b{(input)}  Internal interface number     
+* @param    intIfNum      @b{(input)}  Internal interface number
+* @param    queueSet      @b{(input)}  Group of queues
 * @param    *pDropParms   @b{(input)}  Ptr to drop parms list
 *
 * @returns  L7_SUCCESS
@@ -171,7 +175,7 @@ L7_RC_t dtlQosCosQueueSchedConfigSet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t dtlQosCosQueueDropConfigSet(L7_uint32 intIfNum, 
+L7_RC_t dtlQosCosQueueDropConfigSet(L7_uint32 intIfNum, L7_uint8 queueSet,
                                     L7_qosCosDropParmsList_t *pDropParms);
 
 #endif /* INCLUDE_DTL_QOS_COS_H */

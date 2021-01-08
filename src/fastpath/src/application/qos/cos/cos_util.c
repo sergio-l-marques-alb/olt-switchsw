@@ -535,17 +535,17 @@ L7_RC_t cosQueueIntfConfigApply(L7_uint32 intIfNum, L7_uint8 queueSet,
   if (cosIntfIsWriteable(intIfNum, L7_COS_QUEUE_CFG_PER_INTF_FEATURE_ID) != L7_TRUE)
     return L7_SUCCESS;
 
-  if (dtlQosCosIntfConfigSet(intIfNum, intfShapingRate,
-                             qMgmtTypeIntf, wredDecayExp) != L7_SUCCESS)
+  if (dtlQosCosIntfConfigSet(intIfNum, queueSet,
+                             intfShapingRate, qMgmtTypeIntf, wredDecayExp) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-            "COS queueing: Unable to apply COS intf config on interface %s\n",
-            ifName);
+            "COS queueing: Unable to apply COS intf config on interface %s, queueSet %u\n",
+            ifName, queueSet);
     return L7_FAILURE;
   }
 
   /* display debug message according to COS msgLvl setting */
-  COS_PRT(COS_MSGLVL_MED, "\nCOS intf config applied on intf %u, %s\n", intIfNum, ifName);
+  COS_PRT(COS_MSGLVL_MED, "\nCOS intf config applied on intf %u (%s), queueSet %u\n", intIfNum, ifName, queueSet);
   if (cosMsgLvlGet() >= COS_MSGLVL_LO)
   {
     COS_PRT(COS_MSGLVL_LO, "\n  intfShapingRate:  %u%", intfShapingRate);
@@ -562,6 +562,7 @@ L7_RC_t cosQueueIntfConfigApply(L7_uint32 intIfNum, L7_uint8 queueSet,
 * @purpose  Get the COS interface parameters for this interface
 *
 * @param    intIfNum        @b{(input)}  Internal interface number
+* @param    queueSet        @b{(input)}  Group of queues
 * @param    intfShapingRate @b{(input)}  Interface shaping rate in kbps
 * @param    intfShapingBurstSize @b{(input)}  Interface shaping burst size in kbits
 *
@@ -572,11 +573,11 @@ L7_RC_t cosQueueIntfConfigApply(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosIntfShapingStatusGet(L7_uint32 intIfNum,
+L7_RC_t cosIntfShapingStatusGet(L7_uint32 intIfNum, L7_uint8 queueSet,
                                 L7_uint32 *intfShapingRate,
                                 L7_uint32 *intfShapingBurstSize)
 {
-  return(dtlQosCosIntfStatusGet(intIfNum, intfShapingRate, intfShapingBurstSize));
+  return(dtlQosCosIntfStatusGet(intIfNum, queueSet, intfShapingRate, intfShapingBurstSize));
 }
 
 /*************************************************************************
@@ -605,20 +606,20 @@ L7_RC_t cosQueueSchedConfigApply(L7_uint32 intIfNum, L7_uint8 queueSet,
   if (cosIntfIsWriteable(intIfNum, L7_COS_QUEUE_CFG_PER_INTF_FEATURE_ID) != L7_TRUE)
     return L7_SUCCESS;
 
-  if (dtlQosCosQueueSchedConfigSet(intIfNum,
+  if (dtlQosCosQueueSchedConfigSet(intIfNum, queueSet,
                                    &pQParms->minBwList,
                                    &pQParms->maxBwList,
                                    &pQParms->schedTypeList,
                                    &pQParms->wrr_weights) != L7_SUCCESS)      /* PTin modified: QoS */
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-            "COS queueing: Unable to apply COS scheduler config on intf %s\n",
-            ifName);
+            "COS queueing: Unable to apply COS scheduler config on intf %s, queueSet %u\n",
+            ifName, queueSet);
     return L7_FAILURE;
   }
 
   /* display debug message according to COS msgLvl setting */
-  COS_PRT(COS_MSGLVL_MED, "\nCOS scheduler config applied on intf %u, %s\n", intIfNum, ifName);
+  COS_PRT(COS_MSGLVL_MED, "\nCOS scheduler config applied on intf %u (%s), queueSet %u\n", intIfNum, ifName, queueSet);
   if (cosMsgLvlGet() >= COS_MSGLVL_LO)
   {
     COS_PRT(COS_MSGLVL_LO, "\n  minBw:  ");
@@ -663,8 +664,8 @@ L7_RC_t cosQueueDropParmsApply(L7_uint32 intIfNum, L7_uint8 queueSet,
     return L7_SUCCESS;
 
   /* display debug message according to COS msgLvl setting */
-  COS_PRT(COS_MSGLVL_MED, "\nCOS drop parms applied on intf %u\n",
-          intIfNum);
+  COS_PRT(COS_MSGLVL_MED, "\nCOS drop parms applied on intf %u, queueSet %u\n",
+          intIfNum, queueSet);
   if (cosMsgLvlGet() >= COS_MSGLVL_LO)
   {
     for(cosIndex=0; cosIndex<L7_MAX_CFG_QUEUES_PER_PORT; cosIndex++) {
@@ -689,11 +690,11 @@ L7_RC_t cosQueueDropParmsApply(L7_uint32 intIfNum, L7_uint8 queueSet,
     }
   }
 
-  if (dtlQosCosQueueDropConfigSet(intIfNum, pVal) != L7_SUCCESS)
+  if (dtlQosCosQueueDropConfigSet(intIfNum, queueSet, pVal) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-            "COS queueing: Unable to apply COS drop parms on intf %s\n",
-            ifName);
+            "COS queueing: Unable to apply COS drop parms on intf %s, queueSet %u\n",
+            ifName, queueSet);
     return L7_FAILURE;
   }
   return L7_SUCCESS;
