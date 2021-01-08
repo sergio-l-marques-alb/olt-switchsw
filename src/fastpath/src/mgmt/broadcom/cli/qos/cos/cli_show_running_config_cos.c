@@ -205,7 +205,7 @@ L7_RC_t cliRunningConfigGlobalCosQueue(EwsContext ewsContext, L7_uint32 unit)
   /* Shaping Rate */
   if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_INTF_SHAPING_FEATURE_ID) == L7_TRUE)
   {
-    if (usmDbQosCosQueueIntfShapingRateGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &val) == L7_SUCCESS)
+    if (usmDbQosCosQueueIntfShapingRateGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &val, L7_NULLPTR) == L7_SUCCESS)
     {
       cliShowCmdInt(ewsContext, val, FD_QOS_COS_QCFG_INTF_SHAPING_RATE, pStrInfo_qos_TrafficShape_2);
     }
@@ -314,8 +314,8 @@ L7_RC_t cliRunningConfigInterfaceCosQueue(EwsContext ewsContext, L7_uint32 unit,
   /* Shaping Rate */
   if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_INTF_SHAPING_FEATURE_ID) == L7_TRUE)
   {
-    if (usmDbQosCosQueueIntfShapingRateGet(unit, interface, L7_QOS_QSET_DEFAULT, &interfaceRate) == L7_SUCCESS  &&
-        usmDbQosCosQueueIntfShapingRateGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &globalRate) == L7_SUCCESS)
+    if (usmDbQosCosQueueIntfShapingRateGet(unit, interface, L7_QOS_QSET_DEFAULT, &interfaceRate, L7_NULLPTR) == L7_SUCCESS  &&
+        usmDbQosCosQueueIntfShapingRateGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &globalRate, L7_NULLPTR) == L7_SUCCESS)
     {
       cliShowCmdInt(ewsContext,interfaceRate,globalRate,pStrInfo_qos_TrafficShape_2);
     }

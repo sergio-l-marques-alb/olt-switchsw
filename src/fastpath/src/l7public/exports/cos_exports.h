@@ -188,6 +188,7 @@ typedef struct
 typedef struct
 {
   L7_uint32           intfShapingRate;      /* 0-100% (0=unlimited) */
+  L7_uint32           intfShapingBurstSize; /* Burst size (in bytes) */
   L7_uchar8           queueMgmtTypePerIntf; /* per-intf: tail drop vs. WRED */
   L7_uchar8           wredDecayExponent;    /* WRED averaging constant (0-15) */
   L7_uchar8           rsvd1[2];             /* (reserved -- for alignment) */

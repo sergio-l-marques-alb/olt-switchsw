@@ -689,7 +689,8 @@ L7_RC_t usmDbQosCosQueueDefaultsRestore(L7_uint32 UnitIndex,
 * @param    UnitIndex   @b{(input)}  System unit number
 * @param    intIfNum    @b{(input)}  Internal interface number
 * @param    queueSet    @b{(input)}  Group of queues
-* @param    *pVal       @b{(output)} Ptr to intf shaping rate output value    
+* @param    *rate       @b{(output)} Ptr to intf shaping rate output value
+* @param    *burstSize  @b{(output)} Intf shaping burst size
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -702,7 +703,7 @@ L7_RC_t usmDbQosCosQueueDefaultsRestore(L7_uint32 UnitIndex,
 L7_RC_t usmDbQosCosQueueIntfShapingRateGet(L7_uint32 UnitIndex, 
                                            L7_uint32 intIfNum, 
                                            L7_uint8  queueSet,
-                                           L7_uint32 *pVal);
+                                           L7_uint32 *pVal, L7_uint32 *burstSize);
 
 /*************************************************************************
 * @purpose  Set the COS egress shaping rate for this interface
@@ -710,7 +711,8 @@ L7_RC_t usmDbQosCosQueueIntfShapingRateGet(L7_uint32 UnitIndex,
 * @param    UnitIndex   @b{(input)}  System unit number
 * @param    intIfNum    @b{(input)}  Internal interface number
 * @param    queueSet    @b{(input)}  Group of queues
-* @param    val         @b{(input)}  Intf shaping rate value    
+* @param    rate        @b{(input)}  Intf shaping rate value
+* @param    burstSize   @b{(input)}  Intf shaping burst size
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -723,7 +725,7 @@ L7_RC_t usmDbQosCosQueueIntfShapingRateGet(L7_uint32 UnitIndex,
 L7_RC_t usmDbQosCosQueueIntfShapingRateSet(L7_uint32 UnitIndex, 
                                            L7_uint32 intIfNum,
                                            L7_uint8  queueSet, 
-                                           L7_uint32 val);
+                                           L7_uint32 rate, L7_uint32 burstSize);
 
 /*************************************************************************
 * @purpose  Get the COS interface parameters for this interface

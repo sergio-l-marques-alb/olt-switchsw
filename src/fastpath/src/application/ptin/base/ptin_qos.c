@@ -530,7 +530,7 @@ L7_RC_t ptin_qos_intf_config_get(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
   intfQos->mask |= PTIN_QOS_INTF_BANDWIDTHUNIT_MASK;
 
   /* Shaping rate */
-  rc = usmDbQosCosQueueIntfShapingRateGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &value);
+  rc = usmDbQosCosQueueIntfShapingRateGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &value, L7_NULLPTR);
   if (rc != L7_SUCCESS)
   {  
     PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueIntfShapingRateGet (rc=%d)", rc);
@@ -1410,7 +1410,7 @@ void ptin_intf_shaper_max_dump(void)
   {
     if (ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
     {
-      rc = usmDbQosCosQueueIntfShapingRateGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &shaper_rate);
+      rc = usmDbQosCosQueueIntfShapingRateGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &shaper_rate, L7_NULLPTR);
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueIntfShapingRateGet: rc=%d", rc);

@@ -977,6 +977,7 @@ extern L7_ushort16 dot1dUserPriorityRegenTable[8][8];
 #define FD_QOS_COS_MSG_LVL                      0     /* off */
 #define FD_QOS_COS_MAP_INTF_TRUST_MODE          L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P
 #define FD_QOS_COS_QCFG_INTF_SHAPING_RATE       0     /* unlimited */
+#define FD_QOS_COS_QCFG_INTF_SHAPING_BURSTSIZE  16000 /* PTin added */
 #define FD_QOS_COS_QCFG_MIN_BANDWIDTH           0     /* no guarantee */
 #define FD_QOS_COS_QCFG_MAX_BANDWIDTH           0     /* unlimited */
 #define FD_QOS_COS_QCFG_SCHED_TYPE              L7_QOS_COS_QUEUE_SCHED_TYPE_WEIGHTED

@@ -227,6 +227,7 @@ L7_RC_t dtlQosCosMapIntfTrustModeSet(L7_uint32 intIfNum,
 * @param    intIfNum        @b{(input)}  Internal interface number
 * @param    queueSet        @b{(input)}  Group of queues
 * @param    intfShapingRate @b{(input)}  Interface shaping rate
+* @param    intfShapingBurstSize @b{(input)} Interface shaping burst size
 * @param    qMgmtTypeIntf   @b{(input)}  Queue mgmt type (per-interface)
 * @param    wredDecayExp    @b{(input)}  WRED decay exponent   
 *
@@ -240,7 +241,7 @@ L7_RC_t dtlQosCosMapIntfTrustModeSet(L7_uint32 intIfNum,
 * @end
 *********************************************************************/
 L7_RC_t dtlQosCosIntfConfigSet(L7_uint32 intIfNum, L7_uint8 queueSet,
-                               L7_uint32 intfShapingRate,
+                               L7_uint32 intfShapingRate, L7_uint32 intfShapingBurstSize,
                                L7_QOS_COS_QUEUE_MGMT_TYPE_t qMgmtTypeIntf,
                                L7_uint32 wredDecayExp)
 {
@@ -279,6 +280,7 @@ L7_RC_t dtlQosCosIntfConfigSet(L7_uint32 intIfNum, L7_uint8 queueSet,
   dapiCmd.queueSet = queueSet;
   dapiCmd.cmdData.intfConfig.getOrSet = DAPI_CMD_SET;
   dapiCmd.cmdData.intfConfig.intfShapingRate = (L7_ulong32)intfShapingRate;
+  dapiCmd.cmdData.intfConfig.intfShapingBurstSize = (L7_ulong32)intfShapingBurstSize;
   dapiCmd.cmdData.intfConfig.queueMgmtTypePerIntf = portMgmtType;
   dapiCmd.cmdData.intfConfig.wredDecayExponent = (L7_ulong32)wredDecayExp;
   

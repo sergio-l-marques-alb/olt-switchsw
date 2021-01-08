@@ -618,7 +618,19 @@ static L7_RC_t hapiBroadQosCosIntfTrustIpDscp(BROAD_PORT_t *hapiPortPtr, L7_ucha
   }
   return result;
 }
-static L7_RC_t hapiBroadQosCosIntfRateShape(BROAD_PORT_t *dstPortPtr, L7_uint32 egrRate)
+
+/**
+ * Port shaping configuration
+ * 
+ * @author mruas (08/01/21)
+ * 
+ * @param dstPortPtr 
+ * @param egrRate 
+ * @param egrBurstSize 
+ * 
+ * @return L7_RC_t 
+ */
+static L7_RC_t hapiBroadQosCosIntfRateShape(BROAD_PORT_t *dstPortPtr, L7_uint32 egrRate, L7_uint32 egrBurstSize)
 {
     int                              rv;
     L7_RC_t                          result = L7_SUCCESS;
@@ -637,11 +649,10 @@ static L7_RC_t hapiBroadQosCosIntfRateShape(BROAD_PORT_t *dstPortPtr, L7_uint32 
       /* result is a percent converted to Kbps */
       hapiBroadQosIntfSpeedGet(dstPortPtr, &portSpeed);
       shaperConfig.rate = ((egrRate * portSpeed) / 100); 
-
     }
 
-    /* Set kbits_burst equal to 2% of kbit per sec */
-    shaperConfig.burst = shaperConfig.rate / 50; 
+    /* Set Burst size */
+    shaperConfig.burst = egrBurstSize; 
     
     /* For Katana switches, max shapers' burst size is 2MBps = 16000 Kbps */
     if (SOC_IS_KATANAX(dstPortPtr->bcm_unit))
@@ -651,7 +662,8 @@ static L7_RC_t hapiBroadQosCosIntfRateShape(BROAD_PORT_t *dstPortPtr, L7_uint32 
     }
 
     PT_LOG_TRACE(LOG_CTX_HAPI, "Shaping rate=%u burst=%u (gport=0x%x)", shaperConfig.rate, shaperConfig.burst, dstPortPtr->bcm_gport);
-        
+    
+    /* PTin modified: QoS bypass */
     rv = usl_bcmx_port_rate_egress_set(dstPortPtr->bcm_gport, shaperConfig);
     if (L7_BCMX_OK(rv) != L7_TRUE)
       result = L7_FAILURE;
@@ -1031,7 +1043,7 @@ static L7_RC_t hapiBroadQosCosApplyPolicy(BROAD_PORT_t *dstPortPtr, BROAD_PORT_t
 
     /* apply interface shaping config */
     if ((L7_SUCCESS == result) && (L7_TRUE == qosPortPtr->cos.intfShapingSpec))
-        result = hapiBroadQosCosIntfRateShape(dstPortPtr, qosPortPtr->cos.intfShaping);
+        result = hapiBroadQosCosIntfRateShape(dstPortPtr, qosPortPtr->cos.intfShaping, qosPortPtr->cos.intfShapingBurstSize);
 
     /* apply per-queue config */
     if ((L7_SUCCESS == result) && (L7_TRUE == qosPortPtr->cos.queueConfigSpec))
@@ -1519,8 +1531,9 @@ L7_RC_t hapiBroadQosCosIntfConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
 
     hapiBroadQosSemTake(dapi_g);
 
-    qosPortPtr->cos.intfShapingSpec = L7_TRUE;
-    qosPortPtr->cos.intfShaping     = (L7_uint32)cmdCos->cmdData.intfConfig.intfShapingRate;
+    qosPortPtr->cos.intfShapingSpec      = L7_TRUE;
+    qosPortPtr->cos.intfShaping          = (L7_uint32)cmdCos->cmdData.intfConfig.intfShapingRate;
+    qosPortPtr->cos.intfShapingBurstSize = (L7_uint32)cmdCos->cmdData.intfConfig.intfShapingBurstSize;
     /* Ignore queueMgmtTypePerIntf, these devices configure mgmt type per-queue */
     /* Ptin modified: QoS */
     for (cosIndex = 0; cosIndex < L7_MAX_CFG_QUEUES_PER_PORT; cosIndex++)
@@ -1549,7 +1562,7 @@ L7_RC_t hapiBroadQosCosIntfConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
         {
           lagMemberPtr = HAPI_PORT_GET(&lagMemberSet[i].usp, dapi_g);
 
-          tmpRc = hapiBroadQosCosIntfRateShape(lagMemberPtr, qosPortPtr->cos.intfShaping);
+          tmpRc = hapiBroadQosCosIntfRateShape(lagMemberPtr, qosPortPtr->cos.intfShaping, qosPortPtr->cos.intfShapingBurstSize);
           if (L7_SUCCESS != tmpRc)
             result = tmpRc;
           if (wredChanged == L7_TRUE) 
@@ -1563,7 +1576,7 @@ L7_RC_t hapiBroadQosCosIntfConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
     }
     else
     {
-      tmpRc = hapiBroadQosCosIntfRateShape(hapiPortPtr, qosPortPtr->cos.intfShaping);
+      tmpRc = hapiBroadQosCosIntfRateShape(hapiPortPtr, qosPortPtr->cos.intfShaping, qosPortPtr->cos.intfShapingBurstSize);
       if (L7_SUCCESS != tmpRc)
         result = tmpRc;
       if (wredChanged == L7_TRUE) 
@@ -1952,7 +1965,7 @@ L7_RC_t hapiBroadQosCosPortLinkUpNotify(DAPI_USP_t *portUsp, DAPI_t *dapi_g)
     qosPortPtr  = (HAPI_BROAD_QOS_PORT_t*)hapiPortPtr->qos;
 
     /* re-apply port policy to take into account possible link speed change */
-    result = hapiBroadQosCosIntfRateShape(hapiPortPtr, qosPortPtr->cos.intfShaping);
+    result = hapiBroadQosCosIntfRateShape(hapiPortPtr, qosPortPtr->cos.intfShaping, qosPortPtr->cos.intfShapingBurstSize);
 
     if ((result == L7_SUCCESS) && hapiBroadQosCosEgressBwSupported())
     {

@@ -169,7 +169,7 @@ const L7_char8 *commandShowInterfacesCosQueue(EwsContext ewsContext, L7_uint32 a
    /* Shaping Rate */
    if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_INTF_SHAPING_FEATURE_ID) == L7_TRUE)
    {
-      if (usmDbQosCosQueueIntfShapingRateGet(unit, interface, L7_QOS_QSET_DEFAULT, &val) == L7_SUCCESS)
+      if (usmDbQosCosQueueIntfShapingRateGet(unit, interface, L7_QOS_QSET_DEFAULT, &val, L7_NULLPTR) == L7_SUCCESS)
       {
       cliFormat(ewsContext,pStrInfo_qos_IntfShapingRate);
       ewsTelnetPrintf (ewsContext, "%-d", val);

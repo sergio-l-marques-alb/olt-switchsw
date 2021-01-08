@@ -640,7 +640,7 @@ k_agentCosQueueControlEntry_get(int serialNum, ContextInfo *contextInfo,
     if ((cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID,
                                L7_COS_QUEUE_INTF_SHAPING_FEATURE_ID) == L7_TRUE) &&
         (usmDbQosCosQueueIntfShapingRateGet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_DEFAULT, 
-                                            &agentCosQueueControlEntryData.agentCosQueueIntfShapingRate) == L7_SUCCESS))
+                                            &agentCosQueueControlEntryData.agentCosQueueIntfShapingRate, L7_NULLPTR) == L7_SUCCESS))
       SET_VALID(I_agentCosQueueIntfShapingRate, agentCosQueueControlEntryData.valid);
     if (nominator != -1) break;
 
@@ -753,7 +753,7 @@ k_agentCosQueueControlEntry_set(agentCosQueueControlEntry_t *data,
     if ((cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID,
                                L7_COS_QUEUE_INTF_SHAPING_FEATURE_ID) != L7_TRUE) ||
         (usmDbQosCosQueueIntfShapingRateSet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_DEFAULT, 
-                                            data->agentCosQueueIntfShapingRate) != L7_SUCCESS))
+                                            data->agentCosQueueIntfShapingRate, (L7_uint32)-1/*Default*/) != L7_SUCCESS))
     {
       memcpy(data->valid, tempValid, sizeof(data->valid));
       return(COMMIT_FAILED_ERROR);

@@ -2884,6 +2884,7 @@ typedef struct
     {
       DAPI_CMD_GET_SET_t              getOrSet;
       L7_ulong32                      intfShapingRate;      /* 0 means no shaping, configured rate */
+      L7_ulong32                      intfShapingBurstSize; /* Burst size (in bytes) */
       DAPI_QOS_COS_QUEUE_MGMT_TYPE_t  queueMgmtTypePerIntf; /* 'not supported' means device uses per-queue mgmt */
       L7_ulong32                      wredDecayExponent;
     } intfConfig;

@@ -513,6 +513,7 @@ L7_RC_t cosMapIntfTrustModeApply(L7_uint32 intIfNum,
 * @param    intIfNum        @b{(input)}  Internal interface number
 * @param    queueSet        @b{(input)}  Group of queues
 * @param    intfShapingRate @b{(input)}  Interface shaping rate
+* @param    intfShapingBurstSize @b{(input)} Interface shaping burst size
 * @param    qMgmtTypeIntf   @b{(input)}  Queue mgmt type (per-interface)
 * @param    wredDecayExp    @b{(input)}  WRED decay exponent
 *
@@ -524,7 +525,7 @@ L7_RC_t cosMapIntfTrustModeApply(L7_uint32 intIfNum,
 * @end
 *********************************************************************/
 L7_RC_t cosQueueIntfConfigApply(L7_uint32 intIfNum, L7_uint8 queueSet,
-                                L7_uint32 intfShapingRate,
+                                L7_uint32 intfShapingRate, L7_uint32 intfShapingBurstSize,
                                 L7_QOS_COS_QUEUE_MGMT_TYPE_t qMgmtTypeIntf,
                                 L7_uint32 wredDecayExp)
 {
@@ -536,7 +537,8 @@ L7_RC_t cosQueueIntfConfigApply(L7_uint32 intIfNum, L7_uint8 queueSet,
     return L7_SUCCESS;
 
   if (dtlQosCosIntfConfigSet(intIfNum, queueSet,
-                             intfShapingRate, qMgmtTypeIntf, wredDecayExp) != L7_SUCCESS)
+                             intfShapingRate, intfShapingBurstSize,
+                             qMgmtTypeIntf, wredDecayExp) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
             "COS queueing: Unable to apply COS intf config on interface %s, queueSet %u\n",
@@ -548,7 +550,8 @@ L7_RC_t cosQueueIntfConfigApply(L7_uint32 intIfNum, L7_uint8 queueSet,
   COS_PRT(COS_MSGLVL_MED, "\nCOS intf config applied on intf %u (%s), queueSet %u\n", intIfNum, ifName, queueSet);
   if (cosMsgLvlGet() >= COS_MSGLVL_LO)
   {
-    COS_PRT(COS_MSGLVL_LO, "\n  intfShapingRate:  %u%", intfShapingRate);
+    COS_PRT(COS_MSGLVL_LO, "\n  intfShapingRate:      %u%", intfShapingRate);
+    COS_PRT(COS_MSGLVL_LO, "\n  intfShapingBurstSize: %u%", intfShapingBurstSize);
     COS_PRT(COS_MSGLVL_LO, "\n    qMgmtTypeIntf:  %u (%s)",
             (L7_uint32)qMgmtTypeIntf, cosQueueMgmtTypeStr[qMgmtTypeIntf]);
     COS_PRT(COS_MSGLVL_LO, "\n     wredDecayExp:  %u", wredDecayExp);

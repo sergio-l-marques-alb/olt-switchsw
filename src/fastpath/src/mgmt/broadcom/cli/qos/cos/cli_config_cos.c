@@ -775,7 +775,7 @@ const L7_char8 *commandInterfaceTrafficShape(EwsContext ewsContext, L7_uint32 ar
         {
           continue;
         }
-        if (usmDbQosCosQueueIntfShapingRateSet(unit,interface,L7_QOS_QSET_DEFAULT,bandWidth) != L7_SUCCESS)
+        if (usmDbQosCosQueueIntfShapingRateSet(unit,interface,L7_QOS_QSET_DEFAULT,bandWidth,(L7_uint32)-1/*Default*/) != L7_SUCCESS)
         {
           ewsTelnetWriteAddBlanks (1, 0, 0, 0, L7_NULLPTR, ewsContext, cliDisplayInterfaceHelp(unit, s, p));
           ewsTelnetWriteAddBlanks (1, 1, 0, 1, L7_NULLPTR,  ewsContext, pStrErr_qos_TrafficShapeSet);
@@ -876,7 +876,7 @@ const L7_char8 *commandGlobalTrafficShape(EwsContext ewsContext, L7_uint32 argc,
 
     if (ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
     {
-      if (usmDbQosCosQueueIntfShapingRateSet(unit,L7_ALL_INTERFACES,L7_QOS_QSET_DEFAULT,bandWidth) != L7_SUCCESS)
+      if (usmDbQosCosQueueIntfShapingRateSet(unit,L7_ALL_INTERFACES,L7_QOS_QSET_DEFAULT,bandWidth,(L7_uint32)-1/*Default*/) != L7_SUCCESS)
       {
         return cliSyntaxReturnPromptAddBlanks (1, 1, 0, 1, L7_NULLPTR,  ewsContext, pStrErr_qos_TrafficShapeSet);
       }
@@ -891,7 +891,7 @@ const L7_char8 *commandGlobalTrafficShape(EwsContext ewsContext, L7_uint32 argc,
     }
     if (ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
     {
-      if (usmDbQosCosQueueIntfShapingRateSet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, FD_QOS_COS_QCFG_INTF_SHAPING_RATE) != L7_SUCCESS)
+      if (usmDbQosCosQueueIntfShapingRateSet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, FD_QOS_COS_QCFG_INTF_SHAPING_RATE, (L7_uint32)-1/*Default*/) != L7_SUCCESS)
       {
         return cliSyntaxReturnPromptAddBlanks (1, 1, 0, 1, L7_NULLPTR,  ewsContext, pStrErr_qos_TrafficShapeSet);
       }

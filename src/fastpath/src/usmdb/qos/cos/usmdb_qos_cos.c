@@ -1172,7 +1172,8 @@ L7_RC_t usmDbQosCosQueueDefaultsRestore(L7_uint32 UnitIndex,
 * @param    UnitIndex   @b{(input)}  System unit number
 * @param    intIfNum    @b{(input)}  Internal interface number
 * @param    queueSet    @b{(input)}  Group of queues
-* @param    *pVal       @b{(output)} Ptr to intf shaping rate output value    
+* @param    *rate       @b{(output)} Ptr to intf shaping rate output value
+* @param    *burstSize  @b{(output)} Intf shaping burst size
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -1185,7 +1186,7 @@ L7_RC_t usmDbQosCosQueueDefaultsRestore(L7_uint32 UnitIndex,
 L7_RC_t usmDbQosCosQueueIntfShapingRateGet(L7_uint32 UnitIndex, 
                                            L7_uint32 intIfNum, 
                                            L7_uint8  queueSet,
-                                           L7_uint32 *pVal)
+                                           L7_uint32 *rate, L7_uint32 *burstSize)
 {
   if (cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID, 
                             L7_COS_QUEUE_INTF_SHAPING_FEATURE_ID) != L7_TRUE)
@@ -1195,7 +1196,7 @@ L7_RC_t usmDbQosCosQueueIntfShapingRateGet(L7_uint32 UnitIndex,
       (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_FALSE))
     return L7_NOT_SUPPORTED;
 
-  return cosQueueIntfShapingRateGet(intIfNum, queueSet, pVal);
+  return cosQueueIntfShapingRateGet(intIfNum, queueSet, rate, burstSize);
 }
 
 /*************************************************************************
@@ -1204,7 +1205,8 @@ L7_RC_t usmDbQosCosQueueIntfShapingRateGet(L7_uint32 UnitIndex,
 * @param    UnitIndex   @b{(input)}  System unit number
 * @param    intIfNum    @b{(input)}  Internal interface number
 * @param    queueSet    @b{(input)}  Group of queues
-* @param    val         @b{(input)}  Intf shaping rate value    
+* @param    rate        @b{(input)}  Intf shaping rate value
+* @param    burstSize   @b{(input)}  Intf shaping burst size
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -1217,7 +1219,7 @@ L7_RC_t usmDbQosCosQueueIntfShapingRateGet(L7_uint32 UnitIndex,
 L7_RC_t usmDbQosCosQueueIntfShapingRateSet(L7_uint32 UnitIndex, 
                                            L7_uint32 intIfNum, 
                                            L7_uint8  queueSet,
-                                           L7_uint32 val)
+                                           L7_uint32 rate, L7_uint32 burstSize)
 {
   L7_RC_t       rc = L7_NOT_SUPPORTED;
 
@@ -1226,10 +1228,10 @@ L7_RC_t usmDbQosCosQueueIntfShapingRateSet(L7_uint32 UnitIndex,
     return L7_NOT_SUPPORTED;
 
   if (intIfNum == L7_ALL_INTERFACES)
-    rc = cosQueueIntfShapingRateGlobalSet(val);
+    rc = cosQueueIntfShapingRateGlobalSet(rate, burstSize);
 
   else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
-    rc = cosQueueIntfShapingRateSet(intIfNum, queueSet, val);
+    rc = cosQueueIntfShapingRateSet(intIfNum, queueSet, rate, burstSize);
 
   return rc;
 }

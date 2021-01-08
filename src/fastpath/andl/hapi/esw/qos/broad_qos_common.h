@@ -109,6 +109,7 @@ typedef struct
     /* per-port configuration */
     L7_BOOL                         intfShapingSpec;
     L7_uint32                       intfShaping;
+    L7_uint32                       intfShapingBurstSize;
 
     /* per-queue configuration */
     L7_BOOL                         queueConfigSpec;

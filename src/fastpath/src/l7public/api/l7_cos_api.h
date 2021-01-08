@@ -710,7 +710,8 @@ L7_RC_t cosQueueDefaultsGlobalRestore(void);
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
 * @param    queueSet    @b{(input)}  Group of queues
-* @param    *pVal       @b{(output)} Ptr to intf shaping rate output value    
+* @param    *rate       @b{(output)} Ptr to intf shaping rate output value
+* @param    *burstSize  @b{(output)} Intf shaping burst size
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -719,14 +720,15 @@ L7_RC_t cosQueueDefaultsGlobalRestore(void);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueIntfShapingRateGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 *pVal);
+L7_RC_t cosQueueIntfShapingRateGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 *rate, L7_uint32 *burstSize);
 
 /*************************************************************************
 * @purpose  Set the COS egress shaping rate for this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
 * @param    queueSet    @b{(input)}  Group of queues
-* @param    val         @b{(input)}  Intf shaping rate value    
+* @param    rate        @b{(input)}  Intf shaping rate value
+* @param    burstSize   @b{(input)}  Intf shaping burst size
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -735,7 +737,7 @@ L7_RC_t cosQueueIntfShapingRateGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uin
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueIntfShapingRateSet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 val);
+L7_RC_t cosQueueIntfShapingRateSet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 rate, L7_uint32 burstSize);
 
 /*************************************************************************
 * @purpose  Get the COS interface parameters for this interface
@@ -759,7 +761,8 @@ L7_RC_t cosQueueIntfShapingStatusGet(L7_uint32 intIfNum, L7_uint8 queueSet,
 /*************************************************************************
 * @purpose  Set the COS egress shaping rate globally for all interfaces
 *
-* @param    val         @b{(input)}  Intf shaping rate value    
+* @param    rate        @b{(input)}  Intf shaping rate value
+* @param    burstSize   @b{(input)}  Intf shaping burst size
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -768,7 +771,7 @@ L7_RC_t cosQueueIntfShapingStatusGet(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueIntfShapingRateGlobalSet(L7_uint32 val);
+L7_RC_t cosQueueIntfShapingRateGlobalSet(L7_uint32 rate, L7_uint32 burstSize);
 
 /*************************************************************************
 * @purpose  Get the COS queue management type for this interface

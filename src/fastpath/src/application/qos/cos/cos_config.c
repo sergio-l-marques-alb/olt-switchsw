@@ -148,6 +148,7 @@ void cosBuildDefaultConfigData(L7_uint32 ver)
   /* build global config defaults */
   pCfgGlob = &pCosCfgData_g->cosGlobal;
   pCfgGlob->cfg.intf.intfShapingRate = FD_QOS_COS_QCFG_INTF_SHAPING_RATE;
+  pCfgGlob->cfg.intf.intfShapingBurstSize = FD_QOS_COS_QCFG_INTF_SHAPING_BURSTSIZE;
 
   cosDefaultMappingConfigBuild(L7_ALL_INTERFACES, &pCfgGlob->cfg.mapping);
   cosDefaultIntfConfigBuild(&pCfgGlob->cfg.intf);
@@ -375,6 +376,7 @@ void cosDefaultIntfConfigBuild(L7_cosIntfCfg_t *pCfgIntf)
 
   /* NOTE:  Don't worry about feature present checking when setting defaults */
   pCfgIntf->intfShapingRate = FD_QOS_COS_QCFG_INTF_SHAPING_RATE;
+  pCfgIntf->intfShapingBurstSize = FD_QOS_COS_QCFG_INTF_SHAPING_BURSTSIZE;
   pCfgIntf->queueMgmtTypePerIntf = (L7_uchar8)FD_QOS_COS_QCFG_MGMT_TYPE;
   pCfgIntf->wredDecayExponent = FD_QOS_COS_QCFG_WRED_DECAY_EXP;
 }
@@ -872,6 +874,7 @@ L7_RC_t cosConfigIntfQueueCfgDataApply(L7_uint32 intIfNum, L7_cosCfgParms_t *pCf
      */
     if (cosQueueIntfConfigApply(intIfNum, queueSet,
                                 pCfg->intf.intfShapingRate,
+                                pCfg->intf.intfShapingBurstSize,
                                 pCfg->intf.queueMgmtTypePerIntf,
                                 pCfg->intf.wredDecayExponent)
         != L7_SUCCESS)
@@ -2016,6 +2019,7 @@ void cosBuildTestIntfConfigData(L7_uint32 intIfNum, L7_cosCfgParms_t *pCfg)
   /* interface config */
   pIntf = &pCfg->intf;
   pIntf->intfShapingRate = 50;
+  pIntf->intfShapingBurstSize = 10000;
   pIntf->queueMgmtTypePerIntf = L7_QOS_COS_QUEUE_MGMT_TYPE_WRED;
   pIntf->wredDecayExponent = 15;
 

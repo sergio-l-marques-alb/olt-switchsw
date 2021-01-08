@@ -46,7 +46,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_CosQueueGlobalShapingRate (void *wap
 	owa.l7rc =
     usmDbQosCosQueueIntfShapingRateGet (L7_UNIT_CURRENT,
                                         L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, 
-                                        &objCosQueueGlobalShapingRateValue);
+                                        &objCosQueueGlobalShapingRateValue, L7_NULLPTR);
 	
    if (owa.l7rc != L7_SUCCESS)
   {
@@ -98,7 +98,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueGlobalShapingRate (void *wap
   owa.l7rc =
     usmDbQosCosQueueIntfShapingRateSet (L7_UNIT_CURRENT,
                                         L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, 
-                                        objCosQueueGlobalShapingRateValue);
+                                        objCosQueueGlobalShapingRateValue, (L7_uint32)-1/*Default*/);
 	
    if (owa.l7rc != L7_SUCCESS)
   {
@@ -138,7 +138,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueGlobalRestoreDefaults (void 
   /* set the value in application */
   if(objCosQueueGlobalRestoreDefaultsValue == L7_TRUE)
   {
-    owa.l7rc = usmDbQosCosQueueIntfShapingRateSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, FD_QOS_COS_QCFG_INTF_SHAPING_RATE);
+    owa.l7rc = usmDbQosCosQueueIntfShapingRateSet(L7_UNIT_CURRENT, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, FD_QOS_COS_QCFG_INTF_SHAPING_RATE, (L7_uint32)-1/*Default*/);
     if (owa.l7rc != L7_SUCCESS)
     {
         owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -1834,7 +1834,7 @@ xLibRC_t fpObjGet_fastPathQOSCOSCosQueueCfg_CosQueueIntfShapingRate (void *wap,
   owa.l7rc =
     usmDbQosCosQueueIntfShapingRateGet (L7_UNIT_CURRENT,
                                         keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, 
-                                        &objCosQueueIntfShapingRateValue);
+                                        &objCosQueueIntfShapingRateValue, L7_NULLPTR);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -1928,7 +1928,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueIntfShapingRate (void *wap,
   owa.l7rc =
     usmDbQosCosQueueIntfShapingRateSet (L7_UNIT_CURRENT,
                                         keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, 
-                                        objCosQueueIntfShapingRateValue);
+                                        objCosQueueIntfShapingRateValue, (L7_uint32)-1/*Default*/);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -3059,7 +3059,7 @@ xLibRC_t fpObjSet_fastPathQOSCOSCosQueueCfg_CosQueueIntfRestoreDefaults (void
   
   if(objCosQueueIntfRestoreDefaultsValue)
   {
-    owa.l7rc = usmDbQosCosQueueIntfShapingRateSet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, FD_QOS_COS_QCFG_INTF_SHAPING_RATE);
+    owa.l7rc = usmDbQosCosQueueIntfShapingRateSet(L7_UNIT_CURRENT, keyCosQueueIntfIndexValue, L7_QOS_QSET_DEFAULT, FD_QOS_COS_QCFG_INTF_SHAPING_RATE, (L7_uint32)-1/*Default*/);
   }
 
   /* set the value in application */

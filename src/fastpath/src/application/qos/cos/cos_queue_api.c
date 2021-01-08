@@ -302,7 +302,8 @@ L7_RC_t cosQueueDefaultsGlobalRestore(void)
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
 * @param    queueSet    @b{(input)}  Group of queues
-* @param    *pVal       @b{(output)} Ptr to intf shaping rate output value
+* @param    *rate       @b{(output)} Ptr to intf shaping rate output value
+* @param    *burstSize  @b{(output)} Intf shaping burst size
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -311,17 +312,24 @@ L7_RC_t cosQueueDefaultsGlobalRestore(void)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueIntfShapingRateGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 *pVal)
+L7_RC_t cosQueueIntfShapingRateGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 *rate, L7_uint32 *burstSize)
 {
   L7_cosCfgParms_t  *pCfg;
 
-  if (pVal == L7_NULLPTR)
+  if (rate == L7_NULLPTR)
     return L7_FAILURE;
 
   if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
-  *pVal = pCfg->intf.intfShapingRate;
+  if (rate != L7_NULLPTR)
+  {
+    *rate = pCfg->intf.intfShapingRate;
+  }
+  if (burstSize != L7_NULLPTR)
+  {
+    *burstSize = pCfg->intf.intfShapingBurstSize;
+  }
   return L7_SUCCESS;
 }
 
@@ -330,7 +338,8 @@ L7_RC_t cosQueueIntfShapingRateGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uin
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
 * @param    queueSet    @b{(input)}  Group of queues
-* @param    val         @b{(input)}  Intf shaping rate value
+* @param    rate        @b{(input)}  Intf shaping rate value
+* @param    burstSize   @b{(input)}  Intf shaping burst size
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -339,7 +348,7 @@ L7_RC_t cosQueueIntfShapingRateGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uin
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueIntfShapingRateSet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 val)
+L7_RC_t cosQueueIntfShapingRateSet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 rate, L7_uint32 burstSize)
 {
   L7_cosCfgParms_t  *pCfg;
 
@@ -347,43 +356,54 @@ L7_RC_t cosQueueIntfShapingRateSet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uin
     return L7_FAILURE;
 
   /* a rate of 0 is used to turn off rate limiting and is acceptible regardless of units */
-  if (0 != val)
+  if (0 != rate)
   {
     if (L7_QOS_COS_INTF_SHAPING_RATE_UNITS == L7_RATE_UNIT_KBPS)
     {
       /* check proposed value */
-      if ((val < L7_QOS_COS_INTF_SHAPING_RATE_KBPS_MIN) ||
-          (val > L7_QOS_COS_INTF_SHAPING_RATE_KBPS_MAX))
+      if ((rate < L7_QOS_COS_INTF_SHAPING_RATE_KBPS_MIN) ||
+          (rate > L7_QOS_COS_INTF_SHAPING_RATE_KBPS_MAX))
         return L7_FAILURE;
 
     }
     else
     {
       /* check proposed value */
-      if ((val < L7_QOS_COS_INTF_SHAPING_RATE_MIN) ||
-          (val > L7_QOS_COS_INTF_SHAPING_RATE_MAX))
+      if ((rate < L7_QOS_COS_INTF_SHAPING_RATE_MIN) ||
+          (rate > L7_QOS_COS_INTF_SHAPING_RATE_MAX))
         return L7_FAILURE;
 
      /* check percentage as an integral step size amount between min, max */
-     if ((val != L7_QOS_COS_INTF_SHAPING_RATE_MIN) &&
-         (val != L7_QOS_COS_INTF_SHAPING_RATE_MAX) &&
-         ((val % L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE) != 0))
+     if ((rate != L7_QOS_COS_INTF_SHAPING_RATE_MIN) &&
+         (rate != L7_QOS_COS_INTF_SHAPING_RATE_MAX) &&
+         ((rate % L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE) != 0))
        return L7_FAILURE;
     }
   }
 
+  /* Correct burstSize */
+  if (burstSize >= FD_QOS_COS_QCFG_INTF_SHAPING_BURSTSIZE)
+  {
+    burstSize = FD_QOS_COS_QCFG_INTF_SHAPING_BURSTSIZE;
+  }
+  
   if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* this is a no-op if currently configured value is same as new value */
-  if (pCfg->intf.intfShapingRate == val)
+  if (pCfg->intf.intfShapingRate == rate &&
+      pCfg->intf.intfShapingBurstSize == burstSize)
+  {
     return L7_SUCCESS;
+  }
 
   /* apply the new shaping rate along with the other intf config parms */
   (void)cosQueueIntfConfigApply(intIfNum, queueSet,
-                                val, pCfg->intf.queueMgmtTypePerIntf, pCfg->intf.wredDecayExponent); /* rc ignored here */
+                                rate, burstSize,
+                                pCfg->intf.queueMgmtTypePerIntf, pCfg->intf.wredDecayExponent); /* rc ignored here */
 
-  pCfg->intf.intfShapingRate = val;
+  pCfg->intf.intfShapingRate = rate;
+  pCfg->intf.intfShapingBurstSize = burstSize;
   pCosCfgData_g->cfgHdr.dataChanged = L7_TRUE;
 
   return L7_SUCCESS;
@@ -420,7 +440,8 @@ L7_RC_t cosQueueIntfShapingStatusGet(L7_uint32 intIfNum, L7_uint8 queueSet,
 /*************************************************************************
 * @purpose  Set the COS egress shaping rate globally for all interfaces
 *
-* @param    val         @b{(input)}  Intf shaping rate value
+* @param    rate        @b{(input)}  Intf shaping rate value
+* @param    burstSize   @b{(input)}  Intf shaping burst size
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -429,33 +450,33 @@ L7_RC_t cosQueueIntfShapingStatusGet(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueIntfShapingRateGlobalSet(L7_uint32 val)
+L7_RC_t cosQueueIntfShapingRateGlobalSet(L7_uint32 rate, L7_uint32 burstSize)
 {
   L7_cosCfgParms_t  *pCfgGlob, *pCfgIntf;
   L7_uint32         intIfNum;
   L7_uint8          queueSet;
 
   /* a rate of 0 is used to turn off rate limiting and is acceptible regardless of units */
-  if (0 != val)
+  if (0 != rate)
   {
     if (L7_QOS_COS_INTF_SHAPING_RATE_UNITS == L7_RATE_UNIT_KBPS)
     {
       /* check proposed value */
-      if ((val < L7_QOS_COS_INTF_SHAPING_RATE_KBPS_MIN) ||
-          (val > L7_QOS_COS_INTF_SHAPING_RATE_KBPS_MAX))
+      if ((rate < L7_QOS_COS_INTF_SHAPING_RATE_KBPS_MIN) ||
+          (rate > L7_QOS_COS_INTF_SHAPING_RATE_KBPS_MAX))
         return L7_FAILURE;
     }
     else
     {
       /* check proposed value */
-      if ((val < L7_QOS_COS_INTF_SHAPING_RATE_MIN) ||
-          (val > L7_QOS_COS_INTF_SHAPING_RATE_MAX))
+      if ((rate < L7_QOS_COS_INTF_SHAPING_RATE_MIN) ||
+          (rate > L7_QOS_COS_INTF_SHAPING_RATE_MAX))
         return L7_FAILURE;
 
      /* check percentage as an integral step size amount between min, max */
-     if ((val != L7_QOS_COS_INTF_SHAPING_RATE_MIN) &&
-         (val != L7_QOS_COS_INTF_SHAPING_RATE_MAX) &&
-         ((val % L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE) != 0))
+     if ((rate != L7_QOS_COS_INTF_SHAPING_RATE_MIN) &&
+         (rate != L7_QOS_COS_INTF_SHAPING_RATE_MAX) &&
+         ((rate % L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE) != 0))
        return L7_FAILURE;
     }
   }
@@ -481,19 +502,21 @@ L7_RC_t cosQueueIntfShapingRateGlobalSet(L7_uint32 val)
       /* only work with configurable interfaces when changing global config */
       if (cosCfgPtrFind(intIfNum, queueSet, &pCfgIntf) == L7_SUCCESS)
       {
-        if (cosQueueIntfShapingRateSet(intIfNum, queueSet, val) != L7_SUCCESS)
+        if (cosQueueIntfShapingRateSet(intIfNum, queueSet, rate, burstSize) != L7_SUCCESS)
         {
           L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                  "Unable to set global COS shaping rate (%u) on intf %s, queueSet %u\n",
-                  val, ifName, queueSet);
+                  "Unable to set global COS shaping rate (%u)/burst size (%u) on intf %s, queueSet %u\n",
+                  rate, burstSize, ifName, queueSet);
         }
       }
     }
   }
 
-  if (pCfgGlob->intf.intfShapingRate != val)
+  if (pCfgGlob->intf.intfShapingRate != rate ||
+      pCfgGlob->intf.intfShapingBurstSize != burstSize)
   {
-    pCfgGlob->intf.intfShapingRate = val;
+    pCfgGlob->intf.intfShapingRate = rate;
+    pCfgGlob->intf.intfShapingBurstSize = burstSize;
     pCosCfgData_g->cfgHdr.dataChanged = L7_TRUE;
   }
   return L7_SUCCESS;
@@ -604,7 +627,8 @@ L7_RC_t cosQueueMgmtTypePerIntfSet(L7_uint32 intIfNum, L7_uint8 queueSet,
   if (rc == L7_SUCCESS)
   {
     (void)cosQueueIntfConfigApply(intIfNum, queueSet,
-                                  pCfg->intf.intfShapingRate, val, pCfg->intf.wredDecayExponent); /* rc ignored here */
+                                  pCfg->intf.intfShapingRate, pCfg->intf.intfShapingBurstSize,
+                                  val, pCfg->intf.wredDecayExponent); /* rc ignored here */
   }
 
   pCfg->intf.queueMgmtTypePerIntf = (L7_uchar8)val;
@@ -745,7 +769,8 @@ L7_RC_t cosQueueWredDecayExponentSet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_u
 
   /* apply the new mgmt type along with the other intf config parms */
   (void)cosQueueIntfConfigApply(intIfNum, queueSet,
-                                pCfg->intf.intfShapingRate, pCfg->intf.queueMgmtTypePerIntf, val);  /* rc ignored here */
+                                pCfg->intf.intfShapingRate, pCfg->intf.intfShapingBurstSize,
+                                pCfg->intf.queueMgmtTypePerIntf, val);  /* rc ignored here */
 
   pCfg->intf.wredDecayExponent = (L7_uchar8)val;
   pCosCfgData_g->cfgHdr.dataChanged = L7_TRUE;
@@ -2477,6 +2502,7 @@ void cosQueueConfigShow(L7_uint32 intIfNum, L7_uint8 queueSet)
 
   /* display interface-level parms */
   COS_PRT(msgLvlReqd, "  Intf shaping rate       :  %u\n", pI->intfShapingRate);
+  COS_PRT(msgLvlReqd, "  Intf shaping burst size :  %u\n", pI->intfShapingBurstSize);
   COS_PRT(msgLvlReqd, "  Queue mgmt type per-intf:  %u\n", pI->queueMgmtTypePerIntf);
   COS_PRT(msgLvlReqd, "  WRED decay exponent     :  %u\n", pI->wredDecayExponent);
   COS_PRT(msgLvlReqd, "\n");
