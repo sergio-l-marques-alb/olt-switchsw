@@ -5054,9 +5054,6 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   L7_uint32                     slot, lane;
   HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
   #endif
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-  L7_uint32 mode;
-#endif
   L7_uint i;
   
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
@@ -5095,17 +5092,6 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   memset(ptin_sys_intf_to_slot_map, 0xff, sizeof(ptin_sys_intf_to_slot_map));
   memset(ptin_sys_intf_to_port_map, 0xff, sizeof(ptin_sys_intf_to_port_map));
   ptin_sys_number_of_ports = dapiCardPtr->numOfPortMapEntries;
-#endif
-
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-  mode = ptin_env_board_mode_get();
-  if (mode == PTIN_MODE_GPON)
-  {
-    ptin_sys_number_of_ports = PTIN_SYSTEM_N_UPLINK + PTIN_SYSTEM_N_INTERNAL + PTIN_SYSTEM_N_PONS_PHYSICAL;
-
-    PT_LOG_WARN(LOG_CTX_HAPI, "ptin_sys_number_of_ports change to %d", 
-                 ptin_sys_number_of_ports);
-  }
 #endif
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "Port mapping:");

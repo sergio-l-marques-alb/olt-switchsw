@@ -681,7 +681,6 @@ L7_RC_t ptin_evc_startup(void)
   L7_uint32 intIfNum_l2intf;
 
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-  L7_uint32 mode = 0;
   L7_RC_t rc;
   ptin_HwEthMef10Evc_t evcConf;
 #if 0
@@ -706,8 +705,6 @@ L7_RC_t ptin_evc_startup(void)
   }
 #endif
 
-  mode = ptin_env_board_mode_get();
-
   /* 1st EVC for ASPEN A */
   memset(&evcConf, 0x00, sizeof(evcConf));
   evcConf.index         = PTIN_ASPEN2CPU_A_EVC;
@@ -723,15 +720,7 @@ L7_RC_t ptin_evc_startup(void)
   evcConf.n_intf        = 2;
   /* Root port */
   evcConf.intf[0].intf.format = PTIN_INTF_FORMAT_PORT;
-  if (mode == PTIN_MODE_GPON)
-  {
-     evcConf.intf[0].intf.value.ptin_port = 
-       (PTIN_SYSTEM_N_UPLINK + PTIN_SYSTEM_N_INTERNAL + PTIN_SYSTEM_N_PONS_PHYSICAL)-1;
-  }
-  else
-  {
-    evcConf.intf[0].intf.value.ptin_port = PTIN_PORT_CPU;
-  }
+  evcConf.intf[0].intf.value.ptin_port = PTIN_PORT_CPU;
   evcConf.intf[0].mef_type    = PTIN_EVC_INTF_ROOT;
   evcConf.intf[0].vid         = PTIN_ASPEN2CPU_A_VLAN;
   evcConf.intf[0].action_outer= PTIN_XLATE_ACTION_NONE;
@@ -775,16 +764,8 @@ L7_RC_t ptin_evc_startup(void)
   evcConf.internal_vlan = PTIN_ASPEN2CPU_B_VLAN;
   evcConf.n_intf        = 2;
   /* Root port */
-  if (mode == PTIN_MODE_GPON)
-  {
-     evcConf.intf[0].intf.value.ptin_port = 
-       (PTIN_SYSTEM_N_UPLINK + PTIN_SYSTEM_N_INTERNAL + PTIN_SYSTEM_N_PONS_PHYSICAL)-1;
-  }
-  else
-  {
-     evcConf.intf[0].intf.value.ptin_port = PTIN_PORT_CPU;
-  }
   evcConf.intf[0].intf.format = PTIN_INTF_FORMAT_PORT;
+  evcConf.intf[0].intf.value.ptin_port = PTIN_PORT_CPU;
   evcConf.intf[0].mef_type    = PTIN_EVC_INTF_ROOT;
   evcConf.intf[0].vid         = PTIN_ASPEN2CPU_B_VLAN;
   evcConf.intf[0].action_outer= PTIN_XLATE_ACTION_NONE;
