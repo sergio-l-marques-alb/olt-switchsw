@@ -2709,7 +2709,7 @@ typedef struct
 
   /* This parameter will identify the queue set inside an interface
      (for Trident3x3 switch / TC16SXG) */
-  L7_uint8 queueSet;
+  l7_cosq_set_t queueSet;
 
   union
   {

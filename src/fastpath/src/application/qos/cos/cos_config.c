@@ -188,7 +188,7 @@ void cosBuildDefaultConfigData(L7_uint32 ver)
 void cosBuildDefaultIntfConfigData(nimConfigID_t *pConfigId,
                                    L7_cosCfgIntfParms_t *pCfgIntf)
 {
-  L7_uint8 queueSet;
+  l7_cosq_set_t queueSet;
 
   if ((pConfigId == L7_NULLPTR) || (pCfgIntf == L7_NULLPTR))
     return;
@@ -206,7 +206,7 @@ void cosBuildDefaultIntfConfigData(nimConfigID_t *pConfigId,
    *        as all other interfaces (at least those that do not have
    *        per-interface config overrides).
    */
-  for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
     memcpy(&pCfgIntf->cfg[queueSet], &pCosCfgData_g->cosGlobal.cfg, sizeof(L7_cosCfgParms_t));
   }
@@ -227,7 +227,7 @@ void cosBuildDefaultIntfConfigData(nimConfigID_t *pConfigId,
 void cosDefaultMappingConfigBuild(L7_uint32 intIfNum, L7_cosMapCfg_t *pCfgMap)
 {
   L7_uint32         i, trafficClass;
-  L7_uint8          queueSet;
+  l7_cosq_set_t     queueSet;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
   nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
@@ -236,7 +236,7 @@ void cosDefaultMappingConfigBuild(L7_uint32 intIfNum, L7_cosMapCfg_t *pCfgMap)
 
   memset(pCfgMap, 0, sizeof(*pCfgMap));
 
-  for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
     /* build default IP Precedence mapping table */
     for (i = 0; i < L7_QOS_COS_MAP_NUM_IPPREC; i++)
@@ -290,13 +290,13 @@ void cosDefaultMappingConfigBuild(L7_uint32 intIfNum, L7_cosMapCfg_t *pCfgMap)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosDefaultMappingIpPrecGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 prec,
+L7_RC_t cosDefaultMappingIpPrecGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 prec,
                                    L7_uint32 *pVal)
 {
   if (intIfNum == 0)
     return L7_FAILURE;
 
-  if (queueSet >= L7_MAX_CFG_GROUP_QUEUES_PER_PORT)
+  if (queueSet >= L7_MAX_CFG_QUEUESETS_PER_PORT)
     return L7_FAILURE;
   
   if (prec >= L7_QOS_COS_MAP_NUM_IPPREC)
@@ -327,13 +327,13 @@ L7_RC_t cosDefaultMappingIpPrecGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uin
 *
 * @end
 *********************************************************************/
-L7_RC_t cosDefaultMappingIpDscpGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 dscp,
+L7_RC_t cosDefaultMappingIpDscpGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 dscp,
                                    L7_uint32 *pVal)
 {
   if (intIfNum == 0)
     return L7_FAILURE;
 
-  if (queueSet >= L7_MAX_CFG_GROUP_QUEUES_PER_PORT)
+  if (queueSet >= L7_MAX_CFG_QUEUESETS_PER_PORT)
     return L7_FAILURE;
 
   if (dscp >= L7_QOS_COS_MAP_NUM_IPDSCP)
@@ -395,9 +395,9 @@ void cosDefaultIntfConfigBuild(L7_cosIntfCfg_t *pCfgIntf)
 void cosDefaultQueueConfigAllBuild(L7_cosQueueCfg_t *pCfgQ)
 {
   L7_uint32 i;
-  L7_uint8  queueSet;
+  l7_cosq_set_t queueSet;
 
-  for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
     for (i = 0; i < L7_COS_INTF_QUEUE_MAX_COUNT; i++, pCfgQ++)
     {
@@ -419,7 +419,7 @@ void cosDefaultQueueConfigAllBuild(L7_cosQueueCfg_t *pCfgQ)
 *
 * @end
 *********************************************************************/
-void cosDefaultQueueConfigBuild(L7_cosQueueCfg_t *pCfgQ, L7_uint8 queueSet, L7_uint32 queueId)
+void cosDefaultQueueConfigBuild(L7_cosQueueCfg_t *pCfgQ, l7_cosq_set_t queueSet, L7_uint32 queueId)
 {
   L7_uint32     i;
   L7_uchar8     tdropThreshBase;
@@ -516,7 +516,7 @@ void cosResetDefaultIntfConfigData(L7_uint32 intIfNum,
                                    nimConfigID_t *pConfigId,
                                    L7_cosCfgIntfParms_t *pCfgIntf)
 {
-  L7_uint8 queueSet;
+  l7_cosq_set_t queueSet;
 
   /* Check general intIfNum boundary conditions */
   if ((intIfNum == 0) || (intIfNum >= platIntfMaxCountGet()))
@@ -529,7 +529,7 @@ void cosResetDefaultIntfConfigData(L7_uint32 intIfNum,
   NIM_CONFIG_ID_COPY(&pCfgIntf->configId, pConfigId);
 
   /* build per-interface config defaults */
-  for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
     cosDefaultMappingConfigBuild(intIfNum, &pCfgIntf->cfg[queueSet].mapping);
     cosDefaultIntfConfigBuild(&pCfgIntf->cfg[queueSet].intf);
@@ -679,7 +679,7 @@ L7_RC_t cosConfigDataApply(void)
 *********************************************************************/
 L7_RC_t cosConfigIntfDataApply(L7_uint32 intIfNum, L7_cosCfgIntfParms_t *pCfgIntf)
 {
-  L7_uint8 queueSet;
+  l7_cosq_set_t queueSet;
   L7_cosCfgParms_t  *pCfg;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
   nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
@@ -692,7 +692,7 @@ L7_RC_t cosConfigIntfDataApply(L7_uint32 intIfNum, L7_cosCfgIntfParms_t *pCfgInt
     return L7_FAILURE;
 
   /* Run all queue sets */
-  for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
     pCfg = &pCfgIntf->cfg[queueSet];
 
@@ -791,14 +791,14 @@ L7_RC_t cosConfigIntfMapTableDataApply(L7_uint32 intIfNum, L7_cosCfgParms_t *pCf
 *********************************************************************/
 L7_RC_t cosConfigIntfQueueCfgDataApply(L7_uint32 intIfNum, L7_cosCfgParms_t *pCfg)
 {
-  L7_cosQueueCfg_t              *pQ;
-  L7_cosDropPrecCfg_t           *pDP;
-  L7_uint8                      queueSet;
-  L7_uint32                     queueId;
-  L7_uint32                     i;
-  L7_cosQueueSchedParms_t       qParms;
-  L7_qosCosDropParmsList_t      dropList;
-  L7_BOOL                       wRedSupport;
+  L7_cosQueueCfg_t         *pQ;
+  L7_cosDropPrecCfg_t      *pDP;
+  l7_cosq_set_t            queueSet;
+  L7_uint32                queueId;
+  L7_uint32                i;
+  L7_cosQueueSchedParms_t  qParms;
+  L7_qosCosDropParmsList_t dropList;
+  L7_BOOL                  wRedSupport;
 
   if (pCfg == L7_NULLPTR)
     return L7_FAILURE;
@@ -815,7 +815,7 @@ L7_RC_t cosConfigIntfQueueCfgDataApply(L7_uint32 intIfNum, L7_cosCfgParms_t *pCf
                               L7_COS_QUEUE_WRED_SUPPORT_FEATURE_ID);
 
   /* For each queue group */
-  for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
     /* apply configuration for each queue */
     for (queueId = 0; queueId < L7_MAX_CFG_QUEUES_PER_PORT; queueId++)
@@ -908,7 +908,7 @@ L7_RC_t cosConfigIntfQueueCfgDataApply(L7_uint32 intIfNum, L7_cosCfgParms_t *pCf
 *********************************************************************/
 L7_RC_t cosConfigIntfDataUnapply(L7_uint32 intIfNum, L7_cosCfgIntfParms_t *pCfgIntf)
 {
-  L7_uint8              queueSet;
+  l7_cosq_set_t         queueSet;
   nimConfigID_t         configId;
   L7_cosCfgIntfParms_t  intfCfg;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
@@ -936,7 +936,7 @@ L7_RC_t cosConfigIntfDataUnapply(L7_uint32 intIfNum, L7_cosCfgIntfParms_t *pCfgI
    */
   cosResetDefaultIntfConfigData(intIfNum, &configId, &intfCfg);
 
-  for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
     /* conditionally apply default COS mapping table config if different
      * from current config
@@ -1761,7 +1761,7 @@ void cosConfigDataShow(L7_uint32 intIfNum)
   L7_uint32             msgLvlReqd = COS_MSGLVL_ON; /* always display output */
   L7_cosCfgIntfParms_t  *pCfgIntf;
   nimUSP_t              *pUsp;
-  L7_uint8              queueSet;
+  l7_cosq_set_t         queueSet;
 
   if (intIfNum == 0)
     intIfNum = L7_ALL_INTERFACES;
@@ -1804,7 +1804,7 @@ void cosConfigDataShow(L7_uint32 intIfNum)
   }
 
   /* NOTE:  L7_ALL_INTERFACES is used to display global config */
-  for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
     COS_PRT(msgLvlReqd, "\n### QueueSet %u\n", queueSet);
     cosMapTableShow(intIfNum, queueSet);
@@ -1938,8 +1938,8 @@ void cosConfigIntfOverrideShow(void)
 *********************************************************************/
 static L7_BOOL cosConfigIntfMatchesGlobal(L7_uint32 intIfNum)
 {
-  L7_cosCfgIntfParms_t    *pCfgIntf;
-  L7_uint8 queueSet;
+  L7_cosCfgIntfParms_t  *pCfgIntf;
+  l7_cosq_set_t         queueSet;
 
   /* make sure config data exists */
   if (pCosCfgData_g == L7_NULLPTR)
@@ -1950,7 +1950,7 @@ static L7_BOOL cosConfigIntfMatchesGlobal(L7_uint32 intIfNum)
     return L7_FALSE;
 
   /* compare the common 'cfg' sections of the global and interface configs */
-  for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
     if (memcmp(&pCfgIntf->cfg[queueSet], &pCosCfgData_g->cosGlobal.cfg,
                sizeof(L7_cosCfgParms_t)) != 0)
@@ -2067,7 +2067,7 @@ void cosBuildTestConfigData(void)
   L7_cosCfgIntfParms_t    *pCfgIntf;
   nimConfigID_t           configIdNull;
   L7_uint32               intIfNum;
-  L7_uint8                queueSet;
+  l7_cosq_set_t           queueSet;
 
   memset(&configIdNull, 0, sizeof(configIdNull));
   memset(configIdSave, 0, sizeof(configIdSave));
@@ -2112,7 +2112,7 @@ void cosBuildTestConfigData(void)
         NIM_CONFIG_ID_COPY(&pCfgIntf->configId, &configIdSave[cfgIndex]);
 
         /* Run all queue sets */
-        for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+        for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
         {
           cosBuildTestIntfConfigData(intIfNum, &pCfgIntf->cfg[queueSet]);
         }

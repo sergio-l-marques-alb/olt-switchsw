@@ -58,7 +58,7 @@ L7_RC_t ptin_hapi_qos_vlan_remove(L7_uint16 ext_vlan, L7_uint16 int_vlan, L7_BOO
  * @author mruas (06/01/21)
  * 
  * @param dapiPort 
- * @param cosq_dest : ptin_bridge_vlan_cosq_dest_t
+ * @param queueSet : l7_cosq_set_t
  * @param tc : Traffic class
  * @param rate_min 
  * @param rate_max 
@@ -67,7 +67,7 @@ L7_RC_t ptin_hapi_qos_vlan_remove(L7_uint16 ext_vlan, L7_uint16 int_vlan, L7_BOO
  * @return L7_RC_t 
  */
 L7_RC_t 
-ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, ptin_bridge_vlan_cosq_dest_t cosq_dest, L7_int tc,
+ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_int tc,
                          L7_uint32 rate_min, L7_uint32 rate_max, L7_uint32 burst_size);
 
 
@@ -77,7 +77,7 @@ ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, ptin_bridge_vlan_cosq_dest_
  * @author mruas (06/01/21)
  * 
  * @param dapiPort 
- * @param cosq_dest : ptin_bridge_vlan_cosq_dest_t
+ * @param queueSet : l7_cosq_set_t
  * @param tc : Traffic class
  * @param rate_min 
  * @param rate_max 
@@ -86,7 +86,7 @@ ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, ptin_bridge_vlan_cosq_dest_
  * @return L7_RC_t 
  */
 L7_RC_t 
-ptin_hapi_qos_shaper_get(ptin_dapi_port_t *dapiPort, ptin_bridge_vlan_cosq_dest_t cosq_dest, L7_int tc,
+ptin_hapi_qos_shaper_get(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_int tc,
                          L7_uint32 *rate_min, L7_uint32 *rate_max, L7_uint32 *burst_size);
 
 /**

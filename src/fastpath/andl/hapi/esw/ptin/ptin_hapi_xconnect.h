@@ -28,8 +28,7 @@ extern L7_RC_t ptin_hapi_bridge_free_resources(L7_uint16 *crossconnects);
  * @param cross_connects_apply: Use cross-connects to this vlan?
  * @param mac_learning_apply:   Apply mac learning to this vlan?
  * @param mc_group: Multicast group 
- * @param cosq_dest: Destination COS queue 
- *                 (ptin_bridge_vlan_cosq_dest_t)
+ * @param queueSet: Destination COS queue (l7_cosq_set_t) 
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
@@ -38,7 +37,7 @@ extern L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId,
                                               L7_BOOL   cross_connects_apply,
                                               L7_BOOL   mac_learning_apply,
                                               L7_int    mc_group,
-                                              ptin_bridge_vlan_cosq_dest_t cosq_dest);
+                                              l7_cosq_set_t queueSet);
 
 /**
  * For a particular VLAN select queue destination
@@ -46,11 +45,11 @@ extern L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId,
  * @author mruas (29/12/20)
  * 
  * @param vlanId
- * @param cosq_dest : ptin_bridge_vlan_cosq_dest_t
+ * @param queueSet : l7_cosq_set_t
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_hapi_bridge_vlan_cosq_set(L7_uint16 vlanId, ptin_bridge_vlan_cosq_dest_t cosq_dest);
+extern L7_RC_t ptin_hapi_bridge_vlan_cosq_set(L7_uint16 vlanId, l7_cosq_set_t queueSet);
 
 /**
  * Define forward vlanId for a specific vlan for bridging 

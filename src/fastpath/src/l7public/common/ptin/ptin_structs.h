@@ -658,23 +658,13 @@ typedef struct
   DAPI_USP_t  ddUsp;
 } ptin_vlan_mode_t;
 
-/* COS queue destination */
-typedef enum ptin_bridge_vlan_cosq_dest_e {
-    PTIN_BRIDGE_VLAN_COSQ_DEST_DEFAULT =0,
-    PTIN_BRIDGE_VLAN_COSQ_DEST_WIRED   =1,
-    PTIN_BRIDGE_VLAN_COSQ_DEST_WIRELESS=2,
-    PTIN_BRIDGE_VLAN_COSQ_DEST_TRANSIT =3,
-    PTIN_BRIDGE_VLAN_COSQ_DEST_STACKED =4,
-    PTIN_BRIDGE_VLAN_COSQ_DEST_MAX,
-} ptin_bridge_vlan_cosq_dest_t;
-
 typedef struct
 {
   L7_uint32    rate_min;        // shaper min rate
   L7_uint32    rate_max;        // shaper max rate
   L7_uint32    burst_size;      // burst size           
   L7_int       tc;              // Traffic class (-1 for all)
-  ptin_bridge_vlan_cosq_dest_t cosq_dest; // Destination queue
+  l7_cosq_set_t queueSet;       // Destination queueSet
 } ptin_intf_shaper_t;
 
 /* Struct used to configure vlan mode via DTL */
@@ -698,7 +688,7 @@ typedef struct
   L7_int    multicast_group;        // Associate a multicast group
   L7_uint32 multicast_flag;     /* BCM_MULTICAST_TYPE_VLAN  | BCM_MULTICAST_TYPE_L3*/
     #define PTIN_BRIDGE_VLAN_MODE_MASK_COSQ_DEST      0x40
-  ptin_bridge_vlan_cosq_dest_t cosq_dest_select;
+  l7_cosq_set_t qos_queueSet;
 } ptin_bridge_vlan_mode_t;
 
 /*The below values have been copied from bcm sdk*/  

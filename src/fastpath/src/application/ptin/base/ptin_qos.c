@@ -1349,21 +1349,21 @@ L7_RC_t ptin_qos_shaper_set(L7_uint32 ptin_port, L7_int tc,
   entry.tc = tc;
 
   /* Destination queue */
-  entry.cosq_dest = PTIN_BRIDGE_VLAN_COSQ_DEST_DEFAULT;
+  entry.queueSet = L7_QOS_QSET_DEFAULT;
 
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
   if (PTIN_PORT_IS_PON_GPON_TYPE(ptin_port))
   {
-    entry.cosq_dest = PTIN_BRIDGE_VLAN_COSQ_DEST_WIRED;
+    entry.queueSet = L7_QOS_QSET_WIRED;
   }
   else if (PTIN_PORT_IS_PON_XGSPON_TYPE(ptin_port))
   {
-    entry.cosq_dest = PTIN_BRIDGE_VLAN_COSQ_DEST_WIRELESS;
+    entry.queueSet = L7_QOS_QSET_WIRELESS;
   }
 #endif
 
   PT_LOG_NOTICE(LOG_CTX_INTF, "ptin_port=%u/intIfNum %u, tc=%d dst_queue=%u: min_rate=%u max_rate=%u burst_size=%u",
-                ptin_port, intIfNum, entry.tc, entry.cosq_dest, entry.rate_min, entry.rate_max, entry.burst_size);
+                ptin_port, intIfNum, entry.tc, entry.queueSet, entry.rate_min, entry.rate_max, entry.burst_size);
 
   rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_SHAPER_SET, DAPI_CMD_SET, sizeof(ptin_intf_shaper_t), &entry);
 

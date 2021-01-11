@@ -1255,7 +1255,7 @@ L7_RC_t ptin_hapi_qos_entry_remove(ptin_dtl_qos_t *qos_cfg)
  * @author mruas (06/01/21)
  * 
  * @param dapiPort 
- * @param cosq_dest : ptin_bridge_vlan_cosq_dest_t
+ * @param queueSet : l7_cosq_set_t
  * @param tc : Traffic class
  * @param rate_min 
  * @param rate_max 
@@ -1264,7 +1264,7 @@ L7_RC_t ptin_hapi_qos_entry_remove(ptin_dtl_qos_t *qos_cfg)
  * @return L7_RC_t 
  */
 L7_RC_t 
-ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, ptin_bridge_vlan_cosq_dest_t cosq_dest, L7_int tc,
+ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_int tc,
                          L7_uint32 rate_min, L7_uint32 rate_max, L7_uint32 burst_size)
 {
   BROAD_PORT_t *hapiPortPtr;
@@ -1272,10 +1272,10 @@ ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, ptin_bridge_vlan_cosq_dest_
 
   hapiPortPtr = HAPI_PORT_GET( dapiPort->usp, dapiPort->dapi_g );
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d}, bcm_unit=%u bcm_port=%u, cosq_dest=%u, tc=%d: rate_min=%u %rate_max=%u burst_size=%u",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d}, bcm_unit=%u bcm_port=%u, queueSet=%u, tc=%d: rate_min=%u %rate_max=%u burst_size=%u",
                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, 
                hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
-               cosq_dest, tc, rate_min, rate_max, burst_size);
+               queueSet, tc, rate_min, rate_max, burst_size);
 
   /* All traffic classes (port configuration) */
   if (tc < 0)
@@ -1314,7 +1314,7 @@ ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, ptin_bridge_vlan_cosq_dest_
  * @author mruas (06/01/21)
  * 
  * @param dapiPort 
- * @param cosq_dest : ptin_bridge_vlan_cosq_dest_t
+ * @param queueSet : l7_cosq_set_t
  * @param tc : Traffic class
  * @param rate_min 
  * @param rate_max 
@@ -1323,7 +1323,7 @@ ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, ptin_bridge_vlan_cosq_dest_
  * @return L7_RC_t 
  */
 L7_RC_t 
-ptin_hapi_qos_shaper_get(ptin_dapi_port_t *dapiPort, ptin_bridge_vlan_cosq_dest_t cosq_dest, L7_int tc,
+ptin_hapi_qos_shaper_get(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_int tc,
                          L7_uint32 *rate_min, L7_uint32 *rate_max, L7_uint32 *burst_size)
 {
   int _rate_min=0, _rate_max=0, _burst_size=0, _flags=0;
@@ -1360,10 +1360,10 @@ ptin_hapi_qos_shaper_get(ptin_dapi_port_t *dapiPort, ptin_bridge_vlan_cosq_dest_
     }
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d}, bcm_unit=%u bcm_port=%u, cosq_dest=%u, tc=%d: rate_min=%d %rate_max=%d burst_size=%d",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d}, bcm_unit=%u bcm_port=%u, queueSet=%u, tc=%d: rate_min=%d %rate_max=%d burst_size=%d",
                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, 
                hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
-               cosq_dest, tc, _rate_min, _rate_max, _burst_size);
+               queueSet, tc, _rate_min, _rate_max, _burst_size);
 
   /* Return values */
   if (rate_min   != L7_NULLPTR)  *rate_min   = _rate_min;

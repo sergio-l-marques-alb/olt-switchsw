@@ -95,7 +95,7 @@ L7_RC_t usmDbQosCosMapIpPrecIndexGetNext(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosMapIpPrecTrafficClassGet(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum,
-                                            L7_uint8  queueSet,
+                                            l7_cosq_set_t queueSet,
                                             L7_uint32 prec, 
                                             L7_uint32 *pVal);
 
@@ -118,7 +118,7 @@ L7_RC_t usmDbQosCosMapIpPrecTrafficClassGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosMapIpPrecTrafficClassSet(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum,
-                                            L7_uint8  queueSet, 
+                                            l7_cosq_set_t queueSet, 
                                             L7_uint32 prec, 
                                             L7_uint32 val);
 
@@ -144,7 +144,7 @@ L7_RC_t usmDbQosCosMapIpPrecTrafficClassSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosMapIpPrecDefaultTrafficClassGet(L7_uint32 UnitIndex, 
                                                    L7_uint32 intIfNum,
-                                                   L7_uint8  queueSet,
+                                                   l7_cosq_set_t queueSet,
                                                    L7_uint32 prec, 
                                                    L7_uint32 *pVal);
 
@@ -165,7 +165,7 @@ L7_RC_t usmDbQosCosMapIpPrecDefaultTrafficClassGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosMapIpPrecDefaultsRestore(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum,
-                                            L7_uint8  queueSet);
+                                            l7_cosq_set_t queueSet);
 
 /*********************************************************************
 * @purpose  Verify specified IP Precedence mapping table interface index exists
@@ -272,7 +272,7 @@ L7_RC_t usmDbQosCosMapIpDscpIndexGetNext(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosMapIpDscpTrafficClassGet(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum,
-                                            L7_uint8  queueSet, 
+                                            l7_cosq_set_t queueSet, 
                                             L7_uint32 dscp, 
                                             L7_uint32 *pVal);
 
@@ -295,7 +295,7 @@ L7_RC_t usmDbQosCosMapIpDscpTrafficClassGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosMapIpDscpTrafficClassSet(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum,
-                                            L7_uint8  queueSet, 
+                                            l7_cosq_set_t queueSet, 
                                             L7_uint32 dscp, 
                                             L7_uint32 val);
 
@@ -321,7 +321,7 @@ L7_RC_t usmDbQosCosMapIpDscpTrafficClassSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosMapIpDscpDefaultTrafficClassGet(L7_uint32 UnitIndex, 
                                                    L7_uint32 intIfNum,
-                                                   L7_uint8  queueSet,
+                                                   l7_cosq_set_t queueSet,
                                                    L7_uint32 dscp, 
                                                    L7_uint32 *pVal);
 
@@ -342,7 +342,7 @@ L7_RC_t usmDbQosCosMapIpDscpDefaultTrafficClassGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosMapIpDscpDefaultsRestore(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum,
-                                            L7_uint8  queueSet);
+                                            l7_cosq_set_t queueSet);
 
 /*********************************************************************
 * @purpose  Verify specified IP DSCP mapping table interface index exists
@@ -429,7 +429,7 @@ L7_BOOL usmDbQosCosMapTrustModeCfgPerIntfIsAllowed(void);
 *********************************************************************/
 L7_RC_t usmDbQosCosMapTrustModeGet(L7_uint32 UnitIndex, 
                                    L7_uint32 intIfNum,
-                                   L7_uint8  queueSet,
+                                   l7_cosq_set_t queueSet,
                                    L7_QOS_COS_MAP_INTF_MODE_t *pVal);
 
 /*************************************************************************
@@ -450,7 +450,7 @@ L7_RC_t usmDbQosCosMapTrustModeGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosMapTrustModeSet(L7_uint32 UnitIndex, 
                                    L7_uint32 intIfNum,
-                                   L7_uint8  queueSet,
+                                   l7_cosq_set_t queueSet,
                                    L7_QOS_COS_MAP_INTF_MODE_t val);
 
 /*********************************************************************
@@ -506,7 +506,7 @@ L7_RC_t usmDbQosCosMapTrustModeIntfIndexGetNext(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosMapUntrustedPortDefaultTrafficClassGet(L7_uint32 UnitIndex,
                                                           L7_uint32 intIfNum,
-                                                          L7_uint8  queueSet,
+                                                          l7_cosq_set_t queueSet,
                                                           L7_uint32 *pVal);
 
 /*********************************************************************
@@ -681,7 +681,7 @@ L7_RC_t usmDbQosCosQueueDropPrecIndexGetNext(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueDefaultsRestore(L7_uint32 UnitIndex, 
                                         L7_uint32 intIfNum,
-                                        L7_uint8  queueSet);
+                                        l7_cosq_set_t queueSet);
 
 /*************************************************************************
 * @purpose  Get the COS egress shaping rate for this interface
@@ -702,7 +702,7 @@ L7_RC_t usmDbQosCosQueueDefaultsRestore(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueIntfShapingRateGet(L7_uint32 UnitIndex, 
                                            L7_uint32 intIfNum, 
-                                           L7_uint8  queueSet,
+                                           l7_cosq_set_t queueSet,
                                            L7_uint32 *pVal, L7_uint32 *burstSize);
 
 /*************************************************************************
@@ -724,7 +724,7 @@ L7_RC_t usmDbQosCosQueueIntfShapingRateGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueIntfShapingRateSet(L7_uint32 UnitIndex, 
                                            L7_uint32 intIfNum,
-                                           L7_uint8  queueSet, 
+                                           l7_cosq_set_t queueSet, 
                                            L7_uint32 rate, L7_uint32 burstSize);
 
 /*************************************************************************
@@ -743,7 +743,7 @@ L7_RC_t usmDbQosCosQueueIntfShapingRateSet(L7_uint32 UnitIndex,
 * @end
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueIntfShapingStatusGet(L7_uint32 intIfNum, 
-                                             L7_uint8  queueSet,
+                                             l7_cosq_set_t queueSet,
                                              L7_uint32 *intfShapingRate,
                                              L7_uint32 *intfShapingBurstSize);
 
@@ -780,7 +780,7 @@ L7_RC_t usmDbQosCosQueueIntfShapingRateUnitsGet(L7_RATE_UNIT_t *units);
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMgmtTypePerIntfGet(L7_uint32 UnitIndex, 
                                            L7_uint32 intIfNum,
-                                           L7_uint8  queueSet,
+                                           l7_cosq_set_t queueSet,
                                            L7_QOS_COS_QUEUE_MGMT_TYPE_t *pVal);
 
 /*************************************************************************
@@ -804,7 +804,7 @@ L7_RC_t usmDbQosCosQueueMgmtTypePerIntfGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMgmtTypePerIntfSet(L7_uint32 UnitIndex, 
                                            L7_uint32 intIfNum,
-                                           L7_uint8  queueSet,
+                                           l7_cosq_set_t queueSet,
                                            L7_QOS_COS_QUEUE_MGMT_TYPE_t val);
 
 /*************************************************************************
@@ -825,7 +825,7 @@ L7_RC_t usmDbQosCosQueueMgmtTypePerIntfSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueWredDecayExponentGet(L7_uint32 UnitIndex, 
                                              L7_uint32 intIfNum,
-                                             L7_uint8  queueSet,
+                                             l7_cosq_set_t queueSet,
                                              L7_uint32 *pVal);
 
 /*************************************************************************
@@ -846,7 +846,7 @@ L7_RC_t usmDbQosCosQueueWredDecayExponentGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueWredDecayExponentSet(L7_uint32 UnitIndex, 
                                              L7_uint32 intIfNum,
-                                             L7_uint8  queueSet,
+                                             l7_cosq_set_t queueSet,
                                              L7_uint32 val);
 
 /*************************************************************************
@@ -867,7 +867,7 @@ L7_RC_t usmDbQosCosQueueWredDecayExponentSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMinBandwidthListGet(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum,
-                                            L7_uint8  queueSet,
+                                            l7_cosq_set_t queueSet,
                                             L7_qosCosQueueBwList_t *pVal);
 
 /*************************************************************************
@@ -888,7 +888,7 @@ L7_RC_t usmDbQosCosQueueMinBandwidthListGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMinBandwidthListSet(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum,
-                                            L7_uint8  queueSet,
+                                            l7_cosq_set_t queueSet,
                                             L7_qosCosQueueBwList_t *pVal);
 
 /*************************************************************************
@@ -910,7 +910,7 @@ L7_RC_t usmDbQosCosQueueMinBandwidthListSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMinBandwidthSet(L7_uint32 UnitIndex, 
                                         L7_uint32 intIfNum,
-                                        L7_uint8  queueSet,
+                                        l7_cosq_set_t queueSet,
                                         L7_uint32 queueId,
                                         L7_uint32 val);
 
@@ -932,7 +932,7 @@ L7_RC_t usmDbQosCosQueueMinBandwidthSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMaxBandwidthListGet(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum,
-                                            L7_uint8  queueSet,
+                                            l7_cosq_set_t queueSet,
                                             L7_qosCosQueueBwList_t *pVal);
 
 /*************************************************************************
@@ -953,7 +953,7 @@ L7_RC_t usmDbQosCosQueueMaxBandwidthListGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMaxBandwidthListSet(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum,
-                                            L7_uint8  queueSet,
+                                            l7_cosq_set_t queueSet,
                                             L7_qosCosQueueBwList_t *pVal);
 
 /*************************************************************************
@@ -975,7 +975,7 @@ L7_RC_t usmDbQosCosQueueMaxBandwidthListSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMaxBandwidthSet(L7_uint32 UnitIndex, 
                                         L7_uint32 intIfNum,
-                                        L7_uint8  queueSet,
+                                        l7_cosq_set_t queueSet,
                                         L7_uint32 queueId,
                                         L7_uint32 val);
 
@@ -997,7 +997,7 @@ L7_RC_t usmDbQosCosQueueMaxBandwidthSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueSchedulerTypeListGet(L7_uint32 UnitIndex, 
                                              L7_uint32 intIfNum,
-                                             L7_uint8  queueSet,
+                                             l7_cosq_set_t queueSet,
                                              L7_qosCosQueueSchedTypeList_t *pVal);
 
 /* PTin added: QoS */
@@ -1019,7 +1019,7 @@ L7_RC_t usmDbQosCosQueueSchedulerTypeListGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueWeightListGet(L7_uint32 UnitIndex, 
                                       L7_uint32 intIfNum,
-                                      L7_uint8  queueSet,
+                                      l7_cosq_set_t queueSet,
                                       L7_qosCosQueueWeightList_t *pVal);
 
 /*************************************************************************
@@ -1040,7 +1040,7 @@ L7_RC_t usmDbQosCosQueueWeightListGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueSchedulerTypeListSet(L7_uint32 UnitIndex, 
                                              L7_uint32 intIfNum,
-                                             L7_uint8  queueSet,
+                                             l7_cosq_set_t queueSet,
                                              L7_qosCosQueueSchedTypeList_t *pVal);
 
 /* PTin added: QoS */
@@ -1062,7 +1062,7 @@ L7_RC_t usmDbQosCosQueueSchedulerTypeListSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueWeightListSet(L7_uint32 UnitIndex, 
                                       L7_uint32 intIfNum,
-                                      L7_uint8  queueSet,
+                                      l7_cosq_set_t queueSet,
                                       L7_qosCosQueueWeightList_t *pVal);
 
 /*************************************************************************
@@ -1084,7 +1084,7 @@ L7_RC_t usmDbQosCosQueueWeightListSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueSchedulerTypeSet(L7_uint32 UnitIndex, 
                                          L7_uint32 intIfNum,
-                                         L7_uint8  queueSet,
+                                         l7_cosq_set_t queueSet,
                                          L7_uint32 queueId,
                                          L7_uint32 val);
 
@@ -1108,7 +1108,7 @@ L7_RC_t usmDbQosCosQueueSchedulerTypeSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueWeightSet(L7_uint32 UnitIndex, 
                                   L7_uint32 intIfNum,
-                                  L7_uint8  queueSet,
+                                  l7_cosq_set_t queueSet,
                                   L7_uint32 queueId,
                                   L7_uint32 val);
 
@@ -1133,7 +1133,7 @@ L7_RC_t usmDbQosCosQueueWeightSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMgmtTypeListGet(L7_uint32 UnitIndex, 
                                         L7_uint32 intIfNum,
-                                        L7_uint8  queueSet,
+                                        l7_cosq_set_t queueSet,
                                         L7_qosCosQueueMgmtTypeList_t *pVal);
 
 /*************************************************************************
@@ -1157,7 +1157,7 @@ L7_RC_t usmDbQosCosQueueMgmtTypeListGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMgmtTypeListSet(L7_uint32 UnitIndex, 
                                         L7_uint32 intIfNum,
-                                        L7_uint8  queueSet,
+                                        l7_cosq_set_t queueSet,
                                         L7_qosCosQueueMgmtTypeList_t *pVal);
 
 /*************************************************************************
@@ -1179,7 +1179,7 @@ L7_RC_t usmDbQosCosQueueMgmtTypeListSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMgmtTypeSet(L7_uint32 UnitIndex, 
                                     L7_uint32 intIfNum,
-                                    L7_uint8  queueSet,
+                                    l7_cosq_set_t queueSet,
                                     L7_uint32 queueId,
                                     L7_uint32 val);
 
@@ -1201,7 +1201,7 @@ L7_RC_t usmDbQosCosQueueMgmtTypeSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueDropParmsListGet(L7_uint32 UnitIndex, 
                                          L7_uint32 intIfNum,
-                                         L7_uint8  queueSet,
+                                         l7_cosq_set_t queueSet,
                                          L7_qosCosDropParmsList_t *pVal);
 
 /*************************************************************************
@@ -1223,7 +1223,7 @@ L7_RC_t usmDbQosCosQueueDropParmsListGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueDefaultConfigGet(L7_uint32 UnitIndex, 
                                          L7_uint32 intIfNum,
-                                         L7_uint8  queueSet,
+                                         l7_cosq_set_t queueSet,
                                          L7_cosCfgParms_t *pVal);
 
 /*************************************************************************
@@ -1244,7 +1244,7 @@ L7_RC_t usmDbQosCosQueueDefaultConfigGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueDropParmsListSet(L7_uint32 UnitIndex, 
                                          L7_uint32 intIfNum,
-                                         L7_uint8  queueSet,
+                                         l7_cosq_set_t queueSet,
                                          L7_qosCosDropParmsList_t *pVal);
 
 
@@ -1267,7 +1267,7 @@ L7_RC_t usmDbQosCosQueueDropParmsListSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueDropDefaultsRestore(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum,
-                                            L7_uint8  queueSet, 
+                                            l7_cosq_set_t queueSet, 
                                             L7_uint32 queueId);
 
 /*************************************************************************

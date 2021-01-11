@@ -127,13 +127,13 @@ L7_RC_t cosMapTableInitLookup(L7_uint32 numTrafficClasses, L7_uint32 precLevel,
 void cosBuildDefaultConfigData(L7_uint32 ver);
 void cosBuildDefaultIntfConfigData(nimConfigID_t *configId, L7_cosCfgIntfParms_t *pCfg);
 void cosDefaultMappingConfigBuild(L7_uint32 intIfNum, L7_cosMapCfg_t *pCfgMap);
-L7_RC_t cosDefaultMappingIpPrecGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 prec,
+L7_RC_t cosDefaultMappingIpPrecGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 prec,
                                    L7_uint32 *pVal);
-L7_RC_t cosDefaultMappingIpDscpGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 dscp,
+L7_RC_t cosDefaultMappingIpDscpGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 dscp,
                                    L7_uint32 *pVal);
 void cosDefaultIntfConfigBuild(L7_cosIntfCfg_t *pCfgIntf);
 void cosDefaultQueueConfigAllBuild(L7_cosQueueCfg_t *pCfgQ);
-void cosDefaultQueueConfigBuild(L7_cosQueueCfg_t *pCfgQ, L7_uint8 queueSet, L7_uint32 queueId);
+void cosDefaultQueueConfigBuild(L7_cosQueueCfg_t *pCfgQ, l7_cosq_set_t queueSet, L7_uint32 queueId);
 void cosResetDefaultIntfConfigData(L7_uint32 intIfNum, 
                                    nimConfigID_t *pConfigId, 
                                    L7_cosCfgIntfParms_t *pCfgIntf);
@@ -168,22 +168,22 @@ void cosConfigDataTestShow(void);
 
 /* cos_maptable_api.c */
 L7_BOOL cosMapTableContentIsValid(L7_uint32 intIfNum, L7_cosMapCfg_t *pCfgMap);
-void cosMapTableShow(L7_uint32 intIfNum, L7_uint8 queueSet);
+void cosMapTableShow(L7_uint32 intIfNum, l7_cosq_set_t queueSet);
 void cosMapPortDefaultPriorityTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd);
 void cosMapDot1pTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd);
-void cosMapIpPrecTableShow(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 msgLvlReqd);
-void cosMapIpDscpTableShow(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 msgLvlReqd);
+void cosMapIpPrecTableShow(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 msgLvlReqd);
+void cosMapIpDscpTableShow(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 msgLvlReqd);
 
 /* cos_migrate.c */
 void cosMigrateConfigData (L7_uint32 oldVer, L7_uint32 ver, L7_char8 * pCfgBuffer);
 
 /* cos_queue_api.c */
-L7_BOOL cosQueueMgmtTypeIsActive(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 queueId,
+L7_BOOL cosQueueMgmtTypeIsActive(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 queueId,
                                  L7_QOS_COS_QUEUE_MGMT_TYPE_t qMgmtType);
-void cosQueueConfigShow(L7_uint32 intIfNum, L7_uint8 queueSet);
+void cosQueueConfigShow(L7_uint32 intIfNum, l7_cosq_set_t queueSet);
 
 /* cos_util.c */
-L7_RC_t cosCfgPtrFind(L7_uint32 intIfNum, L7_uint8 queueSet, L7_cosCfgParms_t **ppCfg);
+L7_RC_t cosCfgPtrFind(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_cosCfgParms_t **ppCfg);
 L7_BOOL cosIntfIsValid(L7_uint32 intIfNum);
 L7_BOOL cosIntfTypeIsValid(L7_uint32 intIfNum);
 L7_RC_t cosIntfIndexGet(L7_uint32 intIfNum);
@@ -199,16 +199,16 @@ L7_RC_t cosMapIpDscpTableApply(L7_uint32 intIfNum, L7_uchar8 *pVal);
 L7_RC_t cosMapIntfTrustModeApply(L7_uint32 intIfNum, 
                                  L7_cosCfgParms_t *pCfg,
                                  L7_BOOL forceDtl);
-L7_RC_t cosQueueIntfConfigApply(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t cosQueueIntfConfigApply(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                 L7_uint32 intfShapingRate, L7_uint32 intfShapingBurstSize,
                                 L7_QOS_COS_QUEUE_MGMT_TYPE_t qMgmtTypeIntf,
                                 L7_uint32 wredDecayExp);
-L7_RC_t cosIntfShapingStatusGet(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t cosIntfShapingStatusGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                 L7_uint32 *intfShapingRate,
                                 L7_uint32 *intfShapingBurstSize);
-L7_RC_t cosQueueSchedConfigApply(L7_uint32 intIfNum, L7_uint8 queueSet, 
+L7_RC_t cosQueueSchedConfigApply(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                  L7_cosQueueSchedParms_t *pQParms);
-L7_RC_t cosQueueDropParmsApply(L7_uint32 intIfNum, L7_uint8 queueSet, 
+L7_RC_t cosQueueDropParmsApply(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                L7_qosCosDropParmsList_t *pVal);
 L7_RC_t cosQueueDropParmsValidate(L7_qosCosDropParmsList_t *pVal);
 L7_BOOL cosQueueDropParmsDiffer(L7_qosCosDropParmsList_t *pVal, L7_cosCfgParms_t *pCfg);

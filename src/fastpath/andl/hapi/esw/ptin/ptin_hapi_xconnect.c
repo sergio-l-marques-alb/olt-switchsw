@@ -91,8 +91,7 @@ L7_RC_t ptin_hapi_bridge_free_resources(L7_uint16 *crossconnects)
  * @param cross_connects_apply: Use cross-connects to this vlan?
  * @param mac_learning_apply:   Apply mac learning to this vlan? 
  * @param mc_group: Multicast group 
- * @param cosq_dest: Destination COS queue 
- *                 (ptin_bridge_vlan_cosq_dest_t)
+ * @param queueSet: Destination COS queue (l7_cosq_set_t) 
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
@@ -101,7 +100,7 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId,
                                        L7_BOOL   cross_connects_apply,
                                        L7_BOOL   mac_learning_apply,
                                        L7_int    mc_group,
-                                       ptin_bridge_vlan_cosq_dest_t cosq_dest)
+                                       l7_cosq_set_t queueSet)
 {
   int unit, error;
   bcm_vlan_control_vlan_t control;
@@ -153,12 +152,12 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId,
 #if (SDK_VERSION_IS >= SDK_VERSION(6,5,18,0))
     if (SOC_IS_TRIDENT3X(unit))
     {
-      switch (cosq_dest)
+      switch (queueSet)
       {
-      case PTIN_BRIDGE_VLAN_COSQ_DEST_WIRED:
+      case L7_QOS_QSET_WIRED:
         control.flags2 = BCM_VLAN_FLAGS2_WIRED_COS_MAP_SELECT;
         break;
-      case PTIN_BRIDGE_VLAN_COSQ_DEST_WIRELESS:
+      case L7_QOS_QSET_WIRELESS:
         control.flags2 = BCM_VLAN_FLAGS2_WIRELESS_COS_MAP_SELECT;
         break;
       default:
@@ -187,22 +186,22 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId,
  * @author mruas (29/12/20)
  * 
  * @param vlanId
- * @param cosq_dest : ptin_bridge_vlan_cosq_dest_t
+ * @param queueSet : l7_cosq_set_t
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_hapi_bridge_vlan_cosq_set(L7_uint16 vlanId, ptin_bridge_vlan_cosq_dest_t cosq_dest)
+L7_RC_t ptin_hapi_bridge_vlan_cosq_set(L7_uint16 vlanId, l7_cosq_set_t queueSet)
 {
   /* Nothing to be done! */
-  if (cosq_dest == PTIN_BRIDGE_VLAN_COSQ_DEST_DEFAULT)
+  if (queueSet == L7_QOS_QSET_DEFAULT)
   {
     return L7_SUCCESS;
   }
 
   /* Forwarding vlan, for MAC learning purposes (only if fwdvlan is valid) */
-  if (cosq_dest >= PTIN_BRIDGE_VLAN_COSQ_DEST_MAX)
+  if (queueSet >= L7_QOS_QSET_MAX)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid COS queue destination %u", cosq_dest);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid COS queue destination %u", queueSet);
     return L7_FAILURE;
   }
 
@@ -225,16 +224,16 @@ L7_RC_t ptin_hapi_bridge_vlan_cosq_set(L7_uint16 vlanId, ptin_bridge_vlan_cosq_d
       bcm_vlan_control_vlan_t_init(&control);
 
       /* COS queue destination */
-      switch (cosq_dest)
+      switch (queueSet)
       {
-      case PTIN_BRIDGE_VLAN_COSQ_DEST_WIRED:
+      case L7_QOS_QSET_WIRED:
         control.flags2 = BCM_VLAN_FLAGS2_WIRED_COS_MAP_SELECT;
         break;
-      case PTIN_BRIDGE_VLAN_COSQ_DEST_WIRELESS:
+      case L7_QOS_QSET_WIRELESS:
         control.flags2 = BCM_VLAN_FLAGS2_WIRELESS_COS_MAP_SELECT;
         break;
       default:
-        PT_LOG_WARN(LOG_CTX_HAPI, "COS queue destination %u not supported", cosq_dest);
+        PT_LOG_WARN(LOG_CTX_HAPI, "COS queue destination %u not supported", queueSet);
         return L7_SUCCESS;
       }
 

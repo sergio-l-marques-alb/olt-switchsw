@@ -38,8 +38,8 @@ typedef enum l7_cosq_set_e {
 } l7_cosq_set_t;
 
 /* Some switches allow more than 1 group of queues per port */
-#ifndef L7_MAX_CFG_GROUP_QUEUES_PER_PORT
-  #define L7_MAX_CFG_GROUP_QUEUES_PER_PORT      L7_QOS_QSET_MAX
+#ifndef L7_MAX_CFG_QUEUESETS_PER_PORT
+  #define L7_MAX_CFG_QUEUESETS_PER_PORT     L7_QOS_QSET_MAX
 #endif
 
 /* the following values are established here if not already defined in platform.h */
@@ -169,7 +169,7 @@ L7_RC_t cosMapIpPrecIndexGetNext(L7_uint32 prec, L7_uint32 *pNext);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpPrecTrafficClassGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 prec,
+L7_RC_t cosMapIpPrecTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 prec,
                                     L7_uint32 *pVal);
 
 /*************************************************************************
@@ -187,7 +187,7 @@ L7_RC_t cosMapIpPrecTrafficClassGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_ui
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpPrecTrafficClassSet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 prec,
+L7_RC_t cosMapIpPrecTrafficClassSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 prec,
                                     L7_uint32 val);
 
 /*************************************************************************
@@ -224,7 +224,7 @@ L7_RC_t cosMapIpPrecTrafficClassGlobalSet(L7_uint32 prec, L7_uint32 val);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpPrecDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 prec, 
+L7_RC_t cosMapIpPrecDefaultTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 prec, 
                                            L7_uint32 *pVal);
 
 /*************************************************************************
@@ -240,7 +240,7 @@ L7_RC_t cosMapIpPrecDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint8 queueSet
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpPrecDefaultsRestore(L7_uint32 intIfNum, L7_uint8 queueSet);
+L7_RC_t cosMapIpPrecDefaultsRestore(L7_uint32 intIfNum, l7_cosq_set_t queueSet);
 
 /*************************************************************************
 * @purpose  Restore default IP precedence mappings globally for all interfaces
@@ -300,7 +300,7 @@ L7_RC_t cosMapIpDscpIndexGetNext(L7_uint32 dscp, L7_uint32 *pNext);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpDscpTrafficClassGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 dscp, 
+L7_RC_t cosMapIpDscpTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 dscp, 
                                     L7_uint32 *pVal);
 
 /*************************************************************************
@@ -318,7 +318,7 @@ L7_RC_t cosMapIpDscpTrafficClassGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_ui
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpDscpTrafficClassSet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 dscp, 
+L7_RC_t cosMapIpDscpTrafficClassSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 dscp, 
                                     L7_uint32 val);
 
 /*************************************************************************
@@ -355,7 +355,7 @@ L7_RC_t cosMapIpDscpTrafficClassGlobalSet(L7_uint32 dscp, L7_uint32 val);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpDscpDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 dscp, 
+L7_RC_t cosMapIpDscpDefaultTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 dscp, 
                                            L7_uint32 *pVal);
 
 /*************************************************************************
@@ -371,7 +371,7 @@ L7_RC_t cosMapIpDscpDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint8 queueSet
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpDscpDefaultsRestore(L7_uint32 intIfNum, L7_uint8 queueSet);
+L7_RC_t cosMapIpDscpDefaultsRestore(L7_uint32 intIfNum, l7_cosq_set_t queueSet);
 
 /*************************************************************************
 * @purpose  Restore default IP DSCP mappings globally for all interfaces
@@ -445,7 +445,7 @@ L7_BOOL cosMapIntfIsValid(L7_uint32 intIfNum);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIntfTrustModeGet(L7_uint32 intIfNum, L7_uint8 queueSet, 
+L7_RC_t cosMapIntfTrustModeGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                L7_QOS_COS_MAP_INTF_MODE_t *pVal);
 
 /*************************************************************************
@@ -462,7 +462,7 @@ L7_RC_t cosMapIntfTrustModeGet(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIntfTrustModeSet(L7_uint32 intIfNum, L7_uint8 queueSet, 
+L7_RC_t cosMapIntfTrustModeSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                L7_QOS_COS_MAP_INTF_MODE_t val);
 
 /*************************************************************************
@@ -493,7 +493,7 @@ L7_RC_t cosMapIntfTrustModeGlobalSet(L7_QOS_COS_MAP_INTF_MODE_t val);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapUntrustedPortDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint8 queueSet, 
+L7_RC_t cosMapUntrustedPortDefaultTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                                   L7_uint32 *pVal);
 
 /*********************************************************************
@@ -521,7 +521,7 @@ L7_RC_t cosMapUntrustedPortDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint8 q
 *
 * @end
 *********************************************************************/
-void cosMapPortDefaultPriorityUpdate(L7_uint32 intIfNum, L7_uint8 queueSet, 
+void cosMapPortDefaultPriorityUpdate(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                      L7_uint32 portDefaultPriority,
                                      L7_uint32 portDefaultTrafficClass);
 
@@ -550,7 +550,7 @@ void cosMapPortDefaultPriorityUpdate(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-void cosMapNumTrafficClassesUpdate(L7_uint32 intIfNum, L7_uint8 queueSet, 
+void cosMapNumTrafficClassesUpdate(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                    L7_uint32 numTrafficClasses);
 
 /*********************************************************************
@@ -572,7 +572,7 @@ void cosMapNumTrafficClassesUpdate(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_BOOL cosMapDot1pMappingIsActive(L7_uint32 intIfNum, L7_uint8 queueSet);
+L7_BOOL cosMapDot1pMappingIsActive(L7_uint32 intIfNum, l7_cosq_set_t queueSet);
 
 /*********************************************************************
 * @purpose  Verify specified queue config interface index exists
@@ -689,7 +689,7 @@ L7_RC_t cosQueueDropPrecIndexGetNext(L7_uint32 dropPrec, L7_uint32 *pNext);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueDefaultsRestore(L7_uint32 intIfNum, L7_uint8 queueSet);
+L7_RC_t cosQueueDefaultsRestore(L7_uint32 intIfNum, l7_cosq_set_t queueSet);
 
 /*************************************************************************
 * @purpose  Restore default settings for all queues globally on all interfaces
@@ -720,7 +720,7 @@ L7_RC_t cosQueueDefaultsGlobalRestore(void);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueIntfShapingRateGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 *rate, L7_uint32 *burstSize);
+L7_RC_t cosQueueIntfShapingRateGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 *rate, L7_uint32 *burstSize);
 
 /*************************************************************************
 * @purpose  Set the COS egress shaping rate for this interface
@@ -737,7 +737,7 @@ L7_RC_t cosQueueIntfShapingRateGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uin
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueIntfShapingRateSet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 rate, L7_uint32 burstSize);
+L7_RC_t cosQueueIntfShapingRateSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 rate, L7_uint32 burstSize);
 
 /*************************************************************************
 * @purpose  Get the COS interface parameters for this interface
@@ -754,7 +754,7 @@ L7_RC_t cosQueueIntfShapingRateSet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uin
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueIntfShapingStatusGet(L7_uint32 intIfNum, L7_uint8 queueSet, 
+L7_RC_t cosQueueIntfShapingStatusGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                      L7_uint32 *intfShapingRate,
                                      L7_uint32 *intfShapingBurstSize);
 
@@ -790,7 +790,7 @@ L7_RC_t cosQueueIntfShapingRateGlobalSet(L7_uint32 rate, L7_uint32 burstSize);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMgmtTypePerIntfGet(L7_uint32 intIfNum, L7_uint8 queueSet, 
+L7_RC_t cosQueueMgmtTypePerIntfGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                    L7_QOS_COS_QUEUE_MGMT_TYPE_t *pVal);
 
 /*************************************************************************
@@ -810,7 +810,7 @@ L7_RC_t cosQueueMgmtTypePerIntfGet(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMgmtTypePerIntfSet(L7_uint32 intIfNum, L7_uint8 queueSet, 
+L7_RC_t cosQueueMgmtTypePerIntfSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                    L7_QOS_COS_QUEUE_MGMT_TYPE_t val);
 
 /*************************************************************************
@@ -842,7 +842,7 @@ L7_RC_t cosQueueMgmtTypePerIntfGlobalSet(L7_QOS_COS_QUEUE_MGMT_TYPE_t val);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueWredDecayExponentGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 *pVal);
+L7_RC_t cosQueueWredDecayExponentGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 *pVal);
 
 /*************************************************************************
 * @purpose  Set the WRED decay exponent for this interface
@@ -858,7 +858,7 @@ L7_RC_t cosQueueWredDecayExponentGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_u
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueWredDecayExponentSet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 val);
+L7_RC_t cosQueueWredDecayExponentSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 val);
 
 /*************************************************************************
 * @purpose  Set the WRED decay exponent globally for all interfaces
@@ -888,7 +888,7 @@ L7_RC_t cosQueueWredDecayExponentGlobalSet(L7_uint32 val);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMinBandwidthListGet(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t cosQueueMinBandwidthListGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                     L7_qosCosQueueBwList_t *pVal);
 
 /*************************************************************************
@@ -905,7 +905,7 @@ L7_RC_t cosQueueMinBandwidthListGet(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMinBandwidthListSet(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t cosQueueMinBandwidthListSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                     L7_qosCosQueueBwList_t *pVal);
 
 /*************************************************************************
@@ -941,7 +941,7 @@ L7_RC_t cosQueueMinBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMaxBandwidthListGet(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t cosQueueMaxBandwidthListGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                     L7_qosCosQueueBwList_t *pVal);
 
 /*************************************************************************
@@ -958,7 +958,7 @@ L7_RC_t cosQueueMaxBandwidthListGet(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMaxBandwidthListSet(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t cosQueueMaxBandwidthListSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                     L7_qosCosQueueBwList_t *pVal);
 
 /*************************************************************************
@@ -994,7 +994,7 @@ L7_RC_t cosQueueMaxBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueSchedulerTypeListGet(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t cosQueueSchedulerTypeListGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                      L7_qosCosQueueSchedTypeList_t *pVal);
 
 /* PTin added: QoS */
@@ -1012,7 +1012,7 @@ L7_RC_t cosQueueSchedulerTypeListGet(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueWeightListGet(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t cosQueueWeightListGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                               L7_qosCosQueueWeightList_t *pVal);
 
 /*************************************************************************
@@ -1029,7 +1029,7 @@ L7_RC_t cosQueueWeightListGet(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueSchedulerTypeListSet(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t cosQueueSchedulerTypeListSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                      L7_qosCosQueueSchedTypeList_t *pVal);
 
 /* PTin added: QoS */
@@ -1047,7 +1047,7 @@ L7_RC_t cosQueueSchedulerTypeListSet(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueWeightListSet(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t cosQueueWeightListSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                               L7_qosCosQueueWeightList_t *pVal);
 
 /*************************************************************************
@@ -1106,7 +1106,7 @@ L7_RC_t cosQueueWeightGlobalListSet(L7_qosCosQueueWeightList_t *pVal,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMgmtTypeListGet(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t cosQueueMgmtTypeListGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                 L7_qosCosQueueMgmtTypeList_t *pVal);
 
 /*************************************************************************
@@ -1126,7 +1126,7 @@ L7_RC_t cosQueueMgmtTypeListGet(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMgmtTypeListSet(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t cosQueueMgmtTypeListSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                 L7_qosCosQueueMgmtTypeList_t *pVal);
 
 /*************************************************************************
@@ -1165,7 +1165,7 @@ L7_RC_t cosQueueMgmtTypeGlobalListSet(L7_qosCosQueueMgmtTypeList_t *pVal,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueDropParmsListGet(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t cosQueueDropParmsListGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                  L7_qosCosDropParmsList_t *pVal);
 
 /*************************************************************************
@@ -1182,7 +1182,7 @@ L7_RC_t cosQueueDropParmsListGet(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueDropParmsListSet(L7_uint32 intIfNum, L7_uint8 queueSet, 
+L7_RC_t cosQueueDropParmsListSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                  L7_qosCosDropParmsList_t *pVal);
 
 /*************************************************************************
@@ -1212,7 +1212,7 @@ L7_RC_t cosQueueDropParmsGlobalListSet(L7_qosCosDropParmsList_t *pVal);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueDropDefaultsRestore(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 queueId);
+L7_RC_t cosQueueDropDefaultsRestore(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 queueId);
 
 /*************************************************************************
 * @purpose  Get the number of configurable queues per port

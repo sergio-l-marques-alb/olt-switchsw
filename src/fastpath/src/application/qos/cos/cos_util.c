@@ -87,14 +87,14 @@ char *cosFeatureString[L7_COS_FEATURE_ID_TOTAL] =
 *
 * @end
 *********************************************************************/
-L7_RC_t cosCfgPtrFind(L7_uint32 intIfNum, L7_uint8 queueSet, L7_cosCfgParms_t **ppCfg)
+L7_RC_t cosCfgPtrFind(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_cosCfgParms_t **ppCfg)
 {
   L7_cosCfgIntfParms_t  *pCfgIntf;
 
   if (cosIntfIsValid(intIfNum) != L7_TRUE)
     return L7_FAILURE;
 
-  if (queueSet >= L7_MAX_CFG_GROUP_QUEUES_PER_PORT)
+  if (queueSet >= L7_MAX_CFG_QUEUESETS_PER_PORT)
     return L7_FAILURE;
   
   if ((ppCfg == L7_NULLPTR) || (pCosCfgData_g == L7_NULLPTR))
@@ -382,7 +382,7 @@ L7_RC_t cosMapIntfTrustModeApply(L7_uint32 intIfNum,
                                  L7_cosCfgParms_t *pCfg,
                                  L7_BOOL forceDtl)
 {
-  L7_uint8                    queueSet;
+  l7_cosq_set_t queueSet;
   L7_uint32                   msgLvlReqd = COS_MSGLVL_MED;
   L7_QOS_COS_MAP_INTF_MODE_t  mode;
   DTL_QOS_COS_MAP_TABLE_t     mapTable;
@@ -485,7 +485,7 @@ L7_RC_t cosMapIntfTrustModeApply(L7_uint32 intIfNum,
     break;
 
   case L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC:
-    for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
     {
       cosMapIpPrecTableShow(intIfNum, queueSet, msgLvlReqd);
     }
@@ -493,7 +493,7 @@ L7_RC_t cosMapIntfTrustModeApply(L7_uint32 intIfNum,
     break;
 
   case L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP:
-    for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
     {
       cosMapIpDscpTableShow(intIfNum, queueSet, msgLvlReqd);
     }
@@ -524,7 +524,7 @@ L7_RC_t cosMapIntfTrustModeApply(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueIntfConfigApply(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t cosQueueIntfConfigApply(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                 L7_uint32 intfShapingRate, L7_uint32 intfShapingBurstSize,
                                 L7_QOS_COS_QUEUE_MGMT_TYPE_t qMgmtTypeIntf,
                                 L7_uint32 wredDecayExp)
@@ -576,7 +576,7 @@ L7_RC_t cosQueueIntfConfigApply(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosIntfShapingStatusGet(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t cosIntfShapingStatusGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                 L7_uint32 *intfShapingRate,
                                 L7_uint32 *intfShapingBurstSize)
 {
@@ -598,7 +598,7 @@ L7_RC_t cosIntfShapingStatusGet(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueSchedConfigApply(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t cosQueueSchedConfigApply(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                  L7_cosQueueSchedParms_t *pQParms)
 {
   L7_uint32     i;
@@ -655,7 +655,7 @@ L7_RC_t cosQueueSchedConfigApply(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueDropParmsApply(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t cosQueueDropParmsApply(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                L7_qosCosDropParmsList_t *pVal)
 {
   L7_uint32     cosIndex,i;

@@ -521,14 +521,14 @@ L7_RC_t broad_ptin_shaper_set(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_
     rate_min_kbps = (entry->rate_min*bcmSpeed)/100;
     rate_max_kbps = (entry->rate_max*bcmSpeed)/100;
     burst_size    = entry->burst_size;
-    rc = ptin_hapi_qos_shaper_set(&dapiPort, entry->cosq_dest, entry->tc,
+    rc = ptin_hapi_qos_shaper_set(&dapiPort, entry->queueSet, entry->tc,
                                   rate_min_kbps,
                                   rate_max_kbps,
                                   burst_size);
     break;
 
   case DAPI_CMD_GET:
-    rc = ptin_hapi_qos_shaper_get(&dapiPort, entry->cosq_dest, entry->tc,
+    rc = ptin_hapi_qos_shaper_get(&dapiPort, entry->queueSet, entry->tc,
                                   &rate_min_kbps,
                                   &rate_max_kbps,
                                   &burst_size);
@@ -1263,7 +1263,7 @@ L7_RC_t hapiBroadPtinBridgeVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
   /* COS queue destination (wired, wireless, etc) */
   if (mode->mask & PTIN_BRIDGE_VLAN_MODE_MASK_COSQ_DEST)
   {
-    if (ptin_hapi_bridge_vlan_cosq_set(mode->vlanId, mode->cosq_dest_select) != L7_SUCCESS)
+    if (ptin_hapi_bridge_vlan_cosq_set(mode->vlanId, mode->qos_queueSet) != L7_SUCCESS)
       rc = L7_FAILURE;
   }
 

@@ -395,9 +395,9 @@ void dot1qPortDefaultPriorityUpdateNotification(L7_uint32 intIfNum,
                                                 L7_uint32 portDefaultTrafficClass)
 {
 #ifdef L7_QOS_FLEX_PACKAGE_COS
-  L7_uint8 queueSet;
+  l7_cosq_set_t queueSet;
 
-  for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
     cosMapPortDefaultPriorityUpdate(intIfNum, queueSet, portDefaultPriority, portDefaultTrafficClass);
   }
@@ -421,9 +421,9 @@ void dot1qPortNumTrafficClassesUpdateNotification(L7_uint32 intIfNum,
                                                   L7_uint32 numTrafficClasses)
 {
 #ifdef L7_QOS_FLEX_PACKAGE_COS
-  L7_uint8 queueSet;
+  l7_cosq_set_t queueSet;
 
-  for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
     cosMapNumTrafficClassesUpdate(intIfNum, queueSet, numTrafficClasses);
   }
@@ -476,9 +476,9 @@ L7_BOOL dot1qDot1pMappingIsActive(L7_uint32 intIfNum)
 {
 #ifdef L7_QOS_FLEX_PACKAGE_COS
   L7_BOOL       rc;
-  L7_uint8      queueSet;
+  l7_cosq_set_t queueSet;
 
-  for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
     rc = cosMapDot1pMappingIsActive(intIfNum, queueSet);
 

@@ -89,7 +89,7 @@ L7_RC_t cosMapIpPrecIndexGetNext(L7_uint32 prec, L7_uint32 *pNext)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpPrecTrafficClassGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 prec,
+L7_RC_t cosMapIpPrecTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 prec,
                                     L7_uint32 *pVal)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -123,7 +123,7 @@ L7_RC_t cosMapIpPrecTrafficClassGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_ui
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpPrecTrafficClassSet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 prec,
+L7_RC_t cosMapIpPrecTrafficClassSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 prec,
                                     L7_uint32 val)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -182,7 +182,7 @@ L7_RC_t cosMapIpPrecTrafficClassGlobalSet(L7_uint32 prec, L7_uint32 val)
 {
   L7_cosCfgParms_t  *pCfgGlob, *pCfgIntf;
   L7_uint32         intIfNum, globIntIfNum;
-  L7_uint8          queueSet;
+  l7_cosq_set_t     queueSet;
 
   /* check IP precedence in range */
   if (cosMapIpPrecIndexGet(prec) != L7_SUCCESS)
@@ -214,7 +214,7 @@ L7_RC_t cosMapIpPrecTrafficClassGlobalSet(L7_uint32 prec, L7_uint32 val)
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-    for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
     {
       /* only work with configurable interfaces when changing global config */
       if (cosCfgPtrFind(intIfNum, queueSet, &pCfgIntf) == L7_SUCCESS)
@@ -266,7 +266,7 @@ L7_RC_t cosMapIpPrecTrafficClassGlobalSet(L7_uint32 prec, L7_uint32 val)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpPrecDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 prec,
+L7_RC_t cosMapIpPrecDefaultTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 prec,
                                            L7_uint32 *pVal)
 {
   /* called function checks input parms */
@@ -286,7 +286,7 @@ L7_RC_t cosMapIpPrecDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint8 queueSet
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpPrecDefaultsRestore(L7_uint32 intIfNum, L7_uint8 queueSet)
+L7_RC_t cosMapIpPrecDefaultsRestore(L7_uint32 intIfNum, l7_cosq_set_t queueSet)
 {
   L7_uint32     i, val;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
@@ -398,7 +398,7 @@ L7_RC_t cosMapIpDscpIndexGetNext(L7_uint32 dscp, L7_uint32 *pNext)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpDscpTrafficClassGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 dscp,
+L7_RC_t cosMapIpDscpTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 dscp,
                                     L7_uint32 *pVal)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -432,7 +432,7 @@ L7_RC_t cosMapIpDscpTrafficClassGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_ui
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpDscpTrafficClassSet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 dscp,
+L7_RC_t cosMapIpDscpTrafficClassSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 dscp,
                                     L7_uint32 val)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -491,7 +491,7 @@ L7_RC_t cosMapIpDscpTrafficClassGlobalSet(L7_uint32 dscp, L7_uint32 val)
 {
   L7_cosCfgParms_t  *pCfgGlob, *pCfgIntf;
   L7_uint32         intIfNum, globIntIfNum;
-  L7_uint8          queueSet;
+  l7_cosq_set_t     queueSet;
 
   /* check IP DSCP in range */
   if (cosMapIpDscpIndexGet(dscp) != L7_SUCCESS)
@@ -523,7 +523,7 @@ L7_RC_t cosMapIpDscpTrafficClassGlobalSet(L7_uint32 dscp, L7_uint32 val)
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-    for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
     {
       /* only work with configurable interfaces when changing global config */
       if (cosCfgPtrFind(intIfNum, queueSet, &pCfgIntf) == L7_SUCCESS)
@@ -575,7 +575,7 @@ L7_RC_t cosMapIpDscpTrafficClassGlobalSet(L7_uint32 dscp, L7_uint32 val)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpDscpDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 dscp,
+L7_RC_t cosMapIpDscpDefaultTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 dscp,
                                            L7_uint32 *pVal)
 {
   /* called function checks input parms */
@@ -595,7 +595,7 @@ L7_RC_t cosMapIpDscpDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint8 queueSet
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpDscpDefaultsRestore(L7_uint32 intIfNum, L7_uint8 queueSet)
+L7_RC_t cosMapIpDscpDefaultsRestore(L7_uint32 intIfNum, l7_cosq_set_t queueSet)
 {
   L7_uint32     i, val;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
@@ -721,7 +721,7 @@ L7_BOOL cosMapIntfIsValid(L7_uint32 intIfNum)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIntfTrustModeGet(L7_uint32 intIfNum, L7_uint8 queueSet, 
+L7_RC_t cosMapIntfTrustModeGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                L7_QOS_COS_MAP_INTF_MODE_t *pVal)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -750,7 +750,7 @@ L7_RC_t cosMapIntfTrustModeGet(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIntfTrustModeSet(L7_uint32 intIfNum, L7_uint8 queueSet, 
+L7_RC_t cosMapIntfTrustModeSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                L7_QOS_COS_MAP_INTF_MODE_t val)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -816,7 +816,7 @@ L7_RC_t cosMapIntfTrustModeGlobalSet(L7_QOS_COS_MAP_INTF_MODE_t val)
 {
   L7_cosCfgParms_t  *pCfgGlob, *pCfgIntf;
   L7_uint32         intIfNum;
-  L7_uint8          queueSet;
+  l7_cosq_set_t     queueSet;
 
   /* check proposed value against trust mode range */
   if ((val < L7_QOS_COS_MAP_INTF_MODE_UNTRUSTED) ||
@@ -845,7 +845,7 @@ L7_RC_t cosMapIntfTrustModeGlobalSet(L7_QOS_COS_MAP_INTF_MODE_t val)
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-    for (queueSet = 0; queueSet < L7_MAX_CFG_GROUP_QUEUES_PER_PORT; queueSet++)
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
     {
       /* only work with configurable interfaces when changing global config */
       if (cosCfgPtrFind(intIfNum, queueSet, &pCfgIntf) == L7_SUCCESS)
@@ -878,7 +878,7 @@ L7_RC_t cosMapIntfTrustModeGlobalSet(L7_QOS_COS_MAP_INTF_MODE_t val)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapUntrustedPortDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint8 queueSet, 
+L7_RC_t cosMapUntrustedPortDefaultTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                                   L7_uint32 *pVal)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -924,7 +924,7 @@ L7_RC_t cosMapUntrustedPortDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint8 q
 *
 * @end
 *********************************************************************/
-void cosMapPortDefaultPriorityUpdate(L7_uint32 intIfNum, L7_uint8 queueSet, 
+void cosMapPortDefaultPriorityUpdate(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                      L7_uint32 portDefaultPriority,
                                      L7_uint32 portDefaultTrafficClass)
 {
@@ -1021,7 +1021,7 @@ void cosMapPortDefaultPriorityUpdate(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-void cosMapNumTrafficClassesUpdate(L7_uint32 intIfNum, L7_uint8 queueSet, 
+void cosMapNumTrafficClassesUpdate(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                    L7_uint32 numTrafficClasses)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -1098,7 +1098,7 @@ void cosMapNumTrafficClassesUpdate(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_BOOL cosMapDot1pMappingIsActive(L7_uint32 intIfNum, L7_uint8 queueSet)
+L7_BOOL cosMapDot1pMappingIsActive(L7_uint32 intIfNum, l7_cosq_set_t queueSet)
 {
   L7_BOOL                     rc = L7_FALSE;
   L7_QOS_COS_MAP_INTF_MODE_t  intfTrustMode;
@@ -1183,7 +1183,7 @@ L7_BOOL cosMapTableContentIsValid(L7_uint32 intIfNum, L7_cosMapCfg_t *pCfgMap)
 *
 * @end
 *********************************************************************/
-void cosMapTableShow(L7_uint32 intIfNum, L7_uint8 queueSet)
+void cosMapTableShow(L7_uint32 intIfNum, l7_cosq_set_t queueSet)
 {
   L7_cosMapCfg_t        *pMap;
   L7_uint32             msgLvlReqd;
@@ -1314,7 +1314,7 @@ void cosMapDot1pTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd)
 *
 * @end
 *********************************************************************/
-void cosMapIpPrecTableShow(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 msgLvlReqd)
+void cosMapIpPrecTableShow(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 msgLvlReqd)
 {
   L7_cosMapCfg_t        *pMap;
   L7_cosCfgIntfParms_t  *pCfgIntf;
@@ -1369,7 +1369,7 @@ void cosMapIpPrecTableShow(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 msgL
 *
 * @end
 *********************************************************************/
-void cosMapIpDscpTableShow(L7_uint32 intIfNum, L7_uint8 queueSet, L7_uint32 msgLvlReqd)
+void cosMapIpDscpTableShow(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 msgLvlReqd)
 {
   L7_cosMapCfg_t        *pMap;
   L7_cosCfgIntfParms_t  *pCfgIntf;

@@ -240,7 +240,7 @@ L7_RC_t dtlQosCosMapIntfTrustModeSet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t dtlQosCosIntfConfigSet(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t dtlQosCosIntfConfigSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                L7_uint32 intfShapingRate, L7_uint32 intfShapingBurstSize,
                                L7_QOS_COS_QUEUE_MGMT_TYPE_t qMgmtTypeIntf,
                                L7_uint32 wredDecayExp)
@@ -305,7 +305,7 @@ L7_RC_t dtlQosCosIntfConfigSet(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_RC_t dtlQosCosIntfStatusGet(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t dtlQosCosIntfStatusGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                L7_uint32 *intfShapingRate,
                                L7_uint32 *intfShapingBurstSize)
 {
@@ -357,7 +357,7 @@ L7_RC_t dtlQosCosIntfStatusGet(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_RC_t dtlQosCosQueueSchedConfigSet(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t dtlQosCosQueueSchedConfigSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                      L7_qosCosQueueBwList_t *pMinBwList,
                                      L7_qosCosQueueBwList_t *pMaxBwList,
                                      L7_qosCosQueueSchedTypeList_t *pSchedTypeList,
@@ -428,7 +428,7 @@ L7_RC_t dtlQosCosQueueSchedConfigSet(L7_uint32 intIfNum, L7_uint8 queueSet,
 *
 * @end
 *********************************************************************/
-L7_RC_t dtlQosCosQueueDropConfigSet(L7_uint32 intIfNum, L7_uint8 queueSet,
+L7_RC_t dtlQosCosQueueDropConfigSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                     L7_qosCosDropParmsList_t *pDropParms)
 {
   DAPI_QOS_CMD_t  dapiCmd;
