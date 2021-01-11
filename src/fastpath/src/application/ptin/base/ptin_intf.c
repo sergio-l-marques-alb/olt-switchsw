@@ -179,7 +179,7 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf);
 L7_RC_t ptin_intf_pre_init(void)
 {
   L7_int    i;
-  L7_uint32 ptin_port, intIfNum;
+  L7_uint32 ptin_port, intIfNum, mode;
   L7_RC_t   rc = L7_SUCCESS;
 
   /* Reset structures (everything is set to 0xFF) */
