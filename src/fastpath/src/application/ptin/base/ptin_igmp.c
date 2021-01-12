@@ -11269,7 +11269,8 @@ static L7_BOOL ptin_igmp_instance_conflictFree(L7_uint32 McastEvcId, L7_uint32 U
     if (igmpInstances[idx].McastEvcId==McastEvcId &&
         igmpInstances[idx].UcastEvcId==UcastEvcId)
     {
-      break;
+      PT_LOG_ERR(LOG_CTX_IGMP,"Instance already exists",McastEvcId,UcastEvcId);
+      return L7_TRUE;
     }
 #else
     if (igmpInstances[idx].McastEvcId==McastEvcId
