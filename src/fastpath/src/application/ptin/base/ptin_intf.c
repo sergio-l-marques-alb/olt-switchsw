@@ -2444,7 +2444,7 @@ L7_RC_t ptin_intf_port2intIfNum_queueSet(L7_uint32 ptin_port, L7_uint32 *intIfNu
   
   if (queueSet != L7_NULLPTR)
   {
-    *queueSet = L7_QOS_QSET_DEFAULT;
+    *queueSet = L7_QOS_QSET_PORT;
 
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
     if (PTIN_PORT_IS_PON_GPON_TYPE(ptin_port))

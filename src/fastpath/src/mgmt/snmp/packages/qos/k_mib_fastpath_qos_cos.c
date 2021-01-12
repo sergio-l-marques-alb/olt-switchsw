@@ -75,7 +75,7 @@ k_agentCosMapIpPrecEntry_get(int serialNum, ContextInfo *contextInfo,
 
 
   case I_agentCosMapIpPrecTrafficClass:
-    if (usmDbQosCosMapIpPrecTrafficClassGet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_DEFAULT, agentCosMapIpPrecEntryData.agentCosMapIpPrecValue,
+    if (usmDbQosCosMapIpPrecTrafficClassGet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_PORT, agentCosMapIpPrecEntryData.agentCosMapIpPrecValue,
                                             &agentCosMapIpPrecEntryData.agentCosMapIpPrecTrafficClass) == L7_SUCCESS)
       SET_VALID(I_agentCosMapIpPrecTrafficClass, agentCosMapIpPrecEntryData.valid);
     break;
@@ -142,7 +142,7 @@ k_agentCosMapIpPrecEntry_set(agentCosMapIpPrecEntry_t *data,
 
   if (VALID(I_agentCosMapIpPrecTrafficClass, data->valid))
   {
-    if (usmDbQosCosMapIpPrecTrafficClassSet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_DEFAULT, data->agentCosMapIpPrecValue, 
+    if (usmDbQosCosMapIpPrecTrafficClassSet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_PORT, data->agentCosMapIpPrecValue, 
                                             data->agentCosMapIpPrecTrafficClass) != L7_SUCCESS)
     {
       memcpy(data->valid, tempValid, sizeof(data->valid));
@@ -238,7 +238,7 @@ k_agentCosMapIpDscpEntry_get(int serialNum, ContextInfo *contextInfo,
 
 
   case I_agentCosMapIpDscpTrafficClass:
-    if (usmDbQosCosMapIpDscpTrafficClassGet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_DEFAULT, agentCosMapIpDscpEntryData.agentCosMapIpDscpValue,
+    if (usmDbQosCosMapIpDscpTrafficClassGet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_PORT, agentCosMapIpDscpEntryData.agentCosMapIpDscpValue,
                                             &agentCosMapIpDscpEntryData.agentCosMapIpDscpTrafficClass) == L7_SUCCESS)
       SET_VALID(I_agentCosMapIpDscpTrafficClass, agentCosMapIpDscpEntryData.valid);
     break;
@@ -305,7 +305,7 @@ k_agentCosMapIpDscpEntry_set(agentCosMapIpDscpEntry_t *data,
 
   if (VALID(I_agentCosMapIpDscpTrafficClass, data->valid))
   {
-    if (usmDbQosCosMapIpDscpTrafficClassSet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_DEFAULT, data->agentCosMapIpDscpValue, 
+    if (usmDbQosCosMapIpDscpTrafficClassSet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_PORT, data->agentCosMapIpDscpValue, 
                                             data->agentCosMapIpDscpTrafficClass) != L7_SUCCESS)
     {
       memcpy(data->valid, tempValid, sizeof(data->valid));
@@ -399,7 +399,7 @@ k_agentCosMapIntfTrustEntry_get(int serialNum, ContextInfo *contextInfo,
     if (nominator != -1) break;
 
   case I_agentCosMapUntrustedTrafficClass:
-    if (usmDbQosCosMapUntrustedPortDefaultTrafficClassGet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_DEFAULT, 
+    if (usmDbQosCosMapUntrustedPortDefaultTrafficClassGet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_PORT, 
                                         &agentCosMapIntfTrustEntryData.agentCosMapUntrustedTrafficClass) == L7_SUCCESS)
       SET_VALID(I_agentCosMapUntrustedTrafficClass, agentCosMapIntfTrustEntryData.valid);
     break;
@@ -639,7 +639,7 @@ k_agentCosQueueControlEntry_get(int serialNum, ContextInfo *contextInfo,
   case I_agentCosQueueIntfShapingRate:
     if ((cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID,
                                L7_COS_QUEUE_INTF_SHAPING_FEATURE_ID) == L7_TRUE) &&
-        (usmDbQosCosQueueIntfShapingRateGet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_DEFAULT, 
+        (usmDbQosCosQueueIntfShapingRateGet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_PORT, 
                                             &agentCosQueueControlEntryData.agentCosQueueIntfShapingRate, L7_NULLPTR) == L7_SUCCESS))
       SET_VALID(I_agentCosQueueIntfShapingRate, agentCosQueueControlEntryData.valid);
     if (nominator != -1) break;
@@ -677,7 +677,7 @@ k_agentCosQueueControlEntry_get(int serialNum, ContextInfo *contextInfo,
     if (((cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID,
                                 L7_COS_QUEUE_WRED_DECAY_EXP_SYSTEM_ONLY_FEATURE_ID) == L7_FALSE) ||
          (intIfNum == L7_ALL_INTERFACES)) &&
-        (usmDbQosCosQueueWredDecayExponentGet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_DEFAULT, 
+        (usmDbQosCosQueueWredDecayExponentGet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_PORT, 
                                               &agentCosQueueControlEntryData.agentCosQueueWredDecayExponent) == L7_SUCCESS))
       SET_VALID(I_agentCosQueueWredDecayExponent, agentCosQueueControlEntryData.valid);
     if (nominator != -1) break;
@@ -752,7 +752,7 @@ k_agentCosQueueControlEntry_set(agentCosQueueControlEntry_t *data,
   {
     if ((cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID,
                                L7_COS_QUEUE_INTF_SHAPING_FEATURE_ID) != L7_TRUE) ||
-        (usmDbQosCosQueueIntfShapingRateSet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_DEFAULT, 
+        (usmDbQosCosQueueIntfShapingRateSet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_PORT, 
                                             data->agentCosQueueIntfShapingRate, (L7_uint32)-1/*Default*/) != L7_SUCCESS))
     {
       memcpy(data->valid, tempValid, sizeof(data->valid));
@@ -785,7 +785,7 @@ k_agentCosQueueControlEntry_set(agentCosQueueControlEntry_t *data,
     if (((cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID,
                                 L7_COS_QUEUE_WRED_DECAY_EXP_SYSTEM_ONLY_FEATURE_ID) == L7_TRUE) &&
          (intIfNum != L7_ALL_INTERFACES)) ||
-        (usmDbQosCosQueueWredDecayExponentSet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_DEFAULT, 
+        (usmDbQosCosQueueWredDecayExponentSet(USMDB_UNIT_CURRENT, intIfNum, L7_QOS_QSET_PORT, 
                                               data->agentCosQueueWredDecayExponent) != L7_SUCCESS))
     {
       memcpy(data->valid, tempValid, sizeof(data->valid));

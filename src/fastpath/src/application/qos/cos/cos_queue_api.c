@@ -255,7 +255,7 @@ L7_RC_t cosQueueDefaultsGlobalRestore(void)
   l7_cosq_set_t     queueSet;
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_PORT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* restore defaults for each configurable interface
@@ -482,7 +482,7 @@ L7_RC_t cosQueueIntfShapingRateGlobalSet(L7_uint32 rate, L7_uint32 burstSize)
   }
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_PORT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value
@@ -662,7 +662,7 @@ L7_RC_t cosQueueMgmtTypePerIntfGlobalSet(L7_QOS_COS_QUEUE_MGMT_TYPE_t val)
     return L7_FAILURE;
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_PORT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value
@@ -802,7 +802,7 @@ L7_RC_t cosQueueWredDecayExponentGlobalSet(L7_uint32 val)
     return L7_FAILURE;
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_PORT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value
@@ -1087,7 +1087,7 @@ L7_RC_t cosQueueMinBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
   }
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_PORT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value
@@ -1322,7 +1322,7 @@ L7_RC_t cosQueueMaxBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
     return L7_FAILURE;
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_PORT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* check proposed value list */
@@ -1720,7 +1720,7 @@ L7_RC_t cosQueueSchedulerTypeGlobalListSet(L7_qosCosQueueSchedTypeList_t *pVal,
   }
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_PORT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value
@@ -1823,7 +1823,7 @@ L7_RC_t cosQueueWeightGlobalListSet(L7_qosCosQueueWeightList_t *pVal,
   }
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_PORT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value
@@ -2049,7 +2049,7 @@ L7_RC_t cosQueueMgmtTypeGlobalListSet(L7_qosCosQueueMgmtTypeList_t *pVal,
   }
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_PORT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value
@@ -2248,7 +2248,7 @@ L7_RC_t cosQueueDropParmsGlobalListSet(L7_qosCosDropParmsList_t *pVal)
   }
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_PORT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value

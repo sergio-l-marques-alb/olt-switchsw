@@ -198,7 +198,7 @@ L7_RC_t cosMapIpPrecTrafficClassGlobalSet(L7_uint32 prec, L7_uint32 val)
     return L7_FAILURE;
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_PORT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value
@@ -326,7 +326,7 @@ L7_RC_t cosMapIpPrecDefaultsGlobalRestore(void)
   /* update each global config value using default mapping */
   for (i = 0; i < L7_QOS_COS_MAP_NUM_IPPREC; i++)
   {
-    if ((cosDefaultMappingIpPrecGet(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, i, &val) != L7_SUCCESS) ||
+    if ((cosDefaultMappingIpPrecGet(L7_ALL_INTERFACES, L7_QOS_QSET_PORT, i, &val) != L7_SUCCESS) ||
         (cosMapIpPrecTrafficClassGlobalSet(i, val) != L7_SUCCESS))
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
@@ -507,7 +507,7 @@ L7_RC_t cosMapIpDscpTrafficClassGlobalSet(L7_uint32 dscp, L7_uint32 val)
     return L7_FAILURE;
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_PORT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value
@@ -635,7 +635,7 @@ L7_RC_t cosMapIpDscpDefaultsGlobalRestore(void)
   /* update each global config value using default mapping */
   for (i = 0; i < L7_QOS_COS_MAP_NUM_IPDSCP; i++)
   {
-    if ((cosDefaultMappingIpDscpGet(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, i, &val) != L7_SUCCESS) ||
+    if ((cosDefaultMappingIpDscpGet(L7_ALL_INTERFACES, L7_QOS_QSET_PORT, i, &val) != L7_SUCCESS) ||
         (cosMapIpDscpTrafficClassGlobalSet(i, val) != L7_SUCCESS))
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
@@ -770,7 +770,7 @@ L7_RC_t cosMapIntfTrustModeSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
     return L7_FAILURE;
 
 #if defined(FEAT_METRO_CPE_V1_0)
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_PORT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* Do not allow config change of interface mode when global mode is different.
@@ -824,7 +824,7 @@ L7_RC_t cosMapIntfTrustModeGlobalSet(L7_QOS_COS_MAP_INTF_MODE_t val)
     return L7_FAILURE;
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_PORT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   if (pCfgGlob->mapping.intfTrustMode != (L7_uchar8)val)

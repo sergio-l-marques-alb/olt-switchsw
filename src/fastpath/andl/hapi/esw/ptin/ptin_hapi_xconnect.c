@@ -193,7 +193,7 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId,
 L7_RC_t ptin_hapi_bridge_vlan_cosq_set(L7_uint16 vlanId, l7_cosq_set_t queueSet)
 {
   /* Nothing to be done! */
-  if (queueSet == L7_QOS_QSET_DEFAULT)
+  if (queueSet == L7_QOS_QSET_PORT)
   {
     return L7_SUCCESS;
   }

@@ -1399,7 +1399,7 @@ void ptin_intf_shaper_max_dump(void)
 {
   L7_uint32 port, intIfNum, shaper_rate;
   l7_cosq_set_t queueSet;
-  L7_char8 queueSet_str[L7_QOS_QSET_MAX][10] = {"Wired","Wireless","Transit","Stacked"};
+  L7_char8 queueSet_str[L7_QOS_QSET_MAX][10] = {"Port","Wired","Wireless"/*,"Transit","Stacked"*/};
   L7_RC_t rc;
 
   printf(" ---------------------------------------------------------\r\n");

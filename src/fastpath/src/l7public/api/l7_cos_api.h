@@ -29,11 +29,11 @@
 
 /* COS queue destination */
 typedef enum l7_cosq_set_e {
-    L7_QOS_QSET_DEFAULT =0,
-    L7_QOS_QSET_WIRED   =0,
-    L7_QOS_QSET_WIRELESS=1,
-    L7_QOS_QSET_TRANSIT =2,
-    L7_QOS_QSET_STACKED =3,
+    L7_QOS_QSET_PORT    =0,
+    L7_QOS_QSET_WIRED   =1,
+    L7_QOS_QSET_WIRELESS=2,
+    //L7_QOS_QSET_TRANSIT =2,
+    //L7_QOS_QSET_STACKED =3,
     L7_QOS_QSET_MAX,
 } l7_cosq_set_t;
 
