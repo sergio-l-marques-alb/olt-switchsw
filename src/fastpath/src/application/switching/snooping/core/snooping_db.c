@@ -2715,7 +2715,7 @@ L7_RC_t snoopL3GroupPtinPortAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_a
 
         l3_intf_id = -1;
 
-        if (ptin_igmp_UcastEvcId_get(serviceId, &iptv_evc_id) != L7_SUCCESS)
+        if (ptin_igmp_UcastEvcId_get(serviceId, ptin_port, &iptv_evc_id) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_IGMP, "Failed to get UcastEvcId");
           return L7_FAILURE;
@@ -2766,7 +2766,7 @@ L7_RC_t snoopL3GroupPtinPortAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_a
 
             l3_intf_id = -1;
 
-            if (ptin_igmp_UcastEvcId_get(serviceId, &iptv_evc_id) != L7_SUCCESS)
+            if (ptin_igmp_UcastEvcId_get(serviceId, ptin_port, &iptv_evc_id) != L7_SUCCESS)
             {
               PT_LOG_ERR(LOG_CTX_IGMP, "Failed to get UcastEvcId");
               return L7_FAILURE;
@@ -2819,7 +2819,7 @@ L7_RC_t snoopL3GroupPtinPortAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_a
 
         l3_intf_id = -1;
 
-        if (ptin_igmp_UcastEvcId_get(serviceId, &iptv_evc_id) != L7_SUCCESS)
+        if (ptin_igmp_UcastEvcId_get(serviceId, ptin_port, &iptv_evc_id) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_IGMP, "Failed to get UcastEvcId");
           return L7_FAILURE;
@@ -2934,7 +2934,7 @@ L7_RC_t snoopL3GroupPtinPortAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_a
 
         l3_intf_id = -1;
 
-        if (ptin_igmp_UcastEvcId_get(serviceId, &iptv_evc_id) != L7_SUCCESS)
+        if (ptin_igmp_UcastEvcId_get(serviceId, ptin_port, &iptv_evc_id) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_IGMP, "Failed to get UcastEvcId");
           return L7_FAILURE;
@@ -3260,7 +3260,7 @@ L7_RC_t snoopL3GroupPtinPortRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_ine
 
       l3_intf_id = -1;
 
-      if (ptin_igmp_UcastEvcId_get(serviceId, &iptv_evc_id) != L7_SUCCESS)
+      if (ptin_igmp_UcastEvcId_get(serviceId, ptin_port, &iptv_evc_id) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_IGMP, "Failed to get UcastEvcId");
         return L7_FAILURE;
@@ -3418,7 +3418,7 @@ L7_RC_t snoopL3GroupPtinPortRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_ine
 
             l3_intf_id = -1;
 
-            if (ptin_igmp_UcastEvcId_get(serviceId, &iptv_evc_id) != L7_SUCCESS)
+            if (ptin_igmp_UcastEvcId_get(serviceId, ptin_port, &iptv_evc_id) != L7_SUCCESS)
             {
               PT_LOG_ERR(LOG_CTX_IGMP, "Failed to get UcastEvcId");
               return L7_FAILURE;
@@ -3475,7 +3475,7 @@ L7_RC_t snoopL3GroupPtinPortRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_ine
 
         l3_intf_id = -1;
 
-        if (ptin_igmp_UcastEvcId_get(serviceId, &iptv_evc_id) != L7_SUCCESS)
+        if (ptin_igmp_UcastEvcId_get(serviceId, ptin_port, &iptv_evc_id) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_IGMP, "Failed to get UcastEvcId");
           return L7_FAILURE;
@@ -3587,7 +3587,7 @@ L7_RC_t snoopL3GroupPtinPortRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_ine
 
         l3_intf_id = -1;
 
-        if (ptin_igmp_UcastEvcId_get(serviceId, &iptv_evc_id) != L7_SUCCESS)
+        if (ptin_igmp_UcastEvcId_get(serviceId, ptin_port, &iptv_evc_id) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_IGMP, "Failed to get UcastEvcId");
           return L7_FAILURE;

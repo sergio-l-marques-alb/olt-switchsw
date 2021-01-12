@@ -1244,7 +1244,7 @@ extern L7_RC_t ptin_igmp_extUcastVlan_get(L7_uint32 ptin_port, L7_uint16 intOVla
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_igmp_UcastEvcId_get(L7_uint32 McastEvcId, L7_uint32 *UcastEvcId);
+L7_RC_t ptin_igmp_UcastEvcId_get(L7_uint32 McastEvcId, L7_uint32 ptin_port, L7_uint32 *UcastEvcId);
 #endif
 
 /**

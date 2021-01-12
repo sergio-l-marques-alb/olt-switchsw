@@ -767,7 +767,7 @@ static L7_RC_t ptin_igmp_inst_get_fromIntVlan(L7_uint16 intVlan, st_IgmpInstCfg_
 static L7_RC_t ptin_igmp_instance_find_free(L7_uint *idx);
 static L7_RC_t ptin_igmp_instance_find(L7_uint32 McastEvcId, L7_uint32 UcastEvcId, L7_uint *igmp_idx);
 static L7_RC_t ptin_igmp_instance_find_fromSingleEvcId(L7_uint32 evc_idx, L7_uint *igmp_idx);
-static L7_RC_t ptin_igmp_instance_find_fromMcastEvcId(L7_uint32 McastEvcId, L7_uint *igmp_idx);
+static L7_RC_t ptin_igmp_instance_find_fromMcastEvcId(L7_uint32 McastEvcId, L7_uint32 ptin_port, L7_uint *igmp_idx);
 static L7_BOOL ptin_igmp_instance_conflictFree(L7_uint32 McastEvcId, L7_uint32 UcastEvcId);
 
 static L7_RC_t ptin_igmp_instance_delete(L7_uint16 igmp_idx);
@@ -3893,7 +3893,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
   }
 
   /* Get IGMP instance index */
-  if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId, &igmp_idx)!=L7_SUCCESS)
+  if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId, 0xFFFF, &igmp_idx)!=L7_SUCCESS)
   {
     *number_of_clients=0;
     PT_LOG_ERR(LOG_CTX_IGMP,"There is no IGMP instance with MC EVC id %u",McastEvcId);
@@ -7378,12 +7378,12 @@ L7_RC_t ptin_igmp_extUcastVlan_get(L7_uint32 ptin_port, L7_uint16 intOVlan, L7_u
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_igmp_UcastEvcId_get(L7_uint32 McastEvcId, L7_uint32 *UcastEvcId)
+L7_RC_t ptin_igmp_UcastEvcId_get(L7_uint32 McastEvcId, L7_uint32 ptin_port, L7_uint32 *UcastEvcId)
 {
   L7_uint igmp_idx;  
 
   /* Get IGMP instance from McastEvcId */
-  if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId, &igmp_idx) != L7_SUCCESS)
+  if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId, ptin_port, &igmp_idx) != L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
       PT_LOG_ERR(LOG_CTX_IGMP,"No IGMP instance associated to McastEvcId %u", McastEvcId);
@@ -11204,12 +11204,13 @@ static L7_RC_t ptin_igmp_instance_find_fromSingleEvcId(L7_uint32 evc_idx, L7_uin
  * Gets the IGMP instance wich is using a specific Multicast EVC
  * id 
  * 
- * @param McastEvcId : MC EVC id
+ * @param McastEvcId : MC EVC id 
+ * @param port_port  : EVC intf 
  * @param igmp_idx   : IGMP instance index
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t ptin_igmp_instance_find_fromMcastEvcId(L7_uint32 McastEvcId, L7_uint *igmp_idx)
+static L7_RC_t ptin_igmp_instance_find_fromMcastEvcId(L7_uint32 McastEvcId, L7_uint32 ptin_port, L7_uint *igmp_idx)
 {
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   L7_uint igmp_inst;
@@ -11235,7 +11236,20 @@ static L7_RC_t ptin_igmp_instance_find_fromMcastEvcId(L7_uint32 McastEvcId, L7_u
     if (!igmpInstances[idx].inUse)  continue;
 
     if (igmpInstances[idx].McastEvcId==McastEvcId)
-      break;
+    {
+      /* Don't care of ptin_port*/
+      if (ptin_port != 0xFFFF)
+      {
+        if (ptin_evc_is_intf_in_use_on_evc(igmpInstances[idx].UcastEvcId, ptin_port) == L7_TRUE)
+        {
+          break;
+        }
+      }
+      else
+      {
+        break;
+      }
+    }
   }
 
   /* If not found empty instances, return error */
