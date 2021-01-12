@@ -440,7 +440,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   L7_uint16          ipHdrLen             = 0;
   ptin_client_id_t   clientInfo;
   L7_uint32          ptin_port;
-  L7_BOOL            is_root = PTIN_EVC_INTF_LEAF;
+  L7_BOOL            is_root;
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
   L7_uint8           query_count          = 0;
   L7_uint8           local_router_port_id = -1;
@@ -728,22 +728,17 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 
   rc = ptin_igmp_port_type_get(port,&port_type);
 
+
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
   /*Get Port Type from EVC, 
     FIX ME should have a ptin_igmp function for this*/
   ptin_port =  intIfNum2port(pduInfo->intIfNum, 0);
-  if (ptin_port < PTIN_SYSTEM_N_INTERF)
-  {
-    is_root = ptin_evc_intf_isRoot(pduInfo->vlanId, ptin_port);
-  }
-
+  is_root = ptin_evc_intf_isRoot(pduInfo->vlanId, ptin_port);
   if (is_root)
   {
     port_type = PTIN_EVC_INTF_ROOT;
   }
-  /* if ptin_port was not obtain on intIfNum2port(x,0) is because
-     is a leaf port. In this situation ptin_port is obtain throught the client struct*/
   else
   {
     port_type = PTIN_EVC_INTF_LEAF;
