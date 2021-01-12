@@ -867,14 +867,14 @@ L7_RC_t iscsiImpCosDataGet(L7_uint32 *cosQueue, L7_QOS_COS_MAP_INTF_MODE_t *tagM
     }
     break;
   case L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC:
-    if ((rc = cosMapIpPrecTrafficClassGet(L7_ALL_INTERFACES, L7_QOS_QSET_PORT, iscsiCfgData->precValue, &value)) == L7_SUCCESS)
+    if ((rc = cosMapIpPrecTrafficClassGet(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, iscsiCfgData->precValue, &value)) == L7_SUCCESS)
     {
       *cosQueue = value;
       *tagData = iscsiCfgData->precValue;
     }
     break;
   case L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP:
-    if ((rc = cosMapIpDscpTrafficClassGet(L7_ALL_INTERFACES, L7_QOS_QSET_PORT, iscsiCfgData->dscpValue, &value)) == L7_SUCCESS)
+    if ((rc = cosMapIpDscpTrafficClassGet(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, iscsiCfgData->dscpValue, &value)) == L7_SUCCESS)
     {
       *cosQueue = value;
       *tagData = iscsiCfgData->dscpValue;

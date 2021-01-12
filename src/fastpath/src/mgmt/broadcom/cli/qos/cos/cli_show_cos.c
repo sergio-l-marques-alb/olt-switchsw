@@ -169,7 +169,7 @@ const L7_char8 *commandShowInterfacesCosQueue(EwsContext ewsContext, L7_uint32 a
    /* Shaping Rate */
    if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_INTF_SHAPING_FEATURE_ID) == L7_TRUE)
    {
-      if (usmDbQosCosQueueIntfShapingRateGet(unit, interface, L7_QOS_QSET_PORT, &val, L7_NULLPTR) == L7_SUCCESS)
+      if (usmDbQosCosQueueIntfShapingRateGet(unit, interface, L7_QOS_QSET_DEFAULT, &val, L7_NULLPTR) == L7_SUCCESS)
       {
       cliFormat(ewsContext,pStrInfo_qos_IntfShapingRate);
       ewsTelnetPrintf (ewsContext, "%-d", val);
@@ -179,7 +179,7 @@ const L7_char8 *commandShowInterfacesCosQueue(EwsContext ewsContext, L7_uint32 a
    /* Management Type */
    if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_MGMT_INTF_ONLY_FEATURE_ID) == L7_TRUE)
    {
-      if (usmDbQosCosQueueMgmtTypePerIntfGet(unit, interface, L7_QOS_QSET_PORT, &mgmtType) == L7_SUCCESS)
+      if (usmDbQosCosQueueMgmtTypePerIntfGet(unit, interface, L7_QOS_QSET_DEFAULT, &mgmtType) == L7_SUCCESS)
       {
       cliFormat(ewsContext,pStrInfo_qos_QueueMgmtType);
       memset (stat, 0,sizeof(stat));
@@ -197,7 +197,7 @@ const L7_char8 *commandShowInterfacesCosQueue(EwsContext ewsContext, L7_uint32 a
    }
 
    /* WRED Decay */
-   if (usmDbQosCosQueueWredDecayExponentGet(unit, interface, L7_QOS_QSET_PORT, &val) == L7_SUCCESS)
+   if (usmDbQosCosQueueWredDecayExponentGet(unit, interface, L7_QOS_QSET_DEFAULT, &val) == L7_SUCCESS)
    {
     cliFormat(ewsContext,pStrInfo_qos_WredDecayExponent);
     ewsTelnetPrintf (ewsContext, "%-d", val);
@@ -210,7 +210,7 @@ const L7_char8 *commandShowInterfacesCosQueue(EwsContext ewsContext, L7_uint32 a
    {
       if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_MIN_BW_FEATURE_ID) == L7_TRUE)
       {
-         if (usmDbQosCosQueueMinBandwidthListGet(unit, interface, L7_QOS_QSET_PORT, &queueBwMinList) == L7_SUCCESS)
+         if (usmDbQosCosQueueMinBandwidthListGet(unit, interface, L7_QOS_QSET_DEFAULT, &queueBwMinList) == L7_SUCCESS)
          {
         strcatAddBlanks (0, 0, 0, 3, L7_NULLPTR, title, pStrInfo_qos_MinBandwidth);
             strcat(line,  "--------------   ");
@@ -220,7 +220,7 @@ const L7_char8 *commandShowInterfacesCosQueue(EwsContext ewsContext, L7_uint32 a
 
       if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_MAX_BW_FEATURE_ID) == L7_TRUE)
       {
-         if (usmDbQosCosQueueMaxBandwidthListGet(unit, interface, L7_QOS_QSET_PORT, &queueBwMaxList) == L7_SUCCESS)
+         if (usmDbQosCosQueueMaxBandwidthListGet(unit, interface, L7_QOS_QSET_DEFAULT, &queueBwMaxList) == L7_SUCCESS)
          {
         strcatAddBlanks (0, 0, 0, 3, L7_NULLPTR, title, pStrInfo_qos_MaxBandwidth);
             strcat(line,  "--------------   ");
@@ -228,7 +228,7 @@ const L7_char8 *commandShowInterfacesCosQueue(EwsContext ewsContext, L7_uint32 a
          }
       }
 
-      if (usmDbQosCosQueueSchedulerTypeListGet(unit, interface, L7_QOS_QSET_PORT, &queueSchedTypeList) == L7_SUCCESS)
+      if (usmDbQosCosQueueSchedulerTypeListGet(unit, interface, L7_QOS_QSET_DEFAULT, &queueSchedTypeList) == L7_SUCCESS)
       {
       strcatAddBlanks (0, 0, 0, 3, L7_NULLPTR, title, pStrInfo_qos_SchedulerType);
          strcat(line,  "--------------   ");
@@ -238,7 +238,7 @@ const L7_char8 *commandShowInterfacesCosQueue(EwsContext ewsContext, L7_uint32 a
       /* NOTE:  Display the following UNLESS mgmt type configurable only at the interface level */
       if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_MGMT_INTF_ONLY_FEATURE_ID) == L7_FALSE)
       {
-         if (usmDbQosCosQueueMgmtTypeListGet(unit, interface, L7_QOS_QSET_PORT, &queueMgmtTypeList) == L7_SUCCESS)
+         if (usmDbQosCosQueueMgmtTypeListGet(unit, interface, L7_QOS_QSET_DEFAULT, &queueMgmtTypeList) == L7_SUCCESS)
          {
         strcatAddBlanks (0, 0, 0, 3, L7_NULLPTR, title, pStrInfo_qos_QueueMgmtType);
             strcat(line,  "---------------------   ");
@@ -423,7 +423,7 @@ const L7_char8 *commandShowInterfacesRandomDetect(EwsContext ewsContext, L7_uint
      }
    } 
 
-   if (usmDbQosCosQueueDropParmsListGet(unit, interface, L7_QOS_QSET_PORT, &dropParmsList) != L7_SUCCESS)
+   if (usmDbQosCosQueueDropParmsListGet(unit, interface, L7_QOS_QSET_DEFAULT, &dropParmsList) != L7_SUCCESS)
    {
      return cliSyntaxReturnPromptAddBlanks (1, 1, 0, 0, pStrErr_common_CouldNot, ewsContext, pStrInfo_qos_GetWredParams);
    }
@@ -626,7 +626,7 @@ const L7_char8 *commandShowInterfacesTailDropThreshold(EwsContext ewsContext, L7
     }
   }
 
-  if (usmDbQosCosQueueDropParmsListGet(unit, interface, L7_QOS_QSET_PORT, &dropParmsList) != L7_SUCCESS)
+  if (usmDbQosCosQueueDropParmsListGet(unit, interface, L7_QOS_QSET_DEFAULT, &dropParmsList) != L7_SUCCESS)
   {
       return cliSyntaxReturnPromptAddBlanks (1, 1, 0, 0, pStrErr_common_CouldNot, ewsContext, pStrInfo_qos_GetTdropParams);
   }
@@ -762,7 +762,7 @@ const L7_char8 *commandShowClassofServiceIpDscpMapping(EwsContext ewsContext, L7
       do
       {
          dscp = nextDscp;
-         if (usmDbQosCosMapIpDscpTrafficClassGet(unit, interface, L7_QOS_QSET_PORT, dscp, &trafficClass) != L7_SUCCESS)
+         if (usmDbQosCosMapIpDscpTrafficClassGet(unit, interface, L7_QOS_QSET_DEFAULT, dscp, &trafficClass) != L7_SUCCESS)
       {
         break;
       }
@@ -872,7 +872,7 @@ const L7_char8 *commandShowClassofServiceIpPrecedenceMapping(EwsContext ewsConte
 
       for (precedence = 0; precedence < L7_QOS_COS_MAP_NUM_IPPREC; precedence++)
       {
-         if (usmDbQosCosMapIpPrecTrafficClassGet(unit, interface, L7_QOS_QSET_PORT, precedence, &trafficClass) != L7_SUCCESS)
+         if (usmDbQosCosMapIpPrecTrafficClassGet(unit, interface, L7_QOS_QSET_DEFAULT, precedence, &trafficClass) != L7_SUCCESS)
       {
         break;
       }
@@ -968,7 +968,7 @@ const L7_char8 *commandShowClassofServiceTrust(EwsContext ewsContext, L7_uint32 
 
   ewsTelnetWriteAddBlanks (1, 0, 0, 1, L7_NULLPTR, ewsContext, pStrInfo_qos_ClassOfServiceTrustMode);
 
-   if (usmDbQosCosMapTrustModeGet (unit, interface, L7_QOS_QSET_PORT, &trust) == L7_SUCCESS)
+   if (usmDbQosCosMapTrustModeGet (unit, interface, L7_QOS_QSET_DEFAULT, &trust) == L7_SUCCESS)
    {
       switch (trust)
       {
@@ -988,7 +988,7 @@ const L7_char8 *commandShowClassofServiceTrust(EwsContext ewsContext, L7_uint32 
       ewsTelnetWrite(ewsContext, buf);
    }
 
-   if (usmDbQosCosMapUntrustedPortDefaultTrafficClassGet(unit, interface, L7_QOS_QSET_PORT, &defaultTrafficClass) == L7_SUCCESS)
+   if (usmDbQosCosMapUntrustedPortDefaultTrafficClassGet(unit, interface, L7_QOS_QSET_DEFAULT, &defaultTrafficClass) == L7_SUCCESS)
    {
      if (trust == L7_QOS_COS_MAP_INTF_MODE_UNTRUSTED)
      {

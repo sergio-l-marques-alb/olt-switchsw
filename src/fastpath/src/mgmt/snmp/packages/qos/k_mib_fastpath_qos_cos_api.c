@@ -36,7 +36,7 @@ snmpAgentCosMapIntfTrustModeGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint
   L7_RC_t rc;
   L7_QOS_COS_MAP_INTF_MODE_t temp_val;
 
-  rc = usmDbQosCosMapTrustModeGet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, &temp_val);
+  rc = usmDbQosCosMapTrustModeGet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, &temp_val);
 
   if (rc == L7_SUCCESS)
   {
@@ -90,7 +90,7 @@ snmpAgentCosMapIntfTrustModeSet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint
 
   if (rc == L7_SUCCESS)
   {
-    rc = usmDbQosCosMapTrustModeSet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, temp_val);
+    rc = usmDbQosCosMapTrustModeSet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, temp_val);
   }
 
   return rc;
@@ -353,7 +353,7 @@ snmpAgentCosQueueMgmtTypeIntfGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uin
   L7_RC_t rc;
   L7_QOS_COS_QUEUE_MGMT_TYPE_t temp_val;
 
-  rc = usmDbQosCosQueueMgmtTypePerIntfGet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, &temp_val);
+  rc = usmDbQosCosQueueMgmtTypePerIntfGet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, &temp_val);
 
   if (rc == L7_SUCCESS)
   {
@@ -408,7 +408,7 @@ snmpAgentCosQueueMgmtTypeIntfSet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uin
 
   if (rc == L7_SUCCESS)
   {
-    rc = usmDbQosCosQueueMgmtTypePerIntfSet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, temp_val);
+    rc = usmDbQosCosQueueMgmtTypePerIntfSet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, temp_val);
   }
 
   return rc;
@@ -425,7 +425,7 @@ snmpAgentCosQueueDefaultsRestoreSet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_
     break;
 
   case D_agentCosQueueDefaultsRestore_enable:
-    rc = usmDbQosCosQueueDefaultsRestore(UnitIndex,intIfNum,L7_QOS_QSET_PORT);
+    rc = usmDbQosCosQueueDefaultsRestore(UnitIndex,intIfNum,L7_QOS_QSET_DEFAULT);
     break;
 
   default:
@@ -523,7 +523,7 @@ snmpAgentCosQueueSchedulerTypeGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_ui
   L7_qosCosQueueSchedTypeList_t temp_list;
   L7_uint32 listIndex = agentCosQueueIndex - L7_QOS_COS_QUEUE_ID_MIN;
 
-  rc = usmDbQosCosQueueSchedulerTypeListGet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, &temp_list);
+  rc = usmDbQosCosQueueSchedulerTypeListGet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, &temp_list);
 
   if (rc == L7_SUCCESS &&
       usmDbQosCosQueueIdIndexGet(UnitIndex, agentCosQueueIndex) == L7_SUCCESS)
@@ -598,7 +598,7 @@ snmpAgentCosQueueMinBandwidthGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uin
   L7_qosCosQueueBwList_t temp_list;
   L7_uint32 listIndex = agentCosQueueIndex - L7_QOS_COS_QUEUE_ID_MIN;
 
-  rc = usmDbQosCosQueueMinBandwidthListGet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, &temp_list);
+  rc = usmDbQosCosQueueMinBandwidthListGet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, &temp_list);
 
   if (rc == L7_SUCCESS &&
       usmDbQosCosQueueIdIndexGet(UnitIndex, agentCosQueueIndex) == L7_SUCCESS)
@@ -635,7 +635,7 @@ snmpAgentCosQueueMaxBandwidthGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uin
   L7_qosCosQueueBwList_t temp_list;
   L7_uint32 listIndex = agentCosQueueIndex - L7_QOS_COS_QUEUE_ID_MIN;
 
-  rc = usmDbQosCosQueueMaxBandwidthListGet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, &temp_list);
+  rc = usmDbQosCosQueueMaxBandwidthListGet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, &temp_list);
 
   if (rc == L7_SUCCESS &&
       usmDbQosCosQueueIdIndexGet(UnitIndex, agentCosQueueIndex) == L7_SUCCESS)
@@ -672,7 +672,7 @@ snmpAgentCosQueueMgmtTypeGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 
   L7_qosCosQueueMgmtTypeList_t temp_list;
   L7_uint32 listIndex = agentCosQueueIndex - L7_QOS_COS_QUEUE_ID_MIN;
 
-  rc = usmDbQosCosQueueMgmtTypeListGet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, &temp_list);
+  rc = usmDbQosCosQueueMgmtTypeListGet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, &temp_list);
 
   if (rc == L7_SUCCESS &&
       usmDbQosCosQueueIdIndexGet(UnitIndex, agentCosQueueIndex) == L7_SUCCESS)
@@ -855,7 +855,7 @@ snmpAgentCosQueueMgmtTailDropThresholdGet(L7_uint32 UnitIndex, L7_uint32 intIfNu
   L7_qosCosDropParmsList_t temp_list;
   L7_uint32 listIndex = agentCosQueueDropPrecIndex - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
 
-  rc = usmDbQosCosQueueDropParmsListGet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, &temp_list);
+  rc = usmDbQosCosQueueDropParmsListGet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, &temp_list);
   if ((rc == L7_SUCCESS) && 
       (usmDbQosCosQueueDropPrecIndexGet(UnitIndex, agentCosQueueDropPrecIndex) == L7_SUCCESS) && 
       (agentCosQueueIndex < L7_MAX_CFG_QUEUES_PER_PORT))
@@ -877,14 +877,14 @@ snmpAgentCosQueueMgmtTailDropThresholdSet(L7_uint32 UnitIndex, L7_uint32 intIfNu
     L7_qosCosDropParmsList_t temp_list;
     L7_uint32 listIndex = agentCosQueueDropPrecIndex - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
 
-    rc = usmDbQosCosQueueDropParmsListGet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, &temp_list);
+    rc = usmDbQosCosQueueDropParmsListGet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, &temp_list);
 
     if ((rc == L7_SUCCESS) &&
         (usmDbQosCosQueueDropPrecIndexGet(UnitIndex, agentCosQueueDropPrecIndex) == L7_SUCCESS) && 
         (agentCosQueueIndex < L7_MAX_CFG_QUEUES_PER_PORT))
     {
       temp_list.queue[agentCosQueueIndex].tailDropMaxThreshold[listIndex] = val;
-      rc = usmDbQosCosQueueDropParmsListSet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, &temp_list);
+      rc = usmDbQosCosQueueDropParmsListSet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, &temp_list);
     }
     else
     {
@@ -901,7 +901,7 @@ snmpAgentCosQueueMgmtWredMinThresholdGet(L7_uint32 UnitIndex, L7_uint32 intIfNum
     L7_qosCosDropParmsList_t temp_list;
     L7_uint32 listIndex = agentCosQueueDropPrecIndex - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
 
-    rc = usmDbQosCosQueueDropParmsListGet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, &temp_list);
+    rc = usmDbQosCosQueueDropParmsListGet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, &temp_list);
     if ((rc == L7_SUCCESS) && 
         (usmDbQosCosQueueDropPrecIndexGet(UnitIndex, agentCosQueueDropPrecIndex) == L7_SUCCESS) && 
         (agentCosQueueIndex < L7_MAX_CFG_QUEUES_PER_PORT))
@@ -923,14 +923,14 @@ snmpAgentCosQueueMgmtWredMinThresholdSet(L7_uint32 UnitIndex, L7_uint32 intIfNum
   L7_qosCosDropParmsList_t temp_list;
   L7_uint32 listIndex = agentCosQueueDropPrecIndex - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
 
-  rc = usmDbQosCosQueueDropParmsListGet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, &temp_list);
+  rc = usmDbQosCosQueueDropParmsListGet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, &temp_list);
 
   if ((rc == L7_SUCCESS) &&
       (usmDbQosCosQueueDropPrecIndexGet(UnitIndex, agentCosQueueDropPrecIndex) == L7_SUCCESS) && 
       (agentCosQueueIndex < L7_MAX_CFG_QUEUES_PER_PORT))
   {
     temp_list.queue[agentCosQueueIndex].minThreshold[listIndex] = val;
-    rc = usmDbQosCosQueueDropParmsListSet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, &temp_list);
+    rc = usmDbQosCosQueueDropParmsListSet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, &temp_list);
   }
   else
   {
@@ -947,7 +947,7 @@ snmpAgentCosQueueMgmtWredMaxThresholdGet(L7_uint32 UnitIndex, L7_uint32 intIfNum
     L7_qosCosDropParmsList_t temp_list;
     L7_uint32 listIndex = agentCosQueueDropPrecIndex - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
 
-    rc = usmDbQosCosQueueDropParmsListGet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, &temp_list);
+    rc = usmDbQosCosQueueDropParmsListGet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, &temp_list);
     if ((rc == L7_SUCCESS) && 
         (usmDbQosCosQueueDropPrecIndexGet(UnitIndex, agentCosQueueDropPrecIndex) == L7_SUCCESS) && 
         (agentCosQueueIndex < L7_MAX_CFG_QUEUES_PER_PORT))
@@ -969,14 +969,14 @@ snmpAgentCosQueueMgmtWredMaxThresholdSet(L7_uint32 UnitIndex, L7_uint32 intIfNum
   L7_qosCosDropParmsList_t temp_list;
   L7_uint32 listIndex = agentCosQueueDropPrecIndex - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
 
-  rc = usmDbQosCosQueueDropParmsListGet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, &temp_list);
+  rc = usmDbQosCosQueueDropParmsListGet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, &temp_list);
 
   if ((rc == L7_SUCCESS) &&
       (usmDbQosCosQueueDropPrecIndexGet(UnitIndex, agentCosQueueDropPrecIndex) == L7_SUCCESS) && 
       (agentCosQueueIndex < L7_MAX_CFG_QUEUES_PER_PORT))
   {
     temp_list.queue[agentCosQueueIndex].wredMaxThreshold[listIndex] = val;
-    rc = usmDbQosCosQueueDropParmsListSet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, &temp_list);
+    rc = usmDbQosCosQueueDropParmsListSet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, &temp_list);
   }
   else
   {
@@ -993,7 +993,7 @@ snmpAgentCosQueueMgmtWredDropProbabilityGet(L7_uint32 UnitIndex, L7_uint32 intIf
     L7_qosCosDropParmsList_t temp_list;
     L7_uint32 listIndex = agentCosQueueDropPrecIndex - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
 
-    rc = usmDbQosCosQueueDropParmsListGet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, &temp_list);
+    rc = usmDbQosCosQueueDropParmsListGet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, &temp_list);
     if ((rc == L7_SUCCESS) && 
         (usmDbQosCosQueueDropPrecIndexGet(UnitIndex, agentCosQueueDropPrecIndex) == L7_SUCCESS) && 
         (agentCosQueueIndex < L7_MAX_CFG_QUEUES_PER_PORT))
@@ -1015,14 +1015,14 @@ snmpAgentCosQueueMgmtWredDropProbabilitySet(L7_uint32 UnitIndex, L7_uint32 intIf
   L7_qosCosDropParmsList_t temp_list;
   L7_uint32 listIndex = agentCosQueueDropPrecIndex - L7_QOS_COS_DROP_PREC_LEVEL_MIN;
 
-  rc = usmDbQosCosQueueDropParmsListGet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, &temp_list);
+  rc = usmDbQosCosQueueDropParmsListGet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, &temp_list);
 
   if ((rc == L7_SUCCESS) &&
       (usmDbQosCosQueueDropPrecIndexGet(UnitIndex, agentCosQueueDropPrecIndex) == L7_SUCCESS) && 
       (agentCosQueueIndex < L7_MAX_CFG_QUEUES_PER_PORT))
   {
     temp_list.queue[agentCosQueueIndex].dropProb[listIndex] = val;
-    rc = usmDbQosCosQueueDropParmsListSet(UnitIndex, intIfNum, L7_QOS_QSET_PORT, &temp_list);
+    rc = usmDbQosCosQueueDropParmsListSet(UnitIndex, intIfNum, L7_QOS_QSET_DEFAULT, &temp_list);
   }
   else
   {

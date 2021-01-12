@@ -126,7 +126,7 @@ const L7_char8 *commandGlobalCosQueueMinBandwidth(EwsContext ewsContext, L7_uint
 
     if (ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
     {
-      if (usmDbQosCosQueueMinBandwidthListSet(unit,L7_ALL_INTERFACES,L7_QOS_QSET_PORT,&minBw) != L7_SUCCESS)
+      if (usmDbQosCosQueueMinBandwidthListSet(unit,L7_ALL_INTERFACES,L7_QOS_QSET_DEFAULT,&minBw) != L7_SUCCESS)
       {
         return cliSyntaxReturnPromptAddBlanks (1, 1, 0, 0, L7_NULLPTR,  ewsContext, pStrErr_qos_MinBwSet);
       }
@@ -148,7 +148,7 @@ const L7_char8 *commandGlobalCosQueueMinBandwidth(EwsContext ewsContext, L7_uint
 
     if (ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
     {
-      if (usmDbQosCosQueueMinBandwidthListSet(unit,L7_ALL_INTERFACES,L7_QOS_QSET_PORT,&minBw) != L7_SUCCESS)
+      if (usmDbQosCosQueueMinBandwidthListSet(unit,L7_ALL_INTERFACES,L7_QOS_QSET_DEFAULT,&minBw) != L7_SUCCESS)
       {
         return cliSyntaxReturnPromptAddBlanks (1, 1, 0, 0, L7_NULLPTR,  ewsContext, pStrErr_qos_MinBwSet);
       }
@@ -231,7 +231,7 @@ const L7_char8 *commandGlobalCosQueueStrict(EwsContext ewsContext, L7_uint32 arg
     }
 
     /* retrieve current settings for all queues before applying user changes */
-    if (usmDbQosCosQueueSchedulerTypeListGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_PORT, &schedTypeList) != L7_SUCCESS)
+    if (usmDbQosCosQueueSchedulerTypeListGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &schedTypeList) != L7_SUCCESS)
     {
       return cliSyntaxReturnPromptAddBlanks (0, 1, 0, 0, pStrErr_common_CouldNot, ewsContext, pStrInfo_qos_GetQueueSchedulerList);
     }
@@ -302,7 +302,7 @@ const L7_char8 *commandGlobalCosQueueStrict(EwsContext ewsContext, L7_uint32 arg
     }
 
     /* retrieve current settings for all queues before applying user changes */
-    if (usmDbQosCosQueueSchedulerTypeListGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_PORT, &schedTypeList) != L7_SUCCESS)
+    if (usmDbQosCosQueueSchedulerTypeListGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &schedTypeList) != L7_SUCCESS)
     {
       return cliSyntaxReturnPromptAddBlanks (0, 1, 0, 0, pStrErr_common_CouldNot, ewsContext, pStrInfo_qos_GetQueueSchedulerList);
     }
@@ -452,7 +452,7 @@ const L7_char8 *commandInterfaceCosQueueMinBandwidth(EwsContext ewsContext, L7_u
           {
             continue;
           }
-          if (usmDbQosCosQueueMinBandwidthListSet(unit,interface,L7_QOS_QSET_PORT,&minBw) != L7_SUCCESS)
+          if (usmDbQosCosQueueMinBandwidthListSet(unit,interface,L7_QOS_QSET_DEFAULT,&minBw) != L7_SUCCESS)
           {
             ewsTelnetWriteAddBlanks (1, 0, 0, 0, L7_NULLPTR, ewsContext, cliDisplayInterfaceHelp(unit, s, p));
             ewsTelnetWriteAddBlanks (1, 1, 0, 0, L7_NULLPTR,  ewsContext, pStrErr_qos_MinBwSet);
@@ -486,7 +486,7 @@ const L7_char8 *commandInterfaceCosQueueMinBandwidth(EwsContext ewsContext, L7_u
           {
             continue;
           }
-          if (usmDbQosCosQueueMinBandwidthListSet(unit,interface,L7_QOS_QSET_PORT,&minBw) != L7_SUCCESS)
+          if (usmDbQosCosQueueMinBandwidthListSet(unit,interface,L7_QOS_QSET_DEFAULT,&minBw) != L7_SUCCESS)
           {
             ewsTelnetWriteAddBlanks (1, 0, 0, 0, L7_NULLPTR, ewsContext, cliDisplayInterfaceHelp(unit, s, p));
             ewsTelnetWriteAddBlanks (1, 1, 0, 0, L7_NULLPTR,  ewsContext, pStrErr_qos_MinBwSet);
@@ -579,7 +579,7 @@ const L7_char8 *commandInterfaceCosQueueStrict(EwsContext ewsContext, L7_uint32 
         }
     
         /* retrieve current settings for all queues before applying user changes */
-        if (usmDbQosCosQueueSchedulerTypeListGet(unit, interface, L7_QOS_QSET_PORT, &schedTypeList) != L7_SUCCESS)
+        if (usmDbQosCosQueueSchedulerTypeListGet(unit, interface, L7_QOS_QSET_DEFAULT, &schedTypeList) != L7_SUCCESS)
         {
           ewsTelnetWriteAddBlanks (1, 0, 0, 0, L7_NULLPTR, ewsContext, cliDisplayInterfaceHelp(unit, s, p));
           ewsTelnetWriteAddBlanks (0, 1, 0, 0, pStrErr_common_CouldNot, ewsContext, pStrInfo_qos_GetQueueSchedulerList);
@@ -604,7 +604,7 @@ const L7_char8 *commandInterfaceCosQueueStrict(EwsContext ewsContext, L7_uint32 
     
         if (ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
         {
-          if (usmDbQosCosQueueSchedulerTypeListSet(unit,interface,L7_QOS_QSET_PORT,&schedTypeList) != L7_SUCCESS)
+          if (usmDbQosCosQueueSchedulerTypeListSet(unit,interface,L7_QOS_QSET_DEFAULT,&schedTypeList) != L7_SUCCESS)
           {
             ewsTelnetWriteAddBlanks (1, 0, 0, 0, L7_NULLPTR, ewsContext, cliDisplayInterfaceHelp(unit, s, p));
             ewsTelnetWriteAddBlanks (1, 1, 0, 1, L7_NULLPTR,  ewsContext,pStrErr_qos_ScheduleTypeSet );
@@ -635,7 +635,7 @@ const L7_char8 *commandInterfaceCosQueueStrict(EwsContext ewsContext, L7_uint32 
         }
     
         /* retrieve current settings for all queues before applying user changes */
-        if (usmDbQosCosQueueSchedulerTypeListGet(unit, interface, L7_QOS_QSET_PORT, &schedTypeList) != L7_SUCCESS)
+        if (usmDbQosCosQueueSchedulerTypeListGet(unit, interface, L7_QOS_QSET_DEFAULT, &schedTypeList) != L7_SUCCESS)
         {
           ewsTelnetWriteAddBlanks (1, 0, 0, 0, L7_NULLPTR, ewsContext, cliDisplayInterfaceHelp(unit, s, p));
           ewsTelnetWriteAddBlanks (0, 1, 0, 0, pStrErr_common_CouldNot, ewsContext, pStrInfo_qos_GetQueueSchedulerList);
@@ -660,7 +660,7 @@ const L7_char8 *commandInterfaceCosQueueStrict(EwsContext ewsContext, L7_uint32 
     
         if (ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
         {
-          if (usmDbQosCosQueueSchedulerTypeListSet(unit,interface,L7_QOS_QSET_PORT,&schedTypeList) != L7_SUCCESS)
+          if (usmDbQosCosQueueSchedulerTypeListSet(unit,interface,L7_QOS_QSET_DEFAULT,&schedTypeList) != L7_SUCCESS)
           {
             ewsTelnetWriteAddBlanks (1, 0, 0, 0, L7_NULLPTR, ewsContext, cliDisplayInterfaceHelp(unit, s, p));
             ewsTelnetWriteAddBlanks (1, 1, 0, 1, L7_NULLPTR,  ewsContext,pStrErr_qos_ScheduleTypeSet );
@@ -775,7 +775,7 @@ const L7_char8 *commandInterfaceTrafficShape(EwsContext ewsContext, L7_uint32 ar
         {
           continue;
         }
-        if (usmDbQosCosQueueIntfShapingRateSet(unit,interface,L7_QOS_QSET_PORT,bandWidth,(L7_uint32)-1/*Default*/) != L7_SUCCESS)
+        if (usmDbQosCosQueueIntfShapingRateSet(unit,interface,L7_QOS_QSET_DEFAULT,bandWidth,(L7_uint32)-1/*Default*/) != L7_SUCCESS)
         {
           ewsTelnetWriteAddBlanks (1, 0, 0, 0, L7_NULLPTR, ewsContext, cliDisplayInterfaceHelp(unit, s, p));
           ewsTelnetWriteAddBlanks (1, 1, 0, 1, L7_NULLPTR,  ewsContext, pStrErr_qos_TrafficShapeSet);
@@ -876,7 +876,7 @@ const L7_char8 *commandGlobalTrafficShape(EwsContext ewsContext, L7_uint32 argc,
 
     if (ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
     {
-      if (usmDbQosCosQueueIntfShapingRateSet(unit,L7_ALL_INTERFACES,L7_QOS_QSET_PORT,bandWidth,(L7_uint32)-1/*Default*/) != L7_SUCCESS)
+      if (usmDbQosCosQueueIntfShapingRateSet(unit,L7_ALL_INTERFACES,L7_QOS_QSET_DEFAULT,bandWidth,(L7_uint32)-1/*Default*/) != L7_SUCCESS)
       {
         return cliSyntaxReturnPromptAddBlanks (1, 1, 0, 1, L7_NULLPTR,  ewsContext, pStrErr_qos_TrafficShapeSet);
       }
@@ -891,7 +891,7 @@ const L7_char8 *commandGlobalTrafficShape(EwsContext ewsContext, L7_uint32 argc,
     }
     if (ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
     {
-      if (usmDbQosCosQueueIntfShapingRateSet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_PORT, FD_QOS_COS_QCFG_INTF_SHAPING_RATE, (L7_uint32)-1/*Default*/) != L7_SUCCESS)
+      if (usmDbQosCosQueueIntfShapingRateSet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, FD_QOS_COS_QCFG_INTF_SHAPING_RATE, (L7_uint32)-1/*Default*/) != L7_SUCCESS)
       {
         return cliSyntaxReturnPromptAddBlanks (1, 1, 0, 1, L7_NULLPTR,  ewsContext, pStrErr_qos_TrafficShapeSet);
       }
@@ -977,7 +977,7 @@ const L7_char8 *commandCosQueueMaxBandwidth(EwsContext ewsContext, L7_uint32 arg
       {
         memset(&minBw, 0, sizeof(minBw));
       }
-      else if (usmDbQosCosQueueMinBandwidthListGet(unit,interface,L7_QOS_QSET_PORT,&minBw) != L7_SUCCESS)
+      else if (usmDbQosCosQueueMinBandwidthListGet(unit,interface,L7_QOS_QSET_DEFAULT,&minBw) != L7_SUCCESS)
       {
         if (interface != L7_ALL_INTERFACES)
         {
@@ -1017,7 +1017,7 @@ const L7_char8 *commandCosQueueMaxBandwidth(EwsContext ewsContext, L7_uint32 arg
   
       if (ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
       {
-        if (usmDbQosCosQueueMaxBandwidthListSet(unit,interface,L7_QOS_QSET_PORT,&maxBw) != L7_SUCCESS)
+        if (usmDbQosCosQueueMaxBandwidthListSet(unit,interface,L7_QOS_QSET_DEFAULT,&maxBw) != L7_SUCCESS)
         {
           if (interface != L7_ALL_INTERFACES)
           {
@@ -1044,7 +1044,7 @@ const L7_char8 *commandCosQueueMaxBandwidth(EwsContext ewsContext, L7_uint32 arg
   
       if (ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
       {
-        if (usmDbQosCosQueueMaxBandwidthListSet(unit,interface,L7_QOS_QSET_PORT,&maxBw) != L7_SUCCESS)
+        if (usmDbQosCosQueueMaxBandwidthListSet(unit,interface,L7_QOS_QSET_DEFAULT,&maxBw) != L7_SUCCESS)
         {
           if (interface != L7_ALL_INTERFACES)
           {
@@ -1155,7 +1155,7 @@ const L7_char8 *commandCosQueueRandomDetect(EwsContext ewsContext, L7_uint32 arg
       }
   
       /* retrieve current settings for all queues before applying user changes */
-      if (usmDbQosCosQueueMgmtTypeListGet(unit, interface, L7_QOS_QSET_PORT, &mgmtTypeList) != L7_SUCCESS)
+      if (usmDbQosCosQueueMgmtTypeListGet(unit, interface, L7_QOS_QSET_DEFAULT, &mgmtTypeList) != L7_SUCCESS)
       {
         if (interface != L7_ALL_INTERFACES)
         {
@@ -1179,7 +1179,7 @@ const L7_char8 *commandCosQueueRandomDetect(EwsContext ewsContext, L7_uint32 arg
         mgmtTypeList.mgmtType[queueId] = L7_QOS_COS_QUEUE_MGMT_TYPE_WRED;
       }   /* END OF FOR LOOP */
   
-      if (usmDbQosCosQueueMgmtTypeListSet(unit,interface,L7_QOS_QSET_PORT,&mgmtTypeList) != L7_SUCCESS)
+      if (usmDbQosCosQueueMgmtTypeListSet(unit,interface,L7_QOS_QSET_DEFAULT,&mgmtTypeList) != L7_SUCCESS)
       {
         if (interface != L7_ALL_INTERFACES)
         {
@@ -1208,7 +1208,7 @@ const L7_char8 *commandCosQueueRandomDetect(EwsContext ewsContext, L7_uint32 arg
       }
   
       /* retrieve current settings for all queues before applying user changes */
-      if (usmDbQosCosQueueMgmtTypeListGet(unit, interface, L7_QOS_QSET_PORT, &mgmtTypeList) != L7_SUCCESS)
+      if (usmDbQosCosQueueMgmtTypeListGet(unit, interface, L7_QOS_QSET_DEFAULT, &mgmtTypeList) != L7_SUCCESS)
       {
         if (interface != L7_ALL_INTERFACES)
         {
@@ -1232,7 +1232,7 @@ const L7_char8 *commandCosQueueRandomDetect(EwsContext ewsContext, L7_uint32 arg
         mgmtTypeList.mgmtType[queueId] = L7_QOS_COS_QUEUE_MGMT_TYPE_TAILDROP;
       }   /* END OF FOR LOOP */
   
-      if (usmDbQosCosQueueMgmtTypeListSet(unit,interface,L7_QOS_QSET_PORT,&mgmtTypeList) != L7_SUCCESS)
+      if (usmDbQosCosQueueMgmtTypeListSet(unit,interface,L7_QOS_QSET_DEFAULT,&mgmtTypeList) != L7_SUCCESS)
       {
         if (interface != L7_ALL_INTERFACES)
         {
@@ -1332,7 +1332,7 @@ const L7_char8 *commandRandomDetect(EwsContext ewsContext, L7_uint32 argc,const 
   
       if (ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
       {
-        rc =  usmDbQosCosQueueMgmtTypePerIntfSet(unit, interface, L7_QOS_QSET_PORT, val);
+        rc =  usmDbQosCosQueueMgmtTypePerIntfSet(unit, interface, L7_QOS_QSET_DEFAULT, val);
         if (rc != L7_SUCCESS)
         {
           if (interface != L7_ALL_INTERFACES)
@@ -1356,7 +1356,7 @@ const L7_char8 *commandRandomDetect(EwsContext ewsContext, L7_uint32 argc,const 
   
       if (ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
       {
-        rc =  usmDbQosCosQueueMgmtTypePerIntfSet(unit, interface, L7_QOS_QSET_PORT, val);
+        rc =  usmDbQosCosQueueMgmtTypePerIntfSet(unit, interface, L7_QOS_QSET_DEFAULT, val);
         if (rc != L7_SUCCESS)
         {
           if (interface != L7_ALL_INTERFACES)
@@ -1466,7 +1466,7 @@ const L7_char8 *commandRandomDetectExponentialWeightingConstant(EwsContext ewsCo
   
       if (ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
       {
-        rc =  usmDbQosCosQueueWredDecayExponentSet(unit, interface, L7_QOS_QSET_PORT, val);
+        rc =  usmDbQosCosQueueWredDecayExponentSet(unit, interface, L7_QOS_QSET_DEFAULT, val);
         if (rc != L7_SUCCESS)
         {
           if (interface != L7_ALL_INTERFACES)
@@ -1491,7 +1491,7 @@ const L7_char8 *commandRandomDetectExponentialWeightingConstant(EwsContext ewsCo
   
       if (ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
       {
-        rc =  usmDbQosCosQueueWredDecayExponentSet(unit, interface, L7_QOS_QSET_PORT, val);
+        rc =  usmDbQosCosQueueWredDecayExponentSet(unit, interface, L7_QOS_QSET_DEFAULT, val);
         if (rc != L7_SUCCESS)
         {
           if (interface != L7_ALL_INTERFACES)
@@ -1788,7 +1788,7 @@ const L7_char8 *commandRandomDetectQueueParms(EwsContext ewsContext, L7_uint32 a
         pos++;
       }
   
-      rc = usmDbQosCosQueueDropParmsListGet(unit, interface, L7_QOS_QSET_PORT, &dList);
+      rc = usmDbQosCosQueueDropParmsListGet(unit, interface, L7_QOS_QSET_DEFAULT, &dList);
       if (rc  != L7_SUCCESS)    /* check for min-thresh range too */
       {
         if (interface != L7_ALL_INTERFACES)
@@ -1810,7 +1810,7 @@ const L7_char8 *commandRandomDetectQueueParms(EwsContext ewsContext, L7_uint32 a
       }
       if (ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
       {
-        rc = usmDbQosCosQueueDropParmsListSet(unit, interface, L7_QOS_QSET_PORT, &dList);
+        rc = usmDbQosCosQueueDropParmsListSet(unit, interface, L7_QOS_QSET_DEFAULT, &dList);
   
         if (rc  != L7_SUCCESS)    /* check for min-thresh range too */
         {
@@ -2052,7 +2052,7 @@ const L7_char8 *commandTailDropQueueParms(EwsContext ewsContext, L7_uint32 argc,
         pos++;
       }
   
-      rc = usmDbQosCosQueueDropParmsListGet(unit, interface, L7_QOS_QSET_PORT, &dropList);
+      rc = usmDbQosCosQueueDropParmsListGet(unit, interface, L7_QOS_QSET_DEFAULT, &dropList);
       if (rc  != L7_SUCCESS)    /* check for threshold range too */
       {
           return cliSyntaxReturnPromptAddBlanks (1, 1, 0, 0, pStrErr_common_CouldNot,  ewsContext, pStrInfo_qos_SetTailDropParams);
@@ -2066,7 +2066,7 @@ const L7_char8 *commandTailDropQueueParms(EwsContext ewsContext, L7_uint32 argc,
       }
       if (ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
       {
-        rc = usmDbQosCosQueueDropParmsListSet(unit, interface, L7_QOS_QSET_PORT, &dropList);
+        rc = usmDbQosCosQueueDropParmsListSet(unit, interface, L7_QOS_QSET_DEFAULT, &dropList);
   
         if (rc  != L7_SUCCESS)    /* check for threshold range too */
         {
@@ -2225,7 +2225,7 @@ const L7_char8 *commandClassofserviceIpDscpMapping(EwsContext ewsContext, L7_uin
   
       if (ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
       {
-        if (usmDbQosCosMapIpDscpTrafficClassSet(unit, interface, L7_QOS_QSET_PORT, dscpVal, trafficClassVal) != L7_SUCCESS)
+        if (usmDbQosCosMapIpDscpTrafficClassSet(unit, interface, L7_QOS_QSET_DEFAULT, dscpVal, trafficClassVal) != L7_SUCCESS)
         {
           if (interface != L7_ALL_INTERFACES)
           {
@@ -2245,7 +2245,7 @@ const L7_char8 *commandClassofserviceIpDscpMapping(EwsContext ewsContext, L7_uin
   
       for (dscpVal = L7_QOS_COS_MAP_IPDSCP_MIN; dscpVal <= L7_QOS_COS_MAP_IPDSCP_MAX; dscpVal++)
       {
-        rc = usmDbQosCosMapIpDscpDefaultTrafficClassGet(unit, interface, L7_QOS_QSET_PORT, dscpVal, &def_tc);
+        rc = usmDbQosCosMapIpDscpDefaultTrafficClassGet(unit, interface, L7_QOS_QSET_DEFAULT, dscpVal, &def_tc);
         if (rc == L7_SUCCESS)
         {
           /*******Check if the Flag is Set for Execution*************/
@@ -2255,7 +2255,7 @@ const L7_char8 *commandClassofserviceIpDscpMapping(EwsContext ewsContext, L7_uin
              *        to cover case where global config change affects some
              *        interfaces but not all.
              */
-            rc = usmDbQosCosMapIpDscpTrafficClassSet(unit, interface, L7_QOS_QSET_PORT, dscpVal, def_tc);
+            rc = usmDbQosCosMapIpDscpTrafficClassSet(unit, interface, L7_QOS_QSET_DEFAULT, dscpVal, def_tc);
           }
         }
   
@@ -2376,7 +2376,7 @@ const L7_char8 *commandClassofserviceIpPrecedenceMapping(EwsContext ewsContext, 
   
       if (ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
       {
-        if (usmDbQosCosMapIpPrecTrafficClassSet(unit, interface, L7_QOS_QSET_PORT, precVal, trafficClassVal) != L7_SUCCESS)
+        if (usmDbQosCosMapIpPrecTrafficClassSet(unit, interface, L7_QOS_QSET_DEFAULT, precVal, trafficClassVal) != L7_SUCCESS)
         {
           if (interface != L7_ALL_INTERFACES)
           {
@@ -2396,7 +2396,7 @@ const L7_char8 *commandClassofserviceIpPrecedenceMapping(EwsContext ewsContext, 
   
       for (precVal = L7_QOS_COS_MAP_IPPREC_MIN; precVal <= L7_QOS_COS_MAP_IPPREC_MAX; precVal++)
       {
-        rc = usmDbQosCosMapIpPrecDefaultTrafficClassGet(unit, interface, L7_QOS_QSET_PORT, precVal, &def_tc);
+        rc = usmDbQosCosMapIpPrecDefaultTrafficClassGet(unit, interface, L7_QOS_QSET_DEFAULT, precVal, &def_tc);
         if (rc == L7_SUCCESS)
         {
           /*******Check if the Flag is Set for Execution*************/
@@ -2406,7 +2406,7 @@ const L7_char8 *commandClassofserviceIpPrecedenceMapping(EwsContext ewsContext, 
              *        to cover case where global config change affects some
              *        interfaces but not all.
              */
-            rc = usmDbQosCosMapIpPrecTrafficClassSet(unit, interface, L7_QOS_QSET_PORT, precVal, def_tc);
+            rc = usmDbQosCosMapIpPrecTrafficClassSet(unit, interface, L7_QOS_QSET_DEFAULT, precVal, def_tc);
           }
         }
   
@@ -2615,7 +2615,7 @@ const L7_char8 *commandClassofserviceTrust(EwsContext ewsContext, L7_uint32 argc
   
       if (ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
       {
-        if (usmDbQosCosMapTrustModeSet(unit, interface, L7_QOS_QSET_PORT, val) != L7_SUCCESS)
+        if (usmDbQosCosMapTrustModeSet(unit, interface, L7_QOS_QSET_DEFAULT, val) != L7_SUCCESS)
         {
           if (interface != L7_ALL_INTERFACES)
           {
@@ -2637,7 +2637,7 @@ const L7_char8 *commandClassofserviceTrust(EwsContext ewsContext, L7_uint32 argc
         {
           L7_uint32 globMode;
   
-          if (usmDbQosCosMapTrustModeGet(L7_NULL, L7_ALL_INTERFACES, L7_QOS_QSET_PORT, &globMode) == L7_SUCCESS &&
+          if (usmDbQosCosMapTrustModeGet(L7_NULL, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &globMode) == L7_SUCCESS &&
               globMode == L7_QOS_COS_MAP_INTF_MODE_UNTRUSTED && val == L7_QOS_COS_MAP_INTF_MODE_UNTRUSTED)
           {
             ewsTelnetWriteAddBlanks (1, 0, 0, 1, L7_NULLPTR,  ewsContext, pStrErr_qos_NoteUnTrustSet);
