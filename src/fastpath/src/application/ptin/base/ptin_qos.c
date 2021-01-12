@@ -1399,7 +1399,7 @@ void ptin_intf_shaper_max_dump(void)
 {
   L7_uint32 port, intIfNum, shaper_rate;
   l7_cosq_set_t queueSet;
-  L7_char8 queueSet_str[L7_QOS_QSET_MAX][10] = {"Port","Wired","Wireless"/*,"Transit","Stacked"*/};
+  L7_uchar8 queueSet_str[10];
   L7_RC_t rc;
 
   printf(" ---------------------------------------------------------\r\n");
@@ -1421,8 +1421,25 @@ void ptin_intf_shaper_max_dump(void)
       shaper_rate = 0;
     }
 
+    /* String associated to the queue */
+    switch (queueSet)
+    {
+      case L7_QOS_QSET_PORT:
+        strcpy(queueSet_str,"Port");
+        break;
+      case L7_QOS_QSET_WIRED:
+        strcpy(queueSet_str,"Wired");
+        break;
+      case L7_QOS_QSET_WIRELESS:
+        strcpy(queueSet_str,"Wireless");
+        break;
+      default:
+        strcpy(queueSet_str,"---");
+        break;
+    }
+    
     printf("|  %2u  | %-8s |    %3u   |   %3u   |   %3u   | %6u |\r\n",
-           port, queueSet_str[queueSet],
+           port, queueSet_str,
            ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MAX_VALUE],
            ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MNG_VALUE],
            shaper_rate,

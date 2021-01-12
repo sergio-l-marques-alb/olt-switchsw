@@ -199,7 +199,7 @@ L7_RC_t ptin_hapi_bridge_vlan_cosq_set(L7_uint16 vlanId, l7_cosq_set_t queueSet)
   }
 
   /* Forwarding vlan, for MAC learning purposes (only if fwdvlan is valid) */
-  if (queueSet >= L7_QOS_QSET_MAX)
+  if (queueSet >= L7_MAX_CFG_QUEUESETS_PER_PORT)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Invalid COS queue destination %u", queueSet);
     return L7_FAILURE;

@@ -33,12 +33,16 @@ typedef enum l7_cosq_set_e {
     L7_QOS_QSET_WIRED    = 0,
     L7_QOS_QSET_WIRELESS = 1,
     L7_QOS_QSET_MAX,
-    L7_QOS_QSET_PORT,
+    L7_QOS_QSET_PORT = -1,
 } l7_cosq_set_t;
 
 /* Some switches allow more than 1 group of queues per port */
 #ifndef L7_MAX_CFG_QUEUESETS_PER_PORT
+ #if (PLAT_BCM_CHIP == L7_BCM_TRIDENT3_X3)
   #define L7_MAX_CFG_QUEUESETS_PER_PORT     L7_QOS_QSET_MAX
+ #else
+  #define L7_MAX_CFG_QUEUESETS_PER_PORT     1
+ #endif
 #endif
 
 /* the following values are established here if not already defined in platform.h */
