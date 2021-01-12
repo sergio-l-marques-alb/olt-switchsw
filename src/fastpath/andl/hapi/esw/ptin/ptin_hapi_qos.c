@@ -93,6 +93,9 @@ static struct classId_entry_s  classId_pool[MAX_CLASS_ID];
 /* Queues */
 static dl_queue_t queue_free_classIds;    /* Queue of free Class ID entries */
 
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+static L7_RC_t eg_prt_sched_hrchy_table_fill(void);
+#endif
 
 /**
  * Search for an entry in ClassID table
@@ -547,6 +550,9 @@ L7_RC_t ptin_hapi_qos_init(void)
     dl_queue_add_tail(&queue_free_classIds, (dl_queue_elem_t*) &classId_pool[i]);
   }
 
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  eg_prt_sched_hrchy_table_fill();
+#endif
   return L7_SUCCESS;
 }
 
@@ -1895,7 +1901,7 @@ void BCM_GPORT_SCHEDULER_2_SCHED_id(int gport,
  * 
  * @return void 
  */
-inline
+static
 void BCM_GPORT_UCAST_QUEUE_GROUP_2_Qid(int gport,
                                        int dwn0_up1_st2,
                                        unsigned int *id0,
@@ -1947,7 +1953,7 @@ void BCM_GPORT_UCAST_QUEUE_GROUP_2_Qid(int gport,
  * 
  * @return void 
  */
-inline
+static
 void BCM_GPORT_MCAST_QUEUE_GROUP_2_Qid(int gport,
                                        int dwn0_up1_st2,
                                        unsigned int *id0,
@@ -2172,4 +2178,63 @@ L7_RC_t eg_prt_sched_hrchy_table_fill(void) {
     return L7_SUCCESS;
 }
 #endif //#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+
+
+
+
+/**
+ * 
+ * @param usp_port 
+ *  Pointer to ptin_dapi_port_t (that gives us "usp_port" and L0
+ *  SE for boards other than TC16SXG
+ * @param queue_set 
+ *  Parameter integrating scheduling coordinates L0, L1.x
+ * @param TC 
+ *  Traffic Class
+ * @param gport 
+ *  Pointer to function output gport we're getting
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_qos_gport_get(ptin_dapi_port_t *dapiPort,
+                                int queue_set, L7_uint32 TC,
+                                bcm_gport_t *gport)
+{
+    L7_uint32 usp_port;
+    BROAD_PORT_t *hapiPortPtr;
+
+    hapiPortPtr = HAPI_PORT_GET( dapiPort->usp, dapiPort->dapi_g );
+    usp_port = dapiPort->usp->port;
+
+
+    switch (queue_set) {
+    case L7_QOS_QSET_PORT:
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+        *gport = HQoS[usp_port].L0;
+#else
+        *gport = hapiPortPtr->bcm_gport;
+#endif
+        return L7_SUCCESS;
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+    case L7_QOS_QSET_WIRELESS:
+    case L7_QOS_QSET_WIRED:
+        {
+            unsigned int id1;
+
+            id1 = L7_QOS_QSET_WIRELESS==queue_set? 0: 1;
+            if (TC>=N_iL2s) {
+                *gport = HQoS[usp_port].L1[id1].SE;
+                return L7_SUCCESS;
+            }
+            else {
+                *gport = HQoS[usp_port].L1[id1].L2[TC].SE;
+                return L7_SUCCESS;
+            }
+        }
+#endif
+    default:
+        *gport = BCM_GPORT_INVALID;
+        return L7_ERROR;
+    }
+}
 

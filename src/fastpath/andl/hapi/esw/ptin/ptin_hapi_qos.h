@@ -109,4 +109,21 @@ L7_RC_t ptin_hapi_qos_table_flush(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qo
  */
 L7_RC_t ptin_hapi_qos_entry_update(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_cfg);
 
+/**
+ * 
+ * @param usp_port 
+ *  Pointer to ptin_dapi_port_t (that gives us "usp_port" and L0
+ *  SE for boards other than TC16SXG
+ * @param queue_set 
+ *  Parameter integrating scheduling coordinates L0, L1.x
+ * @param TC 
+ *  Traffic Class
+ * @param gport 
+ *  Pointer to function output gport we're getting
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_qos_gport_get(ptin_dapi_port_t *dapiPort,
+                                int queue_set, L7_uint32 TC,
+                                bcm_gport_t *gport);
 #endif /* _PTIN_HAPI_QOS__H */
