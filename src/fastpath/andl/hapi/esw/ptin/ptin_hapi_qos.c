@@ -1519,6 +1519,7 @@ L7_RC_t ptin_hapi_qos_dump(void)
  *  
  *  
  * https://jira.ptin.corppt.com/browse/OLTSWITCH-1386?focusedCommentId=1582817&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-1582817 
+ * https://jira.ptin.corppt.com/browse/OLTSWITCH-1386?focusedCommentId=1583548&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-1583548 
  * https://jira.ptin.corppt.com/secure/attachment/630858/QoS_TD3X3.png 
  * https://jira.ptin.corppt.com/browse/OLTSWITCH-1386?focusedCommentId=1580853&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-1580853 
  *  
@@ -1542,8 +1543,9 @@ L7_RC_t ptin_hapi_qos_dump(void)
  * } soc_hx5_node_lvl_e;
  *  
  *  
- *  Table built traversing gports (bcm_cosq_gport_traverse())
- *  with function bcm_cosq_gport_info_get()
+ *  Table HQoS built traversing gports
+ *  (bcm_cosq_gport_traverse()) with function
+ *  bcm_cosq_gport_info_get()
  *  
  */
 
@@ -1554,7 +1556,7 @@ L7_RC_t ptin_hapi_qos_dump(void)
 
 #define N_L0s   1
 #define N_L1s   2
-#define N_iL2s   8
+#define N_iL2s  8
 typedef struct {
     bcm_gport_t L0; //"L0.0" (SE)
     struct {
@@ -1574,6 +1576,13 @@ static eg_prt_sched_hrchy_t HQoS[L7_MAX_PHYSICAL_PORTS_PER_UNIT];
 
 
 
+/**
+ * Initialize an "eg_prt_sched_hrchy_t" struct
+ * 
+ * @param eg_prt_sched_hrchy_t pointer 
+ * 
+ * @return void 
+ */
 void eg_prt_sched_hrchy_t_init(eg_prt_sched_hrchy_t *p) {
     int i, j;
 
@@ -1594,9 +1603,10 @@ void eg_prt_sched_hrchy_t_init(eg_prt_sched_hrchy_t *p) {
 /* 
 To understand the following SE/UCQ/MCQ functions please check: 
 _bcm_hx5_cosq_gport_add()
- 
+
 AND 
- 
+
+(NOTE: Port 1 is "Downlnk", Port 17 "HG/Stacking". Different egress scheduling.) 
 [root@TC16SXG~]# fp.shell hsp pbm=xe
 Broadcom shell > hsp pbm=xe
 
@@ -1747,6 +1757,34 @@ L0.2: GPORT=0x37820011 HW_INDEX=38 MODE=WRR WT=1
 =========== 
 [...] 
 */
+
+
+
+/** 
+ *  
+ * To understand the following SE/UCQ/MCQ functions please check:
+ * _bcm_hx5_cosq_gport_add()
+ *
+ * AND
+ *
+ * Broadcom shell > hsp pbm=xe
+ * (Check partial output of this command above.)
+ * (NOTE: Port 1 "Downlnk", Port 17 "HG/Stacking". Different egress scheduling.) 
+ * 
+ * 
+ * Get scheduler IDs (levels 0,1,2) for the input gport and sched type
+ * 
+ * @param gport
+ * @param dwn0_up1_st2
+ * According to ToO BCM56370/56370-PG103.pdf ~pg 558, there are
+ * 3 types of egress schedulers: downlink(0), uplink(1), HG/stacking(2).
+ * Empirism showed just downlink and HG/stacking.
+ * @param *id0, *id1, *id2
+ * Output scheduling coordinates on the 3 levels 0-2.
+ * Refer to "hsp pbm=xe" and above URLs.
+ * 
+ * @return void 
+ */
 static
 //inline
 void BCM_GPORT_SCHEDULER_2_SCHED_id(int gport,
@@ -1833,6 +1871,30 @@ void BCM_GPORT_SCHEDULER_2_SCHED_id(int gport,
 
 
 
+/** 
+ *  
+ * To understand the following SE/UCQ/MCQ functions please check:
+ * _bcm_hx5_cosq_gport_add()
+ *
+ * AND
+ *
+ * Broadcom shell > hsp pbm=xe
+ * (Check partial output of this command above.)
+ * 
+ * 
+ * Get input gport Unicast Queue Group scheduling coordinates (levels 0,1,2)
+ * 
+ * @param gport
+ * @param dwn0_up1_st2
+ * According to ToO BCM56370/56370-PG103.pdf ~pg 558, there are
+ * 3 types of egress schedulers: downlink(0), uplink(1), HG/stacking(2).
+ * Empirism showed just downlink and HG/stacking.
+ * @param *id0, *id1, *id2
+ * Output scheduling coordinates on the 3 levels 0-2.
+ * Refer to "hsp pbm=xe" and above URLs.
+ * 
+ * @return void 
+ */
 inline
 void BCM_GPORT_UCAST_QUEUE_GROUP_2_Qid(int gport,
                                        int dwn0_up1_st2,
@@ -1861,6 +1923,30 @@ void BCM_GPORT_UCAST_QUEUE_GROUP_2_Qid(int gport,
 
 
 
+/** 
+ *  
+ * To understand the following SE/UCQ/MCQ functions please check:
+ * _bcm_hx5_cosq_gport_add()
+ *
+ * AND
+ *
+ * Broadcom shell > hsp pbm=xe
+ * (Check partial output of this command above.)
+ * 
+ * 
+ * Get input gport Multicast Queue Group scheduling coordinates (levels 0,1,2)
+ * 
+ * @param gport
+ * @param dwn0_up1_st2
+ * According to ToO BCM56370/56370-PG103.pdf ~pg 558, there are
+ * 3 types of egress schedulers: downlink(0), uplink(1), HG/stacking(2).
+ * Empirism showed just downlink and HG/stacking.
+ * @param *id0, *id1, *id2
+ * Output scheduling coordinates on the 3 levels 0-2.
+ * Refer to "hsp pbm=xe" and above URLs.
+ * 
+ * @return void 
+ */
 inline
 void BCM_GPORT_MCAST_QUEUE_GROUP_2_Qid(int gport,
                                        int dwn0_up1_st2,
@@ -1933,9 +2019,11 @@ int gport_callback(int unit, bcm_gport_t port, int numq, uint32 flags,
     {
         //if (info.parent_port_type) {
         //    //"UP-LNK"
-        // But for some reason empirism showed:
-        // -just downlink+stacking
-        // -this field (parent_port_type) identified stacking
+        // 
+        // EMPIRISM SHOWED HOWEVER (TC16SXG - BCM56370):
+        // -just downlink+stacking ports
+        // -this field (parent_port_type) identified stacking (!0) / dwnlnk (0)
+        //  (instead of uplnk/dwnlnk)
         //}
         {//else {
             if(info.level == SOC_HX5_NODE_LVL_L0) {
