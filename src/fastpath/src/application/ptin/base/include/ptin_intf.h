@@ -394,6 +394,42 @@ extern L7_RC_t ptin_slot_boardtype_set(L7_int slot_id, L7_uint16 board_id);
  */
 extern L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf);
 
+/**
+ * Direct function to convert ptin_intf_t to ptin_port
+ * 
+ * @author mruas (12/11/20)
+ * 
+ * @param port_type (in) : ptin_intf_t.intf_type
+ * @param port_id (in) : ptin_intf_t.intf_id 
+ * 
+ * @return L7_uint32 : ptin_port
+ */
+extern L7_uint32 ptintf2port(L7_uint8 intf_type, L7_uint8 intf_id);
+
+/**
+ * Direct function to convert intIfNum to ptin_port
+ * 
+ * @author mruas (12/11/20)
+ * 
+ * @param intIfNum 
+ * @param vlan_gem 
+ * 
+ * @return L7_uint32 : ptin_port
+ */
+extern L7_uint32 intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem);
+
+/**
+ * Direct function to convert ptin_port to intIfNum
+ * 
+ * @author mruas (12/11/20)
+ * 
+ * @param ptin_port
+ * @param vlan_gem 
+ * 
+ * @return L7_uint32 : intIfNum
+ */
+extern L7_uint32 port2intIfNum(L7_uint32 ptin_port);
+
 #if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 /**
  * Get current slot_id for this board
@@ -496,42 +532,6 @@ extern L7_RC_t ptin_intf_intIfNum2SlotPort(L7_uint32 intIfNum, L7_uint16 *slot_r
 extern L7_RC_t ptin_intf_slotPort2IntIfNum(L7_uint16 slot, L7_uint16 intf, L7_uint32 *intIfNum_ret);
 
 /**
- * Direct function to convert ptin_intf_t to ptin_port
- * 
- * @author mruas (12/11/20)
- * 
- * @param port_type (in) : ptin_intf_t.intf_type
- * @param port_id (in) : ptin_intf_t.intf_id 
- * 
- * @return L7_uint32 : ptin_port
- */
-extern L7_uint32 ptintf2port(L7_uint8 intf_type, L7_uint8 intf_id);
-
-/**
- * Direct function to convert intIfNum to ptin_port
- * 
- * @author mruas (12/11/20)
- * 
- * @param intIfNum 
- * @param vlan_gem 
- * 
- * @return L7_uint32 : ptin_port
- */
-extern L7_uint32 intIfNum2port(L7_uint32 intIfNum, L7_uint16 vlan_gem);
-
-/**
- * Direct function to convert ptin_port to intIfNum
- * 
- * @author mruas (12/11/20)
- * 
- * @param ptin_port
- * @param vlan_gem 
- * 
- * @return L7_uint32 : intIfNum
- */
-extern L7_uint32 port2intIfNum(L7_uint32 ptin_port);
-
-/**
  * Convert a ptin_port bitmap to NIM_INTF_MASK_t type
  * 
  * @author mruas (16/11/20)
@@ -550,6 +550,19 @@ extern void ptin_intf_portbmp2intIfNumMask(ptin_port_bmp_t *ptin_port_bmp, NIM_I
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum);
+
+/**
+ * Convert ptin_port to the pair intIfNum + queueSet
+ * 
+ * @author mruas (11/01/21)
+ * 
+ * @param ptin_port 
+ * @param intIfNum 
+ * @param queueSet : l7_cosq_set_t
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_intf_port2intIfNum_queueSet(L7_uint32 ptin_port, L7_uint32 *intIfNum, l7_cosq_set_t *queueSet);
 
 /**
  * Converts FP interface# to PTin port mapping (including LAGs)

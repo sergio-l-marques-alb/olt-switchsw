@@ -2421,6 +2421,47 @@ L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
 }
 
 /**
+ * Convert ptin_port to the pair intIfNum + queueSet
+ * 
+ * @author mruas (11/01/21)
+ * 
+ * @param ptin_port 
+ * @param intIfNum 
+ * @param queueSet : l7_cosq_set_t
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_intf_port2intIfNum_queueSet(L7_uint32 ptin_port, L7_uint32 *intIfNum, l7_cosq_set_t *queueSet)
+{
+  L7_RC_t rc;
+
+  rc = ptin_intf_port2intIfNum(ptin_port, intIfNum);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error converting ptin_port %u to intIfNum", intIfNum);
+    return rc;
+  }
+  
+  if (queueSet != L7_NULLPTR)
+  {
+    *queueSet = L7_QOS_QSET_DEFAULT;
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+    if (PTIN_PORT_IS_PON_GPON_TYPE(ptin_port))
+    {
+      *queueSet = L7_QOS_QSET_WIRED;
+    }
+    else if (PTIN_PORT_IS_PON_XGSPON_TYPE(ptin_port))
+    {
+      *queueSet = L7_QOS_QSET_WIRELESS;
+    }
+#endif
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
  * Converts FP interface# to PTin port mapping (including LAGs)
  * 
  * @param intIfNum (in) : FP intIfNum 

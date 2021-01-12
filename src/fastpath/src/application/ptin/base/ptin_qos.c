@@ -233,6 +233,7 @@ L7_RC_t ptin_qos_intf_config_set(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
 {
   L7_uint8  prio, prio2, cos;
   L7_uint32 intIfNum;
+  l7_cosq_set_t queueSet;
   L7_RC_t   rc, rc_global = L7_SUCCESS;
   L7_QOS_COS_MAP_INTF_MODE_t trust_mode;
 
@@ -261,12 +262,12 @@ L7_RC_t ptin_qos_intf_config_set(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
             intfQos->pktprio.cos[7]);
 
   /* Validate interface */
-  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  if (ptin_intf_port2intIfNum_queueSet(ptin_port, &intIfNum, &queueSet) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "ptin_port %u invalid", ptin_port);
     return L7_FAILURE;
   }
-  PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port %u => intIfNum=%u", ptin_port, intIfNum);
+  PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port %u => intIfNum=%u, queueSet %u", ptin_port, intIfNum, queueSet);
 
   /* Is there any configuration to be applied? */
   if (intfQos->mask==0x00)
@@ -283,7 +284,7 @@ L7_RC_t ptin_qos_intf_config_set(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
   }
 
   // Get Trust mode
-  rc = usmDbQosCosMapTrustModeGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &trust_mode);
+  rc = usmDbQosCosMapTrustModeGet(1, intIfNum, queueSet, &trust_mode);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error with usmDbQosCosMapTrustModeGet (rc=%d)", rc);
@@ -303,7 +304,7 @@ L7_RC_t ptin_qos_intf_config_set(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
   if (intfQos->mask & PTIN_QOS_INTF_TRUSTMODE_MASK)
   {
     // Define trust mode
-    rc = usmDbQosCosMapTrustModeSet(1, intIfNum, L7_QOS_QSET_DEFAULT, intfQos->trust_mode);
+    rc = usmDbQosCosMapTrustModeSet(1, intIfNum, queueSet, intfQos->trust_mode);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosMapTrustModeSet (rc=%d)", rc);
@@ -370,7 +371,7 @@ L7_RC_t ptin_qos_intf_config_set(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
   /* WRED decay exponent */
   if (intfQos->mask & PTIN_QOS_INTF_WRED_DECAY_EXP_MASK)
   {
-    rc = usmDbQosCosQueueWredDecayExponentSet(1, intIfNum, L7_QOS_QSET_DEFAULT, intfQos->wred_decay_exponent);
+    rc = usmDbQosCosQueueWredDecayExponentSet(1, intIfNum, queueSet, intfQos->wred_decay_exponent);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueWredDecayExponentSet (rc=%d)", rc);
@@ -414,7 +415,7 @@ L7_RC_t ptin_qos_intf_config_set(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
         /* CoS goes from 0 to 7 (0b000 to 0b111) */
         cos = intfQos->pktprio.cos[prio] & 0x07;
 
-        rc = usmDbQosCosMapIpPrecTrafficClassSet(1, intIfNum, L7_QOS_QSET_DEFAULT, prio, cos);
+        rc = usmDbQosCosMapIpPrecTrafficClassSet(1, intIfNum, queueSet, prio, cos);
         if (rc != L7_SUCCESS)
         { 
           PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosMapIpPrecTrafficClassSet (IPprec=%u => cos=%u): rc=%d",prio,cos, rc); 
@@ -436,7 +437,7 @@ L7_RC_t ptin_qos_intf_config_set(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
           /* Map 64 different priorities (6 bits) to 8 CoS */
           cos = ((intfQos->pktprio.cos[prio])>>(4*prio2)) & 0x07;
 
-          rc = usmDbQosCosMapIpDscpTrafficClassSet(1, intIfNum, L7_QOS_QSET_DEFAULT, prio*8+prio2, cos);
+          rc = usmDbQosCosMapIpDscpTrafficClassSet(1, intIfNum, queueSet, prio*8+prio2, cos);
           if (rc != L7_SUCCESS)
           {
             PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosMapIpDscpTrafficClassSet (DscpPrio=%u => CoS=%u): rc=%d",prio*8+prio2,cos, rc);
@@ -480,6 +481,7 @@ L7_RC_t ptin_qos_intf_config_get(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
 {
   L7_uint8  prio, prio2;
   L7_uint32 intIfNum, value, cos;
+  l7_cosq_set_t queueSet;
   L7_RC_t   rc, rc_global = L7_SUCCESS;
   L7_QOS_COS_MAP_INTF_MODE_t trust_mode;
 
@@ -496,12 +498,12 @@ L7_RC_t ptin_qos_intf_config_get(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
   PT_LOG_TRACE(LOG_CTX_INTF,"ptin_port=%u", ptin_port);
 
   /* Validate interface */
-  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  if (ptin_intf_port2intIfNum_queueSet(ptin_port, &intIfNum, &queueSet) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "ptin_port %u invalid", ptin_port);
     return L7_FAILURE;
   }
-  PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port %u => intIfNum=%u", ptin_port, intIfNum);
+  PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port %u => intIfNum=%u, queueSet %u", ptin_port, intIfNum, queueSet);
 
   /* Check if interface is valid for QoS configuration */
   if (!usmDbQosCosMapIntfIsValid(1,intIfNum))
@@ -511,7 +513,7 @@ L7_RC_t ptin_qos_intf_config_get(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
   }
 
   // Get Trust mode
-  rc = usmDbQosCosMapTrustModeGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &value);
+  rc = usmDbQosCosMapTrustModeGet(1, intIfNum, queueSet, &value);
   if (rc != L7_SUCCESS)
   {
     trust_mode = L7_QOS_COS_MAP_INTF_MODE_UNTRUSTED;
@@ -530,7 +532,7 @@ L7_RC_t ptin_qos_intf_config_get(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
   intfQos->mask |= PTIN_QOS_INTF_BANDWIDTHUNIT_MASK;
 
   /* Shaping rate */
-  rc = usmDbQosCosQueueIntfShapingRateGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &value, L7_NULLPTR);
+  rc = usmDbQosCosQueueIntfShapingRateGet(1, intIfNum, queueSet, &value, L7_NULLPTR);
   if (rc != L7_SUCCESS)
   {  
     PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueIntfShapingRateGet (rc=%d)", rc);
@@ -543,7 +545,7 @@ L7_RC_t ptin_qos_intf_config_get(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
   }
 
   /* WRED decay exponent */
-  rc = usmDbQosCosQueueWredDecayExponentGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &value);
+  rc = usmDbQosCosQueueWredDecayExponentGet(1, intIfNum, queueSet, &value);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueWredDecayExponentGet (rc=%d)", rc);
@@ -580,7 +582,7 @@ L7_RC_t ptin_qos_intf_config_get(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
       // IP-precedence trust mode
       else if (trust_mode==L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC)
       {
-        rc = usmDbQosCosMapIpPrecTrafficClassGet(1, intIfNum, L7_QOS_QSET_DEFAULT, prio, &cos);
+        rc = usmDbQosCosMapIpPrecTrafficClassGet(1, intIfNum, queueSet, prio, &cos);
         if (rc != L7_SUCCESS)
         { 
           PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosMapIpPrecTrafficClassGet (IPprec=%u) (rc=%d)",prio, rc);
@@ -599,7 +601,7 @@ L7_RC_t ptin_qos_intf_config_get(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
         // Run all 8 sub-priorities (8*8=64 possiblle priorities)
         for (prio2=0; prio2<8; prio2++)
         {
-          rc = usmDbQosCosMapIpDscpTrafficClassGet(1, intIfNum, L7_QOS_QSET_DEFAULT, prio*8+prio2, &cos);
+          rc = usmDbQosCosMapIpDscpTrafficClassGet(1, intIfNum, queueSet, prio*8+prio2, &cos);
           if (rc != L7_SUCCESS)
           {
             PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosMapIpDscpTrafficClassGet (DscpPrio=%u) (rc=%d)",prio*8+prio2, rc);
@@ -670,6 +672,7 @@ L7_RC_t ptin_qos_intf_config_get(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
 L7_RC_t ptin_qos_cos_config_set(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_cos_t *qosConf)
 {
   L7_uint32 intIfNum, i, conf_index;
+  l7_cosq_set_t queueSet;
   L7_RC_t   rc, rc_global = L7_SUCCESS;
   L7_qosCosQueueSchedTypeList_t schedType_list;
   L7_qosCosQueueWeightList_t    schedWeight_list;
@@ -686,12 +689,12 @@ L7_RC_t ptin_qos_cos_config_set(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_cos_
   }
 
   /* Validate interface */
-  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  if (ptin_intf_port2intIfNum_queueSet(ptin_port, &intIfNum, &queueSet) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "ptin_port %u invalid", ptin_port);
     return L7_FAILURE;
   }
-  PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port %u is intIfNum=%u", ptin_port, intIfNum);
+  PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port %u is intIfNum=%u, queueSet %u", ptin_port, intIfNum, queueSet);
 
   /* Check if interface is valid for QoS configuration */
   if (!usmDbQosCosMapIntfIsValid(1,intIfNum))
@@ -702,28 +705,28 @@ L7_RC_t ptin_qos_cos_config_set(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_cos_
 
   /* Get current configurations */
   /* Scheduler type */
-  rc = usmDbQosCosQueueSchedulerTypeListGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &schedType_list);
+  rc = usmDbQosCosQueueSchedulerTypeListGet(1, intIfNum, queueSet, &schedType_list);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error reading scheduler type (rc=%d)", rc);
     return rc;
   }
   /* Minimum bandwidth */
-  rc = usmDbQosCosQueueMinBandwidthListGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &minBw_list);
+  rc = usmDbQosCosQueueMinBandwidthListGet(1, intIfNum, queueSet, &minBw_list);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error reading minimum bandwith (rc=%d)", rc);
     return rc;
   }
   /* Maximum bandwidth */
-  rc = usmDbQosCosQueueMaxBandwidthListGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &maxBw_list);
+  rc = usmDbQosCosQueueMaxBandwidthListGet(1, intIfNum, queueSet, &maxBw_list);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error reading maximum bandwith (rc=%d)", rc);
     return rc;
   }
   /* Weights list */
-  rc = usmDbQosCosQueueWeightListGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &schedWeight_list);
+  rc = usmDbQosCosQueueWeightListGet(1, intIfNum, queueSet, &schedWeight_list);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error reading weights list (rc=%d)", rc);
@@ -781,28 +784,28 @@ L7_RC_t ptin_qos_cos_config_set(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_cos_
 
   /* Apply new configurations */
   /* Scheduler type */
-  rc = usmDbQosCosQueueSchedulerTypeListSet(1, intIfNum, L7_QOS_QSET_DEFAULT, &schedType_list);
+  rc = usmDbQosCosQueueSchedulerTypeListSet(1, intIfNum, queueSet, &schedType_list);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error applying scheduler type (rc=%d)", rc);
     rc_global = rc;
   }
   /* Minimum bandwidth */
-  rc = usmDbQosCosQueueMinBandwidthListSet(1, intIfNum, L7_QOS_QSET_DEFAULT, &minBw_list);
+  rc = usmDbQosCosQueueMinBandwidthListSet(1, intIfNum, queueSet, &minBw_list);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error applying minimum bandwith (rc=%d)", rc);
     rc_global = rc;
   }
   /* Maximum bandwidth */
-  rc = usmDbQosCosQueueMaxBandwidthListSet(1, intIfNum, L7_QOS_QSET_DEFAULT, &maxBw_list);
+  rc = usmDbQosCosQueueMaxBandwidthListSet(1, intIfNum, queueSet, &maxBw_list);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error applying maximum bandwith (rc=%d)", rc);
     rc_global = rc;
   }
   /* WRR weights */
-  rc = usmDbQosCosQueueWeightListSet(1, intIfNum, L7_QOS_QSET_DEFAULT, &schedWeight_list);
+  rc = usmDbQosCosQueueWeightListSet(1, intIfNum, queueSet, &schedWeight_list);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error applying WRR weights (rc=%d)", rc);
@@ -834,6 +837,7 @@ L7_RC_t ptin_qos_cos_config_set(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_cos_
 L7_RC_t ptin_qos_cos_config_get(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_cos_t *qosConf)
 {
   L7_uint32 intIfNum, conf_index, i;
+  l7_cosq_set_t queueSet;
   L7_RC_t   rc = L7_SUCCESS;
   L7_qosCosQueueSchedTypeList_t schedType_list;
   L7_qosCosQueueWeightList_t    schedWeight_list;
@@ -852,12 +856,12 @@ L7_RC_t ptin_qos_cos_config_get(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_cos_
   PT_LOG_TRACE(LOG_CTX_INTF,"ptin_port %u, cos=%u", ptin_port, cos);
 
   /* Validate interface */
-  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  if (ptin_intf_port2intIfNum_queueSet(ptin_port, &intIfNum, &queueSet) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "ptin_port %u invalid", ptin_port);
     return L7_FAILURE;
   }
-  PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port %u => intIfNum=%u", ptin_port, intIfNum);
+  PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port %u => intIfNum=%u, queueSet %u", ptin_port, intIfNum, queueSet);
 
   /* Check if interface is valid for QoS configuration */
   if (!usmDbQosCosMapIntfIsValid(1,intIfNum))
@@ -868,28 +872,28 @@ L7_RC_t ptin_qos_cos_config_get(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_cos_
 
   /* Get configurations */
   /* Scheduler type */
-  rc = usmDbQosCosQueueSchedulerTypeListGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &schedType_list);
+  rc = usmDbQosCosQueueSchedulerTypeListGet(1, intIfNum, queueSet, &schedType_list);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error reading scheduler type (rc=%d)", rc);
     return rc;
   }
   /* Minimum bandwidth */
-  rc = usmDbQosCosQueueMinBandwidthListGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &minBw_list);
+  rc = usmDbQosCosQueueMinBandwidthListGet(1, intIfNum, queueSet, &minBw_list);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error reading minimum bandwith (rc=%d)", rc);
     return rc;
   }
   /* Maximum bandwidth */
-  rc = usmDbQosCosQueueMaxBandwidthListGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &maxBw_list);
+  rc = usmDbQosCosQueueMaxBandwidthListGet(1, intIfNum, queueSet, &maxBw_list);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error reading maximum bandwith (rc=%d)", rc);
     return rc;
   }
   /* WRR weights */
-  rc = usmDbQosCosQueueWeightListGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &schedWeight_list);
+  rc = usmDbQosCosQueueWeightListGet(1, intIfNum, queueSet, &schedWeight_list);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error reading WRR weights (rc=%d)", rc);
@@ -949,6 +953,7 @@ L7_RC_t ptin_qos_cos_config_get(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_cos_
 L7_RC_t ptin_qos_drop_config_set(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_drop_t *qosConf)
 {
   L7_uint32 intIfNum, conf_index, i, j;
+  l7_cosq_set_t queueSet;
   L7_RC_t   rc, rc_global = L7_SUCCESS;
   L7_qosCosQueueMgmtTypeList_t  mgmtType_list;
   L7_qosCosDropParmsList_t      dropParams_list;
@@ -965,12 +970,12 @@ L7_RC_t ptin_qos_drop_config_set(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_dro
   PT_LOG_TRACE(LOG_CTX_INTF,"ptin_port %u, cos=%u", ptin_port, cos);
 
   /* Validate interface */
-  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  if (ptin_intf_port2intIfNum_queueSet(ptin_port, &intIfNum, &queueSet) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "ptin_port %u invalid", ptin_port);
     return L7_FAILURE;
   }
-  PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port %u => intIfNum=%u", ptin_port, intIfNum);
+  PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port %u => intIfNum=%u, queueSet=%u", ptin_port, intIfNum, queueSet);
 
   /* Check if interface is valid for QoS configuration */
   if (!usmDbQosCosMapIntfIsValid(1,intIfNum))
@@ -981,7 +986,7 @@ L7_RC_t ptin_qos_drop_config_set(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_dro
 
   /* Get configurations */
   /* Mgmt type */
-  rc = usmDbQosCosQueueMgmtTypeListGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &mgmtType_list);
+  rc = usmDbQosCosQueueMgmtTypeListGet(1, intIfNum, queueSet, &mgmtType_list);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error reading mgmtType type (rc=%d)", rc);
@@ -989,7 +994,7 @@ L7_RC_t ptin_qos_drop_config_set(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_dro
   }
 
   /* Get drop params configurations */
-  rc = usmDbQosCosQueueDropParmsListGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &dropParams_list);
+  rc = usmDbQosCosQueueDropParmsListGet(1, intIfNum, queueSet, &dropParams_list);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error reading dropParams list (rc=%d)", rc);
@@ -1070,7 +1075,7 @@ L7_RC_t ptin_qos_drop_config_set(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_dro
 
   /* Apply new configurations */
   /* Mgmt type */
-  rc = usmDbQosCosQueueMgmtTypeListSet(1, intIfNum, L7_QOS_QSET_DEFAULT, &mgmtType_list);
+  rc = usmDbQosCosQueueMgmtTypeListSet(1, intIfNum, queueSet, &mgmtType_list);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error setting new mgmtType list (rc=%d)", rc);
@@ -1078,7 +1083,7 @@ L7_RC_t ptin_qos_drop_config_set(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_dro
   }
 
   /* Drop params list */
-  rc = usmDbQosCosQueueDropParmsListSet(1, intIfNum, L7_QOS_QSET_DEFAULT, &dropParams_list);
+  rc = usmDbQosCosQueueDropParmsListSet(1, intIfNum, queueSet, &dropParams_list);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error setting new dropParams list (rc=%d)", rc);
@@ -1110,6 +1115,7 @@ L7_RC_t ptin_qos_drop_config_set(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_dro
 L7_RC_t ptin_qos_drop_config_get(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_drop_t *qosConf)
 {
   L7_uint32 intIfNum, conf_index, i, j;
+  l7_cosq_set_t queueSet;
   L7_qosCosQueueMgmtTypeList_t  mgmtType_list;
   L7_qosCosDropParmsList_t      dropParams_list;
   L7_RC_t rc;
@@ -1126,12 +1132,12 @@ L7_RC_t ptin_qos_drop_config_get(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_dro
   PT_LOG_TRACE(LOG_CTX_INTF,"ptin_port %u, cos=%u", ptin_port, cos);
 
   /* Validate interface */
-  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  if (ptin_intf_port2intIfNum_queueSet(ptin_port, &intIfNum, &queueSet) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "ptin_port %u invalid", ptin_port);
     return L7_FAILURE;
   }
-  PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port %u => intIfNum=%u", ptin_port, intIfNum);
+  PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port %u => intIfNum=%u, queueSet=%u", ptin_port, intIfNum, queueSet);
 
   /* Check if interface is valid for QoS configuration */
   if (!usmDbQosCosMapIntfIsValid(1, intIfNum))
@@ -1142,7 +1148,7 @@ L7_RC_t ptin_qos_drop_config_get(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_dro
 
   /* Get configurations */
   /* Mgmt type */
-  rc = usmDbQosCosQueueMgmtTypeListGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &mgmtType_list);
+  rc = usmDbQosCosQueueMgmtTypeListGet(1, intIfNum, queueSet, &mgmtType_list);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error reading mgmtType type (rc=%d)", rc);
@@ -1150,7 +1156,7 @@ L7_RC_t ptin_qos_drop_config_get(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_dro
   }
 
   /* Get drop params configurations */
-  rc = usmDbQosCosQueueDropParmsListGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &dropParams_list);
+  rc = usmDbQosCosQueueDropParmsListGet(1, intIfNum, queueSet, &dropParams_list);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error reading dropParams list (rc=%d)", rc);
@@ -1309,6 +1315,7 @@ L7_RC_t ptin_qos_shaper_set(L7_uint32 ptin_port, L7_int tc,
                             L7_uint32 rate_min, L7_uint32 rate_max, L7_uint32 burst_size)
 {
   L7_uint32 intIfNum;
+  l7_cosq_set_t queueSet;
   ptin_intf_shaper_t entry;
   L7_RC_t rc;
 
@@ -1320,7 +1327,7 @@ L7_RC_t ptin_qos_shaper_set(L7_uint32 ptin_port, L7_int tc,
   }
 
   /* Get intIfNum from ptin_port */
-  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  if (ptin_intf_port2intIfNum_queueSet(ptin_port, &intIfNum, &queueSet) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Error converting ptin_port %u to intIfNum",  ptin_port);
     return L7_FAILURE;
@@ -1349,18 +1356,7 @@ L7_RC_t ptin_qos_shaper_set(L7_uint32 ptin_port, L7_int tc,
   entry.tc = tc;
 
   /* Destination queue */
-  entry.queueSet = L7_QOS_QSET_DEFAULT;
-
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-  if (PTIN_PORT_IS_PON_GPON_TYPE(ptin_port))
-  {
-    entry.queueSet = L7_QOS_QSET_WIRED;
-  }
-  else if (PTIN_PORT_IS_PON_XGSPON_TYPE(ptin_port))
-  {
-    entry.queueSet = L7_QOS_QSET_WIRELESS;
-  }
-#endif
+  entry.queueSet = queueSet;
 
   PT_LOG_NOTICE(LOG_CTX_INTF, "ptin_port=%u/intIfNum %u, tc=%d dst_queue=%u: min_rate=%u max_rate=%u burst_size=%u",
                 ptin_port, intIfNum, entry.tc, entry.queueSet, entry.rate_min, entry.rate_max, entry.burst_size);
@@ -1402,15 +1398,17 @@ void ptin_debug_intf_cos_policer_set(L7_uint32 ptin_port, L7_uint8 cos, L7_uint3
 void ptin_intf_shaper_max_dump(void)
 {
   L7_uint32 port, intIfNum, shaper_rate;
+  l7_cosq_set_t queueSet;
+  L7_char8 queueSet_str[L7_QOS_QSET_MAX][10] = {"Wired","Wireless","Transit","Stacked"};
   L7_RC_t rc;
 
-  printf("------------------------------------------------\r\n");
-  printf("| Port | Max rate | Mng max | Eff max | Burst   |\r\n");
+  printf(" ---------------------------------------------------------\r\n");
+  printf("| Port | queueSet | Max rate | Mng max | Eff max | BurstS |\r\n");
   for (port = 0; port < PTIN_SYSTEM_N_PORTS; port++)
   {
-    if (ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
+    if (ptin_intf_port2intIfNum_queueSet(port, &intIfNum, &queueSet) == L7_SUCCESS)
     {
-      rc = usmDbQosCosQueueIntfShapingRateGet(1, intIfNum, L7_QOS_QSET_DEFAULT, &shaper_rate, L7_NULLPTR);
+      rc = usmDbQosCosQueueIntfShapingRateGet(1, intIfNum, queueSet, &shaper_rate, L7_NULLPTR);
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueIntfShapingRateGet: rc=%d", rc);
@@ -1423,10 +1421,13 @@ void ptin_intf_shaper_max_dump(void)
       shaper_rate = 0;
     }
 
-    printf("|  %2u  |    %3u   |   %3u   |   %3u   |   %3u   |\r\n", port,
-           ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MAX_VALUE], ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MNG_VALUE], shaper_rate, ptin_burst_size[port]);
+    printf("|  %2u  | %-8s |    %3u   |   %3u   |   %3u   | %6u |\r\n",
+           port, queueSet_str[queueSet],
+           ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MAX_VALUE],
+           ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MNG_VALUE],
+           shaper_rate,
+           ptin_burst_size[port]);
   }
-  printf("------------------------------------------------\r\n");
-
+  printf(" ---------------------------------------------------------\r\n");
 }
 
