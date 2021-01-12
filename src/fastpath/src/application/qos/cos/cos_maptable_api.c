@@ -792,7 +792,7 @@ L7_RC_t cosMapIntfTrustModeSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
   pCfg->mapping.intfTrustMode = (L7_uchar8)val;
 
   /* setting flag to true to force DTL call even if changing to trust-dot1p mode */
-  (void)cosMapIntfTrustModeApply(intIfNum, pCfg, L7_TRUE);  /* rc ignored here */
+  (void)cosMapIntfTrustModeApply(intIfNum, queueSet, pCfg, L7_TRUE);  /* rc ignored here */
 
   if (pCfg->mapping.intfTrustMode != (L7_uchar8)val)
    pCosCfgData_g->cfgHdr.dataChanged = L7_TRUE;
@@ -986,7 +986,7 @@ void cosMapPortDefaultPriorityUpdate(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
     if (pCfg->mapping.intfTrustMode == L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P)
       return;
 
-    if (cosConfigIntfMapTableDataApply(intIfNum, pCfg, L7_FALSE) != L7_SUCCESS)
+    if (cosConfigIntfMapTableDataApply(intIfNum, queueSet, pCfg, L7_FALSE) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
               "%s: Unable to apply port default traffic class COS mapping to intf %s \n",
@@ -1069,7 +1069,7 @@ void cosMapNumTrafficClassesUpdate(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
    */
   if (intIfNum != L7_ALL_INTERFACES)
   {
-    if (cosConfigIntfMapTableDataApply(intIfNum, pCfg, L7_FALSE) != L7_SUCCESS)
+    if (cosConfigIntfMapTableDataApply(intIfNum, queueSet, pCfg, L7_FALSE) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
               "%s: Unable to apply default COS map table config to intf %s \n",

@@ -368,6 +368,7 @@ L7_RC_t cosMapIpDscpTrafficClassApply(L7_uint32 intIfNum, L7_uint32 dscp,
 * @purpose  Apply the COS trust mode setting for this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pCfg       @b{(input)}  COS config parms ptr
 * @param    forceDtl    @b{(input)}  Force DTL call even if in trust-dot1p mode
 *
@@ -378,11 +379,10 @@ L7_RC_t cosMapIpDscpTrafficClassApply(L7_uint32 intIfNum, L7_uint32 dscp,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIntfTrustModeApply(L7_uint32 intIfNum,
+L7_RC_t cosMapIntfTrustModeApply(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                  L7_cosCfgParms_t *pCfg,
                                  L7_BOOL forceDtl)
 {
-  l7_cosq_set_t queueSet;
   L7_uint32                   msgLvlReqd = COS_MSGLVL_MED;
   L7_QOS_COS_MAP_INTF_MODE_t  mode;
   DTL_QOS_COS_MAP_TABLE_t     mapTable;
@@ -463,7 +463,7 @@ L7_RC_t cosMapIntfTrustModeApply(L7_uint32 intIfNum,
   for (i = 0; i < L7_QOS_COS_MAP_NUM_IPDSCP; i++)
     mapTable.ipDscpTrafficClass[i] = pCfg->mapping.ipDscpMapTable[i];
 
-  if (dtlQosCosMapIntfTrustModeSet(intIfNum, mode, &mapTable) != L7_SUCCESS)
+  if (dtlQosCosMapIntfTrustModeSet(intIfNum, queueSet, mode, &mapTable) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
             "COS mapping: Unable to apply trust mode \'%s\' on intf %s\n",
@@ -485,18 +485,12 @@ L7_RC_t cosMapIntfTrustModeApply(L7_uint32 intIfNum,
     break;
 
   case L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC:
-    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
-    {
-      cosMapIpPrecTableShow(intIfNum, queueSet, msgLvlReqd);
-    }
+    cosMapIpPrecTableShow(intIfNum, queueSet, msgLvlReqd);
     cosMapPortDefaultPriorityTableShow(intIfNum, msgLvlReqd);
     break;
 
   case L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP:
-    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
-    {
-      cosMapIpDscpTableShow(intIfNum, queueSet, msgLvlReqd);
-    }
+    cosMapIpDscpTableShow(intIfNum, queueSet, msgLvlReqd);
     cosMapPortDefaultPriorityTableShow(intIfNum, msgLvlReqd);
     break;
 

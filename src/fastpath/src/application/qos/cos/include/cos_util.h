@@ -139,8 +139,8 @@ void cosResetDefaultIntfConfigData(L7_uint32 intIfNum,
                                    L7_cosCfgIntfParms_t *pCfgIntf);
 L7_RC_t cosConfigDataApply(void);
 L7_RC_t cosConfigIntfDataApply(L7_uint32 intIfNum, L7_cosCfgIntfParms_t *pCfgIntf);
-L7_RC_t cosConfigIntfMapTableDataApply(L7_uint32 intIfNum, L7_cosCfgParms_t *pCfg, 
-                                       L7_BOOL forceDtl);
+L7_RC_t cosConfigIntfMapTableDataApply(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
+                                       L7_cosCfgParms_t *pCfg, L7_BOOL forceDtl);
 L7_RC_t cosConfigIntfQueueCfgDataApply(L7_uint32 intIfNum, L7_cosCfgParms_t *pCfg);
 L7_RC_t cosConfigIntfDataUnapply(L7_uint32 intIfNum, L7_cosCfgIntfParms_t *pCfgIntf);
 L7_RC_t cosSave(void);
@@ -196,7 +196,7 @@ L7_RC_t cosMapIpPrecTableApply(L7_uint32 intIfNum, L7_uchar8 *pVal);
 L7_RC_t cosMapIpDscpTrafficClassApply(L7_uint32 intIfNum, L7_uint32 dscp,
                                       L7_uint32 val);
 L7_RC_t cosMapIpDscpTableApply(L7_uint32 intIfNum, L7_uchar8 *pVal);
-L7_RC_t cosMapIntfTrustModeApply(L7_uint32 intIfNum, 
+L7_RC_t cosMapIntfTrustModeApply(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                  L7_cosCfgParms_t *pCfg,
                                  L7_BOOL forceDtl);
 L7_RC_t cosQueueIntfConfigApply(L7_uint32 intIfNum, l7_cosq_set_t queueSet,

@@ -697,7 +697,7 @@ L7_RC_t cosConfigIntfDataApply(L7_uint32 intIfNum, L7_cosCfgIntfParms_t *pCfgInt
     pCfg = &pCfgIntf->cfg[queueSet];
 
     /* apply current COS mapping table config */
-    if (cosConfigIntfMapTableDataApply(intIfNum, pCfg, L7_FALSE) != L7_SUCCESS)
+    if (cosConfigIntfMapTableDataApply(intIfNum, queueSet, pCfg, L7_FALSE) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
               "%s: Failed applying COS map table config data to interface %s, queueSet %u\n",
@@ -722,6 +722,7 @@ L7_RC_t cosConfigIntfDataApply(L7_uint32 intIfNum, L7_cosCfgIntfParms_t *pCfgInt
 * @purpose  Apply COS component interface mapping table config data
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pCfg       @b{(input)}  Ptr to COS config parms
 * @param    forceDtl    @b{(input)}  Force DTL call even if in trust-dot1p mode
 *
@@ -733,8 +734,8 @@ L7_RC_t cosConfigIntfDataApply(L7_uint32 intIfNum, L7_cosCfgIntfParms_t *pCfgInt
 *
 * @end
 *********************************************************************/
-L7_RC_t cosConfigIntfMapTableDataApply(L7_uint32 intIfNum, L7_cosCfgParms_t *pCfg,
-                                       L7_BOOL forceDtl)
+L7_RC_t cosConfigIntfMapTableDataApply(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
+                                       L7_cosCfgParms_t *pCfg, L7_BOOL forceDtl)
 {
   if (pCfg == L7_NULLPTR)
     return L7_FAILURE;
@@ -764,7 +765,7 @@ L7_RC_t cosConfigIntfMapTableDataApply(L7_uint32 intIfNum, L7_cosCfgParms_t *pCf
     return L7_SUCCESS;
 
   /* apply current intf trust mode and corresponding mapping table */
-  if (cosMapIntfTrustModeApply(intIfNum, pCfg, forceDtl) != L7_SUCCESS)
+  if (cosMapIntfTrustModeApply(intIfNum, queueSet, pCfg, forceDtl) != L7_SUCCESS)
   {
     COS_PRT(COS_MSGLVL_HI,
             "\nError applying COS intf trust mode on intf %u\n",
@@ -950,7 +951,7 @@ L7_RC_t cosConfigIntfDataUnapply(L7_uint32 intIfNum, L7_cosCfgIntfParms_t *pCfgI
       if ((pCfgIntf->cfg[queueSet].mapping.intfTrustMode != intfCfg.cfg[queueSet].mapping.intfTrustMode) ||
           (pCfgIntf->cfg[queueSet].mapping.intfTrustMode != L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P))
       {
-        if (cosConfigIntfMapTableDataApply(intIfNum, &intfCfg.cfg[queueSet], L7_TRUE) != L7_SUCCESS)
+        if (cosConfigIntfMapTableDataApply(intIfNum, queueSet, &intfCfg.cfg[queueSet], L7_TRUE) != L7_SUCCESS)
         {
           L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
                   "%s: Failed to apply default COS map table config to interface %s, queueSet %u\n",

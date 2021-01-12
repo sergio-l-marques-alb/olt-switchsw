@@ -117,7 +117,8 @@ L7_RC_t dtlQosCosMapIpDscpTrafficClassSet(L7_uint32 intIfNum,
 /*************************************************************************
 * @purpose  Set the COS trust mode for this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    trustMode   @b{(input)}  Trust mode value    
 * @param    pMapTable   @b{(input)}  Ptr to COS mapping table
 *
@@ -129,7 +130,7 @@ L7_RC_t dtlQosCosMapIpDscpTrafficClassSet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t dtlQosCosMapIntfTrustModeSet(L7_uint32 intIfNum, 
+L7_RC_t dtlQosCosMapIntfTrustModeSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                      L7_QOS_COS_MAP_INTF_MODE_t trustMode,
                                      DTL_QOS_COS_MAP_TABLE_t *pMapTable)
 {
@@ -176,6 +177,9 @@ L7_RC_t dtlQosCosMapIntfTrustModeSet(L7_uint32 intIfNum,
     break;
 
   } /* endswitch */
+
+  /* Group of queues */
+  dapiCmd.queueSet = queueSet;
 
   /* PTin added: + default prio */
   dapiCmd.cmdData.intfTrustModeConfig.mapTable.defaultPrio = pMapTable->defaultPrio;
