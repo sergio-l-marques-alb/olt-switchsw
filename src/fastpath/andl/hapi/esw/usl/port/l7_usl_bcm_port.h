@@ -537,6 +537,29 @@ int usl_bcm_port_cosq_sched_set(int unit,
 
 /*********************************************************************
 *
+* @purpose BCM API to set the cosq sched config for a gport
+* (Applicable to Trident3X3 with multi queueSet's)
+*
+* @param    unit              @{(input)} Local bcm unit number
+* @param    port              @{(input)} Local bcm port number
+* @param    gport             @{(input)} QoS gport identifier
+* @param    cosqSchedConfig   @{(input)} cosq sched config data
+*
+*
+* @returns BCMX Error Code
+*
+* @notes 
+*
+* @end
+*
+*********************************************************************/
+int usl_bcm_gport_cosq_sched_set(int unit, 
+                                bcm_port_t  port, 
+                                bcm_gport_t qos_gport,
+                                usl_bcm_port_cosq_sched_config_t *cosqSchedConfig);
+
+/*********************************************************************
+*
 * @purpose BCM API to set the rate shaper config for a port
 *
 * @param    unit          @{(input)} Local bcm unit number
@@ -555,6 +578,29 @@ int usl_bcm_port_cosq_sched_set(int unit,
 int usl_bcm_port_rate_egress_set(int unit, 
                                  bcm_port_t port, 
                                  usl_bcm_port_shaper_config_t *shaperConfig);
+
+/*********************************************************************
+* @purpose BCM API to set the rate shaper config for a gport
+* (Applicable to Trident3X3 with multi queueSet's)
+*
+* @param    unit          @{(input)} Local bcm unit number
+* @param    port          @{(input)} Local bcm port number
+* @param    qos_gport     @{(input)} QoS gport
+* @param    setget        @{(input)} Set or Get command
+* @param    args          @{(input)} cosq sched config data
+*
+*
+* @returns BCMX Error Code
+*
+* @notes 
+*
+* @end
+*
+*********************************************************************/
+int usl_bcm_gport_rate_egress_set(int unit, 
+                                  bcm_port_t port, 
+                                  bcm_gport_t qos_gport,
+                                  usl_bcm_port_shaper_config_t *shaperConfig);
 
 /*********************************************************************
 *
@@ -738,6 +784,26 @@ int usl_bcm_port_enable_set(int unit, bcm_port_t port, int enable);
 *********************************************************************/
 int usl_bcm_port_wred_set(int unit, bcm_port_t port, 
                           usl_bcm_port_wred_config_t *wredParams);
+
+/*********************************************************************
+* @purpose Set WRED parameters on a gport
+* (Applicable to Trident3X3 with multi queueSet's)
+*
+* @param   unit - local unit
+* @param   port - local port
+* @param   qos_gport
+* @param   wredParams - Pointer to WRED params for all queues/colors
+*
+* @returns BCM Error Code
+*
+* @comments Companion to customx_port_wred_set(), this function runs 
+*           on each unit.
+* @end
+*
+*********************************************************************/
+int usl_bcm_gport_wred_set(int unit, bcm_port_t port, 
+                           bcm_gport_t qos_gport,
+                           usl_bcm_port_wred_config_t *wredParams);
 
 /*********************************************************************
 *
