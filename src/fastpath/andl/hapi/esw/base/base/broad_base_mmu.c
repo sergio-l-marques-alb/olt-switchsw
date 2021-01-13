@@ -861,8 +861,8 @@ hapiBroadPgInit(int unit, pg_cosmap_t *cosmap,int num_cos,
         /* PTin added: new switch 56843 (Trident) */
         /* PTin added: new switch 56450 (Katana2) */
         /* PTin added: new switch 56370 (Trident3X3) */
-        if (SOC_IS_APOLLO(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_VALKYRIE2(unit) || 
-            SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit) || SOC_IS_TRIDENT(unit) || SOC_IS_TRIDENT3X(unit))
+        if (SOC_IS_APOLLO(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIUMPH3(unit) || 
+            SOC_IS_KATANA2(unit) || SOC_IS_TRIDENT(unit) || SOC_IS_HELIX5(unit))
         {
             soc_reg_field_set(unit, PORT_PRI_GRP0r, &rval1, PRI7_GRPf, cosmap[i].pg);
         } else {
@@ -1098,7 +1098,7 @@ void hapiBroadMmuCellLimits(int unit, int *total_cells, int *total_packets,
     if (SOC_IS_VALKYRIE(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit)) {   /* PTin added: new switch 56689 (Valkyrie2) */
         *total_cells = 24 * 1024; /* 24K cells */
     }else if (SOC_IS_TRIDENT(unit) ||                         /* PTin added: new switch 56843 (Trident) */
-              SOC_IS_TRIDENT3(i) || SOC_IS_TRIDENT3X(i)) {    /* PTin added: new switch 56370 (Trident3-X3) FIXME*/
+              SOC_IS_TRIDENT3(i) || SOC_IS_HELIX5(unit)) {    /* PTin added: new switch 56370 (Trident3-X3) FIXME*/
        *total_cells = 45 * 1024; /* 45K cells */
     }else{ 
        *total_cells = 32 * 1024; /* 32K cells */
@@ -1410,7 +1410,7 @@ int hapiBroadMmuTriumphPauseSet(int unit, int pause)
     /* PTin added: new switch 56843 (Trident) */
     /* PTin added: new switch 56370 (Trident3-X3) */
     if (SOC_IS_APOLLO(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_VALKYRIE2(unit) || 
-        SOC_IS_TRIUMPH3(unit) || SOC_IS_TRIDENT(unit) || SOC_IS_TRIDENT3X(unit))
+        SOC_IS_TRIUMPH3(unit) || SOC_IS_TRIDENT(unit) || SOC_IS_HELIX5(unit))
     { /* Everything in service pool 0 */
         soc_reg_field_set(unit, BUFFER_CELL_LIMIT_SPr, &cell_rval, LIMITf,
                           total_cells - in_reserved_cells - out_reserved_cells - num_ports);
@@ -2150,7 +2150,7 @@ L7_RC_t hapiBroadTridentMmuModify(L7_uint32 unit)
     /* PTin added: new switch 56843 (Trident) */
     /* PTin added: new switch 56370 (Trident3-X3) */
     triumph2_family = SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) ||
-                      SOC_IS_TRIUMPH3(unit) || SOC_IS_TRIDENT(unit) || SOC_IS_TRIDENT3X(unit);
+                      SOC_IS_TRIUMPH3(unit) || SOC_IS_TRIDENT(unit) || SOC_IS_HELIX5(unit);
 
     /*
      * Input ports threshold
@@ -4398,12 +4398,21 @@ L7_RC_t hapiBroadMmuConfigModify(L7_uint32 unit)
   }
   else
 #endif /* TRIDENT */
-#ifdef BCM_TRIDENT3_SUPPORT
+#ifdef BCM_HELIX5_SUPPORT
   /* PTin added */
-  if (SOC_IS_TRIDENT3X(unit))
+  if (SOC_IS_HELIX5(unit))
   {
     // TODO
-    PT_LOG_WARN(LOG_CTX_MISC, "hapiBroadTrident3xMmuModify() is not IMPLEMENTED!");
+    PT_LOG_WARN(LOG_CTX_MISC, "hapiBroadHx5MmuModify() is not IMPLEMENTED!");
+  }
+  else
+#endif /* HELIX5 */
+#ifdef BCM_TRIDENT3_SUPPORT
+  /* PTin added */
+  if (SOC_IS_TRIDENT3(unit))
+  {
+    // TODO
+    PT_LOG_WARN(LOG_CTX_MISC, "hapiBroadTrident3MmuModify() is not IMPLEMENTED!");
   }
   else
 #endif /* TRIDENT3 */
@@ -4521,9 +4530,9 @@ int hapiBroadMmuPauseSet(int unit,int mode)
     PT_LOG_WARN(LOG_CTX_MISC, "hapiBroadMmuTridentPauseSet() is not implemented!");
   }
   /* PTin added: new switch 56370 (Trident3X3) */
-  else if (SOC_IS_TRIDENT3X(unit))
+  else if (SOC_IS_HELIX5(unit))
   {
-    PT_LOG_WARN(LOG_CTX_MISC, "hapiBroadMmuTrident3xPauseSet() is not implemented!");
+    PT_LOG_WARN(LOG_CTX_MISC, "hapiBroadMmuHx5PauseSet() is not implemented!");
   }
   /* PTin added: new switch 5664x (Triumph3) */
   else if (SOC_IS_TRIUMPH3(unit))

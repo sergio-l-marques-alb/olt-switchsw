@@ -1713,7 +1713,7 @@ static uint32 l7_port_wred_percent_to_bytes(int unit, uint8 percent)
       cellsize = 208;
       totalmem = 46080;
     }
-    else if (SOC_IS_TRIDENT3X(unit)) //if (SOC_IS_HELIX5(unit))
+    else if (SOC_IS_HELIX5(unit))
     {
       cellsize = 256;//TD3_MMU_BYTES_PER_CELL;
       totalmem = 0x40000;//TD3_WRED_CELL_FIELD_MAX;
@@ -1748,7 +1748,7 @@ static uint32 l7_port_wred_percent_to_bytes(int unit, uint8 percent)
       totalmem = 16383;
     }
 
-    if (SOC_IS_KATANA2(unit) /*|| SOC_IS_TRIDENT3X(unit)*/)
+    if (SOC_IS_KATANA2(unit))
     {
       /* Katana2 have 4K queues (56450-DS106-RDS.pdf) */
       conversion_factor = totalmem / (1 + 2 * (NUM_PORT(unit)-1));

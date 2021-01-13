@@ -4099,7 +4099,7 @@ L7_RC_t hapi_ptin_counters_read(ptin_dapi_port_t *dapiPort, ptin_HWEthRFC2819_Po
     soc_counter_get_rate(bcm_unit, bcm_port, TBYTr , 0, &tx->Throughput);                   /* Throughput */
   }
 #ifdef SOC_IS_HELIX5 /* #if (SDK_VERSION_IS >= SDK_VERSION(6,5,7,0)) */
-  else if (SOC_IS_HELIX5(bcm_unit)) //if (SOC_IS_TRIDENT3X(bcm_unit))
+  else if (SOC_IS_HELIX5(bcm_unit))
   {
     /* Rx counters */
     soc_counter_get(bcm_unit, bcm_port, XLMIB_RMTUEr, 0, &mtuePkts);                              /* Packets > MTU bytes (good and bad) */
@@ -4313,7 +4313,8 @@ L7_RC_t hapi_ptin_counters_clear(ptin_dapi_port_t *dapiPort)
       return L7_FAILURE;
     }
   }
-  else if (SOC_IS_TRIDENT(bcm_unit) || SOC_IS_TRIDENT3X(bcm_unit) || SOC_IS_TRIUMPH3(bcm_unit) || SOC_IS_KATANA2(bcm_unit))
+  else if (SOC_IS_TRIDENT(bcm_unit)  || SOC_IS_HELIX5(bcm_unit) || 
+           SOC_IS_TRIUMPH3(bcm_unit) || SOC_IS_KATANA2(bcm_unit))
   {
     /* Rx counters */
     soc_counter_set(bcm_unit, bcm_port, RMTUEr, 0, 0);
@@ -4514,7 +4515,8 @@ L7_RC_t hapi_ptin_counters_activity_get(ptin_dapi_port_t *dapiPort, ptin_HWEth_P
       return L7_FAILURE;
     }
   }
-  else if (SOC_IS_TRIDENT(bcm_unit) || SOC_IS_TRIDENT3X(bcm_unit) || SOC_IS_TRIUMPH3(bcm_unit) || SOC_IS_KATANA2(bcm_unit))
+  else if (SOC_IS_TRIDENT(bcm_unit)  || SOC_IS_HELIX5(bcm_unit) ||
+           SOC_IS_TRIUMPH3(bcm_unit) || SOC_IS_KATANA2(bcm_unit))
   {
     if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) {
       soc_counter_get_rate(bcm_unit, bcm_port, RBYTr , 0, &rate);

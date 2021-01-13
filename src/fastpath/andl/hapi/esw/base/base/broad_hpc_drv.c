@@ -211,9 +211,18 @@ int hapiBroadCpuCosqRateSet(int unit, int cosq, int rate, BROAD_CPU_RATE_LIMIT_T
         }
         else
 #endif /* TRIDENT */
+#if defined (BCM_HELIX5_SUPPORT)
+        /* PTin added: new switch 56370 (Trident3x3) */
+        if (SOC_IS_HELIX5(unit)) {
+          extern int bcm_hx5_cosq_port_pps_set(int unit, bcm_port_t port, bcm_cos_queue_t cosq, int pps);
+          PT_LOG_INFO(LOG_CTX_STARTUP, "bcm_hx5_cosq_port_pps_set");
+          rv = bcm_hx5_cosq_port_pps_set(unit, CMIC_PORT(unit), cosq, rate);
+        }
+        else
+#endif /* TRIDENT3 */
 #if defined (BCM_TRIDENT3_SUPPORT)
         /* PTin added: new switch 56370 (Trident3x3) */
-        if (SOC_IS_TRIDENT3(unit) || SOC_IS_TRIDENT3X(unit)) {
+        if (SOC_IS_TRIDENT3(unit)) {
           extern int bcm_td3_cosq_port_pps_set(int unit, bcm_port_t port, bcm_cos_queue_t cosq, int pps);
           PT_LOG_INFO(LOG_CTX_STARTUP, "bcm_td3_cosq_port_pps_set");
           rv = bcm_td3_cosq_port_pps_set(unit, CMIC_PORT(unit), cosq, rate);
@@ -955,7 +964,7 @@ void hpcHardwareDefaultConfigApply(void)
 #endif
 
         /* PTin added: debug/test new switch */
-        if (SOC_IS_TRIDENT(i) || SOC_IS_TRIDENT3(i) || SOC_IS_TRIDENT3X(i) || SOC_IS_KATANA2(i))
+        if (SOC_IS_TRIDENT(i) || SOC_IS_TRIDENT3(i) || SOC_IS_HELIX5(i) || SOC_IS_KATANA2(i))
         {
           PT_LOG_NOTICE(LOG_CTX_MISC, "bcm_cosq_port_mapping_set invoked for priority %u (of %u)",priority,L7_MAX_CFG_QUEUES_PER_PORT);
           PBMP_PORT_ITER (i, port)
@@ -994,7 +1003,7 @@ void hpcHardwareDefaultConfigApply(void)
        schedulerMode = BCM_COSQ_WEIGHTED_ROUND_ROBIN;
 #endif
        /* PTin added: debug/test new switch */
-       if (SOC_IS_TRIDENT(i) || SOC_IS_TRIDENT3(i) || SOC_IS_TRIDENT3X(i))
+       if (SOC_IS_TRIDENT(i) || SOC_IS_TRIDENT3(i) || SOC_IS_HELIX5(i))
        {
          bcm_pbmp_t pbmp;
 
@@ -1206,7 +1215,7 @@ void hpcHardwareDefaultConfigApply(void)
         /* PTin added: new switch 56370 (Trident3X3) */
         /* PTin removed: new switch 56843 (Trident) */
         else if (SOC_IS_TR_VL(i) || SOC_IS_SCORPION(i) || SOC_IS_TRIUMPH2(i) || SOC_IS_APOLLO(i) || SOC_IS_VALKYRIE2(i) ||
-                 SOC_IS_TRIUMPH3(i) || SOC_IS_KATANA2(i) || SOC_IS_TRIDENT3X(i) /*|| SOC_IS_TRIDENT(i)*/)
+                 SOC_IS_TRIUMPH3(i) || SOC_IS_KATANA2(i) || SOC_IS_HELIX5(i))
         {
           bcm_rx_reasons_t reason, no_reason;
           int              internal_priority;
@@ -1290,7 +1299,7 @@ void hpcHardwareDefaultConfigApply(void)
         /* PTin added: new switch 56843 (Trident) */
         /* PTin added: new switch 56370 (Trident3X3) */
         if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) &&
-            !SOC_IS_TRIUMPH3(i) && !SOC_IS_KATANA2(i) && !SOC_IS_TRIDENT(i) && !SOC_IS_TRIDENT3X(i))
+            !SOC_IS_TRIUMPH3(i) && !SOC_IS_KATANA2(i) && !SOC_IS_TRIDENT(i) && !SOC_IS_HELIX5(i))
         {
           /* This priority is used for packets that are copied to the CPU with a classifier, 
           ** and for IP traffic destined to the CPU due to IP address in the frames or
@@ -1342,7 +1351,7 @@ void hpcHardwareDefaultConfigApply(void)
         /* PTin added: new switch 5664x (Triumph3) */
         /* PTin added: new switch 56843 (Trident) */
         if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) &&
-            !SOC_IS_TRIUMPH3(i) && !SOC_IS_KATANA2(i) && !SOC_IS_TRIDENT(i) && !SOC_IS_TRIDENT3X(i) )
+            !SOC_IS_TRIUMPH3(i) && !SOC_IS_KATANA2(i) && !SOC_IS_TRIDENT(i) && !SOC_IS_HELIX5(i) )
         {
           /* Send unknown SA frames to the CPU with priority 0.
           */
