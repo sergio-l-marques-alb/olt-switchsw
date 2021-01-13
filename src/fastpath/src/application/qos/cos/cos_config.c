@@ -268,10 +268,10 @@ void cosDefaultMappingConfigBuild(L7_uint32 intIfNum, L7_cosMapCfg_t *pCfgMap)
       }
       pCfgMap->ipDscpMapTable[i] = trafficClass;
     }
-  }
 
-  /* set default interface trust mode */
-  pCfgMap->intfTrustMode = FD_QOS_COS_MAP_INTF_TRUST_MODE;
+    /* set default interface trust mode */
+    pCfgMap->intfTrustMode = FD_QOS_COS_MAP_INTF_TRUST_MODE;
+  }
 }
 
 /*********************************************************************
