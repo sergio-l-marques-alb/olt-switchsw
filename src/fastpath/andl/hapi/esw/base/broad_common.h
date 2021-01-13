@@ -339,6 +339,8 @@ typedef struct BROAD_SYSTEM_s BROAD_SYSTEM_t;
 *******************************************************************************/
 typedef struct
 {
+  DAPI_USP_t              usp;  /* Save USP */
+
   bcm_gport_t             bcm_gport;
   int                     bcm_unit;
   int                     bcm_port;
@@ -799,6 +801,8 @@ L7_RC_t hapiBroadCosChangeTrustMode(BROAD_PORT_t *hapiPortPtr,L7_uint32 newTrust
 
 
 L7_RC_t hapiBroadQvlanMcastFloodModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
+
+
 /*********************************************************************
 *
 * @purpose Install the MAC filter for the system MAC address.
@@ -1423,5 +1427,21 @@ int hapiBroadCpuLportGet(bcm_gport_t *gport);
 * @end
 *********************************************************************/
 void hpcHardwareWarmStartCpuCosqHwRateLimitSet(L7_BOOL warmStartBegin);
+
+/*********************************************************************
+*
+* @purpose Determines the bandwidth of an interface
+*
+* @param   BROAD_PORT_t     *hapiPortPtr
+* @param   L7_uint32        *portSpeed (output)
+*
+* @returns none
+*
+* @notes   none
+*
+* @end
+*
+*********************************************************************/
+void hapiBroadIntfSpeedGet(BROAD_PORT_t *hapiPortPtr, L7_uint32 *portSpeed);
 
 #endif

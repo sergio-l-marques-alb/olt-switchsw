@@ -487,29 +487,10 @@ L7_RC_t broad_ptin_shaper_set(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_
 
   hapiPortPtr = HAPI_PORT_GET( usp, dapi_g );
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
+  PT_LOG_TRACE(LOG_CTX_QOS, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
 
-  switch ( hapiPortPtr->speed )
-  {
-    case DAPI_PORT_SPEED_GE_1GBPS:
-      bcmSpeed = 1000000;
-      break;
-    case DAPI_PORT_SPEED_GE_2G5BPS:
-      bcmSpeed = 2500000;
-      break;
-    case DAPI_PORT_SPEED_GE_10GBPS:
-      bcmSpeed = 10000000;
-      break;
-    case DAPI_PORT_SPEED_GE_40GBPS:
-      bcmSpeed = 40000000;
-      break;
-    case DAPI_PORT_SPEED_GE_100GBPS:
-      bcmSpeed = 100000000;
-      break;
-    default:
-      PT_LOG_ERR(LOG_CTX_HAPI, "Unknown speed %u", hapiPortPtr->speed);
-      return L7_FAILURE;
-  }
+  /* Get port speed */
+  hapiBroadIntfSpeedGet(hapiPortPtr, &bcmSpeed);
 
   dapiPort.usp    = usp;
   dapiPort.dapi_g = dapi_g;
@@ -538,7 +519,7 @@ L7_RC_t broad_ptin_shaper_set(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_
     break;
 
   default:
-    PT_LOG_ERR(LOG_CTX_HAPI, "Unknown operation %u", operation);
+    PT_LOG_ERR(LOG_CTX_QOS, "Unknown operation %u", operation);
     return L7_FAILURE;
   }
 

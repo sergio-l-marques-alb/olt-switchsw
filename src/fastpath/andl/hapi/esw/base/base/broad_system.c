@@ -1005,38 +1005,8 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
   if (dapiCmd->cmdData.broadcastControl.unit == L7_RATE_UNIT_PERCENT ||
       dapiCmd->cmdData.broadcastControl.unit == L7_RATE_UNIT_KBPS)
   {
-     switch (hapiPortPtr->speed) 
-     {
-     case DAPI_PORT_SPEED_FE_10MBPS:
-         portSpeed = 10000;
-         break;
-     case DAPI_PORT_SPEED_FE_100MBPS:
-         portSpeed = 100000;
-         break;
-     case DAPI_PORT_SPEED_GE_1GBPS:
-         portSpeed = 1000000;
-         break;
-     /* PTin added: Speed 2.5G */
-     case DAPI_PORT_SPEED_GE_2G5BPS:
-         portSpeed = 1250000;           /* PTin modified: At ingress, PON ports operate at half of the max speed (2500000) */
-         break;
-     /* PTin end */
-     case DAPI_PORT_SPEED_GE_10GBPS:
-         portSpeed = 10000000;
-         break;
-     /* PTin added: Speed 40G */
-     case DAPI_PORT_SPEED_GE_40GBPS:
-         portSpeed = 40000000;
-         break;
-     /* PTin added: Speed 100G */
-     case DAPI_PORT_SPEED_GE_100GBPS:
-         portSpeed = 100000000;
-         break;
-     /* PTin end */
-     default:
-         portSpeed = 10000;
-         break;
-     }
+    /* Get port speed */
+    hapiBroadIntfSpeedGet(hapiPortPtr, &portSpeed);
 
     /* PTin modified: StormControl */
   #if 1
@@ -7727,7 +7697,8 @@ void hapiPortPtr_dump(void)
 
     hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
 
-    printf("hapiPortPtr: usp={%d,%d,%d}\r\n", usp.unit, usp.slot, usp.port);
+    printf("hapiPortPtr: (usp= {%d,%d,%d})\r\n", usp.unit, usp.slot, usp.port);
+    printf("   usp           = {%d,%d,%d}\r\n", hapiPortPtr->usp.unit, hapiPortPtr->usp.slot, hapiPortPtr->usp.port);
     printf("   bcm_gport     = 0x%08X\r\n", hapiPortPtr->bcm_gport);
     printf("   bcm_unit      = %d\r\n", hapiPortPtr->bcm_unit);
     printf("   bcm_modid     = %d\r\n", hapiPortPtr->bcm_modid);
@@ -7745,7 +7716,8 @@ void hapiPortPtr_dump(void)
 
     hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
 
-    printf("hapiPortPtr: usp={%d,%d,%d}\r\n", usp.unit, usp.slot, usp.port);
+    printf("hapiPortPtr: (usp= {%d,%d,%d})\r\n", usp.unit, usp.slot, usp.port);
+    printf("   usp           = {%d,%d,%d}\r\n", hapiPortPtr->usp.unit, hapiPortPtr->usp.slot, hapiPortPtr->usp.port);
     printf("   bcm_gport     = 0x%08X\r\n", hapiPortPtr->bcm_gport);
     printf("   bcm_unit      = %d\r\n", hapiPortPtr->bcm_unit);
     printf("   bcm_modid     = %d\r\n", hapiPortPtr->bcm_modid);

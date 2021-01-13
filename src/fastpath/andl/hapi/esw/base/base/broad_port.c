@@ -649,4 +649,54 @@ L7_RC_t hapiBroadSlotCtlInit(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t *d
 
 }
 
+/*********************************************************************
+*
+* @purpose Determines the bandwidth of an interface
+*
+* @param   BROAD_PORT_t       *hapiPortPtr
+* @param   L7_uint32          *portSpeed (output)
+*
+* @returns none
+*
+* @notes   none
+*
+* @end
+*
+*********************************************************************/
+void hapiBroadIntfSpeedGet(BROAD_PORT_t *hapiPortPtr, L7_uint32 *portSpeed)
+{
+    /* use the cached value */
+    switch (hapiPortPtr->speed)
+    {
+    case DAPI_PORT_SPEED_FE_10MBPS:
+        *portSpeed = 10000;
+        break;
+    case DAPI_PORT_SPEED_FE_100MBPS:
+        *portSpeed = 100000;
+        break;
+    case DAPI_PORT_SPEED_GE_1GBPS:
+        *portSpeed = 1000000;
+        break;
+    /* PTin added: Speed 2.5G */
+    case DAPI_PORT_SPEED_GE_2G5BPS:
+        *portSpeed = 2500000;
+        break;
+    /* PTin end */
+    case DAPI_PORT_SPEED_GE_10GBPS:
+        *portSpeed = 10000000;
+        break;
+    /* PTin added: Speed 40G */
+    case DAPI_PORT_SPEED_GE_40GBPS:
+        *portSpeed = 40000000;
+        break;
+    /* PTin added: Speed 100G */
+    case DAPI_PORT_SPEED_GE_100GBPS:
+        *portSpeed = 100000000;
+        break;
+    /* PTin end */
+    default:
+        *portSpeed = 10000;
+        break;
+    }
+}
 
