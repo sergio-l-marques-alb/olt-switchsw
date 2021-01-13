@@ -126,4 +126,13 @@ L7_RC_t ptin_hapi_qos_entry_update(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *q
 L7_RC_t ptin_hapi_qos_gport_get(ptin_dapi_port_t *dapiPort,
                                 int queue_set, L7_int tc,
                                 bcm_gport_t *gport);
+
+/**
+ * Initializes and fills the Egress Port Scheduling Hierarchy 
+ * table's relevant gports
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_qos_hierarchy_table_build(void);
+
 #endif /* _PTIN_HAPI_QOS__H */

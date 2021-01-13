@@ -2890,8 +2890,6 @@ void ptin_dhcp_intfTrusted_init(void)
  */
 void ptin_dhcp_intfTrusted_set(L7_uint32 ptin_port, L7_BOOL trusted)
 {
-  PT_LOG_INFO(LOG_CTX_DHCP, "ptin_port %u, NIM_INTF_INDICES=%u",  ptin_port,  NIM_INTF_INDICES);
-
   if (trusted)
   {
     PTINPORT_BITMAP_SET(dhcp_intf_trusted, ptin_port);
@@ -2900,8 +2898,6 @@ void ptin_dhcp_intfTrusted_set(L7_uint32 ptin_port, L7_BOOL trusted)
   {
     PTINPORT_BITMAP_CLEAR(dhcp_intf_trusted, ptin_port);
   }
-
-  PT_LOG_INFO(LOG_CTX_DHCP, "ptin_port %u Done!", ptin_port);
 }
 
 

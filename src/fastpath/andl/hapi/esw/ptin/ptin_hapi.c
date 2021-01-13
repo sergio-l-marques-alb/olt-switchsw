@@ -283,56 +283,49 @@ L7_RC_t hapi_ptin_data_init(void)
  */
 L7_RC_t hapi_ptin_config_init(void)
 {
-  L7_RC_t rc = L7_SUCCESS;
+  L7_RC_t rc;
 
   /* Switch initializations */
-  if (ptin_hapi_switch_init()!=L7_SUCCESS)
-    rc = L7_FAILURE;
+  rc = ptin_hapi_switch_init();
+  if (rc != L7_SUCCESS)
+    return rc;
 
   /* PHY initializations */
-  if (ptin_hapi_phy_init()!=L7_SUCCESS)
-    rc = L7_FAILURE;
+  rc = ptin_hapi_phy_init();
+  if (rc != L7_SUCCESS)
+    return rc;
 
 #if PTIN_BOARD != PTIN_BOARD_AG16GA
   /* ptin_hapi_xlate initializations */
-  if (ptin_hapi_xlate_init()!=L7_SUCCESS)
-    rc = L7_FAILURE;
+  rc = ptin_hapi_xlate_init();
+  if (rc != L7_SUCCESS)
+    return rc;
 #endif
 
   /* ptin_hapi_bridge initializations */
-  if (ptin_hapi_bridge_init()!=L7_SUCCESS)
-    rc = L7_FAILURE;
+  rc = ptin_hapi_bridge_init();
+  if (rc != L7_SUCCESS)
+    return rc;
 
-  #if 0//Not Required. Already Performed by FP. 
-  /*Initialize L3 Module*/
-  if (bcm_init_selective(0, BCM_MODULE_L3) != L7_SUCCESS)
-    rc = L7_FAILURE;
-  #endif
-
-  #if 0//Not Required. Already Performed by FP
-  /*Initialize IPMC Table*/
-  if (bcm_ipmc_init(0) != L7_SUCCESS)
-    rc = L7_FAILURE;
-  #endif
-
-  if (hapiBroadSystemInstallPtin_postInit() != L7_SUCCESS)
-    rc = L7_FAILURE;
+  rc = hapiBroadSystemInstallPtin_postInit();
+  if (rc != L7_SUCCESS)
+    return rc;
 
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
   /* Reset L2mod interval */
   if (soc_l2x_stop(0 /*unit*/) != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI,"Error resetting L2MOD interval to 3s");
-    rc = L7_FAILURE;
+    return L7_FAILURE;
   }
   else if (soc_l2x_start(0 /*unit*/, 0 /*flags*/, 3500000 /*us*/) != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI,"Error resetting L2MOD interval to 3s");
-    rc = L7_FAILURE;
+    return L7_FAILURE;
   }
 #endif
 
-  return rc;
+  return L7_SUCCESS;
 }
 
 /**

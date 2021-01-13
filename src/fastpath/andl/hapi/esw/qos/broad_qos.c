@@ -22,6 +22,7 @@
 #include "broad_iscsi.h"
 #include "broad_qos_debug.h"
 #include "log.h"
+#include "ptin_hapi_qos.h"
 
 /* Default weights used in non-QoS packages. */
 extern L7_uint32 wrr_default_weights[];     /* PTin added: QoS */
@@ -181,6 +182,11 @@ L7_RC_t hapiBroadQosCardInit(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t *d
           qosPortPtr->cos.wrr_weights[cosIndex] = wrr_default_weights[cosIndex];
         }
     }
+
+    /* PTin added: QoS-gport table */
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+    ptin_hapi_qos_hierarchy_table_build();
+#endif
 
     return result;
 }

@@ -93,9 +93,6 @@ static struct classId_entry_s  classId_pool[MAX_CLASS_ID];
 /* Queues */
 static dl_queue_t queue_free_classIds;    /* Queue of free Class ID entries */
 
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-static L7_RC_t eg_prt_sched_hrchy_table_fill(void);
-#endif
 
 /**
  * Search for an entry in ClassID table
@@ -550,9 +547,6 @@ L7_RC_t ptin_hapi_qos_init(void)
     dl_queue_add_tail(&queue_free_classIds, (dl_queue_elem_t*) &classId_pool[i]);
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-  eg_prt_sched_hrchy_table_fill();
-#endif
   return L7_SUCCESS;
 }
 
@@ -1661,10 +1655,8 @@ typedef struct {
 } eg_prt_sched_hrchy_t;
 
 
-
 static eg_prt_sched_hrchy_t HQoS[L7_MAX_PHYSICAL_PORTS_PER_UNIT];
 /*usp port indexed*/
-
 
 
 /**
@@ -1674,6 +1666,7 @@ static eg_prt_sched_hrchy_t HQoS[L7_MAX_PHYSICAL_PORTS_PER_UNIT];
  * 
  * @return void 
  */
+static 
 void eg_prt_sched_hrchy_t_init(eg_prt_sched_hrchy_t *p) {
     int i, j;
 
@@ -1687,8 +1680,6 @@ void eg_prt_sched_hrchy_t_init(eg_prt_sched_hrchy_t *p) {
         }
     }
 }
-
-
 
 
 /* 
@@ -1852,7 +1843,6 @@ L0.2: GPORT=0x37820011 HW_INDEX=38 MODE=WRR WT=1
 */
 
 
-
 /** 
  *  
  * To understand the following SE/UCQ/MCQ functions please check:
@@ -1881,7 +1871,6 @@ L0.2: GPORT=0x37820011 HW_INDEX=38 MODE=WRR WT=1
  * @return void 
  */
 static
-//inline
 void BCM_GPORT_SCHEDULER_2_SCHED_id(int gport,
                                     int dwn0_up1_st2,
                                     unsigned int *id0,
@@ -1956,14 +1945,12 @@ void BCM_GPORT_SCHEDULER_2_SCHED_id(int gport,
         if (NULL != id2) *id2 = rs2[id];
     }
     else {
-        PT_LOG_CRITIC(LOG_CTX_STARTUP, "Wrong SE id %d gport 0x%x", id, gport);
+        PT_LOG_CRITIC(LOG_CTX_QOS, "Wrong SE id %d gport 0x%x", id, gport);
         if (NULL != id0) *id0 = -1;
         if (NULL != id1) *id1 = -1;
         if (NULL != id2) *id2 = -1;
     }
 }//BCM_GPORT_SCHEDULER_2_SCHED_id
-
-
 
 
 /** 
@@ -2010,14 +1997,12 @@ void BCM_GPORT_UCAST_QUEUE_GROUP_2_Qid(int gport,
         if (NULL != id2) *id2 = id%N_iL2s;
     }
     else {
-        PT_LOG_CRITIC(LOG_CTX_STARTUP,"Wrong UCQG id %d gport 0x%x", id, gport);
+        PT_LOG_CRITIC(LOG_CTX_QOS,"Wrong UCQG id %d gport 0x%x", id, gport);
         if (NULL != id0) *id0 = -1;
         if (NULL != id1) *id1 = -1;
         if (NULL != id2) *id2 = -1;
     }
 }
-
-
 
 
 /** 
@@ -2066,14 +2051,12 @@ void BCM_GPORT_MCAST_QUEUE_GROUP_2_Qid(int gport,
         if (NULL != id2) *id2 = id%N_iL2s;
     }
     else {
-        PT_LOG_CRITIC(LOG_CTX_STARTUP,"Wrong MCQG id %d gport 0x%x", id, gport);
+        PT_LOG_CRITIC(LOG_CTX_QOS,"Wrong MCQG id %d gport 0x%x", id, gport);
         if (NULL != id0) *id0 = -1;
         if (NULL != id1) *id1 = -1;
         if (NULL != id2) *id2 = -1;
     }
 }
-
-
 
 
 /*
@@ -2082,45 +2065,43 @@ This callback follows "bcm_cosq_gport_traverse_cb" typedef prototyping
 */
 static 
 int gport_callback(int unit, bcm_gport_t port, int numq, uint32 flags,
-                   bcm_gport_t gport, void *user_data) {
-    int local_port;
+                   bcm_gport_t gport, void *user_data)
+{
+    int bcm_port;
     unsigned int id0, id1, id2;
     L7_uint32 usp_port;
     L7_RC_t r;
     int rv;
     bcm_cosq_gport_level_info_t info;
 
+    bcm_port = BCM_GPORT_MODPORT_PORT_GET(port);
 
-    local_port = BCM_GPORT_MODPORT_PORT_GET(port);
-    //if (local_port == 0) return 0;
-
-    r = hapi_ptin_get_uspport_from_bcmdata(unit, local_port, -1, &usp_port);
+    r = hapi_ptin_get_uspport_from_bcmdata(bcm_unit, bcm_port, (L7_uint)-1, &usp_port);
     if (L7_SUCCESS != r) {
-        //PT_LOG_ERR(LOG_CTX_STARTUP,
-        //           "hapi_ptin_get_uspport_from_bcmdata(unit=%d, bcm_port=%d,"
-        //           " ...) = %d", unit, local_port, r);
-        switch (r) {
-        case L7_NOT_EXIST:  return BCM_E_NOT_FOUND;
-        default:
-        case L7_FAILURE:    return BCM_E_FAIL;
+        //PT_LOG_ERR(LOG_CTX_QOS,
+        //           "hapi_ptin_get_uspport_from_bcmdata(bcm_unit=%d, bcm_port=%d,"
+        //           " ...) = %d", bcm_unit, bcm_port, r);
+        switch (r)
+        {
+            case L7_NOT_EXIST:
+                return BCM_E_NOT_FOUND;
+            case L7_FAILURE:
+            default:
+                return BCM_E_FAIL;
         }
-    }
-    else {
-        PT_LOG_NOTICE(LOG_CTX_STARTUP,
-                      "hapi_ptin_get_uspport_from_bcmdata(unit=%d, bcm_port=%d,"
-                      " ...) OK => usp_port %u", unit, local_port, usp_port);
     }
 
     bcm_cosq_gport_level_info_t_init(&info);
-    rv = bcm_cosq_gport_info_get(unit, gport,  &info);
+    rv = bcm_cosq_gport_info_get(bcm_unit, gport,  &info);
     if( rv != BCM_E_NONE) {
-        PT_LOG_CRITIC(LOG_CTX_STARTUP,
-                      "bcm_cosq_gport_info_get(unit=%d, gport=0x%x,"
-                      " ...) = %d", unit, gport, rv);
+        PT_LOG_CRITIC(LOG_CTX_QOS,
+                      "bcm_cosq_gport_info_get(bcm_unit=%d, gport=0x%x,"
+                      " ...) = %d", bcm_unit, gport, rv);
         return rv;
     }
 
-    PT_LOG_INFO(LOG_CTX_STARTUP, "=== PORT %d", local_port);
+    PT_LOG_TRACE(LOG_CTX_QOS, "=== USP_PORT %d  (bcm_unit %u, bcm_port %u)",
+                 usp_port, bcm_unit, bcm_port);
 
     if (flags & BCM_COSQ_GPORT_SCHEDULER)
     {
@@ -2137,53 +2118,53 @@ int gport_callback(int unit, bcm_gport_t port, int numq, uint32 flags,
                 BCM_GPORT_SCHEDULER_2_SCHED_id(gport, info.parent_port_type?2:0,
                                                &id0, NULL, NULL);
                 if (id0 >= N_L0s) {
-                    PT_LOG_INFO(LOG_CTX_STARTUP,
-                                "Unused L0 SE id0 %d gport 0x%x", id0, gport);
+                    PT_LOG_TRACE(LOG_CTX_QOS,
+                                 "Unused L0 SE id0 %d gport 0x%x", id0, gport);
                     return BCM_E_FAIL;
                 }
                 HQoS[usp_port].L0 = gport;
-                PT_LOG_INFO(LOG_CTX_STARTUP, "L0.0: GPORT=0x%x", gport);
+                PT_LOG_TRACE(LOG_CTX_QOS, "L0.0: GPORT=0x%x", gport);
             }
             else
             if (info.level == SOC_HX5_NODE_LVL_L1) {
                 BCM_GPORT_SCHEDULER_2_SCHED_id(gport, info.parent_port_type?2:0,
                                                &id0, &id1, NULL);
                 if (id0 >= N_L0s) {
-                    PT_LOG_INFO(LOG_CTX_STARTUP,
-                                "Unused L0 SE id0 %d gport 0x%x", id0, gport);
+                    PT_LOG_TRACE(LOG_CTX_QOS,
+                                 "Unused L0 SE id0 %d gport 0x%x", id0, gport);
                     return BCM_E_FAIL;
                 }
                 if (id1 >= N_L1s) {
-                    PT_LOG_INFO(LOG_CTX_STARTUP,
-                                "Unused L1 SE id1 %d gport 0x%x", id1, gport);
+                    PT_LOG_TRACE(LOG_CTX_QOS,
+                                 "Unused L1 SE id1 %d gport 0x%x", id1, gport);
                     return BCM_E_FAIL;
                 }
                 HQoS[usp_port].L1[id1].SE = gport;
-                PT_LOG_INFO(LOG_CTX_STARTUP, "\tL1.%1.1u: GPORT=0x%x",
-                            id1, gport);
+                PT_LOG_TRACE(LOG_CTX_QOS, "\tL1.%1.1u: GPORT=0x%x",
+                             id1, gport);
             }
             else
             if (info.level == SOC_HX5_NODE_LVL_L2) {
                 BCM_GPORT_SCHEDULER_2_SCHED_id(gport, info.parent_port_type?2:0,
                                                &id0, &id1, &id2);
                 if (id0 >= N_L0s) {
-                    PT_LOG_INFO(LOG_CTX_STARTUP,
-                                "Unused L0 SE id0 %d gport 0x%x", id0, gport);
+                    PT_LOG_TRACE(LOG_CTX_QOS,
+                                 "Unused L0 SE id0 %d gport 0x%x", id0, gport);
                     return BCM_E_FAIL;
                 }
                 if (id1 >= N_L1s) {
-                    PT_LOG_INFO(LOG_CTX_STARTUP,
-                                "Unused L1 SE id1 %d gport 0x%x", id1, gport);
+                    PT_LOG_TRACE(LOG_CTX_QOS,
+                                 "Unused L1 SE id1 %d gport 0x%x", id1, gport);
                     return BCM_E_FAIL;
                 }
                 if (id2 >= N_iL2s) {
-                    PT_LOG_INFO(LOG_CTX_STARTUP,
-                                "Unused L2 SE id2 %d gport 0x%x", id2, gport);
+                    PT_LOG_TRACE(LOG_CTX_QOS,
+                                 "Unused L2 SE id2 %d gport 0x%x", id2, gport);
                     return BCM_E_FAIL;
                 }
                 HQoS[usp_port].L1[id1].L2[id2].SE = gport;
-                PT_LOG_INFO(LOG_CTX_STARTUP, "\t\tL2.%1.1u: GPORT=0x%x",
-                            id2, gport);
+                PT_LOG_TRACE(LOG_CTX_QOS, "\t\tL2.%1.1u: GPORT=0x%x",
+                             id2, gport);
             }
         }
     }
@@ -2196,23 +2177,23 @@ int gport_callback(int unit, bcm_gport_t port, int numq, uint32 flags,
             BCM_GPORT_UCAST_QUEUE_GROUP_2_Qid(gport, info.parent_port_type?2:0,
                                               &id0, &id1, &id2);
             if (id0 >= N_L0s) {
-                PT_LOG_INFO(LOG_CTX_STARTUP,
-                            "Unused UCQG id0 %d gport 0x%x", id0, gport);
+                PT_LOG_TRACE(LOG_CTX_QOS,
+                             "Unused UCQG id0 %d gport 0x%x", id0, gport);
                 return BCM_E_FAIL;
             }
             if (id1 >= N_L1s) {
-                PT_LOG_INFO(LOG_CTX_STARTUP,
-                            "Unused UCQG id1 %d gport 0x%x", id1, gport);
+                PT_LOG_TRACE(LOG_CTX_QOS,
+                             "Unused UCQG id1 %d gport 0x%x", id1, gport);
                 return BCM_E_FAIL;
             }
             if (id2 >= N_iL2s) {
-                PT_LOG_INFO(LOG_CTX_STARTUP,
-                            "Unused UCQG id2 %d gport 0x%x", id2, gport);
+                PT_LOG_TRACE(LOG_CTX_QOS,
+                             "Unused UCQG id2 %d gport 0x%x", id2, gport);
                 return BCM_E_FAIL;
             }
             HQoS[usp_port].L1[id1].L2[id2].UCq = gport;
-            PT_LOG_INFO(LOG_CTX_STARTUP, "\t\t\tUC.%1.1u (%1.1u): GPORT=0x%x",
-                        id2+id1*N_iL2s, id2, gport);
+            PT_LOG_TRACE(LOG_CTX_QOS, "\t\t\tUC.%1.1u (%1.1u): GPORT=0x%x",
+                         id2+id1*N_iL2s, id2, gport);
         }
     }
     else
@@ -2224,23 +2205,23 @@ int gport_callback(int unit, bcm_gport_t port, int numq, uint32 flags,
             BCM_GPORT_MCAST_QUEUE_GROUP_2_Qid(gport, info.parent_port_type?2:0,
                                               &id0, &id1, &id2);
             if (id0 >= N_L0s) {
-                PT_LOG_INFO(LOG_CTX_STARTUP,
-                            "Unused MCQG id0 %d gport 0x%x", id0, gport);
+                PT_LOG_TRACE(LOG_CTX_QOS,
+                             "Unused MCQG id0 %d gport 0x%x", id0, gport);
                 return BCM_E_FAIL;
             }
             if (id1 >= N_L1s) {
-                PT_LOG_INFO(LOG_CTX_STARTUP,
-                                  "Unused MCQG id1 %d gport 0x%x", id1, gport);
+                PT_LOG_TRACE(LOG_CTX_QOS,
+                             "Unused MCQG id1 %d gport 0x%x", id1, gport);
                 return BCM_E_FAIL;
             }
             if (id2 >= N_iL2s) {
-                PT_LOG_INFO(LOG_CTX_STARTUP,
-                            "Unused MCQG id2 %d gport 0x%x", id2, gport);
+                PT_LOG_TRACE(LOG_CTX_QOS,
+                             "Unused MCQG id2 %d gport 0x%x", id2, gport);
                 return BCM_E_FAIL;
             }
             HQoS[usp_port].L1[id1].L2[id2].MCq = gport;
-            PT_LOG_INFO(LOG_CTX_STARTUP, "\t\t\tMC.%1.1u (%1.1u): GPORT=0x%x",
-                        id2+id1*N_iL2s, id2, gport);
+            PT_LOG_TRACE(LOG_CTX_QOS, "\t\t\tMC.%1.1u (%1.1u): GPORT=0x%x",
+                         id2+id1*N_iL2s, id2, gport);
         }
     }
 
@@ -2248,39 +2229,31 @@ int gport_callback(int unit, bcm_gport_t port, int numq, uint32 flags,
 }//gport_callback
 
 
-
-
 /**
  * Initializes and fills the Egress Port Scheduling Hierarchy 
  * table's relevant gports
  * 
- * @param 
- * 
  * @return L7_RC_t 
  */
-L7_RC_t eg_prt_sched_hrchy_table_fill(void) {
-    int i;
+L7_RC_t ptin_hapi_qos_hierarchy_table_build(void)
+{
+    int i, rv;
     int user_data;
 
-    PT_LOG_INFO(LOG_CTX_STARTUP, "eg_prt_sched_hrchy_t_init()...");
     for (i=0; i<L7_MAX_PHYSICAL_PORTS_PER_UNIT; i++) {
         eg_prt_sched_hrchy_t_init(&HQoS[i]);
     }
-    PT_LOG_INFO(LOG_CTX_STARTUP, "...done");
 
-    PT_LOG_INFO(LOG_CTX_STARTUP, "bcm_cosq_gport_traverse()...");
-    i = bcm_cosq_gport_traverse(0, gport_callback, &user_data);
-    if (i  < BCM_E_NONE) {
-        PT_LOG_CRITIC(LOG_CTX_STARTUP, "bcm_cosq_gport_traverse()=%d", i);
+    rv = bcm_cosq_gport_traverse(0, gport_callback, &user_data);
+    if (rv != BCM_E_NONE)
+    {
+        PT_LOG_CRITIC(LOG_CTX_QOS, "bcm_cosq_gport_traverse()=%d", rv);
         return L7_FAILURE;
     }
-    PT_LOG_INFO(LOG_CTX_STARTUP, "...traversed");
     
     return L7_SUCCESS;
 }
 #endif //#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-
-
 
 
 /**
@@ -2351,8 +2324,6 @@ L7_RC_t ptin_hapi_qos_gport_get(ptin_dapi_port_t *dapiPort,
 
     return L7_SUCCESS;
 }
-
-
 
 
 /** 
