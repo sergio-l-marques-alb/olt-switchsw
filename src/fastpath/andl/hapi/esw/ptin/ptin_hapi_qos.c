@@ -245,7 +245,7 @@ static L7_RC_t ptin_hapi_classid_allocate(L7_uint16 ext_vlan, L7_uint16 mask, L7
   /* If a class id was found, there is nothing to do */
   if (classId >= 0 && classId < MAX_CLASS_ID)
   {
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Class ID %d already exists", classId);
+    PT_LOG_TRACE(LOG_CTX_QOS, "Class ID %d already exists", classId);
     /* Return class id */
     if (classId_ret != L7_NULLPTR)
     {
@@ -257,14 +257,14 @@ static L7_RC_t ptin_hapi_classid_allocate(L7_uint16 ext_vlan, L7_uint16 mask, L7
   /* Get new Class ID */
   rc = dl_queue_remove_head(&queue_free_classIds, (dl_queue_elem_t **) &classId_pool_entry);
   if (rc != NOERR) {
-    PT_LOG_CRITIC(LOG_CTX_HAPI, "There are no free Class IDs available! rc=%d", rc);
+    PT_LOG_CRITIC(LOG_CTX_QOS, "There are no free Class IDs available! rc=%d", rc);
     return L7_TABLE_IS_FULL;
   }
 
   /* Validate extracted ClassID */
   if (classId_pool_entry->classId < 0 || classId_pool_entry->classId >= MAX_CLASS_ID)
   {
-    PT_LOG_CRITIC(LOG_CTX_HAPI, "Invalid extracted Class ID: %d", classId_pool_entry->classId);
+    PT_LOG_CRITIC(LOG_CTX_QOS, "Invalid extracted Class ID: %d", classId_pool_entry->classId);
     dl_queue_add_head(&queue_free_classIds, (dl_queue_elem_t *) classId_pool_entry);
     return L7_FAILURE;
   }
@@ -280,11 +280,11 @@ static L7_RC_t ptin_hapi_classid_allocate(L7_uint16 ext_vlan, L7_uint16 mask, L7
     classid_table[classId].policyId_vcap = BROAD_POLICY_INVALID;
     classid_table[classId].in_use = L7_FALSE;
 
-    PT_LOG_WARN(LOG_CTX_HAPI, "Removed policyId %u belonging to classId %u",
+    PT_LOG_WARN(LOG_CTX_QOS, "Removed policyId %u belonging to classId %u",
                 classid_table[classId].policyId_vcap, classId);
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Extracted Class ID %d", classId);
+  PT_LOG_TRACE(LOG_CTX_QOS, "Extracted Class ID %d", classId);
 
   /* Configure VCAP rule */
   do
@@ -293,14 +293,14 @@ static L7_RC_t ptin_hapi_classid_allocate(L7_uint16 ext_vlan, L7_uint16 mask, L7
     rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_VLAN);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Cannot create trap policy");
+      PT_LOG_ERR(LOG_CTX_QOS, "Cannot create trap policy");
       break;
     }
     /* Ingress stage */
     rc = hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_LOOKUP);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error creating a lookup policy");
+      PT_LOG_ERR(LOG_CTX_QOS, "Error creating a lookup policy");
       hapiBroadPolicyCreateCancel();
       break;
     }
@@ -308,7 +308,7 @@ static L7_RC_t ptin_hapi_classid_allocate(L7_uint16 ext_vlan, L7_uint16 mask, L7
     rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error adding rule");
+      PT_LOG_ERR(LOG_CTX_QOS, "Error adding rule");
       hapiBroadPolicyCreateCancel();
       break;
     }
@@ -316,29 +316,29 @@ static L7_RC_t ptin_hapi_classid_allocate(L7_uint16 ext_vlan, L7_uint16 mask, L7
     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&ext_vlan, exact_mask);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error adding OVID qualifier (%u)", ext_vlan);
+      PT_LOG_ERR(LOG_CTX_QOS, "Error adding OVID qualifier (%u)", ext_vlan);
       hapiBroadPolicyCreateCancel();
       break;
     }
-    PT_LOG_TRACE(LOG_CTX_HAPI,"OVID %u qualifier added", ext_vlan);
+    PT_LOG_TRACE(LOG_CTX_QOS,"OVID %u qualifier added", ext_vlan);
 
     /* Set src class id */
     if (hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_SRC_CLASS_ID, (L7_uint32) classId, 0, 0) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error adding SET_SRC_CLASS_ID action");
+      PT_LOG_ERR(LOG_CTX_QOS, "Error adding SET_SRC_CLASS_ID action");
       hapiBroadPolicyCreateCancel();
       break;
     }
-    PT_LOG_TRACE(LOG_CTX_HAPI,"SET_SRC_CLASS_ID action added (%d)", classId);
+    PT_LOG_TRACE(LOG_CTX_QOS,"SET_SRC_CLASS_ID action added (%d)", classId);
 
     /* Apply policy */
     if ((rc=hapiBroadPolicyCommit(&policyId_vcap)) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error commiting trap policy");
+      PT_LOG_ERR(LOG_CTX_QOS, "Error commiting trap policy");
       hapiBroadPolicyCreateCancel();
       break;
     }
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Trap policy commited successfully (policyId_vcap=%u)",policyId_vcap);
+    PT_LOG_TRACE(LOG_CTX_QOS, "Trap policy commited successfully (policyId_vcap=%u)",policyId_vcap);
   }
   while (0);
 
@@ -349,14 +349,14 @@ static L7_RC_t ptin_hapi_classid_allocate(L7_uint16 ext_vlan, L7_uint16 mask, L7
     if (policyId_vcap != BROAD_POLICY_INVALID)
     {
       hapiBroadPolicyDelete(policyId_vcap);
-      PT_LOG_TRACE(LOG_CTX_HAPI, "Removing policyId_vcap %u", policyId_vcap);
+      PT_LOG_TRACE(LOG_CTX_QOS, "Removing policyId_vcap %u", policyId_vcap);
     }
 
     /* Restore ClassID */
     dl_queue_add_head(&queue_free_classIds, (dl_queue_elem_t*) &classId_pool[classId]);
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Adding again classId %u to free queue", classId);
+    PT_LOG_TRACE(LOG_CTX_QOS, "Adding again classId %u to free queue", classId);
 
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error while creating VCAP rule");
+    PT_LOG_ERR(LOG_CTX_QOS, "Error while creating VCAP rule");
     return rc;
   }
 
@@ -366,7 +366,7 @@ static L7_RC_t ptin_hapi_classid_allocate(L7_uint16 ext_vlan, L7_uint16 mask, L7
   classid_table[classId].vlan_mask  = 0xfff;
   classid_table[classId].policyId_vcap = policyId_vcap;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI,"VCAP rule configured with classId %d", classId);
+  PT_LOG_TRACE(LOG_CTX_QOS,"VCAP rule configured with classId %d", classId);
 
   /* Return class id */
   if (classId_ret != L7_NULLPTR)
@@ -389,14 +389,14 @@ static L7_RC_t ptin_hapi_classid_free(L7_int32 classId)
   /* Validate class id */
   if (classId < 0 && classId >= MAX_CLASS_ID)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Invalid class id %u", classId);
+    PT_LOG_ERR(LOG_CTX_QOS,"Invalid class id %u", classId);
     return L7_FAILURE;
   }
 
   /* Check if class id is active */
   if (!classid_table[classId].in_use)
   {
-    PT_LOG_TRACE(LOG_CTX_HAPI,"Class id %u is not used", classId);
+    PT_LOG_TRACE(LOG_CTX_QOS,"Class id %u is not used", classId);
     return L7_SUCCESS;
   }
 
@@ -405,7 +405,7 @@ static L7_RC_t ptin_hapi_classid_free(L7_int32 classId)
   if (classid_table[classId].number_of_links > 0)
   {
     classid_table[classId].number_of_links--;
-    PT_LOG_TRACE(LOG_CTX_HAPI,"Now with %u links", classid_table[classId].number_of_links); 
+    PT_LOG_TRACE(LOG_CTX_QOS,"Now with %u links", classid_table[classId].number_of_links); 
   }
 
   /* Remove class id, if it has no links */
@@ -416,7 +416,7 @@ static L7_RC_t ptin_hapi_classid_free(L7_int32 classId)
     if (classid_table[classId].policyId_vcap != BROAD_POLICY_INVALID)
     {
       hapiBroadPolicyDelete(classid_table[classId].policyId_vcap);
-      PT_LOG_TRACE(LOG_CTX_HAPI,"Policy %u destroyed", classid_table[classId].policyId_vcap);
+      PT_LOG_TRACE(LOG_CTX_QOS,"Policy %u destroyed", classid_table[classId].policyId_vcap);
       classid_table[classId].policyId_vcap = BROAD_POLICY_INVALID;
     }
     /* Restore class id to free queue */
@@ -428,7 +428,7 @@ static L7_RC_t ptin_hapi_classid_free(L7_int32 classId)
   }
   else
   {
-    PT_LOG_TRACE(LOG_CTX_HAPI,"We still have %u links... nothing to do", classid_table[classId].number_of_links);
+    PT_LOG_TRACE(LOG_CTX_QOS,"We still have %u links... nothing to do", classid_table[classId].number_of_links);
   }
   #endif
 
@@ -450,13 +450,13 @@ static L7_RC_t ptin_hapi_qos_rule_free(ptin_hapi_qos_entry_t *qos_entry, L7_int 
 
   if (qos_entry == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_QOS, "Invalid arguments");
     return L7_FAILURE;
   }
 
   if (!qos_entry->entry_active)
   {
-    PT_LOG_WARN(LOG_CTX_HAPI, "Entry not active... nothing to do");
+    PT_LOG_WARN(LOG_CTX_QOS, "Entry not active... nothing to do");
     return L7_SUCCESS;
   }
 
@@ -477,7 +477,7 @@ static L7_RC_t ptin_hapi_qos_rule_free(ptin_hapi_qos_entry_t *qos_entry, L7_int 
     if (qos_entry->rule[rule].policyId_icap != BROAD_POLICY_INVALID)
     {
       hapiBroadPolicyDelete(qos_entry->rule[rule].policyId_icap);
-      PT_LOG_TRACE(LOG_CTX_HAPI,"Policy %u destroyed (prio=%u/0x%x)",
+      PT_LOG_TRACE(LOG_CTX_QOS,"Policy %u destroyed (prio=%u/0x%x)",
                 qos_entry->rule[rule].policyId_icap, qos_entry->rule[rule].priority, qos_entry->rule[rule].priority_mask);
       qos_entry->rule[rule].policyId_icap = BROAD_POLICY_INVALID;
     }
@@ -505,7 +505,7 @@ static L7_RC_t ptin_hapi_qos_rule_free(ptin_hapi_qos_entry_t *qos_entry, L7_int 
       if (classid_table[classId].number_of_links > 0)
       {
         classid_table[classId].number_of_links--;
-        PT_LOG_TRACE(LOG_CTX_HAPI,"Now with %u links", classid_table[classId].number_of_links); 
+        PT_LOG_TRACE(LOG_CTX_QOS,"Now with %u links", classid_table[classId].number_of_links); 
       }
 
       /* Remove class id, if it has no links */
@@ -513,13 +513,13 @@ static L7_RC_t ptin_hapi_qos_rule_free(ptin_hapi_qos_entry_t *qos_entry, L7_int 
       {
         if (ptin_hapi_classid_free(classId) != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_HAPI,"Error freeing class id %u", classId);
+          PT_LOG_ERR(LOG_CTX_QOS,"Error freeing class id %u", classId);
           return L7_FAILURE;
         }
       }
       else
       {
-        PT_LOG_TRACE(LOG_CTX_HAPI,"We still have %u links... nothing to do", classid_table[classId].number_of_links);
+        PT_LOG_TRACE(LOG_CTX_QOS,"We still have %u links... nothing to do", classid_table[classId].number_of_links);
       }
     }
 
@@ -527,7 +527,7 @@ static L7_RC_t ptin_hapi_qos_rule_free(ptin_hapi_qos_entry_t *qos_entry, L7_int 
     memset(qos_entry, 0x00, sizeof(ptin_hapi_qos_entry_t));
     qos_entry->entry_active   = L7_FALSE;
     qos_entry->classId        = -1;
-    PT_LOG_TRACE(LOG_CTX_HAPI,"Entry fully cleared!");
+    PT_LOG_TRACE(LOG_CTX_QOS,"Entry fully cleared!");
   }
 
   return L7_SUCCESS;
@@ -573,7 +573,7 @@ L7_RC_t ptin_hapi_qos_egress_pbits_remark(ptin_dapi_port_t *dapiPort, L7_BOOL en
 
   if (dapiPort == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid arguments!");
+    PT_LOG_ERR(LOG_CTX_QOS, "Invalid arguments!");
     return L7_FAILURE;
   }
 
@@ -581,7 +581,7 @@ L7_RC_t ptin_hapi_qos_egress_pbits_remark(ptin_dapi_port_t *dapiPort, L7_BOOL en
   DAPIPORT_GET_PTR(dapiPort, dapiPortPtr, hapiPortPtr);
   if (hapiPortPtr == L7_NULLPTR || dapiPortPtr == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid interface!");
+    PT_LOG_ERR(LOG_CTX_QOS, "Invalid interface!");
     return L7_FAILURE;
   }
 
@@ -591,13 +591,13 @@ L7_RC_t ptin_hapi_qos_egress_pbits_remark(ptin_dapi_port_t *dapiPort, L7_BOOL en
     rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortControlEgressVlanPriUsesPktPri, !enable);
     if (rv != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmPortControlEgressVlanPriUsesPktPri in port {%d,%d,%d} to %u (rv=%d)",
+      PT_LOG_ERR(LOG_CTX_QOS, "Error setting bcmPortControlEgressVlanPriUsesPktPri in port {%d,%d,%d} to %u (rv=%d)",
                  dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, !enable, rv);
       return L7_FAILURE;
     }
     else
     {
-      PT_LOG_TRACE(LOG_CTX_HAPI, "bcmPortControlEgressVlanPriUsesPktPri of port {%d,%d,%d} set to %u",
+      PT_LOG_TRACE(LOG_CTX_QOS, "bcmPortControlEgressVlanPriUsesPktPri of port {%d,%d,%d} set to %u",
                    dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, !enable);
     }
   }
@@ -611,7 +611,7 @@ L7_RC_t ptin_hapi_qos_egress_pbits_remark(ptin_dapi_port_t *dapiPort, L7_BOOL en
       hapiPortPtr_member = HAPI_PORT_GET( &dapiPortPtr->modeparm.lag.memberSet[i].usp, dapiPort->dapi_g );
       if (hapiPortPtr_member==L7_NULLPTR)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error getting HAPI_PORT_GET for usp={%d,%d,%d}",
+        PT_LOG_ERR(LOG_CTX_QOS, "Error getting HAPI_PORT_GET for usp={%d,%d,%d}",
                    dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
                    dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
                    dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
@@ -621,7 +621,7 @@ L7_RC_t ptin_hapi_qos_egress_pbits_remark(ptin_dapi_port_t *dapiPort, L7_BOOL en
       rv = bcm_port_control_set(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port, bcmPortControlEgressVlanPriUsesPktPri, !enable);
       if (rv != BCM_E_NONE)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmPortControlEgressVlanPriUsesPktPri in port {%d,%d,%d} to %u (rv=%d)",
+        PT_LOG_ERR(LOG_CTX_QOS, "Error setting bcmPortControlEgressVlanPriUsesPktPri in port {%d,%d,%d} to %u (rv=%d)",
                    dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
                    dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
                    dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
@@ -630,7 +630,7 @@ L7_RC_t ptin_hapi_qos_egress_pbits_remark(ptin_dapi_port_t *dapiPort, L7_BOOL en
       }
       else
       {
-        PT_LOG_TRACE(LOG_CTX_HAPI, "bcmPortControlEgressVlanPriUsesPktPri of port {%d,%d,%d} set to %u",
+        PT_LOG_TRACE(LOG_CTX_QOS, "bcmPortControlEgressVlanPriUsesPktPri of port {%d,%d,%d} set to %u",
                      dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
                      dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
                      dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
@@ -658,7 +658,7 @@ L7_RC_t ptin_hapi_qos_vlan_remove(L7_uint16 ext_vlan, L7_uint16 int_vlan, L7_BOO
 {
   ptin_dtl_qos_t qos_cfg;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI,"Going to clear all intVLAN %u / extVlan %u rules", int_vlan, ext_vlan);
+  PT_LOG_TRACE(LOG_CTX_QOS,"Going to clear all intVLAN %u / extVlan %u rules", int_vlan, ext_vlan);
 
   memset(&qos_cfg, 0x00, sizeof(ptin_dtl_qos_t));
 
@@ -690,7 +690,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   BROAD_POLICY_RULE_t ruleId;
   L7_RC_t rc = L7_SUCCESS;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "intVLAN %u, extVlan %u, leaf:%u, port_pbm=0x%llx, trust_mode=%u, remark=%u, prio=%u/0x%x -> CoS=%u",
+  PT_LOG_TRACE(LOG_CTX_QOS, "intVLAN %u, extVlan %u, leaf:%u, port_pbm=0x%llx, trust_mode=%u, remark=%u, prio=%u/0x%x -> CoS=%u",
             qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->leaf_side,
             qos_cfg->port_bmp, qos_cfg->trust_mode, qos_cfg->pbits_remark,
             qos_cfg->priority, qos_cfg->priority_mask, qos_cfg->int_priority);
@@ -699,14 +699,14 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   if (hapi_ptin_port_bitmap_get(dapiPort->usp, dapiPort->dapi_g,
                                 qos_cfg->port_bmp, &pbm, &pbm_mask) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error converting port bitmap to pbmp format");
+    PT_LOG_ERR(LOG_CTX_QOS, "Error converting port bitmap to pbmp format");
     return L7_FAILURE;
   }
 
   /* Validate trust mode */
   if (qos_cfg->trust_mode > L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid trust mode %u",  qos_cfg->trust_mode);
+    PT_LOG_ERR(LOG_CTX_QOS, "Invalid trust mode %u",  qos_cfg->trust_mode);
     return L7_FAILURE;
   }
 
@@ -735,7 +735,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   vlan_mask = PTIN_VLAN_MASK(qos_cfg->int_vlan);
   qos_cfg->int_vlan &= vlan_mask;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI,"intVLAN=%u/0x%x extVlan=%u trust_mode=%u max_rules=%u",
+  PT_LOG_TRACE(LOG_CTX_QOS,"intVLAN=%u/0x%x extVlan=%u trust_mode=%u max_rules=%u",
             qos_cfg->int_vlan, vlan_mask, qos_cfg->ext_vlan, qos_cfg->trust_mode, max_rules);
 
   /* Search for an extry and rule with these configurations */
@@ -752,11 +752,11 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     /* To reconfigure an entry should be found */
     if (qos_entry == L7_NULLPTR)
     {
-      PT_LOG_WARN(LOG_CTX_HAPI,"Entry not found... nothing to do");
+      PT_LOG_WARN(LOG_CTX_QOS,"Entry not found... nothing to do");
       return L7_SUCCESS;
     }
 
-    PT_LOG_TRACE(LOG_CTX_HAPI,"Going to reconfigure ports bitmap of intVLAN %u / extVlan %u / leaf:%u",
+    PT_LOG_TRACE(LOG_CTX_QOS,"Going to reconfigure ports bitmap of intVLAN %u / extVlan %u / leaf:%u",
               qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->leaf_side);
 
     /* Run all VLAN rules */
@@ -780,7 +780,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
           _hapiPortPtr = HAPI_PORT_GET(&_usp, dapiPort->dapi_g);
           if (_hapiPortPtr == L7_NULLPTR)
           {
-            PT_LOG_ERR(LOG_CTX_HAPI, "usp_port %u: invalid hapiPortPtr", usp_port);
+            PT_LOG_ERR(LOG_CTX_QOS, "usp_port %u: invalid hapiPortPtr", usp_port);
             return L7_FAILURE;
           }
 
@@ -789,7 +789,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
           {
             if (hapiBroadPolicyApplyToIface(qos_entry->rule[rule].policyId_icap, _hapiPortPtr->bcm_gport) != L7_SUCCESS)
             {
-              PT_LOG_ERR(LOG_CTX_HAPI, "Error adding bcm_gport 0x%x to rule %u", _hapiPortPtr->bcm_gport, rule);
+              PT_LOG_ERR(LOG_CTX_QOS, "Error adding bcm_gport 0x%x to rule %u", _hapiPortPtr->bcm_gport, rule);
               return L7_FAILURE;
             }
           }
@@ -798,7 +798,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
           {
             if (hapiBroadPolicyRemoveFromIface(qos_entry->rule[rule].policyId_icap, _hapiPortPtr->bcm_gport) != L7_SUCCESS) 
             {
-              PT_LOG_ERR(LOG_CTX_HAPI, "Error removing bcm_gport 0x%x from rule %u", _hapiPortPtr->bcm_gport, rule);
+              PT_LOG_ERR(LOG_CTX_QOS, "Error removing bcm_gport 0x%x from rule %u", _hapiPortPtr->bcm_gport, rule);
               return L7_FAILURE;
             }
           }
@@ -810,7 +810,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     qos_entry->usp_port_bmp = qos_cfg->port_bmp;
     BCM_PBMP_ASSIGN(qos_entry->bcm_port_bmp, pbm);
 
-    PT_LOG_TRACE(LOG_CTX_HAPI,"Ports bitmap of intVLAN %u / extVlan %u / leaf:%u updated",
+    PT_LOG_TRACE(LOG_CTX_QOS,"Ports bitmap of intVLAN %u / extVlan %u / leaf:%u updated",
                  qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->leaf_side);
     return L7_SUCCESS;
   }
@@ -821,16 +821,16 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       qos_cfg->trust_mode != qos_entry->key.trust_mode)
   {
     /* Trust mode is different -> clear all entry */
-    PT_LOG_TRACE(LOG_CTX_HAPI,"Trust mode is different (old value %u). Going to clear VLAN.", qos_entry->key.trust_mode);
+    PT_LOG_TRACE(LOG_CTX_QOS,"Trust mode is different (old value %u). Going to clear VLAN.", qos_entry->key.trust_mode);
 
     /* Clear all rules */
     rc = ptin_hapi_qos_rule_free(qos_entry, -1);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error clearing VLAN entry!");
+      PT_LOG_ERR(LOG_CTX_QOS, "Error clearing VLAN entry!");
       return L7_FAILURE;
     }
-    PT_LOG_TRACE(LOG_CTX_HAPI,"intVLAN %u / extVlan %u / leaf:%u cleared.", qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->leaf_side);
+    PT_LOG_TRACE(LOG_CTX_QOS,"intVLAN %u / extVlan %u / leaf:%u cleared.", qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->leaf_side);
 
     /* Reuse this entry for reconfiguration */
   }
@@ -856,7 +856,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
           qos_cfg->pbits_remark  == qos_entry->rule[rule].pbits_remark &&
           qos_cfg->int_priority  == qos_entry->rule[rule].int_priority)
       {
-        PT_LOG_TRACE(LOG_CTX_HAPI,"Exact matched rule %u found! Nothing to do... exit!", rule);
+        PT_LOG_TRACE(LOG_CTX_QOS,"Exact matched rule %u found! Nothing to do... exit!", rule);
         return L7_SUCCESS;
       }
 
@@ -865,17 +865,17 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
 
       if ((qos_cfg->priority & mask) == (qos_entry->rule[rule].priority & mask))
       {
-        PT_LOG_TRACE(LOG_CTX_HAPI,"Going to remove rule %u: intVlan=%u/extVlan=%u/leaf:%u trust_mode=%u prio=%u/0x%x remark=%u (policyId=%d)",
+        PT_LOG_TRACE(LOG_CTX_QOS,"Going to remove rule %u: intVlan=%u/extVlan=%u/leaf:%u trust_mode=%u prio=%u/0x%x remark=%u (policyId=%d)",
                   rule, qos_entry->key.int_vlan, qos_entry->key.ext_vlan, qos_entry->key.leaf_side, qos_entry->key.trust_mode,
                   qos_entry->rule[rule].priority, qos_entry->rule[rule].priority_mask, qos_entry->rule[rule].pbits_remark, qos_entry->rule[rule].policyId_icap);
 
         /* Free rule (for later reconfiguration) */
         if (ptin_hapi_qos_rule_free(qos_entry, rule) != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_HAPI,"Error clearing rule %u", rule);
+          PT_LOG_ERR(LOG_CTX_QOS,"Error clearing rule %u", rule);
           return L7_SUCCESS;
         }
-        PT_LOG_TRACE(LOG_CTX_HAPI,"Rule removed: VLAN rules=%u  Total rules=%u",
+        PT_LOG_TRACE(LOG_CTX_QOS,"Rule removed: VLAN rules=%u  Total rules=%u",
                   qos_entry->number_of_rules, hw_rules_total);
       }
     }
@@ -886,7 +886,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       ((qos_cfg->trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P) &&
         (qos_cfg->priority_mask & 0x7) == 0x7 && qos_cfg->priority == qos_cfg->int_priority))
   {
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Redundant rule for trust_mode %u and prio %u/0x%x! Leaving...",
+    PT_LOG_TRACE(LOG_CTX_QOS, "Redundant rule for trust_mode %u and prio %u/0x%x! Leaving...",
               qos_cfg->trust_mode, qos_cfg->priority, qos_cfg->priority_mask);
     return L7_SUCCESS;
   }
@@ -894,7 +894,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   /* If VLAN entry don't exist, search for a free entry */
   if (qos_entry == L7_NULLPTR)
   {
-    PT_LOG_TRACE(LOG_CTX_HAPI,"Entry not found... searching for a free one");
+    PT_LOG_TRACE(LOG_CTX_QOS,"Entry not found... searching for a free one");
 
     /* Search for a free entry and rule */
     qos_entry = ptin_hapi_qos_table_free_entry(&rule);
@@ -902,7 +902,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     /* If no free entry was found... return error */
     if (qos_entry == L7_NULLPTR)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "No free entries!");
+      PT_LOG_ERR(LOG_CTX_QOS, "No free entries!");
       return L7_TABLE_IS_FULL;
     }
 
@@ -919,12 +919,12 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   if ((free_rule < 0 || free_rule >= PTIN_HAPI_QOS_VLAN_ENTRIES) ||
       (hw_rules_total >= PTIN_HAPI_QOS_HW_RULES_MAX))
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "No free rules! (free_rule=%d, hw_rules_total=%u/%u)", free_rule, hw_rules_total, PTIN_HAPI_QOS_HW_RULES_MAX);
+    PT_LOG_ERR(LOG_CTX_QOS, "No free rules! (free_rule=%d, hw_rules_total=%u/%u)", free_rule, hw_rules_total, PTIN_HAPI_QOS_HW_RULES_MAX);
     return L7_TABLE_IS_FULL;
   }
   /* Selected rule */
   rule = free_rule;
-  PT_LOG_TRACE(LOG_CTX_HAPI,"Inside rule %u will be used.", rule);
+  PT_LOG_TRACE(LOG_CTX_QOS,"Inside rule %u will be used.", rule);
 
   policyId_icap = BROAD_POLICY_INVALID;
   classId       = qos_entry->classId;
@@ -938,13 +938,13 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       rc = ptin_hapi_classid_allocate(qos_cfg->ext_vlan, 0xfff, &classId);
       if (rc != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI,"Error allocating or reusing a class id");
+        PT_LOG_ERR(LOG_CTX_QOS,"Error allocating or reusing a class id");
         return L7_FAILURE;
       }
       /* If no matched classID was found, create a new one */
       if (classId < 0 || classId >= MAX_CLASS_ID)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI,"Invalid class id %u", classId);
+        PT_LOG_ERR(LOG_CTX_QOS,"Invalid class id %u", classId);
         return L7_FAILURE;
       }
       
@@ -961,14 +961,14 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_COSQ);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Cannot create trap policy");
+      PT_LOG_ERR(LOG_CTX_QOS, "Cannot create trap policy");
       break;
     }
     /* Ingress stage */
     rc = hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_INGRESS);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error creating an ingress policy");
+      PT_LOG_ERR(LOG_CTX_QOS, "Error creating an ingress policy");
       hapiBroadPolicyCreateCancel();
       break;
     }
@@ -976,7 +976,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error adding rule");
+      PT_LOG_ERR(LOG_CTX_QOS, "Error adding rule");
       hapiBroadPolicyCreateCancel();
       break;
     }
@@ -986,11 +986,11 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uchar8 *)&pbm, (L7_uchar8 *)&pbm_mask);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error adding INPORTS qualifier");
+      PT_LOG_ERR(LOG_CTX_QOS, "Error adding INPORTS qualifier");
       hapiBroadPolicyCreateCancel();
       break;
     }
-    PT_LOG_TRACE(LOG_CTX_HAPI,"Inports qualifier added");
+    PT_LOG_TRACE(LOG_CTX_QOS,"Inports qualifier added");
 #endif
 
     /* src class id qualifier */
@@ -999,11 +999,11 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_SRC_CLASS_ID, (L7_uchar8 *)&classId, exact_mask);
       if (rc != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error adding SRC_CLASS_ID qualifier (%d)", classId);
+        PT_LOG_ERR(LOG_CTX_QOS, "Error adding SRC_CLASS_ID qualifier (%d)", classId);
         hapiBroadPolicyCreateCancel();
         break;
       }
-      PT_LOG_TRACE(LOG_CTX_HAPI,"SRC_CLASS_ID %d qualifier added", classId);
+      PT_LOG_TRACE(LOG_CTX_QOS,"SRC_CLASS_ID %d qualifier added", classId);
     }
 
     /* Outer VLAN qualifier */
@@ -1012,11 +1012,11 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&qos_cfg->int_vlan, (L7_uint8 *) &vlan_mask);
       if (rc != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error adding OVID qualifier (%u)", qos_cfg->int_vlan);
+        PT_LOG_ERR(LOG_CTX_QOS, "Error adding OVID qualifier (%u)", qos_cfg->int_vlan);
         hapiBroadPolicyCreateCancel();
         break;
       }
-      PT_LOG_TRACE(LOG_CTX_HAPI,"OVID %u/0x%x qualifier added", qos_cfg->int_vlan, vlan_mask);
+      PT_LOG_TRACE(LOG_CTX_QOS,"OVID %u/0x%x qualifier added", qos_cfg->int_vlan, vlan_mask);
     }
 
     /* Check trust mode and apply appropriated configuration */
@@ -1028,11 +1028,11 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
         rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OCOS, (L7_uchar8 *)&qos_cfg->priority, (L7_uchar8 *)&qos_cfg->priority_mask);
         if (rc != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_HAPI, "Error adding OCOS qualifier (%u/0x%x)", qos_cfg->priority, qos_cfg->priority_mask);
+          PT_LOG_ERR(LOG_CTX_QOS, "Error adding OCOS qualifier (%u/0x%x)", qos_cfg->priority, qos_cfg->priority_mask);
           hapiBroadPolicyCreateCancel();
           break;
         }
-        PT_LOG_TRACE(LOG_CTX_HAPI,"OCOS %u/0x%x qualifier added", qos_cfg->priority, qos_cfg->priority_mask);
+        PT_LOG_TRACE(LOG_CTX_QOS,"OCOS %u/0x%x qualifier added", qos_cfg->priority, qos_cfg->priority_mask);
       }
     }
     else if (qos_cfg->trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC)
@@ -1046,11 +1046,11 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ethertype_ipv4, exact_mask);
       if (rc != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error adding ETHTYPE qualifier (0x%04x)", ethertype_ipv4);
+        PT_LOG_ERR(LOG_CTX_QOS, "Error adding ETHTYPE qualifier (0x%04x)", ethertype_ipv4);
         hapiBroadPolicyCreateCancel();
         break;
       }
-      PT_LOG_TRACE(LOG_CTX_HAPI,"ETHERTYPE 0x%x qualifier added", ethertype_ipv4);
+      PT_LOG_TRACE(LOG_CTX_QOS,"ETHERTYPE 0x%x qualifier added", ethertype_ipv4);
 
       if ((qos_cfg->priority_mask & 0x7) != 0)
       {
@@ -1058,11 +1058,11 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
         rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DSCP, (L7_uchar8 *)&dscp_value, (L7_uchar8 *)&dscp_mask);
         if (rc != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_HAPI, "Error adding DSCP qualifier (%u/0x%x)", dscp_value, dscp_mask);
+          PT_LOG_ERR(LOG_CTX_QOS, "Error adding DSCP qualifier (%u/0x%x)", dscp_value, dscp_mask);
           hapiBroadPolicyCreateCancel();
           break;
         }
-        PT_LOG_TRACE(LOG_CTX_HAPI,"DSCP %u/0x%x qualifier added", dscp_value, dscp_mask);
+        PT_LOG_TRACE(LOG_CTX_QOS,"DSCP %u/0x%x qualifier added", dscp_value, dscp_mask);
       }
     }
     else if (qos_cfg->trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP)
@@ -1076,11 +1076,11 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ethertype_ipv4, exact_mask);
       if (rc != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error adding ETHTYPE qualifier (0x%04x)", ethertype_ipv4);
+        PT_LOG_ERR(LOG_CTX_QOS, "Error adding ETHTYPE qualifier (0x%04x)", ethertype_ipv4);
         hapiBroadPolicyCreateCancel();
         break;
       }
-      PT_LOG_TRACE(LOG_CTX_HAPI,"ETHERTYPE 0x%x qualifier added", ethertype_ipv4);
+      PT_LOG_TRACE(LOG_CTX_QOS,"ETHERTYPE 0x%x qualifier added", ethertype_ipv4);
 
       if ((qos_cfg->priority_mask & 0x3f) != 0)
       {
@@ -1088,11 +1088,11 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
         rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DSCP, (L7_uchar8 *)&dscp_value, (L7_uchar8 *)&dscp_mask);
         if (rc != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_HAPI, "Error adding DSCP qualifier (%u/0x%x)", dscp_value, dscp_mask);
+          PT_LOG_ERR(LOG_CTX_QOS, "Error adding DSCP qualifier (%u/0x%x)", dscp_value, dscp_mask);
           hapiBroadPolicyCreateCancel();
           break;
         }
-        PT_LOG_TRACE(LOG_CTX_HAPI,"DSCP %u/0x%x qualifier added", dscp_value, dscp_mask);
+        PT_LOG_TRACE(LOG_CTX_QOS,"DSCP %u/0x%x qualifier added", dscp_value, dscp_mask);
       }
     }
 
@@ -1100,39 +1100,39 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     if (hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, qos_cfg->int_priority, 0, 0) != L7_SUCCESS ||
         hapiBroadPolicyRuleExceedActionAdd(ruleId, BROAD_ACTION_SET_COSQ, qos_cfg->int_priority, 0, 0) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error adding SET_COSQ action");
+      PT_LOG_ERR(LOG_CTX_QOS, "Error adding SET_COSQ action");
       hapiBroadPolicyCreateCancel();
       break;
     }
-    PT_LOG_TRACE(LOG_CTX_HAPI,"COSQ action added (%u)", qos_cfg->int_priority);
+    PT_LOG_TRACE(LOG_CTX_QOS,"COSQ action added (%u)", qos_cfg->int_priority);
 
     /* Set new PCP */
     if (qos_cfg->pbits_remark)
     {
-      PT_LOG_TRACE(LOG_CTX_HAPI,"Remark rule added (%u)", qos_cfg->int_priority);
+      PT_LOG_TRACE(LOG_CTX_QOS,"Remark rule added (%u)", qos_cfg->int_priority);
       if (hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, qos_cfg->int_priority & 0x7, 0, 0) != L7_SUCCESS ||
           hapiBroadPolicyRuleExceedActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, qos_cfg->int_priority & 0x7, 0, 0) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error adding SET_COSQ action");
+        PT_LOG_ERR(LOG_CTX_QOS, "Error adding SET_COSQ action");
         hapiBroadPolicyCreateCancel();
         break;
       }
-      PT_LOG_TRACE(LOG_CTX_HAPI,"COSQ action added (%u)", qos_cfg->int_priority);
+      PT_LOG_TRACE(LOG_CTX_QOS,"COSQ action added (%u)", qos_cfg->int_priority);
     }
 
     /* Apply policy */
     if ((rc=hapiBroadPolicyCommit(&policyId_icap)) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error commiting trap policy");
+      PT_LOG_ERR(LOG_CTX_QOS, "Error commiting trap policy");
       hapiBroadPolicyCreateCancel();
       break;
     }
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Trap policy commited successfully (policyId_icap=%u)", policyId_icap);
+    PT_LOG_TRACE(LOG_CTX_QOS, "Trap policy commited successfully (policyId_icap=%u)", policyId_icap);
 
 #ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
     if (hapiBroadPolicyApplyToMultiIface(policyId_icap, pbm) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error adding port bitmap to rule %u ", rule);
+      PT_LOG_ERR(LOG_CTX_QOS, "Error adding port bitmap to rule %u ", rule);
       rc = L7_FAILURE;
       break;
     }
@@ -1146,13 +1146,13 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     if (policyId_icap != BROAD_POLICY_INVALID)
     {
       hapiBroadPolicyDelete(policyId_icap);
-      PT_LOG_TRACE(LOG_CTX_HAPI, "Removing policyId_icap %u", policyId_icap);
+      PT_LOG_TRACE(LOG_CTX_QOS, "Removing policyId_icap %u", policyId_icap);
     }
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error while creating ICAP rule");
+    PT_LOG_ERR(LOG_CTX_QOS, "Error while creating ICAP rule");
     return rc;
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI,"ICAP rule configured");
+  PT_LOG_TRACE(LOG_CTX_QOS,"ICAP rule configured");
 
   /* Save entry */
   qos_entry->entry_active       = L7_TRUE;
@@ -1174,7 +1174,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   qos_entry->number_of_rules++;
   hw_rules_total++;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI,"Operation finished successfully");
+  PT_LOG_TRACE(LOG_CTX_QOS,"Operation finished successfully");
 
   return L7_SUCCESS;
 }
@@ -1212,10 +1212,10 @@ L7_RC_t ptin_hapi_qos_entry_remove(ptin_dtl_qos_t *qos_cfg)
     {
       if (ptin_hapi_qos_rule_free(qos_entry, -1) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI,"Entry %u: Error clearing all rules", entry);
+        PT_LOG_ERR(LOG_CTX_QOS,"Entry %u: Error clearing all rules", entry);
         return L7_FAILURE;
       }
-      PT_LOG_TRACE(LOG_CTX_HAPI,"Entry %u: All rules cleared", entry);
+      PT_LOG_TRACE(LOG_CTX_QOS,"Entry %u: All rules cleared", entry);
       continue;
     }
 
@@ -1236,18 +1236,18 @@ L7_RC_t ptin_hapi_qos_entry_remove(ptin_dtl_qos_t *qos_cfg)
       if ((qos_cfg->priority & mask) != (qos_entry->rule[rule].priority & mask))
         continue;
 
-      PT_LOG_TRACE(LOG_CTX_HAPI,"Going to remove entry %u, rule %u: intVlan=%u/extVlan=%u/leaf:%u trust_mode=%u prio=%u/0x%x remark=%u (policyId=%d)",
+      PT_LOG_TRACE(LOG_CTX_QOS,"Going to remove entry %u, rule %u: intVlan=%u/extVlan=%u/leaf:%u trust_mode=%u prio=%u/0x%x remark=%u (policyId=%d)",
                 entry, rule, qos_entry->key.int_vlan, qos_entry->key.ext_vlan, qos_entry->key.leaf_side, qos_entry->key.trust_mode,
                 qos_entry->rule[rule].priority, qos_entry->rule[rule].priority_mask, qos_entry->rule[rule].pbits_remark, qos_entry->rule[rule].policyId_icap);
 
       /* Clear rule */
       if (ptin_hapi_qos_rule_free(qos_entry, rule) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI,"Error clearing rule %u", rule);
+        PT_LOG_ERR(LOG_CTX_QOS,"Error clearing rule %u", rule);
         continue;
       }
 
-      PT_LOG_TRACE(LOG_CTX_HAPI,"Rule removed: VLAN rules=%u  Total rules=%u",
+      PT_LOG_TRACE(LOG_CTX_QOS,"Rule removed: VLAN rules=%u  Total rules=%u",
                 qos_entry->number_of_rules, hw_rules_total);
     }
   }
@@ -1485,10 +1485,10 @@ L7_RC_t ptin_hapi_qos_table_flush(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qo
 
     if (ptin_hapi_qos_rule_free(&hapi_qos_table[entry], -1) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Entry %u: Error clearing all rules", entry);
+      PT_LOG_ERR(LOG_CTX_QOS,"Entry %u: Error clearing all rules", entry);
       return L7_FAILURE;
     }
-    PT_LOG_TRACE(LOG_CTX_HAPI,"Entry %u: All entry rules were cleared", entry);
+    PT_LOG_TRACE(LOG_CTX_QOS,"Entry %u: All entry rules were cleared", entry);
   }
 
   return L7_SUCCESS;
