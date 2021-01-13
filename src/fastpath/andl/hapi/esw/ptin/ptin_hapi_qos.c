@@ -2350,7 +2350,6 @@ void ptin_hapi_qos_gport_dump(L7_uint32 usp_port) {
     BROAD_PORT_t  *hapiPortPtr;
     L7_uint32      usp_port_i, usp_port_f;
 
-
     /* Check if dapi_g is valid */
     if (L7_NULLPTR == dapi_g)
     {
@@ -2380,8 +2379,8 @@ void ptin_hapi_qos_gport_dump(L7_uint32 usp_port) {
           continue;
         }
 
-        printf("=== PORT %u (MODID %u, usp_port %u)\r\n",
-               hapiPortPtr->bcm_port, hapiPortPtr->bcm_modid, usp_port);
+        printf("=== USP_PORT %u (modid %u, unit %u, port %u, gport 0x%x)\r\n",
+               usp_port, hapiPortPtr->bcm_modid, hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, hapiPortPtr->bcm_gport);
         printf("L0.0: GPORT=0x%x\r\n", HQoS[usp_port].L0);
         for (id1=0; id1<N_L1s; id1++) {
             printf("\tL1.%u: GPORT=0x%x\r\n", id1, HQoS[usp_port].L1[id1].SE);
