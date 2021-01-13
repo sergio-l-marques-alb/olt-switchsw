@@ -1608,7 +1608,9 @@ void eg_prt_sched_hrchy_t_init(eg_prt_sched_hrchy_t *p) {
 
 /* 
 To understand the following SE/UCQ/MCQ functions please check: 
-_bcm_hx5_cosq_gport_add()
+_bcm_hx5_cosq_gport_add() 
+ 
+hx5_gport_traverse.c CINT, available in KB0029160 "Helix5 Gport Traverse" (https://broadcomcsm.service-now.com/csm?id=kb_article&sys_id=246d1f9a1b73c850849ba82fbd4bcb74 )
 
 AND 
 
@@ -1770,6 +1772,8 @@ L0.2: GPORT=0x37820011 HW_INDEX=38 MODE=WRR WT=1
  *  
  * To understand the following SE/UCQ/MCQ functions please check:
  * _bcm_hx5_cosq_gport_add()
+ * 
+ * hx5_gport_traverse.c CINT, available in KB0029160 "Helix5 Gport Traverse" (https://broadcomcsm.service-now.com/csm?id=kb_article&sys_id=246d1f9a1b73c850849ba82fbd4bcb74 )
  *
  * AND
  *
@@ -1881,6 +1885,8 @@ void BCM_GPORT_SCHEDULER_2_SCHED_id(int gport,
  *  
  * To understand the following SE/UCQ/MCQ functions please check:
  * _bcm_hx5_cosq_gport_add()
+ * 
+ * hx5_gport_traverse.c CINT, available in KB0029160 "Helix5 Gport Traverse" (https://broadcomcsm.service-now.com/csm?id=kb_article&sys_id=246d1f9a1b73c850849ba82fbd4bcb74 )
  *
  * AND
  *
@@ -1932,7 +1938,12 @@ void BCM_GPORT_UCAST_QUEUE_GROUP_2_Qid(int gport,
 /** 
  *  
  * To understand the following SE/UCQ/MCQ functions please check:
- * _bcm_hx5_cosq_gport_add()
+ * _bcm_hx5_cosq_gport_add() 
+ * 
+ * hx5_gport_traverse.c CINT, available in KB0029160 "Helix5
+ * Gport Traverse"
+ * (https://broadcomcsm.service-now.com/csm?id=kb_article&sys_id=246d1f9a1b73c850849ba82fbd4bcb74
+ * )
  *
  * AND
  *
