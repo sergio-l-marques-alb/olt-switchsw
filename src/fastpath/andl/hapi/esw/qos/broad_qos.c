@@ -129,6 +129,7 @@ L7_RC_t hapiBroadQosCardInit(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t *d
     HAPI_BROAD_QOS_PORT_t *qosPortPtr;
     HAPI_QOS_INTF_DIR_t    direction;
     L7_uint8               cosIndex;
+    l7_cosq_set_t          queueSet;
 
     /* allocate QOS structures for all hapiPorts on this card */
     usp.unit = unitNum;
@@ -175,11 +176,13 @@ L7_RC_t hapiBroadQosCardInit(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t *d
         hapiPortPtr->voipPolicy = BROAD_POLICY_INVALID;
 
         /* Ptin modified: QoS */
-        for (cosIndex = 0; cosIndex < L7_MAX_CFG_QUEUES_PER_PORT; cosIndex++)
+        for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
         {
-          qosPortPtr->cos.wredExponent[cosIndex] = FD_QOS_COS_QCFG_WRED_DECAY_EXP; 
-
-          qosPortPtr->cos.wrr_weights[cosIndex] = wrr_default_weights[cosIndex];
+          for (cosIndex = 0; cosIndex < L7_MAX_CFG_QUEUES_PER_PORT; cosIndex++)
+          {
+            qosPortPtr->cos.queueSet[queueSet].wredExponent[cosIndex] = FD_QOS_COS_QCFG_WRED_DECAY_EXP; 
+            qosPortPtr->cos.queueSet[queueSet].wrr_weights[cosIndex] = wrr_default_weights[cosIndex];
+          }
         }
     }
 

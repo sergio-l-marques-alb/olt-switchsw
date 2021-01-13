@@ -1291,8 +1291,8 @@ ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_
 
       if (rv != BCM_E_NONE)
       {
-        PT_LOG_ERR(LOG_CTX_QOS, "bcm_unit %u, bcm_port %u: Error with bcm_port_rate_egress_set=> rv=%d (%s)",
-                   hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, rv, bcm_errmsg(rv));
+        PT_LOG_ERR(LOG_CTX_QOS, "Error with bcm_port_rate_egress_set(bcm_unit=%u, bcm_port=%u, rate_max=%u, burst_size=%u)=> rv=%d (%s)",
+                   hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, rate_max, burst_size, rv, bcm_errmsg(rv));
         return L7_FAILURE;
       }
     }
@@ -1306,16 +1306,19 @@ ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_
                                        0);
       if (rv != BCM_E_NONE)
       {
-        PT_LOG_ERR(LOG_CTX_QOS, "bcm_unit %u, bcm_port %u: Error with bcm_cosq_port_bandwidth_set=> rv=%d (%s)",
-                   hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, rv, bcm_errmsg(rv));
+        PT_LOG_ERR(LOG_CTX_QOS, "Error with bcm_cosq_port_bandwidth_set(bcm_unit=%u, bcm_port=%u, tc=%d, rate_min=%u rate_max=%u, 0)=> rv=%d (%s)",
+                   hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, tc, rate_min, rate_max, rv, bcm_errmsg(rv));
         return L7_FAILURE;
       }
     }
+
+    PT_LOG_TRACE(LOG_CTX_QOS, "bcm_unit %u, bcm_port %u, tc=%d: Success applying shaper with rate_min=%u, rate_max=%u, burst_size=%u.",
+                 hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, tc, rate_min, rate_max, burst_size);
   }
 #if (PLAT_BCM_CHIP == L7_BCM_TRIDENT3_X3)
   else /* Extra queues */
   {
-    bcm_gport_t qos_gport;
+    bcm_gport_t qos_gport = BCM_GPORT_INVALID;
 
     /* Get QoS gport */
     if (ptin_hapi_qos_gport_get(dapiPort, queueSet, tc, &qos_gport) != L7_SUCCESS)
@@ -1326,7 +1329,7 @@ ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_
     }
     else
     {
-      PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d: Using gport 0x%x",
+      PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d -> Using QoS gport 0x%x",
                    dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, queueSet, qos_gport);
     }
 
@@ -1339,8 +1342,8 @@ ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_
                                       0);
     if (rv != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_QOS, "bcm_unit %u, qos_gport 0x%x: Error with bcm_cosq_port_bandwidth_set=> rv=%d (%s)",
-                 hapiPortPtr->bcm_unit, qos_gport, rv, bcm_errmsg(rv));
+      PT_LOG_ERR(LOG_CTX_QOS, "Error with bcm_cosq_port_bandwidth_set(bcm_unit=%u, qos_gport=0x%x, 0, rate_min=%u, rate_max=%u, 0)=> rv=%d (%s)",
+                 hapiPortPtr->bcm_unit, qos_gport, rate_min, rate_max, rv, bcm_errmsg(rv));
       return L7_FAILURE;
     }
 
@@ -1353,8 +1356,8 @@ ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_
 
       if (rv != BCM_E_NONE)
       {
-        PT_LOG_ERR(LOG_CTX_QOS, "bcm_unit %u, bcm_port %u: Error with bcm_port_rate_egress_set=> rv=%d (%s)",
-                   hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, rv, bcm_errmsg(rv));
+        PT_LOG_ERR(LOG_CTX_QOS, "Error with bcm_port_rate_egress_set(bcm_unit %u, bcm_port %u, portSpeed=%u, burst_size=%u)=> rv=%d (%s)",
+                   hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, portSpeed, burst_size, rv, bcm_errmsg(rv));
         return L7_FAILURE;
       }
     }
@@ -1382,6 +1385,8 @@ ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_
       return L7_FAILURE;
     }
 #endif
+    PT_LOG_TRACE(LOG_CTX_QOS, "bcm_unit %u, bcm_port %u, qos_gport 0x%x: Success applying shaper with rate_min=%u, rate_max=%u, burst_size=%u.",
+                 hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, qos_gport, rate_min, rate_max, burst_size);
   }
 #else /*(PLAT_BCM_CHIP == L7_BCM_TRIDENT3_X3)*/
   else

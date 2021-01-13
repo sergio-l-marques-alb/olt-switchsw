@@ -108,20 +108,24 @@ typedef struct
 
     /* per-port configuration */
     L7_BOOL                         intfShapingSpec;
-    L7_uint32                       intfShaping;
-    L7_uint32                       intfShapingBurstSize;
-
     /* per-queue configuration */
     L7_BOOL                         queueConfigSpec;
-    DAPI_QOS_COS_QUEUE_MGMT_TYPE_t  dropType[BCM_COS_COUNT];
-    DAPI_QOS_COS_QUEUE_SCHED_TYPE_t schedType[BCM_COS_COUNT];
-    L7_uint32                       minBw[BCM_COS_COUNT];     /* PTin modified: QoS: L7_uchar8 to L7_uint32 */
-    L7_uint32                       maxBw[BCM_COS_COUNT];     /* PTin modified: QoS: L7_uchar8 to L7_uint32 */
-    L7_uint16                       wrr_weights[BCM_COS_COUNT];     /* PTin added: QoS */
+    /* Configurations per queueSet (Trodent3X3 have more than 1 queueSet per port) */
+    struct
+    {
+        L7_uint32                       intfShaping;
+        L7_uint32                       intfShapingBurstSize;
+
+        DAPI_QOS_COS_QUEUE_MGMT_TYPE_t  dropType[BCM_COS_COUNT];
+        DAPI_QOS_COS_QUEUE_SCHED_TYPE_t schedType[BCM_COS_COUNT];
+        L7_uint32                       minBw[BCM_COS_COUNT];     /* PTin modified: QoS: L7_uchar8 to L7_uint32 */
+        L7_uint32                       maxBw[BCM_COS_COUNT];     /* PTin modified: QoS: L7_uchar8 to L7_uint32 */
+        L7_uint16                       wrr_weights[BCM_COS_COUNT];     /* PTin added: QoS */
 #ifdef L7_COS_PACKAGE
-    L7_uchar8                       wredExponent[BCM_COS_COUNT];    /* PTin modified: QoS */
-    HAPI_BROAD_COS_COLOR_PORT_t     perColorParams[BCM_COS_COUNT];
+        L7_uchar8                       wredExponent[BCM_COS_COUNT];    /* PTin modified: QoS */
+        HAPI_BROAD_COS_COLOR_PORT_t     perColorParams[BCM_COS_COUNT];
 #endif
+    } queueSet[L7_MAX_CFG_QUEUESETS_PER_PORT];
 }
 HAPI_BROAD_COS_PORT_t;
 
@@ -183,22 +187,6 @@ L7_RC_t hapiBroadQosSemTake(DAPI_t *dapi_g);
 *
 *********************************************************************/
 L7_RC_t hapiBroadQosSemGive(DAPI_t *dapi_g);
-
-/*********************************************************************
-*
-* @purpose Determines the bandwidth of an interface
-*
-* @param   BROAD_PORT_t     *hapiPortPtr
-* @param   L7_uint32        *portSpeed (output)
-*
-* @returns none
-*
-* @notes   none
-*
-* @end
-*
-*********************************************************************/
-void hapiBroadQosIntfSpeedGet(BROAD_PORT_t *hapiPortPtr, L7_uint32 *portSpeed);
 
 /*********************************************************************
 *
