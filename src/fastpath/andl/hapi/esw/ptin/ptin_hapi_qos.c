@@ -1495,14 +1495,13 @@ L7_RC_t ptin_hapi_qos_table_flush(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qo
 }
 
 /**
- * Update a QoS entry
+ * Dump QoS VLAN information tables
  * 
- * @param dapiPort 
- * @param qos_cfg 
+ * @param void
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_hapi_qos_dump(void)
+L7_RC_t ptin_hapi_qos_vlan_dump(void)
 {
   L7_uint entry, j, rule;
   ptin_hapi_qos_entry_t *qos_entry;
@@ -2097,14 +2096,19 @@ int gport_callback(int unit, bcm_gport_t port, int numq, uint32 flags,
 
     r = hapi_ptin_get_uspport_from_bcmdata(unit, local_port, -1, &usp_port);
     if (L7_SUCCESS != r) {
-        PT_LOG_ERR(LOG_CTX_STARTUP,
-                   "hapi_ptin_get_uspport_from_bcmdata(unit=%d, bcm_port=%d,"
-                   " ...) = %d", unit, local_port, r);
+        //PT_LOG_ERR(LOG_CTX_STARTUP,
+        //           "hapi_ptin_get_uspport_from_bcmdata(unit=%d, bcm_port=%d,"
+        //           " ...) = %d", unit, local_port, r);
         switch (r) {
         case L7_NOT_EXIST:  return BCM_E_NOT_FOUND;
         default:
         case L7_FAILURE:    return BCM_E_FAIL;
         }
+    }
+    else {
+        PT_LOG_NOTICE(LOG_CTX_STARTUP,
+                      "hapi_ptin_get_uspport_from_bcmdata(unit=%d, bcm_port=%d,"
+                      " ...) OK => usp_port %u", unit, local_port, usp_port);
     }
 
     bcm_cosq_gport_level_info_t_init(&info);
@@ -2347,4 +2351,75 @@ L7_RC_t ptin_hapi_qos_gport_get(ptin_dapi_port_t *dapiPort,
 
     return L7_SUCCESS;
 }
+
+
+
+
+/** 
+ *  
+ * Dumps EGRESS PORT SCHEDULING HIERARCHY's GPORT TABLE 
+ * (Originally for TC16SXG's BCM56370) 
+ * 
+ * @param usp_port (if invalid, prints all)
+ * 
+ * @return void 
+ */
+void ptin_hapi_qos_gport_dump(L7_uint32 usp_port) {
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    printf("Sorry. Feature unavailable.\r\n");
+    return;
+#else
+    extern DAPI_t *dapi_g;
+    DAPI_USP_t     ddUsp;
+    BROAD_PORT_t  *hapiPortPtr;
+    L7_uint32      usp_port_i, usp_port_f;
+
+
+    /* Check if dapi_g is valid */
+    if (L7_NULLPTR == dapi_g)
+    {
+      printf("dapi_g pointer is NULL\r\n");
+      return;
+    }
+
+    if (usp_port < L7_MAX_PHYSICAL_PORTS_PER_SLOT) {
+        usp_port_i=usp_port;
+        usp_port_f=usp_port_i+1;
+    }
+    else {
+        usp_port_i=0;
+        usp_port_f=L7_MAX_PHYSICAL_PORTS_PER_SLOT;
+    }
+    
+    for (usp_port=usp_port_i; usp_port<usp_port_f; usp_port++) {
+        unsigned int id2, id1;
+        /* Initialize USP */
+        hapi_ptin_usp_init(&ddUsp, 0, usp_port);
+        /* Get hapiPortPtr */
+        hapiPortPtr = HAPI_PORT_GET(&ddUsp, dapi_g);
+        /* Check if hapiPortPtr pointer is valid */
+        if (hapiPortPtr == L7_NULLPTR)
+        {
+          printf("usp_port %u: hapiPortPtr pointer is NULL\r\n", usp_port);
+          continue;
+        }
+
+        printf("=== PORT %u (MODID %u, usp_port %u)\r\n",
+               hapiPortPtr->bcm_port, hapiPortPtr->bcm_modid, usp_port);
+        printf("L0.0: GPORT=0x%x\r\n", HQoS[usp_port].L0);
+        for (id1=0; id1<N_L1s; id1++) {
+            printf("\tL1.%u: GPORT=0x%x\r\n", id1, HQoS[usp_port].L1[id1].SE);
+            for (id2=0; id2<N_iL2s; id2++) {
+                printf("\t\tL2.%u: GPORT=0x%x\r\n",
+                       id2, HQoS[usp_port].L1[id1].L2[id2].SE);
+                printf("\t\t\tUC.%u: GPORT=0x%x\r\n",
+                       id2, HQoS[usp_port].L1[id1].L2[id2].UCq);
+                printf("\t\t\tMC.%u: GPORT=0x%x\r\n",
+                       id2, HQoS[usp_port].L1[id1].L2[id2].MCq);
+            }
+        }
+    }
+
+#endif
+}//ptin_hapi_qos_gport_dump
 
