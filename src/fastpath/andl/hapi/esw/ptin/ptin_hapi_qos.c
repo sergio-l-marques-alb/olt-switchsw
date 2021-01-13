@@ -1273,43 +1273,129 @@ L7_RC_t
 ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_int tc,
                          L7_uint32 rate_min, L7_uint32 rate_max, L7_uint32 burst_size)
 {
+  L7_uint32    portSpeed;
   BROAD_PORT_t *hapiPortPtr;
   bcm_error_t  rv = BCM_E_NONE;
 
   hapiPortPtr = HAPI_PORT_GET( dapiPort->usp, dapiPort->dapi_g );
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d}, bcm_unit=%u bcm_port=%u, queueSet=%u, tc=%d: rate_min=%u %rate_max=%u burst_size=%u",
+  /* Get port speed */
+  hapiBroadIntfSpeedGet(hapiPortPtr, &portSpeed);
+
+  PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, bcm_unit %u bcm_port %u, queueSet %u, tc %d: rate_min=%u %rate_max=%u burst_size=%u",
                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, 
                hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
                queueSet, tc, rate_min, rate_max, burst_size);
 
-  /* All traffic classes (port configuration) */
-  if (tc < 0)
+  /* Port Level */
+  if (queueSet == L7_QOS_QSET_PORT)
   {
-    rv = bcm_port_rate_egress_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, rate_max, burst_size);
-
-    if (rv != BCM_E_NONE)
+    /* All traffic classes (port configuration) */
+    if (tc < 0 /*All TCs*/)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_rate_egress_set: rv=%d (%s)",
-                 rv, bcm_errmsg(rv));
-      return L7_FAILURE;
+      rv = bcm_port_rate_egress_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, rate_max, burst_size);
+
+      if (rv != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_QOS, "bcm_unit %u, bcm_port %u: Error with bcm_port_rate_egress_set=> rv=%d (%s)",
+                   hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, rv, bcm_errmsg(rv));
+        return L7_FAILURE;
+      }
+    }
+    else
+    {
+      rv = bcm_cosq_port_bandwidth_set(hapiPortPtr->bcm_unit,
+                                       hapiPortPtr->bcm_port,
+                                       tc, 
+                                       rate_min, 
+                                       rate_max, 
+                                       0);
+      if (rv != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_QOS, "bcm_unit %u, bcm_port %u: Error with bcm_cosq_port_bandwidth_set=> rv=%d (%s)",
+                   hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, rv, bcm_errmsg(rv));
+        return L7_FAILURE;
+      }
     }
   }
+#if (PLAT_BCM_CHIP == L7_BCM_TRIDENT3_X3)
+  else /* Extra queues */
+  {
+    bcm_gport_t qos_gport;
+
+    /* Get QoS gport */
+    if (ptin_hapi_qos_gport_get(dapiPort, queueSet, tc, &qos_gport) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d: Error obtaining QoS gport",
+                 dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, queueSet);
+      return L7_FAILURE;
+    }
+    else
+    {
+      PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d: Using gport 0x%x",
+                   dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, queueSet, qos_gport);
+    }
+
+    /* Apply shaper configuration */
+    rv = bcm_cosq_gport_bandwidth_set(hapiPortPtr->bcm_unit,
+                                      qos_gport,
+                                      0 /*Don't care*/, 
+                                      rate_min, 
+                                      rate_max, 
+                                      0);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_QOS, "bcm_unit %u, qos_gport 0x%x: Error with bcm_cosq_port_bandwidth_set=> rv=%d (%s)",
+                 hapiPortPtr->bcm_unit, qos_gport, rv, bcm_errmsg(rv));
+      return L7_FAILURE;
+    }
+
+    /* For now, burst size will only be applied to the port level */
+#if 1
+    if (tc < 0 /*All TCs*/)
+    {
+      /* Configure burst size at the psysical port side */
+      rv = bcm_port_rate_egress_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, portSpeed, burst_size);
+
+      if (rv != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_QOS, "bcm_unit %u, bcm_port %u: Error with bcm_port_rate_egress_set=> rv=%d (%s)",
+                   hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, rv, bcm_errmsg(rv));
+        return L7_FAILURE;
+      }
+    }
+#else
+    if (rate_min != 0)
+    {
+      rv = bcm_cosq_control_set(hapiPortPtr->bcm_unit,
+                                qos_gport,
+                                0 /*Don't care*/,
+                                bcmCosqControlBandwidthBurstMin,
+                                burst_size);
+      PT_LOG_ERR(LOG_CTX_QOS, "bcm_unit %u, qos_gport 0x%x: Error with bcm_cosq_control_set(bcmCosqControlBandwidthBurstMin)=> rv=%d (%s)",
+                 hapiPortPtr->bcm_unit, qos_gport, rv, bcm_errmsg(rv));
+      return L7_FAILURE;
+    }
+    if (rate_max != 0)
+    {
+      rv = bcm_cosq_control_set(hapiPortPtr->bcm_unit,
+                                qos_gport,
+                                0 /*Don't care*/,
+                                bcmCosqControlBandwidthBurstMax,
+                                burst_size);
+      PT_LOG_ERR(LOG_CTX_QOS, "bcm_unit %u, qos_gport 0x%x: Error with bcm_cosq_control_set(bcmCosqControlBandwidthBurstMax)=> rv=%d (%s)",
+                 hapiPortPtr->bcm_unit, qos_gport, rv, bcm_errmsg(rv));
+      return L7_FAILURE;
+    }
+#endif
+  }
+#else /*(PLAT_BCM_CHIP == L7_BCM_TRIDENT3_X3)*/
   else
   {
-    rv = bcm_cosq_port_bandwidth_set(hapiPortPtr->bcm_unit,
-                                     hapiPortPtr->bcm_port,
-                                     tc, 
-                                     rate_min, 
-                                     rate_max, 
-                                     0);
-    if (rv != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_cosq_port_bandwidth_set: rv=%d (%s)",
-                 rv, bcm_errmsg(rv));
-      return L7_FAILURE;
-    }
+    PT_LOG_ERR(LOG_CTX_QOS, "Invalid queueSet %u for this Switch!", queueSet);
+    return L7_FAILURE;
   }
+#endif /*(PLAT_BCM_CHIP == L7_BCM_TRIDENT3_X3)*/
   
   return L7_SUCCESS;
 }
@@ -1345,7 +1431,7 @@ ptin_hapi_qos_shaper_get(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_
 
     if (rv != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_rate_egress_get: rv=%d (%s)",
+      PT_LOG_ERR(LOG_CTX_QOS, "Error with bcm_port_rate_egress_get: rv=%d (%s)",
                  rv, bcm_errmsg(rv));
       return L7_FAILURE;
     }
@@ -1360,13 +1446,13 @@ ptin_hapi_qos_shaper_get(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_
                                      &_flags);
     if (rv != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_cosq_port_bandwidth_get: rv=%d (%s)",
+      PT_LOG_ERR(LOG_CTX_QOS, "Error with bcm_cosq_port_bandwidth_get: rv=%d (%s)",
                  rv, bcm_errmsg(rv));
       return L7_FAILURE;
     }
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d}, bcm_unit=%u bcm_port=%u, queueSet=%u, tc=%d: rate_min=%d %rate_max=%d burst_size=%d",
+  PT_LOG_TRACE(LOG_CTX_QOS, "usp={%d,%d,%d}, bcm_unit=%u bcm_port=%u, queueSet=%u, tc=%d: rate_min=%d %rate_max=%d burst_size=%d",
                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, 
                hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
                queueSet, tc, _rate_min, _rate_max, _burst_size);
@@ -2198,54 +2284,67 @@ L7_RC_t eg_prt_sched_hrchy_table_fill(void) {
  * @param usp_port 
  *  Pointer to ptin_dapi_port_t (that gives us "usp_port" and L0
  *  SE for boards other than TC16SXG
- * @param queue_set 
+ * @param queueSet
  *  Parameter integrating scheduling coordinates L0, L1.x
- * @param TC 
+ * @param tc 
  *  Traffic Class
- * @param gport 
+ * @param gport (out)
  *  Pointer to function output gport we're getting
  * 
  * @return L7_RC_t 
  */
 L7_RC_t ptin_hapi_qos_gport_get(ptin_dapi_port_t *dapiPort,
-                                int queue_set, L7_uint32 TC,
+                                int queueSet, L7_int tc,
                                 bcm_gport_t *gport)
 {
-    L7_uint32 usp_port;
-    BROAD_PORT_t *hapiPortPtr;
+  L7_uint32 usp_port;
+  BROAD_PORT_t *hapiPortPtr;
 
-    hapiPortPtr = HAPI_PORT_GET( dapiPort->usp, dapiPort->dapi_g );
-    usp_port = dapiPort->usp->port;
+  hapiPortPtr = HAPI_PORT_GET( dapiPort->usp, dapiPort->dapi_g );
+  usp_port = dapiPort->usp->port;
 
-
-    switch (queue_set) {
-    case L7_QOS_QSET_PORT:
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-        *gport = HQoS[usp_port].L0;
-#else
-        *gport = hapiPortPtr->bcm_gport;
-#endif
-        return L7_SUCCESS;
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-    case L7_QOS_QSET_WIRELESS:
-    case L7_QOS_QSET_WIRED:
-        {
-            unsigned int id1;
+    switch (queueSet)
+    {
+        case L7_QOS_QSET_PORT:
+            *gport = HQoS[usp_port].L0;
+            break;
+        case L7_QOS_QSET_WIRED:
+        case L7_QOS_QSET_WIRELESS:
+            {
+                unsigned int id1;
 
-            id1 = L7_QOS_QSET_WIRELESS==queue_set? 0: 1;
-            if (TC>=N_iL2s) {
-                *gport = HQoS[usp_port].L1[id1].SE;
-                return L7_SUCCESS;
+                id1 = (L7_QOS_QSET_WIRELESS == queueSet) ? 0: 1;
+                if (tc < 0 || tc >= N_iL2s)
+                {
+                    *gport = HQoS[usp_port].L1[id1].SE;
+                }
+                else
+                {
+                    *gport = HQoS[usp_port].L1[id1].L2[tc].SE;
+                }
             }
-            else {
-                *gport = HQoS[usp_port].L1[id1].L2[TC].SE;
-                return L7_SUCCESS;
-            }
-        }
-#endif
-    default:
-        *gport = BCM_GPORT_INVALID;
-        return L7_ERROR;
+            break;
+        default:
+            *gport = BCM_GPORT_INVALID;
+            PT_LOG_ERR(LOG_CTX_QOS, "Not supported queueSet %u", queueSet);
+            return L7_FAILURE;
     }
+#else /* Legacy boards */
+    /* For Port/Default queue set, use port's gport */
+    if (queueSet == L7_QOS_QSET_PORT ||
+        queueSet == L7_QOS_QSET_DEFAULT)
+    {
+      *gport = hapiPortPtr->bcm_gport;
+    }
+    else
+    {
+      *gport = BCM_GPORT_INVALID;
+      PT_LOG_ERR(LOG_CTX_QOS, "Not supported queueSet %u", queueSet);
+      return L7_FAILURE;
+    }
+#endif
+
+    return L7_SUCCESS;
 }
 
