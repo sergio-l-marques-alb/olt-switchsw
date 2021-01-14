@@ -1755,8 +1755,6 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   L7_enetHeader_t    *mac_header = 0;
   L7_uint32           relayOptIntIfNum = 0;
   L7_uchar8           broadcast_flag;  
-  L7_uchar8           keyToFind[L7_FDB_KEY_SIZE];
-  dot1dTpFdbData_t    fdbEntry;
   L7_uint32           ptin_port;
   ptin_client_id_t    client_info;
   L7_dhcp_pkt_type_t  dhcpPktType;
@@ -1809,10 +1807,13 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   }
 
 
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   /* Check for downlink if the MAC is learned and
      if can be learn .i.e MAC limiting status*/
   if (ptin_port < PTIN_SYSTEM_N_PONS)
   {
+    L7_uchar8           keyToFind[L7_FDB_KEY_SIZE];
+
     /* Vlan+MAC to search for */
     keyToFind[0] = (L7_uint8)((vlanId >> 8) & 0x0f);
     keyToFind[1] = (L7_uint8)(vlanId & 0xff);
@@ -1820,7 +1821,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
     /* Search for this key: if  found, return success.
        For DHCP relay agent if a MAC is already learn continue, else try to see if the MAC can be learned*/
-    if (fdbFind(keyToFind, L7_MATCH_EXACT, &fdbEntry) != L7_SUCCESS)
+    if (fdbFind(keyToFind, L7_MATCH_EXACT, NULL) != L7_SUCCESS)
     {
       ptin_l2_maclimit_vp_st_t entry;
       memset(&entry, 0x00, sizeof(entry));
@@ -1850,6 +1851,11 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       }
     }
   }
+#else
+  PT_LOG_TRACE(LOG_CTX_DHCP,
+               "PTIN_QUATTRO_FLOWS_FEATURE_ENABLED not supported in board"
+               "=> MAC limiting not checked");
+#endif
 
   /* Update Binding database only when DHCP Snooping is enabled */
   if ((dsCfgData->dsGlobalAdminMode == L7_ENABLE) &&
