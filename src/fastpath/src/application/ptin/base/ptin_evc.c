@@ -11665,7 +11665,7 @@ static L7_RC_t switching_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_int_vlan,
   /*Please see the notes for further info*/
   if (iptv_flag)
   {
-    __ptin_evc_l3_intf_sem_handle(leaf_int_vlan, leaf_intf);   
+    ptin_evc_l3_intf_sem_give(leaf_int_vlan, leaf_intf);   
   }
 
   return L7_SUCCESS;
