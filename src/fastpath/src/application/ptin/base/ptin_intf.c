@@ -31,6 +31,7 @@
 #include "ptin_msg.h"
 #include "ptin_env_api.h"
 #include "ptin_qos.h"
+#include "ptin_fieldproc.h"
 #include "usmdb_mib_vlan_api.h"
 
 #define LINKSCAN_MANAGEABLE_BOARD (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
