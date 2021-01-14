@@ -197,7 +197,9 @@ L7_RC_t ptin_intf_pre_init(void)
   /* Initialize phy lookup tables */
   PT_LOG_TRACE(LOG_CTX_INTF, "Port <=> intIfNum lookup tables init:");
 
+  mode = ptin_env_board_mode_get();
   PT_LOG_INFO(LOG_CTX_INTF, "CARD MODE %s", mode ? "GPON": "MPM");
+
   for (intIfNum = 1; intIfNum <= L7_MAX_PORT_COUNT; intIfNum++)
   {
     /* Run offset */
@@ -206,9 +208,6 @@ L7_RC_t ptin_intf_pre_init(void)
       if (intIfNum <= PTIN_SYSTEM_N_PONS_PHYSICAL)
       {
 #ifdef PORT_VIRTUALIZATION_N_1
-        L7_uint32 mode;
-
-        mode = ptin_env_board_mode_get();
         if (mode < PTIN_CARD_MAX_N_MODES)
         {
           /* Get virtual port and validate ir */
