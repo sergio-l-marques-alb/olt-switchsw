@@ -29,6 +29,7 @@
 #include "l7_usl_common.h"
 #include "sysbrds.h"
 #include "logger.h"   /* PTin added */
+#include "ptin_globaldefs.h"
 
 static int system_flowcontrol_mode = 0;
 static int mmu_drop_mode = MMU_DROP_MODE_EGRESS;

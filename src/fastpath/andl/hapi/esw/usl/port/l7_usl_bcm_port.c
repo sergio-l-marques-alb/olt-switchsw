@@ -31,6 +31,8 @@
 #include "broad_mmu.h"
 #include "l7_usl_l2_db.h"
 
+#include "ptin_globaldefs.h"
+
 /*********************************************************************
 *
 * @purpose BCM API to set the broadcast rate threshold for a port

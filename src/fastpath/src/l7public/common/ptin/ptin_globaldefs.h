@@ -131,6 +131,12 @@ extern int ptin_sys_number_of_ports;
 #define WC_SLOT_MODE_2x20G        15
 #define WC_SLOT_MODE_MAX          16
 
+#if (SDK_VERSION_IS <= SDK_VERSION(6,5,7,0))
+/* in soc/drv.h*/
+#define SOC_IS_HELIX5(unit)    (0)
+#define SOC_IS_HELIX5X(unit)    (0)
+#endif
+
 /* OLT10 */
 #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
 #include "ptin_globaldefs_olt1t0.h"
