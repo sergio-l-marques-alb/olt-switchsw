@@ -116,7 +116,7 @@ static L7_RC_t mgmdPacketSend(L7_uint16 mcastRootVlan,L7_uint32 portId, L7_uint3
     ptin_timer_stop(35);
   }
 
-  //Create a new MGMD packet event
+  //Create a new MGMD packet event port id+1 due to MGMD does not support port Id 0
   ptin_timer_start(36,"ptin_mgmd_event_packet_create");
   if(L7_SUCCESS != ptin_mgmd_event_packet_create(&mgmdPcktEvent, serviceId, portId, clientId, (void*) payload, payloadLength))
   {
@@ -1118,10 +1118,9 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   PT_LOG_TRACE(LOG_CTX_IGMP,"Packet intercepted at intIfNum=%u, oVlan=%u, iVlan=%u",
             pduInfo->intIfNum, mcastRootVlan, pduInfo->innerVlanId);
 
-
-  /* Send packet to MGMD */
+  /* Send packet to MGMD , portID = port_ptin + 1 (MGMD does not supports portId=0)*/
   ptin_timer_start(34,"mgmdPacketSend");
-  if(L7_SUCCESS != (rc = mgmdPacketSend(mcastRootVlan, ptin_port, client_idx, (void*) data, dataLength)))
+  if(L7_SUCCESS != (rc = mgmdPacketSend(mcastRootVlan, (ptin_port+1), client_idx, (void*) data, dataLength)))
   {
     PT_LOG_ERR(LOG_CTX_IGMP, "Unable to send packet to MGMD");
   }

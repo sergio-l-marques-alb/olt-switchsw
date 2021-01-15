@@ -3720,7 +3720,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
             PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t mgmdGroupsRes = {0};
 
             mgmdGroupsMsg.serviceId = McastEvcId;
-            mgmdGroupsMsg.portId    = client.ptin_port;
+            mgmdGroupsMsg.portId    = client.ptin_port + 1;
             mgmdGroupsMsg.clientId  = device_client->deviceClientId; 
 
             if (globalGroupCountperMsg == 0 || clientIdAux != device_client->deviceClientId) 
@@ -3966,7 +3966,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
         PT_LOG_DEBUG(LOG_CTX_IGMP, "    PortId:   %u", mgmdGroupsRes->portId);
         PT_LOG_DEBUG(LOG_CTX_IGMP, "    ClientId: %u", mgmdGroupsRes->clientId);
 
-        ptinPort = mgmdGroupsRes->portId;
+        ptinPort = mgmdGroupsRes->portId - 1;
         if (ptinPort >= PTIN_SYSTEM_N_INTERF)
         {
           *number_of_clients=0;
@@ -4024,7 +4024,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
           }
   #else // PTIN_BOARD_CXO160G
           newClientEntry.ptin_intf.intf_type = 0;
-          newClientEntry.ptin_intf.intf_id = mgmdGroupsRes->portId;
+          newClientEntry.ptin_intf.intf_id = ptinPort;
           newClientEntry.ptin_port = mgmdGroupsRes->portId;
           newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
   #endif     
@@ -4043,7 +4043,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
           else
           {
             newClientEntry.ptin_intf.intf_type = 0;
-            newClientEntry.ptin_intf.intf_id = mgmdGroupsRes->portId;
+            newClientEntry.ptin_intf.intf_id = ptinPort;
             newClientEntry.ptin_port = mgmdGroupsRes->portId;
             newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           }
@@ -4098,7 +4098,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
                 return L7_FAILURE;
               }
           }
-          newClientEntry.ptin_port = mgmdGroupsRes->portId;
+          newClientEntry.ptin_port = ptinPort;
           newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           PT_LOG_DEBUG(LOG_CTX_IGMP, "Port: %u", clientGroup->ptin_port);
   #else //PTIN_BOARD_CXO160G
@@ -4113,12 +4113,12 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
             return L7_FAILURE;
           }
 
-          newClientEntry.ptin_port = mgmdGroupsRes->portId;
+          newClientEntry.ptin_port = ptinPort;
           newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           PT_LOG_DEBUG(LOG_CTX_IGMP, "Port: %u", clientGroup->ptin_port);
   #endif 
  #endif // ONE_MULTICAST_VLAN_RING_SUPPORT
-          if (PTIN_PORT_IS_LAG(mgmdGroupsRes->portId))
+          if (PTIN_PORT_IS_LAG(ptinPort))
           {
             if (ptin_intf_port2lag(mgmdGroupsRes->portId, &ptinPort) == L7_SUCCESS)
             {
@@ -7178,7 +7178,7 @@ L7_RC_t ptin_igmp_rootptinPort_getList(L7_uint16 intVlan, ptin_port_bmp_t *ptinP
       {
         PT_LOG_DEBUG(LOG_CTX_IGMP, "Port bitmap set ptin_port:%u", ptin_port);
       }     
-      PTINPORT_BITMAP_SET(*ptinPortList, (ptin_port-1));
+      PTINPORT_BITMAP_SET(*ptinPortList, ptin_port);
       (*noOfInterfaces)++;
     }
   }
@@ -10950,7 +10950,7 @@ L7_RC_t ptin_igmp_mgmd_client_remove(L7_uint32 ptin_port, L7_uint32 clientId)
   PTIN_MGMD_CTRL_CLIENT_REMOVE_t mgmdConfigMsg = {0}; 
 
   /* FIXME TC16SXG: intIfNum->ptin_port */
-  mgmdConfigMsg.portId   = ptin_port;
+  mgmdConfigMsg.portId   = ptin_port+1;
   mgmdConfigMsg.clientId = clientId;
 
   ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_CLIENT_REMOVE, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdConfigMsg, sizeof(PTIN_MGMD_CTRL_CLIENT_REMOVE_t));
@@ -11722,7 +11722,7 @@ L7_RC_t ptin_igmp_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_int
   }
 
   /* Request evc statistics to MGMD */
-  mgmdStatsReqMsg.portId    = ptin_port;
+  mgmdStatsReqMsg.portId    = ptin_port+1;
   mgmdStatsReqMsg.serviceId = evc_idx;
   ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_INTF_STATS_GET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsReqMsg, sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t));
   ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
@@ -12073,7 +12073,7 @@ L7_RC_t ptin_igmp_stat_intf_clear(ptin_intf_t *ptin_intf)
     return L7_FAILURE;
   }
 
-  mgmdStatsReqMsg.portId = ptin_port;
+  mgmdStatsReqMsg.portId = ptin_port+1;
   ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_INTF_STATS_CLEAR, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsReqMsg, sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t));
   ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
   ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
@@ -12274,7 +12274,7 @@ L7_RC_t ptin_igmp_stat_client_clear(L7_uint32 evc_idx, const ptin_client_id_t *c
     if (IS_BITMAP_BIT_SET(clientGroup->client_bmp_list, clientId, UINT32_BITSIZE))
     {
       /* Request client statistics to MGMD */
-      mgmdStatsReqMsg.portId   = ptin_port;
+      mgmdStatsReqMsg.portId   = ptin_port+1;
       mgmdStatsReqMsg.clientId = clientId;
       ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_CLEAR, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsReqMsg, sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t));
       ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);

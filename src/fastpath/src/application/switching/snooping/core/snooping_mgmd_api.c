@@ -193,18 +193,21 @@ unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t
 unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, ptin_mgmd_port_type_t *portType)
 {
   L7_uint8 port_type;
+  L7_uint32 ptin_port = portId-1;
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
   L7_uint8 port_type_igmp;
   L7_uint8 rc;
+
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
-  if (SUCCESS != ptin_evc_port_type_get(serviceId, portId, &port_type))
+
+  if (SUCCESS != ptin_evc_port_type_get(serviceId, ptin_port, &port_type))
   {
     PT_LOG_ERR(LOG_CTX_IGMP,"Unknown port type");
     return FAILURE;
   }
 
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
-  rc = ptin_igmp_port_type_get(portId-1, &port_type_igmp);
+  rc = ptin_igmp_port_type_get(ptin_port, &port_type_igmp);
 
   if (rc == L7_SUCCESS)
   {
@@ -318,7 +321,7 @@ unsigned int snooping_clientList_get(unsigned int serviceId, unsigned int portId
 unsigned int snooping_port_resources_available(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr)
 {
   L7_uint32      channelBandwidth;
-  L7_uint32      ptin_port = portId;
+  L7_uint32      ptin_port = portId - 1;
   L7_RC_t        rc;
   L7_uint16      int_ovlan;
 
@@ -380,7 +383,7 @@ unsigned int snooping_port_resources_available(unsigned int serviceId, unsigned 
 unsigned int snooping_port_resources_allocate(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr)
 {  
   L7_uint32      channelBandwidth;
-  L7_uint32      ptin_port = portId;
+  L7_uint32      ptin_port = portId - 1;
   L7_RC_t        rc;
   L7_uint16      int_ovlan;
     
@@ -442,7 +445,7 @@ unsigned int snooping_port_resources_allocate(unsigned int serviceId, unsigned i
 unsigned int snooping_port_resources_release(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr)
 {  
   L7_uint32      channelBandwidth;
-  L7_uint32      ptin_port = portId;
+  L7_uint32      ptin_port = portId - 1;
   L7_uint16      int_ovlan;
   L7_RC_t        rc;
   
@@ -504,7 +507,7 @@ unsigned int snooping_port_resources_release(unsigned int serviceId, unsigned in
 unsigned int snooping_client_resources_available(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr, PTIN_MGMD_CLIENT_MASK_t *clientList, unsigned int noOfClients)
 { 
   L7_uint32      channelBandwidth; 
-  L7_uint32      ptin_port = portId;
+  L7_uint32      ptin_port = portId - 1;
   L7_uint16      int_ovlan;
   L7_RC_t        rc;
 
@@ -599,7 +602,7 @@ unsigned int snooping_client_resources_available(unsigned int serviceId, unsigne
 unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr, PTIN_MGMD_CLIENT_MASK_t *clientList, unsigned int noOfClients)
 { 
   L7_uint32      channelBandwidth;
-  L7_uint32      ptin_port = portId;
+  L7_uint32      ptin_port = portId - 1;
   L7_RC_t        rc;
   L7_uint16      int_ovlan;
   
@@ -694,7 +697,7 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
 unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr, PTIN_MGMD_CLIENT_MASK_t *clientList, unsigned int noOfClients)
 {  
   L7_uint32      channelBandwidth;
-  L7_uint32      ptin_port = portId;
+  L7_uint32      ptin_port = portId - 1;
   L7_RC_t        rc;
   L7_uint16      int_ovlan;
   
@@ -793,6 +796,7 @@ unsigned int snooping_port_open(unsigned int serviceId, unsigned int portId, uns
   L7_inet_addr_t groupAddr;
   L7_inet_addr_t sourceAddr;
   L7_BOOL        isProtection = L7_FALSE;
+  L7_uint32      ptin_port = portId - 1;
 
   inetAddressSet(L7_AF_INET, &ipv4GroupAddr, &groupAddr);
   inetAddressSet(L7_AF_INET, &ipv4SourceAddr, &sourceAddr);
@@ -802,7 +806,7 @@ unsigned int snooping_port_open(unsigned int serviceId, unsigned int portId, uns
    * The SDK exits in an assert that checks for the in_interrupt() method. As no solution was found, an alternative method was implemented. 
    * Instead of directly calling mfdb, MGMD will place a request in the snooping queue, which will eventually be processed. 
    */
-  return snoopPortOpen(serviceId, portId, &groupAddr, &sourceAddr, isStatic, isProtection);
+  return snoopPortOpen(serviceId, ptin_port, &groupAddr, &sourceAddr, isStatic, isProtection);
   
 }
 
@@ -811,6 +815,7 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
   L7_inet_addr_t groupAddr;
   L7_inet_addr_t sourceAddr;
   L7_BOOL        isProtection = L7_FALSE;
+  L7_uint32      ptin_port = portId - 1;
 
   inetAddressSet(L7_AF_INET, &ipv4GroupAddr, &groupAddr);
   inetAddressSet(L7_AF_INET, &ipv4SourceAddr, &sourceAddr);
@@ -820,7 +825,7 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
    * The SDK exits in an assert that checks for the in_interrupt() method. As no solution was found, an alternative method was implemented. 
    * Instead of directly calling mfdb, MGMD will place a request in the snooping queue, which will eventually be processed. 
    */
-  return snoopPortClose(serviceId, portId, &groupAddr, &sourceAddr, isProtection);
+  return snoopPortClose(serviceId, ptin_port, &groupAddr, &sourceAddr, isProtection);
 }
 
 unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLength, unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned char family, unsigned int onuId)
@@ -871,7 +876,9 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   L7_uint32             groupAddress;
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
   L7_uint8              isDynamic; 
-#endif //ONE_MULTICAST_VLAN_RING_SUPPORT   
+#endif //ONE_MULTICAST_VLAN_RING_SUPPORT  
+
+  /* portID (mgmd) is equal to ptin_port + 1*/ 
   if (snooping_portType_get(serviceId, portId, &portType) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get port type from int_ovlan [%u] portId [%u]",serviceId,portId);
@@ -979,7 +986,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   L7_uint32             activeState;
   L7_uint16             int_ovlan;
   L7_uint16             int_ivlan    = 0;
-
+  L7_uint32             ptin_port    = portId-1;
   ptin_IgmpProxyCfg_t   igmpCfg;
   ptin_mgmd_port_type_t portType;
   L7_uint32             groupAddress;
@@ -994,13 +1001,13 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   {
     ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
 
-    /* Get  the protection status of this switch port */
+    /* Get the protection status of this switch port */
     /* FIXME TC16SXG: intIfNum->ptin_port */
-    ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);
+    ptin_prottypeb_intf_config_get(ptin_port, &protTypebIntfConfig);
     if( protTypebIntfConfig.intfRole != PROT_TYPEB_ROLE_NONE &&  protTypebIntfConfig.status != L7_ENABLE)
     {
       if (ptin_debug_igmp_snooping)
-        PT_LOG_NOTICE(LOG_CTX_IGMP,"Silently ignoring packet transmission. I'm a Protection Port [portId=%u serviceId=%u]",portId, serviceId );
+        PT_LOG_NOTICE(LOG_CTX_IGMP,"Silently ignoring packet transmission. I'm a Protection Port [ptin_port=%u serviceId=%u]",ptin_port, serviceId );
       return SUCCESS;
     }
   }
@@ -1008,7 +1015,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   #error "Not Implemented Yet"
 #endif
 
-  rc = ptin_intf_port2intIfNum(portId, &intIfNum);
+  rc = ptin_intf_port2intIfNum(ptin_port, &intIfNum);
   if (rc != L7_SUCCESS)
   {
      PT_LOG_ERR(LOG_CTX_IGMP, "Error getting intIfNum");
@@ -1030,14 +1037,17 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   }
   //Workaround to support Group Specific Queries; IPv6 is not complaint with this approach!
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
-  if (snooping_portType_get(serviceId, portId, &portType) != L7_SUCCESS)
+  if (ptin_port >= PTIN_SYSTEM_N_PONS)
   {
-    PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get port type from int_ovlan [%u] portId [%u]",serviceId,portId);
-    return FAILURE;
+    portType = PTIN_MGMD_PORT_TYPE_ROOT;
+  }
+  else
+  {
+    portType = PTIN_MGMD_PORT_TYPE_LEAF;
   }
 
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
-  ptin_igmp_port_is_Dynamic(portId-1, &isDynamic);
+  ptin_igmp_port_is_Dynamic(ptin_port, &isDynamic);
 
   PT_LOG_TRACE(LOG_CTX_IGMP,"RING: port is Dynamic %d ",isDynamic);
 
@@ -1075,12 +1085,10 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   {
     if (clientId != (unsigned int) -1)
     {
-      L7_uint32 ptin_port = portId;
-
       /* Convert to ptin_port format */
       if (ptin_port >= PTIN_SYSTEM_N_INTERF)
       {
-        PT_LOG_ERR(LOG_CTX_IGMP,"Cannot convert intIfNum %u to ptin_port format", portId);
+        PT_LOG_ERR(LOG_CTX_IGMP,"Cannot convert intIfNum %u to ptin_port format", ptin_port);
         return L7_FAILURE;
       }
 
@@ -1150,7 +1158,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   {
     ptin_timer_start(31,"snoopPacketSend");
     //Send packet
-    snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
+    snoopPacketSend(ptin_port, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
     ptin_timer_stop(31);
   }
   #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
@@ -1188,7 +1196,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
               PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get mcastRootVlan from serviceId");
               return FAILURE;
             }
-            ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId,onuId);
+            ptin_mgmd_send_leaf_packet(ptin_port, int_ovlan, int_ivlan, packet, packetLength, family, clientId,onuId);
           }
           if(numberOfQueriesSent>=mgmdNumberOfQueryInstances)
           {
@@ -1201,13 +1209,13 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
       {
         ptin_timer_start(31,"snoopPacketSend");
         //Send packet
-        snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
+        snoopPacketSend(ptin_port, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
         ptin_timer_stop(31);
       }
     }
     else //General Query
     {
-      ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId, onuId);
+      ptin_mgmd_send_leaf_packet(ptin_port, int_ovlan, int_ivlan, packet, packetLength, family, clientId, onuId);
     }
   }
   #endif
@@ -1222,8 +1230,9 @@ L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16
   ptin_HwEthEvcFlow_t   clientFlow;
   L7_RC_t               rc;
   L7_uchar8             packet[L7_MAX_FRAME_SIZE];
-  L7_uint32             packetLength;
+  L7_uint32             packetLength, ptin_port;
 
+  ptin_port = portId;
   /* To get the first client */
   memset(&clientFlow, 0x00, sizeof(clientFlow));
   do
@@ -1235,7 +1244,7 @@ L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16
     #if (defined IGMP_QUERIER_IN_UC_EVC)
     {
       /* First client/flow */
-       rc = ptin_evc_vlan_client_next(int_ovlan, portId, &clientFlow, &clientFlow);
+       rc = ptin_evc_vlan_client_next(int_ovlan, ptin_port, &clientFlow, &clientFlow);
 
        PT_LOG_TRACE(LOG_CTX_IGMP,"onuId=%d", onuId);
        PT_LOG_TRACE(LOG_CTX_IGMP,"clientFlow.onuId=%d", clientFlow.onuId);
@@ -1307,7 +1316,7 @@ L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16
     {
       ptin_timer_start(31,"snoopPacketSend"); 
       //Send packet
-      snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, client_idx);
+      snoopPacketSend(ptin_port, int_ovlan, int_ivlan, packet, packetLength, family, client_idx);
       ptin_timer_stop(31);
     }
   } while (rc==L7_SUCCESS);   /* Next client? */  
