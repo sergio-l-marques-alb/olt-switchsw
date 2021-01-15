@@ -493,7 +493,8 @@ L7_RC_t fdbFind(char *mac, L7_uint32 matchType, dot1dTpFdbData_t *pData)
 
   pfdbData = avlSearchLVL7(&fdbTreeData, mac, matchType);
 
-  if (pfdbData != L7_NULL)
+  //if (pfdbData != L7_NULL)
+  if (NULL != pData && pfdbData != L7_NULL)     //PTIn modified
     memcpy(pData, pfdbData, sizeof(dot1dTpFdbData_t));
 
   osapiSemaGive(fdbTreeData.semId);
