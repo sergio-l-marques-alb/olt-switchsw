@@ -12481,15 +12481,6 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
   //Short Fix to Support Mac Bridge Services and Unicast Services
   #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
   {
-    #if 0 /*FIXME TC16SXG*/
-    L7_BOOL isMacBridge;    
-    if(ptin_evc_mac_bridge_check(inputPtr->evc_id, &isMacBridge)==L7_SUCCESS && isMacBridge==L7_TRUE)
-    if (inputPtr->client.outer_vlan==0) 
-   
-    {        
-      inputPtr->client.outer_vlan=inputPtr->client.inner_vlan;        
-    }
-    #endif
     if (inputPtr->client.mask != 0)
     {
       inputPtr->client.mask|=MSG_CLIENT_OVLAN_MASK;
@@ -12513,11 +12504,6 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
     client.innerVlan = inputPtr->client.inner_vlan;
     client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
   }
-  if (inputPtr->client.mask & MSG_CLIENT_OVLAN_MASK)
-  {
-    client.outerVlan = inputPtr->client.outer_vlan;
-    client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-  }
 
   if (ptin_intf_portGem2virtualVid(client.ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
   {
@@ -12527,6 +12513,16 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
   else
   {
     PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
+  }
+
+  if (inputPtr->client.mask & MSG_CLIENT_OVLAN_MASK)
+  {
+    if (inputPtr->client.outer_vlan==0) 
+    {        
+      inputPtr->client.outer_vlan = client.innerVlan;        
+    }
+    client.outerVlan = inputPtr->client.outer_vlan;
+    client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
   }
 
   /* Get list of channels */
