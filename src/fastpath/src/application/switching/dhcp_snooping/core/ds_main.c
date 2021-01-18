@@ -1813,6 +1813,23 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   if (ptin_port < PTIN_SYSTEM_N_PONS)
   {
     L7_uchar8           keyToFind[L7_FDB_KEY_SIZE];
+    L7_uint8            evc_type;
+    L7_RC_t             r;
+
+    r = ptin_evc_check_evctype_fromIntVlan(innerVlanId, &evc_type);
+    if (L7_SUCCESS!=r
+        ||
+        (PTIN_EVC_TYPE_QUATTRO_UNSTACKED!=evc_type
+         &&
+         PTIN_EVC_TYPE_QUATTRO_STACKED!=evc_type)
+        )
+    {
+        if (ptin_debug_dhcp_snooping) {
+            PT_LOG_TRACE(LOG_CTX_DHCP, "evctype != QUATTRO(MACBRIDGE "
+                         "\t ptin_evc_check_evctype_fromIntVlan()=&d", r);
+        }
+        goto _dsDHCPv4FrameProcess_ptin_port_pon_end;
+    }
 
     /* Vlan+MAC to search for */
     keyToFind[0] = (L7_uint8)((vlanId >> 8) & 0x0f);
@@ -1850,11 +1867,14 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
         }
       }
     }
-  }
+_dsDHCPv4FrameProcess_ptin_port_pon_end: ;
+  }//if (ptin_port < PTIN_SYSTEM_N_PONS)
 #else
-  PT_LOG_TRACE(LOG_CTX_DHCP,
-               "PTIN_QUATTRO_FLOWS_FEATURE_ENABLED not supported in board"
-               "=> MAC limiting not checked");
+  if (ptin_debug_dhcp_snooping) {
+      PT_LOG_TRACE(LOG_CTX_DHCP,
+                   "PTIN_QUATTRO_FLOWS_FEATURE_ENABLED not supported in board"
+                   "=> MAC limiting not checked");
+ }
 #endif
 
   /* Update Binding database only when DHCP Snooping is enabled */
