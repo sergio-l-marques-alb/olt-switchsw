@@ -5743,14 +5743,15 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 
   /* For TC16SXG, create a special rule for Aspen traffic */
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-  if (1!=ptin_env_board_hwver()) {
-    L7_ushort16 vlanId, vlanMask;
+  if (1 != ptin_env_board_hwver())
+  {
+    L7_ushort16 vlanId_data, vlanId_mask;
     BROAD_POLICY_t      policyId;
     BROAD_POLICY_RULE_t ruleId;
 
     /* BroadLight packets should have high priority */
-    vlanId   = PTIN_ASPEN2CPU_A_VLAN;
-    vlanMask = 0xffe;
+    vlanId_data = PTIN_ASPEN2CPU_A_VLAN;
+    vlanId_mask = 0xffe;
 
     /* Create policy to give more priority to BL packets */
     rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
@@ -5764,7 +5765,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     {
       rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGHEST);
       if (rc != L7_SUCCESS)  break;
-      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *) &vlanId, (L7_uchar8 *) &vlanMask);
+      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *) &vlanId_data, (L7_uchar8 *) &vlanId_mask);
       if (rc != L7_SUCCESS)  break;
       rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_HIPRIO, 0, 0);
       if (rc != L7_SUCCESS)  break;
@@ -5789,6 +5790,77 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     internal_inband_policyId[0] = policyId;
 
     PT_LOG_NOTICE(LOG_CTX_STARTUP,"ASPEN exception rules added: ruleId:%u policyId:%u",ruleId, policyId);
+  }
+
+  /* QoS queues assignment */
+  {
+    L7_uint32 l2intf_data, l2intf_mask;
+    L7_uint8  intpri_data, intpri_mask;
+    BROAD_POLICY_t      policyId;
+    BROAD_POLICY_RULE_t ruleId;
+    l7_cosq_set_t       queueSet;
+    L7_uint8            queue_index, tc;
+    L7_RC_t rc = L7_SUCCESS;
+
+    /* Create policy to give more priority to BL packets */
+    rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_QOS_QUEUES);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+      return L7_FAILURE;
+    }
+
+    /* Wired and Wireless queues */
+    for (queueSet = 0; queueSet < L7_QOS_QSET_MAX && rc == L7_SUCCESS; queueSet++)
+    {
+      /* Run all 8 wired + 8 wireless queues */
+      for (tc = 0; tc < 8 && rc == L7_SUCCESS; tc++)
+      {
+        if (queueSet == L7_QOS_QSET_WIRELESS) /* Wireless Queues */
+        {
+          BCM_GPORT_VLAN_PORT_ID_SET(l2intf_data, (L2INTF_ID_MAX_PER_QUEUE/2));
+        }
+        else  /* Wired Queues */
+        {
+          BCM_GPORT_VLAN_PORT_ID_SET(l2intf_data, 1);
+        }
+        /* Masks */
+        BCM_GPORT_VLAN_PORT_ID_SET(l2intf_mask, (L2INTF_ID_MAX_PER_QUEUE/2));
+
+        intpri_data = tc;
+        intpri_mask = 7;    /* full mask */
+
+        /* Queue index to be used at the FP rule action:
+           0-7: Wired queues; 8-15: Wireless queues */
+        queue_index = queueSet*8 + tc;
+
+        /* Define qualifiers and actions */
+        rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
+        if (rc != L7_SUCCESS)  break;
+        rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_L2INTF_ID, (L7_uchar8 *)&l2intf_data, (L7_uchar8 *)&l2intf_mask);
+        if (rc != L7_SUCCESS)  break;
+        rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INT_PRIO, (L7_uchar8 *)&intpri_data, (L7_uchar8 *)&intpri_mask);
+        if (rc != L7_SUCCESS)  break;
+        rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_UCOSQ, queue_index, 0, 0);
+        if (rc != L7_SUCCESS)  break;
+      }
+    }
+
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error configurating rule");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+    /* Commit rule */
+    rc = hapiBroadPolicyCommit(&policyId);
+    if (L7_SUCCESS != rc)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error committing policy!");
+      return L7_FAILURE;
+    }
+
+    PT_LOG_NOTICE(LOG_CTX_STARTUP,"QoS queue assigment was a success! policyId=%u", policyId);
   }
 
   /* For OLT1T0 */
