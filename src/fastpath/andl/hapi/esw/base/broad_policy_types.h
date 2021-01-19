@@ -193,8 +193,6 @@ typedef enum
     BROAD_ACTION_COPY_TO_CPU,             /* cosq      n/a     n/a      copy to cpu in addition to switching (1) */
     BROAD_ACTION_TS_TO_CPU,               /* cosq      n/a     n/a      copy to cpu in addition to switching (1) */
     BROAD_ACTION_SET_COSQ,                /* cosq      n/a     n/a      set cos queue of switched traffic only   */
-    BROAD_ACTION_SET_UCOSQ,               /* cosq      n/a     n/a      set unicast cos queue of switched traffic  */
-    BROAD_ACTION_SET_MCOSQ,               /* cosq      n/a     n/a      set multicast cos queue of switched traffic*/
     BROAD_ACTION_SET_DSCP,                /* dscp      n/a     n/a      set ip dscp in l3 packet                 */
     BROAD_ACTION_SET_TOS,                 /* tos       n/a     n/a      set tos in l3 packet                     */
     BROAD_ACTION_SET_USERPRIO,            /* userprio  n/a     n/a      set dot1p in l2 packet                   */
