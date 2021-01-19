@@ -1282,7 +1282,8 @@ ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_
                queueSet, tc, rate_min, rate_max, burst_size);
 
   /* Port Level */
-  if (queueSet == L7_QOS_QSET_PORT)
+  if (queueSet == L7_QOS_QSET_DEFAULT ||
+      queueSet == L7_QOS_QSET_PORT)
   {
     /* All traffic classes (port configuration) */
     if (tc < 0 /*All TCs*/)
