@@ -4815,8 +4815,6 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 
-#define L2INTF_ID_MAX   PTIN_SYSTEM_N_CLIENTS
-
 #define L2INTF_DB_ENTRY_IS_ACTIVE(pentry) ((pentry)->l2intf_id < L2INTF_ID_MAX)
 
 #define CLEAR_L2INTF_DB_ENTRY(pentry)  \
@@ -5152,15 +5150,12 @@ static l2intf_entry_t *l2intf_db_ptr_get(L7_uint32 l2intf_id)
    For TC16SXG board, 2 ranges will be defined with the first applied to GPON ports,
    and the second for XGSPON ports */
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
- #define L2INTF_QUEUES_NUMBER 2
- #define L2INTF_QUEUE_SELECT_BY_PORT(ptin_port)      (((ptin_port) < (PTIN_SYSTEM_N_PONS/2)) ? 0 : 1)
- #define L2INTF_QUEUE_SELECT_BY_L2INTF_ID(l2intf_id) (((l2intf_id) < (L2INTF_ID_MAX/2)) ? 0 : 1)
+ #define L2INTF_QUEUE_SELECT_BY_PORT(ptin_port)      (PTIN_PORT_IS_PON_GPON_TYPE(ptin_port) ? 0 : 1)
+ #define L2INTF_QUEUE_SELECT_BY_L2INTF_ID(l2intf_id) (((l2intf_id) < (L2INTF_ID_MAX_PER_QUEUE)) ? 0 : 1)
 #else
- #define L2INTF_QUEUES_NUMBER 1
  #define L2INTF_QUEUE_SELECT_BY_PORT(ptin_port)      0
  #define L2INTF_QUEUE_SELECT_BY_L2INTF_ID(l2intf_id) 0
 #endif
-#define L2INTF_ID_MAX_PER_QUEUE (L2INTF_ID_MAX/L2INTF_QUEUES_NUMBER)
 
 /* Pool of L2intf id to be used for the free L2intfs queue */
 typedef struct l2intf_id_pool_entry_s {

@@ -104,6 +104,10 @@
 # define PTIN_SYSTEM_DHCP_MAXCLIENTS                8192    /* Maximum DHCP clients */
 # define PTIN_SYSTEM_PPPOE_MAXCLIENTS               8192    /* Maximum PPPoE clients */
 
+/* The following constants will allow L2intf range separation, in order to allow
+   specific QoS configurations for each range. */
+#define L2INTF_ID_MAX   PTIN_SYSTEM_N_CLIENTS
+
 #define SNOOP_PTIN_MGMD_SUPPORT //Comment this line if you want to disable MGMD integration (not supported..)
 #define SNOOP_PTIN_IGMPv3_GLOBAL 1//Change to 0 if you want to globally disable IGMPv3 Module
 #define SNOOP_PTIN_IGMPv3_ROUTER 1//Change to 0 if you want to disable  IGMPv3 Router SubModule

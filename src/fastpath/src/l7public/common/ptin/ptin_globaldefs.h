@@ -195,6 +195,18 @@ extern int ptin_sys_number_of_ports;
 
 #endif
 
+/* Only for linecards with L2intf support */
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+/* The following constants will allow L2intf range separation, in order to allow
+   specific QoS configurations for each range. */
+#ifndef L2INTF_ID_MAX
+ #define L2INTF_ID_MAX          0
+#endif
+#ifndef L2INTF_QUEUES_NUMBER
+ #define L2INTF_QUEUES_NUMBER   1
+#endif
+#define L2INTF_ID_MAX_PER_QUEUE (L2INTF_ID_MAX/L2INTF_QUEUES_NUMBER)
+#endif
 
 #define PTIN_VLAN_MIN                 L7_DOT1Q_MIN_VLAN_ID_CREATE
 #define PTIN_VLAN_MAX                 L7_DOT1Q_MAX_VLAN_ID

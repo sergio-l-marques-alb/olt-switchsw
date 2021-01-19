@@ -37,6 +37,7 @@
 #define PTIN_PORT_IS_INTERNAL(ptin_port) \
     ((ptin_port) >= PTIN_SYSTEM_N_PONS && (ptin_port) >= PTIN_SYSTEM_N_ETH && (ptin_port) < PTIN_SYSTEM_N_PORTS)
 
+/* The following Macros are used to distinguish PON from XGSPON ports */
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
  #define PTIN_PORT_IS_PON_GPON_TYPE(ptin_port) \
     ((ptin_port) < PTIN_SYSTEM_N_PONS/2)
