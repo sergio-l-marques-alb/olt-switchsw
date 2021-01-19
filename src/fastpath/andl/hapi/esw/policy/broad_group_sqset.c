@@ -519,6 +519,16 @@ bcm_field_qualify_t systemQsetVlanQoS[] =
 
 #define systemQsetVlanQoSSize (sizeof(systemQsetVlanQoS) / sizeof(bcm_field_qualify_t))
 
+/* QSET for QoS queues assignment */
+bcm_field_qualify_t systemQsetQoSqueues[] =
+{
+  bcmFieldQualifyDstVlanGports,
+  bcmFieldQualifyIntPriority,
+  bcmFieldQualifyStageIngress
+};
+
+#define systemQsetQoSqueuesSize (sizeof(systemQsetQoSqueues) / sizeof(bcm_field_qualify_t))
+
 
 bcm_field_qualify_t systemQsetPTin[] =  /* System requirement */
 {
@@ -1112,9 +1122,11 @@ super_qset_definition_t ipv6NdQsetScorpionDef    = {ipv6NdQsetScorpion,    ipv6N
 
 /* PTin added: ICAP */
 #if 1
-super_qset_definition_t systemQsetVlanQoSDef     = {systemQsetVlanQoS,     systemQsetVlanQoSSize, 0, 0};
-super_qset_definition_t systemQsetPTinDef        = {systemQsetPTin,        systemQsetPTinSize,    0, 0};
-super_qset_definition_t systemQsetStatsDef       = {systemQsetStats,       systemQsetStatsSize,   0, 0};
+super_qset_definition_t systemQsetVlanQoSDef     = {systemQsetVlanQoS,     systemQsetVlanQoSSize,   0, 0};
+/* PTin added: for QoS queues assignment */
+super_qset_definition_t systemQsetQoSqueuesDef   = {systemQsetQoSqueues,   systemQsetQoSqueuesSize, 0, 0};
+super_qset_definition_t systemQsetPTinDef        = {systemQsetPTin,        systemQsetPTinSize,      0, 0};
+super_qset_definition_t systemQsetStatsDef       = {systemQsetStats,       systemQsetStatsSize,     0, 0};
 #endif
 
 /* Sqsets for other policies. */

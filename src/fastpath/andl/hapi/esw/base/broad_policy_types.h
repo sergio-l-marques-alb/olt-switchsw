@@ -67,7 +67,8 @@ typedef unsigned char BROAD_POLICY_TYPE_t;
 #define BROAD_POLICY_TYPE_PTIN        11 /* Ptin added: policer */
 #define BROAD_POLICY_TYPE_STAT_EVC    12 /* Ptin added: stats */
 #define BROAD_POLICY_TYPE_STAT_CLIENT 13 /* Ptin added: stats */
-#define BROAD_POLICY_TYPE_LAST        14
+#define BROAD_POLICY_TYPE_QOS_QUEUES  14 /*  Lowest               none - selectively apply/remove */
+#define BROAD_POLICY_TYPE_LAST        15
 
 /* IP Types */
 
@@ -159,6 +160,8 @@ typedef enum
     BROAD_FIELD_INT_PRIO,         /* PTin added: FP */
     BROAD_FIELD_COLOR,            /* PTin added: FP */
     BROAD_FIELD_PACKETRES,        /* PTin added: FP */
+    BROAD_FIELD_L2INTF_ID,        /* PTin added: FP */
+
     BROAD_FIELD_LAST,
 
     /* special bit fields */
@@ -193,6 +196,8 @@ typedef enum
     BROAD_ACTION_COPY_TO_CPU,             /* cosq      n/a     n/a      copy to cpu in addition to switching (1) */
     BROAD_ACTION_TS_TO_CPU,               /* cosq      n/a     n/a      copy to cpu in addition to switching (1) */
     BROAD_ACTION_SET_COSQ,                /* cosq      n/a     n/a      set cos queue of switched traffic only   */
+    BROAD_ACTION_SET_UCOSQ,               /* cosq      n/a     n/a      set unicast cos queue of switched traffic  */
+    BROAD_ACTION_SET_MCOSQ,               /* cosq      n/a     n/a      set multicast cos queue of switched traffic*/
     BROAD_ACTION_SET_DSCP,                /* dscp      n/a     n/a      set ip dscp in l3 packet                 */
     BROAD_ACTION_SET_TOS,                 /* tos       n/a     n/a      set tos in l3 packet                     */
     BROAD_ACTION_SET_USERPRIO,            /* userprio  n/a     n/a      set dot1p in l2 packet                   */
@@ -255,6 +260,7 @@ typedef struct
         L7_uchar8   cpu_cosq;
         L7_uint8    set_outer_cfi[BROAD_POLICY_ACTION_LAST];  /* PTin added: CFI */
         L7_uint8    set_inner_cfi[BROAD_POLICY_ACTION_LAST];  /* PTin added: CFI */
+        L7_uint8    qos_queue_set[BROAD_POLICY_ACTION_LAST];  /* for QoS queue assignment (Unicast/Multicast queues) */
       } vfp_parms;
 
       struct
@@ -281,6 +287,7 @@ typedef struct
         L7_uchar8   set_reason;
         L7_uint8    set_outer_cfi[BROAD_POLICY_ACTION_LAST];  /* PTin added: CFI */
         L7_uint8    set_inner_cfi[BROAD_POLICY_ACTION_LAST];  /* PTin added: CFI */
+        L7_uint8    qos_queue_set[BROAD_POLICY_ACTION_LAST];  /* for QoS queue assignment (Unicast/Multicast queues) */
       } ifp_parms;
 
       struct
@@ -408,6 +415,7 @@ BROAD_POLICY_STATS_t;
 #define BROAD_FIELD_INT_PRIO_SIZE                  1                    /* PTin added: FP */
 #define BROAD_FIELD_COLOR_SIZE                     1                    /* PTin added: FP */
 #define BROAD_FIELD_PACKETRES_SIZE                 sizeof(uint32)       /* PTin added: FP */
+#define BROAD_FIELD_L2INTF_ID_SIZE                 sizeof(uint32)       /* PTin added: FP */
 
 typedef struct 
 {
@@ -673,6 +681,12 @@ typedef struct
     L7_uchar8  value[BROAD_FIELD_PACKETRES_SIZE];
     L7_uchar8  mask[BROAD_FIELD_PACKETRES_SIZE];
   } fieldPacketRes;
+
+  struct
+  {
+    L7_uchar8  value[BROAD_FIELD_L2INTF_ID_SIZE];
+    L7_uchar8  mask[BROAD_FIELD_L2INTF_ID_SIZE];
+  } fieldL2intfId;
   // PTin end
 
 } BROAD_FIELD_ENTRY_t;

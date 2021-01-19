@@ -414,6 +414,19 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
       actionPtr->u.ifp_parms.set_reason = param0;
       break;
 
+    /* for QoS queue assignment (Unicast or Multicast queues) */
+    case BROAD_ACTION_SET_UCOSQ:
+    case BROAD_ACTION_SET_MCOSQ:
+      if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
+      {
+        actionPtr->u.vfp_parms.qos_queue_set[action_scope] = param0;
+      }
+      else
+      {
+        actionPtr->u.ifp_parms.qos_queue_set[action_scope] = param0;
+      }
+      break;
+
     default:
       /* Check for unexpected parameters */
       if ((param0 != 0) ||

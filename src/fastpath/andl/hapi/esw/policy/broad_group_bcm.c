@@ -239,6 +239,7 @@ static void _policy_group_set_default_pbm(int unit, BROAD_POLICY_TYPE_t type, BR
     case BROAD_POLICY_TYPE_STAT_EVC:    /* Ptin added: stats */
     case BROAD_POLICY_TYPE_STAT_CLIENT: /* Ptin added: stats */
     case BROAD_POLICY_TYPE_ISCSI:
+    case BROAD_POLICY_TYPE_QOS_QUEUES:	/* PTin added: for QoS queues assignment */
         /* by default applies to all non-stacking ports */
         SOC_PBMP_OR(tempPbm, PBMP_E_ALL(unit));
         /* TODO: SDK 6.3.0 */
