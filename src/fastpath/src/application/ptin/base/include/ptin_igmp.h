@@ -1245,6 +1245,29 @@ extern L7_RC_t ptin_igmp_extUcastVlan_get(L7_uint32 ptin_port, L7_uint16 intOVla
  * @return L7_RC_t 
  */
 L7_RC_t ptin_igmp_UcastEvcId_get(L7_uint32 McastEvcId, L7_uint32 ptin_port, L7_uint32 *UcastEvcId);
+
+/**
+ * Remove L3 egress port from multicast evc ID
+ * 
+ * @param ptin_port 
+ * @param mcast_group 
+ * @param MCastId 
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t ptin_multicast_MCEvc_id_port_remove(L7_uint32 ptin_port, L7_int multicastGroup, L7_uint32 MCastId);
+
+/**
+ * Add L3 egress port to multicast evc ID
+ * 
+ * @param ptin_port 
+ * @param mcast_group 
+ * @param MCastId 
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t ptin_multicast_MCEvc_id_port_add(L7_uint32 ptin_port, L7_int multicastGroup, L7_uint32 MCastId);
+
 #endif
 
 /**

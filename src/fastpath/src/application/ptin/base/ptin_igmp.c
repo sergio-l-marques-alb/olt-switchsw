@@ -10,6 +10,7 @@
 
 #include <unistd.h>
 
+#include "ptin_xconnect_api.h"
 #include "ptin_igmp.h"
 #include "ptin_xlate_api.h"
 #include "ptin_oam_packet.h"
@@ -7401,6 +7402,86 @@ L7_RC_t ptin_igmp_UcastEvcId_get(L7_uint32 McastEvcId, L7_uint32 ptin_port, L7_u
 
   return L7_SUCCESS;
 }
+
+/**
+ * Remove L3 egress port from multicast evc ID
+ * 
+ * @param ptin_port 
+ * @param mcast_group 
+ * @param MCastId 
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t ptin_multicast_MCEvc_id_port_remove(L7_uint32 ptin_port, 
+                                            L7_int multicastGroup, 
+                                            L7_uint32 MCastId)
+{
+  L7_uint32 iptv_evc_id;
+  L7_int l3_intf_id = -1;
+  L7_RC_t rc;
+
+  if (ptin_igmp_UcastEvcId_get(MCastId, ptin_port, &iptv_evc_id) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP, "Failed to get UcastEvcId");
+    return L7_FAILURE;
+  }
+
+  if (ptin_evc_l3_intf_get(iptv_evc_id, ptin_port, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
+    return L7_FAILURE;
+  }       
+
+  /*Remove L3 Egress Port of this Multicast Group*/
+  rc = ptin_multicast_l3_egress_port_remove(ptin_port, multicastGroup,  l3_intf_id);
+  if ( rc != L7_SUCCESS )
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP, "Failed to remove egress portId:%d to multicastGroup:0x%08x (rc%u)", l3_intf_id, multicastGroup, rc);      
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Add L3 egress port to multicast evc ID
+ * 
+ * @param ptin_port 
+ * @param mcast_group 
+ * @param MCastId 
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t ptin_multicast_MCEvc_id_port_add(L7_uint32 ptin_port, 
+                                         L7_int multicastGroup, 
+                                         L7_uint32 MCastId)
+{
+  L7_uint32 iptv_evc_id;
+  L7_int l3_intf_id = -1;
+  L7_RC_t rc;
+
+  if (ptin_igmp_UcastEvcId_get(MCastId, ptin_port, &iptv_evc_id) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP, "Failed to get UcastEvcId");
+    return L7_FAILURE;
+  }
+
+  if (ptin_evc_l3_intf_get(iptv_evc_id, ptin_port, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
+    return L7_FAILURE;
+  }
+
+  rc = ptin_multicast_l3_egress_port_add(ptin_port, multicastGroup, l3_intf_id);
+  if ( rc != L7_SUCCESS )
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP, "Failed to add L3 Egress portId:%d to multicastGroup:0x%08x (rc%u)", l3_intf_id, multicastGroup, rc);      
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
 #endif
 
 /****************************************************************************** 
