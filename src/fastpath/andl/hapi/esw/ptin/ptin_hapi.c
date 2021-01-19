@@ -5810,6 +5810,10 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       return L7_FAILURE;
     }
 
+    /* Masks */
+    BCM_GPORT_VLAN_PORT_ID_SET(l2intf_mask, 0x20000-L2INTF_ID_MAX_PER_QUEUE);
+    intpri_mask = 7;    /* full mask */
+
     /* Wired and Wireless queues */
     for (queueSet = 0; queueSet < L7_QOS_QSET_MAX && rc == L7_SUCCESS; queueSet++)
     {
@@ -5818,17 +5822,13 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       {
         if (queueSet == L7_QOS_QSET_WIRELESS) /* Wireless Queues */
         {
-          BCM_GPORT_VLAN_PORT_ID_SET(l2intf_data, (L2INTF_ID_MAX_PER_QUEUE/2));
+          BCM_GPORT_VLAN_PORT_ID_SET(l2intf_data, L2INTF_ID_MAX_PER_QUEUE);
         }
         else  /* Wired Queues */
         {
           BCM_GPORT_VLAN_PORT_ID_SET(l2intf_data, 1);
         }
-        /* Masks */
-        BCM_GPORT_VLAN_PORT_ID_SET(l2intf_mask, (L2INTF_ID_MAX_PER_QUEUE/2));
-
         intpri_data = tc;
-        intpri_mask = 7;    /* full mask */
 
         /* Queue index to be used at the FP rule action:
            0-7: Wired queues; 8-15: Wireless queues */
