@@ -1276,7 +1276,7 @@ ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_
   /* Get port speed */
   hapiBroadIntfSpeedGet(hapiPortPtr, &portSpeed);
 
-  PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, bcm_unit %u bcm_port %u, queueSet %u, tc %d: rate_min=%u rate_max=%u burst_size=%u",
+  PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, bcm_unit %u bcm_port %u, queueSet %u, tc %d: rate_min=%u kbps, rate_max=%u kbps, burst_size=%u bytes",
                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, 
                hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
                queueSet, tc, rate_min, rate_max, burst_size);

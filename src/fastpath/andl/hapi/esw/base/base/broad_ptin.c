@@ -478,9 +478,9 @@ L7_RC_t hapiBroadPtinGeneric(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
 L7_RC_t broad_ptin_shaper_set(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
 {
   ptin_intf_shaper_t *entry;
-  L7_uint32  bcmSpeed, rate_min_kbps, rate_max_kbps, burst_size;
-  ptin_dapi_port_t dapiPort;
-  BROAD_PORT_t *hapiPortPtr;
+  L7_uint32           rate_min_kbps, rate_max_kbps, burst_size;
+  ptin_dapi_port_t    dapiPort;
+  BROAD_PORT_t       *hapiPortPtr;
   L7_RC_t rc = L7_SUCCESS;
 
   entry = (ptin_intf_shaper_t*) data;
@@ -489,9 +489,6 @@ L7_RC_t broad_ptin_shaper_set(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_
 
   PT_LOG_TRACE(LOG_CTX_QOS, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
 
-  /* Get port speed */
-  hapiBroadIntfSpeedGet(hapiPortPtr, &bcmSpeed);
-
   dapiPort.usp    = usp;
   dapiPort.dapi_g = dapi_g;
 
@@ -499,9 +496,27 @@ L7_RC_t broad_ptin_shaper_set(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_
   switch (operation)
   {
   case DAPI_CMD_SET:
-    rate_min_kbps = (entry->rate_min*bcmSpeed)/100;
-    rate_max_kbps = (entry->rate_max*bcmSpeed)/100;
-    burst_size    = entry->burst_size;
+    if (entry->rate_units == L7_RATE_UNIT_PERCENT)
+    {
+      L7_uint32 bcmSpeed;
+
+      /* Get port speed */
+      hapiBroadIntfSpeedGet(hapiPortPtr, &bcmSpeed);
+
+      rate_min_kbps = (entry->rate_min*bcmSpeed)/100;
+      rate_max_kbps = (entry->rate_max*bcmSpeed)/100;
+    }
+    else if (entry->rate_units == L7_RATE_UNIT_KBPS)
+    {
+      rate_min_kbps = entry->rate_min;
+      rate_max_kbps = entry->rate_max;
+    }
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_QOS, "Invalid unit %u", entry->rate_units);
+      return L7_FAILURE;
+    }
+    burst_size = entry->burst_size;
     rc = ptin_hapi_qos_shaper_set(&dapiPort, entry->queueSet, entry->tc,
                                   rate_min_kbps,
                                   rate_max_kbps,
@@ -513,8 +528,9 @@ L7_RC_t broad_ptin_shaper_set(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_
                                   &rate_min_kbps,
                                   &rate_max_kbps,
                                   &burst_size);
-    entry->rate_min   = (rate_min_kbps*100)/bcmSpeed;
-    entry->rate_max   = (rate_max_kbps*100)/bcmSpeed;
+    entry->rate_units = L7_RATE_UNIT_KBPS;
+    entry->rate_min   = rate_min_kbps;
+    entry->rate_max   = rate_max_kbps;
     entry->burst_size = burst_size;
     break;
 

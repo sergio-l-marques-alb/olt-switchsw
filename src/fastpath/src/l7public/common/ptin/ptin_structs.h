@@ -660,6 +660,7 @@ typedef struct
 
 typedef struct
 {
+  L7_RATE_UNIT_t rate_units;    // Units to be applied for the rate params
   L7_uint32    rate_min;        // shaper min rate
   L7_uint32    rate_max;        // shaper max rate
   L7_uint32    burst_size;      // burst size           
