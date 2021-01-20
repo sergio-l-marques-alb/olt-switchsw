@@ -1773,10 +1773,8 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
     PT_LOG_TRACE(LOG_CTX_DHCP, "Packet frameLen = %d, initial UDP length = %d ", frameLen, osapiNtohs(udp_header->length) );
   }
 
-
   dhcpPktType = dsPacketType(dhcpPacket, frameLen);
   packet_type_debug( intIfNum , vlanId , DHCP_PROTOCOL , dhcpPktType );
-
 
   if (client_idx != DHCP_INVALID_CLIENT_IDX ) 
   {
@@ -1806,7 +1804,6 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
     }
   }
 
-
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   /* Check for downlink if the MAC is learned and
      if can be learn .i.e MAC limiting status*/
@@ -1814,60 +1811,60 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   {
     L7_uchar8           keyToFind[L7_FDB_KEY_SIZE];
     L7_uint8            evc_type;
-    L7_RC_t             r;
+    L7_RC_t             rc;
 
-    r = ptin_evc_check_evctype_fromIntVlan(vlanId, &evc_type);
-    if (L7_SUCCESS!=r
-        ||
-        (PTIN_EVC_TYPE_QUATTRO_UNSTACKED!=evc_type
-         &&
-         PTIN_EVC_TYPE_QUATTRO_STACKED!=evc_type)
-        )
+    /* Obtaining the EVC type, in order to check if it's MAC-Bridge (or QUATTRO) */
+    rc = ptin_evc_check_evctype_fromIntVlan(vlanId, &evc_type);
+
+    /* Only MAC-bridge EVCs have L2intf to be searched for... */
+    if ((L7_SUCCESS == rc) &&
+        (PTIN_EVC_TYPE_QUATTRO_UNSTACKED == evc_type || PTIN_EVC_TYPE_QUATTRO_STACKED == evc_type))
     {
-        if (ptin_debug_dhcp_snooping) {
-            PT_LOG_TRACE(LOG_CTX_DHCP, "evctype != QUATTRO(MACBRIDGE "
-                         "\t ptin_evc_check_evctype_fromIntVlan()=&d", r);
+      /* Vlan+MAC to search for */
+      keyToFind[0] = (L7_uint8)((vlanId >> 8) & 0x0f);
+      keyToFind[1] = (L7_uint8)(vlanId & 0xff);
+      memcpy(&keyToFind[L7_FDB_IVL_ID_LEN], &dhcpPacket->chaddr, sizeof(L7_uint8) * L7_FDB_MAC_ADDR_LEN);
+
+      /* Search for this key: if  found, return success.
+         For DHCP relay agent if a MAC is already learn continue, else try to see if the MAC can be learned*/
+      if (fdbFind(keyToFind, L7_MATCH_EXACT, NULL) != L7_SUCCESS)
+      {
+        ptin_l2_maclimit_vp_st_t entry;
+        memset(&entry, 0x00, sizeof(entry));
+        if (ptin_debug_dhcp_snooping)
+        {
+          PT_LOG_TRACE(LOG_CTX_L2, "Entry of Vlan=%u and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found",
+                       vlanId, keyToFind[2], keyToFind[3], keyToFind[4], keyToFind[5], keyToFind[6], keyToFind[7]);
         }
-        goto _dsDHCPv4FrameProcess_ptin_port_pon_end;
+
+        entry.l2intf_id = l2intf_db_search(ptin_port, innerVlanId);
+        if (entry.l2intf_id != 0x0 && 
+            entry.l2intf_id != (L7_uint32) -1)
+        {
+          PT_LOG_TRACE(LOG_CTX_L2, "l2intf_id id %d ", entry.l2intf_id);
+          rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT_VPORT_STATUS, DAPI_CMD_GET, sizeof(ptin_l2_maclimit_vp_st_t), &entry);
+          if (entry.status == L7_TRUE ||
+              rc != L7_SUCCESS)
+          {
+            if (ptin_debug_dhcp_snooping)
+            {
+              PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent:Packet reject, l2intf_id %d has already reached mac limit (status %d)",
+                         entry.l2intf_id,
+                         entry.status);
+            }
+            return L7_FAILURE;
+          }
+        }
+      }
     }
-
-    /* Vlan+MAC to search for */
-    keyToFind[0] = (L7_uint8)((vlanId >> 8) & 0x0f);
-    keyToFind[1] = (L7_uint8)(vlanId & 0xff);
-    memcpy(&keyToFind[L7_FDB_IVL_ID_LEN], &dhcpPacket->chaddr, sizeof(L7_uint8) * L7_FDB_MAC_ADDR_LEN);
-
-    /* Search for this key: if  found, return success.
-       For DHCP relay agent if a MAC is already learn continue, else try to see if the MAC can be learned*/
-    if (fdbFind(keyToFind, L7_MATCH_EXACT, NULL) != L7_SUCCESS)
+    else
     {
-      ptin_l2_maclimit_vp_st_t entry;
-      memset(&entry, 0x00, sizeof(entry));
       if (ptin_debug_dhcp_snooping)
       {
-        PT_LOG_TRACE(LOG_CTX_L2, "Entry of Vlan=%u and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found",
-                     vlanId, keyToFind[2], keyToFind[3], keyToFind[4], keyToFind[5], keyToFind[6], keyToFind[7]);
-      }
-
-      entry.l2intf_id = l2intf_db_search(ptin_port, innerVlanId);
-      if (entry.l2intf_id != 0x0 && 
-          entry.l2intf_id != (L7_uint32) -1)
-      {
-        PT_LOG_TRACE(LOG_CTX_L2, "l2intf_id id %d ", entry.l2intf_id);
-        rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT_VPORT_STATUS, DAPI_CMD_GET, sizeof(ptin_l2_maclimit_vp_st_t), &entry);
-        if (entry.status == L7_TRUE ||
-            rc != L7_SUCCESS)
-        {
-          if (ptin_debug_dhcp_snooping)
-          {
-            PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent:Packet reject, l2intf_id %d has already reached mac limit (status %d)",
-                       entry.l2intf_id,
-                       entry.status);
-          }
-          return L7_FAILURE;
-        }
+          PT_LOG_TRACE(LOG_CTX_DHCP, "EVC with internal VLAN %u is not MACbridge type (rc=%d)",
+                       vlanId, rc);
       }
     }
-_dsDHCPv4FrameProcess_ptin_port_pon_end: ;
   }//if (ptin_port < PTIN_SYSTEM_N_PONS)
 #else
   if (ptin_debug_dhcp_snooping) {
