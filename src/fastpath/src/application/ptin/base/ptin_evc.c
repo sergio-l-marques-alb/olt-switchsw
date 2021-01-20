@@ -492,7 +492,7 @@ void *ptin_evc_clients_sem = L7_NULLPTR;
 /* Semaphore to handle L3 Interfaces */
 static void *__ptin_evc_l3_intf_sem = L7_NULLPTR;
 
-#define L3_INTF_SEM_MAX_WAITING_PERIOD 10000 /*10 seconds*/
+#define L3_INTF_SEM_MAX_WAITING_PERIOD 100 /*100ms seconds*/
 
 static L7_uint32 __vlanId   = (L7_uint32) -1;
 static L7_uint32 __intfport = (L7_uint32) -1;

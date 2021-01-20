@@ -2794,10 +2794,10 @@ L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
   }
 #endif
   /* Check if there is any conflict with the existent IGMP instances */
-  if (!ptin_igmp_instance_conflictFree(McastEvcId,UcastEvcId))
+  if (ptin_igmp_instance_conflictFree(McastEvcId,UcastEvcId) == L7_FALSE)
   {
     PT_LOG_ERR(LOG_CTX_IGMP,"There is conflict with these parameters: [mcEvcId,ucEvcId]=[%u,%u]",McastEvcId,UcastEvcId);
-    return L7_FAILURE;
+    return L7_SUCCESS;
   }
 
   /* Find an empty instance to be used */
@@ -11348,7 +11348,7 @@ static L7_BOOL ptin_igmp_instance_conflictFree(L7_uint32 McastEvcId, L7_uint32 U
         igmpInstances[idx].UcastEvcId==UcastEvcId)
     {
       PT_LOG_ERR(LOG_CTX_IGMP,"Instance already exists",McastEvcId,UcastEvcId);
-      return L7_TRUE;
+      return L7_FALSE;
     }
 #else
     if (igmpInstances[idx].McastEvcId==McastEvcId
@@ -11362,11 +11362,7 @@ static L7_BOOL ptin_igmp_instance_conflictFree(L7_uint32 McastEvcId, L7_uint32 U
 #endif
   }
 
-  /* If not found empty instances, return error */
-  if (idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
-    return L7_TRUE;
-
-  return L7_FALSE;
+  return L7_TRUE;
 }
 
 /**
