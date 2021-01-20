@@ -1816,7 +1816,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
     L7_uint8            evc_type;
     L7_RC_t             r;
 
-    r = ptin_evc_check_evctype_fromIntVlan(innerVlanId, &evc_type);
+    r = ptin_evc_check_evctype_fromIntVlan(vlanId, &evc_type);
     if (L7_SUCCESS!=r
         ||
         (PTIN_EVC_TYPE_QUATTRO_UNSTACKED!=evc_type
