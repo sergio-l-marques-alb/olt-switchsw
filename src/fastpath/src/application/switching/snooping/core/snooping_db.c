@@ -2533,7 +2533,7 @@ L7_RC_t snoopL3GroupPtinPortAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_a
       }
 
       //Exiting Channel Entry
-      if (PTINPORT_BITMAP_SET(pChannelEntry->channelPtinPortMask, ptin_port))
+      if (PTINPORT_BITMAP_IS_SET(pChannelEntry->channelPtinPortMask, ptin_port))
       {
         /*This Interface is already added. 
           Please Check if we are changing any flag bits.
