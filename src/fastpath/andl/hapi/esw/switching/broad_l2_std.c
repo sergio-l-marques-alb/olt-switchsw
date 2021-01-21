@@ -3580,6 +3580,7 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
       macAddressInfo.cmdData.unsolLearnedAddress.macAddr.addr[4] = bcm_l2_addr->mac[4];
       macAddressInfo.cmdData.unsolLearnedAddress.macAddr.addr[5] = bcm_l2_addr->mac[5];
 
+      #if 0
       /* PTin added: virtual ports */
       #if 1
       /* Save virtual port */
@@ -3605,7 +3606,30 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
         PT_LOG_TRACE(LOG_CTX_HAPI, " LAG ");
         ptin_hapi_maclimit_inc(bcm_l2_addr);
       }
-      
+      #endif
+
+      if (BCM_GPORT_IS_VLAN_PORT(bcm_l2_addr->port))
+      {
+        macAddressInfo.virtual_port = _SHR_GPORT_VLAN_PORT_ID_GET(bcm_l2_addr->port);
+      }
+      else
+      {
+        macAddressInfo.virtual_port = 0;
+        /* PTin added: physical ports */
+        if (BCM_GPORT_IS_SET(bcm_l2_addr->port))
+        {
+          PT_LOG_TRACE(LOG_CTX_HAPI, " Physical");
+          ptin_hapi_maclimit_inc(bcm_l2_addr);
+        } 
+        /* PTin added: LAGS ports */
+        else if((bcm_l2_addr->tgid > 0) && ((bcm_l2_addr->tgid < PTIN_SYSTEM_N_LAGS)))
+        {
+          PT_LOG_TRACE(LOG_CTX_HAPI, " LAG ");
+          ptin_hapi_maclimit_inc(bcm_l2_addr);
+        }
+      }
+
+
 
       /* increment the learn counter regardless of failure */
       hapiMacStats.learn++;
@@ -3691,8 +3715,7 @@ void hapiBroadAddrMacUpdateAge(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *dap
   ** other units if the mac is not present on other units.
   */
 
-  if (bcm_l2_addr->flags & BCM_L2_TRUNK_MEMBER ||
-      BCM_GPORT_IS_WLAN_PORT(bcm_l2_addr->port))
+  if (bcm_l2_addr->flags & BCM_L2_TRUNK_MEMBER || BCM_GPORT_IS_WLAN_PORT(bcm_l2_addr->port))
   {
     /* Check if the L2 entry is gone from all the chips */
     for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)

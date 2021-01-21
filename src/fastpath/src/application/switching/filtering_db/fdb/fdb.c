@@ -385,6 +385,7 @@ void fdbInsert(char *mac, L7_uint32 intIfNum, L7_uint32 virtual_port /* PTin add
     ivlLength = L7_FDB_IVL_ID_LEN;
     memcpy(data.dot1dTpFdbAddress,&vid,ivlLength);
   }
+
   memcpy(&data.dot1dTpFdbAddress[ivlLength], mac, L7_FDB_MAC_ADDR_LEN);
   data.dot1dTpFdbPort         = intIfNum;
   data.dot1dTpFdbVirtualPort  = virtual_port;  /* PTin added: virtual ports */

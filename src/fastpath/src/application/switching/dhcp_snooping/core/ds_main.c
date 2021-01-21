@@ -1553,6 +1553,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   L7_uchar8           broadcast_flag;  
   L7_uchar8           keyToFind[L7_FDB_KEY_SIZE];
   dot1dTpFdbData_t    fdbEntry;
+  fdbMeberInfo_t      fdbMemberInfo;
   L7_uint32           ptin_port;
 
   memset(&dhcp_binding, 0x00, sizeof(dhcp_binding));   
@@ -1599,14 +1600,11 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       }
 
       entry.vport_id = intf_vp_calc(ptin_port, innerVlanId);
-      if (entry.vport_id != 0x0 && 
-          entry.vport_id != (L7_uint32) -1)
+      if ( (entry.vport_id != 0x0) &&  (entry.vport_id != (L7_uint32) -1) )
       {
-        PT_LOG_TRACE(LOG_CTX_L2, "vport id %d ",
-                     entry.vport_id);
+        PT_LOG_TRACE(LOG_CTX_L2, "vport id %d ", entry.vport_id);
         rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT_VPORT_STATUS, DAPI_CMD_GET, sizeof(ptin_l2_maclimit_vp_st_t), &entry);
-        if (entry.status == L7_TRUE ||
-            rc != L7_SUCCESS)
+        if ( (entry.status == L7_TRUE) || (rc != L7_SUCCESS) )
         {
           if (ptin_debug_dhcp_snooping)
           {
@@ -1616,6 +1614,31 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
           }
           return L7_FAILURE;
         }
+        //else
+        //{
+        //    /* Build structure to add entry */
+        //    fdbMemberInfo.vlanId = vlanId;
+        //    memcpy(fdbMemberInfo.macAddr, &dhcpPacket->chaddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+        //    fdbMemberInfo.virtualPort = entry.vport_id | 0x44000000;
+        //    fdbMemberInfo.intIfNum    = intIfNum;
+        //    fdbMemberInfo.entryType   = L7_FDB_ADDR_FLAG_LEARNED;
+        //
+        //    /* Add Entry */
+        //    if (fdbAddEntry(&fdbMemberInfo)!=L7_SUCCESS)
+        //    {
+        //      PT_LOG_ERR(LOG_CTX_L2,"Error adding entry of Vlan=%u and MAC=%02x:%02x:%02x:%02x:%02x:%02x to intf=%u",
+        //              vlanId, fdbMemberInfo.macAddr[0], fdbMemberInfo.macAddr[1],
+        //              fdbMemberInfo.macAddr[2], fdbMemberInfo.macAddr[3],
+        //              fdbMemberInfo.macAddr[4], fdbMemberInfo.macAddr[5],
+        //              fdbMemberInfo.intIfNum);
+        //      return L7_FAILURE;
+        //    }
+        //    PT_LOG_WARN(LOG_CTX_L2,"Entry Added of Vlan=%u and MAC=%02x:%02x:%02x:%02x:%02x:%02x to intf=%u",
+        //            vlanId, fdbMemberInfo.macAddr[0], fdbMemberInfo.macAddr[1],
+        //            fdbMemberInfo.macAddr[2], fdbMemberInfo.macAddr[3],
+        //            fdbMemberInfo.macAddr[4], fdbMemberInfo.macAddr[5],
+        //            fdbMemberInfo.intIfNum);
+        //}
       }
     }
   }
@@ -1921,6 +1944,11 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    L7_uint8 dhcp_msg_type;
    L7_dhcp6_packet_t* dhcp_msg_hdr_ptr = 0;
    L7_dhcp6_option_packet_t *dhcp_op_header = 0;
+   L7_uint32           ptin_port;
+   L7_RC_t             rc = L7_FAILURE;
+   L7_uchar8           keyToFind[L7_FDB_KEY_SIZE];
+   dot1dTpFdbData_t    fdbEntry;
+   fdbMeberInfo_t      fdbMemberInfo;
 
    PT_LOG_DEBUG(LOG_CTX_DHCP, "DHCP Relay-Agent: Processing client request");
 
@@ -1952,6 +1980,85 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    udp_copy_header      = (L7_udp_header_t*) udp_copy_header_ptr;
    dhcp_copy_header_ptr = udp_copy_header_ptr + sizeof(L7_udp_header_t);
    frame_copy_len       = ethHdrLen + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t);
+
+   rc = ptin_intf_intIfNum2port(intIfNum, &ptin_port);
+   if (rc != L7_SUCCESS)
+   {
+     if (ptin_debug_dhcp_snooping)
+     {
+       PT_LOG_ERR(LOG_CTX_DHCP, "intfNum:%u is invalid", intIfNum);
+     }
+     return L7_FAILURE;
+   }
+
+   /* Check for downlink if the MAC is learned and
+      if can be learn .i.e MAC limiting status*/
+   if (ptin_port < PTIN_SYSTEM_N_PONS)
+   {
+     /* Vlan+MAC to search for */
+     keyToFind[0] = (L7_uint8)((vlanId >> 8) & 0x0f);
+     keyToFind[1] = (L7_uint8)(vlanId & 0xff);
+     memcpy(&keyToFind[L7_FDB_IVL_ID_LEN], &mac_header->src.addr, sizeof(L7_uint8) * L7_FDB_MAC_ADDR_LEN);
+
+     /* Search for this key: if  found, return success.
+        For DHCP relay agent if a MAC is already learn continue, else try to see if the MAC can be learned*/
+     if (fdbFind(keyToFind, L7_MATCH_EXACT, &fdbEntry) != L7_SUCCESS)
+     {
+       ptin_l2_maclimit_vp_st_t entry;
+       memset(&entry, 0x00, sizeof(entry));
+       if (ptin_debug_dhcp_snooping)
+       {
+         PT_LOG_TRACE(LOG_CTX_L2, "Entry of Vlan=%u and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found",
+                      vlanId, keyToFind[2], keyToFind[3], keyToFind[4], keyToFind[5], keyToFind[6], keyToFind[7]);
+       }
+
+       entry.vport_id = intf_vp_calc(ptin_port, innerVlanId);
+       if (entry.vport_id != 0x0 && entry.vport_id != (L7_uint32) -1)
+       {
+         PT_LOG_TRACE(LOG_CTX_L2, "vport id %d ", entry.vport_id);
+         rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT_VPORT_STATUS, DAPI_CMD_GET, sizeof(ptin_l2_maclimit_vp_st_t), &entry);
+         if ( (entry.status == L7_TRUE) || (rc != L7_SUCCESS) )
+         {
+           if (ptin_debug_dhcp_snooping)
+           {
+             PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent:Packet reject, vport_id %d has already reached mac limit (status %d)",
+                        entry.vport_id,
+                        entry.status);
+           }
+           return L7_FAILURE;
+         }
+         //else
+         //{
+         //    /* Build structure to add entry */
+         //    fdbMemberInfo.vlanId = vlanId;
+         //    memcpy(fdbMemberInfo.macAddr, &mac_header->src.addr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+         //    fdbMemberInfo.virtualPort = entry.vport_id | 0x44000000;
+         //    fdbMemberInfo.intIfNum    = intIfNum;
+         //    fdbMemberInfo.entryType   = L7_FDB_ADDR_FLAG_LEARNED;
+         //
+         //    /* Add Entry */
+         //    if (fdbAddEntry(&fdbMemberInfo)!=L7_SUCCESS)
+         //    {
+         //      PT_LOG_ERR(LOG_CTX_L2,"Error adding entry of Vlan=%u and MAC=%02x:%02x:%02x:%02x:%02x:%02x to intf=%u",
+         //              vlanId, fdbMemberInfo.macAddr[0], fdbMemberInfo.macAddr[1],
+         //              fdbMemberInfo.macAddr[2], fdbMemberInfo.macAddr[3],
+         //              fdbMemberInfo.macAddr[4], fdbMemberInfo.macAddr[5],
+         //              fdbMemberInfo.intIfNum);
+         //      return L7_FAILURE;
+         //    }
+         //    PT_LOG_WARN(LOG_CTX_L2, "Entry Added of Vlan=%u and MAC=%02x:%02x:%02x:%02x:%02x:%02x to intf=%u",
+         //            vlanId, fdbMemberInfo.macAddr[0], fdbMemberInfo.macAddr[1],
+         //            fdbMemberInfo.macAddr[2], fdbMemberInfo.macAddr[3],
+         //            fdbMemberInfo.macAddr[4], fdbMemberInfo.macAddr[5],
+         //            fdbMemberInfo.intIfNum);
+         //}
+       }
+     }
+   }
+
+
+
+
 
    //Make sure that the reported UDP.length is at least the minimum size possible
    if(osapiNtohs(udp_header->length) < (sizeof(L7_udp_header_t) + sizeof(L7_dhcp6_packet_t)))
@@ -2028,6 +2135,15 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
         }
       }
    }
+
+
+
+
+
+
+
+
+
 
    //@note (Daniel): Currently, statistics for DHCP are broken. They are to be rewritten in v4.0.
    ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTIONS);
