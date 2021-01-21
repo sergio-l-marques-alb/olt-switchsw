@@ -1113,7 +1113,7 @@ L7_RC_t ptin_xconnect_vlan_properties(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_
     mode.multicast_group = mcast_group;
     mode.mask |= PTIN_BRIDGE_VLAN_MODE_MASK_MC_GROUP;
   }
-  if (queueSet >= PTIN_EVC_QUEUE_WIRELESS)
+  if (queueSet >= PTIN_EVC_QUEUE_WIRED && queueSet < PTIN_EVC_QUEUE_MAX)
   {
     mode.qos_queueSet = queueSet;
     mode.mask |= PTIN_BRIDGE_VLAN_MODE_MASK_COSQ_DEST;
