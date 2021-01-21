@@ -2,7 +2,7 @@
 #define _PTIN_CROSSCONNECT_API__H
 
 #include "datatypes.h"
-
+#include "l7_cos_api.h"
 /**
  * Apply or remove CPU from a Vlan ID
  * 
@@ -223,11 +223,12 @@ extern L7_RC_t ptin_virtual_port_remove_from_vlans(L7_uint32 ptin_port, L7_int e
  * @param vlanId : Outer Vlan Id
  * @param fwdVlanId : Forward vlan (vlan to use for mac 
  *                  learning)
- * @param macLearn : MAc learning on/off
+ * @param macLearn : MAc learning on/off 
+ * @param queueSet : ptin_evc_queue_type_t 
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_crossconnect_vlan_learn(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_int mcast_group, L7_BOOL macLearn);
+extern L7_RC_t ptin_xconnect_vlan_properties(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_int mcast_group, L7_BOOL macLearn, L7_int queueSet);
 
 /**
  * Use crossconnects, instead of the MAC+Vlan bridging, for a 

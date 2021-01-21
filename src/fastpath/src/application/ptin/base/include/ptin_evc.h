@@ -123,11 +123,12 @@ extern L7_RC_t ptin_evc_offline_entry_add(ptin_HwEthMef10Evc_t *EvcConf);
  * EVC options reconfiguration
  * 
  * @param evc_ext_id : EVC extended id
- * @param evcOptions : EVC options
+ * @param evcOptions : EVC options 
+ * @param queue_type : queue type 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_config(L7_uint32 evc_ext_id, ptin_HwEthMef10EvcOptions_t *evcOptions);
+extern L7_RC_t ptin_evc_config(L7_uint32 evc_ext_id, ptin_HwEthMef10EvcOptions_t *evcOptions, L7_int queue_type);
 
 /**
  * Deletes an EVC

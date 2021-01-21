@@ -6869,7 +6869,7 @@ L7_RC_t ptin_msg_evc_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
       evcOptions.type         = msgEvcOptions[i].type;
       evcOptions.mc_flood     = msgEvcOptions[i].mc_flood;
 
-      if ((rc=ptin_evc_config(msgEvcOptions[i].service_id.id_val.evc_id, &evcOptions)) != L7_SUCCESS)
+      if ((rc=ptin_evc_config(msgEvcOptions[i].service_id.id_val.evc_id, &evcOptions, -1)) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG, "Error configuring EVC# %u", msgEvcOptions[i].service_id.id_val.evc_id);
         rc_global = rc;
@@ -6929,7 +6929,7 @@ L7_RC_t ptin_msg_evc_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
           continue;
         }
 
-        if ((rc=ptin_evc_config(evc_id, &evcOptions)) != L7_SUCCESS)
+        if ((rc=ptin_evc_config(evc_id, &evcOptions,-1)) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_MSG, "Error configuring EVC# %u", evc_id);
           rc_global = rc;

@@ -12,6 +12,14 @@
 /***************************************************************** 
  * INTERNAL VARIABLES
  *****************************************************************/
+ /* EVC queue type */
+typedef enum{
+    PTIN_EVC_QUEUE_DEFAULT  = 0,
+    PTIN_EVC_QUEUE_WIRED    = 0,
+    PTIN_EVC_QUEUE_WIRELESS = 1,
+    PTIN_EVC_QUEUE_MAX,
+    PTIN_EVC_QUEUE_PORT = -1,
+}ptin_evc_queue_type_t;
 
 /***************************************************************** 
  * INTERNAL FUNCTION PROTOTYPES
@@ -1076,11 +1084,12 @@ L7_RC_t ptin_virtual_port_remove_from_vlans(L7_uint32 ptin_port, L7_int ext_ovid
  * @param vlanId : Outer Vlan Id
  * @param fwdVlanId : Forward vlan (vlan to use for mac 
  *                  learning)
- * @param macLearn : MAc learning on/off
+ * @param macLearn : MAc learning on/off 
+ * @param queueSet : ptin_evc_queue_type_t
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_crossconnect_vlan_learn(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_int mcast_group, L7_BOOL macLearn)
+L7_RC_t ptin_xconnect_vlan_properties(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_int mcast_group, L7_BOOL macLearn, L7_int queueSet)
 {
   ptin_bridge_vlan_mode_t mode;
   L7_RC_t rc = L7_SUCCESS;
@@ -1103,6 +1112,11 @@ L7_RC_t ptin_crossconnect_vlan_learn(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_i
   {
     mode.multicast_group = mcast_group;
     mode.mask |= PTIN_BRIDGE_VLAN_MODE_MASK_MC_GROUP;
+  }
+  if (queueSet >= PTIN_EVC_QUEUE_WIRELESS)
+  {
+    mode.qos_queueSet = queueSet;
+    mode.mask |= PTIN_BRIDGE_VLAN_MODE_MASK_COSQ_DEST;
   }
 
   /* DTL call */

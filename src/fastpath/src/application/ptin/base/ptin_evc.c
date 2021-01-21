@@ -61,6 +61,14 @@ void ptin_debug_evc_enable(L7_BOOL enable)
   ptin_debug_evc = enable;
 }
 
+/* EVC queue type */
+typedef enum{
+    PTIN_EVC_QUEUE_DEFAULT  = 0,
+    PTIN_EVC_QUEUE_WIRED    = 0,
+    PTIN_EVC_QUEUE_WIRELESS = 1,
+    PTIN_EVC_QUEUE_MAX,
+    PTIN_EVC_QUEUE_PORT = -1,
+}ptin_evc_queue_type_t;
 
 /* EVC Client entry (ONLY APPLICABLE to Stacked EVCs) */
 struct ptin_evc_client_s {
@@ -168,7 +176,10 @@ struct ptin_evc_s {
                              * 1 - FLOOD_UNKNOWN
                              * 2 - FLOOD_NONE */
 
-  /* Interfaces */
+  L7_int   queue_type;    /* 0 - WIRED/DEFAULT    
+                           * 1 - WIRELESS */ 
+
+  /* Interfaces */           
   struct ptin_evc_intf_s intf[PTIN_SYSTEM_N_INTERF];
 
   /* Auxiliary (redundant) information */
@@ -461,7 +472,7 @@ static L7_RC_t switching_p2p_bridge_remove(L7_uint root_intf, L7_uint16 root_int
 
 static L7_RC_t switching_vlan_create(L7_uint16 vid);
 static L7_RC_t switching_vlan_delete(L7_uint16 vid);
-static L7_RC_t switching_vlan_config(L7_uint16 vid, L7_uint16 fwd_vid, L7_BOOL mac_learning, L7_uint8 mc_flood, L7_uint8 cpu_trap);
+static L7_RC_t switching_vlan_config(L7_uint16 vid, L7_uint16 fwd_vid, L7_BOOL mac_learning, L7_uint8 mc_flood, L7_uint8 cpu_trap, L7_int queue_type);
 
 static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf);
 
@@ -2748,7 +2759,10 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   L7_int    multicast_group;
   dl_queue_t *freeVlan_queue = L7_NULLPTR;
   L7_RC_t   rc, error = L7_SUCCESS;
-
+  ptin_evc_queue_type_t  queue_type= PTIN_EVC_QUEUE_PORT;
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  L7_BOOL is_logged= L7_FALSE;
+#endif
   evc_ext_id = evcConf->index;
 
 
@@ -2845,6 +2859,37 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     {
       n_leafs++;
       if (leaf_port1 < 0)       leaf_port1 = ptin_port;   /* First leaf port */
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+      if (iptv_enabled)
+      {
+         /* GPON ports use wireless queue*/
+         if (ptin_port < PTIN_SYSTEM_N_PONS_PHYSICAL && queue_type != PTIN_EVC_QUEUE_WIRELESS)
+         {
+           queue_type = PTIN_EVC_QUEUE_WIRED;
+           if (!is_logged)
+           {
+             PT_LOG_INFO(LOG_CTX_EVC, "eEVC# %u queue type is %s", evc_ext_id, "WIRED");
+             is_logged = L7_TRUE;
+           }
+         }
+         /* XGS ports use wired queue*/
+         else if (queue_type != PTIN_EVC_QUEUE_WIRED)
+         {
+           queue_type = PTIN_EVC_QUEUE_WIRELESS;
+           if (!is_logged)
+           {
+             PT_LOG_INFO(LOG_CTX_EVC, "eEVC# %u queue type is %s", evc_ext_id, "WIRELESS");
+             is_logged = L7_TRUE;
+           }
+         }
+         else
+         {
+           PT_LOG_ERR(LOG_CTX_EVC, "In IPTV EVC is not supported mix of XGS and GPON ports! (ptin_port = %u)", ptin_port);
+           return L7_FAILURE;
+         }
+      }
+#endif
     }
   }
 
@@ -3046,6 +3091,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       evcs[evc_id].p2p_port1_intf   = p2p_port1;
       evcs[evc_id].p2p_port2_intf   = p2p_port2;
       evcs[evc_id].multicast_group  = multicast_group;
+      evcs[evc_id].queue_type       = queue_type;   
 
       PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: Adding interfaces", evc_ext_id);
 
@@ -3282,7 +3328,7 @@ _ptin_evc_create1:
     evcOptions.flags.mask  = PTIN_EVC_MASK_MACLEARNING | PTIN_EVC_MASK_CPU_TRAPPING |
                              PTIN_EVC_MASK_DHCPV4_PROTOCOL | PTIN_EVC_MASK_IGMP_PROTOCOL | PTIN_EVC_MASK_PPPOE_PROTOCOL | PTIN_EVC_MASK_DHCPV6_PROTOCOL;
     /* Apply options */
-    rc = ptin_evc_config(evc_ext_id, &evcOptions);
+    rc = ptin_evc_config(evc_ext_id, &evcOptions, queue_type);
 
     if (rc != L7_SUCCESS)
     {
@@ -3671,10 +3717,11 @@ _ptin_evc_port_remove1:
  * 
  * @param evc_ext_id : EVC extended id
  * @param evcOptions : EVC options
+ * @param queue_type : queue type 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_config(L7_uint32 evc_ext_id, ptin_HwEthMef10EvcOptions_t *evcOptions)
+L7_RC_t ptin_evc_config(L7_uint32 evc_ext_id, ptin_HwEthMef10EvcOptions_t *evcOptions, L7_int queue_type)
 {
   L7_uint   evc_id;
   L7_uint8  mc_flood;
@@ -3770,7 +3817,7 @@ L7_RC_t ptin_evc_config(L7_uint32 evc_ext_id, ptin_HwEthMef10EvcOptions_t *evcOp
   }
 
   /* VLAN configuration */
-  if (switching_vlan_config(evcs[evc_id].rvlan, evcs[evc_id].rvlan, maclearning, mc_flood, cpu_trap) != L7_SUCCESS)
+  if (switching_vlan_config(evcs[evc_id].rvlan, evcs[evc_id].rvlan, maclearning, mc_flood, cpu_trap, queue_type) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error configuring VLAN %u [FwdVlan=%u MACLearning=%u MCFlood=%u]",
             evc_id, evcs[evc_id].rvlan, evcs[evc_id].rvlan, maclearning, mc_flood);
@@ -9698,6 +9745,8 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
   ptin_dtl_l3_intf_t l3_intf;
   #endif
   L7_RC_t            rc = L7_SUCCESS;
+  L7_int             queue_type;
+  queue_type = evcs[evc_id].queue_type;
 
   /* Correct params */
   if (intf_cfg->vid_inner >= 4096)
@@ -9908,7 +9957,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
   /* Vlan mode configuration: Only for E-TREEs configuration */
   if (IS_EVC_ETREE(evc_id))
   {
-    rc = switching_vlan_config(int_vlan, root_vlan, mac_learning, evcs[evc_id].mc_flood, cpu_trap); 
+      rc = switching_vlan_config(int_vlan, root_vlan, mac_learning, evcs[evc_id].mc_flood, cpu_trap, queue_type);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error configuring VLAN %u [FwdVlan=%u MACLearning=%u MCFlood=%u]",
@@ -12435,7 +12484,7 @@ static L7_RC_t switching_vlan_delete(L7_uint16 vid)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t switching_vlan_config(L7_uint16 vid, L7_uint16 fwd_vid, L7_BOOL mac_learning, L7_uint8 mc_flood, L7_uint8 cpu_trap)
+static L7_RC_t switching_vlan_config(L7_uint16 vid, L7_uint16 fwd_vid, L7_BOOL mac_learning, L7_uint8 mc_flood, L7_uint8 cpu_trap, L7_int queue_type)
 {
   L7_RC_t rc = L7_SUCCESS;
   L7_FILTER_VLAN_FILTER_MODE_t mcf = 0xff;
@@ -12449,7 +12498,7 @@ static L7_RC_t switching_vlan_config(L7_uint16 vid, L7_uint16 fwd_vid, L7_BOOL m
   }
 
   /* Set Forward VLAN to int_vlan and set Mac Learning state */
-  rc = ptin_crossconnect_vlan_learn(vid, fwd_vid, -1, mac_learning);
+  rc = ptin_xconnect_vlan_properties(vid, fwd_vid, -1, mac_learning, queue_type);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_EVC, "VLAN %u: error setting MAC Learning state to %s (w/ Forward VLAN %u) (rc=%d)",
@@ -13305,6 +13354,14 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
     printf("  Root port1= %-2u\n", evcs[evc_id].root_info.port);
     printf("  Root VLAN = %-4u      NNI VLAN = %u+%u\n", evcs[evc_id].rvlan, evcs[evc_id].root_info.nni_ovid, evcs[evc_id].root_info.nni_ivid);
     printf("  MC Group  = 0x%x\n",   evcs[evc_id].multicast_group);
+    if (evcs[evc_id].queue_type == PTIN_EVC_QUEUE_PORT)
+    {
+      printf("  Queue type= %s\n", "PORT");
+    }
+    else
+    {
+      printf("  Queue type= %s\n", evcs[evc_id].queue_type == PTIN_EVC_QUEUE_WIRED ? "WIRED" : "WIRELESS");
+    }
 
     /* Only stacked services have clients */
     if (IS_EVC_STACKED(evc_id))
@@ -13477,6 +13534,14 @@ void ptin_evc_dump2(L7_int evc_id_ref)
     printf("  Root port1= %-2u\n", evcs[evc_id].root_info.port);
     printf("  Root VLAN = %-4u      NNI VLAN = %u+%u\n", evcs[evc_id].rvlan, evcs[evc_id].root_info.nni_ovid, evcs[evc_id].root_info.nni_ivid);
     printf("  MC Group  = 0x%x\n",   evcs[evc_id].multicast_group);
+    if (evcs[evc_id].queue_type == PTIN_EVC_QUEUE_PORT)
+    {
+      printf("  Queue type= %s\n", "PORT");
+    }
+    else
+    {
+      printf("  Queue type= %s\n", evcs[evc_id].queue_type == PTIN_EVC_QUEUE_WIRED ? "WIRED" : "WIRELESS");
+    }
 
     /* Only stacked services have clients */
     if (IS_EVC_STACKED(evc_id))
