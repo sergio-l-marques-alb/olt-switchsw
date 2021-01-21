@@ -1553,7 +1553,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   L7_uchar8           broadcast_flag;  
   L7_uchar8           keyToFind[L7_FDB_KEY_SIZE];
   dot1dTpFdbData_t    fdbEntry;
-  fdbMeberInfo_t      fdbMemberInfo;
+  //fdbMeberInfo_t      fdbMemberInfo;
   L7_uint32           ptin_port;
 
   memset(&dhcp_binding, 0x00, sizeof(dhcp_binding));   
@@ -1948,7 +1948,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    L7_RC_t             rc = L7_FAILURE;
    L7_uchar8           keyToFind[L7_FDB_KEY_SIZE];
    dot1dTpFdbData_t    fdbEntry;
-   fdbMeberInfo_t      fdbMemberInfo;
+   //fdbMeberInfo_t      fdbMemberInfo;
 
    PT_LOG_DEBUG(LOG_CTX_DHCP, "DHCP Relay-Agent: Processing client request");
 
