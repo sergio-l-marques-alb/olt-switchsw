@@ -7667,8 +7667,6 @@ L7_RC_t ptin_hapi_temperature_monitor(ptin_dtl_temperature_monitor_t *temp_info)
   int i, n=0, count=0;
   bcm_switch_temperature_monitor_t temp_data[10];
 
-  //return L7_SUCCESS; 
-
   /* Validate arguments */
   if (temp_info == L7_NULLPTR)
   {

@@ -14499,10 +14499,16 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
   /* CVID */
   evcStats_profile->inner_vlan_ingress  = 0;
   evcStats_profile->inner_vlan_egress = 0;
-  if ((msg_evcStats->mask & MSG_EVC_COUNTERS_MASK_CVLAN) &&
-      (msg_evcStats->client_vlan > 0 && msg_evcStats->client_vlan < 4096))
+  if ((msg_evcStats->mask & MSG_EVC_COUNTERS_MASK_CVLAN) && (msg_evcStats->client_vlan > 0 && msg_evcStats->client_vlan < 4096))
   {
-    evcStats_profile->inner_vlan_ingress = msg_evcStats->client_vlan;
+    /* Adjust outer VID considering the port virtualization scheme */
+    if (ptin_intf_portGem2virtualVid(ptintf2port(msg_evcStats->intf.intf_type, msg_evcStats->intf.intf_id),
+                                     msg_evcStats->client_vlan,
+                                     &evcStats_profile->inner_vlan_ingress) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u", msg_evcStats->client_vlan);
+    }
+    /*evcStats_profile->inner_vlan_ingress = msg_evcStats->client_vlan;*/
     PT_LOG_DEBUG(LOG_CTX_MSG," CVID extracted!");
   }
 
