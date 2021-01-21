@@ -2519,12 +2519,10 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
                     dhcp_binding.ipAddr);
 
       ptin_port = dhcp_binding.ptin_port;
-      PT_LOG_ERR(LOG_CTX_DHCP, "ptin_port=%u",ptin_port);
    }
    else
    {
       ptin_port =  intIfNum2port(intIfNum, 0);
-      PT_LOG_ERR(LOG_CTX_DHCP, "ptin_port=%u",ptin_port);
       if (ptin_port == PTIN_PORT_INVALID)
       {
         if (ptin_debug_dhcp_snooping)

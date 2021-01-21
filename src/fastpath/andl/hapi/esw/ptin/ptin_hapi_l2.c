@@ -242,11 +242,18 @@ L7_RC_t ptin_hapi_maclimit_inc(bcm_l2_addr_t *bcm_l2_addr)
       return L7_FAILURE;
     }
 
+    if(ptin_hapi_l2_enable)
+    {
+        PT_LOG_TRACE(LOG_CTX_HAPI, "mac_counter=%d, mac_total=%d in l2intf_id=%d ", macLearn_info_flow[l2intf_id].mac_counter, macLearn_info_flow[l2intf_id].mac_total, l2intf_id);
+    }
+
     /* Feature enabled? */
     if (macLearn_info_flow[l2intf_id].enable == L7_FALSE)
     {
       if(ptin_hapi_l2_enable)
-      PT_LOG_TRACE(LOG_CTX_HAPI, "Count %d in %d ", macLearn_info_flow[l2intf_id].mac_counter, l2intf_id);
+      {
+          PT_LOG_TRACE(LOG_CTX_HAPI, "mac_counter=%d, mac_total=%d in l2intf_id=%d ", macLearn_info_flow[l2intf_id].mac_counter, macLearn_info_flow[l2intf_id].mac_total, l2intf_id);
+      }
 
       if( macLearn_info_flow[l2intf_id].mac_counter == (L7_int32) -1)
       {
@@ -260,14 +267,20 @@ L7_RC_t ptin_hapi_maclimit_inc(bcm_l2_addr_t *bcm_l2_addr)
     }
 
     /* Do not accept more mac addresses, if maximum was reached */
-    if (macLearn_info_flow[l2intf_id].mac_total >= macLearn_info_flow[l2intf_id].mac_limit)
+//    if (macLearn_info_flow[l2intf_id].mac_total >= macLearn_info_flow[l2intf_id].mac_limit)
+    if (macLearn_info_flow[l2intf_id].mac_counter >= macLearn_info_flow[l2intf_id].mac_limit)
     {
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "Do not accept more mac addresses, maximum was reached, mac_counter=%u mac_limit=%u", macLearn_info_flow[l2intf_id].mac_counter, macLearn_info_flow[l2intf_id].mac_limit);
       PT_LOG_TRACE(LOG_CTX_HAPI, "%s: MAC %02x:%02x:%02x:%02x:%02x:%02x on VID %d and GPORT 0x%x rejected (flags 0x%x)",
               __FUNCTION__, 
               bcm_l2_addr->mac[0], bcm_l2_addr->mac[1], bcm_l2_addr->mac[2], bcm_l2_addr->mac[3], bcm_l2_addr->mac[4], bcm_l2_addr->mac[5], 
               bcm_l2_addr->vid, bcm_l2_addr->port, bcm_l2_addr->flags);
 
-      macLearn_info_flow[l2intf_id].mac_total++;
+      macLearn_info_flow[l2intf_id].mac_total++; //Devo incrementar??? Chegam os mesmos MACs e incrementámos??
+      if(ptin_hapi_l2_enable)
+      {
+          PT_LOG_TRACE(LOG_CTX_HAPI, "mac_counter=%d, mac_total=%d in l2intf_id=%d ", macLearn_info_flow[l2intf_id].mac_counter, macLearn_info_flow[l2intf_id].mac_total, l2intf_id);
+      }
 
       /* Enable the use of Pending Mechanism but disable FWD */
       PT_LOG_NOTICE(LOG_CTX_HAPI, "Disabling FWD (GPORT=0x%x)", bcm_l2_addr->port);
@@ -296,6 +309,12 @@ L7_RC_t ptin_hapi_maclimit_inc(bcm_l2_addr_t *bcm_l2_addr)
 
     macLearn_info_flow[l2intf_id].mac_counter++;
     macLearn_info_flow[l2intf_id].mac_total++;
+
+    if(ptin_hapi_l2_enable)
+    {
+        PT_LOG_TRACE(LOG_CTX_HAPI, "mac_counter=%d, mac_total=%d in l2intf_id=%d ", macLearn_info_flow[l2intf_id].mac_counter, macLearn_info_flow[l2intf_id].mac_total, l2intf_id);
+    }
+
 
     if (macLearn_info_flow[l2intf_id].mac_counter == macLearn_info_flow[l2intf_id].mac_limit)
     {
@@ -556,23 +575,31 @@ L7_RC_t ptin_hapi_maclimit_dec(bcm_l2_addr_t *bcm_l2_addr)
       return L7_FAILURE;
     }
 
+    if(ptin_hapi_l2_enable)
+    {
+        PT_LOG_TRACE(LOG_CTX_HAPI, "mac_counter=%d, mac_total=%d in l2intf_id=%d ", macLearn_info_flow[l2intf_id].mac_counter, macLearn_info_flow[l2intf_id].mac_total, l2intf_id);
+    }
+
     /* Feature enabled? */
     if (macLearn_info_flow[l2intf_id].enable == L7_FALSE)
     {
-      if(ptin_hapi_l2_enable)
-      PT_LOG_TRACE(LOG_CTX_HAPI, "Count %d in %d ", macLearn_info_flow[l2intf_id].mac_counter, l2intf_id);
-
-    /* Decrement, but only if greater than 0 */
-    if (macLearn_info_flow[l2intf_id].mac_counter > 0)
-    {
+      /* Decrement, but only if greater than 0 */
+      if (macLearn_info_flow[l2intf_id].mac_counter > 0)
+      {
       macLearn_info_flow[l2intf_id].mac_counter--;
-    }
+      }
 
-		    /* Decrement, but only if greater than 0 */
-    if (macLearn_info_flow[l2intf_id].mac_total > 0)
-    {
-      macLearn_info_flow[l2intf_id].mac_total--;
-    }
+      /* Decrement, but only if greater than 0 */
+      if (macLearn_info_flow[l2intf_id].mac_total > 0)
+      {
+        macLearn_info_flow[l2intf_id].mac_total--;
+      }
+
+      if(ptin_hapi_l2_enable)
+      {
+          PT_LOG_TRACE(LOG_CTX_HAPI, "mac_counter=%d, mac_total=%d in l2intf_id=%d ", macLearn_info_flow[l2intf_id].mac_counter, macLearn_info_flow[l2intf_id].mac_total, l2intf_id);
+      }
+
       return L7_FAILURE;
     }
 
@@ -588,17 +615,23 @@ L7_RC_t ptin_hapi_maclimit_dec(bcm_l2_addr_t *bcm_l2_addr)
                 bcm_l2_addr->mac[0], bcm_l2_addr->mac[1], bcm_l2_addr->mac[2], bcm_l2_addr->mac[3], bcm_l2_addr->mac[4], bcm_l2_addr->mac[5], 
                 bcm_l2_addr->vid);
 
-    /* Decrement, but only if greater than 0 */
-    if (macLearn_info_flow[l2intf_id].mac_counter > 0)
-    {
-      macLearn_info_flow[l2intf_id].mac_counter--;
-    }
+      /* Decrement, but only if greater than 0 */
+      if (macLearn_info_flow[l2intf_id].mac_counter > 0)
+      {
+        macLearn_info_flow[l2intf_id].mac_counter--;
+      }
 
-		    /* Decrement, but only if greater than 0 */
-    if (macLearn_info_flow[l2intf_id].mac_total > 0)
-    {
-      macLearn_info_flow[l2intf_id].mac_total--;
-    }
+      /* Decrement, but only if greater than 0 */
+      if (macLearn_info_flow[l2intf_id].mac_total > 0)
+      {
+        macLearn_info_flow[l2intf_id].mac_total--;
+      }
+
+      if(ptin_hapi_l2_enable)
+      {
+          PT_LOG_TRACE(LOG_CTX_HAPI, "mac_counter=%d, mac_total=%d in l2intf_id=%d ", macLearn_info_flow[l2intf_id].mac_counter, macLearn_info_flow[l2intf_id].mac_total, l2intf_id);
+      }
+
       return L7_FAILURE;
     }
 
@@ -607,11 +640,16 @@ L7_RC_t ptin_hapi_maclimit_dec(bcm_l2_addr_t *bcm_l2_addr)
     {
       macLearn_info_flow[l2intf_id].mac_counter--;
     }
-
-		    /* Decrement, but only if greater than 0 */
+    
+    /* Decrement, but only if greater than 0 */
     if (macLearn_info_flow[l2intf_id].mac_total > 0)
     {
       macLearn_info_flow[l2intf_id].mac_total--;
+    }
+
+    if(ptin_hapi_l2_enable)
+    {
+        PT_LOG_TRACE(LOG_CTX_HAPI, "mac_counter=%d, mac_total=%d in l2intf_id=%d ", macLearn_info_flow[l2intf_id].mac_counter, macLearn_info_flow[l2intf_id].mac_total, l2intf_id);
     }
 
     /* Check if maximum was reached */

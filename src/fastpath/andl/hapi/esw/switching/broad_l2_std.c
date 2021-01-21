@@ -3531,12 +3531,13 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
       {
         PT_LOG_TRACE(LOG_CTX_HAPI, " Increase learned mac ");
         bcm_l2_addr->flags &= ~((L7_uint32)BCM_L2_PENDING);
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)  /* FIXME: TC16SXG */
-        rv = BCM_E_NONE;
-        PT_LOG_WARN(LOG_CTX_L2, "MAC-Table touching disabled!");
-#else
+//#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)  /* FIXME: TC16SXG */
+//        rv = BCM_E_NONE;
+//        PT_LOG_WARN(LOG_CTX_L2, "MAC-Table touching disabled!");
+//#else
+//        rv = usl_bcmx_l2_addr_add(bcm_l2_addr, L7_NULL);
+//#endif
         rv = usl_bcmx_l2_addr_add(bcm_l2_addr, L7_NULL);
-#endif
       }
       else
       {
@@ -3560,6 +3561,9 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
 #else
     rv = usl_bcmx_l2_addr_add(bcm_l2_addr, L7_NULL);
 #endif
+
+//    rv = usl_bcmx_l2_addr_add(bcm_l2_addr, L7_NULL);
+
     //printf("%s(%d) Yeah!\r\n",__FUNCTION__,__LINE__);
   }
 
@@ -3580,6 +3584,7 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
       macAddressInfo.cmdData.unsolLearnedAddress.macAddr.addr[4] = bcm_l2_addr->mac[4];
       macAddressInfo.cmdData.unsolLearnedAddress.macAddr.addr[5] = bcm_l2_addr->mac[5];
 
+      #if 0
       /* PTin added: virtual ports */
       #if 1
       /* Save virtual port */
@@ -3597,7 +3602,7 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
       if (BCM_GPORT_IS_SET(bcm_l2_addr->port))
       {
         PT_LOG_TRACE(LOG_CTX_HAPI, " Physical");
-        ptin_hapi_maclimit_inc(bcm_l2_addr);
+        ptin_hapi_maclimit_inc(bcm_l2_addr);            //FIXME TC16SXG IS THIS CORRECT???? This is incrementing Flow instead of physical
       } 
       /* PTin added: LAGS ports */
       else if((bcm_l2_addr->tgid > 0) && ((bcm_l2_addr->tgid < PTIN_SYSTEM_N_LAGS)))
@@ -3605,7 +3610,29 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
         PT_LOG_TRACE(LOG_CTX_HAPI, " LAG ");
         ptin_hapi_maclimit_inc(bcm_l2_addr);
       }
-      
+      #endif
+
+      if (BCM_GPORT_IS_VLAN_PORT(bcm_l2_addr->port))
+      {
+        macAddressInfo.l2intf_hwid = _SHR_GPORT_VLAN_PORT_ID_GET(bcm_l2_addr->port);
+      }
+      else
+      {
+        macAddressInfo.l2intf_hwid = 0;
+        /* PTin added: physical ports */
+        if (BCM_GPORT_IS_SET(bcm_l2_addr->port))
+        {
+          PT_LOG_TRACE(LOG_CTX_HAPI, " Physical");
+          ptin_hapi_maclimit_inc(bcm_l2_addr);
+        } 
+        /* PTin added: LAGS ports */
+        else if((bcm_l2_addr->tgid > 0) && ((bcm_l2_addr->tgid < PTIN_SYSTEM_N_LAGS)))
+        {
+          PT_LOG_TRACE(LOG_CTX_HAPI, " LAG ");
+          ptin_hapi_maclimit_inc(bcm_l2_addr);
+        }
+      }
+
 
       /* increment the learn counter regardless of failure */
       hapiMacStats.learn++;
@@ -3728,7 +3755,7 @@ void hapiBroadAddrMacUpdateAge(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *dap
         {
           /* Clear the HIT bit and add the entry on this unit */
           l2addr.flags &= ~(BCM_L2_HIT | BCM_L2_SRC_HIT);
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)  /* FIXME: TC16SXG */
+#if (!PTIN_BOARD == PTIN_BOARD_TC16SXG)  /* FIXME: TC16SXG */
           PT_LOG_WARN(LOG_CTX_L2, "MAC-Table touching disabled!");
 #else
           (void)bcm_l2_addr_add(i, &l2addr);
