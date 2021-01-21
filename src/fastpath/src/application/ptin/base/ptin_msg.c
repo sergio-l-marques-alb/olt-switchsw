@@ -17583,6 +17583,59 @@ void ptin_msg_protection_matrix_configuration_flush_end(void)
         PT_LOG_ERR(LOG_CTX_MSG, "Failed to send Snoop Sync Request Message");
 //      return;
       }         
+
+  #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+      do {
+          static int not_1st_flush_end=0;
+
+          /* To be run just on the 1st flush*/
+          if (not_1st_flush_end) break;
+          else                   not_1st_flush_end = 1;
+
+
+          /* 1st we synchronize from active matrix UPLNK PROT status */
+          if (ptin_prot_uplink_state_sync() != L7_SUCCESS) 
+          {
+            PT_LOG_WARN(LOG_CTX_CONTROL,
+                        "Error synchronizing Uplink Protection state from the other SF."
+                        //"Resetting machine..."
+                        );
+            //uplinkprotResetStateMachine((L7_uint16)-1 /*All*/);
+          }
+
+
+          /*Then we notify active MX we (inactive one) received 1st flush end*/
+          {
+              uint32 ans, slot; //, infoDim_ans;
+
+              slot = ptin_fpga_board_slot_get();
+              PT_LOG_INFO(LOG_CTX_INTF,
+                          "standby MX %d sending active MX %d "
+                          "CCMSG_STDBY_NOTIFY_ACTIVE_MATRIX_FLUSH...",
+                          slot,
+                          slot <= PTIN_SYS_MX1_SLOT ?
+                          PTIN_SYS_MX2_SLOT : PTIN_SYS_MX1_SLOT);
+
+              if (send_ipc_message(IPC_HW_FASTPATH_PORT,
+
+                                   slot <= PTIN_SYS_MX1_SLOT ?
+                                   IPC_MX_IPADDR_PROTECTION :
+                                   IPC_MX_IPADDR_WORKING,
+
+                                   CCMSG_STDBY_NOTIFY_ACTIVE_MATRIX_FLUSH_END,
+                                   NULL,
+                                   (char *)&ans,
+                                   0,
+                                   NULL) != 0) // &infoDim_ans) != 0)
+              {
+                PT_LOG_ERR(LOG_CTX_INTF, "... failed!");
+                return;
+              }
+
+              PT_LOG_INFO(LOG_CTX_INTF, "... sent!");
+          }
+      } while(0);
+  #endif    /*#if (PTIN_BOARD == PTIN_BOARD_CXO160G)*/
     }
     else
     {

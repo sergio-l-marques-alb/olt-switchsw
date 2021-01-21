@@ -350,6 +350,8 @@
 /* Generic Flush Configuration Message */
 #define CCMSG_PROTECTION_MATRIX_FLUSH_CONFIGURATION_END    0x91FE
 
+#define CCMSG_STDBY_NOTIFY_ACTIVE_MATRIX_FLUSH_END         0x91FD
+
 #define CCMSG_LAST_MSG_ID                                  0x91FF
 
 
