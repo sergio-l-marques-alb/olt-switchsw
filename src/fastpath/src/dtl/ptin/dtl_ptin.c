@@ -808,7 +808,7 @@ L7_RC_t dtlPtinMulticastEgressPort(L7_uint32 intIfNum, ptin_bridge_vlan_multicas
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t dtlPtinVirtualPort(L7_uint32 intIfNum, ptin_l2intf_t *vport )
+L7_RC_t dtlPtinL2intf(L7_uint32 intIfNum, ptin_l2intf_t *vport )
 {
   nimUSP_t usp;
   DAPI_USP_t ddUsp;

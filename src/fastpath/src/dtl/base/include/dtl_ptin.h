@@ -242,7 +242,7 @@ extern L7_RC_t dtlPtinMulticastEgressPort(L7_uint32 intIfNum, ptin_bridge_vlan_m
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t dtlPtinVirtualPort(L7_uint32 intIfNum, ptin_l2intf_t *vport );
+extern L7_RC_t dtlPtinL2intf(L7_uint32 intIfNum, ptin_l2intf_t *vport );
 
 /**
  * L3 Host Add

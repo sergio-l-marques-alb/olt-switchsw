@@ -12,13 +12,13 @@
  * 
  * @param macAddr 
  * @param intIfNum 
- * @param virtual_port 
+ * @param l2intf_id 
  * @param vlanId 
  * @param msgsType 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 virtual_port,
+L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 l2intf_id,
                             L7_uint32 vlanId, L7_uchar8 msgsType);
 
 /**

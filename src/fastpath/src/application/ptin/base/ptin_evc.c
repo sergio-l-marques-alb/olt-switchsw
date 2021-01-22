@@ -5484,7 +5484,7 @@ static L7_RC_t l2intf_policer_set(l2intf_entry_t *l2intf, ptin_bw_meter_t *meter
     }
 
     /* Check for virtual port id */
-    if (l2intf->l2intf_id != fdbEntry.dot1dTpFdbVirtualPort)
+    if (l2intf->l2intf_id != fdbEntry.dot1dTpFdbL2intf)
     {
       continue;
     }
@@ -6051,7 +6051,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
       l2intf_id = l2intf_entry.l2intf_id;
 
       /* Create virtual port */
-      if (ptin_virtual_port_add(leaf_port,
+      if (ptin_l2intf_create(leaf_port,
                                 evcFlow->uni_ovid, evcFlow->uni_ivid,
                                 int_ovid, evcFlow->int_ivid,
                                 multicast_group,
@@ -6362,7 +6362,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
   ptin_evc_pclientFlow_clean(evc_id, ptin_port, pflow, L7_TRUE);
 
   /* Remove virtual port */
-  if (ptin_virtual_port_remove(ptin_port, pflow->virtual_gport, multicast_group) != L7_SUCCESS)
+  if (ptin_l2intf_remove(ptin_port, pflow->virtual_gport, multicast_group) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error removing virtual port", evc_id);
     return L7_FAILURE;

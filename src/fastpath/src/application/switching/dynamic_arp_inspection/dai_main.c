@@ -1822,7 +1822,7 @@ L7_RC_t daiFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inne
   memset(&fdbEntry, 0, sizeof(fdbEntry));
   if(L7_SUCCESS == fdbFind(vidMac, L7_MATCH_EXACT, &fdbEntry))
   {
-    return daiFrameUnicast(fdbEntry.dot1dTpFdbPort, vlanId, innerVlanId, fdbEntry.dot1dTpFdbVirtualPort, frame, frameLen);
+    return daiFrameUnicast(fdbEntry.dot1dTpFdbPort, vlanId, innerVlanId, fdbEntry.dot1dTpFdbL2intf, frame, frameLen);
   }
 
   /* If Destination mac is not found in FDB table, flood the ARP Request/Reply

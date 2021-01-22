@@ -1631,10 +1631,10 @@ L7_RC_t hapiBroadPtinMulticastEgressPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, voi
   switch (mode->oper)
   {
   case DAPI_CMD_SET:
-    rc = ptin_hapi_multicast_egress_port_add(&mode->multicast_group, mode->multicast_flag, mode->virtual_gport, &dapiPort);
+    rc = ptin_hapi_multicast_egress_port_add(&mode->multicast_group, mode->multicast_flag, mode->l2intf_id, &dapiPort);
     break;
   case DAPI_CMD_CLEAR:
-    rc = ptin_hapi_multicast_egress_port_remove(mode->multicast_group, mode->multicast_flag, mode->virtual_gport, &dapiPort);
+    rc = ptin_hapi_multicast_egress_port_remove(mode->multicast_group, mode->multicast_flag, mode->l2intf_id, &dapiPort);
     break;
   case DAPI_CMD_CLEAR_ALL:
     rc = ptin_hapi_multicast_egress_clean(mode->multicast_group, mode->destroy_on_clear);
@@ -1674,16 +1674,16 @@ L7_RC_t hapiBroadPtinL2intfSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
                                l2intf->ext_ovid, l2intf->ext_ivid,
                                l2intf->int_ovid, l2intf->int_ivid,
                                &l2intf->multicast_group,
-                               &l2intf->virtual_gport, l2intf->port_id, l2intf->type);
+                               &l2intf->l2intf_id, l2intf->port_id, l2intf->type);
 
       if (rc == L7_SUCCESS)
       {
-        rc = ptin_hapi_l2intf_maclimit_setmax(l2intf->virtual_gport, l2intf->macLearnMax);
+        rc = ptin_hapi_l2intf_maclimit_setmax(l2intf->l2intf_id, l2intf->macLearnMax);
       }
     }
     else if (l2intf->cmd == PTIN_VPORT_CMD_MAXMAC_SET)
     {
-      rc = ptin_hapi_l2intf_maclimit_setmax(l2intf->virtual_gport, l2intf->macLearnMax); 
+      rc = ptin_hapi_l2intf_maclimit_setmax(l2intf->l2intf_id, l2intf->macLearnMax); 
     }
     break;
 
@@ -1691,16 +1691,16 @@ L7_RC_t hapiBroadPtinL2intfSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   case DAPI_CMD_CLEAR_ALL:
     if (l2intf->cmd == PTIN_VPORT_CMD_VP_OPER)
     {
-      rc = ptin_hapi_l2intf_remove(&dapiPort, l2intf->ext_ovid, l2intf->ext_ivid, l2intf->virtual_gport, l2intf->multicast_group);
+      rc = ptin_hapi_l2intf_remove(&dapiPort, l2intf->ext_ovid, l2intf->ext_ivid, l2intf->l2intf_id, l2intf->multicast_group);
 
       if (rc == L7_SUCCESS)
       {
-        rc = ptin_hapi_l2intf_maclimit_reset(l2intf->virtual_gport);
+        rc = ptin_hapi_l2intf_maclimit_reset(l2intf->l2intf_id);
       }
     }
     else if (l2intf->cmd == PTIN_VPORT_CMD_MAXMAC_SET)
     {
-      rc = ptin_hapi_l2intf_maclimit_reset(l2intf->virtual_gport);
+      rc = ptin_hapi_l2intf_maclimit_reset(l2intf->l2intf_id);
     }
     break;
 

@@ -162,7 +162,7 @@ extern L7_RC_t ptin_multicast_l2_egress_port_remove(L7_uint32 ptin_port, L7_int 
 extern L7_RC_t ptin_multicast_egress_clean(L7_int mcast_group);
 
 /**
- * Create Virtual port
+ * Create an L2intf
  * 
  * @param ptin_port   : interface to be added 
  * @param ext_ovid    : External outer vlan (GEMid)
@@ -175,7 +175,7 @@ extern L7_RC_t ptin_multicast_egress_clean(L7_int mcast_group);
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_virtual_port_add(L7_uint32 ptin_port,
+extern L7_RC_t ptin_l2intf_create(L7_uint32 ptin_port,
                                      L7_int ext_ovid, L7_int ext_ivid,
                                      L7_int int_ovid, L7_int int_ivid,
                                      L7_int mcast_group,
@@ -183,7 +183,7 @@ extern L7_RC_t ptin_virtual_port_add(L7_uint32 ptin_port,
                                      L7_uint8 macLearnMax);
 
 /**
- * Configure the Maximum Learned MACs foa a Virtual port
+ * Configure the Maximum Learned MACs for an L2intf
  *  
  * @param ptin_port   : interface to be confgured 
  * @param l2intf_id    : l2intf id 
@@ -191,21 +191,21 @@ extern L7_RC_t ptin_virtual_port_add(L7_uint32 ptin_port,
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_virtual_macLearnMax_set(L7_uint32 ptin_port, L7_int l2intf_id, L7_uint8 macLearnMax);
+extern L7_RC_t ptin_l2intf_macLearnMax_set(L7_uint32 ptin_port, L7_int l2intf_id, L7_uint8 macLearnMax);
 
 /**
- * Remove Virtual port
+ * Remove an L2intf
  * 
- * @param ptin_port     : interface to be removed
- * @param virtual_gport : Virtual port id 
- * @param mcast_group   : Multicast group id.
+ * @param ptin_port   : interface to be removed
+ * @param l2intf_id   : l2intf id 
+ * @param mcast_group : Multicast group id.
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_virtual_port_remove(L7_uint32 ptin_port, L7_int virtual_gport, L7_int mcast_group);
+extern L7_RC_t ptin_l2intf_remove(L7_uint32 ptin_port, L7_int l2intf_id, L7_int mcast_group);
 
 /**
- * Remove Virtual port from vlans info
+ * Remove L2intf from vlans info
  * 
  * @param ptin_port   : interface to be removed
  * @param ext_ovid    : External outer vlan 
@@ -214,7 +214,7 @@ extern L7_RC_t ptin_virtual_port_remove(L7_uint32 ptin_port, L7_int virtual_gpor
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_virtual_port_remove_from_vlans(L7_uint32 ptin_port, L7_int ext_ovid, L7_int ext_ivid, L7_int mcast_group);
+extern L7_RC_t ptin_l2intf_remove_from_vlans(L7_uint32 ptin_port, L7_int ext_ovid, L7_int ext_ivid, L7_int mcast_group);
 
 /**
  * Define MAC Learning for a particular Vlan, and its forwarding 

@@ -41,11 +41,11 @@ static L7_RC_t ptin_multicast_group_create(L7_int *mcast_group, L7_uint32 multic
  * @param intIfNum    : interface to be removed
  * @param mcast_group : Multicast group id. 
  * @param multicast_flag: Multicast flags 
- * @param virtual_gport     : Virtual Port Identifier 
+ * @param l2intf_id     : L2intf Identifier 
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-static L7_RC_t ptin_multicast_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group, L7_uint32 multicast_flag, L7_int virtual_gport);
+static L7_RC_t ptin_multicast_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group, L7_uint32 multicast_flag, L7_int l2intf_id);
 
 /**
  * Add ports to Multicast egress
@@ -53,11 +53,11 @@ static L7_RC_t ptin_multicast_egress_port_remove(L7_uint32 intIfNum, L7_int mcas
  * @param intIfNum    : interface to be added
  * @param mcast_group : Multicast group id. 
  * @param multicast_flag: Multicast flags 
- * @param virtual_gport     : Virtual Port Identifier
+ * @param l2intf_id     : L2intf Identifier
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-static L7_RC_t ptin_multicast_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group, L7_uint32 multicast_flag, L7_int virtual_gport);
+static L7_RC_t ptin_multicast_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group, L7_uint32 multicast_flag, L7_int l2intf_id);
 
 /***************************************************************** 
  * EXTERNAL FUNCTIONS IMPLEMENTATION
@@ -472,11 +472,11 @@ L7_RC_t ptin_multicast_group_destroy(L7_int mcast_group)
  * @param intIfNum    : interface to be added
  * @param mcast_group : Multicast group id. 
  * @param multicast_flag: Multicast flags 
- * @param virtual_gport     : Virtual Port
+ * @param l2intf_id     : L2intf identifier
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_multicast_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group, L7_uint32 multicast_flag, L7_int virtual_gport)
+L7_RC_t ptin_multicast_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group, L7_uint32 multicast_flag, L7_int l2intf_id)
 {
   ptin_bridge_vlan_multicast_t mode;
   L7_RC_t rc = L7_SUCCESS;
@@ -491,7 +491,7 @@ L7_RC_t ptin_multicast_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group, L
 
   /* Fill structure */
   mode.oper             = DAPI_CMD_SET;
-  mode.virtual_gport    = virtual_gport;  
+  mode.l2intf_id        = l2intf_id;  
   mode.multicast_group  = mcast_group;
   mode.destroy_on_clear = L7_FALSE;
   mode.multicast_flag   = multicast_flag;
@@ -510,11 +510,11 @@ L7_RC_t ptin_multicast_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group, L
  * @param intIfNum    : interface to be removed
  * @param mcast_group : Multicast group id. 
  * @param multicast_flag: Multicast flags 
- * @param virtual_gport     : Virtual Port Identifier 
+ * @param l2intf_id     : L2intf Identifier 
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_multicast_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group, L7_uint32 multicast_flag, L7_int virtual_gport)
+L7_RC_t ptin_multicast_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group, L7_uint32 multicast_flag, L7_int l2intf_id)
 {
   ptin_bridge_vlan_multicast_t mode;
   L7_RC_t rc = L7_SUCCESS;
@@ -530,7 +530,7 @@ L7_RC_t ptin_multicast_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group
    /* Fill structure */
   memset(&mode, 0x00, sizeof(mode));
   mode.oper             = DAPI_CMD_CLEAR;
-  mode.virtual_gport    = virtual_gport;
+  mode.l2intf_id        = l2intf_id;
   mode.multicast_group  = mcast_group;
   mode.destroy_on_clear = L7_FALSE;
   mode.multicast_flag   = multicast_flag;
@@ -839,7 +839,7 @@ L7_RC_t ptin_multicast_egress_clean(L7_int mcast_group)
 }
 
 /**
- * Create Virtual port
+ * Create an L2intf
  * 
  * @param ptin_port   : interface to be added 
  * @param ext_ovid    : External outer vlan (GEMid)
@@ -852,12 +852,12 @@ L7_RC_t ptin_multicast_egress_clean(L7_int mcast_group)
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_virtual_port_add(L7_uint32 ptin_port,
-                              L7_int ext_ovid, L7_int ext_ivid,
-                              L7_int int_ovid, L7_int int_ivid,
-                              L7_int mcast_group,
-                              L7_int *l2intf_id,
-                              L7_uint8 macLearnMax)
+L7_RC_t ptin_l2intf_create(L7_uint32 ptin_port,
+                           L7_int ext_ovid, L7_int ext_ivid,
+                           L7_int int_ovid, L7_int int_ivid,
+                           L7_int mcast_group,
+                           L7_int *l2intf_id,
+                           L7_uint8 macLearnMax)
 {
   L7_uint32 intIfNum;
   ptin_l2intf_t l2intf;
@@ -889,7 +889,7 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 ptin_port,
   l2intf.int_ivid         = int_ivid;
   l2intf.ext_ovid         = ext_ovid;
   l2intf.ext_ivid         = ext_ivid;
-  l2intf.virtual_gport    = (l2intf_id != L7_NULLPTR) ? *l2intf_id : -1;
+  l2intf.l2intf_id        = (l2intf_id != L7_NULLPTR) ? *l2intf_id : -1;
   l2intf.multicast_group  = mcast_group;
   l2intf.macLearnMax      = macLearnMax;
 
@@ -908,29 +908,29 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 ptin_port,
 #endif //NGPON2_SUPPORTED
 
   /* DTL call */
-  rc = dtlPtinVirtualPort(intIfNum, &l2intf);
+  rc = dtlPtinL2intf(intIfNum, &l2intf);
 
   if (rc == L7_SUCCESS)
   {
-    if (l2intf.virtual_gport <= 0)
+    if (l2intf.l2intf_id <= 0)
     {
-      PT_LOG_ERR(LOG_CTX_API, "Finished: Invalid l2intf id %d (MC group=%d)", rc, l2intf.virtual_gport, l2intf.multicast_group);
+      PT_LOG_ERR(LOG_CTX_API, "Finished: Invalid l2intf id %d (MC group=%d)", rc, l2intf.l2intf_id, l2intf.multicast_group);
       return L7_FAILURE;
     }
     /* Return l2intf id */
     if (l2intf_id != L7_SUCCESS)
     {
-      *l2intf_id = l2intf.virtual_gport;
+      *l2intf_id = l2intf.l2intf_id;
     }
   }
 
-  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d (new MC group=%d, l2intf_id=%d)", rc, l2intf.multicast_group, l2intf.virtual_gport);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d (new MC group=%d, l2intf_id=%d)", rc, l2intf.multicast_group, l2intf.l2intf_id);
 
   return rc;
 }
 
 /**
- * Configure the Maximum Learned MACs foa a Virtual port
+ * Configure the Maximum Learned MACs for an L2intf
  * 
  * @param ptin_port   : interface to be confgured
  * @param l2intf_id   : l2intf id 
@@ -938,7 +938,7 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 ptin_port,
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_virtual_macLearnMax_set(L7_uint32 ptin_port, L7_int l2intf_id, L7_uint8 macLearnMax)
+L7_RC_t ptin_l2intf_macLearnMax_set(L7_uint32 ptin_port, L7_int l2intf_id, L7_uint8 macLearnMax)
 {
   L7_uint32 intIfNum;
   ptin_l2intf_t l2intf;
@@ -957,34 +957,34 @@ L7_RC_t ptin_virtual_macLearnMax_set(L7_uint32 ptin_port, L7_int l2intf_id, L7_u
 
   if ( macLearnMax != (L7_uint8)-1 )
   {
-      l2intf.oper         = DAPI_CMD_SET;
+      l2intf.oper    = DAPI_CMD_SET;
   }
   else
   {
-      l2intf.oper         = DAPI_CMD_CLEAR;
+      l2intf.oper    = DAPI_CMD_CLEAR;
   }
-  l2intf.cmd              = PTIN_VPORT_CMD_MAXMAC_SET;
-  l2intf.virtual_gport    = l2intf_id;
-  l2intf.macLearnMax      = macLearnMax;
+  l2intf.cmd         = PTIN_VPORT_CMD_MAXMAC_SET;
+  l2intf.l2intf_id   = l2intf_id;
+  l2intf.macLearnMax = macLearnMax;
 
   /* DTL call */
-  rc = dtlPtinVirtualPort(intIfNum, &l2intf);
+  rc = dtlPtinL2intf(intIfNum, &l2intf);
 
-  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d (new MC group=%d, l2intf=%d)", rc, l2intf.multicast_group, l2intf.virtual_gport);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d (new MC group=%d, l2intf=%d)", rc, l2intf.multicast_group, l2intf.l2intf_id);
 
   return rc;
 }
 
 /**
- * Remove Virtual port
+ * Remove an L2intf
  * 
- * @param ptin_port     : interface to be removed
- * @param virtual_gport : Virtual port id 
- * @param mcast_group   : Multicast group id.
+ * @param ptin_port   : interface to be removed
+ * @param l2intf_id   : l2intf id 
+ * @param mcast_group : Multicast group id.
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_virtual_port_remove(L7_uint32 ptin_port, L7_int virtual_gport, L7_int mcast_group)
+L7_RC_t ptin_l2intf_remove(L7_uint32 ptin_port, L7_int l2intf_id, L7_int mcast_group)
 {
   L7_uint32 intIfNum;
   ptin_l2intf_t l2intf;
@@ -992,13 +992,13 @@ L7_RC_t ptin_virtual_port_remove(L7_uint32 ptin_port, L7_int virtual_gport, L7_i
 
   /* Validate arguments */
   if ( ptin_port >= PTIN_SYSTEM_N_INTERF ||
-       virtual_gport <= 0 || mcast_group <= 0)
+       l2intf_id <= 0 || mcast_group <= 0)
   {
     PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
     return L7_FAILURE;
   }
-  PT_LOG_TRACE(LOG_CTX_API, "ptin_port=%u, virtual_gport=%d, mcast_group=%u",
-               ptin_port, virtual_gport, mcast_group);
+  PT_LOG_TRACE(LOG_CTX_API, "ptin_port=%u, l2intf_id=%d, mcast_group=%u",
+               ptin_port, l2intf_id, mcast_group);
 
   /* Convert to intIfNum */
   if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
@@ -1014,12 +1014,12 @@ L7_RC_t ptin_virtual_port_remove(L7_uint32 ptin_port, L7_int virtual_gport, L7_i
   l2intf.int_ivid         = -1;
   l2intf.ext_ovid         = -1;
   l2intf.ext_ivid         = -1;
-  l2intf.virtual_gport    = virtual_gport;
+  l2intf.l2intf_id        = l2intf_id;
   l2intf.multicast_group  = mcast_group;
   l2intf.macLearnMax      = (L7_uint8) -1;
 
   /* DTL call */
-  rc = dtlPtinVirtualPort(intIfNum, &l2intf);
+  rc = dtlPtinL2intf(intIfNum, &l2intf);
 
   PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d", rc);
 
@@ -1027,7 +1027,7 @@ L7_RC_t ptin_virtual_port_remove(L7_uint32 ptin_port, L7_int virtual_gport, L7_i
 }
 
 /**
- * Remove Virtual port from vlans info
+ * Remove L2intf from vlans info
  * 
  * @param ptin_port   : interface to be removed
  * @param ext_ovid    : External outer vlan 
@@ -1036,7 +1036,7 @@ L7_RC_t ptin_virtual_port_remove(L7_uint32 ptin_port, L7_int virtual_gport, L7_i
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_virtual_port_remove_from_vlans(L7_uint32 ptin_port, L7_int ext_ovid, L7_int ext_ivid, L7_int mcast_group)
+L7_RC_t ptin_l2intf_remove_from_vlans(L7_uint32 ptin_port, L7_int ext_ovid, L7_int ext_ivid, L7_int mcast_group)
 {
   L7_uint32 intIfNum;
   ptin_l2intf_t l2intf;
@@ -1061,16 +1061,16 @@ L7_RC_t ptin_virtual_port_remove_from_vlans(L7_uint32 ptin_port, L7_int ext_ovid
   }
 
   /* Fill structure */
-  l2intf.oper             = DAPI_CMD_CLEAR;
-  l2intf.int_ovid         = -1;
-  l2intf.int_ivid         = -1;
-  l2intf.ext_ovid         = ext_ovid;
-  l2intf.ext_ivid         = ext_ivid;
-  l2intf.virtual_gport    = -1;
-  l2intf.multicast_group  = mcast_group;
+  l2intf.oper            = DAPI_CMD_CLEAR;
+  l2intf.int_ovid        = -1;
+  l2intf.int_ivid        = -1;
+  l2intf.ext_ovid        = ext_ovid;
+  l2intf.ext_ivid        = ext_ivid;
+  l2intf.l2intf_id       = -1;
+  l2intf.multicast_group = mcast_group;
 
   /* DTL call */
-  rc = dtlPtinVirtualPort(intIfNum, &l2intf);
+  rc = dtlPtinL2intf(intIfNum, &l2intf);
 
   PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d", rc);
 

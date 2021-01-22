@@ -704,7 +704,7 @@ typedef struct
   L7_int    vlanId;             /* Vlan Id (-1 to be applied on egress ports) */
   L7_int    multicast_group;    /* Multicast group id (-1 to be created) */
   L7_BOOL   destroy_on_clear;   /* Destroy MC group, if oper is CLEAR */
-  L7_int    virtual_gport; 
+  L7_int    l2intf_id; 
   L7_uint32 multicast_flag;     /* BCM_MULTICAST_TYPE_VLAN  | BCM_MULTICAST_TYPE_L3*/    
 } ptin_bridge_vlan_multicast_t;
 
@@ -724,7 +724,7 @@ typedef struct
   L7_int ext_ivid;
   L7_int int_ovid;
   L7_int int_ivid;
-  L7_int virtual_gport;
+  L7_int l2intf_id;
   L7_int multicast_group;
   L7_uint8 macLearnMax;
   L7_int  port_id;

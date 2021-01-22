@@ -255,7 +255,7 @@ L7_RC_t ptin_l2_mac_table_load(void)
     PT_LOG_TRACE(LOG_CTX_L2, "type=%u intIfNum=%u vp=0x%x fdbAddress=%02x:%02x/%02x:%02x:%02x:%02x:%02x:%02x",
               fdbEntry.dot1dTpFdbEntryType,
               fdbEntry.dot1dTpFdbPort,
-              fdbEntry.dot1dTpFdbVirtualPort,
+              fdbEntry.dot1dTpFdbL2intf,
               fdbEntry.dot1dTpFdbAddress[0], fdbEntry.dot1dTpFdbAddress[1],
               fdbEntry.dot1dTpFdbAddress[2], fdbEntry.dot1dTpFdbAddress[3], fdbEntry.dot1dTpFdbAddress[4], fdbEntry.dot1dTpFdbAddress[5], fdbEntry.dot1dTpFdbAddress[6], fdbEntry.dot1dTpFdbAddress[7]);
 
@@ -281,15 +281,15 @@ L7_RC_t ptin_l2_mac_table_load(void)
     {
         l2intf_entry_t l2intf_entry;
 
-        if (l2intf_db_data_get(fdbEntry.dot1dTpFdbVirtualPort, &l2intf_entry) != L7_SUCCESS)
+        if (l2intf_db_data_get(fdbEntry.dot1dTpFdbL2intf, &l2intf_entry) != L7_SUCCESS)
         {
-            PT_LOG_WARN(LOG_CTX_L2,"PON&GEMid for intIfNum %lu / vport %lu not found",fdbEntry.dot1dTpFdbPort,fdbEntry.dot1dTpFdbVirtualPort);
+            PT_LOG_WARN(LOG_CTX_L2,"PON&GEMid for intIfNum %lu / vport %lu not found",fdbEntry.dot1dTpFdbPort,fdbEntry.dot1dTpFdbL2intf);
             continue;
         }
         else
         {
           PT_LOG_TRACE(LOG_CTX_L2,"intIfNum %lu / vport %u, PON=%u/%u GEMid=%u",
-                       fdbEntry.dot1dTpFdbPort, fdbEntry.dot1dTpFdbVirtualPort,
+                       fdbEntry.dot1dTpFdbPort, fdbEntry.dot1dTpFdbL2intf,
                        l2intf_entry.pon.intf_type, l2intf_entry.pon.intf_id, l2intf_entry.gem_id);
           ptin_intf = l2intf_entry.pon;
           (void) ptin_intf_virtualVid2GemVid(l2intf_entry.gem_id, &gem_id);
@@ -546,7 +546,7 @@ L7_RC_t ptin_l2_mac_table_entry_remove( ptin_switch_mac_entry *entry )
   fdbMemberInfo.vlanId = vlanId;
   memcpy(fdbMemberInfo.macAddr, entry->addr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
   fdbMemberInfo.intIfNum    = fdbEntry.dot1dTpFdbPort;
-  fdbMemberInfo.virtualPort = fdbEntry.dot1dTpFdbVirtualPort;
+  fdbMemberInfo.l2intf_id = fdbEntry.dot1dTpFdbL2intf;
   fdbMemberInfo.entryType   = fdbEntry.dot1dTpFdbEntryType;
 
   /* Remove Entry */
