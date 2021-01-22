@@ -11745,7 +11745,7 @@ L7_RC_t ptin_igmp_stat_intf_get(ptin_intf_t *ptin_intf, PTIN_MGMD_CTRL_STATS_RES
   } 
 
   /* Request port statistics to MGMD */
-  mgmdStatsReqMsg.portId = ptin_port;
+  mgmdStatsReqMsg.portId = ptin_port+1;
   ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_INTF_STATS_GET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsReqMsg, sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t));
   ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
   ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
@@ -11959,7 +11959,7 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
           device_client->igmpClientDataKey.outerVlan == clientGroup->igmpClientDataKey.outerVlan )
        {
         /* Request client statistics to MGMD */
-        mgmdStatsReqMsg.portId   = ptin_port;
+        mgmdStatsReqMsg.portId   = ptin_port+1;
         mgmdStatsReqMsg.clientId = device_client->deviceClientId;
         ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_GET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsReqMsg, sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t));
         ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
@@ -12035,7 +12035,7 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
    /* Request client statistics to MGMD */
     while ( iteration < PTIN_IGMP_CLIENT_BITMAP_SIZE)
     {
-      mgmdStatsReqMsg.portId   = ptin_port;
+      mgmdStatsReqMsg.portId   = ptin_port+1;
       mgmdStatsReqMsg.clientId = clientGroup->client_bmp[iteration];
 
       ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_GET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsReqMsg, sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t));
