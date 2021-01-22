@@ -1276,14 +1276,17 @@ ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_
   /* Get port speed */
   hapiBroadIntfSpeedGet(hapiPortPtr, &portSpeed);
 
-  PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, bcm_unit %u bcm_port %u, queueSet %u, tc %d: rate_min=%u kbps, rate_max=%u kbps, burst_size=%u bytes",
+  PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, bcm_unit %u bcm_port %u, queueSet %u, tc %d: portSpeed=%u, rate_min=%u kbps, rate_max=%u kbps, burst_size=%u bytes",
                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, 
-               hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
-               queueSet, tc, rate_min, rate_max, burst_size);
+               hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, queueSet, tc,
+               portSpeed, rate_min, rate_max, burst_size);
 
   /* Port Level */
-  if (queueSet == L7_QOS_QSET_DEFAULT ||
-      queueSet == L7_QOS_QSET_PORT)
+  if (queueSet == L7_QOS_QSET_PORT
+#if (PLAT_BCM_CHIP != L7_BCM_TRIDENT3_X3)
+      || queueSet == L7_QOS_QSET_DEFAULT  /* This validation is only applicable for non TC16SXG boards */
+#endif
+     )
   {
     /* All traffic classes (port configuration) */
     if (tc < 0 /*All TCs*/)
@@ -1348,6 +1351,8 @@ ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_
       return L7_FAILURE;
     }
 
+    /* FIXME: For now, bust size will not be configured */
+#if 0
     /* For now, burst size will only be applied to the port level */
 #if 1
     if (tc < 0 /*All TCs*/)
@@ -1386,8 +1391,10 @@ ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_
       return L7_FAILURE;
     }
 #endif
-    PT_LOG_TRACE(LOG_CTX_QOS, "bcm_unit %u, bcm_port %u, qos_gport 0x%x: Success applying shaper with rate_min=%u, rate_max=%u, burst_size=%u.",
-                 hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, qos_gport, rate_min, rate_max, burst_size);
+#endif
+
+    PT_LOG_INFO(LOG_CTX_QOS, "bcm_unit %u, bcm_port %u, queueSet %u, tc %d: qos_gport 0x%x -> Shaper applied with rate_min=%u, rate_max=%u, burst_size=%u",
+                hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, queueSet, tc, qos_gport, rate_min, rate_max, burst_size);
   }
 #else /*(PLAT_BCM_CHIP == L7_BCM_TRIDENT3_X3)*/
   else
@@ -2286,7 +2293,7 @@ L7_RC_t ptin_hapi_qos_gport_get(ptin_dapi_port_t *dapiPort,
   hapiPortPtr = HAPI_PORT_GET( dapiPort->usp, dapiPort->dapi_g );
   usp_port = dapiPort->usp->port;
 
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+#if (PLAT_BCM_CHIP == L7_BCM_TRIDENT3_X3)
     switch (queueSet)
     {
         case L7_QOS_QSET_PORT:
@@ -2297,7 +2304,7 @@ L7_RC_t ptin_hapi_qos_gport_get(ptin_dapi_port_t *dapiPort,
             {
                 unsigned int id1;
 
-                id1 = (L7_QOS_QSET_WIRELESS == queueSet) ? 0: 1;
+                id1 = (L7_QOS_QSET_WIRELESS == queueSet) ? 1: 0;
                 if (tc < 0 || tc >= N_iL2s)
                 {
                     *gport = HQoS[usp_port].L1[id1].SE;
@@ -2342,7 +2349,7 @@ L7_RC_t ptin_hapi_qos_gport_get(ptin_dapi_port_t *dapiPort,
  * @return void 
  */
 void ptin_hapi_qos_gport_dump(L7_uint32 usp_port) {
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#if (PLAT_BCM_CHIP != L7_BCM_TRIDENT3_X3)
     printf("Sorry. Feature unavailable.\r\n");
     return;
 #else

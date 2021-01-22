@@ -5817,17 +5817,19 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     /* Wired and Wireless queues */
     for (queueSet = 0; queueSet < L7_QOS_QSET_MAX && rc == L7_SUCCESS; queueSet++)
     {
+      /* L2intf data qualifier*/
+      if (queueSet == L7_QOS_QSET_WIRELESS) /* Wireless Queues */
+      {
+        BCM_GPORT_VLAN_PORT_ID_SET(l2intf_data, L2INTF_ID_MAX_PER_QUEUE);
+      }
+      else  /* Wired Queues */
+      {
+        BCM_GPORT_VLAN_PORT_ID_SET(l2intf_data, 1);
+      }
+
       /* Run all 8 wired + 8 wireless queues */
       for (tc = 0; tc < 8 && rc == L7_SUCCESS; tc++)
       {
-        if (queueSet == L7_QOS_QSET_WIRELESS) /* Wireless Queues */
-        {
-          BCM_GPORT_VLAN_PORT_ID_SET(l2intf_data, L2INTF_ID_MAX_PER_QUEUE);
-        }
-        else  /* Wired Queues */
-        {
-          BCM_GPORT_VLAN_PORT_ID_SET(l2intf_data, 1);
-        }
         intpri_data = tc;
 
         /* Queue index to be used at the FP rule action:
@@ -5839,13 +5841,17 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
         if (rc != L7_SUCCESS)  break;
         rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_L2INTF_ID, (L7_uchar8 *)&l2intf_data, (L7_uchar8 *)&l2intf_mask);
         if (rc != L7_SUCCESS)  break;
-        rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INT_PRIO, (L7_uchar8 *)&intpri_data, (L7_uchar8 *)&intpri_mask);
-        if (rc != L7_SUCCESS)  break;
+        if (tc < 7) /* Don't apply this qualifier for TC 8: This will be the default for queue for TC>=7 */
+        {
+          rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INT_PRIO, (L7_uchar8 *)&intpri_data, (L7_uchar8 *)&intpri_mask);
+          if (rc != L7_SUCCESS)  break;
+        }
         rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_UCOSQ, queue_index, 0, 0);
         if (rc != L7_SUCCESS)  break;
       }
     }
 
+    /* Check if error */
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_STARTUP, "Error configurating rule");
