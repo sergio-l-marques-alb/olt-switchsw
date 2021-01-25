@@ -4800,7 +4800,17 @@ L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table, int struct1o
     {
       memcpy(mac_table->entry[i].addr, entries_list[i].addr, sizeof(L7_uint8)*6);
       mac_table->entry[i].evcId          = entries_list[i].evcId;
-      mac_table->entry[i].vlanId         = entries_list[i].vlanId;
+      if ( (entries_list[i].vlanId == PTIN_VLAN_INBAND)) 
+      {
+          if (ptin_evc_get_NNIvlan_fromEvcId(entries_list[i].evcId, &mac_table->entry[i].vlanId) != L7_SUCCESS)
+          {
+              PT_LOG_ERR(LOG_CTX_MSG,"Error getting NNIvlan from evc");
+          }
+      }
+      else
+      {
+          mac_table->entry[i].vlanId         = entries_list[i].vlanId;
+      }
       mac_table->entry[i].intf.intf_type = entries_list[i].intf.intf_type;
       mac_table->entry[i].intf.intf_id   = entries_list[i].intf.intf_id;
       mac_table->entry[i].gem_id         = entries_list[i].gem_id;
