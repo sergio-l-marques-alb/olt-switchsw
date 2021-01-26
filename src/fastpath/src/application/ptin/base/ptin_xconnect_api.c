@@ -367,7 +367,6 @@ L7_RC_t ptin_multicast_group_l2_create(L7_int *mcast_group)
  */
 L7_RC_t ptin_multicast_group_vlan_create(L7_int *mcast_group)
 {
-  L7_int  mcastGroup = -1;
   L7_RC_t rc = L7_SUCCESS;
 
   /* Validate arguments */
@@ -377,16 +376,14 @@ L7_RC_t ptin_multicast_group_vlan_create(L7_int *mcast_group)
     return L7_FAILURE;
   }
 
-  rc = ptin_multicast_group_create(&mcastGroup, BCM_MULTICAST_TYPE_VLAN);
+  rc = ptin_multicast_group_create(mcast_group, BCM_MULTICAST_TYPE_VLAN);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_API, "Failed to Create Multicast Group: rc=%d", rc);
     return rc;
   }
 
-  *mcast_group = mcastGroup;
-  
-  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d (new MC group=%d)", rc, mcastGroup);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d (new MC group=%d)", rc, *mcast_group);
 
   return rc;
 }

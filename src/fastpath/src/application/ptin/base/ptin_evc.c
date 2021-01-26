@@ -220,7 +220,7 @@ struct ptin_evc_s {
                              */
   //struct ptin_evc_client_s *client_ref[4096];   /* Direct reference to clients information */
 
-  L7_int multicast_group;   /* Multicast group associated to thi service */
+  L7_int mcgroup;           /* Multicast group associated to this service (only GPON ports) */
 
   #if PTIN_IGMP_STATS_IN_EVCS
   /* IGMP statistics */
@@ -1891,7 +1891,7 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_uint
   /* Interface is leaf? */
   if (evcs[evc_int_id].intf[ptin_port].type == PTIN_EVC_INTF_LEAF)
   {
-  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     /* Look to clients/flows for Quattro or standard stacked evcs: */
     if (IS_EVC_QUATTRO(evc_int_id))
     {
@@ -1906,7 +1906,7 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_uint
       ivid = pclientFlow->uni_ivid;
     }
     else
-  #endif
+#endif
     if (IS_EVC_STACKED(evc_int_id))
     {
       /* Find this client vlan in EVC */
@@ -2802,12 +2802,12 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   }
 
   is_p2p         = (evcConf->flags & PTIN_EVC_MASK_P2P            ) == PTIN_EVC_MASK_P2P;
-  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   is_quattro     = (evcConf->flags & PTIN_EVC_MASK_QUATTRO        ) == PTIN_EVC_MASK_QUATTRO;
-  #else
+#else
   is_quattro     = 0;
   evcConf->flags &= ~((L7_uint32) PTIN_EVC_MASK_QUATTRO);
-  #endif
+#endif
   is_stacked     = (evcConf->flags & PTIN_EVC_MASK_STACKED        ) == PTIN_EVC_MASK_STACKED;
   maclearning    = (evcConf->flags & PTIN_EVC_MASK_MACLEARNING    ) == PTIN_EVC_MASK_MACLEARNING;
   dhcpv4_enabled = (evcConf->flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL) == PTIN_EVC_MASK_DHCPV4_PROTOCOL;
@@ -2830,12 +2830,12 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   /* Check if this EVC is allowd to be QUATTRO type */
   if (is_quattro)
   {
-    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: This is a QUATTRO EVC", evc_ext_id);
-    #else
+#else
     PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u: Flows not available for this board", evc_ext_id);
     return L7_FAILURE;
-    #endif
+#endif
   }
 
   /* Get the number of Roots and Leafs of received msg (for validation purposes) */
@@ -3026,13 +3026,12 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     /* For stacked EVCs, we need to enable forwarding mode to OVID(+IVID) */
     ptin_crossconnect_enable(root_vlan, (evc_type==PTIN_EVC_TYPE_STD_P2P && !cpu_trap) /* Bitstream services */, is_stacked);
 
-    /* Virtual ports: Create Multicast group */
     multicast_group = -1;
-
     
-    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     if (is_quattro)          
     {
+      /* Create Multicast group for L2intf's */
       rc = ptin_multicast_group_vlan_create(&multicast_group);
       if (rc != L7_SUCCESS)
       {
@@ -3041,7 +3040,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       }
       else
       {
-        PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Multicast group %u created", evc_id, multicast_group);
+        PT_LOG_INFO(LOG_CTX_EVC, "EVC# %u: Multicast group %u created", evc_id, multicast_group);
       }
 
       if (error == L7_SUCCESS)
@@ -3060,7 +3059,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       }
     }    
     else
-    #endif
+#endif
     {
       #if 0
       if (iptv_enabled)
@@ -3090,7 +3089,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       evcs[evc_id].queue_free_vlans = freeVlan_queue;
       evcs[evc_id].p2p_port1_intf   = p2p_port1;
       evcs[evc_id].p2p_port2_intf   = p2p_port2;
-      evcs[evc_id].multicast_group  = multicast_group;
+      evcs[evc_id].mcgroup          = multicast_group;
       evcs[evc_id].queue_type       = queue_type;   
 
       PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: Adding interfaces", evc_ext_id);
@@ -3148,11 +3147,11 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     /* Successfull creation */
     if (error == L7_SUCCESS)
     {
-      #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
       /* Count number of QUATTRO P2P evcs */
       INCREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_evcs);
       /* Update number of IGMP QUATTRO-P2P evcs */
-      #endif
+#endif
     }
   }
   /* EVC is in use: ONLY allow adding or removing ports */
@@ -3169,9 +3168,9 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
 
     /* Status variables: Do not allow to be changed */
     is_p2p         = (evcs[evc_id].flags & PTIN_EVC_MASK_P2P    ) == PTIN_EVC_MASK_P2P;
-    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     is_quattro     = (evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == PTIN_EVC_MASK_QUATTRO;
-    #endif
+#endif
     is_stacked     = (evcs[evc_id].flags & PTIN_EVC_MASK_STACKED) == PTIN_EVC_MASK_STACKED;
     /* The remaining variables allow to be updated */
 
@@ -3382,32 +3381,32 @@ _ptin_evc_create1:
     ptin_evc_intf_remove_all(evc_id);
 
     if ( ((iptv_enabled) 
-          #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
           || (is_quattro)
-          #endif
-          ) && evcs[evc_id].multicast_group > 0)
+#endif
+          ) && evcs[evc_id].mcgroup > 0)
     {
-      #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
       if (is_quattro)
       {
         /* Virtual ports: Configure multicast group for the vlan */
-        if (ptin_vlanBridge_multicast_clear(root_vlan, evcs[evc_id].multicast_group)!=L7_SUCCESS)
+        if (ptin_vlanBridge_multicast_clear(root_vlan, evcs[evc_id].mcgroup)!=L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error configuring Multicast replication for VLAN %u (mcgroup=%u)", evc_id, root_vlan, evcs[evc_id].multicast_group);
+          PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error configuring Multicast replication for VLAN %u (mcgroup=%u)", evc_id, root_vlan, evcs[evc_id].mcgroup);
           //return L7_FAILURE;
         }
-        PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, root_vlan, evcs[evc_id].multicast_group);
+        PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, root_vlan, evcs[evc_id].mcgroup);
       }
-      #endif
+#endif
       /*  Destroy Multicast group */
-      if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
+      if (ptin_multicast_group_destroy(evcs[evc_id].mcgroup)!=L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error destroying Multicast group %u", evc_id, evcs[evc_id].multicast_group);
+        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error destroying Multicast group %u", evc_id, evcs[evc_id].mcgroup);
         //return L7_FAILURE;/*Operation still running*/
       }
-      PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed multicast mc_group %d", evc_id, evcs[evc_id].multicast_group);
+      PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed multicast mc_group %d", evc_id, evcs[evc_id].mcgroup);
     }
-    evcs[evc_id].multicast_group = -1; 
+    evcs[evc_id].mcgroup = -1; 
 
     ptin_evc_vlan_free(root_vlan, freeVlan_queue);
     ptin_evc_entry_free(evc_ext_id);
@@ -4081,32 +4080,32 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
   }
 
   if ( ((evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV)
-                    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED                    
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED                    
                     || (IS_EVC_QUATTRO(evc_id)) 
-                    #endif
-     ) && evcs[evc_id].multicast_group > 0)
+#endif
+     ) && evcs[evc_id].mcgroup > 0)
   { 
-    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     if (IS_EVC_QUATTRO(evc_id))
     {
       /* Virtual ports: Configure multicast group for the vlan */
-      rc = ptin_vlanBridge_multicast_clear(evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+      rc = ptin_vlanBridge_multicast_clear(evcs[evc_id].rvlan, evcs[evc_id].mcgroup);
       if (rc != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error removing Multicast replication for VLAN %u (mc_group=0x%08x)", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error removing Multicast replication for VLAN %u (mc_group=0x%08x)", evc_id, evcs[evc_id].rvlan, evcs[evc_id].mcgroup);
         //return rc;
       }
-      PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed multicast replication for vlan %u / mc_group 0x%08x", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+      PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed multicast replication for vlan %u / mc_group 0x%08x", evc_id, evcs[evc_id].rvlan, evcs[evc_id].mcgroup);
     }       
-    #endif
+#endif
     /*  Destroy Multicast group */
-    rc = ptin_multicast_group_destroy(evcs[evc_id].multicast_group);
+    rc = ptin_multicast_group_destroy(evcs[evc_id].mcgroup);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error destroying mc_group 0x%08x", evc_id, evcs[evc_id].multicast_group);
+      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error destroying mc_group 0x%08x", evc_id, evcs[evc_id].mcgroup);
       //return rc;/*Operation still running*/
     }
-    PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed mc_group 0x%08x", evc_id, evcs[evc_id].multicast_group);
+    PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed mc_group 0x%08x", evc_id, evcs[evc_id].mcgroup);
 
     /* Remove all configured interfaces */
     for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
@@ -4116,16 +4115,16 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
 
       ptin_igmp_snooping_channel_reset(evcs[evc_id].rvlan, i);
 
-      PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Succefully channel snooping reset 0x%08x", evc_id, evcs[evc_id].multicast_group);
+      PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Succefully channel snooping reset 0x%08x", evc_id, evcs[evc_id].mcgroup);
     }
 
   }  
-  evcs[evc_id].multicast_group = -1;
+  evcs[evc_id].mcgroup = -1;
 
-  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   /* Update number of QUATTRO-P2P evcs */
   DECREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_evcs);
-  #endif
+#endif
 
   ptin_evc_vlan_free(evcs[evc_id].rvlan, evcs[evc_id].queue_free_vlans);
 
@@ -4319,40 +4318,40 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
     }
 
     if ( ((evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV)
-          #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED                    
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED                    
           || (IS_EVC_QUATTRO(evc_id)) 
-          #endif
-         ) &&  evcs[evc_id].multicast_group > 0)
+#endif
+         ) &&  evcs[evc_id].mcgroup > 0)
     {
-      #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
       if (IS_EVC_QUATTRO(evc_id))
       {
         /* Virtual ports: Configure multicast group for the vlan */
-        rc = ptin_vlanBridge_multicast_clear(evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+        rc = ptin_vlanBridge_multicast_clear(evcs[evc_id].rvlan, evcs[evc_id].mcgroup);
         if (rc != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error removing Multicast replication for VLAN %u (mc_group=0x%08x)", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+          PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error removing Multicast replication for VLAN %u (mc_group=0x%08x)", evc_id, evcs[evc_id].rvlan, evcs[evc_id].mcgroup);
           //return rc;
         }
-        PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed multicast replication for vlan %u / mc_group 0x%08x", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+        PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed multicast replication for vlan %u / mc_group 0x%08x", evc_id, evcs[evc_id].rvlan, evcs[evc_id].mcgroup);
       }      
-      #endif
+#endif
 
       /* Destroy Multicast group */
-      rc = ptin_multicast_group_destroy(evcs[evc_id].multicast_group);
+      rc = ptin_multicast_group_destroy(evcs[evc_id].mcgroup);
       if (rc != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error destroying mc_group 0x%08x", evc_id, evcs[evc_id].multicast_group);
+        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error destroying mc_group 0x%08x", evc_id, evcs[evc_id].mcgroup);
         //return rc;/*Operation still running*/
       }
-      PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed mc_group 0x%08x", evc_id, evcs[evc_id].multicast_group);
+      PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed mc_group 0x%08x", evc_id, evcs[evc_id].mcgroup);
     }  
-    evcs[evc_id].multicast_group = -1;
+    evcs[evc_id].mcgroup = -1;
 
-    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     /* Update number of QUATTRO-P2P evcs */
     DECREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_evcs);
-    #endif
+#endif
 
     ptin_evc_vlan_free(evcs[evc_id].rvlan, evcs[evc_id].queue_free_vlans);
     ptin_evc_entry_free(evc_ext_id);
@@ -6019,7 +6018,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     int_ovid = evcs[evc_id].intf[leaf_port].int_vlan;
 
     /* Multicast group */
-    multicast_group = evcs[evc_id].multicast_group;
+    multicast_group = evcs[evc_id].mcgroup;
 
     /* Check if flow entry already exists */
     ptin_evc_find_flow(evcFlow->uni_ovid, &evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t**) &pflow);
@@ -6244,10 +6243,10 @@ L7_RC_t ptin_evc_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
     return L7_FAILURE;
   }
 
-  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   /* Remove flow */
   rc = ptin_evc_flow_unconfig(evc_id, leaf_port, evcFlow->uni_ovid);
-  #endif
+#endif
 
   return rc;
 }
@@ -6351,7 +6350,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
   }
 
   /* Multicast group */
-  multicast_group = evcs[evc_id].multicast_group;
+  multicast_group = evcs[evc_id].mcgroup;
 
   /* Get client inner vlan */
   client_vlan = pflow->int_ivid;
@@ -6896,9 +6895,9 @@ L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref,
       {
         if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE,
                                     !iptv_enabled
-                                    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
                                     && SINGLE_INSTANCE(evc_id, n_quattro_igmp_evcs)
-                                    #endif
+#endif
                                    ) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error removing evc from IGMP instance", evc_id);
@@ -6908,9 +6907,9 @@ L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref,
         {
           PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed evc from IGMP instance", evc_id);
           evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_IGMP_PROTOCOL);
-          #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
           DECREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
-          #endif
+#endif
         }
       }
 
@@ -6943,9 +6942,9 @@ L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref,
       {
         if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE,
                                     !iptv_enabled 
-                                    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
                                     && NO_INSTANCE(evc_id, n_quattro_igmp_evcs)
-                                    #endif
+#endif
                                    ) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error adding evc to IGMP instance", evc_id);
@@ -6957,18 +6956,18 @@ L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref,
 
           /* Update IGMP flags */
           evcs[evc_id].flags |= PTIN_EVC_MASK_IGMP_PROTOCOL;
-          #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
           INCREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
-          #endif
+#endif
         }
       }
       else if (!igmp_enabled && (!look_to_counters || evcs[evc_id].n_clientflows_igmp == 1))
       {
         if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE,
                                     !iptv_enabled 
-                                    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
                                     && SINGLE_INSTANCE(evc_id, n_quattro_igmp_evcs)
-                                    #endif
+#endif
                                    ) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error removing evc from IGMP instance", evc_id);
@@ -6980,9 +6979,9 @@ L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref,
 
           /* Update IGMP flags */
           evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_IGMP_PROTOCOL);
-          #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
           DECREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
-          #endif
+#endif
         }
       }
 
@@ -8106,7 +8105,7 @@ L7_RC_t ptin_evc_intfclientsflows_remove( L7_uint evc_id, L7_uint8 intf_type, L7
       rc = L7_FAILURE;
     }
 
-    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     /* For QUATTRO services, we have flows instead of bridges */
     if (IS_EVC_QUATTRO(evc_id))
     {
@@ -8119,7 +8118,7 @@ L7_RC_t ptin_evc_intfclientsflows_remove( L7_uint evc_id, L7_uint8 intf_type, L7
       }
     }
     else
-    #endif
+#endif
     {
       bridge.intf.vid = pclientFlow->uni_ovid;
       bridge.inn_vlan = pclientFlow->int_ivid;
@@ -8683,7 +8682,7 @@ L7_RC_t ptin_evc_client_next( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, ptin
   /* Reset pclient */
   pclient = L7_NULLPTR;
 
-  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   if (IS_EVC_QUATTRO(evc_id))
   {
     vid_ref = (clientFlow!=L7_NULLPTR) ? clientFlow->uni_ovid : 0;
@@ -8692,7 +8691,7 @@ L7_RC_t ptin_evc_client_next( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, ptin
     ptin_evc_find_flow(vid_ref, &(evcs[evc_id].intf[intf_idx].clients), (dl_queue_elem_t **) &pclient);
   }
   else
-  #endif
+#endif
   if (IS_EVC_STACKED(evc_id))
   {
     vid_ref = (clientFlow!=L7_NULLPTR) ? clientFlow->int_ivid : 0;
@@ -9604,7 +9603,7 @@ L7_RC_t ptin_evc_l3_multicast_group_get(L7_uint32 evc_ext_id, L7_int *multicast_
     return L7_FAILURE;
   }
 
-  *multicast_group = evcs[evc_id].multicast_group;
+  *multicast_group = evcs[evc_id].mcgroup;
   return L7_SUCCESS;
 }
 
@@ -10724,7 +10723,7 @@ static void ptin_evc_vlan_pool_init(void)
   PT_LOG_TRACE(LOG_CTX_EVC,"Bitstream vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_BITSTREAM, PTIN_SYSTEM_EVC_BITSTR_VLAN_MIN, i-1);
 
   /* QUATTRO P2P vlans */
-  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO]);
   for (i=PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN; i<=PTIN_SYSTEM_EVC_QUATTRO_VLAN_MAX && i<=PTIN_VLAN_MAX; i++)
   {
@@ -10732,7 +10731,7 @@ static void ptin_evc_vlan_pool_init(void)
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO], (dl_queue_elem_t*)&vlans_pool[i]);
   }
   PT_LOG_TRACE(LOG_CTX_EVC,"QUATTRO vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_QUATTRO, PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, i-1);
-  #endif
+#endif
 
   /* Reset 'evcId reference from internal vlan' array*/
   memset(evcId_from_internalVlan, 0xff, sizeof(evcId_from_internalVlan));
@@ -10762,13 +10761,13 @@ static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint32 evc_f
   if ((evc_flags & PTIN_EVC_MASK_QUATTRO) &&
       (evc_flags & PTIN_EVC_MASK_STACKED))
   {
-    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     *freeVlan_queue = &queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO];
     PT_LOG_TRACE(LOG_CTX_EVC, "QUATTRO Free Vlan Queue selected!");
-    #else
+#else
     PT_LOG_ERR(LOG_CTX_EVC, "No QUATTRO vlan available!");
     return L7_ERROR;
-    #endif
+#endif
   }
   /* CPU port is on? */
   else if ((evc_flags & PTIN_EVC_MASK_CPU_TRAPPING) || (evc_flags & PTIN_EVC_MASK_MC_IPTV))
@@ -12737,7 +12736,7 @@ L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *profile)
         PT_LOG_TRACE(LOG_CTX_EVC,"Source interface (ptin_port=%u): OVid_in %u verified",ptin_port,profile->outer_vlan_lookup);
       }
 
-      #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
       /* For MAC-Bridge flows */
       if (IS_EVC_QUATTRO(evc_id) && IS_EVC_INTF_LEAF(evc_id, ptin_port) &&
           profile->outer_vlan_egress != 0)
@@ -12761,7 +12760,7 @@ L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *profile)
         PT_LOG_TRACE(LOG_CTX_EVC,"Outer vlan id = %u (uni_ovid=%u)", profile->outer_vlan_egress, pclientFlow->uni_ovid);
       }
       else
-      #endif
+#endif
       /* Find the specified client, and provide the policer location */
       if (profile->inner_vlan_ingress != 0)
       {
@@ -13353,7 +13352,7 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
 
     printf("  Root port1= %-2u\n", evcs[evc_id].root_info.port);
     printf("  Root VLAN = %-4u      NNI VLAN = %u+%u\n", evcs[evc_id].rvlan, evcs[evc_id].root_info.nni_ovid, evcs[evc_id].root_info.nni_ivid);
-    printf("  MC Group  = 0x%x\n",   evcs[evc_id].multicast_group);
+    printf("  MC Group  = 0x%x\n",   evcs[evc_id].mcgroup);
     if (evcs[evc_id].queue_type == PTIN_EVC_QUEUE_PORT)
     {
       printf("  Queue type= %s\n", "PORT");
@@ -13410,7 +13409,7 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
         dl_queue_get_head(&evcs[evc_id].intf[i].clients, (dl_queue_elem_t **) &pclientFlow);
 
         for (j=0; j < evcs[evc_id].intf[i].clients.n_elems && pclientFlow != L7_NULLPTR; j++) {
-          #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
           if (IS_EVC_QUATTRO(evc_id))
           {
             printf("      Flow# %-2u: flags=0x%04x int_vid=%4u+%-4u<->uni_vid=%4u+%-4u [%c+%c] (gport=0x%04x)\r\n", j,
@@ -13420,7 +13419,7 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
                    pclientFlow->virtual_gport & 0xffff);
           }
           else
-          #endif
+#endif
           {
             printf("      Client# %2u: VID=%4u+%-4u [%c+%c]\r\n", j,
                    pclientFlow->uni_ovid, pclientFlow->int_ivid,
@@ -13437,32 +13436,32 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
     printf("  Instances:");
     printf("\n   IGMP = ");
     (extEvcIdInfoData->igmp_inst==(L7_uint8)-1) ? printf("---") : printf("%-3u",extEvcIdInfoData->igmp_inst);
-    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     if (IS_EVC_QUATTRO(evc_id))
       printf("   #Flows  = %u", evcs[evc_id].n_clientflows_igmp);
-    #endif
+#endif
     printf("\n   DHCP = "); 
     (extEvcIdInfoData->dhcp_inst==(L7_uint8)-1) ? printf("---") : printf("%-3u",extEvcIdInfoData->dhcp_inst);
-    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     if (IS_EVC_QUATTRO(evc_id))
       printf("   #FlowsV4= %-4u #FlowsV6= %-4u", evcs[evc_id].n_clientflows_dhcpv4, evcs[evc_id].n_clientflows_dhcpv6);
-    #endif
+#endif
     printf("\n   PPPoE= ");
     (extEvcIdInfoData->pppoe_inst==(L7_uint8)-1) ? printf("---") : printf("%-3u",extEvcIdInfoData->pppoe_inst);
-    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     if (IS_EVC_QUATTRO(evc_id))
       printf("   #Flows  = %u", evcs[evc_id].n_clientflows_pppoe);
-    #endif
+#endif
     printf("\r\n\n");
     fflush(stdout);
   }
   while ( evc_ext_id == (L7_uint32)-1 &&
          (extEvcIdInfoData = (ptinExtEvcIdInfoData_t *) avlSearchLVL7(&(extEvcId_avlTree.extEvcIdAvlTree), (void *)&extEvcIdDataKey, AVL_NEXT)));
 
-  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   printf("Total number of QUATTRO evcs: %u\r\n", n_quattro_evcs);
   printf("Total number of QUATTRO evcs with IGMP active: %u\r\n", n_quattro_igmp_evcs);
-  #endif
+#endif
 
   fflush(stdout);
 }
@@ -13533,7 +13532,7 @@ void ptin_evc_dump2(L7_int evc_id_ref)
 
     printf("  Root port1= %-2u\n", evcs[evc_id].root_info.port);
     printf("  Root VLAN = %-4u      NNI VLAN = %u+%u\n", evcs[evc_id].rvlan, evcs[evc_id].root_info.nni_ovid, evcs[evc_id].root_info.nni_ivid);
-    printf("  MC Group  = 0x%x\n",   evcs[evc_id].multicast_group);
+    printf("  MC Group  = 0x%x\n",   evcs[evc_id].mcgroup);
     if (evcs[evc_id].queue_type == PTIN_EVC_QUEUE_PORT)
     {
       printf("  Queue type= %s\n", "PORT");
@@ -13578,7 +13577,7 @@ void ptin_evc_dump2(L7_int evc_id_ref)
         dl_queue_get_head(&evcs[evc_id].intf[i].clients, (dl_queue_elem_t **) &pclientFlow);
 
         for (j=0; j<evcs[evc_id].intf[i].clients.n_elems; j++) {
-          #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
           if (IS_EVC_QUATTRO(evc_id))
           {
             printf("      Flow# %-2u: flags=0x%04x int_vid=%4u+%-4u<->uni_vid=%4u+%-4u (gport=0x%04x) (Count {%s,%s}; BWProf {%s,%s})\r\n",
@@ -13588,7 +13587,7 @@ void ptin_evc_dump2(L7_int evc_id_ref)
                    pclientFlow->bwprofile[PTIN_EVC_INTF_ROOT][0] != NULL ? "Root ON ":"Root OFF", pclientFlow->bwprofile[PTIN_EVC_INTF_LEAF] != NULL ? "Leaf ON ":"Leaf OFF");
           }
           else
-          #endif
+#endif
           {
             printf("      Client# %2u: VID=%4u+%-4u  (Counter {%s,%s}; BWProf {%s,%s})\n", j, pclientFlow->uni_ovid, pclientFlow->int_ivid,
                    pclientFlow->counter[PTIN_EVC_INTF_ROOT]   != NULL ? "Root ON ":"Root OFF", pclientFlow->counter[PTIN_EVC_INTF_LEAF]   != NULL ? "Leaf ON ":"Leaf OFF",

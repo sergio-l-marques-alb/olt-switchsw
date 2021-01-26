@@ -1251,20 +1251,25 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group
   /* Run all units */
   BCM_UNIT_ITER(unit)
   {
-    /* Create a multicast group, if given multicast group is not valid */
-    if ( mc_group <= 0 )
+    /* Multicast group id is provided? Use it. */
+    if ( mc_group > 0 )
     {
-      error = bcm_multicast_create(unit, multicast_flag, &mc_group);
-      if (error != BCM_E_NONE)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI,"unit %d: Error with bcm_multicast_create(%d,0x%x, &mcast_group): error=%d (\"%s\")",
-                   unit, unit, multicast_flag, error, bcm_errmsg(error));
-        return L7_FAILURE;
-      }
-      *mcast_group = mc_group;
-
-      PT_LOG_DEBUG(LOG_CTX_HAPI, "unit %d: mc_group=0x%08x created!", unit, mc_group);
+      multicast_flag |= BCM_MULTICAST_WITH_ID;
     }
+
+    error = bcm_multicast_create(unit, multicast_flag, &mc_group);
+
+    if (error == BCM_E_NONE)
+    {
+      PT_LOG_INFO(LOG_CTX_HAPI, "unit %d: mc_group=0x%08x created!", unit, mc_group);
+    }
+    else if (error != BCM_E_EXISTS)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI,"unit %d: Error with bcm_multicast_create(%d,0x%x, &mcast_group): error=%d (\"%s\")",
+                 unit, unit, multicast_flag, error, bcm_errmsg(error));
+      return L7_FAILURE;
+    }
+    *mcast_group = mc_group;
 
     if (multicast_flag & BCM_MULTICAST_TYPE_VLAN)
     {
