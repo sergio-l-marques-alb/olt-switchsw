@@ -14647,9 +14647,14 @@ void ptin_igmp_dump(void)
 void ptin_igmp_free_groupclient_id_get(L7_int32 ptin_port)
 {
   struct ptinIgmpClientId_s *pClientIdx;
-  L7_uint i, j, k, n_elems, count_n = 1, count_id = 1;
-  char header_str[]= "Free group client id:";
-  L7_uint str_size = sizeof(header_str)-1;
+  L7_uint i, j, n_elems;
+  L7_uint n_freeID = 0, n_ptinPort = 0;
+  L7_uint count_freeID = 0, count_ptinPort = 0;
+  char   header_str[]= "Free group client id:";
+  char ptinport_str[]= "ptin_port number:";
+  char   freeID_str[]= "number of free group IDs :";
+  L7_uint freeID_str_size = sizeof(freeID_str)-1;
+  L7_uint header_str_size = sizeof(header_str)-1;
   
   printf("\n");
 
@@ -14666,29 +14671,34 @@ void ptin_igmp_free_groupclient_id_get(L7_int32 ptin_port)
   {
     n_elems = queue_free_group_client_id[ptin_port].n_elems;
     printf("Number of group clients free in ptin_port %u: %u\n", ptin_port, n_elems);
+    if (n_elems == 128 || n_elems == 0)
+    {
+      fflush(stdout);
+      return;
+    }
 
     /* Print table header */
-    for (i = 0; i < ((32*4) + str_size); i++)
+    for (i = 0; i < ((32*4) + header_str_size); i++)
     {
       printf("-");
     }
     printf("\n");
-    printf("%-*s", str_size, header_str);
+    printf("%-*s", header_str_size, ptinport_str);
 
     /* Get first client node */
     dl_queue_get_head(&queue_free_group_client_id[ptin_port], (dl_queue_elem_t **)&pClientIdx);
 
-    for (i = 1; i <= n_elems; i++)
+    for (n_freeID = 0; n_freeID < n_elems; n_freeID++)
     {
-      printf("%4u", i);
-      count_n++;
+      printf("%4u", n_freeID);
+      count_ptinPort++;
       /* End of line = 32 columns */
-      if (count_n == 32 || i == n_elems)
+      if (count_ptinPort == 32 || n_freeID == n_elems -1)
       {
-        count_n = 1;
+        count_ptinPort = 0;
         printf("\n");
         /* Print IDs */
-        printf("%*s", str_size, " ");
+        printf("%-*s", header_str_size, header_str);
         /* First ID */
         printf("%4u", pClientIdx->clientId);
         /* Run all client nodes */
@@ -14702,18 +14712,18 @@ void ptin_igmp_free_groupclient_id_get(L7_int32 ptin_port)
             break;
           }
         
-          count_id++;
+          count_freeID++;
           /* End of line */
-          if (count_id == 32) 
+          if (count_freeID == 32) 
           {
-            count_id = 1;
+            count_freeID = 0;
             printf("\n");
-            for (j = 0; j < ((32*4) + str_size); j++)
+            for (j = 0; j < ((32*4) + header_str_size); j++)
             {
               printf("-");
             }
             printf("\n");
-            printf("%-*s", str_size, header_str);
+            printf("%*s", header_str_size, ptinport_str);
             break;
           }
           printf("%4u", pClientIdx->clientId);
@@ -14724,59 +14734,106 @@ void ptin_igmp_free_groupclient_id_get(L7_int32 ptin_port)
   /* Print tables with free group client ids from every ptin_port */
   else
   {
-    for (i = 0; i < PTIN_IGMP_INTFPORT_MAX; i++)
+    /* 
+    * Print table with total number of free group client IDs in every ptin_port:   
+    */
+    printf("Number of group clients ID free per ptin_port\n");
+    for (j = 0; j < ((32 * 4) + freeID_str_size); j++)
     {
-      n_elems = queue_free_group_client_id[i].n_elems;
-      printf("Number of group clients free in ptin_port %u: %u\n", i, n_elems);
+      printf("-");
+    }
+    printf("\n");
+    printf("%-*s", freeID_str_size, ptinport_str); /* ptin_port: */
+    for (n_ptinPort = 0; n_ptinPort < PTIN_IGMP_INTFPORT_MAX; n_ptinPort++)
+    {
+      printf("%4u", n_ptinPort);
+      count_ptinPort++;
+      /* End of line = 32 columns */
+      if (count_ptinPort == 32 || n_ptinPort == PTIN_IGMP_INTFPORT_MAX -1)
+      {
+        printf("\n");
+        /* Print IDs */
+        printf("%-*s", freeID_str_size, freeID_str); /*free ID: */
+        while (count_freeID < count_ptinPort)
+        {
+          printf("%4u", queue_free_group_client_id[count_freeID].n_elems);
+          count_freeID++;
+        }
+        /* End of line */
+        count_freeID = 0;
+        count_ptinPort = 0;
+        if (n_ptinPort == PTIN_IGMP_INTFPORT_MAX -1)
+        {
+          break;
+        }
+        else
+        {
+          printf("\n\n");
+          printf("%-*s", freeID_str_size, ptinport_str); /* ptin_port: */
+        }
+      }
+    }
+
+    printf("\n\n\n");
+    /* 
+    * Print tables for each ptin_port
+    */
+    for (n_ptinPort = 0; n_ptinPort < PTIN_IGMP_INTFPORT_MAX; n_ptinPort++)
+    {
+      n_elems = queue_free_group_client_id[n_ptinPort].n_elems;
+      if (n_elems == 128 || n_elems == 0)
+      {
+        continue;
+      }
+      printf("Number of group clients free in ptin_port %u: %u\n", n_ptinPort, n_elems);
 
       /* Print table header */
-      for (j = 0; j < ((32*4) + str_size); j++)
+      for (i = 0; i < ((32*4) + header_str_size); i++)
       {
         printf("-");
       }
       printf("\n");
-      printf("%-*s", str_size, header_str);
+      printf("%-*s", header_str_size, ptinport_str);
 
       /* Get first client node */
-      dl_queue_get_head(&queue_free_group_client_id[i], (dl_queue_elem_t **)&pClientIdx);
-     
-      for (j = 1; j <= n_elems; j++)
+      dl_queue_get_head(&queue_free_group_client_id[n_ptinPort], (dl_queue_elem_t **)&pClientIdx);
+      for (i = 0; i < n_elems; i++)
       {
-        printf("%4u", j);
-        count_n++;
+        printf("%4u", i);
+        count_ptinPort++;
         /* End of line = 32 columns */
-        if (count_n == 32 || j == n_elems)
+        if (count_ptinPort == 32 || i == n_elems-1)
         {
-          count_n = 1;
+          count_ptinPort = 0;
           printf("\n");
           /* Print IDs */
-          printf("%*s", str_size, " ");
+          printf("%-*s", header_str_size, header_str);
           /* First ID */
           printf("%4u", pClientIdx->clientId);
           /* Run all client nodes */
           while (pClientIdx != NULL)
           {
-            pClientIdx = (struct ptinIgmpClientId_s *) dl_queue_get_next(&queue_free_group_client_id[i], 
+            pClientIdx = (struct ptinIgmpClientId_s *) dl_queue_get_next(&queue_free_group_client_id[n_ptinPort], 
                                                                         (dl_queue_elem_t *) pClientIdx);
             /* If client index is null, don't print */
             if (pClientIdx == NULL)
             {
-              count_id = 1;
+              count_freeID = 0;
               break;
             }
          
-            count_id++;
+            count_freeID++;
             /* End of line */
-            if (count_id == 32) 
+            if (count_freeID == 32) 
             {
-              count_id = 1;
+              count_freeID = 0;
               printf("\n");
-              for (k = 0; k < ((32*4) + str_size); k++)
+              for (j = 0; j < ((32*4) + header_str_size); j++)
               {
                 printf("-");
               }
               printf("\n");
-              printf("%-*s", str_size, header_str);
+              printf("%-*s", header_str_size, ptinport_str);
               break;
             }
 
