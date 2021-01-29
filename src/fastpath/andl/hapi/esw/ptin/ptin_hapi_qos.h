@@ -60,9 +60,9 @@ L7_RC_t ptin_hapi_qos_vlan_remove(L7_uint16 ext_vlan, L7_uint16 int_vlan, L7_BOO
  * @param dapiPort 
  * @param queueSet : l7_cosq_set_t
  * @param tc : Traffic class
- * @param rate_min 
- * @param rate_max 
- * @param burst_size 
+ * @param rate_min : kbps
+ * @param rate_max : kbps
+ * @param burst_size : kbits
  * 
  * @return L7_RC_t 
  */
@@ -134,5 +134,16 @@ L7_RC_t ptin_hapi_qos_gport_get(ptin_dapi_port_t *dapiPort,
  * @return L7_RC_t 
  */
 L7_RC_t ptin_hapi_qos_hierarchy_table_build(void);
+
+/**
+ * Initialize and configure the QoS hierarchy scheme
+ * 
+ * @author mruas (26/01/21)
+ * 
+ * @param void 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_qos_hierarchy_init(void);
 
 #endif /* _PTIN_HAPI_QOS__H */

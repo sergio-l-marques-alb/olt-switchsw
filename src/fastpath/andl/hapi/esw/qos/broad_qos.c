@@ -188,7 +188,7 @@ L7_RC_t hapiBroadQosCardInit(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t *d
 
     /* PTin added: QoS-gport table */
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-    ptin_hapi_qos_hierarchy_table_build();
+    ptin_hapi_qos_hierarchy_init();
 #endif
 
     return result;
