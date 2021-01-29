@@ -14671,7 +14671,7 @@ void ptin_igmp_free_groupclient_id_get(L7_int32 ptin_port)
   {
     n_elems = queue_free_group_client_id[ptin_port].n_elems;
     printf("Number of group clients free in ptin_port %u: %u\n", ptin_port, n_elems);
-    if (n_elems == 128 || n_elems == 0)
+    if (n_elems == PTIN_IGMP_CLIENTIDX_MAX || n_elems == 0)
     {
       fflush(stdout);
       return;
@@ -14738,7 +14738,7 @@ void ptin_igmp_free_groupclient_id_get(L7_int32 ptin_port)
     * Print table with total number of free group client IDs in every ptin_port:   
     */
     printf("Number of group clients ID free per ptin_port\n");
-    for (j = 0; j < ((32 * 4) + freeID_str_size); j++)
+    for (i = 0; i < ((32 * 4) + freeID_str_size); i++)
     {
       printf("-");
     }
@@ -14768,7 +14768,12 @@ void ptin_igmp_free_groupclient_id_get(L7_int32 ptin_port)
         }
         else
         {
-          printf("\n\n");
+          printf("\n");
+          for (j = 0; j < ((32*4) + freeID_str_size); j++)
+          {
+            printf("-");
+          }
+          printf("\n");
           printf("%-*s", freeID_str_size, ptinport_str); /* ptin_port: */
         }
       }
@@ -14781,7 +14786,7 @@ void ptin_igmp_free_groupclient_id_get(L7_int32 ptin_port)
     for (n_ptinPort = 0; n_ptinPort < PTIN_IGMP_INTFPORT_MAX; n_ptinPort++)
     {
       n_elems = queue_free_group_client_id[n_ptinPort].n_elems;
-      if (n_elems == 128 || n_elems == 0)
+      if (n_elems == PTIN_IGMP_CLIENTIDX_MAX || n_elems == 0)
       {
         continue;
       }
@@ -14845,6 +14850,212 @@ void ptin_igmp_free_groupclient_id_get(L7_int32 ptin_port)
     }
   }
   printf("\n");
+  fflush(stdout);
+}
+
+/**
+ * Print pool group clients ID for ptin_port in pool 
+ * pool_group_client_id (ptin_port = -1 prints all)
+ *  
+ * @param ptin_port : interface 
+ */
+void ptin_igmp_pool_groupclient_id_get(L7_int32 ptin_port)
+{
+  L7_uint i,j;
+  L7_uint n_clientID, n_ptinPort;
+  L7_uint count_clientID = 0;
+  L7_uint count_inUse = 0;
+  L7_uint count_ptinPort = 0;
+  L7_uint n_elems = 0;
+  char clientID_str[]= "group client id:";
+  char inUse_str[]= "inUse:";
+  char ptinport_str[]= "ptin_port number:";
+  L7_uint clientID_str_size = sizeof(clientID_str)-1;
+  L7_uint ptinport_str_size = sizeof(ptinport_str)-1;
+
+  printf("\n");
+
+  /* Validate ptin_port */
+  if (ptin_port >= PTIN_IGMP_INTFPORT_MAX || ptin_port < (L7_int32)-1)
+  {
+    printf("ERROR: ptin_port must be <%u (or -1 for all)\n", PTIN_IGMP_INTFPORT_MAX);
+    fflush(stdout);
+    return;
+  }
+
+  /* Print table with group client IDs from ptin_port */
+  if (ptin_port >= 0)
+  {
+    /* Get number of Group client ID's in use */
+    for (i = 0; i < PTIN_IGMP_CLIENTIDX_MAX; i++)
+    {
+      if (pool_group_client_id[PTIN_IGMP_CLIENT_PORT(ptin_port)][i].inUse == L7_TRUE)
+      {
+          n_elems++;
+      }
+    }
+    printf("Number of Group Client IDs from ptin_port %u in use: %u \n", ptin_port, n_elems);
+    if (n_elems == PTIN_IGMP_CLIENTIDX_MAX - 1 || n_elems == 0)
+    {
+      fflush(stdout);
+      return;
+    }
+
+    /* Table Header */
+    printf("Group Client IDs:\n");
+    for (i = 0; i < ((32*5) + clientID_str_size); i++)
+    {
+      printf("-");
+    }
+    printf("\n");
+    i=0;
+    /* Table values */
+    printf("%-*s", clientID_str_size, clientID_str);
+    for (n_clientID = 0; n_clientID < PTIN_IGMP_CLIENTIDX_MAX; n_clientID++)
+    {
+      printf("%5u", n_clientID);
+      count_clientID++;
+      /* End of line = 32 columns */
+      if (count_clientID == 32 || n_clientID == PTIN_IGMP_CLIENTIDX_MAX -1)
+      {
+        printf("\n");
+        printf("%-*s", clientID_str_size, inUse_str);
+        while (count_inUse < count_clientID)
+        {
+          printf("%*s", 5, pool_group_client_id[PTIN_IGMP_CLIENT_PORT(ptin_port)][i].inUse == L7_TRUE ? "USED":"NOT");
+          count_inUse++;
+          i++;
+        }
+        /* End of line = 32 columns */
+        count_clientID=0;
+        count_inUse=0;
+        if (n_clientID == PTIN_IGMP_CLIENTIDX_MAX -1)
+        {
+          break;
+        }
+        else
+        {
+          printf("\n");
+          printf("%-*s", clientID_str_size, clientID_str);
+        }
+      }
+    }
+  }
+  /* Print tables with free group client ids from every ptin_port */
+  else
+  {
+    /* Table of group client id's in use per ptin_port */
+    printf("Number of Group Client IDs in use per ptin_port: \n");
+    for (i = 0; i < ((32*4) + ptinport_str_size); i++)
+    {
+      printf("-");
+    }
+    printf("\n");
+    printf("%-*s", ptinport_str_size, ptinport_str);
+    i=0;
+    for (n_ptinPort = 0; n_ptinPort < PTIN_IGMP_INTFPORT_MAX; n_ptinPort++)
+    {
+      printf("%4u", n_ptinPort);
+      count_ptinPort++;
+      /* End of line = 32 columns */
+      if (count_ptinPort == 32 || n_ptinPort == PTIN_IGMP_INTFPORT_MAX -1)
+      {
+        printf("\n");
+        printf("%-*s", ptinport_str_size, inUse_str);
+        while (count_inUse < count_ptinPort)
+        {
+          for (j = 0; j < PTIN_IGMP_CLIENTIDX_MAX; j++) /* client_idx */
+          {
+            if (pool_group_client_id[PTIN_IGMP_CLIENT_PORT(i)][j].inUse == L7_TRUE)
+            {
+              n_elems++;
+            }
+          }
+          printf("%4u", n_elems);
+          n_elems = 0;
+          i++;
+          count_inUse++;
+        }
+        /* End of line of n_elems per ptin_port */
+        count_inUse = 0;
+        count_ptinPort = 0;
+        if (n_ptinPort == PTIN_IGMP_INTFPORT_MAX -1)
+        {
+          break;
+        }
+        else
+        {
+          printf("\n");
+          for (j = 0; j < ((32*4) + ptinport_str_size); j++)
+          {
+            printf("-");
+          }
+          printf("\n");
+          printf("%-*s", ptinport_str_size, ptinport_str);
+        }
+      }
+    }
+    printf("\n\n\n");
+
+    for (n_ptinPort = 0; n_ptinPort < PTIN_IGMP_INTFPORT_MAX; n_ptinPort++)
+    {
+      /* Get number of Group client ID's in use */
+      for (i = 0; i < PTIN_IGMP_CLIENTIDX_MAX; i++)
+      {
+        if (pool_group_client_id[PTIN_IGMP_CLIENT_PORT(n_ptinPort)][i].inUse == L7_TRUE)
+        {
+            n_elems++;
+        }
+      }
+      if (n_elems == PTIN_IGMP_CLIENTIDX_MAX - 1 || n_elems == 0)
+      {
+        continue;
+      }
+
+      /* Table Header */
+      printf("Number of Group Client IDs from ptin_port %u in use: %u \n", n_ptinPort, n_elems);
+      for (i = 0; i < ((32*5) + clientID_str_size); i++)
+      {
+        printf("-");
+      }
+      printf("\n");
+      printf("%-*s", clientID_str_size, clientID_str);
+      i=0;
+      /* Table values */
+      for (n_clientID = 0; n_clientID < PTIN_IGMP_CLIENTIDX_MAX; n_clientID++)
+      {
+        printf("%5u", n_clientID);
+        count_clientID++;
+        /* End of line = 32 columns */
+        if (count_clientID == 32 || n_clientID == PTIN_IGMP_CLIENTIDX_MAX -1)
+        {
+          printf("\n");
+          printf("%-*s", clientID_str_size, inUse_str);
+
+          while (count_inUse < count_clientID)
+          {
+            printf("%*s", 5, pool_group_client_id[PTIN_IGMP_CLIENT_PORT(n_ptinPort)][i].inUse == L7_TRUE ? "USED":"NOT");
+            i++;
+            count_inUse++;
+          }
+          /* End of line = 32 columns */
+          count_clientID=0;
+          count_inUse=0;
+          if (n_clientID == PTIN_IGMP_CLIENTIDX_MAX -1)
+          {
+            break;
+          }
+          else
+          {
+            printf("\n");
+            printf("%-*s", clientID_str_size, clientID_str);
+          }
+        }
+      }
+      printf("\n\n\n");
+      n_elems = 0;
+    }
+  }
   fflush(stdout);
 }
 
