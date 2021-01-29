@@ -6220,7 +6220,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     L7_uint32     ipdst_value = 0xe0000000;
     L7_uint32     ipdst_mask  = 0xf0000000;
     L7_uint16     ethType = 0x0800, ethType_mask = 0xffff;
-    L7_uint32     packetRes = 6 /*Unknown L3MC*/, packetRes_mask = 0xff;
+    L7_uint32     packetRes = BCM_FIELD_PKT_RES_L3MCUNKNOWN, packetRes_mask = 0xff;
     BROAD_POLICY_t      policyId;
     BROAD_POLICY_RULE_t ruleId;
 
@@ -6375,7 +6375,77 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     }
 #endif
 
-    PT_LOG_TRACE(LOG_CTX_STARTUP, "PolicyId=%u", policyId);
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Unknown IPTV PolicyId=%u", policyId);
+  }
+#endif
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  /* Unknown L2 traffic @ downstream will be limited to 100Mbps */
+  {
+    bcm_pbmp_t    pbm;
+    L7_uint32     packetRes = BCM_FIELD_PKT_RES_L2UNKNOWN, packetRes_mask = 0xff;
+    BROAD_POLICY_t      policyId;
+    BROAD_POLICY_RULE_t ruleId;
+
+    /* Create Policy to clear outer pbit field for Multicast services (only for pon ports) */
+    rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+      return L7_FAILURE;
+    }
+    /* Egress stage */
+    if (hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_INGRESS) != L7_SUCCESS)
+    {
+      printf("Error creating a egress policy\r\n");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+
+    do
+    {
+      /* Priority higher than dot1p rules */
+      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW);
+      if (rc != L7_SUCCESS)  break;
+      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PACKETRES, (L7_uchar8 *) &packetRes, (L7_uchar8 *) &packetRes_mask);
+      if (rc != L7_SUCCESS)  break;
+      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_DROPPREC,
+                                        BROAD_COLOR_YELLOW, BROAD_COLOR_YELLOW, BROAD_COLOR_RED);
+      if (rc != L7_SUCCESS)  break;
+
+    } while (0);
+
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error configuring rule");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+
+    /* Apply rules */
+    rc = hapiBroadPolicyCommit(&policyId);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error commiting policy");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+
+    /* Get pbm format of backplane ports */
+    hapi_ptin_get_bcm_from_usp_bitmap(PTIN_SYSTEM_10G_PORTS_MASK, &pbm);
+
+    /* Add PON ports to policy */
+    rc = hapiBroadPolicyApplyToMultiIface(policyId, pbm);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding xPON ports: rc=%d", rc);
+    }
+    else
+    {
+      PT_LOG_TRACE(LOG_CTX_STARTUP, "xPON ports added");
+    }
+
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Unknown MC PolicyId=%u", policyId);
   }
 #endif
 
@@ -6483,11 +6553,8 @@ L7_RC_t ag16ga_bck_static_switching()
 
       } while (0);
 
-
       PT_LOG_TRACE(LOG_CTX_STARTUP, "PolicyId=%u", policyId);
-
     }
-
   }
 
   return L7_SUCCESS;
