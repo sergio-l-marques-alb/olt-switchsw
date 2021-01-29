@@ -2756,15 +2756,15 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   L7_uint16 root_vlan;
   L7_uint   ptin_port;
   L7_uint32 intIfNum;
-  L7_int    multicast_group;
+  L7_int    multicast_group = -1;
   dl_queue_t *freeVlan_queue = L7_NULLPTR;
   L7_RC_t   rc, error = L7_SUCCESS;
   ptin_evc_queue_type_t  queue_type= PTIN_EVC_QUEUE_PORT;
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
   L7_BOOL is_logged= L7_FALSE;
 #endif
-  evc_ext_id = evcConf->index;
 
+  evc_ext_id = evcConf->index;
 
   /* Validate extended EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -3026,8 +3026,6 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     /* For stacked EVCs, we need to enable forwarding mode to OVID(+IVID) */
     ptin_crossconnect_enable(root_vlan, (evc_type==PTIN_EVC_TYPE_STD_P2P && !cpu_trap) /* Bitstream services */, is_stacked);
 
-    multicast_group = -1;
-    
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     if (is_quattro)          
     {

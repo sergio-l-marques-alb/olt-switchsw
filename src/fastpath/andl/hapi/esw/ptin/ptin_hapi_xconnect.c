@@ -711,6 +711,9 @@ L7_RC_t ptin_hapi_l2intf_create(ptin_dapi_port_t *dapiPort,
     PT_LOG_INFO(LOG_CTX_HAPI, "Goin to use vport=0x%x", vlan_port.vlan_port_id);
   }
   
+  /* Get given MC group id */
+  mc_group = *mcast_group;
+  
   /* Run all units */
   BCM_UNIT_ITER(unit)
   {
@@ -797,9 +800,6 @@ L7_RC_t ptin_hapi_l2intf_create(ptin_dapi_port_t *dapiPort,
       return L7_FAILURE;
     }
 
-    /* Get given MC group id */
-    mc_group = *mcast_group;
-
     /* Create a multicast group, if given multicast group is not valid */
     if ( mc_group <= 0 )
     {
@@ -813,7 +813,14 @@ L7_RC_t ptin_hapi_l2intf_create(ptin_dapi_port_t *dapiPort,
       *mcast_group = mc_group;
     }
 
-    PT_LOG_TRACE(LOG_CTX_HAPI, "unit %d: mc_group=%d vlan_port.port=%d vport=%d", unit, mc_group, vlan_port.port, vlan_port.vlan_port_id);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "unit %d: mc_group=0x%x vlan_port.port=%d vport=%d", unit, mc_group, vlan_port.port, vlan_port.vlan_port_id);
+
+    /* Removing first, the generic replication entry (associated to the physical port) */
+    error = bcm_multicast_egress_delete(unit, mc_group, vlan_port.port, -1);
+    if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "unit %d: Error with bcm_multicast_egress_delete: error=%d (\"%s\")", unit, error, bcm_errmsg(error));
+    }
 
     /* Add virtual port to multicast group */
     error = bcm_multicast_vlan_encap_get(unit, mc_group, vlan_port.port, vlan_port.vlan_port_id, &encap_id);
