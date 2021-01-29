@@ -10,7 +10,7 @@ SCRIPT=`readlink -f $0`
 # Absolute path of this script
 SCRIPT_PATH=`dirname $SCRIPT`
 
-echo "Script syntax: $0 [rootfs_dst_path]"
+echo "Script syntax: $0 [rootfs_dst_path] [IP_target_equipment]"
 
 # Change to dir where script is
 echo "Current path is $CURR_PATH"
@@ -42,7 +42,13 @@ echo "Built tarball located at $SCRIPT_PATH/$DST_PATH/$TGZ_FILE"
 
 if [ $# -ge 1 ]; then
   echo "Decompressing $TGZ_FILE to $1..."
-  tar xzvf $TGZ_FILE -C $1
+  tar xzvf $TGZ_FILE -C $1/rootfs
+
+  if [ $# -ge 2 ]; then
+    cd $1
+    ./build/build_ramdisk_TC16SXG.sh
+    lc_put $2 /usr/local/ptin/boot_images/tolts rdimg_TC16SXG.gz
+  fi
 fi
 
 # Return to original path
