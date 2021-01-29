@@ -349,6 +349,7 @@ L7_RC_t ptin_qos_intf_config_set(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
 
     /* Shaper settings */
 #if 1
+    /* Rate calculation modified */
     rate_max_apply = intfQos->shaping_rate * ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE] / 100;
 #else
     if (intfQos->shaping_rate <= (ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE]))
@@ -1257,7 +1258,8 @@ L7_RC_t ptin_qos_intf_shaper_set(L7_uint32 ptin_port, L7_uint32 max_rate, L7_uin
   }
 
   /* Limit max rate */
-  if (max_rate > 100)
+  if (max_rate == 0 ||
+      max_rate > 100)
   {
     max_rate = 100;
   }
@@ -1277,6 +1279,10 @@ L7_RC_t ptin_qos_intf_shaper_set(L7_uint32 ptin_port, L7_uint32 max_rate, L7_uin
   }
 #endif
   
+#if 1
+  /* Rate calculation modified */
+  rate_max_apply = max_rate * ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE] / 100;
+#else
   if (max_rate > ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE])
   {
     rate_max_apply = ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE];
@@ -1285,6 +1291,7 @@ L7_RC_t ptin_qos_intf_shaper_set(L7_uint32 ptin_port, L7_uint32 max_rate, L7_uin
   {
     rate_max_apply = max_rate;
   }
+#endif
 
   PT_LOG_INFO(LOG_CTX_INTF, "Applying shaper to ptin_port %u: rate_max=%u, burst size=%u",
               ptin_port, rate_max_apply, burst_size);
@@ -1431,28 +1438,20 @@ void ptin_debug_intf_cos_policer_set(L7_uint32 ptin_port, L7_uint8 cos, L7_uint3
  */
 void ptin_intf_shaper_max_dump(void)
 {
-  L7_uint32 port, intIfNum, shaper_rate;
+  L7_uint32 port, intIfNum;
   l7_cosq_set_t queueSet;
   L7_uchar8 queueSet_str[10];
   L7_RC_t rc;
 
   printf(" ---------------------------------------------------------\r\n");
-  printf("| Port | queueSet | Max rate | Mng max | Eff max | BurstS |\r\n");
+  printf("| Port | queueSet | Top rate | Mng max | Eff max | BurstS |\r\n");
   for (port = 0; port < PTIN_SYSTEM_N_PORTS; port++)
   {
-    if (ptin_intf_port2intIfNum_queueSet(port, &intIfNum, &queueSet) == L7_SUCCESS)
-    {
-      rc = usmDbQosCosQueueIntfShapingRateGet(1, intIfNum, queueSet, &shaper_rate, L7_NULLPTR);
-      if (rc != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueIntfShapingRateGet: rc=%d", rc);
-        shaper_rate = 0;
-      }
-    }
-    else
+    rc = ptin_intf_port2intIfNum_queueSet(port, &intIfNum, &queueSet);
+    if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Error converting port %u to intIfNum", port);
-      shaper_rate = 0;
+      continue;
     }
 
     /* String associated to the queue */
@@ -1474,9 +1473,9 @@ void ptin_intf_shaper_max_dump(void)
     
     printf("|  %2u  | %-8s |    %3u   |   %3u   |   %3u   | %6u |\r\n",
            port, queueSet_str,
-           ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MAX_VALUE],
+           ptin_intf_shaper_max[port][PTIN_INTF_FEC_VALUE],
            ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MNG_VALUE],
-           shaper_rate,
+           ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MAX_VALUE],
            ptin_burst_size[port]);
   }
   printf(" ---------------------------------------------------------\r\n");
