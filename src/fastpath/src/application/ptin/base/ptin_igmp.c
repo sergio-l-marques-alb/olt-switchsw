@@ -14360,6 +14360,10 @@ static L7_uint16 ptin_igmp_group_client_identifier_pop(L7_uint ptin_port)
     return(L7_uint16)-1;
   }
 
+  PT_LOG_NOTICE(LOG_CTX_IGMP, "before POP: Group client queue ptin_port %d with n_elems %d",
+               ptin_port,
+               queue_free_group_client_id[PTIN_IGMP_CLIENT_PORT(ptin_port)].n_elems);
+
   /* Find a free client index */
   do
   {
@@ -14367,7 +14371,7 @@ static L7_uint16 ptin_igmp_group_client_identifier_pop(L7_uint ptin_port)
     pClientIdx = L7_NULLPTR;
 
     dl_queue_remove_head(&queue_free_group_client_id[PTIN_IGMP_CLIENT_PORT(ptin_port)], (dl_queue_elem_t **) &pClientIdx);
-    PT_LOG_TRACE(LOG_CTX_IGMP, "Deleted group client id %u", PTIN_IGMP_CLIENT_PORT(ptin_port));
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "Deleted group client id %u", pClientIdx->clientId);
     /* Check if there is free indexes */
     if (pClientIdx == L7_NULLPTR)
     {
@@ -14379,6 +14383,10 @@ static L7_uint16 ptin_igmp_group_client_identifier_pop(L7_uint ptin_port)
 
   /* Mark index as being used */
   pClientIdx->inUse = L7_TRUE;
+
+  PT_LOG_NOTICE(LOG_CTX_IGMP, "after POP: Group client queue ptin_port %d with n_elems %d",
+               ptin_port,
+               queue_free_group_client_id[PTIN_IGMP_CLIENT_PORT(ptin_port)].n_elems);   
 
   /* Return client index */
   return pClientIdx->clientId;
@@ -14455,11 +14463,21 @@ static void ptin_igmp_group_client_identifier_push(L7_uint ptin_port, L7_uint16 
     return;
   }
 
+  PT_LOG_NOTICE(LOG_CTX_IGMP, "before PUSH: Group client queue ptin_port %d with n_elems %d",
+               ptin_port,
+               queue_free_group_client_id[PTIN_IGMP_CLIENT_PORT(ptin_port)].n_elems);
+
   /* Node to be added */
   pClientIdx = &pool_group_client_id[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx];
 
   /* Just to be sure it has the right value */
-  pClientIdx->clientId = client_idx;
+  if (pClientIdx->clientId != client_idx)
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP,"Group client queue of port %d: client_idx %d pClientIdx->clientId %d",
+               ptin_port, 
+               client_idx, 
+               pClientIdx->clientId);
+  }
 
   /* Check if this entry is already free */
   if (!pClientIdx->inUse)
@@ -14474,6 +14492,10 @@ static void ptin_igmp_group_client_identifier_push(L7_uint ptin_port, L7_uint16 
     PT_LOG_ERR(LOG_CTX_IGMP,"Error return indl_queue_add_head ptin port %d client id %d ", rc);
     return;
   }
+
+  PT_LOG_NOTICE(LOG_CTX_IGMP, "after PUSH: Group client queue ptin_port %d with n_elems %d",
+               ptin_port,
+               queue_free_group_client_id[PTIN_IGMP_CLIENT_PORT(ptin_port)].n_elems);
 
   /* Update in_use flag */
   pClientIdx->inUse = L7_FALSE;
