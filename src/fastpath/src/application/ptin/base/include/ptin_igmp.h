@@ -1466,6 +1466,14 @@ extern L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32
 extern void ptin_igmp_free_groupclient_id_get(L7_int32 ptin_port);
 
 /**
+ * Print pool group clients ID for ptin_port in pool 
+ * pool_group_client_id (ptin_port = -1 prints all)
+ *  
+ * @param ptin_port : interface 
+ */
+extern void ptin_igmp_pool_groupclient_id_get(L7_int32 ptin_port);
+
+/**
  * Open/close ports on the switch for the requested channel 
  *  
  * @param admin      : Admin (L7_ENABLE; L7_DISABLE)
