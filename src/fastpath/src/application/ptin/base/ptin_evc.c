@@ -5741,7 +5741,7 @@ L7_RC_t ptin_evc_macbridge_client_packages_remove(ptin_evc_macbridge_client_pack
   /* Is EVC in use? */
   if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", evc_id);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", evc_ext_id);
     return L7_NOT_EXIST;
   }
 
@@ -5975,7 +5975,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   /* Is EVC in use? */
   if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", evc_id);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", evc_ext_id);
     return L7_FAILURE;
   }
 
@@ -9492,6 +9492,8 @@ static L7_RC_t ptin_evc_extEvcInfo_get(L7_uint32 evc_ext_id, ptinExtEvcIdInfoDat
     PT_LOG_ERR(LOG_CTX_EVC,"evc id %u not in use", ext_evcId_infoData->evc_id);
     return L7_FAILURE;
   }
+
+  PT_LOG_TRACE(LOG_CTX_EVC, "internal EVC id = %u", ext_evcId_infoData->evc_id);
 
   return L7_SUCCESS;
 }
