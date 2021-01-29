@@ -5711,7 +5711,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     }
     else
     {
-      PT_LOG_WARN(LOG_CTX_EVC, "EVC# %u: GEM id already exists", evc_id, evcFlow->uni_ovid, leaf_port);
+      PT_LOG_WARN(LOG_CTX_EVC, "EVC# %u: GEM id %u already exists (ptin_port:%u)", evc_id, evcFlow->uni_ovid, leaf_port);
     }
 
     /* Protocols */
