@@ -335,7 +335,8 @@ L7_RC_t ptin_qos_intf_config_set(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
 
     PT_LOG_NOTICE(LOG_CTX_INTF, "New shaping rate is %u", intfQos->shaping_rate);
 
-    if(intfQos->shaping_rate == 0)
+    if (intfQos->shaping_rate == 0 ||
+        intfQos->shaping_rate > 100)
     {
       intfQos->shaping_rate = 100;
     }
@@ -347,6 +348,9 @@ L7_RC_t ptin_qos_intf_config_set(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
     //rc = usmDbQosCosQueueIntfShapingRateSet(1, intIfNum, (intfQos->shaping_rate * ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE])/100);
 
     /* Shaper settings */
+#if 1
+    rate_max_apply = intfQos->shaping_rate * ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE] / 100;
+#else
     if (intfQos->shaping_rate <= (ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE]))
     {
       rate_max_apply = intfQos->shaping_rate;
@@ -355,9 +359,10 @@ L7_RC_t ptin_qos_intf_config_set(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
     {
       rate_max_apply = ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE];
     }
+#endif
     burst_size_apply = ptin_burst_size[ptin_port]; 
 
-    PT_LOG_INFO(LOG_CTX_INTF, "Applying shaper to ptin_port %u: rate_max=%u, burst size=u",
+    PT_LOG_INFO(LOG_CTX_INTF, "Applying shaper to ptin_port %u: rate_max=%u, burst size=%u",
                 ptin_port, rate_max_apply, burst_size_apply);
 
     rc = ptin_qos_shaper_set(ptin_port, -1 /*All TC*/, 0 /*Rate_min*/, rate_max_apply, burst_size_apply);
