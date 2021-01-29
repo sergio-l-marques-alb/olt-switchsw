@@ -661,9 +661,9 @@ typedef struct
 typedef struct
 {
   L7_RATE_UNIT_t rate_units;    // Units to be applied for the rate params
-  L7_uint32    rate_min;        // shaper min rate
-  L7_uint32    rate_max;        // shaper max rate
-  L7_uint32    burst_size;      // burst size           
+  L7_uint32    rate_min;        // shaper min rate (kbps)
+  L7_uint32    rate_max;        // shaper max rate (kbps)
+  L7_uint32    burst_size;      // burst size (kbits)
   L7_int       tc;              // Traffic class (-1 for all)
   l7_cosq_set_t queueSet;       // Destination queueSet
 } ptin_intf_shaper_t;

@@ -15,7 +15,12 @@
 L7_uint32 ptin_intf_shaper_max[PTIN_SYSTEM_N_INTERF][3];
 L7_uint32 ptin_burst_size[PTIN_SYSTEM_N_INTERF];
 
+/* Default burst size (in kbits) */
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+#define MAX_BURST_SIZE 128
+#else
 #define MAX_BURST_SIZE 16000
+#endif
 
 /**
  * Configure Shaping
@@ -24,9 +29,9 @@ L7_uint32 ptin_burst_size[PTIN_SYSTEM_N_INTERF];
  * 
  * @param ptin_port 
  * @param tc 
- * @param rate_min 
- * @param rate_max 
- * @param burst_size 
+ * @param rate_min : kbps
+ * @param rate_max : kbps
+ * @param burst_size : kbits
  * 
  * @return L7_RC_t 
  */
@@ -1229,7 +1234,8 @@ L7_RC_t ptin_qos_drop_config_get(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_dro
  * @author mruas (16/08/17)
  * 
  * @param ptin_port
- * @param max_rate : Percentage
+ * @param max_rate : Percentage 
+ * @param burst_size : kbits 
  * 
  * @return L7_RC_t 
  */
@@ -1304,9 +1310,9 @@ L7_RC_t ptin_qos_intf_shaper_set(L7_uint32 ptin_port, L7_uint32 max_rate, L7_uin
  * 
  * @param ptin_port 
  * @param tc 
- * @param rate_min 
- * @param rate_max 
- * @param burst_size 
+ * @param rate_min : kbps
+ * @param rate_max : kbps
+ * @param burst_size : kbits
  * 
  * @return L7_RC_t 
  */
