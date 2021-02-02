@@ -291,9 +291,6 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   ptin_control_sysMacAddr();
 #endif
 
-  /* Signal correct initialization */
-  ptin_state = PTIN_STATE_READY;
-
   /* Send startup trap */
   startup_trap_send();
 
@@ -351,6 +348,9 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   }
 
   PT_LOG_NOTICE(LOG_CTX_CONTROL, "Free ptin_ready_sem:%p", ptin_ready_sem);
+
+  /* Signal correct initialization */
+  ptin_state = PTIN_STATE_READY;
   osapiSemaGive(ptin_ready_sem);  
   
   /* Loop */
