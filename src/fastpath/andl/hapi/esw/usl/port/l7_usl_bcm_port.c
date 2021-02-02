@@ -954,7 +954,6 @@ int usl_bcm_port_cosq_sched_set(int unit,
 *
 * @param    unit              @{(input)} Local bcm unit number
 * @param    port              @{(input)} Local bcm port number
-* @param    gport             @{(input)} QoS gport identifier
 * @param    cosqSchedConfig   @{(input)} cosq sched config data
 *
 *
@@ -966,15 +965,15 @@ int usl_bcm_port_cosq_sched_set(int unit,
 *
 *********************************************************************/
 int usl_bcm_gport_cosq_sched_set(int unit, 
-                                bcm_port_t  port, 
-                                bcm_gport_t qos_gport,
+                                bcm_port_t port, 
                                 usl_bcm_port_cosq_sched_config_t *cosqSchedConfig)
 {
   int         rv = BCM_E_NONE, cosq;
   bcm_gport_t gport = BCM_GPORT_INVALID;
 
   /* If qos_gport is not provided, use default procedure */
-  if (qos_gport == 0 || qos_gport == BCM_GPORT_INVALID)
+  if ((cosqSchedConfig->se_gport == 0 || cosqSchedConfig->se_gport == BCM_GPORT_INVALID) ||
+      (cosqSchedConfig->flow_gport[0] == 0 || cosqSchedConfig->flow_gport[0] == BCM_GPORT_INVALID))
   {
     return usl_bcm_port_cosq_sched_set(unit, port, cosqSchedConfig);
   }
@@ -985,19 +984,25 @@ int usl_bcm_gport_cosq_sched_set(int unit,
     for (cosq = 0; cosq < BCM_COS_COUNT; cosq++)
     {
       rv = bcm_cosq_gport_sched_set(unit,
-                                    qos_gport,
+                                    cosqSchedConfig->se_gport,
                                     cosq,
                                     cosqSchedConfig->mode, 
                                     cosqSchedConfig->weights[cosq]);
+      PT_LOG_TRACE(LOG_CTX_QOS, "unit %d, port 0x%x, cosq %d: bcm_cosq_gport_sched_set(unit=%d, se_gport=0x%x, cosq=%d, mode=%d, weight=%d)->rv=%d",
+                   unit, port, cosq,
+                   unit, cosqSchedConfig->se_gport, cosq, cosqSchedConfig->mode, cosqSchedConfig->weights[cosq], rv);
       if (rv != BCM_E_NONE)
         break;
 
       rv = bcm_cosq_gport_bandwidth_set(unit,
-                                        qos_gport,
-                                        cosq, 
+                                        cosqSchedConfig->flow_gport[cosq],
+                                        0 /*Don't care*/, 
                                         cosqSchedConfig->minKbps[cosq], 
                                         cosqSchedConfig->maxKbps[cosq], 
                                         0);
+      PT_LOG_TRACE(LOG_CTX_QOS, "unit %d, port 0x%x, cosq %d: bcm_cosq_gport_bandwidth_set(unit=%d, flow_gport=0x%x, 0, minKbps=%d, maxKbps=%d, 0)->rv=%d",
+                   unit, port, cosq,
+                   unit, cosqSchedConfig->flow_gport[cosq], cosqSchedConfig->minKbps[cosq], cosqSchedConfig->maxKbps[cosq], rv);
       if (rv != BCM_E_NONE)
         break;
     }

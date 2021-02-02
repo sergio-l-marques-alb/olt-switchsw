@@ -90,6 +90,10 @@ typedef struct
   L7_int32 weights[BCM_COS_COUNT];
   L7_int32 minKbps[BCM_COS_COUNT];
   L7_int32 maxKbps[BCM_COS_COUNT];
+
+  /* Necessary for Trident3X3: QoS hierarchy gports */
+  L7_uint32 flow_gport[BCM_COS_COUNT];
+  L7_uint32 se_gport;
 } usl_bcm_port_cosq_sched_config_t;
 
 typedef struct
@@ -542,7 +546,6 @@ int usl_bcm_port_cosq_sched_set(int unit,
 *
 * @param    unit              @{(input)} Local bcm unit number
 * @param    port              @{(input)} Local bcm port number
-* @param    gport             @{(input)} QoS gport identifier
 * @param    cosqSchedConfig   @{(input)} cosq sched config data
 *
 *
@@ -554,8 +557,7 @@ int usl_bcm_port_cosq_sched_set(int unit,
 *
 *********************************************************************/
 int usl_bcm_gport_cosq_sched_set(int unit, 
-                                bcm_port_t  port, 
-                                bcm_gport_t qos_gport,
+                                bcm_port_t port,
                                 usl_bcm_port_cosq_sched_config_t *cosqSchedConfig);
 
 /*********************************************************************

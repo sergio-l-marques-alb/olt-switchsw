@@ -749,18 +749,18 @@ static void hapiBroadQosCosQueueScale(int *weights, int minimum, int maximum)
 /* Use the Egress BW meters to configure guaranteed minimum and maximum BW per port/per COS. */
 static L7_RC_t hapiBroadQosCosEgressBwConfig(BROAD_PORT_t *dstPortPtr, HAPI_BROAD_COS_PORT_t *cosData)
 {
-  int                               rv, i;
-  int                               schedulerMode;
-  int                               noDelay = 0;
-  int                               weights[BCM_COS_COUNT];
-  unsigned long                     minKbps[BCM_COS_COUNT];   /* PTin modified: QoS: int to unsigned long */
-  unsigned long                     maxKbps[BCM_COS_COUNT];   /* PTin modified: QoS: int to unsigned long */
-  L7_uint32                         portSpeed;
-  L7_RC_t                           result = L7_SUCCESS;
-  usl_bcm_port_cosq_sched_config_t  cosqSchedConfig;
+  int       rv, i;
+  int       schedulerMode;
+  int       noDelay = 0;
+  int       weights[BCM_COS_COUNT];
+  int       minKbps[BCM_COS_COUNT];   /* PTin modified: QoS: int to unsigned long */
+  int       maxKbps[BCM_COS_COUNT];   /* PTin modified: QoS: int to unsigned long */
+  L7_uint32 portSpeed;
+  L7_RC_t   result = L7_SUCCESS;
   ptin_dapi_port_t dapiPort;
   l7_cosq_set_t    queueSet;
-  bcm_gport_t      qos_gport;
+  L7_uint32        se_gport, flow_gport[BCM_COS_COUNT]; /* for Trident3X3: QoS hierarchy gports */
+  usl_bcm_port_cosq_sched_config_t cosqSchedConfig;
 
   dapiPort.usp = &dstPortPtr->usp;
   dapiPort.dapi_g = dapi_g;
@@ -782,19 +782,32 @@ static L7_RC_t hapiBroadQosCosEgressBwConfig(BROAD_PORT_t *dstPortPtr, HAPI_BROA
   /* Run all queueSet's */
   for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
+    /* Get QoS gport for L1 level */
+    if (ptin_hapi_qos_gport_get(&dapiPort, queueSet, -1 /*L1*/, &se_gport) != L7_SUCCESS)
+    {
+      se_gport = BCM_GPORT_INVALID;
+      PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Using default gport",
+                   dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet);
+    }
+    else
+    {
+      PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: SE gport 0x%x",
+                   dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, se_gport);
+    }
+
     for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
     {
-      /* Get QoS gport */
-      if (ptin_hapi_qos_gport_get(&dapiPort, queueSet, i, &qos_gport) != L7_SUCCESS)
+      /* Get QoS gport for L2 level */
+      if (ptin_hapi_qos_gport_get(&dapiPort, queueSet, i, &flow_gport[i]) != L7_SUCCESS)
       {
-        qos_gport = BCM_GPORT_INVALID;
+        flow_gport[i] = BCM_GPORT_INVALID;
         PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d: Using default gport",
                      dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, i);
       }
       else
       {
-        PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d: Using gport 0x%x",
-                     dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, i, qos_gport);
+        PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d: Flow gport 0x%x",
+                     dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, i, flow_gport[i]);
       }
 
       if (cosData->queueSet[queueSet].schedType[i] == DAPI_QOS_COS_QUEUE_SCHED_TYPE_STRICT)
@@ -838,6 +851,11 @@ static L7_RC_t hapiBroadQosCosEgressBwConfig(BROAD_PORT_t *dstPortPtr, HAPI_BROA
         minKbps[i] = (cosData->queueSet[queueSet].minBw[i] * portSpeed) / 100;
         maxKbps[i] = (cosData->queueSet[queueSet].maxBw[i] * portSpeed) / 100;
       }
+
+      PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d: minBW= %d%% / %u Kbps, maxBW= %d%% / %u Kbps",
+                   dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, i,
+                   cosData->queueSet[queueSet].minBw[i], minKbps[i],
+                   cosData->queueSet[queueSet].maxBw[i], maxKbps[i]);
     }
 
     /* apply the scheduling policy to the port */
@@ -846,24 +864,26 @@ static L7_RC_t hapiBroadQosCosEgressBwConfig(BROAD_PORT_t *dstPortPtr, HAPI_BROA
     memcpy(&(cosqSchedConfig.minKbps), minKbps, sizeof(cosqSchedConfig.minKbps));
     memcpy(&(cosqSchedConfig.maxKbps), maxKbps, sizeof(cosqSchedConfig.maxKbps));
     cosqSchedConfig.mode = schedulerMode;
+    /* For Trident3X3: give QoS gports */
+    cosqSchedConfig.se_gport = se_gport;
+    memcpy(&(cosqSchedConfig.flow_gport), flow_gport, sizeof(cosqSchedConfig.flow_gport));
 
     /* New procedure */
     rv = usl_bcm_gport_cosq_sched_set(dstPortPtr->bcm_unit,
                                       dstPortPtr->bcm_port,
-                                      qos_gport,
                                       &cosqSchedConfig);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       result = L7_FAILURE;
-      PT_LOG_ERR(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Error @ usl_bcm_gport_cosq_sched_set(bcm_unit=%u, bcm_port=%u, qos_gport=0x%x, ...): rv=%d (%s)",
+      PT_LOG_ERR(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Error @ usl_bcm_gport_cosq_sched_set(bcm_unit=%u, bcm_port=%u, ...): rv=%d (%s)",
                  dstPortPtr->usp.unit, dstPortPtr->usp.slot, dstPortPtr->usp.port, queueSet,
-                 dstPortPtr->bcm_unit, dstPortPtr->bcm_port, qos_gport, rv, bcm_errmsg(rv));
+                 dstPortPtr->bcm_unit, dstPortPtr->bcm_port, rv, bcm_errmsg(rv));
     }
     else
     {
-      PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Success @ usl_bcm_gport_cosq_sched_set(bcm_unit=%u, bcm_port=%u, qos_gport=0x%x, ...)",
+      PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Success @ usl_bcm_gport_cosq_sched_set(bcm_unit=%u, bcm_port=%u, ...)",
                    dstPortPtr->usp.unit, dstPortPtr->usp.slot, dstPortPtr->usp.port, queueSet,
-                   dstPortPtr->bcm_unit, dstPortPtr->bcm_port, qos_gport);
+                   dstPortPtr->bcm_unit, dstPortPtr->bcm_port);
     }
   }
 
@@ -874,19 +894,19 @@ static L7_RC_t hapiBroadQosCosEgressBwConfig(BROAD_PORT_t *dstPortPtr, HAPI_BROA
    as accurate as using the egress BW meters. */
 static L7_RC_t hapiBroadQosCosQueueWeightsConfig(BROAD_PORT_t *dstPortPtr, HAPI_BROAD_COS_PORT_t *cosData)
 {
-  int           rv, i;
-  int           weights[BCM_COS_MAX+1];
-  int           minKbps[BCM_COS_MAX+1];
-  int           maxKbps[BCM_COS_MAX+1];
-  int           availBw = 100;
-  int           NO_DELAY = 0;
-  L7_RC_t       result = L7_SUCCESS;
-  L7_BOOL       weightedSchd = L7_FALSE; /* Set to L7_TRUE if atleast one queue is of type WEIGHTED */
-  usl_bcm_port_cosq_sched_config_t  cosqSchedConfig;
+  int     rv, i;
+  int     weights[BCM_COS_MAX+1];
+  int     minKbps[BCM_COS_MAX+1];
+  int     maxKbps[BCM_COS_MAX+1];
+  int     availBw = 100;
+  int     NO_DELAY = 0;
+  L7_RC_t result = L7_SUCCESS;
+  L7_BOOL weightedSchd = L7_FALSE; /* Set to L7_TRUE if atleast one queue is of type WEIGHTED */
   ptin_dapi_port_t dapiPort;
   l7_cosq_set_t    queueSet;
-  bcm_gport_t      qos_gport;
+  L7_uint32        se_gport, flow_gport[BCM_COS_COUNT]; /* for Trident3X3: QoS hierarchy gports */
   L7_uint32        portSpeed;
+  usl_bcm_port_cosq_sched_config_t cosqSchedConfig;
 
   dapiPort.usp = &dstPortPtr->usp;
   dapiPort.dapi_g = dapi_g;
@@ -906,19 +926,32 @@ static L7_RC_t hapiBroadQosCosQueueWeightsConfig(BROAD_PORT_t *dstPortPtr, HAPI_
   /* Run all queueSet's */
   for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
+    /* Get QoS gport for L1 level */
+    if (ptin_hapi_qos_gport_get(&dapiPort, queueSet, -1 /*L1*/, &se_gport) != L7_SUCCESS)
+    {
+      se_gport = BCM_GPORT_INVALID;
+      PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Using default gport",
+                   dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet);
+    }
+    else
+    {
+      PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: SE gport 0x%x",
+                   dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, se_gport);
+    }
+
     for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
     {
-      /* Get QoS gport */
-      if (ptin_hapi_qos_gport_get(&dapiPort, queueSet, i, &qos_gport) != L7_SUCCESS)
+      /* Get QoS gport for L2 level */
+      if (ptin_hapi_qos_gport_get(&dapiPort, queueSet, i, &flow_gport[i]) != L7_SUCCESS)
       {
-        qos_gport = BCM_GPORT_INVALID;
+        flow_gport[i] = BCM_GPORT_INVALID;
         PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d: Using default gport",
                      dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, i);
       }
       else
       {
         PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d: Using gport 0x%x",
-                     dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, i, qos_gport);
+                     dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, i, flow_gport[i]);
       }
 
       /* PTin added: COS */
@@ -1029,26 +1062,26 @@ static L7_RC_t hapiBroadQosCosQueueWeightsConfig(BROAD_PORT_t *dstPortPtr, HAPI_
       /* apply the scheduling policy to the port */
       cosqSchedConfig.mode = hapiBroadCosQueueWDRRSupported() ? BCM_COSQ_DEFICIT_ROUND_ROBIN : BCM_COSQ_WEIGHTED_ROUND_ROBIN;
 
-      printf("%s(%d) I was here: weights={%u,%u,%u,%u,%u,%u,%u,%u}\r\n",__FUNCTION__,__LINE__,
-             cosqSchedConfig.weights[0],cosqSchedConfig.weights[1],cosqSchedConfig.weights[2],cosqSchedConfig.weights[3],cosqSchedConfig.weights[4],cosqSchedConfig.weights[5],cosqSchedConfig.weights[6],cosqSchedConfig.weights[7]);
+      /* For Trident3X3: give QoS gports */
+      cosqSchedConfig.se_gport = se_gport;
+      memcpy(&(cosqSchedConfig.flow_gport), flow_gport, sizeof(cosqSchedConfig.flow_gport));
 
       /* New procedure */
       rv = usl_bcm_gport_cosq_sched_set(dstPortPtr->bcm_unit,
                                         dstPortPtr->bcm_port,
-                                        qos_gport,
                                         &cosqSchedConfig);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         result = L7_FAILURE;
-        PT_LOG_ERR(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Error @ usl_bcm_gport_cosq_sched_set(bcm_unit=%u, bcm_port=%u, qos_gport=0x%x, ...): rv=%d (%s)",
+        PT_LOG_ERR(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Error @ usl_bcm_gport_cosq_sched_set(bcm_unit=%u, bcm_port=%u, ...): rv=%d (%s)",
                    dstPortPtr->usp.unit, dstPortPtr->usp.slot, dstPortPtr->usp.port, queueSet,
-                   dstPortPtr->bcm_unit, dstPortPtr->bcm_port, qos_gport, rv, bcm_errmsg(rv));
+                   dstPortPtr->bcm_unit, dstPortPtr->bcm_port, rv, bcm_errmsg(rv));
       }
       else
       {
-        PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Success @ usl_bcm_gport_cosq_sched_set(bcm_unit=%u, bcm_port=%u, qos_gport=0x%x, ...)",
+        PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Success @ usl_bcm_gport_cosq_sched_set(bcm_unit=%u, bcm_port=%u, ...)",
                      dstPortPtr->usp.unit, dstPortPtr->usp.slot, dstPortPtr->usp.port, queueSet,
-                     dstPortPtr->bcm_unit, dstPortPtr->bcm_port, qos_gport);
+                     dstPortPtr->bcm_unit, dstPortPtr->bcm_port);
       }
     }
   }
