@@ -120,7 +120,7 @@ extern L7_RC_t ptin_qos_drop_config_get(L7_uint32 ptin_port, L7_uint8 cos, ptin_
  * @author mruas (16/08/17)
  * 
  * @param ptin_port
- * @param max_rate : Percentage 
+ * @param max_rate : Percent x 10 
  * @param burst_size : kbits 
  * 
  * @return L7_RC_t 

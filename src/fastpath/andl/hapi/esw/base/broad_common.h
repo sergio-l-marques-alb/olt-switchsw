@@ -1432,7 +1432,8 @@ void hpcHardwareWarmStartCpuCosqHwRateLimitSet(L7_BOOL warmStartBegin);
 *
 * @purpose Determines the bandwidth of an interface
 *
-* @param   BROAD_PORT_t     *hapiPortPtr
+* @param   BROAD_PORT_t     *hapiPortPtr (in)
+* @param   l7_cosq_set_t    queueSet (in)
 * @param   L7_uint32        *portSpeed (output)
 *
 * @returns none
@@ -1442,6 +1443,6 @@ void hpcHardwareWarmStartCpuCosqHwRateLimitSet(L7_BOOL warmStartBegin);
 * @end
 *
 *********************************************************************/
-void hapiBroadIntfSpeedGet(BROAD_PORT_t *hapiPortPtr, L7_uint32 *portSpeed);
+void hapiBroadIntfSpeedGet(BROAD_PORT_t *hapiPortPtr, l7_cosq_set_t queueSet, L7_uint32 *portSpeed);
 
 #endif

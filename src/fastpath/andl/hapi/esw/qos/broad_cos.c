@@ -673,7 +673,7 @@ static L7_RC_t hapiBroadQosCosIntfRateShape(BROAD_PORT_t *dstPortPtr, l7_cosq_se
     else
     {
       /* result is a percent converted to Kbps */
-      hapiBroadIntfSpeedGet(dstPortPtr, &portSpeed);
+      hapiBroadIntfSpeedGet(dstPortPtr, queueSet, &portSpeed);
       shaperConfig.rate = ((egrRate * portSpeed) / 100); 
     }
 
@@ -771,8 +771,6 @@ static L7_RC_t hapiBroadQosCosEgressBwConfig(BROAD_PORT_t *dstPortPtr, HAPI_BROA
                      BCM_COSQ_DEFICIT_ROUND_ROBIN  : 
                      BCM_COSQ_WEIGHTED_ROUND_ROBIN;
 
-  hapiBroadIntfSpeedGet(dstPortPtr, &portSpeed);
-
   /* Start with default weights and remove any SP queues.
    */    
   memcpy(weights, wrr_default_weights, sizeof(weights));
@@ -782,6 +780,9 @@ static L7_RC_t hapiBroadQosCosEgressBwConfig(BROAD_PORT_t *dstPortPtr, HAPI_BROA
   /* Run all queueSet's */
   for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
+    // Extract port speed
+    hapiBroadIntfSpeedGet(dstPortPtr, queueSet, &portSpeed);
+
     /* Get QoS gport for L1 level */
     if (ptin_hapi_qos_gport_get(&dapiPort, queueSet, -1 /*L1*/, &se_gport) != L7_SUCCESS)
     {
@@ -911,9 +912,6 @@ static L7_RC_t hapiBroadQosCosQueueWeightsConfig(BROAD_PORT_t *dstPortPtr, HAPI_
   dapiPort.usp = &dstPortPtr->usp;
   dapiPort.dapi_g = dapi_g;
 
-  // Extract port speed
-  hapiBroadIntfSpeedGet(dstPortPtr, &portSpeed);
-
   memset(&cosqSchedConfig, 0, sizeof(cosqSchedConfig));
 
   /* Start with default weights and remove any SP queues as they get their
@@ -926,6 +924,9 @@ static L7_RC_t hapiBroadQosCosQueueWeightsConfig(BROAD_PORT_t *dstPortPtr, HAPI_
   /* Run all queueSet's */
   for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
+    // Extract port speed
+    hapiBroadIntfSpeedGet(dstPortPtr, queueSet, &portSpeed);
+
     /* Get QoS gport for L1 level */
     if (ptin_hapi_qos_gport_get(&dapiPort, queueSet, -1 /*L1*/, &se_gport) != L7_SUCCESS)
     {

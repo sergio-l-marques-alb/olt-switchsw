@@ -477,13 +477,13 @@ L7_RC_t hapiBroadPtinGeneric(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
  */
 L7_RC_t broad_ptin_shaper_set(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
 {
-  ptin_intf_shaper_t *entry;
+  dtl_intf_shaper_t  *entry;
   L7_uint32           rate_min_kbps, rate_max_kbps, burst_size;
   ptin_dapi_port_t    dapiPort;
   BROAD_PORT_t       *hapiPortPtr;
   L7_RC_t rc = L7_SUCCESS;
 
-  entry = (ptin_intf_shaper_t*) data;
+  entry = (dtl_intf_shaper_t*) data;
 
   hapiPortPtr = HAPI_PORT_GET( usp, dapi_g );
 
@@ -501,10 +501,10 @@ L7_RC_t broad_ptin_shaper_set(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_
       L7_uint32 bcmSpeed;
 
       /* Get port speed */
-      hapiBroadIntfSpeedGet(hapiPortPtr, &bcmSpeed);
+      hapiBroadIntfSpeedGet(hapiPortPtr, entry->queueSet, &bcmSpeed);
 
-      rate_min_kbps = (entry->rate_min*bcmSpeed)/100;
-      rate_max_kbps = (entry->rate_max*bcmSpeed)/100;
+      rate_min_kbps = (entry->rate_min*bcmSpeed)/1000;
+      rate_max_kbps = (entry->rate_max*bcmSpeed)/1000;
     }
     else if (entry->rate_units == L7_RATE_UNIT_KBPS)
     {

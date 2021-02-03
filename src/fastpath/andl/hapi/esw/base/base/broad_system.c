@@ -1006,7 +1006,7 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
       dapiCmd->cmdData.broadcastControl.unit == L7_RATE_UNIT_KBPS)
   {
     /* Get port speed */
-    hapiBroadIntfSpeedGet(hapiPortPtr, &portSpeed);
+    hapiBroadIntfSpeedGet(hapiPortPtr, L7_QOS_QSET_PORT, &portSpeed);
 
     /* PTin modified: StormControl */
   #if 1

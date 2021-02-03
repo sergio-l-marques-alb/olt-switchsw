@@ -1273,19 +1273,19 @@ L7_RC_t
 ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_int tc,
                          L7_uint32 rate_min, L7_uint32 rate_max, L7_uint32 burst_size)
 {
-  L7_uint32    portSpeed;
+  L7_uint32    portSpeedMax;
   BROAD_PORT_t *hapiPortPtr;
   bcm_error_t  rv = BCM_E_NONE;
 
   hapiPortPtr = HAPI_PORT_GET( dapiPort->usp, dapiPort->dapi_g );
 
-  /* Get port speed */
-  hapiBroadIntfSpeedGet(hapiPortPtr, &portSpeed);
+  /* Get Max port speed (don't consider virtual ports) */
+  hapiBroadIntfSpeedGet(hapiPortPtr, L7_QOS_QSET_PORT, &portSpeedMax);
 
-  PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, bcm_unit %u bcm_port %u, queueSet %u, tc %d: portSpeed=%u, rate_min=%u kbps, rate_max=%u kbps, burst_size=%u bytes",
+  PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, bcm_unit %u bcm_port %u, queueSet %u, tc %d: portSpeedMax=%u, rate_min=%u kbps, rate_max=%u kbps, burst_size=%u Kbits",
                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, 
                hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, queueSet, tc,
-               portSpeed, rate_min, rate_max, burst_size);
+               portSpeedMax, rate_min, rate_max, burst_size);
 
   /* Port Level */
   if (queueSet == L7_QOS_QSET_PORT
@@ -1363,12 +1363,12 @@ ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_
     if (tc < 0 /*All TCs*/)
     {
       /* Configure burst size at the psysical port side */
-      rv = bcm_port_rate_egress_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, portSpeed, burst_size);
+      rv = bcm_port_rate_egress_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, portSpeedMax, burst_size);
 
       if (rv != BCM_E_NONE)
       {
-        PT_LOG_ERR(LOG_CTX_QOS, "Error with bcm_port_rate_egress_set(bcm_unit %u, bcm_port %u, portSpeed=%u, burst_size=%u)=> rv=%d (%s)",
-                   hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, portSpeed, burst_size, rv, bcm_errmsg(rv));
+        PT_LOG_ERR(LOG_CTX_QOS, "Error with bcm_port_rate_egress_set(bcm_unit %u, bcm_port %u, portSpeedMax=%u, burst_size=%u)=> rv=%d (%s)",
+                   hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, portSpeedMax, burst_size, rv, bcm_errmsg(rv));
         return L7_FAILURE;
       }
     }
@@ -1397,7 +1397,7 @@ ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_
     }
 #endif
 
-    PT_LOG_INFO(LOG_CTX_QOS, "bcm_unit %u, bcm_port %u, queueSet %u, tc %d: qos_gport 0x%x -> Shaper applied with rate_min=%u, rate_max=%u, burst_size=%u",
+    PT_LOG_INFO(LOG_CTX_QOS, "bcm_unit %u, bcm_port %u, queueSet %u, tc %d: qos_gport 0x%x -> Shaper applied with rate_min=%u kbps, rate_max=%u kbps, burst_size=%u Kbits",
                 hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, queueSet, tc, qos_gport, rate_min, rate_max, burst_size);
   }
 #else /*(PLAT_BCM_CHIP == L7_BCM_TRIDENT3_X3)*/
@@ -2324,12 +2324,14 @@ L7_RC_t ptin_hapi_qos_hierarchy_init(void)
             for (tc = 0; tc < 8; tc++)
             {
                 /* Set Strict Scheduler type for each L2 SE */
-                qos_gport = HQoS[usp.port].L1[queueSet].L2[tc].SE;
                 for (cosq = 0; cosq < 2; cosq++) /* Unicast + Multicast queue */
                 {
+                    qos_gport = (cosq > 0) ? HQoS[usp.port].L1[queueSet].L2[tc].MCq 
+                                           : HQoS[usp.port].L1[queueSet].L2[tc].UCq;
+
                     rv = bcm_cosq_gport_sched_set(hapiPortPtr->bcm_unit,
                                                   qos_gport,
-                                                  cosq,
+                                                  0 /*Don't care*/,
                                                   BCM_COSQ_STRICT, 
                                                   BCM_COSQ_WEIGHT_STRICT);
                     if (rv != BCM_E_NONE)
@@ -2339,15 +2341,13 @@ L7_RC_t ptin_hapi_qos_hierarchy_init(void)
                         return L7_FAILURE;
                     }
                 }
-            }
 
-            /* Set Strict Scheduler type for each L1 SE */
-            qos_gport = HQoS[usp.port].L1[queueSet].SE;
-            for (tc = 0; tc < 8; tc++) /* There are 8 Traffic Classes */
-            {
+                qos_gport = HQoS[usp.port].L1[queueSet].L2[tc].SE;
+
+                /* Set Strict Scheduler type for each L1 SE */
                 rv = bcm_cosq_gport_sched_set(hapiPortPtr->bcm_unit,
                                               qos_gport,
-                                              tc,
+                                              0 /*Don't care*/,
                                               BCM_COSQ_STRICT, 
                                               BCM_COSQ_WEIGHT_STRICT);
                 if (rv != BCM_E_NONE)
@@ -2356,6 +2356,21 @@ L7_RC_t ptin_hapi_qos_hierarchy_init(void)
                                usp.port, queueSet, hapiPortPtr->bcm_unit, qos_gport, tc, rv, bcm_errmsg(rv));
                     return L7_FAILURE;
                 }
+            }
+
+            qos_gport = HQoS[usp.port].L1[queueSet].SE;
+
+            /* Set WDRR type for L0 SE */
+            rv = bcm_cosq_gport_sched_set(hapiPortPtr->bcm_unit,
+                                          qos_gport,
+                                          0 /*Don't care*/,
+                                          BCM_COSQ_DEFICIT_ROUND_ROBIN, 
+                                          (queueSet == 0) ? 1 : 4);
+            if (rv != BCM_E_NONE)
+            {
+                PT_LOG_ERR(LOG_CTX_QOS, "usp.port %d: Error with bcm_cosq_gport_sched_set(bcm_unit=%u, qos_gport=0x%x, queueSet=%u, ...)=> rv=%d (%s)",
+                           usp.port, hapiPortPtr->bcm_unit, qos_gport, queueSet, rv, bcm_errmsg(rv));
+                return L7_FAILURE;
             }
 
             /* Default shaper configuration for each Queue Set:
@@ -2371,23 +2386,6 @@ L7_RC_t ptin_hapi_qos_hierarchy_init(void)
             {
                 PT_LOG_ERR(LOG_CTX_QOS, "usp.port %d, queueSet %u: Error with bcm_cosq_port_bandwidth_set(bcm_unit=%u, qos_gport=0x%x, 0, ...)=> rv=%d (%s)",
                            usp.port, queueSet, hapiPortPtr->bcm_unit, qos_gport, rv, bcm_errmsg(rv));
-                return L7_FAILURE;
-            }
-        }
-
-        /* Set WDRR type for L0 SE */
-        qos_gport = HQoS[usp.port].L0;
-        for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
-        {
-            rv = bcm_cosq_gport_sched_set(hapiPortPtr->bcm_unit,
-                                          qos_gport,
-                                          queueSet /*Using queueSet for TC index*/,
-                                          BCM_COSQ_DEFICIT_ROUND_ROBIN, 
-                                          (queueSet == 0) ? 1 : 4);
-            if (rv != BCM_E_NONE)
-            {
-                PT_LOG_ERR(LOG_CTX_QOS, "usp.port %d: Error with bcm_cosq_gport_sched_set(bcm_unit=%u, qos_gport=0x%x, queueSet=%u, ...)=> rv=%d (%s)",
-                           usp.port, hapiPortPtr->bcm_unit, qos_gport, queueSet, rv, bcm_errmsg(rv));
                 return L7_FAILURE;
             }
         }

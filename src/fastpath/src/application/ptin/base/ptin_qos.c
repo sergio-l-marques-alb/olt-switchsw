@@ -9,18 +9,22 @@
 /* MAX interface rate to limit shaping (percentage value) */
 /* Index 1: Effective configuration from manager */
 /* Index 2: Max shaper value */
-#define PTIN_INTF_SHAPER_MNG_VALUE  0
-#define PTIN_INTF_SHAPER_MAX_VALUE  1
-#define PTIN_INTF_FEC_VALUE         2
-L7_uint32 ptin_intf_shaper_max[PTIN_SYSTEM_N_INTERF][3];
-L7_uint32 ptin_burst_size[PTIN_SYSTEM_N_INTERF];
+typedef enum {
+  PTIN_INTF_SHAPER_MNG_VALUE = 0,
+  PTIN_INTF_SHAPER_MAX_VALUE = 1,
+  PTIN_INTF_SHAPER_FEC_VALUE = 2,
+  PTIN_INTF_SHAPER_IDX_MAX,
+} ptin_intf_shaper_idx_t;
+
+typedef struct {
+  L7_uint32 rate[PTIN_INTF_SHAPER_IDX_MAX]; /* Percent x 10 */
+  L7_uint32 burstsize;                      /* Kbps */
+} db_intf_shaper_t;
+
+db_intf_shaper_t db_intf_shaper[PTIN_SYSTEM_N_INTERF];
 
 /* Default burst size (in kbits) */
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-#define MAX_BURST_SIZE 128
-#else
 #define MAX_BURST_SIZE 16000
-#endif
 
 /**
  * Configure Shaping
@@ -29,8 +33,8 @@ L7_uint32 ptin_burst_size[PTIN_SYSTEM_N_INTERF];
  * 
  * @param ptin_port 
  * @param tc 
- * @param rate_min : kbps
- * @param rate_max : kbps
+ * @param rate_min : Percent x 10
+ * @param rate_max : Percent x 10
  * @param burst_size : kbits
  * 
  * @return L7_RC_t 
@@ -54,10 +58,10 @@ void ptin_qos_init(void)
   /* For all interfaces, max rate is 100% */
   for (i = 0; i < PTIN_SYSTEM_N_INTERF; i++)
   {
-    ptin_intf_shaper_max[i][PTIN_INTF_SHAPER_MNG_VALUE] = 100;   /* Shaper value from management */
-    ptin_intf_shaper_max[i][PTIN_INTF_SHAPER_MAX_VALUE] = 100; /* Max. Shaper value */
-    ptin_intf_shaper_max[i][PTIN_INTF_FEC_VALUE]        = 100; /* FEC value value */
-    ptin_burst_size[i] = MAX_BURST_SIZE; //default bcm value for port max burst rate
+    db_intf_shaper[i].rate[PTIN_INTF_SHAPER_MNG_VALUE] = 1000; /* Shaper value from management (Percent x 10) */
+    db_intf_shaper[i].rate[PTIN_INTF_SHAPER_MAX_VALUE] = 1000; /* Max. Shaper value (Percent x 10) */
+    db_intf_shaper[i].rate[PTIN_INTF_SHAPER_FEC_VALUE] = 1000; /* FEC value value (Percent x 10) */
+    db_intf_shaper[i].burstsize = MAX_BURST_SIZE; //default bcm value for port max burst rate
   }
 }
 
@@ -266,6 +270,9 @@ L7_RC_t ptin_qos_intf_config_set(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
             intfQos->pktprio.cos[6],
             intfQos->pktprio.cos[7]);
 
+  /* Convert shaping rate percentage to x10 higher resolution */
+  intfQos->shaping_rate *= 10;
+
   /* Validate interface */
   if (ptin_intf_port2intIfNum_queueSet(ptin_port, &intIfNum, &queueSet) != L7_SUCCESS)
   {
@@ -336,21 +343,21 @@ L7_RC_t ptin_qos_intf_config_set(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
     PT_LOG_NOTICE(LOG_CTX_INTF, "New shaping rate is %u", intfQos->shaping_rate);
 
     if (intfQos->shaping_rate == 0 ||
-        intfQos->shaping_rate > 100)
+        intfQos->shaping_rate > 1000)
     {
-      intfQos->shaping_rate = 100;
+      intfQos->shaping_rate = 1000;
     }
 
-    PT_LOG_TRACE(LOG_CTX_INTF, "ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = %u",
-                 ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE]);
-    PT_LOG_TRACE(LOG_CTX_INTF, "intfQos->shaping_rate = %u",intfQos->shaping_rate);
+    PT_LOG_TRACE(LOG_CTX_INTF, "db_intf_shaper[ptin_port].rate[PTIN_INTF_SHAPER_MAX_VALUE] = %u (%%x10)",
+                 db_intf_shaper[ptin_port].rate[PTIN_INTF_SHAPER_MAX_VALUE]);
+    PT_LOG_TRACE(LOG_CTX_INTF, "intfQos->shaping_rate = %u (%%x10)",intfQos->shaping_rate);
 
     //rc = usmDbQosCosQueueIntfShapingRateSet(1, intIfNum, (intfQos->shaping_rate * ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE])/100);
 
     /* Shaper settings */
 #if 1
-    /* Rate calculation modified */
-    rate_max_apply = intfQos->shaping_rate * ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE] / 100;
+    /* Rate calculation modified (percentage x 10) */
+    rate_max_apply = intfQos->shaping_rate * db_intf_shaper[ptin_port].rate[PTIN_INTF_SHAPER_FEC_VALUE] / 1000;
 #else
     if (intfQos->shaping_rate <= (ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE]))
     {
@@ -361,17 +368,17 @@ L7_RC_t ptin_qos_intf_config_set(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
       rate_max_apply = ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE];
     }
 #endif
-    burst_size_apply = ptin_burst_size[ptin_port]; 
+    burst_size_apply = db_intf_shaper[ptin_port].burstsize;
 
-    PT_LOG_INFO(LOG_CTX_INTF, "Applying shaper to ptin_port %u: rate_max=%u, burst size=%u",
+    PT_LOG_INFO(LOG_CTX_INTF, "Applying shaper to ptin_port %u: rate_max=%u (%%x10), burst size=%u",
                 ptin_port, rate_max_apply, burst_size_apply);
 
     rc = ptin_qos_shaper_set(ptin_port, -1 /*All TC*/, 0 /*Rate_min*/, rate_max_apply, burst_size_apply);
 
     if (rc == L7_SUCCESS)
     {
-      ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE] = intfQos->shaping_rate;
-      ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = rate_max_apply;
+      db_intf_shaper[ptin_port].rate[PTIN_INTF_SHAPER_MNG_VALUE] = intfQos->shaping_rate;
+      db_intf_shaper[ptin_port].rate[PTIN_INTF_SHAPER_MAX_VALUE] = rate_max_apply;
     }
     else
     {  
@@ -1240,7 +1247,7 @@ L7_RC_t ptin_qos_drop_config_get(L7_uint32 ptin_port, L7_uint8 cos, ptin_QoS_dro
  * @author mruas (16/08/17)
  * 
  * @param ptin_port
- * @param max_rate : Percentage 
+ * @param max_rate : Percent x 10
  * @param burst_size : kbits 
  * 
  * @return L7_RC_t 
@@ -1257,11 +1264,11 @@ L7_RC_t ptin_qos_intf_shaper_set(L7_uint32 ptin_port, L7_uint32 max_rate, L7_uin
     return L7_FAILURE;
   }
 
-  /* Limit max rate */
+  /* Limit max rate (rate cames in Percetage x 10) */
   if (max_rate == 0 ||
-      max_rate > 100)
+      max_rate > 1000)
   {
-    max_rate = 100;
+    max_rate = 1000;
   }
 
   /* Limit max rate */
@@ -1280,8 +1287,8 @@ L7_RC_t ptin_qos_intf_shaper_set(L7_uint32 ptin_port, L7_uint32 max_rate, L7_uin
 #endif
   
 #if 1
-  /* Rate calculation modified */
-  rate_max_apply = max_rate * ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE] / 100;
+  /* Rate calculation modified (percentage x 10) */
+  rate_max_apply = max_rate * db_intf_shaper[ptin_port].rate[PTIN_INTF_SHAPER_MNG_VALUE] / 1000;
 #else
   if (max_rate > ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE])
   {
@@ -1293,7 +1300,7 @@ L7_RC_t ptin_qos_intf_shaper_set(L7_uint32 ptin_port, L7_uint32 max_rate, L7_uin
   }
 #endif
 
-  PT_LOG_INFO(LOG_CTX_INTF, "Applying shaper to ptin_port %u: rate_max=%u, burst size=%u",
+  PT_LOG_INFO(LOG_CTX_INTF, "Applying shaper to ptin_port %u: rate_max=%u (%%x10), burst size=%u",
               ptin_port, rate_max_apply, burst_size);
 
   /* Apply shaper */
@@ -1302,9 +1309,9 @@ L7_RC_t ptin_qos_intf_shaper_set(L7_uint32 ptin_port, L7_uint32 max_rate, L7_uin
   if (rc == L7_SUCCESS)
   {
     /* Save max rate for this interface */
-    ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = rate_max_apply;
-    ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE] = max_rate;
-    ptin_burst_size[ptin_port] = burst_size;
+    db_intf_shaper[ptin_port].rate[PTIN_INTF_SHAPER_MAX_VALUE] = rate_max_apply;
+    db_intf_shaper[ptin_port].rate[PTIN_INTF_SHAPER_FEC_VALUE] = max_rate;
+    db_intf_shaper[ptin_port].burstsize = burst_size;
   }
   else
   {  
@@ -1322,8 +1329,8 @@ L7_RC_t ptin_qos_intf_shaper_set(L7_uint32 ptin_port, L7_uint32 max_rate, L7_uin
  * 
  * @param ptin_port 
  * @param tc 
- * @param rate_min : kbps
- * @param rate_max : kbps
+ * @param rate_min : Percent x 10
+ * @param rate_max : Percent x 10
  * @param burst_size : kbits
  * 
  * @return L7_RC_t 
@@ -1332,10 +1339,10 @@ static
 L7_RC_t ptin_qos_shaper_set(L7_uint32 ptin_port, L7_int tc, 
                             L7_uint32 rate_min, L7_uint32 rate_max, L7_uint32 burst_size)
 {
-  L7_uint32           intIfNum;
-  l7_cosq_set_t       queueSet;
-  ptin_intf_shaper_t  entry;
-  L7_RATE_UNIT_t      rate_units;
+  L7_uint32         intIfNum;
+  l7_cosq_set_t     queueSet;
+  dtl_intf_shaper_t entry;
+  L7_RATE_UNIT_t    rate_units;
   L7_RC_t rc;
 
   /* Validate arguments */
@@ -1353,9 +1360,9 @@ L7_RC_t ptin_qos_shaper_set(L7_uint32 ptin_port, L7_int tc,
   }
   
   /* Limit rate max to 100% */
-  if(rate_max > 100)
+  if(rate_max > 1000)
   {
-    rate_max = 100;
+    rate_max = 1000;
   }
   /* Rate min must be lower than rate max */
   if (rate_min > rate_max)
@@ -1363,29 +1370,11 @@ L7_RC_t ptin_qos_shaper_set(L7_uint32 ptin_port, L7_int tc,
     rate_min = rate_max;
   }
   
-  /* Adapt shaper value according to max port speed */
-  if (PTIN_PORT_IS_PON_GPON_TYPE(ptin_port))
-  {
-    /* Convert percentage to kbps (2.5G port) */
-    rate_units= L7_RATE_UNIT_KBPS;
-    rate_min  = (rate_min*2500000)/100;
-    rate_max  = (rate_max*2500000)/100;
-  }
-  else if (PTIN_PORT_IS_PON_XGSPON_TYPE(ptin_port))
-  {
-    /* Convert percentage to kbps (10G port) */
-    rate_units= L7_RATE_UNIT_KBPS;
-    rate_min  = (rate_min*10000000)/100;
-    rate_max  = (rate_max*10000000)/100;
-  }
-  else
-  {
-    /* Default: Keep percentage value */
-    rate_units= L7_RATE_UNIT_PERCENT;
-  }
+  /* Default: Keep percentage value */
+  rate_units= L7_RATE_UNIT_PERCENT;
 
   //rc = usmDbQosCosQueueIntfShapingRateSet(1, intIfNum, (intfQos->shaping_rate * ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE])/100);
-  memset(&entry, 0x00, sizeof(ptin_intf_shaper_t));
+  memset(&entry, 0x00, sizeof(dtl_intf_shaper_t));
 
   /* Set min, max rate and burst size */
   entry.rate_units  = rate_units;
@@ -1399,10 +1388,10 @@ L7_RC_t ptin_qos_shaper_set(L7_uint32 ptin_port, L7_int tc,
   /* Destination queue */
   entry.queueSet = queueSet;
 
-  PT_LOG_NOTICE(LOG_CTX_INTF, "ptin_port=%u/intIfNum %u, tc=%d dst_queue=%u: min_rate=%u max_rate=%u burst_size=%u",
+  PT_LOG_NOTICE(LOG_CTX_INTF, "ptin_port=%u/intIfNum %u, tc=%d dst_queue=%u: min_rate=%u (%%x10) max_rate=%u (%%x10) burst_size=%u (Kbps)",
                 ptin_port, intIfNum, entry.tc, entry.queueSet, entry.rate_min, entry.rate_max, entry.burst_size);
 
-  rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_SHAPER_SET, DAPI_CMD_SET, sizeof(ptin_intf_shaper_t), &entry);
+  rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_SHAPER_SET, DAPI_CMD_SET, sizeof(dtl_intf_shaper_t), &entry);
 
   if (rc != L7_SUCCESS)
   {  
@@ -1443,8 +1432,8 @@ void ptin_intf_shaper_max_dump(void)
   L7_uchar8 queueSet_str[10];
   L7_RC_t rc;
 
-  printf(" ---------------------------------------------------------\r\n");
-  printf("| Port | queueSet | Top rate | Mng max | Eff max | BurstS |\r\n");
+  printf(" ---------------------------------------------------------------\r\n");
+  printf("| Port | queueSet | Top rate | Mng max | Eff max | BurstS_Kbits |\r\n");
   for (port = 0; port < PTIN_SYSTEM_N_PORTS; port++)
   {
     rc = ptin_intf_port2intIfNum_queueSet(port, &intIfNum, &queueSet);
@@ -1471,13 +1460,13 @@ void ptin_intf_shaper_max_dump(void)
         break;
     }
     
-    printf("|  %2u  | %-8s |    %3u   |   %3u   |   %3u   | %6u |\r\n",
+    printf("|  %2u  | %-8s |  %3u.%1u%%  |  %3u.%1u%% |  %3u.%1u%% |    %6u    |\r\n",
            port, queueSet_str,
-           ptin_intf_shaper_max[port][PTIN_INTF_FEC_VALUE],
-           ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MNG_VALUE],
-           ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MAX_VALUE],
-           ptin_burst_size[port]);
+           db_intf_shaper[port].rate[PTIN_INTF_SHAPER_FEC_VALUE]/10, db_intf_shaper[port].rate[PTIN_INTF_SHAPER_FEC_VALUE]%10,
+           db_intf_shaper[port].rate[PTIN_INTF_SHAPER_MNG_VALUE]/10, db_intf_shaper[port].rate[PTIN_INTF_SHAPER_MNG_VALUE]%10,
+           db_intf_shaper[port].rate[PTIN_INTF_SHAPER_MAX_VALUE]/10, db_intf_shaper[port].rate[PTIN_INTF_SHAPER_MAX_VALUE]%10,
+           db_intf_shaper[port].burstsize);
   }
-  printf(" ---------------------------------------------------------\r\n");
+  printf(" ---------------------------------------------------------------\r\n");
 }
 

@@ -984,13 +984,13 @@ int usl_bcm_gport_cosq_sched_set(int unit,
     for (cosq = 0; cosq < BCM_COS_COUNT; cosq++)
     {
       rv = bcm_cosq_gport_sched_set(unit,
-                                    cosqSchedConfig->se_gport,
-                                    cosq,
+                                    cosqSchedConfig->flow_gport[cosq],
+                                    0 /*Don't care*/,
                                     cosqSchedConfig->mode, 
                                     cosqSchedConfig->weights[cosq]);
-      PT_LOG_TRACE(LOG_CTX_QOS, "unit %d, port 0x%x, cosq %d: bcm_cosq_gport_sched_set(unit=%d, se_gport=0x%x, cosq=%d, mode=%d, weight=%d)->rv=%d",
+      PT_LOG_TRACE(LOG_CTX_QOS, "unit %d, port 0x%x, cosq %d: bcm_cosq_gport_sched_set(unit=%d, flow_gport=0x%x, 0, mode=%d, weight=%d)->rv=%d",
                    unit, port, cosq,
-                   unit, cosqSchedConfig->se_gport, cosq, cosqSchedConfig->mode, cosqSchedConfig->weights[cosq], rv);
+                   unit, cosqSchedConfig->flow_gport[cosq], cosqSchedConfig->mode, cosqSchedConfig->weights[cosq], rv);
       if (rv != BCM_E_NONE)
         break;
 
