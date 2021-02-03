@@ -843,7 +843,8 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   L7_uint32             activeState;  
   L7_uint16             int_ovlan; 
   L7_uint16             int_ivlan    = 0; 
-  ptin_IgmpProxyCfg_t   igmpCfg;  
+  ptin_IgmpProxyCfg_t   igmpCfg; 
+  L7_uint32             ptin_port = portId-1;
    
   PT_LOG_TRACE(LOG_CTX_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
 
@@ -886,7 +887,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   }
 
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
-  ptin_igmp_port_is_Dynamic(portId-1, &isDynamic);
+  ptin_igmp_port_is_Dynamic(ptin_port, &isDynamic);
 
   PT_LOG_TRACE(LOG_CTX_IGMP,"RING: port is Dynamic %d ",isDynamic);
 
@@ -969,7 +970,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   { 
     ptin_timer_start(31,"snoopPacketSend"); 
     //Send packet
-    snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
+    snoopPacketSend(ptin_port, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
     ptin_timer_stop(31);       
   }
   return SUCCESS;

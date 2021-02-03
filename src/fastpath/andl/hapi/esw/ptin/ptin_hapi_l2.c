@@ -1222,7 +1222,7 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
       return L7_FAILURE;
     }
 #endif
-    physical_port = hapiPortPtr->bcm_port;
+    physical_port = ddUsp->port;
 
     if ( (physical_port < 0) || (physical_port >= L7_MAX_PHYSICAL_PORTS_PER_SLOT) )
     {

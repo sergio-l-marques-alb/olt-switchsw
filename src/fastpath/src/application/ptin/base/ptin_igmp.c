@@ -9699,8 +9699,13 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
     }
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 #endif
-
+#if PTIN_BOARD_IS_MATRIX
+#if (MC_CLIENT_INTERF_SUPPORTED)
+    ptin_port = intIfNum2port(avl_key.intIfNum, 0);
+#endif
+#else
     ptin_port = clientGroup->ptin_port;
+#endif
     /* Check if there is free clients to be allocated (look to free clients queue) */
     if (igmpDeviceClients.number_of_clients_per_intf[PTIN_IGMP_CLIENT_PORT(ptin_port)] >= PTIN_IGMP_CLIENTIDX_MAX)
     {

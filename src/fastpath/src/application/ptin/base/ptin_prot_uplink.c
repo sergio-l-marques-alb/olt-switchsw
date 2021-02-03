@@ -3027,10 +3027,10 @@ L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_
   }
 
   /* Obtain ptin_port */
-  if (ptin_intf_ptintf2intIfNum(intf1, &ptin_port1) != L7_SUCCESS ||
-      ptin_intf_ptintf2intIfNum(intf2, &ptin_port2) != L7_SUCCESS)
+  if (ptin_intf_ptintf2port(intf1, &ptin_port1) != L7_SUCCESS ||
+      ptin_intf_ptintf2port(intf2, &ptin_port2) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_INTF, "Error obtaining intIfNum values for ptin_intf %u/%u and %u/%u", intf1->intf_type, intf1->intf_id, intf2->intf_type, intf2->intf_id);
+    PT_LOG_ERR(LOG_CTX_INTF, "Error obtaining ptin_port values for ptin_intf %u/%u and %u/%u", intf1->intf_type, intf1->intf_id, intf2->intf_type, intf2->intf_id);
     return L7_FAILURE;
   }
 
