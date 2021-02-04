@@ -43,10 +43,10 @@ echo "Built tarball located at $SCRIPT_PATH/$DST_PATH/$TGZ_FILE"
 if [ $# -ge 1 ]; then
   echo "Decompressing $TGZ_FILE to $1..."
   tar xzvf $TGZ_FILE -C $1/rootfs
+  cd $1
+  ./build/build_ramdisk_TC16SXG.sh
 
   if [ $# -ge 2 ]; then
-    cd $1
-    ./build/build_ramdisk_TC16SXG.sh
     lc_put $2 /usr/local/ptin/boot_images/tolts rdimg_TC16SXG.gz
   fi
 fi
