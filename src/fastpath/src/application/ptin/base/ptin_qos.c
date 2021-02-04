@@ -1388,8 +1388,8 @@ L7_RC_t ptin_qos_shaper_set(L7_uint32 ptin_port, L7_int tc,
   /* Destination queue */
   entry.queueSet = queueSet;
 
-  PT_LOG_NOTICE(LOG_CTX_INTF, "ptin_port=%u/intIfNum %u, tc=%d dst_queue=%u: min_rate=%u (%%x10) max_rate=%u (%%x10) burst_size=%u (Kbps)",
-                ptin_port, intIfNum, entry.tc, entry.queueSet, entry.rate_min, entry.rate_max, entry.burst_size);
+  PT_LOG_DEBUG(LOG_CTX_QOS, "ptin_port=%u/intIfNum %u, tc=%d dst_queue=%u: min_rate=%u (%%x10) max_rate=%u (%%x10) burst_size=%u (Kbps)",
+               ptin_port, intIfNum, entry.tc, entry.queueSet, entry.rate_min, entry.rate_max, entry.burst_size);
 
   rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_SHAPER_SET, DAPI_CMD_SET, sizeof(dtl_intf_shaper_t), &entry);
 

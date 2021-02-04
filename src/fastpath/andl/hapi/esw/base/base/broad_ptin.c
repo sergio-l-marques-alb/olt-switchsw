@@ -503,13 +503,19 @@ L7_RC_t broad_ptin_shaper_set(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_
       /* Get port speed */
       hapiBroadIntfSpeedGet(hapiPortPtr, entry->queueSet, &bcmSpeed);
 
-      rate_min_kbps = (entry->rate_min*bcmSpeed)/1000;
-      rate_max_kbps = (entry->rate_max*bcmSpeed)/1000;
+      rate_min_kbps = (L7_uint32) (((L7_uint64) entry->rate_min*bcmSpeed)/1000);
+      rate_max_kbps = (L7_uint32) (((L7_uint64) entry->rate_max*bcmSpeed)/1000);
+
+      PT_LOG_TRACE(LOG_CTX_QOS, "rate_min=%u/%u Kbps rate_max=%u/%u Kbps bcmSpeed=%u", 
+                   entry->rate_min, rate_min_kbps, entry->rate_max, rate_max_kbps, bcmSpeed);
     }
     else if (entry->rate_units == L7_RATE_UNIT_KBPS)
     {
       rate_min_kbps = entry->rate_min;
       rate_max_kbps = entry->rate_max;
+
+      PT_LOG_TRACE(LOG_CTX_QOS, "rate_min=%u/%u Kbps rate_max=%u/%u Kbps bcmSpeed=%u", 
+                   entry->rate_min, rate_min_kbps, entry->rate_max, rate_max_kbps);
     }
     else
     {
