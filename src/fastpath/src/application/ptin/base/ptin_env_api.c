@@ -66,9 +66,9 @@ L7_RC_t ptin_env_init(void)
         return L7_FAILURE;
     }
 
-    _board_mode = atoi(str);
-    PT_LOG_NOTICE(LOG_CTX_STARTUP, "\"%s\" = getenv(\"%s\") => _board_mode=%u",
-                  str, BOARD_HWVER_STR, _board_mode);
+    _board_hwver = atoi(str);
+    PT_LOG_NOTICE(LOG_CTX_STARTUP, "\"%s\" = getenv(\"%s\") => _board_hwver=%u",
+                  str, BOARD_HWVER_STR, _board_hwver);
 
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
     str = getenv(BOARD_MODE_STR);

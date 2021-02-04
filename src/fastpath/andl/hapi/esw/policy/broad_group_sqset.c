@@ -522,6 +522,7 @@ bcm_field_qualify_t systemQsetVlanQoS[] =
 /* QSET for QoS queues assignment */
 bcm_field_qualify_t systemQsetQoSqueues[] =
 {
+  bcmFieldQualifyOuterVlan,
   bcmFieldQualifyDstVlanGports,
   bcmFieldQualifyIntPriority,
   bcmFieldQualifyStageIngress

@@ -5754,7 +5754,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     vlanId_mask = 0xffe;
 
     /* Create policy to give more priority to BL packets */
-    rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+    rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_QOS_QUEUES);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
@@ -5767,7 +5767,10 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       if (rc != L7_SUCCESS)  break;
       rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *) &vlanId_data, (L7_uchar8 *) &vlanId_mask);
       if (rc != L7_SUCCESS)  break;
-      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_HIPRIO, 0, 0);
+      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ,
+                                        HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS15,
+                                        0 /*HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS15*/,
+                                        0 /*HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS15*/);
       if (rc != L7_SUCCESS)  break;
       rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_PERMIT, 0, 0, 0);
       if (rc != L7_SUCCESS)  break;
