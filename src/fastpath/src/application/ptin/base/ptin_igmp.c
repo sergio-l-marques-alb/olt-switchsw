@@ -3884,6 +3884,9 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
   ptinIgmpClientGroupsSnapshotInfoData_t *avl_infoData;
   L7_uint32                              totalClientCount = 0; 
   L7_uint32                              totalInvalidClients = 0; 
+#if (MC_CLIENT_INTERF_SUPPORTED)
+  L7_uint32                              lag_id;
+#endif
   static ptin_client_id_t tempKey;
 
   /* Validate arguments */
@@ -3972,13 +3975,13 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
         {
           *number_of_clients=0;
           PT_LOG_ERR(LOG_CTX_IGMP, "mgmdGroupsRes->portId [%u] >= [%d]",
-                     ptinPort, PTIN_SYSTEM_N_INTERF);
+                     mgmdGroupsRes->portId, PTIN_SYSTEM_N_INTERF);
           /*Give Semaphore*/
           osapiSemaGive(ptin_igmp_clients_sem);
 
           return L7_FAILURE;
         }
-        PT_LOG_TRACE(LOG_CTX_IGMP, "mgmdGroupsRes->portId [%u]", ptinPort);
+        PT_LOG_TRACE(LOG_CTX_IGMP, "mgmdGroupsRes->portId [%u]", mgmdGroupsRes->portId);
 
         /* Save entry in the clientGroup snapshot avlTree */
         if (L7_NULLPTR == (client = igmpDeviceClients.client_devices[ptinPort][mgmdGroupsRes->clientId].client))
@@ -4006,13 +4009,13 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
 #if (MC_CLIENT_INTERF_SUPPORTED)
  #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
   #if PTIN_BOARD == PTIN_BOARD_CXO160G
-          if (PTIN_PORT_IS_LAG(mgmdGroupsRes->portId))
+          if (PTIN_PORT_IS_LAG(ptinPort))
           {
-            if (ptin_intf_port2lag(mgmdGroupsRes->portId,&ptinPort) == L7_SUCCESS)
+            if (ptin_intf_port2lag(ptinPort, &lag_id) == L7_SUCCESS)
             {
               newClientEntry.ptin_intf.intf_type = 1;
-              newClientEntry.ptin_intf.intf_id = ptinPort;
-              newClientEntry.ptin_port = mgmdGroupsRes->portId;
+              newClientEntry.ptin_intf.intf_id = lag_id;
+              newClientEntry.ptin_port = ptinPort;
               newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
             }
           }
@@ -4020,24 +4023,24 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
           {
             newClientEntry.ptin_intf.intf_type = 0;
             newClientEntry.ptin_intf.intf_id = ptinPort;
-            newClientEntry.ptin_port = mgmdGroupsRes->portId;
+            newClientEntry.ptin_port = ptinPort;
             newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           }
   #else // PTIN_BOARD_CXO160G
           newClientEntry.ptin_intf.intf_type = 0;
           newClientEntry.ptin_intf.intf_id = ptinPort;
-          newClientEntry.ptin_port = mgmdGroupsRes->portId;
+          newClientEntry.ptin_port = ptinPort;
           newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
   #endif     
 
  #else  // ONE_MULTICAST_VLAN_RING_SUPPORT
-          if (PTIN_PORT_IS_LAG(mgmdGroupsRes->portId))
+          if (PTIN_PORT_IS_LAG(ptinPort))
           {
-            if (ptin_intf_port2lag(mgmdGroupsRes->portId,&ptinPort) == L7_SUCCESS)
+            if (ptin_intf_port2lag(ptinPort, &lag_id) == L7_SUCCESS)
             {
               newClientEntry.ptin_intf.intf_type = 1;
-              newClientEntry.ptin_intf.intf_id = ptinPort;
-              newClientEntry.ptin_port = mgmdGroupsRes->portId;
+              newClientEntry.ptin_intf.intf_id = lag_id;
+              newClientEntry.ptin_port = ptinPort;
               newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
             }
           }
@@ -4045,7 +4048,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
           {
             newClientEntry.ptin_intf.intf_type = 0;
             newClientEntry.ptin_intf.intf_id = ptinPort;
-            newClientEntry.ptin_port = mgmdGroupsRes->portId;
+            newClientEntry.ptin_port = ptinPort;
             newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           }
         
@@ -4078,12 +4081,14 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
 #if (MC_CLIENT_INTERF_SUPPORTED)
  #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
   #if PTIN_BOARD == PTIN_BOARD_CXO160G 
-          if (PTIN_PORT_IS_LAG(mgmdGroupsRes->portId))
+          if (PTIN_PORT_IS_LAG(ptinPort))
           {
-            if (ptin_intf_port2lag(mgmdGroupsRes->portId, &ptinPort) == L7_SUCCESS)
+            if (ptin_intf_port2lag(ptinPort, &lag_id) == L7_SUCCESS)
             {
               newClientEntry.ptin_intf.intf_type = 1;
-              newClientEntry.ptin_intf.intf_id = ptinPort;
+              newClientEntry.ptin_intf.intf_id = lag_id;
+              newClientEntry.ptin_port = ptinPort;
+              newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
             }
           }
           else
@@ -4121,11 +4126,12 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
  #endif // ONE_MULTICAST_VLAN_RING_SUPPORT
           if (PTIN_PORT_IS_LAG(ptinPort))
           {
-            if (ptin_intf_port2lag(mgmdGroupsRes->portId, &ptinPort) == L7_SUCCESS)
+            if (ptin_intf_port2lag(ptinPort, &lag_id) == L7_SUCCESS)
             {
               /* intf_type is LAG*/
               newClientEntry.ptin_intf.intf_type = 1;
-              newClientEntry.ptin_intf.intf_id = ptinPort;
+              newClientEntry.ptin_intf.intf_id = lag_id;
+              newClientEntry.ptin_port = ptinPort;
               newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
             }
           } 
@@ -14008,6 +14014,7 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
   L7_inet_addr_t sourceAddr;
   L7_BOOL        isProtection = L7_TRUE;
   L7_RC_t        rc = L7_SUCCESS;
+  L7_uint32      ptin_port = portId -1;
 
   PT_LOG_TRACE(LOG_CTX_IGMP, "Received request to sync port");
 
@@ -14031,9 +14038,9 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
       PT_LOG_ERR(LOG_CTX_IGMP, "Unable to get lag index from slot ID [slotId:%u]", slotId);
       return L7_FAILURE;
     }
-    if (L7_SUCCESS != ptin_intf_lag2port(lagId, &portId))
+    if (L7_SUCCESS != ptin_intf_lag2port(lagId, &ptin_port))
     {
-      PT_LOG_ERR(LOG_CTX_IGMP, "Unable to get intfnum from lag index [lagId:%u]", lagId);
+      PT_LOG_ERR(LOG_CTX_IGMP, "Unable to get ptin_port from lag index [lagId:%u]", lagId);
       return L7_FAILURE;
     }
   }
@@ -14041,15 +14048,15 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
 
   if (admin == L7_ENABLE)
   {
-    PT_LOG_DEBUG(LOG_CTX_IGMP, "Going to open port [intfNum:%u]", portId);    
-    rc = snoopPortOpen(serviceId, portId, &groupAddr, &sourceAddr, isStatic, isProtection);    
+    PT_LOG_DEBUG(LOG_CTX_IGMP, "Going to open port [ptin_port:%u]", ptin_port);    
+    rc = snoopPortOpen(serviceId, ptin_port, &groupAddr, &sourceAddr, isStatic, isProtection);    
     return rc;
   }
   else if (admin == L7_DISABLE)
   {
-    PT_LOG_DEBUG(LOG_CTX_IGMP, "Going to close port [intfNum:%u]", portId); 
+    PT_LOG_DEBUG(LOG_CTX_IGMP, "Going to close port [ptin_port:%u]", ptin_port); 
     
-    rc = snoopPortClose(serviceId, portId, &groupAddr, &sourceAddr, isProtection);    
+    rc = snoopPortClose(serviceId, ptin_port, &groupAddr, &sourceAddr, isProtection);    
 
     return rc;
   }

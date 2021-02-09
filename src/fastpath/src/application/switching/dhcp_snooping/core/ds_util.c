@@ -206,7 +206,7 @@ L7_RC_t dsL2RelayAdminModeApply(L7_uint32 adminMode)
     }
   }
 
-  for (i = 1; i < DS_MAX_INTF_COUNT; i++)
+  for (i = 1; i < L7_ALL_PHYSICAL_INTERFACES; i++)
   {
     if (_dsIntfL2RelayGet(i))
     {

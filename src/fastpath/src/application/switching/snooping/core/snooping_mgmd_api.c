@@ -266,17 +266,17 @@ unsigned int snooping_channel_serviceid_get(unsigned int portId, unsigned int cl
   L7_inet_addr_t sourceInetAddr;
   L7_uint16      intVlan         = (L7_uint16) -1;
   L7_BOOL        isLeafPort      = L7_TRUE;
+  L7_uint32      ptin_port = portId-1;
 
   /* Get multicast root vlan */
   inetAddressSet(L7_AF_INET, &groupAddr,  &groupInetAddr);
   inetAddressSet(L7_AF_INET, &sourceAddr, &sourceInetAddr);
   
-  if (ptin_igmp_mcast_evc_id_get(intVlan, portId, isLeafPort, clientId, &groupInetAddr, &sourceInetAddr, serviceId) == L7_SUCCESS)
+  if (ptin_igmp_mcast_evc_id_get(intVlan, ptin_port, isLeafPort, clientId, &groupInetAddr, &sourceInetAddr, serviceId) == L7_SUCCESS)
   {
-    /* FIXME TC16SXG: intIfNum->ptin_port */
-    if(L7_TRUE != ptin_evc_is_intf_leaf(*serviceId, portId))
+    if(L7_TRUE != ptin_evc_is_intf_leaf(*serviceId, ptin_port))
     {
-      PT_LOG_ERR(LOG_CTX_IGMP,"This is not a leaf Port (portId=%u, serviceId=%u)", portId, *serviceId);    
+      PT_LOG_ERR(LOG_CTX_IGMP,"This is not a leaf Port (ptin_port=%u, serviceId=%u)", ptin_port, *serviceId);    
       return L7_FAILURE;
     }    
     PT_LOG_TRACE(LOG_CTX_IGMP,"Found serviceID %u associated to the pair {groupAddr,sourceAddr}={%08X,%08X}", *serviceId, groupAddr, sourceAddr);
@@ -294,17 +294,19 @@ unsigned int snooping_channel_serviceid_get(unsigned int portId, unsigned int cl
 
 unsigned int snooping_clientList_get(unsigned int serviceId, unsigned int portId, PTIN_MGMD_CLIENT_MASK_t *clientList, unsigned int *noOfClients)
 {
+#if (!PTIN_BOARD_IS_MATRIX)
+  L7_uint32    ptin_port = portId-1;
+#endif
   //PT_LOG_TRACE(LOG_CTX_IGMP, "Context [serviceId:%u portId:%u clientList:%p noOfClients:%p]", serviceId, portId, clientList, noOfClients);
 
   memset(clientList->value, 0x00, PTIN_MGMD_CLIENT_BITMAP_SIZE * sizeof(uint8));
   
 #if (!PTIN_BOARD_IS_MATRIX) //Since we do not expose any counters for the packets sent from the MX to the LC it does not make sense to increment them on the MGMD module
   ptin_timer_start(72,"ptin_igmp_groupclients_bmp_get");
-  /* FIXME TC16SXG: intIfNum->ptin_port */
-  if(ptin_igmp_groupclients_bmp_get(serviceId, portId, clientList->value, noOfClients)!=L7_SUCCESS)
+  if(ptin_igmp_groupclients_bmp_get(serviceId, ptin_port, clientList->value, noOfClients)!=L7_SUCCESS)
   {
     ptin_timer_stop(72);
-    PT_LOG_ERR(LOG_CTX_IGMP,"Failed to obtain client bitmap [serviceId:%u portId:%u clientList:%p]", serviceId, portId, clientList);
+    PT_LOG_ERR(LOG_CTX_IGMP,"Failed to obtain client bitmap [serviceId:%u ptin_port:%u clientList:%p]", serviceId, ptin_port, clientList);
     return SUCCESS;
   }
   ptin_timer_stop(72);
@@ -1197,7 +1199,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
               PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get mcastRootVlan from serviceId");
               return FAILURE;
             }
-            ptin_mgmd_send_leaf_packet(ptin_port, int_ovlan, int_ivlan, packet, packetLength, family, clientId,onuId);
+            ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId, onuId);
           }
           if(numberOfQueriesSent>=mgmdNumberOfQueryInstances)
           {
@@ -1216,7 +1218,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
     }
     else //General Query
     {
-      ptin_mgmd_send_leaf_packet(ptin_port, int_ovlan, int_ivlan, packet, packetLength, family, clientId, onuId);
+      ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId, onuId);
     }
   }
   #endif
@@ -1233,7 +1235,7 @@ L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16
   L7_uchar8             packet[L7_MAX_FRAME_SIZE];
   L7_uint32             packetLength, ptin_port;
 
-  ptin_port = portId;
+  ptin_port = portId -1;
   /* To get the first client */
   memset(&clientFlow, 0x00, sizeof(clientFlow));
   do
@@ -1294,7 +1296,7 @@ L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16
         client_idx = (L7_uint)-1;
         if (ptin_debug_igmp_snooping)
         {
-          PT_LOG_TRACE(LOG_CTX_IGMP,"Packet will be transmited for ptin_port=%u (intVlan=%u)", portId, int_ovlan);
+          PT_LOG_TRACE(LOG_CTX_IGMP, "Packet will be transmited for ptin_port=%u (intVlan=%u)", ptin_port, int_ovlan);
         }
       }
       else
@@ -1302,7 +1304,7 @@ L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16
         /* An error ocurred */
         if (ptin_debug_igmp_snooping)
         {
-          PT_LOG_TRACE(LOG_CTX_IGMP,"No more transmissions for ptin_port=%u (intVlan=%u), rc=%u", portId, int_ovlan, rc);
+          PT_LOG_TRACE(LOG_CTX_IGMP,"No more transmissions for ptin_port=%u (intVlan=%u), rc=%u", ptin_port, int_ovlan, rc);
         }
         break;
       }
@@ -1479,10 +1481,10 @@ L7_RC_t ptin_snoop_l3_sync_port_process_request(L7_uint16 vlanId, L7_inet_addr_t
   char                            sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
   L7_uint32                       ipAddr;                               
   ptin_prottypeb_intf_config_t    protTypebIntfConfig = {0};
+  L7_uint32                       ptin_port = portId -1;
   
   /* Get the configuration of this portId for the Type B Scheme Protection */
-  /* FIXME TC16SXG: intIfNum->ptin_port */
-  ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);   
+  ptin_prottypeb_intf_config_get(ptin_port, &protTypebIntfConfig);   
 
   if(protTypebIntfConfig.status == L7_ENABLE) //I'm Working
   {
@@ -1547,7 +1549,7 @@ L7_RC_t ptin_snoop_l3_sync_port_process_request(L7_uint16 vlanId, L7_inet_addr_t
 
     snoopChannelInfoDataKeyPtr  = &snoopChannelInfoData->snoopChannelInfoDataKey;    
 
-    if (PTIN_IS_MASKBITSET(snoopChannelInfoData->channelPtinPortMask.value, portId))
+    if (PTINPORT_BITMAP_IS_SET(snoopChannelInfoData->channelPtinPortMask, ptin_port))
     {
       /*If this is a static entry move to the next entry*/
       if ( (snoopChannelInfoData->flags & SNOOP_CHANNEL_ENTRY_IS_STATIC) == SNOOP_CHANNEL_ENTRY_IS_STATIC)
@@ -1786,7 +1788,8 @@ L7_RC_t ptin_snoop_sync_port_process_request(L7_uint16 vlanId, L7_uint32 groupAd
   L7_uint16                      internalRootVlan = (L7_uint16) -1;
   L7_uint16                      internalRootVlanTmp;
   L7_uint32                      serviceId        = 0;//Invalid Extended Service Id
-    
+  L7_uint32                      ptin_port = portId -1;
+
   snoopInfoData_t               *snoopInfoData;
   snoopInfoDataKey_t             snoopInfoDataKey;
   snoopInfoDataKey_t            *snoopInfoDataKeyPtr;
@@ -1795,8 +1798,7 @@ L7_RC_t ptin_snoop_sync_port_process_request(L7_uint16 vlanId, L7_uint32 groupAd
   ptin_prottypeb_intf_config_t   protTypebIntfConfig = {0};
   
   /* Get the configuration of this portId for the Type B Scheme Protection */
-  /* FIXME TC16SXG: intIfNum->ptin_port */
-  ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);   
+  ptin_prottypeb_intf_config_get(ptin_port, &protTypebIntfConfig);   
 
   if(protTypebIntfConfig.status == L7_ENABLE) //I'm Working
   {
