@@ -302,7 +302,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
 
   /* Trident switch only has 10 FP groups... excluding BW policers for this board */
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
-  PT_LOG_ERR(LOG_CTX_HAPI,"Not possible to configure BW policers");
+  PT_LOG_WARN(LOG_CTX_HAPI, "Not possible to configure BW policers for CXO640G");
   return L7_SUCCESS;
 #endif
 
