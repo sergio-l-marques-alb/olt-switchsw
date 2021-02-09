@@ -314,7 +314,7 @@ L7_RC_t ptin_intf_post_init(void)
     phyExt_data[i].dtag_all2one_bundle  = L7_TRUE;
     phyExt_data[i].outer_tpid = PTIN_TPID_OUTER_DEFAULT;
 //    phyExt_data[i].inner_tpid = PTIN_TPID_INNER_DEFAULT;
-
+#if !(PTIN_BOARD_IS_STANDALONE)
     /* Disable front ports */
     if (PTIN_PORT_IS_FRONT_ETH(i))
     {
@@ -326,35 +326,30 @@ L7_RC_t ptin_intf_post_init(void)
       }
       PT_LOG_INFO(LOG_CTX_INTF, "Port# %u (intIfNum %u) disabled", i, map_port2intIfNum[i]);
     }
-    #if (PTIN_BOARD_IS_STANDALONE)
-    else
+#else (PTIN_BOARD_IS_STANDALONE)
+    if ((PTIN_SYSTEM_ETH_PORTS_MASK >> i) & 1)
     {
-      if (PTIN_PORT_IS_PON(i))
+      rc = usmDbIfAdminStateSet(1, map_port2intIfNum[i], L7_DISABLE);
+      if (rc != L7_SUCCESS)
       {
-        rc = usmDbIfAdminStateSet(1, map_port2intIfNum[i], L7_ENABLE);
-        if (rc != L7_SUCCESS)
-        {
-          PT_LOG_ERR(LOG_CTX_INTF, "Failed to enable port# %u", i);
-          return L7_FAILURE;
-        }
-        PT_LOG_INFO(LOG_CTX_INTF, "Port# %u (intIfNum %u) enabled", i, map_port2intIfNum[i]);
+        PT_LOG_ERR(LOG_CTX_INTF, "Failed to disable port# %u", i);
+        return L7_FAILURE;
       }
-      else
-      {
-        if ((PTIN_SYSTEM_BL_INBAND_PORT_MASK >> i) & 1)
-        {
-          rc = usmDbIfAdminStateSet(1, map_port2intIfNum[i], L7_ENABLE);
-          if (rc != L7_SUCCESS)
-          {
-            PT_LOG_ERR(LOG_CTX_INTF, "Failed to enable port# %u", i);
-            return L7_FAILURE;
-          }
-          PT_LOG_INFO(LOG_CTX_INTF, "Port# %u (intIfNum %u) enabled", i, map_port2intIfNum[i]);
-        }
-      }
+      PT_LOG_INFO(LOG_CTX_INTF, "Port# %u (intIfNum %u) disabled", i, map_port2intIfNum[i]);
     }
-    #endif
 
+    if ((PTIN_SYSTEM_PON_PORTS_MASK >> i) & 1 || 
+        (PTIN_SYSTEM_BL_INBAND_PORT_MASK >> i) & 1)
+    {
+      rc = usmDbIfAdminStateSet(1, map_port2intIfNum[i], L7_ENABLE);
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF, "Failed to enable port# %u", i);
+        return L7_FAILURE;
+      }
+      PT_LOG_INFO(LOG_CTX_INTF, "Port# %u (intIfNum %u) enabled", i, map_port2intIfNum[i]);
+    }
+#endif
     /* For internal ports (linecards only) */
   #if (PTIN_BOARD_IS_LINECARD)
     /* Internal interfaces of linecards, should always be trusted */
