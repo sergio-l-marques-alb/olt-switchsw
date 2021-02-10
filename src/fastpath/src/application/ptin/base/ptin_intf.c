@@ -326,7 +326,7 @@ L7_RC_t ptin_intf_post_init(void)
       }
       PT_LOG_INFO(LOG_CTX_INTF, "Port# %u (intIfNum %u) disabled", i, map_port2intIfNum[i]);
     }
-#else (PTIN_BOARD_IS_STANDALONE)
+#else 
     if ((PTIN_SYSTEM_ETH_PORTS_MASK >> i) & 1)
     {
       rc = usmDbIfAdminStateSet(1, map_port2intIfNum[i], L7_DISABLE);
