@@ -2874,9 +2874,9 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
 
    memcpy(dhcp_copy_header_ptr, op_relaymsg_ptr + sizeof(L7_dhcp6_option_packet_t), copy_len);
    frame_copy_len += osapiNtohs(*(L7_uint16*)(op_relaymsg_ptr + sizeof(L7_uint16)));
-   if (copy_len > (DS_DHCP_PACKET_SIZE_MAX - (ethHdrLen + L7_IP6_HEADER_LEN + (sizeof(L7_udp_header_t)))))
+   if (frame_copy_len > (DS_DHCP_PACKET_SIZE_MAX - (ethHdrLen + L7_IP6_HEADER_LEN + (sizeof(L7_udp_header_t)))))
    {
-      PT_LOG_ERR(LOG_CTX_DHCP, "Invalid frame len (%d), creating a new dhcpv6 packet ", copy_len);
+      PT_LOG_ERR(LOG_CTX_DHCP, "Invalid frame len (%d), creating a new dhcpv6 packet ", frame_copy_len);
       return L7_FAILURE;
    }
 
