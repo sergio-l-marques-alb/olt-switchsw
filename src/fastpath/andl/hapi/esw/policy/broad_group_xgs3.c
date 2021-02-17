@@ -109,6 +109,7 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     bcmFieldQualifyColor,          /* Packet color, PTin added: FP */
     bcmFieldQualifyPacketRes,      /* Packet type, PTin added: FP */
     bcmFieldQualifyDstVlanGports,  /* L2intf id */
+    bcmFieldQualifyIpFlags,        /* IP flags field of IP header*/
 };
 
 /* Action Map */
@@ -867,7 +868,7 @@ int _policy_set_subset(bcm_field_qset_t q1, custom_field_qset_t custom_q1,
         if (CUSTOM_FIELD_QSET_TEST(custom_q1,i) && !CUSTOM_FIELD_QSET_TEST(custom_q2,i))
         {
           if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-            sysapiPrintf("%s(%d) - Qualifier %u failed\r\n", __FUNCTION__,__LINE__, i);
+            sysapiPrintf("%s(%d) - ifier %u failed\r\n", __FUNCTION__,__LINE__, i);
           return BCM_E_FAIL;
         }
     }
@@ -3513,6 +3514,10 @@ static int _policy_group_add_std_field(int                   unit,
     case BROAD_FIELD_L2INTF_ID:
         rv = bcm_field_qualify_DstVlanGports(unit,eid,*((uint32*)value),*((uint32*)mask));
         break;
+    case BROAD_FIELD_IPFLAGS:
+        rv = bcm_field_qualify_IpFlags(unit,eid,*((uint8*)value),*((uint8*)mask));
+        break;
+
     // PTin end
     default:
         rv = BCM_E_PARAM;
