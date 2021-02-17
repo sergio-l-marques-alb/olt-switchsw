@@ -65,6 +65,7 @@ static int broadFieldMapTable[BROAD_FIELD_LAST] =
   BROAD_FIELD_INT_PRIO_SIZE,        /* PTin added: FP */
   BROAD_FIELD_COLOR_SIZE,           /* PTin added: FP */
   BROAD_FIELD_PACKETRES_SIZE,       /* PTin added: FP */
+  BROAD_FIELD_IPFLAGS_SIZE,       /* PTin added: FP */
 };
 
 static char *broadFieldNameTable[BROAD_FIELD_LAST] =
@@ -109,6 +110,7 @@ static char *broadFieldNameTable[BROAD_FIELD_LAST] =
     "INT_PRIO",         /* PTin added: FP */
     "COLOR"             /* PTin added: FP */
     "PACKETRES"         /* PTin added: FP */
+    "IPFLAGS"           /* PTIn added: FP */
 };
 
 static char *broadActionNameTable[BROAD_ACTION_LAST] =
@@ -353,6 +355,10 @@ L7_uchar8 *hapiBroadPolicyFieldValuePtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_PO
   case BROAD_FIELD_PACKETRES:
     ptr = fieldInfo->fieldPacketRes.value;
     break;
+  case BROAD_FIELD_IPFLAGS:
+    ptr = fieldInfo->fieldIpFlags.value;
+    break;
+
   // PTin end
   default:
     L7_LOG_ERROR(field);
@@ -483,6 +489,9 @@ L7_uchar8 *hapiBroadPolicyFieldMaskPtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_POL
     break;
   case BROAD_FIELD_PACKETRES:       /* PTin added: FP */
     ptr = fieldInfo->fieldPacketRes.mask;
+    break;
+  case BROAD_FIELD_IPFLAGS:         /* PTin added: FP */
+    ptr = fieldInfo->fieldIpFlags.mask;
     break;
 
   default:

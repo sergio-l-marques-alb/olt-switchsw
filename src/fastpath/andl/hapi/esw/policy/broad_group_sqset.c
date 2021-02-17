@@ -368,6 +368,7 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
   bcmFieldQualifyDstMac,
   bcmFieldQualifyOuterVlan,
   bcmFieldQualifyInnerVlan,     /* PTin added: FP */
+  bcmFieldQualifyIpFlags,       /* PTin added: FP */
   bcmFieldQualifyL4SrcPort,
   bcmFieldQualifyL4DstPort,
   bcmFieldQualifyEtherType,
