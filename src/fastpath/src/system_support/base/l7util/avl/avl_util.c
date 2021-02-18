@@ -188,7 +188,7 @@ void * avlRemoveEntry( avlTree_t *avl_tree, void *item)
    avlTreeTables_t **nodePtr;
    avlTreeTables_t *node = avl_tree->root.link[L7_LEFT];
   
-   if (node == NULL)
+   if (node == NULL || node->data == NULL)
      return NULL;
 
    pathMap[L7_LEFT] = L7_LEFT;
