@@ -319,7 +319,7 @@ void * avlSearchLVL7 (avlTree_t *avl_tree, void *key, L7_uint32 flags)
   found_equal = L7_FALSE;
 
   ptin_timer_start(47,"avlSearchLVL7");
-  while (ptr != NULL)
+  while (ptr != NULL && ptr->data != NULL)
   {
 
     diff = avlCompareKey(key, ptr->data,
