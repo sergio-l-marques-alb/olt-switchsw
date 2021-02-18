@@ -3566,7 +3566,7 @@ L7_RC_t hapiBroadConfigIgmpTrap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_BOOL 
   BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
   L7_ushort16             ip_ethtype  = L7_ETYPE_IP;
   L7_uchar8               igmp_proto[]  = {IP_PROT_IGMP};
-  L7_uchar8               ip_flags = 0x2;
+  L7_uchar8               ip_flags = 0x0;
   L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                            FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
   BROAD_METER_ENTRY_t     meterInfo;
@@ -3700,7 +3700,7 @@ L7_RC_t hapiBroadConfigIgmpTrapAll(L7_BOOL switchFrame, DAPI_t *dapi_g,
   L7_uchar8               exact_match[] = { FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
     FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE };
   BROAD_METER_ENTRY_t     meterInfo;
-  L7_uchar8               ip_flags = 0x2;
+  L7_uchar8               ip_flags = 0x0;
   L7_RC_t                 result = L7_SUCCESS;
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "Starting igmp trapping processing");
@@ -3816,7 +3816,7 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
   L7_uchar8               udp_proto[]   = {IP_PROT_UDP};
   L7_ushort16             dhcpc_dport   = UDP_PORT_DHCP_CLNT;
   L7_ushort16             dhcps_dport   = UDP_PORT_DHCP_SERV;
-  L7_uchar8               ip_type, ip_flags = 0x2;
+  L7_uchar8               ip_type, ip_flags = 0x0;
   L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                            FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
   BROAD_METER_ENTRY_t     meterInfo;
@@ -3987,7 +3987,7 @@ L7_RC_t hapiBroadConfigDhcpV4TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
   L7_uchar8               udp_proto[] = { IP_PROT_UDP };
   L7_ushort16             dhcpc_dport   = UDP_PORT_DHCP_CLNT;
   L7_ushort16             dhcps_dport   = UDP_PORT_DHCP_SERV;
-  L7_uchar8               ip_type, ip_flags = 0x2;
+  L7_uchar8               ip_type, ip_flags = 0x0;
   L7_uchar8               exact_match[] = { FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
     FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE };
   BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
