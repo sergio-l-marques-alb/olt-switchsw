@@ -964,7 +964,7 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
     /* Port should not have force link scheme applied */
     if ( (forcelinked_ports_bmp >> port) & 1 )
     {
-      PT_LOG_INFO(LOG_CTX_INTF, "Port %u in forced link state... nothing to be done!");
+      PT_LOG_INFO(LOG_CTX_INTF, "Port %u in forced link state... nothing to be done!", port);
     }
     else
   #endif
