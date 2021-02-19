@@ -14,6 +14,7 @@ export CPU   = td3x3arm
 CURRENT_PATH = $(shell pwd)
 FP_FOLDER    = $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURRENT_PATH)))
 OLT_DIR      = $(subst /$(FP_FOLDER),,$(shell pwd))
+KERNEL_BASE  = /home/olt_shared/switchdrvr/netband-libs/trunk
 
 # Cross-Compiler
 export TOOLCHAIN_BASE_DIR = /opt/xldk/6.0.1/helix5/usr
@@ -25,7 +26,7 @@ export CCACHE_TEMPDIR = /home/olt_shared/switchdrvr/ccache
 export CCACHE_DIR     = /home/olt_shared/switchdrvr/ccache
 
 # Kernel and SDK paths
-KERNEL_PATH ?= /home/olt_shared/switchdrvr/netband-libs/trunk/linux-tc16sxg/linux-5.4.2
+KERNEL_PATH ?= $(KERNEL_BASE)/linux-tc16sxg/linux-5.4.2
 SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.20/broadcom
 
 # Comilation logging level

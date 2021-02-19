@@ -15,6 +15,7 @@ export CPU   = pq2pro
 CURRENT_PATH = $(shell pwd)
 FP_FOLDER    = $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURRENT_PATH)))
 OLT_DIR      = $(subst /$(FP_FOLDER),,$(shell pwd))
+KERNEL_BASE  = /home/olt_shared/switchdrvr/netband-libs/trunk/linux-kernel-legacy
 
 # Cross-Compiler
 export TOOLCHAIN_BASE_DIR = /opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux
@@ -23,7 +24,7 @@ export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
 CROSS_COMPILE = powerpc-e300c3-linux-
 
 # Kernel and SDK paths
-KERNEL_PATH ?= $(OLT_DIR)/../lib/kernel/linux-denx-3.18.25
+KERNEL_PATH ?= $(KERNEL_BASE)/linux-denx-3.18.25
 SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-switchdrvr-6.5.7/broadcom
 
 # Comilation logging level

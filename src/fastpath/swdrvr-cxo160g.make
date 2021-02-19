@@ -15,6 +15,7 @@ export CPU   = e500mc
 CURRENT_PATH = $(shell pwd)
 FP_FOLDER    = $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURRENT_PATH)))
 OLT_DIR      = $(subst /$(FP_FOLDER),,$(shell pwd))
+KERNEL_BASE  = /home/olt_shared/switchdrvr/netband-libs/trunk/linux-kernel-legacy
 
 # Cross-Compiler
 export TOOLCHAIN_BASE_DIR = /opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr
@@ -23,7 +24,8 @@ export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
 CROSS_COMPILE = powerpc-fsl-linux-
 
 # Kernel and SDK paths
-KERNEL_PATH ?= $(OLT_DIR)/../lib/kernel/linux-4.1.8-QorIQ-SDK2.0
+
+KERNEL_PATH ?= $(KERNEL_BASE)/linux-4.1.8-QorIQ-SDK2.0
 SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.20/broadcom
 
 # Comilation logging level
