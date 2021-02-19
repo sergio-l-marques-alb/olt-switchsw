@@ -15,6 +15,7 @@ export CPU   = pq3
 CURRENT_PATH = $(shell pwd)
 FP_FOLDER    = $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURRENT_PATH)))
 OLT_DIR      = $(subst /$(FP_FOLDER),,$(shell pwd))
+KERNEL_BASE  = /home/olt_shared/switchdrvr/netband-libs/trunk/linux-kernel-legacy
 
 # Cross-Compiler
 export TOOLCHAIN_BASE_DIR = /opt/eldk/usr
@@ -23,7 +24,7 @@ export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
 CROSS_COMPILE = ppc_85xxDP-
 
 # Kernel and SDK paths
-KERNEL_PATH ?= $(OLT_DIR)/../lib/kernel/linux-denx-3.18.25_cxo640g-mx
+KERNEL_PATH ?= $(KERNEL_BASE)/linux-denx-3.18.25_cxo640g-mx
 SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.20/broadcom
 
 # Comilation logging level
