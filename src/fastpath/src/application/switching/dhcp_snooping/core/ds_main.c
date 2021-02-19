@@ -1732,7 +1732,7 @@ L7_RC_t dsFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       L7_uchar8 *pkt = frame;
 
       PT_LOG_TRACE(LOG_CTX_DHCP,"===================");
-      PT_LOG_TRACE(LOG_CTX_DHCP,"======DHCP PKT=====");
+      PT_LOG_TRACE(LOG_CTX_DHCP,"======DHCP PKT===== (length=%u)", frameLen);
       PT_LOG_TRACE(LOG_CTX_DHCP,"======LEN %d=======", frameLen);
 
       for (row = 0; row < (frameLen/16)+1; row++)
