@@ -15,6 +15,7 @@ export CPU   = armv7
 CURRENT_PATH = $(shell pwd)
 FP_FOLDER    = $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURRENT_PATH)))
 OLT_DIR      = $(subst /$(FP_FOLDER),,$(shell pwd))
+KERNEL_BASE  = /home/olt_shared/switchdrvr/netband-libs/trunk
 
 # Cross-Compiler
 export TOOLCHAIN_BASE_DIR = /opt/broadcom_gh2/usr
@@ -28,7 +29,7 @@ CROSS_COMPILE = arm-linux-
 
 # Kernel and SDK paths
 ifeq ($(KERNEL_SOURCE_DIR),)
- KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-ae48ge/linux-4.14.48
+ KERNEL_PATH = $(KERNEL_BASE)/linux-ae48ge/linux-4.14.48
 else
  KERNEL_PATH = $(KERNEL_SOURCE_DIR)
 endif
