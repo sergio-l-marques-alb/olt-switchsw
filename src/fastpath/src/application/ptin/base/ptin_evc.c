@@ -10084,6 +10084,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
   ptin_dtl_l3_intf_t l3_intf;
   #endif
   L7_RC_t            rc;
+  L7_uint8           remove_from_hw = TRUE;
 
   is_p2p     = (evcs[evc_id].flags & PTIN_EVC_MASK_P2P    ) == PTIN_EVC_MASK_P2P;
   is_quattro = (evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == PTIN_EVC_MASK_QUATTRO;
@@ -10126,6 +10127,35 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
   }
   else
   {
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+    L7_uint32 aux_port;
+
+    /* check with the other virtual port is configured on EVC.
+       If yes, do not remove the correspont physical port from HW*/
+    if (ptin_port >= PTIN_SYSTEM_N_PONS_PHYSICAL)
+    {
+      aux_port = ptin_port - PTIN_SYSTEM_N_PONS_PHYSICAL;
+    }
+    else
+    {
+      aux_port = ptin_port + PTIN_SYSTEM_N_PONS_PHYSICAL;
+    }
+
+    if (aux_port >= 0 &&
+        aux_port < PTIN_SYSTEM_N_INTERF)
+    {
+      remove_from_hw = !(evcs[evc_id].intf[aux_port].in_use);
+    }
+    else
+    {
+      PT_LOG_WARN(LOG_CTX_EVC, "EVC# %u: aux_port %d out of range ", evc_id, aux_port);
+      remove_from_hw = TRUE;
+    }
+#endif
+
+    PT_LOG_INFO(LOG_CTX_EVC, "EVC# %u: ptin_port %d configurations %s removed from HW ",
+                evc_id, ptin_port, remove_from_hw ? "can be" : "can't be");
+
     if (iptv_flag)
     {
       rc = ptin_igmp_mgmd_port_remove(evcs[evc_id].extended_id, ptin_port);
@@ -10141,12 +10171,15 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
       }
     }
 
-    rc = switching_leaf_remove(ptin_port, int_vlan, iptv_flag);
-    if (rc != L7_SUCCESS)
+    if (remove_from_hw)
     {
-      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error removing leaf [ptin_port=%u Vl=%u]",
-              evc_id, ptin_port, int_vlan);
-      return rc;
+      rc = switching_leaf_remove(ptin_port, int_vlan, iptv_flag);
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error removing leaf [ptin_port=%u Vl=%u]",
+                evc_id, ptin_port, int_vlan);
+        return rc;
+      }
     }
     evcs[evc_id].n_leafs--;
 
@@ -10160,7 +10193,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
 
       /* Only configure MC EVC partially if we are not at MX */
       #if ( !PTIN_BOARD_IS_MATRIX )
-      if (iptv_flag)
+      if (iptv_flag && remove_from_hw)
       {
         rc = switching_mcevc_leaf_remove(ptin_port, out_vlan, inn_vlan, int_vlan);
       }
