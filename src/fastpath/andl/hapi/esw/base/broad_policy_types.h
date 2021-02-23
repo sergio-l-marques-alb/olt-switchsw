@@ -159,7 +159,6 @@ typedef enum
     BROAD_FIELD_INT_PRIO,         /* PTin added: FP */
     BROAD_FIELD_COLOR,            /* PTin added: FP */
     BROAD_FIELD_PACKETRES,        /* PTin added: FP */
-    BROAD_FIELD_L2INTF_ID,        /* PTin added: FP */
     BROAD_FIELD_IPFLAGS,          /* PTin added: FP */
     BROAD_FIELD_LAST,
 
