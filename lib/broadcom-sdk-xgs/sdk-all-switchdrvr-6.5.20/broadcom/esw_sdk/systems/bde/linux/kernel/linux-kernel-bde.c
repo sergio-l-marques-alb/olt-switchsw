@@ -777,6 +777,9 @@ iproc_cmicd_probe(struct platform_device *pldev)
         } else {
             gprintk("Error mapping ihost GICD registers\n");
         }
+        if (dma_set_mask_and_coherent(&pldev->dev, DMA_BIT_MASK(64))) {
+            gprintk("Unable to set 64-bit dma mask\n");
+        }
     } else
 #endif
     {
