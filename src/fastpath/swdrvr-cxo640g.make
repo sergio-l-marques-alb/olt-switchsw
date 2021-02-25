@@ -27,6 +27,12 @@ CROSS_COMPILE = ppc_85xxDP-
 KERNEL_PATH ?= $(KERNEL_BASE)/linux-denx-3.18.25_cxo640g-mx
 SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.20/broadcom
 
+# DESTDIR will point to build_dir location (external libs and includes)
+ifeq ($(DESTDIR),)
+ export BUILDIR = $(OLT_DIR)/../build_dir/CXO640G-MX
+endif
+export BUILDIR_LOCAL = $(OLT_DIR)/../build_dir_local/CXO640G-MX
+
 # Comilation logging level
 export LVL7_MAKEFILE_LOGGING := N
 export LVL7_MAKEFILE_DISPLAY_MODE := S
