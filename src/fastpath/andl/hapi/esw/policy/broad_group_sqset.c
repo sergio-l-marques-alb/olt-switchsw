@@ -368,7 +368,9 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
   bcmFieldQualifyDstMac,
   bcmFieldQualifyOuterVlan,
   bcmFieldQualifyInnerVlan,     /* PTin added: FP */
+#if (PTIN_BOARD != PTIN_BOARD_CXO640G)
   bcmFieldQualifyIpFlags,       /* PTin added: FP */
+#endif
   bcmFieldQualifyL4SrcPort,
   bcmFieldQualifyL4DstPort,
   bcmFieldQualifyEtherType,
