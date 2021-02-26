@@ -31,6 +31,8 @@ export FP_VIEWNAME   ?= .
 export CROSS_COMPILE ?= $(COMPILER)
 export KERNEL_SRC    ?= $(KERNEL_PATH)
 export CCVIEWS_HOME  ?= $(OLT_DIR)/$(FP_FOLDER)
+export BUILDIR       ?= $(DESTDIR)
+export BUILDIR_LOCAL ?= $(DESTDIR)
 export CROSS_COMPILE := $(TOOLCHAIN_BIN_DIR)/$(CROSS_COMPILE)
 
 KO_PATH	      = $(CCVIEWS_HOME)/$(OUTPATH)/target

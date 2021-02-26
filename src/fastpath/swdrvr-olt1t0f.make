@@ -27,6 +27,12 @@ CROSS_COMPILE  = arm-linux-
 KERNEL_PATH = $(KERNEL_BASE)/linux-3.6.5-kt2arm_LDK-3.4.7-RC4
 SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.15/broadcom
 
+# DESTDIR will point to build_dir location (external libs and includes)
+ifeq ($(DESTDIR),)
+ export BUILDIR = $(OLT_DIR)/../build_dir/CXOLT1T0-F
+endif
+export BUILDIR_LOCAL = $(OLT_DIR)/../build_dir_local/CXOLT1T0-F
+
 # Comilation logging level
 export LVL7_MAKEFILE_LOGGING := N
 export LVL7_MAKEFILE_DISPLAY_MODE := S
