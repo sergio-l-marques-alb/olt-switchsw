@@ -23,8 +23,6 @@ export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
 export CCACHE_TEMPDIR     = $(CURRENT_PATH)/.ccache
 export CCACHE_DIR         = $(CURRENT_PATH)/.ccache
-export BUILDIR           ?= $(DESTDIR)
-export BUILDIR_LOCAL     ?= $(DESTDIR)
 CROSS_COMPILE = arm-linux-
 
 # Kernel and SDK paths

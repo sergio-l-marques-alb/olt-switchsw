@@ -27,6 +27,12 @@ CROSS_COMPILE             = arm-linux-
 KERNEL_PATH = $(KERNEL_BASE)/linux-3.6.5-arm
 SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.4.3/broadcom
 
+# DESTDIR will point to build_dir location (external libs and includes)
+ifeq ($(DESTDIR),)
+ export BUILDIR = $(OLT_DIR)/../build_dir/CXOLT1T0
+endif
+export BUILDIR_LOCAL = $(OLT_DIR)/../build_dir_local/CXOLT1T0
+
 # Comilation logging level
 export LVL7_MAKEFILE_LOGGING := N
 export LVL7_MAKEFILE_DISPLAY_MODE := S

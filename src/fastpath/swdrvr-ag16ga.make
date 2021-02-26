@@ -22,8 +22,6 @@ KERNEL_BASE  = /home/olt_shared/switchdrvr/netband-libs/trunk/linux-kernel-legac
 export TOOLCHAIN_BASE_DIR = /opt/broadcom_kt2_hx4/usr
 export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
-export BUILDIR           ?= $(DESTDIR)
-export BUILDIR_LOCAL     ?= $(DESTDIR)
 CROSS_COMPILE             = arm-linux-
 
 # Kernel and SDK paths
