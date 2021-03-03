@@ -531,7 +531,7 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
           wcMap[port].wcLane   = wc_lane;
           wcMap[port].wcSpeedG = speedG;
           wcMap[port].wcMode   = mode;
-          PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2u, wcIdx=%2u, wcLane=%u wcSpeedG=%2u wcMode=%u", port,
+          PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2lu, wcIdx=%2lu, wcLane=%lu wcSpeedG=%2lu wcMode=%u", port,
                     wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG, wcMap[port].wcMode);
         }
 
@@ -567,7 +567,7 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
         wcMap[port].wcLane   = ptp_wc_lane;
         wcMap[port].wcSpeedG = 1;     /* 1G */
         wcMap[port].wcMode   = BCM_PORT_IF_SGMII;
-        PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2u, wcIdx=%2u, wcLane=%u wcSpeedG=%2u wcMode=%u (PTP port)",
+        PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2lu: slotNum=%2lu, wcIdx=%2lu, wcLane=%lu wcSpeedG=%2lu wcMode=%u (PTP port)",
                   wcMap[port].portNum,
                   wcMap[port].slotNum,
                   wcMap[port].wcIdx,
@@ -657,7 +657,7 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
     wcMap[port].wcIdx    = -1;
     wcMap[port].wcLane   =  0;
     wcMap[port].wcSpeedG = 10;    /* frontal ports at 10G */
-    PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2d, wcIdx=%2d, wcLane=%d wcSpeedG=%2u", port,
+    PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2ld, wcIdx=%2ld, wcLane=%ld wcSpeedG=%2ld", port,
               wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG);
   }
 
@@ -710,7 +710,7 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
       wcMap[port].wcLane   =  i;
       wcMap[port].wcSpeedG = speedG;
       wcMap[port].wcMode   = mode;
-      PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2d, wcIdx=%2d, wcLane=%d wcSpeedG=%2u wcMode=%u", port,
+      PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2ld, wcIdx=%2ld, wcLane=%ld wcSpeedG=%2ld wcMode=%u", port,
                 wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG, wcMap[port].wcMode);
       port++;
     }
@@ -731,7 +731,7 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
   wcMap[port].wcLane   =  0;
   wcMap[port].wcSpeedG =  1;
   wcMap[port].wcMode   = BCM_PORT_IF_SGMII;
-  PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2d, wcIdx=%2d, wcLane=%d wcSpeedG=%2u wcMode=%u", port,
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2ld, wcIdx=%2ld, wcLane=%ld wcSpeedG=%2ld wcMode=%u", port,
             wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG, wcMap[port].wcMode);
   port++;
 

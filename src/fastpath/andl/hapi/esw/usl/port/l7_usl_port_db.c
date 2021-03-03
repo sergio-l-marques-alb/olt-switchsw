@@ -1678,7 +1678,7 @@ void usl_portdb_show(L7_int32 gport, L7_BOOL detail)
     pUslPortEntry = avlSearchLVL7(uslPortDbTreeHandle, &portEntry , AVL_EXACT);
     if (pUslPortEntry != L7_NULLPTR)
     {
-      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Gport %d found in the Port database\n");
+      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Gport %d found in the Port database\n", gport);
       if (detail == L7_TRUE)
       {
         usl_portdb_detail_show(pUslPortEntry);
@@ -1687,7 +1687,7 @@ void usl_portdb_show(L7_int32 gport, L7_BOOL detail)
     }
     else
     {
-      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Gport %d not found in the Port database\n");
+      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Gport %d not found in the Port database\n", gport);
     }
   }
 

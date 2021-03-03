@@ -483,14 +483,14 @@ void usl_policy_db_memory_info()
   sysapiPrintf("BROAD_MAX_RULES_PER_POLICY         == %d\n", BROAD_MAX_RULES_PER_POLICY);
   sysapiPrintf("BROAD_MAX_SYSTEM_POLICIES          == %d\n", BROAD_MAX_SYSTEM_POLICIES);
   sysapiPrintf("sizeof(policy_map_table_t)         == %d\n", policy_map_table_t_size());
-  sysapiPrintf("sizeof(BROAD_POLICY_ENTRY_t)       == %d\n", sizeof(BROAD_POLICY_ENTRY_t));
-  sysapiPrintf("sizeof(BROAD_POLICY_RULE_ENTRY_t)  == %d\n", sizeof(BROAD_POLICY_RULE_ENTRY_t));
-  sysapiPrintf("sizeof(BROAD_FIELD_ENTRY_t)        == %d\n", sizeof(BROAD_FIELD_ENTRY_t));
-  sysapiPrintf("sizeof(BROAD_ACTION_ENTRY_t)       == %d\n", sizeof(BROAD_ACTION_ENTRY_t));
+  sysapiPrintf("sizeof(BROAD_POLICY_ENTRY_t)       == %zu\n", sizeof(BROAD_POLICY_ENTRY_t));
+  sysapiPrintf("sizeof(BROAD_POLICY_RULE_ENTRY_t)  == %zu\n", sizeof(BROAD_POLICY_RULE_ENTRY_t));
+  sysapiPrintf("sizeof(BROAD_FIELD_ENTRY_t)        == %zu\n", sizeof(BROAD_FIELD_ENTRY_t));
+  sysapiPrintf("sizeof(BROAD_ACTION_ENTRY_t)       == %zu\n", sizeof(BROAD_ACTION_ENTRY_t));
   sysapiPrintf("\n\n");
 
-  sysapiPrintf("policy_map_table[]          == %d\n", BROAD_MAX_BCM_UNITS_PER_CPU * policy_map_table_t_size() * BROAD_MAX_POLICIES_PER_BCM_UNIT);
-  sysapiPrintf("pUslOperPolicyDB[]          == %d\n", sizeof(BROAD_USL_POLICY_t) * BROAD_MAX_POLICIES);
+  sysapiPrintf("policy_map_table[]          == %u\n", BROAD_MAX_BCM_UNITS_PER_CPU * policy_map_table_t_size() * BROAD_MAX_POLICIES_PER_BCM_UNIT);
+  sysapiPrintf("pUslOperPolicyDB[]          == %zu\n", sizeof(BROAD_USL_POLICY_t) * BROAD_MAX_POLICIES);
 }
 
 /*********************************************************************

@@ -900,8 +900,8 @@ L7_RC_t hapiBroadIntfLlpfBlockModeConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *
   {
     /*log*/
     L7_LOGF(L7_LOG_SEVERITY_WARNING,L7_LLPF_COMPONENT_ID,
-            "Failed to set/unset(%d) LLPF BlockType (%d) with Policy ID(%d) port %d gport  0x%x\n",
-             usp->port,hapiPortPtr->bcm_gport); 
+            "Failed to set/unset LLPF BlockType with Policy ID(%d) port %d gport  0x%x\n",
+            policyId, usp->port, hapiPortPtr->bcm_gport); 
              
     /*Debug trace*/
      HAPI_BROAD_LLPF_DEBUG(\

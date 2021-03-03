@@ -595,7 +595,7 @@ void maskDebugBitMaskAllocate (L7_int32 m)
 
   pBitMask = osapiMalloc (L7_SIM_COMPONENT_ID, ((m - 1) / (sizeof (L7_uchar8) * 8) + 1));
 
-  sysapiPrintf ("Allocated memory for a bit mask of size %d bits:  Located at %x\n", m, pBitMask);
+  sysapiPrintf ("Allocated memory for a bit mask of size %d bits:  Located at %p\n", m, pBitMask);
 
   return;
 }

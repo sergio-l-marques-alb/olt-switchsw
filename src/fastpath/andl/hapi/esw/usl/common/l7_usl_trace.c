@@ -188,12 +188,12 @@ L7_RC_t usl_trace_bcom_event_format(L7_ushort16 traceId, L7_uchar8 *pDataStart)
   /* 6 byte key, 4 byte unit */
   /* KEY */
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%0.2x:%0.2x:%0.2x:%0.2x:%0.2x:%0.2x ",
+                "%02x:%02x:%02x:%02x:%02x:%02x ",
                 pDataStart[0],pDataStart[1],pDataStart[2],
                 pDataStart[3],pDataStart[4],pDataStart[5] );
 
-  SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "bcm_unit %d",osapiNtohl(*((L7_uint32*)&pDataStart[6])));
+  SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS, "bcm_unit %lu",
+                osapiNtohl(*((L7_uint32*)&pDataStart[6])));
 
   return rc;
 }
@@ -259,15 +259,15 @@ L7_RC_t usl_trace_fp_event_format(L7_ushort16 traceId, L7_uchar8 *pDataStart)
   /* 6 byte key, 4 byte unit */
   /* KEY */
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%0.2x:%0.2x:%0.2x:%0.2x:%0.2x:%0.2x ",
+                "%02x:%02x:%02x:%02x:%02x:%02x ",
                 pDataStart[0],pDataStart[1],pDataStart[2],
                 pDataStart[3],pDataStart[4],pDataStart[5] );
 
-  SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "fp_u/s %d/",osapiNtohl(*((L7_uint32*)&pDataStart[8])));
+  SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS, "fp_u/s %lu/",
+                osapiNtohl(*((L7_uint32*)&pDataStart[8])));
 
-  SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%d",osapiNtohl(*((L7_uint32*)&pDataStart[12])));
+  SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS, "%lu",
+                osapiNtohl(*((L7_uint32*)&pDataStart[12])));
 
   return rc;
 }
@@ -418,8 +418,8 @@ L7_RC_t usl_trace_sync_format(L7_ushort16 traceId, L7_uchar8 *pDataStart)
 
     if (pDataStart[2] == USL_ERROR)
     {
-      SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                    "%d",osapiNtohl(*((L7_int32 *)&pDataStart[4])));
+      SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS, "%lu",
+                    osapiNtohl(*((L7_int32 *)&pDataStart[4])));
     }
   }
 
@@ -491,7 +491,7 @@ L7_RC_t usl_trace_sema_format(L7_ushort16 traceId,L7_uchar8 *pDataStart)
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "%s ",&pDataStart[0]);
 
-  SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS, "task=0x%0.8x line=%d %s",
+  SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS, "task=0x%08lx line=%lu %s",
                 osapiNtohl(*((L7_uint32*)&pDataStart[4])),
                 osapiNtohl(*((L7_uint32*)&pDataStart[8])),
                 (pDataStart[12])?"Take":"Give");
@@ -970,7 +970,7 @@ void usl_trace_show(L7_uint32 count,L7_uchar8 *db,L7_BOOL unformat)
 
           /* show the entry timestamp */
           SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                        (char *)"ts=%8.8lu ",
+                        (char *)"ts=%8.8u ",
                         (L7_uint32)(pHdr->timeStamp));
 
           /* format the rest of the entry per the id value */
@@ -1090,18 +1090,18 @@ void usl_trace_debug_help()
                 "\n************* USL TRACING ***************\n");
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "\nCurrent mask is 0x%0.8x\n",
+                "\nCurrent mask is 0x%08x\n",
                 uslTraceMask);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "Macsync mask is 0x%0.8x\n",
+                "Macsync mask is 0x%08x\n",
                 uslMacSyncTraceMask);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "Sema Mask = 0x%0.8x\n",uslSemaMask);
+                "Sema Mask = 0x%08x\n",uslSemaMask);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "Sync Detail Mask = 0x%0.8x\n",uslSyncDetailMask);
+                "Sync Detail Mask = 0x%08x\n",uslSyncDetailMask);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "Tracing is %s\n",(uslTraceMode)?"Active":"Inactive");
@@ -1110,189 +1110,189 @@ void usl_trace_debug_help()
                 "\nThe trace masks are as follows:\n");
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s= 0x%0.8x\n"," ","Trace Semaphores", USL_TRACE_SEMS);
+                "%-5s %-45s= 0x%08x\n"," ","Trace Semaphores", USL_TRACE_SEMS);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s= 0x%0.8x\n"," ","Trace Sync Events",USL_TRACE_SYNC);
+                "%-5s %-45s= 0x%08x\n"," ","Trace Sync Events",USL_TRACE_SYNC);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s= 0x%0.8x\n"," ","Trace Detailed Sync Events",USL_TRACE_SYNC_DETAIL);
+                "%-5s %-45s= 0x%08x\n"," ","Trace Detailed Sync Events",USL_TRACE_SYNC_DETAIL);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s= 0x%0.8x\n"," ","Trace macsync Events", USL_TRACE_MACSYNC);
+                "%-5s %-45s= 0x%08x\n"," ","Trace macsync Events", USL_TRACE_MACSYNC);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s= 0x%0.8x\n"," ","USL Generic trace events",  USL_TRACE_GENERIC);
+                "%-5s %-45s= 0x%08x\n"," ","USL Generic trace events",  USL_TRACE_GENERIC);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "\nThe macsync trace masks are as follows:\n");
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s= 0x%0.8lx\n"," ","Macsync Trace learn Event",
+                "%-5s %-45s= 0x%08x\n"," ","Macsync Trace learn Event",
                 1 << USL_MAC_ADDR_LEARN);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s= 0x%0.8x\n"," ","Macsync Trace age Event",
+                "%-5s %-45s= 0x%08x\n"," ","Macsync Trace age Event",
                 1 << USL_MAC_ADDR_AGE);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s= 0x%0.8x\n"," ","Macsync Trace table flush Event",
+                "%-5s %-45s= 0x%08x\n"," ","Macsync Trace table flush Event",
                 1 << USL_MAC_TABLE_FLUSH);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s= 0x%0.8x\n"," ","Macsync Trace table flush by modid Event",
+                "%-5s %-45s= 0x%08x\n"," ","Macsync Trace table flush by modid Event",
                 1 << USL_MAC_TABLE_UNIT_FLUSH);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s= 0x%0.8x\n"," ","Macsync Trace table resync Event",
+                "%-5s %-45s= 0x%08x\n"," ","Macsync Trace table resync Event",
                 1 << USL_MAC_TABLE_FORCE_RESYNC);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s= 0x%0.8x\n"," ","Macsync Trace table HPC Send Event",
+                "%-5s %-45s= 0x%08x\n"," ","Macsync Trace table HPC Send Event",
                 1 << (15+USL_MACSYNC_HPC_SEND));
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s= 0x%0.8x\n"," ","Macsync Trace table HPC Recv Event",
+                "%-5s %-45s= 0x%08x\n"," ","Macsync Trace table HPC Recv Event",
                 1 << (15+USL_MACSYNC_HPC_RECV));
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s= 0x%0.8x\n"," ","Macsync Trace table RXQ Start Event",
+                "%-5s %-45s= 0x%08x\n"," ","Macsync Trace table RXQ Start Event",
                 1 << (15+USL_MACSYNC_RXQ_START));
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s= 0x%0.8x\n"," ","Macsync Trace table RXQ Complete Event",
+                "%-5s %-45s= 0x%08x\n"," ","Macsync Trace table RXQ Complete Event",
                 1 << (15+USL_MACSYNC_RXQ_COMP));
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "\nDB identifiers for the Sync detailed or Sema tracing:\n");
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_SYSTEM_DB_ID),
                 1<<USL_SYSTEM_DB_ID);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_PORT_DB_ID),
                 1<<USL_PORT_DB_ID);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_L2_UCAST_DB_ID),
                 1<<USL_L2_UCAST_DB_ID);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_L2_MCAST_DB_ID),
                 1<<USL_L2_MCAST_DB_ID  );
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_L2_VLAN_DB_ID),
                 1<<USL_L2_VLAN_DB_ID   );
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_L2_STG_DB_ID),
                 1<<USL_L2_STG_DB_ID);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_L2_TRUNK_DB_ID),
                 1<<USL_L2_TRUNK_DB_ID  );
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_L2_VLAN_IPSUBNET_DB_ID),
                 1<<USL_L2_VLAN_IPSUBNET_DB_ID  );
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_L2_VLAN_MAC_DB_ID),
                 1<<USL_L2_VLAN_MAC_DB_ID  );
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_L2_DVLAN_DB_ID),
                 1<<USL_L2_DVLAN_DB_ID  );
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_L2_PROTECTED_GRP_DB_ID),
                 1<<USL_L2_PROTECTED_GRP_DB_ID  );
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_POLICY_DB_ID),
                 1<<USL_POLICY_DB_ID    );
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_L3_HOST_DB_ID),
                 1<<USL_L3_HOST_DB_ID);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_L3_LPM_DB_ID),
                 1<<USL_L3_LPM_DB_ID);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_L3_EGR_NHOP_DB_ID),
                 1<<USL_L3_EGR_NHOP_DB_ID);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_L3_MPATH_EGR_NHOP_DB_ID),
                 1<<USL_L3_MPATH_EGR_NHOP_DB_ID);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_L3_INTF_DB_ID),
                 1<<USL_L3_INTF_DB_ID );
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_L3_TUNNEL_INITIATOR_DB_ID),
                 1<<USL_L3_TUNNEL_INITIATOR_DB_ID );
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_L3_TUNNEL_TERMINATOR_DB_ID),
                 1<<USL_L3_TUNNEL_TERMINATOR_DB_ID );
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_IPMC_ROUTE_DB_ID) ,
                 1<<USL_IPMC_ROUTE_DB_ID   );
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_IPMC_PORT_DB_ID) ,
                 1<<USL_IPMC_PORT_DB_ID   );
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_WLAN_PORT_DB_ID) ,
                 1<<USL_WLAN_PORT_DB_ID   );
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_WLAN_VLAN_DB_ID) ,
                 1<<USL_WLAN_VLAN_DB_ID   );
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_METRO_VLAN_XLATE_DB_ID) ,
                 1<<USL_METRO_VLAN_XLATE_DB_ID   );
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_METRO_VLAN_XLATE_EGRESS_DB_ID) ,
                 1<<USL_METRO_VLAN_XLATE_EGRESS_DB_ID   );
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-5s %-45s = 0x%0.8x\n"," ",
+                "%-5s %-45s = 0x%08x\n"," ",
                 usl_db_name_get(USL_METRO_VLAN_CROSSCONNECT_DB_ID) ,
                 1<<USL_METRO_VLAN_CROSSCONNECT_DB_ID   );
 

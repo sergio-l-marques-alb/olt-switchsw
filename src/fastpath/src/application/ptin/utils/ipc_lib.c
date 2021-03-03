@@ -112,7 +112,7 @@ int open_ipc (int porto_rx, unsigned int ipaddr, int  (*MessageHandler)(ipc_msg 
    *handlerid = -1;
 //   DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL,
    PT_LOG_INFO(LOG_CTX_IPC,
-            "Abertura de canal de comunicacao (%d, %08X, %d).", porto_rx, MessageHandler, timeout); 
+            "Abertura de canal de comunicacao (%d, %p, %d).", porto_rx, MessageHandler, timeout); 
    // Deteccao do primeiro canal livre
    for(i=0;i<IPCLIB_MAX_CANAIS;i++)
    {

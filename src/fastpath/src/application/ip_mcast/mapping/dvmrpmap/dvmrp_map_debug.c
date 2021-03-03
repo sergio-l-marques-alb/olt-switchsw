@@ -453,12 +453,12 @@ void dvmrpMapCfgDataShow(void)
     }
   }
 
-  sysapiPrintf("\n msgQSema        = %d",dvmrpGblVar_g.msgQSema);
-  sysapiPrintf("\n dvmrpMapTaskId  = %d",dvmrpGblVar_g.dvmrpMapTaskId);
-  sysapiPrintf("\n dvmrpCnfgrState = %d",dvmrpGblVar_g.dvmrpCnfgrState);  
-  sysapiPrintf("\n dvmrpMapCb      = %d",dvmrpGblVar_g.dvmrpCb);
-  sysapiPrintf("\n family          = %d",dvmrpGblVar_g.family);  
-  sysapiPrintf("\n heapAlloc       = %d",dvmrpGblVar_g.heapAlloc);    
+  sysapiPrintf("\n msgQSema        = %p",   dvmrpGblVar_g.msgQSema);
+  sysapiPrintf("\n dvmrpMapTaskId  = %llu", dvmrpGblVar_g.dvmrpMapTaskId);
+  sysapiPrintf("\n dvmrpCnfgrState = %d",   dvmrpGblVar_g.dvmrpCnfgrState);  
+  sysapiPrintf("\n dvmrpMapCb      = %p",   dvmrpGblVar_g.dvmrpCb);
+  sysapiPrintf("\n family          = %d",   dvmrpGblVar_g.family);  
+  sysapiPrintf("\n heapAlloc       = %d",   dvmrpGblVar_g.heapAlloc);    
   
   sysapiPrintf("\n-----------------------------\n");
 }
@@ -592,10 +592,7 @@ void dvmrpCfgShow(void)
       }
       else
       {
-
-        sysapiPrintf("\n%50/0/0d");
         sysapiPrintf( "USP = 0/0/0  (intIfNum  = %d \n",  intIfNum);
-
       }
     }
 
@@ -987,19 +984,19 @@ void dvmrpMapDebugMemoryInfoCompute(void)
 {
   sysapiPrintf ("***** Memory Allocated By DVMRP Mapping Layer *****\n");
   sysapiPrintf ("        Global Variables\n");
-  sysapiPrintf ("          dvmrpGblVaribles_t - %d\n", sizeof(dvmrpGblVaribles_t));
+  sysapiPrintf ("          dvmrpGblVaribles_t - %zu\n", sizeof(dvmrpGblVaribles_t));
   dvmrpMapTotalBytesAllocated += sizeof(dvmrpGblVaribles_t);
-  sysapiPrintf ("          dvmrpDebugCfg_t   - %d\n", sizeof(dvmrpDebugCfg_t));
+  sysapiPrintf ("          dvmrpDebugCfg_t    - %zu\n", sizeof(dvmrpDebugCfg_t));
   dvmrpMapTotalBytesAllocated += sizeof(dvmrpDebugCfg_t);
   sysapiPrintf ("        Message Queues\n");
-  sysapiPrintf ("          App Timer Queue  - Size[%d]*Num[%d] = %d\n", DVMRPMAP_APPTIMER_SIZE, DVMRPMAP_APPTIMER_COUNT, (DVMRPMAP_APPTIMER_SIZE*DVMRPMAP_APPTIMER_COUNT));
+  sysapiPrintf ("          App Timer Queue    - Size[%zu]*Num[%d] = %zu\n", DVMRPMAP_APPTIMER_SIZE, DVMRPMAP_APPTIMER_COUNT, (DVMRPMAP_APPTIMER_SIZE*DVMRPMAP_APPTIMER_COUNT));
   dvmrpMapTotalBytesAllocated += (DVMRPMAP_APPTIMER_SIZE*DVMRPMAP_APPTIMER_COUNT);
-  sysapiPrintf ("          Events Queue     - Size[%d]*Num[%d] = %d\n", DVMRPMAP_MSG_SIZE, DVMRPMAP_MSG_COUNT, (DVMRPMAP_MSG_SIZE*DVMRPMAP_MSG_COUNT));
+  sysapiPrintf ("          Events Queue       - Size[%zu]*Num[%d] = %zu\n", DVMRPMAP_MSG_SIZE, DVMRPMAP_MSG_COUNT, (DVMRPMAP_MSG_SIZE*DVMRPMAP_MSG_COUNT));
   dvmrpMapTotalBytesAllocated += (DVMRPMAP_MSG_SIZE*DVMRPMAP_MSG_COUNT);
-  sysapiPrintf ("          Ctrl Pkt Queue   - Size[%d]*Num[%d] = %d\n", DVMRPMAP_PKT_SIZE, DVMRPMAP_PKT_COUNT, (DVMRPMAP_PKT_SIZE*DVMRPMAP_PKT_COUNT));
+  sysapiPrintf ("          Ctrl Pkt Queue     - Size[%zu]*Num[%d] = %zu\n", DVMRPMAP_PKT_SIZE, DVMRPMAP_PKT_COUNT, (DVMRPMAP_PKT_SIZE*DVMRPMAP_PKT_COUNT));
   dvmrpMapTotalBytesAllocated += (DVMRPMAP_PKT_SIZE*DVMRPMAP_PKT_COUNT);
   sysapiPrintf ("\n");
-  sysapiPrintf ("        Total Memory       - %d\n", dvmrpMapTotalBytesAllocated);
+  sysapiPrintf ("        Total Memory         - %d\n", dvmrpMapTotalBytesAllocated);
   sysapiPrintf ("\n");
   sysapiPrintf ("***************************************************\n");
 

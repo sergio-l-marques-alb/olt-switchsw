@@ -687,8 +687,8 @@ L7_RC_t vrrpPacketProcess(L7_netBufHandle netBufHandle,L7_uint32 intIfNum)
      * of the packet flood, with the above check failing */
     if(vrrp_err_log_count == 0)
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_VRRP_MAP_COMPONENT_ID,
-              "VRRP packet of size %d dropped. Min VRRP packet size is %d; "
-              "max VRRP packet size is %d",
+              "VRRP packet of size %d dropped. Min VRRP packet size is %zu; "
+              "max VRRP packet size is %zu",
                pdu_data_len, VRRP_IP_PKT_MIN_LEN, VRRP_PACKET_LENGTH);
 
     vrrp_err_log_count++;

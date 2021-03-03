@@ -283,10 +283,11 @@ L7_RC_t ptin_l2_mac_table_load(void)
 
         e.vport_id = fdbEntry.dot1dTpFdbVirtualPort;
         if (intf_vp_DB(3, &e)) {
-            PT_LOG_WARN(LOG_CTX_L2,"PON&GEMid for intIfNum %lu / vport %lu not found",fdbEntry.dot1dTpFdbPort,fdbEntry.dot1dTpFdbVirtualPort);
+            PT_LOG_WARN(LOG_CTX_L2,"PON&GEMid for intIfNum %u / vport %u not found",
+                        fdbEntry.dot1dTpFdbPort,fdbEntry.dot1dTpFdbVirtualPort);
             continue;
         }
-        else PT_LOG_TRACE(LOG_CTX_L2,"intIfNum %lu / vport %u, PON=%u/%u GEMid=%u",
+        else PT_LOG_TRACE(LOG_CTX_L2,"intIfNum %u / vport %u, PON=%u/%u GEMid=%u",
                        fdbEntry.dot1dTpFdbPort, fdbEntry.dot1dTpFdbVirtualPort, e.pon.intf_type, e.pon.intf_id, e.gem_id);
         ptin_intf = e.pon;
         gem_id    = e.gem_id;

@@ -484,10 +484,7 @@ void rtrDiscCfgShow(void)
             }
             else
             {
-
-                SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_RIPMAP,  "\n%50/0/0d");
                 sysapiPrintf( "USP = 0/0/0  (intIfNum  = %d \n",  intIfNum);
-
             }
         }
 

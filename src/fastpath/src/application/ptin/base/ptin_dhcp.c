@@ -444,10 +444,10 @@ L7_RC_t ptin_dhcp_init(void)
     return L7_FAILURE;
   }
 
-  PT_LOG_INFO(LOG_CTX_DHCP, "sizeof(dhcp_intIfNum_trusted)      = %u", sizeof(dhcp_intIfNum_trusted));
-  PT_LOG_INFO(LOG_CTX_DHCP, "sizeof(dhcpInstances)              = %u", sizeof(dhcpInstances));
-  PT_LOG_INFO(LOG_CTX_DHCP, "sizeof(global_stats_intf)          = %u", sizeof(global_stats_intf));
-  PT_LOG_INFO(LOG_CTX_DHCP, "sizeof(dhcpClients_unified.avlTree)= %u",
+  PT_LOG_INFO(LOG_CTX_DHCP, "sizeof(dhcp_intIfNum_trusted)      = %zu", sizeof(dhcp_intIfNum_trusted));
+  PT_LOG_INFO(LOG_CTX_DHCP, "sizeof(dhcpInstances)              = %zu", sizeof(dhcpInstances));
+  PT_LOG_INFO(LOG_CTX_DHCP, "sizeof(global_stats_intf)          = %zu", sizeof(global_stats_intf));
+  PT_LOG_INFO(LOG_CTX_DHCP, "sizeof(dhcpClients_unified.avlTree)= %zu",
            sizeof(avlTree_t) + sizeof(avlTreeTables_t)*PTIN_SYSTEM_DHCP_MAXCLIENTS + sizeof(ptinDhcpClientInfoData_t)*PTIN_SYSTEM_DHCP_MAXCLIENTS);
 
   PT_LOG_INFO(LOG_CTX_DHCP, "DHCP init OK");

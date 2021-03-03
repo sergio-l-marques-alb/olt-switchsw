@@ -1374,14 +1374,14 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
     /* Validate slot index */
     if (ptr->slotIdx == 0 || ptr->slotIdx > PTIN_SYS_SLOTS_MAX)
     {
-      PT_LOG_ERR(LOG_CTX_STARTUP,"Invalid slot index (%u) for WC %u!",ptr->slotIdx, wc_idx);
+      PT_LOG_ERR(LOG_CTX_STARTUP,"Invalid slot index (%lu) for WC %u!",ptr->slotIdx, wc_idx);
       return L7_FAILURE;
     }
 
     /* Invert WCs */
     ptr->slotIdx = PTIN_SYS_SLOTS_MAX - ptr->slotIdx + 1;
 
-    PT_LOG_DEBUG(LOG_CTX_STARTUP," WC%02u: WCgroup=%u slot=%-2u (invLanes=0x%02x invPol=0x%02x)",
+    PT_LOG_DEBUG(LOG_CTX_STARTUP," WC%02lu: WCgroup=%lu slot=%-2lu (invLanes=0x%02x invPol=0x%02x)",
               ptr->wcIndex, ptr->wcGroup, ptr->slotIdx, ptr->invert_lanes, ptr->invert_polarities);
   }
 
@@ -1431,7 +1431,7 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
   PT_LOG_DEBUG(LOG_CTX_STARTUP,"Port map:");
   for (i=0; i<L7_MAX_PHYSICAL_PORTS_PER_UNIT; i++)
   {
-    PT_LOG_DEBUG(LOG_CTX_STARTUP," Port %02u: Slot=%02u WCidx=%02u WClane=%u Speed=%uG Mode=%u",
+    PT_LOG_DEBUG(LOG_CTX_STARTUP," Port %02lu: Slot=%02lu WCidx=%02lu WClane=%lu Speed=%luG Mode=%u",
               dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[i].portNum,
               dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[i].slotNum,
               dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[i].wcIdx,
@@ -1572,21 +1572,21 @@ static L7_RC_t hpcConfigWCmap_validate(HAPI_WC_PORT_MAP_t *wcMap)
     /* Validate slotnum */
     if (wcMap[port].slotNum < PTIN_SYS_LC_SLOT_MIN || wcMap[port].slotNum > PTIN_SYS_LC_SLOT_MAX)
     {
-      PT_LOG_ERR(LOG_CTX_STARTUP,"Invalid slot (%u) for port %u", wcMap[port].slotNum, port);
+      PT_LOG_ERR(LOG_CTX_STARTUP,"Invalid slot (%lu) for port %u", wcMap[port].slotNum, port);
       return L7_FAILURE;
     }
 
     /* Validate lane */
     if (wcMap[port].wcLane < 0 || wcMap[port].wcLane >= WC_MAX_LANES)
     {
-      PT_LOG_ERR(LOG_CTX_STARTUP,"Invalid lane (%u) for port %u", wcMap[port].wcLane, port);
+      PT_LOG_ERR(LOG_CTX_STARTUP,"Invalid lane (%lu) for port %u", wcMap[port].wcLane, port);
       return L7_FAILURE;
     }
     
     /* Validate speed */
     if (wcMap[port].wcSpeedG != 1 && wcMap[port].wcSpeedG != 10 && wcMap[port].wcSpeedG != 20 && wcMap[port].wcSpeedG != 40)
     {
-      PT_LOG_ERR(LOG_CTX_STARTUP,"Invalid speed (%u) for port %u", wcMap[port].wcSpeedG, port);
+      PT_LOG_ERR(LOG_CTX_STARTUP,"Invalid speed (%lu) for port %u", wcMap[port].wcSpeedG, port);
       return L7_FAILURE;
     }
   }
@@ -1663,7 +1663,7 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
   PT_LOG_DEBUG(LOG_CTX_STARTUP,"Port map:");
   for (i=0; i<L7_MAX_PHYSICAL_PORTS_PER_UNIT; i++)
   {
-    PT_LOG_DEBUG(LOG_CTX_STARTUP," Port %02u: Slot=%2d WCidx=%2d WClane=%d Speed=%2uG Mode=%u",
+    PT_LOG_DEBUG(LOG_CTX_STARTUP," Port %02lu: Slot=%2ld WCidx=%2ld WClane=%ld Speed=%2luG Mode=%u",
               dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[i].portNum,
               dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[i].slotNum,
               dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[i].wcIdx,
@@ -1884,7 +1884,7 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
   /* Printing out port list */
   for (i = 0; i < port_idx; i++)
   {
-    PT_LOG_INFO(LOG_CTX_STARTUP, "slotNum=%u portNum=%2u bcm_cpuunit=%d bcm_port=%2d",
+    PT_LOG_INFO(LOG_CTX_STARTUP, "slotNum=%lu portNum=%2lu bcm_cpuunit=%d bcm_port=%2d",
              dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[i].slotNum,
              dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[i].portNum,
              dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[i].bcm_cpuunit,

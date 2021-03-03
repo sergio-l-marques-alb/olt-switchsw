@@ -2451,7 +2451,7 @@ T_ETH_OAM_MAC this_MP_MAC;
 
      this_MPs_MAC(oam_prt, vid, MEP_in_DB?1:0, this_MP_MAC.byte);
      TerminalMP= memcmp(p_ltm->targ_mac, this_MP_MAC.byte, sizeof(T_ETH_OAM_MAC))? 0:1;
-     ETHSRV_OAM_LOG("this_MP_MAC=%2.2x:%2.2x:%2.2x:%2.2x:%2.2x:%2.2x\tTerminalMP=%2.2u TTL=%u transID=%u pkt_len-2=%u"NLS,
+     ETHSRV_OAM_LOG("this_MP_MAC=%2.2x:%2.2x:%2.2x:%2.2x:%2.2x:%2.2x\tTerminalMP=%2.2u TTL=%u transID=%lu pkt_len-2=%lu"NLS,
                     this_MP_MAC.byte[0], this_MP_MAC.byte[1], this_MP_MAC.byte[2],
                     this_MP_MAC.byte[3], this_MP_MAC.byte[4], this_MP_MAC.byte[5], TerminalMP,
                     p_ltm->TTL, p_ltm->transID, pkt_len-2);

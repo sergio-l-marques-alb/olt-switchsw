@@ -172,7 +172,7 @@ L7_RC_t ptin_hapi_phySemaTake(L7_uint16 ptin_port)
   }
   if (osapiSemaTake(hapiPortPtr->hapiModeparm.physical.phySemaphore, L7_WAIT_FOREVER) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error blocking semaphore related to bcm_port %u (port %u)", ptin_port, hapiPortPtr->bcm_port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error blocking semaphore related to bcm_port %u", ptin_port, hapiPortPtr->bcm_port);
     return L7_FAILURE;
   }
 
@@ -227,7 +227,7 @@ L7_RC_t ptin_hapi_phySemaGive(L7_uint16 ptin_port)
   }
   if (osapiSemaGive(hapiPortPtr->hapiModeparm.physical.phySemaphore) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error releasing semaphore related to bcm_port %u (port %u)", ptin_port, hapiPortPtr->bcm_port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error releasing semaphore related to bcm_port %u", ptin_port, hapiPortPtr->bcm_port);
     return L7_FAILURE;
   }
 
@@ -2215,7 +2215,7 @@ L7_RC_t ptin_hapi_linkscan_get(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 *enable
 
   if (bcm_linkscan_mode_get(0, hapiPortPtr->bcm_port, &mode) != BCM_E_NONE)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error reading linkscan state for port {%d,%d,%d}/bcm_port %u/port %u to %u",
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error reading linkscan state for port {%d,%d,%d}/bcm_port %u",
             usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port);
     return L7_FAILURE;
   }
@@ -4188,8 +4188,8 @@ L7_RC_t hapi_ptin_counters_activity_get_debug(L7_uint phyPort)
   }
 
   PT_LOG_DEBUG(LOG_CTX_HAPI, "Port# %2u", phyPort);
-  PT_LOG_DEBUG(LOG_CTX_HAPI, " .port_mask         = 0x%08X", portsActivity.ports_mask);
-  PT_LOG_DEBUG(LOG_CTX_HAPI, " .activity_mask     = 0x%08X", portsActivity.activity_mask);
+  PT_LOG_DEBUG(LOG_CTX_HAPI, " .port_mask         = 0x%llX", portsActivity.ports_mask);
+  PT_LOG_DEBUG(LOG_CTX_HAPI, " .activity_mask     = 0x%llX", portsActivity.activity_mask);
   PT_LOG_DEBUG(LOG_CTX_HAPI, " .activity_bmap[%02u] = 0x%08X", phyPort, portsActivity.activity_bmap[phyPort]);
 
   return L7_SUCCESS;
@@ -6309,8 +6309,6 @@ L7_RC_t teste_case(void)
     return L7_FAILURE;
   }
 
-  PT_LOG_TRACE(LOG_CTX_STARTUP, "I am here!", policyId);
-
   /* Apply rules */
   rc = hapiBroadPolicyCommit(&policyId);
   if (rc != L7_SUCCESS)
@@ -7403,14 +7401,13 @@ L7_RC_t ptin_hapi_temperature_monitor(ptin_dtl_temperature_monitor_t *temp_info)
   PT_LOG_TRACE(LOG_CTX_HAPI, "Going to read %u sensors...\r\n", n);
 
   rv = bcm_switch_temperature_monitor_get(0, n, temp_data, &count);
-
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Obtained data from %u sensors (rv=%d)\r\n", count, rv);
-
   if (rv != BCM_E_NONE)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error reading temperature sensors (rv=%d)", count, rv);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error reading temperature sensors (rv=%d)", rv);
     return L7_FAILURE;
   }
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Obtained data from %u sensors (rv=%d)\r\n", count, rv);
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "Index=%d", temp_info->index);
   PT_LOG_TRACE(LOG_CTX_HAPI, "Number of sensors=%d", temp_info->number_of_sensors);

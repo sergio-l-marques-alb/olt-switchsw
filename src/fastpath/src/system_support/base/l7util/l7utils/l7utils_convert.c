@@ -208,7 +208,7 @@ L7_RC_t l7utilsOUIValueStringToHex(L7_uchar8 *pString, L7_uchar8 *pHexBuf)
 
   if (strlen(pString) != strlen(pOUIStringTemplate))
   {
-    sysapiPrintf("strlen(pString)=%d,strlen(pOUIStringTemplate)=%d\n",strlen(pString),strlen(pOUIStringTemplate));
+    sysapiPrintf("strlen(pString)=%zu,strlen(pOUIStringTemplate)=%zu\n",strlen(pString),strlen(pOUIStringTemplate));
     return L7_FAILURE;
   }
 

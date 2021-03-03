@@ -245,14 +245,13 @@ void ptin_rfc2819_regista_15min(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual)
   aux_qual_RFC2819.Pkts512to1023Octets  =   qual->status[RFC2819_ACTUAL].Pkts512to1023Octets ;
   aux_qual_RFC2819.Pkts1024to1518Octets =   qual->status[RFC2819_ACTUAL].Pkts1024to1518Octets;   
 
-  PT_LOG_TRACE(LOG_CTX_RFC2819, "15MIN  : %.08lx  |  %.02d-%.02d-%.04d  |  %d:%.02d:00  | %5d | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld",
+  PT_LOG_TRACE(LOG_CTX_RFC2819, "15MIN  : %.08lx  |  %.02d-%.02d-%.04d  |  %d:%.02d:00  | %5ld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld",
             qual->conf.path,
             qual->reg_data.dia,
             qual->reg_data.mes,
             qual->reg_data.ano,
             qual->reg_data.hora,
             qual->reg_data.min,
-
             aux_qual_RFC2819.cTempo               ,
             aux_qual_RFC2819.Octets               ,
             aux_qual_RFC2819.Pkts                 ,
@@ -319,14 +318,13 @@ void ptin_rfc2819_regista_24horas(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual)
   aux_qual_RFC2819.Pkts512to1023Octets =   qual->status[RFC2819_PER24HORAS].Pkts512to1023Octets ;
   aux_qual_RFC2819.Pkts1024to1518Octets=   qual->status[RFC2819_PER24HORAS].Pkts1024to1518Octets;
 
-  PT_LOG_TRACE(LOG_CTX_RFC2819, "24HOURS: %.08lx  |  %.02d-%.02d-%.04d  |  %d:%.02d:00  | %5d | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld",
+  PT_LOG_TRACE(LOG_CTX_RFC2819, "24HOURS: %.08lx  |  %.02d-%.02d-%.04d  |  %d:%.02d:00  | %5ld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld",
             qual->conf.path,
             qual->reg_data.dia,
             qual->reg_data.mes,
             qual->reg_data.ano,
             qual->reg_data.hora,
             qual->reg_data.min,
-
             aux_qual_RFC2819.cTempo            ,  
             aux_qual_RFC2819.Octets            ,  
             aux_qual_RFC2819.Pkts              ,  

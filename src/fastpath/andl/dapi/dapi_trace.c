@@ -546,7 +546,7 @@ void dapiTraceShow(L7_uint32 count,L7_uchar8 *db,L7_BOOL unformat)
 
           /* show the task */
           SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                        (char *)"tid=0x%0.8x ",
+                        (char *)"tid=0x%08x ",
                         (L7_uint32)osapiHtonl(pHdr->task));
 
           /* format the rest of the entry per the id value */
@@ -1474,12 +1474,12 @@ static L7_RC_t dapiTraceFrameFormat(L7_uchar8 *pDataStart)
   if (drop == DAPI_TRACE_FRAME_SEND)
   {
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                  "%d/%d/%d, %s, %0.8x, ",usp.unit,usp.slot,usp.port,"S",cookie);
+                  "%d/%d/%d, %s, %08x, ",usp.unit,usp.slot,usp.port,"S",cookie);
   }
   else
   {
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                  "%d/%d/%d, %s, %0.8x, ",usp.unit,usp.slot,usp.port,
+                  "%d/%d/%d, %s, %08x, ",usp.unit,usp.slot,usp.port,
                   (drop==DAPI_TRACE_FRAME_DROP)?"D":"F",cookie);
   }
 
@@ -1489,27 +1489,27 @@ static L7_RC_t dapiTraceFrameFormat(L7_uchar8 *pDataStart)
   {
     /* DA */
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                  "%0.2x%0.2x%0.2x%0.2x%0.2x%0.2x ",
+                  "%02x%02x%02x%02x%02x%02x ",
                   pDataStart[0],pDataStart[1],
                   pDataStart[2],pDataStart[3],
                   pDataStart[4],pDataStart[5]);
 
     /* SA */
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                  "%0.2x%0.2x%0.2x%0.2x%0.2x%0.2x ",
+                  "%02x%02x%02x%02x%02x%02x ",
                   pDataStart[6],pDataStart[7],
                   pDataStart[8],pDataStart[9],
                   pDataStart[10],pDataStart[11]);
 
     /* VPI and VID */
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                  "%0.2x%0.2x %0.2x%0.2x ",
+                  "%02x%02x %02x%02x ",
                   pDataStart[12],pDataStart[13],
                   pDataStart[14],pDataStart[15]);
 
     /* ETYPE */
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                  "%0.2x%0.2x ",
+                  "%02x%02x ",
                   pDataStart[16],pDataStart[17]);
 
     offSet = 18;
@@ -1521,7 +1521,7 @@ static L7_RC_t dapiTraceFrameFormat(L7_uchar8 *pDataStart)
       SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS, " ");
 
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-            "%0.2x",pDataStart[offSet]);
+            "%02x",pDataStart[offSet]);
   }
 
   return L7_SUCCESS;
@@ -1547,31 +1547,31 @@ void dapiTraceHelp()
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "Interface is in the form      0x0000uspp\n");
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "DAPI_TRACE_DAPI_CTL_MASK      %0.8x\n",DAPI_TRACE_DAPI_CTL_MASK);
+                "DAPI_TRACE_DAPI_CTL_MASK      %08x\n",DAPI_TRACE_DAPI_CTL_MASK);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "DAPI_TRACE_GENERIC_MASK       %0.8x\n",DAPI_TRACE_GENERIC_MASK);
+                "DAPI_TRACE_GENERIC_MASK       %08x\n",DAPI_TRACE_GENERIC_MASK);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "DAPI_TRACE_DAPI_CB_MASK       %0.8x\n",DAPI_TRACE_DAPI_CB_MASK);
+                "DAPI_TRACE_DAPI_CB_MASK       %08x\n",DAPI_TRACE_DAPI_CB_MASK);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "DAPI_TRACE_FRAME_MASK         %0.8x\n",DAPI_TRACE_FRAME_MASK);
+                "DAPI_TRACE_FRAME_MASK         %08x\n",DAPI_TRACE_FRAME_MASK);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "DAPI_TRACE_STACK_EVENT_MASK   %0.8x\n",DAPI_TRACE_STACK_EVENT_MASK);
+                "DAPI_TRACE_STACK_EVENT_MASK   %08x\n",DAPI_TRACE_STACK_EVENT_MASK);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "******************************\n");
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "dapiTraceFrameTypeSet(mask)\n");
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "Receive: DROPPED %0.8x\n",1 << DAPI_TRACE_FRAME_DROP);
+                "Receive: DROPPED %08x\n",1 << DAPI_TRACE_FRAME_DROP);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "Receive: To App  %0.8x\n",1 << DAPI_TRACE_FRAME_FWD);
+                "Receive: To App  %08x\n",1 << DAPI_TRACE_FRAME_FWD);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "Send             %0.8x\n",1 << DAPI_TRACE_FRAME_SEND);
+                "Send             %08x\n",1 << DAPI_TRACE_FRAME_SEND);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "******************************\n");
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "Dapi Trace Mask   = %0.8x\n",dapiTraceMask);
+                "Dapi Trace Mask   = %08x\n",dapiTraceMask);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "Dapi Trace FRAMES = %0.8x\n",dapiTraceFrameType);
+                "Dapi Trace FRAMES = %08x\n",dapiTraceFrameType);
 
   USP_DECOMPRESS(dapiTraceIntIf,&usp);
 

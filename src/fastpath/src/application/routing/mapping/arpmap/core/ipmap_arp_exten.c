@@ -1261,7 +1261,7 @@ void ipMapArpShow(L7_uint32 intIfNum)
         secs -= (hrs * SECONDS_PER_HOUR);
         mins = secs / SECONDS_PER_MINUTE;
         secs -= (mins * SECONDS_PER_MINUTE);
-        IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "%uh %um %us", hrs, mins, secs);
+        IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "%luh %lum %lus", hrs, mins, secs);
       }
       else
       {

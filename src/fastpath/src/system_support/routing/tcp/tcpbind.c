@@ -1444,7 +1444,8 @@ static e_Err checkConnStatus(void *dummy)
               /* should never happen */
               recvLenError++;
               L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_OSPF_MAP_COMPONENT_ID,
-                     "OSPF receive thread requested %d bytes. Received %d bytes.");
+                     "OSPF receive thread requested %d bytes. Received %d bytes.",
+                      reqLength, rxLength);
             }
             if (noPeekFlags & MSG_TRUNC)
             {

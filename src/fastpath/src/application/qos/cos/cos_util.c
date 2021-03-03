@@ -536,7 +536,7 @@ L7_RC_t cosQueueIntfConfigApply(L7_uint32 intIfNum,
   COS_PRT(COS_MSGLVL_MED, "\nCOS intf config applied on intf %u, %s\n", intIfNum, ifName);
   if (cosMsgLvlGet() >= COS_MSGLVL_LO)
   {
-    COS_PRT(COS_MSGLVL_LO, "\n  intfShapingRate:  %u%", intfShapingRate);
+    COS_PRT(COS_MSGLVL_LO, "\n  intfShapingRate:  %u", intfShapingRate);
     COS_PRT(COS_MSGLVL_LO, "\n    qMgmtTypeIntf:  %u (%s)",
             (L7_uint32)qMgmtTypeIntf, cosQueueMgmtTypeStr[qMgmtTypeIntf]);
     COS_PRT(COS_MSGLVL_LO, "\n     wredDecayExp:  %u", wredDecayExp);

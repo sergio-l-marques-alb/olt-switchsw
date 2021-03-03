@@ -484,7 +484,7 @@ void dot3adNimEventCreateCompletionCallback(NIM_NOTIFY_CB_INFO_t retVal)
       default:
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DOT3AD_COMPONENT_ID,
                 "%s: notification received for unknown event(%d), intf(%s), reason(%d)\n",
-            retVal.event,ifName,retVal.response.reason);
+                __FUNCTION__, retVal.event, ifName, retVal.response.reason);
         /* only care about create for now */
         break;
     }
@@ -1576,10 +1576,10 @@ void dot3adLagIntfTestConfigDataShow(L7_uint32 intIfNum, L7_uint32 lagId)
   sysapiPrintf("agg->partnerSys = ");
   for (i = 0;i < 5 ;i++)
   {
-    sysapiPrintf("%0.2x:",agg->partnerSys.addr[i]);
+    sysapiPrintf("%02x:",agg->partnerSys.addr[i]);
   }
 
-  sysapiPrintf("%0.2x\n",agg->partnerSys.addr[5]);
+  sysapiPrintf("%02x\n",agg->partnerSys.addr[5]);
 
 
   sysapiPrintf("agg->partnerSysPri = %x\n",agg->partnerSysPri);
@@ -1692,10 +1692,10 @@ void dot3adPhysIntfTestConfigDataShow( L7_uint32 intIfNum)
 
   for (i = 0;i < 5 ;i++)
   {
-    sysapiPrintf("%0.2x:",intf->partnerAdminSys.addr[i]);
+    sysapiPrintf("%02x:",intf->partnerAdminSys.addr[i]);
   }
 
-  sysapiPrintf("%0.2x\n",intf->partnerAdminSys.addr[5]);
+  sysapiPrintf("%02x\n",intf->partnerAdminSys.addr[5]);
 
 
 

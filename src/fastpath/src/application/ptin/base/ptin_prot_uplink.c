@@ -775,7 +775,8 @@ L7_RC_t ptin_prot_timer_start(L7_uint32 protIdx, L7_uint32 timeout)
   osapiSemaGive(ptin_prot_timers_sem);
 
   //if (ptin_debug_igmp_snooping)
-  PT_LOG_DEBUG(LOG_CTX_INTF,"Timer Started: protIdx=%u timerCB=%p timer=%p timerHandle=%p timeout=%u (s)", protIdx, prot_timerMgmt.timerCB, pTimerData->timer, pTimerData->timerHandle, timeout);
+  PT_LOG_DEBUG(LOG_CTX_INTF,"Timer Started: protIdx=%u timerCB=%p timer=%p timerHandle=0x%llx timeout=%u (s)",
+               protIdx, prot_timerMgmt.timerCB, pTimerData->timer, pTimerData->timerHandle, timeout);
 
   return L7_SUCCESS;
 }
@@ -824,14 +825,16 @@ L7_RC_t ptin_prot_timer_stop(L7_uint32 protIdx)
   {
     osapiSemaGive(ptin_prot_timers_sem);
     //if (ptin_debug_igmp_snooping)
-    PT_LOG_ERR(LOG_CTX_INTF,"Failed to delete timer node: protIdx=%u timerCB=%p timer=%p timerHandle=%p", protIdx, prot_timerMgmt.timerCB, timerData.timer, timerData.timerHandle);
+    PT_LOG_ERR(LOG_CTX_INTF,"Failed to delete timer node: protIdx=%u timerCB=%p timer=%p timerHandle=0x%llx",
+               protIdx, prot_timerMgmt.timerCB, timerData.timer, timerData.timerHandle);
     return L7_FAILURE;
   }
 
   osapiSemaGive(ptin_prot_timers_sem);
 
   //if (ptin_debug_igmp_snooping)
-  PT_LOG_DEBUG(LOG_CTX_INTF,"Timer stopped successfully for protIdx=%u timerCB=%p timer=%p timerHandle=%p", protIdx, prot_timerMgmt.timerCB, timerData.timer, timerData.timerHandle);
+  PT_LOG_DEBUG(LOG_CTX_INTF,"Timer stopped successfully for protIdx=%u timerCB=%p timer=%p timerHandle=0x%llx",
+               protIdx, prot_timerMgmt.timerCB, timerData.timer, timerData.timerHandle);
 
   return L7_SUCCESS;
 }
@@ -881,14 +884,16 @@ L7_RC_t ptin_prot_timer_timeout_get(L7_uint32 protIdx, L7_uint32 *timeLeft)
   {
     osapiSemaGive(ptin_prot_timers_sem);
     //if (ptin_debug_igmp_snooping)
-    PT_LOG_ERR(LOG_CTX_INTF,"Client timer not running: protIdx=%u timerCB=%p timer=%p timerHandle=%p", protIdx, prot_timerMgmt.timerCB, pTimerData->timer, pTimerData->timerHandle);
+    PT_LOG_ERR(LOG_CTX_INTF,"Client timer not running: protIdx=%u timerCB=%p timer=%p timerHandle=0x%llx",
+               protIdx, prot_timerMgmt.timerCB, pTimerData->timer, pTimerData->timerHandle);
     return L7_FAILURE;
   }
 
   appTimerTimeLeftGet(prot_timerMgmt.timerCB, pTimerData->timer, &time_left);
 
   //if (ptin_debug_igmp_snooping)
-  PT_LOG_DEBUG(LOG_CTX_INTF,"Client Timer TimeOut: protIdx=%u timerCB=%p timer=%p timerHandle=%p time_left=%u (s))", protIdx, prot_timerMgmt.timerCB, pTimerData->timer, pTimerData->timerHandle, time_left);
+  PT_LOG_DEBUG(LOG_CTX_INTF,"Client Timer TimeOut: protIdx=%u timerCB=%p timer=%p timerHandle=0x%llx time_left=%u (s))",
+               protIdx, prot_timerMgmt.timerCB, pTimerData->timer, pTimerData->timerHandle, time_left);
 
   osapiSemaGive(ptin_prot_timers_sem);
 
@@ -922,7 +927,7 @@ void prot_timer_expiry(void *param)
   protTimerData_t *pTimerData;
 
   //if (ptin_debug_igmp_snooping)
-  PT_LOG_DEBUG(LOG_CTX_INTF,"Expiration event ocurred for timerHandle %p!",timerHandle);
+  PT_LOG_DEBUG(LOG_CTX_INTF,"Expiration event ocurred for timerHandle 0x%llx!",timerHandle);
 
   osapiSemaTake(ptin_prot_timers_sem, L7_WAIT_FOREVER);
 
@@ -951,11 +956,13 @@ void prot_timer_expiry(void *param)
   /* Remove node for SLL list */
   if (SLLDelete(&prot_timerMgmt.ll_timerList, (L7_sll_member_t *)&timerData) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_IGMP,"Failed to delete timer node: protIdx=%u timerCB=%p timer=%p timerHandle=%p", protIdx, prot_timerMgmt.timerCB, timerData.timer, timerData.timerHandle);
+    PT_LOG_ERR(LOG_CTX_IGMP,"Failed to delete timer node: protIdx=%u timerCB=%p timer=%p timerHandle=0x%llx",
+               protIdx, prot_timerMgmt.timerCB, timerData.timer, timerData.timerHandle);
   }
 
   //if (ptin_debug_igmp_snooping)
-  PT_LOG_TRACE(LOG_CTX_INTF,"Expiration event ocurred for protIidx=%u timerCB=%p timer=%p timerHandle=%p", protIdx, prot_timerMgmt.timerCB, pTimerData->timer, pTimerData->timerHandle);
+  PT_LOG_TRACE(LOG_CTX_INTF,"Expiration event ocurred for protIidx=%u timerCB=%p timer=%p timerHandle=0x%llx",
+               protIdx, prot_timerMgmt.timerCB, pTimerData->timer, pTimerData->timerHandle);
 
   osapiSemaGive(ptin_prot_timers_sem);
 
@@ -2782,7 +2789,7 @@ L7_RC_t ptin_prot_uplink_intf_reload(L7_uint32 intIfNum)
   rc = ptin_prot_uplink_index_find(intIfNum, &protIdx, &portType);
   if (rc != L7_SUCCESS)
   {
-    PT_LOG_WARN(LOG_CTX_INTF, "No group found using this intIfNum", intIfNum);
+    PT_LOG_WARN(LOG_CTX_INTF, "No group found using this intIfNum %u", intIfNum);
     return L7_SUCCESS;
   }
   

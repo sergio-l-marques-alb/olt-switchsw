@@ -1952,7 +1952,9 @@ L7_uint32 usl_ipmc_print(USL_DB_TYPE_t dbType,
 void usl_ipmc_sem_show()
 {
   if (uslIpmcInited)
-    sysapiPrintf("IPMC Sema = 0x%0.8x\n",pUslIpMcastDbSema);
+  {
+    sysapiPrintf("IPMC Sema = %p\n",pUslIpMcastDbSema);
+  }
 }
 
 void usl_ipmc_debug_help()

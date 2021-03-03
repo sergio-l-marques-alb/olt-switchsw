@@ -2738,7 +2738,7 @@ void hapiBroadDebugVlanMembershipMaskPrint(L7_uint32 unit,
 
       if (BROAD_IS_VLAN_TAGGING(&usp, vlanId, dapi_g))
       {
-        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "(t)", vlanId );
+        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "(t)");
       }
 
       j++;
@@ -2758,7 +2758,7 @@ void hapiBroadDebugVlanMembershipMaskPrint(L7_uint32 unit,
 
       if (BROAD_IS_HW_VLAN_TAGGING(&usp, vlanId, dapi_g))
       {
-        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "(t)", vlanId );
+        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "(t)");
       }
 
       j++;

@@ -65,7 +65,7 @@ static void CHMessage_runtime_meter_update(L7_uint msg_id, L7_uint32 time_delta)
 /* Macro to check infoDim consistency */
 #define CHECK_INFO_SIZE_ATLEAST(msg_st) {             \
   if (inbuffer->infoDim < sizeof(msg_st)) {  \
-    PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting at least %u bytes; Received %u bytes!", sizeof(msg_st), inbuffer->infoDim);\
+    PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting at least %zu bytes; Received %u bytes!", sizeof(msg_st), inbuffer->infoDim);\
     res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); \
     SetIPCNACK(outbuffer, res);               \
     break;                                    \
@@ -75,7 +75,7 @@ static void CHMessage_runtime_meter_update(L7_uint msg_id, L7_uint32 time_delta)
 /* Macro to check infoDim consistency */
 #define CHECK_INFO_SIZE(msg_st) {             \
   if (inbuffer->infoDim != sizeof(msg_st)) {  \
-    PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting %u bytes; Received %u bytes!", sizeof(msg_st), inbuffer->infoDim);\
+    PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting %zu bytes; Received %u bytes!", sizeof(msg_st), inbuffer->infoDim);\
     res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); \
     SetIPCNACK(outbuffer, res);               \
     break;                                    \
@@ -85,7 +85,7 @@ static void CHMessage_runtime_meter_update(L7_uint msg_id, L7_uint32 time_delta)
 /* Macro to check infoDim consistency (including modulo match) */
 #define CHECK_INFO_SIZE_MOD(msg_st) {             \
   if ( ((inbuffer->infoDim % sizeof(msg_st)) != 0)) {  \
-    PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting multiple of %u bytes; Received %u bytes", sizeof(msg_st), inbuffer->infoDim);\
+    PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting multiple of %zu bytes; Received %u bytes", sizeof(msg_st), inbuffer->infoDim);\
     res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); \
     SetIPCNACK(outbuffer, res);               \
     break;                                    \
@@ -95,7 +95,7 @@ static void CHMessage_runtime_meter_update(L7_uint msg_id, L7_uint32 time_delta)
 /* Macro to check infoDim consistency */
 #define CHECK_INFO_SIZE_ATLEAST_ABS(size_bytes) {             \
   if (inbuffer->infoDim < size_bytes) {  \
-    PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting at least %u bytes; Received %u bytes!", size_bytes, inbuffer->infoDim);\
+    PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting at least %zu bytes; Received %u bytes!", size_bytes, inbuffer->infoDim);\
     res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); \
     SetIPCNACK(outbuffer, res);               \
     break;                                    \
@@ -105,7 +105,7 @@ static void CHMessage_runtime_meter_update(L7_uint msg_id, L7_uint32 time_delta)
 /* Macro to check infoDim consistency */
 #define CHECK_INFO_SIZE_ABS(size_bytes) {             \
   if (inbuffer->infoDim != size_bytes) {  \
-    PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting %u bytes; Received %u bytes!", size_bytes, inbuffer->infoDim);\
+    PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting %zu bytes; Received %u bytes!", size_bytes, inbuffer->infoDim);\
     res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); \
     SetIPCNACK(outbuffer, res);               \
     break;                                    \
@@ -347,11 +347,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_APP_LOGGER_OUTPUT:
     {
+#if 0
       L7_uint8 output;
       char *filename;
-
+#endif
       PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_APP_LOGGER_OUTPUT (0x%04X)", msgId);
-
+#if 0
       /* If infodim is null, use stdout */
       if (infoDim == 0)
       {
@@ -386,6 +387,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         }
         PT_LOG_NOTICE(LOG_CTX_MSGHANDLER, "...Logger output (%u) redirected to \"%s\" :-)", output, filename);
       }
+#endif
       SETIPCACKOK(outbuffer);
       return IPC_OK;  /* CCMSG_APP_CHANGE_STDOUT */
     }
@@ -6098,11 +6100,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msgId == CCMSG_MGMD_PORT_SYNC || 
       msgId == CCMSG_APPLICATION_RESOURCES)
   {
-    PT_LOG_TRACE(LOG_CTX_MSGHANDLER,"Message processed: 0x%04X in %lu usec [response:%u (bytes) rc=%u res=0x%08x]", msgId, outbuffer->infoDim, time_delta, rc, res);
+    PT_LOG_TRACE(LOG_CTX_MSGHANDLER,"Message processed: 0x%04X in %u usec [response:%u (bytes) rc=%u res=0x%08x]",
+                 msgId, time_delta, outbuffer->infoDim, rc, res);
   }
   else
   {
-    PT_LOG_INFO(LOG_CTX_MSGHANDLER,"Message processed: 0x%04X in %lu usec  [response:%u (bytes) rc=%u res=0x%08x]", msgId, outbuffer->infoDim, time_delta, rc, res);
+    PT_LOG_INFO(LOG_CTX_MSGHANDLER,"Message processed: 0x%04X in %u usec  [response:%u (bytes) rc=%u res=0x%08x]",
+                msgId, time_delta, outbuffer->infoDim, rc, res);
   }
 
   /* Message Runtime Meter */

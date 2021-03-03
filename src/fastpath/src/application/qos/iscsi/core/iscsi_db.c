@@ -1441,7 +1441,7 @@ void iscsiDbSessionDataStructureDestroy(void)
 void iscsiDbDebugTableStorageShow(void)
 {
   sysapiPrintf("iSCSI database storage:\n");
-  sysapiPrintf("  Session table    = %u bytes\n", sizeof(iscsiSessionRecord_t) * L7_ISCSI_MAX_SESSIONS);
-  sysapiPrintf("  Connection table = %u bytes\n", sizeof(iscsiConnectionRecord_t) * L7_ISCSI_MAX_CONNECTIONS);
+  sysapiPrintf("  Session table    = %zu bytes\n", sizeof(iscsiSessionRecord_t) * L7_ISCSI_MAX_SESSIONS);
+  sysapiPrintf("  Connection table = %zu bytes\n", sizeof(iscsiConnectionRecord_t) * L7_ISCSI_MAX_CONNECTIONS);
 }
 

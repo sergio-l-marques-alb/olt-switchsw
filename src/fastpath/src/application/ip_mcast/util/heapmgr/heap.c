@@ -954,12 +954,12 @@ void  heapShow(L7_uint64 heapId)
   /* validate heap ID */
   if((heap == L7_NULLPTR) || (PTR_GET_VALUE(UINT_TO_PTR(heapId)) != heapId))
   {
-    sysapiPrintf("Invalid Heap ID : 0x%x\n", heapId);
+    sysapiPrintf("Invalid Heap ID : 0x%llx\n", heapId);
     return;
   }
   /* First dump the heap structure info */
   sysapiPrintf(" \n *********************** HEAP INFORMATION ********************** \n");
-  sysapiPrintf(" Heap ID                        - 0x%x\n",heapId);
+  sysapiPrintf(" Heap ID                        - 0x%llx\n",heapId);
   sysapiPrintf(" Component ID                   - %u\n",heap->compId);
   sysapiPrintf(" Total heap size                - %u\n",heap->heapSize);
   if(heapIsInUse(heap) == L7_FALSE)
@@ -1125,7 +1125,7 @@ void heapDbgBuffInfo(L7_uint64 heapId,
   /* Retrieve the buffer pool structure associated with the given buffer */
   if(heapBuffPoolGet(heap, pMem, &buffPool) != L7_SUCCESS)
   {
-    sysapiPrintf(" \n Buffer at %p is not a valid buffer for heapId 0x%x\n",
+    sysapiPrintf(" \n Buffer at %p is not a valid buffer for heapId 0x%llx\n",
                  pMem, heapId);
   }
   else
@@ -1141,7 +1141,7 @@ void heapDbgBuffInfo(L7_uint64 heapId,
     if((heap->flags & HEAP_DEBUG_FILE_INFO) != 0)
     {
       heapDebugInfo_t *pDbgInfo = (heapDebugInfo_t *)UINT_TO_PTR(wholeBuffAddress);
-      sysapiPrintf(" Last allocated at File - %s:%d in task - %d and for size - %d \n",
+      sysapiPrintf(" Last allocated at File - %s:%u in task - %llu and for size - %u \n",
              pDbgInfo->fileName,pDbgInfo->lineNumber,pDbgInfo->taskId,
              pDbgInfo->sizeRequest);
     }

@@ -605,37 +605,37 @@ void mcastMapDebugSize()
 
   sysapiPrintf(" \n --- Queue sizes --- \n");
   sysapiPrintf(" \n Name         MsgSize         Msg Count    Memory\n");
-  sysapiPrintf(" \n %s         %d         %d       %d",
+  sysapiPrintf(" \n %s         %d         %d       %zu",
                mcastGblVariables_g.mcastMapQueue[MCASTMAP_APP_TIMER_Q].QName,
                 mcastGblVariables_g.mcastMapQueue[MCASTMAP_APP_TIMER_Q].QSize,
                mcastGblVariables_g.mcastMapQueue[MCASTMAP_APP_TIMER_Q].QCount,
                MCASTMAP_APP_TMR_MSG_SIZE * MCASTMAP_APP_TMR_MSG_COUNT);
-  sysapiPrintf(" \n %s         %d         %d       %d",
+  sysapiPrintf(" \n %s         %d         %d       %zu",
                mcastGblVariables_g.mcastMapQueue[MCASTMAP_EVENT_Q].QName,
                 mcastGblVariables_g.mcastMapQueue[MCASTMAP_EVENT_Q].QSize,
                mcastGblVariables_g.mcastMapQueue[MCASTMAP_EVENT_Q].QCount,
                MCASTMAP_MSG_SIZE * MCASTMAP_MSG_COUNT);
-  sysapiPrintf(" \n %s         %d         %d       %d",
+  sysapiPrintf(" \n %s         %d         %d       %zu",
                mcastGblVariables_g.mcastMapQueue[MCASTMAP_CTRL_PKT_Q].QName,
                 mcastGblVariables_g.mcastMapQueue[MCASTMAP_CTRL_PKT_Q].QSize,
                mcastGblVariables_g.mcastMapQueue[MCASTMAP_CTRL_PKT_Q].QCount,
                MCASTMAP_CTRL_PKT_MSG_SIZE * MCASTMAP_CTRL_PKT_MSG_COUNT);
 
-  sysapiPrintf("\n  TOTAL Message Queue size = %d ",(s1 = ((MCASTMAP_APP_TMR_MSG_SIZE * MCASTMAP_APP_TMR_MSG_COUNT)+
+  sysapiPrintf("\n  TOTAL Message Queue size = %u ",(s1 = ((MCASTMAP_APP_TMR_MSG_SIZE * MCASTMAP_APP_TMR_MSG_COUNT)+
                (MCASTMAP_MSG_SIZE * MCASTMAP_MSG_COUNT) + 
                (MCASTMAP_CTRL_PKT_MSG_SIZE * MCASTMAP_CTRL_PKT_MSG_COUNT))));
   sIPv4 += s1;
   
   sysapiPrintf(" \n --- Handle List size --- \n");
 
-  sysapiPrintf("\n  HandleSize = %d ",sizeof (handle_member_t));
+  sysapiPrintf("\n  HandleSize = %zu ",sizeof (handle_member_t));
   sysapiPrintf("\n  NumHandles = %d ", MCAST_MAX_TIMERS);
-  sysapiPrintf("\n  TOTAL handle list size = %d ", s2 = (sizeof (handle_member_t) * MCAST_MAX_TIMERS));
+  sysapiPrintf("\n  TOTAL handle list size = %u ", s2 = (sizeof (handle_member_t) * MCAST_MAX_TIMERS));
   sIPv4 += s2;
 
   sysapiPrintf(" \n --- AppTmr BufferPool size --- \n");
 
-  sysapiPrintf("\n  appTmr Node size = %d ",L7_APP_TMR_NODE_SIZE);
+  sysapiPrintf("\n  appTmr Node size = %zu ",L7_APP_TMR_NODE_SIZE);
   sysapiPrintf("\n  NumTimers = %d ", MCAST_MAX_TIMERS);
   sysapiPrintf("\n  TOTAL TimerNode size = %d ", s3 = (L7_APP_TMR_NODE_SIZE * MCAST_MAX_TIMERS));
   sIPv4 += s3;
@@ -657,7 +657,7 @@ void mcastMapDebugSize()
   s1 = s2 = s3 = 0;
   sysapiPrintf(" \n --- IPv6 Handle List size --- \n");
 
-  sysapiPrintf("\n  HandleSize = %d ",sizeof (handle_member_t));
+  sysapiPrintf("\n  HandleSize = %zu ",sizeof (handle_member_t));
   sysapiPrintf("\n  NumHandles = %d ", MCAST_MAX_TIMERS);
   sysapiPrintf("\n  TOTAL handle list size = %d ", s1 = (sizeof (handle_member_t) * MCAST_MAX_TIMERS));
   sIPv6 += s1;
@@ -750,7 +750,7 @@ void mcastDebugPacketRxTxTrace(L7_uchar8 family, L7_BOOL rxTrace,
   }
   else
   {
-    MCAST_USER_TRACE("Sent mcast data pkt %s with Src %s and Grp %s on interface %d/%d/%d of len = %d ",
+    MCAST_USER_TRACE("Sent mcast data pkt with Src %s and Grp %s on interface %d/%d/%d of len = %d ",
                      inetAddrPrint(&srcAddr, srcBuff), inetAddrPrint(&grpAddr, destBuff),
                      usp.unit, usp.slot, usp.port, length);
   }
@@ -1441,53 +1441,53 @@ void mcastMapDebugMemoryInfoCompute(void)
 
   sysapiPrintf ("\n***** Memory Allocated By MCAST Mapping Layer *****\n");
   sysapiPrintf ("        Global Variables\n");
-  sysapiPrintf ("          mcastGblVar_t             - %d\n", sizeof(mcastGblVar_t));
+  sysapiPrintf ("          mcastGblVar_t             - %zu\n", sizeof(mcastGblVar_t));
   mcastMapTotalBytesAllocated += sizeof(mcastGblVar_t);
-  sysapiPrintf ("          mcastDebugCfg_t           - %d\n", sizeof(mcastDebugCfg_t));
+  sysapiPrintf ("          mcastDebugCfg_t           - %zu\n", sizeof(mcastDebugCfg_t));
   mcastMapTotalBytesAllocated += sizeof(mcastDebugCfg_t);
   sysapiPrintf ("        Message Queues\n");
-  sysapiPrintf ("          App Timer Queue           - Size[%d]*Num[%d] = %d\n", MCASTMAP_APP_TMR_MSG_SIZE, MCASTMAP_APP_TMR_MSG_COUNT, (MCASTMAP_APP_TMR_MSG_SIZE*MCASTMAP_APP_TMR_MSG_COUNT));
+  sysapiPrintf ("          App Timer Queue           - Size[%zu]*Num[%d] = %zu\n", MCASTMAP_APP_TMR_MSG_SIZE, MCASTMAP_APP_TMR_MSG_COUNT, (MCASTMAP_APP_TMR_MSG_SIZE*MCASTMAP_APP_TMR_MSG_COUNT));
   mcastMapTotalBytesAllocated += (MCASTMAP_APP_TMR_MSG_SIZE*MCASTMAP_APP_TMR_MSG_COUNT);
-  sysapiPrintf ("          Events Queue              - Size[%d]*Num[%d] = %d\n", MCASTMAP_MSG_SIZE, MCASTMAP_MSG_COUNT, (MCASTMAP_MSG_SIZE*MCASTMAP_MSG_COUNT));
+  sysapiPrintf ("          Events Queue              - Size[%zu]*Num[%d] = %zu\n", MCASTMAP_MSG_SIZE, MCASTMAP_MSG_COUNT, (MCASTMAP_MSG_SIZE*MCASTMAP_MSG_COUNT));
   mcastMapTotalBytesAllocated += (MCASTMAP_MSG_SIZE*MCASTMAP_MSG_COUNT);
-  sysapiPrintf ("          Ctrl Pkt Queue            - Size[%d]*Num[%d] = %d\n", MCASTMAP_CTRL_PKT_MSG_SIZE, MCASTMAP_CTRL_PKT_MSG_COUNT, (MCASTMAP_CTRL_PKT_MSG_SIZE*MCASTMAP_CTRL_PKT_MSG_COUNT));
+  sysapiPrintf ("          Ctrl Pkt Queue            - Size[%zu]*Num[%d] = %zu\n", MCASTMAP_CTRL_PKT_MSG_SIZE, MCASTMAP_CTRL_PKT_MSG_COUNT, (MCASTMAP_CTRL_PKT_MSG_SIZE*MCASTMAP_CTRL_PKT_MSG_COUNT));
   mcastMapTotalBytesAllocated += (MCASTMAP_CTRL_PKT_MSG_SIZE*MCASTMAP_CTRL_PKT_MSG_COUNT);
   sysapiPrintf ("        Timers\n");
-  sysapiPrintf ("          Handle List Size IPv4     - %d\n", sizeof(handle_member_t) * MCAST_MAX_TIMERS);
+  sysapiPrintf ("          Handle List Size IPv4     - %zu\n", sizeof(handle_member_t) * MCAST_MAX_TIMERS);
   mcastMapTotalBytesAllocated += sizeof(handle_member_t) * MCAST_MAX_TIMERS;
 #ifdef L7_IPV6_PACKAGE
-  sysapiPrintf ("          Handle List Size IPv6     - %d\n", sizeof(handle_member_t) * MCAST_MAX_TIMERS);
+  sysapiPrintf ("          Handle List Size IPv6     - %zu\n", sizeof(handle_member_t) * MCAST_MAX_TIMERS);
   mcastMapTotalBytesAllocated += sizeof(handle_member_t) * MCAST_MAX_TIMERS;
 #endif
-  sysapiPrintf ("          AppTimer Buffer Size      - %d\n", MCAST_MAX_TIMERS * L7_APP_TMR_NODE_SIZE);
+  sysapiPrintf ("          AppTimer Buffer Size      - %zu\n", MCAST_MAX_TIMERS * L7_APP_TMR_NODE_SIZE);
   mcastMapTotalBytesAllocated += MCAST_MAX_TIMERS * L7_APP_TMR_NODE_SIZE;
 #ifdef L7_IPV6_PACKAGE
-  sysapiPrintf ("        Packet Receiver Buffer Size - %d\n", sizeof(L7_PktRcvr_t) + (L7_IPV6_PKT_RCVR_ID_MAX * sizeof(L7_fdList_t)));
+  sysapiPrintf ("        Packet Receiver Buffer Size - %zu\n", sizeof(L7_PktRcvr_t) + (L7_IPV6_PKT_RCVR_ID_MAX * sizeof(L7_fdList_t)));
   mcastMapTotalBytesAllocated += sizeof(L7_PktRcvr_t) + (L7_IPV6_PKT_RCVR_ID_MAX * sizeof(L7_fdList_t));
 #endif
-  sysapiPrintf ("        MCAST Heap Size for IPv4    - %d\n", mcastV4HeapSize);
+  sysapiPrintf ("        MCAST Heap Size for IPv4    - %u\n", mcastV4HeapSize);
   mcastMapTotalBytesAllocated += MCAST_V4_HEAP_SIZE;
 #ifdef L7_IPV6_PACKAGE
-  sysapiPrintf ("        MCAST Heap Size for IPv6    - %d\n", mcastV6HeapSize);
+  sysapiPrintf ("        MCAST Heap Size for IPv6    - %u\n", mcastV6HeapSize);
   mcastMapTotalBytesAllocated += MCAST_V6_HEAP_SIZE;
 #endif
   sysapiPrintf ("        Packet Buffers\n");
-  sysapiPrintf ("          Ctrl Pkt Buffers IPv4     - %d\n", MCAST_PKT_BUF_COUNT * L7_MULTICAST_MAX_IP_MTU);
+  sysapiPrintf ("          Ctrl Pkt Buffers IPv4     - %u\n", MCAST_PKT_BUF_COUNT * L7_MULTICAST_MAX_IP_MTU);
   mcastMapTotalBytesAllocated += MCAST_PKT_BUF_COUNT * L7_MULTICAST_MAX_IP_MTU;
 #ifdef L7_IPV6_PACKAGE
-  sysapiPrintf ("          Ctrl Pkt Buffers IPv6     - %d\n", MCAST_PKT_BUF_COUNT * L7_MULTICAST_MAX_IP_MTU);
+  sysapiPrintf ("          Ctrl Pkt Buffers IPv6     - %u\n", MCAST_PKT_BUF_COUNT * L7_MULTICAST_MAX_IP_MTU);
   mcastMapTotalBytesAllocated += MCAST_PKT_BUF_COUNT * L7_MULTICAST_MAX_IP_MTU;
-  sysapiPrintf ("          Data Pkt Buffers IPv6     - %d\n", MCAST_PKT_BUF_COUNT * L7_MULTICAST_MAX_IP_MTU);
+  sysapiPrintf ("          Data Pkt Buffers IPv6     - %u\n", MCAST_PKT_BUF_COUNT * L7_MULTICAST_MAX_IP_MTU);
   mcastMapTotalBytesAllocated += MCAST_PKT_BUF_COUNT * L7_MULTICAST_MAX_IP_MTU;
 #endif
-  sysapiPrintf ("        MGMD Events Buffers IPv4    - %d\n", (MCASTMAP_MGMD_EVENTS_COUNT_LIMIT * MGMD_MAX_QUERY_SOURCES) * sizeof (mrp_source_record_t));
+  sysapiPrintf ("        MGMD Events Buffers IPv4    - %zu\n", (MCASTMAP_MGMD_EVENTS_COUNT_LIMIT * MGMD_MAX_QUERY_SOURCES) * sizeof (mrp_source_record_t));
   mcastMapTotalBytesAllocated += (MCASTMAP_MGMD_EVENTS_COUNT_LIMIT * MGMD_MAX_QUERY_SOURCES) * sizeof (mrp_source_record_t);
 #ifdef L7_IPV6_PACKAGE
-  sysapiPrintf ("        MGMD Events Buffers IPv6    - %d\n", (MCASTMAP_MGMD_EVENTS_COUNT_LIMIT * MGMD_MAX_QUERY_SOURCES) * sizeof (mrp_source_record_t));
+  sysapiPrintf ("        MGMD Events Buffers IPv6    - %zu\n", (MCASTMAP_MGMD_EVENTS_COUNT_LIMIT * MGMD_MAX_QUERY_SOURCES) * sizeof (mrp_source_record_t));
   mcastMapTotalBytesAllocated += (MCASTMAP_MGMD_EVENTS_COUNT_LIMIT * MGMD_MAX_QUERY_SOURCES) * sizeof (mrp_source_record_t);
 #endif
   sysapiPrintf ("\n");
-  sysapiPrintf ("        Total Memory                - %d\n", mcastMapTotalBytesAllocated);
+  sysapiPrintf ("        Total Memory                - %u\n", mcastMapTotalBytesAllocated);
   sysapiPrintf ("\n");
   sysapiPrintf ("***************************************************\n");
 

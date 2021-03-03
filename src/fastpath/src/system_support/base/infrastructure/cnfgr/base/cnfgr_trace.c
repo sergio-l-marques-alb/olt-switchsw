@@ -411,14 +411,14 @@ L7_RC_t cnfgrTraceEventCompFormat(L7_ushort16 traceId, L7_uchar8 *pDataStart)
       osapiStrncpySafe (tmpStr, "Unknown", sizeof (tmpStr));
     };
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                  (L7_char8 *)"compId=%-8d(%-20s) correlator = %-8d ", osapiHtonl(p->targetCompId),
+                  (L7_char8 *)"compId=%-8lu(%-20s) correlator = %-8lu ", osapiHtonl(p->targetCompId),
                   tmpStr, osapiHtonl(p->correlator)
                  );
   }
   else
   {
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                  (L7_char8 *)"correlator = %-8d ", osapiHtonl(p->correlator)
+                  (L7_char8 *)"correlator = %-8lu ", osapiHtonl(p->correlator)
                  );
   }
 
@@ -631,7 +631,7 @@ void cnfgrTraceConfigPrint(void)
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "Tracing is %s\n",(cnfgrTraceMode)?"enabled":"disabled");
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "Trace mask is %s\n", cnfgrTraceMask);
+                "Trace mask is 0x%08x\n", cnfgrTraceMask);
 
 }
 

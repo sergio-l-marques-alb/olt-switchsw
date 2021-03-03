@@ -3333,7 +3333,7 @@ L7_RC_t snoopPTinAddStaticGroup(L7_uint32 vlanId, L7_uint32 intIfNum,L7_inet_add
     }
     else
     {
-      PT_LOG_TRACE(LOG_CTX_IGMP, "snoopPTinL3EntryAdd(%u,%u)",groupAddr,vlanId);
+      PT_LOG_TRACE(LOG_CTX_IGMP, "snoopPTinL3EntryAdd(0x%08x,%u)", groupAddr->addr.ipv4.s_addr, vlanId);
     }
     if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(vlanId, groupAddr, L7_MATCH_EXACT)))
     {

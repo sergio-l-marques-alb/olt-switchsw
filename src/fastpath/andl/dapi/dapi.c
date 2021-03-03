@@ -1024,7 +1024,7 @@ L7_RC_t dapiCtl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data)
 
     default:
       SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,"\nThe dapi command # %d:%s \nwas left out of the dapiCtl case statement\nPlease add it!\n",
-                    cmd,dapi_cmd_name_g[cmd]);
+                    cmd, dapi_cmd_name_g[cmd].name);
       result = L7_FAILURE;
       break;
     }
@@ -1074,7 +1074,7 @@ L7_RC_t dapiInit(L7_ulong32 cardId)
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(cardId);
   if (sysapiHpcCardInfoPtr == L7_NULLPTR)
   {
-    sysapiPrintf("FAILURE (%s: %d) Code: 0x%08LX\n", __FILE__, __LINE__,
+    sysapiPrintf("FAILURE (%s: %d) Code: 0x%08lx\n", __FILE__, __LINE__,
                  (DAPI_ERROR_GENERAL | cardId));
     return result;
   }
@@ -1087,7 +1087,7 @@ L7_RC_t dapiInit(L7_ulong32 cardId)
   memPtr = osapiMalloc(L7_DRIVER_COMPONENT_ID, (L7_uint32)memSize);
   if (memPtr == L7_NULLPTR)
   {
-    sysapiPrintf("FAILURE (%s: %d) Code: 0x%08LX\n", __FILE__, __LINE__,
+    sysapiPrintf("FAILURE (%s: %d) Code: 0x%08lx\n", __FILE__, __LINE__,
                  (DAPI_ERROR_NO_MEM | memSize));
     return result;
   }

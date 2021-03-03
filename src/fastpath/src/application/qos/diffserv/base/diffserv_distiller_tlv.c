@@ -3616,7 +3616,7 @@ L7_RC_t dsDstlTlvParse(L7_tlv_t *pTlv, L7_uint32 intIfNum)
   if (tlvParse(pTlv, dsDstlTlvEntryDisplay) != L7_SUCCESS)
   {
     DIFFSERV_PRT(msgLvlReqd,
-                 "\n  >>> Error while parsing contents of TLV type=0x%8.8x\n\n",
+                 "\n  >>> Error while parsing contents of TLV type=0x%8.8lx\n\n",
                  osapiNtohl(pTlv->type));
     return L7_FAILURE;
   }

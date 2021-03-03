@@ -273,7 +273,7 @@ void dot3adHelperTimerCallback(L7_uint32 portIndex)
     if (DOT3AD_DEBUG_NSF(DOT3AD_DEBUG_NSF_HELPER_DETAIL) )
     {
       DOT3AD_DEBUG_NSF_PRINT("DOT3AD_DEBUG_NSF_HELPER:Transmission of PDU on helper "
-                             "successful for port  \n", portIndex);
+                             "successful for port %u\n", portIndex);
       dot3adNsfDebugPktDump((L7_uchar8 *)pdu, sizeof(dot3ad_pdu_t));
     }
     /*dot3adDebugPacketTxTrace(intIfNum, pdu);*/

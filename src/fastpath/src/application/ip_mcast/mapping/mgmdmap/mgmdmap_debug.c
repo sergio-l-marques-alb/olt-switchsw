@@ -669,7 +669,7 @@ void mgmdMapDebugCBShow(L7_uchar8 familyType)
    sysapiPrintf ("mgmdMapPktQueue  - %p.\n", mgmdMapCbPtr->gblVars->mgmdQueue[MGMD_CTRL_PKT_Q].QPointer);
    sysapiPrintf ("mgmdAppTimerQueue- %p.\n", mgmdMapCbPtr->gblVars->mgmdQueue[MGMD_APP_TIMER_Q].QPointer);   
    sysapiPrintf ("mgmdMapMsgQSema  - %p.\n", mgmdMapCbPtr->gblVars->mgmdMapMsgQSema);
-   sysapiPrintf ("mgmdMapTaskId    - %d.\n", mgmdMapCbPtr->gblVars->mgmdMapTaskId);
+   sysapiPrintf ("mgmdMapTaskId    - 0x%llx.\n", mgmdMapCbPtr->gblVars->mgmdMapTaskId);
    sysapiPrintf ("mgmdCnfgrState   - %d.\n", mgmdMapCbPtr->gblVars->mgmdCnfgrState);
    sysapiPrintf ("warmRestart      - %s.\n", mgmdMapCbPtr->gblVars->warmRestart?"L7_TRUE":"L7_FALSE");
    sysapiPrintf ("**********************************************\n");
@@ -1126,22 +1126,22 @@ void mgmdMapDebugMemoryInfoCompute(void)
 
   sysapiPrintf ("\n***** Memory Allocated By MGMD Mapping Layer *****\n");
   sysapiPrintf ("        Global Variables\n");
-  sysapiPrintf ("          mgmdMapGblVars_t - %d\n", sizeof(mgmdMapGblVars_t));
+  sysapiPrintf ("          mgmdMapGblVars_t - %zu\n", sizeof(mgmdMapGblVars_t));
   mgmdMapTotalBytesAllocated += sizeof(mgmdMapGblVars_t);
-  sysapiPrintf ("          mgmdDebugCfg_t   - %d\n", sizeof(mgmdDebugCfg_t));
+  sysapiPrintf ("          mgmdDebugCfg_t   - %zu\n", sizeof(mgmdDebugCfg_t));
   mgmdMapTotalBytesAllocated += sizeof(mgmdDebugCfg_t);
   sysapiPrintf ("        Message Queues\n");
-  sysapiPrintf ("          App Timer Queue  - Size[%d]*Num[%d] = %d\n", MGMDMAP_APPTIMER_Q_SIZE, MGMDMAP_APPTIMER_Q_COUNT, (MGMDMAP_APPTIMER_Q_SIZE*MGMDMAP_APPTIMER_Q_COUNT));
+  sysapiPrintf ("          App Timer Queue  - Size[%zu]*Num[%d] = %zu\n", MGMDMAP_APPTIMER_Q_SIZE, MGMDMAP_APPTIMER_Q_COUNT, (MGMDMAP_APPTIMER_Q_SIZE*MGMDMAP_APPTIMER_Q_COUNT));
   mgmdMapTotalBytesAllocated += (MGMDMAP_APPTIMER_Q_SIZE*MGMDMAP_APPTIMER_Q_COUNT);
-  sysapiPrintf ("          Events Queue     - Size[%d]*Num[%d] = %d\n", MGMDMAP_MSG_Q_SIZE, MGMDMAP_MSG_Q_COUNT, (MGMDMAP_MSG_Q_SIZE*MGMDMAP_MSG_Q_COUNT));
+  sysapiPrintf ("          Events Queue     - Size[%zu]*Num[%d] = %zu\n", MGMDMAP_MSG_Q_SIZE, MGMDMAP_MSG_Q_COUNT, (MGMDMAP_MSG_Q_SIZE*MGMDMAP_MSG_Q_COUNT));
   mgmdMapTotalBytesAllocated += (MGMDMAP_MSG_Q_SIZE*MGMDMAP_MSG_Q_COUNT);
-  sysapiPrintf ("          Ctrl Pkt Queue   - Size[%d]*Num[%d] = %d\n", MGMDMAP_PKT_Q_SIZE, MGMDMAP_PKT_Q_COUNT, (MGMDMAP_PKT_Q_SIZE*MGMDMAP_PKT_Q_COUNT));
+  sysapiPrintf ("          Ctrl Pkt Queue   - Size[%zu]*Num[%d] = %zu\n", MGMDMAP_PKT_Q_SIZE, MGMDMAP_PKT_Q_COUNT, (MGMDMAP_PKT_Q_SIZE*MGMDMAP_PKT_Q_COUNT));
   mgmdMapTotalBytesAllocated += (MGMDMAP_PKT_Q_SIZE*MGMDMAP_PKT_Q_COUNT);
-  sysapiPrintf ("        Control Block IPv4 - %d\n", sizeof(mgmdMapCB_t));
+  sysapiPrintf ("        Control Block IPv4 - %zu\n", sizeof(mgmdMapCB_t));
   mgmdMapTotalBytesAllocated += sizeof(mgmdMapCB_t);
   if (v6CBPresent == L7_TRUE)
   {
-    sysapiPrintf ("        Control Block IPv6 - %d\n", sizeof(mgmdMapCB_t));
+    sysapiPrintf ("        Control Block IPv6 - %zu\n", sizeof(mgmdMapCB_t));
     mgmdMapTotalBytesAllocated += sizeof(mgmdMapCB_t);
   }
   sysapiPrintf ("        Heap Size IPv4     - %d\n", mgmdV4HeapSize);

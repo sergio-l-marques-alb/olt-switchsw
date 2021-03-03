@@ -771,9 +771,11 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
        if (rc == L7_NOT_EXIST)
        {
          #ifdef IGMP_DYNAMIC_CLIENTS_SUPPORTED
-          PT_LOG_TRACE(LOG_CTX_IGMP,"Client Does Not Exist: (intIfNum=%u vlan=%u innerVlanId=%u", rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
+          PT_LOG_TRACE(LOG_CTX_IGMP,"Client Does Not Exist: (intIfNum=%u vlan=%u innerVlanId=%u",
+                       pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
          #else         
-          PT_LOG_ERR(LOG_CTX_IGMP,"Failed (rc:%u) to obtain clientId (intIfNum=%u vlan=%u innerVlanId=%u", rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
+          PT_LOG_ERR(LOG_CTX_IGMP,"Failed (rc:%u) to obtain clientId (intIfNum=%u vlan=%u innerVlanId=%u",
+                     rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
           return L7_FAILURE;
          #endif
        }
@@ -781,7 +783,8 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
        {
          /*Abort Here*/
          ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
-         PT_LOG_ERR(LOG_CTX_IGMP,"Failed (rc:%u) to obtain clientId  (intIfNum=%u vlan=%u innerVlanId=%u", rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
+         PT_LOG_ERR(LOG_CTX_IGMP,"Failed (rc:%u) to obtain clientId  (intIfNum=%u vlan=%u innerVlanId=%u",
+                    rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
          return L7_FAILURE;
        }
      }
@@ -930,7 +933,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
         }
         else
         {
-          PT_LOG_DEBUG(LOG_CTX_IGMP,"Number of Group Records:%u [vlan=%u innerVlan=%u client_idx]: Packet Silently ignored...",
+          PT_LOG_DEBUG(LOG_CTX_IGMP,"Number of Group Records:%u [vlan=%u innerVlan=%u client_idx %u]: Packet Silently ignored...",
                   noOfGroupRecords, pduInfo->vlanId, pduInfo->innerVlanId, client_idx);  
           ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
           return L7_FAILURE;
@@ -938,7 +941,8 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       }
       else
       {
-        PT_LOG_ERR(LOG_CTX_IGMP, "Protocol Not Supported :%u [vlan=%u innerVlan=%u client_idx]", igmpPtr[0], pduInfo->vlanId, pduInfo->innerVlanId, client_idx);
+        PT_LOG_ERR(LOG_CTX_IGMP, "Protocol Not Supported :%u [vlan=%u innerVlan=%u client_idx %u]",
+                   igmpPtr[0], pduInfo->vlanId, pduInfo->innerVlanId, client_idx);
         ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
         return L7_NOT_SUPPORTED;
       }

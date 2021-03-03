@@ -1096,7 +1096,7 @@ L7_RC_t dot1qVlanDeleteProcess(L7_uint32 vlanId,L7_uint32 requestor)
           } 
           /* Somebody has taken the ownership and we dont need to do actual deletion */         
           L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DOT1Q_COMPONENT_ID,
-                 "Can not delete the VLAN, Some unknown component has taken the ownership!",vlanId); 
+                 "Can not delete the VLAN %u, Some unknown component has taken the ownership!",vlanId); 
           dot1qCurrentVlanCountUpdate(L7_TRUE);
           osapiSemaGive(dot1qSem);
           return L7_SUCCESS;  

@@ -1273,7 +1273,7 @@ void *IFO_AllocPacket(t_IFO *p_IFO, e_S_PckType pktType,
        nimGetIntfName(p_IFO->Cfg.IfIndex, L7_SYSNAME, ifName);
 
        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_OSPF_MAP_COMPONENT_ID,
-               "Max allowed OSPF pkt len on intf %d, %s is zero", p_IFO->Cfg.IfIndex, ifName);
+               "Max allowed OSPF pkt len on intf %lu, %s is zero", p_IFO->Cfg.IfIndex, ifName);
        return NULL;
    }
 

@@ -106,21 +106,21 @@ void nimDebugDataDumpShow()
 
   sysapiPrintf("Number Components registered = %d \n",count);
 
-  sysapiPrintf("Task ID of nimTask is %lx\n",nimCtlBlk_g->taskId);
+  sysapiPrintf("Task ID of nimTask is %llx\n",nimCtlBlk_g->taskId);
 
   maxIntf = platIntfTotalMaxCountGet() + 1;
   maxIntf = (maxIntf / 32) + 1;
   for (count = 0; count < NIM_INTF_INDICES ;count++)
   {
-    sysapiPrintf("LinkStateMask[%d] = %0.2x\n",count,nimCtlBlk_g->linkStateMask.value[count]);
+    sysapiPrintf("LinkStateMask[%d] = %02x\n",count,nimCtlBlk_g->linkStateMask.value[count]);
   }
 
   for (count = 0; count < NIM_INTF_INDICES ;count++)
   {
-    sysapiPrintf("forwardStateMask[%d] = %0.2x\n",count,nimCtlBlk_g->forwardStateMask.value[count]);
+    sysapiPrintf("forwardStateMask[%d] = %02x\n",count,nimCtlBlk_g->forwardStateMask.value[count]);
   }
 
-  sysapiPrintf("Msg Queue is %lx\n",nimCtlBlk_g->nimMsgQueue);
+  sysapiPrintf("Msg Queue is %p\n",nimCtlBlk_g->nimMsgQueue);
 
   for (count = 0; count < nimCtlBlk_g->maxNumOfUnits;count++)
   {
@@ -136,49 +136,49 @@ void nimDebugDataDumpShow()
 
   for (count = 0;count < NIM_INTF_INDICES;count++)
   {
-    sysapiPrintf("createdMask[%d] = %0.2x\n",count,nimCtlBlk_g->createdMask.value[count]);
+    sysapiPrintf("createdMask[%d] = %02x\n",count,nimCtlBlk_g->createdMask.value[count]);
   }
 
   sysapiPrintf("\n");
 
   for (count = 0;count < NIM_INTF_INDICES;count++)
   {
-    sysapiPrintf("presentMask[%d] = %0.2x\n",count,nimCtlBlk_g->presentMask.value[count]);
+    sysapiPrintf("presentMask[%d] = %02x\n",count,nimCtlBlk_g->presentMask.value[count]);
   }
 
   sysapiPrintf("\n");
 
   for (count = 0;count < NIM_INTF_INDICES;count++)
   {
-    sysapiPrintf("physicalIntfMask[%d] = %0.2x\n",count,nimCtlBlk_g->physicalIntfMask.value[count]);
+    sysapiPrintf("physicalIntfMask[%d] = %02x\n",count,nimCtlBlk_g->physicalIntfMask.value[count]);
   }
 
   sysapiPrintf("\n");
 
   for (count = 0;count < NIM_INTF_INDICES;count++)
   {
-    sysapiPrintf("cpuIntfMask[%d] = %0.2x\n",count,nimCtlBlk_g->cpuIntfMask.value[count]);
+    sysapiPrintf("cpuIntfMask[%d] = %02x\n",count,nimCtlBlk_g->cpuIntfMask.value[count]);
   }
 
   sysapiPrintf("\n");
 
   for (count = 0;count < NIM_INTF_INDICES;count++)
   {
-    sysapiPrintf("lagIntfMask[%d] = %0.2x\n",count,nimCtlBlk_g->lagIntfMask.value[count]);
+    sysapiPrintf("lagIntfMask[%d] = %02x\n",count,nimCtlBlk_g->lagIntfMask.value[count]);
   }
 
   sysapiPrintf("\n");
 
   for (count = 0;count < NIM_INTF_INDICES;count++)
   {
-    sysapiPrintf("vlanIntfMask[%d] = %0.2x\n",count,nimCtlBlk_g->vlanIntfMask.value[count]);
+    sysapiPrintf("vlanIntfMask[%d] = %02x\n",count,nimCtlBlk_g->vlanIntfMask.value[count]);
   }
 
   sysapiPrintf("\n");
 
   for (count = 0;count < NIM_INTF_INDICES;count++)
   {
-    sysapiPrintf("l2tnnlIntfMask[%d] = %0.2x\n",count,nimCtlBlk_g->l2tnnlIntfMask.value[count]);
+    sysapiPrintf("l2tnnlIntfMask[%d] = %02x\n",count,nimCtlBlk_g->l2tnnlIntfMask.value[count]);
   }
 
 
@@ -188,7 +188,7 @@ void nimDebugDataDumpShow()
   sysapiPrintf("The Config Mask BITMAP of used indices\n");
   for (count = 0; count < NIM_INTF_INDICES ; count++)
   {
-    sysapiPrintf("Bitmap[%d]= %0.2x\n",count,nimCtlBlk_g->nimConfigData->configMaskBitmap.value[count]);
+    sysapiPrintf("Bitmap[%d]= %02x\n",count,nimCtlBlk_g->nimConfigData->configMaskBitmap.value[count]);
   }
 
 
@@ -446,10 +446,10 @@ void nimDebugCfgPort(nimCfgPort_t *configPort)
     sysapiPrintf("LAA = ");
     for (i = 0;i < 5 ;i++)
     {
-      sysapiPrintf("%0.2x:",configPort->cfgInfo.LAAMacAddr.addr[i]);
+      sysapiPrintf("%02x:",configPort->cfgInfo.LAAMacAddr.addr[i]);
     }
 
-    sysapiPrintf("%0.2x\n",configPort->cfgInfo.LAAMacAddr.addr[5]);
+    sysapiPrintf("%02x\n",configPort->cfgInfo.LAAMacAddr.addr[5]);
 
     sysapiPrintf("addrType = %s\n",(configPort->cfgInfo.addrType == L7_SYSMAC_BIA)?"L7_SYSMAC_BIA":"L7_SYSMAC_LAA");
 
@@ -616,10 +616,10 @@ void nimDebugPortIntIfNum(nimIntf_t *port)
     sysapiPrintf("BIA = ");
     for (i = 0;i < 5 ;i++)
     {
-      sysapiPrintf("%0.2x:",port->operInfo.macAddr.addr[i]);
+      sysapiPrintf("%02x:",port->operInfo.macAddr.addr[i]);
     }
 
-    sysapiPrintf("%0.2x\n",port->operInfo.macAddr.addr[5]);
+    sysapiPrintf("%02x\n",port->operInfo.macAddr.addr[5]);
 
     sysapiPrintf("resetTime = %d\n",port->resetTime);
 
@@ -940,7 +940,7 @@ void nimDebugPortTableShow(void)
 
   sysapiPrintf("Total number of interfaces supported = %d\n", platIntfTotalMaxCountGet() );
   sysapiPrintf("Total number of interfaces created = %d\n", nimCtlBlk_g->nimConfigData->numOfInterfaces);
-  sysapiPrintf("Total number of NIM indices = %d\n",NIM_INTF_INDICES);
+  sysapiPrintf("Total number of NIM indices = %u\n", (L7_uint32) NIM_INTF_INDICES);
 
 
   sysapiPrintf( "\n-----------------------------------------------");

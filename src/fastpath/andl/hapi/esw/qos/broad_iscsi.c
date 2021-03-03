@@ -766,9 +766,9 @@ L7_RC_t hapiBroadQosIscsiConnectionAdd(DAPI_USP_t * usp, DAPI_CMD_t cmd, void *d
 
 
   if (hapiBroadIscsiDebugLevel() > ISCSI_DEBUG_LOW)
-    sysapiPrintf("hapiBroadQosIscsiConnectionAdd() called to add: identifier = %u\n",
-                 "  targetTcpPortNumber = %u targetIpAddress = %u.%u.%u.%u\n",
-                 "  initiatorTcpPortNumber = %u initiatorIpAddress = %u.%u.%u.%u\n",
+    sysapiPrintf("hapiBroadQosIscsiConnectionAdd() called to add: identifier = %u\n"
+                 "  targetTcpPortNumber = %u targetIpAddress = %u.%u.%u.%u\n"
+                 "  initiatorTcpPortNumber = %u initiatorIpAddress = %u.%u.%u.%u\n"
                  "  counterId = %u,  traffic_class = %u, taggingEnabled = %s, tagMode = %u, tagData = %u\n",
                  iscsiCmd->cmdData.iscsiConnectionAdd.identifier,
                  iscsiCmd->cmdData.iscsiConnectionAdd.targetTcpPort,

@@ -511,7 +511,7 @@ void dvmrp_neighbor_cleanup (dvmrp_neighbor_t *nbr)
     DVMRP_DEBUG(DVMRP_DEBUG_ROUTE,
                 "%s:%d NBR pointer is NULL \n",__FUNCTION__,__LINE__);
     DVMRP_DEBUG(DVMRP_DEBUG_FAILURES,
-                "%s%d:%d NBR pointer is NULL \n",__FUNCTION__,__LINE__);
+                "%s:%d NBR pointer is NULL \n",__FUNCTION__,__LINE__);
     return;
   }
 

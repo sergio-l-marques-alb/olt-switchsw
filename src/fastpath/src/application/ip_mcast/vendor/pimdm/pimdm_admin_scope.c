@@ -543,7 +543,7 @@ pimdmAdminScopeBoundaryInfoShow (pimdmCB_t *pimdmCB)
   /* Display the Admin Scope Database Contents */
   if ((asbCurrNode = (pimdmASBNode_t*) SLLFirstGet (&(pimdmCB->asbList))) != L7_NULLPTR)
   {
-    PIMDM_DEBUG_PRINTF ("Next Node Addr - 0x%x.\n", asbCurrNode->next);
+    PIMDM_DEBUG_PRINTF ("Next Node Addr - %p.\n", asbCurrNode->next);
     PIMDM_DEBUG_PRINTF ("Group Address  - %s.\n", inetAddrPrint (&(asbCurrNode->grpAddr), grp));
     PIMDM_DEBUG_PRINTF ("Group Mask  - %s.\n", inetAddrPrint (&(asbCurrNode->grpMask), grpMask));
     PIMDM_DEBUG_PRINTF ("Interfaces Set - ");
@@ -558,7 +558,7 @@ pimdmAdminScopeBoundaryInfoShow (pimdmCB_t *pimdmCB)
                       != L7_NULLPTR)
   {
     PIMDM_DEBUG_PRINTF ("----- ----- -----\n");
-    PIMDM_DEBUG_PRINTF ("Next Node Addr - 0x%x.\n", asbNextNode->next);
+    PIMDM_DEBUG_PRINTF ("Next Node Addr - %p.\n", asbNextNode->next);
     PIMDM_DEBUG_PRINTF ("Group Address  - %s.\n", inetAddrPrint (&(asbNextNode->grpAddr), grp));
     PIMDM_DEBUG_PRINTF ("Group Mask  - %s.\n", inetAddrPrint (&(asbNextNode->grpMask), grpMask));
     PIMDM_DEBUG_PRINTF ("Interfaces Set - ");

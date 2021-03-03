@@ -59,7 +59,7 @@ void snoopTimerProcess(L7_uint64 timerCBHandle, snoop_eb_t *pSnoopEB)
     if (timerCBHandle > SNOOP_ENTRY_TIMER_BLOCKS_COUNT)
     {
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-             "snoopTimerProcess: Invalid timer handle received %d", timerCBHandle);
+             "snoopTimerProcess: Invalid timer handle received 0X%llx", timerCBHandle);
       return;
     }
     /* Invoke all the expired timers here */
@@ -243,7 +243,7 @@ void snoopTimerUpdate(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
                             != L7_SUCCESS)
       {
         L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-               "snoopTimerUpdate: Failed to re-start mrtr timer\n", timerValue);
+               "snoopTimerUpdate: Failed to re-start mrtr timer (timerValue %u)\n", timerValue);
       }
     }/* End of mrtr timer data validity check */
   }/* End of timer type check */

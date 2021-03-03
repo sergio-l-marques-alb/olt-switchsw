@@ -1743,7 +1743,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
                 if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL3)
                 {
                   PT_LOG_TRACE(LOG_CTX_DTL, "PTP Header: message Type %d, version %d, domainNumber %d, sequenceId %d \n"
-                                            "            messageLength %d, reserved2 %d, flags 0x%.4X, correctionField %d, reserved3 %lld \n"
+                                            "            messageLength %d, reserved2 %d, flags 0x%.4X, correctionField %llu, reserved3 %u \n"
                                             "            clockIdentity %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X \n\r"
                                             "            portNumber %d, controlField %d, logMessageInterval %d\n\r", 
                                (ptpHeader->transportSpecific_messageType & 0x0F), (ptpHeader->reserved1_versionPTP & 0x0F), ptpHeader->domainNumber, ptpHeader->sequenceId,

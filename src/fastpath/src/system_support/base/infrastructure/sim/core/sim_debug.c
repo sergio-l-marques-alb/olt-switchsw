@@ -154,7 +154,7 @@ void pingDebugPacketTxTrace(L7_uint32 intIfNum, L7_uchar8 *buff)
   if (usmDbUnitSlotPortGet(intIfNum, &unit, &slot, &port) == L7_SUCCESS)
   {
     PING_USER_TRACE(PING_DEBUG_PACKET_TX_FORMAT,
-                      unit, slot, port,intIfNum,ifName,srcIp,destIp,type);
+                    unit, slot, port,intIfNum,ifName,srcIp,destIp,type);
   }
   return;
 }

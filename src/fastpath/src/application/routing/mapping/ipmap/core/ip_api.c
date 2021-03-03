@@ -2513,7 +2513,7 @@ L7_RC_t ipMapRtrIntfIpAddressSet(L7_uint32 intIfNum,
                 {
                     L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
                     PT_LOG_INFO(LOG_CTX_INTF,
-                               "[%s-%d]: DHCP Address Release Failed on intIfNum %d (rc=%u)\n",
+                               "[%s-%zu]: DHCP Address Release Failed on intIfNum %d (rc=%u)\n",
                                traceBuf, sizeof(traceBuf), intIfNum, rc);
                     osapiSnprintf (traceBuf, sizeof(traceBuf),
                                    "[%s-%d]: DHCP Address Release Failed on intIfNum %d\n",
