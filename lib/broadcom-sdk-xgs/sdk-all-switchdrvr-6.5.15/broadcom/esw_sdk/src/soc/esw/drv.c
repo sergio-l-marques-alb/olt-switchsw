@@ -6,6 +6,9 @@
  * StrataSwitch driver
  */
 
+/* PTin added: PCIe */
+#include "logger.h"
+
 #include <shared/bsl.h>
 
 #include <stddef.h>
@@ -160,9 +163,6 @@
 #ifdef INCLUDE_AVS
 #include <soc/avs.h>
 #endif /* INCLUDE_AVS */
-
-/* PTin added: PCIe */
-#include "logger.h"
 
 #if defined(CANCUN_SUPPORT)
 #include <soc/esw/cancun.h>

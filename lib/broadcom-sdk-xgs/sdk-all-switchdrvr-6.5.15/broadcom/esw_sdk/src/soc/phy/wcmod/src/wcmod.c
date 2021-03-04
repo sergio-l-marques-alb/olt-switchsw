@@ -37,8 +37,6 @@
 #include "wcmod_functions.h"
 #include "wcmod_diagnostics.h"
 
-//#include "logger.h"
-
 
 #define WCMOD_SDK32387_REVS(_pc) (WCMOD_REVID_A0(_pc) || WCMOD_REVID_A1(_pc) || WCMOD_REVID_B0(_pc))
 #define WCMOD_PHY400_REVS(_pc) (WCMOD_REVID_B0(_pc))
