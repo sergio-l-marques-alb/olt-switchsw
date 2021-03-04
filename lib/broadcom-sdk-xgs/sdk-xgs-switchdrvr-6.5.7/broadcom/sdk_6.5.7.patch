@@ -12243,22 +12243,22 @@ diff -rpN '--unified=6' sdk-xgs-robo-6.4.8/src/soc/common/mem.c esw_sdk_6.4.8/sr
 diff -rpN '--unified=6' sdk-xgs-robo-6.4.8/src/soc/esw/drv.c esw_sdk_6.4.8/src/soc/esw/drv.c
 --- sdk-xgs-robo-6.4.8/src/soc/esw/drv.c	2015-10-21 01:59:51.000000000 +0100
 +++ esw_sdk_6.4.8/src/soc/esw/drv.c	2016-11-21 18:26:17.875560785 +0000
-@@ -146,12 +146,15 @@
- #include <soc/bondoptions.h>
- #include <bcm_int/esw/subport.h>
- #ifdef INCLUDE_AVS
- #include <soc/avs.h>
- #endif /* INCLUDE_AVS */
+@@ -3,12 +3,15 @@
+  * $Copyright: (c) 2016 Broadcom.
+  * Broadcom Proprietary and Confidential. All rights reserved.$
+  *
+  * StrataSwitch driver
+  */
  
 +/* PTin added: PCIe */
 +#include "logger.h"
 +
- #ifdef BCM_KATANA_SUPPORT
- #define   BCM_SABER_MAX_COUNTER_DIRECTION 2
- #define   BCM_SABER_MAX_COUNTER_POOL      8
- #endif
- extern int _bcm_esw_ibod_sync_recovery_stop(int unit);
+ #include <shared/bsl.h>
  
+ #include <stddef.h>
+ #include <sal/core/libc.h>
+ #include <shared/alloc.h>
+ #include <sal/core/spl.h>
 @@ -6687,12 +6714,13 @@ soc_do_init(int unit, int reset)
  #ifdef BCM_IPROC_SUPPORT
              if (soc_feature(unit, soc_feature_iproc)) {
@@ -13825,23 +13825,6 @@ diff -rpN '--unified=6' sdk-xgs-robo-6.4.8/src/soc/phy/serdescombo65.c esw_sdk_6
 diff -rpN '--unified=6' sdk-xgs-robo-6.4.8/src/soc/phy/wc40.c esw_sdk_6.4.8/src/soc/phy/wc40.c
 --- sdk-xgs-robo-6.4.8/src/soc/phy/wc40.c	2015-10-21 01:59:55.000000000 +0100
 +++ esw_sdk_6.4.8/src/soc/phy/wc40.c	2016-11-21 18:25:32.087559073 +0000
-@@ -63,12 +63,16 @@
- #include "phydefs.h"      /* Must include before other phy related includes */
- 
- #ifdef BCM_WARM_BOOT_SUPPORT
- #include <soc/scache.h>
- #endif
- 
-+#include <logger.h>       /* PTin added: WC40 */
-+
-+#define PTIN_PRBS_ALWAYS_CL49 1
-+
- #if defined(INCLUDE_XGXS_WC40)
- #include "phyconfig.h"     /* Must include before other phy related includes */
- #include "phyreg.h"
- #include "phyfege.h"
- #include "phynull.h"
- #include "serdesid.h"
 @@ -5458,16 +5462,17 @@ _phy_wc40_interlaken_speed_get(int unit,
              *speed = 3125;
              break;
@@ -14005,21 +13988,6 @@ diff -rpN '--unified=6' sdk-xgs-robo-6.4.8/src/soc/phy/wc40.c esw_sdk_6.4.8/src/
           */ 
          return SOC_E_NONE;
      }
-@@ -10325,12 +10357,14 @@ phy_wc40_firmware_load(int unit, int por
-         (READ_WC40_UC_INFO_B1_VERSIONr(unit, pc, 0x00, &ver));
- 
-     LOG_VERBOSE(BSL_LS_SOC_PHY,
-                 (BSL_META_U(unit,
-                             "WC40 : uC RAM download success: u=%d p=%d ver=%x"), unit, port,ver));
- 
-+    PT_LOG_NOTICE(LOG_CTX_SDK,"WC40 : uC RAM download success: u=%d p=%d ver=%x\r\n", unit, port,ver);   /* PTin added: WC40 */
-+
-     if (!no_cksum) {
-         LOG_VERBOSE(BSL_LS_SOC_PHY,
-                     (BSL_META_U(unit,
-                                 " cksum=0x%x\n"), cksum));
-     } else {
-         LOG_VERBOSE(BSL_LS_SOC_PHY,
 diff -rpN '--unified=6' sdk-xgs-robo-6.4.8/src/soc/phy/wc40_config.c esw_sdk_6.4.8/src/soc/phy/wc40_config.c
 --- sdk-xgs-robo-6.4.8/src/soc/phy/wc40_config.c	2015-10-21 01:59:55.000000000 +0100
 +++ esw_sdk_6.4.8/src/soc/phy/wc40_config.c	2016-11-21 18:25:31.707559059 +0000
@@ -14067,60 +14035,9 @@ diff -rpN '--unified=6' sdk-xgs-robo-6.4.8/src/soc/phy/wc40_extra.h esw_sdk_6.4.
  
  /* KR2 control */
  #define WC40_SOFT_KR2_STATE_INIT        0
-diff -rpN '--unified=6' sdk-xgs-robo-6.4.8/src/soc/phy/wcmod/include/wcmod_main.h esw_sdk_6.4.8/src/soc/phy/wcmod/include/wcmod_main.h
---- sdk-xgs-robo-6.4.8/src/soc/phy/wcmod/include/wcmod_main.h	2015-10-21 01:59:54.000000000 +0100
-+++ esw_sdk_6.4.8/src/soc/phy/wcmod/include/wcmod_main.h	2016-11-21 18:25:36.671559244 +0000
-@@ -154,13 +154,13 @@ typedef int     soc_port_t;
-                     return(__rv__);} } \
-                         while(0)
- #endif   /*_SDK_WCMOD_ */
- 
- #define CHK_RET_VAL_FUNC(op) \
-     { int rv; if ((rv=(op)) != 0) \
--        { printf("ERROR %s:%d. #op# returned %d\n", __FILE__,__LINE__,rv); \
-+        { PT_LOG_ERR(LOG_CTX_SDK, "ERROR %s:%d. #op# returned %d",__FILE__,__LINE__,rv); \
-           return (rv);} }
- 
- #define WC_AER_BCST_OFS_STRAP   0x1ff
- #define PHYCTRL_MDIO_ADDR_SHARE (1 << 0) /*use phy base addr. to access lanes */
- #define PHYCTRL_MDIO_CL45       (1 << 1) /*use MDIO CL45 to access device */
- #define PHY_AER_REG_ADDR_AER(_addr)    (((_addr) >> 16) & 0x0000FFFF)
 diff -rpN '--unified=6' sdk-xgs-robo-6.4.8/src/soc/phy/wcmod/src/wcmod.c esw_sdk_6.4.8/src/soc/phy/wcmod/src/wcmod.c
 --- sdk-xgs-robo-6.4.8/src/soc/phy/wcmod/src/wcmod.c	2015-10-21 01:59:54.000000000 +0100
 +++ esw_sdk_6.4.8/src/soc/phy/wcmod/src/wcmod.c	2016-11-21 18:25:36.671559244 +0000
-@@ -73,12 +73,13 @@
- #include "wcmod_phyreg.h"
- #include "wcmod_main.h"
- #include "wcmod_defines.h"
- #include "wcmod_functions.h"
- #include "wcmod_diagnostics.h"
- 
-+#include "logger.h"
- 
- 
- #define WCMOD_SDK32387_REVS(_pc) (WCMOD_REVID_A0(_pc) || WCMOD_REVID_A1(_pc) || WCMOD_REVID_B0(_pc))
- #define WCMOD_PHY400_REVS(_pc) (WCMOD_REVID_B0(_pc))
- 
- /* static variables */
-@@ -3720,12 +3721,18 @@ phy_wcmod_init(int unit, soc_port_t port
-         (phy_wcmod_ability_advert_set(unit, port, &ability));
- 
-     LOG_INFO(BSL_LS_SOC_PHY,
-              (BSL_META_U(pc->unit,
-                          "phy_wcmod_init: u=%d p=%d\n"), unit, port));
- 
-+    /* PTin added: PHY link down problem */
-+    #if 1
-+    PT_LOG_INFO(LOG_CTX_SDK,"WCMOD initialized for bcm_port %u", port);
-+    osapiSleepMSec(50);
-+    #endif
-+
-     return SOC_E_NONE;
- }
- 
- #define PCS_STATUS_LANE4_SYNC   0x80F
- 
- /*
 @@ -6493,12 +6500,17 @@ phy_wcmod_xgxs16g1l_an_set(int unit, soc
              (MODIFY_WC40_AN_IEEE0BLK_AN_IEEECONTROL1r(unit, ws, an_enable, 
                                                        MII_CTRL_AE | MII_CTRL_RAN));
@@ -14213,23 +14130,6 @@ diff -rpN '--unified=6' sdk-xgs-robo-6.4.8/src/soc/phy/wcmod/src/wcmod.c esw_sdk
  
  /*
  Bits lane assignment
-diff -rpN '--unified=6' sdk-xgs-robo-6.4.8/src/soc/phy/wcmod/src/wcmod_phyreg.c esw_sdk_6.4.8/src/soc/phy/wcmod/src/wcmod_phyreg.c
---- sdk-xgs-robo-6.4.8/src/soc/phy/wcmod/src/wcmod_phyreg.c	2015-10-21 01:59:54.000000000 +0100
-+++ esw_sdk_6.4.8/src/soc/phy/wcmod/src/wcmod_phyreg.c	2016-11-21 18:25:36.671559244 +0000
-@@ -53,12 +53,13 @@
- #if defined (_SDK_WCMOD_)
- #include <soc/util.h>
- #include <soc/cmic.h>
- #include <soc/drv.h>
- #endif
- 
-+#include "logger.h"
- 
- /*!
- \brief WCMod clause 45 read driver.
- 
- \param pc
- 
 diff -rpN '--unified=6' sdk-xgs-robo-6.4.8/systems/bde/linux/kernel/linux-kernel-bde.c esw_sdk_6.4.8/systems/bde/linux/kernel/linux-kernel-bde.c
 --- sdk-xgs-robo-6.4.8/systems/bde/linux/kernel/linux-kernel-bde.c	2015-10-21 01:59:55.000000000 +0100
 +++ esw_sdk_6.4.8/systems/bde/linux/kernel/linux-kernel-bde.c	2016-11-21 18:25:21.647558682 +0000

@@ -37,8 +37,6 @@
 #include "wcmod_functions.h"
 #include "wcmod_diagnostics.h"
 
-#include "logger.h"
-
 
 #define WCMOD_SDK32387_REVS(_pc) (WCMOD_REVID_A0(_pc) || WCMOD_REVID_A1(_pc) || WCMOD_REVID_B0(_pc))
 #define WCMOD_PHY400_REVS(_pc) (WCMOD_REVID_B0(_pc))
@@ -3786,12 +3784,6 @@ phy_wcmod_init(int unit, soc_port_t port)
     LOG_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(pc->unit,
                          "phy_wcmod_init: u=%d p=%d\n"), unit, port));
-
-    /* PTin added: PHY link down problem */
-    #if 1
-    PT_LOG_INFO(LOG_CTX_SDK,"WCMOD initialized for bcm_port %u", port);
-    osapiSleepMSec(50);
-    #endif
 
     return SOC_E_NONE;
 }
