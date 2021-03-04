@@ -1,9 +1,0 @@
-config IPROC_USB2D
-	tristate "USB 2.0 Device"
-	select USB_GADGET_DUALSPEED
-	depends on ARCH_IPROC && USB_GADGET && (MACH_HX4 || MACH_KT2)
-	default n
-	help
-	  Add USB 2.0 Device support
-	
-	  If unsure, say N.
