@@ -5896,7 +5896,7 @@ L7_RC_t aclTlvParse(L7_tlv_t *pTlv, L7_uint32 intIfNum, L7_uint32 vlanId, L7_uin
   if (tlvParse(pTlv, aclTlvEntryDisplay) != L7_SUCCESS)
   {
     ACL_PRT(msgLvlReqd,
-            "\n  >>> Error while parsing contents of TLV type=0x%8.8x\n\n",
+            "\n  >>> Error while parsing contents of TLV type=0x%8.8lx\n\n",
             osapiNtohl(pTlv->type));
     return L7_FAILURE;
   }
@@ -10311,7 +10311,7 @@ void aclEventTask(void)
                }
 
                ACL_PRT(ACL_MSGLVL_LO_2,"\nACL Time range task, Message read, "
-                       "timeRangeName %s length of timeRangeName %d",
+                       "timeRangeName %s length of timeRangeName %zu",
                        msg.u.timeRangeMsg.timeRangeName,
                        strlen(msg.u.timeRangeMsg.timeRangeName));
                /* Read entries in aclTimeRangeTable table for  matching the time range name */
@@ -10322,7 +10322,6 @@ void aclEventTask(void)
                 {
                   ACL_PRT(ACL_MSGLVL_LO_2,"\n ACL Time range task, "
                           "Match found timerange %s",
-                           __FUNCTION__, __LINE__, 
                           aclTimeRangeTable[i].timeRangeName);
                  /*update the status for time range entry in table*/                
               

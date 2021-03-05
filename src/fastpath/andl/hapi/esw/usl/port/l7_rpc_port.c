@@ -3657,7 +3657,7 @@ int l7_rpc_client_port_pfc_stat_get(bcm_gport_t gport,
   if (sizeof(*stat) > sizeof(args)) 
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR,L7_PFC_COMPONENT_ID,
-          "Stat size too big for buffer %d > %d\n",
+          "Stat size too big for buffer %zu > %zu\n",
           sizeof(*stat),sizeof(args));
     return BCM_E_INTERNAL;
   }

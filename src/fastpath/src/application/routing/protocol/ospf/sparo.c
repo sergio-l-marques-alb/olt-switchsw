@@ -9282,7 +9282,7 @@ void ospfDebugConnListShow(ulng areaId, ulng linkStateId, e_S_LScodes lsaType)
   if (e != E_OK || p_ARO == NULL)
   {
     SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  
-                   "\nCould not find area %u", areaId);
+                   "\nCould not find area %lu", areaId);
     return;
   }
 

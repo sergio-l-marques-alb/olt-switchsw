@@ -3989,8 +3989,6 @@ L7_RC_t hapiBroadConfigDhcpV4TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
     result = hapiBroadPolicyCreate(policyType);
     if (result != L7_SUCCESS) break;
 
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy of cell %u created", index);
-
     /* give dhcp frames high priority and trap to the CPU. */
 
     /* DHCP packets from client */
@@ -4129,8 +4127,6 @@ L7_RC_t hapiBroadConfigDhcpV6Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     result = hapiBroadPolicyCreate(policyType);
     if (result != L7_SUCCESS)
       break;
-
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy of cell %u created", index);
 
     /* Rate limit */
     if (PTIN_VLAN_IS_QUATTRO(vlanId))
@@ -4294,8 +4290,6 @@ L7_RC_t hapiBroadConfigDhcpV6TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
     result = hapiBroadPolicyCreate(policyType);
     if (result != L7_SUCCESS) break;
 
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy of cell %u created", index);
-
     /* give dhcp frames high priority and trap to the CPU. */
 
     /* DHCP packets from client */
@@ -4413,8 +4407,6 @@ L7_RC_t hapiBroadConfigPPPoETrap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t 
     if (result != L7_SUCCESS)
       break;
 
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy of cell %u created", index);
-
     /* Rate limit */
     if (PTIN_VLAN_IS_QUATTRO(vlanId))
     {
@@ -4514,8 +4506,6 @@ L7_RC_t hapiBroadConfigPPPoETrapAll(DAPI_t *dapi_g,
     result = hapiBroadPolicyCreate(policyType);
     if (result != L7_SUCCESS)
       break;
-
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy of cell %u created", index);
 
     meterInfo = ptin_components_meter.pppoe;
  
@@ -4964,7 +4954,7 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
 
 
   {
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Processing cell #%u", index);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Processing cell #%lu", index);
 
     do
     {
@@ -4972,7 +4962,7 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
       if (result != L7_SUCCESS)
         break;
 
-      PT_LOG_TRACE(LOG_CTX_HAPI, "Policy of cell %u created", index);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Policy of cell %lu created", index);
 
       /* CCM packets from client */
       result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
@@ -5017,10 +5007,10 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
 
     if (result == L7_SUCCESS)
     {
-      PT_LOG_TRACE(LOG_CTX_HAPI, "Commiting policy of cell %u", index);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Commiting policy of cell %lu", index);
       if ((result=hapiBroadPolicyCommit(&ccm_policy[index].policyId)) == L7_SUCCESS)
       {
-        PT_LOG_TRACE(LOG_CTX_HAPI, "policy of cell %u commited successfully", index);
+        PT_LOG_TRACE(LOG_CTX_HAPI, "policy of cell %lu commited successfully", index);
       }
     }
     else
@@ -5028,7 +5018,7 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
       hapiBroadPolicyCreateCancel();
 
       ccm_policy[index].policyId = BROAD_POLICY_INVALID;
-      PT_LOG_TRACE(LOG_CTX_HAPI, "Some error ocurred: canceling policy of cell %u", index);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Some error ocurred: canceling policy of cell %lu", index);
     }
 
     if (result != L7_SUCCESS && ccm_policy[index].policyId != BROAD_POLICY_INVALID )
@@ -5037,7 +5027,7 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
       (void)hapiBroadPolicyDelete(ccm_policy[index].policyId);
 
       ccm_policy[index].policyId = BROAD_POLICY_INVALID;
-      PT_LOG_TRACE(LOG_CTX_HAPI, "Some error ocurred: deleting policy of cell %u", index);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Some error ocurred: deleting policy of cell %lu", index);
     }
   }
 
@@ -6866,8 +6856,8 @@ L7_RC_t hapiBroadIntfFiberDiagTest(DAPI_USP_t *usp,
     else
     {
       L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_DRIVER_COMPONENT_ID, 
-              "\n%s %d: %s(usp=%d.%d.%d, cmd=%d) - Invalid getOrSet Command = %d\n"
-              __FILE__, __LINE__, __func__, usp->unit, usp->slot, usp->port, cmd, result);
+              "\n%s,%d: %s(usp=%d.%d.%d, cmd=%d) - Invalid getOrSet Command = %d\n",
+              __FILE__, __LINE__, __FUNCTION__, usp->unit, usp->slot, usp->port, cmd, result);
     }
   }
 

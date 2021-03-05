@@ -4640,7 +4640,7 @@ void cmgrDebugDisplayUnitCmpduDb(L7_uint32 unit)
 
 
     SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,
-                  "cardStatus = %s cardType = %d insertedCardId = %d cardIndex = %d\n",
+                  "cardStatus = %s cardType = %s insertedCardId = %d cardIndex = %d\n",
                   cardStatusStr[unitCmpduDb->slotInfo[slot].cardStatus],
                   cardTypeStr[unitCmpduDb->slotInfo[slot].cardType],
                   unitCmpduDb->slotInfo[slot].insertedCardTypeId,

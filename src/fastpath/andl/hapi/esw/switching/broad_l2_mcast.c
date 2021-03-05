@@ -1840,7 +1840,7 @@ static L7_RC_t hapiBroadMgmUspFromPortIndexGet(L7_int32 portIndex, DAPI_USP_t *u
     if (portIndex >= maxInterfaces)
     {
       SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR, "\n%s %d: Failure to convert portIndex value%d\n",
-                     portIndex);
+                     __FUNCTION__, __LINE__, portIndex);
 
       return L7_FAILURE;
     } 

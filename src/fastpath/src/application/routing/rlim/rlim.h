@@ -168,24 +168,24 @@ extern avlTree_t         rlim6to4TunnelDestTree;
 }
 
 #define RLIM_WRITE_LOCK_TAKE(a,b) { \
-        RLIM_DEBUG_PRINT(rlimDebug, "writelock take %p\n", (a)); \
+        RLIM_DEBUG_PRINT(rlimDebug, "writelock take %p\n", (a).handle); \
         osapiWriteLockTake((a),(b)); \
-        RLIM_DEBUG_PRINT(rlimDebug, "writelock have %p\n", (a)); \
+        RLIM_DEBUG_PRINT(rlimDebug, "writelock have %p\n", (a).handle); \
 }
 
 #define RLIM_WRITE_LOCK_GIVE(a) { \
-        RLIM_DEBUG_PRINT(rlimDebug, "writelock give %p\n", (a)); \
+        RLIM_DEBUG_PRINT(rlimDebug, "writelock give %p\n", (a).handle); \
         osapiWriteLockGive((a)); \
 }
 
 #define RLIM_READ_LOCK_TAKE(a,b) { \
-        RLIM_DEBUG_PRINT(rlimDebug, "readlock take %p\n", (a)); \
+        RLIM_DEBUG_PRINT(rlimDebug, "readlock take %p\n", (a).handle); \
         osapiReadLockTake((a),(b)); \
-        RLIM_DEBUG_PRINT(rlimDebug, "readlock have %p\n", (a)); \
+        RLIM_DEBUG_PRINT(rlimDebug, "readlock have %p\n", (a).handle); \
 }
 
 #define RLIM_READ_LOCK_GIVE(a) { \
-        RLIM_DEBUG_PRINT(rlimDebug, "readlock give %p\n", (a)); \
+        RLIM_DEBUG_PRINT(rlimDebug, "readlock give %p\n", (a).handle); \
         osapiReadLockGive((a)); \
 }
 

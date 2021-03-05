@@ -985,7 +985,7 @@ static L7_RC_t sFlowAgentSocketInit(void)
   if (osapiSocketBind(agent.sFlowAgentv4Socket, (L7_sockaddr_t *)&addr, sizeof(addr))
                       != L7_SUCCESS)
   {
-    sysapiPrintf("sFlowAgentSocketInit: Can't bind socket to local address %lx port %d - errno %d\n",
+    sysapiPrintf("sFlowAgentSocketInit: Can't bind socket to local address %x port %d - errno %d\n",
             L7_INADDR_ANY, FD_SFLOW_RCVR_PORT, osapiErrnoGet());
     return L7_FAILURE;
   }

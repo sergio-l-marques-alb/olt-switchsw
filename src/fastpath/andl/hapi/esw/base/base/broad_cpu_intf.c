@@ -2262,8 +2262,9 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
 
   if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL1)
   {
-    PT_LOG_DEBUG(LOG_CTX_HAPI, "Sending to usp %d.%d.%d (gport 0x%08x), with sendVLAN %u, length=%u/%u (frameType %u, pktflags 0x%x): bcmTxRv=%d result=%d",
-              destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcm_gport, cmdInfo->cmdData.send.vlanID, bcm_pkt.pkt_data->len, frameType, bcm_pkt.flags, bcmTxRv, result);
+    PT_LOG_DEBUG(LOG_CTX_HAPI, "Sending to usp %d.%d.%d (gport 0x%08x), with sendVLAN %u, length=%u (frameType %u, pktflags 0x%x): bcmTxRv=%d result=%d",
+                 destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcm_gport, cmdInfo->cmdData.send.vlanID, bcm_pkt.pkt_data->len,
+                 frameType, bcm_pkt.flags, bcmTxRv, result);
   }
 
   return result;

@@ -1254,7 +1254,7 @@ void pimsmDebugFlagShow ()
 void pimsmDebugCtrlBlockShow ( pimsmCB_t * pimsmCb )
 {
 
-  PIMSM_DEBUG_PRINTF( "StarStarRPList: %p \n", pimsmCb->pimsmStarStarRpList );
+  PIMSM_DEBUG_PRINTF( "StarStarRPList: %p \n", &(pimsmCb->pimsmStarStarRpList) );
   PIMSM_DEBUG_PRINTF( "StarStarRPList Sema: %p \n",
                       pimsmCb->pimsmStarStarRpListLock );
   PIMSM_DEBUG_PRINTF( "StarGTree: %p \n", &pimsmCb->pimsmStarGTree );
@@ -1288,8 +1288,8 @@ void pimsmDebugCtrlBlockShow ( pimsmCB_t * pimsmCb )
   PIMSM_DEBUG_PRINTF( "timerCb: %p \n", 
                       (pimsmCb->timerCb));  
   PIMSM_DEBUG_PRINTF( "handleList: %p \n", 
-                      *(pimsmCb->handleList) );  
-  PIMSM_DEBUG_PRINTF( "Neighbor Sema: 0x%x\n", pimsmCb->pimsmNbrLock);
+                      &(pimsmCb->handleList) );  
+  PIMSM_DEBUG_PRINTF( "Neighbor Sema: %p\n", pimsmCb->pimsmNbrLock);
   PIMSM_DEBUG_PRINTF( "pimsmStarStarRpNextHopUpdateCnt: %d\n",
                 pimsmCb->pimsmStarStarRpNextHopUpdateCnt);
   PIMSM_DEBUG_PRINTF( "pimsmSGNextHopUpdateCnt: %d\n",
@@ -1809,77 +1809,77 @@ void pimsmDebugMemUsageShow ()
 
   a = MCAST_MAX_INTERFACES  * sizeof(pimsmInterfaceEntry_t);
   PIMSM_DEBUG_PRINTF("Max number of Interfaces = %d\n", MCAST_MAX_INTERFACES); 
-  PIMSM_DEBUG_PRINTF("Interface Table size = %d\n\n", a); 
+  PIMSM_DEBUG_PRINTF("Interface Table size = %u\n\n", a); 
   
   a =  sizeof(pimsmCB_t) + 
    sizeof(pimsmRpBlock_t) + sizeof(pimsmBSRBlock_t);
-  PIMSM_DEBUG_PRINTF("PIMSM Control block size = %d\n\n", a);
+  PIMSM_DEBUG_PRINTF("PIMSM Control block size = %u\n\n", a);
 
-  PIMSM_DEBUG_PRINTF("Optimal number of outgoing interfaces per MRT entry = %d\n", 
+  PIMSM_DEBUG_PRINTF("Optimal number of outgoing interfaces per MRT entry = %u\n", 
             PIMSM_NUM_OPTIMAL_OUTGOING_INTERFACES); 
 
   sum += a;
   t1 = sizeof(pimsmSGEntry_t) + 
    PIMSM_NUM_OPTIMAL_OUTGOING_INTERFACES * sizeof(pimsmSGIEntry_t);
   a = PIMSM_S_G_IPV4_TBL_SIZE_TOTAL * t1;
-  PIMSM_DEBUG_PRINTF("(S,G) Table Size = %d\n", PIMSM_S_G_IPV4_TBL_SIZE_TOTAL); 
-  PIMSM_DEBUG_PRINTF("(S,G) Entry Size = %d\n", sizeof(pimsmSGEntry_t)); 
-  PIMSM_DEBUG_PRINTF("(S,G,I) Entry Size = %d\n", sizeof(pimsmSGIEntry_t)); 
-  PIMSM_DEBUG_PRINTF("(S,G) Node Size = %d\n", t1); 
-  PIMSM_DEBUG_PRINTF("(S,G) Total Tree size = %d\n\n", a); 
+  PIMSM_DEBUG_PRINTF("(S,G) Table Size = %u\n", PIMSM_S_G_IPV4_TBL_SIZE_TOTAL); 
+  PIMSM_DEBUG_PRINTF("(S,G) Entry Size = %zu\n", sizeof(pimsmSGEntry_t)); 
+  PIMSM_DEBUG_PRINTF("(S,G,I) Entry Size = %zu\n", sizeof(pimsmSGIEntry_t)); 
+  PIMSM_DEBUG_PRINTF("(S,G) Node Size = %u\n", t1); 
+  PIMSM_DEBUG_PRINTF("(S,G) Total Tree size = %u\n\n", a); 
   sum += a;
   
   t1 = sizeof(pimsmSGRptEntry_t) + 
    PIMSM_NUM_OPTIMAL_OUTGOING_INTERFACES * sizeof(pimsmSGRptIEntry_t);
   a = PIMSM_S_G_RPT_IPV4_TBL_SIZE_TOTAL * t1;
-  PIMSM_DEBUG_PRINTF("(S,G,Rpt) Table Size = %d\n", PIMSM_S_G_RPT_IPV4_TBL_SIZE_TOTAL); 
-  PIMSM_DEBUG_PRINTF("(S,G,Rpt) Entry Size = %d\n", sizeof(pimsmSGRptEntry_t)); 
-  PIMSM_DEBUG_PRINTF("(S,G,Rpt,I) Entry Size = %d\n", sizeof(pimsmSGRptIEntry_t)); 
-  PIMSM_DEBUG_PRINTF("(S,G,Rpt) Node Size = %d\n", t1); 
-  PIMSM_DEBUG_PRINTF("(S,G,Rpt) Total Tree size = %d\n\n", a); 
+  PIMSM_DEBUG_PRINTF("(S,G,Rpt) Table Size = %u\n", PIMSM_S_G_RPT_IPV4_TBL_SIZE_TOTAL); 
+  PIMSM_DEBUG_PRINTF("(S,G,Rpt) Entry Size = %zu\n", sizeof(pimsmSGRptEntry_t)); 
+  PIMSM_DEBUG_PRINTF("(S,G,Rpt,I) Entry Size = %zu\n", sizeof(pimsmSGRptIEntry_t)); 
+  PIMSM_DEBUG_PRINTF("(S,G,Rpt) Node Size = %u\n", t1); 
+  PIMSM_DEBUG_PRINTF("(S,G,Rpt) Total Tree size = %u\n\n", a); 
   sum += a;
   
   t1 = sizeof(pimsmStarGEntry_t) + 
    PIMSM_NUM_OPTIMAL_OUTGOING_INTERFACES * sizeof(pimsmStarGIEntry_t);
   a = PIMSM_STAR_G_IPV4_TBL_SIZE_TOTAL * t1;
-  PIMSM_DEBUG_PRINTF("(*,G) Table Size = %d\n", PIMSM_STAR_G_IPV4_TBL_SIZE_TOTAL); 
-  PIMSM_DEBUG_PRINTF("(*,G) Entry Size = %d\n", sizeof(pimsmStarGEntry_t)); 
-  PIMSM_DEBUG_PRINTF("(*,G,I) Entry Size = %d\n", sizeof(pimsmStarGIEntry_t)); 
-  PIMSM_DEBUG_PRINTF("(*,G) Node Size = %d\n", t1); 
-  PIMSM_DEBUG_PRINTF("(*,G) Total Tree size = %d\n\n", a); 
+  PIMSM_DEBUG_PRINTF("(*,G) Table Size = %u\n", PIMSM_STAR_G_IPV4_TBL_SIZE_TOTAL); 
+  PIMSM_DEBUG_PRINTF("(*,G) Entry Size = %zu\n", sizeof(pimsmStarGEntry_t)); 
+  PIMSM_DEBUG_PRINTF("(*,G,I) Entry Size = %zu\n", sizeof(pimsmStarGIEntry_t)); 
+  PIMSM_DEBUG_PRINTF("(*,G) Node Size = %u\n", t1); 
+  PIMSM_DEBUG_PRINTF("(*,G) Total Tree size = %u\n\n", a); 
   sum += a;
 
 
-  PIMSM_DEBUG_PRINTF("Optimal number of Kernel-Cache entries per (*,G) entry = %d\n", 
+  PIMSM_DEBUG_PRINTF("Optimal number of Kernel-Cache entries per (*,G) entry = %u\n", 
             PIMSM_MAX_KERNEL_CACHE_ENTRIES_PER_STAR_G_ENTRY);
   a = PIMSM_STAR_G_IPV4_TBL_SIZE_TOTAL * PIMSM_MAX_KERNEL_CACHE_ENTRIES_PER_STAR_G_ENTRY *
          sizeof(pimsmCache_t);
-  PIMSM_DEBUG_PRINTF("(*,G) Kernel Cache Entires size = %d\n\n", a); 
+  PIMSM_DEBUG_PRINTF("(*,G) Kernel Cache Entires size = %u\n\n", a); 
   sum += a;
   
   t1 = sizeof(pimsmStarStarRpEntry_t) + 
    PIMSM_NUM_OPTIMAL_OUTGOING_INTERFACES * sizeof(pimsmStarStarRpIEntry_t);
   a = PIMSM_STAR_STAR_RP_TBL_SIZE_TOTAL * t1;
-  PIMSM_DEBUG_PRINTF("(*,*,RP) Table Size = %d\n", PIMSM_STAR_STAR_RP_TBL_SIZE_TOTAL); 
-  PIMSM_DEBUG_PRINTF("(*,*,RP) Entry Size = %d\n", sizeof(pimsmStarStarRpEntry_t)); 
-  PIMSM_DEBUG_PRINTF("(*,*,RP,I) Entry Size = %d\n", sizeof(pimsmStarStarRpIEntry_t)); 
-  PIMSM_DEBUG_PRINTF("(*,*,RP) Node Size = %d\n", t1); 
-  PIMSM_DEBUG_PRINTF("(*,*,RP) Total Tree size = %d\n\n", a); 
+  PIMSM_DEBUG_PRINTF("(*,*,RP) Table Size = %u\n", PIMSM_STAR_STAR_RP_TBL_SIZE_TOTAL); 
+  PIMSM_DEBUG_PRINTF("(*,*,RP) Entry Size = %zu\n", sizeof(pimsmStarStarRpEntry_t)); 
+  PIMSM_DEBUG_PRINTF("(*,*,RP,I) Entry Size = %zu\n", sizeof(pimsmStarStarRpIEntry_t)); 
+  PIMSM_DEBUG_PRINTF("(*,*,RP) Node Size = %u\n", t1); 
+  PIMSM_DEBUG_PRINTF("(*,*,RP) Total Tree size = %u\n\n", a); 
   sum += a;
   
   
-  PIMSM_DEBUG_PRINTF("Optimal number of neighbors per interface = %d\n", 
+  PIMSM_DEBUG_PRINTF("Optimal number of neighbors per interface = %u\n", 
             10);
   a = MCAST_MAX_INTERFACES * 10 * sizeof(pimsmNeighborEntry_t);
-  PIMSM_DEBUG_PRINTF("Neighbor Table Total size = %d\n\n", a); 
+  PIMSM_DEBUG_PRINTF("Neighbor Table Total size = %u\n\n", a); 
   sum += a;
 
   a = PIMSM_MAX_PROTOCOL_PACKETS * PIMSM_PKT_SIZE_MAX;
-  PIMSM_DEBUG_PRINTF("Max protocol packets = %d\n", 
+  PIMSM_DEBUG_PRINTF("Max protocol packets = %u\n", 
             PIMSM_MAX_PROTOCOL_PACKETS );
-  PIMSM_DEBUG_PRINTF("Max packet size = %d\n", 
+  PIMSM_DEBUG_PRINTF("Max packet size = %u\n", 
             PIMSM_PKT_SIZE_MAX);
-  PIMSM_DEBUG_PRINTF("Packets Send/Recv Buffer Pool Size= %d\n\n", 
+  PIMSM_DEBUG_PRINTF("Packets Send/Recv Buffer Pool Size= %u\n\n", 
             a );
   sum += a;
 
@@ -1887,64 +1887,64 @@ void pimsmDebugMemUsageShow ()
                 (pimJoinPruneMaxAddrsInListGet(pimsmCb->family)) * sizeof(pim_encod_src_addr_t))  +
       PIMSM_MAX_PROTOCOL_PACKETS * 
       ((pimJoinPruneMaxAddrsInListGet(pimsmCb->family)) * sizeof(pim_encod_src_addr_t));
-  PIMSM_DEBUG_PRINTF("Join/Prune message building Buffer Pool Size= %d\n\n", 
+  PIMSM_DEBUG_PRINTF("Join/Prune message building Buffer Pool Size= %u\n\n", 
             a );
   sum += a;
 
   t1 = RADIX_TREE_HEAP_SIZE(PIMSM_RP_GRP_ENTRIES_MAX, sizeof(rpSetTreeKey_t));
   t2 = PIMSM_RP_GRP_ENTRIES_MAX * sizeof (pimsmRpSetNode_t);
   a = t1+t2;
-  PIMSM_DEBUG_PRINTF("Max RP-GRP entries = %d\n", 
+  PIMSM_DEBUG_PRINTF("Max RP-GRP entries = %u\n", 
             PIMSM_RP_GRP_ENTRIES_MAX );
-  PIMSM_DEBUG_PRINTF("RP radix tree size = %d\n\n", a);
+  PIMSM_DEBUG_PRINTF("RP radix tree size = %u\n\n", a);
   sum += a;
 
   a = PIMSM_RP_GRP_ENTRIES_MAX * sizeof(pimsmRpGrpNode_t);
-  PIMSM_DEBUG_PRINTF("Max RP entries = %d\n", 
+  PIMSM_DEBUG_PRINTF("Max RP entries = %u\n", 
             PIMSM_RP_GRP_ENTRIES_MAX );
-  PIMSM_DEBUG_PRINTF("RP-GRP Mapping Buffer Pool = %d\n\n", a);
+  PIMSM_DEBUG_PRINTF("RP-GRP Mapping Buffer Pool = %u\n\n", a);
   sum += a;
 
   a = PIMSM_RP_GRP_ADDR_LIST_NODES_MAX * sizeof(pimsmAddrList_t);
-  PIMSM_DEBUG_PRINTF("Max RP-GRP Addr List Nodes = %d\n", 
+  PIMSM_DEBUG_PRINTF("Max RP-GRP Addr List Nodes = %u\n", 
      PIMSM_RP_GRP_ADDR_LIST_NODES_MAX);
-  PIMSM_DEBUG_PRINTF("RP-GRP Addr List Buffer Pool = %d\n\n", a);
+  PIMSM_DEBUG_PRINTF("RP-GRP Addr List Buffer Pool = %u\n\n", a);
   sum += a;
 
 
   a = PIMSM_BSR_FRAGMENT_GRP_ENTRIES_MAX * sizeof(pimsmFragGrpRpNode_t);
-  PIMSM_DEBUG_PRINTF("Max BSR Frag GRP Entries = %d\n", 
+  PIMSM_DEBUG_PRINTF("Max BSR Frag GRP Entries = %u\n", 
      PIMSM_BSR_FRAGMENT_GRP_ENTRIES_MAX);
-  PIMSM_DEBUG_PRINTF("Frag GRP-RP Mapping buffer Pool-1 = %d\n\n", a);
+  PIMSM_DEBUG_PRINTF("Frag GRP-RP Mapping buffer Pool-1 = %u\n\n", a);
   sum += a;
 
   a = PIMSM_BSR_FRAGMENT_RP_ENTRIES_MAX * sizeof(pimsmFragRpNode_t);
-  PIMSM_DEBUG_PRINTF("Max BSR Frag RP Entries = %d\n", 
+  PIMSM_DEBUG_PRINTF("Max BSR Frag RP Entries = %u\n", 
      PIMSM_BSR_FRAGMENT_RP_ENTRIES_MAX);
-  PIMSM_DEBUG_PRINTF("Frag GRP-RP Mapping buffer Pool-2 = %d\n\n", a);
+  PIMSM_DEBUG_PRINTF("Frag GRP-RP Mapping buffer Pool-2 = %u\n\n", a);
   sum += a;
 
   a = PIMSM_BSM_PKT_FRAGMENT_COUNT_MAX * sizeof(pimsmBSMPacketNode_t);
-  PIMSM_DEBUG_PRINTF("BSM packets storage buffer Pool = %d\n\n", a);
+  PIMSM_DEBUG_PRINTF("BSM packets storage buffer Pool = %u\n\n", a);
   sum += a;
 
   a = PIMSM_BEST_ROUTE_CHANGES_MAX * sizeof(rtoRouteChange_t);
-  PIMSM_DEBUG_PRINTF("Max RTO Best Route changes = %d\n", 
+  PIMSM_DEBUG_PRINTF("Max RTO Best Route changes = %u\n", 
      PIMSM_BEST_ROUTE_CHANGES_MAX );
-  PIMSM_DEBUG_PRINTF("RTO Route Change Buffer size  = %d\n\n", a);
+  PIMSM_DEBUG_PRINTF("RTO Route Change Buffer size  = %u\n\n", a);
   sum += a;
 
-  PIMSM_DEBUG_PRINTF("PIMSM IPV4 /IPV6 Total Memory Used Size  = %lld\n\n", sum);  
+  PIMSM_DEBUG_PRINTF("PIMSM IPV4 /IPV6 Total Memory Used Size  = %llu\n\n", sum);  
   
   a = appTimerCbMemSizeGet(pimsmCb->maxNumOfTimers);
-  PIMSM_DEBUG_PRINTF("Timer Control Block size  = %d\n\n", a);
+  PIMSM_DEBUG_PRINTF("Timer Control Block size  = %u\n\n", a);
   sum1 += a;
   /* allocate 10% more */
   a = sizeof(handle_list_t)+ ((pimsmCb->maxNumOfTimers * 11)/10) * sizeof(handle_member_t);
-  PIMSM_DEBUG_PRINTF("Timer handle list size  = %d\n\n", a);
+  PIMSM_DEBUG_PRINTF("Timer handle list size  = %u\n\n", a);
   sum1 += a;
 
-  PIMSM_DEBUG_PRINTF("PIMSM Total Memory Used for ipv4 and ipv6  = %lld\n\n",
+  PIMSM_DEBUG_PRINTF("PIMSM Total Memory Used for ipv4 and ipv6  = %llu\n\n",
    sum * 2 + sum1);  
 }
 

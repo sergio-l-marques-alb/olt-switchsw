@@ -3983,10 +3983,10 @@ void usl_l2_sem_show()
       (cnfgrIsFeaturePresent(L7_PFC_COMPONENT_ID, 
                              L7_PFC_PORT_PRIORITY_FLOW_CONTROL_FEATURE_ID) == L7_TRUE))
   {
-    sysapiPrintf("System Db sema %x\n", pUslSystemDbSema);
-    sysapiPrintf("IP Vlan Db sema %x\n", pUslVlanIpSubnetDbSema);
-    sysapiPrintf("Mac Vlan Db sema %x\n", pUslVlanMacDbSema);
-    sysapiPrintf("Protected Grp Db sema %x\n", pUslProtectedGroupDbSema);
+    sysapiPrintf("System Db sema %p\n", pUslSystemDbSema);
+    sysapiPrintf("IP Vlan Db sema %p\n", pUslVlanIpSubnetDbSema);
+    sysapiPrintf("Mac Vlan Db sema %p\n", pUslVlanMacDbSema);
+    sysapiPrintf("Protected Grp Db sema %p\n", pUslProtectedGroupDbSema);
 #ifdef L7_STACKING_PACKAGE
     usl_mac_sem_show();
 #endif

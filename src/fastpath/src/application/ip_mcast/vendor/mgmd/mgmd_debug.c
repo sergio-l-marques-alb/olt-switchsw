@@ -288,7 +288,7 @@ void mgmdDebugCBShow(L7_uchar8 family)
   SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "Raw Info...\n");
   SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "mgmdCB - %p.\n", mgmdCB);
   SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "proto - %d.\n", mgmdCB->proto);
-  SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "mgmd_querier_if_mask - %p.\n", mgmdCB->mgmd_querier_if_mask);
+  SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "mgmd_querier_if_mask - %p.\n", &mgmdCB->mgmd_querier_if_mask);
   SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "mgmd_info - %p.\n", mgmdCB->mgmd_info);
   SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "mgmdMembershipTreeHeap - %p.\n", mgmdCB->mgmdMembershipTreeHeap);
   SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "mgmdMembershipDataHeap - %p.\n", mgmdCB->mgmdMembershipDataHeap);
@@ -303,7 +303,7 @@ void mgmdDebugCBShow(L7_uchar8 family)
   SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "all_hosts - %s.\n", inetAddrPrint(&mgmdCB->all_hosts,src));
   SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "all_routers - %s.\n", inetAddrPrint(&mgmdCB->all_routers,src));
   SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "mgmd_mrp_timer - %p.\n", mgmdCB->mgmd_mrp_timer);
-  SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "mgmd_mrp_timer_handle - %d.\n", mgmdCB->mgmd_mrp_timer_handle);
+  SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "mgmd_mrp_timer_handle - 0x%llx.\n", mgmdCB->mgmd_mrp_timer_handle);
   SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "timerHandle - %p.\n", mgmdCB->timerHandle);
   SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "handle_list - %p.\n", mgmdCB->handle_list);
   SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "handleListMem - %p.\n", mgmdCB->handleListMem);
@@ -323,7 +323,7 @@ void mgmdDebugCBShow(L7_uchar8 family)
       timeLeft = 0;
     }
   }
-  SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "\n MRP Expire Time :   %ld\n",timeLeft);
+  SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "\n MRP Expire Time : %u\n",timeLeft);
 
   SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "\n ----  PROXY --- \n");
   SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "\n Status        = %d", mgmdCB->mgmd_proxy_status);
@@ -332,7 +332,7 @@ void mgmdDebugCBShow(L7_uchar8 family)
 
   SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "\n ----  HANDLE LIST --- \n");
   SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "\n MAX HANDLES   = %d", MGMD_MAX_TIMERS); 
-  SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "\n HANDLE LIST   = %x", mgmdCB->handle_list); 
+  SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "\n HANDLE LIST   = %p", mgmdCB->handle_list); 
   SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "\n HANDLE LIST SIZE = %d", mgmdCB->handle_list->size);
   SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "\n CURRENT HANDLE LIST SIZE(mgmd) = %d", mgmdCB->handle_list->numAllocated);
   SYSAPI_PRINTF (SYSAPI_APPLICATION_LOGGING_IGMPMAP, "\n            *************** END ****************\n");
@@ -461,7 +461,7 @@ void mgmdDebugGroupsShow(L7_uint32 family,L7_uint32 rtrIfNum, L7_uint32 count)
         MGMD_DEBUG (MGMD_DEBUG_APIS, "Failed to get left over time of group timer");
         timeLeft = 0;
       }
-      SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP, "  expire time:     %ld\n",timeLeft);
+      SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP, "  expire time:     %u\n",timeLeft);
     }
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP, "group compat mode: %d\n", groupInfo->groupCompatMode);
 
@@ -507,7 +507,7 @@ void mgmdDebugGroupsShow(L7_uint32 family,L7_uint32 rtrIfNum, L7_uint32 count)
           timeLeft = 0;
         }
 
-        SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP, "  expire time:%4ld", timeLeft);
+        SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP, "  expire time:%4u", timeLeft);
       }
       SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP, "\n");
     }
@@ -604,7 +604,7 @@ void mgmdDebugIntfShow(L7_uint32 family, L7_uint32 rtrIfNum)
       MGMD_DEBUG (MGMD_DEBUG_APIS, "Failed to get left over time of query timer");
       timeLeft = 0;
     }
-    SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP, "\n Query Expire Time :   %ld\n",timeLeft);
+    SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP, "\n Query Expire Time :   %u\n",timeLeft);
   }
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP, "\n Querier Query Interval : %d",
                 mgmdIntfGroupInfo->querierQueryInterval );
@@ -617,7 +617,7 @@ void mgmdDebugIntfShow(L7_uint32 family, L7_uint32 rtrIfNum)
       MGMD_DEBUG (MGMD_DEBUG_APIS, "Failed to get left over time of querier timer");
       timeLeft = 0;
     }
-    SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP, "\n Querier Expire Time :   %ld\n",timeLeft);
+    SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP, "\n Querier Expire Time :   %u\n",timeLeft);
   }
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP,"\n No. of Joins : %d",
                 mgmdIntfGroupInfo->numOfJoins); 
@@ -671,15 +671,15 @@ void mgmdDebugIntfStatsShow(L7_uint32 family, L7_uint32 rtrIfNum)
 
   if (family == L7_AF_INET)
   {
-    SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP,"\n-------------------------------------------------------------------------");
+    SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP,"\n---------------------------------------------------------------------------------");
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP,"\n  Intf  Stat  v1Query   v2Query    v3Query   v1Report  v2Report v2Leave  v3Report");
-    SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP,"\n--------------------------------------------------------------------------");
+    SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP,"\n---------------------------------------------------------------------------------");
   
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP,"\n %-5d :: RX :: %-8d  %-8d  %-8d  %-8d  %-8d  %-8d %-8d ", rtrIfNum,
                   intfStats[MGMD_QUERY_V1][MGMD_STATS_RX], intfStats[MGMD_QUERY_V2][MGMD_STATS_RX], intfStats[MGMD_QUERY_V3][MGMD_STATS_RX], intfStats[MGMD_REPORT_V1][MGMD_STATS_RX],
                   intfStats[MGMD_REPORT_V2][MGMD_STATS_RX], intfStats[MGMD_LEAVE_V2][MGMD_STATS_RX], intfStats[MGMD_REPORT_V3][MGMD_STATS_RX]);
   
-    SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP,"\n       :: TX :: %-8d  %-8d  %-8d  %-8d  %-8d  %-8d ",
+    SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_IGMPMAP,"\n       :: TX :: %-8d  %-8d  %-8d  %-8d  %-8d  %-8d  %-8d",
                   intfStats[MGMD_QUERY_V1][MGMD_STATS_TX], intfStats[MGMD_QUERY_V2][MGMD_STATS_TX], intfStats[MGMD_QUERY_V3][MGMD_STATS_TX], intfStats[MGMD_REPORT_V1][MGMD_STATS_TX],
                   intfStats[MGMD_REPORT_V2][MGMD_STATS_TX], intfStats[MGMD_LEAVE_V2][MGMD_STATS_TX], intfStats[MGMD_REPORT_V3][MGMD_STATS_TX]);
   

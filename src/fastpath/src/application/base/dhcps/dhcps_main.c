@@ -784,7 +784,7 @@ L7_RC_t processDhcpsMessages(dhcpsPacket_t *pDhcpPacket, L7_uint32 dhcpPacketLen
        else
        {
          DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_HI,
-                       "Discarding DHCPREQUEST for unknown client state: ciaddr %x, reqip %x serverid %x\n",
+                       "Discarding DHCPREQUEST for unknown client state: ciaddr %lx, reqip %x serverid %x\n",
                        osapiNtohl(pDhcpPacket->header.ciaddr),
                        requestedIPAddr, serverID);
          return L7_FAILURE;
@@ -3588,7 +3588,7 @@ L7_RC_t dhcpsSendPacket(dhcpsPacket_t *pDhcpPacket, L7_uint32 dhcpPacketLength,
               osapiNtohl(pDhcpPacket->header.yiaddr), DHCPS_CLIENT_PORT,
               pDhcpPacket->header.chaddr, isSysMgmtIntf) != L7_SUCCESS)
         {
-          DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_MED, "Raw Unicast failed to IP %x\n",
+          DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_MED, "Raw Unicast failed to IP %lx\n",
                         osapiNtohl(pDhcpPacket->header.yiaddr));
           return L7_FAILURE;
         }
@@ -3703,7 +3703,7 @@ L7_RC_t dhcpsSendBootpReplyPacket(dhcpsPacket_t *pDhcpPacket,
     if(dhcpsPacketUnicast(pDhcpPacket, dhcpPacketLength,
           osapiNtohl(pDhcpPacket->header.ciaddr), DHCPS_CLIENT_PORT) != L7_SUCCESS)
     {
-      DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_MED, "Unicast failed to IP %x port %u\n",
+      DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_MED, "Unicast failed to IP %lx port %u\n",
            osapiNtohl(pDhcpPacket->header.ciaddr), DHCPS_CLIENT_PORT);
       return L7_FAILURE;
     }

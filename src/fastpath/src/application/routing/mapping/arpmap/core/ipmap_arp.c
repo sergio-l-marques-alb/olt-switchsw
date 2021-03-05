@@ -111,7 +111,7 @@ void ipMapArpDebugDumpLockHistory()
 
     phist = &arpLockHistory[idx % ARP_HIST_ITEMS];
 
-    sysapiPrintf("\n%d:%s\ttid 0x%x on 0x%x from %s:%u",
+    sysapiPrintf("\n%d:%s\ttid 0x%llx on 0x%x from %s:%u",
                  phist->ts, phist->fname, phist->tid,
                  phist->lockid, phist->file, phist->line);
   }
@@ -1653,7 +1653,7 @@ void ipMapArpLockShow(void)
   ipMapArpLockCtrl_t  *pLock = &ipMapArpCtx_g.arpLock;
 
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "  ARP Component Lock:\n");
-  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    lock info      semId=0x%llx  owner task=0x%llx  owner lock count=%ld  lkTot=%lu  unlkTot=%lu\n",
+  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    lock info      semId=0x%llx  owner task=0x%llx  owner lock count=%d  lkTot=%u  unlkTot=%u\n",
         PTR_TO_UINT64(pLock->semId), pLock->ownerTaskId, pLock->ownerLockCount,
         pLock->lockTotal, pLock->unlockTotal);
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    owner at %s:%u\n", pLock->ownerFile, pLock->ownerLine);
@@ -1745,7 +1745,7 @@ void ipMapArpCtxShow(void)
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "  Gateway Table:\n");
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    treeEntryMax   = %u\n",
               pCtx->gwTbl.treeEntryMax);
-  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    *treeHeap      = 0x%8.8x\n",
+  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    *treeHeap      = 0x%8.8llx\n",
               PTR_TO_UINT64(pCtx->gwTbl.treeHeap));
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    treeHeapSize   = %u\n",
               pCtx->gwTbl.treeHeapSize);
@@ -1768,7 +1768,7 @@ void ipMapArpCtxShow(void)
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "\n");
   pLock = &pCtx->arpLock;
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "  ARP Component Lock:\n");
-  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    lock info      semId=0x%llx  owner task=0x%llx  owner lock count=%ld  lkTot=%lu  unlkTot=%lu\n",
+  IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    lock info      semId=0x%llx  owner task=0x%llx  owner lock count=%d  lkTot=%u  unlkTot=%u\n",
               PTR_TO_UINT64(pLock->semId), pLock->ownerTaskId, pLock->ownerLockCount,
               pLock->lockTotal, pLock->unlockTotal);
   IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "    owner at %s:%u\n", pLock->ownerFile, pLock->ownerLine);

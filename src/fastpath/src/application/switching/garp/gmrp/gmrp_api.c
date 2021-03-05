@@ -1639,10 +1639,10 @@ void gmrpConfigDataTestShow(void)
        sysapiPrintf("vlanIdmacAddress = ");
        for (j = 0;j < 7 ;j++)
        {
-         sysapiPrintf("%0.2x:", gmrpCfg->cfg.staticEntry[i].vlanIdmacAddress[j]);
+         sysapiPrintf("%02x:", gmrpCfg->cfg.staticEntry[i].vlanIdmacAddress[j]);
        }
 
-       sysapiPrintf("%0.2x:", gmrpCfg->cfg.staticEntry[i].vlanIdmacAddress[7]);
+       sysapiPrintf("%02x:", gmrpCfg->cfg.staticEntry[i].vlanIdmacAddress[7]);
 
 
        /*-------------------------------------*/
@@ -1900,7 +1900,7 @@ void gmrpConfigDataTestShow(void)
     /*   Print gmrpEnabled                       */
     /*-------------------------------------------*/
 
-    sysapiPrintf( "List of gmrpEnabled Ports: %d\n");
+    sysapiPrintf( "List of gmrpEnabled Ports:\n");
     sysapiPrintf( "---------------\n");
     sysapiPrintf( "---------------\n");
 
@@ -1931,7 +1931,7 @@ void gmrpConfigDataTestShow(void)
     sysapiPrintf( "L7_MAX_GROUP_REGISTRATION_ENTRIES - %d\n", L7_MAX_GROUP_REGISTRATION_ENTRIES);
     sysapiPrintf( "L7_MAX_VLANS - %d\n", L7_MAX_VLANS);
     sysapiPrintf( "L7_MAX_INTERFACE_COUNT - %d\n", L7_MAX_INTERFACE_COUNT);
-    sysapiPrintf( "sizeof(NIM_INTF_MASK_t) - %d\n", sizeof(NIM_INTF_MASK_t));
+    sysapiPrintf( "sizeof(NIM_INTF_MASK_t) - %zu\n", sizeof(NIM_INTF_MASK_t));
 
 
 

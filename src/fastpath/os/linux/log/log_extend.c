@@ -255,7 +255,7 @@ Log_Init(unsigned long event_log_size,
     if (Log_Ptr != L7_NULLPTR)
     {
         L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_LOG_COMPONENT_ID,
-                "Log_Init: Re-initializing logs, old size %d, new size %d\n",
+                "Log_Init: Re-initializing logs, old size %lu, new size %lu\n",
                 EventLogSize, event_log_size);
 
         if (event_log_size != EventLogSize)

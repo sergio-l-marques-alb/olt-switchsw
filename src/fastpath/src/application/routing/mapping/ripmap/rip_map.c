@@ -1754,7 +1754,7 @@ void ripMapDebugShow(void)
               ripMapCtrl_g.msgLvl);
 
   RIP_MAP_PRT(RIP_MAP_MSGLVL_ON,
-              "    traceMode=%d  RIP Initialized=%d  Task Id=0x%8.8x\n",
+              "    traceMode=%d  RIP Initialized=%d  Task Id=0x%8.8llx\n",
               ripMapCtrl_g.traceEnabled, pRipInfo->ripInitialized, pRipInfo->ripTaskId);
 
   if (pRipInfo->ripAdminMode == L7_ENABLE)

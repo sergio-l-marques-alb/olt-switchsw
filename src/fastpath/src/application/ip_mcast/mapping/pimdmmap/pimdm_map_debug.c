@@ -372,27 +372,27 @@ void pimdmMapCfgDataShow(pimdmMapCB_t *pimdmMapCbPtr)
 
     sysapiPrintf("\n Some other PIMDM  mapping layer control block fields: ");    
    
-    sysapiPrintf("\n pimdmMapCbPtr->pPimdmIntfInfo            = %d",
+    sysapiPrintf("\n pimdmMapCbPtr->pPimdmIntfInfo            = %p",
                   pimdmMapCbPtr->pPimdmIntfInfo);
-    sysapiPrintf("\n pimdmMapCbPtr->pPimdmInfo                = %d",
+    sysapiPrintf("\n pimdmMapCbPtr->pPimdmInfo                = %p",
                   pimdmMapCbPtr->pPimdmInfo);
-    sysapiPrintf("\n pimdmMapCbPtr->pPimdmMapCfgMapTbl        = %d",
+    sysapiPrintf("\n pimdmMapCbPtr->pPimdmMapCfgMapTbl        = %p",
                   pimdmMapCbPtr->pPimdmMapCfgMapTbl);
-    sysapiPrintf("\n pimdmMapCbPtr->pPimdmMapCfgData          = %d",
+    sysapiPrintf("\n pimdmMapCbPtr->pPimdmMapCfgData          = %p",
                   pimdmMapCbPtr->pPimdmMapCfgData);
-    sysapiPrintf("\n pimdmMapCbPtr->gblVars                   = %d",
+    sysapiPrintf("\n pimdmMapCbPtr->gblVars                   = %p",
                   pimdmMapCbPtr->gblVars);
     sysapiPrintf("\n pimdmMapCbPtr->familyType                = %d",
                   pimdmMapCbPtr->familyType);
-    sysapiPrintf("\n pimdmMapCbPtr->cbHandle                  = %d",
+    sysapiPrintf("\n pimdmMapCbPtr->cbHandle                  = %p",
                   pimdmMapCbPtr->cbHandle);
-    sysapiPrintf("\n pimdmMapCbPtr->gblVars->msgQSema         = %d",
+    sysapiPrintf("\n pimdmMapCbPtr->gblVars->msgQSema         = %p",
                   pimdmMapCbPtr->gblVars->msgQSema);
     sysapiPrintf("\n pimdmMapCbPtr->gblVars->pimdmCnfgrState  = %d",
                   pimdmMapCbPtr->gblVars->pimdmCnfgrState);
-    sysapiPrintf("\n pimdmMapCbPtr->gblVars->pimdmMapTaskId   = %d",
+    sysapiPrintf("\n pimdmMapCbPtr->gblVars->pimdmMapTaskId   = 0x%llx",
                   pimdmMapCbPtr->gblVars->pimdmMapTaskId);
-    sysapiPrintf("\n pimdmMapCbPtr->gblVars->msgQSema         = %d",
+    sysapiPrintf("\n pimdmMapCbPtr->gblVars->msgQSema         = %p",
                   pimdmMapCbPtr->gblVars->msgQSema);
     
 }
@@ -688,7 +688,7 @@ void pimdmMapCBShow(L7_uchar8 familyType)
 
    sysapiPrintf ("  \ngblVars     - %p.\n", pimdmMapCbPtr->gblVars);
    sysapiPrintf ("     msgQSema             - %p.\n", pimdmMapCbPtr->gblVars->msgQSema);
-   sysapiPrintf ("     pimdmMapTaskId       - %d.\n", pimdmMapCbPtr->gblVars->pimdmMapTaskId);
+   sysapiPrintf ("     pimdmMapTaskId       - 0x%llx.\n", pimdmMapCbPtr->gblVars->pimdmMapTaskId);
    sysapiPrintf ("     pimdmCnfgrState      - %d.\n", pimdmMapCbPtr->gblVars->pimdmCnfgrState);
    sysapiPrintf ("     warmRestart          - %s.\n", pimdmMapCbPtr->gblVars->warmRestart?"L7_TRUE":"L7_FALSE");
    sysapiPrintf ("**********************************************\n");
@@ -1100,22 +1100,22 @@ void pimdmMapDebugMemoryInfoCompute(void)
 
   sysapiPrintf ("\n***** Memory Allocated By PIMDM Mapping Layer *****\n");
   sysapiPrintf ("        Global Variables\n");
-  sysapiPrintf ("          pimdmGblVars_t   - %d\n", sizeof(pimdmGblVars_t));
+  sysapiPrintf ("          pimdmGblVars_t   - %zu\n", sizeof(pimdmGblVars_t));
   pimdmMapTotalBytesAllocated += sizeof(pimdmGblVars_t);
-  sysapiPrintf ("          pimdmDebugCfg_t  - %d\n", sizeof(pimdmDebugCfg_t));
+  sysapiPrintf ("          pimdmDebugCfg_t  - %zu\n", sizeof(pimdmDebugCfg_t));
   pimdmMapTotalBytesAllocated += sizeof(pimdmDebugCfg_t);
   sysapiPrintf ("        Message Queues\n");
-  sysapiPrintf ("          App Timer Queue  - Size[%d]*Num[%d] = %d\n", PIMDMMAP_APP_TMR_MSG_SIZE, PIMDMMAP_APP_TMR_MSG_COUNT, (PIMDMMAP_APP_TMR_MSG_SIZE*PIMDMMAP_APP_TMR_MSG_COUNT));
+  sysapiPrintf ("          App Timer Queue  - Size[%zu]*Num[%d] = %zu\n", PIMDMMAP_APP_TMR_MSG_SIZE, PIMDMMAP_APP_TMR_MSG_COUNT, (PIMDMMAP_APP_TMR_MSG_SIZE*PIMDMMAP_APP_TMR_MSG_COUNT));
   pimdmMapTotalBytesAllocated += (PIMDMMAP_APP_TMR_MSG_SIZE*PIMDMMAP_APP_TMR_MSG_COUNT);
-  sysapiPrintf ("          Events Queue     - Size[%d]*Num[%d] = %d\n", PIMDMMAP_MSG_SIZE, PIMDMMAP_MSG_COUNT, (PIMDMMAP_MSG_SIZE*PIMDMMAP_MSG_COUNT));
+  sysapiPrintf ("          Events Queue     - Size[%zu]*Num[%d] = %zu\n", PIMDMMAP_MSG_SIZE, PIMDMMAP_MSG_COUNT, (PIMDMMAP_MSG_SIZE*PIMDMMAP_MSG_COUNT));
   pimdmMapTotalBytesAllocated += (PIMDMMAP_MSG_SIZE*PIMDMMAP_MSG_COUNT);
-  sysapiPrintf ("          Ctrl Pkt Queue   - Size[%d]*Num[%d] = %d\n", PIMDMMAP_CTRL_PKT_MSG_SIZE, PIMDMMAP_CTRL_PKT_MSG_COUNT, (PIMDMMAP_CTRL_PKT_MSG_SIZE*PIMDMMAP_CTRL_PKT_MSG_COUNT));
+  sysapiPrintf ("          Ctrl Pkt Queue   - Size[%zu]*Num[%d] = %zu\n", PIMDMMAP_CTRL_PKT_MSG_SIZE, PIMDMMAP_CTRL_PKT_MSG_COUNT, (PIMDMMAP_CTRL_PKT_MSG_SIZE*PIMDMMAP_CTRL_PKT_MSG_COUNT));
   pimdmMapTotalBytesAllocated += (PIMDMMAP_CTRL_PKT_MSG_SIZE*PIMDMMAP_CTRL_PKT_MSG_COUNT);
-  sysapiPrintf ("        Control Block IPv4 - %d\n", sizeof(pimdmMapCB_t));
+  sysapiPrintf ("        Control Block IPv4 - %zu\n", sizeof(pimdmMapCB_t));
   pimdmMapTotalBytesAllocated += sizeof(pimdmMapCB_t);
   if (v6CBPresent == L7_TRUE)
   {
-    sysapiPrintf ("        Control Block IPv6 - %d\n", sizeof(pimdmMapCB_t));
+    sysapiPrintf ("        Control Block IPv6 - %zu\n", sizeof(pimdmMapCB_t));
     pimdmMapTotalBytesAllocated += sizeof(pimdmMapCB_t);
   }
   sysapiPrintf ("\n");

@@ -462,12 +462,12 @@ void rtoDebugLookup(L7_uint32 addr, L7_uint32 mask, L7_uint32 next)
 
   sysapiPrintf("entry found:\n");
 
-  sysapiPrintf(" ip %s (%x)",
+  sysapiPrintf(" ip %s (%u)",
                osapiInet_ntoa(osapiNtohl(pData->network.addr)),
-               pData->network);
-  sysapiPrintf(" mask %s (%x)",
+               pData->network.addr);
+  sysapiPrintf(" mask %s (%u)",
                osapiInet_ntoa(osapiNtohl(pData->netmask.addr)),
-               pData->netmask);
+               pData->netmask.addr);
   sysapiPrintf(" next hop %s (%x)\n",
                osapiInet_ntoa(pData->nextRouteInfo->nextHops[0].nextHopIP),
                pData->nextRouteInfo->nextHops[0].nextHopIP);

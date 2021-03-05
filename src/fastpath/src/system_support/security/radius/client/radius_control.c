@@ -887,7 +887,7 @@ L7_RC_t radiusEventServerHostNameAdd(dnsHost_t *hostAddr,
     else
     {
       RADIUS_DLOG(RD_LEVEL_INFO,"%s(): DNS Resolution success, host: %s - ip: %s\n",
-                     hostAddr->host.hostName,osapiInet_ntoa(ipaddr));
+                  __FUNCTION__, hostAddr->host.hostName,osapiInet_ntoa(ipaddr));
     }
   }
   else
@@ -2883,7 +2883,7 @@ L7_RC_t radiusServerNameEntryGet(L7_uint32 index,L7_char8 *serverName)
            0 == authServerNameArray[index-1].serverCount  )
   {
     RADIUS_DLOG(RD_LEVEL_INFO,"RADIUS: %s() Invalid Parameters: \
-                    index=%d serverName(ptr):%u serverCount:%d\n",__FUNCTION__,
+                    index=%d serverName(ptr):%s serverCount:%d\n",__FUNCTION__,
                     index,serverName,authServerNameArray[index-1].serverCount);
     return L7_FAILURE;
   }

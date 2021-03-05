@@ -389,7 +389,7 @@ L7_RC_t rlimTunnelCreate(L7_uint32 tunnelId)
       /* should never get here */
       nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
       L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_RLIM_COMPONENT_ID,
-              "nimIntfQuery() failed for interface %s with intIfNum",
+              "nimIntfQuery() failed for interface %s with intIfNum %u",
               ifName, intIfNum);
       return L7_FAILURE;
     }

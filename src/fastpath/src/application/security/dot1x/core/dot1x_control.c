@@ -6332,7 +6332,7 @@ L7_RC_t dot1xCtlLogicalMonitorModeRemove()
           logicalPortInfo->isMonitorModeClient = L7_FALSE;
           logicalPortInfo->defaultVlanId = L7_NULL;
           L7_LOGF(L7_LOG_SEVERITY_ERROR,L7_DOT1X_COMPONENT_ID,"Port:[%u] moved from authenticated state as Monitor Mode is not Operational\n\r",
-                      __FUNCTION__, __LINE__, lIntIfNum);          
+                  lIntIfNum);          
         }
         logicalPortInfo = dot1xLogicalPortInfoGetNextNode(intIfNum, &lIntIfNum);
       }

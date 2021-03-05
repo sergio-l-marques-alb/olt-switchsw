@@ -1832,7 +1832,7 @@ debug_usmUserTable_walk()
     else
     {
       sysapiPrintf("usmUserSecurityName.\"%s\".\"%s\" = L7_FAILURE\n", usmUserEngineID_string, usmUserName);
-      sysapiPrintf("usmUserGroup.\"%s\".\"%s\" = \"%s\" = L7_FAILURE\n", usmUserEngineID_string, usmUserName);
+      sysapiPrintf("usmUserGroup.\"%s\".\"%s\" = L7_FAILURE\n", usmUserEngineID_string, usmUserName);
     }
 
     if (l7_usmUserAuthProtocolGet(usmUserEngineID, usmUserEngineID_len, usmUserName, &temp_val) == L7_SUCCESS)

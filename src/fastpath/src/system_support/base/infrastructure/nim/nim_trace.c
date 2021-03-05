@@ -291,7 +291,7 @@ L7_RC_t nimTracePortEventFormat(L7_ushort16 traceId, L7_uchar8 *pDataStart)
 
   /* 6 byte key, 4 byte unit */
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "Task %x, ",osapiNtohl(*((L7_uint32*)&pDataStart[0])));
+                "Task %lx, ",osapiNtohl(*((L7_uint32*)&pDataStart[0])));
 
   info = osapiNtohl(*((L7_uint32*)&pDataStart[4]));
 
@@ -311,7 +311,7 @@ L7_RC_t nimTracePortEventFormat(L7_ushort16 traceId, L7_uchar8 *pDataStart)
                 "If %d, ",(L7_uint32)(info & 0xffff));
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "Id %d, ",osapiNtohl(*((L7_uint32*)&pDataStart[8])));
+                "Id %lu, ",osapiNtohl(*((L7_uint32*)&pDataStart[8])));
 
   if ((traceId == NIM_PORT_EVENTS_START) ||
       (traceId == NIM_PORT_EVENTS_PER_COMP_START))
@@ -721,7 +721,7 @@ void nimTraceStatsPrint(void)
                 "Tracing is %s\n",(nimTraceMode)?"enabled":"disabled");
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-30s = 0x%0.8x\n","Trace Mask",nimTraceMask);
+                "%-30s = 0x%08x\n","Trace Mask",nimTraceMask);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "%-30s = %d\n","Number of events", nimTraceEventsCtr);
@@ -732,13 +732,13 @@ void nimTraceHelp(void)
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "%-30s - sets what gets traced\n","nimTraceMaskSet(mask)");
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-30s = 0x%0.8x\n","NIM_TRACE_PORT_EVENTS    ",NIM_TRACE_PORT_EVENTS);
+                "%-30s = 0x%08x\n","NIM_TRACE_PORT_EVENTS    ",NIM_TRACE_PORT_EVENTS);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-30s = 0x%0.8x\n","NIM_TRACE_PORT_EVENTS_PER_COMPONENT    ",NIM_TRACE_PORT_EVENT_PER_COMPONENT);
+                "%-30s = 0x%08x\n","NIM_TRACE_PORT_EVENTS_PER_COMPONENT    ",NIM_TRACE_PORT_EVENT_PER_COMPONENT);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-30s = 0x%0.8x\n","NIM_TRACE_EVENT_ERROR    ",NIM_TRACE_EVENT_ERROR);
+                "%-30s = 0x%08x\n","NIM_TRACE_EVENT_ERROR    ",NIM_TRACE_EVENT_ERROR);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-30s = 0x%0.8x\n","NIM_TRACE_FINI    ",NIM_TRACE_FINI);
+                "%-30s = 0x%08x\n","NIM_TRACE_FINI    ",NIM_TRACE_FINI);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "%-30s - print stats from NIM\n","nimTraceStatsPrint()" );
@@ -972,7 +972,7 @@ void nimProfileConfigShow(void)
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "Profiling is %s\n",(nimProfileEnable)?"enabled":"disabled");
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-30s = 0x%0.8x\n","Profile Mask",nimProfileMask);
+                "%-30s = 0x%08x\n","Profile Mask",nimProfileMask);
 }
 
 void nimProfileInfoShowEventDetail(L7_uint32 event, L7_BOOL compDetail, L7_BOOL intfDetail)
@@ -1011,7 +1011,7 @@ void nimProfileInfoShowEventDetail(L7_uint32 event, L7_BOOL compDetail, L7_BOOL 
           }
 
           SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                        "%d-%-20s             %-8u \n",
+                        "%d-%-20s             %-8lu \n",
                         i,
                         compName,
                         osapiHtonl(nimProfileCompEventInfo[i].eventInfo[event].totalTime));
@@ -1059,7 +1059,7 @@ void nimProfileInfoShowEventDetail(L7_uint32 event, L7_BOOL compDetail, L7_BOOL 
         {
           noIntfPrint = L7_FALSE;
           SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                        "%d/%d/%d          %-8u \n",
+                        "%d/%d/%d          %-8lu \n",
                         nimUsp.unit, nimUsp.slot, nimUsp.port,
                         osapiHtonl(nimProfileIntfEventInfo->intfInfo[i].eventInfo[event].totalTime));
         }
@@ -1101,7 +1101,7 @@ void nimProfileInfoShowEvent(L7_uint32 event, L7_BOOL compDetail, L7_BOOL intfDe
   if (event != 0)
   {
     SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,
-                  "%2d-%-20s             %8u \n",
+                  "%2d-%-20s             %8lu \n",
                   event,
                   nimGetIntfEvent(event),
                   osapiHtonl(nimProfileEventInfo->eventInfo[event].totalTime)
@@ -1113,7 +1113,7 @@ void nimProfileInfoShowEvent(L7_uint32 event, L7_BOOL compDetail, L7_BOOL intfDe
     for (i = 0; i < L7_LAST_PORT_EVENT; i++)
     {
       SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,
-                    "%2d-%-20s             %8u \n",
+                    "%2d-%-20s             %8lu \n",
                     i,
                     nimGetIntfEvent(i),
                     osapiHtonl(nimProfileEventInfo->eventInfo[i].totalTime)
@@ -1136,9 +1136,9 @@ void nimProfileHelp(void)
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "%-30s - Configure port events profile mask\n","nimProfileMaskSet(mask)");
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-30s = 0x%0.8x\n","NIM_PROFILE_PORT_EVENT_PER_INTF    ",NIM_PROFILE_PORT_EVENT_PER_INTF);
+                "%-30s = 0x%08x\n","NIM_PROFILE_PORT_EVENT_PER_INTF    ",NIM_PROFILE_PORT_EVENT_PER_INTF);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-30s = 0x%0.8x\n","NIM_PROFILE_PORT_EVENT_PER_COMP    ",NIM_PROFILE_PORT_EVENT_PER_COMP);
+                "%-30s = 0x%08x\n","NIM_PROFILE_PORT_EVENT_PER_COMP    ",NIM_PROFILE_PORT_EVENT_PER_COMP);
 #if 0
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "%-30s = 0x%0.8x\n","NIM_PROFILE_PORT_EVENT_PER_COMP_INTF    ",NIM_PROFILE_PORT_EVENT_PER_COMP_INTF);

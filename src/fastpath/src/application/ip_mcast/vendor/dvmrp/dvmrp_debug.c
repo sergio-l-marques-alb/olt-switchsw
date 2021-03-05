@@ -113,8 +113,8 @@ void dvmrpDebugIntfShow(L7_uint32 addrFamily)
       timeLeft = 0;
     }
     probeExpTime = (timeLeft <= 0) ? 0 : timeLeft;
-    DVMRP_DEBUG_PRINTF("time left for probe to be sent : %d\n", probeExpTime);                
-    DVMRP_DEBUG_PRINTF("No of neighbors at present on this interface :%lx\n\n", intf->nbr_count);                                    
+    DVMRP_DEBUG_PRINTF("time left for probe to be sent : %lu\n", probeExpTime);                
+    DVMRP_DEBUG_PRINTF("No of neighbors at present on this interface :%x\n\n", intf->nbr_count);                                    
   }
   osapiWriteLockGive(dvmrpcb->dvmrpRwLock);
 }
@@ -174,9 +174,9 @@ void dvmrpDebugNbrShow(L7_uint32 addrFamily,L7_int32 rtrIfNum)
     DVMRP_DEBUG_PRINTF("Nbr PrefixLen:%d\n", nbr->nbrAddr.maskLength);
     DVMRP_DEBUG_PRINTF("Nbr Flags:%lx\n", nbr->flags);
     DVMRP_DEBUG_PRINTF("Nbr State: %d\n",nbr->state);
-    DVMRP_DEBUG_PRINTF("Nbr genid: %d\n",nbr->genid);    
-    DVMRP_DEBUG_PRINTF("No of bad packets recieved from this neighbor: %d\n",nbr->badPkts);        
-    DVMRP_DEBUG_PRINTF("No of bad Routes  recieved from this neighbor: %d\n",nbr->badRts);            
+    DVMRP_DEBUG_PRINTF("Nbr genid: %lu\n",nbr->genid);    
+    DVMRP_DEBUG_PRINTF("No of bad packets recieved from this neighbor: %lu\n",nbr->badPkts);        
+    DVMRP_DEBUG_PRINTF("No of bad Routes  recieved from this neighbor: %lu\n",nbr->badRts);            
 
     if (nbr->timeout != L7_NULLPTR)
     {
@@ -193,7 +193,7 @@ void dvmrpDebugNbrShow(L7_uint32 addrFamily,L7_int32 rtrIfNum)
       timeLeft = 0;
     }
     nbrExpTime = (timeLeft <= 0) ? 0 : timeLeft;
-    DVMRP_DEBUG_PRINTF("Neighbor expiry time : %d\n",nbrExpTime);                
+    DVMRP_DEBUG_PRINTF("Neighbor expiry time : %lu\n",nbrExpTime);                
   }          
   osapiWriteLockGive(dvmrpcb->dvmrpRwLock);
 }
@@ -407,11 +407,11 @@ void dvmrpDebugPrunesShow(L7_uint32 addrFamily,L7_int32 src)
       DVMRP_DEBUG_PRINTF("Prune Nbr Prefix:%x\n", srcAddr);
       DVMRP_DEBUG_PRINTF("Prune Nbr Flags:%ld\n", 
                          prune->neighbor->flags);
-      DVMRP_DEBUG_PRINTF("Prune Life time:%ld\n", 
+      DVMRP_DEBUG_PRINTF("Prune Life time:%d\n", 
                          prune->lifetime);
-      DVMRP_DEBUG_PRINTF("Prune recieval time:%ld\n", 
+      DVMRP_DEBUG_PRINTF("Prune recieval time:%u\n", 
                          prune->received);
-      DVMRP_DEBUG_PRINTF("Prune Expirry time:%ld\n", 
+      DVMRP_DEBUG_PRINTF("Prune Expirry time:%u\n", 
                          (prune->expire -osapiUpTimeRaw()));
     }
   }          
@@ -694,37 +694,36 @@ void dvmrpDebugCBShow(L7_uint32 addrFamily)
   }
 
   
-  DVMRP_DEBUG_PRINTF("protocol:%lx\n\n", dvmrpcb->proto );                
-  DVMRP_DEBUG_PRINTF("Family:%lx\n\n", dvmrpcb->family );                
-  DVMRP_DEBUG_PRINTF("sockfd:%lx\n\n", dvmrpcb->sockFd);                
-  DVMRP_DEBUG_PRINTF("interface bit map:%lx\n\n");                
+  DVMRP_DEBUG_PRINTF("protocol:%x\n\n", dvmrpcb->proto );                
+  DVMRP_DEBUG_PRINTF("Family:%x\n\n", dvmrpcb->family );                
+  DVMRP_DEBUG_PRINTF("sockfd:%x\n\n", dvmrpcb->sockFd);                
 
   for (index = 1; index <= MAX_INTERFACES; index++)
     if (MCAST_BITX_TEST (dvmrpcb->interface_mask, index))
       DVMRP_DEBUG_PRINTF (" %02d ", index);
 
-  DVMRP_DEBUG_PRINTF("Timer Control block:%lx\n\n", dvmrpcb->timerHandle );                    
-  DVMRP_DEBUG_PRINTF("Update timer:%lx\n\n", dvmrpcb->timer );                      
-  DVMRP_DEBUG_PRINTF("Route timer:%lx\n\n", dvmrpcb->age );                        
-  DVMRP_DEBUG_PRINTF("Flash timer:%lx\n\n", dvmrpcb->flash );                        
-  DVMRP_DEBUG_PRINTF("Prune timer:%lx\n\n", dvmrpcb->expire );                          
-  DVMRP_DEBUG_PRINTF("All routers Address:%lx\n\n", inetAddrPrint( &(dvmrpcb->all_routers.addr),addr));                          
-  DVMRP_DEBUG_PRINTF("flash update waiting:%lx\n\n", dvmrpcb->flash_update_waiting);                          
-  DVMRP_DEBUG_PRINTF("routing information changed:%lx\n\n", dvmrpcb->changed);                          
+  DVMRP_DEBUG_PRINTF("Timer Control block:%p\n\n", dvmrpcb->timerHandle );                    
+  DVMRP_DEBUG_PRINTF("Update timer:%p\n\n", dvmrpcb->timer );                      
+  DVMRP_DEBUG_PRINTF("Route timer:%p\n\n", dvmrpcb->age );                        
+  DVMRP_DEBUG_PRINTF("Flash timer:%p\n\n", dvmrpcb->flash );                        
+  DVMRP_DEBUG_PRINTF("Prune timer:%p\n\n", dvmrpcb->expire );                          
+  DVMRP_DEBUG_PRINTF("All routers Address:%s\n\n", inetAddrPrint( &(dvmrpcb->all_routers.addr),addr));                          
+  DVMRP_DEBUG_PRINTF("flash update waiting:%x\n\n", dvmrpcb->flash_update_waiting);                          
+  DVMRP_DEBUG_PRINTF("routing information changed:%x\n\n", dvmrpcb->changed);                          
   DVMRP_DEBUG_PRINTF("Version supported by this router:%lx\n\n", dvmrpcb->versionSupport);                            
-  DVMRP_DEBUG_PRINTF("dvmrpasbList:%lx\n\n", dvmrpcb->dvmrpasbList);                            
-  DVMRP_DEBUG_PRINTF("dvmrpCacheTableTreeHeap:%lx\n\n", dvmrpcb->dvmrpCacheTableTreeHeap);                            
-  DVMRP_DEBUG_PRINTF("dvmrpCacheDataHeap:%lx\n\n", dvmrpcb->dvmrpCacheDataHeap);                            
-  DVMRP_DEBUG_PRINTF("dvmrpGroupTableTreeHeap:%lx\n\n", dvmrpcb->dvmrpGroupTableTreeHeap);                            
-  DVMRP_DEBUG_PRINTF("dvmrpGroupDataHeap:%lx\n\n", dvmrpcb->dvmrpGroupDataHeap);                            
-  DVMRP_DEBUG_PRINTF("dvmrpRouteDataHeap:%lx\n\n", dvmrpcb->dvmrpRouteDataHeap);                            
-  DVMRP_DEBUG_PRINTF("dvmrpRouteTreeHeap:%lx\n\n", dvmrpcb->dvmrpRouteTreeHeap);                            
-  DVMRP_DEBUG_PRINTF("radix_entries:%lx\n\n", dvmrpcb->radix_entries);                            
-  DVMRP_DEBUG_PRINTF("handle_list:%lx\n\n", dvmrpcb->handle_list);                            
-  DVMRP_DEBUG_PRINTF("updateTimerHandle:%lx\n\n", dvmrpcb->updateTimerHandle);                              
-  DVMRP_DEBUG_PRINTF("routesTimeoutHandle:%lx\n\n", dvmrpcb->routesTimeoutHandle);                              
-  DVMRP_DEBUG_PRINTF("pruneExpireHandle:%lx\n\n", dvmrpcb->pruneExpireHandle);                              
-  DVMRP_DEBUG_PRINTF("flashrUpdateTimerHandle:%lx\n\n", dvmrpcb->flashrUpdateTimerHandle);                                
+  DVMRP_DEBUG_PRINTF("dvmrpasbList:%p\n\n", &dvmrpcb->dvmrpasbList);                            
+  DVMRP_DEBUG_PRINTF("dvmrpCacheTableTreeHeap:%p\n\n", dvmrpcb->dvmrpCacheTableTreeHeap);                            
+  DVMRP_DEBUG_PRINTF("dvmrpCacheDataHeap:%p\n\n", dvmrpcb->dvmrpCacheDataHeap);                            
+  DVMRP_DEBUG_PRINTF("dvmrpGroupTableTreeHeap:%p\n\n", dvmrpcb->dvmrpGroupTableTreeHeap);                            
+  DVMRP_DEBUG_PRINTF("dvmrpGroupDataHeap:%p\n\n", dvmrpcb->dvmrpGroupDataHeap);                            
+  DVMRP_DEBUG_PRINTF("dvmrpRouteDataHeap:%p\n\n", dvmrpcb->dvmrpRouteDataHeap);                            
+  DVMRP_DEBUG_PRINTF("dvmrpRouteTreeHeap:%p\n\n", dvmrpcb->dvmrpRouteTreeHeap);                            
+  DVMRP_DEBUG_PRINTF("radix_entries:%x\n\n", dvmrpcb->radix_entries);                            
+  DVMRP_DEBUG_PRINTF("handle_list:%p\n\n", dvmrpcb->handle_list);                            
+  DVMRP_DEBUG_PRINTF("updateTimerHandle:%llx\n\n", dvmrpcb->updateTimerHandle);                              
+  DVMRP_DEBUG_PRINTF("routesTimeoutHandle:%llx\n\n", dvmrpcb->routesTimeoutHandle);                              
+  DVMRP_DEBUG_PRINTF("pruneExpireHandle:%llx\n\n", dvmrpcb->pruneExpireHandle);                              
+  DVMRP_DEBUG_PRINTF("flashrUpdateTimerHandle:%llx\n\n", dvmrpcb->flashrUpdateTimerHandle);                                
   
 }
 /*************************************************************************************
@@ -928,7 +927,7 @@ dvmrpDebugAdminScopeShow (L7_uint32 addrFamily)
   /* Display the Admin Scope Database Contents */
   if ((asbCurrNode = (dvmrpASBNode_t*) SLLFirstGet (&(dvmrpcb->dvmrpasbList))) != L7_NULLPTR)
   {
-    DVMRP_DEBUG_PRINTF("Next Node Addr - 0x%x.\n", asbCurrNode->next);
+    DVMRP_DEBUG_PRINTF("Next Node Addr - %p.\n", asbCurrNode->next);
     DVMRP_DEBUG_PRINTF("Group Address  - %s.\n", inetAddrPrint (&(asbCurrNode->grpAddr), grp));
     DVMRP_DEBUG_PRINTF("Group Mask  - %s.\n", inetAddrPrint (&(asbCurrNode->grpMask), grpMask));
     DVMRP_DEBUG_PRINTF("Interfaces Set - ");
@@ -943,7 +942,7 @@ dvmrpDebugAdminScopeShow (L7_uint32 addrFamily)
                       != L7_NULLPTR)
   {
     DVMRP_DEBUG_PRINTF("----- ----- -----\n");
-    DVMRP_DEBUG_PRINTF("Next Node Addr - 0x%x.\n", asbNextNode->next);
+    DVMRP_DEBUG_PRINTF("Next Node Addr - %p.\n", asbNextNode->next);
     DVMRP_DEBUG_PRINTF("Group Address  - %s.\n", inetAddrPrint (&(asbNextNode->grpAddr), grp));
     DVMRP_DEBUG_PRINTF("Group Mask  - %s.\n", inetAddrPrint (&(asbCurrNode->grpMask), grpMask));
     DVMRP_DEBUG_PRINTF("Interfaces Set - ");
@@ -1047,9 +1046,9 @@ void dvmrpDebugMRTTableShow(L7_uint32 addrFamily, L7_int32 count)
       DVMRP_DEBUG_PRINTF("\n Graft timer not running\n");
     }
       
-    DVMRP_DEBUG_PRINTF("Entry Flags\n",entry->flags);     
+    DVMRP_DEBUG_PRINTF("Entry Flags: 0x%lx\n",entry->flags);     
 
-    DVMRP_DEBUG_PRINTF("Entry expiry time \n",(entry->expire -(osapiUpTimeRaw())));     
+    DVMRP_DEBUG_PRINTF("Entry expiry time %u\n",(entry->expire -(osapiUpTimeRaw())));     
 
     DVMRP_DEBUG_PRINTF("Prunes recieved on \n");
     for (index = 1; index <= MAX_INTERFACES; index++)

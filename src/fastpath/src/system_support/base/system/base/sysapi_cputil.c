@@ -1621,7 +1621,7 @@ void sysapiCpuUtilTableDump(L7_BOOL showTasks)
     for (taskIdx = 0; taskIdx < sysapiTaskCpuUtilTableNumEntries; taskIdx++)
     {
       SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, 
-                    "Task-id %x numPeriods %d pendingAge %d\n",
+                    "Task-id 0x%llx numPeriods %d pendingAge %d\n",
                     sysapiTaskCpuUtilTable[taskIdx].taskId,
                     sysapiTaskCpuUtilTable[taskIdx].numPeriods,
                     sysapiTaskCpuUtilTable[taskIdx].pendingAge);

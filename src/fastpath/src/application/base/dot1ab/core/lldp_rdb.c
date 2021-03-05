@@ -513,7 +513,7 @@ lldpRemDataEntry_t *lldpRemEntryAdd(lldpRemDataEntry_t *entry)
   {
     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_LLDP_COMPONENT_ID,
             "%s:%d Error Adding the node to the Remote Tree for intf %s \n",
-            __FUNCTION__,__FILE__,ifName);
+            __FUNCTION__, __LINE__, ifName);
     return L7_NULLPTR;
   }
   currEntry = lldpRemDataEntryGet((lldpRemDataKey_t*)entry);
@@ -521,7 +521,7 @@ lldpRemDataEntry_t *lldpRemEntryAdd(lldpRemDataEntry_t *entry)
   {
     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_LLDP_COMPONENT_ID,
             "%s:%d Error Retrieving the node from the Remote Tree for intf %s \n",
-            __FUNCTION__,__FILE__,ifName);
+            __FUNCTION__, __LINE__, ifName);
     return L7_NULLPTR;
   }
   /* allocate the index list */
@@ -530,7 +530,7 @@ lldpRemDataEntry_t *lldpRemEntryAdd(lldpRemDataEntry_t *entry)
   {
     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_LLDP_COMPONENT_ID,
             "%s:%d Error allocating the node to the remote index for intf %s \n",
-            __FUNCTION__,__FILE__,ifName);
+            __FUNCTION__, __LINE__, ifName);
     lldpRemEntryDelete(currEntry);
     avlDeleteEntry(&lldpRemDbTree,currEntry);
     return L7_NULLPTR;

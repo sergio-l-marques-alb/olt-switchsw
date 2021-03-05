@@ -479,7 +479,7 @@ L7_RC_t diffServClusterDebugShow(void)
   sysapiPrintf("  dsClusterRxCfgIeExpected = 0x%4.4x\n", dsClusterRxCfgIeExpected);
   sysapiPrintf("  dsClusterRxInProg        = %d\n",      dsClusterRxInProg);
   sysapiPrintf("  dsClusterRxError         = %d\n",      dsClusterRxError);
-  sysapiPrintf("  dsClusterTaskId          = 0x%x\n",    dsClusterTaskId);
+  sysapiPrintf("  dsClusterTaskId          = 0x%llx\n",  dsClusterTaskId);
   sysapiPrintf("  dsClusterQueue           = %p\n",      dsClusterQueue);
   sysapiPrintf("  dsClusterDebug           = %d\n",      dsClusterDebug);
   sysapiPrintf("\n");
@@ -2862,7 +2862,7 @@ L7_RC_t diffServClusterConfigVerify(L7_diffServCfg_t *pCfgData)
   if (diffServClusterConfigServiceIntfRemap(pCfgData) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
-            "%s: Error mapping DiffServ service interface config.\n",
+            "%s: Error mapping DiffServ service interface config (%s).\n",
             __FUNCTION__, dsmibPrvtTableIdStr[tableID]);
     rc = L7_FAILURE;
   }

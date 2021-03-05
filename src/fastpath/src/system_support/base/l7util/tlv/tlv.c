@@ -1534,7 +1534,7 @@ void tlvBlockSummaryShow(void)
     if (pTlvCtrl != L7_NULLPTR)
     {
       SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                    " %4u   %p   %5u     %-3s  %7u    %5u   %5u %-15s\n",
+                    " %4u   %p   %5u     %-3s  %7zu    %5u   %5u %-15s\n",
                     pTlvCtrl->tlvHandle,
                     pTlvCtrl,
                     pTlvCtrl->appId,

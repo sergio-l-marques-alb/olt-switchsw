@@ -1084,7 +1084,7 @@ L7_RC_t dsTraceFmtPolTlvDtl(L7_ushort16 traceId, void *pDataStart)
 
   /* TLV id and length */
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                (char *)"tlvType=0x%8.8x tlvLen=0x%8.8x ", 
+                (char *)"tlvType=0x%8.8lx tlvLen=0x%8.8lx ", 
                 osapiNtohl(p->tlvType), osapiNtohl(p->tlvLen));
 
   /* instance key */

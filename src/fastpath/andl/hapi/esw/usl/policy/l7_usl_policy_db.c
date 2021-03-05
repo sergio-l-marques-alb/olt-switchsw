@@ -483,14 +483,14 @@ void usl_policy_db_memory_info()
   printf("BROAD_MAX_RULES_PER_POLICY         == %d\n", BROAD_MAX_RULES_PER_POLICY);
   printf("BROAD_MAX_SYSTEM_POLICIES          == %d\n", BROAD_MAX_SYSTEM_POLICIES);
   printf("sizeof(policy_map_table_t)         == %d\n", policy_map_table_t_size());
-  printf("sizeof(BROAD_POLICY_ENTRY_t)       == %d\n", (unsigned int) sizeof(BROAD_POLICY_ENTRY_t));
-  printf("sizeof(BROAD_POLICY_RULE_ENTRY_t)  == %d\n", (unsigned int) sizeof(BROAD_POLICY_RULE_ENTRY_t));
-  printf("sizeof(BROAD_FIELD_ENTRY_t)        == %d\n", (unsigned int) sizeof(BROAD_FIELD_ENTRY_t));
-  printf("sizeof(BROAD_ACTION_ENTRY_t)       == %d\n", (unsigned int) sizeof(BROAD_ACTION_ENTRY_t));
+  printf("sizeof(BROAD_POLICY_ENTRY_t)       == %zu\n", sizeof(BROAD_POLICY_ENTRY_t));
+  printf("sizeof(BROAD_POLICY_RULE_ENTRY_t)  == %zu\n", sizeof(BROAD_POLICY_RULE_ENTRY_t));
+  printf("sizeof(BROAD_FIELD_ENTRY_t)        == %zu\n", sizeof(BROAD_FIELD_ENTRY_t));
+  printf("sizeof(BROAD_ACTION_ENTRY_t)       == %zu\n", sizeof(BROAD_ACTION_ENTRY_t));
   printf("\n\n");
 
-  printf("policy_map_table[]          == %d\n", BROAD_MAX_BCM_UNITS_PER_CPU * policy_map_table_t_size() * BROAD_MAX_POLICIES_PER_BCM_UNIT);
-  printf("pUslOperPolicyDB[]          == %d\n", (unsigned int) sizeof(BROAD_USL_POLICY_t) * BROAD_MAX_POLICIES);
+  printf("policy_map_table[]          == %u\n", BROAD_MAX_BCM_UNITS_PER_CPU * policy_map_table_t_size() * BROAD_MAX_POLICIES_PER_BCM_UNIT);
+  printf("pUslOperPolicyDB[]          == %zu\n", sizeof(BROAD_USL_POLICY_t) * BROAD_MAX_POLICIES);
 }
 
 /*********************************************************************

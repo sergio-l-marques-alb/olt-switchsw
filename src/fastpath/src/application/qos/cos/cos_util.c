@@ -544,11 +544,11 @@ L7_RC_t cosQueueIntfConfigApply(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
   COS_PRT(COS_MSGLVL_MED, "\nCOS intf config applied on intf %u (%s), queueSet %u\n", intIfNum, ifName, queueSet);
   if (cosMsgLvlGet() >= COS_MSGLVL_LO)
   {
-    COS_PRT(COS_MSGLVL_LO, "\n  intfShapingRate:      %u%", intfShapingRate);
-    COS_PRT(COS_MSGLVL_LO, "\n  intfShapingBurstSize: %u%", intfShapingBurstSize);
-    COS_PRT(COS_MSGLVL_LO, "\n    qMgmtTypeIntf:  %u (%s)",
+    COS_PRT(COS_MSGLVL_LO, "\n  intfShapingRate:      %u", intfShapingRate);
+    COS_PRT(COS_MSGLVL_LO, "\n  intfShapingBurstSize: %u", intfShapingBurstSize);
+    COS_PRT(COS_MSGLVL_LO, "\n  qMgmtTypeIntf:        %u (%s)",
             (L7_uint32)qMgmtTypeIntf, cosQueueMgmtTypeStr[qMgmtTypeIntf]);
-    COS_PRT(COS_MSGLVL_LO, "\n     wredDecayExp:  %u", wredDecayExp);
+    COS_PRT(COS_MSGLVL_LO, "\n  wredDecayExp:         %u", wredDecayExp);
     COS_PRT(COS_MSGLVL_LO, "\n");
   }
 

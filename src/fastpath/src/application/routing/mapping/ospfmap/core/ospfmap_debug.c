@@ -229,7 +229,7 @@ void ospfMapRedistCfgDataShow()
                        pOspfMapCfgData->redistCfg[r].redistribute ? "true" : "false");
         if (pOspfMapCfgData->redistCfg[r].distList != FD_OSPF_DIST_LIST_OUT) {
             SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,
-                           "\nDistribute List.............................%lu",
+                           "\nDistribute List.............................%u",
                            pOspfMapCfgData->redistCfg[r].distList);
         }
         else {
@@ -250,7 +250,7 @@ void ospfMapRedistCfgDataShow()
                        (pOspfMapCfgData->redistCfg[r].metType == L7_OSPF_METRIC_EXT_TYPE1) ?
                        "Type 1" : "Type 2");
         SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,
-                       "\nTag.........................................%lu",
+                       "\nTag.........................................%u",
                        pOspfMapCfgData->redistCfg[r].tag);
         SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,
                        "\nRedistribute Subnets?.......................%s",
@@ -346,7 +346,7 @@ void ospfMapCfgDataShow(void)
 
   if (pOspfMapCfgData->rtr.defMetConfigured) {
       SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,
-                     "\ndefaultMetric..........................%lu",
+                     "\ndefaultMetric..........................%u",
                      pOspfMapCfgData->rtr.defaultMetric);
   }
   else {
@@ -1614,8 +1614,8 @@ void ospfMapExtenAROShow(L7_uint32 areaId)
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\n+--------------------------------------------------------+");
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\n|              OSPF ARO DATA                             |");
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\n+--------------------------------------------------------+");
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nnext ARO pointer.............................%#x", p_ARO->next);
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nprevious ARO pointer.........................%#x", p_ARO->prev);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nnext ARO pointer.............................%p", p_ARO->next);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nprevious ARO pointer.........................%p", p_ARO->prev);
 
   if (p_ARO->Taken == TRUE)
   {
@@ -1854,7 +1854,7 @@ void ospfDebugNBOShowPtr(t_NBO * p_NBO)
 
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\n");
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\n+--------------------------------------------------------+");
-  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\n|              OSPF NBO DATA for Neighbor %x              |", p_NBO);
+  SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\n|              OSPF NBO DATA for Neighbor %p              |", p_NBO);
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\n+--------------------------------------------------------+");
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nnext NBO pointer...........................%p", p_NBO->next);
   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_OSPFMAP,  "\nprevious NBO pointer.......................%p", p_NBO->prev);
@@ -2203,7 +2203,7 @@ void ospfMapNetworkAreaShow()
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_OSPFMAP,
                   "Network Area Commands Operational List\n");
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_OSPFMAP,
-                  "Head: %x, FreeList Head: %x\n", networkAreaListHead_g, networkAreaListFree_g);
+                  "Head: %p, FreeList Head: %p\n", networkAreaListHead_g, networkAreaListFree_g);
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_OSPFMAP,
                   "\n---------------------------------------------------------------");
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_OSPFMAP,
@@ -2213,11 +2213,11 @@ void ospfMapNetworkAreaShow()
     while(p_NetworkArea != L7_NULLPTR)
     {
       osapiInetNtoa(p_NetworkArea->ipAddr, debug_buf);
-      SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_OSPFMAP,"\n%-11x%-16.15s", p_NetworkArea, debug_buf);
+      SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_OSPFMAP,"\n%-11p%-16.15s", p_NetworkArea, debug_buf);
       osapiInetNtoa(p_NetworkArea->wildcardMask, debug_buf);
       SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_OSPFMAP,"%-16.15s", debug_buf);
       osapiInetNtoa(p_NetworkArea->areaId, debug_buf);
-      SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_OSPFMAP,"%-16.15s%-11x", debug_buf, p_NetworkArea->next);
+      SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_OSPFMAP,"%-16.15s%-11p", debug_buf, p_NetworkArea->next);
       p_NetworkArea = p_NetworkArea->next;
     }
 }

@@ -2494,7 +2494,7 @@ static L7_RC_t sysapiCfgTreeUpdate( L7_COMPONENT_IDS_t component_id, L7_char8 *f
     if (dataArea == L7_NULL)
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
-              "Failed to allocate %ld for config file %s\n", compressedFileSize, filename);
+              "Failed to allocate %d for config file %s\n", compressedFileSize, filename);
       return L7_ERROR;
     }
   }

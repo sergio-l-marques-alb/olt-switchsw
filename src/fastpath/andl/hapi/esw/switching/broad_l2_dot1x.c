@@ -582,7 +582,7 @@ L7_RC_t hapiBroadDot1xClientHwDelete(DAPI_USP_t *usp, L7_uint32 clientIndex, DAP
       {
         if(hapiVoiceVlanDebug)
         {
-          sysapiPrintf("ClientRemove: FDB Entry Remove: mac[%02.2x:%02.2x:%02.2x:%02.2x:%02.2x:%02.2x] vlanId:[%d]\n\r",
+          sysapiPrintf("ClientRemove: FDB Entry Remove: mac[%02x:%02x:%02x:%02x:%02x:%02x] vlanId:[%d]\n\r",
                        pClient->macAddr.addr[0],
                        pClient->macAddr.addr[1],
                        pClient->macAddr.addr[2],

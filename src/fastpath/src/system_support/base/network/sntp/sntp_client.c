@@ -794,7 +794,7 @@ static L7_RC_t sntpLocalUcastSocketOpen()
     baddr.u.sa4.sin_port = L7_SNTP_DEFAULT_UNICAST_CLIENT_PORT;
     if (osapiSocketBind(ucastFd, (L7_sockaddr_t *)&(baddr.u.sa4),sizeof(baddr.u.sa4)) != L7_SUCCESS)
     {
-      SNTP_PRINTF("Can't bind socket to local address 0x%lx port %d - errno %d\n",
+      SNTP_PRINTF("Can't bind socket to local address 0x%x port %d - errno %d\n",
                    localAddr, sntpCfgData->sntpClientPort, osapiErrnoGet());
       sntpLocalSocketClose();
       return L7_ERROR;
@@ -891,7 +891,7 @@ static L7_RC_t sntpLocalMcastSocketOpen()
   
   if (osapiSocketBind(ucastFd, (L7_sockaddr_t *)&(baddr.u.sa4),sizeof(baddr.u.sa4)) != L7_SUCCESS)
   {
-     SNTP_PRINTF("Can't bind socket to local address 0x%lx port %d - errno %d\n",
+     SNTP_PRINTF("Can't bind socket to local address 0x%x port %d - errno %d\n",
          localAddr, sntpCfgData->sntpClientPort, osapiErrnoGet());
      return L7_ERROR;
   }
@@ -1002,7 +1002,7 @@ static L7_RC_t sntpLocalBcastSocketOpen()
   baddr.u.sa4.sin_port = osapiHtons(sntpCfgData->sntpClientPort);
   if (osapiSocketBind(ucastFd, (L7_sockaddr_t *)&(baddr.u.sa4),sizeof(baddr.u.sa4)) != L7_SUCCESS)
   {
-     SNTP_PRINTF("Can't bind socket to local address 0x%lx port %d - errno %d\n",
+     SNTP_PRINTF("Can't bind socket to local address 0x%x port %d - errno %d\n",
         localAddr, sntpCfgData->sntpClientPort, osapiErrnoGet());
      sntpLocalSocketClose();
      return L7_ERROR;

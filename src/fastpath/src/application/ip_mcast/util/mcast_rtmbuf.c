@@ -125,6 +125,6 @@ struct rtmbuf *rtm_dup(struct rtmbuf *pBuf)
 
 void rtmDebugShow()
 {
-    sysapiPrintf("Number of BufferPool Allocate Failed: ", rtmBufPoolAllocFailed);
-    sysapiPrintf("Number of NetMbuf Get Failed: ", rtmMbufAllocFailed);    
+    sysapiPrintf("Number of BufferPool Allocate Failed: %u", rtmBufPoolAllocFailed);
+    sysapiPrintf("Number of NetMbuf Get Failed: %u", rtmMbufAllocFailed);    
 }

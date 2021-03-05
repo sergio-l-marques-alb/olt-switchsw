@@ -497,7 +497,7 @@ void dsStdMibAuxReuseMatrixShow(void)
               "\nDiffServ Aux MF Clfr Reuse Matrix (only in-use entries shown):\n\n");
 
   DIFFSERV_PRT(msgLvlReqd, 
-              "Matrix start address:  0x%8.8x\n\n", dsAuxReuseMatrix_g);
+              "Matrix start address: %p\n\n", dsAuxReuseMatrix_g);
 
   for (i = 1; i <= L7_DIFFSERV_CLASS_LIM; i++)
   {

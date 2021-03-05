@@ -532,7 +532,7 @@ void dumpIpPkt(L7_ipHeader_t * ipHeader, sysnet_pdu_info_t *pduInfo)
   L7_udp_header_t *udpHeader;
 
     DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_HI,
-    "RecvInf/vlan (%x/%d), destInf/vlan (%x/%d), proto (%d), src/dest (%x/%x)",
+    "RecvInf/vlan (%x/%d), destInf/vlan (%x/%d), proto (%d), src/dest (%lx/%lx)",
     pduInfo->intIfNum,  pduInfo->vlanId,
     pduInfo->destIntIfNum,  pduInfo->destVlanId,
     ipHeader->iph_prot,
@@ -859,7 +859,7 @@ SYSNET_PDU_RC_t dhcpsMapFrameFilter(L7_uint32 hookId,
         }
         else
         {
-          DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_HI,"Dropped pkt destined to %x",
+          DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_HI,"Dropped pkt destined to %lx",
                         osapiNtohl(ipHeader->iph_dst));
 
           return SYSNET_PDU_RC_DISCARD;
