@@ -1334,13 +1334,13 @@ ptin_hapi_qos_shaper_set(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_
     if (ptin_hapi_qos_gport_get(dapiPort, queueSet, tc, &qos_gport) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d: Error obtaining QoS gport",
-                 dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, queueSet);
+                 dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, queueSet, tc);
       return L7_FAILURE;
     }
     else
     {
       PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d -> Using QoS gport 0x%x",
-                   dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, queueSet, qos_gport);
+                   dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, queueSet, tc, qos_gport);
     }
 
     /* Apply shaper configuration */
@@ -1463,7 +1463,7 @@ ptin_hapi_qos_shaper_get(ptin_dapi_port_t *dapiPort, l7_cosq_set_t queueSet, L7_
     }
   }
 
-  PT_LOG_TRACE(LOG_CTX_QOS, "usp={%d,%d,%d}, bcm_unit=%u bcm_port=%u, queueSet=%u, tc=%d: rate_min=%d %rate_max=%d burst_size=%d",
+  PT_LOG_TRACE(LOG_CTX_QOS, "usp={%d,%d,%d}, bcm_unit=%u bcm_port=%u, queueSet=%u, tc=%d: rate_min=%d rate_max=%d burst_size=%d",
                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, 
                hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
                queueSet, tc, _rate_min, _rate_max, _burst_size);

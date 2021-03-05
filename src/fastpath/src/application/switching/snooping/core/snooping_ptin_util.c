@@ -727,7 +727,8 @@ L7_RC_t snoopPTinPacketBuild(L7_uint32 vlanId, snoop_cb_t* pSnoopCB, L7_inet_add
     /* Validate MAC address */
     if (snoopMacAddrCheck(destMac, L7_AF_INET) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_IGMP, "Invalid MAC Address :%06x",destMac);
+      PT_LOG_ERR(LOG_CTX_IGMP, "Invalid MAC Address %02x:%02x:%02x:%02x:%02x:%02x",
+                 destMac[0], destMac[1], destMac[2], destMac[3], destMac[4], destMac[5]);
       return L7_FAILURE;
     }
 
@@ -836,7 +837,7 @@ L7_RC_t snoopPTinPacketBuild(L7_uint32 vlanId, snoop_cb_t* pSnoopCB, L7_inet_add
   /* Verify packet size */
   if (*length > L7_MAX_FRAME_SIZE)
   {
-    PT_LOG_ERR(LOG_CTX_IGMP, "Packet Size Invalid length : %u > L7_MAX_FRAME_SIZE",*length,L7_MAX_FRAME_SIZE);
+    PT_LOG_ERR(LOG_CTX_IGMP, "Packet Size Invalid length : %u > L7_MAX_FRAME_SIZE=%u",*length,L7_MAX_FRAME_SIZE);
     return L7_FAILURE;
   }
   else

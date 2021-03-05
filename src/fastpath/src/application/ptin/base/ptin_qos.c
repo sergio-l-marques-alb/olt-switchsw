@@ -259,16 +259,24 @@ L7_RC_t ptin_qos_intf_config_set(L7_uint32 ptin_port, ptin_QoS_intf_t *intfQos)
   PT_LOG_TRACE(LOG_CTX_INTF,"BWunits      = %u",intfQos->bandwidth_unit);
   PT_LOG_TRACE(LOG_CTX_INTF,"ShapingRate  = %u",intfQos->shaping_rate);
   PT_LOG_TRACE(LOG_CTX_INTF,"WREDDecayExp = %u",intfQos->wred_decay_exponent);
-  PT_LOG_TRACE(LOG_CTX_INTF,"PrioMap.mask   =0x%02x",intfQos->pktprio.mask);
+  PT_LOG_TRACE(LOG_CTX_INTF,"PrioMap.mask   ={0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,0x%02x}",
+               intfQos->pktprio.mask[0],
+               intfQos->pktprio.mask[1],
+               intfQos->pktprio.mask[2],
+               intfQos->pktprio.mask[3],
+               intfQos->pktprio.mask[4],
+               intfQos->pktprio.mask[5],
+               intfQos->pktprio.mask[6],
+               intfQos->pktprio.mask[7]);
   PT_LOG_TRACE(LOG_CTX_INTF,"PrioMap.prio[8]={0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x}",
-            intfQos->pktprio.cos[0],
-            intfQos->pktprio.cos[1],
-            intfQos->pktprio.cos[2],
-            intfQos->pktprio.cos[3],
-            intfQos->pktprio.cos[4],
-            intfQos->pktprio.cos[5],
-            intfQos->pktprio.cos[6],
-            intfQos->pktprio.cos[7]);
+               intfQos->pktprio.cos[0],
+               intfQos->pktprio.cos[1],
+               intfQos->pktprio.cos[2],
+               intfQos->pktprio.cos[3],
+               intfQos->pktprio.cos[4],
+               intfQos->pktprio.cos[5],
+               intfQos->pktprio.cos[6],
+               intfQos->pktprio.cos[7]);
 
   /* Convert shaping rate percentage to x10 higher resolution */
   intfQos->shaping_rate *= 10;

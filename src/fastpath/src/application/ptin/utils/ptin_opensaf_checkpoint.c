@@ -139,13 +139,13 @@ static L7_RC_t ptin_opensaf_checkpoint_init(const char *name, int sectionsNum, i
 
    if (id>PTIN_MAX_OPENSAF_CHECKPOINTS)
    {
-     PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid %d", id);
+     PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid", id);
      return L7_FAILURE;
    }
 
    if (ptin_checkpoint[id].initialized == L7_TRUE)
    {
-     PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d is already in use %d", id);
+     PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d is already in use", id);
      return L7_FAILURE;
    }
 
@@ -272,13 +272,13 @@ static L7_RC_t ptin_opensaf_readOnly_checkpoint_init(const char *name, int id)
 
   if (id>PTIN_MAX_OPENSAF_CHECKPOINTS)
   {
-    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid %s\n", id);
+    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid\n", id);
     return L7_FAILURE;
   }
 
   if (ptin_checkpoint[id].initialized == L7_TRUE)
   {
-    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d is already in use %s", id);
+    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d is already in use", id);
     return L7_FAILURE;
   }
 
@@ -288,13 +288,13 @@ static L7_RC_t ptin_opensaf_readOnly_checkpoint_init(const char *name, int id)
 
   if (id>PTIN_MAX_OPENSAF_CHECKPOINTS)
   {
-    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid %s", id);
+    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid", id);
     return L7_FAILURE;
   }
 
   if (ptin_checkpoint[id].initialized == L7_TRUE)
   {
-    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d is already in use %s", id);
+    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d is already in use", id);
     return L7_FAILURE;
   }
 
@@ -405,7 +405,7 @@ static L7_RC_t ptin_opensaf_checkpoint_deinit(int id)
 
   if (id>PTIN_MAX_OPENSAF_CHECKPOINTS)
   {
-    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid %s", id);
+    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid", id);
     return L7_FAILURE;
   }
 
@@ -452,7 +452,7 @@ static L7_RC_t ptin_opensaf_checkCheckpointInitialization(int id)
 
   if (id>PTIN_MAX_OPENSAF_CHECKPOINTS)
   {
-    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid %s", id);
+    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid", id);
     return L7_FAILURE;
   }
 
@@ -512,7 +512,7 @@ void ptin_opensaf_CheckpointUnlock(int id)
 {
   if (id>PTIN_MAX_OPENSAF_CHECKPOINTS)
   {
-    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid %s", id);
+    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid", id);
   }
 
   pthread_mutex_unlock(&ptin_checkpoint[id].ckptMux);
@@ -531,7 +531,7 @@ L7_BOOL ptin_opensaf_isOpen(int id)
 {
   if (id>PTIN_MAX_OPENSAF_CHECKPOINTS)
   {
-    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid %s", id);
+    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid", id);
     return L7_FAILURE;
   }
 
@@ -564,7 +564,7 @@ L7_RC_t ptin_opensaf_getMaxSectionSize(int id)
 
   if (id>PTIN_MAX_OPENSAF_CHECKPOINTS)
   {
-    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid %s", id);
+    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid", id);
     return L7_FAILURE;
   }
 
@@ -589,7 +589,7 @@ L7_RC_t ptin_opensaf_write_checkpoint(void *data, int len, SectionIndex idx, int
 
   if (id>PTIN_MAX_OPENSAF_CHECKPOINTS)
   {
-    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid %s", id);
+    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid", id);
     return L7_FAILURE;
   }
 
@@ -628,14 +628,14 @@ L7_RC_t ptin_opensaf_write_checkpoint(void *data, int len, SectionIndex idx, int
         L7_uint64 bmp_aux = 0;
         bmp_aux = 1 << (offset / len);
         ptin_checkpoint[id].bmp_section[idx] |= bmp_aux;
-        PT_LOG_TRACE(LOG_CTX_OPENSAF, "Written %d ", ptin_checkpoint[id].bmp_section[idx]);
+        PT_LOG_TRACE(LOG_CTX_OPENSAF, "Written 0x%llx ", ptin_checkpoint[id].bmp_section[idx]);
       }
       else
       {
         L7_uint64 bmp = -1;
         bmp = 0 << (offset / len);
         ptin_checkpoint[id].bmp_section[idx] &= bmp;
-        PT_LOG_TRACE(LOG_CTX_OPENSAF, "Written %d ", ptin_checkpoint[id].bmp_section[idx]);
+        PT_LOG_TRACE(LOG_CTX_OPENSAF, "Written 0x%llx ", ptin_checkpoint[id].bmp_section[idx]);
       }
 
       PT_LOG_TRACE(LOG_CTX_OPENSAF, "Written %d bytes at offset %d to checkpoint %s:%u", len, offset, ptin_checkpoint[id].ckptNameStr, idx);
@@ -758,7 +758,7 @@ L7_RC_t ptin_opensaf_checkpoint_deleteSection(SectionIndex idx, int id)
 
   if (id>PTIN_MAX_OPENSAF_CHECKPOINTS)
   {
-    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid %s", id);
+    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid", id);
     return L7_FAILURE;
   }
 
@@ -811,7 +811,7 @@ void ptin_checkpoint_runValidation(int step, const char *caller, int id)
 
   if (id>PTIN_MAX_OPENSAF_CHECKPOINTS)
   {
-    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid %s\n", id);
+    PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid\n", id);
   }
 
   if (step == 1)
@@ -1142,7 +1142,8 @@ L7_RC_t ptin_opensaf_find_free_element(int* offset, int section, int id)
     aux = 0;
     aux = ptin_checkpoint[id].bmp_section[section] & (1 << i);
 
-    PT_LOG_TRACE(LOG_CTX_OPENSAF, "ptin_checkpoint[id].bmp_section[section] %x \n", ptin_checkpoint[id].bmp_section[section]);
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "ptin_checkpoint[id=%u].bmp_section[section] 0x%llx \n",
+                 id, ptin_checkpoint[id].bmp_section[section]);
     i++;
   }
 

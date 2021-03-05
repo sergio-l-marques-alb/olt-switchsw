@@ -37,7 +37,8 @@ fw_shm_open( void )
   if (shmid < 0)
   {
     pfw_shm = &fw_shm;
-    PT_LOG_ERR(LOG_CTX_CNFGR, "Failed acquiring new shmid (%d), errno=%d (sizeof=%u)",shmid,err,sizeof(fw_shm));
+    PT_LOG_ERR(LOG_CTX_CNFGR, "Failed acquiring new shmid (%d), errno=%d (sizeof=%zu)",
+               shmid,err,sizeof(fw_shm));
     return -1;
   }
   PT_LOG_INFO(LOG_CTX_CNFGR, "Success acquiring new shmid: %d", shmid);

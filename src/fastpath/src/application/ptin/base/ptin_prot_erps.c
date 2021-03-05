@@ -598,7 +598,7 @@ int ptin_erps_remove_entry(L7_uint8 erps_idx)
 
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
     osapiSemaGive(ptin_prot_erps_sem);
-    PT_LOG_TRACE(LOG_CTX_ERPS, "Entry free.", ret);
+    PT_LOG_TRACE(LOG_CTX_ERPS, "Entry free: ret=%d", ret);
     return(ret);
   }
 
@@ -627,8 +627,6 @@ int ptin_erps_remove_entry(L7_uint8 erps_idx)
 int ptin_erps_clear(void)
 {
   int erps_idx, ret=PROT_ERPS_EXIT_OK;
-
-  PT_LOG_TRACE(LOG_CTX_ERPS, "");
 
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
     if ((ret=ptin_erps_remove_entry(erps_idx))!=erps_idx) {
@@ -1209,7 +1207,7 @@ int ptin_erps_blockOrUnblockPort(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 port
   }
   if (port > PROT_ERPS_PORT1)
   {
-    PT_LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: Invalid port id %u", port);
+    PT_LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: Invalid port id %u", erps_idx, port);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
@@ -1265,7 +1263,7 @@ int ptin_erps_force_alarms(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 sf)
   }
   if (port > PROT_ERPS_PORT1)
   {
-    PT_LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: Invalid port id %u", port);
+    PT_LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: Invalid port id %u", erps_idx, port);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
@@ -1303,7 +1301,7 @@ int ptin_erps_rd_alarms(L7_uint8 erps_idx, L7_uint8 port)
   }
   if (port > PROT_ERPS_PORT1)
   {
-    PT_LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: Invalid port id %u", port);
+    PT_LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: Invalid port id %u", erps_idx, port);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 

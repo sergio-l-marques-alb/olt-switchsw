@@ -888,7 +888,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
                       "(%s) Packet ignored, because of ip source (0x%08x)",
                       __FUNCTION__, osapiNtohl(ipHeader->iph_src));
         dsTraceWrite(traceMsg);
-        PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored, because of ip source (0x%08x)", osapiNtohl(ipHeader->iph_src));
+        PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored, because of ip source (0x%08lx)", osapiNtohl(ipHeader->iph_src));
       }
 
       return SYSNET_PDU_RC_IGNORED;
@@ -1564,7 +1564,7 @@ L7_RC_t dsPacketQueue(L7_uchar8 *ethHeader, L7_uint32 dataLen,
 
     if (dataLen > DS_DHCP_PACKET_SIZE_MAX)
     {
-        PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet", 
+        PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet is invalid (%u)", 
                    dataLen);
         return L7_FAILURE;    
     }
@@ -1754,7 +1754,7 @@ L7_RC_t dsFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
   if (frameLen > DS_DHCP_PACKET_SIZE_MAX)
   {
-        PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet", 
+        PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet is invalid (%u)", 
                    frameLen);
         return L7_FAILURE;    
   }
@@ -2415,7 +2415,8 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
       if ((osapiNtohs(dhcp_op_header->option_len) == 0) || 
           (frame_len < (sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len))))
       {
-         PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Received message with an invalid frame length %d/%d", frame_len, sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len));
+         PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Received message with an invalid frame length %u/%zu",
+                    frame_len, sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len));
          return L7_SUCCESS;
       }
     
@@ -3011,7 +3012,7 @@ L7_RC_t dsv6AddOption18or37(L7_uint32 ptin_port, L7_uchar8 *frame, L7_uint32 *fr
       if(!strlen(circuit_id))
       {
         if (ptin_debug_dhcp_snooping)
-          PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Invalid circuit-id string (string length is 0)", circuit_id);
+          PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Invalid circuit-id string (string length is 0)");
         return L7_FAILURE;
       }
       if (ptin_debug_dhcp_snooping)
@@ -3031,7 +3032,7 @@ L7_RC_t dsv6AddOption18or37(L7_uint32 ptin_port, L7_uchar8 *frame, L7_uint32 *fr
       if(!strlen(remote_id))
       {
         if (ptin_debug_dhcp_snooping)
-          PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Invalid remote-id string (string length is 0)", remote_id);
+          PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Invalid remote-id string (string length is 0)");
         return L7_FAILURE;
       }
       if (ptin_debug_dhcp_snooping)
@@ -4333,7 +4334,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
   while ((relayOffset < relayEnd) && (*relayOffset != DHO_END))
   {
     if (ptin_debug_dhcp_snooping)
-      PT_LOG_TRACE(LOG_CTX_DHCP,"Suboption detected? %u (relayOffset=%u)",*relayOffset,relayOffset);
+      PT_LOG_TRACE(LOG_CTX_DHCP,"Suboption detected? %u (relayOffset=%u)", *relayOffset, *relayOffset);
 
     switch (*relayOffset)
     {
@@ -5114,10 +5115,10 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
             dsMacToString(srcMacAddr->addr, srcMacStr);
             L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DHCP_SNOOPING_COMPONENT_ID,
                     "DHCP snooping dropping %s received on "
-                    "interface %s, vlan %u, from %s. Station not in bindings table.",
-                      " This message appears when DHCP Snooping untrusted port  drops "
-                      "DHCP Decline or DHCP release messages for a non-existing entry "
-                      "in SNOOPING table.",
+                    "interface %s, vlan %u, from %s. Station not in bindings table."
+                    " This message appears when DHCP Snooping untrusted port  drops "
+                    "DHCP Decline or DHCP release messages for a non-existing entry "
+                    "in SNOOPING table.",
                     dhcpMsgTypeNames[dhcpPktType], ifName, vlanId, srcMacStr);
             dsLogEthernetHeader((L7_enetHeader_t*) frame, DS_TRACE_LOG);
             dsLogIpHeader(ipHeader, DS_TRACE_LOG);
@@ -6221,7 +6222,7 @@ L7_RC_t dsFrameSend(L7_uint32 ptin_port, L7_ushort16 vlanId,
 
   if (frameLen > DS_DHCP_PACKET_SIZE_MAX)
   {
-     PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet invalid", 
+     PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet invalid (%u)", 
                 frameLen);
      return L7_FAILURE;    
   }
@@ -6266,7 +6267,7 @@ L7_RC_t dsFrameSend(L7_uint32 ptin_port, L7_ushort16 vlanId,
         frameLen += 4;
         if (frameLen > DS_DHCP_PACKET_SIZE_MAX)
         {
-          PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet",
+          PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet is invalid (%u)",
                      frameLen);
           return L7_FAILURE;
         }

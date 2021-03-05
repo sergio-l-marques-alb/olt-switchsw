@@ -1576,13 +1576,13 @@ void ptin_control_switchover_monitor(void)
         /* Disable force link-up */
         if (ptin_intf_link_force(port, L7_TRUE, L7_DISABLE) != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_CONTROL, "Error disabling force link-up for ptin_port %d!", interfaces_active[port], port);
+          PT_LOG_ERR(LOG_CTX_CONTROL, "Error disabling force link-up for ptin_port %d!", port);
           continue;
         }
         /* Cause a linkdown */
         if (ptin_intf_link_force(port, L7_FALSE, 0) != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_CONTROL, "Error causing change link for ptin_port %d!", interfaces_active[port], port);
+          PT_LOG_ERR(LOG_CTX_CONTROL, "Error causing change link for ptin_port %d!", port);
           continue;
         }
       }

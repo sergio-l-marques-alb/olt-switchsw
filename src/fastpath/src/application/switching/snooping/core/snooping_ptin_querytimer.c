@@ -236,7 +236,7 @@ void cbEventqueueTask(void)
 
   if (osapiTaskInitDone(L7_PTIN_IGMP_TASK_SYNC)!=L7_SUCCESS)
   {
-    PT_LOG_FATAL(LOG_CTX_SSM, "Error syncing task");
+    PT_LOG_FATAL(LOG_CTX_IGMP, "Error syncing task");
     PTIN_CRASH();
   }
 

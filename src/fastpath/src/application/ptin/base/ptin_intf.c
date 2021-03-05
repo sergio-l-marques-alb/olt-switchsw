@@ -823,7 +823,7 @@ L7_RC_t ptin_intf_portExt_get(L7_uint32 ptin_port, ptin_HWPortExt_t *mefExt)
   PT_LOG_TRACE(LOG_CTX_INTF," macLearn_stationMove_enable = %u" , mefExt->macLearn_stationMove_enable);
   PT_LOG_TRACE(LOG_CTX_INTF," macLearn_stationMove_prio   = %u" , mefExt->macLearn_stationMove_prio);
   PT_LOG_TRACE(LOG_CTX_INTF," Max Channels      = %u"           , mefExt->maxChannels);
-  PT_LOG_TRACE(LOG_CTX_INTF," Max Bandwidth     = %u"           , mefExt->maxBandwidth);
+  PT_LOG_TRACE(LOG_CTX_INTF," Max Bandwidth     = %llu"         , mefExt->maxBandwidth);
   PT_LOG_TRACE(LOG_CTX_INTF," Interface trusted = %u"           , mefExt->dhcp_trusted);
 
   PT_LOG_TRACE(LOG_CTX_INTF, "Success getting MEF Ext of ptin_port %u", ptin_port);
@@ -967,7 +967,7 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
     /* Port should not have force link scheme applied */
     if ( (forcelinked_ports_bmp >> port) & 1 )
     {
-      PT_LOG_INFO(LOG_CTX_INTF, "Port %u in forced link state... nothing to be done!");
+      PT_LOG_INFO(LOG_CTX_INTF, "Port %u in forced link state... nothing to be done!", port);
     }
     else
   #endif
@@ -2437,7 +2437,7 @@ L7_RC_t ptin_intf_port2intIfNum_queueSet(L7_uint32 ptin_port, L7_uint32 *intIfNu
   rc = ptin_intf_port2intIfNum(ptin_port, intIfNum);
   if (rc != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_INTF, "Error converting ptin_port %u to intIfNum", intIfNum);
+    PT_LOG_ERR(LOG_CTX_INTF, "Error converting ptin_port %u to intIfNum", ptin_port);
     return rc;
   }
   

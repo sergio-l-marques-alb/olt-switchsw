@@ -887,11 +887,11 @@ static L7_RC_t dsLeaseStatusUpdate(dsBindingTreeKey_t *key, L7_uint inetFamily, 
   }
 
   PT_LOG_TRACE(LOG_CTX_DHCP, "Binding To Update: MAC=%02x:%02x:%02x:%02x:%02x:%02x; vlanId=%u"
-                             " ptin_port=%u, intIfNum=%u, innerVlanId=%u, ipAddr=%x",
+                             " ptin_port=%u, intIfNum=%u, innerVlanId=%u, ipAddr=0x%08x",
                binding->key.macAddr.addr[0], binding->key.macAddr.addr[1], binding->key.macAddr.addr[2],
                binding->key.macAddr.addr[3], binding->key.macAddr.addr[4], binding->key.macAddr.addr[5],
                binding->key.vlanId, binding->ptin_port, binding->intIfNum,  binding->innerVlanId,
-               binding->ipAddr);
+               binding->ipAddr.addr.ipv4.s_addr);
 
   dsInfo->dsDbDataChanged = L7_TRUE;
   binding->leaseStatus    = messageType;
@@ -972,11 +972,11 @@ L7_RC_t dsBindingFlagsUpdate(dsBindingTreeKey_t *key, L7_uint8 flags)
   }
 
   PT_LOG_TRACE(LOG_CTX_DHCP, "Binding To Update: MAC=%02x:%02x:%02x:%02x:%02x:%02x; vlanId=%u"
-                             " ptin_port=%u, intIfNum=%u, innerVlanId=%u, ipAddr=%x",
+                             " ptin_port=%u, intIfNum=%u, innerVlanId=%u, ipAddr=0x%08x",
                binding->key.macAddr.addr[0],binding->key.macAddr.addr[1],binding->key.macAddr.addr[2],
                binding->key.macAddr.addr[3],binding->key.macAddr.addr[4],binding->key.macAddr.addr[5],
                binding->key.vlanId, binding->ptin_port, binding->intIfNum,  binding->innerVlanId,
-               binding->ipAddr);
+               binding->ipAddr.addr.ipv4.s_addr);
 
   dsInfo->dsDbDataChanged = L7_TRUE;
   binding->flags          = flags;

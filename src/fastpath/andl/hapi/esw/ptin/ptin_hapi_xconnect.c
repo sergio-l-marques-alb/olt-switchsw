@@ -1013,7 +1013,7 @@ L7_RC_t ptin_hapi_multicast_egress_port_add(L7_int *mcast_group, L7_uint32 multi
   }
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "port={%d,%d,%d}, mcast_group=%d",
-            dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port, mcast_group);
+            dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port, *mcast_group);
 
   /* Validate interface */
   if ( dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0 )

@@ -1969,7 +1969,8 @@ L7_RC_t ptin_igmp_mgmd_status_get(void)
   /* Copy the response contents to igmpProxy */
   if(sizeof(PTIN_MGMD_CTRL_MGMD_STATUS_t) != ctrlResMsg.dataLength)
   {
-    PT_LOG_ERR(LOG_CTX_IGMP,"Unexpected size in the MGMD response [dataLength:%u/%u]", ctrlResMsg.dataLength, sizeof(PTIN_MGMD_CTRL_MGMD_STATUS_t));
+    PT_LOG_ERR(LOG_CTX_IGMP,"Unexpected size in the MGMD response [dataLength:%u/%zu]",
+               ctrlResMsg.dataLength, sizeof(PTIN_MGMD_CTRL_MGMD_STATUS_t));
     return L7_FAILURE;
   }
   else

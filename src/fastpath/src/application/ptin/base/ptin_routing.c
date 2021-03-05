@@ -1346,7 +1346,7 @@ L7_RC_t ptin_routing_traceroutesession_create(L7_uint8 sessionIdx, L7_uint32 ipA
   /* Ensure that the requested index belongs to a traceroute session not in use */
   if(__traceroute_sessions[sessionIdx].isRunning == L7_TRUE)
   {
-    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index is already being used in an active traceroute session [index:%u]", index);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index is already being used in an active traceroute session [index:%u]", sessionIdx);
     return L7_FAILURE;
   }
 
@@ -1455,7 +1455,7 @@ L7_RC_t ptin_routing_traceroutesession_gethops(L7_uint32 sessionIdx, L7_uint16 f
 
   if(sessionIdx > __traceroute_sessions_max)
   {
-    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", index);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", sessionIdx);
     return L7_FAILURE;
   }
 
@@ -1630,7 +1630,7 @@ L7_RC_t __ptin_routing_ICMPRedirects_set(L7_uint32 routingIntfNum, L7_BOOL enabl
   }
 
   /* Enable/Disable ICMP Redirects on this Router */
-  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Setting ICMP Redirects on Router to value %d", routingIntfNum, enable);
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Setting ICMP Redirects on intfIfNum %u to value %d", routingIntfNum, enable);
   usmDbIpMapRtrICMPRedirectsModeSet(enable);
 
   return L7_SUCCESS;
@@ -2294,7 +2294,7 @@ static void __traceroutehops_snapshot_refresh(L7_uint32 sessionIdx)
   /* Get the handle for this traceroute session */
   if(sessionIdx > __traceroute_sessions_max)
   {
-    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", index);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", sessionIdx);
     return;
   }
   if(__traceroute_sessions[sessionIdx].handle == 0)

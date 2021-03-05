@@ -1161,7 +1161,7 @@ L7_RC_t ptin_xlate_egress_add( ptin_HwEthMef10Intf_t *intf_vlan,
     /* Set untagged port */
     if (usmDbVlanTaggedSet(unit, intf_vlan->vid, intIfNum, L7_DOT1Q_UNTAGGED) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_EVC, "Error setting ptin_port# %u internal VLAN %u as UNtagged (rc=%d)", ptin_port, intf_vlan->vid);
+      PT_LOG_ERR(LOG_CTX_EVC, "Error setting ptin_port# %u internal VLAN %u as UNtagged", ptin_port, intf_vlan->vid);
       return L7_FAILURE;
     }
   }

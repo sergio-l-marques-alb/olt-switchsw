@@ -911,7 +911,7 @@ L7_RC_t ptin_l2intf_create(L7_uint32 ptin_port,
   {
     if (l2intf.l2intf_id <= 0)
     {
-      PT_LOG_ERR(LOG_CTX_API, "Finished: Invalid l2intf id %d (MC group=%d)", rc, l2intf.l2intf_id, l2intf.multicast_group);
+      PT_LOG_ERR(LOG_CTX_API, "Finished: Invalid l2intf id %d (MC group=%d)", l2intf.l2intf_id, l2intf.multicast_group);
       return L7_FAILURE;
     }
     /* Return l2intf id */

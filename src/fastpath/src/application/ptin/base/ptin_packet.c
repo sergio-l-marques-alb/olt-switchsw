@@ -284,7 +284,7 @@ void ptin_packet_task(void)
 
   if (osapiTaskInitDone(L7_PTIN_PACKET_TASK_SYNC)!=L7_SUCCESS)
   {
-    PT_LOG_FATAL(LOG_CTX_SSM, "Error syncing task");
+    PT_LOG_FATAL(LOG_CTX_PACKET, "Error syncing task");
     PTIN_CRASH();
   }
 

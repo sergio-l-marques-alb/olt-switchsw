@@ -1663,7 +1663,7 @@ L7_RC_t snoopChannelClientAdd(snoopInfoData_t *snoopEntry,
   if (snoopEntry->channel_list[channel_index].number_of_clients>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
     if (ptin_debug_igmp_snooping)
-      PT_LOG_ERR(LOG_CTX_IGMP,"snoopClientAdd: No more room to add a new client",client);
+      PT_LOG_ERR(LOG_CTX_IGMP,"snoopClientAdd: No more room to add a new client");
     return L7_FAILURE;
   }
 
@@ -1931,7 +1931,8 @@ L7_RC_t snoop_channel_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
           if (snoopChannelIntfAdd(snoopEntry, intIfNum, mgmdGroupAddr, L7_FALSE)!=L7_SUCCESS)
           {
             if (ptin_debug_igmp_snooping)
-              PT_LOG_ERR(LOG_CTX_IGMP, "Error adding intIfNum %u to channel 0x%08x",intIfNum,mgmdGroupAddr);
+              PT_LOG_ERR(LOG_CTX_IGMP, "Error adding intIfNum %u to channel 0x%08x",
+                         intIfNum, mgmdGroupAddr->addr.ipv4.s_addr);
           }
         }
       }
@@ -3108,7 +3109,7 @@ L7_RC_t snoopL3GroupPtinPortRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_ine
     if (pChannelEntry->pChannelptinPortMask == L7_NULLPTR || (multicast_group = pChannelEntry->pChannelptinPortMask->multicastGroup) <= 0)
     {
         PT_LOG_WARN(LOG_CTX_IGMP, "This channel exists but is not valid (pChannelEntry->pChannelptinPortMask:0x%02X multicast_group:0x%08X)",
-                    pChannelEntry->channelPtinPortMask.value, multicast_group);
+                    pChannelEntry->channelPtinPortMask.value[0], multicast_group);
         removeChannelEntry = L7_TRUE;
         goto ERROR;
     }
@@ -3394,7 +3395,7 @@ L7_RC_t snoopL3GroupPtinPortRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_ine
         {
           if (ptinPort == ptin_port)
           {
-            PT_LOG_ERR(LOG_CTX_IGMP, "ptinPort == ptin_port", ptinPort, ptin_port);              
+            PT_LOG_ERR(LOG_CTX_IGMP, "ptinPort:%u == ptin_port:%u", ptinPort, ptin_port);              
           }
 #if defined IGMP_SMART_MC_EVC_SUPPORTED
           {
@@ -4086,7 +4087,8 @@ L7_BOOL snoopChannelExist4VlanId(L7_uint16 vlanId, L7_inet_addr_t *channel, snoo
   if ((entry=snoopEntryFind(dmac,vlanId,L7_AF_INET,AVL_EXACT))==L7_NULLPTR)
   {
     if (ptin_debug_igmp_snooping)
-      PT_LOG_WARN(LOG_CTX_IGMP,"VLAN+MAC (%u+%02x:02x:02x:02x:02x:02x) do not exist!",vlanId,dmac[0],dmac[1],dmac[2],dmac[3],dmac[4],dmac[5]);
+      PT_LOG_WARN(LOG_CTX_IGMP,"VLAN+MAC (%u+%02x:%02x:%02x:%02x:%02x:%02x) do not exist!",
+                  vlanId, dmac[0],dmac[1],dmac[2],dmac[3],dmac[4],dmac[5]);
     return L7_FALSE;
   }
 
@@ -4371,7 +4373,6 @@ void snoopChannelsGet(L7_uint16 vlanId,
       L7_uint8                sourceIdx;
 
       PT_LOG_NOTICE(LOG_CTX_IGMP,"Found group :%s", inetAddrPrint(&avlTreeEntry->snoopPTinL3InfoDataKey.mcastGroupAddr, debug_buf));
-      PT_LOG_TRACE(LOG_CTX_IGMP,"\tInterface:%u Clients:0x%0*X", 8*PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE, SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM);
 
       //Add an entry for clients that have requested this group but with no source in particular.
       interface_ptr = &avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM];
@@ -4407,7 +4408,6 @@ void snoopChannelsGet(L7_uint16 vlanId,
           //Filter by client (if requested)
           if ((client_index == (L7_uint16)-1) || (PTIN_IS_MASKBITSET(avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].clients, client_index)))
           {
-            PT_LOG_TRACE(LOG_CTX_IGMP,"\t\tSource:0x%08X Clients:0x%0*X", 8*PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE, source_ptr->sourceAddr);
             inetCopy(&channel_list[*num_channels].groupAddr, &avlTreeKey.mcastGroupAddr);
             inetCopy(&channel_list[*num_channels].sourceAddr, &source_ptr->sourceAddr);
             /* If group address is static, get static information to source channel */
