@@ -2933,11 +2933,10 @@ L7_BOOL ipMapMapIntfIsConfigurable(L7_uint32 intIfNum, L7_rtrCfgCkt_t **pCfg)
     }
     
     /* Check boundary conditions */
-    rc = platIntfMaxCountGet();
-    if (intIfNum <= 0 || intIfNum >= rc)
+    if (intIfNum <= 0 || intIfNum >= platIntfMaxCountGet())
     {
-        PT_LOG_ERR(LOG_CTX_INTF, "Error: inIfNum = %d (should be in ]0; %u[ )", rc);
-        return L7_FALSE;
+      PT_LOG_ERR(LOG_CTX_INTF, "Error: inIfNum = %d (should be in ]0; %u[ )", intIfNum, platIntfMaxCountGet());
+      return L7_FALSE;
     }
 
     index = intIfToCfgIndex[intIfNum];
