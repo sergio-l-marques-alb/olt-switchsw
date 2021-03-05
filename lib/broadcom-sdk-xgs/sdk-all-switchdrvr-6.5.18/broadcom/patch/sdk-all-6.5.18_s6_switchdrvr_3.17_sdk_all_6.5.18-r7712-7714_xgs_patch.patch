@@ -1915,16 +1915,16 @@ Index: src/soc/esw/drv.c
 ===================================================================
 --- src/soc/esw/drv.c	(revision 7711)
 +++ src/soc/esw/drv.c	(revision 7714)
-@@ -173,6 +173,9 @@
- #include <soc/avs.h>
- #endif /* INCLUDE_AVS */
+@@ -6,6 +6,9 @@
+  * StrataSwitch driver
+  */
  
 +/* PTin added: PCIe */
 +#include "logger.h"
 +
- #if defined(CANCUN_SUPPORT)
- #include <soc/esw/cancun.h>
- #endif /* CANCUN_SUPPORT */
+ #include <shared/bsl.h>
+ 
+ #include <stddef.h>
 @@ -9724,6 +9727,7 @@
              } else
  #endif
@@ -2175,12 +2175,10 @@ Index: src/soc/phy/wc40.c
 ===================================================================
 --- src/soc/phy/wc40.c	(revision 7711)
 +++ src/soc/phy/wc40.c	(revision 7714)
-@@ -28,6 +28,10 @@
+@@ -28,6 +28,8 @@
  #include <soc/scache.h>
  #endif
  
-+#include <logger.h>       /* PTin added: WC40 */
-+
 +#define PTIN_PRBS_ALWAYS_CL49 1
 +
  #include "phyreg.h"
@@ -2299,65 +2297,10 @@ Index: src/soc/phy/wc40.c
          /* not to enable PRBS here. Once PRBS is enabled, the link will go down.
           * Autoneg will be restarted by link partner and Tx settings will be lost.
           * It will be enabled in get function when first time called 
-@@ -10533,6 +10565,8 @@
-                 (BSL_META_U(unit,
-                             "WC40 : uC RAM download success: u=%d p=%d ver=%x"), unit, port,ver));
- 
-+    PT_LOG_NOTICE(LOG_CTX_SDK,"WC40 : uC RAM download success: u=%d p=%d ver=%x\r\n", unit, port,ver);   /* PTin added: WC40 */
-+
-     if (!no_cksum) {
-         LOG_VERBOSE(BSL_LS_SOC_PHY,
-                     (BSL_META_U(unit,
-Index: src/soc/phy/wcmod/include/wcmod_main.h
-===================================================================
---- src/soc/phy/wcmod/include/wcmod_main.h	(revision 7711)
-+++ src/soc/phy/wcmod/include/wcmod_main.h	(revision 7714)
-@@ -118,7 +118,7 @@
- 
- #define CHK_RET_VAL_FUNC(op) \
-     { int rv; if ((rv=(op)) != 0) \
--        { printf("ERROR %s:%d. #op# returned %d\n", __FILE__,__LINE__,rv); \
-+        { PT_LOG_ERR(LOG_CTX_SDK, "ERROR %s:%d. #op# returned %d",__FILE__,__LINE__,rv); \
-           return (rv);} }
- 
- #define WC_AER_BCST_OFS_STRAP   0x1ff
-Index: src/soc/phy/wcmod/src/wcmod_phyreg.c
-===================================================================
---- src/soc/phy/wcmod/src/wcmod_phyreg.c	(revision 7711)
-+++ src/soc/phy/wcmod/src/wcmod_phyreg.c	(revision 7714)
-@@ -17,6 +17,7 @@
- #include <soc/drv.h>
- #endif
- 
-+#include "logger.h"
- 
- /*!
- \brief WCMod clause 45 read driver.
 Index: src/soc/phy/wcmod/src/wcmod.c
 ===================================================================
 --- src/soc/phy/wcmod/src/wcmod.c	(revision 7711)
 +++ src/soc/phy/wcmod/src/wcmod.c	(revision 7714)
-@@ -37,6 +37,7 @@
- #include "wcmod_functions.h"
- #include "wcmod_diagnostics.h"
- 
-+#include "logger.h"
- 
- 
- #define WCMOD_SDK32387_REVS(_pc) (WCMOD_REVID_A0(_pc) || WCMOD_REVID_A1(_pc) || WCMOD_REVID_B0(_pc))
-@@ -3558,6 +3559,12 @@
-              (BSL_META_U(pc->unit,
-                          "phy_wcmod_init: u=%d p=%d\n"), unit, port));
- 
-+    /* PTin added: PHY link down problem */
-+    #if 1
-+    PT_LOG_INFO(LOG_CTX_SDK,"WCMOD initialized for bcm_port %u", port);
-+    osapiSleepMSec(50);
-+    #endif
-+
-     return SOC_E_NONE;
- }
- 
 @@ -6428,6 +6435,11 @@
                                                                                  
      pc->fiber.autoneg_enable = an;
