@@ -87,7 +87,8 @@ L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 workingSlotId, L7_uint8 protectionSl
   {
     if ( protectionSlotIp == workingSlotIp )
     {
-      PT_LOG_ERR(LOG_CTX_IGMP, "Invalid Configuration: protectionSlotId:%u != workingSlotId:%u && protectionSlotIp == workingSlotIp = :%u", protectionSlotId, workingSlotId, protectionSlotIp);
+      PT_LOG_ERR(LOG_CTX_IGMP, "Invalid Configuration: protectionSlotId:%u != workingSlotId:%u && protectionSlotIp == workingSlotIp = :%u",
+                 protectionSlotId, workingSlotId, protectionSlotIp);
       return L7_FAILURE;
     }    
   }
@@ -96,7 +97,7 @@ L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 workingSlotId, L7_uint8 protectionSl
     if (workingPortId == protectionPortId)
     {
       PT_LOG_ERR(LOG_CTX_IGMP, "Invalid Configuration: protectionSlotId:%u == workingSlotId:%u && workingPortId == protectionPortId = :%u",
-                 protectionSlotId, workingPortId, workingPortId);
+                 protectionSlotId, workingSlotId, workingPortId);
       return L7_FAILURE;
     }
   }  
@@ -110,7 +111,8 @@ L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 workingSlotId, L7_uint8 protectionSl
   mgmdPortSync.sourceAddr = sourceAddr;
   mgmdPortSync.groupType  = groupType;
 
-  PT_LOG_TRACE(LOG_CTX_IGMP, "Sending message to card %08X(%u) to set port %u admin to %u for group %08X/%08X", protectionSlotIp, protectionSlotId, protectionPortId, admin, groupAddr, sourceAddr);
+  PT_LOG_TRACE(LOG_CTX_IGMP, "Sending message to card %08X(%u) to set port %u admin to %u for group %08X/%08X",
+               protectionSlotIp, protectionSlotId, protectionPortId, admin, groupAddr, sourceAddr);
 
   /* Send the mfdb port configurations to the remote slot */
   if (send_ipc_message(IPC_HW_FASTPATH_PORT, protectionSlotIp, CCMSG_MGMD_PORT_SYNC,
