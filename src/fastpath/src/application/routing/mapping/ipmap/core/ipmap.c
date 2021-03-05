@@ -2922,43 +2922,54 @@ L7_uint32 ipMapAsyncNotifyPoolIdGet (void)
 *********************************************************************/
 L7_BOOL ipMapMapIntfIsConfigurable(L7_uint32 intIfNum, L7_rtrCfgCkt_t **pCfg)
 {
-  L7_uint32 index;
-  nimConfigID_t configId;
-
-  if (!(IPMAP_IS_READY))
-    return L7_FALSE;
-
-  /* Check boundary conditions */
-  if (intIfNum <= 0 || intIfNum >= platIntfMaxCountGet())
-    return L7_FALSE;
-
-  index = intIfToCfgIndex[intIfNum];
-
-  if (index == 0)
-    return L7_FALSE;
-
-  /* verify that the configId in the config data table entry matches the configId that NIM maps to
-   ** the intIfNum we are considering
-   */
-  if (nimConfigIdGet(intIfNum, &configId) == L7_SUCCESS)
-  {
-    if (NIM_CONFIG_ID_IS_EQUAL(&configId, &(ipMapCfg->ckt[index].configId)) == L7_FALSE)
+    L7_uint32 index;
+    nimConfigID_t configId;
+    L7_RC_t rc;
+    
+    if (!(IPMAP_IS_READY))
     {
-      L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-      nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
-
-      /* if we get here, either we have a table management error between ipMapCfg and ipMapMapTbl or
-      ** there is synchronization issue between NIM and components w.r.t. interface creation/deletion
-      */
-      L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_IP_MAP_COMPONENT_ID,
-              "Error accessing IPMAP config data for interface %s in ipMapMapIntfIsConfigurable.\n", ifName);
+        PT_LOG_ERR(LOG_CTX_INTF, "Error IPMAP is not ready");
+        return L7_FALSE;
+    }
+    
+    /* Check boundary conditions */
+    if (intIfNum <= 0 || intIfNum >= platIntfMaxCountGet())
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error: inIfNum = %d (should be in ]0; %u[ )", intIfNum, platIntfMaxCountGet());
       return L7_FALSE;
     }
-  }
 
-  *pCfg = &ipMapCfg->ckt[index];
+    index = intIfToCfgIndex[intIfNum];
 
-  return L7_TRUE;
+    if (index == 0)
+    {
+        return L7_FALSE;
+    }
+
+    /* verify that the configId in the config data table entry matches the configId that NIM maps to
+    ** the intIfNum we are considering
+    */
+    rc = nimConfigIdGet(intIfNum, &configId);
+    if (rc == L7_SUCCESS)
+    {
+        if (NIM_CONFIG_ID_IS_EQUAL(&configId, &(ipMapCfg->ckt[index].configId)) == L7_FALSE)
+        {
+            L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+            nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+            
+            /* if we get here, either we have a table management error between ipMapCfg and ipMapMapTbl or
+            ** there is synchronization issue between NIM and components w.r.t. interface creation/deletion
+            */
+            PT_LOG_ERR(LOG_CTX_INTF,
+                       "Error accessing IPMAP config data for interface %s in ipMapMapIntfIsConfigurable.\n", 
+                       ifName);
+            return L7_FALSE;
+        }
+    }
+
+    *pCfg = &ipMapCfg->ckt[index];
+    
+    return L7_TRUE;
 }
 
 /*********************************************************************

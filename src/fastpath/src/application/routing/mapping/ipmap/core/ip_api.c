@@ -2466,13 +2466,16 @@ are configured. See defect 48936.
        * This has to be done immediately in order to get the the DHCP Release
        * out on the wire.
        */
-      if (dhcpClientIPAddressMethodSet (intIfNum, L7_INTF_IP_ADDR_METHOD_NONE,
-                                        L7_MGMT_IPPORT, L7_FALSE)
-                                     != L7_SUCCESS)
+      rc = dhcpClientIPAddressMethodSet(intIfNum, L7_INTF_IP_ADDR_METHOD_NONE,
+                                        L7_MGMT_IPPORT, L7_FALSE);
+      if (rc != L7_SUCCESS)
       {
         if (ipMapTraceFlags & IPMAP_TRACE_DHCP_UPDATE)
         {
           L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
+          PT_LOG_INFO(LOG_CTX_INTF,
+                      "DHCP Address Release Failed on intIfNum %d (rc=%u)\n",
+                      intIfNum, rc);
           osapiSnprintf (traceBuf, sizeof(traceBuf),
                          "[%s-%d]: DHCP Address Release Failed on intIfNum %d\n",
                          __FUNCTION__, __LINE__, intIfNum);
