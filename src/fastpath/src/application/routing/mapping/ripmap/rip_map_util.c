@@ -1297,8 +1297,7 @@ void ripMapCfgDataShow(void)
           }
           else
           {
-
-              SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_RIPMAP,  "\n%0/0/0");
+              SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_RIPMAP,  "\n0/0/0");
           }
       }
       if (pRipMapCfgData->intf[i].adminMode == L7_ENABLE)

@@ -860,7 +860,7 @@ void o2RoutePrint(t_RoutingTableEntry *route)
   {
     osapiStrncpySafe(nhStr, "None", OSAPI_INET_NTOA_BUF_SIZE);
   }
-  sysapiPrintf("\n%16s %16s %16s %8s %8u %8u %16s",
+  sysapiPrintf("\n%16s %16s %16s %8s %8lu %8lu %16s",
                  pfxStr, maskStr, areaStr, o2PathTypeString(route->PathType), route->Cost,
                  (route->PathType == OSPF_TYPE_2_EXT) ? route->Type2Cost : 0,
                  nhStr);

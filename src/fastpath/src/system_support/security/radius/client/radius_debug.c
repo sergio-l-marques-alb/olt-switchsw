@@ -104,17 +104,17 @@ void radiusDebugSizesShow()
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "------------------------------\r\n");
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof radiusCfg_t = %d\r\n", sizeof(radiusCfg_t));
+                "sizeof radiusCfg_t = %zu\r\n", sizeof(radiusCfg_t));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof radiusValuePair_t = %d\r\n", sizeof(radiusValuePair_t));
+                "sizeof radiusValuePair_t = %zu\r\n",sizeof(radiusValuePair_t));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof radiusRequest_t = %d\r\n", sizeof(radiusRequest_t));
+                "sizeof radiusRequest_t = %zu\r\n", sizeof(radiusRequest_t));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof radiusServerEntry_t = %d\r\n", sizeof(radiusServerEntry_t));
+                "sizeof radiusServerEntry_t = %zu\r\n", sizeof(radiusServerEntry_t));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof radiusDictValue_t = %d\r\n", sizeof(radiusDictValue_t));
+                "sizeof radiusDictValue_t = %zu\r\n", sizeof(radiusDictValue_t));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof radiusRequestInfo_t = %d\r\n", sizeof(radiusRequestInfo_t));
+                "sizeof radiusRequestInfo_t = %zu\r\n", sizeof(radiusRequestInfo_t));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "RADIUS_MAX_MESSAGE_LENGTH = %d\r\n", RADIUS_MAX_MESSAGE_LENGTH);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
@@ -575,11 +575,11 @@ void radiusDebugConfigDataTestShow(void)
                       cfgClient->serverConfigEntries[i].radiusServerConfigServerType);
 
 
-     sysapiPrintf( "cfgClient->serverConfigEntries[i].radiusServerConfigSecret = ",
+     sysapiPrintf( "cfgClient->serverConfigEntries[i].radiusServerConfigSecret = %s",
                    cfgClient->serverConfigEntries[i].radiusServerConfigSecret);
      for(j=0; j<L7_RADIUS_MAX_SECRET; j++)
      {
-       sysapiPrintf(" %02", cfgClient->serverConfigEntries[i].radiusServerConfigSecret[j]);
+       sysapiPrintf(" %02d", cfgClient->serverConfigEntries[i].radiusServerConfigSecret[j]);
      }
 
     sysapiPrintf( "\n");
@@ -652,7 +652,7 @@ void radiusDebugAcctServerNextIPHostNameGet(L7_uchar8 *serverAddr,L7_uchar8 Type
 
  if(choice == 1)
  {
-     sysapiPrintf("\n Displaying All of server entries \n",serverAddr);
+     sysapiPrintf("\n Displaying All of server entries (%s)\n",serverAddr);
      if(radiusAcctServerFirstIPHostNameGet(serverAddr,&pType) == L7_SUCCESS )
      {
          sysapiPrintf("\n %d. Server: %s",++index,serverAddr);
@@ -1298,7 +1298,7 @@ void radiusDebugServerConfig(L7_uint32 type, L7_char8 *serverAddr, L7_char8 *ser
 /* 1 - Auth / 2- Acct */
 void radiusDebugServerEntryRemove(L7_uint32 type, L7_char8 *serverAddr)
 {
-  sysapiPrintf("\n server: %s , type: d",(L7_uchar8 *)serverAddr, type);
+  sysapiPrintf("\n server: %s , type: %d",(L7_uchar8 *)serverAddr, type);
   if(RADIUS_SERVER_TYPE_AUTH == type)
   {
      /* To start with, hostaddr type assumed to be ipv4*/
@@ -1390,7 +1390,7 @@ void radiusDebugServerNameEntriesShowAll(L7_uint32 type)
       {
         if( radiusServerNameEntryDetailedGet(i,serverName,currentServer,&count,currentEntry) == L7_SUCCESS )
         {
-          sysapiPrintf("\n %-32s %-5d %-20s %u",serverName,count,currentServer,currentEntry);
+          sysapiPrintf("\n %-32s %-5u %-20s %p",serverName,count,currentServer,currentEntry);
         }
         else
         {

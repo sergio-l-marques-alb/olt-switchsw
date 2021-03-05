@@ -122,13 +122,13 @@ void dot1xDebugSizesShow()
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "----------------------\r\n");
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof dot1xInfo        = %d\r\n", sizeof(dot1xInfo));
+                "sizeof dot1xInfo        = %zu\r\n", sizeof(dot1xInfo));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof dot1xPortInfo_t  = %d\r\n", sizeof(dot1xPortInfo_t));
+                "sizeof dot1xPortInfo_t  = %zu\r\n", sizeof(dot1xPortInfo_t));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof dot1xPortStats_t = %d\r\n", sizeof(dot1xPortStats_t));
+                "sizeof dot1xPortStats_t = %zu\r\n", sizeof(dot1xPortStats_t));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof dot1xCfg_t       = %d\r\n", sizeof(dot1xCfg_t));
+                "sizeof dot1xCfg_t       = %zu\r\n", sizeof(dot1xCfg_t));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "L7_MAX_PORT_COUNT       = %d\r\n", L7_MAX_PORT_COUNT);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
@@ -505,7 +505,7 @@ void dot1xDebugPortMacInfoShow(L7_uint32 lIntIfNum)
                 "terminationAction         = %d\r\n", logicalPortInfo->terminationAction);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "suppBufHandle             = 0x%08X\r\n", logicalPortInfo->suppBufHandle);
+                "suppBufHandle             = 0x%08llX\r\n", logicalPortInfo->suppBufHandle);
 
   bzero(buf, 32);
   osapiSnprintf((L7_char8 *)buf, sizeof(buf), "%02X:%02X:%02X:%02X:%02X:%02X",
@@ -1327,13 +1327,13 @@ void dot1xDebugPacketTrace(L7_uint32 intIfNum, L7_netBufHandle bufHandle,L7_BOOL
         if((dot1xDebugPacketTraceRxFlag == L7_TRUE) && (rxFlag == L7_TRUE))
         {
           DOT1X_USER_TRACE_RX(DOT1X_DEBUG_PACKET_RX_EAP_FORMAT,
-              (L7_uint32)usp.unit, (L7_int32)usp.slot, (L7_int32)usp.port,
+              (L7_int32)usp.unit, (L7_int32)usp.slot, (L7_int32)usp.port,
               intIfNum,ifName,srcMac, destMac, type,code,eapPkt->id);
         }
         else if ((dot1xDebugPacketTraceTxFlag == L7_TRUE) && (txFlag == L7_TRUE))
         {
           DOT1X_USER_TRACE_TX(DOT1X_DEBUG_PACKET_TX_EAP_FORMAT,
-              (L7_uint32)usp.unit, (L7_int32)usp.slot, (L7_int32)usp.port,
+              (L7_int32)usp.unit, (L7_int32)usp.slot, (L7_int32)usp.port,
               intIfNum,ifName,srcMac, destMac, type,code,eapPkt->id)
         }
       }
@@ -1369,15 +1369,15 @@ void dot1xDebugPacketTrace(L7_uint32 intIfNum, L7_netBufHandle bufHandle,L7_BOOL
 
       if ((dot1xDebugPacketTraceRxFlag == L7_TRUE) && (rxFlag == L7_TRUE))
       {
-        DOT1X_USER_TRACE_RX(DOT1X_DEBUG_PACKET_RX_FORMAT,
+        DOT1X_USER_TRACE_RX(DOT1X_DEBUG_PACKET_RX_EAP_FORMAT,
                             (L7_uint32)usp.unit, (L7_int32)usp.slot, (L7_int32)usp.port,
-                            intIfNum,ifName,srcMac, destMac, type,code,eapPkt->id);
+                            intIfNum, ifName, srcMac, destMac, type, code, eapPkt->id);
       }
       else if ((dot1xDebugPacketTraceTxFlag == L7_TRUE) && (txFlag == L7_TRUE))
       {
-        DOT1X_USER_TRACE_TX(DOT1X_DEBUG_PACKET_TX_FORMAT,
+        DOT1X_USER_TRACE_TX(DOT1X_DEBUG_PACKET_TX_EAP_FORMAT,
                             (L7_uint32)usp.unit, (L7_int32)usp.slot, (L7_int32)usp.port,
-                            intIfNum,ifName,srcMac, destMac, type,code,eapPkt->id);
+                            intIfNum, ifName, srcMac, destMac, type, code, eapPkt->id);
       }
     }
   }

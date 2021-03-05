@@ -946,7 +946,7 @@ void gmrp_state_info(L7_ushort16 no_of_attr_to_print,
                                 (i+1),
                                 GetApplicantState[my_port->machines[i].applicant],
                                 GetRegisrarState[my_port->machines[i].registrar],
-                                &buf,
+                                buf,
                                 my_port->machines[i].incoming_port);
                         }
                         /* for (i=0; i<no_of_attr_to_print; i++) */
@@ -1875,9 +1875,9 @@ void garpDebugPrintTimersInfo(void  **timers,
         currentTime = osapiTimeMillisecondsGet64(); //64 bit version
 
         if (currentTime >= timersList->expiryTime)
-            sysapiPrintf("Expired %i msecs ago", currentTime - timersList->expiryTime);
+            sysapiPrintf("Expired %lld msecs ago", currentTime - timersList->expiryTime);
         else
-            sysapiPrintf("Will Expire %i msecs", timersList->expiryTime - currentTime);
+            sysapiPrintf("Will Expire %lld msecs", timersList->expiryTime - currentTime);
 
         if ((no_of_timers_to_print > 0) &&
             (no_of_timers_to_print == printedTimers))
@@ -2169,7 +2169,8 @@ void garpDebugTrackVlanPrint()
     if ( vlanId > L7_MAX_VLANS)
     {
       L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_GARP_COMPONENT_ID,
-              "\n%s: Vlan Id out of range. Vlan Id : %u",vlanId);
+              "\n%s: Vlan Id out of range. Vlan Id : %u",
+              __FUNCTION__, vlanId);
       return;
     }
 
@@ -2232,7 +2233,8 @@ void garpDebugTrackVlanRecord(L7_uchar8 app_state,Gid_event event,gvrpType type)
    if ((VlanIndx <0 ) || ( VlanIndx > L7_MAX_VLAN_TRACK))
    {
      L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_GARP_COMPONENT_ID,
-             "\n%s: Vlan Id out of range. Vlan Index : %u",VlanIndx);
+             "\n%s: Vlan Id out of range. Vlan Index : %u",
+             __FUNCTION__, VlanIndx);
      return;
    }
 
@@ -2452,7 +2454,7 @@ void garpDebugTrackVlanRecord(L7_uchar8 app_state,Gid_event event,gvrpType type)
          }
          else
          {
-             sysapiPrintf("Gid not found for vlan %d and intIfNum 5d\n", vlanId, intIfNum);
+             sysapiPrintf("Gid not found for vlan %d and intIfNum %d\n", vlanId, intIfNum);
          }
      }
      else
@@ -2500,22 +2502,22 @@ void garpDebugTrackVlanRecord(L7_uchar8 app_state,Gid_event event,gvrpType type)
       sysapiPrintf("my_port->leave_timeout:              %d\n",my_port->leave_timeout);
       sysapiPrintf("my_port->leaveall_timeout:           %d\n",my_port->leaveall_timeout);
       sysapiPrintf("my_port->gmrp_leaveall_left:         %d\n",my_port->gmrp_leaveall_left);
-      sysapiPrintf("&my_port->machines:                  %x\n",my_port->machines);
+      sysapiPrintf("&my_port->machines:                  %p\n",my_port->machines);
       sysapiPrintf("my_port->last_transmitted:           %d\n",my_port->last_transmitted);
       sysapiPrintf("my_port->untransmit_machine:         %d\n",my_port->untransmit_machine);
       sysapiPrintf("\n");
-      sysapiPrintf("&my_port->join_timer_instance                %x\n", &my_port->join_timer_instance);
+      sysapiPrintf("&my_port->join_timer_instance               %p\n", &my_port->join_timer_instance);
       sysapiPrintf("my_port->join_timer_instance.timerType      %d\n", my_port->join_timer_instance.timerType);
       sysapiPrintf("my_port->join_timer_instance.vid            %d\n", my_port->join_timer_instance.vid);
       sysapiPrintf("my_port->join_timer_instance.port_no        %d\n", my_port->join_timer_instance.port_no);
-      sysapiPrintf("my_port->join_timer_instance.expiryTime     %d\n", my_port->join_timer_instance.expiryTime);
+      sysapiPrintf("my_port->join_timer_instance.expiryTime     %lld\n", my_port->join_timer_instance.expiryTime);
       sysapiPrintf("my_port->join_timer_instance.timer_status   %d\n", my_port->join_timer_instance.timer_status);
       sysapiPrintf("\n");
-      sysapiPrintf("&my_port->leave_timer_instance                %x\n", &my_port->leave_timer_instance);
+      sysapiPrintf("&my_port->leave_timer_instance               %p\n", &my_port->leave_timer_instance);
       sysapiPrintf("my_port->leave_timer_instance.timerType      %d\n", my_port->leave_timer_instance.timerType);
       sysapiPrintf("my_port->leave_timer_instance.vid            %d\n", my_port->leave_timer_instance.vid);
       sysapiPrintf("my_port->leave_timer_instance.port_no        %d\n", my_port->leave_timer_instance.port_no);
-      sysapiPrintf("my_port->leave_timer_instance.expiryTime     %d\n", my_port->leave_timer_instance.expiryTime);
+      sysapiPrintf("my_port->leave_timer_instance.expiryTime     %lld\n", my_port->leave_timer_instance.expiryTime);
       sysapiPrintf("my_port->leave_timer_instance.timer_status   %d\n", my_port->leave_timer_instance.timer_status);
       sysapiPrintf("\n");
 
@@ -2590,10 +2592,10 @@ void garpDebugTrackVlanRecord(L7_uchar8 app_state,Gid_event event,gvrpType type)
              break;
          sysapiPrintf("Printing %s structure:\n",  (pGarp->app == GARP_GVRP_APP) ? "GARP_GVRP_APP":"GARP_GMRP_APP");
          sysapiPrintf("\n");
-         sysapiPrintf("app:               %s \n",(pGarp->app ?GARP_GVRP_APP:GARP_GMRP_APP));
+         sysapiPrintf("app:               %d \n",(pGarp->app ?GARP_GVRP_APP:GARP_GMRP_APP));
          sysapiPrintf("process_id:        %x \n",pGarp->process_id);
-         sysapiPrintf("gid:               %x \n",pGarp->gid);
-         sysapiPrintf("gip:               %x \n",pGarp->gip);
+         sysapiPrintf("gid:               %x \n",*((L7_uint32 *) pGarp->gid));
+         sysapiPrintf("gip:               %x \n",*((L7_uint32 *) pGarp->gip));
          sysapiPrintf("max_gid_index:     %d \n",pGarp->max_gid_index);
          sysapiPrintf("last_gid_used:     %d \n",pGarp->last_gid_used);
          sysapiPrintf("vlan_id:           %d \n",pGarp->vlan_id);
@@ -2992,7 +2994,7 @@ void garpDebugGmrpDot1sInstanceShow(void)
       {
 
           sysapiPrintf("\n");
-          sysapiPrintf("VLAN %d    \n", vlanId, intIfNum);
+          sysapiPrintf("VLAN %d    \n", vlanId);
           sysapiPrintf("==============\n");
           sysapiPrintf("==============\n");
 

@@ -240,7 +240,7 @@ static L7_RC_t dnsNameServerOpen(L7_inet_addr_t *serverAddr,
       if (osapiSocketBind(entry->socket,(L7_sockaddr_t *)&addr.u.sa4,sizeof(addr.u.sa4)) != L7_SUCCESS)
       {
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DNS_CLIENT_COMPONENT_ID,
-                "DNS Client: Bind error on addr 0x%X\n", serverAddr);
+                "DNS Client: Bind error on addr 0x%X\n", serverAddr->addr.ipv4.s_addr);
         osapiSocketClose(entry->socket);
         return L7_FAILURE;
       }
@@ -371,7 +371,7 @@ L7_RC_t dnsNameServerPacketReceive(void)
                               ( L7_sockaddr_t *)&rx_addr, &addrlen, &length) != L7_SUCCESS)
       {
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DNS_CLIENT_COMPONENT_ID,
-                "DNS Client: osapiSocketRecvFrom returned error for addr 0x%X."
+                "DNS Client: osapiSocketRecvFrom returned error for addr %s."
                 " Indicates there is a stack error in receiving the DNS response"
                 " packet from the server.",
                 inetAddrPrint(&dnsOprData->serverTbl[i].serverAddr, srvAddr));

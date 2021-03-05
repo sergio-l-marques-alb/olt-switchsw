@@ -32,7 +32,7 @@
   } else {                                                              \
     (failcnt)++;                                                        \
     sysapiPrintf("ASSERT FAILED: " #exp ", got %u, expected %u "        \
-                 "(line %u)\n", (valgot), (valexpected), __LINE__);     \
+                 "(line %u)\n", (L7_uint32) (valgot), (L7_uint32) (valexpected), __LINE__);     \
   }                                                                     \
 }
 

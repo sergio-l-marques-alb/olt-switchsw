@@ -428,8 +428,8 @@ void iscsiDebugCfgShow()
   sysapiPrintf("     L7_ISCSI_MAX_SESSIONS         = %u\n", L7_ISCSI_MAX_SESSIONS);
   sysapiPrintf("     L7_ISCSI_MAX_CONNECTIONS      = %u\n", L7_ISCSI_MAX_CONNECTIONS);
   sysapiPrintf("   memory allocated at PHASE_1_INIT:\n");
-  sysapiPrintf("     sizeof(iscsiCfgData)       = %u bytes\n", L7_ISCSI_CFG_DATA_SIZE);
-  sysapiPrintf("     message queue              = %u bytes (ISCSI_MSG_COUNT = %u, ISCSI_MSG_SIZE = %u)\n", 
+  sysapiPrintf("     sizeof(iscsiCfgData)       = %zu bytes\n", L7_ISCSI_CFG_DATA_SIZE);
+  sysapiPrintf("     message queue              = %zu bytes (ISCSI_MSG_COUNT = %u, ISCSI_MSG_SIZE = %zu)\n", 
                           ISCSI_MSG_COUNT*ISCSI_MSG_SIZE,
                           ISCSI_MSG_COUNT,
                           ISCSI_MSG_SIZE);

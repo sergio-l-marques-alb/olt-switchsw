@@ -1450,9 +1450,8 @@ L7_RC_t dvmrp_graft_recv (dvmrp_interface_t *interface,
   {
     DVMRP_DEBUG(DVMRP_DEBUG_RX, 
                 "%s:%d: Setting the ifindex=%d found  from src = %s,"
-                "grp = %s \n", __FUNCTION__, __LINE__, 
-                osapiInet_ntoa(graft_src), osapiInet_ntoa(graft_grp), 
-                interface->index);
+                "grp = %s \n", __FUNCTION__, __LINE__, interface->index,
+                osapiInet_ntoa(graft_src), osapiInet_ntoa(graft_grp));
     MCAST_BITX_SET((entry->routers), interface->index);      
     MCAST_BITX_RESET(entry->pruneRcvd, interface->index);
     dvmrp_cache_mfc_update (entry);
@@ -1564,8 +1563,8 @@ L7_RC_t dvmrp_graft_ack_recv(dvmrp_interface_t *interface,
 
   if (data > endp)
   {
-    DVMRP_DEBUG(DVMRP_DEBUG_FAILURES, "%s:%d Graft Ack Msg Length is not valid", datalen,
-                __FUNCTION__, __LINE__);
+    DVMRP_DEBUG(DVMRP_DEBUG_FAILURES, "%s:%d Graft Ack Msg Length %d is not valid",
+                __FUNCTION__, __LINE__, datalen);
     return L7_FAILURE;
   }
 
@@ -1725,8 +1724,8 @@ L7_int32 dvmrp_graft_ack_send(dvmrp_interface_t *interface,L7_inet_addr_t *graft
   }
   else
   {
-    DVMRP_DEBUG(DVMRP_DEBUG_FAILURES, "%s:%d Family type %d not supported\n\n",dvmrpcb->family,
-                __FUNCTION__, __LINE__);            
+    DVMRP_DEBUG(DVMRP_DEBUG_FAILURES, "%s:%d Family type %d not supported\n\n",
+                __FUNCTION__, __LINE__, dvmrpcb->family);
     DVMRP_DEBUG(DVMRP_DEBUG_APIS, "%s: LEAVING \n", __FUNCTION__);      
     return L7_FAILURE;
   }
@@ -1989,8 +1988,8 @@ L7_int32 dvmrp_graft_send (dvmrp_cache_entry_t *entry, dvmrp_neighbor_t *nbr,
   }
   else
   {
-    DVMRP_DEBUG(DVMRP_DEBUG_FAILURES, "%s:%d Family type %d not supported\n\n",dvmrpcb->family,
-                __FUNCTION__, __LINE__);            
+    DVMRP_DEBUG(DVMRP_DEBUG_FAILURES, "%s:%d Family type %d not supported\n\n",
+                __FUNCTION__, __LINE__, dvmrpcb->family);
     DVMRP_DEBUG(DVMRP_DEBUG_APIS, "%s: LEAVING \n", __FUNCTION__);      
     return L7_FAILURE;
   }
@@ -2090,8 +2089,8 @@ L7_int32 dvmrp_probe_send(dvmrp_interface_t *interface,
   }
   else
   {
-    DVMRP_DEBUG(DVMRP_DEBUG_FAILURES, "%s:%d Family type %d not supported\n\n",dvmrpcb->family,
-                __FUNCTION__, __LINE__);            
+    DVMRP_DEBUG(DVMRP_DEBUG_FAILURES, "%s:%d Family type %d not supported\n\n",
+                __FUNCTION__, __LINE__, dvmrpcb->family);
     DVMRP_DEBUG(DVMRP_DEBUG_APIS, "%s: LEAVING \n", __FUNCTION__);    
     return L7_FAILURE;
   }
@@ -2456,8 +2455,8 @@ L7_int32 dvmrp_prune_send(dvmrp_interface_t *interface, L7_inet_addr_t *src,
   }
   else
   {
-    DVMRP_DEBUG(DVMRP_DEBUG_FAILURES, "%s:%d Family type %d not supported\n\n",dvmrpcb->family,
-                __FUNCTION__, __LINE__);            
+    DVMRP_DEBUG(DVMRP_DEBUG_FAILURES, "%s:%d Family type %d not supported\n\n",
+                __FUNCTION__, __LINE__, dvmrpcb->family);
     DVMRP_DEBUG(DVMRP_DEBUG_APIS,"%s: LEAVING \n",__FUNCTION__);      
     return L7_FAILURE;
   }

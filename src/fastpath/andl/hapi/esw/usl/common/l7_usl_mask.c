@@ -666,7 +666,7 @@ L7_RC_t l7_mask_print(l7_mask_handle_t handle)
     sysapiPrintf("bit %d - (hex) ",mask->size * 8);
     for (i=1; i <= mask->size; i++)
     {
-      sysapiPrintf("%0.2x ",mask->bitmap[mask->size - i]);
+      sysapiPrintf("%02x ",mask->bitmap[mask->size - i]);
 
       if ((i % 32) == 0) sysapiPrintf(" bit %d\n",(mask->size - i) * 8);
     }

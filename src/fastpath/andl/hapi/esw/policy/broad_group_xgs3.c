@@ -4824,7 +4824,7 @@ int policy_group_create(int                             unit,
     if (BCM_E_NONE != rv)
     {
       if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-        sysapiPrintf("- allocate new group FAILED (group=%d, rv=%d)\n", group, rv);
+        sysapiPrintf("- allocate new group FAILED (group=%d, rv=%d)\n", *group, rv);
 
       reworkQset = L7_FALSE;
       if ((resourceReq->requiresEtype == 0)  && 

@@ -710,7 +710,7 @@ L7_RC_t dot1sProcessIntfStartupCallBack(NIM_STARTUP_PHASE_t startup_phase)
   }
 
   endTime = osapiTimeMillisecondsGet64();
-  DOT1S_DEBUG_NSF(DOT1S_DEBUG_NSF_NIM,"startup callback done in %d msecs \n", 
+  DOT1S_DEBUG_NSF(DOT1S_DEBUG_NSF_NIM,"startup callback done in %llu msecs \n", 
                   (endTime - startTime));
   nimStartupEventDone(L7_DOT1S_COMPONENT_ID);
   

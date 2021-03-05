@@ -994,7 +994,7 @@ L7_RC_t radiusNwInterfaceSocketTimeStampPut(L7_uint32 interfaceSocket)
   if( L7_NULL == interfaceSocket )
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_RADIUS_COMPONENT_ID,
-            "RADIUS: %S(): Invalid parameters \n",__FUNCTION__);
+            "RADIUS: %s(): Invalid parameters \n",__FUNCTION__);
     return L7_FAILURE;
   }
 
@@ -1012,7 +1012,7 @@ L7_RC_t radiusNwInterfaceSocketTimeStampPut(L7_uint32 interfaceSocket)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_RADIUS_COMPONENT_ID,
             "RADIUS: radiusNwInterfaceSocketTimeStampPut(): Could not find the \
-                     ipAddr for specified socket : %s\n",interfaceSocket);
+                     ipAddr for specified socket : %u\n",interfaceSocket);
   }
 
   return rc;

@@ -205,7 +205,7 @@ void hapiBroadL3DebugDapiCmdPrint(const L7_char8 *func, DAPI_USP_t *usp,
 
   if (pIpv4 != L7_NULL)
   {
-    HAPI_BROAD_L3_DEBUG(broadL3Debug, "%s: USP %d/%d/%d, %s %s count %d",
+    HAPI_BROAD_L3_DEBUG(broadL3Debug, "%s: USP %d/%d/%d, %s %s count %lu",
                         func, usp->unit, usp->slot, usp->port,
                         NTOP(L7_AF_INET, pIpv4, addr, sizeof(addr)),
                         NTOP(L7_AF_INET, pV4Mask, mask, sizeof(mask)),
@@ -213,7 +213,7 @@ void hapiBroadL3DebugDapiCmdPrint(const L7_char8 *func, DAPI_USP_t *usp,
   }
   else if (pIpv6 != L7_NULL)
   {
-    HAPI_BROAD_L3_DEBUG(broadL3Debug, "%s: USP %d/%d/%d, %s %s count %d", 
+    HAPI_BROAD_L3_DEBUG(broadL3Debug, "%s: USP %d/%d/%d, %s %s count %lu", 
                         func, usp->unit, usp->slot, usp->port,
                         NTOP(L7_AF_INET6, pIpv6, addr, sizeof(addr)),
                         NTOP(L7_AF_INET6, pV6Mask, mask, sizeof(mask)),
@@ -765,9 +765,9 @@ void hapiBroadL3DebugTunnelShow(void)
   while(pTunEntry != L7_NULL)
   {
     sysapiPrintf ("Tunnel mode %d,", pTunEntry->key.tunnelMode);
-    sysapiPrintf ("Local IP 0x%x,", 
+    sysapiPrintf ("Local IP 0x%lx,", 
                   osapiNtohl(pTunEntry->key.localAddr.u.sa4.sin_addr.s_addr));
-    sysapiPrintf ("Remote IP 0x%x\n", 
+    sysapiPrintf ("Remote IP 0x%lx\n", 
                   osapiNtohl(pTunEntry->key.remoteAddr.u.sa4.sin_addr.s_addr));
 
     sysapiPrintf ("Tunnel L3Id %d,", pTunEntry->bcmL3IntfId);

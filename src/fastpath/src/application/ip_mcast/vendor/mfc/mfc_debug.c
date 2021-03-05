@@ -407,16 +407,15 @@ void mfcDebugDetailShow(L7_int32 count)
       /*MFC_DEBUG_PRINTF(" HW Use         : %s\n",
                        mfentry->inUseByHw ? "TRUE":"FALSE");*/
       MFC_DEBUG_PRINTF(" HoldTime       : %d secs\n", mfentry->holdtime);
-      MFC_DEBUG_PRINTF(" Expire Time    : %ld secs\n", mfentry->expire - now);
-      MFC_DEBUG_PRINTF(" Up Time        : %ld secs\n", now - mfentry->ctime);
+      MFC_DEBUG_PRINTF(" Expire Time    : %d secs\n", mfentry->expire - now);
+      MFC_DEBUG_PRINTF(" Up Time        : %d secs\n", now - mfentry->ctime);
       if (mfentry->newRoute == L7_TRUE)
       {
-        MFC_DEBUG_PRINTF(" Upcall ETime   : %ld secs\n",
-                         mfentry->upcallExpire - now);
+        MFC_DEBUG_PRINTF(" Upcall ETime   : %d secs\n", mfentry->upcallExpire - now);
       }
       else
       {
-        MFC_DEBUG_PRINTF(" Upcall ETime   : %ld secs\n", mfentry->upcallExpire);
+        MFC_DEBUG_PRINTF(" Upcall ETime   : %d secs\n", mfentry->upcallExpire);
       }
       MFC_DEBUG_PRINTF(" No-cache events : %d \n", mfentry->numNoCacheEvents);
       MFC_DEBUG_PRINTF(" WholePkt events : %d \n", mfentry->numWholePktEvents);
@@ -946,16 +945,16 @@ void mfcDebugMemoryInfoCompute(void)
 {
   sysapiPrintf ("\n***** Memory Allocated By MFC Component *****\n");
   sysapiPrintf ("        MFC Memory Info\n");
-  sysapiPrintf ("          mfcInfo_t                 - %d\n", sizeof(mfcInfo_t));
+  sysapiPrintf ("          mfcInfo_t                 - %zu\n", sizeof(mfcInfo_t));
   mfcTotalBytesAllocated += sizeof(mfcInfo_t);
-  sysapiPrintf ("          mfcRegisterList_t         - %d\n", sizeof(mfcRegisterList_t));
+  sysapiPrintf ("          mfcRegisterList_t         - %zu\n", sizeof(mfcRegisterList_t));
   mfcTotalBytesAllocated += sizeof(mfcRegisterList_t);
-  sysapiPrintf ("          AVL Tree Heap             - %d\n", sizeof(avlTreeTables_t) * L7_MULTICAST_FIB_MAX_ENTRIES);
+  sysapiPrintf ("          AVL Tree Heap             - %zu\n", sizeof(avlTreeTables_t) * L7_MULTICAST_FIB_MAX_ENTRIES);
   mfcTotalBytesAllocated += sizeof(avlTreeTables_t) * L7_MULTICAST_FIB_MAX_ENTRIES;
-  sysapiPrintf ("          AVL Data Heap             - %d\n", sizeof(mfcCacheEntry_t) * L7_MULTICAST_FIB_MAX_ENTRIES);
+  sysapiPrintf ("          AVL Data Heap             - %zu\n", sizeof(mfcCacheEntry_t) * L7_MULTICAST_FIB_MAX_ENTRIES);
   mfcTotalBytesAllocated += sizeof(mfcCacheEntry_t) * L7_MULTICAST_FIB_MAX_ENTRIES;
   sysapiPrintf ("\n");
-  sysapiPrintf ("        Total Memory                - %d\n", mfcTotalBytesAllocated);
+  sysapiPrintf ("        Total Memory                - %u\n", mfcTotalBytesAllocated);
   sysapiPrintf ("\n");
   sysapiPrintf ("***************************************************\n");
 

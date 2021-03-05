@@ -310,7 +310,7 @@ L7_RC_t cmgrTraceFmtCmpduEvent(L7_ushort16 traceId, L7_uchar8 *pDataStart)
                 CMGR_EVENT_PROGRESS_FINISHED_STRING
                );
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                (L7_char8 *)"fromUnitNum=%-8d ", osapiNtohl(p->fromUnitNum));
+                (L7_char8 *)"fromUnitNum=%-8lu ", osapiNtohl(p->fromUnitNum));
 
   return L7_SUCCESS;
 }
@@ -395,7 +395,7 @@ L7_RC_t cmgrTraceFmtCardEvent(L7_ushort16 traceId, L7_uchar8 *pDataStart)
                 CMGR_EVENT_PROGRESS_FINISHED_STRING
                );
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                (L7_char8 *)"unitNum=%-8d slotNum=%-8d ",
+                (L7_char8 *)"unitNum=%-8lu slotNum=%-8lu ",
                 osapiNtohl(p->unitNum),
                 osapiNtohl(p->slotNum)
                );
@@ -617,7 +617,7 @@ void cmgrTraceConfigPrint(void)
                 "Tracing is %s\n",(cmgrTraceMode)?"enabled":"disabled");
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%-30s = 0x%0.8x\n","Trace Mask",cmgrTraceMask);
+                "%-30s = 0x%08x\n","Trace Mask",cmgrTraceMask);
 
 }
 
@@ -626,9 +626,9 @@ void cmgrTraceHelp(void)
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "%-30s - sets what gets traced\n","cmgrTraceMaskSet(mask)");
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%30s = 0x%0.8x\n","CMGR_TRACE_CMPDU_EVENTS    ",CMGR_TRACE_CMPDU_EVENTS);
+                "%30s = 0x%08x\n","CMGR_TRACE_CMPDU_EVENTS    ",CMGR_TRACE_CMPDU_EVENTS);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "%30s = 0x%0.8x\n","CMGR_TRACE_CARD_EVENTS     ",CMGR_TRACE_CARD_EVENTS);
+                "%30s = 0x%08x\n","CMGR_TRACE_CARD_EVENTS     ",CMGR_TRACE_CARD_EVENTS);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "%-30s - print CMGR tracing configuration\n","cmgrTraceConfigPrint()" );
@@ -812,7 +812,7 @@ void cmgrProfileInfoShow(void)
           if (cmgrProfileData[u][s].eventInfo[CMGR_PROFILE_EVENT_CARD_CREATE].totalTime)
           {
             SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                          "%d/%d                        %-8u                                  %-8u                       %-8u\n",
+                          "%d/%d                        %-8lu                                  %-8lu                       %-8lu\n",
                            u, s,
                            osapiHtonl(cmgrProfileData[u][s].eventInfo[CMGR_PROFILE_EVENT_CARD_CREATE].totalTime),
                            osapiHtonl(cmgrProfileData[u][s].eventInfo[CMGR_PROFILE_EVENT_CARD_INSERT].totalTime),
@@ -831,7 +831,7 @@ void cmgrProfileInfoShow(void)
                   "-----------------------            -------------------------          --------------------------------\n");
 
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                  "%-8u                                    %-8u                                   %-8u\n",
+                  "%-8lu                                    %-8lu                                   %-8lu\n",
                   osapiHtonl(cmgrProfileData[0][0].eventInfo[CMGR_PROFILE_EVENT_CARD_CONFIG_SLOTS].totalTime),
                   osapiHtonl(cmgrProfileData[0][0].eventInfo[CMGR_PROFILE_EVENT_CARD_CONFIG_PORTS].totalTime),
                   osapiHtonl(cmgrProfileData[0][0].eventInfo[CMGR_PROFILE_EVENT_CARD_LOCAL_UNIT_MGR].totalTime)
@@ -844,7 +844,7 @@ void cmgrProfileInfoShow(void)
                   "-----------------------            ------------------------- \n");
 
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                  "%-8u                                    %-8u \n",
+                  "%-8lu                                    %-8lu \n",
                   osapiHtonl(cmgrProfileData[0][0].eventInfo[CMGR_PROFILE_EVENT_STARTUP_CREATE].totalTime),
                   osapiHtonl(cmgrProfileData[0][0].eventInfo[CMGR_PROFILE_EVENT_STARTUP_ACTIVATE].totalTime)
                  );

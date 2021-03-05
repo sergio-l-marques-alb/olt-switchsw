@@ -94,9 +94,12 @@ static void printfIPMC(usl_bcm_ipmc_addr_t *impc_info)
   else
   {
     sysapiPrintf("\nSRC            :   ");
-    sysapiPrintf("%x \n", impc_info->s_ip_addr);
+    for(index  = 0; index < 4; index++)
+        sysapiPrintf("%x ", impc_info->s_ip_addr[index]);
     sysapiPrintf("\nGRP            :   ");
-    sysapiPrintf("%x \n", impc_info->mc_ip_addr);
+    for(index  = 0; index < 4; index++)
+        sysapiPrintf("%x ", impc_info->mc_ip_addr[index]);
+    sysapiPrintf("\n");
   }
   return;
 }
@@ -2235,7 +2238,7 @@ L7_RC_t hapiBroadRoutingIntfMcastAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void 
         /* Delete failed; complain */
         L7_LOGF (L7_LOG_SEVERITY_CRITICAL, L7_DRIVER_COMPONENT_ID,
                  "usl_bcmx_ipmc_remove failed: group = %08X, source = %08X, vlan = %5d, rv = %d\n",
-                       groupIp, srcAddr, old_vlan_id, rv);
+                 groupIp.addr.ipv4.s_addr, srcAddr.addr.ipv4.s_addr, old_vlan_id, rv);
       }
       else /* ((L7_BCMX_OK(rv) != L7_TRUE)) */
       {
@@ -2477,8 +2480,8 @@ L7_RC_t hapiBroadRoutingIntfMcastAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
       /* the entry *should* have been in the hardware table, but we couldn't delete it */
       /* since we just found it, this could indicate problems, but *maybe* not fatal */
       L7_LOGF (L7_LOG_SEVERITY_ALERT, L7_DRIVER_COMPONENT_ID,
-               "usl_bcmx_ipmc_remove failed: group = %x, source = %x, vlan = %d, rv = %d\n",
-               groupIp, srcAddr, vlan_id, rv);
+               "usl_bcmx_ipmc_remove failed: group = %08X, source = %08X, vlan = %d, rv = %d\n",
+              groupIp.addr.ipv4.s_addr, srcAddr.addr.ipv4.s_addr, vlan_id, rv);
     }
   }
   if (BroadGroupList[table_index].flags & BROAD_GROUP_ENTRY_FLAGS_IN_HW)

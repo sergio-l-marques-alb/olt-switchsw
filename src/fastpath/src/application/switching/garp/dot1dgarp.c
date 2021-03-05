@@ -989,7 +989,7 @@ L7_RC_t GarpSendPDU(L7_netBufHandle bufHandle, L7_uint32 intIfNum, L7_uint32 vla
          if (rc != L7_SUCCESS)
          {
            L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_GARP_COMPONENT_ID,
-               "GarpSendPDU: QUEUE SEND FAILURE: intf= %s, vlan_id = %d, bufHandle = %d."
+               "GarpSendPDU: QUEUE SEND FAILURE: intf= %s, vlan_id = %d, bufHandle = 0x%llx."
                " The garpPduQueue is full, logs specific of the GPDU, internal interface "
                "number, vlan id, buffer handle etc.", ifName, vlan_id, bufHandle);
          }

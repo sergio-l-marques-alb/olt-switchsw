@@ -1476,7 +1476,7 @@ SrSendNotifications(
     snmpTargetParamsEntry_t *stpe;
     int idx1, idx2, idx3;
     TransportInfo ti;
-    int pdu_version;
+    int pdu_version = 0;
 
     if ((snmp_msg != NULL) && (only_ti != NULL) && (cfg_chk == 0)) {
 #if (defined(SR_SNMPv1_PACKET) && defined(SR_SNMPv2_PDU))

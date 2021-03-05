@@ -2861,7 +2861,7 @@ pimdmIntfShow(pimdmCB_t *pimdmCB, L7_uint32 rtrIfNum)
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                   "  Hello Timer Items :\n");
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                  "    Hello Timer Handle : %p\n",
+                  "    Hello Timer Handle : 0x%llx\n",
                   pIf->intfTmrHandle);
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                   "    Hello Timer node : %p\n",

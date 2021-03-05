@@ -5366,7 +5366,7 @@ const L7_char8 *cliShowRunningConfig(EwsContext ewsContext,
   if (osapiSemaTake(cliRunCfgSema, L7_WAIT_FOREVER) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_CLI_WEB_COMPONENT_ID,
-           "Failed to take cliRunCfgSemaphore %x\n",
+           "Failed to take cliRunCfgSemaphore %p\n",
             cliRunCfgSema);
   }
 
@@ -5375,7 +5375,7 @@ const L7_char8 *cliShowRunningConfig(EwsContext ewsContext,
   if (osapiSemaGive(cliRunCfgSema) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_CLI_WEB_COMPONENT_ID,
-            "Failed to give cliRunCfgSema %x\n",
+            "Failed to give cliRunCfgSema %p\n",
             cliRunCfgSema);
   }
 

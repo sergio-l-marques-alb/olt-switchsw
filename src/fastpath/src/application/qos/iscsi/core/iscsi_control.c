@@ -540,10 +540,10 @@ L7_RC_t iscsiPduReceiveProcess(L7_uint32 intIfNum, L7_uint32 pkt_size, L7_uchar8
         }
         else
         {
-          ISCSI_TRACE(ISCSI_TRACE_PDU_RX, "iscsiPduReceiveProcess() - packet not large enough to contain iSCSI PDU:",
-                      "\n  iscsiDataSegmentLength = %d",
-                      "\n  totalAhsLength = %d",
-                      "\n  ISCSI_BHS_LENGTH = %d",
+          ISCSI_TRACE(ISCSI_TRACE_PDU_RX, "iscsiPduReceiveProcess() - packet not large enough to contain iSCSI PDU:"
+                      "\n  iscsiDataSegmentLength = %d"
+                      "\n  totalAhsLength = %d"
+                      "\n  ISCSI_BHS_LENGTH = %zu"
                       "\n  iscsiPktLen = %d\n", 
                       iscsiDataSegmentLength, totalAhsLength, ISCSI_BHS_LENGTH, iscsiPktLen);
         }

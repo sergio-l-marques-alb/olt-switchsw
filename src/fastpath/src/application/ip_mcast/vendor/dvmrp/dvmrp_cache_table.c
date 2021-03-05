@@ -257,7 +257,7 @@ L7_RC_t dvmrpCacheTableCacheDelete(dvmrp_t *dvmrpcb,L7_inet_addr_t *pSource,
   entry =dvmrp_cache_lookup(dvmrpcb,pSource,pGroup);
   if (entry == L7_NULLPTR)
   {
-    DVMRP_DEBUG(DVMRP_DEBUG_FAILURES,"Cache entry Not found \n", 
+    DVMRP_DEBUG(DVMRP_DEBUG_FAILURES,"%s:%d Cache entry Not found \n", 
                 __FUNCTION__,__LINE__);
     osapiWriteLockGive(dvmrpcb->dvmrpRwLock);
     return L7_FAILURE;

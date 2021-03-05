@@ -655,7 +655,7 @@ L7_RC_t dhcpsMatchPool(L7_IP_ADDR_t ipAddr, dhcpsClientLeaseKey_t *pClientKey, d
       else
       {
         DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_HI,
-          "Found 2 dynamic pools %x and %x for addr %x\n",
+          "Found 2 dynamic pools %p and %p for addr %x\n",
           *ppPool, pTempPool, ipAddr);
       }
     }
@@ -1785,7 +1785,7 @@ L7_RC_t dhcpsRemoveClientLeaseTableEntry(dhcpsLeaseNode_t * pLease)
   {
     /* remove from list */
     DHCPS_MAP_PRT(DHCPS_MAP_MSGLVL_MED,
-      "Lease %u entry being removed from client table list prev %u next %u\n",
+      "Lease %p entry being removed from client table list prev %p next %p\n",
       pLink->object, pLink->prev, pLink->next);
     dhcpsListRemoveLink(pLink);
   }

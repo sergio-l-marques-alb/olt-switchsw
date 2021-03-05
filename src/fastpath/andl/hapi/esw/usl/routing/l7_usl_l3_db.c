@@ -2856,7 +2856,7 @@ void usl_l3_intf_print(L7_uint32 l3intf)
 
       if (ptr->isValid && (ptr->intfInfo.bcm_data.l3a_intf_id == l3intf))
       {
-        sysapiPrintf("idx = %d, L3 Intf= %d, MAC= %0.2x:%0.2x:%0.2x:%0.2x:%0.2x:%0.2x, VID= %d\n",
+        sysapiPrintf("idx = %d, L3 Intf= %d, MAC= %02x:%02x:%02x:%02x:%02x:%02x, VID= %d\n",
                      idx,
                      ptr->intfInfo.bcm_data.l3a_intf_id,
                      ptr->intfInfo.bcm_data.l3a_mac_addr[0],
@@ -6476,13 +6476,13 @@ void usl_l3_sem_show()
 {
   if (uslL3DbInited)
   {
-    sysapiPrintf("Host Sema     = 0x%0.8x\n",uslIpHostDbSema);
-    sysapiPrintf("LPM Sema      = 0x%0.8x\n",pUslIpLpmDbSema);
-    sysapiPrintf("L3 intf Sema  = 0x%0.8x\n",pUslL3IntfDbSema);
-    sysapiPrintf("L3 Egress Sema = 0x%0.8x\n",uslIpEgrNhopDbSema);
-    sysapiPrintf("Tunnel Initiator Sema  = 0x%0.8x\n",
+    sysapiPrintf("Host Sema      = %p\n",uslIpHostDbSema);
+    sysapiPrintf("LPM Sema       = %p\n",pUslIpLpmDbSema);
+    sysapiPrintf("L3 intf Sema   = %p\n",pUslL3IntfDbSema);
+    sysapiPrintf("L3 Egress Sema = %p\n",uslIpEgrNhopDbSema);
+    sysapiPrintf("Tunnel Initiator Sema  = %p\n",
                  pUslIpTunnelInitiatorDbSema);
-    sysapiPrintf("Tunnel Terminator Sema  = 0x%0.8x\n",
+    sysapiPrintf("Tunnel Terminator Sema = %p\n",
                  pUslIpTunnelTerminatorDbSema);
   }
 }

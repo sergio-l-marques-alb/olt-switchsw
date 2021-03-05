@@ -489,7 +489,7 @@ pimdmCtrlBlockMembersShow (pimdmCB_t* pimdmCB)
     return;
   }
 
-  PIMDM_DEBUG_PRINTF ("Address of PIM-DM Control Block : 0x%x.\n", pimdmCB);
+  PIMDM_DEBUG_PRINTF ("Address of PIM-DM Control Block : %p.\n", pimdmCB);
   PIMDM_DEBUG_PRINTF ("General Information ....\n");
   PIMDM_DEBUG_PRINTF ("    addrFamily         - %s.\n", ((pimdmCB->addrFamily == L7_AF_INET) ? ("IPv4") : ("IPv6")));
   PIMDM_DEBUG_PRINTF ("    operMode           - %s.\n", ((pimdmCB->operMode == L7_TRUE) ? ("Operational") : ("Not Operational")));
@@ -497,30 +497,30 @@ pimdmCtrlBlockMembersShow (pimdmCB_t* pimdmCB)
   PIMDM_DEBUG_PRINTF ("    allRoutersAddr     - %s.\n", inetAddrPrint (&(pimdmCB->allRoutersAddr), addr));
   PIMDM_DEBUG_PRINTF ("    heapID             - 0x%llx.\n", mcastMapHeapIdGet (pimdmCB->addrFamily));
   PIMDM_DEBUG_PRINTF ("Interface/Neighbor related Information ....\n");
-  PIMDM_DEBUG_PRINTF ("    intfInfo           - 0x%x.\n", pimdmCB->intfInfo);
+  PIMDM_DEBUG_PRINTF ("    intfInfo           - %p.\n", pimdmCB->intfInfo);
   PIMDM_DEBUG_PRINTF ("    nbrBitmap          - ");
   for (index = 1; index <= PIMDM_INTF_BIT_SIZE; index++)
     if (BITX_TEST (&pimdmCB->nbrBitmap, index) != 0)
       PIMDM_DEBUG_PRINTF (" %02d ", index);
   PIMDM_DEBUG_PRINTF ("\n");
   PIMDM_DEBUG_PRINTF ("MRT (S,G) Tree related Information ....\n");
-  PIMDM_DEBUG_PRINTF ("    mrtTreeHeap        - 0x%x.\n", pimdmCB->mrtTreeHeap);
-  PIMDM_DEBUG_PRINTF ("    mrtDataHeap        - 0x%x.\n", pimdmCB->mrtDataHeap);
+  PIMDM_DEBUG_PRINTF ("    mrtTreeHeap        - %p.\n", pimdmCB->mrtTreeHeap);
+  PIMDM_DEBUG_PRINTF ("    mrtDataHeap        - %p.\n", pimdmCB->mrtDataHeap);
   PIMDM_DEBUG_PRINTF ("    No of Entries      - %d.\n", avlTreeCount (&pimdmCB->mrtSGTree));
   PIMDM_DEBUG_PRINTF ("MGMD Local Membership related Information ....\n");
-  PIMDM_DEBUG_PRINTF ("    pLocalMembTreeHeap - 0x%x.\n", pimdmCB->pLocalMembTreeHeap);
-  PIMDM_DEBUG_PRINTF ("    pLocalMembDataHeap - 0x%x.\n", pimdmCB->pLocalMembDataHeap);
+  PIMDM_DEBUG_PRINTF ("    pLocalMembTreeHeap - %p.\n", pimdmCB->pLocalMembTreeHeap);
+  PIMDM_DEBUG_PRINTF ("    pLocalMembDataHeap - %p.\n", pimdmCB->pLocalMembDataHeap);
   PIMDM_DEBUG_PRINTF ("    No of Entries      - %d.\n", avlTreeCount (&pimdmCB->localMembTree));
   PIMDM_DEBUG_PRINTF ("RTO related Information ....\n");
-  PIMDM_DEBUG_PRINTF ("    rtoCallback        - 0x%x.\n", pimdmCB->rtoCallback);
-  PIMDM_DEBUG_PRINTF ("    rtoTimer           - 0x%x.\n", pimdmCB->rtoTimer);
-  PIMDM_DEBUG_PRINTF ("    routeChangeBuffer  - 0x%x.\n", pimdmCB->routeChangeBuffer);
+  PIMDM_DEBUG_PRINTF ("    rtoCallback        - %p.\n", pimdmCB->rtoCallback);
+  PIMDM_DEBUG_PRINTF ("    rtoTimer           - %p.\n", pimdmCB->rtoTimer);
+  PIMDM_DEBUG_PRINTF ("    routeChangeBuffer  - %p.\n", pimdmCB->routeChangeBuffer);
   PIMDM_DEBUG_PRINTF ("Admin Scope Boundary related Information ....\n");
-  PIMDM_DEBUG_PRINTF ("    asbList            - 0x%x.\n", pimdmCB->asbList);
+  PIMDM_DEBUG_PRINTF ("    asbList            - %p.\n", &(pimdmCB->asbList));
   PIMDM_DEBUG_PRINTF ("    No of Entries      - %d.\n", SLLNumMembersGet (&pimdmCB->asbList));
   PIMDM_DEBUG_PRINTF ("Timers related Information ....\n");
-  PIMDM_DEBUG_PRINTF ("    appTimer           - 0x%x.\n", pimdmCB->appTimer);
-  PIMDM_DEBUG_PRINTF ("    handleList         - 0x%x.\n", pimdmCB->handleList);
+  PIMDM_DEBUG_PRINTF ("    appTimer           - %p.\n", pimdmCB->appTimer);
+  PIMDM_DEBUG_PRINTF ("    handleList         - %p.\n", pimdmCB->handleList);
   PIMDM_DEBUG_PRINTF ("    maxPimdmTimers     - %d.\n", pimdmCB->maxPimdmTimers);
 }
 

@@ -431,7 +431,7 @@ static L7_RC_t sysapiSupportCfgFileSeparate(L7_char8 *cfgFile)
   if (cfgFileHdr.targetDevice != hpc_unit->configLoadTargetId)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
-            "Unexpected target device:  %s\n",cfgFileHdr.targetDevice);
+            "Unexpected target device:  %u\n",cfgFileHdr.targetDevice);
     (void)osapiFsClose (file_desc);
     (void)osapiSemaGive(sysapiSupportCfgSema);
     return L7_ERROR;
@@ -1312,7 +1312,7 @@ static L7_RC_t sysapiSupportCfgTreeUpdate(L7_COMPONENT_IDS_t component_id, L7_ch
     if (dataArea == L7_NULL)
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
-              "Failed to allocate %ld for support config file %s\n", compressedFileSize, filename);
+              "Failed to allocate %d for support config file %s\n", compressedFileSize, filename);
       return L7_ERROR;
     }
   }

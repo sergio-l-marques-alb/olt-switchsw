@@ -3612,7 +3612,7 @@ void ospfDebugNboRetx(t_NBO *p_NBO)
 
     if(retx->SentTime < lastSent)
     {
-      sysapiPrintf("\nretx list sort order corrupted last sent %d, curr %d", 
+      sysapiPrintf("\nretx list sort order corrupted last sent %lu, curr %lu", 
                    lastSent, retx->SentTime);
     }
     else

@@ -320,7 +320,7 @@ get_tag( struct bootp *ppkt, L7_uchar8 tag)
 
     default:
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DHCP_CLIENT_COMPONENT_ID,
-            "%s: Unsupported DHCP option requested for extraction.");
+            "%s: Unsupported DHCP option requested for extraction.", __FUNCTION__);
   }
 
   /*option was not present in the first place*/

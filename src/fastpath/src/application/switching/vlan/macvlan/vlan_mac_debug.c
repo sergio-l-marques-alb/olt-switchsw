@@ -87,7 +87,8 @@ L7_RC_t vlanMacInfoDump()
       node = avlSearchLVL7(macVlanTreeData, &tmpmac, AVL_NEXT);
 	  if (node != L7_NULL)
 	  {
-		sysapiPrintf("%x\t",node->mac);
+		sysapiPrintf("%02x:%02x:%02x:%02x:%02x:%02x\t",
+                     node->mac.addr[0],node->mac.addr[1],node->mac.addr[2],node->mac.addr[3],node->mac.addr[4],node->mac.addr[5]);
 		sysapiPrintf("%d\n",node->vlanId);
 		count--;
 	  }

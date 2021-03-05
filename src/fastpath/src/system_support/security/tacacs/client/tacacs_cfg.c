@@ -385,7 +385,7 @@ L7_RC_t tacacsInfoShow(void)
         sysapiPrintf("Source IP: Global\n");
       } else
       {
-        sysapiPrintf("Source IP: %u\n", osapiInet_ntoa(tacacsCfg->servers[i].sourceIP));
+        sysapiPrintf("Source IP: %s\n", osapiInet_ntoa(tacacsCfg->servers[i].sourceIP));
       }
       if (tacacsCfg->servers[i].useGblKey == L7_TRUE)
       {

@@ -683,7 +683,7 @@ void isdpIntfStartupCallback(NIM_STARTUP_PHASE_t startupPhase)
   if (isdpProcessMsgQueue(msg) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_ISDP_COMPONENT_ID,
-            "%s: Failed to send NIM startup %s msg to ISDP msg queue.",
+            "%s: Failed to send NIM startup %u msg to ISDP msg queue.",
             __FUNCTION__, startupPhase);
   }
 

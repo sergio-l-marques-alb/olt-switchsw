@@ -336,33 +336,33 @@ void dot1sSizesShow()
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "----------------------\r\n");
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof dot1sBridge = %d\r\n", sizeof(DOT1S_BRIDGE_t));
+                "sizeof dot1sBridge = %zu\r\n", sizeof(DOT1S_BRIDGE_t));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof DOT1S_INSTANCE_INFO_t = %d\r\n", sizeof(DOT1S_INSTANCE_INFO_t));
+                "sizeof DOT1S_INSTANCE_INFO_t = %zu\r\n", sizeof(DOT1S_INSTANCE_INFO_t));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof dot1sInstance = %d\r\n", sizeof(dot1sInstance));
+                "sizeof dot1sInstance = %zu\r\n", sizeof(dot1sInstance));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof DOT1S_PORT_COMMON_t = %d\r\n", sizeof(DOT1S_PORT_COMMON_t));
+                "sizeof DOT1S_PORT_COMMON_t = %zu\r\n", sizeof(DOT1S_PORT_COMMON_t));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof dot1sPort = %d\r\n", sizeof(DOT1S_PORT_COMMON_t)*L7_DOT1S_MAX_INTERFACE_COUNT);
+                "sizeof dot1sPort = %zu\r\n", sizeof(DOT1S_PORT_COMMON_t)*L7_DOT1S_MAX_INTERFACE_COUNT);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof DOT1S_PORT_COMMON_CFG_t = %d\r\n", sizeof(DOT1S_PORT_COMMON_CFG_t));
+                "sizeof DOT1S_PORT_COMMON_CFG_t = %zu\r\n", sizeof(DOT1S_PORT_COMMON_CFG_t));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof dot1sCfgPort = %d\r\n", sizeof(DOT1S_PORT_COMMON_CFG_t) * (L7_MAX_INTERFACE_COUNT + 1));
+                "sizeof dot1sCfgPort = %zu\r\n", sizeof(DOT1S_PORT_COMMON_CFG_t) * (L7_MAX_INTERFACE_COUNT + 1));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof L7_MAX_INTERFACE_COUNT = %d\r\n", L7_MAX_INTERFACE_COUNT);
+                "sizeof L7_MAX_INTERFACE_COUNT = %u\r\n", L7_MAX_INTERFACE_COUNT);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof DOT1S_INSTANCE_MAP_t = %d\r\n", sizeof(DOT1S_INSTANCE_MAP_t));
+                "sizeof DOT1S_INSTANCE_MAP_t = %zu\r\n", sizeof(DOT1S_INSTANCE_MAP_t));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof dot1sInstanceMap = %d\r\n", sizeof(dot1sInstanceMap));
+                "sizeof dot1sInstanceMap = %zu\r\n", sizeof(dot1sInstanceMap));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof DOT1S_INST_VLAN_MAP_t = %d\r\n", sizeof(DOT1S_INST_VLAN_MAP_t));
+                "sizeof DOT1S_INST_VLAN_MAP_t = %zu\r\n", sizeof(DOT1S_INST_VLAN_MAP_t));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof dot1sInstVlanMap = %d\r\n", sizeof(DOT1S_INST_VLAN_MAP_t)*(L7_MAX_VLAN_ID+2));
+                "sizeof dot1sInstVlanMap = %zu\r\n", sizeof(DOT1S_INST_VLAN_MAP_t)*(L7_MAX_VLAN_ID+2));
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof L7_DOT1Q_MAX_VLAN_ID+2 = %d\r\n", L7_DOT1Q_MAX_VLAN_ID+2);
+                "sizeof L7_DOT1Q_MAX_VLAN_ID+2 = %u\r\n", L7_DOT1Q_MAX_VLAN_ID+2);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "sizeof dot1sCfg_t = %d\r\n", sizeof(dot1sCfg_t));
+                "sizeof dot1sCfg_t = %zu\r\n", sizeof(dot1sCfg_t));
 
 }
 
@@ -1453,11 +1453,13 @@ void dot1sDebugPacketTxTrace(L7_uint32 intIfNum, DOT1S_MSTP_ENCAPS_t *bpdu)
   if (usmDbUnitSlotPortGet(intIfNum, &unit, &slot, &port) == L7_SUCCESS)
   {
     DOT1S_USER_TRACE_TX(DOT1S_DEBUG_PACKET_TX_FORMAT,
-                     unit, slot, port, intIfNum, ifName, bpdu->srcMac[0], bpdu->srcMac[1],bpdu->srcMac[2],
-                     bpdu->srcMac[3],bpdu->srcMac[4],bpdu->srcMac[5], bpdu->protocolVersion,
-                     bpdu->cistRootId.macAddr[0],bpdu->cistRootId.macAddr[1],bpdu->cistRootId.macAddr[2],
-                     bpdu->cistRootId.macAddr[3],bpdu->cistRootId.macAddr[4],bpdu->cistRootId.macAddr[5],
-                     bpdu->cistRootId.priInstId,bpdu->cistExtRootPathCost);
+                        unit, slot, port, intIfNum, ifName,
+                        bpdu->srcMac[0], bpdu->srcMac[1],bpdu->srcMac[2], bpdu->srcMac[3],bpdu->srcMac[4],bpdu->srcMac[5],
+                        bpdu->protocolVersion,
+                        bpdu->cistRootId.macAddr[0],bpdu->cistRootId.macAddr[1],bpdu->cistRootId.macAddr[2],
+                        bpdu->cistRootId.macAddr[3],bpdu->cistRootId.macAddr[4],bpdu->cistRootId.macAddr[5],
+                        bpdu->cistRootId.priInstId,
+                        bpdu->cistExtRootPathCost);
   }
   return;
 }
@@ -2087,7 +2089,7 @@ void dot1sNsfTraceShow(L7_BOOL unFormatted)
 
           /* show the entry timestamp */
           SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                        (char *)"ts=%8.8lu ",
+                        (char *)"ts=%8.8u ",
                         (L7_uint32)(pHdr->timeStamp));
 
           SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,

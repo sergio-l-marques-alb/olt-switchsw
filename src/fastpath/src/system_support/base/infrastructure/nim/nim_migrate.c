@@ -946,7 +946,7 @@ L7_RC_t sysapiCfgFileMigrateMaskRel4_2To4_3 (NIM_INTF_MASK_REL_4_2_t *srcMask,
     if ( (sizeof (NIM_INTF_MASK_REL_4_2_t)) < (sizeof(NIM_INTF_MASK_REL_4_3_t) ) )
     {
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_NIM_COMPONENT_ID,
-                "Migration of previous mask size %d is not supported in this release\n",
+                "Migration of previous mask size %zu is not supported in this release\n",
                 sizeof( NIM_INTF_MASK_REL_4_2_t) );
         return L7_FAILURE;
     }
@@ -1083,7 +1083,7 @@ L7_RC_t sysapiCfgFileMigrateMaskRel4_3To4_4 (NIM_INTF_MASK_REL_4_3_t *srcMask,
     if ( (sizeof (NIM_INTF_MASK_REL_4_3_t)) > (sizeof(NIM_INTF_MASK_REL_4_4_t) ) )
     {
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_NIM_COMPONENT_ID,
-                "Migration of previous mask size %d is not supported in this release\n",
+                "Migration of previous mask size %zu is not supported in this release\n",
                 sizeof( NIM_INTF_MASK_REL_4_3_t) );
         return L7_FAILURE;
     }

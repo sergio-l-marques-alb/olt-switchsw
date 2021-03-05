@@ -1158,7 +1158,7 @@ void dot3adTraceShow(L7_BOOL unFormatted)
            */
           /* show the entry timestamp */
           SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                        (char *)"ts=%8.8lu ",
+                        (char *)"ts=%8.8u ",
                         (L7_uint32)(pHdr->timeStamp));
 
           /*SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,

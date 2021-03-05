@@ -1211,7 +1211,7 @@ void rtoClientListShow(void)
       {
         seqno = client->nextChange->changeSeqNo;
       }
-      sysapiPrintf("\n%16s  %14s  %11u  0x%08x",
+      sysapiPrintf("\n%16s  %14s  %11u  %p",
                    client->clientName, (client->changePending ? "Y" : "N"),
                    seqno, client->callback);
     }

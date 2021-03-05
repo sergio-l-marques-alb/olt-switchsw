@@ -173,7 +173,7 @@ void sysapiSupportDebugCategoryHelp (void)
 
     }
 
-    sysapiPrintf("  %-8.7s %-13.12s %-26.25s %-11.10x\n", 
+    sysapiPrintf("  %-8.7s %-13.12s %-26.25s %p\n", 
                  categoryName,componentName, 
                  supportDebugCategory.info.supportRoutineName,
                  supportDebugCategory.info.supportRoutine);

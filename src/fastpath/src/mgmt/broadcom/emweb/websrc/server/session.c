@@ -291,7 +291,7 @@ debugEwaSessionTableDump(L7_uint32 activeOnly)
       {
         if ((current_time - session_table[i].first_access) >= timeout_hard)
         {
-          sysapiPrintf("session[%d]              = hard time-out has occurred\n");
+          sysapiPrintf("session[%d]              = hard time-out has occurred\n", i);
         }
         else
         {
@@ -310,7 +310,7 @@ debugEwaSessionTableDump(L7_uint32 activeOnly)
       {
         if ((current_time - session_table[i].last_access) >= timeout_soft)
         {
-          sysapiPrintf("session[%d]              = soft time-out has occurred\n");
+          sysapiPrintf("session[%d]              = soft time-out has occurred\n", i);
         }
         else
         {

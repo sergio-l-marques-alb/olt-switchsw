@@ -531,7 +531,7 @@ void dvmrp_Cache_Remove (void *pParam)
 
   if ((entry->parent == L7_NULLPTR) ||(entry->parent->global == L7_NULLPTR))
   {
-    DVMRP_DEBUG(DVMRP_DEBUG_FAILURES,"%s: (entry->parent == L7_NULLPTR) ||(entry->parent->global == NULL)\n",
+    DVMRP_DEBUG(DVMRP_DEBUG_FAILURES,"%s:%d (entry->parent == L7_NULLPTR) ||(entry->parent->global == NULL)\n",
                 __FUNCTION__,__LINE__);
     return;
   }

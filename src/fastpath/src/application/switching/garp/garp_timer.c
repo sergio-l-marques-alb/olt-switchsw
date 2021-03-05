@@ -264,7 +264,8 @@ static L7_RC_t garpTimerListDeleteElement(garpTimerDescr_t *pTimer, garpTimerLis
     if (timerList == L7_NULL)
     {
         L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_GARP_COMPONENT_ID,
-                "Error:Timer Type (%d) of the timer (%x) invalid :timerList cannot be found \n", pTimer->timerType , pTimer);
+                "Error:Timer Type (%d) of the timer (%p) invalid :timerList cannot be found \n",
+                pTimer->timerType , pTimer);
         return rc;
     }
 
@@ -414,7 +415,7 @@ L7_RC_t garpTimerFree(garpTimerDescr_t *pTimer)
     if (garpTimerListDeleteElement(pTimer,timerList)!= L7_SUCCESS)
     {
         L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_GARP_COMPONENT_ID,
-                "Failed to free timer: timerType %d, port %d, vid %d, status %d, expiry %d\n",
+                "Failed to free timer: timerType %d, port %d, vid %d, status %d, expiry %lld\n",
                 pTimer->timerType, pTimer->port_no, pTimer->vid, pTimer->timer_status,
                 pTimer->expiryTime);
     }
@@ -770,13 +771,13 @@ void garpDebugTimerListPrint(garpTimerList_t *tempList, L7_uint32 limit)
     {
       sysapiPrintf("tempList->head is NULL\n");
     }
-    sysapiPrintf(" %p tempList->head value 0x%x\n", tempList, tempList->head );
+    sysapiPrintf(" %p tempList->head value %p\n", tempList, tempList->head );
     while ((pTimer) && (i <= limit))
     {
         sysapiPrintf("Timer type(%d)", pTimer->timerType);
         sysapiPrintf (" vid(%d)",pTimer->vid);
         sysapiPrintf (" port_no(%d) \n",pTimer->port_no) ;
-        sysapiPrintf( "Expire in (%d) ", pTimer->expiryTime);
+        sysapiPrintf( "Expire in (%lld) ", pTimer->expiryTime);
         sysapiPrintf(" status %d \n", pTimer->timer_status);
 
         i++;
@@ -834,9 +835,7 @@ void garpDebugUnitTestGarpTimerList(L7_uint32 action,L7_uint32 numEntries)
                 pTimer->expiryTime   = milliseconds + osapiTimeMillisecondsGet64();
                 pTimer->timer_status = GARP_TIMER_PENDING;
 
-
-                sysapiPrintf("Adding timer with expiry time %d index %d \n", pTimer->expiryTime, index);
-
+                sysapiPrintf("Adding timer with expiry time %lld index %d \n", pTimer->expiryTime, index);
 
                 garpTimerListAddElement(pTimer,tempList);
                 numEntries--;
@@ -853,7 +852,7 @@ void garpDebugUnitTestGarpTimerList(L7_uint32 action,L7_uint32 numEntries)
             else
                 deleteIndex = numEntries;
             pTimer=&timerList[deleteIndex];
-            sysapiPrintf("Deleting timer with expiry time %d idelete index %d \n", pTimer->expiryTime, deleteIndex);
+            sysapiPrintf("Deleting timer with expiry time %lld idelete index %d \n", pTimer->expiryTime, deleteIndex);
             index--;
             garpTimerListDeleteElement(pTimer,tempList);
             break;
