@@ -6,6 +6,9 @@
  * StrataSwitch driver
  */
 
+/* PTin added: PCIe */
+#include "logger.h"
+
 #include <shared/bsl.h>
 
 #include <stddef.h>
@@ -131,9 +134,6 @@
 #ifdef INCLUDE_AVS
 #include <soc/avs.h>
 #endif /* INCLUDE_AVS */
-
-/* PTin added: PCIe */
-#include "logger.h"
 
 #ifdef BCM_KATANA_SUPPORT
 #define   BCM_SABER_MAX_COUNTER_DIRECTION 2

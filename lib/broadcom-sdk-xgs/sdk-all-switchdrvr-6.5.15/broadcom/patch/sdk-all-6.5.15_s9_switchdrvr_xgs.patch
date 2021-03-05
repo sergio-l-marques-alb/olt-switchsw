@@ -8399,22 +8399,22 @@ Index: src/soc/esw/drv.c
 ===================================================================
 --- src/soc/esw/drv.c	(revision 7347)
 +++ src/soc/esw/drv.c	(revision 7348)
-@@ -158,12 +158,15 @@
- #include <soc/bondoptions.h>
- #include <bcm_int/esw/subport.h>
- #ifdef INCLUDE_AVS
- #include <soc/avs.h>
- #endif /* INCLUDE_AVS */
+@@ -3,12 +3,15 @@
+  * $Copyright: (c) 2018 Broadcom.
+  * Broadcom Proprietary and Confidential. All rights reserved.$
+  *
+  * StrataSwitch driver
+  */
  
 +/* PTin added: PCIe */
 +#include "logger.h"
 +
- #if defined(CANCUN_SUPPORT)
- #include <soc/esw/cancun.h>
- #endif /* CANCUN_SUPPORT */
+ #include <shared/bsl.h>
  
- #if defined(BCM_TRIDENT2PLUS_SUPPORT)
- #include <soc/td2_td2p.h>
+ #include <stddef.h>
+ #include <sal/core/libc.h>
+ #include <shared/alloc.h>
+ #include <sal/core/spl.h>
 @@ -9285,12 +9288,13 @@ soc_do_init(int unit, int reset)
  #ifdef BCM_IPROC_SUPPORT
              if (soc_feature(unit, soc_feature_iproc)) {
@@ -8518,15 +8518,13 @@ Index: src/soc/phy/wc40.c
 ===================================================================
 --- src/soc/phy/wc40.c	(revision 7347)
 +++ src/soc/phy/wc40.c	(revision 7348)
-@@ -24,12 +24,16 @@
+@@ -24,12 +24,14 @@
  #include "phydefs.h"      /* Must include before other phy related includes */
  
  #ifdef BCM_WARM_BOOT_SUPPORT
  #include <soc/scache.h>
  #endif
  
-+#include <logger.h>       /* PTin added: WC40 */
-+
 +#define PTIN_PRBS_ALWAYS_CL49 1
 +
  #if defined(INCLUDE_XGXS_WC40)
@@ -8698,21 +8696,6 @@ Index: src/soc/phy/wc40.c
           */ 
          return SOC_E_NONE;
      }
-@@ -10474,12 +10506,14 @@ phy_wc40_firmware_load(int unit, int por
-         (READ_WC40_UC_INFO_B1_VERSIONr(unit, pc, 0x00, &ver));
- 
-     LOG_VERBOSE(BSL_LS_SOC_PHY,
-                 (BSL_META_U(unit,
-                             "WC40 : uC RAM download success: u=%d p=%d ver=%x"), unit, port,ver));
- 
-+    PT_LOG_NOTICE(LOG_CTX_SDK,"WC40 : uC RAM download success: u=%d p=%d ver=%x\r\n", unit, port,ver);   /* PTin added: WC40 */
-+
-     if (!no_cksum) {
-         LOG_VERBOSE(BSL_LS_SOC_PHY,
-                     (BSL_META_U(unit,
-                                 " cksum=0x%x\n"), cksum));
-     } else {
-         LOG_VERBOSE(BSL_LS_SOC_PHY,
 Index: src/soc/phy/hl65.c
 ===================================================================
 --- src/soc/phy/hl65.c	(revision 7347)
@@ -8964,80 +8947,10 @@ Index: src/soc/phy/wc40_config.c
          PHY_SGMII_AUTONEG_MODE(unit, port)) {
          pCfg->pdetect1000x = TRUE;
      } else {
-Index: src/soc/phy/wcmod/include/wcmod_main.h
-===================================================================
---- src/soc/phy/wcmod/include/wcmod_main.h	(revision 7347)
-+++ src/soc/phy/wcmod/include/wcmod_main.h	(revision 7348)
-@@ -115,13 +115,13 @@ typedef int     soc_port_t;
-                     return(__rv__);} } \
-                         while(0)
- #endif   /*_SDK_WCMOD_ */
- 
- #define CHK_RET_VAL_FUNC(op) \
-     { int rv; if ((rv=(op)) != 0) \
--        { printf("ERROR %s:%d. #op# returned %d\n", __FILE__,__LINE__,rv); \
-+        { PT_LOG_ERR(LOG_CTX_SDK, "ERROR %s:%d. #op# returned %d",__FILE__,__LINE__,rv); \
-           return (rv);} }
- 
- #define WC_AER_BCST_OFS_STRAP   0x1ff
- #define PHYCTRL_MDIO_ADDR_SHARE (1 << 0) /*use phy base addr. to access lanes */
- #define PHYCTRL_MDIO_CL45       (1 << 1) /*use MDIO CL45 to access device */
- #define PHY_AER_REG_ADDR_AER(_addr)    (((_addr) >> 16) & 0x0000FFFF)
-Index: src/soc/phy/wcmod/src/wcmod_phyreg.c
-===================================================================
---- src/soc/phy/wcmod/src/wcmod_phyreg.c	(revision 7347)
-+++ src/soc/phy/wcmod/src/wcmod_phyreg.c	(revision 7348)
-@@ -14,12 +14,13 @@
- #if defined (_SDK_WCMOD_)
- #include <soc/util.h>
- #include <soc/cmic.h>
- #include <soc/drv.h>
- #endif
- 
-+#include "logger.h"
- 
- /*!
- \brief WCMod clause 45 read driver.
- 
- \param pc
- 
 Index: src/soc/phy/wcmod/src/wcmod.c
 ===================================================================
 --- src/soc/phy/wcmod/src/wcmod.c	(revision 7347)
 +++ src/soc/phy/wcmod/src/wcmod.c	(revision 7348)
-@@ -34,12 +34,13 @@
- #include "wcmod_phyreg.h"
- #include "wcmod_main.h"
- #include "wcmod_defines.h"
- #include "wcmod_functions.h"
- #include "wcmod_diagnostics.h"
- 
-+#include "logger.h"
- 
- 
- #define WCMOD_SDK32387_REVS(_pc) (WCMOD_REVID_A0(_pc) || WCMOD_REVID_A1(_pc) || WCMOD_REVID_B0(_pc))
- #define WCMOD_PHY400_REVS(_pc) (WCMOD_REVID_B0(_pc))
- 
- /* static variables */
-@@ -3551,12 +3552,18 @@ phy_wcmod_init(int unit, soc_port_t port
-     }
- 
-     LOG_INFO(BSL_LS_SOC_PHY,
-              (BSL_META_U(pc->unit,
-                          "phy_wcmod_init: u=%d p=%d\n"), unit, port));
- 
-+    /* PTin added: PHY link down problem */
-+    #if 1
-+    PT_LOG_INFO(LOG_CTX_SDK,"WCMOD initialized for bcm_port %u", port);
-+    osapiSleepMSec(50);
-+    #endif
-+
-     return SOC_E_NONE;
- }
- 
- #define PCS_STATUS_LANE4_SYNC   0x80F
- 
- /*
 @@ -6421,12 +6428,17 @@ phy_wcmod_xgxs16g1l_an_set(int unit, soc
              (MODIFY_WC40_AN_IEEE0BLK_AN_IEEECONTROL1r(unit, ws, an_enable, 
                                                        MII_CTRL_AE | MII_CTRL_RAN));

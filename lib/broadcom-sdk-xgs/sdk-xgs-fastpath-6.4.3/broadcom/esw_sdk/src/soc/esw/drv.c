@@ -45,6 +45,9 @@
  * StrataSwitch driver
  */
 
+/* PTin added: PCIe */
+#include "logger.h"
+
 #include <shared/bsl.h>
 
 #include <stddef.h>
@@ -141,9 +144,6 @@
 #ifdef INCLUDE_KNET
 #include <soc/knet.h>
 #endif
-
-/* PTin added: PCIe */
-#include "logger.h"
 
 #ifdef BCM_KATANA_SUPPORT
 #define   BCM_SABER_MAX_COUNTER_DIRECTION 2

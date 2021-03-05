@@ -17,8 +17,6 @@
 #include <soc/drv.h>
 #endif
 
-//#include "logger.h"
-
 /*!
 \brief WCMod clause 45 read driver.
 
