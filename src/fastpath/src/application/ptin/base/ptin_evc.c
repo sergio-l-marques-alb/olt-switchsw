@@ -724,10 +724,10 @@ L7_RC_t ptin_evc_startup(void)
   rc = ptin_evc_create(&evcConf);
   if (rc != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u for ASPEN management purposes", PTIN_ASPEN2CPU_A_EVC);
+    PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %lu for ASPEN management purposes", PTIN_ASPEN2CPU_A_EVC);
     return rc;
   }
-  PT_LOG_INFO(LOG_CTX_API, "EVC# %u created for ASPEN management purposes", PTIN_ASPEN2CPU_A_EVC);
+  PT_LOG_INFO(LOG_CTX_API, "EVC# %lu created for ASPEN management purposes", PTIN_ASPEN2CPU_A_EVC);
 
   /* 2nd EVC for ASPEN B */
   memset(&evcConf, 0x00, sizeof(evcConf));
@@ -755,10 +755,10 @@ L7_RC_t ptin_evc_startup(void)
   rc = ptin_evc_create(&evcConf);
   if (rc != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u for ASPEN management purposes", PTIN_ASPEN2CPU_B_EVC);
+    PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %lu for ASPEN management purposes", PTIN_ASPEN2CPU_B_EVC);
     return rc;
   }
-  PT_LOG_INFO(LOG_CTX_API, "EVC# %u created for ASPEN management purposes", PTIN_ASPEN2CPU_B_EVC);
+  PT_LOG_INFO(LOG_CTX_API, "EVC# %lu created for ASPEN management purposes", PTIN_ASPEN2CPU_B_EVC);
 
 #if 0
   /* Add static MACs for ASPENs */
@@ -860,7 +860,7 @@ L7_RC_t ptin_evc_startup(void)
   rc = ptin_evc_create(&evcConf);
   if (rc != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u for Broadlight management purposes", PTIN_EVC_BL2CPU);
+    PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %lu for Broadlight management purposes", PTIN_EVC_BL2CPU);
     return rc;
   }
 #endif
@@ -1169,7 +1169,7 @@ L7_RC_t ptin_evc_intfCfg_get(L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, ptin_
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -1221,7 +1221,7 @@ L7_RC_t ptin_evc_get(ptin_HwEthMef10Evc_t *evcConf)
   /* Validate EVC# extended range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -1601,7 +1601,7 @@ L7_RC_t ptin_evc_intVlan_get(L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, L7_ui
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -1663,7 +1663,7 @@ L7_RC_t ptin_evc_intRootVlan_get(L7_uint32 evc_ext_id, L7_uint16 *intRootVlan)
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -1744,7 +1744,7 @@ L7_RC_t ptin_evc_flags_get(L7_uint32 evc_ext_id, L7_uint32 *flags, L7_uint32 *mc
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -1836,7 +1836,7 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint3
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -1947,7 +1947,7 @@ L7_RC_t ptin_evc_extVlans_get_fromVPort(L7_uint32 evc_ext_id, L7_uint32 evc_int_
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -2341,7 +2341,7 @@ L7_BOOL ptin_evc_intf_isRoot(L7_uint16 intVlan, L7_uint32 intIfNum)
   /* Get interface configuration */
   if (ptin_evc_intf_type_get(intVlan, intIfNum, &intf_type)!=L7_SUCCESS)
   {
-    PT_LOG_WARN(LOG_CTX_DHCP, "Error acquiring interface %u/%u type from internalVid %u and intIfNum %u", intVlan, intIfNum);
+    PT_LOG_WARN(LOG_CTX_DHCP, "Error acquiring interface type from internalVid %u and intIfNum %u", intVlan, intIfNum);
     return L7_FALSE;
   }
   if(intf_type == PTIN_EVC_INTF_ROOT)
@@ -2763,7 +2763,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   /* Validate extended EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC id %u is out of range [0..%u[", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC id %u is out of range [0..%lu[", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS);
     return L7_FAILURE;
   }
 
@@ -3404,7 +3404,7 @@ L7_RC_t ptin_evc_port_add(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf)
   /* Validate arguments */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "EVC %u is out of range [0,%u[", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS);
+    PT_LOG_ERR(LOG_CTX_EVC, "EVC %u is out of range [0,%lu[", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS);
     return L7_FAILURE;
   }
   if (evc_intf == L7_NULLPTR)
@@ -3505,7 +3505,7 @@ L7_RC_t ptin_evc_port_remove(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_in
   /* Validate arguments */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "EVC %u is out of range [0,%u[", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS);
+    PT_LOG_ERR(LOG_CTX_EVC, "EVC %u is out of range [0,%lu[", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS);
     return L7_FAILURE;
   }
   if (evc_intf == L7_NULLPTR)
@@ -3693,7 +3693,7 @@ L7_RC_t ptin_evc_config(L7_uint32 evc_ext_id, ptin_HwEthMef10EvcOptions_t *evcOp
   /* Validate arguments */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "EVC %u is out of range [0,%u[", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS);
+    PT_LOG_ERR(LOG_CTX_EVC, "EVC %u is out of range [0,%lu[", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS);
     return L7_FAILURE;
   }
   if (evcOptions == L7_NULLPTR)
@@ -3917,7 +3917,7 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
   /* Validate eEVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u[", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu[", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS);
     return L7_FAILURE;
   }
 
@@ -4119,7 +4119,7 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if (evc_ext_id != (L7_uint32)-1 && evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u[", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu[", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS);
     return L7_FAILURE;
   }
 
@@ -4356,7 +4356,7 @@ L7_RC_t ptin_evc_p2p_bridge_replicate(L7_uint32 evc_ext_id, L7_uint32 ptin_port,
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -4432,7 +4432,7 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -4616,7 +4616,7 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -4864,7 +4864,7 @@ int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry)
          if (i*i>=intf_vp_modu) break;
          intf_vp_modu++;
      }
-     PT_LOG_INFO(LOG_CTX_EVC, "IfN_vp_DB init(%d)\tN=%lu\tmodu=%lu\tL7_MAX_INTERFACE_COUNT=%lu", _0init_1insert_2remove_3find, INTF_VP_MAX, intf_vp_modu, L7_MAX_INTERFACE_COUNT);
+     PT_LOG_INFO(LOG_CTX_EVC, "IfN_vp_DB init(%d)\tN=%u\tmodu=%lu\tL7_MAX_INTERFACE_COUNT=%u", _0init_1insert_2remove_3find, INTF_VP_MAX, intf_vp_modu, L7_MAX_INTERFACE_COUNT);
      break;
   case 1:
   case 2:
@@ -5084,7 +5084,7 @@ static int intf_vp_policer(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *meter)
     /* Check if policer exists */
     if (!intf_vp->policer.in_use)
     {
-      PT_LOG_WARN(LOG_CTX_L2, "vport 0x%x already does not have policer", intf_vp->vport_id);
+      PT_LOG_WARN(LOG_CTX_L2, "vport 0x%lx already does not have policer", intf_vp->vport_id);
       return L7_SUCCESS;
     }
 
@@ -5157,7 +5157,7 @@ static int intf_vp_policer(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *meter)
   /* If success... */
   if (rc == L7_SUCCESS)
   {
-    PT_LOG_TRACE(LOG_CTX_L2, "Success updating policer to virtual port 0x%08x",intf_vp->vport_id);
+    PT_LOG_TRACE(LOG_CTX_L2, "Success updating policer to virtual port 0x%08lx",intf_vp->vport_id);
 
     /* Remove policer, if it was that intention */
     if (meter == L7_NULLPTR || meter->cir == (L7_uint32)-1)
@@ -5185,7 +5185,7 @@ static int intf_vp_policer(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *meter)
   }
   else
   {
-    PT_LOG_ERR(LOG_CTX_L2, "Error updating policer to virtual port 0x%08x",intf_vp->vport_id);
+    PT_LOG_ERR(LOG_CTX_L2, "Error updating policer to virtual port 0x%08lx",intf_vp->vport_id);
   }
 
   PT_LOG_TRACE(LOG_CTX_EVC,"Finished");
@@ -5222,7 +5222,7 @@ L7_RC_t ptin_evc_macbridge_client_packages_add(ptin_evc_macbridge_client_package
   /* Input Argument validation */
   if ( ecvFlow  == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "Invalid arguments [msg:%p noOfMessages:%u]",ecvFlow);    
+    PT_LOG_ERR(LOG_CTX_EVC, "Invalid arguments [msg:%p]",ecvFlow);    
     return L7_FAILURE;
   }
   
@@ -5232,7 +5232,7 @@ L7_RC_t ptin_evc_macbridge_client_packages_add(ptin_evc_macbridge_client_package
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -5332,7 +5332,7 @@ L7_RC_t ptin_evc_macbridge_client_packages_remove(ptin_evc_macbridge_client_pack
   /* Input Argument validation */
   if ( ecvFlow  == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "Invalid arguments [msg:%p noOfMessages:%u]",ecvFlow);    
+    PT_LOG_ERR(LOG_CTX_EVC, "Invalid arguments [msg:%p]",ecvFlow);    
     return L7_FAILURE;
   }
 
@@ -5342,7 +5342,7 @@ L7_RC_t ptin_evc_macbridge_client_packages_remove(ptin_evc_macbridge_client_pack
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -5444,7 +5444,7 @@ L7_RC_t ptin_evc_flow_remove_port(L7_uint32 ptin_port, L7_uint32 evc_ext_id)
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -5507,7 +5507,7 @@ L7_RC_t ptin_evc_flow_replicate(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_ui
  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -5589,7 +5589,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -5633,7 +5633,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   {
     L7_uint int_ovid;
-    L7_int  vport_id, multicast_group;
+    L7_uint vport_id, multicast_group;
     L7_BOOL igmp_enabled, dhcpv4_enabled, dhcpv6_enabled, pppoe_enabled;
     /* Always add client */
     ptin_client_id_t clientId;
@@ -5703,10 +5703,10 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
       dl_queue_add_tail(&evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t*) pflow); /* add it to the corresponding interface */
       evcs[evc_id].n_clientflows++;
 
-      PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: flow successfully added (vport_id=%lu\tpon=%u/%u(%lu)\tgem_id=%u\tvirtual_gport=0x%8.8lx)",
+      PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: flow successfully added (vport_id=%u\tpon=%u/%u(%u)\tgem_id=%u\tvirtual_gport=0x%8.8x)",
                evc_ext_id,
                vport_id & 0xffffff,
-               evcFlow->ptin_intf.intf_type,evcFlow->ptin_intf.intf_id, intIfNum,
+               evcFlow->ptin_intf.intf_type, evcFlow->ptin_intf.intf_id, intIfNum,
                evcFlow->uni_ovid, vport_id);
     }
     else
@@ -5826,7 +5826,7 @@ L7_RC_t ptin_evc_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -6830,7 +6830,7 @@ L7_RC_t ptin_evc_flood_vlan_add( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, L
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -6991,7 +6991,7 @@ L7_RC_t ptin_evc_flood_vlan_remove( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -7240,7 +7240,7 @@ L7_RC_t ptin_evc_bwProfile_get(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile,
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -7286,7 +7286,7 @@ L7_RC_t ptin_evc_bwProfile_set(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile,
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -7357,7 +7357,7 @@ L7_RC_t ptin_evc_bwProfile_delete(L7_uint32 evc_ext_id, ptin_bw_profile_t *profi
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -7442,7 +7442,7 @@ L7_RC_t ptin_evc_evcStats_get(L7_uint32 evc_ext_id, ptin_evcStats_profile_t *pro
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -7492,7 +7492,7 @@ L7_RC_t ptin_evc_evcStats_set(L7_uint32 evc_ext_id, ptin_evcStats_profile_t *pro
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -7543,7 +7543,7 @@ L7_RC_t ptin_evc_evcStats_delete(L7_uint32 evc_ext_id, ptin_evcStats_profile_t *
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -9474,7 +9474,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
     #if (!PTIN_BOARD_IS_MATRIX)
       ptin_evc_vlan_allocate(&int_vlan, evcs[evc_id].queue_free_vlans, evc_id); /* One VLAN for each unstacked leaf */
     #else
-      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: E-trees are not allowed for Matrix board");
+      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: E-trees are not allowed for Matrix board", evc_id);
       return L7_FAILURE;
     #endif
     }
@@ -9755,7 +9755,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error removing Mgmd Port [extended_id=%u intIfNum=%u]",
-                evcs[evc_id].extended_id, intIfNum);
+                   evc_id, evcs[evc_id].extended_id, intIfNum);
   //    return rc;
       }
       else
@@ -11122,7 +11122,7 @@ L7_RC_t ptin_evc_igmp_stats_get(L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, pt
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -11176,7 +11176,7 @@ L7_RC_t ptin_evc_igmp_stats_clear(L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf)
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -11221,7 +11221,7 @@ L7_RC_t ptin_evc_igmp_stats_clear_all(L7_uint32 evc_ext_id)
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%lu]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -11477,7 +11477,7 @@ static L7_RC_t switching_elan_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_EVC, "Error deleting intf %u xlate Egress entry [Root Int.VLAN %u + Inn.VLAN %u (rc=%d)",
-              leaf_intf, int_vlan, leaf_inner_vlan, leaf_out_vlan, rc);
+                 leaf_intf, int_vlan, leaf_inner_vlan, rc);
       return rc;
     }
   }
@@ -11577,7 +11577,7 @@ static L7_RC_t switching_mcevc_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_EVC, "Error deleting intf %u xlate Egress entry [Root Int.VLAN %u (rc=%d)",
-              leaf_intf, int_vlan, leaf_out_vlan, rc);
+              leaf_intf, int_vlan, rc);
       return rc;
     }
   }
@@ -12478,10 +12478,10 @@ L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *profile)
           {
             if (profile->outer_vlan_lookup!=pclientFlow->uni_ovid)
             {
-              PT_LOG_ERR(LOG_CTX_EVC,"OVid_in %u does not match to the one in EVC client (%u)", profile->outer_vlan_lookup, pclientFlow->uni_ovid);
+              PT_LOG_ERR(LOG_CTX_EVC,"OVid_in %u does not match to the one in EVC client (%u)",
+                         profile->outer_vlan_lookup, pclientFlow->uni_ovid);
               return L7_FAILURE;
             }
-            PT_LOG_TRACE(LOG_CTX_EVC,"OVid_in %u verified for client %u",ptin_port,profile->outer_vlan_lookup,profile->inner_vlan_ingress);
           }
           /* Removed: for non QUATTRO services, these vlans should be null */
           //profile->outer_vlan_out = pclientFlow->uni_ovid;
@@ -12644,7 +12644,6 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_id, ptin_evcStats_profile_t 
             PT_LOG_ERR(LOG_CTX_EVC,"OVid_in %u does not match to the one in EVC client (%u)",profile->outer_vlan_lookup,pclientFlow->uni_ovid);
             return L7_FAILURE;
           }
-          PT_LOG_TRACE(LOG_CTX_EVC,"OVid_in %u verified for client %u",ptin_port,profile->outer_vlan_lookup,profile->inner_vlan_ingress);
         }
         profile->outer_vlan_egress = pclientFlow->uni_ovid;
         profile->inner_vlan_egress = 0;                /* No need to consider inner vlan at the egress */
@@ -13345,15 +13344,15 @@ void ptin_evc_map(void)
 
 void sizeof_evc(void)
 {
-  PT_LOG_CRITIC(LOG_CTX_EVC, "sizeof(ptin_evc_client_s)     = %d", sizeof(struct ptin_evc_client_s));
-  PT_LOG_CRITIC(LOG_CTX_EVC, "sizeof(ptin_evc_intf_s)       = %d", sizeof(struct ptin_evc_intf_s));
-  PT_LOG_CRITIC(LOG_CTX_EVC, "sizeof(ptin_evc_s)            = %d", sizeof(struct ptin_evc_s));
-  PT_LOG_CRITIC(LOG_CTX_EVC, "sizeof(ptin_IGMP_Statistics_t)= %d", sizeof(ptin_IGMP_Statistics_t));
-  PT_LOG_CRITIC(LOG_CTX_EVC, "PTIN_SYSTEM_N_INTERF          = %d", PTIN_SYSTEM_N_INTERF);
-  PT_LOG_CRITIC(LOG_CTX_EVC, "sizeof(IGMP statistics)       = %d", sizeof(ptin_IGMP_Statistics_t)*PTIN_SYSTEM_N_INTERF);
-  PT_LOG_CRITIC(LOG_CTX_EVC, "sizeof(evcs)                  = %d", sizeof(evcs));
-  PT_LOG_CRITIC(LOG_CTX_EVC, "sizeof(clients)               = %d", sizeof(clients));
-  PT_LOG_CRITIC(LOG_CTX_EVC, "total(evcs+clients)           = %d", sizeof(evcs)+sizeof(clients));
+  PT_LOG_CRITIC(LOG_CTX_EVC, "sizeof(ptin_evc_client_s)     = %zu", sizeof(struct ptin_evc_client_s));
+  PT_LOG_CRITIC(LOG_CTX_EVC, "sizeof(ptin_evc_intf_s)       = %zu", sizeof(struct ptin_evc_intf_s));
+  PT_LOG_CRITIC(LOG_CTX_EVC, "sizeof(ptin_evc_s)            = %zu", sizeof(struct ptin_evc_s));
+  PT_LOG_CRITIC(LOG_CTX_EVC, "sizeof(ptin_IGMP_Statistics_t)= %zu", sizeof(ptin_IGMP_Statistics_t));
+  PT_LOG_CRITIC(LOG_CTX_EVC, "PTIN_SYSTEM_N_INTERF          = %u" , PTIN_SYSTEM_N_INTERF);
+  PT_LOG_CRITIC(LOG_CTX_EVC, "sizeof(IGMP statistics)       = %zu", sizeof(ptin_IGMP_Statistics_t)*PTIN_SYSTEM_N_INTERF);
+  PT_LOG_CRITIC(LOG_CTX_EVC, "sizeof(evcs)                  = %zu", sizeof(evcs));
+  PT_LOG_CRITIC(LOG_CTX_EVC, "sizeof(clients)               = %zu", sizeof(clients));
+  PT_LOG_CRITIC(LOG_CTX_EVC, "total(evcs+clients)           = %zu", sizeof(evcs)+sizeof(clients));
 }
 
 L7_RC_t test_evc_create(L7_uint evc_id, L7_uint16 int_vlan,

@@ -257,7 +257,7 @@ void cbEventqueueTask(void)
 
   if (osapiTaskInitDone(L7_PTIN_IGMP_TASK_SYNC)!=L7_SUCCESS)
   {
-    PT_LOG_FATAL(LOG_CTX_SSM, "Error syncing task");
+    PT_LOG_FATAL(LOG_CTX_IGMP, "Error syncing task");
     PTIN_CRASH();
   }
 
@@ -519,7 +519,7 @@ L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 tim
     PT_LOG_DEBUG(LOG_CTX_IGMP,"Starting Proxy Group timer (timeout:%u group:%s)",timeout,
               inetAddrPrint(&pTimer->(snoopPTinProxyGroup_t*)(groupData)->key.groupAddr, debug_buf));
 #else
-    PT_LOG_DEBUG(LOG_CTX_IGMP,"Starting Proxy Group timer (timeout:%u groupRecord:%u",timeout);
+    PT_LOG_DEBUG(LOG_CTX_IGMP,"Starting Proxy Group timer (timeout:%u)",timeout);
 #endif
   }
 

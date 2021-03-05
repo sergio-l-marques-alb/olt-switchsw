@@ -50,7 +50,7 @@ ptin_prottypeb_intf_config_t prottypeb_interfaces[PTIN_SYSTEM_N_INTERF];
 L7_RC_t ptin_prottypeb_init(void)
 {
   /* Initialize the interface configurations */
-  PT_LOG_INFO(LOG_CTX_PROTB, "Initializing interface type-b protection configurations");
+  PT_LOG_INFO(LOG_CTX_INTF, "Initializing interface type-b protection configurations");
   memset(prottypeb_interfaces, 0x00, sizeof(prottypeb_interfaces));
 
   return L7_SUCCESS;
@@ -72,7 +72,7 @@ L7_RC_t ptin_prottypeb_intf_config_set(ptin_prottypeb_intf_config_t* data)
   /* Check input */
   if(data==L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_PROTB, "Invalid context [data:%p]", data);
+    PT_LOG_ERR(LOG_CTX_INTF, "Invalid context [data:%p]", data);
     return L7_FAILURE;
   }
 
@@ -80,7 +80,7 @@ L7_RC_t ptin_prottypeb_intf_config_set(ptin_prottypeb_intf_config_t* data)
   intfNum = data->intfNum;
   if(intfNum==0 || intfNum>=PTIN_SYSTEM_N_INTERF)
   {
-    PT_LOG_ERR(LOG_CTX_PROTB, "Invalid intfNum[%u]", data->intfNum);
+    PT_LOG_ERR(LOG_CTX_INTF, "Invalid intfNum[%u]", data->intfNum);
     return L7_FAILURE;
   }
 
@@ -92,14 +92,14 @@ L7_RC_t ptin_prottypeb_intf_config_set(ptin_prottypeb_intf_config_t* data)
   ENDIAN_SWAP32_MOD(data->pairIntfNum);
 
   /* Return the configurations for the desired interface */
-  PT_LOG_DEBUG(LOG_CTX_PROTB, "Setting intfNum[%u] type-b protection configurations", intfNum);
-  PT_LOG_TRACE(LOG_CTX_PROTB, "Configurations:");
-  PT_LOG_TRACE(LOG_CTX_PROTB, "    slotId     : %u", data->slotId);
-  PT_LOG_TRACE(LOG_CTX_PROTB, "    intfNum    : %u", data->intfNum);
-  PT_LOG_TRACE(LOG_CTX_PROTB, "    intfRole   : %u", data->intfRole);
-  PT_LOG_TRACE(LOG_CTX_PROTB, "    status     : %u", data->status);
-  PT_LOG_TRACE(LOG_CTX_PROTB, "    pairSlotId : %u", data->pairSlotId);
-  PT_LOG_TRACE(LOG_CTX_PROTB, "    pairIntfNum: %u", data->pairIntfNum);
+  PT_LOG_DEBUG(LOG_CTX_INTF, "Setting intfNum[%u] type-b protection configurations", intfNum);
+  PT_LOG_TRACE(LOG_CTX_INTF, "Configurations:");
+  PT_LOG_TRACE(LOG_CTX_INTF, "    slotId     : %u", data->slotId);
+  PT_LOG_TRACE(LOG_CTX_INTF, "    intfNum    : %u", data->intfNum);
+  PT_LOG_TRACE(LOG_CTX_INTF, "    intfRole   : %u", data->intfRole);
+  PT_LOG_TRACE(LOG_CTX_INTF, "    status     : %u", data->status);
+  PT_LOG_TRACE(LOG_CTX_INTF, "    pairSlotId : %u", data->pairSlotId);
+  PT_LOG_TRACE(LOG_CTX_INTF, "    pairIntfNum: %u", data->pairIntfNum);
   memcpy(&prottypeb_interfaces[intfNum-1], data, sizeof(ptin_prottypeb_intf_config_t));
 
 #if !PTIN_BOARD_IS_MATRIX
@@ -121,7 +121,7 @@ L7_RC_t ptin_prottypeb_intf_config_set(ptin_prottypeb_intf_config_t* data)
       /* Determine the IP address of the working port/slot */
       if (L7_SUCCESS != ptin_fpga_slot_ip_addr_get(prottypeb_interfaces[intfNum-1].pairSlotId, &ipAddr))
       {
-        PT_LOG_ERR(LOG_CTX_PROTB, "Failed to obtain ipAddress of slotId:%u", prottypeb_interfaces[intfNum-1].pairSlotId);
+        PT_LOG_ERR(LOG_CTX_INTF, "Failed to obtain ipAddress of slotId:%u", prottypeb_interfaces[intfNum-1].pairSlotId);
         return L7_FAILURE;
       }
     #endif      
@@ -132,7 +132,7 @@ L7_RC_t ptin_prottypeb_intf_config_set(ptin_prottypeb_intf_config_t* data)
                          (char *)(&snoopSyncRequest), NULL,
                          sizeof(snoopSyncRequest), NULL) != 0)
     {
-      PT_LOG_ERR(LOG_CTX_PROTB, "Failed to send Snoop Sync Request Message");
+      PT_LOG_ERR(LOG_CTX_INTF, "Failed to send Snoop Sync Request Message");
       return L7_FAILURE;
     }  
   }
@@ -153,14 +153,14 @@ L7_RC_t ptin_prottypeb_intf_config_get(L7_uint32 intfNum, ptin_prottypeb_intf_co
   /* Check input */
   if(data==L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_PROTB, "Invalid context [data:%p]", data);
+    PT_LOG_ERR(LOG_CTX_INTF, "Invalid context [data:%p]", data);
     return L7_FAILURE;
   }
 
   /* Ensure the requested interface is valid */
   if(intfNum==0 || intfNum>=PTIN_SYSTEM_N_INTERF)
   {
-    PT_LOG_ERR(LOG_CTX_PROTB, "Invalid intfNum[%u]", intfNum);
+    PT_LOG_ERR(LOG_CTX_INTF, "Invalid intfNum[%u]", intfNum);
     return L7_FAILURE;
   }
 
@@ -168,14 +168,14 @@ L7_RC_t ptin_prottypeb_intf_config_get(L7_uint32 intfNum, ptin_prottypeb_intf_co
   ENDIAN_SWAP32_MOD(data->pairSlotId);
   ENDIAN_SWAP32_MOD(data->slotId);
   /* Return the configurations for the desired interface */
-  PT_LOG_DEBUG(LOG_CTX_PROTB, "Getting intfNum[%u] type-b protection configurations", intfNum);
+  PT_LOG_DEBUG(LOG_CTX_INTF, "Getting intfNum[%u] type-b protection configurations", intfNum);
   memcpy(data, &prottypeb_interfaces[intfNum-1], sizeof(ptin_prottypeb_intf_config_t));
-  PT_LOG_TRACE(LOG_CTX_PROTB, "Configurations:");
-  PT_LOG_TRACE(LOG_CTX_PROTB, "    intfNum    : %u", data->intfNum);
-  PT_LOG_TRACE(LOG_CTX_PROTB, "    intfRole   : %u", data->intfRole);
-  PT_LOG_TRACE(LOG_CTX_PROTB, "    status     : %u", data->status);     
-  PT_LOG_TRACE(LOG_CTX_PROTB, "    pairSlotId : %u", data->pairSlotId);
-  PT_LOG_TRACE(LOG_CTX_PROTB, "    pairIntfNum: %u", data->pairIntfNum);
+  PT_LOG_TRACE(LOG_CTX_INTF, "Configurations:");
+  PT_LOG_TRACE(LOG_CTX_INTF, "    intfNum    : %u", data->intfNum);
+  PT_LOG_TRACE(LOG_CTX_INTF, "    intfRole   : %u", data->intfRole);
+  PT_LOG_TRACE(LOG_CTX_INTF, "    status     : %u", data->status);     
+  PT_LOG_TRACE(LOG_CTX_INTF, "    pairSlotId : %u", data->pairSlotId);
+  PT_LOG_TRACE(LOG_CTX_INTF, "    pairIntfNum: %u", data->pairIntfNum);
 
   return L7_SUCCESS;
 }
@@ -196,7 +196,7 @@ L7_RC_t ptin_prottypeb_intf_switch_notify(L7_uint32 intfNum, L7_uint8 status)
   /* Ensure the requested interface is valid */
   if(intfNum==0 || intfNum>=PTIN_SYSTEM_N_INTERF || (status | L7_ENABLE) != L7_ENABLE)
   {
-    PT_LOG_ERR(LOG_CTX_PROTB, "Invalid intfNum[%u] status[%u]", intfNum, status);
+    PT_LOG_ERR(LOG_CTX_INTF, "Invalid intfNum[%u] status[%u]", intfNum, status);
     return L7_FAILURE;
   }
 

@@ -78,7 +78,7 @@ L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 workingSlotId, L7_uint8 protectionSl
   rc = ptin_fpga_slot_ip_addr_get(protectionSlotId, &protectionSlotIp);
   if (L7_SUCCESS != rc)
   {
-    PT_LOG_ERR(LOG_CTX_PROTB, "Failed to obtain IP Address of slotId:%u", protectionSlotId);
+    PT_LOG_ERR(LOG_CTX_IGMP, "Failed to obtain IP Address of slotId:%u", protectionSlotId);
     return L7_FAILURE;
   }
 
@@ -87,7 +87,8 @@ L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 workingSlotId, L7_uint8 protectionSl
   {
     if ( protectionSlotIp == workingSlotIp )
     {
-      PT_LOG_ERR(LOG_CTX_PROTB, "Invalid Configuration: protectionSlotId:%u != workingSlotId:%u && protectionSlotIp == workingSlotIp = :%u", protectionSlotId, workingSlotId, protectionSlotIp);
+      PT_LOG_ERR(LOG_CTX_IGMP, "Invalid Configuration: protectionSlotId:%u != workingSlotId:%u && protectionSlotIp == workingSlotIp = :%u",
+                 protectionSlotId, workingSlotId, protectionSlotIp);
       return L7_FAILURE;
     }    
   }
@@ -95,7 +96,8 @@ L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 workingSlotId, L7_uint8 protectionSl
   {
     if (workingPortId == protectionPortId)
     {
-      PT_LOG_ERR(LOG_CTX_PROTB, "Invalid Configuration: protectionSlotId:%u == workingSlotId:%u && workingPortId == protectionPortId = :%u", protectionSlotId, workingPortId);
+      PT_LOG_ERR(LOG_CTX_IGMP, "Invalid Configuration: protectionSlotId:%u == workingSlotId:%u && workingPortId == protectionPortId = :%u",
+                 protectionSlotId, workingSlotId, workingPortId);
       return L7_FAILURE;
     }
   }  
@@ -109,14 +111,15 @@ L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 workingSlotId, L7_uint8 protectionSl
   mgmdPortSync.sourceAddr = sourceAddr;
   mgmdPortSync.groupType  = groupType;
 
-  PT_LOG_TRACE(LOG_CTX_PROTB, "Sending message to card %08X(%u) to set port %u admin to %u for group %08X/%08X", protectionSlotIp, protectionSlotId, protectionPortId, admin, groupAddr, sourceAddr);
+  PT_LOG_TRACE(LOG_CTX_IGMP, "Sending message to card %08X(%u) to set port %u admin to %u for group %08X/%08X",
+               protectionSlotIp, protectionSlotId, protectionPortId, admin, groupAddr, sourceAddr);
 
   /* Send the mfdb port configurations to the remote slot */
   if (send_ipc_message(IPC_HW_FASTPATH_PORT, protectionSlotIp, CCMSG_MGMD_PORT_SYNC,
                        (char *)(&mgmdPortSync), NULL,
                        sizeof(mgmdPortSync), NULL) != 0)
   {
-    PT_LOG_ERR(LOG_CTX_PROTB, "Failed to sync MGMD between active and protection interface");
+    PT_LOG_ERR(LOG_CTX_IGMP, "Failed to sync MGMD between active and protection interface");
     return L7_FAILURE;
   }
 
@@ -164,14 +167,15 @@ L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, ptin_fpga_matrix_type_t matrixTyp
   mgmdPortSync.sourceAddr = sourceAddr;
   mgmdPortSync.groupType  = groupType;
 
-  PT_LOG_TRACE(LOG_CTX_PROTB, "Sending message to matrix %08X(%u) to set port %u admin to %u for group %08X/%08X", matrixIpAddr, matrixSlotId, portId, admin, groupAddr, sourceAddr);
+  PT_LOG_TRACE(LOG_CTX_IGMP, "Sending message to matrix %08X(%u) to set port %u admin to %u for group %08X/%08X",
+               matrixIpAddr, matrixSlotId, portId, admin, groupAddr, sourceAddr);
 
   /* Send the mfdb port configurations to the remote slot */
   if (send_ipc_message(IPC_HW_FASTPATH_PORT, matrixIpAddr, CCMSG_MGMD_PORT_SYNC,
                        (char *)(&mgmdPortSync), NULL,
                        sizeof(mgmdPortSync), NULL) != 0)
   {
-    PT_LOG_ERR(LOG_CTX_PROTB, "Failed to sync MGMD between active and protection interface");
+    PT_LOG_ERR(LOG_CTX_IGMP, "Failed to sync MGMD between active and protection interface");
     return L7_FAILURE;
   }
 
@@ -4092,7 +4096,8 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   inetAddrPrint(groupAddr, groupAddrStr);
   inetAddrPrint(sourceAddr, sourceAddrStr);
 
-  PT_LOG_DEBUG(LOG_CTX_IGMP, "Context [serviceId:%u portId:%u groupAddr:%s sourceAddr:%s isProtection:%s]", serviceId, intIfNum, groupAddr, sourceAddr, isProtection?"Yes":"No");
+  PT_LOG_DEBUG(LOG_CTX_IGMP, "Context [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x isProtection:%s]",
+               serviceId, intIfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isProtection ? "Yes" : "No");
 
 #if !PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
   /*In L2 we do not support forwarding multicast packets based on the Source Address. 
@@ -4124,7 +4129,8 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   )
   {
 //  if (ptin_debug_igmp_snooping)
-      PT_LOG_NOTICE(LOG_CTX_IGMP, "Ignoring Port Close. This port is standby [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, intIfNum, groupAddr, sourceAddr);
+      PT_LOG_NOTICE(LOG_CTX_IGMP, "Ignoring Port Close. This port is standby [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]",
+                  serviceId, intIfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr);
    
     return rc;
   } 

@@ -86,14 +86,14 @@ void ptin_flows_fpga_init(void) {
   /* Create circuit */
   rc = ptin_evc_create(&evcConf);
   if (rc != L7_SUCCESS) {
-    PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u connecting CPU-FPGA", EVCpcpu);
+    PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %lu connecting CPU-FPGA", EVCpcpu);
     return;
   }
 
   //Remove VID(cpu) @ CPU port's egress
   rc = ptin_xlate_egress_set(PTIN_PORT_CPU, VIDpcpu, PTIN_XLATE_ACTION_DELETE, -1);
   if (rc != L7_SUCCESS) {
-    PT_LOG_ERR(LOG_CTX_API, "Error defining pop xlate action for EVC# %u (CPU-FPGA): rc=%d", EVCpcpu, rc);
+    PT_LOG_ERR(LOG_CTX_API, "Error defining pop xlate action for EVC# %lu (CPU-FPGA): rc=%d", EVCpcpu, rc);
     return;
   }
 #endif
@@ -186,14 +186,14 @@ ptin_HwEthMef10Evc_t evcConf;
             /* Create circuit */
             rc = ptin_evc_create(&evcConf);
             if (rc != L7_SUCCESS) {
-              PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u for connecting Port %u to FPGA", EVCprt(prt), prt);
+              PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %lu for connecting Port %lu to FPGA", EVCprt(prt), prt);
               //return rc;
             }
 
             //Remove VID(po) (=VID(pi)) @ PO/PI port's egress
             rc2 = ptin_xlate_egress_set(prt, VIDprt(prt), PTIN_XLATE_ACTION_DELETE, -1);
             if (rc2 != L7_SUCCESS) {
-              PT_LOG_ERR(LOG_CTX_API, "Error defining pop xlate action for EVC# %u (CPU-FPGA): rc=%d", EVCprt(prt), rc);
+              PT_LOG_ERR(LOG_CTX_API, "Error defining pop xlate action for EVC# %lu (CPU-FPGA): rc=%d", EVCprt(prt), rc);
               //return rc2;
             }
             if (rc!=L7_SUCCESS || rc2!=L7_SUCCESS) {
@@ -219,7 +219,7 @@ ptin_HwEthMef10Evc_t evcConf;
         if (0==index2n_used(&prt_vid_table, i, N_FPGA_VIDPRTS)) {   //last entity leaving
             rc = ptin_evc_delete(EVCprt(prt));
             if (rc != L7_SUCCESS) {
-              PT_LOG_ERR(LOG_CTX_API, "Error deleting EVC# %u for connecting Port %u to FPGA", EVCprt(prt), prt);
+              PT_LOG_ERR(LOG_CTX_API, "Error deleting EVC# %lu for connecting Port %lu to FPGA", EVCprt(prt), prt);
               return -6;
             }
         }//if (0==index2n_used(&prt_vid_table, i, N_FPGA_VIDPRTS))  //last entity leaving
@@ -390,7 +390,7 @@ L7_RC_t ptin_hapi_ptp_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_ptp_
 
   tbl_entry.e = *entry; //tbl_entry.e.key = entry->key;
   i = find_entry(&search_PTP_table, &tbl_entry, sizeof(tbl_entry), sizeof(entry->key), N_SEARCH_PTP, -1, &_1st_free);
-  PT_LOG_TRACE(LOG_CTX_HAPI, "i=%u\t_1st_free=%u\t(N_SEARCH_PTP=%u)", i, _1st_free, N_SEARCH_PTP);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "i=%lu\t_1st_free=%lu\t(N_SEARCH_PTP=%u)", i, _1st_free, N_SEARCH_PTP);
 
   if (i<N_SEARCH_PTP) { //Entry found
       p = (ptin_hapi_search_ptp_t*) pointer2table_index(&search_PTP_table, i, N_SEARCH_PTP, sizeof(tbl_entry));
@@ -603,7 +603,7 @@ L7_RC_t ptin_hapi_ptp_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_ptp_
   i = add_entry(&search_PTP_table, &tbl_entry, sizeof(tbl_entry), sizeof(entry->key), N_SEARCH_PTP, i, 0, 0);
   //wr_entry(&search_PTP_table, &tbl_entry, sizeof(tbl_entry), N_SEARCH_PTP, i);
 
-  PT_LOG_TRACE(LOG_CTX_HAPI,"add_entry()=%u\t(N_SEARCH_PTP=%u)", i, N_SEARCH_PTP);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"add_entry()=%lu\t(N_SEARCH_PTP=%u)", i, N_SEARCH_PTP);
   //PT_LOG_TRACE(LOG_CTX_HAPI,"Operation finished successfully");
 
   return L7_SUCCESS;
@@ -646,7 +646,7 @@ L7_RC_t rc = L7_SUCCESS;
     p = (ptin_hapi_search_ptp_t*) pointer2table_index(&search_PTP_table, i, N_SEARCH_PTP, sizeof(tbl_entry));
 
     //Delete entry
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Deleting entry %u (prt=%u, vid=%u, vid_os=%u, policyId=%u)...",
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Deleting entry %lu (prt=%u, vid=%u, vid_os=%u, policyId=%u)...",
                  i, p->e.key.prt, p->e.key.vid, p->e.vid_os, p->policyId);
     rc = hapiBroadPolicyDelete(p->policyId);
     if (rc != L7_SUCCESS) {PT_LOG_ERR(LOG_CTX_HAPI, "Cannot hapiBroadPolicyDelete()");}
@@ -910,7 +910,7 @@ bcm_gport_t  gport;
 
     tbl_entry.e = *entry; //tbl_entry.e.key = entry->key;
     i = find_entry(&search_OAM_table, &tbl_entry, sizeof(tbl_entry), sizeof(entry->key), N_SEARCH_OAM, -1, &_1st_free);
-    PT_LOG_TRACE(LOG_CTX_HAPI, "i=%u\t_1st_free=%u\t(N_SEARCH_OAM=%u)", i, _1st_free, N_SEARCH_OAM);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "i=%lu\t_1st_free=%lu\t(N_SEARCH_OAM=%u)", i, _1st_free, N_SEARCH_OAM);
 
     if (i<N_SEARCH_OAM) { //Entry found
         p = (ptin_hapi_search_oam_t*) pointer2table_index(&search_OAM_table, i, N_SEARCH_OAM, sizeof(tbl_entry));
@@ -1056,7 +1056,7 @@ bcm_gport_t  gport;
     i = add_entry(&search_OAM_table, &tbl_entry, sizeof(tbl_entry), sizeof(entry->key), N_SEARCH_OAM, i, 0, 0);
     //wr_entry(&search_OAM_table, &tbl_entry, sizeof(tbl_entry), N_SEARCH_OAM, i);
 
-    PT_LOG_TRACE(LOG_CTX_HAPI,"add_entry()=%u\t(N_SEARCH_OAM=%u)", i, N_SEARCH_OAM);
+    PT_LOG_TRACE(LOG_CTX_HAPI,"add_entry()=%lu\t(N_SEARCH_OAM=%u)", i, N_SEARCH_OAM);
 
     return L7_SUCCESS;
 #endif
@@ -1087,7 +1087,7 @@ L7_RC_t rc = L7_SUCCESS;
     p = (ptin_hapi_search_oam_t*) pointer2table_index(&search_OAM_table, i, N_SEARCH_OAM, sizeof(tbl_entry));
 
     //Delete entry
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Deleting entry %u (prt=%u, vid=%u, oam_level=%u, policyId=%u)...",
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Deleting entry %lu (prt=%u, vid=%u, oam_level=%u, policyId=%u)...",
                  i, p->e.key.prt, p->e.key.vid, p->e.lvl, p->policyId);
     rc = hapiBroadPolicyDelete(p->policyId);
     if (rc != L7_SUCCESS) {PT_LOG_ERR(LOG_CTX_HAPI, "Cannot hapiBroadPolicyDelete()");}

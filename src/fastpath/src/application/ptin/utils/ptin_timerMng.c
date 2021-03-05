@@ -80,7 +80,7 @@ void ptin_timerMng_task(void)
 
   if (osapiTaskInitDone(L7_PTIN_TIMERMNG_TASK_SYNC)!=L7_SUCCESS)
   {
-    PT_LOG_FATAL(LOG_CTX_SSM, "Error syncing task");
+    PT_LOG_FATAL(LOG_CTX_MISC, "Error syncing task");
     PTIN_CRASH();
   }
 
@@ -670,7 +670,8 @@ L7_RC_t ptin_timerMng_start(ptin_timerMng_context_t *context, void *data, L7_uin
   osapiSemaGive(ptin_timers_sem);
 
   if (ptin_timerMng_debug_snooping)
-    PT_LOG_DEBUG(LOG_CTX_MISC,"Timer Started: timerCB=%p timer=%p timerHandle=%p timeout=%u (s)", timersMng.timerCB, pTimerData->timer, pTimerData->timerHandle, timeout);
+    PT_LOG_DEBUG(LOG_CTX_MISC,"Timer Started: timerCB=%p timer=%p timerHandle=0x%llx timeout=%u (s)",
+                 timersMng.timerCB, pTimerData->timer, pTimerData->timerHandle, timeout);
 
   return L7_SUCCESS;
 }

@@ -406,7 +406,7 @@ L7_RC_t pppoePacketQueue(L7_uchar8 *frame, L7_uint32 dataLen,
   if (dataLen < (ethHdrLen + sizeof(L7_pppoe_header_t) + osapiNtohs(pppoeHeader->length)))
   {
     if (ptin_debug_pppoe_snooping)
-      PT_LOG_ERR(LOG_CTX_PPPOE, "PPPoE malformed packet: invalid frame length (pktLen=%u ethHdrLen=%u pppoeHdrLen=%u pppoeDataLen=%u",
+      PT_LOG_ERR(LOG_CTX_PPPOE, "PPPoE malformed packet: invalid frame length (pktLen=%u ethHdrLen=%u pppoeHdrLen=%zu pppoeDataLen=%u",
               dataLen, ethHdrLen, sizeof(L7_pppoe_header_t), osapiNtohs(pppoeHeader->length));
     return L7_FAILURE;
   }
@@ -437,7 +437,7 @@ L7_RC_t pppoePacketQueue(L7_uchar8 *frame, L7_uint32 dataLen,
   pppoeFrameMsg.frameLen = dataLen;
   pppoeFrameMsg.innerVlanId = innerVlanId;
   pppoeFrameMsg.client_idx  = *client_idx;
-PT_LOG_DEBUG(LOG_CTX_PPPOE, "");
+
   if (osapiMessageSend(pppoe_Packet_Queue, &pppoeFrameMsg, sizeof(pppoeFrameMsg_t), L7_NO_WAIT,
                        L7_MSG_PRIORITY_NORM) == L7_SUCCESS)
   {
@@ -448,7 +448,6 @@ PT_LOG_DEBUG(LOG_CTX_PPPOE, "");
    /* This may be fairly normal, so don't log. DHCP should recover. */
 //     dsInfo->debugStats.frameMsgTxError++;
   }
-PT_LOG_DEBUG(LOG_CTX_PPPOE, "");
   return L7_SUCCESS;
 }
 
@@ -1187,8 +1186,8 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 frameLen, L7_uint32 int
          }
          default:
          {
-            /* Copy existing TLV header to our new frame */PT_LOG_TRACE(LOG_CTX_PPPOE, "");
-            pppoeCopyTlv(tlv_header_ptr, tlv_header_copy_ptr);PT_LOG_TRACE(LOG_CTX_PPPOE, "");
+            /* Copy existing TLV header to our new frame */
+            pppoeCopyTlv(tlv_header_ptr, tlv_header_copy_ptr);
             tlv_header_copy_ptr += sizeof(L7_tlv_header_t) + tlv_hdr_len;
          }
       }//switch
@@ -1342,8 +1341,8 @@ void pppoeProcessServerFrame(L7_uchar8* frame, L7_uint32 frameLen, L7_uint32 int
          }
          default:
          {
-            /* Copy existing TLV header to our new frame */PT_LOG_TRACE(LOG_CTX_PPPOE, "");
-            pppoeCopyTlv(tlv_header_ptr, tlv_header_copy_ptr);PT_LOG_TRACE(LOG_CTX_PPPOE, "");
+            /* Copy existing TLV header to our new frame */
+            pppoeCopyTlv(tlv_header_ptr, tlv_header_copy_ptr);
             tlv_header_copy_ptr += sizeof(L7_tlv_header_t) + tlv_hdr_len;
          }
       }

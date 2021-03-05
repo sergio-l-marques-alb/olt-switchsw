@@ -499,7 +499,7 @@ L7_RC_t ptin_hapi_l3_ipmc_add(ptin_dtl_ipmc_addr_t *ptin_ipmc)
         rv = bcm_multicast_create(unit, flags, &group);
         if ( (rv != BCM_E_NONE && rv != BCM_E_EXISTS) || group <= 0)
         {
-          PT_LOG_ERR(LOG_CTX_HAPI,"unit %d: Error with bcm_multicast_create(%d, 0x%x, group_index:0x%08x rv:%d) (\"%s\")",
+          PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcm_multicast_create(%d, 0x%x, group_index:0x%08x rv:%d) (\"%s\")",
                      unit, BCM_MULTICAST_TYPE_L3, group, rv, bcm_errmsg(rv));
           return ptin_bcm_to_fp_error_code(rv);
         }
@@ -617,7 +617,7 @@ L7_RC_t ptin_hapi_l3_ipmc_reset(void)
 
       if (BCM_FAILURE(rv))
       {
-        PT_LOG_ERR(LOG_CTX_HAPI,"Error initializing IPMC Table: rv=\"%s\" (rv:%u)", bcm_errmsg(rv));
+        PT_LOG_ERR(LOG_CTX_HAPI,"Error initializing IPMC Table: rv=\"%s\" (rv:%u)", bcm_errmsg(rv), rv);
         return ptin_bcm_to_fp_error_code(rv);
       }
   }

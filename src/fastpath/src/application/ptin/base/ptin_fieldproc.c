@@ -187,7 +187,7 @@ L7_RC_t ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_meter_t *meter, L
         }
         else
         {
-          PT_LOG_ERR(LOG_CTX_API, "ptin_port %u (LAG) does not have members", intIfNum, profile->ptin_port);
+          PT_LOG_ERR(LOG_CTX_API, "ptin_port %u (LAG) does not have members", profile->ptin_port);
           return L7_FAILURE;
         }
       }

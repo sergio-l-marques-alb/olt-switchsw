@@ -457,7 +457,7 @@ L7_RC_t ptin_hapi_maclimit_inc(bcm_l2_addr_t *bcm_l2_addr)
         macLearn_info_physical[physical_port].mac_total++;
 
         if(ptin_hapi_l2_enable)
-        PT_LOG_TRACE(LOG_CTX_HAPI, "Increased total");
+          PT_LOG_TRACE(LOG_CTX_HAPI, "Increased total");
          
         if ((macLearn_info_physical[physical_port].trap_sent == L7_FALSE && macLearn_info_physical[physical_port].send_trap == L7_TRUE) && (macLearn_info_physical[physical_port].mac_limit!=0))
         {
@@ -466,7 +466,7 @@ L7_RC_t ptin_hapi_maclimit_inc(bcm_l2_addr_t *bcm_l2_addr)
         }
         
         if(ptin_hapi_l2_enable)
-        PT_LOG_TRACE(LOG_CTX_HAPI, "Not increase the learned MAC in %d");
+          PT_LOG_TRACE(LOG_CTX_HAPI, "Not increase the learned MAC");
         return L7_FAILURE;
       }
       #endif
@@ -886,7 +886,7 @@ L7_RC_t ptin_hapi_vport_maclimit_reset(bcm_gport_t gport)
   }
   else
   {
-    PT_LOG_WARN(LOG_CTX_HAPI, "GPORT is not valid! (vport_id)", vport_id);
+    PT_LOG_WARN(LOG_CTX_HAPI, "GPORT is not valid! (vport_id %u)", vport_id);
     return L7_FAILURE;
   }
 
@@ -1118,7 +1118,7 @@ L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint8 mac_limit)
   }
   else
   {
-    PT_LOG_WARN(LOG_CTX_HAPI, "GPORT is not valid! (vport_id)", vport_id);
+    PT_LOG_WARN(LOG_CTX_HAPI, "GPORT is not valid! (vport_id %u)", vport_id);
     return L7_FAILURE;
   }
   return L7_SUCCESS;
@@ -1565,7 +1565,7 @@ L7_RC_t ptin_hapi_vport_maclimit_alarmconfig(bcm_gport_t gport, int bcm_port, L7
       PT_LOG_NOTICE(LOG_CTX_HAPI, "GPORT is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
       return L7_FAILURE;
     }
-    PT_LOG_NOTICE(LOG_CTX_HAPI, "(GPORT=0x%x) MAC Learned limit information %u, bcm_port %u, outer_vid %d", gport, bcm_port, outer_vid);
+    PT_LOG_NOTICE(LOG_CTX_HAPI, "(GPORT=0x%x) MAC Learned limit information: bcm_port %u, outer_vid %d", gport, bcm_port, outer_vid);
 
     hapi_ptin_port_get(bcm_port, &port);
 
@@ -1583,7 +1583,7 @@ L7_RC_t ptin_hapi_vport_maclimit_alarmconfig(bcm_gport_t gport, int bcm_port, L7
   }
   else
   {
-    PT_LOG_WARN(LOG_CTX_HAPI, "GPORT is not valid! (vport_id)", vport_id);
+    PT_LOG_WARN(LOG_CTX_HAPI, "GPORT is not valid! (vport_id %u)", vport_id);
     return L7_FAILURE;
   }
   return L7_SUCCESS;

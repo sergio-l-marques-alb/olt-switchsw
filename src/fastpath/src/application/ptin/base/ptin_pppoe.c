@@ -442,10 +442,10 @@ L7_RC_t ptin_pppoe_init(void)
     return L7_FAILURE;
   }
 
-  PT_LOG_INFO(LOG_CTX_PPPOE, "sizeof(pppoe_intIfNum_trusted)      = %u", sizeof(pppoe_intIfNum_trusted));
-  PT_LOG_INFO(LOG_CTX_PPPOE, "sizeof(pppoeInstances)              = %u", sizeof(pppoeInstances));
-  PT_LOG_INFO(LOG_CTX_PPPOE, "sizeof(global_stats_intf)           = %u", sizeof(global_stats_intf));
-  PT_LOG_INFO(LOG_CTX_PPPOE, "sizeof(pppoeClients_unified.avlTree)= %u",
+  PT_LOG_INFO(LOG_CTX_PPPOE, "sizeof(pppoe_intIfNum_trusted)      = %zu", sizeof(pppoe_intIfNum_trusted));
+  PT_LOG_INFO(LOG_CTX_PPPOE, "sizeof(pppoeInstances)              = %zu", sizeof(pppoeInstances));
+  PT_LOG_INFO(LOG_CTX_PPPOE, "sizeof(global_stats_intf)           = %zu", sizeof(global_stats_intf));
+  PT_LOG_INFO(LOG_CTX_PPPOE, "sizeof(pppoeClients_unified.avlTree)= %zu",
            sizeof(avlTree_t) + sizeof(avlTreeTables_t)*PTIN_SYSTEM_PPPOE_MAXCLIENTS + sizeof(ptinPppoeClientInfoData_t)*PTIN_SYSTEM_PPPOE_MAXCLIENTS);
 
   PT_LOG_INFO(LOG_CTX_PPPOE, "PPPOE init OK");
@@ -2678,6 +2678,7 @@ L7_RC_t ptin_pppoe_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
                               "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
             #endif
                               "}"
+            ,client_idx
             #if (PPPOE_CLIENT_INTERF_SUPPORTED)
             ,clientInfo->pppoeClientDataKey.ptin_port
             #endif

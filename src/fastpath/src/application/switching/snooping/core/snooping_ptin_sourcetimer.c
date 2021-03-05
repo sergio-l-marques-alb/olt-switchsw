@@ -238,7 +238,7 @@ void cbEventqueueTask(void)
 
   if (osapiTaskInitDone(L7_PTIN_IGMP_TASK_SYNC)!=L7_SUCCESS)
   {
-    PT_LOG_FATAL(LOG_CTX_SSM, "Error syncing task");
+    PT_LOG_FATAL(LOG_CTX_IGMP, "Error syncing task");
     PTIN_CRASH();
   }
 
@@ -399,8 +399,11 @@ void timerCallback(void *param)
 
   osapiSemaGive(timerSem);
 
-  PT_LOG_TRACE(LOG_CTX_IGMP,"Sourcetimer expired (group:%s vlan:%u ifId:%u sourceAddr)", 
-            inetAddrPrint(&(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf), groupData->snoopPTinL3InfoDataKey.vlanId, intIfNum, inetAddrPrint(&sourcePtr->sourceAddr,debug_buf2));
+  PT_LOG_TRACE(LOG_CTX_IGMP,"Sourcetimer expired (group:%s vlan:%u ifId:%u sourceAddr:%s)", 
+               inetAddrPrint(&(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf),
+               groupData->snoopPTinL3InfoDataKey.vlanId,
+               intIfNum,
+               inetAddrPrint(&sourcePtr->sourceAddr,debug_buf2));
 
   /* Check if our handle is OK*/
   if (timerHandle != pTimerData->timerHandle)

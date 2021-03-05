@@ -583,8 +583,6 @@ L7_RC_t ptin_hal_erps_clear(void)
   L7_uint8 erps_idx;
   L7_RC_t  ret = L7_SUCCESS;
 
-  PT_LOG_TRACE(LOG_CTX_ERPS, "");
-
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
     if ((ret=ptin_hal_erps_entry_deinit(erps_idx))!=L7_SUCCESS) {
       PT_LOG_ERR(LOG_CTX_ERPS, "ERROR: (%d) while removing ERPS#%d\n\r", ret, erps_idx);
@@ -708,7 +706,7 @@ void ptin_hal_apsPacketTx_task(void)
   PT_LOG_INFO(LOG_CTX_ERPS,"PTin APS packet process task started");
 
   if (osapiTaskInitDone(L7_PTIN_APS_PACKET_TASK_SYNC)!=L7_SUCCESS) {
-    PT_LOG_FATAL(LOG_CTX_SSM, "Error syncing task");
+    PT_LOG_FATAL(LOG_CTX_ERPS, "Error syncing task");
     PTIN_CRASH();
   }
 
