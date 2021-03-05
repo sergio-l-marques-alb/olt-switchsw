@@ -347,12 +347,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_APP_LOGGER_OUTPUT:
     {
-#if 0
+      /* Logger redirection: this will be inactive when using the logger from NBTOOLS */
+#if 1
       L7_uint8 output;
       char *filename;
-#endif
+
       PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_APP_LOGGER_OUTPUT (0x%04X)", msgId);
-#if 0
+
       /* If infodim is null, use stdout */
       if (infoDim == 0)
       {
@@ -387,6 +388,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         }
         PT_LOG_NOTICE(LOG_CTX_MSGHANDLER, "...Logger output (%u) redirected to \"%s\" :-)", output, filename);
       }
+#else
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_APP_LOGGER_OUTPUT (0x%04X) - Nothing done!", msgId);
 #endif
       SETIPCACKOK(outbuffer);
       return IPC_OK;  /* CCMSG_APP_CHANGE_STDOUT */
