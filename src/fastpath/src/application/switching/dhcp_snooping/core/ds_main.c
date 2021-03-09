@@ -3563,8 +3563,10 @@ int dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
       psuedoHdr += 16;
       offset    += 16;
       memcpy(psuedoHdr, &udpLen, 4);
+      psuedoHdr += 4;
       offset    += 4;
       memcpy(psuedoHdr, &proto, 4);
+      psuedoHdr += 4;
       offset    += 4;
 
       total_length = offset + osapiNtohs(udp_header->length);
