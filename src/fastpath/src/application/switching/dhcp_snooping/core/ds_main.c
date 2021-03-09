@@ -3544,12 +3544,12 @@ int dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
       /* Calculate the UDP checksum.*/
       udp_header->checksum = 0x0000;
 
-      udpLen = udp_header->length;
+      udpLen = udp_header->length;//udpLen = osapiHtonl(osapiNtohs(udp_header->length));
       proto  = osapiHtonl(proto);
 
       if (ptin_debug_dhcp_snooping) {
           PT_LOG_TRACE(LOG_CTX_DHCP,
-                   "ethHdrLen=%u udp_header=ipv6Header+%u, udpLen=%u"
+                   "ethHdrLen=%u udp_header=ipv6Header+%u, udpLen=%u "
                    "udp_header->checksum=%u",
                    ethHdrLen, udpLen, L7_IP6_HEADER_LEN, udp_header->checksum);
       }
