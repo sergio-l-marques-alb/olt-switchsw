@@ -3544,7 +3544,7 @@ int dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
       /* Calculate the UDP checksum.*/
       udp_header->checksum = 0x0000;
 
-      udpLen = udp_header->length;//udpLen = osapiHtonl(osapiNtohs(udp_header->length));
+      udpLen = osapiHtonl(osapiNtohs(udp_header->length));
       proto  = osapiHtonl(proto);
 
       if (ptin_debug_dhcp_snooping) {
