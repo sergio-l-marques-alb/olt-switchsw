@@ -2082,9 +2082,18 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    //Make sure that the reported UDP.length is at least the minimum size possible
    if(osapiNtohs(udp_header->length) < (sizeof(L7_udp_header_t) + sizeof(L7_dhcp6_packet_t)))
    {
-      if (ptin_debug_dhcp_snooping)
+      //if (ptin_debug_dhcp_snooping)
         PT_LOG_ERR(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Broken frame received, ignoring (invalid UDP.length).");
-      return L7_SUCCESS;
+      return L7_FAILURE;
+   }
+   
+   if (osapiNtohs(udp_header->length) +
+       (ethHdrLen + L7_IP6_HEADER_LEN + (sizeof(L7_udp_header_t) + sizeof(L7_dhcp6_packet_t) + sizeof(L7_dhcp6_relay_agent_packet_t)))
+       >= (DS_DHCP_PACKET_SIZE_MAX))
+   {
+      PT_LOG_ERR(LOG_CTX_DHCP, "Ignoring packet (invalid UDP length %d)",
+                 osapiNtohs(udp_header->length));
+      return L7_FAILURE;
    }
 
    //If the port through which the message was received is configured as untrusted and the packet is a RELAY-FORW, drop it
@@ -2342,7 +2351,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    }
 
    max_udp_len = (ethHdrLen + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t) + sizeof(L7_dhcp6_packet_t) + sizeof(L7_dhcp6_relay_agent_packet_t));
-   if (osapiNtohs(udp_header->length) >= (DS_DHCP_PACKET_SIZE_MAX - max_udp_len))       
+   if (osapiNtohs(udp_header->length) + max_udp_len >= DS_DHCP_PACKET_SIZE_MAX)       
    {
       PT_LOG_ERR(LOG_CTX_DHCP, "Ignoring packet (invalid UDP length %d)",
                  osapiNtohs(udp_header->length));
@@ -2352,7 +2361,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    //Make sure that the reported UDP.length is at least the minimum size possible
    if(osapiNtohs(udp_header->length) < (sizeof(L7_udp_header_t) + sizeof(L7_dhcp6_packet_t)))
    {
-      if (ptin_debug_dhcp_snooping)
+      //if (ptin_debug_dhcp_snooping)
         PT_LOG_ERR(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Broken frame received, ignoring (invalid UDP.length).");
       return L7_FAILURE;
    }
@@ -2484,16 +2493,16 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    *frameEthPrty |= ((0x7 & ethPrty) << 5); //Set p-bit
 
    //Create a new DHCPv6 message
-   copy_len = osapiNtohs(*(unsigned short *)(op_relaymsg_ptr + sizeof(unsigned short)));    
-   if (copy_len > (DS_DHCP_PACKET_SIZE_MAX - (ethHdrLen + L7_IP6_HEADER_LEN + (sizeof(L7_udp_header_t)))))
+   copy_len = osapiNtohs(*(L7_uint16*)(op_relaymsg_ptr + sizeof(L7_uint16)));    
+   if (copy_len + (ethHdrLen + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t)) > DS_DHCP_PACKET_SIZE_MAX)
    {
      PT_LOG_ERR(LOG_CTX_DHCP, "Invalid frame len (%d), creating a new dhcpv6 packet ", copy_len);
      return L7_FAILURE;
    }
-
    memcpy(dhcp_copy_header_ptr, op_relaymsg_ptr + sizeof(L7_dhcp6_option_packet_t), copy_len);
+
    frame_copy_len += osapiNtohs(*(L7_uint16*)(op_relaymsg_ptr + sizeof(L7_uint16)));
-   if (frame_copy_len > (DS_DHCP_PACKET_SIZE_MAX - (ethHdrLen + L7_IP6_HEADER_LEN + (sizeof(L7_udp_header_t)))))
+   if (frame_copy_len+(ethHdrLen + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t)) > DS_DHCP_PACKET_SIZE_MAX)
    {
       PT_LOG_ERR(LOG_CTX_DHCP, "Invalid frame len (%d), creating a new dhcpv6 packet ", frame_copy_len);
       return L7_FAILURE;
@@ -3155,8 +3164,15 @@ int dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
       /* Calculate the UDP checksum.*/
       udp_header->checksum = 0x0000;
 
-      udpLen = udp_header->length;
+      udpLen = osapiHtonl(osapiNtohs(udp_header->length));
       proto  = osapiHtonl(proto);
+
+      if (ptin_debug_dhcp_snooping) {
+          PT_LOG_TRACE(LOG_CTX_DHCP,
+                   "ethHdrLen=%u udp_header=ipv6Header+%u, udpLen=%u "
+                   "udp_header->checksum=%u",
+                   ethHdrLen, udpLen, L7_IP6_HEADER_LEN, udp_header->checksum);
+      }
 
       memset(psuedoHdr, 0, DS_DHCP_PACKET_SIZE_MAX);
       tempPtr = psuedoHdr; /* To store start of the formed psuedoHdr.*/
@@ -3167,20 +3183,51 @@ int dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
       psuedoHdr += 16;
       offset    += 16;
       memcpy(psuedoHdr, &udpLen, 4);
+      psuedoHdr += 4;
       offset    += 4;
       memcpy(psuedoHdr, &proto, 4);
+      psuedoHdr += 4;
       offset    += 4;
 
-      total_length = offset + osapiHtons(udp_header->length);
+      total_length = offset + osapiNtohs(udp_header->length);
+      if (ptin_debug_dhcp_snooping) {
+          PT_LOG_TRACE(LOG_CTX_DHCP, "total_length=%u udp_header->length=%u",
+                                  total_length, osapiNtohs(udp_header->length));
+      }
       if ( total_length > DS_DHCP_PACKET_SIZE_MAX)
       {
          PT_LOG_ERR(LOG_CTX_DHCP, "Invalid length (%d > %d) processing udp_header", 
                     total_length, DS_DHCP_PACKET_SIZE_MAX);
-         return L7_FAILURE;
+         //return L7_FAILURE;
       }
+      else
+      {
+          memcpy(psuedoHdr, udp_header, osapiNtohs(udp_header->length));
+          udp_header->checksum = inetChecksum(tempPtr, (osapiNtohs(udp_header->length) + 40));
+          if (ptin_debug_dhcp_snooping) {
+              PT_LOG_TRACE(LOG_CTX_DHCP,
+                       "total_length=%u udp_header->length=%u "
+                       "udp_header->checksum=0x%x",
+                       total_length, osapiNtohs(udp_header->length),
+                       udp_header->checksum);
+          }
+          udp_header->checksum = osapiHtons(udp_header->checksum);
+          if (ptin_debug_dhcp_snooping) {
+              int i;
 
-      memcpy(psuedoHdr, udp_header, osapiNtohs(udp_header->length));
-      udp_header->checksum = osapiHtons((L7_uint16) inetChecksum(tempPtr, (osapiNtohs(udp_header->length) + 40)));
+              PT_LOG_TRACE(LOG_CTX_DHCP,"===Pseudo Header + UDP===");
+
+              for (i=0; i<total_length/4+1; i++) {
+                  PT_LOG_TRACE(LOG_CTX_DHCP,"%04x   "
+                                            "%2.2x %2.2x %2.2x %2.2x ",
+                                            i*4,
+                                            tempPtr[4*i], tempPtr[4*i+1],
+                                            tempPtr[4*i+2], tempPtr[4*i+3]);
+              }
+              PT_LOG_TRACE(LOG_CTX_DHCP, "===================");
+          }
+
+      }
 
       /* Reset the packet buffer after usage.*/
       psuedoHdr = dsInfo->pktBuff;
@@ -4070,7 +4117,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
   {
     L7_uchar8 *tempBuff = dsInfo->pktBuff;
     memset(tempBuff, 0 , DS_DHCP_PACKET_SIZE_MAX);
-    if ((dhcpPacketLength - passOverLen) > DS_DHCP_PACKET_SIZE_MAX)
+    if (dhcpPacketLength > DS_DHCP_PACKET_SIZE_MAX + passOverLen)
     {
       PT_LOG_ERR(LOG_CTX_DHCP, "Invalid length (%d > %d) processing udp_header",
                           (dhcpPacketLength - passOverLen), DS_DHCP_PACKET_SIZE_MAX);
