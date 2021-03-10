@@ -2074,9 +2074,12 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
        }
      }
    }
-
-
-
+  //Make sure that the reported UDP.length is at least the minimum size possible
+  if(osapiNtohs(udp_header->length) < (sizeof(L7_udp_header_t) + sizeof(L7_dhcp6_packet_t)))
+  {
+      PT_LOG_ERR(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Broken frame received, ignoring (invalid UDP.length).");
+      return L7_FAILURE;
+  }
 
 
    //Make sure that the reported UDP.length is at least the minimum size possible
@@ -2361,8 +2364,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    //Make sure that the reported UDP.length is at least the minimum size possible
    if(osapiNtohs(udp_header->length) < (sizeof(L7_udp_header_t) + sizeof(L7_dhcp6_packet_t)))
    {
-      //if (ptin_debug_dhcp_snooping)
-        PT_LOG_ERR(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Broken frame received, ignoring (invalid UDP.length).");
+      PT_LOG_ERR(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Broken frame received, ignoring (invalid UDP.length).");
       return L7_FAILURE;
    }
 
@@ -3167,12 +3169,14 @@ int dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
       udpLen = osapiHtonl(osapiNtohs(udp_header->length));
       proto  = osapiHtonl(proto);
 
+      #if 0
       if (ptin_debug_dhcp_snooping) {
           PT_LOG_TRACE(LOG_CTX_DHCP,
                    "ethHdrLen=%u udp_header=ipv6Header+%u, udpLen=%u "
                    "udp_header->checksum=%u",
                    ethHdrLen, udpLen, L7_IP6_HEADER_LEN, udp_header->checksum);
       }
+      #endif
 
       memset(psuedoHdr, 0, DS_DHCP_PACKET_SIZE_MAX);
       tempPtr = psuedoHdr; /* To store start of the formed psuedoHdr.*/
@@ -3204,6 +3208,8 @@ int dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
       {
           memcpy(psuedoHdr, udp_header, osapiNtohs(udp_header->length));
           udp_header->checksum = inetChecksum(tempPtr, (osapiNtohs(udp_header->length) + 40));
+          udp_header->checksum = osapiHtons(udp_header->checksum);
+          #if 0
           if (ptin_debug_dhcp_snooping) {
               PT_LOG_TRACE(LOG_CTX_DHCP,
                        "total_length=%u udp_header->length=%u "
@@ -3211,8 +3217,8 @@ int dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
                        total_length, osapiNtohs(udp_header->length),
                        udp_header->checksum);
           }
-          udp_header->checksum = osapiHtons(udp_header->checksum);
-          if (ptin_debug_dhcp_snooping) {
+          if (ptin_debug_dhcp_snooping) 
+          {
               int i;
 
               PT_LOG_TRACE(LOG_CTX_DHCP,"===Pseudo Header + UDP===");
@@ -3226,6 +3232,7 @@ int dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
               }
               PT_LOG_TRACE(LOG_CTX_DHCP, "===================");
           }
+          #endif
 
       }
 
