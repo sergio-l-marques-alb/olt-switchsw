@@ -3567,7 +3567,7 @@ L7_RC_t hapiBroadConfigIgmpTrap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_BOOL 
   L7_ushort16             ip_ethtype  = L7_ETYPE_IP;
   L7_uchar8               igmp_proto[]  = {IP_PROT_IGMP};
 #if (PTIN_BOARD != PTIN_BOARD_CXO640G)
-  L7_uchar8               ip_flags = 0x0;
+  L7_uchar8               ip_flags = 0x0, ip_mask = 0x1;
 #endif
   L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                            FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
@@ -3627,7 +3627,7 @@ L7_RC_t hapiBroadConfigIgmpTrap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_BOOL 
     if (result != L7_SUCCESS)  break;
 #if (PTIN_BOARD != PTIN_BOARD_CXO640G)
     /*Must be don't fragment, IP fragments not allow*/
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, (L7_uchar8 *)&ip_mask);
     if (result != L7_SUCCESS)  break;
 #endif
     PT_LOG_TRACE(LOG_CTX_HAPI, "Qualifier BROAD_FIELD_PROTO defined");
@@ -3705,7 +3705,7 @@ L7_RC_t hapiBroadConfigIgmpTrapAll(L7_BOOL switchFrame, DAPI_t *dapi_g,
     FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE };
   BROAD_METER_ENTRY_t     meterInfo;
 #if (PTIN_BOARD != PTIN_BOARD_CXO640G)
-  L7_uchar8               ip_flags = 0x0;
+  L7_uchar8               ip_flags = 0x0, ip_mask = 0x1;
 #endif
   L7_RC_t                 result = L7_SUCCESS;
 
@@ -3747,7 +3747,7 @@ L7_RC_t hapiBroadConfigIgmpTrapAll(L7_BOOL switchFrame, DAPI_t *dapi_g,
     if (result != L7_SUCCESS)  break;
 #if (PTIN_BOARD != PTIN_BOARD_CXO640G)
     /*Must be don't fragment, IP fragments not allow*/
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, (L7_uchar8 *)&ip_mask);
     if (result != L7_SUCCESS)  break;
 #endif
     PT_LOG_TRACE(LOG_CTX_HAPI, "Qualifier BROAD_FIELD_PROTO defined");
@@ -3826,7 +3826,7 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
   L7_ushort16             dhcps_dport   = UDP_PORT_DHCP_SERV;
   L7_uchar8               ip_type;
 #if (PTIN_BOARD != PTIN_BOARD_CXO640G)
-  L7_uchar8               ip_flags = 0x0;
+  L7_uchar8               ip_flags = 0x0, ip_mask = 0x1;
 #endif
   L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                            FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
@@ -3895,7 +3895,7 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     if (result != L7_SUCCESS)  break;
 #if (PTIN_BOARD != PTIN_BOARD_CXO640G)
     /*Must be don't fragment, IP fragments not allow*/
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, (L7_uchar8 *)&ip_mask);
     if (result != L7_SUCCESS)  break;
 #endif
 #if (!PTIN_BOARD_IS_STANDALONE) /* In OLT1T0 the DHCP can't have the same priority of Inband */
@@ -3934,7 +3934,7 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     if (result != L7_SUCCESS)  break;
 #if (PTIN_BOARD != PTIN_BOARD_CXO640G)
     /*Must be don't fragment, IP fragments not allow*/
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, (L7_uchar8 *)&ip_mask);
     if (result != L7_SUCCESS)  break;
 #endif
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
@@ -4004,7 +4004,7 @@ L7_RC_t hapiBroadConfigDhcpV4TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
   L7_ushort16             dhcps_dport   = UDP_PORT_DHCP_SERV;
   L7_uchar8               ip_type;
 #if (PTIN_BOARD != PTIN_BOARD_CXO640G)
-  L7_uchar8               ip_flags = 0x0;
+  L7_uchar8               ip_flags = 0x0, ip_mask = 0x1;
 #endif
   L7_uchar8               exact_match[] = { FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
     FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE };
@@ -4054,7 +4054,7 @@ L7_RC_t hapiBroadConfigDhcpV4TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
     if (result != L7_SUCCESS)  break;
 #if (PTIN_BOARD != PTIN_BOARD_CXO640G)
     /*Must be don't fragment, IP fragments not allow*/
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, (L7_uchar8 *)&ip_mask);
     if (result != L7_SUCCESS)  break;
 #endif
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_PCAP, 0, 0);
@@ -4080,7 +4080,7 @@ L7_RC_t hapiBroadConfigDhcpV4TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
     if (result != L7_SUCCESS)  break;
 #if (PTIN_BOARD != PTIN_BOARD_CXO640G)
     /*Must be don't fragment, IP fragments not allow*/
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, (L7_uchar8 *)&ip_mask);
     if (result != L7_SUCCESS)  break;
 #endif
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_PCAP, 0, 0);
