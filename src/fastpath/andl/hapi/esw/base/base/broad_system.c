@@ -3536,7 +3536,7 @@ L7_RC_t hapiBroadConfigIgmpTrap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_BOOL 
   BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
   L7_ushort16             ip_ethtype  = L7_ETYPE_IP;
   L7_uchar8               igmp_proto[]  = {IP_PROT_IGMP};
-  L7_uchar8               ip_flags = 0x0;
+  L7_uchar8               ip_flags = 0x0, ip_mask = 0x1;
   L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                            FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
   BROAD_METER_ENTRY_t     meterInfo;
@@ -3594,7 +3594,7 @@ L7_RC_t hapiBroadConfigIgmpTrap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_BOOL 
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO, igmp_proto, exact_match);
     if (result != L7_SUCCESS)  break;
     /*Must be don't fragment, IP fragments not allow*/
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, exact_match);  
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, (L7_uchar8 *)&ip_mask);  
     if (result != L7_SUCCESS)  break;
     PT_LOG_TRACE(LOG_CTX_HAPI, "Qualifier BROAD_FIELD_PROTO defined");
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
@@ -3670,7 +3670,7 @@ L7_RC_t hapiBroadConfigIgmpTrapAll(L7_BOOL switchFrame, DAPI_t *dapi_g,
   L7_uchar8               exact_match[] = { FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
     FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE };
   BROAD_METER_ENTRY_t     meterInfo;
-  L7_uchar8               ip_flags = 0x0;
+  L7_uchar8               ip_flags = 0x0, ip_mask = 0x1;
   L7_RC_t                 result = L7_SUCCESS;
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "Starting igmp trapping processing");
@@ -3710,7 +3710,7 @@ L7_RC_t hapiBroadConfigIgmpTrapAll(L7_BOOL switchFrame, DAPI_t *dapi_g,
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO, igmp_proto, exact_match);
     if (result != L7_SUCCESS)  break;
     /*Must be don't fragment, IP fragments not allow*/
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, (L7_uchar8 *)&ip_mask);  
     if (result != L7_SUCCESS)  break;
     PT_LOG_TRACE(LOG_CTX_HAPI, "Qualifier BROAD_FIELD_PROTO defined");
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
@@ -3786,7 +3786,7 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
   L7_uchar8               udp_proto[]   = {IP_PROT_UDP};
   L7_ushort16             dhcpc_dport   = UDP_PORT_DHCP_CLNT;
   L7_ushort16             dhcps_dport   = UDP_PORT_DHCP_SERV;
-  L7_uchar8               ip_type, ip_flags = 0x0;
+  L7_uchar8               ip_type, ip_flags = 0x0, ip_mask = 0x1;
   L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                            FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
   BROAD_METER_ENTRY_t     meterInfo;
@@ -3853,7 +3853,7 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ip_type, exact_match);
     if (result != L7_SUCCESS)  break;
     /*Must be don't fragment, IP fragments not allow*/
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, (L7_uchar8 *)&ip_mask);  
     if (result != L7_SUCCESS)  break;
 #if (!PTIN_BOARD_IS_STANDALONE) /* In OLT1T0 the DHCP can't have the same priority of Inband */
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_MEDIUM, 0, 0);
@@ -3890,7 +3890,7 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ip_type, exact_match);
     if (result != L7_SUCCESS)  break;
     /*Must be don't fragment, IP fragments not allow*/
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, (L7_uchar8 *)&ip_mask);  
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
     if (result != L7_SUCCESS)  break;
@@ -3957,7 +3957,7 @@ L7_RC_t hapiBroadConfigDhcpV4TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
   L7_uchar8               udp_proto[] = { IP_PROT_UDP };
   L7_ushort16             dhcpc_dport   = UDP_PORT_DHCP_CLNT;
   L7_ushort16             dhcps_dport   = UDP_PORT_DHCP_SERV;
-  L7_uchar8               ip_type, ip_flags = 0x0;
+  L7_uchar8               ip_type, ip_flags = 0x0, ip_mask = 0x1;
   L7_uchar8               exact_match[] = { FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
     FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE };
   BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
@@ -4005,7 +4005,7 @@ L7_RC_t hapiBroadConfigDhcpV4TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT, (L7_uchar8 *)&dhcpc_dport, exact_match);
     if (result != L7_SUCCESS)  break;
     /*Must be don't fragment, IP fragments not allow*/
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, (L7_uchar8 *)&ip_mask);  
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_PCAP, 0, 0);
     if (result != L7_SUCCESS)  break;
@@ -4029,7 +4029,7 @@ L7_RC_t hapiBroadConfigDhcpV4TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ip_type, exact_match);
     if (result != L7_SUCCESS)  break;
     /*Must be don't fragment, IP fragments not allow*/
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, (L7_uchar8 *)&ip_mask);  
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_PCAP, 0, 0);
     if (result != L7_SUCCESS)  break;
