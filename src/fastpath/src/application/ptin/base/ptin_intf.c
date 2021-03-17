@@ -50,7 +50,12 @@ static L7_uint64 uplink_protection_ports_active_bmp = 0;
 static L7_uint64 lag_uplink_protection_ports_bmp[PTIN_SYSTEM_N_LAGS - PTIN_SYSTEM_PROTECTION_LAGID_BASE +1];
 #endif
 
+#ifdef PTIN_LINKSCAN_CONTROL
 L7_BOOL linkscan_update_control = L7_TRUE;
+#else
+L7_BOOL linkscan_update_control = L7_FALSE;
+#endif
+
 void ptin_linkscan_control_global(L7_BOOL enable)
 {
 #ifdef PTIN_LINKSCAN_CONTROL
@@ -6394,8 +6399,8 @@ L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable)
 {
   L7_RC_t rc = L7_SUCCESS;
 
-  #ifdef PTIN_LINKSCAN_CONTROL
-  #if (PTIN_BOARD_IS_MATRIX)
+#ifdef PTIN_LINKSCAN_CONTROL
+ #if (PTIN_BOARD_IS_MATRIX)
   #ifdef MAP_CPLD
   L7_uint16 board_id;
   L7_uint32 intIfNum;
@@ -6510,8 +6515,8 @@ L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable)
     PT_LOG_ERR(LOG_CTX_INTF, "Error setting linkscan to %u of port %u", enable, port);
   }
   #endif
-  #endif
-  #endif
+ #endif
+#endif
 
   return rc;
 }

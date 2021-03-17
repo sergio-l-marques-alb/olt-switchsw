@@ -133,9 +133,7 @@ static void ptin_control_linkstatus_report(void);
 #endif
 
 #if (PTIN_BOARD_IS_MATRIX)
-#ifdef PTIN_LINKSCAN_CONTROL
 void ptin_control_switchover_monitor(void);
-#endif /* PTIN_LINKSCAN_CONTROL */
 
 void ptin_control_linkStatus_monitor(void);
 void ptin_control_slot_reset(L7_uint ptin_port, L7_uint slot_id, L7_uint board_id,
@@ -1073,10 +1071,9 @@ void ptinSwitchoverTask(L7_uint32 numArgs, void *unit)
   {
 #if (PTIN_BOARD_IS_MATRIX)
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
-#ifdef PTIN_LINKSCAN_CONTROL
     /* Switchover monitoring */
     ptin_control_switchover_monitor();
-#endif
+
     /* Links monitoring, in case a WarpCore reset is necessary*/
     ptin_control_linkStatus_monitor();
 #endif
@@ -1093,7 +1090,6 @@ void ptinSwitchoverTask(L7_uint32 numArgs, void *unit)
 #endif
 
 #if (PTIN_BOARD_IS_MATRIX)
-#ifdef PTIN_LINKSCAN_CONTROL
 #ifdef MAP_CPLD
 /* List of active interfaces */
 static L7_uint8 switchover_intf_active_h[PTIN_SYSTEM_MAX_N_PORTS];
@@ -1108,15 +1104,15 @@ static L7_uint8 switchover_intf_active_h[PTIN_SYSTEM_MAX_N_PORTS];
  */
 void ptin_control_switchover_monitor(void)
 {
-  #ifdef MAP_CPLD
+#ifdef MAP_CPLD
   L7_uint8  port;
   L7_uint32 intIfNum;
   L7_uint16 board_id, slot_id;
-  //L7_RC_t rc;
-
   L7_uint8 interfaces_active[PTIN_SYSTEM_MAX_N_PORTS];
   static L7_uint8 matrix_is_active_h = 0xFF;    //L7_TRUE;
   L7_uint8 matrix_is_active;
+
+  intIfNum = 0;
 
   matrix_is_active = ptin_fpga_mx_is_matrixactive();
 
@@ -1128,44 +1124,43 @@ void ptin_control_switchover_monitor(void)
   /* First time procedure (after switchover) */
   if (ptin_fpga_mx_is_matrixactive() != matrix_is_active_h)
   {
-    PT_LOG_INFO(LOG_CTX_CONTROL, "Switchover detected");
+    PT_LOG_INFO(LOG_CTX_CONTROL, "Switchover detected (to active=%d). Waiting 10 seconds...", matrix_is_active);
 
-    if (linkscan_update_control)
+    osapiSleep(10);
+
+    PT_LOG_INFO(LOG_CTX_CONTROL, "Going to process switchover init (active=%d)", matrix_is_active);
+
+    osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
+
+    /* For active matrix, disable force link up, and enable linkscan, only for uplink ports */
+    if (matrix_is_active)
     {
-      PT_LOG_INFO(LOG_CTX_CONTROL, "Switchover detected (to active=%d). Waiting 10 seconds...", matrix_is_active);
-      PT_LOG_INFO(LOG_CTX_EVENTS , "Switchover detected (to active=%d)", matrix_is_active);
-
-      osapiSleep(10);
-
-      PT_LOG_INFO(LOG_CTX_CONTROL, "Going to process switchover init (active=%d)", matrix_is_active);
-
-      osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
-
-      /* For active matrix, disable force link up, and enable linkscan, only for uplink ports */
-      if (matrix_is_active)
-      {
 #if 0
-        /* Run all slots */
-        for (slot_id = PTIN_SYS_LC_SLOT_MIN; slot_id <= PTIN_SYS_LC_SLOT_MAX; slot_id++)
-        {
-          /* Nothing to do for non uplink boards */
-          if (ptin_slot_boardid_get(slot_id, &board_id) != L7_SUCCESS ||
-              !PTIN_BOARD_LS_CTRL(board_id) ||
-              !PTIN_BOARD_IS_UPLINK(board_id))
-            continue;
+      /* Run all slots */
+      for (slot_id = PTIN_SYS_LC_SLOT_MIN; slot_id <= PTIN_SYS_LC_SLOT_MAX; slot_id++)
+      {
+        /* Nothing to do for non uplink boards */
+        if (ptin_slot_boardid_get(slot_id, &board_id) != L7_SUCCESS ||
+            !PTIN_BOARD_LS_CTRL(board_id) ||
+            !PTIN_BOARD_IS_UPLINK(board_id))
+          continue;
 
-          /* Disable force link-up, and enable linkscan for uplink boards */
-          /* ... except for protected ports */
-          PT_LOG_TRACE(LOG_CTX_CONTROL, "Going to disable force link-up to slot %u", slot_id); 
-          ptin_slot_link_force(slot_id, -1, L7_TRUE, L7_DISABLE);
-          PT_LOG_TRACE(LOG_CTX_CONTROL, "Goig to enable linkscan to slot %u", slot_id);
-          PT_LOG_TRACE(LOG_CTX_EVENTS , "Goig to enable linkscan to slot %u", slot_id);
-          ptin_slot_linkscan_set(slot_id, -1, L7_ENABLE);
-          PT_LOG_INFO(LOG_CTX_CONTROL, "Linkscan enabled for slot %u", slot_id);
-          PT_LOG_INFO(LOG_CTX_EVENTS , "Linkscan enabled for slot %u", slot_id);
-        }
+        /* Disable force link-up, and enable linkscan for uplink boards */
+        /* ... except for protected ports */
+        PT_LOG_TRACE(LOG_CTX_CONTROL, "Going to disable force link-up to slot %u", slot_id); 
+        ptin_slot_link_force(slot_id, -1, L7_TRUE, L7_DISABLE);
+        PT_LOG_TRACE(LOG_CTX_CONTROL, "Goig to enable linkscan to slot %u", slot_id);
+        PT_LOG_TRACE(LOG_CTX_EVENTS , "Goig to enable linkscan to slot %u", slot_id);
+        ptin_slot_linkscan_set(slot_id, -1, L7_ENABLE);
+        PT_LOG_INFO(LOG_CTX_CONTROL, "Linkscan enabled for slot %u", slot_id);
+        PT_LOG_INFO(LOG_CTX_EVENTS , "Linkscan enabled for slot %u", slot_id);
+      }
 #endif
-        PT_LOG_INFO(LOG_CTX_CONTROL, "Executing procedures for active Sf board");
+      PT_LOG_INFO(LOG_CTX_CONTROL, "Executing procedures for active Sf board");
+
+#ifdef PTIN_LINKSCAN_CONTROL
+      if (linkscan_update_control)
+      {
         PT_LOG_TRACE(LOG_CTX_CONTROL, "Going to disable linkscan to all ports");
 
         /* Enable linkscan for all ports (links will go down) */
@@ -1189,38 +1184,43 @@ void ptin_control_switchover_monitor(void)
           PT_LOG_INFO(LOG_CTX_CONTROL, "Linkscan enabled for interface %u", intIfNum);
           PT_LOG_INFO(LOG_CTX_EVENTS , "Linkscan enabled for interface %u", intIfNum);
         }
-
-        /* Wait a couple of seconds */
-        osapiSleep(3);
-        PT_LOG_INFO(LOG_CTX_CONTROL, "Going to reenable Uplink Protection machine");
-
-        /* If this SF is active, reenable uplink protections */
-        if (ptin_prot_uplink_state_sync() != L7_SUCCESS)
-        {
-          PT_LOG_WARN(LOG_CTX_CONTROL, "Error synchronizing Uplink Protection state from the other SF. Resetting machine...");
-          uplinkprotResetStateMachine((L7_uint16)-1 /*All*/);
-        }
-        else
-        {
-          PT_LOG_INFO(LOG_CTX_CONTROL, "This is active SF: Uplink Protection state synchronized from the other SF!");
-          /* Resume state machine */
-          (void) ptin_prot_uplink_resume();
-          PT_LOG_INFO(LOG_CTX_CONTROL, "This is active SF: Uplink Protection machine operation resumed");
-        }
-        PT_LOG_INFO(LOG_CTX_CONTROL, "Procedures for active Sf board finished");
       }
-      /* For passive matrix, reset all ports, and disable linkscan for all of them */
+      /* Wait a couple of seconds */
+      osapiSleep(3);
+#endif /* PTIN_LINKSCAN_CONTROL */
+
+      PT_LOG_INFO(LOG_CTX_CONTROL, "Going to reenable Uplink Protection machine");
+
+      /* If this SF is active, reenable uplink protections */
+      if (ptin_prot_uplink_state_sync() != L7_SUCCESS)
+      {
+        PT_LOG_WARN(LOG_CTX_CONTROL, "Error synchronizing Uplink Protection state from the other SF. Resetting machine...");
+        uplinkprotResetStateMachine((L7_uint16)-1 /*All*/);
+      }
       else
       {
-        PT_LOG_INFO(LOG_CTX_CONTROL, "Executing procedures for inactive Sf board");
+        PT_LOG_INFO(LOG_CTX_CONTROL, "This is active SF: Uplink Protection state synchronized from the other SF!");
+        /* Resume state machine */
+        (void) ptin_prot_uplink_resume();
+        PT_LOG_INFO(LOG_CTX_CONTROL, "This is active SF: Uplink Protection machine operation resumed");
+      }
+      PT_LOG_INFO(LOG_CTX_CONTROL, "Procedures for active Sf board finished");
+    }
+    /* For passive matrix, reset all ports, and disable linkscan for all of them */
+    else
+    {
+      PT_LOG_INFO(LOG_CTX_CONTROL, "Executing procedures for inactive Sf board");
 
-        /* If this SF is inactive, disable uplink protections */
-        (void) ptin_prot_uplink_suspend();
-        PT_LOG_INFO(LOG_CTX_CONTROL, "This is inactive SF: Uplink Protection machine suspended");
+      /* If this SF is inactive, disable uplink protections */
+      (void) ptin_prot_uplink_suspend();
+      PT_LOG_INFO(LOG_CTX_CONTROL, "This is inactive SF: Uplink Protection machine suspended");
 
-        /* Clear historic values of active interfaces */
-        memset(switchover_intf_active_h, 0x00, sizeof(switchover_intf_active_h));
+      /* Clear historic values of active interfaces */
+      memset(switchover_intf_active_h, 0x00, sizeof(switchover_intf_active_h));
 
+#ifdef PTIN_LINKSCAN_CONTROL
+      if (linkscan_update_control)
+      {
         PT_LOG_TRACE(LOG_CTX_CONTROL, "Going to force link-down to all ports");
 
         /* Disable force linkup for all ports */
@@ -1248,8 +1248,8 @@ void ptin_control_switchover_monitor(void)
         }
 
 #if 0
-      #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-        #if (PHY_RECOVERY_PROCEDURE)
+    #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+      #if (PHY_RECOVERY_PROCEDURE)
         if (matrix_is_active_h != 0xFF)   /* Exclude first time */
         {
           /* Apply slot reset to all resetable downlink linecards */
@@ -1282,8 +1282,8 @@ void ptin_control_switchover_monitor(void)
             }
           }
         }
-        #endif /*PHY_RECOVERY_PROCEDURE*/
-      #endif /*PTIN_BOARD == PTIN_BOARD_CXO160G*/
+      #endif /*PHY_RECOVERY_PROCEDURE*/
+    #endif /*PTIN_BOARD == PTIN_BOARD_CXO160G*/
 #endif
 
         /* Wait 3 seconds */
@@ -1304,13 +1304,14 @@ void ptin_control_switchover_monitor(void)
 
         PT_LOG_INFO(LOG_CTX_CONTROL, "Linkscan disabled for all ports");
         PT_LOG_INFO(LOG_CTX_EVENTS , "Linkscan disabled for all ports");
-
-        PT_LOG_INFO(LOG_CTX_CONTROL, "Procedures for inactive Sf board finished");
       }
+#endif /* PTIN_LINKSCAN_CONTROL */
 
-      /* End of procedure */
-      osapiSemaGive(ptin_boardaction_sem);
+      PT_LOG_INFO(LOG_CTX_CONTROL, "Procedures for inactive Sf board finished");
     }
+
+    /* End of procedure */
+    osapiSemaGive(ptin_boardaction_sem);
 
     matrix_is_active_h = matrix_is_active;
 
@@ -1324,218 +1325,220 @@ void ptin_control_switchover_monitor(void)
   }
 
   /* --- Only for Passive matrix --- */
-
-  /* Query active matrix, abot active ports */
-  msg_HwIntfInfo_t ports_info;
-  L7_uint32 answer_size;
-
-  memset(interfaces_active, 0x00, sizeof(interfaces_active));
-  memset(&ports_info, 0x00, sizeof(msg_HwIntfInfo_t));
-
-  ports_info.slot_id    = (ptin_fpga_board_slot_get() <= PTIN_SYS_MX1_SLOT) ? PTIN_SYS_MX2_SLOT : PTIN_SYS_MX1_SLOT;
-  ports_info.generic_id = 0;
-  ports_info.generic_id = ptin_sys_number_of_ports;
-
-  answer_size = sizeof(msg_HwIntfInfo_t);
-  if (send_ipc_message(IPC_HW_FASTPATH_PORT,
-                       ((ptin_fpga_board_slot_get() <= PTIN_SYS_MX1_SLOT) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING),
-                       CCMSG_HW_INTF_INFO_GET,
-                       (char *) &ports_info,
-                       (char *) &ports_info,
-                       sizeof(msg_HwIntfInfo_t),
-                       &answer_size) != 0)
   {
-    PT_LOG_ERR(LOG_CTX_CONTROL, "Failed to send interfaces query!");
-    return;
-  }
+    /* Query active matrix, abot active ports */
+    msg_HwIntfInfo_t ports_info;
+    L7_uint32 answer_size;
 
-  #if 0
-  PT_LOG_TRACE(LOG_CTX_CONTROL, "ptin_board_slotId=%d",  ptin_board_slotId);
-  for (port=0; port<ports_info.number_of_ports; port++)
-  {
-    PT_LOG_TRACE(LOG_CTX_CONTROL, "port=%u: boardId=%u admin=%u link=%u", port,
-              ports_info.port[port].board_id, ports_info.port[port].enable, ports_info.port[port].link);
-  }
-  #endif
+    memset(interfaces_active, 0x00, sizeof(interfaces_active));
+    memset(&ports_info, 0x00, sizeof(msg_HwIntfInfo_t));
 
-  /* Do nothing for active matrix */
-  if (ptin_fpga_mx_is_matrixactive())
-  {
-    PT_LOG_ERR(LOG_CTX_CONTROL, "I am active matrix");
-    return;
-  }
+    ports_info.slot_id    = (ptin_fpga_board_slot_get() <= PTIN_SYS_MX1_SLOT) ? PTIN_SYS_MX2_SLOT : PTIN_SYS_MX1_SLOT;
+    ports_info.generic_id = 0;
+    ports_info.generic_id = ptin_sys_number_of_ports;
 
-  osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
+    answer_size = sizeof(msg_HwIntfInfo_t);
+    if (send_ipc_message(IPC_HW_FASTPATH_PORT,
+                         ((ptin_fpga_board_slot_get() <= PTIN_SYS_MX1_SLOT) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING),
+                         CCMSG_HW_INTF_INFO_GET,
+                         (char *) &ports_info,
+                         (char *) &ports_info,
+                         sizeof(msg_HwIntfInfo_t),
+                         &answer_size) != 0)
+    {
+      PT_LOG_ERR(LOG_CTX_CONTROL, "Failed to send interfaces query!");
+      return;
+    }
 
-  if (ptin_control_debug)
-  {
-    PT_LOG_TRACE(LOG_CTX_CONTROL, "ports_info.number_of_ports=%u", ports_info.number_of_ports);
-  }
+    #if 0
+    PT_LOG_TRACE(LOG_CTX_CONTROL, "ptin_board_slotId=%d",  ptin_board_slotId);
+    for (port=0; port<ports_info.number_of_ports; port++)
+    {
+      PT_LOG_TRACE(LOG_CTX_CONTROL, "port=%u: boardId=%u admin=%u link=%u", port,
+                ports_info.port[port].board_id, ports_info.port[port].enable, ports_info.port[port].link);
+    }
+    #endif
 
-  /* Update list of active interfaces */
-  for (port=0; port<ports_info.number_of_ports; port++)
-  {
+    /* Do nothing for active matrix */
+    if (ptin_fpga_mx_is_matrixactive())
+    {
+      PT_LOG_ERR(LOG_CTX_CONTROL, "I am active matrix");
+      return;
+    }
+
+    osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
+
     if (ptin_control_debug)
     {
-      PT_LOG_TRACE(LOG_CTX_CONTROL, "ports_info.port[%u].board_id=%u", port, ports_info.port[port].board_id);
+      PT_LOG_TRACE(LOG_CTX_CONTROL, "ports_info.number_of_ports=%u", ports_info.number_of_ports);
     }
 
-    if (ports_info.port[port].board_id != 0)
+    /* Update list of active interfaces */
+    for (port=0; port<ports_info.number_of_ports; port++)
     {
-      if (ports_info.port[port].enable &&
-          ports_info.port[port].link)
-      {
-        interfaces_active[port] = 1;
-      }
-
       if (ptin_control_debug)
       {
-        PT_LOG_TRACE(LOG_CTX_CONTROL, "port=%u: interfaces_active=%u", port, interfaces_active[port]);
+        PT_LOG_TRACE(LOG_CTX_CONTROL, "ports_info.port[%u].board_id=%u", port, ports_info.port[port].board_id);
       }
-    }
 
-    /* Get board id */
-    if (ptin_intf_port2SlotPort(port, &slot_id, L7_NULLPTR, &board_id) != L7_SUCCESS)
-      continue;
-    //ptin_intf_boardid_get(port, &board_id);
-
-    /* Save board_id */
-    if ( (ports_info.port[port].board_id != 0) && (board_id != ports_info.port[port].board_id) )
-    {
-      ptin_intf_boardid_set(port, ports_info.port[port].board_id);
-      PT_LOG_INFO(LOG_CTX_CONTROL, "Board id %u set for port %u", ports_info.port[port].board_id, port);
-
-    #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-     #if (PHY_RECOVERY_PROCEDURE)
-      /* Reset slot? */
-      if (slots_to_be_reseted[slot_id])
+      if (ports_info.port[port].board_id != 0)
       {
-        L7_RC_t rc;
-
-        /* Only for TG16G boards */
-        if (PTIN_BOARD_IS_TORESET(ports_info.port[port].board_id))
+        if (ports_info.port[port].enable &&
+            ports_info.port[port].link)
         {
-          PT_LOG_INFO(LOG_CTX_INTF, "Going to reset warpcore of slot %u", slot_id);
-          rc = ptin_intf_slot_reset(slot_id, L7_FALSE);
-          if (rc == L7_SUCCESS)
-          {
-            PT_LOG_INFO(LOG_CTX_INTF  , "Slot %d reseted", slot_id);
-            PT_LOG_INFO(LOG_CTX_EVENTS, "Slot %d reseted", slot_id);
-          }
-          else if (rc == L7_NOT_EXIST)
-          {
-            PT_LOG_TRACE(LOG_CTX_INTF, "Nothing done to slot %u", slot_id);
-          }
-          else
-          {
-            PT_LOG_ERR(LOG_CTX_INTF  , "Error reseting slot %u", slot_id);
-            PT_LOG_ERR(LOG_CTX_EVENTS, "Error reseting slot %u", slot_id);
-          }
+          interfaces_active[port] = 1;
         }
-        /* Clear flag */
-        slots_to_be_reseted[slot_id] = L7_FALSE;
-      }
-     #endif
-    #endif
-    }
-  }
 
-  /* Update port settings */
-  if (linkscan_update_control)
-  {
-    /* Update port state */
-    for (port = 0; port < PTIN_SYSTEM_MAX_N_PORTS; port++)
-    {
-      /* Skip unchanged ports */
-      if (interfaces_active[port] == switchover_intf_active_h[port])
-        continue;
-
-      PT_LOG_DEBUG(LOG_CTX_CONTROL, "Port %u status changed to %u", port, interfaces_active[port]);
-      PT_LOG_DEBUG(LOG_CTX_EVENTS , "Port %u status changed to %u", port, interfaces_active[port]);
-
-      /* Update new changes */
-      switchover_intf_active_h[port] = interfaces_active[port];
-
-      /* --- Passive board --- */
-
-      /* For passive board, update force link states */
-      if (ptin_intf_boardid_get(port, &board_id) != L7_SUCCESS || !PTIN_BOARD_LS_CTRL(board_id))
-      {
-        PT_LOG_TRACE(LOG_CTX_CONTROL, "ptin_port %d is not under linkscan control.", port);
-        continue;
-      }
-      if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS) 
-      {
-        PT_LOG_ERR(LOG_CTX_CONTROL, "Error getting intIfNum from ptin_port %d!", port);
-        continue;
-      }
-      /* Enable/Disable force linkup */
-      if (interfaces_active[port])
-      {
-        PT_LOG_TRACE(LOG_CTX_CONTROL, "Forcing link up to port %u", port);
-        if (ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE) != L7_SUCCESS) 
+        if (ptin_control_debug)
         {
-          PT_LOG_ERR(LOG_CTX_CONTROL, "Error setting force link to %u for ptin_port %d!", interfaces_active[port], port);
+          PT_LOG_TRACE(LOG_CTX_CONTROL, "port=%u: interfaces_active=%u", port, interfaces_active[port]);
+        }
+      }
+
+      /* Get board id */
+      if (ptin_intf_port2SlotPort(port, &slot_id, L7_NULLPTR, &board_id) != L7_SUCCESS)
+        continue;
+      //ptin_intf_boardid_get(port, &board_id);
+
+      /* Save board_id */
+      if ( (ports_info.port[port].board_id != 0) && (board_id != ports_info.port[port].board_id) )
+      {
+        ptin_intf_boardid_set(port, ports_info.port[port].board_id);
+        PT_LOG_INFO(LOG_CTX_CONTROL, "Board id %u set for port %u", ports_info.port[port].board_id, port);
+
+      #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+       #if (PHY_RECOVERY_PROCEDURE)
+        /* Reset slot? */
+        if (slots_to_be_reseted[slot_id])
+        {
+          L7_RC_t rc;
+
+          /* Only for TG16G boards */
+          if (PTIN_BOARD_IS_TORESET(ports_info.port[port].board_id))
+          {
+            PT_LOG_INFO(LOG_CTX_INTF, "Going to reset warpcore of slot %u", slot_id);
+            rc = ptin_intf_slot_reset(slot_id, L7_FALSE);
+            if (rc == L7_SUCCESS)
+            {
+              PT_LOG_INFO(LOG_CTX_INTF  , "Slot %d reseted", slot_id);
+              PT_LOG_INFO(LOG_CTX_EVENTS, "Slot %d reseted", slot_id);
+            }
+            else if (rc == L7_NOT_EXIST)
+            {
+              PT_LOG_TRACE(LOG_CTX_INTF, "Nothing done to slot %u", slot_id);
+            }
+            else
+            {
+              PT_LOG_ERR(LOG_CTX_INTF  , "Error reseting slot %u", slot_id);
+              PT_LOG_ERR(LOG_CTX_EVENTS, "Error reseting slot %u", slot_id);
+            }
+          }
+          /* Clear flag */
+          slots_to_be_reseted[slot_id] = L7_FALSE;
+        }
+       #endif
+      #endif
+      }
+    }
+
+#ifdef PTIN_LINKSCAN_CONTROL
+    /* Update port settings */
+    if (linkscan_update_control)
+    {
+      /* Update port state */
+      for (port = 0; port < PTIN_SYSTEM_MAX_N_PORTS; port++)
+      {
+        /* Skip unchanged ports */
+        if (interfaces_active[port] == switchover_intf_active_h[port])
+          continue;
+
+        PT_LOG_DEBUG(LOG_CTX_CONTROL, "Port %u status changed to %u", port, interfaces_active[port]);
+        PT_LOG_DEBUG(LOG_CTX_EVENTS , "Port %u status changed to %u", port, interfaces_active[port]);
+
+        /* Update new changes */
+        switchover_intf_active_h[port] = interfaces_active[port];
+
+        /* --- Passive board --- */
+
+        /* For passive board, update force link states */
+        if (ptin_intf_boardid_get(port, &board_id) != L7_SUCCESS || !PTIN_BOARD_LS_CTRL(board_id))
+        {
+          PT_LOG_TRACE(LOG_CTX_CONTROL, "ptin_port %d is not under linkscan control.", port);
           continue;
         }
-      }
-      else
-      {
-        PT_LOG_TRACE(LOG_CTX_CONTROL, "Forcing link down to port %u", port);
-        PT_LOG_TRACE(LOG_CTX_EVENTS , "Forcing link down to port %u", port);
-        /* Disable force link-up */
-        if (ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE) != L7_SUCCESS)
+        if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS) 
         {
-          PT_LOG_ERR(LOG_CTX_CONTROL, "Error disabling force link-up for ptin_port %d!", interfaces_active[port], port);
+          PT_LOG_ERR(LOG_CTX_CONTROL, "Error getting intIfNum from ptin_port %d!", port);
           continue;
         }
-        /* Cause a linkdown */
-        if (ptin_intf_link_force(intIfNum, L7_FALSE, 0) != L7_SUCCESS)
+        /* Enable/Disable force linkup */
+        if (interfaces_active[port])
         {
-          PT_LOG_ERR(LOG_CTX_CONTROL, "Error causing change link for ptin_port %d!", interfaces_active[port], port);
-          continue;
+          PT_LOG_TRACE(LOG_CTX_CONTROL, "Forcing link up to port %u", port);
+          if (ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE) != L7_SUCCESS) 
+          {
+            PT_LOG_ERR(LOG_CTX_CONTROL, "Error setting force link to %u for ptin_port %d!", interfaces_active[port], port);
+            continue;
+          }
         }
+        else
+        {
+          PT_LOG_TRACE(LOG_CTX_CONTROL, "Forcing link down to port %u", port);
+          PT_LOG_TRACE(LOG_CTX_EVENTS , "Forcing link down to port %u", port);
+          /* Disable force link-up */
+          if (ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE) != L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_CONTROL, "Error disabling force link-up for ptin_port %d!", interfaces_active[port], port);
+            continue;
+          }
+          /* Cause a linkdown */
+          if (ptin_intf_link_force(intIfNum, L7_FALSE, 0) != L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_CONTROL, "Error causing change link for ptin_port %d!", interfaces_active[port], port);
+            continue;
+          }
+        }
+        PT_LOG_DEBUG(LOG_CTX_CONTROL, "Link forced to %u for port%u", interfaces_active[port], port);
+        PT_LOG_DEBUG(LOG_CTX_EVENTS , "Link forced to %u for port%u", interfaces_active[port], port);
       }
-      PT_LOG_DEBUG(LOG_CTX_CONTROL, "Link forced to %u for port%u", interfaces_active[port], port);
-      PT_LOG_DEBUG(LOG_CTX_EVENTS , "Link forced to %u for port%u", interfaces_active[port], port);
     }
-  }
+#endif /* PTIN_LINKSCAN_CONTROL */
 
-  /* Update board id */
-  /* When board is removed, board_id is '0' and the force link down process was not triggered */
+    /* Update board id */
+    /* When board is removed, board_id is '0' and the force link down process was not triggered */
 
-  /* Update list of active interfaces */
-  for (port=0; port<ports_info.number_of_ports; port++)
-  {
-    /* Get board id */
-    if (ptin_intf_port2SlotPort(port, &slot_id, L7_NULLPTR, &board_id) != L7_SUCCESS)
-      continue;
-    //ptin_intf_boardid_get(port, &board_id);
-
-    /* Save board_id */
-    if (board_id != ports_info.port[port].board_id )
+    /* Update list of active interfaces */
+    for (port=0; port<ports_info.number_of_ports; port++)
     {
-      ptin_intf_boardid_set(port, ports_info.port[port].board_id);
-      PT_LOG_INFO(LOG_CTX_CONTROL, "Board id %u set for port %u", ports_info.port[port].board_id, port);
+      /* Get board id */
+      if (ptin_intf_port2SlotPort(port, &slot_id, L7_NULLPTR, &board_id) != L7_SUCCESS)
+        continue;
+      //ptin_intf_boardid_get(port, &board_id);
 
-    #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-     #if (PHY_RECOVERY_PROCEDURE)
-      /* Board remove? */
-      if (ports_info.port[port].board_id == 0)
+      /* Save board_id */
+      if (board_id != ports_info.port[port].board_id )
       {
-        slots_to_be_reseted[slot_id] = L7_TRUE;
-        PT_LOG_INFO(LOG_CTX_CONTROL, "Slot %u marked to be reseted ", slot_id);
+        ptin_intf_boardid_set(port, ports_info.port[port].board_id);
+        PT_LOG_INFO(LOG_CTX_CONTROL, "Board id %u set for port %u", ports_info.port[port].board_id, port);
+
+      #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+       #if (PHY_RECOVERY_PROCEDURE)
+        /* Board remove? */
+        if (ports_info.port[port].board_id == 0)
+        {
+          slots_to_be_reseted[slot_id] = L7_TRUE;
+          PT_LOG_INFO(LOG_CTX_CONTROL, "Slot %u marked to be reseted ", slot_id);
+        }
+       #endif
+      #endif
       }
-     #endif
-    #endif
     }
+
+    osapiSemaGive(ptin_boardaction_sem);
   }
 
-  osapiSemaGive(ptin_boardaction_sem);
-
-  #endif
+#endif
 }
-#endif /*PTIN_LINKSCAN_CONTROL*/
 
 /**
  * LinkStatus monitor (10s period)
@@ -3155,7 +3158,6 @@ L7_int get_linkStatus(L7_uint32 port) {return port<PTIN_SYSTEM_N_INTERF? linkSta
 
 
 #if (PTIN_BOARD_IS_MATRIX)
-#ifdef PTIN_LINKSCAN_CONTROL
 #ifdef MAP_CPLD
 
 void switchover_intf_active_dump(void)
@@ -3177,5 +3179,4 @@ void switchover_intf_active_clear(void)
 }
 
 #endif /* MAP_CPLD */
-#endif /* PTIN_LINKSCAN_CONTROL */
 #endif /* PTIN_BOARD_IS_MATRIX */

@@ -553,7 +553,8 @@ L7_RC_t ptin_prot_select_intf(L7_uint32 protIdx, PROT_PortType_t portType)
   if (ptin_intf_intIfNum2port(uplinkprot[protIdx].protParams.intIfNumW, &portW) != L7_SUCCESS ||
       ptin_intf_intIfNum2port(uplinkprot[protIdx].protParams.intIfNumP, &portP) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_INTF, "Error converting intIfNum to ptin_port format");
+    PT_LOG_ERR(LOG_CTX_INTF, "Error converting intIfNumW %u / intIfNumP %u to ptin_port format",
+               uplinkprot[protIdx].protParams.intIfNumW, uplinkprot[protIdx].protParams.intIfNumP);
     return L7_FAILURE;
   }
   
@@ -2852,7 +2853,7 @@ L7_RC_t ptin_prot_uplink_group_reload(L7_int protIdx)
   /* Skip inactive instances */
   if (!uplinkprot[protIdx].admin)
   {
-    PT_LOG_ERR(LOG_CTX_INTF, "protIdx %u not active", protIdx);
+    PT_LOG_TRACE(LOG_CTX_INTF, "protIdx %u not active", protIdx);
     return L7_FAILURE;
   }
 
