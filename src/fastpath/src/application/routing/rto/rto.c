@@ -983,7 +983,10 @@ L7_RC_t rtoRouteAdd (L7_routeEntry_t *routeEntry)
   }
 
   if (osapiWriteLockTake(rtoRwLock, L7_WAIT_FOREVER) == L7_FAILURE)
-    return L7_FAILURE;
+  {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error Write Lock");
+      return L7_FAILURE;
+  }
 
   rtoStats.tot_adds++;  /* Count how many times this function is called */
 
@@ -997,8 +1000,11 @@ L7_RC_t rtoRouteAdd (L7_routeEntry_t *routeEntry)
       osapiInetNtoa(routeEntry->subnetMask, destMaskStr);
       osapiSnprintf(logbuf, 255, "RTO rejected %s route with invalid destination address %s/%s",
               rtoProtoNames[routeEntry->protocol], destAddrStr, destMaskStr);
+
+      PT_LOG_ERR(LOG_CTX_INTF, "RTO rejected %s route with invalid destination address %s/%s",
+                 rtoProtoNames[routeEntry->protocol], destAddrStr, destMaskStr);
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_IP_MAP_COMPONENT_ID, logbuf);
-      L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_IP_MAP_COMPONENT_ID,
+      PT_LOG_NOTICE(LOG_CTX_INTF,
                     "The following destination addresses are considered invalid:"
                     "- the prefix has non-zero host bits"
                     "- the network mask is not contiguous"
@@ -1081,8 +1087,8 @@ L7_RC_t rtoRouteAdd (L7_routeEntry_t *routeEntry)
     else
     {
       (void)osapiWriteLockGive(rtoRwLock);
-      L7_LOGF(L7_LOG_SEVERITY_CRITICAL, L7_LOG_COMPONENT_DEFAULT,
-              "Error: rto.c radix corruption detected!\n"); /* Database corruption. */
+      /* Database corruption. */
+      PT_LOG_CRITIC(LOG_CTX_INTF,"Error: rto.c radix corruption detected!"); 
       return L7_FAILURE;
     }
 
@@ -1090,8 +1096,8 @@ L7_RC_t rtoRouteAdd (L7_routeEntry_t *routeEntry)
     pData = radixLookupNode(&rtoRouteTreeData, &routeData.network, &routeData.netmask, L7_RN_EXACT);
     if (!pData)
     {
-      L7_LOGF(L7_LOG_SEVERITY_CRITICAL, L7_LOG_COMPONENT_DEFAULT,
-              "Error: rto.c radix corruption detected!\n"); /* Database corruption. */
+        /* Database corruption. */
+      PT_LOG_CRITIC(LOG_CTX_INTF, "Error: rto.c radix corruption detected!"); 
       return L7_FAILURE;
     }          
   }

@@ -41,7 +41,7 @@ extern struct radix_node * rn_match_count(void *v_arg, struct radix_node_head *h
 *********************************************************************/
 void radixPurgeTree(radixTree_t * tree)
 {
-  L7_uint64         value;
+  ptr_addr_t        value;
   L7_uint32         i;
   L7_uint32         max_keylen;
   L7_uint32         max_entries;
@@ -73,9 +73,9 @@ void radixPurgeTree(radixTree_t * tree)
   {
     if (dataHeap)
     {
-      value = PTR_TO_UINT64((char*)dataHeap + dataLength);
+      value = PTR_TO_UINT((char*)dataHeap + dataLength);
       localAddr = (char*)dataHeap + offset_next;
-      memcpy(localAddr, &value, sizeof(L7_uint64));
+      memcpy(localAddr, &value, WORD_SIZE);
       dataHeap = (char *)dataHeap + dataLength;
     }
 
@@ -85,9 +85,9 @@ void radixPurgeTree(radixTree_t * tree)
   }
   for (i = 0; i < (max_keylen*8) - 1; i++)
   {
-  	value = PTR_TO_UINT64((char*)maskNodeHeap + RADIX_MASK_NODE_ITEM_SIZE(max_keylen));
+  	value = PTR_TO_UINT((char*)maskNodeHeap + RADIX_MASK_NODE_ITEM_SIZE(max_keylen));
   	localAddr = (char*)maskNodeHeap + RADIX_MASK_NODE_ITEM_OFFSET_NEXT(max_keylen);
-  	memcpy(localAddr, &value, sizeof(L7_uint64));
+    memcpy(localAddr, &value, WORD_SIZE);
     maskNodeHeap = (char *)maskNodeHeap + RADIX_MASK_NODE_ITEM_SIZE(max_keylen);
   }
  

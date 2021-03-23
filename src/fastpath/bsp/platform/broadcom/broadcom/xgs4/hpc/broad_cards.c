@@ -774,14 +774,6 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56689_R
 {       0,      17,          0,      27,       "" },
 {       0,      18,          0,      28,       "" },
 {       0,      19,          0,      26,       "" }, /* 10g_eth4 */
-{       0,      20,          0,      46,       "" },
-{       0,      21,          0,      47,       "" },
-{       0,      22,          0,      48,       "" },
-{       0,      23,          0,      49,       "" },
-{       0,      24,          0,      50,       "" },
-{       0,      25,          0,      51,       "" },
-{       0,      26,          0,      52,       "" },
-{       0,      27,          0,      53,       "" },
 #else
 {       0,       0,          0,      30,       "" }, /* pon1 */
 {       0,       1,          0,      31,       "" },
@@ -1330,14 +1322,6 @@ HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1[]
 {    17},
 {    18},
 {    19},
-{    20},
-{    21},
-{    22},
-{    23},
-{    24},
-{    25},
-{    26},
-{    27},
 };
 
 HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1[] =
@@ -1829,8 +1813,6 @@ SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_24_GIG_4_TENGIG_56689_R
 {L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
 {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},  /* 12 ports (16xPON + 4x10G */
 {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
-{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
 #else
 {L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
 {L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},

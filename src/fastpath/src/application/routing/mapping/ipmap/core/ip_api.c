@@ -41,8 +41,8 @@
 #include "simapi.h"
 
 #ifdef L7_NSF_PACKAGE
-#include "ipmap_ckpt.h"
-#include "ipmap_dhcp_ckpt.h"
+    #include "ipmap_ckpt.h"
+    #include "ipmap_dhcp_ckpt.h"
 #endif
 
 /* Time to wait for an NSF protocol to finish its route updates after a
@@ -87,12 +87,14 @@ extern L7_uint32 ipForwardQueueFull;
 *********************************************************************/
 L7_uint32 ipMapIpSpoofingGet()
 {
-  L7_uint32 spoofCheck;
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_DISABLE;
-  spoofCheck = ipMapCfg->ip.ipSpoofingCheck;
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return spoofCheck;
+    L7_uint32 spoofCheck;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_DISABLE;
+    }
+    spoofCheck = ipMapCfg->ip.ipSpoofingCheck;
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return spoofCheck;
 }
 
 /*********************************************************************
@@ -109,17 +111,19 @@ L7_uint32 ipMapIpSpoofingGet()
 *********************************************************************/
 L7_RC_t ipMapIpSpoofingSet(L7_uint32 mode)
 {
-  L7_RC_t rc;
+    L7_RC_t rc;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  ipMapCfg->ip.ipSpoofingCheck = mode;
-  ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+    ipMapCfg->ip.ipSpoofingCheck = mode;
+    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
 
-  rc = ipMapIpSpoofingModeApply(mode);
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return(rc);
+    rc = ipMapIpSpoofingModeApply(mode);
+    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+    return (rc);
 }
 
 /*********************************************************************
@@ -133,12 +137,14 @@ L7_RC_t ipMapIpSpoofingSet(L7_uint32 mode)
 *********************************************************************/
 L7_uint32 ipMapIpDefaultTTLGet()
 {
-  L7_uint32 defTtl;
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return 0;
-  defTtl = ipMapCfg->ip.ipDefaultTTL;
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return defTtl;
+    L7_uint32 defTtl;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return 0;
+    }
+    defTtl = ipMapCfg->ip.ipDefaultTTL;
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return defTtl;
 }
 
 /*********************************************************************
@@ -155,18 +161,20 @@ L7_uint32 ipMapIpDefaultTTLGet()
 *********************************************************************/
 L7_RC_t ipMapIpDefaultTTLSet(L7_uint32 ttl)
 {
-  L7_RC_t rc;
+    L7_RC_t rc;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  ipMapCfg->ip.ipDefaultTTL = ttl;
-  ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+    ipMapCfg->ip.ipDefaultTTL = ttl;
+    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
 
-  rc = ipMapIpDefaultTTLApply(ttl);
+    rc = ipMapIpDefaultTTLApply(ttl);
 
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return(rc);
+    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+    return (rc);
 }
 
 /*********************************************************************
@@ -190,7 +198,7 @@ L7_RC_t ipMapIpDefaultTTLSet(L7_uint32 ttl)
 L7_RC_t ipMapIpArpEntryGet(L7_IP_ADDR_t ipAddr, L7_uint32 intIfNum,
                            L7_arpEntry_t *pArp)
 {
-  return(ipMapArpEntryByAddrGet(ipAddr, intIfNum, pArp));
+    return (ipMapArpEntryByAddrGet(ipAddr, intIfNum, pArp));
 }
 
 /*********************************************************************
@@ -216,7 +224,7 @@ L7_RC_t ipMapIpArpEntryGet(L7_IP_ADDR_t ipAddr, L7_uint32 intIfNum,
 L7_RC_t ipMapIpArpEntryNext(L7_IP_ADDR_t ipAddr, L7_uint32 intIfNum,
                             L7_arpEntry_t *pArp)
 {
-  return(ipMapArpEntryNext(ipAddr, intIfNum, pArp));
+    return (ipMapArpEntryNext(ipAddr, intIfNum, pArp));
 }
 
 /*********************************************************************
@@ -237,31 +245,31 @@ L7_RC_t ipMapIpArpEntryNext(L7_IP_ADDR_t ipAddr, L7_uint32 intIfNum,
 *********************************************************************/
 L7_RC_t ipMapIpArpEntryPurge(L7_IP_ADDR_t ipAddr, L7_uint32 intIfNum)
 {
-  L7_uint32 rtrIfNum;
-  L7_BOOL   found = L7_FALSE;
-  L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
+    L7_uint32 rtrIfNum;
+    L7_BOOL   found = L7_FALSE;
+    L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
 
-  if ( intIfNum != L7_INVALID_INTF )
-  {
-    return(ipMapArpEntryPurge((L7_uint32)ipAddr, intIfNum));
-  }
-
-  for (rtrIfNum = 1; rtrIfNum <= L7_RTR_MAX_RTR_INTERFACES; rtrIfNum++)
-  {
-    if (ipMapCheckIfNumber(rtrIfNum) == L7_SUCCESS)
+    if (intIfNum != L7_INVALID_INTF)
     {
-      intIfNum = rtrIntfMap[rtrIfNum].intIfNum;
-      if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg))
-      {
-        if (ipMapArpEntryPurge((L7_uint32)ipAddr, intIfNum) != L7_FAILURE)
-        {
-          found = L7_TRUE;
-        }
-      }
+        return (ipMapArpEntryPurge((L7_uint32)ipAddr, intIfNum));
     }
-  }
 
-  return( found == L7_TRUE ? L7_SUCCESS : L7_FAILURE );
+    for (rtrIfNum = 1; rtrIfNum <= L7_RTR_MAX_RTR_INTERFACES; rtrIfNum++)
+    {
+        if (ipMapCheckIfNumber(rtrIfNum) == L7_SUCCESS)
+        {
+            intIfNum = rtrIntfMap[rtrIfNum].intIfNum;
+            if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg))
+            {
+                if (ipMapArpEntryPurge((L7_uint32)ipAddr, intIfNum) != L7_FAILURE)
+                {
+                    found = L7_TRUE;
+                }
+            }
+        }
+    }
+
+    return (found == L7_TRUE ? L7_SUCCESS : L7_FAILURE);
 }
 
 /*********************************************************************
@@ -281,7 +289,7 @@ L7_RC_t ipMapIpArpEntryPurge(L7_IP_ADDR_t ipAddr, L7_uint32 intIfNum)
 *********************************************************************/
 L7_RC_t ipMapIpArpCacheClear(L7_BOOL gateway)
 {
-  return(ipMapArpCacheClear(IP_MAP_ARP_INTF_ALL, gateway));
+    return (ipMapArpCacheClear(IP_MAP_ARP_INTF_ALL, gateway));
 }
 
 /*********************************************************************
@@ -298,7 +306,7 @@ L7_RC_t ipMapIpArpCacheClear(L7_BOOL gateway)
 *********************************************************************/
 L7_RC_t ipMapIpArpCacheStatsGet(L7_arpCacheStats_t *pStats)
 {
-  return ipMapArpCacheStatsGet(pStats);
+    return ipMapArpCacheStatsGet(pStats);
 }
 
 /*********************************************************************
@@ -314,12 +322,15 @@ L7_RC_t ipMapIpArpCacheStatsGet(L7_arpCacheStats_t *pStats)
 *********************************************************************/
 L7_uint32 ipMapIpArpAgeTimeGet()
 {
-  L7_uint32 ageTime;
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return 0;
-  ageTime = ipMapCfg->ip.ipArpAgeTime;
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return ageTime;
+    L7_uint32 ageTime;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return 0;
+    }
+
+    ageTime = ipMapCfg->ip.ipArpAgeTime;
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return ageTime;
 }
 
 /*********************************************************************
@@ -336,21 +347,22 @@ L7_uint32 ipMapIpArpAgeTimeGet()
 *********************************************************************/
 L7_RC_t ipMapIpArpAgeTimeSet(L7_uint32 arpAgeTime)
 {
-  L7_RC_t rc;
+    L7_RC_t rc;
 
-  if ((arpAgeTime < L7_IP_ARP_AGE_TIME_MIN) ||
-      (arpAgeTime > L7_IP_ARP_AGE_TIME_MAX))
-    return L7_FAILURE;
+    if ((arpAgeTime < L7_IP_ARP_AGE_TIME_MIN) || (arpAgeTime > L7_IP_ARP_AGE_TIME_MAX))
+    {
+        return L7_FAILURE;
+    }
 
-  rc = ipMapArpAgeTimeSet(arpAgeTime);
+    rc = ipMapArpAgeTimeSet(arpAgeTime);
 
-  if (rc == L7_SUCCESS)
-  {
-    ipMapCfg->ip.ipArpAgeTime = arpAgeTime;
-    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
-  }
+    if (rc == L7_SUCCESS)
+    {
+        ipMapCfg->ip.ipArpAgeTime = arpAgeTime;
+        ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+    }
 
-  return rc;
+    return rc;
 }
 
 /*********************************************************************
@@ -366,9 +378,9 @@ L7_RC_t ipMapIpArpAgeTimeSet(L7_uint32 arpAgeTime)
 *********************************************************************/
 L7_uint32 ipMapIpArpRespTimeGet()
 {
-  L7_uint32 respTime;
-  respTime = ipMapCfg->ip.ipArpRespTime;
-  return respTime;
+    L7_uint32 respTime;
+    respTime = ipMapCfg->ip.ipArpRespTime;
+    return respTime;
 }
 
 /*********************************************************************
@@ -385,21 +397,22 @@ L7_uint32 ipMapIpArpRespTimeGet()
 *********************************************************************/
 L7_RC_t ipMapIpArpRespTimeSet(L7_uint32 arpRespTime)
 {
-  L7_RC_t rc;
+    L7_RC_t rc;
 
-  if ((arpRespTime < L7_IP_ARP_RESP_TIME_MIN) ||
-      (arpRespTime > L7_IP_ARP_RESP_TIME_MAX))
-    return L7_FAILURE;
+    if ((arpRespTime < L7_IP_ARP_RESP_TIME_MIN) || (arpRespTime > L7_IP_ARP_RESP_TIME_MAX))
+    {
+        return L7_FAILURE;
+    }
 
-  rc = ipMapArpRespTimeSet(arpRespTime);
+    rc = ipMapArpRespTimeSet(arpRespTime);
 
-  if (rc == L7_SUCCESS)
-  {
-    ipMapCfg->ip.ipArpRespTime = arpRespTime;
-    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
-  }
+    if (rc == L7_SUCCESS)
+    {
+        ipMapCfg->ip.ipArpRespTime = arpRespTime;
+        ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+    }
 
-  return rc;
+    return rc;
 }
 
 /*********************************************************************
@@ -415,9 +428,9 @@ L7_RC_t ipMapIpArpRespTimeSet(L7_uint32 arpRespTime)
 *********************************************************************/
 L7_uint32 ipMapIpArpRetriesGet()
 {
-  L7_uint32 retries;
-  retries = ipMapCfg->ip.ipArpRetries;
-  return retries;
+    L7_uint32 retries;
+    retries = ipMapCfg->ip.ipArpRetries;
+    return retries;
 }
 
 /*********************************************************************
@@ -434,21 +447,22 @@ L7_uint32 ipMapIpArpRetriesGet()
 *********************************************************************/
 L7_RC_t ipMapIpArpRetriesSet(L7_uint32 arpRetries)
 {
-  L7_RC_t rc;
+    L7_RC_t rc;
 
-  if ((arpRetries < L7_IP_ARP_RETRIES_MIN) ||
-      (arpRetries > L7_IP_ARP_RETRIES_MAX))
-    return L7_FAILURE;
+    if ((arpRetries < L7_IP_ARP_RETRIES_MIN) || (arpRetries > L7_IP_ARP_RETRIES_MAX))
+    {
+        return L7_FAILURE;
+    }
 
-  rc = ipMapArpRetriesSet(arpRetries);
+    rc = ipMapArpRetriesSet(arpRetries);
 
-  if (rc == L7_SUCCESS)
-  {
-    ipMapCfg->ip.ipArpRetries = arpRetries;
-    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
-  }
+    if (rc == L7_SUCCESS)
+    {
+        ipMapCfg->ip.ipArpRetries = arpRetries;
+        ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+    }
 
-  return rc;
+    return rc;
 }
 
 /*********************************************************************
@@ -464,9 +478,9 @@ L7_RC_t ipMapIpArpRetriesSet(L7_uint32 arpRetries)
 *********************************************************************/
 L7_uint32 ipMapIpArpCacheSizeGet()
 {
-  L7_uint32 cacheSize;
-  cacheSize = ipMapCfg->ip.ipArpCacheSize;
-  return cacheSize;
+    L7_uint32 cacheSize;
+    cacheSize = ipMapCfg->ip.ipArpCacheSize;
+    return cacheSize;
 }
 
 /*********************************************************************
@@ -483,21 +497,22 @@ L7_uint32 ipMapIpArpCacheSizeGet()
 *********************************************************************/
 L7_RC_t ipMapIpArpCacheSizeSet(L7_uint32 arpCacheSize)
 {
-  L7_RC_t rc;
+    L7_RC_t rc;
 
-  if ((arpCacheSize < L7_IP_ARP_CACHE_SIZE_MIN) ||
-      (arpCacheSize > platRtrArpMaxEntriesGet()))
-    return L7_FAILURE;
+    if ((arpCacheSize < L7_IP_ARP_CACHE_SIZE_MIN) || (arpCacheSize > platRtrArpMaxEntriesGet()))
+    {
+        return L7_FAILURE;
+    }
 
-  rc = ipMapArpCacheSizeSet(arpCacheSize);
+    rc = ipMapArpCacheSizeSet(arpCacheSize);
 
-  if (rc == L7_SUCCESS)
-  {
-    ipMapCfg->ip.ipArpCacheSize = arpCacheSize;
-    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
-  }
+    if (rc == L7_SUCCESS)
+    {
+        ipMapCfg->ip.ipArpCacheSize = arpCacheSize;
+        ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+    }
 
-  return rc;
+    return rc;
 }
 
 /*********************************************************************
@@ -513,9 +528,9 @@ L7_RC_t ipMapIpArpCacheSizeSet(L7_uint32 arpCacheSize)
 *********************************************************************/
 L7_uint32 ipMapIpArpDynamicRenewGet()
 {
-  L7_uint32 renew;
-  renew = ipMapCfg->ip.ipArpDynamicRenew;
-  return renew;
+    L7_uint32 renew;
+    renew = ipMapCfg->ip.ipArpDynamicRenew;
+    return renew;
 }
 
 /*********************************************************************
@@ -532,21 +547,22 @@ L7_uint32 ipMapIpArpDynamicRenewGet()
 *********************************************************************/
 L7_RC_t ipMapIpArpDynamicRenewSet(L7_uint32 arpDynamicRenew)
 {
-  L7_RC_t rc;
+    L7_RC_t rc;
 
-  if ((arpDynamicRenew != L7_ENABLE) &&
-      (arpDynamicRenew != L7_DISABLE))
-    return L7_FAILURE;
+    if ((arpDynamicRenew != L7_ENABLE) && (arpDynamicRenew != L7_DISABLE))
+    {
+        return L7_FAILURE;
+    }
 
-  rc = ipMapArpDynamicRenewSet(arpDynamicRenew);
+    rc = ipMapArpDynamicRenewSet(arpDynamicRenew);
 
-  if (rc == L7_SUCCESS)
-  {
-    ipMapCfg->ip.ipArpDynamicRenew = arpDynamicRenew;
-    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
-  }
+    if (rc == L7_SUCCESS)
+    {
+        ipMapCfg->ip.ipArpDynamicRenew = arpDynamicRenew;
+        ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+    }
 
-  return rc;
+    return rc;
 }
 
 /*********************************************************************
@@ -563,12 +579,15 @@ L7_RC_t ipMapIpArpDynamicRenewSet(L7_uint32 arpDynamicRenew)
 *********************************************************************/
 L7_uint32 ipMapIpSourceCheckingGet()
 {
-  L7_uint32 srcAddrCheck;
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_DISABLE;
-  srcAddrCheck = ipMapCfg->ip.ipSourceAddrCheck;
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return srcAddrCheck;
+    L7_uint32 srcAddrCheck;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_DISABLE;
+    }
+
+    srcAddrCheck = ipMapCfg->ip.ipSourceAddrCheck;
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return srcAddrCheck;
 }
 
 /*********************************************************************
@@ -585,18 +604,20 @@ L7_uint32 ipMapIpSourceCheckingGet()
 *********************************************************************/
 L7_RC_t ipMapIpSourceCheckingSet(L7_uint32 mode)
 {
-  L7_RC_t rc;
+    L7_RC_t rc;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  ipMapCfg->ip.ipSourceAddrCheck = mode;
-  ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+    ipMapCfg->ip.ipSourceAddrCheck = mode;
+    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
 
-  rc = ipMapIpSourceCheckingApply(mode);
+    rc = ipMapIpSourceCheckingApply(mode);
 
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return(rc);
+    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+    return (rc);
 }
 
 /*********************************************************************
@@ -616,39 +637,44 @@ L7_RC_t ipMapIpSourceCheckingSet(L7_uint32 mode)
 *********************************************************************/
 L7_RC_t ipMapIntfIpMtuSet(L7_uint32 intIfNum, L7_uint32 ipMtu)
 {
-  L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
-  L7_uint32 maxSize;
+    L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
+    L7_uint32 maxSize;
 
-  if (ipMapIntfMaxIpMtu(intIfNum, &maxSize) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapIntfMaxIpMtu(intIfNum, &maxSize) != L7_SUCCESS) 
+    {
+        return L7_FAILURE;
+    }
 
-  if ((ipMtu != FD_IP_DEFAULT_IP_MTU) &&
-      ((ipMtu < L7_L3_MIN_IP_MTU) || (ipMtu > maxSize)))
-    return L7_ERROR;
+    if ((ipMtu != FD_IP_DEFAULT_IP_MTU) && ((ipMtu < L7_L3_MIN_IP_MTU) || (ipMtu > maxSize)))
+    {
+        return L7_ERROR;
+    }
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
 
-  if (ipMtu == pCfg->ipMtu)
-  {
+    if (ipMtu == pCfg->ipMtu)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_SUCCESS;
+    }
+
+    pCfg->ipMtu = ipMtu;
+    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+
+    /* Ignore return code from apply. Return success if stored in config. */
+    ipMapIntfIpMtuApply(intIfNum, ipMtu);
+
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
     return L7_SUCCESS;
-  }
-
-  pCfg->ipMtu = ipMtu;
-  ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
-
-  /* Ignore return code from apply. Return success if stored in config. */
-  ipMapIntfIpMtuApply(intIfNum, ipMtu);
-
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return L7_SUCCESS;
 }
 
 /*********************************************************************
@@ -666,20 +692,22 @@ L7_RC_t ipMapIntfIpMtuSet(L7_uint32 intIfNum, L7_uint32 ipMtu)
 *********************************************************************/
 L7_RC_t ipMapIntfIpMtuGet(L7_uint32 intIfNum, L7_uint32 *ipMtu)
 {
-  L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
-  L7_RC_t rc = L7_FAILURE;
+    L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
+    L7_RC_t rc = L7_FAILURE;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    *ipMtu = pCfg->ipMtu;
-    rc = L7_SUCCESS;
-  }
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
+    {
+        *ipMtu = pCfg->ipMtu;
+        rc = L7_SUCCESS;
+    }
 
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return rc;
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return rc;
 }
 
 /*********************************************************************
@@ -698,17 +726,19 @@ L7_RC_t ipMapIntfIpMtuGet(L7_uint32 intIfNum, L7_uint32 *ipMtu)
 *
 * @end
 *********************************************************************/
-L7_RC_t ipMapIntfMaxIpMtuGet( L7_uint32 intIfNum, L7_uint32 *maxIpMtu)
+L7_RC_t ipMapIntfMaxIpMtuGet(L7_uint32 intIfNum, L7_uint32 *maxIpMtu)
 {
-  L7_RC_t rc;
+    L7_RC_t rc;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  rc = ipMapIntfMaxIpMtu(intIfNum, maxIpMtu);
+    rc = ipMapIntfMaxIpMtu(intIfNum, maxIpMtu);
 
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return rc;
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return rc;
 }
 
 /*********************************************************************
@@ -725,35 +755,37 @@ L7_RC_t ipMapIntfMaxIpMtuGet( L7_uint32 intIfNum, L7_uint32 *maxIpMtu)
 *
 * @end
 *********************************************************************/
-L7_RC_t ipMapIntfEffectiveIpMtuGet( L7_uint32 intIfNum, L7_uint32 *pval)
+L7_RC_t ipMapIntfEffectiveIpMtuGet(L7_uint32 intIfNum, L7_uint32 *pval)
 {
-  L7_RC_t rc = L7_SUCCESS;
-  L7_rtrCfgCkt_t *pCfg;
+    L7_RC_t rc = L7_SUCCESS;
+    L7_rtrCfgCkt_t *pCfg;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (!ipMapMapIntfIsConfigurable(intIfNum, &pCfg))
-  {
+    if (!ipMapMapIntfIsConfigurable(intIfNum, &pCfg))
+    {
+        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    if (pCfg->ipMtu != FD_IP_DEFAULT_IP_MTU)
+    {
+        *pval = pCfg->ipMtu;
+    } 
+    else if (nimGetIntfMtuSize(intIfNum, pval) != L7_SUCCESS)
+    {
+        L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+        nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
+                "Failed to get link MTU from NIM for interface %s", ifName);
+        rc = L7_FAILURE;
+    }
+
     ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  if (pCfg->ipMtu != FD_IP_DEFAULT_IP_MTU)
-  {
-    *pval = pCfg->ipMtu;
-  }
-  else if (nimGetIntfMtuSize(intIfNum, pval) != L7_SUCCESS)
-  {
-    L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-    nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
-    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
-            "Failed to get link MTU from NIM for interface %s", ifName);
-    rc = L7_FAILURE;
-  }
-
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return rc;
+    return rc;
 }
 
 /*********************************************************************
@@ -770,15 +802,17 @@ L7_RC_t ipMapIntfEffectiveIpMtuGet( L7_uint32 intIfNum, L7_uint32 *pval)
 *********************************************************************/
 L7_uint32 ipMapRouterPreferenceGet(L7_uint32 index)
 {
-  L7_uint32 pref;
+    L7_uint32 pref;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_RTO_PREFERENCE_MAX;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_RTO_PREFERENCE_MAX;
+    }
 
-  pref = _ipMapRouterPreferenceGet(index);
+    pref = _ipMapRouterPreferenceGet(index);
 
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return pref;
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return pref;
 }
 
 /*********************************************************************
@@ -795,45 +829,45 @@ L7_uint32 ipMapRouterPreferenceGet(L7_uint32 index)
 *********************************************************************/
 L7_uint32 ipMapRouterPrefTypeGet(L7_uint32 protocol)
 {
-  L7_uint32 prefType = ROUTE_PREF_LOCAL;
+    L7_uint32 prefType = ROUTE_PREF_LOCAL;
 
-  switch (protocol)
-  {
+    switch (protocol)
+    {
     case RTO_LOCAL:
-      prefType = ROUTE_PREF_LOCAL;
-      break;
+        prefType = ROUTE_PREF_LOCAL;
+        break;
     case RTO_STATIC:
     case RTO_DEFAULT:
-      prefType = ROUTE_PREF_STATIC;
-      break;
+        prefType = ROUTE_PREF_STATIC;
+        break;
     case RTO_MPLS:
-      prefType = ROUTE_PREF_MPLS;
-      break;
+        prefType = ROUTE_PREF_MPLS;
+        break;
     case RTO_OSPF_INTRA_AREA:
-      prefType = ROUTE_PREF_OSPF_INTRA_AREA;
-      break;
+        prefType = ROUTE_PREF_OSPF_INTRA_AREA;
+        break;
     case RTO_OSPF_INTER_AREA:
-      prefType = ROUTE_PREF_OSPF_INTER_AREA;
-      break;
+        prefType = ROUTE_PREF_OSPF_INTER_AREA;
+        break;
     case RTO_OSPF_TYPE1_EXT:
     case RTO_OSPF_TYPE2_EXT:
     case RTO_OSPF_NSSA_TYPE1_EXT:
     case RTO_OSPF_NSSA_TYPE2_EXT:
-      prefType = ROUTE_PREF_OSPF_EXTERNAL;
-      break;
+        prefType = ROUTE_PREF_OSPF_EXTERNAL;
+        break;
     case RTO_RIP:
-      prefType = ROUTE_PREF_RIP;
-      break;
+        prefType = ROUTE_PREF_RIP;
+        break;
     case RTO_IBGP:
-      prefType = ROUTE_PREF_IBGP;
-      break;
+        prefType = ROUTE_PREF_IBGP;
+        break;
     case RTO_EBGP:
-      prefType = ROUTE_PREF_EBGP;
-      break;
+        prefType = ROUTE_PREF_EBGP;
+        break;
     default:
-      break;
-  }
-  return prefType;
+        break;
+    }
+    return prefType;
 }
 
 /*********************************************************************
@@ -863,95 +897,101 @@ L7_uint32 ipMapRouterPrefTypeGet(L7_uint32 protocol)
 *********************************************************************/
 L7_RC_t ipMapRouterPreferenceSet(L7_uint32 index, L7_uint32 pref)
 {
-  L7_uint32 prevPref, rtoIndex = RTO_LOCAL;
+    L7_uint32 prevPref, rtoIndex = RTO_LOCAL;
 
-  /* Check for range */
-  if ((pref < L7_RTO_PREFERENCE_MIN) || (pref > L7_RTO_PREFERENCE_MAX))
-    return L7_FAILURE;
-
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  /*
-  ** Save the current preference value because it may need to be restored
-  ** if this is indeed an invalid preference change
-  */
-  prevPref = ipMapCfg->ip.route_preferences[index];
-
-  if (prevPref == pref)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_SUCCESS;
-  }
-
-  ipMapCfg->ip.route_preferences[index] = pref;
-
-  ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
-
-  /* don't change preference of existing static/default routes */
-  if (index == ROUTE_PREF_STATIC)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_SUCCESS;
-  }
-
-  if (index == ROUTE_PREF_OSPF_EXTERNAL)
-  {
-    /* Preference value is the same for all the external ospf routes
-     * Applying the same external route preference value in RTO for
-     * all the external type routes */
-    if (! ((rtoRouterPreferenceApply(RTO_OSPF_TYPE1_EXT, pref) == L7_SUCCESS) &&
-           (rtoRouterPreferenceApply(RTO_OSPF_TYPE2_EXT, pref) == L7_SUCCESS) &&
-           (rtoRouterPreferenceApply(RTO_OSPF_NSSA_TYPE1_EXT, pref) == L7_SUCCESS) &&
-           (rtoRouterPreferenceApply(RTO_OSPF_NSSA_TYPE2_EXT, pref) == L7_SUCCESS)) )
+    /* Check for range */
+    if ((pref < L7_RTO_PREFERENCE_MIN) || (pref > L7_RTO_PREFERENCE_MAX))
     {
-      ipMapCfg->ip.route_preferences[index] = prevPref;
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_FAILURE;
-    }
-  }
-  else
-  {
-    switch (index)
-    {
-      /* STATIC and OSPF_EXTERNAL cases handled above. If included in this switch 
-       * statement, coverity barks that the statements are DEADCODE. */
-      case ROUTE_PREF_LOCAL:
-        rtoIndex = RTO_LOCAL;
-        break;
-      case ROUTE_PREF_MPLS:
-        rtoIndex = RTO_MPLS;
-        break;
-      case ROUTE_PREF_OSPF_INTRA_AREA:
-        rtoIndex = RTO_OSPF_INTRA_AREA;
-        break;
-      case ROUTE_PREF_OSPF_INTER_AREA:
-        rtoIndex = RTO_OSPF_INTER_AREA;
-        break;
-      case ROUTE_PREF_RIP:
-        rtoIndex = RTO_RIP;
-        break;
-      case ROUTE_PREF_IBGP:
-        rtoIndex = RTO_IBGP;
-        break;
-      case ROUTE_PREF_EBGP:
-        rtoIndex = RTO_EBGP;
-        break;
-      default:
-        ipMapCfg->ip.route_preferences[index] = prevPref;
-        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
         return L7_FAILURE;
-        break;
     }
-    if (rtoRouterPreferenceApply(rtoIndex, pref) != L7_SUCCESS)
+
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      ipMapCfg->ip.route_preferences[index] = prevPref;
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_FAILURE;
+        return L7_FAILURE;
     }
-  }
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return L7_SUCCESS;
+
+    /*
+    ** Save the current preference value because it may need to be restored
+    ** if this is indeed an invalid preference change
+    */
+    prevPref = ipMapCfg->ip.route_preferences[index];
+
+    if (prevPref == pref)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_SUCCESS;
+    }
+
+    ipMapCfg->ip.route_preferences[index] = pref;
+
+    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+
+    /* don't change preference of existing static/default routes */
+    if (index == ROUTE_PREF_STATIC)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_SUCCESS;
+    }
+
+    if (index == ROUTE_PREF_OSPF_EXTERNAL)
+    {
+        /* Preference value is the same for all the external ospf routes
+         * Applying the same external route preference value in RTO for
+         * all the external type routes */
+        if (!((rtoRouterPreferenceApply(RTO_OSPF_TYPE1_EXT, pref) == L7_SUCCESS) &&
+              (rtoRouterPreferenceApply(RTO_OSPF_TYPE2_EXT, pref) == L7_SUCCESS) &&
+              (rtoRouterPreferenceApply(RTO_OSPF_NSSA_TYPE1_EXT, pref) == L7_SUCCESS) &&
+              (rtoRouterPreferenceApply(RTO_OSPF_NSSA_TYPE2_EXT, pref) == L7_SUCCESS)))
+        {
+            ipMapCfg->ip.route_preferences[index] = prevPref;
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_FAILURE;
+        }
+    } 
+    else
+    {
+        switch (index)
+        {
+            /* STATIC and OSPF_EXTERNAL cases handled above. If included in this switch 
+             * statement, coverity barks that the statements are DEADCODE. */
+        case ROUTE_PREF_LOCAL:
+            rtoIndex = RTO_LOCAL;
+            break;
+        case ROUTE_PREF_MPLS:
+            rtoIndex = RTO_MPLS;
+            break;
+        case ROUTE_PREF_OSPF_INTRA_AREA:
+            rtoIndex = RTO_OSPF_INTRA_AREA;
+            break;
+        case ROUTE_PREF_OSPF_INTER_AREA:
+            rtoIndex = RTO_OSPF_INTER_AREA;
+            break;
+        case ROUTE_PREF_RIP:
+            rtoIndex = RTO_RIP;
+            break;
+        case ROUTE_PREF_IBGP:
+            rtoIndex = RTO_IBGP;
+            break;
+        case ROUTE_PREF_EBGP:
+            rtoIndex = RTO_EBGP;
+            break;
+        default:
+            ipMapCfg->ip.route_preferences[index] = prevPref;
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_FAILURE;
+            break;
+        }
+
+        if (rtoRouterPreferenceApply(rtoIndex, pref) != L7_SUCCESS)
+        {
+            ipMapCfg->ip.route_preferences[index] = prevPref;
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_FAILURE;
+        }
+    }
+
+    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+    return L7_SUCCESS;
 }
 
 /********************* ROUTER GLOBAL APIS ****************************/
@@ -973,12 +1013,15 @@ L7_RC_t ipMapRouterPreferenceSet(L7_uint32 index, L7_uint32 pref)
 *********************************************************************/
 L7_uint32  ipMapRtrAdminModeGet(void)
 {
-  L7_uint32 adminMode;
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_DISABLE;
-  adminMode = ipMapCfg->rtr.rtrAdminMode;
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return adminMode;
+    L7_uint32 adminMode;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_DISABLE;
+    }
+
+    adminMode = ipMapCfg->rtr.rtrAdminMode;
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return adminMode;
 }
 
 /*********************************************************************
@@ -998,34 +1041,38 @@ L7_uint32  ipMapRtrAdminModeGet(void)
 *********************************************************************/
 L7_RC_t ipMapRtrAdminModeSet(L7_uint32 mode)
 {
-  L7_RC_t rc= L7_SUCCESS;
+    L7_RC_t rc = L7_SUCCESS;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  /* Only invoke the Apply function if there is a true change */
-  if (ipMapCfg->rtr.rtrAdminMode == mode)
-  {
+    /* Only invoke the Apply function if there is a true change */
+    if (ipMapCfg->rtr.rtrAdminMode == mode)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_SUCCESS;
+    }
+
+    if (mode == L7_ENABLE)
+    {
+        ipMapCfg->rtr.rtrAdminMode = mode;
+        ipMapAdminModeProcess(mode);
+    } 
+    else if (mode == L7_DISABLE)
+    {
+        ipMapCfg->rtr.rtrAdminMode = mode;
+        ipMapAdminModeProcess(mode);
+    } 
+    else 
+    {
+        rc = L7_FAILURE;
+    }
+
+    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_SUCCESS;
-  }
-
-  if (mode == L7_ENABLE)
-  {
-    ipMapCfg->rtr.rtrAdminMode = mode;
-    ipMapAdminModeProcess(mode);
-  }
-  else if (mode == L7_DISABLE)
-  {
-    ipMapCfg->rtr.rtrAdminMode = mode;
-    ipMapAdminModeProcess(mode);
-  }
-  else
-    rc = L7_FAILURE;
-
-  ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return rc;
+    return rc;
 }
 
 /*********************************************************************
@@ -1041,12 +1088,15 @@ L7_RC_t ipMapRtrAdminModeSet(L7_uint32 mode)
 *********************************************************************/
 L7_uint32  ipMapRtrTosForwardingModeGet(void)
 {
-  L7_uint32 fwdingMode;
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_DISABLE;
-  fwdingMode = ipMapCfg->rtr.rtrTOSForwarding;
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return fwdingMode;
+    L7_uint32 fwdingMode;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_DISABLE;
+    }
+
+    fwdingMode = ipMapCfg->rtr.rtrTOSForwarding;
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return fwdingMode;
 }
 
 /*********************************************************************
@@ -1064,18 +1114,20 @@ L7_uint32  ipMapRtrTosForwardingModeGet(void)
 *********************************************************************/
 L7_RC_t ipMapRtrTosForwardingModeSet(L7_uint32 mode)
 {
-  L7_RC_t rc;
+    L7_RC_t rc;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  ipMapCfg->rtr.rtrTOSForwarding = mode;
-  ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+    ipMapCfg->rtr.rtrTOSForwarding = mode;
+    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
 
-  rc = ipMapRtrTosForwardingModeApply(mode);
+    rc = ipMapRtrTosForwardingModeApply(mode);
 
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return(rc);
+    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+    return (rc);
 }
 
 /*********************************************************************
@@ -1091,12 +1143,15 @@ L7_RC_t ipMapRtrTosForwardingModeSet(L7_uint32 mode)
 *********************************************************************/
 L7_uint32  ipMapRtrICMPRedirectModeGet(void)
 {
-  L7_uint32 redirectMode;
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_DISABLE;
-  redirectMode = ipMapCfg->rtr.rtrICMPRedirectMode;
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return redirectMode;
+    L7_uint32 redirectMode;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_DISABLE;
+    }
+
+    redirectMode = ipMapCfg->rtr.rtrICMPRedirectMode;
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return redirectMode;
 }
 
 /*********************************************************************
@@ -1114,18 +1169,20 @@ L7_uint32  ipMapRtrICMPRedirectModeGet(void)
 *********************************************************************/
 L7_RC_t ipMapICMPRedirectModeSet(L7_uint32 mode)
 {
-  L7_RC_t rc;
+    L7_RC_t rc;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  ipMapCfg->rtr.rtrICMPRedirectMode = mode;
-  ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+    ipMapCfg->rtr.rtrICMPRedirectMode = mode;
+    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
 
-  rc = ipMapRtrICMPRedirectModeApply(mode);
+    rc = ipMapRtrICMPRedirectModeApply(mode);
 
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return(rc);
+    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+    return (rc);
 }
 
 /*********************************************************************
@@ -1141,12 +1198,15 @@ L7_RC_t ipMapICMPRedirectModeSet(L7_uint32 mode)
 *********************************************************************/
 L7_RC_t  ipMapRtrICMPEchoReplyModeGet(L7_uint32 *mode)
 {
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    *mode = L7_DISABLE;
-  *mode = ipMapCfg->rtr.rtrICMPEchoReplyMode;
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        *mode = L7_DISABLE;
+    }
 
-  return L7_SUCCESS;
+    *mode = ipMapCfg->rtr.rtrICMPEchoReplyMode;
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+
+    return L7_SUCCESS;
 }
 
 /*********************************************************************
@@ -1165,16 +1225,18 @@ L7_RC_t  ipMapRtrICMPEchoReplyModeGet(L7_uint32 *mode)
 L7_RC_t ipMapRtrICMPEchoReplyModeSet(L7_uint32 mode)
 {
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  ipMapCfg->rtr.rtrICMPEchoReplyMode = mode;
-  ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+    ipMapCfg->rtr.rtrICMPEchoReplyMode = mode;
+    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
 
-  (void)ipMapRtrICMPEchoReplyModeApply(mode);
+    (void)ipMapRtrICMPEchoReplyModeApply(mode);
 
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return L7_SUCCESS;
+    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+    return L7_SUCCESS;
 }
 
 /*********************************************************************/
@@ -1200,29 +1262,32 @@ L7_RC_t ipMapRtrICMPEchoReplyModeSet(L7_uint32 mode)
 *********************************************************************/
 L7_RC_t ipMapGratArpGet(L7_uint32 intIfNum, L7_uint32 *gratArpStatus)
 {
-  L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
-  L7_RC_t rc = L7_FAILURE;
+    L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
+    L7_RC_t rc = L7_FAILURE;
 
-  if (gratArpStatus == L7_NULLPTR)
-    return L7_FAILURE;
+    if (gratArpStatus == L7_NULLPTR) return L7_FAILURE;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    if ((pCfg->flags & L7_RTR_INTF_GRAT_ARP) != 0)
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      *gratArpStatus = L7_ENABLE;
+        return L7_FAILURE;
     }
-    else
+
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
     {
-      *gratArpStatus = L7_DISABLE;
+        if ((pCfg->flags & L7_RTR_INTF_GRAT_ARP) != 0)
+        {
+            *gratArpStatus = L7_ENABLE;
+        }
+        else
+        {
+            *gratArpStatus = L7_DISABLE;
+        }
+
+        rc = L7_SUCCESS;
     }
-    rc = L7_SUCCESS;
-  }
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return rc;
+
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return rc;
 }
 
 /*********************************************************************
@@ -1241,45 +1306,52 @@ L7_RC_t ipMapGratArpGet(L7_uint32 intIfNum, L7_uint32 *gratArpStatus)
 *********************************************************************/
 L7_RC_t ipMapGratArpSet(L7_uint32 intIfNum, L7_uint32 gratArpState)
 {
-  L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
-  L7_uint32 curGratArpState = L7_DISABLE;
+    L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
+    L7_uint32 curGratArpState = L7_DISABLE;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    /* See if this is a change */
-    if (pCfg->flags & L7_RTR_INTF_GRAT_ARP)
-      curGratArpState = L7_ENABLE;
-    if (curGratArpState == gratArpState)
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
     {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_SUCCESS;
+        /* See if this is a change */
+        if (pCfg->flags & L7_RTR_INTF_GRAT_ARP)
+        {
+            curGratArpState = L7_ENABLE;
+        }
+
+        if (curGratArpState == gratArpState)
+        {
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_SUCCESS;
+        }
+
+        if (gratArpState == L7_ENABLE)
+        {
+            pCfg->flags |= L7_RTR_INTF_GRAT_ARP;
+        } 
+        else if (gratArpState == L7_DISABLE)
+        {
+            pCfg->flags &= (~L7_RTR_INTF_GRAT_ARP);
+        } 
+        else
+        {
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_FAILURE;
+        }
+
+        /* There is no "apply" function. The grat ARP configuration is
+         * checked whenever a routing interface is enabled.
+         */
+        ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_SUCCESS;
     }
-    if (gratArpState == L7_ENABLE)
-    {
-      pCfg->flags |= L7_RTR_INTF_GRAT_ARP;
-    }
-    else if (gratArpState == L7_DISABLE)
-    {
-      pCfg->flags &= (~L7_RTR_INTF_GRAT_ARP);
-    }
-    else
-    {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_FAILURE;
-    }
-    /* There is no "apply" function. The grat ARP configuration is
-     * checked whenever a routing interface is enabled.
-     */
-    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_SUCCESS;
-  }
-
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return L7_FAILURE;
+    return L7_FAILURE;
 }
 
 /*********************************************************************
@@ -1297,29 +1369,35 @@ L7_RC_t ipMapGratArpSet(L7_uint32 intIfNum, L7_uint32 gratArpState)
 *********************************************************************/
 L7_RC_t ipMapProxyArpGet(L7_uint32 intIfNum, L7_uint32 *proxyArpMode)
 {
-  L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
-  L7_RC_t rc = L7_FAILURE;
+    L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
+    L7_RC_t rc = L7_FAILURE;
 
-  if (proxyArpMode == L7_NULLPTR)
-    return L7_FAILURE;
-
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    if ((pCfg->flags & L7_RTR_INTF_PROXY_ARP) != 0)
+    if (proxyArpMode == L7_NULLPTR) 
     {
-      *proxyArpMode = L7_ENABLE;
+        return L7_FAILURE;
     }
-    else
+
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      *proxyArpMode = L7_DISABLE;
+        return L7_FAILURE;
     }
-    rc = L7_SUCCESS;
-  }
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return rc;
+
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
+    {
+        if ((pCfg->flags & L7_RTR_INTF_PROXY_ARP) != 0)
+        {
+            *proxyArpMode = L7_ENABLE;
+        } 
+        else
+        {
+            *proxyArpMode = L7_DISABLE;
+        }
+
+        rc = L7_SUCCESS;
+    }
+
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return rc;
 }
 
 /*********************************************************************
@@ -1337,47 +1415,54 @@ L7_RC_t ipMapProxyArpGet(L7_uint32 intIfNum, L7_uint32 *proxyArpMode)
 *********************************************************************/
 L7_RC_t ipMapProxyArpSet(L7_uint32 intIfNum, L7_uint32 proxyArpMode)
 {
-  L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
-  L7_uint32 curProxyArpMode = L7_DISABLE;
+    L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
+    L7_uint32 curProxyArpMode = L7_DISABLE;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    /* See if this is a change */
-    if (pCfg->flags & L7_RTR_INTF_PROXY_ARP)
-      curProxyArpMode = L7_ENABLE;
-    if (curProxyArpMode == proxyArpMode)
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
     {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_SUCCESS;
+        /* See if this is a change */
+        if (pCfg->flags & L7_RTR_INTF_PROXY_ARP)
+        {
+            curProxyArpMode = L7_ENABLE;
+        }
+
+        if (curProxyArpMode == proxyArpMode)
+        {
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_SUCCESS;
+        }
+
+        /* If we need to enable the interface */
+        if (proxyArpMode == L7_ENABLE)
+        {
+            pCfg->flags |= L7_RTR_INTF_PROXY_ARP;
+        } 
+        else if (proxyArpMode == L7_DISABLE)
+        {
+            pCfg->flags &= (~L7_RTR_INTF_PROXY_ARP);
+        } 
+        else
+        {
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_FAILURE;
+        }
+
+        /* There is no "apply" function. The proxy ARP configuration is
+         * checked whenever an ARP request is received.
+         */
+        ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        ipMapArpProxyArpSet(intIfNum, proxyArpMode);
+        return L7_SUCCESS;
     }
-    /* If we need to enable the interface */
-    if (proxyArpMode == L7_ENABLE)
-    {
-      pCfg->flags |= L7_RTR_INTF_PROXY_ARP;
-    }
-    else if (proxyArpMode == L7_DISABLE)
-    {
-      pCfg->flags &= (~L7_RTR_INTF_PROXY_ARP);
-    }
-    else
-    {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_FAILURE;
-    }
-    /* There is no "apply" function. The proxy ARP configuration is
-     * checked whenever an ARP request is received.
-     */
-    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    ipMapArpProxyArpSet(intIfNum, proxyArpMode);
-    return L7_SUCCESS;
-  }
-
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return L7_FAILURE;
+    return L7_FAILURE;
 }
 
 /*********************************************************************
@@ -1395,29 +1480,32 @@ L7_RC_t ipMapProxyArpSet(L7_uint32 intIfNum, L7_uint32 proxyArpMode)
 *********************************************************************/
 L7_RC_t ipMapLocalProxyArpGet(L7_uint32 intIfNum, L7_uint32 *localProxyArpMode)
 {
-  L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
-  L7_RC_t rc = L7_FAILURE;
+    L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
+    L7_RC_t rc = L7_FAILURE;
 
-  if (localProxyArpMode == L7_NULLPTR)
-    return L7_FAILURE;
+    if (localProxyArpMode == L7_NULLPTR) return L7_FAILURE;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    if ((pCfg->flags & L7_RTR_INTF_LOCAL_PROXY_ARP) != 0)
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      *localProxyArpMode = L7_ENABLE;
+        return L7_FAILURE;
     }
-    else
+
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
     {
-      *localProxyArpMode = L7_DISABLE;
+        if ((pCfg->flags & L7_RTR_INTF_LOCAL_PROXY_ARP) != 0)
+        {
+            *localProxyArpMode = L7_ENABLE;
+        }
+        else
+        {
+            *localProxyArpMode = L7_DISABLE;
+        }
+
+        rc = L7_SUCCESS;
     }
-    rc = L7_SUCCESS;
-  }
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return rc;
+
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return rc;
 }
 
 /*********************************************************************
@@ -1435,47 +1523,54 @@ L7_RC_t ipMapLocalProxyArpGet(L7_uint32 intIfNum, L7_uint32 *localProxyArpMode)
 *********************************************************************/
 L7_RC_t ipMapLocalProxyArpSet(L7_uint32 intIfNum, L7_uint32 localProxyArpMode)
 {
-  L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
-  L7_uint32 curLocalProxyArpMode = L7_DISABLE;
+    L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
+    L7_uint32 curLocalProxyArpMode = L7_DISABLE;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    /* See if this is a change */
-    if (pCfg->flags & L7_RTR_INTF_LOCAL_PROXY_ARP)
-      curLocalProxyArpMode = L7_ENABLE;
-    if (curLocalProxyArpMode == localProxyArpMode)
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
     {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_SUCCESS;
+        /* See if this is a change */
+        if (pCfg->flags & L7_RTR_INTF_LOCAL_PROXY_ARP)
+        {
+            curLocalProxyArpMode = L7_ENABLE;
+        }
+
+        if (curLocalProxyArpMode == localProxyArpMode)
+        {
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_SUCCESS;
+        }
+
+        /* If we need to enable the interface */
+        if (localProxyArpMode == L7_ENABLE)
+        {
+            pCfg->flags |= L7_RTR_INTF_LOCAL_PROXY_ARP;
+        } 
+        else if (localProxyArpMode == L7_DISABLE)
+        {
+            pCfg->flags &= (~L7_RTR_INTF_LOCAL_PROXY_ARP);
+        } 
+        else
+        {
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_FAILURE;
+        }
+
+        /* There is no "apply" function. The local proxy ARP configuration is
+         * checked whenever an ARP request is received.
+         */
+        ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        ipMapArpLocalProxyArpSet(intIfNum, localProxyArpMode);
+        return L7_SUCCESS;
     }
-    /* If we need to enable the interface */
-    if (localProxyArpMode == L7_ENABLE)
-    {
-      pCfg->flags |= L7_RTR_INTF_LOCAL_PROXY_ARP;
-    }
-    else if (localProxyArpMode == L7_DISABLE)
-    {
-      pCfg->flags &= (~L7_RTR_INTF_LOCAL_PROXY_ARP);
-    }
-    else
-    {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_FAILURE;
-    }
-    /* There is no "apply" function. The local proxy ARP configuration is
-     * checked whenever an ARP request is received.
-     */
-    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    ipMapArpLocalProxyArpSet(intIfNum, localProxyArpMode);
-    return L7_SUCCESS;
-  }
-
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return L7_FAILURE;
+    return L7_FAILURE;
 }
 
 /*********************************************************************
@@ -1493,20 +1588,24 @@ L7_RC_t ipMapLocalProxyArpSet(L7_uint32 intIfNum, L7_uint32 localProxyArpMode)
 *********************************************************************/
 L7_uint32 ipMapNetDirectBcastsCfgGet(L7_uint32 intIfNum)
 {
-  L7_rtrCfgCkt_t *pCfg = L7_NULL;
-  L7_uint32 status = L7_DISABLE;
+    L7_rtrCfgCkt_t *pCfg = L7_NULL;
+    L7_uint32 status = L7_DISABLE;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_DISABLE;
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    if (pCfg->flags & L7_RTR_INTF_NETDIR_BCAST_MODE_ENABLE)
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      status = L7_ENABLE;
+        return L7_DISABLE;
     }
-  }
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return status;
+
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
+    {
+        if (pCfg->flags & L7_RTR_INTF_NETDIR_BCAST_MODE_ENABLE)
+        {
+            status = L7_ENABLE;
+        }
+    }
+
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return status;
 }
 
 /*********************************************************************
@@ -1524,7 +1623,7 @@ L7_uint32 ipMapNetDirectBcastsCfgGet(L7_uint32 intIfNum)
 *********************************************************************/
 L7_uint32 ipMapRtrIntfNetDirectBcastsGet(L7_uint32 intIfNum)
 {
-  return ipMapNetDirectBcastsCfgGet(intIfNum);
+    return ipMapNetDirectBcastsCfgGet(intIfNum);
 }
 
 /*********************************************************************
@@ -1540,48 +1639,58 @@ L7_uint32 ipMapRtrIntfNetDirectBcastsGet(L7_uint32 intIfNum)
 *
 * @end
 *********************************************************************/
-L7_RC_t ipMapRtrIntfNetDirectBcastsSet( L7_uint32 intIfNum, L7_uint32 mode)
+L7_RC_t ipMapRtrIntfNetDirectBcastsSet(L7_uint32 intIfNum, L7_uint32 mode)
 {
-  L7_RC_t rc = L7_SUCCESS;
-  L7_rtrCfgCkt_t *pCfg = L7_NULL;
-  L7_uint32 curState = L7_DISABLE;
+    L7_RC_t rc = L7_SUCCESS;
+    L7_rtrCfgCkt_t *pCfg = L7_NULL;
+    L7_uint32 curState = L7_DISABLE;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapMapIntfIsConfigurable(intIfNum,&pCfg) != L7_TRUE)
-  {
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    /* See if this represents a change */
+    if (pCfg->flags & L7_RTR_INTF_NETDIR_BCAST_MODE_ENABLE)
+    {
+        curState = L7_ENABLE;
+    }
+
+    if (curState == mode)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_SUCCESS;
+    }
+
+    if (mode == L7_ENABLE)
+    {
+        pCfg->flags |= L7_RTR_INTF_NETDIR_BCAST_MODE_ENABLE;
+    }
+    else if (mode == L7_DISABLE) 
+    {
+        pCfg->flags &= (~L7_RTR_INTF_NETDIR_BCAST_MODE_ENABLE);
+    }
+    else
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+
+    if (ipMapIntfIsUp(intIfNum))
+    {
+        rc = ipMapRtrIntfNetDirectBcastsApply(intIfNum, mode);
+    }
+
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  /* See if this represents a change */
-  if (pCfg->flags & L7_RTR_INTF_NETDIR_BCAST_MODE_ENABLE)
-    curState = L7_ENABLE;
-  if (curState == mode)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_SUCCESS;
-  }
-
-  if (mode == L7_ENABLE)
-    pCfg->flags |= L7_RTR_INTF_NETDIR_BCAST_MODE_ENABLE;
-  else if (mode == L7_DISABLE)
-    pCfg->flags &= (~L7_RTR_INTF_NETDIR_BCAST_MODE_ENABLE);
-  else
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-  ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
-
-  if (ipMapIntfIsUp(intIfNum))
-  {
-    rc = ipMapRtrIntfNetDirectBcastsApply(intIfNum, mode);
-  }
-
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return rc;
+    return rc;
 }
 
 /*********************************************************************
@@ -1604,36 +1713,40 @@ L7_RC_t ipMapRtrIntfNetDirectBcastsSet( L7_uint32 intIfNum, L7_uint32 mode)
 L7_RC_t ipMapUnnumberedGet(L7_uint32 intIfNum, L7_BOOL *isUnnumbered,
                            L7_uint32 *numberedIfc)
 {
-  L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
+    L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
 
-  if (isUnnumbered == L7_NULLPTR)
-    return L7_FAILURE;
-
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_FALSE)
-  {
-    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  if ((pCfg->flags & L7_RTR_INTF_UNNUMBERED) != 0)
-  {
-    *isUnnumbered = L7_TRUE;
-    if (numberedIfc)
+    if (isUnnumbered == L7_NULLPTR) 
     {
-      /* Get the corresponding numbered interface */
-      *numberedIfc = ipMapNumberedIfc(intIfNum);
+        return L7_FAILURE;
     }
-  }
-  else
-  {
-    *isUnnumbered = L7_FALSE;
-  }
 
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return L7_SUCCESS;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS) 
+    {
+        return L7_FAILURE;
+    }
+
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_FALSE)
+    {
+        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    if ((pCfg->flags & L7_RTR_INTF_UNNUMBERED) != 0)
+    {
+        *isUnnumbered = L7_TRUE;
+        if (numberedIfc)
+        {
+            /* Get the corresponding numbered interface */
+            *numberedIfc = ipMapNumberedIfc(intIfNum);
+        }
+    } 
+    else
+    {
+        *isUnnumbered = L7_FALSE;
+    }
+
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return L7_SUCCESS;
 }
 
 /*********************************************************************
@@ -1650,13 +1763,16 @@ L7_RC_t ipMapUnnumberedGet(L7_uint32 intIfNum, L7_BOOL *isUnnumbered,
 *********************************************************************/
 L7_BOOL ipMapIntfIsUnnumbered(L7_uint32 intIfNum)
 {
-  L7_BOOL isUnnumbered;
+    L7_BOOL isUnnumbered;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FALSE;
-  isUnnumbered = _ipMapIntfIsUnnumbered(intIfNum);
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return isUnnumbered;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FALSE;
+    }
+
+    isUnnumbered = _ipMapIntfIsUnnumbered(intIfNum);
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return isUnnumbered;
 }
 
 /*********************************************************************
@@ -1682,77 +1798,81 @@ L7_BOOL ipMapIntfIsUnnumbered(L7_uint32 intIfNum)
 L7_RC_t ipMapUnnumberedSet(L7_uint32 intIfNum, L7_BOOL isUnnumbered,
                            L7_uint32 numberedIfc)
 {
-  L7_rtrCfgCkt_t *pCfg;                /* interface config for intIfNum */
-  L7_BOOL currentStatus = L7_FALSE;    /* whether interface is currently unnumbered */
-  L7_uint32 currentNumberedIfc;        /* if unnumbered, interface currently referenced */
-  L7_RC_t rc = L7_SUCCESS;
+    L7_rtrCfgCkt_t *pCfg;                /* interface config for intIfNum */
+    L7_BOOL currentStatus = L7_FALSE;    /* whether interface is currently unnumbered */
+    L7_uint32 currentNumberedIfc;        /* if unnumbered, interface currently referenced */
+    L7_RC_t rc = L7_SUCCESS;
 
-  if (mcastIntfIsConfigured(intIfNum) == L7_TRUE)
-  {
-    return L7_FAILURE;
-  }
+    if (mcastIntfIsConfigured(intIfNum) == L7_TRUE)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
-  {
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    /* See if this is a change */
+    if (pCfg->flags & L7_RTR_INTF_UNNUMBERED)
+    {
+        currentStatus = L7_TRUE;
+    }
+
+    currentNumberedIfc = ipMapNumberedIfc(intIfNum);
+    if ((currentStatus == isUnnumbered) && (currentNumberedIfc == numberedIfc))
+    {
+        /* no change */
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_SUCCESS;
+    }
+
+    /* There is some change */
+    if (isUnnumbered)
+    {
+        /* Make interface unnumbered */
+        /* Verify that no IP address is configured */
+        if (pCfg->addrs[0].ipAddr)
+        {
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_ALREADY_CONFIGURED;
+        }
+
+        /* Don't allow user to point unnumbered interface at itself. */
+        if (intIfNum == numberedIfc)
+        {
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_ERROR;
+        }
+
+        if (currentStatus == isUnnumbered)
+        {
+            /* Changing the numbered interface. Bounce interface. */
+            pCfg->flags &= (~L7_RTR_INTF_UNNUMBERED);
+            ipMapNumberedIfcBind(intIfNum, 0);
+            ipMapIntfUpdate(intIfNum, NULL);
+        }
+
+        pCfg->flags |= L7_RTR_INTF_UNNUMBERED;
+        ipMapNumberedIfcBind(intIfNum, numberedIfc);
+    } 
+    else
+    {
+        /* Remove unnumbered status */
+        pCfg->flags &= (~L7_RTR_INTF_UNNUMBERED);
+        ipMapNumberedIfcBind(intIfNum, 0);
+    }
+
+    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+    rc = ipMapIntfUpdate(intIfNum, NULL);
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  /* See if this is a change */
-  if (pCfg->flags & L7_RTR_INTF_UNNUMBERED)
-    currentStatus = L7_TRUE;
-  currentNumberedIfc = ipMapNumberedIfc(intIfNum);
-  if ((currentStatus == isUnnumbered) &&
-      (currentNumberedIfc == numberedIfc))
-  {
-    /* no change */
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_SUCCESS;
-  }
-
-  /* There is some change */
-  if (isUnnumbered)
-  {
-    /* Make interface unnumbered */
-    /* Verify that no IP address is configured */
-    if (pCfg->addrs[0].ipAddr)
-    {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_ALREADY_CONFIGURED;
-    }
-
-    /* Don't allow user to point unnumbered interface at itself. */
-    if (intIfNum == numberedIfc)
-    {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_ERROR;
-    }
-
-    if (currentStatus == isUnnumbered)
-    {
-      /* Changing the numbered interface. Bounce interface. */
-      pCfg->flags &= (~L7_RTR_INTF_UNNUMBERED);
-      ipMapNumberedIfcBind(intIfNum, 0);
-      ipMapIntfUpdate(intIfNum, NULL);
-    }
-
-    pCfg->flags |= L7_RTR_INTF_UNNUMBERED;
-    ipMapNumberedIfcBind(intIfNum, numberedIfc);
-  }
-  else
-  {
-    /* Remove unnumbered status */
-    pCfg->flags &= (~L7_RTR_INTF_UNNUMBERED);
-    ipMapNumberedIfcBind(intIfNum, 0);
-  }
-
-  ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
-  rc = ipMapIntfUpdate(intIfNum, NULL);
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return rc;
+    return rc;
 }
 
 /*********************************************************************
@@ -1768,15 +1888,17 @@ L7_RC_t ipMapUnnumberedSet(L7_uint32 intIfNum, L7_BOOL isUnnumbered,
 *********************************************************************/
 L7_uint32 ipMapBorrowedAddr(L7_uint32 intIfNum)
 {
-  L7_uint32 bAddr;
+    L7_uint32 bAddr;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return 0;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return 0;
+    }
 
-  bAddr = _ipMapBorrowedAddr(intIfNum);
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    bAddr = _ipMapBorrowedAddr(intIfNum);
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
 
-  return bAddr;
+    return bAddr;
 }
 
 /*********************************************************************
@@ -1794,24 +1916,30 @@ L7_uint32 ipMapBorrowedAddr(L7_uint32 intIfNum)
 *********************************************************************/
 L7_RC_t ipMapRtrIntfModeGet(L7_uint32 intIfNum, L7_uint32 *mode)
 {
-  L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
+    L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
-  {
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+    {
+        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    if (pCfg->flags & L7_RTR_INTF_ADMIN_MODE_ENABLE)
+    {
+        *mode = L7_ENABLE;
+    }
+    else
+    {
+        *mode = L7_DISABLE;
+    }
+
     ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  if (pCfg->flags & L7_RTR_INTF_ADMIN_MODE_ENABLE)
-    *mode = L7_ENABLE;
-  else
-    *mode = L7_DISABLE;
-
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return L7_SUCCESS;
+    return L7_SUCCESS;
 }
 
 /*********************************************************************
@@ -1828,56 +1956,66 @@ L7_RC_t ipMapRtrIntfModeGet(L7_uint32 intIfNum, L7_uint32 *mode)
 *
 * @end
 *********************************************************************/
-L7_RC_t ipMapRtrIntfModeSet( L7_uint32 intIfNum, L7_uint32 mode)
+L7_RC_t ipMapRtrIntfModeSet(L7_uint32 intIfNum, L7_uint32 mode)
 {
-  L7_RC_t rc = L7_FAILURE;
-  L7_rtrCfgCkt_t *pCfg;
-  L7_uint32 currentMode;
-  L7_uint32 oldFlags;
+    L7_RC_t rc = L7_FAILURE;
+    L7_rtrCfgCkt_t *pCfg;
+    L7_uint32 currentMode;
+    L7_uint32 oldFlags;
 
-  /*    Validity Checking     */
-  if ((mode != L7_ENABLE) && (mode != L7_DISABLE))
-    return L7_FAILURE;
+    /*    Validity Checking     */
+    if ((mode != L7_ENABLE) && (mode != L7_DISABLE))
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapMapIntfIsConfigurable(intIfNum,&pCfg) != L7_TRUE)
-  {
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    /* If the mode is the same as the current admin mode, return success */
+    if ((pCfg->flags & L7_RTR_INTF_ADMIN_MODE_ENABLE) == L7_RTR_INTF_ADMIN_MODE_ENABLE)
+    {
+        currentMode = L7_ENABLE;
+    }
+    else 
+    {
+        currentMode = L7_DISABLE;
+    }
+
+    if (mode == currentMode)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_SUCCESS;
+    }
+
+    oldFlags = pCfg->flags;
+    if (mode == L7_ENABLE)
+    {
+        pCfg->flags |= L7_RTR_INTF_ADMIN_MODE_ENABLE;
+    } 
+    else if (mode == L7_DISABLE)
+    {
+        pCfg->flags &= (~L7_RTR_INTF_ADMIN_MODE_ENABLE);
+    }
+
+    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+
+    if ((rc = ipMapIntfUpdate(intIfNum, NULL)) != L7_SUCCESS)
+    {
+        /* Restore flags if call failed */
+        pCfg->flags = oldFlags;
+    }
+
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  /* If the mode is the same as the current admin mode, return success */
-  if ((pCfg->flags & L7_RTR_INTF_ADMIN_MODE_ENABLE) == L7_RTR_INTF_ADMIN_MODE_ENABLE)
-    currentMode = L7_ENABLE;
-  else
-    currentMode = L7_DISABLE;
-  if (mode == currentMode)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_SUCCESS;
-  }
-
-  oldFlags = pCfg->flags;
-  if (mode == L7_ENABLE)
-  {
-    pCfg->flags |= L7_RTR_INTF_ADMIN_MODE_ENABLE;
-  }
-  else if (mode == L7_DISABLE)
-  {
-    pCfg->flags &= (~L7_RTR_INTF_ADMIN_MODE_ENABLE);
-  }
-  ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
-
-  if ((rc = ipMapIntfUpdate(intIfNum, NULL)) != L7_SUCCESS)
-  {
-    /* Restore flags if call failed */
-    pCfg->flags = oldFlags;
-  }
-
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return rc;
+    return rc;
 }
 
 /*********************************************************************
@@ -1898,20 +2036,24 @@ L7_RC_t ipMapRtrIntfModeSet( L7_uint32 intIfNum, L7_uint32 mode)
 *********************************************************************/
 L7_uint32 ipMapMcastFwdModeCfgGet(L7_uint32 intIfNum)
 {
-  L7_rtrCfgCkt_t *pCfg = L7_NULL;
-  L7_uint32 fwdMode = L7_DISABLE;
+    L7_rtrCfgCkt_t *pCfg = L7_NULL;
+    L7_uint32 fwdMode = L7_DISABLE;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_DISABLE;
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    if (pCfg->flags & L7_RTR_INTF_MCAST_FWD_MODE_ENABLE)
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      fwdMode = L7_ENABLE;
+        return L7_DISABLE;
     }
-  }
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return fwdMode;
+
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
+    {
+        if (pCfg->flags & L7_RTR_INTF_MCAST_FWD_MODE_ENABLE)
+        {
+            fwdMode = L7_ENABLE;
+        }
+    }
+
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return fwdMode;
 }
 
 /*********************************************************************
@@ -1928,7 +2070,7 @@ L7_uint32 ipMapMcastFwdModeCfgGet(L7_uint32 intIfNum)
 *********************************************************************/
 L7_uint32 ipMapRtrIntfMcastFwdModeGet(L7_uint32 intIfNum)
 {
-  return ipMapMcastFwdModeCfgGet(intIfNum);
+    return ipMapMcastFwdModeCfgGet(intIfNum);
 }
 
 /*********************************************************************
@@ -1947,46 +2089,50 @@ L7_uint32 ipMapRtrIntfMcastFwdModeGet(L7_uint32 intIfNum)
 *********************************************************************/
 L7_RC_t ipMapRtrIntfMcastFwdModeSet(L7_uint32 intIfNum, L7_uint32 mode)
 {
-  L7_RC_t rc = L7_SUCCESS;
-  L7_rtrCfgCkt_t *pCfg;
-  L7_uint32 fwdMode = L7_DISABLE;
+    L7_RC_t rc = L7_SUCCESS;
+    L7_rtrCfgCkt_t *pCfg;
+    L7_uint32 fwdMode = L7_DISABLE;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
-  {
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    if (pCfg->flags & L7_RTR_INTF_MCAST_FWD_MODE_ENABLE)
+    {
+        fwdMode = L7_ENABLE;
+    }
+
+    if (fwdMode == mode)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_SUCCESS;
+    }
+
+    if (mode == L7_ENABLE)
+    {
+        pCfg->flags |= L7_RTR_INTF_MCAST_FWD_MODE_ENABLE;
+    } 
+    else if (mode == L7_DISABLE)
+    {
+        pCfg->flags &= (~L7_RTR_INTF_MCAST_FWD_MODE_ENABLE);
+    }
+
+    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+
+    if (ipMapIntfIsUp(intIfNum))
+    {
+        rc = ipMapRtrIntfMcastFwdModeApply(intIfNum, mode);
+    }
+
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  if (pCfg->flags & L7_RTR_INTF_MCAST_FWD_MODE_ENABLE)
-  {
-    fwdMode = L7_ENABLE;
-  }
-  if (fwdMode == mode)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_SUCCESS;
-  }
-
-  if (mode == L7_ENABLE)
-  {
-    pCfg->flags |= L7_RTR_INTF_MCAST_FWD_MODE_ENABLE;
-  }
-  else if (mode == L7_DISABLE)
-  {
-    pCfg->flags &= (~L7_RTR_INTF_MCAST_FWD_MODE_ENABLE);
-  }
-  ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
-
-  if (ipMapIntfIsUp(intIfNum))
-  {
-    rc = ipMapRtrIntfMcastFwdModeApply(intIfNum, mode);
-  }
-
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return rc;
+    return rc;
 }
 
 
@@ -2008,7 +2154,7 @@ L7_RC_t ipMapRtrIntfMcastFwdModeSet(L7_uint32 intIfNum, L7_uint32 mode)
 L7_RC_t  ipMapRtrIntfIpAddressGet(L7_uint32 intIfNum, L7_IP_ADDR_t *ipAddr,
                                   L7_IP_MASK_t *mask)
 {
-  return ipMapRtrIntfCfgIpAddressGet(intIfNum, ipAddr, mask);
+    return ipMapRtrIntfCfgIpAddressGet(intIfNum, ipAddr, mask);
 }
 
 /*********************************************************************
@@ -2029,38 +2175,39 @@ L7_RC_t  ipMapRtrIntfSpecificIpAddressGet(L7_uint32 intIfNum,
                                           L7_IP_ADDR_t *ipAddr,
                                           L7_IP_MASK_t *mask)
 {
-  L7_rtrCfgCkt_t *pCfg;
-  L7_uint32 j;
+    L7_rtrCfgCkt_t *pCfg;
+    L7_uint32 j;
 
-  if (!ipAddr || !mask || (*ipAddr == 0))
-    return L7_FAILURE;
+    if (!ipAddr || !mask || (*ipAddr == 0)) return L7_FAILURE;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    for (j=0; j < L7_L3_NUM_IP_ADDRS; j++)
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      if (pCfg->addrs[j].ipAddr && (pCfg->addrs[j].ipAddr == *ipAddr))
-      {
-        *mask = pCfg->addrs[j].ipMask;
-        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-        return L7_SUCCESS;
-      }
+        return L7_FAILURE;
     }
 
-    /* Matching address not found on the interface */
-    *mask = 0;
-    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-    return L7_NOT_EXIST;
-  }
-  else
-  {
-    *mask = 0;
-    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
+    {
+        for (j = 0; j < L7_L3_NUM_IP_ADDRS; j++)
+        {
+            if (pCfg->addrs[j].ipAddr && (pCfg->addrs[j].ipAddr == *ipAddr))
+            {
+                *mask = pCfg->addrs[j].ipMask;
+                ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+                return L7_SUCCESS;
+            }
+        }
+
+        /* Matching address not found on the interface */
+        *mask = 0;
+        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+        return L7_NOT_EXIST;
+    } 
+    else
+    {
+        *mask = 0;
+        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
 }
 
 /*********************************************************************
@@ -2083,27 +2230,31 @@ L7_RC_t  ipMapRtrIntfSpecificIpAddressGet(L7_uint32 intIfNum,
 L7_RC_t  ipMapRtrIntfCfgIpAddressGet(L7_uint32 intIfNum, L7_IP_ADDR_t *ipAddr,
                                      L7_IP_MASK_t *mask)
 {
-  L7_rtrCfgCkt_t *pCfg;
+    L7_rtrCfgCkt_t *pCfg;
 
-  if (!ipAddr || !mask)
-    return L7_FAILURE;
+    if (!ipAddr || !mask)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    *ipAddr = pCfg->addrs[0].ipAddr;
-    *mask   = pCfg->addrs[0].ipMask;
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
+    {
+        *ipAddr = pCfg->addrs[0].ipAddr;
+        *mask   = pCfg->addrs[0].ipMask;
+        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+        return L7_SUCCESS;
+    }
+
+    *ipAddr = 0;
+    *mask = 0;
+
     ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-    return L7_SUCCESS;
-  }
-
-  *ipAddr = 0;
-  *mask = 0;
-
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return L7_ERROR;
+    return L7_ERROR;
 }
 
 /*********************************************************************
@@ -2123,39 +2274,40 @@ L7_RC_t  ipMapRtrIntfCfgIpAddressGet(L7_uint32 intIfNum, L7_IP_ADDR_t *ipAddr,
 * @end
 *********************************************************************/
 L7_RC_t  ipMapRtrIntfSubnetMaskGet(L7_uint32 intIfNum,
-                                   L7_IP_ADDR_t ipAddr, 
+                                   L7_IP_ADDR_t ipAddr,
                                    L7_IP_MASK_t *ipMask)
 {
-  L7_uint32      j;
-  L7_rtrCfgCkt_t *pCfg;
+    L7_uint32      j;
+    L7_rtrCfgCkt_t *pCfg;
 
-  if (!ipAddr || !ipMask)
-    return L7_FAILURE;
+    if (!ipAddr || !ipMask) return L7_FAILURE;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    for (j = 0; j < L7_L3_NUM_IP_ADDRS; j++)
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      if ((pCfg->addrs[j].ipAddr & pCfg->addrs[j].ipMask) ==
-          (ipAddr & pCfg->addrs[j].ipMask))
-      {
-        *ipMask = pCfg->addrs[j].ipMask;
-        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-        return L7_SUCCESS;
-      }
+        return L7_FAILURE;
     }
+
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
+    {
+        for (j = 0; j < L7_L3_NUM_IP_ADDRS; j++)
+        {
+            if ((pCfg->addrs[j].ipAddr & pCfg->addrs[j].ipMask) ==
+                    (ipAddr & pCfg->addrs[j].ipMask))
+            {
+                *ipMask = pCfg->addrs[j].ipMask;
+                ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+                return L7_SUCCESS;
+            }
+        }
+        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+        return L7_FAILURE;    /* address not found */
+    }
+
+    *ipMask = 0;
+
+    /* interface is invalid */
     ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-    return L7_FAILURE;    /* address not found */
-  }
-
-  *ipMask = 0;
-
-  /* interface is invalid */
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return L7_ERROR;
+    return L7_ERROR;
 }
 
 /*********************************************************************
@@ -2176,38 +2328,39 @@ L7_RC_t  ipMapRtrIntfSubnetMaskGet(L7_uint32 intIfNum,
 * @end
 *********************************************************************/
 L7_RC_t
-ipMapRtrIntfCfgIpAddressMethodGet (L7_uint32 intIfNum,
-                                   L7_INTF_IP_ADDR_METHOD_t *method)
+ipMapRtrIntfCfgIpAddressMethodGet(L7_uint32 intIfNum,
+                                  L7_INTF_IP_ADDR_METHOD_t *method)
 {
-  L7_rtrCfgCkt_t *pCfg;
+    L7_rtrCfgCkt_t *pCfg;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    if (((pCfg->flags) & L7_RTR_INTF_ADDR_METHOD_DHCP)
-                      == L7_RTR_INTF_ADDR_METHOD_DHCP)
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
     {
-      *method = L7_INTF_IP_ADDR_METHOD_DHCP;
+        if (((pCfg->flags) & L7_RTR_INTF_ADDR_METHOD_DHCP) == L7_RTR_INTF_ADDR_METHOD_DHCP)
+        {
+            *method = L7_INTF_IP_ADDR_METHOD_DHCP;
+        } 
+        else if ((pCfg->addrs[0].ipAddr != 0) && (pCfg->addrs[0].ipMask != 0))
+        {
+            *method = L7_INTF_IP_ADDR_METHOD_CONFIG;
+        }
+        else
+        {
+            *method = L7_INTF_IP_ADDR_METHOD_NONE;
+        }
+
+        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+        return L7_SUCCESS;
     }
-    else if ((pCfg->addrs[0].ipAddr != 0) && (pCfg->addrs[0].ipMask != 0))
-    {
-      *method = L7_INTF_IP_ADDR_METHOD_CONFIG;
-    }
-    else
-    {
-      *method = L7_INTF_IP_ADDR_METHOD_NONE;
-    }
+
+    *method = L7_INTF_IP_ADDR_METHOD_NONE;
 
     ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-    return L7_SUCCESS;
-  }
-
-  *method = L7_INTF_IP_ADDR_METHOD_NONE;
-
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return L7_ERROR;
+    return L7_ERROR;
 }
 
 /*********************************************************************
@@ -2226,22 +2379,24 @@ ipMapRtrIntfCfgIpAddressMethodGet (L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t ipMapRouterIfIPBroadcastGet (L7_uint32 intIfNum, L7_uint32 *bcast)
+L7_RC_t ipMapRouterIfIPBroadcastGet(L7_uint32 intIfNum, L7_uint32 *bcast)
 {
-  L7_rtrCfgCkt_t *pCfg;
+    L7_rtrCfgCkt_t *pCfg;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    *bcast = (pCfg->addrs[0].ipAddr & pCfg->addrs[0].ipMask) | ~(pCfg->addrs[0].ipMask);
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
+    {
+        *bcast = (pCfg->addrs[0].ipAddr & pCfg->addrs[0].ipMask) | ~(pCfg->addrs[0].ipMask);
+        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+        return L7_SUCCESS;
+    }
+
     ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-    return L7_SUCCESS;
-  }
-
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return L7_FAILURE;
+    return L7_FAILURE;
 }
 
 /*********************************************************************
@@ -2261,22 +2416,22 @@ L7_RC_t ipMapRouterIfIPBroadcastGet (L7_uint32 intIfNum, L7_uint32 *bcast)
 *********************************************************************/
 L7_RC_t ipMapRouterIfMacAddressGet(L7_uint32 intIfNum, L7_uchar8 *mac_addr)
 {
-  L7_uint32 adminState, activeState;
+    L7_uint32 adminState, activeState;
 
-  if ( (nimGetIntfAdminState(intIfNum, &adminState) != L7_SUCCESS) ||
-       (adminState != L7_ENABLE) ||
-       (nimGetIntfActiveState(intIfNum, &activeState) != L7_SUCCESS) ||
-       (activeState != L7_ACTIVE) )
-  {
-    return(L7_ERROR);
-  }
+    if ((nimGetIntfAdminState(intIfNum, &adminState) != L7_SUCCESS) ||
+        (adminState != L7_ENABLE) ||
+        (nimGetIntfActiveState(intIfNum, &activeState) != L7_SUCCESS) ||
+        (activeState != L7_ACTIVE))
+    {
+        return (L7_ERROR);
+    }
 
-  if (nimGetIntfL3MacAddress(intIfNum, 0, mac_addr) != L7_SUCCESS)
-  {
-    return(L7_FAILURE);
-  }
+    if (nimGetIntfL3MacAddress(intIfNum, 0, mac_addr) != L7_SUCCESS)
+    {
+        return (L7_FAILURE);
+    }
 
-  return(L7_SUCCESS);
+    return (L7_SUCCESS);
 }
 
 
@@ -2298,15 +2453,17 @@ L7_RC_t ipMapRouterIfMacAddressGet(L7_uint32 intIfNum, L7_uchar8 *mac_addr)
 *********************************************************************/
 L7_BOOL ipMapRtrIntfConfigured(L7_uint32 intIfNum)
 {
-  L7_BOOL isConfigured = L7_FALSE;
+    L7_BOOL isConfigured = L7_FALSE;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FALSE;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FALSE;
+    }
 
-  isConfigured = _ipMapRtrIntfConfigured(intIfNum);
+    isConfigured = _ipMapRtrIntfConfigured(intIfNum);
 
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return isConfigured;
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return isConfigured;
 }
 
 /*********************************************************************
@@ -2324,36 +2481,36 @@ L7_BOOL ipMapRtrIntfConfigured(L7_uint32 intIfNum)
 *
 * @end
 *********************************************************************/
-L7_RC_t  ipMapRtrIntfCfgIpAddressCheck(L7_uint32 intIfNum,
-                                       L7_IP_ADDR_t ipAddr)
+L7_RC_t  ipMapRtrIntfCfgIpAddressCheck(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddr)
 {
-  L7_uint32   j;
-  L7_rtrCfgCkt_t  *pCfg;
+    L7_uint32   j;
+    L7_rtrCfgCkt_t  *pCfg;
 
-  if (ipAddr == 0)
-    return L7_FAILURE;
+    if (ipAddr == 0) return L7_FAILURE;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    for (j=0; j < L7_L3_NUM_IP_ADDRS; j++)
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      if (pCfg->addrs[j].ipAddr == ipAddr)
-      {
-        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-        return L7_SUCCESS;
-      }
+        return L7_FAILURE;
     }
-    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-    return L7_FAILURE;    /* address not found */
-  }
-  else
-  {
-    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-    return L7_ERROR;      /* invalid interface */
-  }
+
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
+    {
+        for (j = 0; j < L7_L3_NUM_IP_ADDRS; j++)
+        {
+            if (pCfg->addrs[j].ipAddr == ipAddr)
+            {
+                ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+                return L7_SUCCESS;
+            }
+        }
+        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+        return L7_FAILURE;    /* address not found */
+    } 
+    else
+    {
+        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+        return L7_ERROR;      /* invalid interface */
+    }
 }
 
 /*********************************************************************
@@ -2386,144 +2543,188 @@ L7_RC_t ipMapRtrIntfIpAddressSet(L7_uint32 intIfNum,
                                  L7_IP_MASK_t subnetMask,
                                  L7_INTF_IP_ADDR_METHOD_t method)
 {
-  L7_rtrCfgCkt_t *pCfg;
-  L7_uint32 j;
-  L7_RC_t rc;
+    L7_rtrCfgCkt_t *pCfg;
+    L7_uint32 j;
+    L7_RC_t rc;
+    struct sockaddr_in ip_addr, ip_mask;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    ip_addr.sin_addr.s_addr = htonl(ipAddress);
+    ip_mask.sin_addr.s_addr = htonl(subnetMask);
 
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  /* Fail if interface is configured to be unnumbered */
-  if ((pCfg->flags & L7_RTR_INTF_UNNUMBERED) != 0)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_NOT_EXIST;        /* stretching to find an unnused code! */
-  }
-
-  /* Check if the IP address is valid */
-  if (ipMapRtrIntfIpAddressValidityCheck(ipAddress, subnetMask) != L7_SUCCESS)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  /* Check if the same address is already configured on this interface. */
-  if ((ipAddress == pCfg->addrs[0].ipAddr) && (subnetMask == pCfg->addrs[0].ipMask))
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_SUCCESS;
-  }
-
-  /* Check if address conflicts with network or service port. */
-  if (ipMapMgmtPortConflict(intIfNum, ipAddress, subnetMask) ||
-      ipMapRtrIntfAddressConflictFind(intIfNum, ipAddress, subnetMask))
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_ERROR;
-  }
-
-  /* Check if the ipAddress is same as the next hop address of a static route */
-  if (ipMapSrNextHopIpAddressConflictCheck(ipAddress) == L7_TRUE)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_REQUEST_DENIED;
-  }
-
-  /* Cannot configure an IP address that is already configured as a
-   * static ARP entry. */
-  if (ipMapStaticArpIpAddressConflictCheck(ipAddress) == L7_TRUE)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_REQUEST_DENIED;
-  }
-
-
-  /*
-  Don't allow a primary IP address to be changed if any secondaries
-are configured. See defect 48936.
-*/
-  for (j=1; j < L7_L3_NUM_IP_ADDRS; j++)
-  {
-    if (pCfg->addrs[j].ipAddr != L7_NULL_IP_ADDR)
-    {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_ALREADY_CONFIGURED;
-    }
-  }
-
-  /* If a primary IP address is already configured, remove it. */
-  if (pCfg->addrs[0].ipAddr != 0)
-  {
-    if ((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) != 0)
-    {
-      /* Invoke DHCP Client to Release the IP address on this interface.
-       * This has to be done immediately in order to get the the DHCP Release
-       * out on the wire.
-       */
-      rc = dhcpClientIPAddressMethodSet(intIfNum, L7_INTF_IP_ADDR_METHOD_NONE,
-                                        L7_MGMT_IPPORT, L7_FALSE);
-      if (rc != L7_SUCCESS)
-      {
-        if (ipMapTraceFlags & IPMAP_TRACE_DHCP_UPDATE)
-        {
-          L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
-          PT_LOG_INFO(LOG_CTX_INTF,
-                      "DHCP Address Release Failed on intIfNum %d (rc=%u)\n",
-                      intIfNum, rc);
-          osapiSnprintf (traceBuf, sizeof(traceBuf),
-                         "[%s-%d]: DHCP Address Release Failed on intIfNum %d\n",
-                         __FUNCTION__, __LINE__, intIfNum);
-          ipMapTraceWrite (traceBuf);
-        }
-      }
-    }
-    rc = ipMapRtrIntfIpAddressRemoveProcess(intIfNum);
+    rc = ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__);
     if (rc != L7_SUCCESS)
     {
-      L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-      nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
-      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
-              "Failed removing IP address from interface %s. Error %d.",
-              ifName, rc);
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_FAILURE;
+        PT_LOG_ERR(LOG_CTX_INTF, "Failed taking the IP MAP read/write lock (rc=%u)",
+                   rc);
+        return L7_FAILURE;
     }
-  }
 
-  /* Reserve space in RTO for this address */
-  if (rtoRouteReserve() != L7_SUCCESS)
-  {
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+    {
+        PT_LOG_ERR(LOG_CTX_INTF, "Error: interface is not configurable");
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    /* Fail if interface is configured to be unnumbered */
+    if ((pCfg->flags & L7_RTR_INTF_UNNUMBERED) != 0)
+    {
+        PT_LOG_ERR(LOG_CTX_INTF,
+                   "Error: Interface is configured to be unnumbered (flags = 0x%04X)",
+                   pCfg->flags);
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_NOT_EXIST;        /* stretching to find an unnused code! */
+    }
+
+    /* Check if the IP address is valid */
+    rc = ipMapRtrIntfIpAddressValidityCheck(ipAddress, subnetMask);
+    if (rc != L7_SUCCESS)
+    {
+        PT_LOG_ERR(LOG_CTX_INTF, "Error: IP Address %s/%s is not valid (rc=%u)",
+                   inet_ntoa(ip_addr.sin_addr), inet_ntoa(ip_mask.sin_addr), rc);
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    /* Check if the same address is already configured on this interface. */
+    if ((ipAddress == pCfg->addrs[0].ipAddr) && (subnetMask == pCfg->addrs[0].ipMask))
+    {
+        PT_LOG_ERR(LOG_CTX_INTF,
+                   "Error: IP Address %s/%s is already configured on this interface",
+                   inet_ntoa(ip_addr.sin_addr), inet_ntoa(ip_mask.sin_addr));
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_SUCCESS;
+    }
+
+    /* Check if address conflicts with service port. */
+    if (ipMapMgmtPortConflict(intIfNum, ipAddress, subnetMask) != L7_FALSE)
+    {
+        PT_LOG_ERR(LOG_CTX_INTF,
+                   "Error: IP Address %s/%s conflicts with service port",
+                   inet_ntoa(ip_addr.sin_addr), inet_ntoa(ip_mask.sin_addr));
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_ERROR;
+    }
+
+    /* Check if address conflicts with network */
+    if (ipMapRtrIntfAddressConflictFind(intIfNum, ipAddress, subnetMask) != L7_FALSE)
+    {
+        PT_LOG_ERR(LOG_CTX_INTF, "Error: IP Address %s/%s conflicts with network",
+                   inet_ntoa(ip_addr.sin_addr), inet_ntoa(ip_mask.sin_addr));
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_ERROR;
+    }
+
+    /* Check if the ipAddress is same as the next hop address of a static route */
+    if (ipMapSrNextHopIpAddressConflictCheck(ipAddress) == L7_TRUE)
+    {
+        PT_LOG_ERR(LOG_CTX_INTF, "Error: IP Address %s/%s is not the next hop address",
+                   inet_ntoa(ip_addr.sin_addr), inet_ntoa(ip_mask.sin_addr));
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_REQUEST_DENIED;
+    }
+
+    /* Cannot configure an IP address that is already configured as a
+     * static ARP entry. */
+    if (ipMapStaticArpIpAddressConflictCheck(ipAddress) == L7_TRUE)
+    {
+        PT_LOG_ERR(LOG_CTX_INTF,
+                   "Failed configuring IP Address %s/%s is already configured as a static ARP entry",
+                   inet_ntoa(ip_addr.sin_addr), inet_ntoa(ip_mask.sin_addr));
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_REQUEST_DENIED;
+    }
+
+
+    /*
+    Don't allow a primary IP address to be changed if any secondaries
+    are configured. See defect 48936.
+    */
+    for (j = 1; j < L7_L3_NUM_IP_ADDRS; j++)
+    {
+        if (pCfg->addrs[j].ipAddr != L7_NULL_IP_ADDR)
+        {
+            ip_addr.sin_addr.s_addr = htonl(pCfg->addrs[j].ipAddr);
+            PT_LOG_ERR(LOG_CTX_INTF,
+                       "Error: Primary IP Address %s can not be changed",
+                       inet_ntoa(ip_addr.sin_addr));
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_ALREADY_CONFIGURED;
+        }
+    }
+
+    /* If a primary IP address is already configured, remove it. */
+    if (pCfg->addrs[0].ipAddr != 0)
+    {
+        if ((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) != 0)
+        {
+            /* Invoke DHCP Client to Release the IP address on this interface.
+             * This has to be done immediately in order to get the the DHCP Release
+             * out on the wire.
+             */
+            rc = dhcpClientIPAddressMethodSet(intIfNum, L7_INTF_IP_ADDR_METHOD_NONE,
+                                              L7_MGMT_IPPORT, L7_FALSE);
+            if (rc != L7_SUCCESS)
+            {
+                if (ipMapTraceFlags & IPMAP_TRACE_DHCP_UPDATE)
+                {
+                    L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
+                    PT_LOG_INFO(LOG_CTX_INTF,
+                                "DHCP Address Release Failed on intIfNum %d (rc=%u)\n",
+                                intIfNum, rc);
+                    osapiSnprintf(traceBuf, sizeof(traceBuf),
+                                  "[%s-%d]: DHCP Address Release Failed on intIfNum %d\n",
+                                  __FUNCTION__, __LINE__, intIfNum);
+                    ipMapTraceWrite(traceBuf);
+                }
+            }
+        }
+        rc = ipMapRtrIntfIpAddressRemoveProcess(intIfNum);
+        if (rc != L7_SUCCESS)
+        {
+            L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+            nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+            PT_LOG_ERR(LOG_CTX_INTF,
+                       "Failed removing IP address from interface %s. Error %d.",
+                       ifName, rc);
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_FAILURE;
+        }
+    }
+
+    /* Reserve space in RTO for this address */
+    rc = rtoRouteReserve();
+    if (rc != L7_SUCCESS)
+    {
+        PT_LOG_ERR(LOG_CTX_INTF, "Failed reserving space in RTO (rc=%u)", rc);
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_TABLE_IS_FULL;
+    }
+
+    /* Store the new IP address in the configuration. */
+    pCfg->addrs[0].ipAddr = ipAddress;
+    pCfg->addrs[0].ipMask = subnetMask;
+    if ((method == L7_INTF_IP_ADDR_METHOD_CONFIG) &&
+        ((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) != 0))
+    {
+        pCfg->flags &= ~L7_RTR_INTF_ADDR_METHOD_DHCP;
+    }
+
+    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+
+    rc = ipMapRtrIntfIpAddressAddProcess(intIfNum, ipAddress, subnetMask);
+
+    /* If address add failed, undo the config change */
+    if (rc != L7_SUCCESS)
+    {
+        PT_LOG_ERR(LOG_CTX_INTF, "Failed IP Add Process: undo the config change (rc=%u)", rc);
+        pCfg->addrs[0].ipAddr = 0;
+        pCfg->addrs[0].ipMask = 0;
+        rtoRouteUnReserve();
+    }
+
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_TABLE_IS_FULL;
-  }
-
-  /* Store the new IP address in the configuration. */
-  pCfg->addrs[0].ipAddr = ipAddress;
-  pCfg->addrs[0].ipMask = subnetMask;
-  if ((method == L7_INTF_IP_ADDR_METHOD_CONFIG) &&
-      ((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) != 0))
-  {
-    pCfg->flags &= ~L7_RTR_INTF_ADDR_METHOD_DHCP;
-  }
-  ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
-
-  rc = ipMapRtrIntfIpAddressAddProcess(intIfNum, ipAddress, subnetMask);
-
-  /* If address add failed, undo the config change */
-  if (rc != L7_SUCCESS)
-  {
-    pCfg->addrs[0].ipAddr = 0;
-    pCfg->addrs[0].ipMask = 0;
-    rtoRouteUnReserve();
-  }
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return rc;
+    return rc;
 }
 
 /*********************************************************************
@@ -2545,191 +2746,198 @@ are configured. See defect 48936.
 * @end
 *********************************************************************/
 L7_RC_t
-ipMapRtrIntfIpAddressMethodSet (L7_uint32 intIfNum,
-                                L7_INTF_IP_ADDR_METHOD_t method,
-                                L7_BOOL actImmediate)
+ipMapRtrIntfIpAddressMethodSet(L7_uint32 intIfNum,
+                               L7_INTF_IP_ADDR_METHOD_t method,
+                               L7_BOOL actImmediate)
 {
-  L7_rtrCfgCkt_t *pCfg;
-  L7_uint32 secAddrIndex = 0;
+    L7_rtrCfgCkt_t *pCfg;
+    L7_uint32 secAddrIndex = 0;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  /* Fail if interface is configured to be unnumbered */
-  if ((pCfg->flags & L7_RTR_INTF_UNNUMBERED) != 0)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_NOT_EXIST;        /* stretching to find an unnused code! */
-  }
-
-  if (method == L7_INTF_IP_ADDR_METHOD_DHCP) /* Acquire an address */
-  {
-    /* Check if DHCP Mode is already configured on this interface */
-    if (((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) != 0) &&
-        (pCfg->addrs[0].ipAddr != 0))
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_SUCCESS;
+        return L7_FAILURE;
     }
 
-    /* If a primary IP address is already configured, remove it. */
-    if (pCfg->addrs[0].ipAddr != 0)
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
     {
-      /* Remove Secondary IP addresses first before removing the primary address.
-       */
-      for (secAddrIndex = 1; secAddrIndex < L7_L3_NUM_IP_ADDRS; secAddrIndex++)
-      {
-        L7_IP_ADDR_t ipAddr = 0;
-        L7_IP_MASK_t ipMask = 0;
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
 
-        ipAddr = pCfg->addrs[secAddrIndex].ipAddr;
-        ipMask = pCfg->addrs[secAddrIndex].ipMask;
-        if ((ipAddr != L7_NULL_IP_ADDR) || (ipMask != L7_NULL_IP_ADDR))
+    /* Fail if interface is configured to be unnumbered */
+    if ((pCfg->flags & L7_RTR_INTF_UNNUMBERED) != 0)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_NOT_EXIST;        /* stretching to find an unnused code! */
+    }
+
+    if (method == L7_INTF_IP_ADDR_METHOD_DHCP) /* Acquire an address */
+    {
+        /* Check if DHCP Mode is already configured on this interface */
+        if (((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) != 0) &&
+            (pCfg->addrs[0].ipAddr != 0))
         {
-          if (ipMapRtrIntfSecondaryIpAddrRemove (intIfNum, ipAddr, ipMask)
-                                              != L7_SUCCESS)
-          {
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_SUCCESS;
+        }
+
+        /* If a primary IP address is already configured, remove it. */
+        if (pCfg->addrs[0].ipAddr != 0)
+        {
+            /* Remove Secondary IP addresses first before removing the primary address.
+             */
+            for (secAddrIndex = 1; secAddrIndex < L7_L3_NUM_IP_ADDRS; secAddrIndex++)
+            {
+                L7_IP_ADDR_t ipAddr = 0;
+                L7_IP_MASK_t ipMask = 0;
+
+                ipAddr = pCfg->addrs[secAddrIndex].ipAddr;
+                ipMask = pCfg->addrs[secAddrIndex].ipMask;
+                if ((ipAddr != L7_NULL_IP_ADDR) || (ipMask != L7_NULL_IP_ADDR))
+                {
+                    if (ipMapRtrIntfSecondaryIpAddrRemove(intIfNum, ipAddr, ipMask)
+                        != L7_SUCCESS)
+                    {
+                        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+                        return L7_FAILURE;
+                    }
+                }
+            }
+
+            if (ipMapRtrIntfIpAddressRemoveProcess(intIfNum) != L7_SUCCESS)
+            {
+                L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+                nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+                L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
+                        "Failed removing IP address from interface %s.", ifName);
+                ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+                return L7_FAILURE;
+            }
+        }
+
+        pCfg->flags |= L7_RTR_INTF_ADDR_METHOD_DHCP;
+        ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+
+        if (ipMapIntfUpdate(intIfNum, L7_NULL) != L7_SUCCESS)
+        {
             ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
             return L7_FAILURE;
-          }
         }
-      }
-
-      if (ipMapRtrIntfIpAddressRemoveProcess (intIfNum) != L7_SUCCESS)
-      {
-        L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];     
-        nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
-        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
-                "Failed removing IP address from interface %s.", ifName);
-        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-        return L7_FAILURE;
-      }
-    }
-
-    pCfg->flags |= L7_RTR_INTF_ADDR_METHOD_DHCP;
-    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
-
-    if (ipMapIntfUpdate (intIfNum, L7_NULL) != L7_SUCCESS)
+    } 
+    else if (method == L7_INTF_IP_ADDR_RENEW) /* Renew the address */
     {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_FAILURE;
-    }
-  }
-  else if (method == L7_INTF_IP_ADDR_RENEW) /* Renew the address */
-  {
-    IPMAP_RTR_INTF_ENABLE_MODE_t enableMode;
+        IPMAP_RTR_INTF_ENABLE_MODE_t enableMode;
 
-    /* Check if DHCP Mode is already configured on this interface */
-    if ((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) == 0)
-    {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_SUCCESS;
-    }
-
-    /* Try to Renew only if a primary IP address is present */
-    if (pCfg->addrs[0].ipAddr != 0)
-    {
-      /* Invoke DHCP Client to Renew the IP address on this interface. */
-      if (dhcpClientIPAddressMethodSet (intIfNum, L7_INTF_IP_ADDR_RENEW,
-                                        L7_MGMT_IPPORT, L7_FALSE)
-                                     != L7_SUCCESS)
-      {
-        if (ipMapTraceFlags & IPMAP_TRACE_DHCP_UPDATE)
+        /* Check if DHCP Mode is already configured on this interface */
+        if ((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) == 0)
         {
-          L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
-          osapiSnprintf (traceBuf, sizeof(traceBuf),
-                         "[%s-%d]: DHCP Address Renew Failed on intIfNum %d\n",
-                         __FUNCTION__, __LINE__, intIfNum);
-          ipMapTraceWrite (traceBuf);
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_SUCCESS;
         }
-        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-        return L7_FAILURE;
-      }
-    }
-    else
-    {
-      enableMode = ipMapMayEnableInterface(intIfNum);
-      if (ipMapIntfEnable (intIfNum, enableMode, method) != L7_SUCCESS)
-      {
-        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-        return L7_FAILURE;
-      }
-    }
-  }
-  /* Release the Leased IP address and Set the Method to None */
-  else if ((method == L7_INTF_IP_ADDR_METHOD_NONE) ||
-           (method == L7_INTF_IP_ADDR_RELEASE))
-  {
-    L7_uint32 interfaceNum = intIfNum;
 
-    /* Check if DHCP Mode is already configured on this interface */
-    if ((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) == 0) 
-    {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_SUCCESS;
-    }
+        /* Try to Renew only if a primary IP address is present */
+        if (pCfg->addrs[0].ipAddr != 0)
+        {
+            /* Invoke DHCP Client to Renew the IP address on this interface. */
+            if (dhcpClientIPAddressMethodSet(intIfNum, L7_INTF_IP_ADDR_RENEW,
+                                             L7_MGMT_IPPORT, L7_FALSE)
+                != L7_SUCCESS)
+            {
+                if (ipMapTraceFlags & IPMAP_TRACE_DHCP_UPDATE)
+                {
+                    L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
+                    osapiSnprintf(traceBuf, sizeof(traceBuf),
+                                  "[%s-%d]: DHCP Address Renew Failed on intIfNum %d\n",
+                                  __FUNCTION__, __LINE__, intIfNum);
+                    ipMapTraceWrite(traceBuf);
+                }
 
-    /* Invoke DHCP Client to Release the IP address on this interface.
-     * After releasing the address, DHCP client invokes the respective IPMAP
-     * API to remove the IP address.
-     */
-    if (actImmediate == L7_TRUE)
+                ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+                return L7_FAILURE;
+            }
+        } 
+        else
+        {
+            enableMode = ipMapMayEnableInterface(intIfNum);
+            if (ipMapIntfEnable(intIfNum, enableMode, method) != L7_SUCCESS)
+            {
+                ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+                return L7_FAILURE;
+            }
+        }
+    }
+    /* Release the Leased IP address and Set the Method to None */
+    else if ((method == L7_INTF_IP_ADDR_METHOD_NONE) || (method == L7_INTF_IP_ADDR_RELEASE))
     {
-      if (_ipMapIntIfNumToRtrIntf (intIfNum, &interfaceNum) != L7_SUCCESS)
-      {
+        L7_uint32 interfaceNum = intIfNum;
+
+        /* Check if DHCP Mode is already configured on this interface */
+        if ((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) == 0)
+        {
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_SUCCESS;
+        }
+
+        /* Invoke DHCP Client to Release the IP address on this interface.
+         * After releasing the address, DHCP client invokes the respective IPMAP
+         * API to remove the IP address.
+         */
+        if (actImmediate == L7_TRUE)
+        {
+            if (_ipMapIntIfNumToRtrIntf(intIfNum, &interfaceNum) != L7_SUCCESS)
+            {
+                if (method == L7_INTF_IP_ADDR_METHOD_NONE)
+                {
+                    pCfg->flags &= ~L7_RTR_INTF_ADDR_METHOD_DHCP;
+                    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+                }
+
+                ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+                return L7_SUCCESS;
+            }
+        }
+
+        if (dhcpClientIPAddressMethodSet(interfaceNum, L7_INTF_IP_ADDR_METHOD_NONE,
+                                         L7_MGMT_IPPORT, actImmediate) != L7_SUCCESS)
+        {
+            if (ipMapTraceFlags & IPMAP_TRACE_DHCP_UPDATE)
+            {
+                L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
+                osapiSnprintf(traceBuf, sizeof(traceBuf),
+                              "[%s-%d]: DHCP Address Release Failed on intIfNum %d\n",
+                              __FUNCTION__, __LINE__, intIfNum);
+                ipMapTraceWrite(traceBuf);
+            }
+        }
+
+        if (actImmediate == L7_TRUE)
+        {
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__); /* Minor hack to get rid of IPMAP locks */
+            if (ipMapRtrIntfIpAddressRemove(intIfNum, pCfg->addrs[0].ipAddr, pCfg->addrs[0].ipMask)
+                != L7_SUCCESS)
+            {
+                return L7_FAILURE;
+            }
+
+            if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+            {
+                return L7_FAILURE;
+            }
+        }
+
         if (method == L7_INTF_IP_ADDR_METHOD_NONE)
         {
-          pCfg->flags &= ~L7_RTR_INTF_ADDR_METHOD_DHCP;
-          ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+            pCfg->flags &= ~L7_RTR_INTF_ADDR_METHOD_DHCP;
+            ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
         }
-        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-        return L7_SUCCESS;
-      }
-    }
-    if (dhcpClientIPAddressMethodSet (interfaceNum, L7_INTF_IP_ADDR_METHOD_NONE,
-                                      L7_MGMT_IPPORT, actImmediate)
-                                   != L7_SUCCESS)
+    } 
+    else
     {
-      if (ipMapTraceFlags & IPMAP_TRACE_DHCP_UPDATE)
-      {
-        L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
-        osapiSnprintf (traceBuf, sizeof(traceBuf),
-                       "[%s-%d]: DHCP Address Release Failed on intIfNum %d\n",
-                       __FUNCTION__, __LINE__, intIfNum);
-        ipMapTraceWrite(traceBuf);
-      }
+        /* Do Nothing */
     }
-    if (actImmediate == L7_TRUE)
-    {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__); /* Minor hack to get rid of IPMAP locks */
-      if (ipMapRtrIntfIpAddressRemove (intIfNum, pCfg->addrs[0].ipAddr,
-                                       pCfg->addrs[0].ipMask)
-                                    != L7_SUCCESS)
-      {
-        return L7_FAILURE;
-      }
-      if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-        return L7_FAILURE;
-    }
-    if (method == L7_INTF_IP_ADDR_METHOD_NONE)
-    {
-      pCfg->flags &= ~L7_RTR_INTF_ADDR_METHOD_DHCP;
-      ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
-    }
-  }
-  else
-  {
-    /* Do Nothing */
-  }
 
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return L7_SUCCESS;
+    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+    return L7_SUCCESS;
 }
 
 /*********************************************************************
@@ -2753,158 +2961,164 @@ ipMapRtrIntfIpAddressMethodSet (L7_uint32 intIfNum,
 L7_RC_t ipMapRtrIntfSecondaryIpAddrAdd(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddress,
                                        L7_IP_MASK_t subnetMask)
 {
-  L7_RC_t            rc = L7_FAILURE;
-  L7_uint32          j;
-  L7_rtrCfgCkt_t     *pCfg;
+    L7_RC_t            rc = L7_FAILURE;
+    L7_uint32          j;
+    L7_rtrCfgCkt_t     *pCfg;
 
-  if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
-  {
-    L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
-    sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddrAdd: adding secondary addr to intf %d\n",
-            intIfNum);
-    ipMapTraceWrite(traceBuf);
-  }
-
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  /* Secondary addresses may only be configured once a primary IP address has been
-   * assigned to the interface */
-  if (pCfg->addrs[0].ipAddr == 0)
-  {
     if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
     {
-      L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
-      sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddrAdd: intf %d no primary address\n",
-              intIfNum);
-      ipMapTraceWrite(traceBuf);
+        L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
+        sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddrAdd: adding secondary addr to intf %d\n",
+                intIfNum);
+        ipMapTraceWrite(traceBuf);
     }
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_NOT_EXIST;
-  }
 
-  /* Don't allow the same secondary IP address as the primary */
-  if (pCfg->addrs[0].ipAddr == ipAddress)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_ALREADY_CONFIGURED;
-  }
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  /* Check if the IP address network number is valid */
-  if (ipMapRtrIntfIpAddressValidityCheck(ipAddress, subnetMask) != L7_SUCCESS)
-  {
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    /* Secondary addresses may only be configured once a primary IP address has been
+     * assigned to the interface */
+    if (pCfg->addrs[0].ipAddr == 0)
+    {
+        if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
+        {
+            L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
+            sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddrAdd: intf %d no primary address\n",
+                    intIfNum);
+            ipMapTraceWrite(traceBuf);
+        }
+
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_NOT_EXIST;
+    }
+
+    /* Don't allow the same secondary IP address as the primary */
+    if (pCfg->addrs[0].ipAddr == ipAddress)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_ALREADY_CONFIGURED;
+    }
+
+    /* Check if the IP address network number is valid */
+    if (ipMapRtrIntfIpAddressValidityCheck(ipAddress, subnetMask) != L7_SUCCESS)
+    {
+        if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
+        {
+            L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
+            sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddrAdd: intf %d secondary addr invalid\n",
+                    intIfNum);
+            ipMapTraceWrite(traceBuf);
+        }
+
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    /* Do nothing if the specified IP address and mask are already configured
+     * as a secondary */
+    for (j = 1; j < L7_L3_NUM_IP_ADDRS; j++)
+    {
+        if ((ipAddress == pCfg->addrs[j].ipAddr) && (subnetMask == pCfg->addrs[j].ipMask))
+        {
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_SUCCESS;
+        }
+    }
+
+    /* Verify that there is no subnet conflict with the existing IP configuration */
+    if (ipMapMgmtPortConflict(intIfNum, ipAddress, subnetMask) ||
+        ipMapRtrIntfAddressConflictFind(intIfNum, ipAddress, subnetMask))
+    {
+        if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
+        {
+            L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
+            sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddrAdd: intf %d subnet conflict\n",
+                    intIfNum);
+            ipMapTraceWrite(traceBuf);
+        }
+
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_ERROR;
+    }
+
+    /* Check if the ipAddress is same as the next hop address of a static route */
+    if (ipMapSrNextHopIpAddressConflictCheck(ipAddress) == L7_TRUE)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_REQUEST_DENIED;
+    }
+
+    /* Cannot configure an IP address that is already configured as a
+     * static ARP entry. */
+    if (ipMapStaticArpIpAddressConflictCheck(ipAddress) == L7_TRUE)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_REQUEST_DENIED;
+    }
+
+    /* Find a vacant index position to add the new secondary address */
+    for (j = 1; j < L7_L3_NUM_IP_ADDRS; j++)
+    {
+        if (pCfg->addrs[j].ipAddr == L7_NULL_IP_ADDR)
+        {
+            break;
+        }
+    }
+
+    /*
+    If the maximum number of secondary addresses have already been configured return with
+    a failure
+    */
+
+    if (j >= L7_L3_NUM_IP_ADDRS)
+    {
+        if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
+        {
+            L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
+            sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddrAdd: Secondary address table full!\n");
+            ipMapTraceWrite(traceBuf);
+        }
+
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_TABLE_IS_FULL;
+    }
+
     if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
     {
-      L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
-      sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddrAdd: intf %d secondary addr invalid\n",
-              intIfNum);
-      ipMapTraceWrite(traceBuf);
+        L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
+        sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddrAdd: adding secondary addr to slot %d\n", j);
+        ipMapTraceWrite(traceBuf);
     }
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
 
-  /* Do nothing if the specified IP address and mask are already configured
-   * as a secondary */
-  for (j=1; j < L7_L3_NUM_IP_ADDRS; j++)
-  {
-    if ((ipAddress == pCfg->addrs[j].ipAddr) && (subnetMask == pCfg->addrs[j].ipMask))
+    /* Reserve space in RTO for a local route */
+    if (rtoRouteReserve() != L7_SUCCESS)
     {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_SUCCESS;
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_TABLE_IS_FULL;
     }
-  }
 
-  /* Verify that there is no subnet conflict with the existing IP configuration */
-  if (ipMapMgmtPortConflict(intIfNum, ipAddress, subnetMask) ||
-      ipMapRtrIntfAddressConflictFind(intIfNum, ipAddress, subnetMask))
-  {
-    if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
+    pCfg->addrs[j].ipAddr = ipAddress;
+    pCfg->addrs[j].ipMask = subnetMask;
+    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+
+    rc = ipMapRtrIntfSecondaryIpAddrAddProcess(intIfNum, ipAddress, subnetMask, j);
+    if (rc != L7_SUCCESS)
     {
-      L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
-      sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddrAdd: intf %d subnet conflict\n",
-              intIfNum);
-      ipMapTraceWrite(traceBuf);
+        pCfg->addrs[j].ipAddr = 0;
+        pCfg->addrs[j].ipMask = 0;
+        rtoRouteUnReserve();
     }
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_ERROR;
-  }
 
-  /* Check if the ipAddress is same as the next hop address of a static route */
-  if (ipMapSrNextHopIpAddressConflictCheck(ipAddress) == L7_TRUE)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_REQUEST_DENIED;
-  }
-
-  /* Cannot configure an IP address that is already configured as a
-   * static ARP entry. */
-  if (ipMapStaticArpIpAddressConflictCheck(ipAddress) == L7_TRUE)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_REQUEST_DENIED;
-  }
-
-  /* Find a vacant index position to add the new secondary address */
-  for (j=1; j < L7_L3_NUM_IP_ADDRS; j++)
-  {
-    if (pCfg->addrs[j].ipAddr == L7_NULL_IP_ADDR)
-    {
-      break;
-    }
-  }
-
-  /*
-  If the maximum number of secondary addresses have already been configured return with
-  a failure
-  */
-
-  if (j >= L7_L3_NUM_IP_ADDRS)
-  {
-    if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
-    {
-      L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
-      sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddrAdd: Secondary address table full!\n");
-      ipMapTraceWrite(traceBuf);
-    }
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_TABLE_IS_FULL;
-  }
-
-  if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
-  {
-    L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
-    sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddrAdd: adding secondary addr to slot %d\n", j);
-    ipMapTraceWrite(traceBuf);
-  }
-
-  /* Reserve space in RTO for a local route */
-  if (rtoRouteReserve() != L7_SUCCESS)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_TABLE_IS_FULL;
-  }
-
-  pCfg->addrs[j].ipAddr = ipAddress;
-  pCfg->addrs[j].ipMask = subnetMask;
-  ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
-
-  rc = ipMapRtrIntfSecondaryIpAddrAddProcess(intIfNum, ipAddress, subnetMask, j);
-  if (rc != L7_SUCCESS)
-  {
-    pCfg->addrs[j].ipAddr = 0;
-    pCfg->addrs[j].ipMask = 0;
-    rtoRouteUnReserve();
-  }
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-
-  return rc;
+    return rc;
 }
 
 /*********************************************************************
@@ -2927,41 +3141,43 @@ L7_RC_t ipMapRtrIntfSecondaryIpAddrAdd(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddres
 L7_RC_t ipMapRtrIntfIpAddressRemove(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddress,
                                     L7_IP_MASK_t subnetMask)
 {
-  L7_rtrCfgCkt_t *pCfg;
-  L7_uint32 j;
-  L7_RC_t rc;
+    L7_rtrCfgCkt_t *pCfg;
+    L7_uint32 j;
+    L7_RC_t rc;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  /* Check if the IP address and mask belong to this interface */
-  if ((ipAddress != pCfg->addrs[0].ipAddr) || (subnetMask != pCfg->addrs[0].ipMask))
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  /* The primary ip address can be removed if and only if there are no configured
-  ** secondary addresses
-  */
-  for (j=1; j < L7_L3_NUM_IP_ADDRS; j++)
-  {
-    if (pCfg->addrs[j].ipAddr != L7_NULL_IP_ADDR)
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_ERROR;
+        return L7_FAILURE;
     }
-  }
 
-  rc = ipMapRtrIntfIpAddressRemoveProcess(intIfNum);
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return rc;
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    /* Check if the IP address and mask belong to this interface */
+    if ((ipAddress != pCfg->addrs[0].ipAddr) || (subnetMask != pCfg->addrs[0].ipMask))
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    /* The primary ip address can be removed if and only if there are no configured
+    ** secondary addresses
+    */
+    for (j = 1; j < L7_L3_NUM_IP_ADDRS; j++)
+    {
+        if (pCfg->addrs[j].ipAddr != L7_NULL_IP_ADDR)
+        {
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_ERROR;
+        }
+    }
+
+    rc = ipMapRtrIntfIpAddressRemoveProcess(intIfNum);
+    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+    return rc;
 }
 
 /*********************************************************************
@@ -2983,64 +3199,66 @@ L7_RC_t ipMapRtrIntfIpAddressRemove(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddress,
 L7_RC_t ipMapRtrIntfSecondaryIpAddrRemove(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddress,
                                           L7_IP_MASK_t subnetMask)
 {
-  L7_RC_t rc = L7_FAILURE;
-  L7_uint32 j = 0;
-  L7_rtrCfgCkt_t *pCfg;
+    L7_RC_t rc = L7_FAILURE;
+    L7_uint32 j = 0;
+    L7_rtrCfgCkt_t *pCfg;
 
-  if ((ipAddress == 0) || (subnetMask == 0))
-    return L7_FAILURE;
+    if ((ipAddress == 0) || (subnetMask == 0)) return L7_FAILURE;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
-  {
-    if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
-      sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddrRemove: intf %d not configurable\n",
-              intIfNum);
-      ipMapTraceWrite(traceBuf);
+        return L7_FAILURE;
     }
+
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+    {
+        if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
+        {
+            L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
+            sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddrRemove: intf %d not configurable\n",
+                    intIfNum);
+            ipMapTraceWrite(traceBuf);
+        }
+
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    /* Check if the IP address and mask belong to this interface */
+    for (j = 1; j < L7_L3_NUM_IP_ADDRS; j++)
+    {
+        if ((ipAddress == pCfg->addrs[j].ipAddr) && (subnetMask == pCfg->addrs[j].ipMask))
+        {
+            break;
+        }
+    }
+
+    /* If we could not find the specified IP address return with an error */
+
+    if (j >= L7_L3_NUM_IP_ADDRS)
+    {
+        if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
+        {
+            L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
+            sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddrRemove: could not find 0x%08x/0x%08x on %d\n",
+                    ipAddress, subnetMask, intIfNum);
+            ipMapTraceWrite(traceBuf);
+        }
+
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_ERROR;
+    }
+
+    pCfg->addrs[j].ipAddr = L7_NULL_IP_ADDR;
+    pCfg->addrs[j].ipMask = L7_NULL_IP_MASK;
+    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+
+    rtoRouteUnReserve();
+
+    rc = ipMapRtrIntfSecondaryIpAddrRemoveProcess(intIfNum, ipAddress, subnetMask, j);
+
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  /* Check if the IP address and mask belong to this interface */
-  for (j=1; j < L7_L3_NUM_IP_ADDRS; j++)
-  {
-    if ((ipAddress == pCfg->addrs[j].ipAddr) &&
-        (subnetMask == pCfg->addrs[j].ipMask))
-    {
-      break;
-    }
-  }
-
-  /* If we could not find the specified IP address return with an error */
-
-  if (j >= L7_L3_NUM_IP_ADDRS)
-  {
-    if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
-    {
-      L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
-      sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddrRemove: could not find 0x%08x/0x%08x on %d\n",
-              ipAddress, subnetMask, intIfNum);
-      ipMapTraceWrite(traceBuf);
-    }
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_ERROR;
-  }
-
-  pCfg->addrs[j].ipAddr = L7_NULL_IP_ADDR;
-  pCfg->addrs[j].ipMask = L7_NULL_IP_MASK;
-  ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
-
-  rtoRouteUnReserve();
-
-  rc = ipMapRtrIntfSecondaryIpAddrRemoveProcess(intIfNum, ipAddress, subnetMask, j);
-
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return rc;
+    return rc;
 }
 
 /*********************************************************************
@@ -3058,80 +3276,82 @@ L7_RC_t ipMapRtrIntfSecondaryIpAddrRemove(L7_uint32 intIfNum, L7_IP_ADDR_t ipAdd
 *********************************************************************/
 L7_RC_t ipMapRtrIntfIpAddressesRemove(L7_uint32 intIfNum)
 {
-  L7_rtrCfgCkt_t *pCfg = L7_NULLPTR;
-  L7_RC_t rc = L7_SUCCESS;
-  L7_IP_ADDR_t ipAddr;
-  L7_IP_MASK_t mask;
-  L7_rtrIntfIpAddr_t ipAddrList[L7_L3_NUM_IP_ADDRS];
-  L7_uint32 i;
-  L7_BOOL isDhcpIntf = L7_FALSE;
+    L7_rtrCfgCkt_t *pCfg = L7_NULLPTR;
+    L7_RC_t rc = L7_SUCCESS;
+    L7_IP_ADDR_t ipAddr;
+    L7_IP_MASK_t mask;
+    L7_rtrIntfIpAddr_t ipAddrList[L7_L3_NUM_IP_ADDRS];
+    L7_uint32 i;
+    L7_BOOL isDhcpIntf = L7_FALSE;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
-  {
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    if ((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) != 0)
+    {
+        isDhcpIntf = L7_TRUE;
+    }
+
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
 
-  if ((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) != 0)
-  {
-    isDhcpIntf = L7_TRUE;
-  }
-
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-
-  if (isDhcpIntf == L7_TRUE)
-  {
-    if (ipMapRtrIntfIpAddressMethodSet (intIfNum, L7_INTF_IP_ADDR_METHOD_NONE,
-                                        L7_TRUE)
-                                     != L7_SUCCESS)
+    if (isDhcpIntf == L7_TRUE)
     {
-      return L7_FAILURE;
-    }
-  }
-
-  rc = ipMapRtrIntfIpAddrListGet( intIfNum, ipAddrList);
-
-  if (rc == L7_SUCCESS)
-  {
-    ipAddr = ipAddrList[0].ipAddr;
-    mask = ipAddrList[0].ipMask;
-    if ((ipAddr== L7_NULL_IP_ADDR) || (mask== L7_NULL_IP_ADDR) )
-    {
-      return L7_SUCCESS;
-    }
-    /* Removing Secondary Addresses on the interface */
-    for (i = 1; i <= L7_L3_NUM_IP_ADDRS - 1; i++)
-    {
-      ipAddr = ipAddrList[i].ipAddr;
-      mask = ipAddrList[i].ipMask;
-
-      if(ipAddr != L7_NULL_IP_ADDR && mask != L7_NULL_IP_MASK)
-      {
-        rc = ipMapRtrIntfSecondaryIpAddrRemove(intIfNum,ipAddr,mask);
-        if (rc != L7_SUCCESS)
+        if (ipMapRtrIntfIpAddressMethodSet(intIfNum, L7_INTF_IP_ADDR_METHOD_NONE, L7_TRUE)
+            != L7_SUCCESS)
         {
-          return L7_FAILURE;
+            return L7_FAILURE;
         }
-      }
     }
-    memset (&ipAddr,0,sizeof(L7_IP_ADDR_t));
-    memset (&mask,0,sizeof(L7_IP_MASK_t));
 
-    /* Removing Primary Address on the interface */
-    ipAddr = ipAddrList[0].ipAddr;
-    mask = ipAddrList[0].ipMask;
-    rc = ipMapRtrIntfIpAddressRemove(intIfNum,ipAddr,mask);
-  }
+    rc = ipMapRtrIntfIpAddrListGet(intIfNum, ipAddrList);
 
-  if (rc != L7_SUCCESS)
-  {
-    return L7_FAILURE;
-  }
+    if (rc == L7_SUCCESS)
+    {
+        ipAddr = ipAddrList[0].ipAddr;
+        mask = ipAddrList[0].ipMask;
+        if ((ipAddr == L7_NULL_IP_ADDR) || (mask == L7_NULL_IP_ADDR))
+        {
+            return L7_SUCCESS;
+        }
 
-  return L7_SUCCESS;
+        /* Removing Secondary Addresses on the interface */
+        for (i = 1; i <= L7_L3_NUM_IP_ADDRS - 1; i++)
+        {
+            ipAddr = ipAddrList[i].ipAddr;
+            mask = ipAddrList[i].ipMask;
+
+            if (ipAddr != L7_NULL_IP_ADDR && mask != L7_NULL_IP_MASK)
+            {
+                rc = ipMapRtrIntfSecondaryIpAddrRemove(intIfNum, ipAddr, mask);
+                if (rc != L7_SUCCESS)
+                {
+                    return L7_FAILURE;
+                }
+            }
+        }
+        memset(&ipAddr, 0, sizeof(L7_IP_ADDR_t));
+        memset(&mask, 0, sizeof(L7_IP_MASK_t));
+
+        /* Removing Primary Address on the interface */
+        ipAddr = ipAddrList[0].ipAddr;
+        mask = ipAddrList[0].ipMask;
+        rc = ipMapRtrIntfIpAddressRemove(intIfNum, ipAddr, mask);
+    }
+
+    if (rc != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
+
+    return L7_SUCCESS;
 
 }
 
@@ -3156,14 +3376,16 @@ L7_RC_t ipMapRtrIntfIpAddressesRemove(L7_uint32 intIfNum)
 L7_BOOL ipMapRtrIntfAddressConflict(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddress,
                                     L7_IP_MASK_t subnetMask)
 {
-  L7_BOOL conflictFound;
+    L7_BOOL conflictFound;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FALSE;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FALSE;
+    }
 
-  conflictFound = ipMapRtrIntfAddressConflictFind(intIfNum, ipAddress, subnetMask);
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return conflictFound;
+    conflictFound = ipMapRtrIntfAddressConflictFind(intIfNum, ipAddress, subnetMask);
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return conflictFound;
 }
 
 /*********************************************************************
@@ -3182,26 +3404,30 @@ L7_BOOL ipMapRtrIntfAddressConflict(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddress,
 *********************************************************************/
 L7_RC_t ipMapRtrIntfEncapsTypeSet(L7_uint32 intIfNum, L7_uint32 encapType)
 {
-  L7_RC_t rc = L7_SUCCESS;
-  dtlRtrIntfDesc_t ipCircDesc;
+    L7_RC_t rc = L7_SUCCESS;
+    dtlRtrIntfDesc_t ipCircDesc;
 
-  if ((encapType != L7_ENCAP_ETHERNET) && (encapType != L7_ENCAP_802))
-    return L7_FAILURE;
-
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  if (ipMapIntfIsUp(intIfNum))
-  {
-    if (ipMapRtrIntfDataGet(intIfNum, &ipCircDesc) == L7_SUCCESS)
+    if ((encapType != L7_ENCAP_ETHERNET) && (encapType != L7_ENCAP_802))
     {
-      ipCircDesc.llEncapsType = (L7_ENCAPSULATION_t) encapType;
-      rc = dtlIpv4RtrIntfModify(&ipCircDesc);
+        return L7_FAILURE;
     }
-  }
 
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return(rc);
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
+
+    if (ipMapIntfIsUp(intIfNum))
+    {
+        if (ipMapRtrIntfDataGet(intIfNum, &ipCircDesc) == L7_SUCCESS)
+        {
+            ipCircDesc.llEncapsType = (L7_ENCAPSULATION_t)encapType;
+            rc = dtlIpv4RtrIntfModify(&ipCircDesc);
+        }
+    }
+
+    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+    return (rc);
 }
 
 /*********************************************************************
@@ -3233,113 +3459,127 @@ L7_RC_t ipMapRtrIntfEncapsTypeSet(L7_uint32 intIfNum, L7_uint32 encapType)
 L7_RC_t ipMapStaticArpAdd(L7_IP_ADDR_t ipAddress, L7_linkLayerAddr_t *pLLAddr,
                           L7_uint32 intIfNum)
 {
-  L7_enetMacAddr_t  nullMac = {{0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
-  L7_enetMacAddr_t  bcastMac = {{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}};
-  L7_uint32 i;
-  L7_uint32 freeEntry;
-  nimConfigID_t intfConfigId;
-  L7_uint32 localIntf = 0;
-  L7_RC_t rc = L7_SUCCESS;
+    L7_enetMacAddr_t  nullMac = { { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } };
+    L7_enetMacAddr_t  bcastMac = { { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF } };
+    L7_uint32 i;
+    L7_uint32 freeEntry;
+    nimConfigID_t intfConfigId;
+    L7_uint32 localIntf = 0;
+    L7_RC_t rc = L7_SUCCESS;
 
-  /* Don't allow a null MAC or a broadcast MAC address to be used here */
-  if ((memcmp(pLLAddr->addr.enetAddr.addr, nullMac.addr, L7_ENET_MAC_ADDR_LEN) == 0) ||
-      (memcmp(pLLAddr->addr.enetAddr.addr, bcastMac.addr, L7_ENET_MAC_ADDR_LEN) == 0))
-    return L7_FAILURE;
+    /* Don't allow a null MAC or a broadcast MAC address to be used here */
+    if ((memcmp(pLLAddr->addr.enetAddr.addr, nullMac.addr, L7_ENET_MAC_ADDR_LEN) == 0) ||
+        (memcmp(pLLAddr->addr.enetAddr.addr, bcastMac.addr, L7_ENET_MAC_ADDR_LEN) == 0))
+    {
+        return L7_FAILURE;
+    }
 
-  if ((ipAddress == L7_NULL_IP_ADDR) || (ipAddress == INADDR_BROADCAST) ||
-      (ipAddress >= 0xe0000000))
-    return L7_FAILURE;
+    if ((ipAddress == L7_NULL_IP_ADDR) || (ipAddress == INADDR_BROADCAST) ||
+        (ipAddress >= 0xe0000000))
+    {
+        return L7_FAILURE;
+    }
 
-  /* reject the loopback address */
-  if (((ipAddress & IN_CLASSA_NET) >> IN_CLASSA_NSHIFT) == IN_LOOPBACKNET)
-    return L7_FAILURE;
+    /* reject the loopback address */
+    if (((ipAddress & IN_CLASSA_NET) >> IN_CLASSA_NSHIFT) == IN_LOOPBACKNET)
+    {
+        return L7_FAILURE;
+    }
 
-  memset(&intfConfigId, 0, sizeof(intfConfigId));
-  /* Get nimConfigId_t structure for interface configured */
-  if ( intIfNum != L7_INVALID_INTF &&
-       nimConfigIdGet(intIfNum, &intfConfigId) != L7_SUCCESS)
-  {
-    return L7_FAILURE;
-  }
+    memset(&intfConfigId, 0, sizeof(intfConfigId));
+    /* Get nimConfigId_t structure for interface configured */
+    if (intIfNum != L7_INVALID_INTF && nimConfigIdGet(intIfNum, &intfConfigId) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (_ipMapIpAddressToIntf(ipAddress, &localIntf) == L7_SUCCESS)
-  {
-    /* address is assigned to a local interface. Don't accept static ARP entry. */
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_ADDR_INUSE;
-  }
+    if (_ipMapIpAddressToIntf(ipAddress, &localIntf) == L7_SUCCESS)
+    {
+        /* address is assigned to a local interface. Don't accept static ARP entry. */
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_ADDR_INUSE;
+    }
 
-  /*Put it in static arp config structure*/
-  freeEntry = L7_RTR_MAX_STATIC_ARP_ENTRIES;
-  for (i = 0; i < L7_RTR_MAX_STATIC_ARP_ENTRIES; i++)
-  {
-    if (arp->rtrStaticArpCfgData[i].ipAddr == L7_NULL_IP_ADDR)
-      if (freeEntry > i)
+    /*Put it in static arp config structure*/
+    freeEntry = L7_RTR_MAX_STATIC_ARP_ENTRIES;
+    for (i = 0; i < L7_RTR_MAX_STATIC_ARP_ENTRIES; i++)
+    {
+        if (arp->rtrStaticArpCfgData[i].ipAddr == L7_NULL_IP_ADDR) 
+        {
+            if (freeEntry > i)
+            {
+                freeEntry = i;
+            }
+        }
+
+        if (arp->rtrStaticArpCfgData[i].ipAddr == ipAddress)
+        {
+            /* Check if new entry is a duplicate of existing entry. */
+
+            /* case where interface is not specified explicitly */
+            if (NIM_CONFIG_ID_IS_EQUAL(&arp->rtrStaticArpCfgData[i].intfConfigId,
+                                       &intfConfigId) == L7_TRUE)
+            {
+                if (memcmp(arp->rtrStaticArpCfgData[i].macAddr.addr.enetAddr.addr,
+                           pLLAddr->addr.enetAddr.addr, L7_ENET_MAC_ADDR_LEN) == 0)
+                {
+                    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+                    return L7_SUCCESS;
+                } 
+                else
+                {
+                    /* same IP address, different MAC. Replace the MAC address. */
+                    break;
+                }
+            }
+        }
+    }
+
+    if (i < L7_RTR_MAX_STATIC_ARP_ENTRIES)
+    {
         freeEntry = i;
-    if (arp->rtrStaticArpCfgData[i].ipAddr == ipAddress)
-    {
-      /* Check if new entry is a duplicate of existing entry. */
-
-      /* case where interface is not specified explicitly */
-      if ( NIM_CONFIG_ID_IS_EQUAL(&arp->rtrStaticArpCfgData[i].intfConfigId,
-                                  &intfConfigId) == L7_TRUE)
-      {
-        if (memcmp(arp->rtrStaticArpCfgData[i].macAddr.addr.enetAddr.addr,
-                   pLLAddr->addr.enetAddr.addr, L7_ENET_MAC_ADDR_LEN) == 0)
-        {
-          ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-          return L7_SUCCESS;
-        }
-        else
-        {
-          /* same IP address, different MAC. Replace the MAC address. */
-          break;
-        }
-      }
     }
-  }
 
-  if (i < L7_RTR_MAX_STATIC_ARP_ENTRIES)
-    freeEntry = i;
+    /* check for no more room in config */
+    if (freeEntry == L7_RTR_MAX_STATIC_ARP_ENTRIES)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_TABLE_IS_FULL;
+    }
 
-  /* check for no more room in config */
-  if (freeEntry == L7_RTR_MAX_STATIC_ARP_ENTRIES)
-  {
+    arp->rtrStaticArpCfgData[freeEntry].ipAddr = ipAddress;
+    memcpy(arp->rtrStaticArpCfgData[freeEntry].macAddr.addr.enetAddr.addr,
+           pLLAddr->addr.enetAddr.addr, L7_ENET_MAC_ADDR_LEN);
+
+    /* Store the interface configuration */
+    NIM_CONFIG_ID_COPY(&arp->rtrStaticArpCfgData[freeEntry].intfConfigId, &intfConfigId);
+
+    arp->cfgHdr.dataChanged = L7_TRUE;
+
+    /* If interface not expliclity configured, or configured interface is up,
+     * try to apply the static ARP entry. */
+    if ((intIfNum == L7_INVALID_INTF) || ipMapIntfIsUp(intIfNum))
+    {
+        /* If an error occurs within the apply function, the apply function
+         * should note the error. This function considers the operation
+         * a success if the static ARP entry is added to the configuration (it has
+         * been at this point). If no matching interface is up, the apply may
+         * happen later (ipMapRtrIntfStaticConfigApply()). In this case, we get
+         * back L7_NOT_EXIST, and use that as a clue to the caller. */
+        rc = ipMapStaticArpAddApply(ipAddress, intIfNum, pLLAddr);
+        if (rc != L7_NOT_EXIST)
+        {
+            rc = L7_SUCCESS;
+        }
+    }
+
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_TABLE_IS_FULL;
-  }
-
-  arp->rtrStaticArpCfgData[freeEntry].ipAddr = ipAddress;
-  memcpy(arp->rtrStaticArpCfgData[freeEntry].macAddr.addr.enetAddr.addr,
-         pLLAddr->addr.enetAddr.addr, L7_ENET_MAC_ADDR_LEN);
-
-  /* Store the interface configuration */
-  NIM_CONFIG_ID_COPY(&arp->rtrStaticArpCfgData[freeEntry].intfConfigId, &intfConfigId);
-
-  arp->cfgHdr.dataChanged = L7_TRUE;
-
-  /* If interface not expliclity configured, or configured interface is up,
-   * try to apply the static ARP entry. */
-  if ((intIfNum == L7_INVALID_INTF) || ipMapIntfIsUp(intIfNum))
-  {
-    /* If an error occurs within the apply function, the apply function
-     * should note the error. This function considers the operation
-     * a success if the static ARP entry is added to the configuration (it has
-     * been at this point). If no matching interface is up, the apply may
-     * happen later (ipMapRtrIntfStaticConfigApply()). In this case, we get
-     * back L7_NOT_EXIST, and use that as a clue to the caller. */
-    rc = ipMapStaticArpAddApply(ipAddress, intIfNum, pLLAddr);
-    if (rc != L7_NOT_EXIST)
-    {
-      rc = L7_SUCCESS;
-    }
-  }
-
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return rc;
+    return rc;
 }
 
 /*********************************************************************
@@ -3359,134 +3599,141 @@ L7_RC_t ipMapStaticArpAdd(L7_IP_ADDR_t ipAddress, L7_linkLayerAddr_t *pLLAddr,
 *********************************************************************/
 L7_RC_t ipMapStaticArpDelete(L7_IP_ADDR_t ipAddress, L7_uint32 intIfNum)
 {
-  L7_uint32 i, j;
-  L7_RC_t rc = L7_SUCCESS;
-  L7_uint32 index = L7_RTR_MAX_STATIC_ARP_ENTRIES;
-  L7_uint32 count = 0;
-  nimConfigID_t intfConfigId;
-  L7_uint32 cfgIntIfNum = L7_INVALID_INTF;
-  L7_BOOL duplicateFound = L7_FALSE;
+    L7_uint32 i, j;
+    L7_RC_t rc = L7_SUCCESS;
+    L7_uint32 index = L7_RTR_MAX_STATIC_ARP_ENTRIES;
+    L7_uint32 count = 0;
+    nimConfigID_t intfConfigId;
+    L7_uint32 cfgIntIfNum = L7_INVALID_INTF;
+    L7_BOOL duplicateFound = L7_FALSE;
 
-  if ((ipAddress == L7_NULL_IP_ADDR) || (ipAddress == INADDR_BROADCAST) ||
-      (ipAddress >= 0xe0000000))
-    return L7_FAILURE;
-
-  /* reject the loopback address */
-  if (((ipAddress & IN_CLASSA_NET) >> IN_CLASSA_NSHIFT) == IN_LOOPBACKNET)
-    return L7_FAILURE;
-
-  memset(&intfConfigId, 0, sizeof(intfConfigId));
-  /* Get nimConfigId_t structure for interface configured */
-  if ( intIfNum != L7_INVALID_INTF &&
-       nimConfigIdGet(intIfNum, &intfConfigId) != L7_SUCCESS)
-  {
-    return L7_FAILURE;
-  }
-
-  /* Lookup the static arp in the configuration to find number of entries
-   * matching IP address. Also, store index to first matching entry */
-  for (i = 0; i < L7_RTR_MAX_STATIC_ARP_ENTRIES; i++)
-  {
-    if (arp->rtrStaticArpCfgData[i].ipAddr != ipAddress)
+    if ((ipAddress == L7_NULL_IP_ADDR) || (ipAddress == INADDR_BROADCAST) ||
+        (ipAddress >= 0xe0000000))
     {
-      continue;
+        return L7_FAILURE;
     }
-    count++;
 
-    /* Check if interface specification matches */
-    if ( NIM_CONFIG_ID_IS_EQUAL(&arp->rtrStaticArpCfgData[i].intfConfigId,
-                                &intfConfigId) == L7_TRUE)
+    /* reject the loopback address */
+    if (((ipAddress & IN_CLASSA_NET) >> IN_CLASSA_NSHIFT) == IN_LOOPBACKNET)
     {
-      index = i;
+        return L7_FAILURE;
     }
-  }
 
-  /* If it doesn't exist, return failure*/
-  if (index >= L7_RTR_MAX_STATIC_ARP_ENTRIES)
-    return L7_NOT_EXIST;
-
-  /* Check if there is a static entry that can replace entry being deleted.
-   * Its possible in case given below,
-   * a. Address 1.1.1.2 on interface 1
-   * b. Address 1.1.1.2 without any interface.
-   * c. IP address on interface 1 is 1.1.1.1/24
-   * Assume, entry a. is added into ARP cache. If entry a. is deleted, need
-   * to add back entry b. into ARP cache.
-   *
-   * First find if there is any duplicate entry with same IP Address on
-   * interface given
-   */
-
-  /* Find interface if not specified explicitly */
-  if (intIfNum == L7_INVALID_INTF)
-  {
-    if ( ipMapRouterIfResolve(ipAddress, &intIfNum) != L7_SUCCESS )
+    memset(&intfConfigId, 0, sizeof(intfConfigId));
+    /* Get nimConfigId_t structure for interface configured */
+    if (intIfNum != L7_INVALID_INTF &&
+        nimConfigIdGet(intIfNum, &intfConfigId) != L7_SUCCESS)
     {
-      intIfNum = L7_INVALID_INTF;
+        return L7_FAILURE;
     }
-  }
 
-  /* Interface found, now find a duplicate static ARP entry if any */
-  if ( intIfNum != L7_INVALID_INTF )
-  {
-    if ( count > 1 )
+    /* Lookup the static arp in the configuration to find number of entries
+     * matching IP address. Also, store index to first matching entry */
+    for (i = 0; i < L7_RTR_MAX_STATIC_ARP_ENTRIES; i++)
     {
-      memset(&intfConfigId, 0, sizeof(intfConfigId));
-      /* Find entry with same IP address and interface */
-      for (j = 0; j < L7_RTR_MAX_STATIC_ARP_ENTRIES; j++)
-      {
-        /* Ignore if its entry being deleted or different IP address */
-        if (index == j || arp->rtrStaticArpCfgData[j].ipAddr != ipAddress)
+        if (arp->rtrStaticArpCfgData[i].ipAddr != ipAddress)
         {
-          continue;
+            continue;
         }
 
-        /* Compute interface number for configured entry */
-        cfgIntIfNum = L7_INVALID_INTF;
-        if ( NIM_CONFIG_ID_IS_EQUAL(&arp->rtrStaticArpCfgData[j].intfConfigId,
-                                    &intfConfigId) == L7_TRUE )
-        {
-          if ( ipMapRouterIfResolve(ipAddress, &cfgIntIfNum) != L7_SUCCESS )
-          {
-            cfgIntIfNum = L7_INVALID_INTF;
-          }
-        }
-        else
-        {
-          if (nimIntIfFromConfigIDGet(&arp->rtrStaticArpCfgData[j].intfConfigId,
-                                      &cfgIntIfNum) != L7_SUCCESS)
-          {
-            cfgIntIfNum = L7_INVALID_INTF;
-          }
-        }
+        count++;
 
-        /* Its duplicate entry if interface numbers match */
-        if (cfgIntIfNum == intIfNum)
+        /* Check if interface specification matches */
+        if (NIM_CONFIG_ID_IS_EQUAL(&arp->rtrStaticArpCfgData[i].intfConfigId,
+                                   &intfConfigId) == L7_TRUE)
         {
-          /* There is a duplicate entry. Update the existing entry */
-          rc = ipMapStaticArpAddApply(ipAddress, intIfNum,
-                                      &arp->rtrStaticArpCfgData[j].macAddr);
-          duplicateFound = L7_TRUE;
-          break;
+            index = i;
         }
-      }
     }
 
-    if (duplicateFound == L7_FALSE)
+    /* If it doesn't exist, return failure*/
+    if (index >= L7_RTR_MAX_STATIC_ARP_ENTRIES)
     {
-      /* Ignore this return code. The static entry may not have been in the ARP
-       * cache, for example, if the IP address is not on a local subnet.
-       */
-      ipMapStaticArpDeleteApply(ipAddress, intIfNum);
+        return L7_NOT_EXIST;
     }
-  }
 
-  /*Delete the static arp entry from config file*/
-  memset(( void * )&arp->rtrStaticArpCfgData[index], 0,
-         sizeof(L7_rtrStaticArpCfgData_t));
-  arp->cfgHdr.dataChanged = L7_TRUE;
+    /* Check if there is a static entry that can replace entry being deleted.
+     * Its possible in case given below,
+     * a. Address 1.1.1.2 on interface 1
+     * b. Address 1.1.1.2 without any interface.
+     * c. IP address on interface 1 is 1.1.1.1/24
+     * Assume, entry a. is added into ARP cache. If entry a. is deleted, need
+     * to add back entry b. into ARP cache.
+     *
+     * First find if there is any duplicate entry with same IP Address on
+     * interface given
+     */
 
-  return rc;
+    /* Find interface if not specified explicitly */
+    if (intIfNum == L7_INVALID_INTF)
+    {
+        if (ipMapRouterIfResolve(ipAddress, &intIfNum) != L7_SUCCESS)
+        {
+            intIfNum = L7_INVALID_INTF;
+        }
+    }
+
+    /* Interface found, now find a duplicate static ARP entry if any */
+    if (intIfNum != L7_INVALID_INTF)
+    {
+        if (count > 1)
+        {
+            memset(&intfConfigId, 0, sizeof(intfConfigId));
+            /* Find entry with same IP address and interface */
+            for (j = 0; j < L7_RTR_MAX_STATIC_ARP_ENTRIES; j++)
+            {
+                /* Ignore if its entry being deleted or different IP address */
+                if (index == j || arp->rtrStaticArpCfgData[j].ipAddr != ipAddress)
+                {
+                    continue;
+                }
+
+                /* Compute interface number for configured entry */
+                cfgIntIfNum = L7_INVALID_INTF;
+                if (NIM_CONFIG_ID_IS_EQUAL(&arp->rtrStaticArpCfgData[j].intfConfigId,
+                                           &intfConfigId) == L7_TRUE)
+                {
+                    if (ipMapRouterIfResolve(ipAddress, &cfgIntIfNum) != L7_SUCCESS)
+                    {
+                        cfgIntIfNum = L7_INVALID_INTF;
+                    }
+                } 
+                else
+                {
+                    if (nimIntIfFromConfigIDGet(&arp->rtrStaticArpCfgData[j].intfConfigId,
+                                                &cfgIntIfNum) != L7_SUCCESS)
+                    {
+                        cfgIntIfNum = L7_INVALID_INTF;
+                    }
+                }
+
+                /* Its duplicate entry if interface numbers match */
+                if (cfgIntIfNum == intIfNum)
+                {
+                    /* There is a duplicate entry. Update the existing entry */
+                    rc = ipMapStaticArpAddApply(ipAddress, intIfNum,
+                                                &arp->rtrStaticArpCfgData[j].macAddr);
+                    duplicateFound = L7_TRUE;
+                    break;
+                }
+            }
+        }
+
+        if (duplicateFound == L7_FALSE)
+        {
+            /* Ignore this return code. The static entry may not have been in the ARP
+             * cache, for example, if the IP address is not on a local subnet.
+             */
+            ipMapStaticArpDeleteApply(ipAddress, intIfNum);
+        }
+    }
+
+    /*Delete the static arp entry from config file*/
+    memset((void *)&arp->rtrStaticArpCfgData[index], 0,
+           sizeof(L7_rtrStaticArpCfgData_t));
+    arp->cfgHdr.dataChanged = L7_TRUE;
+
+    return rc;
 }
 
 /*********************************************************************
@@ -3502,22 +3749,24 @@ L7_RC_t ipMapStaticArpDelete(L7_IP_ADDR_t ipAddress, L7_uint32 intIfNum)
 *********************************************************************/
 L7_uint32 ipMapStaticArpCount(void)
 {
-  L7_uint32 count = 0;
-  L7_uint32 i;
+    L7_uint32 count = 0;
+    L7_uint32 i;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return 0;
-
-  /* The array can contain holes, so have to traverse the whole array */
-  for (i = 0; i < L7_RTR_MAX_STATIC_ARP_ENTRIES; i++)
-  {
-    if (arp->rtrStaticArpCfgData[i].ipAddr != L7_NULL_IP_ADDR)
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      count++;
+        return 0;
     }
-  }
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return count;
+
+    /* The array can contain holes, so have to traverse the whole array */
+    for (i = 0; i < L7_RTR_MAX_STATIC_ARP_ENTRIES; i++)
+    {
+        if (arp->rtrStaticArpCfgData[i].ipAddr != L7_NULL_IP_ADDR)
+        {
+            count++;
+        }
+    }
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return count;
 }
 
 /*********************************************************************
@@ -3537,46 +3786,52 @@ L7_uint32 ipMapStaticArpCount(void)
 *********************************************************************/
 L7_RC_t ipMapStaticArpGetAll(L7_arpEntry_t *staticEntries)
 {
-  L7_uint32 i;
-  L7_uint32 outIndex = 0;   /* next index to write to in output array */
-  nimConfigID_t intfConfigId;
+    L7_uint32 i;
+    L7_uint32 outIndex = 0;   /* next index to write to in output array */
+    nimConfigID_t intfConfigId;
 
-  if (staticEntries == L7_NULLPTR)
-    return L7_FAILURE;
-
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  /* The configuration array can contain holes, so have to traverse
-     the whole array */
-  memset(staticEntries, 0, L7_RTR_MAX_STATIC_ARP_ENTRIES * sizeof(L7_arpEntry_t));
-  memset(&intfConfigId, 0, sizeof(intfConfigId));
-  for (i = 0; i < L7_RTR_MAX_STATIC_ARP_ENTRIES; i++)
-  {
-    if (arp->rtrStaticArpCfgData[i].ipAddr != L7_NULL_IP_ADDR)
+    if (staticEntries == L7_NULLPTR)
     {
-      staticEntries[outIndex].ipAddr = arp->rtrStaticArpCfgData[i].ipAddr;
-      memcpy(&staticEntries[outIndex].macAddr,
-             &(arp->rtrStaticArpCfgData[i].macAddr),
-             sizeof(L7_linkLayerAddr_t));
-
-      if (NIM_CONFIG_ID_IS_EQUAL(&arp->rtrStaticArpCfgData[i].intfConfigId, &intfConfigId) == L7_TRUE)
-      {
-        staticEntries[outIndex].intIfNum = L7_INVALID_INTF;
-      }
-      else
-      {
-        if (nimIntIfFromConfigIDGet(&arp->rtrStaticArpCfgData[i].intfConfigId,
-                                    &staticEntries[outIndex].intIfNum) != L7_SUCCESS)
-        {
-          staticEntries[outIndex].intIfNum = L7_INVALID_INTF;
-        }
-      }
-      outIndex++;
+        return L7_FAILURE;
     }
-  }
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return L7_SUCCESS;
+
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
+
+    /* The configuration array can contain holes, so have to traverse
+       the whole array */
+    memset(staticEntries, 0, L7_RTR_MAX_STATIC_ARP_ENTRIES * sizeof(L7_arpEntry_t));
+    memset(&intfConfigId, 0, sizeof(intfConfigId));
+
+    for (i = 0; i < L7_RTR_MAX_STATIC_ARP_ENTRIES; i++)
+    {
+        if (arp->rtrStaticArpCfgData[i].ipAddr != L7_NULL_IP_ADDR)
+        {
+            staticEntries[outIndex].ipAddr = arp->rtrStaticArpCfgData[i].ipAddr;
+            memcpy(&staticEntries[outIndex].macAddr,
+                   &(arp->rtrStaticArpCfgData[i].macAddr),
+                   sizeof(L7_linkLayerAddr_t));
+
+            if (NIM_CONFIG_ID_IS_EQUAL(&arp->rtrStaticArpCfgData[i].intfConfigId, &intfConfigId) == L7_TRUE)
+            {
+                staticEntries[outIndex].intIfNum = L7_INVALID_INTF;
+            } 
+            else
+            {
+                if (nimIntIfFromConfigIDGet(&arp->rtrStaticArpCfgData[i].intfConfigId,
+                                            &staticEntries[outIndex].intIfNum) != L7_SUCCESS)
+                {
+                    staticEntries[outIndex].intIfNum = L7_INVALID_INTF;
+                }
+            }
+
+            outIndex++;
+        }
+    }
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return L7_SUCCESS;
 }
 
 /*********************************************************************
@@ -3594,7 +3849,7 @@ L7_RC_t ipMapStaticArpGetAll(L7_arpEntry_t *staticEntries)
 *********************************************************************/
 L7_BOOL ipMapStaticRouteAddrIsValid(L7_uint32 ipAddr, L7_uint32 subnetMask)
 {
-  return rtoValidDestAddr(ipAddr, subnetMask);
+    return rtoValidDestAddr(ipAddr, subnetMask);
 }
 
 /*********************************************************************
@@ -3625,152 +3880,162 @@ L7_BOOL ipMapStaticRouteAddrIsValid(L7_uint32 ipAddr, L7_uint32 subnetMask)
 *
 * @end
 *********************************************************************/
-L7_RC_t ipMapStaticRouteAdd(L7_uint32 unit,L7_rtrStaticRoute_t *pStaticRoute)
+L7_RC_t ipMapStaticRouteAdd(L7_uint32 unit, L7_rtrStaticRoute_t *pStaticRoute)
 {
-  L7_uint32 tempIntIfNum;
-  L7_rtrStaticRouteCfgData_t *staticRoutePref;
-  L7_rtrStaticRouteCfgData_t *staticRouteHop, *staticRoute;
-  L7_RC_t rc = L7_FAILURE;
-  nimConfigID_t  intfConfigId;
-  L7_IP_ADDR_t networkPortIpAddr,servPortIpAddr;
-  L7_IP_MASK_t networkPortMask,servPortMask;
-  L7_IP_ADDR_t ipAddr = pStaticRoute->ipAddr & pStaticRoute->ipMask;
-  L7_IP_MASK_t subnetMask = pStaticRoute->ipMask;
-  L7_IP_ADDR_t nextHopRtr = pStaticRoute->nextHopRtr;
-  L7_uint32 pref = pStaticRoute->preference;
+    L7_uint32 tempIntIfNum;
+    L7_rtrStaticRouteCfgData_t *staticRoutePref;
+    L7_rtrStaticRouteCfgData_t * staticRouteHop,*staticRoute;
+    L7_RC_t rc = L7_FAILURE;
+    nimConfigID_t  intfConfigId;
+    L7_IP_ADDR_t networkPortIpAddr, servPortIpAddr;
+    L7_IP_MASK_t networkPortMask, servPortMask;
+    L7_IP_ADDR_t ipAddr = pStaticRoute->ipAddr & pStaticRoute->ipMask;
+    L7_IP_MASK_t subnetMask = pStaticRoute->ipMask;
+    L7_IP_ADDR_t nextHopRtr = pStaticRoute->nextHopRtr;
+    L7_uint32 pref = pStaticRoute->preference;
 
-  /* Check that the specified destination address is valid */
-  if (rtoValidDestAddr(ipAddr, subnetMask) != L7_TRUE)
-    return L7_FAILURE;
-
-  memset(&intfConfigId, 0, sizeof(intfConfigId));
-
-  if (pStaticRoute->flags & L7_RTF_REJECT)
-  {
-    /* Handle the "static reject route" creation */
-    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-      return L7_FAILURE;
-
-    /* If static reject route is being added/modified */
-    staticRoutePref = ipMapSrPrefFind(ipAddr, subnetMask, pref);
-    rc = L7_SUCCESS;
-    if(staticRoutePref != L7_NULLPTR)
+    /* Check that the specified destination address is valid */
+    if (rtoValidDestAddr(ipAddr, subnetMask) != L7_TRUE)
     {
-      if(!(staticRoutePref->flags & L7_RTF_REJECT))
-      {
-        /* we have a static route with same pref already in the RTO.
-         * Disallow adding static reject route to the same destination */
+        return L7_FAILURE;
+    }
+
+    memset(&intfConfigId, 0, sizeof(intfConfigId));
+
+    if (pStaticRoute->flags & L7_RTF_REJECT)
+    {
+        /* Handle the "static reject route" creation */
+        if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+        {
+            return L7_FAILURE;
+        }
+
+        /* If static reject route is being added/modified */
+        staticRoutePref = ipMapSrPrefFind(ipAddr, subnetMask, pref);
+        rc = L7_SUCCESS;
+        if (staticRoutePref != L7_NULLPTR)
+        {
+            if (!(staticRoutePref->flags & L7_RTF_REJECT))
+            {
+                /* we have a static route with same pref already in the RTO.
+                 * Disallow adding static reject route to the same destination */
+                ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+                return L7_FAILURE;
+            }
+        } 
+        else
+        {
+            staticRoute = ipMapSrRejectFind(ipAddr, subnetMask);
+            if ((staticRoute != L7_NULLPTR) && (staticRoute->preference != pref))
+            {
+                rc = ipMapSrNextHopPrefSet(staticRoute, nextHopRtr, &intfConfigId, pref);
+            } 
+            else if (staticRoute == L7_NULLPTR)
+            {
+                rc = ipMapSrAdd(ipAddr, subnetMask, nextHopRtr, &intfConfigId, pref,
+                                pStaticRoute->flags);
+            }
+        }
+
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return rc;
+    }
+
+    /* Get nimConfigId_t structure for interface configured */
+    if (pStaticRoute->intIfNum != L7_INVALID_INTF &&
+        nimConfigIdGet(pStaticRoute->intIfNum, &intfConfigId) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
+
+    /* Do not allow a static route whose next hop IP address is 0 */
+    if (nextHopRtr == 0)
+    {
+        return L7_FAILURE;
+    }
+
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
+
+    /* Reject this route if any existing local routing interface address
+     * is used as the next hop
+     */
+    if (_ipMapIpAddressToIntf(nextHopRtr, &tempIntIfNum) == L7_SUCCESS)
+    {
         ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
         return L7_FAILURE;
-      }
     }
-    else
+
+    staticRoutePref = ipMapSrPrefFind(ipAddr, subnetMask, pref);
+    if ((staticRoutePref != L7_NULLPTR) && (staticRoutePref->flags & L7_RTF_REJECT))
     {
-      staticRoute = ipMapSrRejectFind(ipAddr, subnetMask);
-      if((staticRoute != L7_NULLPTR) && (staticRoute->preference != pref))
-      {
-        rc = ipMapSrNextHopPrefSet(staticRoute, nextHopRtr, &intfConfigId, pref);
-      }
-      else if(staticRoute == L7_NULLPTR)
-      {
-        rc = ipMapSrAdd(ipAddr, subnetMask, nextHopRtr, &intfConfigId, pref,
-                        pStaticRoute->flags);
-      }
+        /* we have a static reject route with same pref already in the RTO.
+         * Disallow adding static route to the same destination */
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_FAILURE;
     }
+
+    /* Check to see if a static route with the same destination and next hop
+     * already exists.  */
+    staticRouteHop = ipMapSrNextHopFind(ipAddr, subnetMask, nextHopRtr, &intfConfigId);
+
+    /* add the next hop to route at new pref level. */
+    if (staticRoutePref != L7_NULLPTR)
+    {
+        rc = ipMapSrNextHopAdd(staticRoutePref, nextHopRtr, &intfConfigId);
+
+        /* delete existing route at old pref level (if any) */
+        if ((rc == L7_SUCCESS) && (staticRouteHop != L7_NULLPTR) &&
+            (staticRouteHop != staticRoutePref))
+        {
+            ipMapSrNextHopRemove(staticRouteHop, nextHopRtr, &intfConfigId);
+        }
+
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return rc;
+    }
+
+    /* update the preference of the existing route. */
+    if (staticRouteHop != L7_NULLPTR)
+    {
+        rc = ipMapSrNextHopPrefSet(staticRouteHop, nextHopRtr, &intfConfigId, pref);
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return rc;
+    }
+
+    /* Check if the specified ip address & subnet mask conflicts with the network
+       or service port configuration */
+    networkPortIpAddr = simGetSystemIPAddr();
+    networkPortMask = simGetSystemIPNetMask();
+    if ((networkPortIpAddr != 0) && (networkPortMask != 0))
+    {
+        if ((nextHopRtr & networkPortMask) == (networkPortIpAddr & networkPortMask))
+        {
+            /* subnet conflict with network */
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_REQUEST_DENIED;
+        }
+    }
+
+    servPortIpAddr = simGetServPortIPAddr();
+    servPortMask = simGetServPortIPNetMask();
+    if (servPortIpAddr != 0 && servPortMask != 0)
+    {
+        if ((nextHopRtr & servPortMask) == (servPortIpAddr & servPortMask))
+        {
+            /* subnet conflict with service port */
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_REQUEST_DENIED;
+        }
+    }
+
+    /* Add new static route with unique next hop and preference */
+    rc = ipMapSrAdd(ipAddr, subnetMask, nextHopRtr, &intfConfigId, pref,
+                    pStaticRoute->flags);
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
     return rc;
-  }
-
-  /* Get nimConfigId_t structure for interface configured */
-  if(pStaticRoute->intIfNum != L7_INVALID_INTF &&
-     nimConfigIdGet(pStaticRoute->intIfNum, &intfConfigId) != L7_SUCCESS)
-  {
-    return L7_FAILURE;
-  }
-
-  /* Do not allow a static route whose next hop IP address is 0 */
-  if (nextHopRtr == 0)
-    return L7_FAILURE;
-
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  /* Reject this route if any existing local routing interface address
-   * is used as the next hop
-   */
-  if (_ipMapIpAddressToIntf(nextHopRtr, &tempIntIfNum) == L7_SUCCESS)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  staticRoutePref = ipMapSrPrefFind(ipAddr, subnetMask, pref);
-  if((staticRoutePref != L7_NULLPTR) &&
-     (staticRoutePref->flags & L7_RTF_REJECT))
-  {
-    /* we have a static reject route with same pref already in the RTO.
-     * Disallow adding static route to the same destination */
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  /* Check to see if a static route with the same destination and next hop
-   * already exists.  */
-  staticRouteHop = ipMapSrNextHopFind(ipAddr, subnetMask, nextHopRtr, &intfConfigId);
-
-  /* add the next hop to route at new pref level. */
-  if (staticRoutePref != L7_NULLPTR)
-  {
-    rc = ipMapSrNextHopAdd(staticRoutePref, nextHopRtr, &intfConfigId);
-
-    /* delete existing route at old pref level (if any) */
-    if ((rc == L7_SUCCESS) &&
-        (staticRouteHop != L7_NULLPTR) &&
-        (staticRouteHop != staticRoutePref))
-      ipMapSrNextHopRemove(staticRouteHop, nextHopRtr, &intfConfigId);
-
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return rc;
-  }
-
-  /* update the preference of the existing route. */
-  if (staticRouteHop != L7_NULLPTR)
-  {
-    rc = ipMapSrNextHopPrefSet(staticRouteHop, nextHopRtr, &intfConfigId, pref);
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return rc;
-  }
-  /* Check if the specified ip address & subnet mask conflicts with the network
-     or service port configuration */
-  networkPortIpAddr = simGetSystemIPAddr();
-  networkPortMask = simGetSystemIPNetMask();
-  if ((networkPortIpAddr != 0) && (networkPortMask != 0))
-  {
-    if ((nextHopRtr & networkPortMask) == (networkPortIpAddr & networkPortMask))
-    {
-      /* subnet conflict with network */
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_REQUEST_DENIED;
-    }
-  }
-
-  servPortIpAddr = simGetServPortIPAddr();
-  servPortMask = simGetServPortIPNetMask();
-  if ( servPortIpAddr!= 0 && servPortMask != 0)
-  {
-    if ((nextHopRtr & servPortMask) == (servPortIpAddr & servPortMask))
-    {
-      /* subnet conflict with service port */
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_REQUEST_DENIED;
-    }
-  }
-
-  /* Add new static route with unique next hop and preference */
-  rc = ipMapSrAdd(ipAddr, subnetMask, nextHopRtr, &intfConfigId, pref,
-                  pStaticRoute->flags);
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return rc;
 }
 
 /*********************************************************************
@@ -3790,47 +4055,49 @@ L7_RC_t ipMapStaticRouteAdd(L7_uint32 unit,L7_rtrStaticRoute_t *pStaticRoute)
 *********************************************************************/
 L7_RC_t ipMapStaticRouteDelete(L7_rtrStaticRoute_t *pStaticRoute)
 {
-  L7_rtrStaticRouteCfgData_t *staticRoute;
-  L7_IP_ADDR_t ipAddr = pStaticRoute->ipAddr;
-  L7_IP_MASK_t subnetMask = pStaticRoute->ipMask;
-  L7_IP_ADDR_t nextHopRtr = pStaticRoute->nextHopRtr;
-  L7_RC_t rc = L7_FAILURE;
-  nimConfigID_t intfConfigId;
+    L7_rtrStaticRouteCfgData_t *staticRoute;
+    L7_IP_ADDR_t ipAddr = pStaticRoute->ipAddr;
+    L7_IP_MASK_t subnetMask = pStaticRoute->ipMask;
+    L7_IP_ADDR_t nextHopRtr = pStaticRoute->nextHopRtr;
+    L7_RC_t rc = L7_FAILURE;
+    nimConfigID_t intfConfigId;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  memset(&intfConfigId, 0, sizeof(intfConfigId));
-  /* Get nimConfigId_t structure for interface configured */
-  if ( pStaticRoute->intIfNum != L7_INVALID_INTF &&
-       nimConfigIdGet(pStaticRoute->intIfNum, &intfConfigId) != L7_SUCCESS)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  if (pStaticRoute->flags & L7_RTF_REJECT)
-  {
-    rc = ipMapSrRejectDelete(ipAddr, subnetMask);
-  }
-  else
-  {
-    if (nextHopRtr != 0)
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      staticRoute = ipMapSrNextHopFind(ipAddr, subnetMask, nextHopRtr, &intfConfigId);
-      if (staticRoute != L7_NULLPTR)
-      {
-        rc = ipMapSrNextHopRemove(staticRoute, nextHopRtr, &intfConfigId);
-      }
+        return L7_FAILURE;
     }
+
+    memset(&intfConfigId, 0, sizeof(intfConfigId));
+    /* Get nimConfigId_t structure for interface configured */
+    if (pStaticRoute->intIfNum != L7_INVALID_INTF &&
+        nimConfigIdGet(pStaticRoute->intIfNum, &intfConfigId) != L7_SUCCESS)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    if (pStaticRoute->flags & L7_RTF_REJECT)
+    {
+        rc = ipMapSrRejectDelete(ipAddr, subnetMask);
+    } 
     else
     {
-      rc = ipMapSrDelete(ipAddr, subnetMask);
+        if (nextHopRtr != 0)
+        {
+            staticRoute = ipMapSrNextHopFind(ipAddr, subnetMask, nextHopRtr, &intfConfigId);
+            if (staticRoute != L7_NULLPTR)
+            {
+                rc = ipMapSrNextHopRemove(staticRoute, nextHopRtr, &intfConfigId);
+            }
+        } 
+        else
+        {
+            rc = ipMapSrDelete(ipAddr, subnetMask);
+        }
     }
-  }
 
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return rc;
+    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+    return rc;
 }
 
 /*********************************************************************
@@ -3851,58 +4118,60 @@ L7_RC_t ipMapStaticRouteDelete(L7_rtrStaticRoute_t *pStaticRoute)
 L7_RC_t ipMapStaticRoutePrefRevert(L7_IP_ADDR_t ipAddr,
                                    L7_IP_MASK_t subnetMask, L7_uint32 oldPref)
 {
-  L7_RC_t rc;
+    L7_RC_t rc;
 
-  /* static route whose preference is being reverted to the default */
-  L7_rtrStaticRouteCfgData_t *sr1;
+    /* static route whose preference is being reverted to the default */
+    L7_rtrStaticRouteCfgData_t *sr1;
 
-  /* existing static route to same dest as sr1, but with default preference. */
-  L7_rtrStaticRouteCfgData_t *sr2;
+    /* existing static route to same dest as sr1, but with default preference. */
+    L7_rtrStaticRouteCfgData_t *sr2;
 
-  L7_uint32 defaultPref;
+    L7_uint32 defaultPref;
 
-   if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  defaultPref = ipMapCfg->ip.route_preferences[ROUTE_PREF_STATIC];
-  if (oldPref == defaultPref)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_SUCCESS;
-  }
-
-  sr1 = ipMapSrPrefFind(ipAddr, subnetMask, oldPref);
-  if (sr1 != L7_NULLPTR)
-  {
-    /* if there is no static route at the default preference, we can
-     * simply change the preference. */
-    sr2 = ipMapSrPrefFind(ipAddr, subnetMask, defaultPref);
-    if (sr2 == L7_NULLPTR)
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      rc = ipMapSrPrefSet(sr1, defaultPref);
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return rc;
-    }
-    else
-    {
-      if (((sr1->flags & L7_RTF_REJECT) && !(sr2->flags & L7_RTF_REJECT)) ||
-          (!(sr1->flags & L7_RTF_REJECT) && (sr2->flags & L7_RTF_REJECT)))
-      {
-        /* We don't allow ECMP routes with one of the nexthops as a reject route
-         * Hence we disallow the reverting of pref of a normal route or reject route
-         * if that makes reject route as part of ECMP route */
-        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
         return L7_FAILURE;
-      }
-      /* Need to merge next hops in sr1 to sr2 */
-      rc = ipMapSrNextHopsMerge(sr1, sr2);
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return rc;
     }
-  }
 
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return L7_FAILURE;
+    defaultPref = ipMapCfg->ip.route_preferences[ROUTE_PREF_STATIC];
+    if (oldPref == defaultPref)
+    {
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_SUCCESS;
+    }
+
+    sr1 = ipMapSrPrefFind(ipAddr, subnetMask, oldPref);
+    if (sr1 != L7_NULLPTR)
+    {
+        /* if there is no static route at the default preference, we can
+         * simply change the preference. */
+        sr2 = ipMapSrPrefFind(ipAddr, subnetMask, defaultPref);
+        if (sr2 == L7_NULLPTR)
+        {
+            rc = ipMapSrPrefSet(sr1, defaultPref);
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return rc;
+        } 
+        else
+        {
+            if (((sr1->flags & L7_RTF_REJECT) && !(sr2->flags & L7_RTF_REJECT)) ||
+                (!(sr1->flags & L7_RTF_REJECT) && (sr2->flags & L7_RTF_REJECT)))
+            {
+                /* We don't allow ECMP routes with one of the nexthops as a reject route
+                 * Hence we disallow the reverting of pref of a normal route or reject route
+                 * if that makes reject route as part of ECMP route */
+                ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+                return L7_FAILURE;
+            }
+            /* Need to merge next hops in sr1 to sr2 */
+            rc = ipMapSrNextHopsMerge(sr1, sr2);
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return rc;
+        }
+    }
+
+    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+    return L7_FAILURE;
 }
 
 
@@ -3923,58 +4192,62 @@ L7_RC_t ipMapStaticRoutePrefRevert(L7_IP_ADDR_t ipAddr,
 *********************************************************************/
 L7_RC_t ipMapStaticRouteGetAll(L7_routeEntry_t *staticEntries)
 {
-  L7_uint32 nh;
-  L7_uint32 i;
-  L7_uint32 outIndex = 0;   /* next index to write to in output array */
-  L7_uint32 intIfNum;
-  nimConfigID_t nullIntfConfigId;
+    L7_uint32 nh;
+    L7_uint32 i;
+    L7_uint32 outIndex = 0;   /* next index to write to in output array */
+    L7_uint32 intIfNum;
+    nimConfigID_t nullIntfConfigId;
 
-  if (staticEntries == L7_NULLPTR)
-    return L7_FAILURE;
-
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  /* The configuration array is a sparce array, so we have to traverse the entire length */
-  memset(staticEntries, 0, L7_RTR_MAX_STATIC_ROUTES * sizeof(L7_routeEntry_t));
-  memset(&nullIntfConfigId, 0, sizeof(nullIntfConfigId));
-  for (i = 0; i < L7_RTR_MAX_STATIC_ROUTES; i++)
-  {
-    if (route->rtrStaticRouteCfgData[i].inUse == L7_TRUE)
+    if (staticEntries == L7_NULLPTR)
     {
-      staticEntries[outIndex].ipAddr = route->rtrStaticRouteCfgData[i].ipAddr;
-      staticEntries[outIndex].subnetMask = route->rtrStaticRouteCfgData[i].ipMask;
-      staticEntries[outIndex].protocol = RTO_STATIC;
-      staticEntries[outIndex].metric = FD_RTR_STATIC_ROUTE_COST;
-      staticEntries[outIndex].pref = route->rtrStaticRouteCfgData[i].preference;
-      staticEntries[outIndex].flags = route->rtrStaticRouteCfgData[i].flags;
-
-      for (nh = 0;
-          (nh < platRtrRouteMaxEqualCostEntriesGet()) &&
-          (route->rtrStaticRouteCfgData[i].nextHops[nh].nextHopRtr != 0);
-          nh++)
-      {
-        staticEntries[outIndex].ecmpRoutes.equalCostPath[nh].arpEntry.ipAddr =
-        route->rtrStaticRouteCfgData[i].nextHops[nh].nextHopRtr;
-        staticEntries[outIndex].ecmpRoutes.equalCostPath[nh].arpEntry.intIfNum = L7_INVALID_INTF;
-
-        if ( NIM_CONFIG_ID_IS_EQUAL(&route->rtrStaticRouteCfgData[i].nextHops[nh].intfConfigId,
-                                    &nullIntfConfigId) != L7_TRUE )
-        {
-          if (nimIntIfFromConfigIDGet(&route->rtrStaticRouteCfgData[i].nextHops[nh].intfConfigId,
-                                      &intIfNum) == L7_SUCCESS)
-          {
-            staticEntries[outIndex].ecmpRoutes.equalCostPath[nh].arpEntry.intIfNum = intIfNum;
-          }
-        }
-      }
-      staticEntries[outIndex].ecmpRoutes.numOfRoutes = nh;
-
-      outIndex++;
+        return L7_FAILURE;
     }
-  }
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return L7_SUCCESS;
+
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
+
+    /* The configuration array is a sparce array, so we have to traverse the entire length */
+    memset(staticEntries, 0, L7_RTR_MAX_STATIC_ROUTES * sizeof(L7_routeEntry_t));
+    memset(&nullIntfConfigId, 0, sizeof(nullIntfConfigId));
+    for (i = 0; i < L7_RTR_MAX_STATIC_ROUTES; i++)
+    {
+        if (route->rtrStaticRouteCfgData[i].inUse == L7_TRUE)
+        {
+            staticEntries[outIndex].ipAddr = route->rtrStaticRouteCfgData[i].ipAddr;
+            staticEntries[outIndex].subnetMask = route->rtrStaticRouteCfgData[i].ipMask;
+            staticEntries[outIndex].protocol = RTO_STATIC;
+            staticEntries[outIndex].metric = FD_RTR_STATIC_ROUTE_COST;
+            staticEntries[outIndex].pref = route->rtrStaticRouteCfgData[i].preference;
+            staticEntries[outIndex].flags = route->rtrStaticRouteCfgData[i].flags;
+
+            for (nh = 0; 
+                 (nh < platRtrRouteMaxEqualCostEntriesGet()) &&
+                 (route->rtrStaticRouteCfgData[i].nextHops[nh].nextHopRtr != 0);
+                 nh++)
+            {
+                staticEntries[outIndex].ecmpRoutes.equalCostPath[nh].arpEntry.ipAddr =
+                    route->rtrStaticRouteCfgData[i].nextHops[nh].nextHopRtr;
+                staticEntries[outIndex].ecmpRoutes.equalCostPath[nh].arpEntry.intIfNum = L7_INVALID_INTF;
+
+                if (NIM_CONFIG_ID_IS_EQUAL(&route->rtrStaticRouteCfgData[i].nextHops[nh].intfConfigId,
+                                           &nullIntfConfigId) != L7_TRUE)
+                {
+                    if (nimIntIfFromConfigIDGet(&route->rtrStaticRouteCfgData[i].nextHops[nh].intfConfigId,
+                                                &intIfNum) == L7_SUCCESS)
+                    {
+                        staticEntries[outIndex].ecmpRoutes.equalCostPath[nh].arpEntry.intIfNum = intIfNum;
+                    }
+                }
+            }
+            staticEntries[outIndex].ecmpRoutes.numOfRoutes = nh;
+
+            outIndex++;
+        }
+    }
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return L7_SUCCESS;
 }
 
 /*********************************************************************
@@ -4002,51 +4275,51 @@ L7_RC_t ipMapStaticRouteGetAll(L7_routeEntry_t *staticEntries)
 L7_int32 ipStaticRouteCompare(L7_uint32 ip1, L7_uint32 mask1, L7_uint32 pref1, L7_uint32 nh1, L7_uint32 nhIfNum1,
                               L7_uint32 ip2, L7_uint32 mask2, L7_uint32 pref2, L7_uint32 nh2, L7_uint32 nhIfNum2)
 {
-  L7_int32 rc  = memcmp(&ip1, &ip2, sizeof(L7_uint32));
+    L7_int32 rc  = memcmp(&ip1, &ip2, sizeof(L7_uint32));
 
-  if(rc < 0)
-  {
-    return -1;
-  }
-  if(rc > 0)
-  {
-    return 1;
-  }
-  rc = memcmp(&mask1, &mask2, sizeof(L7_uint32));
-  if(rc < 0)
-  {
-    return -1;
-  }
-  if(rc > 0)
-  {
-    return 1;
-  }
-  if(pref1 < pref2)
-  {
-    return -1;
-  }
-  if(pref1 > pref2)
-  {
-    return 1;
-  }
-  rc = memcmp(&nh1, &nh2, sizeof(L7_uint32));
-  if(rc < 0)
-  {
-    return -1;
-  }
-  if(rc > 0)
-  {
-    return 1;
-  }
-  if(nhIfNum1 < nhIfNum2)
-  {
-    return -1;
-  }
-  if(nhIfNum2 < nhIfNum1)
-  {
-    return 1;
-  }
-  return 0;
+    if (rc < 0)
+    {
+        return -1;
+    }
+    if (rc > 0)
+    {
+        return 1;
+    }
+    rc = memcmp(&mask1, &mask2, sizeof(L7_uint32));
+    if (rc < 0)
+    {
+        return -1;
+    }
+    if (rc > 0)
+    {
+        return 1;
+    }
+    if (pref1 < pref2)
+    {
+        return -1;
+    }
+    if (pref1 > pref2)
+    {
+        return 1;
+    }
+    rc = memcmp(&nh1, &nh2, sizeof(L7_uint32));
+    if (rc < 0)
+    {
+        return -1;
+    }
+    if (rc > 0)
+    {
+        return 1;
+    }
+    if (nhIfNum1 < nhIfNum2)
+    {
+        return -1;
+    }
+    if (nhIfNum2 < nhIfNum1)
+    {
+        return 1;
+    }
+    return 0;
 }
 
 /*********************************************************************
@@ -4068,100 +4341,101 @@ L7_int32 ipStaticRouteCompare(L7_uint32 ip1, L7_uint32 mask1, L7_uint32 pref1, L
 L7_RC_t ipMapStaticRouteGetNext(L7_uint32 *ipaddr, L7_uint32 *ipmask, L7_uint32 *preference,
                                 L7_uint32 *nexthopaddr, L7_uint32 *nhIfNum)
 {
-  L7_RC_t rtRc;
-  L7_int32 rc, nextIndex = -1, nhIndex = -1, nh, i;
-  L7_uint32 cpuIntf = 0;
-  L7_routeEntry_t * staticEntries;
+    L7_RC_t rtRc;
+    L7_int32 rc, nextIndex = -1, nhIndex = -1, nh, i;
+    L7_uint32 cpuIntf = 0;
+    L7_routeEntry_t *staticEntries;
 
-  /* Check the given pointers */
+    /* Check the given pointers */
 
-  staticEntries = (L7_routeEntry_t *) osapiMalloc(L7_IP_MAP_COMPONENT_ID,
-                   FD_RTR_MAX_STATIC_ROUTES * sizeof(L7_routeEntry_t));
+    staticEntries = (L7_routeEntry_t *)osapiMalloc(L7_IP_MAP_COMPONENT_ID,
+                                                   FD_RTR_MAX_STATIC_ROUTES * sizeof(L7_routeEntry_t));
 
-  rtRc = ipMapStaticRouteGetAll(staticEntries);
+    rtRc = ipMapStaticRouteGetAll(staticEntries);
 
-  if(rtRc != L7_SUCCESS)
-  {
-     osapiFree(L7_IP_MAP_COMPONENT_ID, staticEntries);
-     return rtRc;
-  }
-
-  for (i = 0; (i < FD_RTR_MAX_STATIC_ROUTES); i++)
-  {
-    if(staticEntries[i].protocol == RTO_STATIC)
+    if (rtRc != L7_SUCCESS)
     {
-      if(staticEntries[i].flags & L7_RTF_REJECT)
-      {
-        if(nimFirstValidIntfNumberByType(L7_CPU_INTF, &cpuIntf) != L7_SUCCESS)
-        {
-          /* If nimFirstValidIntfNumberByType() fails, we default to 1.
-           * This shouldn't generally happen */
-           cpuIntf = 1;
-        }
-        staticEntries[i].ecmpRoutes.equalCostPath[0].arpEntry.intIfNum = cpuIntf;
-      }
-      for (nh = 0;
-           (nh < platRtrRouteMaxEqualCostEntriesGet());
-           nh++)
-      {
-        rc = ipStaticRouteCompare(staticEntries[i].ipAddr, staticEntries[i].subnetMask, staticEntries[i].pref,
-                                  staticEntries[i].ecmpRoutes.equalCostPath[nh].arpEntry.ipAddr,
-                                  staticEntries[i].ecmpRoutes.equalCostPath[nh].arpEntry.intIfNum,
-                                  *ipaddr, *ipmask, *preference, *nexthopaddr, *nhIfNum);
-        if(rc < 0)
-        {
-          continue;
-        }
-        else if(rc > 0)
-        {
-          if(-1 == nextIndex)
-          {
-            nextIndex = i;
-            nhIndex = nh;
-          }
-          else
-          {
-            rc = ipStaticRouteCompare(staticEntries[i].ipAddr, staticEntries[i].subnetMask, staticEntries[i].pref,
-                                      staticEntries[i].ecmpRoutes.equalCostPath[nh].arpEntry.ipAddr,
-                                      staticEntries[i].ecmpRoutes.equalCostPath[nh].arpEntry.intIfNum,
-                                      staticEntries[nextIndex].ipAddr, staticEntries[nextIndex].subnetMask,
-                                      staticEntries[nextIndex].pref,
-                                      staticEntries[nextIndex].ecmpRoutes.equalCostPath[nhIndex].arpEntry.ipAddr,
-                                      staticEntries[nextIndex].ecmpRoutes.equalCostPath[nhIndex].arpEntry.intIfNum);
-            if(rc < 0)
-            {
-              nextIndex = i;
-              nhIndex = nh;
-            }
-            else if(rc > 0)
-            {
-              continue;
-            }
-          }
-        }
-        if(staticEntries[i].flags & L7_RTF_REJECT)
-        {
-          break;
-        }
-      }
+        osapiFree(L7_IP_MAP_COMPONENT_ID, staticEntries);
+        return rtRc;
     }
-  }
-  if((nextIndex != -1) && (nhIndex != -1))
-  {
-    *ipaddr = staticEntries[nextIndex].ipAddr;
-    *ipmask = staticEntries[nextIndex].subnetMask;
-    *preference = staticEntries[nextIndex].pref;
-    *nexthopaddr = staticEntries[nextIndex].ecmpRoutes.equalCostPath[nhIndex].arpEntry.ipAddr;
-    *nhIfNum = staticEntries[nextIndex].ecmpRoutes.equalCostPath[nhIndex].arpEntry.intIfNum;
 
-    osapiFree(L7_IP_MAP_COMPONENT_ID, staticEntries);
-    return L7_SUCCESS;
-  }
-  else
-  {
-    osapiFree(L7_IP_MAP_COMPONENT_ID, staticEntries);
-    return L7_FAILURE;
-  }
+    for (i = 0; (i < FD_RTR_MAX_STATIC_ROUTES); i++)
+    {
+        if (staticEntries[i].protocol == RTO_STATIC)
+        {
+            if (staticEntries[i].flags & L7_RTF_REJECT)
+            {
+                if (nimFirstValidIntfNumberByType(L7_CPU_INTF, &cpuIntf) != L7_SUCCESS)
+                {
+                    /* If nimFirstValidIntfNumberByType() fails, we default to 1.
+                     * This shouldn't generally happen */
+                    cpuIntf = 1;
+                }
+                staticEntries[i].ecmpRoutes.equalCostPath[0].arpEntry.intIfNum = cpuIntf;
+            }
+
+            for (nh = 0; (nh < platRtrRouteMaxEqualCostEntriesGet()); nh++)
+            {
+                rc = ipStaticRouteCompare(staticEntries[i].ipAddr, staticEntries[i].subnetMask, staticEntries[i].pref,
+                                          staticEntries[i].ecmpRoutes.equalCostPath[nh].arpEntry.ipAddr,
+                                          staticEntries[i].ecmpRoutes.equalCostPath[nh].arpEntry.intIfNum,
+                                          *ipaddr, *ipmask, *preference, *nexthopaddr, *nhIfNum);
+                if (rc < 0)
+                {
+                    continue;
+                } 
+                else if (rc > 0)
+                {
+                    if (-1 == nextIndex)
+                    {
+                        nextIndex = i;
+                        nhIndex = nh;
+                    } 
+                    else
+                    {
+                        rc = ipStaticRouteCompare(staticEntries[i].ipAddr, staticEntries[i].subnetMask, staticEntries[i].pref,
+                                                  staticEntries[i].ecmpRoutes.equalCostPath[nh].arpEntry.ipAddr,
+                                                  staticEntries[i].ecmpRoutes.equalCostPath[nh].arpEntry.intIfNum,
+                                                  staticEntries[nextIndex].ipAddr, staticEntries[nextIndex].subnetMask,
+                                                  staticEntries[nextIndex].pref,
+                                                  staticEntries[nextIndex].ecmpRoutes.equalCostPath[nhIndex].arpEntry.ipAddr,
+                                                  staticEntries[nextIndex].ecmpRoutes.equalCostPath[nhIndex].arpEntry.intIfNum);
+                        if (rc < 0)
+                        {
+                            nextIndex = i;
+                            nhIndex = nh;
+                        } 
+                        else if (rc > 0)
+                        {
+                            continue;
+                        }
+                    }
+                }
+
+                if (staticEntries[i].flags & L7_RTF_REJECT)
+                {
+                    break;
+                }
+            }
+        }
+    }
+
+    if ((nextIndex != -1) && (nhIndex != -1))
+    {
+        *ipaddr = staticEntries[nextIndex].ipAddr;
+        *ipmask = staticEntries[nextIndex].subnetMask;
+        *preference = staticEntries[nextIndex].pref;
+        *nexthopaddr = staticEntries[nextIndex].ecmpRoutes.equalCostPath[nhIndex].arpEntry.ipAddr;
+        *nhIfNum = staticEntries[nextIndex].ecmpRoutes.equalCostPath[nhIndex].arpEntry.intIfNum;
+
+        osapiFree(L7_IP_MAP_COMPONENT_ID, staticEntries);
+        return L7_SUCCESS;
+    } 
+    else
+    {
+        osapiFree(L7_IP_MAP_COMPONENT_ID, staticEntries);
+        return L7_FAILURE;
+    }
 }
 
 /*********************************************************************
@@ -4185,86 +4459,86 @@ L7_RC_t ipMapStaticRouteGetNext(L7_uint32 *ipaddr, L7_uint32 *ipmask, L7_uint32 
 L7_RC_t ipMapStaticRouteIfindexGet(L7_uint32 ipaddr, L7_uint32 ipmask,
                                    L7_uint32 pref, L7_uint32 nexthop, L7_uint32 *index)
 {
-  L7_uint32 flag, i, nh;
-  L7_RC_t rc;
-  L7_routeEntry_t * staticEntries;
+    L7_uint32 flag, i, nh;
+    L7_RC_t rc;
+    L7_routeEntry_t *staticEntries;
 
-  flag = L7_FALSE;
+    flag = L7_FALSE;
 
-  staticEntries = (L7_routeEntry_t *) osapiMalloc(L7_IP_MAP_COMPONENT_ID, FD_RTR_MAX_STATIC_ROUTES * sizeof(L7_routeEntry_t));
+    staticEntries = (L7_routeEntry_t *)osapiMalloc(L7_IP_MAP_COMPONENT_ID, FD_RTR_MAX_STATIC_ROUTES * sizeof(L7_routeEntry_t));
 
-  rc = ipMapStaticRouteGetAll(staticEntries);
+    rc = ipMapStaticRouteGetAll(staticEntries);
 
-  if(rc != L7_SUCCESS)
-  {
-     osapiFree(L7_IP_MAP_COMPONENT_ID, staticEntries);
-     return rc;
-  }
+    if (rc != L7_SUCCESS)
+    {
+        osapiFree(L7_IP_MAP_COMPONENT_ID, staticEntries);
+        return rc;
+    }
 
-  for (i = 0; (i < FD_RTR_MAX_STATIC_ROUTES); i++)
-  {
-     if(staticEntries[i].protocol == RTO_STATIC)
-     {
-        if((ipaddr == staticEntries[i].ipAddr) && (ipmask == staticEntries[i].subnetMask) &&
-           (pref == staticEntries[i].pref))
+    for (i = 0; (i < FD_RTR_MAX_STATIC_ROUTES); i++)
+    {
+        if (staticEntries[i].protocol == RTO_STATIC)
         {
-           if(staticEntries[i].flags & L7_RTF_REJECT)
-           {
-             /* This will be the case of a REJECT ROUTE since reject route
-              * doesn't have any next hops.
-              *
-              * But for the SNMP query to proceed with the other valid routes following
-              * this route, we shall give the interface number as CPU interface's
-              * internal interface number, as the packets with DA best match as
-              * a reject route are directed to CPU and get discarded there.
-              */
-             if(nimFirstValidIntfNumberByType(L7_CPU_INTF, index) != L7_SUCCESS)
-             {
-               /* If nimFirstValidIntfNumberByType() fails, we default to 1.
-                * This shouldn't generally happen */
-               *index = 1;
-             }
-             flag = L7_TRUE;
-             break;
-           }
-           else
-           {
-             for (nh = 0; nh < staticEntries[i].ecmpRoutes.numOfRoutes; nh++)
-             {
-                if( (staticEntries[i].ecmpRoutes.equalCostPath[nh].arpEntry.ipAddr == nexthop))
+            if ((ipaddr == staticEntries[i].ipAddr) && (ipmask == staticEntries[i].subnetMask) &&
+                (pref == staticEntries[i].pref))
+            {
+                if (staticEntries[i].flags & L7_RTF_REJECT)
                 {
-                    *index = staticEntries[i].ecmpRoutes.equalCostPath[nh].arpEntry.intIfNum;
+                    /* This will be the case of a REJECT ROUTE since reject route
+                     * doesn't have any next hops.
+                     *
+                     * But for the SNMP query to proceed with the other valid routes following
+                     * this route, we shall give the interface number as CPU interface's
+                     * internal interface number, as the packets with DA best match as
+                     * a reject route are directed to CPU and get discarded there.
+                     */
+                    if (nimFirstValidIntfNumberByType(L7_CPU_INTF, index) != L7_SUCCESS)
+                    {
+                        /* If nimFirstValidIntfNumberByType() fails, we default to 1.
+                         * This shouldn't generally happen */
+                        *index = 1;
+                    }
                     flag = L7_TRUE;
                     break;
+                } 
+                else
+                {
+                    for (nh = 0; nh < staticEntries[i].ecmpRoutes.numOfRoutes; nh++)
+                    {
+                        if ((staticEntries[i].ecmpRoutes.equalCostPath[nh].arpEntry.ipAddr == nexthop))
+                        {
+                            *index = staticEntries[i].ecmpRoutes.equalCostPath[nh].arpEntry.intIfNum;
+                            flag = L7_TRUE;
+                            break;
+                        }
+                    }
                 }
-             }
-           }
-         }
-     }
-  }
-
-  if(flag == L7_TRUE)
-  {
-    if(*index == L7_INVALID_INTF)
-    {
-      /* Find nexthop interface if not specified explicitly */
-      if(ipMapRouterIfResolve(nexthop, index) != L7_SUCCESS)
-      {
-         *index = L7_INVALID_INTF;
-      }
+            }
+        }
     }
-  }
 
-  osapiFree(L7_IP_MAP_COMPONENT_ID, staticEntries);
+    if (flag == L7_TRUE)
+    {
+        if (*index == L7_INVALID_INTF)
+        {
+            /* Find nexthop interface if not specified explicitly */
+            if (ipMapRouterIfResolve(nexthop, index) != L7_SUCCESS)
+            {
+                *index = L7_INVALID_INTF;
+            }
+        }
+    }
 
-  if(flag == L7_TRUE)
-  {
-     return L7_SUCCESS;
-  }
-  else
-  {
-     return L7_FAILURE;
-  }
+    osapiFree(L7_IP_MAP_COMPONENT_ID, staticEntries);
+
+    if (flag == L7_TRUE)
+    {
+        return L7_SUCCESS;
+    } 
+    else
+    {
+        return L7_FAILURE;
+    }
 }
 
 /*********************************************************************
@@ -4283,36 +4557,42 @@ L7_RC_t ipMapStaticRouteIfindexGet(L7_uint32 ipaddr, L7_uint32 ipmask,
  *********************************************************************/
 L7_RC_t ipMapIntfBandwidthSet(L7_uint32 intIfNum, L7_uint32 bandwidth)
 {
-  L7_rtrCfgCkt_t *pCfg;
-  L7_RC_t rc = L7_FAILURE;
+    L7_rtrCfgCkt_t *pCfg;
+    L7_RC_t rc = L7_FAILURE;
 
-  if ((bandwidth < L7_L3_MIN_BW || bandwidth > L7_L3_MAX_BW) && bandwidth != FD_IP_DEFAULT_BW)
-    return L7_FAILURE;
-
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    /* See if this is a change */
-    if (bandwidth == pCfg->bandwidth)
+    if ((bandwidth < L7_L3_MIN_BW || bandwidth > L7_L3_MAX_BW) && bandwidth != FD_IP_DEFAULT_BW)
     {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_SUCCESS;
+        return L7_FAILURE;
     }
 
-    pCfg->bandwidth = bandwidth;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
+    {
+        /* See if this is a change */
+        if (bandwidth == pCfg->bandwidth)
+        {
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_SUCCESS;
+        }
 
-    rc=ipMapIntfBandwidthApply(intIfNum, bandwidth);
+        pCfg->bandwidth = bandwidth;
 
-    if (rc == L7_SUCCESS)
-      rc = ipMapv6IntfBandwidthApply(intIfNum, bandwidth);
-  }
+        ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
 
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return rc;
+        rc = ipMapIntfBandwidthApply(intIfNum, bandwidth);
+
+        if (rc == L7_SUCCESS)
+        {
+            rc = ipMapv6IntfBandwidthApply(intIfNum, bandwidth);
+        }
+    }
+
+    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+    return rc;
 }
 
 /*********************************************************************
@@ -4330,38 +4610,42 @@ L7_RC_t ipMapIntfBandwidthSet(L7_uint32 intIfNum, L7_uint32 bandwidth)
  *********************************************************************/
 L7_RC_t ipMapIntfBandwidthGet(L7_uint32 intIfNum, L7_uint32 *bandwidth)
 {
-  L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
-  L7_uint32 ifDataRate;
-  L7_RC_t rc = L7_FAILURE;
+    L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
+    L7_uint32 ifDataRate;
+    L7_RC_t rc = L7_FAILURE;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    if (pCfg->bandwidth != 0)
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      *bandwidth = pCfg->bandwidth;
+        return L7_FAILURE;
     }
-    else
+
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
     {
-      rc = nimGetIntfSpeedSimplexDataRate(intIfNum,&ifDataRate);
+        if (pCfg->bandwidth != 0)
+        {
+            *bandwidth = pCfg->bandwidth;
+        } 
+        else
+        {
+            rc = nimGetIntfSpeedSimplexDataRate(intIfNum, &ifDataRate);
 
-      if (rc != L7_SUCCESS)
-      {
-        /* At this time this function may be invoked for port-based routing interfaces
-        ** when a link for the interface is down. In that scenario nimGetIntfSpeedDataRate
-        ** returns an error. For now we will assume that the link is 100Full.
-        */
-        ifDataRate = L7_PORTCTRL_PORTSPEED_DEFAULT/2;
-      }
-      *bandwidth = ifDataRate*1000;
+            if (rc != L7_SUCCESS)
+            {
+                /* At this time this function may be invoked for port-based routing interfaces
+                ** when a link for the interface is down. In that scenario nimGetIntfSpeedDataRate
+                ** returns an error. For now we will assume that the link is 100Full.
+                */
+                ifDataRate = L7_PORTCTRL_PORTSPEED_DEFAULT / 2;
+            }
+
+            *bandwidth = ifDataRate * 1000;
+        }
+
+        rc = L7_SUCCESS;
     }
-    rc = L7_SUCCESS;
-  }
 
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return rc;
+    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+    return rc;
 }
 
 /*********************************************************************
@@ -4379,20 +4663,22 @@ L7_RC_t ipMapIntfBandwidthGet(L7_uint32 intIfNum, L7_uint32 *bandwidth)
  *********************************************************************/
 L7_RC_t ipMapIntfBWGet(L7_uint32 intIfNum, L7_uint32 *bandwidth)
 {
-  L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
-  L7_RC_t rc = L7_FAILURE;
+    L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
+    L7_RC_t rc = L7_FAILURE;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    *bandwidth = pCfg->bandwidth;
-    rc = L7_SUCCESS;
-  }
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
+    {
+        *bandwidth = pCfg->bandwidth;
+        rc = L7_SUCCESS;
+    }
 
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return rc;
+    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+    return rc;
 }
 
 /*********************************************************************
@@ -4411,15 +4697,17 @@ L7_RC_t ipMapIntfBWGet(L7_uint32 intIfNum, L7_uint32 *bandwidth)
 *********************************************************************/
 L7_RC_t ipMapIntIfNumToRtrIntf(L7_uint32 intIfNum, L7_uint32 *rtrIfNum)
 {
-  L7_RC_t rc;
+    L7_RC_t rc;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  rc = _ipMapIntIfNumToRtrIntf(intIfNum, rtrIfNum);
+    rc = _ipMapIntIfNumToRtrIntf(intIfNum, rtrIfNum);
 
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return rc;
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return rc;
 }
 
 /*********************************************************************
@@ -4437,18 +4725,21 @@ L7_RC_t ipMapIntIfNumToRtrIntf(L7_uint32 intIfNum, L7_uint32 *rtrIfNum)
 *********************************************************************/
 L7_BOOL ipMapIpIntfExists(L7_uint32 intIfNum)
 {
-  L7_uint32 rtrIfNum;
+    L7_uint32 rtrIfNum;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FALSE;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FALSE;
+    }
 
-  if (_ipMapIntIfNumToRtrIntf(intIfNum, &rtrIfNum) == L7_SUCCESS)
-  {
+    if (_ipMapIntIfNumToRtrIntf(intIfNum, &rtrIfNum) == L7_SUCCESS)
+    {
+        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+        return L7_TRUE;
+    }
+
     ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-    return L7_TRUE;
-  }
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return L7_FALSE;
+    return L7_FALSE;
 }
 
 /*********************************************************************
@@ -4466,23 +4757,26 @@ L7_BOOL ipMapIpIntfExists(L7_uint32 intIfNum)
 *
 * @end
 *********************************************************************/
-L7_RC_t ipMapRtrIntfToIntIfNum(L7_uint32 rtrIfNum, L7_uint32* intIfNum)
+L7_RC_t ipMapRtrIntfToIntIfNum(L7_uint32 rtrIfNum, L7_uint32 *intIfNum)
 {
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-  if (ipMapCheckIfNumber(rtrIfNum) == L7_SUCCESS)
-  {
-    *intIfNum = rtrIntfMap[rtrIfNum].intIfNum;
-
-    if ((*intIfNum) > 0)
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-      return L7_SUCCESS;
+        return L7_FAILURE;
     }
-  }
 
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return L7_FAILURE;
+    if (ipMapCheckIfNumber(rtrIfNum) == L7_SUCCESS)
+    {
+        *intIfNum = rtrIntfMap[rtrIfNum].intIfNum;
+
+        if ((*intIfNum) > 0)
+        {
+            ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+            return L7_SUCCESS;
+        }
+    }
+
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return L7_FAILURE;
 }
 
 /*********************************************************************
@@ -4502,13 +4796,15 @@ L7_RC_t ipMapRtrIntfToIntIfNum(L7_uint32 rtrIfNum, L7_uint32* intIfNum)
 *********************************************************************/
 L7_RC_t ipMapRouterIfResolve(L7_IP_ADDR_t ipAddr, L7_uint32 *intIfNum)
 {
-  L7_RC_t rc;
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    L7_RC_t rc;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  rc = _ipMapRouterIfResolve(ipAddr, intIfNum);
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return rc;
+    rc = _ipMapRouterIfResolve(ipAddr, intIfNum);
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return rc;
 }
 
 /*********************************************************************
@@ -4528,15 +4824,17 @@ L7_RC_t ipMapRouterIfResolve(L7_IP_ADDR_t ipAddr, L7_uint32 *intIfNum)
 *********************************************************************/
 L7_RC_t ipMapIpAddressToIntf(L7_IP_ADDR_t ipAddr, L7_uint32 *intIfNum)
 {
-  L7_RC_t rc;
+    L7_RC_t rc;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  rc = _ipMapIpAddressToIntf(ipAddr, intIfNum);
+    rc = _ipMapIpAddressToIntf(ipAddr, intIfNum);
 
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return rc;
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return rc;
 }
 
 /*********************************************************************
@@ -4558,41 +4856,41 @@ L7_RC_t ipMapIpAddressToIntf(L7_IP_ADDR_t ipAddr, L7_uint32 *intIfNum)
 * @end
 *********************************************************************/
 L7_RC_t ipMapRegisterRoutingEventChange(L7_uint32 routerProtocol_ID, L7_char8 *name,
-                                        L7_RC_t (*notify)(L7_uint32 intIfNum,
-                                                          L7_uint32 event,
-                                                          void *pData,
-                                                          ASYNC_EVENT_NOTIFY_INFO_t *response))
+                                        L7_RC_t(*notify)(L7_uint32 intIfNum,
+                                        L7_uint32 event,
+                                        void *pData,
+                                        ASYNC_EVENT_NOTIFY_INFO_t *response))
 {
-  if (routerProtocol_ID >= L7_LAST_ROUTER_PROTOCOL)
-  {
-    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
-            "Attempt to register invalid protocol %u for IPv4 router events.",
-            routerProtocol_ID);
-    return L7_FAILURE;
-  }
+    if (routerProtocol_ID >= L7_LAST_ROUTER_PROTOCOL)
+    {
+        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
+                "Attempt to register invalid protocol %u for IPv4 router events.",
+                routerProtocol_ID);
+        return L7_FAILURE;
+    }
 
-  (void) osapiSemaTake(pIpMapInfo->eventHandler.registered_rwlock, L7_WAIT_FOREVER);
-  if (pIpIntfStateNotifyList[routerProtocol_ID].notify_routing_event != L7_NULL)
-  {
-    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
-            "Duplicate registration for IPv4 routing events by protocol %u.",
-            routerProtocol_ID);
+    (void)osapiSemaTake(pIpMapInfo->eventHandler.registered_rwlock, L7_WAIT_FOREVER);
+    if (pIpIntfStateNotifyList[routerProtocol_ID].notify_routing_event != L7_NULL)
+    {
+        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
+                "Duplicate registration for IPv4 routing events by protocol %u.",
+                routerProtocol_ID);
+        osapiSemaGive(pIpMapInfo->eventHandler.registered_rwlock);
+        return L7_FAILURE;
+    }
+
+    osapiStrncpySafe((L7_char8 *)&(pIpIntfStateNotifyList[routerProtocol_ID].name), name,
+                     IPMAP_NOTIFY_FUNC_NAME_SIZE);
+    pIpIntfStateNotifyList[routerProtocol_ID].notify_routing_event = notify;
+    pIpIntfStateNotifyList[routerProtocol_ID].rtrProtoId = routerProtocol_ID;
+
+    /* The COMPONENT_MASK_t is purposely overloaded with L7_IPMAP_REGISTRANTS_t type to
+    allow for general usage of the COMPONENT_MASK_t type.  It is not expected that
+    the number of IP mapping layer registrants will exceed the number of component ids. */
+    COMPONENT_SETMASKBIT(pIpMapInfo->registeredComponents, routerProtocol_ID);
+
     osapiSemaGive(pIpMapInfo->eventHandler.registered_rwlock);
-    return L7_FAILURE;
-  }
-
-  osapiStrncpySafe((L7_char8 *)&(pIpIntfStateNotifyList[routerProtocol_ID].name), name,
-          IPMAP_NOTIFY_FUNC_NAME_SIZE);
-  pIpIntfStateNotifyList[routerProtocol_ID].notify_routing_event = notify;
-  pIpIntfStateNotifyList[routerProtocol_ID].rtrProtoId = routerProtocol_ID;
-
-  /* The COMPONENT_MASK_t is purposely overloaded with L7_IPMAP_REGISTRANTS_t type to
-  allow for general usage of the COMPONENT_MASK_t type.  It is not expected that
-  the number of IP mapping layer registrants will exceed the number of component ids. */
-  COMPONENT_SETMASKBIT(pIpMapInfo->registeredComponents,routerProtocol_ID);
-
-  osapiSemaGive(pIpMapInfo->eventHandler.registered_rwlock);
-  return L7_SUCCESS;
+    return L7_SUCCESS;
 }
 
 /*********************************************************************
@@ -4610,32 +4908,32 @@ L7_RC_t ipMapRegisterRoutingEventChange(L7_uint32 routerProtocol_ID, L7_char8 *n
 *********************************************************************/
 L7_RC_t ipMapDeregisterRoutingEventChange(L7_uint32 routerProtocol_ID)
 {
-  if (routerProtocol_ID >= L7_LAST_ROUTER_PROTOCOL)
-  {
-    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
-            "Attempt to deregister invalid protocol %u for IPv4 router events.",
-            routerProtocol_ID);
-    return L7_FAILURE;
-  }
+    if (routerProtocol_ID >= L7_LAST_ROUTER_PROTOCOL)
+    {
+        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
+                "Attempt to deregister invalid protocol %u for IPv4 router events.",
+                routerProtocol_ID);
+        return L7_FAILURE;
+    }
 
-  (void) osapiSemaTake(pIpMapInfo->eventHandler.registered_rwlock, L7_WAIT_FOREVER);
-  if (pIpIntfStateNotifyList[routerProtocol_ID].notify_routing_event == L7_NULL)
-  {
-    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
-            "Attempt to deregister protocol %u for IPv4 router events, but protocol is not registered.",
-            routerProtocol_ID);
+    (void)osapiSemaTake(pIpMapInfo->eventHandler.registered_rwlock, L7_WAIT_FOREVER);
+    if (pIpIntfStateNotifyList[routerProtocol_ID].notify_routing_event == L7_NULL)
+    {
+        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
+                "Attempt to deregister protocol %u for IPv4 router events, but protocol is not registered.",
+                routerProtocol_ID);
+        osapiSemaGive(pIpMapInfo->eventHandler.registered_rwlock);
+        return L7_FAILURE;
+    }
+
+    pIpIntfStateNotifyList[routerProtocol_ID].notify_routing_event = L7_NULL;
+    pIpIntfStateNotifyList[routerProtocol_ID].rtrProtoId = L7_NULL;
+
+    COMPONENT_CLRMASKBIT(pIpMapInfo->registeredComponents, routerProtocol_ID);
+
     osapiSemaGive(pIpMapInfo->eventHandler.registered_rwlock);
-    return L7_FAILURE;
-  }
 
-  pIpIntfStateNotifyList[routerProtocol_ID].notify_routing_event = L7_NULL;
-  pIpIntfStateNotifyList[routerProtocol_ID].rtrProtoId = L7_NULL;
-
-  COMPONENT_CLRMASKBIT(pIpMapInfo->registeredComponents, routerProtocol_ID);
-
-  osapiSemaGive(pIpMapInfo->eventHandler.registered_rwlock);
-
-  return L7_SUCCESS;
+    return L7_SUCCESS;
 }
 
 /*********************************************************************
@@ -4651,15 +4949,15 @@ L7_RC_t ipMapDeregisterRoutingEventChange(L7_uint32 routerProtocol_ID)
 *********************************************************************/
 L7_uint32 ipMapTraceModeGet(void)
 {
-  L7_uint32 traceMode;
+    L7_uint32 traceMode;
 
-  if (ipMapCfg == L7_NULL)
-  {
-    return(L7_DISABLE);
-  }
+    if (ipMapCfg == L7_NULL)
+    {
+        return (L7_DISABLE);
+    }
 
-  traceMode = ipMapCfg->rtr.rtrTraceMode;
-  return traceMode;
+    traceMode = ipMapCfg->rtr.rtrTraceMode;
+    return traceMode;
 }
 
 /*********************************************************************
@@ -4675,23 +4973,24 @@ L7_uint32 ipMapTraceModeGet(void)
 *
 * @end
 *********************************************************************/
-L7_RC_t ipMapRtrICMPUnreachablesModeGet(L7_uint32 intIfNum, L7_uint32 * mode)
+L7_RC_t ipMapRtrICMPUnreachablesModeGet(L7_uint32 intIfNum, L7_uint32 *mode)
 {
-  L7_RC_t rc = L7_FAILURE;
-  L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
+    L7_RC_t rc = L7_FAILURE;
+    L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if ((mode != L7_NULLPTR) &&
-      (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE))
-  {
-    *mode = pCfg->icmpUnreachablesMode;
-    rc = L7_SUCCESS;
-  }
+    if ((mode != L7_NULLPTR) && (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE))
+    {
+        *mode = pCfg->icmpUnreachablesMode;
+        rc = L7_SUCCESS;
+    }
 
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return rc;
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return rc;
 }
 
 /*********************************************************************
@@ -4711,35 +5010,39 @@ L7_RC_t ipMapRtrICMPUnreachablesModeGet(L7_uint32 intIfNum, L7_uint32 * mode)
 *********************************************************************/
 L7_RC_t ipMapRtrICMPUnreachablesModeSet(L7_uint32 intIfNum, L7_uint32 mode)
 {
-  L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
+    L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
 
-  if ( mode != L7_ENABLE && mode != L7_DISABLE)
-    return L7_FAILURE;
-
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    /* See if this is a change */
-    if (mode == pCfg->icmpUnreachablesMode)
+    if (mode != L7_ENABLE && mode != L7_DISABLE)
     {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_SUCCESS;
+        return L7_FAILURE;
     }
 
-    pCfg->icmpUnreachablesMode = mode;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-    /* Setting in the statck */
-    ipMapIntfIpUnreachablesModeApply (intIfNum, mode);
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
+    {
+        /* See if this is a change */
+        if (mode == pCfg->icmpUnreachablesMode)
+        {
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_SUCCESS;
+        }
 
-    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+        pCfg->icmpUnreachablesMode = mode;
+
+        /* Setting in the statck */
+        ipMapIntfIpUnreachablesModeApply(intIfNum, mode);
+
+        ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_SUCCESS;
+    }
+
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_SUCCESS;
-  }
-
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return L7_FAILURE;
+    return L7_FAILURE;
 }
 
 /*********************************************************************
@@ -4755,23 +5058,24 @@ L7_RC_t ipMapRtrICMPUnreachablesModeSet(L7_uint32 intIfNum, L7_uint32 mode)
 *
 * @end
 *********************************************************************/
-L7_RC_t ipMapIfICMPRedirectsModeGet(L7_uint32 intIfNum, L7_uint32 * mode)
+L7_RC_t ipMapIfICMPRedirectsModeGet(L7_uint32 intIfNum, L7_uint32 *mode)
 {
-  L7_RC_t rc = L7_FAILURE;
-  L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
+    L7_RC_t rc = L7_FAILURE;
+    L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if ((mode != L7_NULLPTR) &&
-      (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE))
-  {
-    *mode = pCfg->icmpRedirectsMode;
-    rc = L7_SUCCESS;
-  }
+    if ((mode != L7_NULLPTR) && (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE))
+    {
+        *mode = pCfg->icmpRedirectsMode;
+        rc = L7_SUCCESS;
+    }
 
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return rc;
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return rc;
 }
 
 /*********************************************************************
@@ -4791,34 +5095,38 @@ L7_RC_t ipMapIfICMPRedirectsModeGet(L7_uint32 intIfNum, L7_uint32 * mode)
 *********************************************************************/
 L7_RC_t ipMapIfICMPRedirectsModeSet(L7_uint32 intIfNum, L7_uint32 mode)
 {
-  L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
+    L7_rtrCfgCkt_t *pCfg;     /* interface config for intIfNum */
 
-  if ( mode != L7_ENABLE && mode != L7_DISABLE)
-    return L7_FAILURE;
-
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    /* See if this is a change */
-    if (mode == pCfg->icmpRedirectsMode)
+    if (mode != L7_ENABLE && mode != L7_DISABLE)
     {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_SUCCESS;
+        return L7_FAILURE;
     }
 
-    pCfg->icmpRedirectsMode = mode;
-    /* Informing to Statck */
-    ipMapIntfIpRedirectsModeApply (intIfNum, mode);
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
+    {
+        /* See if this is a change */
+        if (mode == pCfg->icmpRedirectsMode)
+        {
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_SUCCESS;
+        }
+
+        pCfg->icmpRedirectsMode = mode;
+        /* Informing to Statck */
+        ipMapIntfIpRedirectsModeApply(intIfNum, mode);
+
+        ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_SUCCESS;
+    }
+
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_SUCCESS;
-  }
-
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return L7_FAILURE;
+    return L7_FAILURE;
 }
 
 /*********************************************************************
@@ -4840,36 +5148,42 @@ L7_RC_t ipMapIfICMPRedirectsModeSet(L7_uint32 intIfNum, L7_uint32 mode)
 L7_RC_t ipMapRtrICMPRatelimitSet(L7_uint32 burstSize, L7_uint32 interval)
 {
 
-  if ( burstSize < L7_L3_ICMP_RATE_LIMIT_MIN_BURST_SIZE  ||
-       burstSize > L7_L3_ICMP_RATE_LIMIT_MAX_BURST_SIZE)
-     return L7_FAILURE;
+    if (burstSize < L7_L3_ICMP_RATE_LIMIT_MIN_BURST_SIZE  ||
+        burstSize > L7_L3_ICMP_RATE_LIMIT_MAX_BURST_SIZE)
+    {
+        return L7_FAILURE;
+    }
 
-  if (interval  < L7_L3_ICMP_RATE_LIMIT_MIN_INTERVAL  ||
-      interval > L7_L3_ICMP_RATE_LIMIT_MAX_INTERVAL )
-    return L7_FAILURE;
+    if (interval  < L7_L3_ICMP_RATE_LIMIT_MIN_INTERVAL  ||
+        interval > L7_L3_ICMP_RATE_LIMIT_MAX_INTERVAL)
+    {
+        return L7_FAILURE;
+    }
 
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapCfg->rtr.rtrICMPRatelimitBurstSize != burstSize ||
-      ipMapCfg->rtr.rtrICMPRatelimitInterval != interval)
-  {
-    ipMapCfg->rtr.rtrICMPRatelimitBurstSize = burstSize;
-    ipMapCfg->rtr.rtrICMPRatelimitInterval =  interval;
+    if (ipMapCfg->rtr.rtrICMPRatelimitBurstSize != burstSize ||
+        ipMapCfg->rtr.rtrICMPRatelimitInterval != interval)
+    {
+        ipMapCfg->rtr.rtrICMPRatelimitBurstSize = burstSize;
+        ipMapCfg->rtr.rtrICMPRatelimitInterval =  interval;
 
-    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+        ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
 
-    /* Applying the change */
-    (void) ipMapRtrICMPRatelimitApply (burstSize, interval);
+        /* Applying the change */
+        (void)ipMapRtrICMPRatelimitApply(burstSize, interval);
+
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+
+        return L7_SUCCESS;
+    }
 
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-
     return L7_SUCCESS;
-  }
-
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return L7_SUCCESS;
 }
 
 /*********************************************************************
@@ -4890,17 +5204,17 @@ L7_RC_t ipMapRtrICMPRatelimitSet(L7_uint32 burstSize, L7_uint32 interval)
 *********************************************************************/
 L7_RC_t  ipMapRtrICMPRatelimitGet(L7_uint32 *burstSize, L7_uint32 *interval)
 {
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-  {
-    return L7_FAILURE;
-  }
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  *burstSize = ipMapCfg->rtr.rtrICMPRatelimitBurstSize;
-  *interval = ipMapCfg->rtr.rtrICMPRatelimitInterval;
+    *burstSize = ipMapCfg->rtr.rtrICMPRatelimitBurstSize;
+    *interval = ipMapCfg->rtr.rtrICMPRatelimitInterval;
 
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
 
-  return L7_SUCCESS;
+    return L7_SUCCESS;
 }
 
 /*********************************************************************
@@ -4921,22 +5235,22 @@ L7_RC_t  ipMapRtrICMPRatelimitGet(L7_uint32 *burstSize, L7_uint32 *interval)
 *********************************************************************/
 L7_RC_t ipMapRecvIP(L7_netBufHandle netBufHandle, sysnet_pdu_info_t *pduInfo)
 {
-  ipForwardPktsIn0++;
+    ipForwardPktsIn0++;
 
-  /* Call interceptors who are interested in all IP packets that have come through
-  ** sysnet.  This hook will notify registrants using the incoming internal interface
-  ** number, before the potential conversion to VLAN routing internal interface number
-  ** below.  If L7_TRUE is returned, the frame was either discarded or consumed,
-  ** which means that the network buffer has been freed by the intercept call, or
-  ** will be freed by the consumer.
-  */
-  if (SYSNET_PDU_INTERCEPT(L7_AF_INET, SYSNET_INET_RECV_IN, netBufHandle,
-                           pduInfo, L7_NULLPTR, L7_NULLPTR) == L7_TRUE)
-  {
-    return L7_SUCCESS;
-  }
+    /* Call interceptors who are interested in all IP packets that have come through
+    ** sysnet.  This hook will notify registrants using the incoming internal interface
+    ** number, before the potential conversion to VLAN routing internal interface number
+    ** below.  If L7_TRUE is returned, the frame was either discarded or consumed,
+    ** which means that the network buffer has been freed by the intercept call, or
+    ** will be freed by the consumer.
+    */
+    if (SYSNET_PDU_INTERCEPT(L7_AF_INET, SYSNET_INET_RECV_IN, netBufHandle,
+                             pduInfo, L7_NULLPTR, L7_NULLPTR) == L7_TRUE)
+    {
+        return L7_SUCCESS;
+    }
 
-  return ipMapRecvQueue(netBufHandle, pduInfo->vlanId, pduInfo->intIfNum);
+    return ipMapRecvQueue(netBufHandle, pduInfo->vlanId, pduInfo->intIfNum);
 }
 
 /*********************************************************************
@@ -4958,82 +5272,84 @@ L7_RC_t ipMapRecvIP(L7_netBufHandle netBufHandle, sysnet_pdu_info_t *pduInfo)
 L7_RC_t ipMapRecvQueue(L7_netBufHandle netBufHandle,
                        L7_uint32 vlanId, L7_uint32 intIfNum)
 {
-  ipMapMsg_t        ipMapMsg;
-  L7_RC_t           rc;
-  L7_char8          *data;
-  L7_uint32         offset;
-  L7_ipHeader_t     *ip_header;
-  L7_uint32          priority = L7_L3_FWD_QUEUE;
-  L7_udp_header_t   *udp_header;
-  L7_uint32         vlanIntf;    /* intIfNum of ingress vlan routing interface */
-  L7_rtrCfgCkt_t *pCfg;
-  L7_uchar8 protocol;          /* protocol ID in IP header */
-  L7_ushort16 sourcePort = 0;  /* if TCP or UDP, source port number */
-  L7_ushort16 destPort = 0;    /* if TCP or UDP, destination port number */
+    ipMapMsg_t        ipMapMsg;
+    L7_RC_t           rc;
+    L7_char8          *data;
+    L7_uint32         offset;
+    L7_ipHeader_t     *ip_header;
+    L7_uint32          priority = L7_L3_FWD_QUEUE;
+    L7_udp_header_t   *udp_header;
+    L7_uint32         vlanIntf;    /* intIfNum of ingress vlan routing interface */
+    L7_rtrCfgCkt_t *pCfg;
+    L7_uchar8 protocol;          /* protocol ID in IP header */
+    L7_ushort16 sourcePort = 0;  /* if TCP or UDP, source port number */
+    L7_ushort16 destPort = 0;    /* if TCP or UDP, destination port number */
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  if (!ipMapForwardQueue[L7_L3_FWD_QUEUE] || !ipMapForwardQueue[L7_L3_FWDPRI_QUEUE] ||
-      !ipMapForwardQueue[L7_L3_FWDHIGHPRI_QUEUE])
-  {
-    /* In case of failure the buffer is freed by DTL. */
-    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  memset(&ipMapMsg,0x00,sizeof(ipMapMsg_t));
-  ipMapMsg.msgId = IPMAP_PDU;
-  ipMapMsg.type.pdu.bufHandle = netBufHandle;
-  ipMapMsg.type.pdu.intf = intIfNum;
-  ipMapMsg.type.pdu.dtlIntf = intIfNum;  /* save original intIfNum */
-  ipMapMsg.type.pdu.vlanId = vlanId;
-
-  if (ipMapVlanRoutingIntfGet(vlanId, &vlanIntf) == L7_SUCCESS)
-  {
-    /* If the VLAN routing interface is up, consider the packet to
-     * have arrived on the VLAN interface rather than the physical
-     * interface. */
-    if (ipMapMapIntfIsConfigurable(vlanIntf, &pCfg) &&
-        (pCfg->flags & L7_RTR_INTF_ADMIN_MODE_ENABLE))
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      ipMapMsg.type.pdu.intf = vlanIntf;
+        return L7_FAILURE;
     }
-  }
 
-  SYSAPI_NET_MBUF_GET_DATASTART(netBufHandle, data);
-  offset = sysNetDataOffsetGet(data);
-  ip_header = (L7_ipHeader_t *)(data + offset);
-  protocol = ip_header->iph_prot;
-  if ((protocol == IP_PROT_TCP) || (protocol == IP_PROT_UDP))
-  {
-    udp_header = (L7_udp_header_t *)(data + offset + L7_IP_HDR_LEN);
-    sourcePort = osapiNtohs(udp_header->sourcePort);
-    destPort = osapiNtohs(udp_header->destPort);
-  }
+    if (!ipMapForwardQueue[L7_L3_FWD_QUEUE] || !ipMapForwardQueue[L7_L3_FWDPRI_QUEUE] ||
+        !ipMapForwardQueue[L7_L3_FWDHIGHPRI_QUEUE])
+    {
+        /* In case of failure the buffer is freed by DTL. */
+        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
 
-  ipRxStats[protocol]++;
+    memset(&ipMapMsg, 0x00, sizeof(ipMapMsg_t));
+    ipMapMsg.msgId = IPMAP_PDU;
+    ipMapMsg.type.pdu.bufHandle = netBufHandle;
+    ipMapMsg.type.pdu.intf = intIfNum;
+    ipMapMsg.type.pdu.dtlIntf = intIfNum;  /* save original intIfNum */
+    ipMapMsg.type.pdu.vlanId = vlanId;
 
-  priority = ipMapQueuePriority(protocol, sourcePort, destPort);
+    if (ipMapVlanRoutingIntfGet(vlanId, &vlanIntf) == L7_SUCCESS)
+    {
+        /* If the VLAN routing interface is up, consider the packet to
+         * have arrived on the VLAN interface rather than the physical
+         * interface. */
+        if (ipMapMapIntfIsConfigurable(vlanIntf, &pCfg) &&
+            (pCfg->flags & L7_RTR_INTF_ADMIN_MODE_ENABLE))
+        {
+            ipMapMsg.type.pdu.intf = vlanIntf;
+        }
+    }
 
-  rc = osapiMessageSend(ipMapForwardQueue[priority], &ipMapMsg, sizeof(ipMapMsg_t),
-                        L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+    SYSAPI_NET_MBUF_GET_DATASTART(netBufHandle, data);
+    offset = sysNetDataOffsetGet(data);
+    ip_header = (L7_ipHeader_t *)(data + offset);
+    protocol = ip_header->iph_prot;
+    if ((protocol == IP_PROT_TCP) || (protocol == IP_PROT_UDP))
+    {
+        udp_header = (L7_udp_header_t *)(data + offset + L7_IP_HDR_LEN);
+        sourcePort = osapiNtohs(udp_header->sourcePort);
+        destPort = osapiNtohs(udp_header->destPort);
+    }
 
-  if (rc == L7_SUCCESS)
-  {
-    SYSAPI_NET_MBUF_SET_LOC(netBufHandle, MBUF_LOC_IP4_FWD_Q);
-    osapiSemaGive(ipMapMsgQSema);
-  }
-  else
-  {
-     ipForwardQueueFull++;
-    L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_IP_MAP_COMPONENT_ID,
-            "Failed to queue IP packet to IP MAP forwarding thread queue %u.",
-            priority);
-  }
+    ipRxStats[protocol]++;
 
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return rc;
+    priority = ipMapQueuePriority(protocol, sourcePort, destPort);
+
+    rc = osapiMessageSend(ipMapForwardQueue[priority], &ipMapMsg, sizeof(ipMapMsg_t),
+                          L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+
+    if (rc == L7_SUCCESS)
+    {
+        SYSAPI_NET_MBUF_SET_LOC(netBufHandle, MBUF_LOC_IP4_FWD_Q);
+        osapiSemaGive(ipMapMsgQSema);
+    }
+    else
+    {
+        ipForwardQueueFull++;
+        L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_IP_MAP_COMPONENT_ID,
+                "Failed to queue IP packet to IP MAP forwarding thread queue %u.",
+                priority);
+    }
+
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return rc;
 }
 
 
@@ -5054,17 +5370,17 @@ L7_RC_t ipMapRecvQueue(L7_netBufHandle netBufHandle,
 *********************************************************************/
 L7_RC_t ipMapArpRecvIP(L7_netBufHandle netBufHandle, sysnet_pdu_info_t *pduInfo)
 {
-  ipForwardArpPktsIn++;
-  SYSAPI_NET_MBUF_SET_LOC(netBufHandle, MBUF_LOC_ARP_RX);
+    ipForwardArpPktsIn++;
+    SYSAPI_NET_MBUF_SET_LOC(netBufHandle, MBUF_LOC_ARP_RX);
 
-  if (SYSNET_PDU_INTERCEPT(L7_AF_INET, SYSNET_INET_RECV_ARP_IN, netBufHandle, pduInfo,
-                           L7_NULLPTR, L7_NULLPTR) == L7_TRUE)
-  {
-    return L7_SUCCESS;
-  }
+    if (SYSNET_PDU_INTERCEPT(L7_AF_INET, SYSNET_INET_RECV_ARP_IN, netBufHandle, pduInfo,
+                             L7_NULLPTR, L7_NULLPTR) == L7_TRUE)
+    {
+        return L7_SUCCESS;
+    }
 
-  /* Queue the packet to the IP MAP processing thread. */
-  return ipMapArpRecvQueue(netBufHandle, pduInfo->vlanId, pduInfo->intIfNum);
+    /* Queue the packet to the IP MAP processing thread. */
+    return ipMapArpRecvQueue(netBufHandle, pduInfo->vlanId, pduInfo->intIfNum);
 }
 
 /*********************************************************************
@@ -5085,54 +5401,56 @@ L7_RC_t ipMapArpRecvIP(L7_netBufHandle netBufHandle, sysnet_pdu_info_t *pduInfo)
 L7_RC_t ipMapArpRecvQueue(L7_netBufHandle netBufHandle,
                           L7_uint32 vlanId, L7_uint32 intIfNum)
 {
-  ipMapMsg_t ipMapMsg;
-  L7_RC_t rc;
-  L7_uint32 vlanIntf;    /* internal interface number for vlanId */
-  L7_rtrCfgCkt_t *pCfg;
+    ipMapMsg_t ipMapMsg;
+    L7_RC_t rc;
+    L7_uint32 vlanIntf;    /* internal interface number for vlanId */
+    L7_rtrCfgCkt_t *pCfg;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  if (!ipMapForwardQueue[L7_L3_ARP_QUEUE])
-  {
-    /* In case of failure the buffer is freed by DTL. */
-    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  memset(&ipMapMsg,0x00,sizeof(ipMapMsg_t));
-  ipMapMsg.msgId = IPMAP_PDU;
-  ipMapMsg.type.pdu.bufHandle = netBufHandle;
-  ipMapMsg.type.pdu.intf = intIfNum;
-  ipMapMsg.type.pdu.dtlIntf = intIfNum;  /* save original intIfNum */
-  ipMapMsg.type.pdu.vlanId = vlanId;
-
-  if (ipMapVlanRoutingIntfGet(vlanId, &vlanIntf) == L7_SUCCESS)
-  {
-    /* If the VLAN routing interface is up, consider the packet to
-     * have arrived on the VLAN interface rather than the physical
-     * interface. */
-    if (ipMapMapIntfIsConfigurable(vlanIntf, &pCfg) &&
-        (pCfg->flags & L7_RTR_INTF_ADMIN_MODE_ENABLE))
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      ipMapMsg.type.pdu.intf = vlanIntf;
+        return L7_FAILURE;
     }
-  }
 
-  rc = osapiMessageSend(ipMapForwardQueue[L7_L3_ARP_QUEUE], &ipMapMsg, sizeof(ipMapMsg_t),
-                         L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
-  if (rc == L7_SUCCESS)
-  {
-      osapiSemaGive(ipMapMsgQSema);
-  }
-  else
-  {
-      L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_IP_MAP_COMPONENT_ID,
-              "Failed to queue ARP packet to IP MAP forwarding thread.");
-  }
+    if (!ipMapForwardQueue[L7_L3_ARP_QUEUE])
+    {
+        /* In case of failure the buffer is freed by DTL. */
+        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
 
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return rc;
+    memset(&ipMapMsg, 0x00, sizeof(ipMapMsg_t));
+    ipMapMsg.msgId = IPMAP_PDU;
+    ipMapMsg.type.pdu.bufHandle = netBufHandle;
+    ipMapMsg.type.pdu.intf = intIfNum;
+    ipMapMsg.type.pdu.dtlIntf = intIfNum;  /* save original intIfNum */
+    ipMapMsg.type.pdu.vlanId = vlanId;
+
+    if (ipMapVlanRoutingIntfGet(vlanId, &vlanIntf) == L7_SUCCESS)
+    {
+        /* If the VLAN routing interface is up, consider the packet to
+         * have arrived on the VLAN interface rather than the physical
+         * interface. */
+        if (ipMapMapIntfIsConfigurable(vlanIntf, &pCfg) &&
+            (pCfg->flags & L7_RTR_INTF_ADMIN_MODE_ENABLE))
+        {
+            ipMapMsg.type.pdu.intf = vlanIntf;
+        }
+    }
+
+    rc = osapiMessageSend(ipMapForwardQueue[L7_L3_ARP_QUEUE], &ipMapMsg, sizeof(ipMapMsg_t),
+                          L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+    if (rc == L7_SUCCESS)
+    {
+        osapiSemaGive(ipMapMsgQSema);
+    }
+    else
+    {
+        L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_IP_MAP_COMPONENT_ID,
+                "Failed to queue ARP packet to IP MAP forwarding thread.");
+    }
+
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return rc;
 }
 
 
@@ -5161,24 +5479,24 @@ L7_RC_t ipMapArpRecvQueue(L7_netBufHandle netBufHandle,
 *********************************************************************/
 L7_RC_t ipMapVlanRtrIntIfNumToVlanId(L7_uint32 intIfNum, L7_uint32 *vlanId)
 {
-  nimMacroPort_t    macroPortIntf;
-  L7_uint32 sysIntfType;
+    nimMacroPort_t    macroPortIntf;
+    L7_uint32 sysIntfType;
 
-  *vlanId = 0;
+    *vlanId = 0;
 
-  if (nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS)
-  {
-    if (sysIntfType == L7_LOGICAL_VLAN_INTF)
+    if (nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS)
     {
-      if ( nimGetMacroPortAssignment(intIfNum, &macroPortIntf) == L7_SUCCESS)
-      {
-        *vlanId    = PTR_TO_UINT32(macroPortIntf.macroInfo);
-        return L7_SUCCESS;
-      }
+        if (sysIntfType == L7_LOGICAL_VLAN_INTF)
+        {
+            if (nimGetMacroPortAssignment(intIfNum, &macroPortIntf) == L7_SUCCESS)
+            {
+                *vlanId    = PTR_TO_UINT32(macroPortIntf.macroInfo);
+                return L7_SUCCESS;
+            }
+        }
     }
-  }
 
-  return L7_FAILURE;
+    return L7_FAILURE;
 }
 
 /*********************************************************************
@@ -5197,7 +5515,7 @@ L7_RC_t ipMapVlanRtrIntIfNumToVlanId(L7_uint32 intIfNum, L7_uint32 *vlanId)
 *********************************************************************/
 L7_RC_t ipMapVlanRoutingIntfGet(L7_uint32 vlanId, L7_uint32 *intIfNum)
 {
-  return dot1qVlanIntfVlanIdToIntIfNum(vlanId, intIfNum);
+    return dot1qVlanIntfVlanIdToIntIfNum(vlanId, intIfNum);
 }
 
 /*********************************************************************
@@ -5219,33 +5537,33 @@ L7_RC_t ipMapVlanRoutingIntfGet(L7_uint32 vlanId, L7_uint32 *intIfNum)
 *********************************************************************/
 L7_RC_t ipMapRtrIntfFirstAddress(L7_uint32 *ipAddress)
 {
-  L7_uint32 i, intIfNum, ipAddr;
-  L7_rtrCfgCkt_t *pCfg;
+    L7_uint32 i, intIfNum, ipAddr;
+    L7_rtrCfgCkt_t *pCfg;
 
-  /*  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-      return L7_FAILURE; */
+    /*  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+        return L7_FAILURE; */
 
-  /* Iterate through all existing interfaces */
-  for (i = 1; i <=  L7_RTR_MAX_RTR_INTERFACES; i++)
-  {
-    if (ipMapCheckIfNumber(i) == L7_SUCCESS)
+    /* Iterate through all existing interfaces */
+    for (i = 1; i <=  L7_RTR_MAX_RTR_INTERFACES; i++)
     {
-      intIfNum = rtrIntfMap[i].intIfNum;
-      if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-      {
-        ipAddr = pCfg->addrs[0].ipAddr;
-        if (ipAddr)
+        if (ipMapCheckIfNumber(i) == L7_SUCCESS)
         {
-          *ipAddress = ipAddr;
-          /* ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__); */
-          return L7_SUCCESS;
+            intIfNum = rtrIntfMap[i].intIfNum;
+            if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
+            {
+                ipAddr = pCfg->addrs[0].ipAddr;
+                if (ipAddr)
+                {
+                    *ipAddress = ipAddr;
+                    /* ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__); */
+                    return L7_SUCCESS;
+                }
+            }
         }
-      }
     }
-  }
 
-  /* ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__); */
-  return L7_FAILURE;
+    /* ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__); */
+    return L7_FAILURE;
 }
 
 /*********************************************************************
@@ -5271,7 +5589,7 @@ L7_RC_t ipMapRtrIntfFirstAddress(L7_uint32 *ipAddress)
 *********************************************************************/
 L7_RC_t  ipMapRtrIntfIpAddrListGet(L7_uint32 intIfNum, L7_rtrIntfIpAddr_t *ipAddrList)
 {
-  return ipMapRtrIntfCfgIpAddrListGet(intIfNum, ipAddrList);
+    return ipMapRtrIntfCfgIpAddrListGet(intIfNum, ipAddrList);
 }
 
 /*********************************************************************
@@ -5295,24 +5613,26 @@ L7_RC_t  ipMapRtrIntfIpAddrListGet(L7_uint32 intIfNum, L7_rtrIntfIpAddr_t *ipAdd
 *********************************************************************/
 L7_RC_t  ipMapRtrIntfCfgIpAddrListGet(L7_uint32 intIfNum, L7_rtrIntfIpAddr_t *ipAddrList)
 {
-  L7_rtrCfgCkt_t *pCfg;
+    L7_rtrCfgCkt_t *pCfg;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
-  {
-    memcpy((L7_char8 *)ipAddrList, (L7_char8 *)(pCfg->addrs),
-           L7_L3_NUM_IP_ADDRS*(sizeof(L7_rtrIntfIpAddr_t)));
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
+    {
+        memcpy((L7_char8 *)ipAddrList, (L7_char8 *)(pCfg->addrs),
+               L7_L3_NUM_IP_ADDRS * (sizeof(L7_rtrIntfIpAddr_t)));
+        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+        return L7_SUCCESS;
+    }
+
+    memset((L7_char8 *)ipAddrList, 0,
+           L7_L3_NUM_IP_ADDRS * (sizeof(L7_rtrIntfIpAddr_t)));
+
     ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-    return L7_SUCCESS;
-  }
-
-  memset((L7_char8 *)ipAddrList, 0,
-         L7_L3_NUM_IP_ADDRS*(sizeof(L7_rtrIntfIpAddr_t)));
-
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return L7_ERROR;
+    return L7_ERROR;
 }
 
 /*********************************************************************
@@ -5336,33 +5656,37 @@ L7_RC_t  ipMapRtrIntfCfgIpAddrListGet(L7_uint32 intIfNum, L7_rtrIntfIpAddr_t *ip
 L7_RC_t  ipMapRtrIntfSecondaryAddrIndexGet(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddr,
                                            L7_IP_MASK_t ipMask, L7_uint32 *index)
 {
-  L7_uint32 j;
-  L7_rtrCfgCkt_t *pCfg;
+    L7_uint32 j;
+    L7_rtrCfgCkt_t *pCfg;
 
-  if ((ipAddr == 0) || (ipMask == 0))
-    return L7_FAILURE;
+    if ((ipAddr == 0) || (ipMask == 0))
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
-  {
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+    {
+        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    for (j = 1; j < L7_L3_NUM_IP_ADDRS; j++)
+    {
+        if ((ipAddr == pCfg->addrs[j].ipAddr) && (ipMask == pCfg->addrs[j].ipMask))
+        {
+            *index = j;
+            ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+            return L7_SUCCESS;
+        }
+    }
+
     ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
     return L7_FAILURE;
-  }
-
-  for (j=1; j < L7_L3_NUM_IP_ADDRS; j++)
-  {
-    if ((ipAddr == pCfg->addrs[j].ipAddr) && (ipMask == pCfg->addrs[j].ipMask))
-    {
-      *index = j;
-      ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-      return L7_SUCCESS;
-    }
-  }
-
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return L7_FAILURE;
 }
 
 /*********************************************************************
@@ -5387,44 +5711,46 @@ L7_RC_t  ipMapRtrIntfSecondaryAddrIndexGet(L7_uint32 intIfNum, L7_IP_ADDR_t ipAd
 L7_RC_t  ipMapNetDirBcastMatchCheck(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddr,
                                     L7_uchar8 *pMacAddr)
 {
-  L7_IP_ADDR_t    netDirBcastAddr = L7_NULL_IP_ADDR;
-  L7_uint32     j;
-  L7_rtrCfgCkt_t *pCfg;
+    L7_IP_ADDR_t    netDirBcastAddr = L7_NULL_IP_ADDR;
+    L7_uint32     j;
+    L7_rtrCfgCkt_t *pCfg;
 
-  if (pMacAddr == L7_NULLPTR)
-  {
-    return L7_ERROR;
-  }
+    if (pMacAddr == L7_NULLPTR)
+    {
+        return L7_ERROR;
+    }
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
-  {
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+    {
+        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    for (j = 0; j < L7_L3_NUM_IP_ADDRS; j++)
+    {
+        if (pCfg->addrs[j].ipAddr == L7_NULL_IP_ADDR)
+        {
+            continue;
+        }
+
+        netDirBcastAddr = (pCfg->addrs[j].ipAddr & pCfg->addrs[j].ipMask) |
+            ~(pCfg->addrs[j].ipMask);
+
+        if (ipAddr == netDirBcastAddr)
+        {
+            memcpy(pMacAddr, &(L7_ENET_BCAST_MAC_ADDR), (size_t)L7_MAC_ADDR_LEN);
+            ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+            return L7_SUCCESS;
+        }
+    }
+
     ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
     return L7_FAILURE;
-  }
-
-  for (j=0; j < L7_L3_NUM_IP_ADDRS; j++)
-  {
-    if (pCfg->addrs[j].ipAddr == L7_NULL_IP_ADDR)
-    {
-      continue;
-    }
-
-    netDirBcastAddr = (pCfg->addrs[j].ipAddr & pCfg->addrs[j].ipMask) |
-                      ~(pCfg->addrs[j].ipMask);
-
-    if (ipAddr == netDirBcastAddr)
-    {
-      memcpy(pMacAddr, &(L7_ENET_BCAST_MAC_ADDR), (size_t)L7_MAC_ADDR_LEN);
-      ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-      return L7_SUCCESS;
-    }
-  }
-
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return L7_FAILURE;
 }
 
 /*********************************************************************
@@ -5443,34 +5769,37 @@ L7_RC_t  ipMapNetDirBcastMatchCheck(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddr,
 *********************************************************************/
 L7_BOOL ipMapIpAddrIsLocal(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddr)
 {
-  L7_uint32 j;
-  L7_rtrCfgCkt_t *pCfg;
-  L7_BOOL isLocal = L7_FALSE;
+    L7_uint32 j;
+    L7_rtrCfgCkt_t *pCfg;
+    L7_BOOL isLocal = L7_FALSE;
 
-  if (ipAddr == 0)
-    return L7_FALSE;
-
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FALSE;
-
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg))
-  {
-    for (j=0; j < L7_L3_NUM_IP_ADDRS; j++)
+    if (ipAddr == 0)
     {
-      if (pCfg->addrs[j].ipAddr == L7_NULL_IP_ADDR)
-        continue;
-
-      if ((ipAddr & pCfg->addrs[j].ipMask) ==
-          (pCfg->addrs[j].ipAddr & pCfg->addrs[j].ipMask))
-      {
-        isLocal = L7_TRUE;
-        break;
-      }
+        return L7_FALSE;
     }
-  }
 
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return isLocal;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FALSE;
+    }
+
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg))
+    {
+        for (j = 0; j < L7_L3_NUM_IP_ADDRS; j++)
+        {
+            if (pCfg->addrs[j].ipAddr == L7_NULL_IP_ADDR) continue;
+
+            if ((ipAddr & pCfg->addrs[j].ipMask) ==
+                    (pCfg->addrs[j].ipAddr & pCfg->addrs[j].ipMask))
+            {
+                isLocal = L7_TRUE;
+                break;
+            }
+        }
+    }
+
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return isLocal;
 }
 
 /*********************************************************************
@@ -5489,30 +5818,34 @@ L7_BOOL ipMapIpAddrIsLocal(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddr)
 *********************************************************************/
 L7_BOOL ipMapIpAddrMatchesConfigured(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddr)
 {
-  L7_uint32 j;
-  L7_rtrCfgCkt_t *pCfg;
-  L7_BOOL isMatch = L7_FALSE;
+    L7_uint32 j;
+    L7_rtrCfgCkt_t *pCfg;
+    L7_BOOL isMatch = L7_FALSE;
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FALSE;
-
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg))
-  {
-    for (j=0; j < L7_L3_NUM_IP_ADDRS; j++)
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      if (pCfg->addrs[j].ipAddr == L7_NULL_IP_ADDR)
-        continue;
-
-      if (ipAddr == pCfg->addrs[j].ipAddr)
-      {
-        isMatch = L7_TRUE;
-        break;
-      }
+        return L7_FALSE;
     }
-  }
 
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return isMatch;
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg))
+    {
+        for (j = 0; j < L7_L3_NUM_IP_ADDRS; j++)
+        {
+            if (pCfg->addrs[j].ipAddr == L7_NULL_IP_ADDR)
+            {
+                continue;
+            }
+
+            if (ipAddr == pCfg->addrs[j].ipAddr)
+            {
+                isMatch = L7_TRUE;
+                break;
+            }
+        }
+    }
+
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return isMatch;
 }
 
 /*********************************************************************
@@ -5532,32 +5865,32 @@ L7_BOOL ipMapIpAddrMatchesConfigured(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddr)
 *********************************************************************/
 L7_BOOL ipMapIntfSupports(L7_uint32 intIfNum, ipIntfCapability_t capability)
 {
-  L7_INTF_TYPES_t itype;
+    L7_INTF_TYPES_t itype;
 
-  if (nimGetIntfType(intIfNum, &itype) != L7_SUCCESS)
-  {
-    IPMAP_ERROR("invalid capability specified (%d)\n", capability);
-    return L7_FALSE;
-  }
+    if (nimGetIntfType(intIfNum, &itype) != L7_SUCCESS)
+    {
+        IPMAP_ERROR("invalid capability specified (%d)\n", capability);
+        return L7_FALSE;
+    }
 
-  switch (capability)
-  {
+    switch (capability)
+    {
     case IPMAP_INTFCAP_MULTICAST:
-      return(itype == L7_PHYSICAL_INTF || itype == L7_LOGICAL_VLAN_INTF ||
-             itype == L7_TUNNEL_INTF);
+        return (itype == L7_PHYSICAL_INTF || itype == L7_LOGICAL_VLAN_INTF ||
+                itype == L7_TUNNEL_INTF);
 
     case IPMAP_INTFCAP_ARP:
-      return(itype == L7_PHYSICAL_INTF || itype == L7_LOGICAL_VLAN_INTF);
+        return (itype == L7_PHYSICAL_INTF || itype == L7_LOGICAL_VLAN_INTF);
 
     case IPMAP_INTFCAP_ROUTING_CONFIGURABLE:
-      return(itype == L7_PHYSICAL_INTF || itype == L7_LOGICAL_VLAN_INTF);
+        return (itype == L7_PHYSICAL_INTF || itype == L7_LOGICAL_VLAN_INTF);
 
     default:
-      IPMAP_ERROR("invalid capability specified (%d)\n", capability);
-      break;
-  }
+        IPMAP_ERROR("invalid capability specified (%d)\n", capability);
+        break;
+    }
 
-  return L7_FALSE;
+    return L7_FALSE;
 }
 
 /*********************************************************************
@@ -5576,14 +5909,22 @@ L7_BOOL ipMapIntfSupports(L7_uint32 intIfNum, ipIntfCapability_t capability)
 *********************************************************************/
 L7_RC_t ipMapRtrIntfOperModeGet(L7_uint32 intIfNum, L7_uint32 *ifState)
 {
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-  if (ipMapIntfIsUp(intIfNum))
-    *ifState = L7_ENABLE;
-  else
-    *ifState = L7_DISABLE;
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return L7_SUCCESS;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
+
+    if (ipMapIntfIsUp(intIfNum))
+    {
+        *ifState = L7_ENABLE;
+    }
+    else
+    {
+        *ifState = L7_DISABLE;
+    }
+
+    ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+    return L7_SUCCESS;
 }
 
 /*********************************************************************
@@ -5604,38 +5945,41 @@ L7_RC_t ipMapRtrIntfOperModeGet(L7_uint32 intIfNum, L7_uint32 *ifState)
 L7_RC_t ipMapLocalAddrToNeighbor(L7_uint32 nbrAddr, L7_uint32 intIfNum,
                                  L7_uint32 *localAddr)
 {
-  L7_uint32 j;
-  L7_rtrCfgCkt_t *pCfg;
+    L7_uint32 j;
+    L7_rtrCfgCkt_t *pCfg;
 
-  if (nbrAddr == 0)
-    return L7_FAILURE;
+    if (nbrAddr == 0)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_READ_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (!ipMapMapIntfIsConfigurable(intIfNum, &pCfg))
-  {
+    if (!ipMapMapIntfIsConfigurable(intIfNum, &pCfg))
+    {
+        ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+
+    /* walk through router interfaces, looking for an IP address match */
+    for (j = 0; j < L7_L3_NUM_IP_ADDRS; j++)
+    {
+        if (pCfg->addrs[j].ipAddr == L7_NULL_IP_ADDR) continue;
+
+        if ((pCfg->addrs[j].ipAddr & pCfg->addrs[j].ipMask) ==
+                (nbrAddr & pCfg->addrs[j].ipMask))
+        {
+            *localAddr = pCfg->addrs[j].ipAddr;
+            ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
+            return L7_SUCCESS;
+        }
+    }
+
     ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
     return L7_FAILURE;
-  }
-
-  /* walk through router interfaces, looking for an IP address match */
-  for (j=0; j < L7_L3_NUM_IP_ADDRS; j++)
-  {
-    if (pCfg->addrs[j].ipAddr == L7_NULL_IP_ADDR)
-      continue;
-
-    if ((pCfg->addrs[j].ipAddr & pCfg->addrs[j].ipMask) ==
-        (nbrAddr & pCfg->addrs[j].ipMask))
-    {
-      *localAddr = pCfg->addrs[j].ipAddr;
-      ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-      return L7_SUCCESS;
-    }
-  }
-
-  ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
-  return L7_FAILURE;
 }
 
 /*********************************************************************
@@ -5658,36 +6002,36 @@ L7_RC_t ipMapLocalAddrToNeighbor(L7_uint32 nbrAddr, L7_uint32 intIfNum,
 L7_RC_t ipMapPacketForward(L7_netBufHandle bufHandle, L7_uint32 rxPort,
                            L7_uint32 rxIntf, L7_uint32 vlanId)
 {
-  ipMapMsg_t ipMapMsg;
-  L7_RC_t rc;
+    ipMapMsg_t ipMapMsg;
+    L7_RC_t rc;
 
-  if (!ipMapForwardQueue[L7_L3_FWD_QUEUE])
-  {
-    /* In case of failure the buffer is freed by caller. */
-    return L7_FAILURE;
-  }
+    if (!ipMapForwardQueue[L7_L3_FWD_QUEUE])
+    {
+        /* In case of failure the buffer is freed by caller. */
+        return L7_FAILURE;
+    }
 
-  memset(&ipMapMsg, 0x00, sizeof(ipMapMsg_t));
-  ipMapMsg.msgId = IPMAP_PDU;
-  ipMapMsg.type.pdu.bufHandle = bufHandle;
-  ipMapMsg.type.pdu.intf = rxIntf;
-  ipMapMsg.type.pdu.dtlIntf = rxPort;
-  ipMapMsg.type.pdu.vlanId = vlanId;
+    memset(&ipMapMsg, 0x00, sizeof(ipMapMsg_t));
+    ipMapMsg.msgId = IPMAP_PDU;
+    ipMapMsg.type.pdu.bufHandle = bufHandle;
+    ipMapMsg.type.pdu.intf = rxIntf;
+    ipMapMsg.type.pdu.dtlIntf = rxPort;
+    ipMapMsg.type.pdu.vlanId = vlanId;
 
-  rc = osapiMessageSend(ipMapForwardQueue[L7_L3_FWD_QUEUE], &ipMapMsg, sizeof(ipMapMsg_t),
-                         L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+    rc = osapiMessageSend(ipMapForwardQueue[L7_L3_FWD_QUEUE], &ipMapMsg, sizeof(ipMapMsg_t),
+                          L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
 
-  if (rc == L7_SUCCESS)
-  {
-    SYSAPI_NET_MBUF_SET_LOC(bufHandle, MBUF_LOC_IP4_FWD_Q);
-    osapiSemaGive(ipMapMsgQSema);
-  }
-  else
-  {
-    ipForwardQueueFull++;
-  }
+    if (rc == L7_SUCCESS)
+    {
+        SYSAPI_NET_MBUF_SET_LOC(bufHandle, MBUF_LOC_IP4_FWD_Q);
+        osapiSemaGive(ipMapMsgQSema);
+    }
+    else
+    {
+        ipForwardQueueFull++;
+    }
 
-  return rc;
+    return rc;
 }
 
 /*********************************************************************
@@ -5704,29 +6048,31 @@ L7_RC_t ipMapPacketForward(L7_netBufHandle bufHandle, L7_uint32 rxPort,
 *********************************************************************/
 L7_RC_t ipMapNsfRouteSource(L7_NSF_PROTOCOL_t protocol)
 {
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
+    {
+        return L7_FAILURE;
+    }
 
-  if (ipMapTraceFlags & IPMAP_TRACE_NSF)
-  {
-    L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
-    sprintf(traceBuf, "%s to provide NSF routes.",
-            ipMapNsfProtocolName(protocol));
-    ipMapTraceWrite(traceBuf);
-  }
+    if (ipMapTraceFlags & IPMAP_TRACE_NSF)
+    {
+        L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
+        sprintf(traceBuf, "%s to provide NSF routes.",
+                ipMapNsfProtocolName(protocol));
+        ipMapTraceWrite(traceBuf);
+    }
 
-  if (pIpMapInfo->nsfRoutesPending == 0)
-  {
-    /* first protocol to register. Start timer in case someone
-     * never gives complete indication. */
-    osapiTimerAdd((void*)ipMapStaleRouteTimerExp, 0, 0, IPMAP_STALE_ROUTE_TIME,
-                         &pIpMapInfo->staleRouteTimer);
-  }
+    if (pIpMapInfo->nsfRoutesPending == 0)
+    {
+        /* first protocol to register. Start timer in case someone
+         * never gives complete indication. */
+        osapiTimerAdd((void *)ipMapStaleRouteTimerExp, 0, 0, IPMAP_STALE_ROUTE_TIME,
+                      &pIpMapInfo->staleRouteTimer);
+    }
 
-  pIpMapInfo->nsfRoutesPending |= protocol;
+    pIpMapInfo->nsfRoutesPending |= protocol;
 
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return L7_SUCCESS;
+    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+    return L7_SUCCESS;
 }
 
 /*********************************************************************
@@ -5745,32 +6091,34 @@ L7_RC_t ipMapNsfRouteSource(L7_NSF_PROTOCOL_t protocol)
 L7_RC_t ipMapInitialRoutesDone(L7_NSF_PROTOCOL_t protocol)
 {
 #ifdef L7_NSF_PACKAGE
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
-
-  if (pIpMapInfo->warmRestart)
-  {
-    if (ipMapTraceFlags & IPMAP_TRACE_NSF)
+    if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
     {
-      L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
-      sprintf(traceBuf, "%s has completed NSF route update.",
-              ipMapNsfProtocolName(protocol));
-      ipMapTraceWrite(traceBuf);
+        return L7_FAILURE;
     }
 
-    pIpMapInfo->nsfRoutesPending &= ~protocol;
-
-    if (pIpMapInfo->nsfRoutesPending == 0)
+    if (pIpMapInfo->warmRestart)
     {
-      osapiTimerFree(pIpMapInfo->staleRouteTimer);
-      ipMapStaleRoutesFlush();
-    }
-  }
+        if (ipMapTraceFlags & IPMAP_TRACE_NSF)
+        {
+            L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
+            sprintf(traceBuf, "%s has completed NSF route update.",
+                    ipMapNsfProtocolName(protocol));
+            ipMapTraceWrite(traceBuf);
+        }
 
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        pIpMapInfo->nsfRoutesPending &= ~protocol;
+
+        if (pIpMapInfo->nsfRoutesPending == 0)
+        {
+            osapiTimerFree(pIpMapInfo->staleRouteTimer);
+            ipMapStaleRoutesFlush();
+        }
+    }
+
+    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
 
 #endif
-  return L7_SUCCESS;
+    return L7_SUCCESS;
 }
 
 
@@ -5792,7 +6140,7 @@ L7_RC_t ipMapInitialRoutesDone(L7_NSF_PROTOCOL_t protocol)
 *********************************************************************/
 L7_RC_t ipMapInternalVlanIdToRtrIntIfNum(L7_uint32 vlanId, L7_uint32 *intIfNum)
 {
-    return ipstkInternalVlanIdToRtrIntIfNum(vlanId,intIfNum);
+    return ipstkInternalVlanIdToRtrIntIfNum(vlanId, intIfNum);
 }
 
 
@@ -5809,7 +6157,7 @@ L7_RC_t ipMapInternalVlanIdToRtrIntIfNum(L7_uint32 vlanId, L7_uint32 *intIfNum)
 *********************************************************************/
 L7_uint32 ipMapInternalVlanRoutingInterfaceGet(L7_uint32 vlanId)
 {
-  return ipstkInternalVlanRoutingInterfaceGet(vlanId);
+    return ipstkInternalVlanRoutingInterfaceGet(vlanId);
 }
 
 
@@ -5829,7 +6177,7 @@ L7_uint32 ipMapInternalVlanRoutingInterfaceGet(L7_uint32 vlanId)
 *********************************************************************/
 L7_RC_t ipMapInternalVlanFindFirst(L7_uint32 *vlanId, L7_uint32 *intIfNum)
 {
-    return ipstkInternalVlanFindFirst(vlanId,intIfNum);
+    return ipstkInternalVlanFindFirst(vlanId, intIfNum);
 }
 
 /*********************************************************************
@@ -5872,52 +6220,53 @@ L7_RC_t ipMapInternalVlanFindNext(L7_uint32 prevVid, L7_uint32 *vlanId, L7_uint3
 * @end
 *********************************************************************/
 L7_RC_t
-ipMapGlobalDefaultGatewayAddressGet (L7_IP_ADDR_t *globalDefGwAddr,
-                                     L7_BOOL isActive)
+ipMapGlobalDefaultGatewayAddressGet(L7_IP_ADDR_t *globalDefGwAddr,
+                                    L7_BOOL isActive)
 {
-  L7_uint32 i;
-  L7_IP_ADDR_t gwAddr = 0;
+    L7_uint32 i;
+    L7_IP_ADDR_t gwAddr = 0;
 
-  if (route != L7_NULLPTR)
-  {
-    for (i = 0; i < L7_RTR_MAX_STATIC_ROUTES; i++)
+    if (route != L7_NULLPTR)
     {
-      if (route->rtrStaticRouteCfgData[i].inUse == L7_TRUE)
-      {
-        if ((route->rtrStaticRouteCfgData[i].ipAddr == 0) &&
-            (route->rtrStaticRouteCfgData[i].ipMask == 0) &&
-            (route->rtrStaticRouteCfgData[i].preference ==
-                 ipMapRouterPreferenceGet(ROUTE_PREF_GLOBAL_DEFAULT_GATEWAY)) &&
-            ((route->rtrStaticRouteCfgData[i].flags &
-                              L7_RT_GLOBAL_DEFAULT_GATEWAY) != 0))
+        for (i = 0; i < L7_RTR_MAX_STATIC_ROUTES; i++)
         {
-            gwAddr = route->rtrStaticRouteCfgData[i].nextHops[0].nextHopRtr;
-            if (isActive != L7_TRUE)
+            if (route->rtrStaticRouteCfgData[i].inUse == L7_TRUE)
             {
-              *globalDefGwAddr = gwAddr;
-              return L7_SUCCESS;
+                if ((route->rtrStaticRouteCfgData[i].ipAddr == 0) &&
+                    (route->rtrStaticRouteCfgData[i].ipMask == 0) &&
+                    (route->rtrStaticRouteCfgData[i].preference ==
+                         ipMapRouterPreferenceGet(ROUTE_PREF_GLOBAL_DEFAULT_GATEWAY)) &&
+                    ((route->rtrStaticRouteCfgData[i].flags &
+                      L7_RT_GLOBAL_DEFAULT_GATEWAY) != 0))
+                {
+                    gwAddr = route->rtrStaticRouteCfgData[i].nextHops[0].nextHopRtr;
+                    if (isActive != L7_TRUE)
+                    {
+                        *globalDefGwAddr = gwAddr;
+                        return L7_SUCCESS;
+                    }
+
+                    break;
+                }
             }
-            break;
         }
-      }
     }
-  }
 
-  if ((gwAddr != 0) && (isActive == L7_TRUE))
-  {
-    L7_IP_ADDR_t globalDefGateway = 0;
-    if (rtoIsGlobalDefGatewayRoutePresent (&globalDefGateway) == L7_TRUE)
+    if ((gwAddr != 0) && (isActive == L7_TRUE))
     {
-      if (globalDefGateway == gwAddr)
-      {
-        *globalDefGwAddr = globalDefGateway;
-        return L7_SUCCESS;
-      }
+        L7_IP_ADDR_t globalDefGateway = 0;
+        if (rtoIsGlobalDefGatewayRoutePresent(&globalDefGateway) == L7_TRUE)
+        {
+            if (globalDefGateway == gwAddr)
+            {
+                *globalDefGwAddr = globalDefGateway;
+                return L7_SUCCESS;
+            }
+        }
     }
-  }
 
-  *globalDefGwAddr = 0;
-  return L7_FAILURE;
+    *globalDefGwAddr = 0;
+    return L7_FAILURE;
 }
 
 /*********************************************************************
@@ -5934,19 +6283,19 @@ ipMapGlobalDefaultGatewayAddressGet (L7_IP_ADDR_t *globalDefGwAddr,
 * @end
 *********************************************************************/
 L7_RC_t
-ipMapIntfCheckpointDhcpAddrGet (L7_uint32 intIfNum,
-                                L7_uint32 *ipAddr)
+ipMapIntfCheckpointDhcpAddrGet(L7_uint32 intIfNum,
+                               L7_uint32 *ipAddr)
 {
-  if (ipAddr == L7_NULLPTR)
-  {
-    return L7_FAILURE;
-  }
+    if (ipAddr == L7_NULLPTR)
+    {
+        return L7_FAILURE;
+    }
 
 #ifdef L7_NSF_PACKAGE
-  ipMapCheckpointDhcpGet (intIfNum, ipAddr);
+    ipMapCheckpointDhcpGet(intIfNum, ipAddr);
 #endif
 
-  return L7_SUCCESS;
+    return L7_SUCCESS;
 }
 
 /*********************************************************************
@@ -5960,25 +6309,25 @@ ipMapIntfCheckpointDhcpAddrGet (L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-void ipMapDefaultRoutingVlanCreate (void)
+void ipMapDefaultRoutingVlanCreate(void)
 {
-  L7_uint32 unit = 1;
-  L7_uint32 defVlanId = FD_IP_DEFAULT_ROUTING_VLAN_ID;
-  L7_uint32 intIfNum = 0;
+    L7_uint32 unit = 1;
+    L7_uint32 defVlanId = FD_IP_DEFAULT_ROUTING_VLAN_ID;
+    L7_uint32 intIfNum = 0;
 
-  if ((simStartupConfigIsExists() != L7_TRUE) && (pIpMapInfo->warmRestart != L7_TRUE))
-  {
-    if (usmDbIpVlanRoutingIntfCreate (unit, defVlanId, intIfNum) == L7_SUCCESS)
+    if ((simStartupConfigIsExists() != L7_TRUE) && (pIpMapInfo->warmRestart != L7_TRUE))
     {
-      IPMAP_TRACE("[%s-%d]:  Creation of a Routing interface on VLAN-1 (by default) successful.\n",
-                  __FUNCTION__, __LINE__);
+        if (usmDbIpVlanRoutingIntfCreate(unit, defVlanId, intIfNum) == L7_SUCCESS)
+        {
+            IPMAP_TRACE("[%s-%d]:  Creation of a Routing interface on VLAN-1 (by default) successful.\n",
+                        __FUNCTION__, __LINE__);
+        }
+        else
+        {
+            IPMAP_TRACE("[%s-%d]:  Creation of a Routing interface on VLAN-1 (by default) failed.\n",
+                        __FUNCTION__, __LINE__);
+        }
     }
-    else
-    {
-      IPMAP_TRACE("[%s-%d]:  Creation of a Routing interface on VLAN-1 (by default) failed.\n",
-                  __FUNCTION__, __LINE__);
-    }
-  }
-  return;
+    return;
 }
 
