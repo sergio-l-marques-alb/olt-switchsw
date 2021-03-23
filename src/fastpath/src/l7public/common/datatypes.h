@@ -37,14 +37,12 @@ typedef unsigned long long      ptr_addr_t;
 #define PTR_GET_ADDR(ptr)       ((L7_uint64 *) (ptr))
 #define PTR_GET_VALUE(ptr)      *((L7_uint64 *) (ptr))
 #define PTR_SET_VALUE(ptr)      *((L7_uint64 *) (ptr))
-#define PTR_TO_UINT(ptr)        ((unsigned long long) (ptr_addr_t) (ptr))
 #define WORD_SIZE   sizeof(L7_uint64)
 #else
 typedef unsigned long           ptr_addr_t;
 #define PTR_GET_ADDR(ptr)       ((L7_uint32 *) (ptr))
 #define PTR_GET_VALUE(ptr)      *((L7_uint32 *) (ptr))
 #define PTR_SET_VALUE(ptr)      *((L7_uint32 *) (ptr))
-#define PTR_TO_UINT(ptr)        ((unsigned long) (ptr_addr_t) (ptr))
 #define WORD_SIZE   sizeof(L7_uint32)
 #endif
 #ifndef PTR_TO_UINT32

@@ -1421,8 +1421,6 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DRIVER_COMPONENT_ID,
               "Driver: Card insertion for unit %d, slot %d failed. Wait for retry.\n",
               usp.unit, usp.slot);
-
-      PT_LOG_TRACE(LOG_CTX_STARTUP,"Error sysapiHpcUnitIdentifierKeyGet");
       break;
     }
 
@@ -1444,8 +1442,6 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
       ** Restart Broadcom discovery and hope that all will go well this time.
       */
       fp_stk_mgr_disc_start_request(FP_STK_MGR_DISC_EVENT_APP_SOFT_REQ); 
-
-      PT_LOG_TRACE(LOG_CTX_STARTUP,"Error fp_stk_mgr_wait_for_key_discovery");
       break;
     }
     
@@ -1476,7 +1472,6 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
      fp_stk_mgr_disc_start_request(FP_STK_MGR_DISC_EVENT_APP_SOFT_REQ); 
 #endif
 
-     PT_LOG_TRACE(LOG_CTX_STARTUP,"Error usl_card_insert");
       break;
     }
 
@@ -1488,8 +1483,6 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DRIVER_COMPONENT_ID,
               "Driver: Card insertion for unit %d, slot %d failed. Wait for retry.\n",
                usp.unit, usp.slot);
-
-      PT_LOG_TRACE(LOG_CTX_STARTUP,"Error hapiBroadPortMemAlloc");
       break;
     }
 
@@ -1502,7 +1495,6 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
                           "Bcmx/Dispatch attach failed\n",
                           usp.unit, usp.slot);
 
-      PT_LOG_TRACE(LOG_CTX_STARTUP,"Error hapiBroadPhysicalPortMapGet");
       break;
     }
 
@@ -1568,7 +1560,6 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
               "Driver: Card insertion for unit %d, slot %d failed. Wait for retry.\n",
               usp.unit, usp.slot);
 
-      PT_LOG_TRACE(LOG_CTX_STARTUP,"Error usl_bcmx_resume");
       break;
     }
 
@@ -1578,8 +1569,6 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DRIVER_COMPONENT_ID,
               "Driver: Card insertion for unit %d, slot %d failed. Wait for retry.\n",
               usp.unit, usp.slot);
-
-      PT_LOG_TRACE(LOG_CTX_STARTUP,"Error hapiBroadSlotCtlInit");
       result = L7_FAILURE;
       break;
     }
@@ -1590,8 +1579,6 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DRIVER_COMPONENT_ID,
               "Driver: Card insertion for unit %d, slot %d failed. Wait for retry.\n",
               usp.unit, usp.slot);
-
-      PT_LOG_TRACE(LOG_CTX_STARTUP,"Error hapiBroadBcmxRegisterUnit");
       result = L7_FAILURE;
       break;
     }
@@ -1603,8 +1590,6 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
         L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DRIVER_COMPONENT_ID,
                 "Driver: Card insertion for unit %d, slot %d failed. Wait for retry.\n",
                 usp.unit, usp.slot);
-
-        PT_LOG_TRACE(LOG_CTX_STARTUP,"Error hapiBroadBcmxRegisterUnit");
         result = L7_FAILURE;
         break;
       }
@@ -1615,8 +1600,6 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DRIVER_COMPONENT_ID,
               "Driver: Card insertion for unit %d, slot %d failed. Wait for retry.\n",
               usp.unit, usp.slot);
-
-      PT_LOG_TRACE(LOG_CTX_STARTUP,"Error hapiBroadDefaultConfigInit");
       result = L7_FAILURE;
       break;
     }
@@ -1629,7 +1612,6 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
               "Driver: Card insertion for unit %d, slot %d failed. Wait for retry.\n",
               usp.unit, usp.slot);
 
-      PT_LOG_TRACE(LOG_CTX_STARTUP,"Error hapiBroadL3CardInit!");
       result = L7_FAILURE;
       break;
     }
@@ -1642,7 +1624,6 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
               "Driver: Card insertion for unit %d, slot %d failed. Wait for retry.\n",
               usp.unit, usp.slot);
 
-      PT_LOG_TRACE(LOG_CTX_STARTUP,"Error hapiBroadL3McastCardInit");
       result = L7_FAILURE;
       break;
     }
@@ -1655,7 +1636,6 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
               "Driver: Card insertion for unit %d, slot %d failed. Wait for retry.\n",
               usp.unit, usp.slot);
 
-      PT_LOG_TRACE(LOG_CTX_STARTUP,"Error hapiBroadQosCardInit");
       result = L7_FAILURE;
       break;
     }
@@ -1721,8 +1701,6 @@ L7_RC_t hapiBroadPortMemAlloc(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t *
            (void *)osapiMalloc(L7_DRIVER_COMPONENT_ID, sizeof(BROAD_PORT_t))) == L7_NULL)
       {
         result = L7_FAILURE;
-
-        PT_LOG_TRACE(LOG_CTX_STARTUP,"Error hapiBroadPortMemAlloc");
         SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
                        "\n%s %d: In %s call to 'osapiMalloc'\n",
                        __FILE__, __LINE__, __FUNCTION__);
@@ -1840,8 +1818,6 @@ L7_RC_t hapiBroadPortMemAlloc(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t *
            (void *)osapiMalloc(L7_DRIVER_COMPONENT_ID, sizeof(BROAD_PORT_t))) == L7_NULL)
       {
         result = L7_FAILURE;
-
-        PT_LOG_TRACE(LOG_CTX_STARTUP,"Error hapiBroadPortMemAlloc");
         SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
                        "\n%s %d: In %s call to 'osapiMalloc'\n",
                        __FILE__, __LINE__, __FUNCTION__);
@@ -1856,8 +1832,6 @@ L7_RC_t hapiBroadPortMemAlloc(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t *
     else
     {
       result = L7_FAILURE;
-
-      PT_LOG_TRACE(LOG_CTX_STARTUP,"Error hapiBroadPortMemAlloc");
       SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
                      "%s %d: In %s unknown port mode\n",
                      __FILE__, __LINE__, __FUNCTION__);

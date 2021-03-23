@@ -938,16 +938,12 @@ static L7_RC_t ipMapRoutingIntfCreate(L7_uint32 intIfNum)
 {
   L7_uint32 rtrIntf = 0;
   NIM_HANDLE_t nimHandle = 0;
-  L7_RC_t rc;
 
 
   /* Assign router interface number */
-  rc = ipstkRtrIfNumGet(intIfNum, L7_IP_MAP_COMPONENT_ID, &rtrIntf);
-  if (rc != L7_SUCCESS)
+  if (ipstkRtrIfNumGet(intIfNum, L7_IP_MAP_COMPONENT_ID, &rtrIntf) != L7_SUCCESS)
   {
-      PT_LOG_ERR(LOG_CTX_INTF,"Error allocating a shared router interface (rc=%u)",
-                 rc);
-      return L7_FAILURE;
+    return L7_FAILURE;
   }
   intIfNumToRtrIntf[intIfNum] = rtrIntf;
   rtrIntfMap[rtrIntf].intIfNum = intIfNum;
@@ -1058,39 +1054,23 @@ ipMapIntfEnable (L7_uint32 intIfNum,
   {
     L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
     osapiSnprintf (traceBuf, sizeof(traceBuf),
-                "[%s-%d]: Enabling intIfNum - %d; Mode - %d; Method - %d\n",
+                   "[%s-%d]: Enabling intIfNum - %d; Mode - %d; Method - %d\n",
                    __FUNCTION__, __LINE__, intIfNum, enableMode, method);
     ipMapTraceWrite (traceBuf);
   }
 
   if (!ipMapMapIntfIsConfigurable(intIfNum, &pCfg))
-  {
-      PT_LOG_ERR(LOG_CTX_INTF, "Intf is not configurable");
-      return L7_FAILURE;
-  }
+    return L7_FAILURE;
 
-  rc = _ipMapIntIfNumToRtrIntf(intIfNum, &rtrIntf);
-  if (rc != L7_SUCCESS)
-  {
-      if (rc == L7_ERROR)
-      {
-          PT_LOG_ERR(LOG_CTX_INTF, "Intf does not exist");
-          return L7_FAILURE;
-      }
-      /* rc == L7_FAILURE */
-      PT_LOG_ERR(LOG_CTX_INTF, "Error converting intf number to router intf number");
-      return L7_FAILURE;
-  }
+  if (_ipMapIntIfNumToRtrIntf(intIfNum, &rtrIntf) != L7_SUCCESS)
+    return L7_FAILURE;
 
   if ((pCfg->flags & L7_RTR_INTF_UNNUMBERED) != 0)
   {
     isUnnumbered = L7_TRUE;
     numbIntIfNum = ipMapNumberedIfc(intIfNum);
     if (!ipMapMapIntfIsConfigurable(numbIntIfNum, &numberedCfg))
-    {
-        PT_LOG_ERR(LOG_CTX_INTF, "Intf is not configurable");
-        return L7_FAILURE;
-    }
+      return L7_FAILURE;
     operAddr = numberedCfg->addrs[0].ipAddr;
     /* Netmask is not valid for un-numbered interface. Set it to 0xFFFFFFFF */
     operMask = 0xFFFFFFFF;
@@ -1107,7 +1087,8 @@ ipMapIntfEnable (L7_uint32 intIfNum,
   {
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
-    PT_LOG_ERR(LOG_CTX_INTF, "Failed to get MAC address for interface %s.", ifName);
+    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
+            "Failed to get MAC address for interface %s.", ifName);
     return L7_FAILURE;
   }
 
@@ -1118,10 +1099,7 @@ ipMapIntfEnable (L7_uint32 intIfNum,
 
   /* dtl event to create routing interface in hardware */
     if (ipMapDtlIpIntfSet(intIfNum) != L7_SUCCESS)
-    {
-        PT_LOG_ERR(LOG_CTX_INTF, "Error creating routing interface in HW");
-        return L7_FAILURE;
-    }
+    return L7_FAILURE;
 
   /* Create routing interface in IP stack */
   if (ipmRouterIfCreate(rtrIntf, intIfNum, operAddr, operMask,
@@ -1129,8 +1107,8 @@ ipMapIntfEnable (L7_uint32 intIfNum,
   {
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
-    PT_LOG_ERR(LOG_CTX_INTF, "Failed to create router interface %s in IP stack.", 
-               ifName);
+    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
+            "Failed to create router interface %s in IP stack.", ifName);
 
     /* undo what's already been done */
     dtlIpv4IntfIPAddrSet(intIfNum, 0, 0);
@@ -1151,8 +1129,7 @@ ipMapIntfEnable (L7_uint32 intIfNum,
     if (dhcpClientIPAddressMethodSet (intIfNum, method, L7_MGMT_IPPORT, L7_FALSE)
                                    != L7_SUCCESS)
     {
-        PT_LOG_ERR(LOG_CTX_INTF, "Error acquiring/releasing an IP addr no the interface from DHCP server");
-        return L7_FAILURE;
+      return L7_FAILURE;
     }
     return L7_SUCCESS;
   }
@@ -1183,9 +1160,9 @@ ipMapIntfEnable (L7_uint32 intIfNum,
       osapiInetNtoa(routeEntry.ipAddr, destStr);
       osapiInetNtoa(routeEntry.subnetMask, maskStr);
       nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
-      PT_LOG_CRITIC(LOG_CTX_INTF,
-                    "Failed to add local route for network %s/%s on interface %s. rc=%u",
-                    destStr, maskStr, ifName, rc);
+      L7_LOGF(L7_LOG_SEVERITY_CRITICAL, L7_IP_MAP_COMPONENT_ID,
+                "Failed to add local route for network %s/%s on interface %s.",
+                destStr, maskStr, ifName);
 
       /* undo what's already been done */
       ipmRouterIfRemove(intIfNum);
@@ -1215,8 +1192,9 @@ ipMapIntfEnable (L7_uint32 intIfNum,
         routeEntryDefault.ecmpRoutes.numOfRoutes = 1;
         if (rtoRouteAdd (&routeEntryDefault) != L7_SUCCESS)
         {
-          PT_LOG_CRITIC(LOG_CTX_INTF, "Failed to add the Default Gateway "
-                        "Route to RTO on intIfNum - %d", intIfNum);
+          L7_LOGF(L7_LOG_SEVERITY_CRITICAL, L7_IP_MAP_COMPONENT_ID,
+                     "Failed to add the Default Gateway "
+                     "Route to RTO on intIfNum - %d", intIfNum);
 
           /* undo what's already been done */
           rtoRouteDelete(&routeEntry);
@@ -1272,8 +1250,8 @@ ipMapIntfEnable (L7_uint32 intIfNum,
     {
       L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
       nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
-      PT_LOG_ERR(LOG_CTX_INTF, "Failed to register router interface %s with ARP.",
-                 ifName);
+      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
+              "Failed to register router interface %s with ARP.", ifName);
 
       /* undo what's been done. */
       if (!isUnnumbered)
@@ -1609,19 +1587,15 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
   L7_NIM_QUERY_DATA_t QueryData;
   IPMAP_RTR_INTF_ENABLE_MODE_t enableMode;
   L7_INTF_IP_ADDR_METHOD_t method;
-  L7_RC_t rc;
 
   /* Assume no asych event generated unless we determine otherwise. */
   if (eventCompleted)
     *eventCompleted = L7_TRUE;
 
   /* validate we have ifnum to cfgid mapping */
-  rc = ipMapMapIntfIsConfigurable(intIfNum, &pCfg);
-  if (rc != L7_TRUE)
+  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
   {
-      PT_LOG_ERR(LOG_CTX_INTF, "Error intf %u is not configurable (rc=%u)", 
-                 intIfNum, rc);
-      return(L7_SUCCESS);
+    return(L7_SUCCESS);
   }
 
   rtrIntf = intIfNumToRtrIntf[intIfNum];
@@ -1632,12 +1606,8 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
   {
     if (rtrIntf == 0)
     {
-        rc = ipMapRoutingIntfCreate(intIfNum);
-        if (rc != L7_SUCCESS)
-        {
-            PT_LOG_ERR(LOG_CTX_INTF, "Error creating routing interface (rc=%u)", rc);
-            return L7_FAILURE;
-        }
+      if (ipMapRoutingIntfCreate(intIfNum) != L7_SUCCESS)
+        return L7_FAILURE;
     }
   }
 
@@ -1663,9 +1633,9 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
     {
       L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
       osapiSnprintf (traceBuf, sizeof(traceBuf),
-                    "[%s-%d]: intIfNum - %d is a Routing Intf  with lastNotify - %s\n",
+                     "[%s-%d]: intIfNum - %d is a Routing Intf  with lastNotify - %s\n",
                      __FUNCTION__, __LINE__, intIfNum,
-                    ipMapRouterEventNames[pIpMapInfo->operIntf[intIfNum].lastNotify]);
+                     ipMapRouterEventNames[pIpMapInfo->operIntf[intIfNum].lastNotify]);
       ipMapTraceWrite (traceBuf);
     }
     /* Translate a Host interface to a Routing interface */
@@ -1682,12 +1652,7 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
       if ((!pIpMapInfo->operIntf[intIfNum].asyncPending) &&
           (!pIpMapInfo->operRtr.asyncPending))
       {
-        rc = ipMapIntfEnable(intIfNum, IPMAP_RTR_INTF_ENABLE_ROUTING, method);
-        if (rc != L7_SUCCESS)
-        {
-            PT_LOG_ERR(LOG_CTX_INTF, "Failed enable routing interface");
-        }
-        return rc;
+        return ipMapIntfEnable(intIfNum, IPMAP_RTR_INTF_ENABLE_ROUTING, method);
       }
     }
     else if (pIpMapInfo->operIntf[intIfNum].lastNotify == L7_RTR_INTF_ENABLE)
@@ -1713,9 +1678,9 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
     {
       L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
       osapiSnprintf (traceBuf, sizeof(traceBuf),
-                    "[%s-%d]: intIfNum - %d is a Host Intf  with lastNotify - %s\n",
+                     "[%s-%d]: intIfNum - %d is a Host Intf  with lastNotify - %s\n",
                      __FUNCTION__, __LINE__, intIfNum,
-                    ipMapRouterEventNames[pIpMapInfo->operIntf[intIfNum].lastNotify]);
+                     ipMapRouterEventNames[pIpMapInfo->operIntf[intIfNum].lastNotify]);
       ipMapTraceWrite (traceBuf);
     }
     /* Interface should be enabled */
@@ -1729,12 +1694,7 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
         if ((pIpMapInfo->operIntf[intIfNum].stackEnabled != L7_TRUE) ||
             ((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) != 0))
         {
-          rc = ipMapIntfEnable(intIfNum, IPMAP_RTR_INTF_ENABLE_HOST, method);
-          if (rc != L7_SUCCESS)
-          {
-              PT_LOG_ERR(LOG_CTX_INTF, "Failed enable routing interface");
-          }
-          return rc;
+          return ipMapIntfEnable(intIfNum, IPMAP_RTR_INTF_ENABLE_HOST, method);
         }
       }
     }
@@ -1771,10 +1731,10 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
     {
       L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
       osapiSnprintf (traceBuf, sizeof(traceBuf),
-                    "[%s-%d]: intIfNum - %d is neither a Routing nor a Host Intf; "
-                    "with lastNotify - %s; Should be Disabled\n",
+                     "[%s-%d]: intIfNum - %d is neither a Routing nor a Host Intf; "
+                     "with lastNotify - %s; Should be Disabled\n",
                      __FUNCTION__, __LINE__, intIfNum,
-                    ipMapRouterEventNames[pIpMapInfo->operIntf[intIfNum].lastNotify]);
+                     ipMapRouterEventNames[pIpMapInfo->operIntf[intIfNum].lastNotify]);
       ipMapTraceWrite (traceBuf);
     }
     /* Interface should be disabled. If a down event is already pending on either
@@ -3991,48 +3951,27 @@ L7_RC_t ipMapRtrIntfIpAddressValidityCheck(L7_IP_ADDR_t ipAddress,
 L7_BOOL ipMapMgmtPortConflict(L7_uint32 intIfNum, L7_IP_ADDR_t ipAddress,
                               L7_IP_MASK_t subnetMask)
 {
-    L7_uint32 ipAddr, mask;
-    struct sockaddr_in ip_arg, ip_addr, ip_mask, ip_subnetmask;
+  L7_uint32 ipAddr, mask;
 
-    /* Get ip string from ipAddress/subnetMask */
-    ip_arg.sin_addr.s_addr = htonl(ipAddress);
-    ip_subnetmask.sin_addr.s_addr = htonl(subnetMask);
-        
-    /* Compare address to network port address. */
-    ipAddr = simGetSystemIPAddr();
-    mask = simGetSystemIPNetMask();
-    /* Get ip string from ipAddr/mask */
-    ip_addr.sin_addr.s_addr = htonl(ipAddr);
-    ip_mask.sin_addr.s_addr = htonl(mask);
-    if (ipAddr && mask)
-    {
-        if ((ipAddr & mask & subnetMask) == (ipAddress & mask & subnetMask))
-        {
-            PT_LOG_ERR(LOG_CTX_INTF, "Error: IP Address %s/%s conflicts with %s/%s ",
-                       inet_ntoa(ip_addr.sin_addr), inet_ntoa(ip_subnetmask.sin_addr),
-                       inet_ntoa(ip_arg.sin_addr), inet_ntoa(ip_mask.sin_addr));
-            return L7_TRUE;
-        }
-    }
+  /* Compare address to network port address. */
+  ipAddr = simGetSystemIPAddr();
+  mask = simGetSystemIPNetMask();
+  if (ipAddr && mask)
+  {
+    if ((ipAddr & mask & subnetMask) == (ipAddress & mask & subnetMask))
+      return L7_TRUE;
+  }
 
-    /* Compare address to service port address */
-    ipAddr = simGetServPortIPAddr();
-    mask = simGetServPortIPNetMask();
-    /* Get ip string from ipAddr/mask */
-    ip_addr.sin_addr.s_addr = htonl(ipAddr);
-    ip_mask.sin_addr.s_addr = htonl(mask);
-    if (ipAddr && mask)
-    {
-        if ((ipAddr & mask & subnetMask) == (ipAddress & mask & subnetMask))
-        {
-            PT_LOG_ERR(LOG_CTX_INTF, "Error: IP Address %s/%s conflicts with %s/%s ",
-                       inet_ntoa(ip_addr.sin_addr), inet_ntoa(ip_subnetmask.sin_addr),
-                       inet_ntoa(ip_arg.sin_addr), inet_ntoa(ip_mask.sin_addr));      
-            return L7_TRUE;
-        }
-    }
-    
-    return L7_FALSE;
+  /* Compare address to service port address */
+  ipAddr = simGetServPortIPAddr();
+  mask = simGetServPortIPNetMask();
+  if (ipAddr && mask)
+  {
+    if ((ipAddr & mask & subnetMask) == (ipAddress & mask & subnetMask))
+      return L7_TRUE;
+  }
+
+  return L7_FALSE;
 }
 
 /*********************************************************************
@@ -4054,51 +3993,44 @@ L7_BOOL ipMapRtrIntfAddressConflictFind(L7_uint32 intIfNum,
                                         L7_IP_ADDR_t ipAddress,
                                         L7_IP_MASK_t subnetMask)
 {
-    L7_uint32 i, j;
-    nimConfigID_t configIdNull;
-    struct sockaddr_in ip_addr, ip_mask;
+  L7_uint32 i, j;
+  nimConfigID_t configIdNull;
 
-    if ((ipAddress == 0) || (subnetMask == 0))
-    {
-        /* 0/0 not considered to conflict with any other address */
-        return L7_FALSE;
-    }
-    
-    ip_addr.sin_addr.s_addr = htonl(ipAddress);
-    ip_mask.sin_addr.s_addr = htonl(subnetMask);
-
-    memset(&configIdNull, 0, sizeof(nimConfigID_t));
-
-    /* Iterate through all existing interfaces to determine if this subnet is
-     * already configured on another interface. */
-    for (i = 1; i < L7_IPMAP_INTF_MAX_COUNT; i++)
-    {
-        if (NIM_CONFIG_ID_IS_EQUAL(&ipMapCfg->ckt[i].configId, &configIdNull))
-        {
-            /* this element not in use */
-            continue;
-        }
-        
-        for (j = 0; j < L7_L3_NUM_IP_ADDRS; j++)
-        {
-            /* skip holes in addrs[] array */
-            if (ipMapCfg->ckt[i].addrs[j].ipAddr == L7_NULL_IP_ADDR)
-            {
-                continue;
-            }
-            
-            if ((subnetMask & ipMapCfg->ckt[i].addrs[j].ipMask & ipAddress) ==
-                (subnetMask & ipMapCfg->ckt[i].addrs[j].ipMask & ipMapCfg->ckt[i].addrs[j].ipAddr))
-            {
-                PT_LOG_ERR(L7_LOG_SEVERITY_ERROR, 
-                           "Error: %s/%s is already configured at interface ckt[%u].addrs[%u]",
-                           inet_ntoa(ip_addr.sin_addr), inet_ntoa(ip_mask.sin_addr), i, j);
-                return L7_TRUE;
-            }
-        }
-    }
-    
+  if ((ipAddress == 0) || (subnetMask == 0))
+  {
+    /* 0/0 not considered to conflict with any other address */
     return L7_FALSE;
+  }
+
+  memset(&configIdNull, 0, sizeof(nimConfigID_t));
+
+  /* Iterate through all existing interfaces to determine if this subnet is
+   * already configured on another interface. */
+  for (i = 1; i < L7_IPMAP_INTF_MAX_COUNT; i++)
+  {
+    if (NIM_CONFIG_ID_IS_EQUAL(&ipMapCfg->ckt[i].configId, &configIdNull))
+    {
+      /* this element not in use */
+      continue;
+    }
+
+    for (j = 0; j < L7_L3_NUM_IP_ADDRS; j++)
+    {
+      /* skip holes in addrs[] array */
+      if (ipMapCfg->ckt[i].addrs[j].ipAddr == L7_NULL_IP_ADDR)
+      {
+        continue;
+      }
+
+      if ((subnetMask & ipMapCfg->ckt[i].addrs[j].ipMask & ipAddress) ==
+          (subnetMask & ipMapCfg->ckt[i].addrs[j].ipMask & ipMapCfg->ckt[i].addrs[j].ipAddr))
+      {
+        return L7_TRUE;
+      }
+    }
+  }
+
+  return L7_FALSE;
 }
 
 /*********************************************************************

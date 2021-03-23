@@ -39,7 +39,7 @@ void* radixTreeNewDataNode(radixTree_t * tree)
 {
   void * ptr;
   L7_uint32 offset_next;
-  ptr_addr_t value;
+  L7_uint64 value;
   void *localAddr;
 
   offset_next = tree->offset_next;
@@ -73,7 +73,7 @@ void radixTreeFreeDataNode(radixTree_t * tree, void * ptr)
   offset_next = tree->offset_next;
   memset((L7_uchar8 *)ptr, 0, tree->dataLength);
 
-  PTR_SET_VALUE(((char*)ptr+offset_next)) = PTR_TO_UINT(tree->rn_datanodefreelist);
+  PTR_SET_VALUE(((char*)ptr+offset_next)) = PTR_TO_UINT64(tree->rn_datanodefreelist);
   tree->rn_datanodefreelist = ptr;
 }
 
@@ -93,7 +93,7 @@ void * radixTreeNewMaskNode(struct radix_node_head * head)
 {
   void * ptr;
   L7_uint32 offset_next;
-  ptr_addr_t value;
+  L7_uint64 value;
   char *localAddr;
 
   offset_next = RADIX_MASK_NODE_ITEM_OFFSET_NEXT(head->max_keylen);
@@ -131,7 +131,7 @@ void radixTreeFreeMaskNode(struct radix_node_head * head, void * ptr)
   offset_next = RADIX_MASK_NODE_ITEM_OFFSET_NEXT(head->max_keylen);
   memset((L7_uchar8 *)ptr, 0, RADIX_MASK_NODE_ITEM_SIZE(head->max_keylen));
 
-  PTR_SET_VALUE(((char*)ptr+offset_next)) = PTR_TO_UINT(head->rn_masknodefreelist);
+  PTR_SET_VALUE(((char*)ptr+offset_next)) = PTR_TO_UINT64(head->rn_masknodefreelist);
 
   head->rn_masknodefreelist = ptr;
 }

@@ -174,7 +174,7 @@
     "BCM56689-24GIG-4TENGE",              /* cardModel  */
     "Broadcom BCM56689 - 24 Port GbE + 4 Ten-Gigabit Ethernet Line Card",  /* cardDescription  */
     SYSAPI_CARD_TYPE_LINE,            /* type       */
-    20,
+    28,
     SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
     SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
     /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
