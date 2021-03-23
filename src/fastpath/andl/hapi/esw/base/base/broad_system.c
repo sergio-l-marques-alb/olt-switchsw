@@ -3595,9 +3595,13 @@ L7_RC_t hapiBroadConfigIgmpTrap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_BOOL 
     PT_LOG_TRACE(LOG_CTX_HAPI, "Qualifier BROAD_FIELD_ETHTYPE defined");
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO, igmp_proto, exact_match);
     if (result != L7_SUCCESS)  break;
+
+#if (PTIN_BOARD != PTIN_BOARD_CXO640G)
     /*Must be don't fragment, IP fragments not allow*/
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, (L7_uchar8 *)&ip_mask);
     if (result != L7_SUCCESS)  break;
+#endif
+
     PT_LOG_TRACE(LOG_CTX_HAPI, "Qualifier BROAD_FIELD_PROTO defined");
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
     if (result != L7_SUCCESS)  break;
@@ -3713,9 +3717,13 @@ L7_RC_t hapiBroadConfigIgmpTrapAll(L7_BOOL switchFrame, DAPI_t *dapi_g,
     PT_LOG_TRACE(LOG_CTX_HAPI, "Qualifier BROAD_FIELD_ETHTYPE defined");
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO, igmp_proto, exact_match);
     if (result != L7_SUCCESS)  break;
+
+#if (PTIN_BOARD != PTIN_BOARD_CXO640G)
     /*Must be don't fragment, IP fragments not allow*/
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, (L7_uchar8 *)&ip_mask);
     if (result != L7_SUCCESS)  break;
+#endif
+
     PT_LOG_TRACE(LOG_CTX_HAPI, "Qualifier BROAD_FIELD_PROTO defined");
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
     if (result != L7_SUCCESS)  break;
@@ -3859,8 +3867,11 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ip_type, exact_match);
     if (result != L7_SUCCESS)  break;
+
+#if (PTIN_BOARD != PTIN_BOARD_CXO640G)
     /*Must be don't fragment, IP fragments not allow*/
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, (L7_uchar8 *)&ip_mask);
+#endif
     if (result != L7_SUCCESS)  break;
 #if (!PTIN_BOARD_IS_STANDALONE) /* In OLT1T0 the DHCP can't have the same priority of Inband */
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_MEDIUM, 0, 0);
@@ -3897,8 +3908,12 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ip_type, exact_match);
     if (result != L7_SUCCESS)  break;
     /*Must be don't fragment, IP fragments not allow*/
+
+#if (PTIN_BOARD != PTIN_BOARD_CXO640G)
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, (L7_uchar8 *)&ip_mask);
     if (result != L7_SUCCESS)  break;
+#endif
+
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
     if (result != L7_SUCCESS)  break;
     /* Trap the frames to CPU, so that they are not switched */
@@ -4014,9 +4029,12 @@ L7_RC_t hapiBroadConfigDhcpV4TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT, (L7_uchar8 *)&dhcpc_dport, exact_match);
     if (result != L7_SUCCESS)  break;
+
+#if (PTIN_BOARD != PTIN_BOARD_CXO640G)
     /*Must be don't fragment, IP fragments not allow*/
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, (L7_uchar8 *)&ip_mask);
     if (result != L7_SUCCESS)  break;
+#endif
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_PCAP, 0, 0);
     if (result != L7_SUCCESS)  break;
 
@@ -4038,9 +4056,13 @@ L7_RC_t hapiBroadConfigDhcpV4TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ip_type, exact_match);
     if (result != L7_SUCCESS)  break;
+
+#if (PTIN_BOARD != PTIN_BOARD_CXO640G)
     /*Must be don't fragment, IP fragments not allow*/
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IPFLAGS, (L7_uchar8 *)&ip_flags, (L7_uchar8 *)&ip_mask);
     if (result != L7_SUCCESS)  break;
+#endif
+
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_PCAP, 0, 0);
     if (result != L7_SUCCESS)  break;
     /* Trap the frames to CPU, so that they are not switched */
