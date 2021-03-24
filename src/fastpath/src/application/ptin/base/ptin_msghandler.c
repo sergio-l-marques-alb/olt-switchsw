@@ -18,10 +18,11 @@
 #include "ptin_mgmd_api.h"
 #include "ptin_debug.h"//Added by MMelo to use ptin_timer routines
 #include "ipc.h"
-#include <ptin_prot_oam_eth.h>
-#include <ptin_intf.h>
+#include "ptin_prot_oam_eth.h"
+#include "ptin_intf.h"
 extern L7_RC_t ptin_ptp_fpga_entry(ptin_dtl_search_ptp_t *e, DAPI_CMD_GET_SET_t operation);
 extern L7_RC_t ptin_oam_fpga_entry(ptin_dtl_search_oam_t *e, DAPI_CMD_GET_SET_t operation);
+#include "ptin_fpga_api.h"
 
 /* Message processing time measuring */
 
@@ -5740,7 +5741,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Signalling the end of a Equipment Flush Configuration*/
     case CCMSG_PROTECTION_MATRIX_FLUSH_CONFIGURATION_END:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MATRIX_FLUSH_CONFIGURATION_END (0x%04X)", msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_PROTECTION_MATRIX_FLUSH_CONFIGURATION_END (0x%04X)", msgId);
 
       #if 0
       /*Sending Ack*/  
@@ -5757,6 +5758,37 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       #endif
       break;
     }
+
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+    case CCMSG_STDBY_NOTIFY_ACTIVE_MATRIX_FLUSH_END:
+    {
+        int i;
+        L7_RC_t r;
+
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_STDBY_NOTIFY_ACTIVE_MATRIX_FLUSH_END (0x%04X)", msgId);
+
+        if(!ptin_fpga_mx_is_matrixactive_rt()) {//If I'm a Standby Matrix
+            rc = L7_REQUEST_DENIED; //L7_NOT_SUPPORTED;//L7_ERROR;//L7_FAILURE;
+            PT_LOG_ERR(LOG_CTX_MSGHANDLER, "I'm not the active MX");
+            res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR,
+                            SIRerror_get(rc));
+            SetIPCNACK(outbuffer, res);
+            break;
+        }
+
+        for (i=0; i<MAX_UPLINK_PROT; i++) {
+            r = ptin_prot_uplink_group_reload(i);
+            if (L7_SUCCESS != r) {
+                PT_LOG_INFO(LOG_CTX_MSGHANDLER,
+                            "ptin_prot_uplink_group_reload(protId=%u)=%d",
+                            i, r);
+            }
+        }
+        
+        SETIPCACKOK(outbuffer);
+        break;
+    }
+#endif
 
   #if (PTIN_BOARD_IS_STANDALONE)
     case CCMSG_PTP_FPGA:
