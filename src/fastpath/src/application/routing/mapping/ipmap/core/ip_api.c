@@ -2386,144 +2386,186 @@ L7_RC_t ipMapRtrIntfIpAddressSet(L7_uint32 intIfNum,
                                  L7_IP_MASK_t subnetMask,
                                  L7_INTF_IP_ADDR_METHOD_t method)
 {
-  L7_rtrCfgCkt_t *pCfg;
-  L7_uint32 j;
-  L7_RC_t rc;
+    L7_rtrCfgCkt_t *pCfg;
+    L7_uint32 j;
+    L7_RC_t rc;
+    struct sockaddr_in ip_addr, ip_mask;
 
-  if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-    return L7_FAILURE;
+    ip_addr.sin_addr.s_addr = htonl(ipAddress);
+    ip_mask.sin_addr.s_addr = htonl(subnetMask);
 
-  if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  /* Fail if interface is configured to be unnumbered */
-  if ((pCfg->flags & L7_RTR_INTF_UNNUMBERED) != 0)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_NOT_EXIST;        /* stretching to find an unnused code! */
-  }
-
-  /* Check if the IP address is valid */
-  if (ipMapRtrIntfIpAddressValidityCheck(ipAddress, subnetMask) != L7_SUCCESS)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_FAILURE;
-  }
-
-  /* Check if the same address is already configured on this interface. */
-  if ((ipAddress == pCfg->addrs[0].ipAddr) && (subnetMask == pCfg->addrs[0].ipMask))
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_SUCCESS;
-  }
-
-  /* Check if address conflicts with network or service port. */
-  if (ipMapMgmtPortConflict(intIfNum, ipAddress, subnetMask) ||
-      ipMapRtrIntfAddressConflictFind(intIfNum, ipAddress, subnetMask))
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_ERROR;
-  }
-
-  /* Check if the ipAddress is same as the next hop address of a static route */
-  if (ipMapSrNextHopIpAddressConflictCheck(ipAddress) == L7_TRUE)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_REQUEST_DENIED;
-  }
-
-  /* Cannot configure an IP address that is already configured as a
-   * static ARP entry. */
-  if (ipMapStaticArpIpAddressConflictCheck(ipAddress) == L7_TRUE)
-  {
-    ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_REQUEST_DENIED;
-  }
-
-
-  /*
-  Don't allow a primary IP address to be changed if any secondaries
-are configured. See defect 48936.
-*/
-  for (j=1; j < L7_L3_NUM_IP_ADDRS; j++)
-  {
-    if (pCfg->addrs[j].ipAddr != L7_NULL_IP_ADDR)
-    {
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_ALREADY_CONFIGURED;
-    }
-  }
-
-  /* If a primary IP address is already configured, remove it. */
-  if (pCfg->addrs[0].ipAddr != 0)
-  {
-    if ((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) != 0)
-    {
-      /* Invoke DHCP Client to Release the IP address on this interface.
-       * This has to be done immediately in order to get the the DHCP Release
-       * out on the wire.
-       */
-      rc = dhcpClientIPAddressMethodSet(intIfNum, L7_INTF_IP_ADDR_METHOD_NONE,
-                                        L7_MGMT_IPPORT, L7_FALSE);
-      if (rc != L7_SUCCESS)
-      {
-        if (ipMapTraceFlags & IPMAP_TRACE_DHCP_UPDATE)
-        {
-          L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
-          PT_LOG_INFO(LOG_CTX_INTF,
-                      "DHCP Address Release Failed on intIfNum %d (rc=%u)\n",
-                      intIfNum, rc);
-          osapiSnprintf (traceBuf, sizeof(traceBuf),
-                         "[%s-%d]: DHCP Address Release Failed on intIfNum %d\n",
-                         __FUNCTION__, __LINE__, intIfNum);
-          ipMapTraceWrite (traceBuf);
-        }
-      }
-    }
-    rc = ipMapRtrIntfIpAddressRemoveProcess(intIfNum);
+    rc = ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__);
     if (rc != L7_SUCCESS)
     {
-      L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-      nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
-      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
-              "Failed removing IP address from interface %s. Error %d.",
-              ifName, rc);
-      ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      return L7_FAILURE;
+        PT_LOG_ERR(LOG_CTX_INTF, "Failed taking the IP MAP read/write lock (rc=%u)",
+                   rc);
+        return L7_FAILURE;
     }
-  }
+  
+    if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+    {
+        PT_LOG_ERR(LOG_CTX_INTF, "Error: interface is not configurable");
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+  
+    /* Fail if interface is configured to be unnumbered */
+    if ((pCfg->flags & L7_RTR_INTF_UNNUMBERED) != 0)
+    {
+        PT_LOG_ERR(LOG_CTX_INTF, 
+                   "Error: Interface is configured to be unnumbered (flags = 0x%04X)",
+                   pCfg->flags);
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_NOT_EXIST;        /* stretching to find an unnused code! */
+    }
+  
+    /* Check if the IP address is valid */
+    rc = ipMapRtrIntfIpAddressValidityCheck(ipAddress, subnetMask);
+    if (rc != L7_SUCCESS)
+    {
+        PT_LOG_ERR(LOG_CTX_INTF, "Error: IP Address %s/%s is not valid (rc=%u)", 
+                   inet_ntoa(ip_addr.sin_addr), inet_ntoa(ip_mask.sin_addr), rc);
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_FAILURE;
+    }
+  
+    /* Check if the same address is already configured on this interface. */
+    if ((ipAddress == pCfg->addrs[0].ipAddr) && (subnetMask == pCfg->addrs[0].ipMask))
+    {
+        PT_LOG_ERR(LOG_CTX_INTF, 
+                   "Error: IP Address %s/%s is already configured on this interface",
+                   inet_ntoa(ip_addr.sin_addr), inet_ntoa(ip_mask.sin_addr));
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_SUCCESS;
+    }
+  
+    /* Check if address conflicts with service port. */
+    if (ipMapMgmtPortConflict(intIfNum, ipAddress, subnetMask) != L7_FALSE)
+    {
+        PT_LOG_ERR(LOG_CTX_INTF, 
+                   "Error: IP Address %s/%s conflicts with service port",
+                   inet_ntoa(ip_addr.sin_addr), inet_ntoa(ip_mask.sin_addr));
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_ERROR;
+    }
 
-  /* Reserve space in RTO for this address */
-  if (rtoRouteReserve() != L7_SUCCESS)
-  {
+    /* Check if address conflicts with network */
+    if (ipMapRtrIntfAddressConflictFind(intIfNum, ipAddress, subnetMask) != L7_FALSE)
+    {
+        PT_LOG_ERR(LOG_CTX_INTF, "Error: IP Address %s/%s conflicts with network",
+                   inet_ntoa(ip_addr.sin_addr), inet_ntoa(ip_mask.sin_addr));
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_ERROR;
+    }
+  
+    /* Check if the ipAddress is same as the next hop address of a static route */
+    if (ipMapSrNextHopIpAddressConflictCheck(ipAddress) == L7_TRUE)
+    {
+        PT_LOG_ERR(LOG_CTX_INTF, "Error: IP Address %s/%s is not the next hop address",
+                   inet_ntoa(ip_addr.sin_addr), inet_ntoa(ip_mask.sin_addr));
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_REQUEST_DENIED;
+    }
+  
+    /* Cannot configure an IP address that is already configured as a
+     * static ARP entry. */
+    if (ipMapStaticArpIpAddressConflictCheck(ipAddress) == L7_TRUE)
+    {
+        PT_LOG_ERR(LOG_CTX_INTF, 
+                   "Failed configuring IP Address %s/%s is already configured as a static ARP entry",
+                   inet_ntoa(ip_addr.sin_addr), inet_ntoa(ip_mask.sin_addr));
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_REQUEST_DENIED;
+    }
+  
+  
+    /*
+    Don't allow a primary IP address to be changed if any secondaries
+    are configured. See defect 48936.
+    */
+    for (j=1; j < L7_L3_NUM_IP_ADDRS; j++)
+    {
+        if (pCfg->addrs[j].ipAddr != L7_NULL_IP_ADDR)
+        {
+          ip_addr.sin_addr.s_addr = htonl(pCfg->addrs[j].ipAddr);
+          PT_LOG_ERR(LOG_CTX_INTF, 
+                     "Error: Primary IP Address %s can not be changed",
+                     inet_ntoa(ip_addr.sin_addr));
+          ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+          return L7_ALREADY_CONFIGURED;
+        }
+    }
+  
+    /* If a primary IP address is already configured, remove it. */
+    if (pCfg->addrs[0].ipAddr != 0)
+    {
+        if ((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) != 0)
+        {
+            /* Invoke DHCP Client to Release the IP address on this interface.
+             * This has to be done immediately in order to get the the DHCP Release
+             * out on the wire.
+             */
+            rc = dhcpClientIPAddressMethodSet(intIfNum, L7_INTF_IP_ADDR_METHOD_NONE,
+                                              L7_MGMT_IPPORT, L7_FALSE);
+            if (rc != L7_SUCCESS)
+            {
+                if (ipMapTraceFlags & IPMAP_TRACE_DHCP_UPDATE)
+                {
+                    L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
+                    PT_LOG_INFO(LOG_CTX_INTF,
+                                "DHCP Address Release Failed on intIfNum %d (rc=%u)\n",
+                                intIfNum, rc);
+                    osapiSnprintf (traceBuf, sizeof(traceBuf),
+                                   "[%s-%d]: DHCP Address Release Failed on intIfNum %d\n",
+                                   __FUNCTION__, __LINE__, intIfNum);
+                    ipMapTraceWrite (traceBuf);
+                }
+            }
+        }
+        rc = ipMapRtrIntfIpAddressRemoveProcess(intIfNum);
+        if (rc != L7_SUCCESS)
+        {
+            L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+            nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+            PT_LOG_ERR(LOG_CTX_INTF, 
+                       "Failed removing IP address from interface %s. Error %d.",
+                       ifName, rc);
+            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+            return L7_FAILURE;
+        }
+    }
+  
+    /* Reserve space in RTO for this address */
+    rc = rtoRouteReserve();
+    if (rc != L7_SUCCESS)
+    {
+        PT_LOG_ERR(LOG_CTX_INTF, "Failed reserving space in RTO (rc=%u)", rc);
+        ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+        return L7_TABLE_IS_FULL;
+    }
+  
+    /* Store the new IP address in the configuration. */
+    pCfg->addrs[0].ipAddr = ipAddress;
+    pCfg->addrs[0].ipMask = subnetMask;
+    if ((method == L7_INTF_IP_ADDR_METHOD_CONFIG) &&
+        ((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) != 0))
+    {
+        pCfg->flags &= ~L7_RTR_INTF_ADDR_METHOD_DHCP;
+    }
+    ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
+  
+    rc = ipMapRtrIntfIpAddressAddProcess(intIfNum, ipAddress, subnetMask);  
+
+    /* If address add failed, undo the config change */
+    if (rc != L7_SUCCESS)
+    {
+        PT_LOG_ERR(LOG_CTX_INTF, "Failed IP Add Process: undo the config change (rc=%u)", rc);
+        pCfg->addrs[0].ipAddr = 0;
+        pCfg->addrs[0].ipMask = 0;
+        rtoRouteUnReserve();
+    }
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    return L7_TABLE_IS_FULL;
-  }
-
-  /* Store the new IP address in the configuration. */
-  pCfg->addrs[0].ipAddr = ipAddress;
-  pCfg->addrs[0].ipMask = subnetMask;
-  if ((method == L7_INTF_IP_ADDR_METHOD_CONFIG) &&
-      ((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) != 0))
-  {
-    pCfg->flags &= ~L7_RTR_INTF_ADDR_METHOD_DHCP;
-  }
-  ipMapCfg->cfgHdr.dataChanged = L7_TRUE;
-
-  rc = ipMapRtrIntfIpAddressAddProcess(intIfNum, ipAddress, subnetMask);
-
-  /* If address add failed, undo the config change */
-  if (rc != L7_SUCCESS)
-  {
-    pCfg->addrs[0].ipAddr = 0;
-    pCfg->addrs[0].ipMask = 0;
-    rtoRouteUnReserve();
-  }
-  ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  return rc;
+    return rc;
 }
 
 /*********************************************************************
