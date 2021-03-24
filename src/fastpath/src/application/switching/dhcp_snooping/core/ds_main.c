@@ -1766,7 +1766,8 @@ L7_RC_t dsFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
       PT_LOG_TRACE(LOG_CTX_DHCP,"===================");
       PT_LOG_TRACE(LOG_CTX_DHCP,"======DHCP PKT=====");
-      PT_LOG_TRACE(LOG_CTX_DHCP,"===================");
+      PT_LOG_TRACE(LOG_CTX_DHCP,"======LEN %d=======", frameLen);
+
       for (row = 0; row < (frameLen/16)+1; row++)
       {
           PT_LOG_TRACE(LOG_CTX_DHCP,"%04x   "
@@ -1781,6 +1782,15 @@ L7_RC_t dsFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       PT_LOG_TRACE(LOG_CTX_DHCP,"===================");
   }
 
+  ethHdrLen = sysNetDataOffsetGet(frame);
+  ipVersion = (0xF0 & *(L7_uchar8*)(frame + ethHdrLen)) >> 4 ;
+
+  if (frameLen > DS_DHCP_PACKET_SIZE_MAX)
+  {
+        PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet", 
+                   frameLen);
+        return L7_FAILURE;    
+  }
   if(L7_IP_VERSION == ipVersion)
   {
      ret = dsDHCPv4FrameProcess(intIfNum, vlanId, frame, frameLen, innerVlanId, client_idx);
@@ -2151,19 +2161,25 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
           L7_RC_t rcRelayAgentInfoAdd;
           
           if (ptin_debug_dhcp_snooping)
+          {
             PT_LOG_TRACE(LOG_CTX_DHCP, "Is Active option 82");
+          }
           
           /* This function adds Option-82 only if it does not already exists.*/
           if ((rcRelayAgentInfoAdd = dsRelayAgentInfoAdd(ptin_port, vlanId, innerVlanId, frame, &frameLen)) == L7_FAILURE)
           {
             if (ptin_debug_dhcp_snooping)
+            {
                PT_LOG_ERR(LOG_CTX_DHCP, "Failed to add DHCP Option-82 for Client request on SVLAN %d", vlanIdFwd);
+            }
             return L7_FAILURE;
           }
+
           if (ptin_debug_dhcp_snooping)
           {
               PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_dhcp_stat_increment_field DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION82 ptin_port=%u pduInfo->vlanId=%u", ptin_port, vlanId);
           }
+
           ptin_dhcp_stat_increment_field(ptin_port, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION82);
           
           /* Set the relayop_added bit so we know, when processing the server response, that it was us who added the relay option */
@@ -2181,7 +2197,9 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
           }
           
           if (ptin_debug_dhcp_snooping)
+          {
             PT_LOG_TRACE(LOG_CTX_DHCP, "Packet frameLen = %d after Option-82 addition", frameLen);
+          }
         }
       }
 
@@ -4586,6 +4604,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
                           (dhcpPacketLength - passOverLen), DS_DHCP_PACKET_SIZE_MAX);
       return L7_FAILURE;
     }
+
     memcpy(tempBuff, relayEnd, (dhcpPacketLength - passOverLen));
     memcpy(dhcpOption, tempBuff, (dhcpPacketLength - passOverLen));
     memset(tempBuff, 0 , DS_DHCP_PACKET_SIZE_MAX);
@@ -6131,7 +6150,12 @@ L7_RC_t dsFrameIntfFilterSend(L7_uint32 ptin_port, L7_ushort16 vlanId,
        {
          if (subscrEntry->pktType == L7_DOT1AD_PKTTYPE_UNTAGGED)
          {
-
+           if (frameLen > DS_DHCP_PACKET_SIZE_MAX)
+           {
+             PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet invalid",
+                        frameLen);
+             return L7_FAILURE;
+           }
 
            memcpy (frameTemp, frame, frameLen);
            /* dsFrameVlanTagRemove(frame, &frameLen, frameTemp); */

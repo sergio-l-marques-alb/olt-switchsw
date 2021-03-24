@@ -1253,6 +1253,11 @@ L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16
          PT_LOG_TRACE(LOG_CTX_IGMP,"onuId=%d", onuId);
          PT_LOG_TRACE(LOG_CTX_IGMP,"clientFlow.onuId=%d", clientFlow.onuId);
        }
+       if (ptin_debug_igmp_snooping)
+       {
+         PT_LOG_TRACE(LOG_CTX_IGMP,"onuId=%d", onuId);
+         PT_LOG_TRACE(LOG_CTX_IGMP,"clientFlow.onuId=%d", clientFlow.onuId);
+       }
 
        if ( (onuId != (L7_uint32) -1) && onuId != clientFlow.onuId ) 
        {
