@@ -4,7 +4,7 @@
 #define IGMP_DYNAMIC_CLIENTS_SUPPORTED
 #define NGPON2_SUPPORTED
 /* To manage linkscan, uncomment this line */
-#define PTIN_LINKSCAN_CONTROL
+//#define PTIN_LINKSCAN_CONTROL
 
 #define PHY_RECOVERY_PROCEDURE 1
 

@@ -5,7 +5,7 @@
 #define NGPON2_SUPPORTED
 
 /* To manage linkscan, uncomment this line */
-#define PTIN_LINKSCAN_CONTROL
+//#define PTIN_LINKSCAN_CONTROL
 #define PHY_RECOVERY_PROCEDURE 1
 
 /* Allows direct control over port add/remove of a LAG (shortcut to message queues) */

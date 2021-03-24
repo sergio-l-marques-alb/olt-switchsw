@@ -1941,12 +1941,12 @@ L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL l
   }
 
   /* Clear link faults */
-#if (SDK_VERSION_IS < SDK_VERSION(6,5,18,0)) || (SDK_VERSION_IS >= SDK_VERSION(6,5,20,0))
   {
       L7_int fault;
+
 #if (SDK_VERSION_IS < SDK_VERSION(6,5,18,0))
       rv = _ptin_esw_link_fault_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &fault);
-#else   /* #elif (SDK_VERSION_IS >= SDK_VERSION(6,5,20,0)) */
+#else   /* #elif (SDK_VERSION_IS >= SDK_VERSION(6,5,18,0)) */
       rv = _bcm_esw_link_fault_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &fault);
 #endif
       if (rv != BCM_E_NONE)
@@ -1954,7 +1954,6 @@ L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL l
         PT_LOG_ERR(LOG_CTX_HAPI, "Error clearing faults for bcm_port %u", hapiPortPtr->bcm_port);
       }
   }
-#endif
 
   rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortControlLinkFaultLocalEnable, local_enable);
   if (rv != BCM_E_NONE)
