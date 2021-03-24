@@ -128,9 +128,9 @@
 /* PTin added: new switch 56689 (Valkyrie2) */
 #elif (PTIN_BOARD == PTIN_BOARD_TG16G)
 #define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
-#define L7_MAX_PORTS_PER_SLOT                    28
-#define L7_MAX_PHYSICAL_PORTS_PER_SLOT           28
-#define L7_MAX_PHYSICAL_PORTS_PER_UNIT           28
+#define L7_MAX_PORTS_PER_SLOT                    20
+#define L7_MAX_PHYSICAL_PORTS_PER_SLOT           20
+#define L7_MAX_PHYSICAL_PORTS_PER_UNIT           20
 
 /* PTin added: new switch 56450 (Katana2) on TG16GF */
 #elif (PTIN_BOARD == PTIN_BOARD_TG16GF)
