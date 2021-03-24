@@ -671,7 +671,7 @@ L7_RC_t ptin_l2_mac_table_entry_add( ptin_switch_mac_entry *entry )
             ((entry->static_entry) ? "Static" : "Dynamic"),
             entry->intf.intf_type,entry->intf.intf_id);
 
-  /* Build structure to remove entry */
+  /* Build structure to add entry */
   fdbMemberInfo.vlanId = vlanId;
   memcpy(fdbMemberInfo.macAddr, entry->addr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
   fdbMemberInfo.intIfNum   = intIfNum;

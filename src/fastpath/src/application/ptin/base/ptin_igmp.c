@@ -14407,6 +14407,7 @@ static L7_uint16 ptin_igmp_group_client_identifier_pop(L7_uint ptin_port)
       PT_LOG_ERR(LOG_CTX_IGMP, "pClientIdx is NULLPTR");
       return(L7_uint16)-1;
     }
+
   }while (pClientIdx->inUse);
 
   /* Mark index as being used */

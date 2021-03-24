@@ -3636,7 +3636,6 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
         }
       }
 
-
       /* increment the learn counter regardless of failure */
       hapiMacStats.learn++;
 
@@ -3721,8 +3720,7 @@ void hapiBroadAddrMacUpdateAge(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *dap
   ** other units if the mac is not present on other units.
   */
 
-  if (bcm_l2_addr->flags & BCM_L2_TRUNK_MEMBER ||
-      BCM_GPORT_IS_WLAN_PORT(bcm_l2_addr->port))
+  if (bcm_l2_addr->flags & BCM_L2_TRUNK_MEMBER || BCM_GPORT_IS_WLAN_PORT(bcm_l2_addr->port))
   {
     /* Check if the L2 entry is gone from all the chips */
     for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)

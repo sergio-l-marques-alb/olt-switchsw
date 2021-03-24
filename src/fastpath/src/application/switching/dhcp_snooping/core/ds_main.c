@@ -1449,7 +1449,7 @@ L7_RC_t dsPacketQueue(L7_uchar8 *ethHeader, L7_uint32 dataLen,
     L7_udp_header_t *udp_header;
     L7_dhcp_packet_t *dhcpPacket;
     L7_ushort16 ipPktLen;
-    L7_ushort16 dhcpPktLen;
+    L7_ushort16 dhcpPktLen = 0;
     L7_ushort16 ethHdrLen;
     L7_ipHeader_t *ipHeader;
     L7_ushort16 ipHdrLen;
@@ -1758,6 +1758,29 @@ L7_RC_t dsFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
                    frameLen);
         return L7_FAILURE;    
   }
+
+  if (ptin_debug_dhcp_snooping)
+  {
+      int row;
+      L7_uchar8 *pkt = frame;
+
+      PT_LOG_TRACE(LOG_CTX_DHCP,"===================");
+      PT_LOG_TRACE(LOG_CTX_DHCP,"======DHCP PKT=====");
+      PT_LOG_TRACE(LOG_CTX_DHCP,"===================");
+      for (row = 0; row < (frameLen/16)+1; row++)
+      {
+          PT_LOG_TRACE(LOG_CTX_DHCP,"%04x   "
+                                    "%2.2x %2.2x %2.2x %2.2x %2.2x %2.2x %2.2x %2.2x "
+                                    "%2.2x %2.2x %2.2x %2.2x %2.2x %2.2x %2.2x %2.2x ",
+                                    row * 16,
+                                    pkt[row*16+0],pkt[row*16+1],pkt[row*16+2],pkt[row*16+3],
+                                    pkt[row*16+4],pkt[row*16+5],pkt[row*16+6],pkt[row*16+7],
+                                    pkt[row*16+8],pkt[row*16+9],pkt[row*16+10],pkt[row*16+11],
+                                    pkt[row*16+12],pkt[row*16+13],pkt[row*16+14],pkt[row*16+15]);
+      }
+      PT_LOG_TRACE(LOG_CTX_DHCP,"===================");
+  }
+
   if(L7_IP_VERSION == ipVersion)
   {
      ret = dsDHCPv4FrameProcess(intIfNum, vlanId, frame, frameLen, innerVlanId, client_idx);
@@ -1803,7 +1826,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   dhcpSnoopBinding_t  dhcp_binding;
   L7_enetHeader_t    *mac_header = 0;
   L7_uint32           relayOptIntIfNum = 0;
-  L7_uchar8           broadcast_flag;  
+  L7_uchar8           broadcast_flag;
   L7_uint32           ptin_port;
   ptin_client_id_t    client_info;
   L7_dhcp_pkt_type_t  dhcpPktType;
@@ -6287,7 +6310,7 @@ L7_RC_t dsFrameSend(L7_uint32 ptin_port, L7_ushort16 vlanId,
     /* Modify outer vlan */
     if (vlanId!=extOVlan)
     {
-      dataStart[14] &= 0xf0;
+      dataStart[14] &= 0xf0;                    /* Keep PCP and DEI*/
       dataStart[14] |= ((extOVlan>>8) & 0x0f);
       dataStart[15]  = extOVlan & 0xff;
       //vlanId = extOVlan;
@@ -6296,7 +6319,7 @@ L7_RC_t dsFrameSend(L7_uint32 ptin_port, L7_ushort16 vlanId,
     if (extIVlan!=0)
     {
       //for (i=frameLen-1; i>=16; i--)  frame[i+4] = frame[i];
-            /* No inner tag? */
+      /* No inner tag? */
       if (osapiNtohs(*((L7_uint16 *) &dataStart[16])) != 0x8100 &&
           osapiNtohs(*((L7_uint16 *) &dataStart[16])) != 0x88A8 &&
           osapiNtohs(*((L7_uint16 *) &dataStart[16])) != 0x9100)
@@ -6314,7 +6337,7 @@ L7_RC_t dsFrameSend(L7_uint32 ptin_port, L7_ushort16 vlanId,
       }
       dataStart[18] = (dataStart[14] & 0xe0) | ((extIVlan>>8) & 0x0f);
       dataStart[19] = extIVlan & 0xff;
-      //innerVlanId = extIVlan;
+
     }
   }
   #endif
@@ -6339,6 +6362,28 @@ L7_RC_t dsFrameSend(L7_uint32 ptin_port, L7_ushort16 vlanId,
       printf("\n");
     }
     printf("===================\n");
+  }
+
+  if (ptin_debug_dhcp_snooping)
+  {
+      int row;
+      L7_uchar8 *pkt = dataStart;
+
+      PT_LOG_TRACE(LOG_CTX_DHCP,"===================");
+      PT_LOG_TRACE(LOG_CTX_DHCP,"======DHCP PKT=====");
+      PT_LOG_TRACE(LOG_CTX_DHCP,"===================");
+      for (row = 0; row < (frameLen/16)+1; row++)
+      {
+        PT_LOG_TRACE(LOG_CTX_DHCP,"%04x   "
+                                  "%2.2x %2.2x %2.2x %2.2x %2.2x %2.2x %2.2x %2.2x "
+                                  "%2.2x %2.2x %2.2x %2.2x %2.2x %2.2x %2.2x %2.2x ",
+                                  row * 16,
+                                  pkt[row*16+0],pkt[row*16+1],pkt[row*16+2],pkt[row*16+3],
+                                  pkt[row*16+4],pkt[row*16+5],pkt[row*16+6],pkt[row*16+7],
+                                  pkt[row*16+8],pkt[row*16+9],pkt[row*16+10],pkt[row*16+11],
+                                  pkt[row*16+12],pkt[row*16+13],pkt[row*16+14],pkt[row*16+15]);
+      }
+      PT_LOG_TRACE(LOG_CTX_DHCP,"===================");
   }
 
   if (ptin_debug_dhcp_snooping)
