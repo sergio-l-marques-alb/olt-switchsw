@@ -3531,12 +3531,6 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
       {
         PT_LOG_TRACE(LOG_CTX_HAPI, " Increase learned mac ");
         bcm_l2_addr->flags &= ~((L7_uint32)BCM_L2_PENDING);
-//#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)  /* FIXME: TC16SXG */
-//        rv = BCM_E_NONE;
-//        PT_LOG_WARN(LOG_CTX_L2, "MAC-Table touching disabled!");
-//#else
-//        rv = usl_bcmx_l2_addr_add(bcm_l2_addr, L7_NULL);
-//#endif
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)  /* FIXME: TC16SXG */
         rv = BCM_E_NONE;
         PT_LOG_WARN(LOG_CTX_L2, "MAC-Table touching disabled!");
@@ -3566,7 +3560,6 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
 #else
     rv = usl_bcmx_l2_addr_add(bcm_l2_addr, L7_NULL);
 #endif
-
     //printf("%s(%d) Yeah!\r\n",__FUNCTION__,__LINE__);
   }
 
