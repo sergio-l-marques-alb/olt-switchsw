@@ -2936,7 +2936,7 @@ L7_BOOL ipMapMapIntfIsConfigurable(L7_uint32 intIfNum, L7_rtrCfgCkt_t **pCfg)
     rc = platIntfMaxCountGet();
     if (intIfNum <= 0 || intIfNum >= rc)
     {
-        PT_LOG_ERR(LOG_CTX_INTF, "Error: inIfNum = %d (should be in ]0; %u[ )", rc);
+        PT_LOG_ERR(LOG_CTX_INTF, "Error: inIfNum = %d (should be in ]0; %u[ )", intIfNum, rc);
         return L7_FALSE;
     }
 
