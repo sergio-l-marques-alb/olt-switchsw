@@ -2429,31 +2429,6 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
     return L7_SUCCESS;
   }
 
-  //Make sure that the reported UDP.length is at least the minimum size possible
-  if(osapiNtohs(udp_header->length) < (sizeof(L7_udp_header_t) + sizeof(L7_dhcp6_packet_t)))
-  {
-    //if (ptin_debug_dhcp_snooping)
-    PT_LOG_ERR(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Broken frame received, ignoring (invalid UDP.length).");
-    return L7_FAILURE;
-  }
-   
-  if (osapiNtohs(udp_header->length) +
-      (ethHdrLen + L7_IP6_HEADER_LEN + (sizeof(L7_udp_header_t) + sizeof(L7_dhcp6_packet_t) + sizeof(L7_dhcp6_relay_agent_packet_t)))
-      >= (DS_DHCP_PACKET_SIZE_MAX))
-  {
-    PT_LOG_ERR(LOG_CTX_DHCP, "Ignoring packet (invalid UDP length %d)",
-               osapiNtohs(udp_header->length));
-    return L7_FAILURE;
-  }
-
-  //If the port through which the message was received is configured as untrusted and the packet is a RELAY-FORW, drop it
-  if((dhcp_msg_type==L7_DHCP6_RELAY_FORW) && (!_dsVlanIntfTrustGet(vlanId,intIfNum)))
-  {
-     if (ptin_debug_dhcp_snooping)
-       PT_LOG_ERR(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Discarded RELAY-FORW message received on untrusted port");
-     return L7_SUCCESS;
-  }
-
   //Get DHCP Options for this client
   inetAddressZeroSet(L7_AF_INET6, &client_ip_addr);
   memcpy(&client_mac_addr, mac_header->src.addr, L7_ENET_MAC_ADDR_LEN);
@@ -3652,32 +3627,6 @@ int dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
           memcpy(psuedoHdr, udp_header, osapiNtohs(udp_header->length));
           udp_header->checksum = inetChecksum(tempPtr, (osapiNtohs(udp_header->length) + 40));
           udp_header->checksum = osapiHtons(udp_header->checksum);
-          if (ptin_debug_dhcp_snooping)
-          {
-              PT_LOG_TRACE(LOG_CTX_DHCP,
-                       "total_length=%u udp_header->length=%u "
-                       "udp_header->checksum=0x%x",
-                       total_length, osapiNtohs(udp_header->length),
-                       udp_header->checksum);
-          }
-
-          if (ptin_debug_dhcp_snooping) 
-          {
-              int i;
-
-              PT_LOG_TRACE(LOG_CTX_DHCP,"===Pseudo Header + UDP===");
-
-              for (i=0; i<total_length/4+1; i++)
-              {
-                  PT_LOG_TRACE(LOG_CTX_DHCP,"%04x   "
-                                            "%2.2x %2.2x %2.2x %2.2x ",
-                                            i*4,
-                                            tempPtr[4*i], tempPtr[4*i+1],
-                                            tempPtr[4*i+2], tempPtr[4*i+3]);
-              }
-              PT_LOG_TRACE(LOG_CTX_DHCP, "===================");
-          }
-
       }
 
       /* Reset the packet buffer after usage.*/
