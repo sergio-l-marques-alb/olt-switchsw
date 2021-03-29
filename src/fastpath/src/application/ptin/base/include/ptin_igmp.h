@@ -15,6 +15,7 @@
 #include "l3_addrdefs.h"
 #include "ptin_mgmd_ctrl.h"
 #include "ptin_globaldefs.h"
+#include "ptin_intf.h"
 
 /*********************************************************** 
  * MACRO TOOLS
@@ -30,15 +31,12 @@
 
 
 #define PTIN_IGMP_PORT_MASK_UNIT      UINT32_BITSIZE
-#define PTIN_IGMP_PORT_BITMAP_SIZE    (PTIN_SYSTEM_N_UPLINK_INTERF-1)/PTIN_IGMP_PORT_MASK_UNIT+1
+#define PTIN_IGMP_PORT_BITMAP_SIZE    (PTIN_SYSTEM_N_CLIENT_PORTS-1)/PTIN_IGMP_PORT_MASK_UNIT+1
 
 #define PTIN_IGMP_CLIENT_MASK_UNIT    UINT32_BITSIZE
 #define PTIN_IGMP_CLIENT_BITMAP_SIZE  (PTIN_IGMP_CLIENTIDX_MAX-1)/PTIN_IGMP_CLIENT_MASK_UNIT+1
 
 
-
-/* Set MGMD integration */
-#define PTIN_SNOOP_USE_MGMD 1
 
 #define PTIN_IGMP_STATS_IN_EVCS 0
 
@@ -852,7 +850,7 @@ extern L7_RC_t ptin_igmp_assoc_clean_all(void);
 /**
  * Get external vlans
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param intOVlan 
  * @param intIVlan 
  * @param client_idx 
@@ -861,10 +859,10 @@ extern L7_RC_t ptin_igmp_assoc_clean_all(void);
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_igmp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan,
+extern L7_RC_t ptin_igmp_extVlans_get(L7_uint32 ptin_port, L7_uint16 intOVlan, L7_uint16 intIVlan,
                                       L7_int client_idx, L7_uint16 *uni_ovid, L7_uint16 *uni_ivid);
 
-#if 1
+#if 0
 /**
  * Get next IGMP client
  * 
@@ -883,56 +881,76 @@ extern L7_RC_t ptin_igmp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7
 extern L7_RC_t ptin_igmp_client_next(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 inner_vlan,
                                      L7_uint16 *inner_vlan_next, L7_uint16 *uni_ovid, L7_uint16 *uni_ivid);
 #endif
+
 /**
  * Get the client index associated to a Multicast client 
  * 
- * @param intIfNum      : interface number
- * @param intVlan       : internal vlan
- * @param innerVlan     : inner vlan
- * @param client_index  : Client index to be returned
+ * @param [in]  intIfNum      : interface number
+ * @param [in]  intVlan       : internal vlan
+ * @param [in]  innerVlan     : inner vlan 
+ * @param [in]  smac          : 
+ * @param [in]  client_index  : Client index to be returned 
+ * @param [out] client_ret    : returns client info
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_igmp_dynamic_client_find(L7_uint32 intIfNum,
-                                         L7_uint16 intVlan, L7_uint16 innerVlan,
-                                         L7_uchar8 *smac,
-                                         L7_uint *client_index);
+                                             L7_uint16 intVlan, 
+                                             L7_uint16 innerVlan,
+                                             L7_uchar8 *smac,
+                                             L7_uint *client_index,
+                                             ptin_client_id_t *client_ret);
+/**
+ * Build client id structure
+ * 
+ * @param intIfNum  : interface
+ * @param intVlan   : internal outer vlan
+ * @param innerVlan : inner vlan
+ * @param smac      : source MAC address
+ * @param client    : client id pointer (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_clientId_build(L7_uint32 intIfNum,
+                                        L7_uint16 intVlan, L7_uint16 innerVlan,
+                                        L7_uchar8 *smac,
+                                        ptin_client_id_t *client);
 
 /**
  * Get client type from its index. 
  * 
- * @param intIfNum      : interface number 
+ * @param ptin_port     : interface number 
  * @param client_index  : Client index
  * @param isDynamic     : client type (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_client_type(L7_uint32 intIfNum,
+extern L7_RC_t ptin_igmp_client_type(L7_uint32 ptin_port,
                                      L7_uint client_idx,
                                      L7_BOOL *isDynamic);
 
 /**
  * (Re)start the timer for this client
  *  
- * @param intIfNum    : Interface Number
+ * @param ptin_port   : Interface Number
  * @param client_idx  : client index
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_device_client_timer_start(L7_uint32 intIfNum,
-                                     L7_uint32 client_idx);
+L7_RC_t ptin_igmp_device_client_timer_start(L7_uint32 ptin_port,
+                                            L7_uint32 client_idx);
 
 /**
  * (Re)start the timer for this client
  *  
- * @param intIfNum    : Interface Number
+ * @param ptin_port   : Interface Number
  * @param client_idx  : client index
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  *
  * @notes Not working properly!
  */
-L7_RC_t ptin_igmp_client_timer_update(L7_uint32 intIfNum, L7_uint32 client_idx);
+L7_RC_t ptin_igmp_client_timer_update(L7_uint32 ptin_port, L7_uint32 client_idx);
 
 /**
  * Add a new Multicast client group
@@ -980,39 +998,53 @@ extern L7_RC_t ptin_igmp_api_client_add(ptin_client_id_t *client, L7_uint16 uni_
 /**
  * Remove a Multicast client group
  * 
- * @param client       : client group identification parameters 
+ * @param client   : client group identification parameters 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_igmp_api_client_remove(ptin_client_id_t *client);
 
+/**
+ * Validate and rearrange client id info. 
+ * This should only be applied for client infos coming from 
+ * manager. 
+ * 
+ * @author mruas (8/6/2013)
+ * 
+ * @param client : client info
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
 extern L7_RC_t ptin_igmp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *client);
 
 /**
  * Add a dynamic client
  *  
- * @param intIfNum    : interface number  
+ * @param intIfNum   : interface number  
  * @param intVlan     : Internal vlan
  * @param innerVlan   : Inner vlan
  * @param client_idx_ret : client index (output) 
+ * @param client_ret     : client info  (output)  
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum,
-                                            L7_uint16 intVlan, L7_uint16 innerVlan,
+                                            L7_uint16 intVlan,
+                                            L7_uint16 innerVlan,
                                             L7_uchar8 *smac,
-                                            L7_uint *client_idx_ret);
+                                            L7_uint *client_idx_ret,
+                                            ptin_client_id_t *client_ret);
 
 /**
  * Remove a particular client
  * 
- * @param intIfNum      : Interface Number
+ * @param ptin_port     : Interface Number
  * @param client_index  : Client index
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_dynamic_client_remove(L7_uint32 intIfNum,
-                                              L7_uint client_idx);
+extern L7_RC_t ptin_igmp_dynamic_client_remove(L7_uint32 ptin_port,
+                                               L7_uint client_idx);
 
 /**
  * Remove all dynamic client
@@ -1024,27 +1056,27 @@ extern L7_RC_t ptin_igmp_dynamic_client_remove_all(void);
 /**
  * Get client information from its index. 
  * 
- * @param intIfNum      : Interface Number
+ * @param ptin_port     : Interface Number
  * @param client_index  : Client index
  * @param client        : Client information (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_clientData_get(L7_uint32 intIfNum,
+extern L7_RC_t ptin_igmp_clientData_get(L7_uint32 ptin_port,
                                         L7_uint client_idx,
                                         ptin_client_id_t *client);
 
 /**
- * Validate igmp packet checking if the input intIfNum and 
+ * Validate igmp packet checking if the input ptin_port and 
  * internal Vlan are valid
  * 
- * @param intIfNum : source interface number
+ * @param ptin_port: source interface number
  * @param intVlan  : internal vlan
  * 
  * @return L7_RC_t : L7_SUCCESS: Parameters are valid
  *                   L7_FAILURE: Not valid
  */
-extern L7_RC_t ptin_igmp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan);
+extern L7_RC_t ptin_igmp_intfVlan_validate(L7_uint32 ptin_port, L7_uint16 intVlan);
 
 /**
  * Validate igmp packet checking if the input internal Vlan are 
@@ -1069,34 +1101,34 @@ extern L7_RC_t ptin_igmp_vlan_validate(L7_uint16 intVlan);
 extern L7_RC_t ptin_igmp_vlan_UC_is_unstacked(L7_uint16 intVlan, L7_BOOL *is_unstacked);
 
 /**
- * Validate igmp packet checking if the input intIfNum is a root
- * interface and internal Vlan is valid 
+ * Validate igmp packet checking if the input ptin_port is a 
+ * root interface and internal Vlan is valid 
  * 
- * @param intIfNum : source interface number
+ * @param ptin_port: source interface number
  * @param intVlan  : internal vlan
  * 
  * @return L7_RC_t : L7_SUCCESS: Parameters are valid
  *                   L7_FAILURE: Not valid
  */
-extern L7_RC_t ptin_igmp_rootIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan);
+extern L7_RC_t ptin_igmp_rootIntfVlan_validate(L7_uint32 ptin_port, L7_uint16 intVlan);
 
 /**
- * Validate igmp packet checking if the input intIfNum is a 
+ * Validate igmp packet checking if the input ptin_port is a 
  * client (leaf) interface and internal Vlan is valid 
  * 
- * @param intIfNum : source interface number
+ * @param ptin_port: source interface number
  * @param intVlan  : internal vlan
  * 
  * @return L7_RC_t : L7_SUCCESS: Parameters are valid
  *                   L7_FAILURE: Not valid
  */
-extern L7_RC_t ptin_igmp_clientIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan);
+extern L7_RC_t ptin_igmp_clientIntfVlan_validate(L7_uint32 ptin_port, L7_uint16 intVlan);
 
 /**
- * Validate igmp packet checking if the input intIfNum is a 
+ * Validate igmp packet checking if the input ptin_port is a 
  * client (leaf) interface and internal Vlan is valid 
  * 
- * @param intIfNum : source interface number
+ * @param ptin_port: source interface number
  * @param intVlan  : internal vlan
  * 
  * @return L7_RC_t : L7_SUCCESS: Parameters are valid
@@ -1107,14 +1139,14 @@ extern L7_RC_t ptin_igmp_clientIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 i
  * Therefore we must use the Unicast EVC to validate a client 
  * interface. 
  */
-L7_RC_t ptin_igmp_get_port_type(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint32 *port_type);
+L7_RC_t ptin_igmp_get_port_type(L7_uint32 ptin_port, L7_uint16 intVlan, L7_uint32 *port_type);
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 /**
  * Get the MC root vlan associated to the internal vlan
  *  
  * @param intVlan       : Internal VLAN 
- * @param intIfNum      : Interface Number isLeafPort 
+ * @param ptin_port     : Interface Number isLeafPort 
  * @param isLeafPort    : Port Type is Leaf
  * @param clientId      : Client Identifier
  * @param groupAddr     : Channel Group address 
@@ -1123,13 +1155,13 @@ L7_RC_t ptin_igmp_get_port_type(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint32
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_mcast_evc_id_get(L7_uint16 intVlan, L7_uint32 intIfNum, L7_BOOL isLeafPort, L7_uint32 clientId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_uint32 *mcastEvcId);
+extern L7_RC_t ptin_igmp_mcast_evc_id_get(L7_uint16 intVlan, L7_uint32 ptin_port, L7_BOOL isLeafPort, L7_uint32 clientId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_uint32 *mcastEvcId);
 
 /**
  * Get the MC root vlan associated to the internal vlan
  *  
  * @param intVlan       : Internal VLAN 
- * @param intIfNum      : Interface Number isLeafPort 
+ * @param ptin_port     : Interface Number isLeafPort 
  * @param isLeafPort    : Port Type is Leaf
  * @param clientId      : Client Identifier
  * @param groupAddr     : Channel Group address 
@@ -1138,7 +1170,7 @@ extern L7_RC_t ptin_igmp_mcast_evc_id_get(L7_uint16 intVlan, L7_uint32 intIfNum,
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint16 intVlan, L7_uint32 intIfNum, L7_BOOL isLeafPort, L7_uint32 clientId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_uint16 *mcastRootVlan);
+extern L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint16 intVlan, L7_uint32 ptin_port, L7_BOOL isLeafPort, L7_uint32 clientId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_uint16 *mcastRootVlan);
 #endif
 /**
  * Get the MC root vlan associated to the internal vlan
@@ -1150,33 +1182,33 @@ extern L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint16 intVlan, L7_uint32 intIfNum
  */
 extern L7_RC_t ptin_igmp_McastRootVlanRing_get(L7_uint16 intVlan, L7_uint16 *McastRootVlan);
 
- /**
- * Get the list of root interfaces associated to a internal vlan
+/**
+ * Get the list of ptin_ports associated to a internal vlan
  * 
  * @param intVlan        : Internal vlan
- * @param intfList       : List of interfaces 
+ * @param ptinPortList   : List of ptin_ports 
  * @param noOfInterfaces : Number of interfaces 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_rootIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList, L7_uint32 *noOfInterfaces);
+extern L7_RC_t ptin_igmp_rootptinPort_getList(L7_uint16 intVlan, ptin_port_bmp_t *ptinPortList, L7_uint32 *noOfInterfaces);
 
 /**
- * Get the list of client (leaf) interfaces associated to a 
+ * Get the list of client (leaf) ptin_ports associated to a 
  * internal vlan 
  * 
- * @param intVlan        : Internal vlan
- * @param intfList       : List of interfaces 
+ * @param intVlan      : Internal vlan
+ * @param ptinPortList : List of ptin_ports
  * @param noOfInterfaces : Number of interfaces  
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList, L7_uint32 *noOfInterfaces);
+extern L7_RC_t ptin_igmp_clientPtinport_getList(L7_uint16 intVlan, ptin_port_bmp_t *ptinPortList, L7_uint32 *noOfInterfaces);
 
 /**
  * Get the external outer+inner vlan asociated to the MC EVC
  * 
- * @param intIfNum     : interface number
+ * @param ptin_port    : interface number
  * @param intOVlan     : Internal outer vlan 
  * @param intIVlan     : Internal inner vlan 
  * @param extMcastVlan : external vlan associated to MC EVC
@@ -1184,13 +1216,13 @@ extern L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_extMcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extMcastVlan, L7_uint16 *extIVlan);
+extern L7_RC_t ptin_igmp_extMcastVlan_get(L7_uint32 ptin_port, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extMcastVlan, L7_uint16 *extIVlan);
 
 #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
 /**
  * Get the external outer+inner vlan asociated to the UC EVC
  * 
- * @param intIfNum     : interface number
+ * @param ptin_port    : interface number
  * @param intOVlan     : Internal outer vlan 
  * @param intIVlan     : Internal inner vlan 
  * @param extMcastVlan : external vlan associated to MC EVC
@@ -1198,7 +1230,7 @@ extern L7_RC_t ptin_igmp_extMcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_extUcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extUcastVlan, L7_uint16 *extIVlan);
+extern L7_RC_t ptin_igmp_extUcastVlan_get(L7_uint32 ptin_port, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extUcastVlan, L7_uint16 *extIVlan);
 #endif
 
 #if defined IGMP_SMART_MC_EVC_SUPPORTED
@@ -1212,7 +1244,30 @@ extern L7_RC_t ptin_igmp_extUcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_igmp_UcastEvcId_get(L7_uint32 McastEvcId, L7_uint32 *UcastEvcId);
+L7_RC_t ptin_igmp_UcastEvcId_get(L7_uint32 McastEvcId, L7_uint32 ptin_port, L7_uint32 *UcastEvcId);
+
+/**
+ * Remove L3 egress port from multicast evc ID
+ * 
+ * @param ptin_port 
+ * @param mcast_group 
+ * @param MCastId 
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t ptin_multicast_MCEvc_id_port_remove(L7_uint32 ptin_port, L7_int multicastGroup, L7_uint32 MCastId);
+
+/**
+ * Add L3 egress port to multicast evc ID
+ * 
+ * @param ptin_port 
+ * @param mcast_group 
+ * @param MCastId 
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t ptin_multicast_MCEvc_id_port_add(L7_uint32 ptin_port, L7_int multicastGroup, L7_uint32 MCastId);
+
 #endif
 
 /**
@@ -1227,21 +1282,22 @@ extern L7_RC_t ptin_igmp_mgmd_service_remove(L7_uint32 evc_idx);
 /**
  * Removes all groups related to this port Id
  *  
- * @param EvcId   : Multicast evc id 
- * @param intfnum : Port Id
+ * @param EvcId : Multicast evc id 
+ * @param ptin_port : Port Id
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_mgmd_port_remove(L7_uint32 evc_idx, L7_uint32 intIfNum);
+L7_RC_t ptin_igmp_mgmd_port_remove(L7_uint32 evc_idx, L7_uint32 ptin_port);
 
 /**
  * Removes all groups related to this client Id
  * 
- * @param intfnum : Multicast evc id 
+ * @param ptin_port
+ * @param clientId
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_mgmd_client_remove(L7_uint32 intIfNum, L7_uint32 clientId);
+L7_RC_t ptin_igmp_mgmd_client_remove(L7_uint32 ptin_port, L7_uint32 clientId);
 
 
 /**************************** 
@@ -1251,7 +1307,7 @@ L7_RC_t ptin_igmp_mgmd_client_remove(L7_uint32 intIfNum, L7_uint32 clientId);
 /**
  * Get global IGMP statistics
  * 
- * @param intIfNum    : interface
+ * @param ptin_intf   : interface
  * @param statistics  : statistics (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
@@ -1263,7 +1319,7 @@ L7_RC_t ptin_igmp_stat_intf_get(ptin_intf_t *ptin_intf, PTIN_MGMD_CTRL_STATS_RES
  * interface 
  * 
  * @param evc_idx  : Multicast EVC id
- * @param intIfNum    : interface
+ * @param ptin_intf   : interface
  * @param statistics  : statistics (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
@@ -1301,7 +1357,7 @@ extern L7_RC_t ptin_igmp_stat_instance_clear(L7_uint32 evc_idx);
 /**
  * Clear interface IGMP statistics
  * 
- * @param intIfNum    : interface 
+ * @param ptin_intf : interface 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
@@ -1311,7 +1367,7 @@ extern L7_RC_t ptin_igmp_stat_intf_clear(ptin_intf_t *ptin_intf);
  * Clear statistics of a particular IGMP instance and interface
  * 
  * @param evc_idx  : Multicast EVC id
- * @param intIfNum    : interface
+ * @param ptin_intf : interface
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
@@ -1331,45 +1387,45 @@ extern L7_RC_t ptin_igmp_stat_client_clear(L7_uint32 evc_idx, const ptin_client_
 /**
  * Increment IGMP statistics
  * 
- * @param intIfNum   : interface where the packet entered
+ * @param ptin_port  : interface where the packet entered
  * @param vlan       : packet's interval vlan
  * @param client_idx : client index
  * @param field      : field to increment
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field);
+extern L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 ptin_port, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field);
 
 /**
  * Decrement IGMP statistics
  * 
- * @param intIfNum   : interface where the packet entered
+ * @param ptin_port  : interface where the packet entered
  * @param vlan       : packet's interval vlan
  * @param client_idx : client index
  * @param field      : field to increment
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field);
+L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 ptin_port, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field);
 
 
 /**
  * Get IGMP statistics
  * 
- * @param intIfNum   : interface where the packet entered
+ * @param ptin_port  : interface where the packet entered
  * @param vlan       : packet's interval vlan
  * @param client_idx : client index
  * @param field      : field to get
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field);
+L7_RC_t ptin_igmp_stat_get_field(L7_uint32 ptin_port, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field);
 
 
 /**
  * Reset IGMP statistics
  * 
- * @param intIfNum   : interface where the packet entered
+ * @param ptin_port  : interface where the packet entered
  * @param vlan       : packet's interval vlan
  * @param client_idx : client index
  * @param field      : field to get
@@ -1377,7 +1433,7 @@ L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 c
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 
-L7_RC_t ptin_igmp_stat_reset_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field);
+L7_RC_t ptin_igmp_stat_reset_field(L7_uint32 ptin_port, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field);
 
 /**
  * Get MGMD Query Instances 
@@ -1392,14 +1448,14 @@ extern mgmdQueryInstances_t* ptin_mgmd_query_instances_get(L7_uint32 *mgmdNumber
  * Get IGMP Client Bitmap
  *  
  * @param extendedEvcId       : Extended EVC Id
- * @param intIfNum            : intIfNum
+ * @param ptin_port           : interface
  * @param clientBmpPtr        : Client Bitmap Pointer
  * 
  * @return  L7_RC_t           : L7_SUCCESS/L7_FAILURE 
  */
-extern L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum,L7_uchar8 *clientBmpPtr, L7_uint32 *noOfClients);
+extern L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 ptin_port, L7_uchar8 *clientBmpPtr, L7_uint32 *noOfClients);
 
-extern L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum, L7_uchar8 *clientBmpPtr, L7_uint32 *noOfClients);
+extern L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 ptin_port, L7_uchar8 *clientBmpPtr, L7_uint32 *noOfClients);
 
 /**
  * Print free group clients ID for ptin_port in queue 

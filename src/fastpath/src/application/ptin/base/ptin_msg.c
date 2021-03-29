@@ -15,6 +15,7 @@
 
 #include "ptin_msg.h"
 #include "ptin_intf.h"
+#include "ptin_qos.h"
 #include "ptin_evc.h"
 #include "ptin_igmp.h"
 #include "ptin_dhcp.h"
@@ -645,11 +646,8 @@ L7_RC_t ptin_msg_configure_trap(L7_uint16 vlanId, L7_uint8 portId, L7_uint8 prot
  */
 L7_RC_t ptin_msg_typeBprotIntfSwitchNotify(msg_HwTypeBProtSwitchNotify_t *msg)
 {
-
   L7_RC_t   rc;
-
-  L7_uint32 intIfNum;
-
+  L7_uint32 ptin_port;
   L7_uint8  status;
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "Type-B Protection switch notification");
@@ -657,19 +655,14 @@ L7_RC_t ptin_msg_typeBprotIntfSwitchNotify(msg_HwTypeBProtSwitchNotify_t *msg)
   PT_LOG_DEBUG(LOG_CTX_MSG, " portId = %u"   , ENDIAN_SWAP8(msg->portId)); //ptin_port format
   PT_LOG_DEBUG(LOG_CTX_MSG, " cmd    = %08X" , ENDIAN_SWAP8(msg->cmd));
 
-  /* Convert portId to intfNum */
-  if (ptin_intf_port2intIfNum(ENDIAN_SWAP8(msg->portId), &intIfNum)!=L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Non existent port");
-    return L7_FAILURE;
-  }
-
+  /* Port */
+  ptin_port = msg->portId;
 
   /* Get interface status from the first bit of msg->cmd */
   status = ENDIAN_SWAP8(msg->cmd) & 0x0001;
 
   /* Update interface configurations */
-  rc = ptin_prottypeb_intf_switch_notify(intIfNum, status);
+  rc = ptin_prottypeb_intf_switch_notify(ptin_port, status);
 
   if (rc!=L7_SUCCESS)
   {
@@ -690,7 +683,6 @@ L7_RC_t ptin_msg_typeBprotIntfSwitchNotify(msg_HwTypeBProtSwitchNotify_t *msg)
 L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
 {
   L7_RC_t                      rc;
-  L7_int                       ptin_port;
   ptin_prottypeb_intf_config_t ptin_intfConfig;
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "Configurations");
@@ -703,32 +695,22 @@ L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
   memset(&ptin_intfConfig, 0x00, sizeof(ptin_intfConfig));
 
   /* Convert intfId to intfNum */
-  if (ptin_msg_ptinPort_get(ENDIAN_SWAP8(msg->intfId.intf_type), ENDIAN_SWAP8(msg->intfId.intf_id), &ptin_port)!=L7_SUCCESS)
+  if (ptin_msg_ptinPort_get(ENDIAN_SWAP8(msg->intfId.intf_type), ENDIAN_SWAP8(msg->intfId.intf_id), &ptin_intfConfig.ptin_port)!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid port");
-    return L7_FAILURE;
-  }
-  if (ptin_intf_port2intIfNum(ptin_port, &ptin_intfConfig.intfNum)!=L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Non existent port");
     return L7_FAILURE;
   }
 
   /* Convert pairIntfId to intfNum */
-  if (ptin_msg_ptinPort_get(ENDIAN_SWAP8(msg->pairIntfId.intf_type), ENDIAN_SWAP8(msg->pairIntfId.intf_id), &ptin_port)!=L7_SUCCESS)
+  if (ptin_msg_ptinPort_get(ENDIAN_SWAP8(msg->pairIntfId.intf_type), ENDIAN_SWAP8(msg->pairIntfId.intf_id), &ptin_intfConfig.pairPtinPort)!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid port");
     return L7_FAILURE;
   }
-  if (ptin_intf_port2intIfNum(ptin_port, &ptin_intfConfig.pairIntfNum)!=L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Non existent port");
-    return L7_FAILURE;
-  }
 
-  if (ptin_intfConfig.intfNum == ptin_intfConfig.pairIntfNum && ENDIAN_SWAP8(msg->slotId) == ENDIAN_SWAP8(msg->pairSlotId))
+  if (ptin_intfConfig.ptin_port == ptin_intfConfig.pairPtinPort && ENDIAN_SWAP8(msg->slotId) == ENDIAN_SWAP8(msg->pairSlotId))
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Invalid Parameters: slotId=pairSlotId=%u, intfNum=pairIntfNum=%u", ENDIAN_SWAP8(msg->slotId), ptin_intfConfig.intfNum);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid Parameters: slotId=pairSlotId=%u, ptin_port=pairPtinPort=%u", ENDIAN_SWAP8(msg->slotId), ptin_intfConfig.ptin_port);
     return L7_FAILURE;
   }
   
@@ -1221,7 +1203,7 @@ L7_RC_t ptin_msg_PhyState_get(msg_HWEthPhyState_t *msgPhyState)
   portStats.Mask = 0xFF;
   portStats.RxMask = 0xFFFFFFFF;
   portStats.TxMask = 0xFFFFFFFF;
-  if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
+  if (ptin_intf_counters_read(port, &portStats) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
     memset(msgPhyState, 0x00, sizeof(msg_HWEthPhyState_t));
@@ -1292,7 +1274,7 @@ L7_RC_t ptin_msg_PhyActivity_get(msg_HWEthPhyActivity_t *msgPhyAct)
   portStats.Mask = 0xFF;
   portStats.RxMask = 0xFFFFFFFF;
   portStats.TxMask = 0xFFFFFFFF;
-  if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
+  if (ptin_intf_counters_read(ptin_port, &portStats) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
     return L7_FAILURE;
@@ -1352,7 +1334,7 @@ L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus)
   portStats.Mask = 0xFF;
   portStats.RxMask = 0xFFFFFFFF;
   portStats.TxMask = 0xFFFFFFFF;
-  if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
+  if (ptin_intf_counters_read(port, &portStats) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
     memset(msgPhyStatus, 0x00, sizeof(msg_HWEthPhyStatus_t));
@@ -1453,6 +1435,7 @@ L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus)
 L7_RC_t ptin_msg_oltd_hw_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
 {
   L7_uint16 i;
+  L7_uint32 ptin_port;
   msg_OLTDHWConfig_t *msgConf = (msg_OLTDHWConfig_t *) inbuffer->info;
   L7_RC_t rc = L7_FAILURE;
 
@@ -1477,11 +1460,19 @@ L7_RC_t ptin_msg_oltd_hw_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
                msgConf->param[4], msgConf->param[5], msgConf->param[6], msgConf->param[7],
                msgConf->param[8], msgConf->param[9]);
 
+  /* Validate interface */
+  if (ptin_intf_typeId2port(msgConf->intf.intf_type, msgConf->intf.intf_id, &ptin_port) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", msgConf->intf.intf_type, msgConf->intf.intf_id);
+    return L7_FAILURE;
+  }
+
   /* Operations */
   if (msgConf->operation == OLTDHWCONFIG_OP_SHAPER_SET)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Applying OLTDHWCONFIG_OP_SHAPER_SET operation...");
-    rc = ptin_intf_shaper_max_set(msgConf->intf.intf_type, msgConf->intf.intf_id, msgConf->param[0], msgConf->param[1]);
+    PT_LOG_INFO(LOG_CTX_MSG, "Applying OLTDHWCONFIG_OP_SHAPER_SET operation: ptin_port %u, rate_max=%u, burst size=%u",
+                ptin_port, msgConf->param[0], msgConf->param[1]);
+    rc = ptin_qos_intf_shaper_set(ptin_port, msgConf->param[0]*10 /*Percentx10*/, msgConf->param[1] /*Kbits*/);
   }
   
   PT_LOG_DEBUG(LOG_CTX_MSG, "Result = %d", rc);
@@ -1525,7 +1516,7 @@ L7_RC_t ptin_msg_PhyCounters_read(msg_HwGenReq_t *msgRequest, msg_HWEthRFC2819_P
     portStats.Mask = 0xFF;
     portStats.RxMask = 0xFFFFFFFF;
     portStats.TxMask = 0xFFFFFFFF;
-    if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
+    if (ptin_intf_counters_read(port, &portStats) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
       memset(p_msgPortStats, 0x00, sizeof(msg_HWEthRFC2819_PortStatistics_t));
@@ -1827,6 +1818,7 @@ L7_RC_t ptin_msg_slotMode_apply(void)
 L7_RC_t ptin_msg_portExt_set(msg_HWPortExt_t *portExt, L7_uint nElems)
 {
   L7_uint          i;// rc;
+  L7_uint32        ptin_port;
   ptin_intf_t      ptin_intf;
   ptin_HWPortExt_t portExt_conf;
 
@@ -1857,10 +1849,18 @@ L7_RC_t ptin_msg_portExt_set(msg_HWPortExt_t *portExt, L7_uint nElems)
     ptin_intf.intf_type = ENDIAN_SWAP8(portExt[i].intf.intf_type);
     ptin_intf.intf_id   = ENDIAN_SWAP8(portExt[i].intf.intf_id);
 
-    /* Set MEF parameters */
-    if (ptin_intf_portExt_set(&ptin_intf, &portExt_conf)!=L7_SUCCESS)
+    /* Get ptin_port */
+    if (ptin_intf_typeId2port(ptin_intf.intf_type, ptin_intf.intf_id, &ptin_port) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_MSG,"Error setting MEF EXT configurations");
+      PT_LOG_ERR(LOG_CTX_MSG,"Error converting ptin_intf %u/%u to ptin_port",
+                 ptin_intf.intf_type, ptin_intf.intf_id);
+      return L7_FAILURE;
+    }
+    
+    /* Set MEF parameters */
+    if (ptin_intf_portExt_set(ptin_port, &portExt_conf)!=L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG,"Error setting MEF EXT configurations to ptin_port %u", ptin_port);
       return L7_FAILURE;
     }
 
@@ -1974,9 +1974,10 @@ L7_RC_t ptin_msg_portExt_get(msg_HWPortExt_t *portExt, L7_uint *nElems)
     memset(&portExt_conf, 0x00, sizeof(ptin_HWPortExt_t));
 
     /* Get MEF parameters */
-    if (ptin_intf_portExt_get(&ptin_intf, &portExt_conf)!=L7_SUCCESS)
+    if (ptin_intf_portExt_get(port, &portExt_conf)!=L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_MSG,"Error getting MEF EXT parameters for interface=%u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
+      PT_LOG_ERR(LOG_CTX_MSG,"Error getting MEF EXT parameters for ptin_port %u, interface=%u/%u",
+                 port, ptin_intf.intf_type, ptin_intf.intf_id);
       return L7_FAILURE;
     }
 
@@ -2167,6 +2168,7 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
 {
   L7_int i;
   L7_uint8                slot_id;
+  L7_uint32               ptin_port;
   ptin_intf_t             ptin_intf;
   ptin_QoS_intf_t         qos_intf;
   ptin_QoS_cos_t          qos_cos[8];
@@ -2183,6 +2185,13 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
   ptin_intf.intf_type = qos_msg->intf.intf_type;
   ptin_intf.intf_id   = qos_msg->intf.intf_id;
 
+  /* Validate interface */
+  if (ptin_intf_typeId2port(ptin_intf.intf_type, ptin_intf.intf_id, &ptin_port) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
   /* Clear and initialize message structure */
   memset(qos_msg,0x00,sizeof(msg_QoSConfiguration_t));
   qos_msg->SlotId = slot_id;
@@ -2194,7 +2203,7 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
   memset(qos_cos,0x00,sizeof(ptin_QoS_cos_t)*8);
 
   /* Get Interface configuration */
-  rc = ptin_QoS_intf_config_get(&ptin_intf,&qos_intf);
+  rc = ptin_qos_intf_config_get(ptin_port, &qos_intf);
   if (rc == L7_SUCCESS)
   {
     /* Trust mode */
@@ -2239,7 +2248,7 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
   }
 
   /* QoS configuration */
-  rc = ptin_QoS_cos_config_get(&ptin_intf,(L7_uint8)-1,qos_cos);
+  rc = ptin_qos_cos_config_get(ptin_port, (L7_uint8)-1,qos_cos);
   if (rc == L7_SUCCESS)
   {
     /* Run all QoS */
@@ -2334,6 +2343,7 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
 L7_RC_t ptin_msg_CoS_set(msg_QoSConfiguration_t *qos_msg)
 {
   L7_int i;
+  L7_uint32               ptin_port;
   ptin_intf_t             ptin_intf;
   ptin_QoS_intf_t         qos_intf;
   ptin_QoS_cos_t          qos_cos[8];
@@ -2388,6 +2398,13 @@ L7_RC_t ptin_msg_CoS_set(msg_QoSConfiguration_t *qos_msg)
   ptin_intf.intf_type = qos_msg->intf.intf_type;
   ptin_intf.intf_id   = qos_msg->intf.intf_id;
 
+  /* Validate interface */
+  if (ptin_intf_typeId2port(ptin_intf.intf_type, ptin_intf.intf_id, &ptin_port) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
   /* Interface configuration */
 
   /* Trust mode */
@@ -2429,7 +2446,7 @@ L7_RC_t ptin_msg_CoS_set(msg_QoSConfiguration_t *qos_msg)
   if (qos_intf.mask)
   {
     /* Execute priority map configuration */
-    rc = ptin_QoS_intf_config_set(&ptin_intf,&qos_intf);
+    rc = ptin_qos_intf_config_set(ptin_port, &qos_intf);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Error configuring priority map (rc=%d)", rc);
@@ -2470,7 +2487,7 @@ L7_RC_t ptin_msg_CoS_set(msg_QoSConfiguration_t *qos_msg)
     if (qos_msg->cos_config.mask)
     {
       /* Apply configuration */
-      rc = ptin_QoS_cos_config_set(&ptin_intf, (L7_uint8)-1, qos_cos);
+      rc = ptin_qos_cos_config_set(ptin_port, (L7_uint8)-1, qos_cos);
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG,"Error configuring QoS (rc=%d)",rc);
@@ -2502,6 +2519,7 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
 {
   L7_int                  i, j;
   L7_uint8                slot_id;
+  L7_uint32               ptin_port;
   ptin_intf_t             ptin_intf;
   ptin_QoS_intf_t         qos_intf;
   ptin_QoS_cos_t          qos_cos[8];
@@ -2519,6 +2537,13 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
   ptin_intf.intf_type = qos_msg->intf.intf_type;
   ptin_intf.intf_id   = qos_msg->intf.intf_id;
 
+  /* Validate interface */
+  if (ptin_intf_typeId2port(ptin_intf.intf_type, ptin_intf.intf_id, &ptin_port) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
   /* Clear and initialize message structure */
   memset(qos_msg,0x00,sizeof(msg_QoSConfiguration_t));
   qos_msg->SlotId = slot_id;
@@ -2531,7 +2556,7 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
   memset(qos_drop,0x00,sizeof(qos_drop));
 
   /* Get Interface configuration */
-  rc = ptin_QoS_intf_config_get(&ptin_intf,&qos_intf);
+  rc = ptin_qos_intf_config_get(ptin_port, &qos_intf);
   if (rc == L7_SUCCESS)
   {
     /* Trust mode */
@@ -2576,7 +2601,7 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
   }
 
   /* QoS configuration */
-  rc = ptin_QoS_cos_config_get(&ptin_intf,(L7_uint8)-1,qos_cos);
+  rc = ptin_qos_cos_config_get(ptin_port, (L7_uint8)-1,qos_cos);
   if (rc == L7_SUCCESS)
   {
     /* Run all QoS */
@@ -2624,7 +2649,7 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
   }
 
   /* QoS drop configuration */
-  rc = ptin_QoS_drop_config_get(&ptin_intf, (L7_uint8)-1, qos_drop);
+  rc = ptin_qos_drop_config_get(ptin_port, (L7_uint8)-1, qos_drop);
   if (rc == L7_SUCCESS)
   {
     /* Run all QoS */
@@ -2804,6 +2829,7 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
 L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
 {
   L7_int i, j;
+  L7_uint32               ptin_port;
   ptin_intf_t             ptin_intf;
   ptin_QoS_intf_t         qos_intf;
   ptin_QoS_cos_t          qos_cos[8];
@@ -2917,6 +2943,13 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
   ptin_intf.intf_type = qos_msg->intf.intf_type;
   ptin_intf.intf_id   = qos_msg->intf.intf_id;
 
+  /* Validate interface */
+  if (ptin_intf_typeId2port(ptin_intf.intf_type, ptin_intf.intf_id, &ptin_port) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
   /* Interface configuration */
 
   /* Trust mode */
@@ -2956,7 +2989,7 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
   if (qos_intf.mask)
   {
     /* Execute priority map configuration */
-    rc = ptin_QoS_intf_config_set(&ptin_intf, &qos_intf);
+    rc = ptin_qos_intf_config_set(ptin_port, &qos_intf);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Error configuring priority map (rc=%d)", rc);
@@ -3000,7 +3033,7 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
     }
 
     /* Apply configuration */
-    rc = ptin_QoS_cos_config_set(&ptin_intf, (L7_uint8)-1, qos_cos);
+    rc = ptin_qos_cos_config_set(ptin_port, (L7_uint8)-1, qos_cos);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Error configuring QoS (rc=%d)",rc);
@@ -3068,7 +3101,7 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
     }
 
     /* Apply configuration */
-    rc = ptin_QoS_drop_config_set(&ptin_intf, (L7_uint8)-1, qos_drop);
+    rc = ptin_qos_drop_config_set(ptin_port, (L7_uint8)-1, qos_drop);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Error configuring QoS Drop management (rc=%d)",rc);
@@ -3098,6 +3131,7 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
 L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
 {
   L7_int i, j;
+  L7_uint32               ptin_port;
   ptin_intf_t             ptin_intf;
   L7_uint                 trust_mode;
   ptin_QoS_intf_t         qos_intf;
@@ -3124,6 +3158,13 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
   ptin_intf.intf_id   = qos_msg->intf.intf_id;
   slotId = qos_msg->SlotId;
 
+  /* Validate interface */
+  if (ptin_intf_typeId2port(ptin_intf.intf_type, ptin_intf.intf_id, &ptin_port) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
   /* Clear structure */
   memset(qos_msg,0x00,sizeof(msg_QoSConfiguration3_t));
   /* Pre-fill it */
@@ -3133,7 +3174,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
 
   /* Get current interface configuration */
   memset(&qos_intf,0x00,sizeof(ptin_QoS_intf_t));
-  rc = ptin_QoS_intf_config_get(&ptin_intf, &qos_intf);
+  rc = ptin_qos_intf_config_get(ptin_port, &qos_intf);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Error reading interface configuration (rc=%d)", rc);
@@ -3219,7 +3260,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
 
   /* Clear structures */
   memset(qos_cos,0x00,sizeof(qos_cos));
-  rc = ptin_QoS_cos_config_get(&ptin_intf, (L7_uint8)-1, qos_cos); 
+  rc = ptin_qos_cos_config_get(ptin_port, (L7_uint8)-1, qos_cos); 
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Error reading QoS configurations (rc=%d)",rc);
@@ -3277,7 +3318,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
 
   /* Clear structures */
   memset(qos_drop,0x00,sizeof(qos_drop));
-  rc = ptin_QoS_drop_config_get(&ptin_intf, (L7_uint8)-1, qos_drop);
+  rc = ptin_qos_drop_config_get(ptin_port, (L7_uint8)-1, qos_drop);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Error reading QoS Drop management configurations (rc=%d)",rc);
@@ -3605,6 +3646,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
 L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
 {
   L7_int i, j;
+  L7_uint32               ptin_port;
   ptin_intf_t             ptin_intf;
   L7_uint                 trust_mode;
   ptin_QoS_intf_t         qos_intf, qos_intf_curr;
@@ -3883,9 +3925,16 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   ptin_intf.intf_type = qos_msg->intf.intf_type;
   ptin_intf.intf_id   = qos_msg->intf.intf_id;
 
+  /* Validate interface */
+  if (ptin_intf_typeId2port(ptin_intf.intf_type, ptin_intf.intf_id, &ptin_port) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
   /* Get current interface configuration */
   memset(&qos_intf_curr,0x00,sizeof(ptin_QoS_intf_t));
-  rc = ptin_QoS_intf_config_get(&ptin_intf, &qos_intf_curr);
+  rc = ptin_qos_intf_config_get(ptin_port, &qos_intf_curr);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Error reading interface configuration (rc=%d)", rc);
@@ -3973,7 +4022,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
         meter.cbs = qos_msg->ingress.cos_policer[i].cbs;
         meter.ebs = qos_msg->ingress.cos_policer[i].ebs;
 
-        rc = ptin_QoS_intf_cos_policer_set(&ptin_intf, i, &meter);
+        rc = ptin_qos_cos_policer_set(ptin_port, i, &meter);
         if (rc != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_MSG,"Error applying interface configuration to ptin_intf %u/%u, cos=%u: cir=%u eir=%u cbs=%u ebs=%u (rc=%d)",
@@ -4004,7 +4053,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   {
     PT_LOG_TRACE(LOG_CTX_MSG,"Applying Interface configurations...");
     /* Execute priority map configuration */
-    rc = ptin_QoS_intf_config_set(&ptin_intf, &qos_intf);
+    rc = ptin_qos_intf_config_set(ptin_port, &qos_intf);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Error applying interface configuration (rc=%d)", rc);
@@ -4074,7 +4123,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   if (apply_conf)
   {
     PT_LOG_TRACE(LOG_CTX_MSG,"Applying QoS configurations...");
-    rc = ptin_QoS_cos_config_set(&ptin_intf, (L7_uint8)-1, qos_cos); 
+    rc = ptin_qos_cos_config_set(ptin_port, (L7_uint8)-1, qos_cos); 
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Error configuring QoS (rc=%d)",rc);
@@ -4161,7 +4210,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   if (apply_conf)
   {
     PT_LOG_TRACE(LOG_CTX_MSG,"Applying Drop Management configurations...");
-    rc = ptin_QoS_drop_config_set(&ptin_intf, (L7_uint8)-1, qos_drop);
+    rc = ptin_qos_drop_config_set(ptin_port, (L7_uint8)-1, qos_drop);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Error configuring QoS Drop management (rc=%d)",rc);
@@ -5813,7 +5862,8 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
   #if (PTIN_BOARD_IS_LINECARD)
     if (!downlink)
     {
-    #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG || PTIN_BOARD == PTIN_BOARD_AG16GA )
+    #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_AG16GA || \
+         PTIN_BOARD == PTIN_BOARD_TT04SXG || PTIN_BOARD == PTIN_BOARD_TC16SXG)
       for (i=PTIN_SYSTEM_N_PONS; i<PTIN_SYSTEM_N_PORTS; i++)
       {
         qos_apply.ptin_port[number_of_ports++] = i;
@@ -6134,10 +6184,15 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
     else
 #endif
     {
+      ptin_intf_t ptin_intf;
+
+      ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcConf->evc.intf[i].intf_type);
+      ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcConf->evc.intf[i].intf_id);
+      
       // PHY or LAG
       ptinEvcConf.intf[index_port].intf.format = PTIN_INTF_FORMAT_TYPEID;
-      ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcConf->evc.intf[i].intf_type);
-      ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcConf->evc.intf[i].intf_id);
+      ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type = ptin_intf.intf_type;
+      ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_id   = ptin_intf.intf_id;
 
       ptinEvcConf.intf[index_port].mef_type    = ENDIAN_SWAP8 (msgEvcConf->evc.intf[i].mef_type) /*PTIN_EVC_INTF_ROOT*/;
       ptinEvcConf.intf[index_port].vid         = ENDIAN_SWAP16(msgEvcConf->evc.intf[i].vid);
@@ -6145,11 +6200,19 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       ptinEvcConf.intf[index_port].action_outer= PTIN_XLATE_ACTION_REPLACE;
       ptinEvcConf.intf[index_port].action_inner= PTIN_XLATE_ACTION_NONE;
 
+      /* Adjust outer VID considering the port virtualization scheme */
+      if (ptin_intf_portGem2virtualVid(ptintf2port(ptin_intf.intf_type, ptin_intf.intf_id),
+                                       ptinEvcConf.intf[index_port].vid,
+                                       &ptinEvcConf.intf[index_port].vid) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u", ptinEvcConf.intf[index_port].vid);
+      }
+
       PT_LOG_DEBUG(LOG_CTX_MSG, "   %s %02u %s VID=%04u/%-4u",
-         ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-         ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_id,
-         ptinEvcConf.intf[index_port].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
-         ptinEvcConf.intf[index_port].vid,ptinEvcConf.intf[i].vid_inner);
+                   ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+                   ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_id,
+                   ptinEvcConf.intf[index_port].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
+                   ptinEvcConf.intf[index_port].vid,ptinEvcConf.intf[i].vid_inner);
       PT_LOG_DEBUG(LOG_CTX_MSG, "PTIN_INTF_TYPE_DEBUG: %u", ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type);
 
 #ifdef NGPON2_SUPPORTED
@@ -6817,7 +6880,7 @@ L7_RC_t ptin_msg_evc_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
       evcOptions.type         = msgEvcOptions[i].type;
       evcOptions.mc_flood     = msgEvcOptions[i].mc_flood;
 
-      if ((rc=ptin_evc_config(msgEvcOptions[i].service_id.id_val.evc_id, &evcOptions)) != L7_SUCCESS)
+      if ((rc=ptin_evc_config(msgEvcOptions[i].service_id.id_val.evc_id, &evcOptions, -1)) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG, "Error configuring EVC# %u", msgEvcOptions[i].service_id.id_val.evc_id);
         rc_global = rc;
@@ -6877,7 +6940,7 @@ L7_RC_t ptin_msg_evc_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
           continue;
         }
 
-        if ((rc=ptin_evc_config(evc_id, &evcOptions)) != L7_SUCCESS)
+        if ((rc=ptin_evc_config(evc_id, &evcOptions,-1)) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_MSG, "Error configuring EVC# %u", evc_id);
           rc_global = rc;
@@ -7190,13 +7253,27 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
     ptinEvcFlow.evc_idx             = msgEvcFlow->evcId;
     ptinEvcFlow.flags               = msgEvcFlow->flags;
     ptinEvcFlow.int_ivid            = msgEvcFlow->nni_cvlan;
-
     ptinEvcFlow.ptin_intf.intf_type = msgEvcFlow->intf.intf_type;
-
     ptinEvcFlow.ptin_intf.intf_id   = msgEvcFlow->intf.intf_id;
-    ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.outer_vid; /* must be a leaf */
+    ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.outer_vid;
     ptinEvcFlow.uni_ivid            = msgEvcFlow->intf.inner_vid;
     ptinEvcFlow.macLearnMax         = msgEvcFlow->macLearnMax;
+
+    /* Adjust outer VID considering the port virtualization scheme */
+    if (ptin_intf_portGem2virtualVid(ptintf2port(ptinEvcFlow.ptin_intf.intf_type, ptinEvcFlow.ptin_intf.intf_id),
+                                     msgEvcFlow->intf.outer_vid,
+                                     &ptinEvcFlow.uni_ovid) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u", msgEvcFlow->intf.outer_vid);
+    }
+    /* Inner VLAN will identify the client using the GEM-VLAN value.
+       So, we need to add an offset according to the virtual port in use */
+    if (ptin_intf_portGem2virtualVid(ptintf2port(ptinEvcFlow.ptin_intf.intf_type, ptinEvcFlow.ptin_intf.intf_id),
+                                     msgEvcFlow->nni_cvlan,
+                                     &ptinEvcFlow.int_ivid) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u", msgEvcFlow->nni_cvlan);
+    }
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);
     PT_LOG_DEBUG(LOG_CTX_MSG, " Flags = 0x%08x",  ptinEvcFlow.flags);
@@ -7315,6 +7392,22 @@ L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
     ptinEvcFlow.int_ivid            = ENDIAN_SWAP16(msgEvcFlow->nni_cvlan);
     ptinEvcFlow.uni_ovid            = ENDIAN_SWAP16(msgEvcFlow->intf.outer_vid); /* must be a leaf */
     ptinEvcFlow.uni_ivid            = ENDIAN_SWAP16(msgEvcFlow->intf.inner_vid);
+
+    /* Adjust outer VID considering the port virtualization scheme */
+    if (ptin_intf_portGem2virtualVid(ptintf2port(ptinEvcFlow.ptin_intf.intf_type, ptinEvcFlow.ptin_intf.intf_id),
+                                     ptinEvcFlow.uni_ovid,
+                                     &ptinEvcFlow.uni_ovid) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u", msgEvcFlow->intf.outer_vid);
+    }
+    /* Inner VLAN will identify the client using the GEM-VLAN value.
+       So, we need to add an offset according to the virtual port in use */
+    if (ptin_intf_portGem2virtualVid(ptintf2port(ptinEvcFlow.ptin_intf.intf_type, ptinEvcFlow.ptin_intf.intf_id),
+                                     ptinEvcFlow.int_ivid,
+                                     &ptinEvcFlow.int_ivid) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u", msgEvcFlow->nni_cvlan);
+    }
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Flow",   ptinEvcFlow.evc_idx);
     PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",        ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
@@ -7851,14 +7944,14 @@ L7_RC_t ptin_msg_stormControl2_get(msg_HwEthStormControl2_t *msgStormControl)
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",          ENDIAN_SWAP8 (msgStormControl->SlotId));
-  PT_LOG_DEBUG(LOG_CTX_MSG," intf   = %u/%u",       ENDIAN_SWAP8 (msgStormControl->intf.intf_type), ENDIAN_SWAP8 (msgStormControl->intf.intf_id));
-  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x",      ENDIAN_SWAP8 (msgStormControl->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",         ENDIAN_SWAP8 (msgStormControl->SlotId));
+  PT_LOG_DEBUG(LOG_CTX_MSG," intf   = %u/%u",      ENDIAN_SWAP8 (msgStormControl->intf.intf_type), ENDIAN_SWAP8 (msgStormControl->intf.intf_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x",     ENDIAN_SWAP8 (msgStormControl->mask));
   PT_LOG_DEBUG(LOG_CTX_MSG," Broadcast = %u (%u)", ENDIAN_SWAP32(msgStormControl->broadcast.rate_value),  ENDIAN_SWAP8 (msgStormControl->broadcast.rate_units));
   PT_LOG_DEBUG(LOG_CTX_MSG," Multicast = %u (%u)", ENDIAN_SWAP32(msgStormControl->multicast.rate_value),  ENDIAN_SWAP8 (msgStormControl->multicast.rate_units));
   PT_LOG_DEBUG(LOG_CTX_MSG," UnknownUC = %u (%u)", ENDIAN_SWAP32(msgStormControl->unknown_uc.rate_value), ENDIAN_SWAP8 (msgStormControl->unknown_uc.rate_units));
-  PT_LOG_DEBUG(LOG_CTX_MSG," Block UC = %u",        ENDIAN_SWAP8 (msgStormControl->block_unicast));
-  PT_LOG_DEBUG(LOG_CTX_MSG," Block MC = %u",        ENDIAN_SWAP8 (msgStormControl->block_multicast));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Block UC = %u",       ENDIAN_SWAP8 (msgStormControl->block_unicast));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Block MC = %u",       ENDIAN_SWAP8 (msgStormControl->block_multicast));
 
   return L7_SUCCESS;
 }
@@ -7900,14 +7993,14 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
   ENDIAN_SWAP8_MOD (msgStormControl->block_unicast);
   ENDIAN_SWAP8_MOD (msgStormControl->block_multicast);
 
-  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",          msgStormControl->SlotId);
-  PT_LOG_DEBUG(LOG_CTX_MSG," intf   = %u/%u",       msgStormControl->intf.intf_type, msgStormControl->intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x",      msgStormControl->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",         msgStormControl->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," intf   = %u/%u",      msgStormControl->intf.intf_type, msgStormControl->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x",     msgStormControl->mask);
   PT_LOG_DEBUG(LOG_CTX_MSG," Broadcast = %u (%u)", msgStormControl->broadcast.rate_value,  msgStormControl->broadcast.rate_units);
   PT_LOG_DEBUG(LOG_CTX_MSG," Multicast = %u (%u)", msgStormControl->multicast.rate_value,  msgStormControl->multicast.rate_units);
   PT_LOG_DEBUG(LOG_CTX_MSG," UnknownUC = %u (%u)", msgStormControl->unknown_uc.rate_value, msgStormControl->unknown_uc.rate_units);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Block UC = %u",        msgStormControl->block_unicast);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Block MC = %u",        msgStormControl->block_multicast);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Block UC = %u",       msgStormControl->block_unicast);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Block MC = %u",       msgStormControl->block_multicast);
 
   ptin_intf.intf_type = msgStormControl->intf.intf_type;
   ptin_intf.intf_id   = msgStormControl->intf.intf_id;
@@ -9011,34 +9104,54 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
   {
       client.ptin_intf.intf_type  = ENDIAN_SWAP8(profile->client.intf.intf_type);
       client.ptin_intf.intf_id    = ENDIAN_SWAP8(profile->client.intf.intf_id);
+      client.ptin_port            = ptintf2port(client.ptin_intf.intf_type, 
+                                                client.ptin_intf.intf_id);
       client.mask |= PTIN_CLIENT_MASK_FIELD_INTF; 
   }
-
-    /* Get circuit and remote ids */
-    rc = ptin_dhcp_client_get(evc_idx, &client, &profile->options, &circuitId_data, L7_NULLPTR, profile->remoteId);
-
-    profile->options          = ENDIAN_SWAP16(profile->options);
-    profile->circuitId.onuid  = ENDIAN_SWAP16(circuitId_data.onuid);
-    profile->circuitId.slot   = ENDIAN_SWAP8 (circuitId_data.slot);
-    profile->circuitId.port   = ENDIAN_SWAP16(circuitId_data.port);
-    profile->circuitId.q_vid  = ENDIAN_SWAP16(circuitId_data.q_vid);
-    profile->circuitId.c_vid  = ENDIAN_SWAP16(circuitId_data.c_vid);
-
-    if (rc!=L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining circuit and remote ids");
-      return rc;
-    }
-
-    PT_LOG_DEBUG(LOG_CTX_MSG,"Options                      = %02x",  ENDIAN_SWAP16(profile->options));
-    PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.onuid              = %u",    ENDIAN_SWAP16(profile->circuitId.onuid));
-    PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.slot               = %u",    ENDIAN_SWAP8 (profile->circuitId.slot));
-    PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.port               = %u",    ENDIAN_SWAP16(profile->circuitId.port));
-    PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.q_vid              = %u",    ENDIAN_SWAP16(profile->circuitId.q_vid));
-    PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.c_vid              = %u",    ENDIAN_SWAP16(profile->circuitId.c_vid));
-    PT_LOG_DEBUG(LOG_CTX_MSG,"RemoteId                     = \"%s\"",profile->remoteId);
   
+  /* Inner VLAN will identify the client using the GEM-VLAN value.
+     So, we need to add an offset according to the virtual port in use */
+  if ((client.mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) &&
+      (client.mask & PTIN_CLIENT_MASK_FIELD_INTF))
+  {
+    /* Adjust outer VID considering the port virtualization scheme */
+    if (ptin_intf_portGem2virtualVid(client.ptin_port,
+                                     client.innerVlan,
+                                     &client.innerVlan) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u",
+                 client.innerVlan);
+    }
+    else
+    {
+      PT_LOG_DEBUG(LOG_CTX_MSG, "  New Client.IVlan = %u", client.innerVlan);
+    }
+  }
 
+  /* Get circuit and remote ids */
+  rc = ptin_dhcp_client_get(evc_idx, &client, &profile->options, &circuitId_data, L7_NULLPTR, profile->remoteId);
+
+  profile->options          = ENDIAN_SWAP16(profile->options);
+  profile->circuitId.onuid  = ENDIAN_SWAP16(circuitId_data.onuid);
+  profile->circuitId.slot   = ENDIAN_SWAP8 (circuitId_data.slot);
+  profile->circuitId.port   = ENDIAN_SWAP16(circuitId_data.port);
+  profile->circuitId.q_vid  = ENDIAN_SWAP16(circuitId_data.q_vid);
+  profile->circuitId.c_vid  = ENDIAN_SWAP16(circuitId_data.c_vid);
+
+  if (rc!=L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining circuit and remote ids");
+    return rc;
+  }
+
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Options                      = %02x",  ENDIAN_SWAP16(profile->options));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.onuid              = %u",    ENDIAN_SWAP16(profile->circuitId.onuid));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.slot               = %u",    ENDIAN_SWAP8 (profile->circuitId.slot));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.port               = %u",    ENDIAN_SWAP16(profile->circuitId.port));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.q_vid              = %u",    ENDIAN_SWAP16(profile->circuitId.q_vid));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.c_vid              = %u",    ENDIAN_SWAP16(profile->circuitId.c_vid));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"RemoteId                     = \"%s\"",profile->remoteId);
+  
   return L7_SUCCESS;
 }
 
@@ -9124,27 +9237,28 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
       {
         if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
         {
+          /* Extract input data */
+          evc_idx = profile[i].evc_id;
 
-         /* Extract input data */
-        evc_idx = profile[i].evc_id;
-
-        memset(&client,0x00,sizeof(ptin_client_id_t));
-        if (profile[i].client.mask & MSG_CLIENT_OVLAN_MASK)
-        {
-          client.outerVlan = profile[i].client.outer_vlan;
-          client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-        }
-        if (profile[i].client.mask & MSG_CLIENT_IVLAN_MASK)
-        {
-          client.innerVlan = profile[i].client.inner_vlan;
-          client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-        }
-        if (profile[i].client.mask & MSG_CLIENT_INTF_MASK)
-        {
-          client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
-          client.ptin_intf.intf_id    = shift_index;
-          client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-        }
+          memset(&client,0x00,sizeof(ptin_client_id_t));
+          if (profile[i].client.mask & MSG_CLIENT_OVLAN_MASK)
+          {
+            client.outerVlan = profile[i].client.outer_vlan;
+            client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+          }
+          if (profile[i].client.mask & MSG_CLIENT_IVLAN_MASK)
+          {
+            client.innerVlan = profile[i].client.inner_vlan;
+            client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+          }
+          if (profile[i].client.mask & MSG_CLIENT_INTF_MASK)
+          {
+            client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
+            client.ptin_intf.intf_id    = shift_index;
+            client.ptin_port            = ptintf2port(client.ptin_intf.intf_type, 
+                                                      client.ptin_intf.intf_id);
+            client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+          }
 
           /* TODO: To be reworked */
           circuitId.onuid   = profile[i].circuitId.onuid;
@@ -9198,9 +9312,30 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
       {
         client.ptin_intf.intf_type  = profile[i].client.intf.intf_type;
         client.ptin_intf.intf_id    = profile[i].client.intf.intf_id;
+        client.ptin_port            = ptintf2port(client.ptin_intf.intf_type, 
+                                                  client.ptin_intf.intf_id);
         client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
       }
 
+      /* Inner VLAN will identify the client using the GEM-VLAN value.
+         So, we need to add an offset according to the virtual port in use */
+      if ((client.mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) &&
+          (client.mask & PTIN_CLIENT_MASK_FIELD_INTF))
+      {
+        /* Adjust outer VID considering the port virtualization scheme */
+        if (ptin_intf_portGem2virtualVid(client.ptin_port,
+                                         client.innerVlan,
+                                         &client.innerVlan) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u",
+                     client.innerVlan);
+        }
+        else
+        {
+          PT_LOG_DEBUG(LOG_CTX_MSG, "  New Client.IVlan = %u", client.innerVlan);
+        }
+      }
+      
       /* TODO: To be reworked */
       circuitId.onuid   = profile[i].circuitId.onuid;
       circuitId.slot    = profile[i].circuitId.slot;
@@ -9306,6 +9441,8 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
           {
             client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
             client.ptin_intf.intf_id    = shift_index;
+            client.ptin_port            = ptintf2port(client.ptin_intf.intf_type, 
+                                                      client.ptin_intf.intf_id);
             client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           }
 
@@ -9343,7 +9480,28 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
       {
         client.ptin_intf.intf_type  = profile[i].client.intf.intf_type;
         client.ptin_intf.intf_id    = profile[i].client.intf.intf_id;
+        client.ptin_port            = ptintf2port(client.ptin_intf.intf_type, 
+                                                  client.ptin_intf.intf_id);
         client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+      }
+
+      /* Inner VLAN will identify the client using the GEM-VLAN value.
+         So, we need to add an offset according to the virtual port in use */
+      if ((client.mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) &&
+          (client.mask & PTIN_CLIENT_MASK_FIELD_INTF))
+      {
+        /* Adjust outer VID considering the port virtualization scheme */
+        if (ptin_intf_portGem2virtualVid(client.ptin_port,
+                                         client.innerVlan,
+                                         &client.innerVlan) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u",
+                     client.innerVlan);
+        }
+        else
+        {
+          PT_LOG_DEBUG(LOG_CTX_MSG, "  New Client.IVlan = %u", client.innerVlan);
+        }
       }
 
       /* TODO: To be reworked */
@@ -9409,6 +9567,10 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   }
 
   memset(&client,0x00,sizeof(ptin_client_id_t));
+
+  dhcp_stats->client.mask |= MSG_CLIENT_INTF_MASK;  //RICHARD ADDED
+//  dhcp_stats->client.mask |= MSG_CLIENT_OVLAN_MASK;  //RICHARD ADDED
+
   if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_OVLAN_MASK)
   {
     client.outerVlan = ENDIAN_SWAP16(dhcp_stats->client.outer_vlan);
@@ -9419,6 +9581,8 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
     client.innerVlan = ENDIAN_SWAP16(dhcp_stats->client.inner_vlan);
     client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
   }
+
+
   if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_INTF_MASK)
   {
 #ifdef NGPON2_SUPPORTED
@@ -9437,6 +9601,8 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
           j++;
           client.ptin_intf.intf_type  = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
           client.ptin_intf.intf_id    = ENDIAN_SWAP8(shift_index);
+          client.ptin_port            = ptintf2port(client.ptin_intf.intf_type, 
+                                                    client.ptin_intf.intf_id);
           client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
 
           /* Get statistics */
@@ -9490,7 +9656,28 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
     {
       client.ptin_intf.intf_type  = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_type);
       client.ptin_intf.intf_id    = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_id);
+      client.ptin_port            = ptintf2port(client.ptin_intf.intf_type, 
+                                                client.ptin_intf.intf_id);
       client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+    }
+  }
+
+  /* Inner VLAN will identify the client using the GEM-VLAN value.
+     So, we need to add an offset according to the virtual port in use */
+  if ((client.mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) &&
+      (client.mask & PTIN_CLIENT_MASK_FIELD_INTF))
+  {
+    /* Adjust outer VID considering the port virtualization scheme */
+    if (ptin_intf_portGem2virtualVid(client.ptin_port,
+                                     client.innerVlan,
+                                     &client.innerVlan) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u",
+                 client.innerVlan);
+    }
+    else
+    {
+      PT_LOG_DEBUG(LOG_CTX_MSG, "  New Client.IVlan = %u", client.innerVlan);
     }
   }
 
@@ -9610,6 +9797,8 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
         {
           client.ptin_intf.intf_type  = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
           client.ptin_intf.intf_id    = ENDIAN_SWAP8(shift_index);
+          client.ptin_port            = ptintf2port(client.ptin_intf.intf_type, 
+                                                    client.ptin_intf.intf_id);
           client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
         }
 
@@ -9648,7 +9837,28 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
     {
       client.ptin_intf.intf_type  = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_type);
       client.ptin_intf.intf_id    = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_id);
+      client.ptin_port            = ptintf2port(client.ptin_intf.intf_type, 
+                                                client.ptin_intf.intf_id);
       client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+    }
+
+    /* Inner VLAN will identify the client using the GEM-VLAN value.
+       So, we need to add an offset according to the virtual port in use */
+    if ((client.mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) &&
+        (client.mask & PTIN_CLIENT_MASK_FIELD_INTF))
+    {
+      /* Adjust outer VID considering the port virtualization scheme */
+      if (ptin_intf_portGem2virtualVid(client.ptin_port,
+                                       client.innerVlan,
+                                       &client.innerVlan) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u",
+                   client.innerVlan);
+      }
+      else
+      {
+        PT_LOG_DEBUG(LOG_CTX_MSG, "  New Client.IVlan = %u", client.innerVlan);
+      }
     }
 
     /* Clear client stats */
@@ -9906,7 +10116,7 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
   {
     size = PLAT_MAX_FDB_MAC_ENTRIES;
 
-    intf =(ENDIAN_SWAP8(input->mask) == 0x01) ? (ENDIAN_SWAP8(input->intfId) + 1) /* Convertion to ptinIntfNum)*/ : ((uint8) -1); //check if is slot or intf reading
+    intf =(ENDIAN_SWAP8(input->mask) == 0x01) ? (ENDIAN_SWAP8(input->intfId)) : ((uint8) -1); //check if is slot or intf reading
 
     rc = ptin_dhcpv4v6_bindtable_get(dhcpv4v6_bindtable, &size, &intf);
 
@@ -9941,6 +10151,10 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
   for (i=0; i<entries; ++i)
   {
 //  memset(&output->bind_table[i],0x00,sizeof(msg_DHCP_bind_entry));
+
+    /* Convert client VLAN (inner) to the real GEM VID */
+    (void) ptin_intf_virtualVid2GemVid(dhcpv4v6_bindtable[first+i].inner_vlan,
+                                       &dhcpv4v6_bindtable[first+i].inner_vlan);
 
     output->bind_table[i].entry_index    = ENDIAN_SWAP16(dhcpv4v6_bindtable[first+i].entry_index);
     output->bind_table[i].evc_idx        = ENDIAN_SWAP32(dhcpv4v6_bindtable[first+i].evc_idx);
@@ -10743,7 +10957,7 @@ L7_RC_t ptin_msg_igmp_instance_remove(msg_IgmpMultcastUnicastLink_t *msgIgmpInst
 L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clients)
 { 
   L7_uint16        i;  
-  L7_uint32        intIfNum;
+  L7_uint32        ptin_port;
   ptin_client_id_t client;  
   L7_uint16        uni_ivid;
   L7_uint16        uni_ovid;
@@ -10830,7 +11044,21 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
           {
             client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
             client.ptin_intf.intf_id    = shift_index;
+            client.ptin_port            = ptintf2port(client.ptin_intf.intf_type,
+                                                      client.ptin_intf.intf_id); 
             client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+          }
+
+          ptin_port = client.ptin_port;
+
+          if (ptin_intf_portGem2virtualVid(ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+                       client.innerVlan);
+          }
+          else
+          {
+            PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
           }
 
           rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
@@ -10840,112 +11068,111 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
             continue;
           }
 
-          /* Get interface as intIfNum format */      
-          if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
-          {
-             if (ptin_evc_extVlans_get(intIfNum, McastClient[i].mcEvcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
-             { 
-               PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
-                        client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
-             }
-             else
-             {
-               uni_ovid = uni_ivid = 0;
-               PT_LOG_ERR(LOG_CTX_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
-                      client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan);
-             }
-           }
-           else
-           {
-             PT_LOG_ERR(LOG_CTX_IGMP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
-           }
-          
-           /* Apply config */
-           rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, McastClient[i].onuId, McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels, L7_FALSE, L7_NULLPTR/*McastClient[i].packageBmpList*/, 0/*McastClient[i].noOfPackages*/);          
-
-           if (rc!=L7_SUCCESS)
-           {
-             PT_LOG_ERR(LOG_CTX_MSG, "Error adding MC client");
-             return rc;
-           }
-           else
-           {
-             L7_uint32 evc_id;
-             /* Is EVC in use? */
-             if (ptin_evc_ext2int(McastClient[i].mcEvcId-1, &evc_id) == L7_SUCCESS)
-             {
-      
-               McastClient_info[evc_id].uni_ivid      = uni_ivid;
-               McastClient_info[evc_id].uni_ovid      = uni_ovid;
-               McastClient_info[evc_id].mask          = McastClient[i].mask;
-               McastClient_info[evc_id].onuId         = McastClient[i].onuId;
-               McastClient_info[evc_id].maxBandwidth  = McastClient[i].maxBandwidth;
-               McastClient_info[evc_id].maxChannels   = McastClient[i].maxChannels;
-               McastClient_info[evc_id].admin         = L7_TRUE;
-               memcpy(&McastClient_info[evc_id].client, &McastClient[i].client, sizeof(ptin_client_id_t));
-             }
-           }
-         }
-         shift_index++;
-        }
-      }
-      else
-#endif
-#endif
-      {
-        memset(&client,0x00,sizeof(ptin_client_id_t));
-        if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
-        {
-          client.outerVlan = McastClient[i].client.outer_vlan;
-          client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-        }
-        if (McastClient[i].client.mask & MSG_CLIENT_IVLAN_MASK)
-        {
-          client.innerVlan = McastClient[i].client.inner_vlan;
-          client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-        }
-        if (McastClient[i].client.mask & MSG_CLIENT_INTF_MASK)
-        {
-          client.ptin_intf.intf_type  = McastClient[i].client.intf.intf_type;
-          client.ptin_intf.intf_id    = McastClient[i].client.intf.intf_id;
-          client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-        }
-
-        rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
-        if (rc != L7_SUCCESS)
-        {
-          PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
-          continue;
-        }
-
-        /* Get interface as intIfNum format */      
-        if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
-        {
-          if (ptin_evc_extVlans_get(intIfNum, McastClient[i].mcEvcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
-          {
+          if (ptin_evc_extVlans_get(ptin_port, McastClient[i].mcEvcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
+          { 
             PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
-                    client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
+                     client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
           }
           else
           {
             uni_ovid = uni_ivid = 0;
             PT_LOG_ERR(LOG_CTX_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
-                  client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan);
+                   client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan);
           }
-       }
-       else
-       { 
-          PT_LOG_ERR(LOG_CTX_IGMP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
-       }
-       
-       /* Apply config */
-       rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, McastClient[i].onuId, McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels, L7_FALSE, L7_NULLPTR/*McastClient[i].packageBmpList*/, 0/*McastClient[i].noOfPackages*/);          
 
-       if (rc!=L7_SUCCESS)
-       {
-          PT_LOG_ERR(LOG_CTX_MSG, "Error adding MC client");
-          return rc;
-       }
+          
+          /* Apply config */
+          rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, McastClient[i].onuId, McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels, L7_FALSE, L7_NULLPTR/*McastClient[i].packageBmpList*/, 0/*McastClient[i].noOfPackages*/);          
+
+          if (rc!=L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_MSG, "Error adding MC client");
+            return rc;
+          }
+          else
+          {
+            L7_uint32 evc_id;
+            /* Is EVC in use? */
+            if (ptin_evc_ext2int(McastClient[i].mcEvcId-1, &evc_id) == L7_SUCCESS)
+            {
+      
+              McastClient_info[evc_id].uni_ivid      = uni_ivid;
+              McastClient_info[evc_id].uni_ovid      = uni_ovid;
+              McastClient_info[evc_id].mask          = McastClient[i].mask;
+              McastClient_info[evc_id].onuId         = McastClient[i].onuId;
+              McastClient_info[evc_id].maxBandwidth  = McastClient[i].maxBandwidth;
+              McastClient_info[evc_id].maxChannels   = McastClient[i].maxChannels;
+              McastClient_info[evc_id].admin         = L7_TRUE;
+              memcpy(&McastClient_info[evc_id].client, &McastClient[i].client, sizeof(ptin_client_id_t));
+            }
+          }
+        }
+        shift_index++;
+      }
+    }
+    else
+#endif
+#endif
+    {
+      memset(&client,0x00,sizeof(ptin_client_id_t));
+      if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
+      {
+        client.outerVlan = McastClient[i].client.outer_vlan;
+        client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+      }
+      if (McastClient[i].client.mask & MSG_CLIENT_IVLAN_MASK)
+      {
+        client.innerVlan = McastClient[i].client.inner_vlan;
+        client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+      }
+      if (McastClient[i].client.mask & MSG_CLIENT_INTF_MASK)
+      {
+        client.ptin_intf.intf_type  = McastClient[i].client.intf.intf_type;
+        client.ptin_intf.intf_id    = McastClient[i].client.intf.intf_id;
+        client.ptin_port            = ptintf2port(client.ptin_intf.intf_type,
+                                                  client.ptin_intf.intf_id); 
+        client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+      }
+
+      ptin_port = client.ptin_port;
+
+      if (ptin_intf_portGem2virtualVid(ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+                   client.innerVlan);
+      }
+      else
+      {
+        PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
+      }
+      
+      rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
+        continue;
+      }
+      
+      if (ptin_evc_extVlans_get(ptin_port, McastClient[i].mcEvcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
+      {
+        PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
+                client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
+      }
+      else
+      {
+        uni_ovid = uni_ivid = 0;
+        PT_LOG_ERR(LOG_CTX_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
+              client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan);
+      }
+      
+      /* Apply config */
+      rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, McastClient[i].onuId, McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels, L7_FALSE, L7_NULLPTR/*McastClient[i].packageBmpList*/, 0/*McastClient[i].noOfPackages*/);          
+
+      if (rc!=L7_SUCCESS)
+      {
+         PT_LOG_ERR(LOG_CTX_MSG, "Error adding MC client");
+         return rc;
+      }
     }
   }
 
@@ -11024,7 +11251,19 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
           {
             client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
             client.ptin_intf.intf_id    = shift_index;
+            client.ptin_port            = ptintf2port(client.ptin_intf.intf_type,
+                                                      client.ptin_intf.intf_id); 
             client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+          }
+
+          if (ptin_intf_portGem2virtualVid(client.ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+                       client.innerVlan);
+          }
+          else
+          {
+            PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
           }
 
           rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
@@ -11079,7 +11318,19 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
       {
         client.ptin_intf.intf_type  = McastClient[i].client.intf.intf_type;
         client.ptin_intf.intf_id    = McastClient[i].client.intf.intf_id;
+        client.ptin_port            = ptintf2port(client.ptin_intf.intf_type,
+                                                  client.ptin_intf.intf_id); 
         client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+      }
+
+      if (ptin_intf_portGem2virtualVid(client.ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+                   client.innerVlan);
+      }
+      else
+      {
+        PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
       }
 
       rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
@@ -11135,21 +11386,22 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u", igmp_stats->client.intf.intf_type, igmp_stats->client.intf.intf_id);
 
   //Short Fix to Support Mac Bridge Services and Unicast Services 
-  #if PTIN_BOARD_IS_LINECARD
+#if PTIN_BOARD_IS_LINECARD
   {
-    #if 0
+#if 0 /*FIX temporary fix TC16SXG*/
     L7_BOOL isMacBridge;    
     if (ptin_evc_mac_bridge_check(igmp_stats->mcEvcId, &isMacBridge)==L7_SUCCESS && isMacBridge==L7_TRUE)
-    #else
     if (ENDIAN_SWAP16(igmp_stats->client.outer_vlan)==0) 
-    #endif
     {      
       igmp_stats->client.outer_vlan= ENDIAN_SWAP16(igmp_stats->client.inner_vlan);      
-    }    
-    igmp_stats->client.mask|=MSG_CLIENT_OVLAN_MASK;    
+    }  
+      
+#endif
+    igmp_stats->client.mask|=MSG_CLIENT_OVLAN_MASK;  
+    igmp_stats->client.outer_vlan = 0;  
     PT_LOG_DEBUG(LOG_CTX_MSG,"Converted [client.Mask:%u Client.OVlan:%u]",igmp_stats->client.mask, ENDIAN_SWAP16(igmp_stats->client.outer_vlan));
   }  
-  #endif
+#endif
 
   /* Evaluate provided data */
   if ( aux_mcEvcId ==(L7_uint16)-1 ||
@@ -11175,7 +11427,19 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   {
     client.ptin_intf.intf_type  = igmp_stats->client.intf.intf_type;
     client.ptin_intf.intf_id    = igmp_stats->client.intf.intf_id;
+    client.ptin_port            = ptintf2port(client.ptin_intf.intf_type,
+                                              client.ptin_intf.intf_id); 
     client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+  }
+
+  if (ptin_intf_portGem2virtualVid(client.ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+               client.innerVlan);
+  }
+  else
+  {
+    PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
   }
 
   /* Get statistics */
@@ -11293,7 +11557,19 @@ L7_RC_t ptin_msg_IGMP_clientStats_clear(msg_IgmpClientStatistics_t *igmp_stats, 
   {
     client.ptin_intf.intf_type  = igmp_stats->client.intf.intf_type;
     client.ptin_intf.intf_id    = igmp_stats->client.intf.intf_id;
+    client.ptin_port            = ptintf2port(client.ptin_intf.intf_type,
+                                              client.ptin_intf.intf_id); 
     client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+  }
+
+  if (ptin_intf_portGem2virtualVid(client.ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+               client.innerVlan);
+  }
+  else
+  {
+    PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
   }
 
   /* Clear client stats */
@@ -12216,15 +12492,6 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
   //Short Fix to Support Mac Bridge Services and Unicast Services
   #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
   {
-    #if 0
-    L7_BOOL isMacBridge;    
-    if(ptin_evc_mac_bridge_check(inputPtr->evc_id, &isMacBridge)==L7_SUCCESS && isMacBridge==L7_TRUE)
-    #else
-    if (inputPtr->client.outer_vlan==0) 
-    #endif
-    {        
-      inputPtr->client.outer_vlan=inputPtr->client.inner_vlan;        
-    }
     if (inputPtr->client.mask != 0)
     {
       inputPtr->client.mask|=MSG_CLIENT_OVLAN_MASK;
@@ -12239,6 +12506,8 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
   {
     client.ptin_intf.intf_type = inputPtr->client.intf.intf_type;
     client.ptin_intf.intf_id   = inputPtr->client.intf.intf_id;
+    client.ptin_port            = ptintf2port(client.ptin_intf.intf_type,
+                                              client.ptin_intf.intf_id); 
     client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
   }
   if (inputPtr->client.mask & MSG_CLIENT_IVLAN_MASK)
@@ -12246,8 +12515,23 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
     client.innerVlan = inputPtr->client.inner_vlan;
     client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
   }
+
+  if (ptin_intf_portGem2virtualVid(client.ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+               client.innerVlan);
+  }
+  else
+  {
+    PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
+  }
+
   if (inputPtr->client.mask & MSG_CLIENT_OVLAN_MASK)
   {
+    if (inputPtr->client.outer_vlan==0) 
+    {        
+      inputPtr->client.outer_vlan = client.innerVlan;        
+    }
     client.outerVlan = inputPtr->client.outer_vlan;
     client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
   }
@@ -12340,15 +12624,19 @@ L7_RC_t ptin_msg_snoop_sync_request(msg_SnoopSyncRequest_t *snoopSyncRequest)
     }
 #if PTIN_BOARD_IS_MATRIX 
   #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
-    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u groupAddr:%08X sourceAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr.addr.ipv4, snoopSyncRequest->sourceAddr.addr.ipv4);
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u groupAddr:%08X sourceAddr:%08X]",
+                  snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr.addr.ipv4, snoopSyncRequest->sourceAddr.addr.ipv4);
   #else
-    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u groupAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr);
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u groupAddr:%08X]",
+                  snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr);
   #endif
 #else
   #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
-    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->portId, snoopSyncRequest->groupAddr.addr.ipv4, snoopSyncRequest->sourceAddr.addr.ipv4);
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]",
+                  snoopSyncRequest->serviceId, snoopSyncRequest->portId, snoopSyncRequest->groupAddr.addr.ipv4, snoopSyncRequest->sourceAddr.addr.ipv4);
   #else
-    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u portId:%u groupAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->portId, snoopSyncRequest->groupAddr);
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u portId:%u groupAddr:%08X]",
+                  snoopSyncRequest->serviceId, snoopSyncRequest->portId, snoopSyncRequest->groupAddr);
   #endif
 #endif
     return rc;
@@ -12512,7 +12800,8 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
 #if PTIN_BOARD_IS_MATRIX    
   if(ptin_fpga_mx_is_matrixactive_rt())//If I'm a Active Matrix
   {
-    PT_LOG_NOTICE(LOG_CTX_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Active Matrix on slotId:%u",ptin_fpga_board_slot_get());
+    PT_LOG_NOTICE(LOG_CTX_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Active Matrix on slotId:%u",
+                  ptin_fpga_board_slot_get());
     return SUCCESS;
   }
 
@@ -12530,8 +12819,8 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
 
     if(protTypebIntfConfig.status==L7_ENABLE)//If I'm a Protection
     {
-      PT_LOG_NOTICE(LOG_CTX_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Active slotId/intfNum:%u/%u",
-                    protTypebIntfConfig.pairSlotId, protTypebIntfConfig.intfNum);
+      PT_LOG_NOTICE(LOG_CTX_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Active slotId/ptin_port:%u/%u",
+                    protTypebIntfConfig.pairSlotId, protTypebIntfConfig.ptin_port);
       return SUCCESS;
     }
       
@@ -12545,7 +12834,8 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
       return L7_FAILURE;
     }
     #endif
-    snoopSyncRequest.portId = protTypebIntfConfig.pairIntfNum;
+    /* FIXME TC16SXG: mgmd portId */
+    snoopSyncRequest.portId = protTypebIntfConfig.pairPtinPort;
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u | portId:%u] to ipAddr:%08X to Sync the Remaining Snoop Entries",
                  snoopSyncRequest.groupAddr.addr.ipv4, snoopSyncRequest.serviceId, snoopSyncRequest.portId, ipAddr);
@@ -12602,6 +12892,15 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClientsResponse_t *clien
     /* Copy channels to message */
     for (i=0; i<MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX && i<number_of_clients; i++)
     {
+      /* Inner VLAN will identify the client using the GEM-VLAN value.
+      So, we need to add an offset according to the virtual port in use */
+      if (ptin_intf_virtualVid2GemVid(clist[i].innerVlan,
+                                      &clist[i].innerVlan) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", 
+                   clist[i].innerVlan);
+      }
+
       client_list->clients_list[i].mask           = clist[i].mask;
       client_list->clients_list[i].outer_vlan     = ENDIAN_SWAP16(clist[i].outerVlan);
       client_list->clients_list[i].inner_vlan     = ENDIAN_SWAP16(clist[i].innerVlan);
@@ -12866,10 +13165,10 @@ L7_RC_t ptin_msg_uplink_prot_config_get(ipc_msg *inbuffer, ipc_msg *outbuffer)
     if (ptin_prot_uplink_config_get(protIdx, &prot_config) == L7_SUCCESS)
     {
       /* Convert intIfNum to LagID */
-      if (ptin_intf_intIfNum2ptintf(prot_config.intIfNumW, &intfW) != L7_SUCCESS ||
-          ptin_intf_intIfNum2ptintf(prot_config.intIfNumP, &intfP) != L7_SUCCESS)
+      if (ptin_intf_port2ptintf(prot_config.ptin_port_w, &intfW) != L7_SUCCESS ||
+          ptin_intf_port2ptintf(prot_config.ptin_port_p, &intfP) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "Error getting ptin_intf value for intIfNum %u or %u", prot_config.intIfNumW, prot_config.intIfNumP);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error getting ptin_intf value for intIfNum %u or %u", prot_config.ptin_port_w, prot_config.ptin_port_p);
         rc_global = L7_FAILURE;
         continue;
       }
@@ -13590,7 +13889,7 @@ L7_RC_t ptin_msg_mgmd_sync_ports(msg_HwMgmdPortSync *port_sync_data)
 L7_RC_t ptin_msg_pcs_prbs_enable(msg_ptin_pcs_prbs *msg, L7_int n_msg)
 {
   ptin_intf_t ptin_intf;
-  L7_uint32 i, intIfNum;
+  L7_uint32 i, ptin_port;
   L7_RC_t rc;
 
   for (i=0; i<n_msg; i++)
@@ -13604,13 +13903,13 @@ L7_RC_t ptin_msg_pcs_prbs_enable(msg_ptin_pcs_prbs *msg, L7_int n_msg)
     ptin_intf.intf_id   = ENDIAN_SWAP8(msg[i].intf.intf_id);
 
     /* Get intIfNum */
-    if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum)!=L7_SUCCESS)
+    if (ptin_intf_ptintf2port(&ptin_intf, &ptin_port)!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Non existent port (%u/%u)",ptin_intf.intf_type,ptin_intf.intf_id);
       return L7_FAILURE;
     }
 
-    rc = ptin_pcs_prbs_enable(intIfNum, ENDIAN_SWAP8(msg[i].enable));
+    rc = ptin_pcs_prbs_enable(ptin_port, ENDIAN_SWAP8(msg[i].enable));
     if (rc!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Error settings PRBS enable of port %u/%u to %u", ptin_intf.intf_type, ptin_intf.intf_id, ENDIAN_SWAP8(msg[i].enable));
@@ -13633,7 +13932,7 @@ L7_RC_t ptin_msg_pcs_prbs_enable(msg_ptin_pcs_prbs *msg, L7_int n_msg)
 L7_RC_t ptin_msg_pcs_prbs_status(msg_ptin_pcs_prbs *msg, L7_int n_msg)
 {
   ptin_intf_t ptin_intf;
-  L7_uint32 i, intIfNum, rxStatus;
+  L7_uint32 i, ptin_port, rxStatus;
   L7_RC_t   rc;
 
   for (i=0; i<n_msg; i++)
@@ -13646,14 +13945,14 @@ L7_RC_t ptin_msg_pcs_prbs_status(msg_ptin_pcs_prbs *msg, L7_int n_msg)
     ptin_intf.intf_id   = ENDIAN_SWAP8(msg[i].intf.intf_id);
 
     /* Get intIfNum */
-    if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum)!=L7_SUCCESS)
+    if (ptin_intf_ptintf2port(&ptin_intf, &ptin_port)!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Non existent port (%u/%u)",ptin_intf.intf_type,ptin_intf.intf_id);
       return L7_FAILURE;
     }
 
     /* Read number of PRBS errors */
-    rc = ptin_pcs_prbs_errors_get(intIfNum, &rxStatus);
+    rc = ptin_pcs_prbs_errors_get(ptin_port, &rxStatus);
     if (rc!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Error getting PRBS errors from port %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
@@ -13684,7 +13983,7 @@ L7_RC_t ptin_msg_pcs_prbs_status(msg_ptin_pcs_prbs *msg, L7_int n_msg)
 L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
 {
   L7_uint8  enable;
-  L7_uint32 i, intIfNum, port;
+  L7_uint32 i, port;
   L7_RC_t rc, rc_global = L7_SUCCESS;
 
   if (n_msg == 0)
@@ -13706,20 +14005,12 @@ L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
     for (port = 0; port < ptin_sys_number_of_ports; port++)
     {
       /* Skip non backplane ports */
-      if (!(PTIN_SYSTEM_10G_PORTS_MASK & (1ULL << port)))
+      if (!PTIN_PORT_IS_INTERNAL(port))
       {
         continue;
       }
 
-      /* Get intIfNum */
-      if (ptin_intf_port2intIfNum(port, &intIfNum)!=L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_MSG,"Non existent port %u", port);
-        rc_global = L7_FAILURE;
-        continue;
-      }
-
-      rc = ptin_pcs_prbs_enable(intIfNum, enable);
+      rc = ptin_pcs_prbs_enable(port, enable);
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG,"Error settings PRBS enable of port %u to %u", port, enable);
@@ -13750,15 +14041,8 @@ L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
         rc_global = L7_FAILURE;
         continue;
       }
-      /* Get intIfNum */
-      if (ptin_intf_port2intIfNum(port, &intIfNum)!=L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_MSG,"Non existent port %u", port);
-        rc_global = L7_FAILURE;
-        continue;
-      }
 
-      rc = ptin_pcs_prbs_enable(intIfNum, enable);
+      rc = ptin_pcs_prbs_enable(port, enable);
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG,"Error settings PRBS enable of port %u to %u", port, enable);
@@ -13790,7 +14074,7 @@ L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
  */
 L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status *msg_out, L7_int *n_msg)
 {
-  L7_uint32 i, port, intIfNum, rxStatus;
+  L7_uint32 i, port, rxStatus;
   L7_RC_t   rc, rc_global = L7_SUCCESS;
 
   if (*n_msg == 0)
@@ -13808,21 +14092,13 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
     for (port = 0, i = 0; port < ptin_sys_number_of_ports; port++)
     {
       /* Skip non backplane ports */
-      if (!(PTIN_SYSTEM_10G_PORTS_MASK & (1ULL << port)))
+      if (!PTIN_PORT_IS_INTERNAL(port))
       {
-        continue;
-      }
-
-      /* Get intIfNum */
-      if (ptin_intf_port2intIfNum(port, &intIfNum)!=L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_MSG,"Non existent port %u", port);
-        rc_global = L7_FAILURE;
         continue;
       }
 
       /* Read number of PRBS errors */
-      rc = ptin_pcs_prbs_errors_get(intIfNum, &rxStatus);
+      rc = ptin_pcs_prbs_errors_get(port, &rxStatus);
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG,"Error getting PRBS errors from port %u", port);
@@ -13860,16 +14136,9 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
         rc_global = L7_FAILURE;
         continue;
       }
-      /* Get intIfNum */
-      if (ptin_intf_port2intIfNum(port, &intIfNum)!=L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_MSG,"Non existent port %u", port);
-        rc_global = L7_FAILURE;
-        continue;
-      }
 
       /* Read number of PRBS errors */
-      rc = ptin_pcs_prbs_errors_get(intIfNum, &rxStatus);
+      rc = ptin_pcs_prbs_errors_get(port, &rxStatus);
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG,"Error getting PRBS errors from port %u", port);
@@ -14069,8 +14338,16 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
     if ((mask & MSG_HWETH_BWPROFILE_MASK_SVLAN) &&
         (msgBwProfile->service_vlan > 0 && msgBwProfile->service_vlan < 4096))
     {
-      profile->outer_vlan_lookup = msgBwProfile->service_vlan;
-      PT_LOG_DEBUG(LOG_CTX_MSG," SVID extracted!");
+      /* Adjust outer VID considering the port virtualization scheme */
+      if (ptin_intf_portGem2virtualVid(ptintf2port(msgBwProfile->intf_src.intf_type, msgBwProfile->intf_src.intf_id),
+                                       msgBwProfile->service_vlan,
+                                       &profile->outer_vlan_lookup) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG,"Error with ptin_intf_portGem2intIfNumVid(type=%u, id=%u, ovid=%u)",
+                   msgBwProfile->intf_src.intf_type, msgBwProfile->intf_src.intf_id, msgBwProfile->service_vlan);
+        return L7_FAILURE;
+      }
+      PT_LOG_DEBUG(LOG_CTX_MSG," SVID extracted! (Using Service VLAN %u)", profile->outer_vlan_lookup);
     }
 
     /* CVID */
@@ -14116,8 +14393,16 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
     if ((mask & MSG_HWETH_BWPROFILE_MASK_SVLAN) &&
         (msgBwProfile->service_vlan > 0 && msgBwProfile->service_vlan < 4096))
     {
-      profile->outer_vlan_egress = msgBwProfile->service_vlan;
-      PT_LOG_DEBUG(LOG_CTX_MSG," SVID extracted!");
+      /* Adjust outer VID considering the port virtualization scheme */
+      if (ptin_intf_portGem2virtualVid(ptintf2port(msgBwProfile->intf_dst.intf_type, msgBwProfile->intf_dst.intf_id),
+                                       msgBwProfile->service_vlan,
+                                       &profile->outer_vlan_egress) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG,"Error with ptin_intf_portGem2intIfNumVid(type=%u, id=%u, ovid=%u)",
+                   msgBwProfile->intf_dst.intf_type, msgBwProfile->intf_dst.intf_id, msgBwProfile->service_vlan);
+        return L7_FAILURE;
+      }
+      PT_LOG_DEBUG(LOG_CTX_MSG," SVID extracted! (Using Service VLAN %u)", profile->outer_vlan_egress);
     }
 
     /* CVID */
@@ -14225,10 +14510,16 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
   /* CVID */
   evcStats_profile->inner_vlan_ingress  = 0;
   evcStats_profile->inner_vlan_egress = 0;
-  if ((msg_evcStats->mask & MSG_EVC_COUNTERS_MASK_CVLAN) &&
-      (msg_evcStats->client_vlan > 0 && msg_evcStats->client_vlan < 4096))
+  if ((msg_evcStats->mask & MSG_EVC_COUNTERS_MASK_CVLAN) && (msg_evcStats->client_vlan > 0 && msg_evcStats->client_vlan < 4096))
   {
-    evcStats_profile->inner_vlan_ingress = msg_evcStats->client_vlan;
+    /* Adjust outer VID considering the port virtualization scheme */
+    if (ptin_intf_portGem2virtualVid(ptintf2port(msg_evcStats->intf.intf_type, msg_evcStats->intf.intf_id),
+                                     msg_evcStats->client_vlan,
+                                     &evcStats_profile->inner_vlan_ingress) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u", msg_evcStats->client_vlan);
+    }
+    /*evcStats_profile->inner_vlan_ingress = msg_evcStats->client_vlan;*/
     PT_LOG_DEBUG(LOG_CTX_MSG," CVID extracted!");
   }
 
@@ -14340,7 +14631,7 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
      {
        PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess port2intfNum");
      }
-     else if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)) 
+     else if (L7_SUCCESS!=ptin_xlate_ingress_get(porta, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)) 
      {
        PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess ingress get");
      }
@@ -14533,7 +14824,7 @@ L7_RC_t ptin_msg_wr_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
      {
        PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess port2intfNum");
      }
-     else if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR))
+     else if (L7_SUCCESS!=ptin_xlate_ingress_get(pi[i].bd.prt, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR))
      {
        PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess ingress get");
      }
@@ -14647,7 +14938,7 @@ L7_RC_t ptin_msg_del_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
        {
          PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess port2intfNum");
        }
-       else if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR))
+       else if (L7_SUCCESS!=ptin_xlate_ingress_get(pi[i].bd.prt, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR))
        {
          PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess ingress get");
        }
@@ -14944,7 +15235,7 @@ L7_RC_t ptin_msg_wr_MIP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i) {
           ||
           L7_SUCCESS!=ptin_intf_port2intIfNum(p->prt, &intIfNum)
           ||
-          L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, p->vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)
+          L7_SUCCESS!=ptin_xlate_ingress_get(p->prt, p->vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)
           ||
           L7_SUCCESS!=ptin_MxP_packet_vlan_trap(vidInternal, p->level, 1, 1)) {
 
@@ -15002,7 +15293,7 @@ L7_RC_t ptin_msg_del_MIP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i) {
       ||
       L7_SUCCESS!=ptin_intf_port2intIfNum(p->prt, &intIfNum)
       ||
-      L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, p->vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)
+      L7_SUCCESS!=ptin_xlate_ingress_get(p->prt, p->vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)
       ||
       L7_SUCCESS!=ptin_MxP_packet_vlan_trap(vidInternal, p->level, 1, 0)) r=ERROR_CODE_NOTPRESENT;
 
@@ -16432,7 +16723,6 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
   L7_INTF_MASK_t        srcIntfMask;
   L7_MIRROR_DIRECTION_t type = L7_MIRROR_UNCONFIGURED;
   L7_RC_t               rc = L7_SUCCESS, rc_global = L7_SUCCESS;
-
   L7_uint8              n;
   const L7_uchar8       *dir[]={"None", "In & Out", "In", "Out"};
 
@@ -16586,8 +16876,8 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         if (msg->src_intf[n].intf.intf_type == 1)
         {
-          ptin_intf_intIfNum2port(srcIntfNum, &ptin_port_aux); 
-
+          ptin_intf_intIfNum2port(srcIntfNum, INVALID_SWITCH_VID, &ptin_port_aux); /* FIXME TC16SXG */
+                                                                        
           PT_LOG_TRACE(LOG_CTX_MSG, "Adding intfNum Src %d", ptin_port_aux);
         }
 
@@ -16604,7 +16894,8 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
           if(msg->dst_intf.intf_id == 0)
           {         
             usmDbSwPortMonitorDestPortGet(unit, sessionNum, &auxIntfNum);
-            ptin_intf_intIfNum2port(auxIntfNum, &ptin_port_dst); 
+            /* FIXME TC16SXG: intIfNum->ptin_port */
+            ptin_intf_intIfNum2port(auxIntfNum, INVALID_SWITCH_VID, &ptin_port_dst); /* FIXME TC16SXG */
           }
 
           PT_LOG_TRACE(LOG_CTX_MSG, "Dst intfNum %d", msg->dst_intf.intf_id);
@@ -16654,13 +16945,15 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
       usmDbConvertMaskToList(&srcIntfMask, listSrcPorts, &numPorts);
 
       /* Convert to ptin format*/
-      ptin_intf_intIfNum2port(listSrcPorts[0],&ptinSrc_aux); 
+      /* FIXME TC16SXG: intIfNum->ptin_port */
+      ptin_intf_intIfNum2port(listSrcPorts[0], INVALID_SWITCH_VID, &ptinSrc_aux); /* FIXME TC16SXG */
 
       /* Get the Dst port(s) of the Monitor session*/
       usmDbSwPortMonitorDestPortGet(unit, sessionNum, &listDstPorts[0]);
 
       /* Convert to ptin format*/
-      ptin_intf_intIfNum2port(listDstPorts[0],&ptinDst_aux);
+      /* FIXME TC16SXG: intIfNum->ptin_port */
+      ptin_intf_intIfNum2port(listDstPorts[0], INVALID_SWITCH_VID, &ptinDst_aux); /* FIXME TC16SXG */
 
       // Remove egress translations
       xlate_outer_vlan_replicate_Dstport(mode, ptinSrc_aux, ptinDst_aux);
@@ -18428,7 +18721,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
 //L7_char8        *charPtr           = packageBmpStr;
   ptin_client_id_t client;
   L7_BOOL          addOrRemove = L7_FALSE;//Add Packages
-  L7_uint32        intIfNum;
+  L7_uint32        ptin_port;
   L7_uint16        uni_ivid;
   L7_uint16        uni_ovid;
   L7_RC_t          rc          = L7_SUCCESS;
@@ -18513,7 +18806,21 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
             {
               client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
               client.ptin_intf.intf_id    = shift_index;
+              client.ptin_port            = ptintf2port(client.ptin_intf.intf_type,
+                                                        client.ptin_intf.intf_id); 
               client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+            }
+
+            ptin_port = client.ptin_port;
+
+            if (ptin_intf_portGem2virtualVid(ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+            {
+              PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+                         client.innerVlan);
+            }
+            else
+            {
+              PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
             }
 
             rc = ptin_igmp_clientId_convert(msg[messageIterator].evcId, &client);
@@ -18526,24 +18833,16 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
               continue;
             }
 
-            /* Get interface as intIfNum format */      
-            if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
+            if (ptin_evc_extVlans_get(ptin_port, msg[messageIterator].evcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
             {
-              if (ptin_evc_extVlans_get(intIfNum, msg[messageIterator].evcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
-              {
-                PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
-                          client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
-              }
-              else
-              {
-                uni_ovid = uni_ivid = 0;
-                PT_LOG_ERR(LOG_CTX_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
-                        client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan);
-              }
+              PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
+                        client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
             }
             else
             {
-              PT_LOG_ERR(LOG_CTX_IGMP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
+              uni_ovid = uni_ivid = 0;
+              PT_LOG_ERR(LOG_CTX_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
+                      client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan);
             }
           
             bmpIterator = 0;
@@ -18608,7 +18907,21 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
         {
           client.ptin_intf.intf_type  = msg[messageIterator].client.intf.intf_type;
           client.ptin_intf.intf_id    = msg[messageIterator].client.intf.intf_id;
+          client.ptin_port            = ptintf2port(client.ptin_intf.intf_type,
+                                                    client.ptin_intf.intf_id); 
           client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+        }
+
+        ptin_port = client.ptin_port;
+
+        if (ptin_intf_portGem2virtualVid(ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+                     client.innerVlan);
+        }
+        else
+        {
+          PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
         }
 
         rc = ptin_igmp_clientId_convert(msg[messageIterator].evcId, &client);
@@ -18618,26 +18931,17 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
           continue;
         }
 
-        /* Get interface as intIfNum format */      
-        if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
+        if (ptin_evc_extVlans_get(ptin_port, msg[messageIterator].evcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
         {
-          if (ptin_evc_extVlans_get(intIfNum, msg[messageIterator].evcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
-          {
-            PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
-                      client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
-          }
-          else
-          {
-            uni_ovid = uni_ivid = 0;
-            PT_LOG_ERR(LOG_CTX_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
-                    client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan);
-          }
+          PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
+                    client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
         }
         else
         {
-          PT_LOG_ERR(LOG_CTX_IGMP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
+          uni_ovid = uni_ivid = 0;
+          PT_LOG_ERR(LOG_CTX_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
+                  client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan);
         }
-      
 
         bmpIterator = 0;
 
@@ -18686,7 +18990,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
 //L7_char8        *charPtr           = packageBmpStr;
   ptin_client_id_t client;
   L7_BOOL          addOrRemove = L7_TRUE; //Remove Packages
-  L7_uint32        intIfNum;
+  L7_uint32        ptin_port;
   L7_uint16        uni_ivid;
   L7_uint16        uni_ovid;
   L7_RC_t          rc          = L7_SUCCESS;
@@ -18763,7 +19067,21 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
             {
               client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
               client.ptin_intf.intf_id    = shift_index;
+              client.ptin_port            = ptintf2port(client.ptin_intf.intf_type,
+                                                        client.ptin_intf.intf_id); 
               client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+            }
+
+            ptin_port = client.ptin_port;
+
+            if (ptin_intf_portGem2virtualVid(ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+            {
+              PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+                         client.innerVlan);
+            }
+            else
+            {
+              PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
             }
 
             rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(msg[messageIterator].evcId), &client);
@@ -18776,24 +19094,16 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
               continue;
             }
 
-            /* Get interface as intIfNum format */
-            if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum) == L7_SUCCESS)
+            if (ptin_evc_extVlans_get(ptin_port, ENDIAN_SWAP32(msg[messageIterator].evcId), (L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
             {
-              if (ptin_evc_extVlans_get(intIfNum, ENDIAN_SWAP32(msg[messageIterator].evcId), (L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
-              {
-                PT_LOG_TRACE(LOG_CTX_IGMP, "Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
-                             client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
-              } 
-              else
-              {
-                uni_ovid = uni_ivid = 0;
-                PT_LOG_ERR(LOG_CTX_IGMP, "Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
-                           client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan);
-              }
+              PT_LOG_TRACE(LOG_CTX_IGMP, "Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
+                           client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
             } 
             else
             {
-              PT_LOG_ERR(LOG_CTX_IGMP, "Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
+              uni_ovid = uni_ivid = 0;
+              PT_LOG_ERR(LOG_CTX_IGMP, "Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
+                         client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan);
             }
 
             bmpIterator = 0;
@@ -18854,9 +19164,22 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
       {
         client.ptin_intf.intf_type  = ENDIAN_SWAP8(msg[messageIterator].client.intf.intf_type);
         client.ptin_intf.intf_id    = ENDIAN_SWAP8(msg[messageIterator].client.intf.intf_id);
+        client.ptin_port            = ptintf2port(client.ptin_intf.intf_type,
+                                                  client.ptin_intf.intf_id); 
         client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
       }
 
+      ptin_port = client.ptin_port;
+
+      if (ptin_intf_portGem2virtualVid(ptin_port, client.innerVlan, &client.innerVlan)!= L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+                   client.innerVlan);
+      }
+      else
+      {
+        PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
+      }
 
       rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(msg[messageIterator].evcId), &client);
       if (rc != L7_SUCCESS)
@@ -18867,24 +19190,16 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
         continue;
       }
 
-      /* Get interface as intIfNum format */
-      if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum) == L7_SUCCESS)
+      if (ptin_evc_extVlans_get(ptin_port, ENDIAN_SWAP32(msg[messageIterator].evcId), (L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
       {
-        if (ptin_evc_extVlans_get(intIfNum, ENDIAN_SWAP32(msg[messageIterator].evcId), (L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
-        {
-          PT_LOG_TRACE(LOG_CTX_IGMP, "Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
-                       client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
-        }
-        else
-        {
-          uni_ovid = uni_ivid = 0;
-          PT_LOG_ERR(LOG_CTX_IGMP, "Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
-                     client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan);
-        }
-      } 
+        PT_LOG_TRACE(LOG_CTX_IGMP, "Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
+                     client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
+      }
       else
       {
-        PT_LOG_ERR(LOG_CTX_IGMP, "Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
+        uni_ovid = uni_ivid = 0;
+        PT_LOG_ERR(LOG_CTX_IGMP, "Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
+                   client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan);
       }
 
       bmpIterator = 0;
@@ -18924,7 +19239,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
 L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_packages_t *msg, L7_uint32 noOfMessages)
 {
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-  L7_uint32        messageIterator , bmpIterator;
+  L7_uint32        messageIterator , bmpIterator, ptin_port;
 //L7_int32         packageIdIterator;
   L7_char8         packageBmpStr[PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint8)*8)-1]={};
 //L7_char8        *charPtr           = packageBmpStr;
@@ -19008,6 +19323,27 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
           PT_LOG_DEBUG(LOG_CTX_MSG, " noOfPackages       = %u", ptinEvcFlow.noOfPackages);      
           PT_LOG_DEBUG(LOG_CTX_MSG, " packageBmpList:%s", packageBmpStr);
 
+          ptin_port = ptintf2port(ptinEvcFlow.ptin_intf.intf_type, ptinEvcFlow.ptin_intf.intf_id);
+
+          /* Adjust outer VID considering the port virtualization scheme */
+          if (ptin_intf_portGem2virtualVid(ptin_port,
+                                           ptinEvcFlow.uni_ovid,
+                                           &ptinEvcFlow.uni_ovid) != L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", 
+                       ptinEvcFlow.uni_ovid);
+          }
+
+          /* Inner VLAN will identify the client using the GEM-VLAN value.
+          So, we need to add an offset according to the virtual port in use */
+          if (ptin_intf_portGem2virtualVid(ptin_port,
+                                           ptinEvcFlow.int_ivid,
+                                           &ptinEvcFlow.int_ivid) != L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", 
+                       ptinEvcFlow.int_ivid);
+          }
+
           if (ptinEvcFlow.noOfPackages >= 0)
           {
             if ((rc=ptin_evc_macbridge_client_packages_add(&ptinEvcFlow)) != L7_SUCCESS)
@@ -19060,7 +19396,27 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
         ptinEvcFlow.uni_ivid            = ENDIAN_SWAP16(msg[messageIterator].intf.inner_vid);                            
         ptinEvcFlow.onuId               = ENDIAN_SWAP8(msg[messageIterator].onuId);                                      
         ptinEvcFlow.noOfPackages        = ENDIAN_SWAP16(msg[messageIterator].noOfPackages);  
-               
+          
+        ptin_port =  ptintf2port(ptinEvcFlow.ptin_intf.intf_type, ptinEvcFlow.ptin_intf.intf_id);    
+
+        /* Adjust outer VID considering the port virtualization scheme */
+        if (ptin_intf_portGem2virtualVid(ptin_port,
+                                         ptinEvcFlow.uni_ovid,
+                                         &ptinEvcFlow.uni_ovid) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", 
+                     ptinEvcFlow.uni_ovid);
+        }
+        /* Inner VLAN will identify the client using the GEM-VLAN value.
+           So, we need to add an offset according to the virtual port in use */
+        if (ptin_intf_portGem2virtualVid(ptin_port,
+                                         ptinEvcFlow.int_ivid,
+                                         &ptinEvcFlow.int_ivid) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", 
+                     ptinEvcFlow.int_ivid);
+        }
+
         bmpIterator = 0;
 
         while( bmpIterator < PTIN_IGMP_PACKAGE_BITMAP_SIZE )
@@ -19119,7 +19475,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
 L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client_packages_t *msg, L7_uint32 noOfMessages)
 {
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-  L7_uint32        messageIterator, bmpIterator;
+  L7_uint32        messageIterator, bmpIterator, ptin_port;
 //L7_int32         packageIdIterator;
   L7_char8         packageBmpStr[PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint8)*8)-1]={};
 //L7_char8        *charPtr           = packageBmpStr;
@@ -19209,6 +19565,23 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
           PT_LOG_DEBUG(LOG_CTX_MSG, " noOfPackages       = %u", ptinEvcFlow.noOfPackages);      
           PT_LOG_DEBUG(LOG_CTX_MSG, " packageBmpList:%s", packageBmpStr);
 
+          ptin_port = ptintf2port(ptinEvcFlow.ptin_intf.intf_type, ptinEvcFlow.ptin_intf.intf_id);
+
+          /* Adjust outer VID considering the port virtualization scheme */
+          if (ptin_intf_portGem2virtualVid(ptin_port,
+                                           ptinEvcFlow.uni_ovid,
+                                           &ptinEvcFlow.uni_ovid) != L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", ptinEvcFlow.uni_ovid);
+          }
+          /* Inner VLAN will identify the client using the GEM-VLAN value.
+             So, we need to add an offset according to the virtual port in use */
+          if (ptin_intf_portGem2virtualVid(ptin_port,
+                                           ptinEvcFlow.int_ivid,
+                                           &ptinEvcFlow.int_ivid) != L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", ptinEvcFlow.int_ivid);
+          }
 
           if (ptinEvcFlow.noOfPackages > 0)
           {
@@ -19263,6 +19636,24 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
       ptinEvcFlow.uni_ivid            = ENDIAN_SWAP16(msg[messageIterator].intf.inner_vid);                            
       ptinEvcFlow.onuId               = ENDIAN_SWAP8(msg[messageIterator].onuId);                                      
       ptinEvcFlow.noOfPackages        = ENDIAN_SWAP16(msg[messageIterator].noOfPackages);     
+
+      ptin_port = ptintf2port(ptinEvcFlow.ptin_intf.intf_type, ptinEvcFlow.ptin_intf.intf_id);
+
+      /* Adjust outer VID considering the port virtualization scheme */
+      if (ptin_intf_portGem2virtualVid(ptin_port,
+                                       ptinEvcFlow.uni_ovid,
+                                       &ptinEvcFlow.uni_ovid) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", ptinEvcFlow.uni_ovid);
+      }
+      /* Inner VLAN will identify the client using the GEM-VLAN value.
+         So, we need to add an offset according to the virtual port in use */
+      if (ptin_intf_portGem2virtualVid(ptin_port,
+                                       ptinEvcFlow.int_ivid,
+                                       &ptinEvcFlow.int_ivid) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", ptinEvcFlow.int_ivid);
+      }
 
       bmpIterator = 0;
 
@@ -19410,7 +19801,7 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
       ptinIntf.intf_type = ENDIAN_SWAP8(msg[messageIterator].intf.intf_type);
       ptinIntf.intf_id   = ENDIAN_SWAP8(msg[messageIterator].intf.intf_id);
 
-      /*Convert from ptin intf to otin port*/
+      /*Convert from ptin intf to ptin port*/
       if ( L7_SUCCESS != (rc = ptin_intf_ptintf2port(&ptinIntf, &ptinPort) ) )
       {
         return rc;
@@ -19718,7 +20109,7 @@ L7_RC_t rc;
             }
 
 #if (!PTIN_BOARD_IS_STANDALONE)
-            if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, ib->vid, PTIN_XLATE_NOT_DEFINED, &internalVid, L7_NULLPTR)) {
+            if (L7_SUCCESS!=ptin_xlate_ingress_get(ib->board_port, ib->vid, PTIN_XLATE_NOT_DEFINED, &internalVid, L7_NULLPTR)) {
                 PT_LOG_ERR(LOG_CTX_MSG,"ptin_xlate_ingress_get");
                 return ERROR_CODE_INVALIDPARAM;
             }
@@ -19772,10 +20163,10 @@ L7_RC_t rc;
             }
 
 #if (!PTIN_BOARD_IS_STANDALONE)
-            rc = ptin_ipdtl0_control(ib->dtl0vid, ib->vid, internalVid, intIfNum, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable);
+            rc = ptin_ipdtl0_control(ib->dtl0vid, ib->vid, internalVid, ib->board_port, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable);
             if (L7_SUCCESS!=rc) {
-                PT_LOG_ERR(LOG_CTX_MSG,"ptin_ipdtl0_control(ib->dtl0vid=%u, ib->vid=%u, internalVid=%u, intIfNum=%u, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable=%u)=%d",
-                           ib->dtl0vid, ib->vid, internalVid, intIfNum, enable, rc);
+                PT_LOG_ERR(LOG_CTX_MSG,"ptin_ipdtl0_control(ib->dtl0vid=%u, ib->vid=%u, internalVid=%u, ptin_port=%u, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable=%u)=%d",
+                           ib->dtl0vid, ib->vid, internalVid, ib->board_port, enable, rc);
                 return ERROR_CODE_INVALIDPARAM;
             }
 #endif

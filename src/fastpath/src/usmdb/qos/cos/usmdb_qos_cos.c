@@ -109,7 +109,8 @@ L7_RC_t usmDbQosCosMapIpPrecIndexGetNext(L7_uint32 UnitIndex,
 * @purpose  Get the assigned traffic class (queue) for this IP precedence
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    prec        @b{(input)}  IP precedence     
 * @param    *pVal       @b{(output)} Ptr to traffic class output value    
 *
@@ -123,6 +124,7 @@ L7_RC_t usmDbQosCosMapIpPrecIndexGetNext(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosMapIpPrecTrafficClassGet(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum,
+                                            l7_cosq_set_t queueSet,
                                             L7_uint32 prec, 
                                             L7_uint32 *pVal)
 {
@@ -134,7 +136,7 @@ L7_RC_t usmDbQosCosMapIpPrecTrafficClassGet(L7_uint32 UnitIndex,
       (usmDbQosCosMapIpPrecCfgPerIntfIsAllowed() == L7_FALSE))
     return L7_NOT_SUPPORTED;
 
-  return cosMapIpPrecTrafficClassGet(intIfNum, prec, pVal);
+  return cosMapIpPrecTrafficClassGet(intIfNum, queueSet, prec, pVal);
 }
 
 /*************************************************************************
@@ -240,7 +242,8 @@ L7_RC_t usmDbQosCosQueueSchedulerGlobalOnlyFeatureGet( L7_uint32 UnitIndex)
 * @purpose  Set the assigned traffic class (queue) for this IP precedence
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    prec        @b{(input)}  IP precedence     
 * @param    val         @b{(input)}  Traffic class value    
 *
@@ -254,6 +257,7 @@ L7_RC_t usmDbQosCosQueueSchedulerGlobalOnlyFeatureGet( L7_uint32 UnitIndex)
 *********************************************************************/
 L7_RC_t usmDbQosCosMapIpPrecTrafficClassSet(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum,
+                                            l7_cosq_set_t queueSet, 
                                             L7_uint32 prec, 
                                             L7_uint32 val)
 {
@@ -267,7 +271,7 @@ L7_RC_t usmDbQosCosMapIpPrecTrafficClassSet(L7_uint32 UnitIndex,
     rc = cosMapIpPrecTrafficClassGlobalSet(prec, val);
 
   else if (usmDbQosCosMapIpPrecCfgPerIntfIsAllowed() == L7_TRUE)
-    rc = cosMapIpPrecTrafficClassSet(intIfNum, prec, val);
+    rc = cosMapIpPrecTrafficClassSet(intIfNum, queueSet, prec, val);
 
   return rc;
 }
@@ -276,7 +280,8 @@ L7_RC_t usmDbQosCosMapIpPrecTrafficClassSet(L7_uint32 UnitIndex,
 * @purpose  Get default traffic class mapping for specified IP precedence value
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    prec        @b{(input)}  IP precedence     
 * @param    *pVal       @b{(output)} Ptr to traffic class output value    
 *
@@ -293,6 +298,7 @@ L7_RC_t usmDbQosCosMapIpPrecTrafficClassSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosMapIpPrecDefaultTrafficClassGet(L7_uint32 UnitIndex, 
                                                    L7_uint32 intIfNum,
+                                                   l7_cosq_set_t queueSet,
                                                    L7_uint32 prec, 
                                                    L7_uint32 *pVal)
 {
@@ -304,14 +310,15 @@ L7_RC_t usmDbQosCosMapIpPrecDefaultTrafficClassGet(L7_uint32 UnitIndex,
       (usmDbQosCosMapIpPrecCfgPerIntfIsAllowed() == L7_FALSE))
     return L7_NOT_SUPPORTED;
 
-  return cosMapIpPrecDefaultTrafficClassGet(intIfNum, prec, pVal);
+  return cosMapIpPrecDefaultTrafficClassGet(intIfNum, queueSet, prec, pVal);
 }
 
 /*************************************************************************
 * @purpose  Restore default IP precedence mappings for this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -322,7 +329,8 @@ L7_RC_t usmDbQosCosMapIpPrecDefaultTrafficClassGet(L7_uint32 UnitIndex,
 * @end
 *********************************************************************/
 L7_RC_t usmDbQosCosMapIpPrecDefaultsRestore(L7_uint32 UnitIndex, 
-                                            L7_uint32 intIfNum)
+                                            L7_uint32 intIfNum,
+                                            l7_cosq_set_t queueSet)
 {
   L7_RC_t       rc = L7_NOT_SUPPORTED;
 
@@ -334,7 +342,7 @@ L7_RC_t usmDbQosCosMapIpPrecDefaultsRestore(L7_uint32 UnitIndex,
     rc = cosMapIpPrecDefaultsGlobalRestore();
 
   else if (usmDbQosCosMapIpPrecCfgPerIntfIsAllowed() == L7_TRUE)
-    rc = cosMapIpPrecDefaultsRestore(intIfNum);
+    rc = cosMapIpPrecDefaultsRestore(intIfNum, queueSet);
 
   return rc;
 }
@@ -474,7 +482,8 @@ L7_RC_t usmDbQosCosMapIpDscpIndexGetNext(L7_uint32 UnitIndex,
 * @purpose  Get the assigned traffic class (queue) for this IP DSCP
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    dscp        @b{(input)}  IP DSCP     
 * @param    *pVal       @b{(output)} Ptr to traffic class output value    
 *
@@ -488,6 +497,7 @@ L7_RC_t usmDbQosCosMapIpDscpIndexGetNext(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosMapIpDscpTrafficClassGet(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum,
+                                            l7_cosq_set_t queueSet, 
                                             L7_uint32 dscp, 
                                             L7_uint32 *pVal)
 {
@@ -499,14 +509,15 @@ L7_RC_t usmDbQosCosMapIpDscpTrafficClassGet(L7_uint32 UnitIndex,
       (usmDbQosCosMapIpDscpCfgPerIntfIsAllowed() == L7_FALSE))
     return L7_NOT_SUPPORTED;
 
-  return cosMapIpDscpTrafficClassGet(intIfNum, dscp, pVal);
+  return cosMapIpDscpTrafficClassGet(intIfNum, queueSet, dscp, pVal);
 }
 
 /*************************************************************************
 * @purpose  Set the assigned traffic class (queue) for this IP DSCP
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    dscp        @b{(input)}  IP DSCP     
 * @param    val         @b{(input)}  Traffic class value    
 *
@@ -520,6 +531,7 @@ L7_RC_t usmDbQosCosMapIpDscpTrafficClassGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosMapIpDscpTrafficClassSet(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum,
+                                            l7_cosq_set_t queueSet, 
                                             L7_uint32 dscp, 
                                             L7_uint32 val)
 {
@@ -533,7 +545,7 @@ L7_RC_t usmDbQosCosMapIpDscpTrafficClassSet(L7_uint32 UnitIndex,
     rc = cosMapIpDscpTrafficClassGlobalSet(dscp, val);
 
   else if (usmDbQosCosMapIpDscpCfgPerIntfIsAllowed() == L7_TRUE)
-    rc = cosMapIpDscpTrafficClassSet(intIfNum, dscp, val);
+    rc = cosMapIpDscpTrafficClassSet(intIfNum, queueSet, dscp, val);
 
   return rc;
 }
@@ -542,7 +554,8 @@ L7_RC_t usmDbQosCosMapIpDscpTrafficClassSet(L7_uint32 UnitIndex,
 * @purpose  Get default traffic class mapping for specified IP DSCP value
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    dscp        @b{(input)}  IP DSCP     
 * @param    *pVal       @b{(output)} Ptr to traffic class output value    
 *
@@ -559,6 +572,7 @@ L7_RC_t usmDbQosCosMapIpDscpTrafficClassSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosMapIpDscpDefaultTrafficClassGet(L7_uint32 UnitIndex, 
                                                    L7_uint32 intIfNum,
+                                                   l7_cosq_set_t queueSet,
                                                    L7_uint32 dscp, 
                                                    L7_uint32 *pVal)
 {
@@ -570,14 +584,15 @@ L7_RC_t usmDbQosCosMapIpDscpDefaultTrafficClassGet(L7_uint32 UnitIndex,
       (usmDbQosCosMapIpDscpCfgPerIntfIsAllowed() == L7_FALSE))
     return L7_NOT_SUPPORTED;
 
-  return cosMapIpDscpDefaultTrafficClassGet(intIfNum, dscp, pVal);
+  return cosMapIpDscpDefaultTrafficClassGet(intIfNum, queueSet, dscp, pVal);
 }
 
 /*************************************************************************
 * @purpose  Restore default IP DSCP mappings for this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -588,7 +603,8 @@ L7_RC_t usmDbQosCosMapIpDscpDefaultTrafficClassGet(L7_uint32 UnitIndex,
 * @end
 *********************************************************************/
 L7_RC_t usmDbQosCosMapIpDscpDefaultsRestore(L7_uint32 UnitIndex, 
-                                            L7_uint32 intIfNum)
+                                            L7_uint32 intIfNum,
+                                            l7_cosq_set_t queueSet)
 {
   L7_RC_t       rc = L7_NOT_SUPPORTED;
 
@@ -600,7 +616,7 @@ L7_RC_t usmDbQosCosMapIpDscpDefaultsRestore(L7_uint32 UnitIndex,
     rc = cosMapIpDscpDefaultsGlobalRestore();
 
   else if (usmDbQosCosMapIpDscpCfgPerIntfIsAllowed() == L7_TRUE)
-    rc = cosMapIpDscpDefaultsRestore(intIfNum);
+    rc = cosMapIpDscpDefaultsRestore(intIfNum, queueSet);
 
   return rc;
 }
@@ -710,7 +726,8 @@ L7_BOOL usmDbQosCosMapTrustModeCfgPerIntfIsAllowed(void)
 * @purpose  Get the COS trust mode for this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to trust mode output value    
 *
 * @returns  L7_SUCCESS
@@ -723,6 +740,7 @@ L7_BOOL usmDbQosCosMapTrustModeCfgPerIntfIsAllowed(void)
 *********************************************************************/
 L7_RC_t usmDbQosCosMapTrustModeGet(L7_uint32 UnitIndex, 
                                    L7_uint32 intIfNum,
+                                   l7_cosq_set_t queueSet,
                                    L7_QOS_COS_MAP_INTF_MODE_t *pVal)
 {
   if (cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID, 
@@ -733,14 +751,15 @@ L7_RC_t usmDbQosCosMapTrustModeGet(L7_uint32 UnitIndex,
       (usmDbQosCosMapTrustModeCfgPerIntfIsAllowed() == L7_FALSE))
     return L7_NOT_SUPPORTED;
 
-  return cosMapIntfTrustModeGet(intIfNum, pVal);
+  return cosMapIntfTrustModeGet(intIfNum, queueSet, pVal);
 }
 
 /*************************************************************************
 * @purpose  Set the COS trust mode for this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    val         @b{(input)}  Trust mode value    
 *
 * @returns  L7_SUCCESS
@@ -753,6 +772,7 @@ L7_RC_t usmDbQosCosMapTrustModeGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosMapTrustModeSet(L7_uint32 UnitIndex, 
                                    L7_uint32 intIfNum,
+                                   l7_cosq_set_t queueSet,
                                    L7_QOS_COS_MAP_INTF_MODE_t val)
 {
   L7_RC_t       rc;
@@ -789,7 +809,7 @@ L7_RC_t usmDbQosCosMapTrustModeSet(L7_uint32 UnitIndex,
   if (intIfNum == L7_ALL_INTERFACES)
     rc = cosMapIntfTrustModeGlobalSet(val);
   else if (usmDbQosCosMapTrustModeCfgPerIntfIsAllowed() == L7_TRUE)
-    rc = cosMapIntfTrustModeSet(intIfNum, val);
+    rc = cosMapIntfTrustModeSet(intIfNum, queueSet, val);
   else
     rc = L7_NOT_SUPPORTED;
 
@@ -850,7 +870,8 @@ L7_RC_t usmDbQosCosMapTrustModeIntfIndexGetNext(L7_uint32 UnitIndex,
 * @purpose  Get the COS untrusted port default traffic class for this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to untrusted traffic class output value    
 *
 * @returns  L7_SUCCESS
@@ -862,6 +883,7 @@ L7_RC_t usmDbQosCosMapTrustModeIntfIndexGetNext(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosMapUntrustedPortDefaultTrafficClassGet(L7_uint32 UnitIndex,
                                                           L7_uint32 intIfNum,
+                                                          l7_cosq_set_t queueSet,
                                                           L7_uint32 *pVal)
 {
   if (cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID, 
@@ -872,7 +894,7 @@ L7_RC_t usmDbQosCosMapUntrustedPortDefaultTrafficClassGet(L7_uint32 UnitIndex,
       (usmDbQosCosMapTrustModeCfgPerIntfIsAllowed() == L7_FALSE))
     return L7_NOT_SUPPORTED;
 
-  return cosMapUntrustedPortDefaultTrafficClassGet(intIfNum, pVal);
+  return cosMapUntrustedPortDefaultTrafficClassGet(intIfNum, queueSet, pVal);
 }
 
 /*********************************************************************
@@ -1114,7 +1136,8 @@ L7_RC_t usmDbQosCosQueueDropPrecIndexGetNext(L7_uint32 UnitIndex,
 * @purpose  Restore default settings for all queues on this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -1125,7 +1148,8 @@ L7_RC_t usmDbQosCosQueueDropPrecIndexGetNext(L7_uint32 UnitIndex,
 * @end
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueDefaultsRestore(L7_uint32 UnitIndex, 
-                                        L7_uint32 intIfNum)
+                                        L7_uint32 intIfNum,
+                                        l7_cosq_set_t queueSet)
 {
   L7_RC_t       rc = L7_NOT_SUPPORTED;
 
@@ -1137,7 +1161,7 @@ L7_RC_t usmDbQosCosQueueDefaultsRestore(L7_uint32 UnitIndex,
     rc = cosQueueDefaultsGlobalRestore();
 
   else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
-    rc = cosQueueDefaultsRestore(intIfNum);
+    rc = cosQueueDefaultsRestore(intIfNum, queueSet);
 
   return rc;
 }
@@ -1146,8 +1170,10 @@ L7_RC_t usmDbQosCosQueueDefaultsRestore(L7_uint32 UnitIndex,
 * @purpose  Get the COS egress shaping rate for this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
-* @param    *pVal       @b{(output)} Ptr to intf shaping rate output value    
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
+* @param    *rate       @b{(output)} Ptr to intf shaping rate output value
+* @param    *burstSize  @b{(output)} Intf shaping burst size
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -1159,7 +1185,8 @@ L7_RC_t usmDbQosCosQueueDefaultsRestore(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueIntfShapingRateGet(L7_uint32 UnitIndex, 
                                            L7_uint32 intIfNum, 
-                                           L7_uint32 *pVal)
+                                           l7_cosq_set_t queueSet,
+                                           L7_uint32 *rate, L7_uint32 *burstSize)
 {
   if (cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID, 
                             L7_COS_QUEUE_INTF_SHAPING_FEATURE_ID) != L7_TRUE)
@@ -1169,15 +1196,17 @@ L7_RC_t usmDbQosCosQueueIntfShapingRateGet(L7_uint32 UnitIndex,
       (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_FALSE))
     return L7_NOT_SUPPORTED;
 
-  return cosQueueIntfShapingRateGet(intIfNum, pVal);
+  return cosQueueIntfShapingRateGet(intIfNum, queueSet, rate, burstSize);
 }
 
 /*************************************************************************
 * @purpose  Set the COS egress shaping rate for this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
-* @param    val         @b{(input)}  Intf shaping rate value    
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
+* @param    rate        @b{(input)}  Intf shaping rate value
+* @param    burstSize   @b{(input)}  Intf shaping burst size
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -1189,7 +1218,8 @@ L7_RC_t usmDbQosCosQueueIntfShapingRateGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueIntfShapingRateSet(L7_uint32 UnitIndex, 
                                            L7_uint32 intIfNum, 
-                                           L7_uint32 val)
+                                           l7_cosq_set_t queueSet,
+                                           L7_uint32 rate, L7_uint32 burstSize)
 {
   L7_RC_t       rc = L7_NOT_SUPPORTED;
 
@@ -1198,10 +1228,10 @@ L7_RC_t usmDbQosCosQueueIntfShapingRateSet(L7_uint32 UnitIndex,
     return L7_NOT_SUPPORTED;
 
   if (intIfNum == L7_ALL_INTERFACES)
-    rc = cosQueueIntfShapingRateGlobalSet(val);
+    rc = cosQueueIntfShapingRateGlobalSet(rate, burstSize);
 
   else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
-    rc = cosQueueIntfShapingRateSet(intIfNum, val);
+    rc = cosQueueIntfShapingRateSet(intIfNum, queueSet, rate, burstSize);
 
   return rc;
 }
@@ -1209,7 +1239,8 @@ L7_RC_t usmDbQosCosQueueIntfShapingRateSet(L7_uint32 UnitIndex,
 /*************************************************************************
 * @purpose  Get the COS interface parameters for this interface
 *
-* @param    intIfNum        @b{(input)}  Internal interface number     
+* @param    intIfNum        @b{(input)}  Internal interface number
+* @param    queueSet        @b{(input)}  Group of queues
 * @param    intfShapingRate @b{(input)}  Interface shaping rate in kbps
 * @param    intfShapingBurstSize @b{(input)}  Interface shaping burst size in kbits
 *
@@ -1221,6 +1252,7 @@ L7_RC_t usmDbQosCosQueueIntfShapingRateSet(L7_uint32 UnitIndex,
 * @end
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueIntfShapingStatusGet(L7_uint32 intIfNum, 
+                                             l7_cosq_set_t queueSet,
                                              L7_uint32 *intfShapingRate,
                                              L7_uint32 *intfShapingBurstSize)
 {
@@ -1228,7 +1260,8 @@ L7_RC_t usmDbQosCosQueueIntfShapingStatusGet(L7_uint32 intIfNum,
                             L7_COS_QUEUE_INTF_SHAPING_FEATURE_ID) != L7_TRUE)
     return L7_NOT_SUPPORTED;
 
-  return(cosQueueIntfShapingStatusGet(intIfNum, intfShapingRate, intfShapingBurstSize));
+  return(cosQueueIntfShapingStatusGet(intIfNum, queueSet,
+                                      intfShapingRate, intfShapingBurstSize));
 }
 
 /*************************************************************************
@@ -1255,7 +1288,8 @@ L7_RC_t usmDbQosCosQueueIntfShapingRateUnitsGet(L7_RATE_UNIT_t *units)
 * @purpose  Get the COS queue management type for this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to mgmt type output value    
 *
 * @returns  L7_SUCCESS
@@ -1271,6 +1305,7 @@ L7_RC_t usmDbQosCosQueueIntfShapingRateUnitsGet(L7_RATE_UNIT_t *units)
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMgmtTypePerIntfGet(L7_uint32 UnitIndex, 
                                            L7_uint32 intIfNum,
+                                           l7_cosq_set_t queueSet,
                                            L7_QOS_COS_QUEUE_MGMT_TYPE_t *pVal)
 {
   if (cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID, 
@@ -1281,14 +1316,15 @@ L7_RC_t usmDbQosCosQueueMgmtTypePerIntfGet(L7_uint32 UnitIndex,
       (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_FALSE))
     return L7_NOT_SUPPORTED;
 
-  return cosQueueMgmtTypePerIntfGet(intIfNum, pVal);
+  return cosQueueMgmtTypePerIntfGet(intIfNum, queueSet, pVal);
 }
 
 /*************************************************************************
 * @purpose  Set the COS queue management type for this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    val         @b{(input)}  Queue mgmt type value    
 *
 * @returns  L7_SUCCESS
@@ -1304,6 +1340,7 @@ L7_RC_t usmDbQosCosQueueMgmtTypePerIntfGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMgmtTypePerIntfSet(L7_uint32 UnitIndex, 
                                            L7_uint32 intIfNum,
+                                           l7_cosq_set_t queueSet,
                                            L7_QOS_COS_QUEUE_MGMT_TYPE_t val)
 {
   L7_RC_t       rc = L7_NOT_SUPPORTED;
@@ -1316,7 +1353,7 @@ L7_RC_t usmDbQosCosQueueMgmtTypePerIntfSet(L7_uint32 UnitIndex,
     rc = cosQueueMgmtTypePerIntfGlobalSet(val);
 
   else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
-    rc = cosQueueMgmtTypePerIntfSet(intIfNum, val);
+    rc = cosQueueMgmtTypePerIntfSet(intIfNum, queueSet, val);
 
   return rc;
 }
@@ -1325,7 +1362,8 @@ L7_RC_t usmDbQosCosQueueMgmtTypePerIntfSet(L7_uint32 UnitIndex,
 * @purpose  Get the decay exponent for this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to decay exponent output value    
 *
 * @returns  L7_SUCCESS
@@ -1338,6 +1376,7 @@ L7_RC_t usmDbQosCosQueueMgmtTypePerIntfSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueWredDecayExponentGet(L7_uint32 UnitIndex, 
                                              L7_uint32 intIfNum,
+                                             l7_cosq_set_t queueSet,
                                              L7_uint32 *pVal)
 {
   if (cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID, 
@@ -1356,14 +1395,15 @@ L7_RC_t usmDbQosCosQueueWredDecayExponentGet(L7_uint32 UnitIndex,
       return L7_NOT_SUPPORTED;
   }
 
-  return cosQueueWredDecayExponentGet(intIfNum, pVal);
+  return cosQueueWredDecayExponentGet(intIfNum, queueSet, pVal);
 }
 
 /*************************************************************************
 * @purpose  Set the decay exponent for this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    val         @b{(input)}  Decay exponent value    
 *
 * @returns  L7_SUCCESS
@@ -1376,6 +1416,7 @@ L7_RC_t usmDbQosCosQueueWredDecayExponentGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueWredDecayExponentSet(L7_uint32 UnitIndex, 
                                              L7_uint32 intIfNum,
+                                             l7_cosq_set_t queueSet,
                                              L7_uint32 val)
 {
   L7_RC_t       rc = L7_NOT_SUPPORTED;
@@ -1401,7 +1442,7 @@ L7_RC_t usmDbQosCosQueueWredDecayExponentSet(L7_uint32 UnitIndex,
     rc = cosQueueWredDecayExponentGlobalSet(val);
 
   else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
-    rc = cosQueueWredDecayExponentSet(intIfNum, val);
+    rc = cosQueueWredDecayExponentSet(intIfNum, queueSet, val);
 
   return rc;
 }
@@ -1410,8 +1451,9 @@ L7_RC_t usmDbQosCosQueueWredDecayExponentSet(L7_uint32 UnitIndex,
 * @purpose  Get the minimum bandwidth list for all queues on this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
-* @param    *pVal       @b{(output)} Ptr to min bandwidth output list    
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
+* @param    *pVal       @b{(output)} Ptr to min bandwidth output list
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -1423,6 +1465,7 @@ L7_RC_t usmDbQosCosQueueWredDecayExponentSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMinBandwidthListGet(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum,
+                                            l7_cosq_set_t queueSet,
                                             L7_qosCosQueueBwList_t *pVal)
 {
   if (cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID, 
@@ -1433,15 +1476,16 @@ L7_RC_t usmDbQosCosQueueMinBandwidthListGet(L7_uint32 UnitIndex,
       (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_FALSE))
     return L7_NOT_SUPPORTED;
 
-  return cosQueueMinBandwidthListGet(intIfNum, pVal);
+  return cosQueueMinBandwidthListGet(intIfNum, queueSet, pVal);
 }
 
 /*************************************************************************
 * @purpose  Set the minimum bandwidth list for all queues on this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
-* @param    *pVal       @b{(input)}  Ptr to min bandwidth list    
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
+* @param    *pVal       @b{(input)}  Ptr to min bandwidth list
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -1453,6 +1497,7 @@ L7_RC_t usmDbQosCosQueueMinBandwidthListGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMinBandwidthListSet(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum,
+                                            l7_cosq_set_t queueSet,
                                             L7_qosCosQueueBwList_t *pVal)
 {
   L7_RC_t                   rc = L7_NOT_SUPPORTED;
@@ -1474,7 +1519,7 @@ L7_RC_t usmDbQosCosQueueMinBandwidthListSet(L7_uint32 UnitIndex,
 
   else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
   {
-    rc = cosQueueMinBandwidthListSet(intIfNum, pVal);
+    rc = cosQueueMinBandwidthListSet(intIfNum, queueSet, pVal);
   }
 
   return rc;
@@ -1484,7 +1529,8 @@ L7_RC_t usmDbQosCosQueueMinBandwidthListSet(L7_uint32 UnitIndex,
 * @purpose  Set the minimum bandwidth for a specific queue on this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    queueId     @b{(input)}  Queue id
 * @param    val         @b{(input)}  Min bandwidth value    
 *
@@ -1498,6 +1544,7 @@ L7_RC_t usmDbQosCosQueueMinBandwidthListSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMinBandwidthSet(L7_uint32 UnitIndex, 
                                         L7_uint32 intIfNum,
+                                        l7_cosq_set_t queueSet,
                                         L7_uint32 queueId,
                                         L7_uint32 val)
 {
@@ -1511,7 +1558,7 @@ L7_RC_t usmDbQosCosQueueMinBandwidthSet(L7_uint32 UnitIndex,
                             L7_COS_QUEUE_MIN_BW_FEATURE_ID) != L7_TRUE)
     return L7_NOT_SUPPORTED;
 
-  if (cosQueueMinBandwidthListGet(intIfNum, &list) != L7_SUCCESS)
+  if (cosQueueMinBandwidthListGet(intIfNum, queueSet, &list) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update the individual list item value */
@@ -1531,7 +1578,7 @@ L7_RC_t usmDbQosCosQueueMinBandwidthSet(L7_uint32 UnitIndex,
 
   else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
   {
-    rc = cosQueueMinBandwidthListSet(intIfNum, &list);
+    rc = cosQueueMinBandwidthListSet(intIfNum, queueSet, &list);
   }
 
   return rc;
@@ -1541,8 +1588,9 @@ L7_RC_t usmDbQosCosQueueMinBandwidthSet(L7_uint32 UnitIndex,
 * @purpose  Get the maximum bandwidth list for all queues on this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
-* @param    *pVal       @b{(output)} Ptr to max bandwidth output list    
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
+* @param    *pVal       @b{(output)} Ptr to max bandwidth output list
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -1554,6 +1602,7 @@ L7_RC_t usmDbQosCosQueueMinBandwidthSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMaxBandwidthListGet(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum,
+                                            l7_cosq_set_t queueSet,
                                             L7_qosCosQueueBwList_t *pVal)
 {
   if (cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID, 
@@ -1564,15 +1613,16 @@ L7_RC_t usmDbQosCosQueueMaxBandwidthListGet(L7_uint32 UnitIndex,
       (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_FALSE))
     return L7_NOT_SUPPORTED;
 
-  return cosQueueMaxBandwidthListGet(intIfNum, pVal);
+  return cosQueueMaxBandwidthListGet(intIfNum, queueSet, pVal);
 }
 
 /*************************************************************************
 * @purpose  Set the maximum bandwidth list for all queues on this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
-* @param    *pVal       @b{(input)}  Ptr to max bandwidth list    
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
+* @param    *pVal       @b{(input)}  Ptr to max bandwidth list
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -1584,6 +1634,7 @@ L7_RC_t usmDbQosCosQueueMaxBandwidthListGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMaxBandwidthListSet(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum,
+                                            l7_cosq_set_t queueSet,
                                             L7_qosCosQueueBwList_t *pVal)
 {
   L7_RC_t                   rc = L7_NOT_SUPPORTED;
@@ -1605,7 +1656,7 @@ L7_RC_t usmDbQosCosQueueMaxBandwidthListSet(L7_uint32 UnitIndex,
 
   else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
   {
-    rc = cosQueueMaxBandwidthListSet(intIfNum, pVal);
+    rc = cosQueueMaxBandwidthListSet(intIfNum, queueSet, pVal);
   }
 
   return rc;
@@ -1615,7 +1666,8 @@ L7_RC_t usmDbQosCosQueueMaxBandwidthListSet(L7_uint32 UnitIndex,
 * @purpose  Set the maximum bandwidth for a specific queue on this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    queueId     @b{(input)}  Queue id
 * @param    val         @b{(input)}  Max bandwidth value    
 *
@@ -1629,6 +1681,7 @@ L7_RC_t usmDbQosCosQueueMaxBandwidthListSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMaxBandwidthSet(L7_uint32 UnitIndex, 
                                         L7_uint32 intIfNum,
+                                        l7_cosq_set_t queueSet,
                                         L7_uint32 queueId,
                                         L7_uint32 val)
 {
@@ -1642,7 +1695,7 @@ L7_RC_t usmDbQosCosQueueMaxBandwidthSet(L7_uint32 UnitIndex,
                             L7_COS_QUEUE_MAX_BW_FEATURE_ID) != L7_TRUE)
     return L7_NOT_SUPPORTED;
 
-  if (cosQueueMaxBandwidthListGet(intIfNum, &list) != L7_SUCCESS)
+  if (cosQueueMaxBandwidthListGet(intIfNum, queueSet, &list) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update the individual list item value */
@@ -1662,7 +1715,7 @@ L7_RC_t usmDbQosCosQueueMaxBandwidthSet(L7_uint32 UnitIndex,
 
   else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
   {
-    rc = cosQueueMaxBandwidthListSet(intIfNum, &list);
+    rc = cosQueueMaxBandwidthListSet(intIfNum, queueSet, &list);
   }
 
   return rc;
@@ -1672,8 +1725,9 @@ L7_RC_t usmDbQosCosQueueMaxBandwidthSet(L7_uint32 UnitIndex,
 * @purpose  Get the scheduler type list for all queues on this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
-* @param    *pVal       @b{(output)} Ptr to scheduler type output list    
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
+* @param    *pVal       @b{(output)} Ptr to scheduler type output list
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -1685,6 +1739,7 @@ L7_RC_t usmDbQosCosQueueMaxBandwidthSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueSchedulerTypeListGet(L7_uint32 UnitIndex, 
                                              L7_uint32 intIfNum,
+                                             l7_cosq_set_t queueSet,
                                              L7_qosCosQueueSchedTypeList_t *pVal)
 {
   if (cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID, 
@@ -1695,7 +1750,7 @@ L7_RC_t usmDbQosCosQueueSchedulerTypeListGet(L7_uint32 UnitIndex,
       (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_FALSE))
     return L7_NOT_SUPPORTED;
 
-  return cosQueueSchedulerTypeListGet(intIfNum, pVal);
+  return cosQueueSchedulerTypeListGet(intIfNum, queueSet, pVal);
 }
 
 /* PTin added: QoS */
@@ -1703,8 +1758,9 @@ L7_RC_t usmDbQosCosQueueSchedulerTypeListGet(L7_uint32 UnitIndex,
 * @purpose  Get the Weight list for all queues on this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
-* @param    *pVal       @b{(output)} Ptr to Weight output list    
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
+* @param    *pVal       @b{(output)} Ptr to Weight output list
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -1716,6 +1772,7 @@ L7_RC_t usmDbQosCosQueueSchedulerTypeListGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueWeightListGet(L7_uint32 UnitIndex, 
                                       L7_uint32 intIfNum,
+                                      l7_cosq_set_t queueSet,
                                       L7_qosCosQueueWeightList_t *pVal)
 {
   if (cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID, 
@@ -1726,15 +1783,16 @@ L7_RC_t usmDbQosCosQueueWeightListGet(L7_uint32 UnitIndex,
       (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_FALSE))
     return L7_NOT_SUPPORTED;
 
-  return cosQueueWeightListGet(intIfNum, pVal);
+  return cosQueueWeightListGet(intIfNum, queueSet, pVal);
 }
 
 /*************************************************************************
 * @purpose  Set the scheduler type list for all queues on this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
-* @param    *pVal       @b{(input)}  Ptr to scheduler type list    
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
+* @param    *pVal       @b{(input)}  Ptr to scheduler type list
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -1746,6 +1804,7 @@ L7_RC_t usmDbQosCosQueueWeightListGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueSchedulerTypeListSet(L7_uint32 UnitIndex, 
                                              L7_uint32 intIfNum,
+                                             l7_cosq_set_t queueSet,
                                              L7_qosCosQueueSchedTypeList_t *pVal)
 {
   L7_RC_t                   rc = L7_NOT_SUPPORTED;
@@ -1767,7 +1826,7 @@ L7_RC_t usmDbQosCosQueueSchedulerTypeListSet(L7_uint32 UnitIndex,
 
   else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
   {
-    rc = cosQueueSchedulerTypeListSet(intIfNum, pVal);
+    rc = cosQueueSchedulerTypeListSet(intIfNum, queueSet, pVal);
   }
 
   return rc;
@@ -1778,8 +1837,9 @@ L7_RC_t usmDbQosCosQueueSchedulerTypeListSet(L7_uint32 UnitIndex,
 * @purpose  Set the Weight list for all queues on this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
-* @param    *pVal       @b{(input)}  Ptr to Weight list    
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
+* @param    *pVal       @b{(input)}  Ptr to Weight list
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -1791,6 +1851,7 @@ L7_RC_t usmDbQosCosQueueSchedulerTypeListSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueWeightListSet(L7_uint32 UnitIndex, 
                                       L7_uint32 intIfNum,
+                                      l7_cosq_set_t queueSet,
                                       L7_qosCosQueueWeightList_t *pVal)
 {
   L7_RC_t                   rc = L7_NOT_SUPPORTED;
@@ -1812,7 +1873,7 @@ L7_RC_t usmDbQosCosQueueWeightListSet(L7_uint32 UnitIndex,
 
   else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
   {
-    rc = cosQueueWeightListSet(intIfNum, pVal);
+    rc = cosQueueWeightListSet(intIfNum, queueSet, pVal);
   }
 
   return rc;
@@ -1822,7 +1883,8 @@ L7_RC_t usmDbQosCosQueueWeightListSet(L7_uint32 UnitIndex,
 * @purpose  Set the scheduler type for a specific queue on this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    queueId     @b{(input)}  Queue id
 * @param    val         @b{(input)}  Scheduler type value
 *
@@ -1836,6 +1898,7 @@ L7_RC_t usmDbQosCosQueueWeightListSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueSchedulerTypeSet(L7_uint32 UnitIndex, 
                                          L7_uint32 intIfNum,
+                                         l7_cosq_set_t queueSet,
                                          L7_uint32 queueId,
                                          L7_uint32 val)
 {
@@ -1849,7 +1912,7 @@ L7_RC_t usmDbQosCosQueueSchedulerTypeSet(L7_uint32 UnitIndex,
                             L7_COS_FEATURE_SUPPORTED) != L7_TRUE)
     return L7_NOT_SUPPORTED;
 
-  if (cosQueueSchedulerTypeListGet(intIfNum, &list) != L7_SUCCESS)
+  if (cosQueueSchedulerTypeListGet(intIfNum, queueSet, &list) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update the individual list item value */
@@ -1869,7 +1932,7 @@ L7_RC_t usmDbQosCosQueueSchedulerTypeSet(L7_uint32 UnitIndex,
 
   else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
   {
-    rc = cosQueueSchedulerTypeListSet(intIfNum, &list);
+    rc = cosQueueSchedulerTypeListSet(intIfNum, queueSet, &list);
   }
 
   return rc;
@@ -1880,7 +1943,8 @@ L7_RC_t usmDbQosCosQueueSchedulerTypeSet(L7_uint32 UnitIndex,
 * @purpose  Set the queue weight (for WRR schedulers) on this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    queueId     @b{(input)}  Queue id
 * @param    val         @b{(input)}  Weight
 *
@@ -1894,6 +1958,7 @@ L7_RC_t usmDbQosCosQueueSchedulerTypeSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueWeightSet(L7_uint32 UnitIndex, 
                                   L7_uint32 intIfNum,
+                                  l7_cosq_set_t queueSet,
                                   L7_uint32 queueId,
                                   L7_uint32 val)
 {
@@ -1907,7 +1972,7 @@ L7_RC_t usmDbQosCosQueueWeightSet(L7_uint32 UnitIndex,
                             L7_COS_FEATURE_SUPPORTED) != L7_TRUE)
     return L7_NOT_SUPPORTED;
 
-  if (cosQueueWeightListGet(intIfNum, &list) != L7_SUCCESS)
+  if (cosQueueWeightListGet(intIfNum, queueSet, &list) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update the individual list item value */
@@ -1927,7 +1992,7 @@ L7_RC_t usmDbQosCosQueueWeightSet(L7_uint32 UnitIndex,
 
   else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
   {
-    rc = cosQueueWeightListSet(intIfNum, &list);
+    rc = cosQueueWeightListSet(intIfNum, queueSet, &list);
   }
 
   return rc;
@@ -1937,8 +2002,9 @@ L7_RC_t usmDbQosCosQueueWeightSet(L7_uint32 UnitIndex,
 * @purpose  Get the queue management type list for all queues on this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
-* @param    *pVal       @b{(output)} Ptr to queue mgmt type output list    
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
+* @param    *pVal       @b{(output)} Ptr to queue mgmt type output list
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  Use the per-interface mgmt type API instead
@@ -1953,6 +2019,7 @@ L7_RC_t usmDbQosCosQueueWeightSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMgmtTypeListGet(L7_uint32 UnitIndex, 
                                         L7_uint32 intIfNum,
+                                        l7_cosq_set_t queueSet,
                                         L7_qosCosQueueMgmtTypeList_t *pVal)
 {
   /* if device allows only per-interface config, then per-queue config is
@@ -1966,15 +2033,16 @@ L7_RC_t usmDbQosCosQueueMgmtTypeListGet(L7_uint32 UnitIndex,
       (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_FALSE))
     return L7_NOT_SUPPORTED;
 
-  return cosQueueMgmtTypeListGet(intIfNum, pVal);
+  return cosQueueMgmtTypeListGet(intIfNum, queueSet, pVal);
 }
 
 /*************************************************************************
 * @purpose  Set the queue management type list for all queues on this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
-* @param    *pVal       @b{(input)}  Ptr to queue mgmt type list    
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
+* @param    *pVal       @b{(input)}  Ptr to queue mgmt type list
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  Use the per-interface mgmt type API instead
@@ -1989,6 +2057,7 @@ L7_RC_t usmDbQosCosQueueMgmtTypeListGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMgmtTypeListSet(L7_uint32 UnitIndex, 
                                         L7_uint32 intIfNum,
+                                        l7_cosq_set_t queueSet,
                                         L7_qosCosQueueMgmtTypeList_t *pVal)
 {
   L7_RC_t                   rc = L7_NOT_SUPPORTED;
@@ -2013,7 +2082,7 @@ L7_RC_t usmDbQosCosQueueMgmtTypeListSet(L7_uint32 UnitIndex,
 
   else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
   {
-    rc = cosQueueMgmtTypeListSet(intIfNum, pVal);
+    rc = cosQueueMgmtTypeListSet(intIfNum, queueSet, pVal);
   }
 
   return rc;
@@ -2023,7 +2092,8 @@ L7_RC_t usmDbQosCosQueueMgmtTypeListSet(L7_uint32 UnitIndex,
 * @purpose  Set the queue management type for a specific queue on this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    queueId     @b{(input)}  Queue id
 * @param    val         @b{(input)}  Queue mgmt type value
 *
@@ -2037,6 +2107,7 @@ L7_RC_t usmDbQosCosQueueMgmtTypeListSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueMgmtTypeSet(L7_uint32 UnitIndex, 
                                     L7_uint32 intIfNum,
+                                    l7_cosq_set_t queueSet,
                                     L7_uint32 queueId,
                                     L7_uint32 val)
 {
@@ -2050,7 +2121,7 @@ L7_RC_t usmDbQosCosQueueMgmtTypeSet(L7_uint32 UnitIndex,
                             L7_COS_QUEUE_MGMT_INTF_ONLY_FEATURE_ID) == L7_TRUE)
     return L7_NOT_SUPPORTED;
 
-  if (cosQueueMgmtTypeListGet(intIfNum, &list) != L7_SUCCESS)
+  if (cosQueueMgmtTypeListGet(intIfNum, queueSet, &list) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update the individual list item value */
@@ -2070,7 +2141,7 @@ L7_RC_t usmDbQosCosQueueMgmtTypeSet(L7_uint32 UnitIndex,
 
   else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
   {
-    rc = cosQueueMgmtTypeListSet(intIfNum, &list);
+    rc = cosQueueMgmtTypeListSet(intIfNum, queueSet, &list);
   }
 
   return rc;
@@ -2080,8 +2151,9 @@ L7_RC_t usmDbQosCosQueueMgmtTypeSet(L7_uint32 UnitIndex,
 * @purpose  Get the queue taildrop / WRED config parms list for this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
-* @param    *pVal       @b{(output)} Ptr to drop parms output list    
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
+* @param    *pVal       @b{(output)} Ptr to drop parms output list
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -2093,6 +2165,7 @@ L7_RC_t usmDbQosCosQueueMgmtTypeSet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueDropParmsListGet(L7_uint32 UnitIndex, 
                                          L7_uint32 intIfNum,
+                                         l7_cosq_set_t queueSet,
                                          L7_qosCosDropParmsList_t *pVal)
 {
   if (cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID, 
@@ -2107,15 +2180,17 @@ L7_RC_t usmDbQosCosQueueDropParmsListGet(L7_uint32 UnitIndex,
       (usmDbQosCosQueueDropCfgPerIntfIsAllowed() == L7_FALSE))
     return L7_NOT_SUPPORTED;
 
-  return cosQueueDropParmsListGet(intIfNum, pVal);
+  return cosQueueDropParmsListGet(intIfNum, queueSet, pVal);
 }
 
 /*************************************************************************
 * @purpose  Set the queue taildrop / WRED config parms list for this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
-* @param    *pVal       @b{(input)}  Ptr to drop parms list    
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
+* @param    *pVal       @b{(input)}  Ptr to drop parms list
+* @param    group_queues @b{(input)} Number of group queues
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -2127,6 +2202,7 @@ L7_RC_t usmDbQosCosQueueDropParmsListGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueDropParmsListSet(L7_uint32 UnitIndex, 
                                          L7_uint32 intIfNum,
+                                         l7_cosq_set_t queueSet,
                                          L7_qosCosDropParmsList_t *pVal)
 {
   L7_RC_t                     rc = L7_NOT_SUPPORTED;
@@ -2145,7 +2221,7 @@ L7_RC_t usmDbQosCosQueueDropParmsListSet(L7_uint32 UnitIndex,
   }
   else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
   {
-    rc = cosQueueDropParmsListSet(intIfNum, pVal);
+    rc = cosQueueDropParmsListSet(intIfNum, queueSet, pVal);
   } 
 
   return rc;
@@ -2156,8 +2232,9 @@ L7_RC_t usmDbQosCosQueueDropParmsListSet(L7_uint32 UnitIndex,
 *           for this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
-* @param    *pVal       @b{(output)} Ptr to parms output list    
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
+* @param    *pVal       @b{(output)} Ptr to parms output list
 *
 * @returns  L7_SUCCESS
 * @returns  L7_NOT_SUPPORTED  This feature not supported
@@ -2168,14 +2245,15 @@ L7_RC_t usmDbQosCosQueueDropParmsListSet(L7_uint32 UnitIndex,
 * @end
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueDefaultConfigGet(L7_uint32 UnitIndex, 
-                                                L7_uint32 intIfNum,
-                                                L7_cosCfgParms_t *pVal) 
+                                         L7_uint32 intIfNum,
+                                         l7_cosq_set_t queueSet,
+                                         L7_cosCfgParms_t *pVal) 
 {
   L7_uint32 i;
 
   for (i=0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++) 
   {
-      cosDefaultQueueConfigBuild(&(pVal->queue[i]), i);
+      cosDefaultQueueConfigBuild(&(pVal->queue[i]), queueSet, i);
   }
   return L7_SUCCESS;
 }
@@ -2185,7 +2263,8 @@ L7_RC_t usmDbQosCosQueueDefaultConfigGet(L7_uint32 UnitIndex,
 *           on this interface
 *
 * @param    UnitIndex   @b{(input)}  System unit number
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @params   queueId     @b{(input)}  queue ID to de-configure
 *
 * @returns  L7_SUCCESS
@@ -2198,6 +2277,7 @@ L7_RC_t usmDbQosCosQueueDefaultConfigGet(L7_uint32 UnitIndex,
 *********************************************************************/
 L7_RC_t usmDbQosCosQueueDropDefaultsRestore(L7_uint32 UnitIndex, 
                                             L7_uint32 intIfNum, 
+                                            l7_cosq_set_t queueSet,
                                             L7_uint32 queueId)
 {
     if (cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID, 
@@ -2212,7 +2292,7 @@ L7_RC_t usmDbQosCosQueueDropDefaultsRestore(L7_uint32 UnitIndex,
       (usmDbQosCosQueueDropCfgPerIntfIsAllowed() == L7_FALSE))
     return L7_NOT_SUPPORTED;
 
-  return cosQueueDropDefaultsRestore(intIfNum, queueId);
+  return cosQueueDropDefaultsRestore(intIfNum, queueSet, queueId);
 }
 
 /*************************************************************************

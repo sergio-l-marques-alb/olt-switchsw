@@ -19,14 +19,18 @@
 # define PTIN_SLOT_WORK             0
 # define PTIN_SLOT_PROT             1
 
-# define PTIN_SYSTEM_N_PORTS           21
 # define PTIN_SYSTEM_N_PONS            16 
 # define PTIN_SYSTEM_N_ETH             0
+# define PTIN_SYSTEM_N_UPLINK          4
+# define PTIN_SYSTEM_N_INTERNAL        1
+# define PTIN_SYSTEM_N_PORTS           (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_UPLINK + PTIN_SYSTEM_N_INTERNAL)
+# define PTIN_SYSTEM_N_PORTS_PHYSICAL  PTIN_SYSTEM_N_PORTS
+# define PTIN_SYSTEM_N_PONS_PHYSICAL   PTIN_SYSTEM_N_PONS
+# define PTIN_SYSTEM_N_ETH_PHYSICAL    PTIN_SYSTEM_N_ETH
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   0
-# define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS
-# define PTIN_SYSTEM_N_PORTS_AND_LAGS  max(PTIN_SYSTEM_N_PORTS, PTIN_SYSTEM_N_LAGS)
+# define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS_PHYSICAL
 # define PTIN_SYSTEM_N_INTERF          (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_N_LAGS)
-# define PTIN_SYSTEM_N_UPLINK_INTERF   (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH)
+# define PTIN_SYSTEM_N_CLIENT_PORTS    (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH)
 
 # define PTIN_SYSTEM_PON_PORTS_MASK    0x0000FFFF
 # define PTIN_SYSTEM_ETH_PORTS_MASK    0x00000000
@@ -79,7 +83,7 @@
 
 # define PTIN_SYSTEM_N_IGMP_INSTANCES                  40     /* Maximum nr of IGMP instances */
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP           (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
-# define PTIN_SYSTEM_IGMP_MAXINTERFACES                PTIN_SYSTEM_N_UPLINK_INTERF                                                 /* Maximum nr of interfaces per multicast group */
+# define PTIN_SYSTEM_IGMP_MAXINTERFACES                PTIN_SYSTEM_N_CLIENT_PORTS                                                 /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF             128   /* 128 ONUs per port */
 # define PTIN_SYSTEM_IGMP_MAXONUS                      (PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF*PTIN_SYSTEM_N_INTERF)
 # define PTIN_SYSTEM_IGMP_MAXDEVICES_PER_ONU           8     /* Settop boxes connected to ONUs */
@@ -99,6 +103,10 @@
 # define PTIN_SYSTEM_N_PPPOE_INSTANCES                 32     /* Maximum nr of PPPoE instances */
 # define PTIN_SYSTEM_DHCP_MAXCLIENTS                   8192  /* Maximum DHCP clients */
 # define PTIN_SYSTEM_PPPOE_MAXCLIENTS                  8192  /* Maximum PPPoE clients */
+
+/* The following constants will allow L2intf range separation, in order to allow
+   specific QoS configurations for each range. */
+#define L2INTF_ID_MAX   PTIN_SYSTEM_N_CLIENTS
 
 #define SNOOP_PTIN_MGMD_SUPPORT //Comment this line if you want to disable MGMD integration (not supported..)
 #define SNOOP_PTIN_IGMPv3_GLOBAL 1//Change to 0 if you want to globally disable IGMPv3 Module

@@ -196,6 +196,7 @@ L7_RC_t cosQueueDropPrecIndexGetNext(L7_uint32 dropPrec, L7_uint32 *pNext)
 * @purpose  Restore default settings for all queues on this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -204,7 +205,7 @@ L7_RC_t cosQueueDropPrecIndexGetNext(L7_uint32 dropPrec, L7_uint32 *pNext)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueDefaultsRestore(L7_uint32 intIfNum)
+L7_RC_t cosQueueDefaultsRestore(L7_uint32 intIfNum, l7_cosq_set_t queueSet)
 {
   L7_cosCfgParms_t  *pCfg;
   L7_cosQueueCfg_t  queueCfgOrig[L7_COS_INTF_QUEUE_MAX_COUNT];
@@ -214,7 +215,7 @@ L7_RC_t cosQueueDefaultsRestore(L7_uint32 intIfNum)
   if (intIfNum == L7_ALL_INTERFACES)
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* save original queue config to check if data changed due to restore */
@@ -251,9 +252,10 @@ L7_RC_t cosQueueDefaultsGlobalRestore(void)
   L7_cosCfgParms_t  *pCfgGlob, *pCfgIntf;
   L7_cosQueueCfg_t  queueCfgOrig[L7_COS_INTF_QUEUE_MAX_COUNT];
   L7_uint32         intIfNum;
+  l7_cosq_set_t     queueSet;
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* restore defaults for each configurable interface
@@ -268,14 +270,17 @@ L7_RC_t cosQueueDefaultsGlobalRestore(void)
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-    /* only work with configurable interfaces when changing global config */
-    if (cosCfgPtrFind(intIfNum, &pCfgIntf) == L7_SUCCESS)
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
     {
-      if (cosQueueDefaultsRestore(intIfNum) != L7_SUCCESS)
+      /* only work with configurable interfaces when changing global config */
+      if (cosCfgPtrFind(intIfNum, queueSet, &pCfgIntf) == L7_SUCCESS)
       {
-        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                "Unable to restore global COS queue defaults on intf %s\n",
-                ifName);
+        if (cosQueueDefaultsRestore(intIfNum, queueSet) != L7_SUCCESS)
+        {
+          L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+                  "Unable to restore global COS queue defaults on intf %s, queueSet %u\n",
+                  ifName, queueSet);
+        }
       }
     }
   }
@@ -296,7 +301,9 @@ L7_RC_t cosQueueDefaultsGlobalRestore(void)
 * @purpose  Get the COS egress shaping rate for this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
-* @param    *pVal       @b{(output)} Ptr to intf shaping rate output value
+* @param    queueSet    @b{(input)}  Group of queues
+* @param    *rate       @b{(output)} Ptr to intf shaping rate output value
+* @param    *burstSize  @b{(output)} Intf shaping burst size
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -305,17 +312,24 @@ L7_RC_t cosQueueDefaultsGlobalRestore(void)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueIntfShapingRateGet(L7_uint32 intIfNum, L7_uint32 *pVal)
+L7_RC_t cosQueueIntfShapingRateGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 *rate, L7_uint32 *burstSize)
 {
   L7_cosCfgParms_t  *pCfg;
 
-  if (pVal == L7_NULLPTR)
+  if (rate == L7_NULLPTR)
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
-  *pVal = pCfg->intf.intfShapingRate;
+  if (rate != L7_NULLPTR)
+  {
+    *rate = pCfg->intf.intfShapingRate;
+  }
+  if (burstSize != L7_NULLPTR)
+  {
+    *burstSize = pCfg->intf.intfShapingBurstSize;
+  }
   return L7_SUCCESS;
 }
 
@@ -323,7 +337,9 @@ L7_RC_t cosQueueIntfShapingRateGet(L7_uint32 intIfNum, L7_uint32 *pVal)
 * @purpose  Set the COS egress shaping rate for this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
-* @param    val         @b{(input)}  Intf shaping rate value
+* @param    queueSet    @b{(input)}  Group of queues
+* @param    rate        @b{(input)}  Intf shaping rate value
+* @param    burstSize   @b{(input)}  Intf shaping burst size
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -332,7 +348,7 @@ L7_RC_t cosQueueIntfShapingRateGet(L7_uint32 intIfNum, L7_uint32 *pVal)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueIntfShapingRateSet(L7_uint32 intIfNum, L7_uint32 val)
+L7_RC_t cosQueueIntfShapingRateSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 rate, L7_uint32 burstSize)
 {
   L7_cosCfgParms_t  *pCfg;
 
@@ -340,43 +356,54 @@ L7_RC_t cosQueueIntfShapingRateSet(L7_uint32 intIfNum, L7_uint32 val)
     return L7_FAILURE;
 
   /* a rate of 0 is used to turn off rate limiting and is acceptible regardless of units */
-  if (0 != val)
+  if (0 != rate)
   {
     if (L7_QOS_COS_INTF_SHAPING_RATE_UNITS == L7_RATE_UNIT_KBPS)
     {
       /* check proposed value */
-      if ((val < L7_QOS_COS_INTF_SHAPING_RATE_KBPS_MIN) ||
-          (val > L7_QOS_COS_INTF_SHAPING_RATE_KBPS_MAX))
+      if ((rate < L7_QOS_COS_INTF_SHAPING_RATE_KBPS_MIN) ||
+          (rate > L7_QOS_COS_INTF_SHAPING_RATE_KBPS_MAX))
         return L7_FAILURE;
 
     }
     else
     {
       /* check proposed value */
-      if ((val < L7_QOS_COS_INTF_SHAPING_RATE_MIN) ||
-          (val > L7_QOS_COS_INTF_SHAPING_RATE_MAX))
+      if ((rate < L7_QOS_COS_INTF_SHAPING_RATE_MIN) ||
+          (rate > L7_QOS_COS_INTF_SHAPING_RATE_MAX))
         return L7_FAILURE;
 
      /* check percentage as an integral step size amount between min, max */
-     if ((val != L7_QOS_COS_INTF_SHAPING_RATE_MIN) &&
-         (val != L7_QOS_COS_INTF_SHAPING_RATE_MAX) &&
-         ((val % L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE) != 0))
+     if ((rate != L7_QOS_COS_INTF_SHAPING_RATE_MIN) &&
+         (rate != L7_QOS_COS_INTF_SHAPING_RATE_MAX) &&
+         ((rate % L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE) != 0))
        return L7_FAILURE;
     }
   }
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  /* Correct burstSize */
+  if (burstSize >= FD_QOS_COS_QCFG_INTF_SHAPING_BURSTSIZE)
+  {
+    burstSize = FD_QOS_COS_QCFG_INTF_SHAPING_BURSTSIZE;
+  }
+  
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* this is a no-op if currently configured value is same as new value */
-  if (pCfg->intf.intfShapingRate == val)
+  if (pCfg->intf.intfShapingRate == rate &&
+      pCfg->intf.intfShapingBurstSize == burstSize)
+  {
     return L7_SUCCESS;
+  }
 
   /* apply the new shaping rate along with the other intf config parms */
-  (void)cosQueueIntfConfigApply(intIfNum, val, pCfg->intf.queueMgmtTypePerIntf,
-                                pCfg->intf.wredDecayExponent); /* rc ignored here */
+  (void)cosQueueIntfConfigApply(intIfNum, queueSet,
+                                rate, burstSize,
+                                pCfg->intf.queueMgmtTypePerIntf, pCfg->intf.wredDecayExponent); /* rc ignored here */
 
-  pCfg->intf.intfShapingRate = val;
+  pCfg->intf.intfShapingRate = rate;
+  pCfg->intf.intfShapingBurstSize = burstSize;
   pCosCfgData_g->cfgHdr.dataChanged = L7_TRUE;
 
   return L7_SUCCESS;
@@ -386,6 +413,7 @@ L7_RC_t cosQueueIntfShapingRateSet(L7_uint32 intIfNum, L7_uint32 val)
 * @purpose  Get the COS interface parameters for this interface
 *
 * @param    intIfNum        @b{(input)}  Internal interface number
+* @param    queueSet        @b{(input)}  Group of queues
 * @param    intfShapingRate @b{(input)}  Interface shaping rate in kbps
 * @param    intfShapingBurstSize @b{(input)}  Interface shaping burst size in kbits
 *
@@ -396,22 +424,24 @@ L7_RC_t cosQueueIntfShapingRateSet(L7_uint32 intIfNum, L7_uint32 val)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueIntfShapingStatusGet(L7_uint32 intIfNum,
-                              L7_uint32 *intfShapingRate,
-                              L7_uint32 *intfShapingBurstSize)
+L7_RC_t cosQueueIntfShapingStatusGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
+                                     L7_uint32 *intfShapingRate,
+                                     L7_uint32 *intfShapingBurstSize)
 {
   if ((intIfNum == L7_ALL_INTERFACES) ||
+      (queueSet >= L7_MAX_CFG_QUEUESETS_PER_PORT) ||
       (intfShapingRate == L7_NULLPTR) ||
       (intfShapingRate == L7_NULLPTR))
     return L7_FAILURE;
 
-  return(cosIntfShapingStatusGet(intIfNum, intfShapingRate, intfShapingBurstSize));
+  return(cosIntfShapingStatusGet(intIfNum, queueSet, intfShapingRate, intfShapingBurstSize));
 }
 
 /*************************************************************************
 * @purpose  Set the COS egress shaping rate globally for all interfaces
 *
-* @param    val         @b{(input)}  Intf shaping rate value
+* @param    rate        @b{(input)}  Intf shaping rate value
+* @param    burstSize   @b{(input)}  Intf shaping burst size
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -420,38 +450,39 @@ L7_RC_t cosQueueIntfShapingStatusGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueIntfShapingRateGlobalSet(L7_uint32 val)
+L7_RC_t cosQueueIntfShapingRateGlobalSet(L7_uint32 rate, L7_uint32 burstSize)
 {
   L7_cosCfgParms_t  *pCfgGlob, *pCfgIntf;
   L7_uint32         intIfNum;
+  l7_cosq_set_t     queueSet;
 
   /* a rate of 0 is used to turn off rate limiting and is acceptible regardless of units */
-  if (0 != val)
+  if (0 != rate)
   {
     if (L7_QOS_COS_INTF_SHAPING_RATE_UNITS == L7_RATE_UNIT_KBPS)
     {
       /* check proposed value */
-      if ((val < L7_QOS_COS_INTF_SHAPING_RATE_KBPS_MIN) ||
-          (val > L7_QOS_COS_INTF_SHAPING_RATE_KBPS_MAX))
+      if ((rate < L7_QOS_COS_INTF_SHAPING_RATE_KBPS_MIN) ||
+          (rate > L7_QOS_COS_INTF_SHAPING_RATE_KBPS_MAX))
         return L7_FAILURE;
     }
     else
     {
       /* check proposed value */
-      if ((val < L7_QOS_COS_INTF_SHAPING_RATE_MIN) ||
-          (val > L7_QOS_COS_INTF_SHAPING_RATE_MAX))
+      if ((rate < L7_QOS_COS_INTF_SHAPING_RATE_MIN) ||
+          (rate > L7_QOS_COS_INTF_SHAPING_RATE_MAX))
         return L7_FAILURE;
 
      /* check percentage as an integral step size amount between min, max */
-     if ((val != L7_QOS_COS_INTF_SHAPING_RATE_MIN) &&
-         (val != L7_QOS_COS_INTF_SHAPING_RATE_MAX) &&
-         ((val % L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE) != 0))
+     if ((rate != L7_QOS_COS_INTF_SHAPING_RATE_MIN) &&
+         (rate != L7_QOS_COS_INTF_SHAPING_RATE_MAX) &&
+         ((rate % L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE) != 0))
        return L7_FAILURE;
     }
   }
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value
@@ -466,21 +497,26 @@ L7_RC_t cosQueueIntfShapingRateGlobalSet(L7_uint32 val)
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-    /* only work with configurable interfaces when changing global config */
-    if (cosCfgPtrFind(intIfNum, &pCfgIntf) == L7_SUCCESS)
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
     {
-      if (cosQueueIntfShapingRateSet(intIfNum, val) != L7_SUCCESS)
+      /* only work with configurable interfaces when changing global config */
+      if (cosCfgPtrFind(intIfNum, queueSet, &pCfgIntf) == L7_SUCCESS)
       {
-        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                "Unable to set global COS shaping rate (%u) on intf %s\n",
-                val, ifName);
+        if (cosQueueIntfShapingRateSet(intIfNum, queueSet, rate, burstSize) != L7_SUCCESS)
+        {
+          L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+                  "Unable to set global COS shaping rate (%u)/burst size (%u) on intf %s, queueSet %u\n",
+                  rate, burstSize, ifName, queueSet);
+        }
       }
     }
   }
 
-  if (pCfgGlob->intf.intfShapingRate != val)
+  if (pCfgGlob->intf.intfShapingRate != rate ||
+      pCfgGlob->intf.intfShapingBurstSize != burstSize)
   {
-    pCfgGlob->intf.intfShapingRate = val;
+    pCfgGlob->intf.intfShapingRate = rate;
+    pCfgGlob->intf.intfShapingBurstSize = burstSize;
     pCosCfgData_g->cfgHdr.dataChanged = L7_TRUE;
   }
   return L7_SUCCESS;
@@ -490,6 +526,7 @@ L7_RC_t cosQueueIntfShapingRateGlobalSet(L7_uint32 val)
 * @purpose  Get the COS queue management type for this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to mgmt type output value    N... return FAILURE from else?\n");
 *
 * @returns  L7_SUCCESS
@@ -502,7 +539,7 @@ L7_RC_t cosQueueIntfShapingRateGlobalSet(L7_uint32 val)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMgmtTypePerIntfGet(L7_uint32 intIfNum,
+L7_RC_t cosQueueMgmtTypePerIntfGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                    L7_QOS_COS_QUEUE_MGMT_TYPE_t *pVal)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -510,7 +547,7 @@ L7_RC_t cosQueueMgmtTypePerIntfGet(L7_uint32 intIfNum,
   if (pVal == L7_NULLPTR)
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   *pVal = (L7_QOS_COS_QUEUE_MGMT_TYPE_t)pCfg->intf.queueMgmtTypePerIntf;
@@ -521,6 +558,7 @@ L7_RC_t cosQueueMgmtTypePerIntfGet(L7_uint32 intIfNum,
 * @purpose  Set the COS queue management type for this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    val         @b{(input)}  Queue mgmt type value
 *
 * @returns  L7_SUCCESS
@@ -533,7 +571,7 @@ L7_RC_t cosQueueMgmtTypePerIntfGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMgmtTypePerIntfSet(L7_uint32 intIfNum,
+L7_RC_t cosQueueMgmtTypePerIntfSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                    L7_QOS_COS_QUEUE_MGMT_TYPE_t val)
 {
   L7_RC_t                   rc;
@@ -555,7 +593,7 @@ L7_RC_t cosQueueMgmtTypePerIntfSet(L7_uint32 intIfNum,
       (val != L7_QOS_COS_QUEUE_MGMT_TYPE_WRED))
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* this is a no-op if currently configured value is same as new value */
@@ -567,7 +605,7 @@ L7_RC_t cosQueueMgmtTypePerIntfSet(L7_uint32 intIfNum,
    * NOTE:  Applying the interface config will activate the queue mgmt mode
    *        in the device, so apply these parms first.
    */
-  rc = cosQueueDropParmsListGet(intIfNum, &dropParms);
+  rc = cosQueueDropParmsListGet(intIfNum, queueSet, &dropParms);
   if (rc != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
@@ -579,7 +617,7 @@ L7_RC_t cosQueueMgmtTypePerIntfSet(L7_uint32 intIfNum,
   {
     dropParms.queue[i].mgmtType = val;
   } /* endfor i */
-  rc = cosQueueDropParmsListSet(intIfNum, &dropParms);
+  rc = cosQueueDropParmsListSet(intIfNum, queueSet, &dropParms);
 
   /* apply the new mgmt type along with the other intf config parms
    *
@@ -588,7 +626,8 @@ L7_RC_t cosQueueMgmtTypePerIntfSet(L7_uint32 intIfNum,
    */
   if (rc == L7_SUCCESS)
   {
-    (void)cosQueueIntfConfigApply(intIfNum, pCfg->intf.intfShapingRate,
+    (void)cosQueueIntfConfigApply(intIfNum, queueSet,
+                                  pCfg->intf.intfShapingRate, pCfg->intf.intfShapingBurstSize,
                                   val, pCfg->intf.wredDecayExponent); /* rc ignored here */
   }
 
@@ -615,6 +654,7 @@ L7_RC_t cosQueueMgmtTypePerIntfGlobalSet(L7_QOS_COS_QUEUE_MGMT_TYPE_t val)
 {
   L7_cosCfgParms_t  *pCfgGlob, *pCfgIntf;
   L7_uint32         intIfNum;
+  l7_cosq_set_t     queueSet;
 
   /* check proposed value */
   if ((val != L7_QOS_COS_QUEUE_MGMT_TYPE_TAILDROP) &&
@@ -622,7 +662,7 @@ L7_RC_t cosQueueMgmtTypePerIntfGlobalSet(L7_QOS_COS_QUEUE_MGMT_TYPE_t val)
     return L7_FAILURE;
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value
@@ -637,14 +677,17 @@ L7_RC_t cosQueueMgmtTypePerIntfGlobalSet(L7_QOS_COS_QUEUE_MGMT_TYPE_t val)
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-    /* only work with configurable interfaces when changing global config */
-    if (cosCfgPtrFind(intIfNum, &pCfgIntf) == L7_SUCCESS)
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
     {
-      if (cosQueueMgmtTypePerIntfSet(intIfNum, val) != L7_SUCCESS)
+      /* only work with configurable interfaces when changing global config */
+      if (cosCfgPtrFind(intIfNum, queueSet, &pCfgIntf) == L7_SUCCESS)
       {
-        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                "Unable to set global COS queue mgmt type \'%s\' on intf %s\n",
-                cosQueueMgmtTypeStr[val], ifName);
+        if (cosQueueMgmtTypePerIntfSet(intIfNum, queueSet, val) != L7_SUCCESS)
+        {
+          L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+                  "Unable to set global COS queue mgmt type \'%s\' on intf %s, queueSet %u\n",
+                  cosQueueMgmtTypeStr[val], ifName, queueSet);
+        }
       }
     }
   }
@@ -662,6 +705,7 @@ L7_RC_t cosQueueMgmtTypePerIntfGlobalSet(L7_QOS_COS_QUEUE_MGMT_TYPE_t val)
 * @purpose  Get the WRED decay exponent for this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to decay exponent output value
 *
 * @returns  L7_SUCCESS
@@ -671,14 +715,14 @@ L7_RC_t cosQueueMgmtTypePerIntfGlobalSet(L7_QOS_COS_QUEUE_MGMT_TYPE_t val)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueWredDecayExponentGet(L7_uint32 intIfNum, L7_uint32 *pVal)
+L7_RC_t cosQueueWredDecayExponentGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 *pVal)
 {
   L7_cosCfgParms_t  *pCfg;
 
   if (pVal == L7_NULLPTR)
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   *pVal = pCfg->intf.wredDecayExponent;
@@ -689,6 +733,7 @@ L7_RC_t cosQueueWredDecayExponentGet(L7_uint32 intIfNum, L7_uint32 *pVal)
 * @purpose  Set the WRED decay exponent for this interface
 *
 * @param    intIfNum    @b{(input)} Internal interface number
+* @param    queueSet    @b{(input)} Group of queues
 * @param    val         @b{(input)} Decay exponent value
 *
 * @returns  L7_SUCCESS
@@ -698,7 +743,7 @@ L7_RC_t cosQueueWredDecayExponentGet(L7_uint32 intIfNum, L7_uint32 *pVal)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueWredDecayExponentSet(L7_uint32 intIfNum, L7_uint32 val)
+L7_RC_t cosQueueWredDecayExponentSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 val)
 {
   L7_cosCfgParms_t  *pCfg;
 
@@ -715,7 +760,7 @@ L7_RC_t cosQueueWredDecayExponentSet(L7_uint32 intIfNum, L7_uint32 val)
       (val > L7_QOS_COS_INTF_WRED_DECAY_EXP_MAX))
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* this is a no-op if currently configured value is same as new value */
@@ -723,7 +768,8 @@ L7_RC_t cosQueueWredDecayExponentSet(L7_uint32 intIfNum, L7_uint32 val)
     return L7_SUCCESS;
 
   /* apply the new mgmt type along with the other intf config parms */
-  (void)cosQueueIntfConfigApply(intIfNum, pCfg->intf.intfShapingRate,
+  (void)cosQueueIntfConfigApply(intIfNum, queueSet,
+                                pCfg->intf.intfShapingRate, pCfg->intf.intfShapingBurstSize,
                                 pCfg->intf.queueMgmtTypePerIntf, val);  /* rc ignored here */
 
   pCfg->intf.wredDecayExponent = (L7_uchar8)val;
@@ -748,6 +794,7 @@ L7_RC_t cosQueueWredDecayExponentGlobalSet(L7_uint32 val)
 {
   L7_cosCfgParms_t  *pCfgGlob, *pCfgIntf;
   L7_uint32         intIfNum;
+  l7_cosq_set_t     queueSet;
 
   /* check proposed value */
   if ((val < L7_QOS_COS_INTF_WRED_DECAY_EXP_MIN) ||
@@ -755,7 +802,7 @@ L7_RC_t cosQueueWredDecayExponentGlobalSet(L7_uint32 val)
     return L7_FAILURE;
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value
@@ -770,24 +817,27 @@ L7_RC_t cosQueueWredDecayExponentGlobalSet(L7_uint32 val)
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-    /* only work with configurable interfaces when changing global config */
-    if (cosCfgPtrFind(intIfNum, &pCfgIntf) == L7_SUCCESS)
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
     {
-      if (cosQueueWredDecayExponentSet(intIfNum, val) != L7_SUCCESS)
+      /* only work with configurable interfaces when changing global config */
+      if (cosCfgPtrFind(intIfNum, queueSet, &pCfgIntf) == L7_SUCCESS)
       {
-        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                "Unable to set global COS WRED decay exponent (%u) on intf %s\n",
-                val, ifName);
-      }
+        if (cosQueueWredDecayExponentSet(intIfNum, queueSet, val) != L7_SUCCESS)
+        {
+          L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+                  "Unable to set global COS WRED decay exponent (%u) on intf %s, queueSet %u\n",
+                  val, ifName, queueSet);
+        }
 
-      /* NOTE:  Not checking L7_COS_QUEUE_WRED_DECAY_EXP_SYSTEM_ONLY_FEATURE_ID
-       *        here, as this feature ID is more appropriate for the UI than
-       *        HAPI.  Since the WRED decay exponent value is part of the
-       *        overall interface config, whose other fields may be
-       *        configurable on a per-interface basis, it does not make sense
-       *        to special case this here in an attempt to stop after the
-       *        first interface is applied.
-       */
+        /* NOTE:  Not checking L7_COS_QUEUE_WRED_DECAY_EXP_SYSTEM_ONLY_FEATURE_ID
+         *        here, as this feature ID is more appropriate for the UI than
+         *        HAPI.  Since the WRED decay exponent value is part of the
+         *        overall interface config, whose other fields may be
+         *        configurable on a per-interface basis, it does not make sense
+         *        to special case this here in an attempt to stop after the
+         *        first interface is applied.
+         */
+      }
     }
   }
 
@@ -804,6 +854,7 @@ L7_RC_t cosQueueWredDecayExponentGlobalSet(L7_uint32 val)
 * @purpose  Get the minimum bandwidth list for all queues on this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to min bandwidth output list
 *
 * @returns  L7_SUCCESS
@@ -813,7 +864,7 @@ L7_RC_t cosQueueWredDecayExponentGlobalSet(L7_uint32 val)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMinBandwidthListGet(L7_uint32 intIfNum,
+L7_RC_t cosQueueMinBandwidthListGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                     L7_qosCosQueueBwList_t *pVal)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -822,7 +873,7 @@ L7_RC_t cosQueueMinBandwidthListGet(L7_uint32 intIfNum,
   if (pVal == L7_NULLPTR)
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
@@ -835,6 +886,7 @@ L7_RC_t cosQueueMinBandwidthListGet(L7_uint32 intIfNum,
 * @purpose  Set the minimum bandwidth list for all queues on this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(input)}  Ptr to min bandwidth list
 *
 * @returns  L7_SUCCESS
@@ -844,7 +896,7 @@ L7_RC_t cosQueueMinBandwidthListGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMinBandwidthListSet(L7_uint32 intIfNum,
+L7_RC_t cosQueueMinBandwidthListSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                     L7_qosCosQueueBwList_t *pVal)
 {
   L7_cosCfgParms_t              *pCfg;
@@ -907,7 +959,7 @@ L7_RC_t cosQueueMinBandwidthListSet(L7_uint32 intIfNum,
       return L7_FAILURE;
   }
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* need to do the following:
@@ -943,7 +995,7 @@ L7_RC_t cosQueueMinBandwidthListSet(L7_uint32 intIfNum,
     return L7_SUCCESS;
 
   /* apply the new minBw values along with the other queue config parms */
-  (void)cosQueueSchedConfigApply(intIfNum, &qParms);  /* rc ignored here */
+  (void)cosQueueSchedConfigApply(intIfNum, queueSet, &qParms);  /* rc ignored here */
 
   /* update the COS queue config from the temporary local list info */
   for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
@@ -979,6 +1031,7 @@ L7_RC_t cosQueueMinBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
   L7_cosCfgParms_t        *pCfgGlob, *pCfgIntf;
   L7_cosQueueCfg_t        *pQ;
   L7_uint32               i, totalBw, intIfNum;
+  l7_cosq_set_t           queueSet;
   L7_qosCosQueueBwList_t  minBwIntf;
 
   if (pVal == L7_NULLPTR)
@@ -1034,7 +1087,7 @@ L7_RC_t cosQueueMinBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
   }
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value
@@ -1049,30 +1102,33 @@ L7_RC_t cosQueueMinBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-    /* only work with configurable interfaces when changing global config */
-    if (cosCfgPtrFind(intIfNum, &pCfgIntf) == L7_SUCCESS)
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
     {
-      if (cosQueueMinBandwidthListGet(intIfNum, &minBwIntf) == L7_SUCCESS)
+      /* only work with configurable interfaces when changing global config */
+      if (cosCfgPtrFind(intIfNum, queueSet, &pCfgIntf) == L7_SUCCESS)
       {
-        for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+        if (cosQueueMinBandwidthListGet(intIfNum, queueSet, &minBwIntf) == L7_SUCCESS)
         {
-          /* update interface with global parms indicated as being set */
-          if (pListMask->setMask[i] == L7_TRUE)
-            minBwIntf.bandwidth[i] = pVal->bandwidth[i];
-        }
+          for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+          {
+            /* update interface with global parms indicated as being set */
+            if (pListMask->setMask[i] == L7_TRUE)
+              minBwIntf.bandwidth[i] = pVal->bandwidth[i];
+          }
 
-        if (cosQueueMinBandwidthListSet(intIfNum, &minBwIntf) != L7_SUCCESS)
+          if (cosQueueMinBandwidthListSet(intIfNum, queueSet, &minBwIntf) != L7_SUCCESS)
+          {
+            L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+                    "Unable to set global COS minimum bandwidth config on intf %s, queueSet %u\n",
+                    ifName, queueSet);
+          }
+        }
+        else
         {
           L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                  "Unable to set global COS minimum bandwidth config on intf %s\n",
-                  ifName);
+                  "Unable to get COS minimum bandwidth config from intf %s, queueSet %u\n",
+                  ifName, queueSet);
         }
-      }
-      else
-      {
-        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                "Unable to get COS minimum bandwidth config from intf %s\n",
-                ifName);
       }
     }
   }
@@ -1102,6 +1158,7 @@ L7_RC_t cosQueueMinBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
 * @purpose  Get the maximum bandwidth list for all queues on this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to max bandwidth output list
 *
 * @returns  L7_SUCCESS
@@ -1111,7 +1168,7 @@ L7_RC_t cosQueueMinBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMaxBandwidthListGet(L7_uint32 intIfNum,
+L7_RC_t cosQueueMaxBandwidthListGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                     L7_qosCosQueueBwList_t *pVal)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -1120,7 +1177,7 @@ L7_RC_t cosQueueMaxBandwidthListGet(L7_uint32 intIfNum,
   if (pVal == L7_NULLPTR)
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
@@ -1133,6 +1190,7 @@ L7_RC_t cosQueueMaxBandwidthListGet(L7_uint32 intIfNum,
 * @purpose  Set the maximum bandwidth list for all queues on this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(input)}  Ptr to max bandwidth list
 *
 * @returns  L7_SUCCESS
@@ -1142,7 +1200,7 @@ L7_RC_t cosQueueMaxBandwidthListGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMaxBandwidthListSet(L7_uint32 intIfNum,
+L7_RC_t cosQueueMaxBandwidthListSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                     L7_qosCosQueueBwList_t *pVal)
 {
   L7_cosCfgParms_t              *pCfg;
@@ -1157,7 +1215,7 @@ L7_RC_t cosQueueMaxBandwidthListSet(L7_uint32 intIfNum,
   if (pVal == L7_NULLPTR)
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* check proposed value list */
@@ -1221,7 +1279,7 @@ L7_RC_t cosQueueMaxBandwidthListSet(L7_uint32 intIfNum,
     return L7_SUCCESS;
 
   /* apply the new maxBw values along with the other queue config parms */
-  (void)cosQueueSchedConfigApply(intIfNum, &qParms);  /* rc ignored here */
+  (void)cosQueueSchedConfigApply(intIfNum, queueSet, &qParms);  /* rc ignored here */
 
   /* update the COS queue config from the temporary local list info */
   for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
@@ -1254,6 +1312,7 @@ L7_RC_t cosQueueMaxBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
   L7_cosCfgParms_t        *pCfgGlob, *pCfgIntf;
   L7_cosQueueCfg_t        *pQ;
   L7_uint32               i, intIfNum;
+  l7_cosq_set_t           queueSet;
   L7_uint32               maxBwNew;
   L7_qosCosQueueBwList_t  maxBwIntf;
 
@@ -1263,7 +1322,7 @@ L7_RC_t cosQueueMaxBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
     return L7_FAILURE;
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* check proposed value list */
@@ -1316,11 +1375,14 @@ L7_RC_t cosQueueMaxBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
     intIfNum = 0;
     while (cosQueueIntfIndexGetNext(intIfNum, &intIfNum) == L7_SUCCESS)
     {
-      /* only work with configurable interfaces */
-      if (cosCfgPtrFind(intIfNum, &pCfgIntf) == L7_SUCCESS)
+      for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
       {
-        if (maxBwNew < pCfgIntf->queue[i].minBwPercent)
-          return L7_FAILURE;
+        /* only work with configurable interfaces */
+        if (cosCfgPtrFind(intIfNum, queueSet, &pCfgIntf) == L7_SUCCESS)
+        {
+          if (maxBwNew < pCfgIntf->queue[i].minBwPercent)
+            return L7_FAILURE;
+        }
       }
     } /* endwhile */
   } /* endfor i */
@@ -1337,30 +1399,33 @@ L7_RC_t cosQueueMaxBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-    /* only work with configurable interfaces when changing global config */
-    if (cosCfgPtrFind(intIfNum, &pCfgIntf) == L7_SUCCESS)
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
     {
-      if (cosQueueMaxBandwidthListGet(intIfNum, &maxBwIntf) == L7_SUCCESS)
+      /* only work with configurable interfaces when changing global config */
+      if (cosCfgPtrFind(intIfNum, queueSet, &pCfgIntf) == L7_SUCCESS)
       {
-        for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+        if (cosQueueMaxBandwidthListGet(intIfNum, queueSet, &maxBwIntf) == L7_SUCCESS)
         {
-          /* update interface with global parms indicated as being set */
-          if (pListMask->setMask[i] == L7_TRUE)
-            maxBwIntf.bandwidth[i] = pVal->bandwidth[i];
-        }
+          for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+          {
+            /* update interface with global parms indicated as being set */
+            if (pListMask->setMask[i] == L7_TRUE)
+              maxBwIntf.bandwidth[i] = pVal->bandwidth[i];
+          }
 
-        if (cosQueueMaxBandwidthListSet(intIfNum, &maxBwIntf) != L7_SUCCESS)
+          if (cosQueueMaxBandwidthListSet(intIfNum, queueSet, &maxBwIntf) != L7_SUCCESS)
+          {
+            L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+                    "Unable to set global COS maximum bandwidth config on intf %s, queueSet %u\n",
+                    ifName, queueSet);
+          }
+        }
+        else
         {
           L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                  "Unable to set global COS maximum bandwidth config on intf %s\n",
-                  ifName);
+                  "Unable to get COS maximum bandwidth config from intf %s, queueSet %u\n",
+                  ifName, queueSet);
         }
-      }
-      else
-      {
-        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                "Unable to get COS maximum bandwidth config from intf %s\n",
-                ifName);
       }
     }
   }
@@ -1386,6 +1451,7 @@ L7_RC_t cosQueueMaxBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
 * @purpose  Get the scheduler type list for all queues on this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to scheduler type output list
 *
 * @returns  L7_SUCCESS
@@ -1395,7 +1461,7 @@ L7_RC_t cosQueueMaxBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueSchedulerTypeListGet(L7_uint32 intIfNum,
+L7_RC_t cosQueueSchedulerTypeListGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                      L7_qosCosQueueSchedTypeList_t *pVal)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -1404,7 +1470,7 @@ L7_RC_t cosQueueSchedulerTypeListGet(L7_uint32 intIfNum,
   if (pVal == L7_NULLPTR)
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
@@ -1418,6 +1484,7 @@ L7_RC_t cosQueueSchedulerTypeListGet(L7_uint32 intIfNum,
 * @purpose  Get the weights list for all queues on this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to weights output list
 *
 * @returns  L7_SUCCESS
@@ -1427,7 +1494,7 @@ L7_RC_t cosQueueSchedulerTypeListGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueWeightListGet(L7_uint32 intIfNum,
+L7_RC_t cosQueueWeightListGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                               L7_qosCosQueueWeightList_t *pVal)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -1436,7 +1503,7 @@ L7_RC_t cosQueueWeightListGet(L7_uint32 intIfNum,
   if (pVal == L7_NULLPTR)
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
@@ -1450,6 +1517,7 @@ L7_RC_t cosQueueWeightListGet(L7_uint32 intIfNum,
 * @purpose  Set the scheduler type list for all queues on this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(input)}  Ptr to scheduler type list
 *
 * @returns  L7_SUCCESS
@@ -1459,7 +1527,7 @@ L7_RC_t cosQueueWeightListGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueSchedulerTypeListSet(L7_uint32 intIfNum,
+L7_RC_t cosQueueSchedulerTypeListSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                      L7_qosCosQueueSchedTypeList_t *pVal)
 {
   L7_cosCfgParms_t              *pCfg;
@@ -1484,7 +1552,7 @@ L7_RC_t cosQueueSchedulerTypeListSet(L7_uint32 intIfNum,
       return L7_FAILURE;
   }
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* need to do the following:
@@ -1512,7 +1580,7 @@ L7_RC_t cosQueueSchedulerTypeListSet(L7_uint32 intIfNum,
     return L7_SUCCESS;
 
   /* apply the new schedType values along with the other queue config parms */
-  rc = cosQueueSchedConfigApply(intIfNum, &qParms);  /* rc ignored here */
+  rc = cosQueueSchedConfigApply(intIfNum, queueSet, &qParms);  /* rc ignored here */
 #if defined(FEAT_METRO_CPE_V1_0)
   if (rc == L7_FAILURE)
   {
@@ -1534,6 +1602,7 @@ L7_RC_t cosQueueSchedulerTypeListSet(L7_uint32 intIfNum,
 * @purpose  Set the scheduler type list for all queues on this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(input)}  Ptr to scheduler type list
 *
 * @returns  L7_SUCCESS
@@ -1543,7 +1612,7 @@ L7_RC_t cosQueueSchedulerTypeListSet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueWeightListSet(L7_uint32 intIfNum,
+L7_RC_t cosQueueWeightListSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                               L7_qosCosQueueWeightList_t *pVal)
 {
   L7_cosCfgParms_t              *pCfg;
@@ -1567,7 +1636,7 @@ L7_RC_t cosQueueWeightListSet(L7_uint32 intIfNum,
       return L7_FAILURE;
   }
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* need to do the following:
@@ -1595,7 +1664,7 @@ L7_RC_t cosQueueWeightListSet(L7_uint32 intIfNum,
     return L7_SUCCESS;
 
   /* apply the new schedType values along with the other queue config parms */
-  rc = cosQueueSchedConfigApply(intIfNum, &qParms);  /* rc ignored here */
+  rc = cosQueueSchedConfigApply(intIfNum, queueSet, &qParms);  /* rc ignored here */
 #if defined(FEAT_METRO_CPE_V1_0)
   if (rc == L7_FAILURE)
   {
@@ -1631,9 +1700,10 @@ L7_RC_t cosQueueWeightListSet(L7_uint32 intIfNum,
 L7_RC_t cosQueueSchedulerTypeGlobalListSet(L7_qosCosQueueSchedTypeList_t *pVal,
                                            L7_qosCosQueueListMask_t *pListMask)
 {
-  L7_cosCfgParms_t              *pCfgGlob, *pCfgIntf;
-  L7_cosQueueCfg_t              *pQ;
-  L7_uint32                     i, intIfNum;
+  L7_cosCfgParms_t  *pCfgGlob, *pCfgIntf;
+  L7_cosQueueCfg_t  *pQ;
+  L7_uint32         i, intIfNum;
+  l7_cosq_set_t     queueSet;
   L7_qosCosQueueSchedTypeList_t schedTypeIntf;
 
   if (pVal == L7_NULLPTR)
@@ -1650,7 +1720,7 @@ L7_RC_t cosQueueSchedulerTypeGlobalListSet(L7_qosCosQueueSchedTypeList_t *pVal,
   }
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value
@@ -1665,33 +1735,36 @@ L7_RC_t cosQueueSchedulerTypeGlobalListSet(L7_qosCosQueueSchedTypeList_t *pVal,
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-    /* only work with configurable interfaces when changing global config */
-    if (cosCfgPtrFind(intIfNum, &pCfgIntf) == L7_SUCCESS)
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
     {
-      if (cosQueueSchedulerTypeListGet(intIfNum, &schedTypeIntf) == L7_SUCCESS)
+      /* only work with configurable interfaces when changing global config */
+      if (cosCfgPtrFind(intIfNum, queueSet, &pCfgIntf) == L7_SUCCESS)
       {
-        for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+        if (cosQueueSchedulerTypeListGet(intIfNum, queueSet, &schedTypeIntf) == L7_SUCCESS)
         {
-          /* update interface with global parms indicated as being set */
-          if (pListMask->setMask[i] == L7_TRUE)
-            schedTypeIntf.schedType[i] = pVal->schedType[i];
-        }
+          for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+          {
+            /* update interface with global parms indicated as being set */
+            if (pListMask->setMask[i] == L7_TRUE)
+              schedTypeIntf.schedType[i] = pVal->schedType[i];
+          }
 
-        if (cosQueueSchedulerTypeListSet(intIfNum, &schedTypeIntf) != L7_SUCCESS)
+          if (cosQueueSchedulerTypeListSet(intIfNum, queueSet, &schedTypeIntf) != L7_SUCCESS)
+          {
+            L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+                    "Unable to set global COS scheduler type config on intf %s, queueSet %u\n",
+                    ifName, queueSet);
+            #if defined(FEAT_METRO_CPE_V1_0)
+             return L7_FAILURE;
+            #endif
+          }
+        }
+        else
         {
           L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                  "Unable to set global COS scheduler type config on intf %s\n",
-                  ifName);
-          #if defined(FEAT_METRO_CPE_V1_0)
-           return L7_FAILURE;
-          #endif
+                  "Unable to get COS scheduler type config from intf %s, queueSet %u\n",
+                  ifName, queueSet);
         }
-      }
-      else
-      {
-        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                "Unable to get COS scheduler type config from intf %s\n",
-                ifName);
       }
     }
   }
@@ -1730,10 +1803,11 @@ L7_RC_t cosQueueSchedulerTypeGlobalListSet(L7_qosCosQueueSchedTypeList_t *pVal,
 L7_RC_t cosQueueWeightGlobalListSet(L7_qosCosQueueWeightList_t *pVal,
                                     L7_qosCosQueueListMask_t *pListMask)
 {
-  L7_cosCfgParms_t              *pCfgGlob, *pCfgIntf;
-  L7_cosQueueCfg_t              *pQ;
-  L7_uint32                     i, intIfNum;
-  L7_qosCosQueueWeightList_t    weightIntf;
+  L7_cosCfgParms_t  *pCfgGlob, *pCfgIntf;
+  L7_cosQueueCfg_t  *pQ;
+  L7_uint32         i, intIfNum;
+  l7_cosq_set_t     queueSet;
+  L7_qosCosQueueWeightList_t weightIntf;
 
   if (pVal == L7_NULLPTR)
     return L7_FAILURE;
@@ -1749,7 +1823,7 @@ L7_RC_t cosQueueWeightGlobalListSet(L7_qosCosQueueWeightList_t *pVal,
   }
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value
@@ -1764,33 +1838,36 @@ L7_RC_t cosQueueWeightGlobalListSet(L7_qosCosQueueWeightList_t *pVal,
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-    /* only work with configurable interfaces when changing global config */
-    if (cosCfgPtrFind(intIfNum, &pCfgIntf) == L7_SUCCESS)
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
     {
-      if (cosQueueWeightListGet(intIfNum, &weightIntf) == L7_SUCCESS)
+      /* only work with configurable interfaces when changing global config */
+      if (cosCfgPtrFind(intIfNum, queueSet, &pCfgIntf) == L7_SUCCESS)
       {
-        for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+        if (cosQueueWeightListGet(intIfNum, queueSet, &weightIntf) == L7_SUCCESS)
         {
-          /* update interface with global parms indicated as being set */
-          if (pListMask->setMask[i] == L7_TRUE)
-            weightIntf.queue_weight[i] = pVal->queue_weight[i];
-        }
+          for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+          {
+            /* update interface with global parms indicated as being set */
+            if (pListMask->setMask[i] == L7_TRUE)
+              weightIntf.queue_weight[i] = pVal->queue_weight[i];
+          }
 
-        if (cosQueueWeightListSet(intIfNum, &weightIntf) != L7_SUCCESS)
+          if (cosQueueWeightListSet(intIfNum, queueSet, &weightIntf) != L7_SUCCESS)
+          {
+            L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+                    "Unable to set global COS Weight config on intf %s, queueSet %u\n",
+                    ifName, queueSet);
+            #if defined(FEAT_METRO_CPE_V1_0)
+             return L7_FAILURE;
+            #endif
+          }
+        }
+        else
         {
           L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                  "Unable to set global COS Weight config on intf %s\n",
-                  ifName);
-          #if defined(FEAT_METRO_CPE_V1_0)
-           return L7_FAILURE;
-          #endif
+                  "Unable to get COS weight config from intf %s, queueSet %u\n",
+                  ifName, queueSet);
         }
-      }
-      else
-      {
-        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                "Unable to get COS weight config from intf %s\n",
-                ifName);
       }
     }
   }
@@ -1813,6 +1890,7 @@ L7_RC_t cosQueueWeightGlobalListSet(L7_qosCosQueueWeightList_t *pVal,
 * @purpose  Get the queue management type list for all queues on this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to queue mgmt type output list
 *
 * @returns  L7_SUCCESS
@@ -1825,7 +1903,7 @@ L7_RC_t cosQueueWeightGlobalListSet(L7_qosCosQueueWeightList_t *pVal,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMgmtTypeListGet(L7_uint32 intIfNum,
+L7_RC_t cosQueueMgmtTypeListGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                 L7_qosCosQueueMgmtTypeList_t *pVal)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -1834,7 +1912,7 @@ L7_RC_t cosQueueMgmtTypeListGet(L7_uint32 intIfNum,
   if (pVal == L7_NULLPTR)
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
@@ -1847,6 +1925,7 @@ L7_RC_t cosQueueMgmtTypeListGet(L7_uint32 intIfNum,
 * @purpose  Set the queue management type list for all queues on this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(input)}  Ptr to queue mgmt type list
 *
 * @returns  L7_SUCCESS
@@ -1859,7 +1938,7 @@ L7_RC_t cosQueueMgmtTypeListGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMgmtTypeListSet(L7_uint32 intIfNum,
+L7_RC_t cosQueueMgmtTypeListSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                 L7_qosCosQueueMgmtTypeList_t *pVal)
 {
   L7_RC_t                       rc;
@@ -1886,7 +1965,7 @@ L7_RC_t cosQueueMgmtTypeListSet(L7_uint32 intIfNum,
       return L7_FAILURE;
   }
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* need to do the following:
@@ -1910,10 +1989,10 @@ L7_RC_t cosQueueMgmtTypeListSet(L7_uint32 intIfNum,
   } /* endfor i */
   if (something_differed == L7_TRUE)
   {
-      rc = cosQueueDropParmsListGet(intIfNum, &dropParms);
+      rc = cosQueueDropParmsListGet(intIfNum, queueSet, &dropParms);
       if (rc == L7_SUCCESS)
       {
-          cosQueueDropParmsApply(intIfNum, &dropParms);
+          cosQueueDropParmsApply(intIfNum, queueSet, &dropParms);
       }
       else
       {
@@ -1947,10 +2026,11 @@ L7_RC_t cosQueueMgmtTypeListSet(L7_uint32 intIfNum,
 L7_RC_t cosQueueMgmtTypeGlobalListSet(L7_qosCosQueueMgmtTypeList_t *pVal,
                                       L7_qosCosQueueListMask_t *pListMask)
 {
-  L7_cosCfgParms_t              *pCfgGlob, *pCfgIntf;
-  L7_cosQueueCfg_t              *pQ;
-  L7_uint32                     i, intIfNum;
-  L7_qosCosQueueMgmtTypeList_t  mgmtTypeIntf;
+  L7_cosCfgParms_t  *pCfgGlob, *pCfgIntf;
+  L7_cosQueueCfg_t  *pQ;
+  L7_uint32         i, intIfNum;
+  l7_cosq_set_t     queueSet;
+  L7_qosCosQueueMgmtTypeList_t mgmtTypeIntf;
 
   if (pVal == L7_NULLPTR)
     return L7_FAILURE;
@@ -1969,7 +2049,7 @@ L7_RC_t cosQueueMgmtTypeGlobalListSet(L7_qosCosQueueMgmtTypeList_t *pVal,
   }
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value
@@ -1984,30 +2064,33 @@ L7_RC_t cosQueueMgmtTypeGlobalListSet(L7_qosCosQueueMgmtTypeList_t *pVal,
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-    /* only work with configurable interfaces when changing global config */
-    if (cosCfgPtrFind(intIfNum, &pCfgIntf) == L7_SUCCESS)
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
     {
-      if (cosQueueMgmtTypeListGet(intIfNum, &mgmtTypeIntf) == L7_SUCCESS)
+      /* only work with configurable interfaces when changing global config */
+      if (cosCfgPtrFind(intIfNum, queueSet, &pCfgIntf) == L7_SUCCESS)
       {
-        for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+        if (cosQueueMgmtTypeListGet(intIfNum, queueSet, &mgmtTypeIntf) == L7_SUCCESS)
         {
-          /* update interface with global parms indicated as being set */
-          if (pListMask->setMask[i] == L7_TRUE)
-            mgmtTypeIntf.mgmtType[i] = pVal->mgmtType[i];
-        }
+          for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+          {
+            /* update interface with global parms indicated as being set */
+            if (pListMask->setMask[i] == L7_TRUE)
+              mgmtTypeIntf.mgmtType[i] = pVal->mgmtType[i];
+          }
 
-        if (cosQueueMgmtTypeListSet(intIfNum, &mgmtTypeIntf) != L7_SUCCESS)
+          if (cosQueueMgmtTypeListSet(intIfNum, queueSet, &mgmtTypeIntf) != L7_SUCCESS)
+          {
+            L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+                    "Unable to set global COS queue mgmt type on intf %s, queueSet %u\n",
+                    ifName, queueSet);
+          }
+        }
+        else
         {
           L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                  "Unable to set global COS queue mgmt type on intf %s\n",
-                  ifName);
+                  "Unable to get COS queue mgmt type config from intf %s, queueSet %u\n",
+                  ifName, queueSet);
         }
-      }
-      else
-      {
-        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                "Unable to get COS queue mgmt type config from intf %s\n",
-                ifName);
       }
     }
   }
@@ -2030,6 +2113,7 @@ L7_RC_t cosQueueMgmtTypeGlobalListSet(L7_qosCosQueueMgmtTypeList_t *pVal,
 * @purpose  Get the queue WRED / taildrop config parms list for this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to drop parms output list
 *
 * @returns  L7_SUCCESS
@@ -2039,7 +2123,7 @@ L7_RC_t cosQueueMgmtTypeGlobalListSet(L7_qosCosQueueMgmtTypeList_t *pVal,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueDropParmsListGet(L7_uint32 intIfNum,
+L7_RC_t cosQueueDropParmsListGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                  L7_qosCosDropParmsList_t *pVal)
 {
   L7_BOOL             maxThreshSupp = L7_TRUE;
@@ -2054,7 +2138,7 @@ L7_RC_t cosQueueDropParmsListGet(L7_uint32 intIfNum,
   if (pVal == L7_NULLPTR)
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   for (queueIndex=0; queueIndex < L7_MAX_CFG_QUEUES_PER_PORT; queueIndex++)
@@ -2078,6 +2162,7 @@ L7_RC_t cosQueueDropParmsListGet(L7_uint32 intIfNum,
 * @purpose  Set the queue WRED / taildrop config parms list for this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(input)}  Ptr to drop parms list
 *
 * @returns  L7_SUCCESS
@@ -2087,7 +2172,7 @@ L7_RC_t cosQueueDropParmsListGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueDropParmsListSet(L7_uint32 intIfNum,
+L7_RC_t cosQueueDropParmsListSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                  L7_qosCosDropParmsList_t *pVal)
 {
   L7_BOOL                   maxThreshSupp = L7_TRUE;
@@ -2106,7 +2191,7 @@ L7_RC_t cosQueueDropParmsListSet(L7_uint32 intIfNum,
   if (cosQueueDropParmsValidate(pVal) != L7_SUCCESS)
       return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
       return L7_FAILURE;
 
   /* this is a no-op if currently configured values are same as new values */
@@ -2130,7 +2215,7 @@ L7_RC_t cosQueueDropParmsListSet(L7_uint32 intIfNum,
 
   /* apply the new drop parms for this queue (use local copy here!)
    */
-  rc = cosQueueDropParmsApply(intIfNum, &dropParms);
+  rc = cosQueueDropParmsApply(intIfNum, queueSet, &dropParms);
 
   cosQueueDropConfigUpdate(pVal, pCfg);
   pCosCfgData_g->cfgHdr.dataChanged = L7_TRUE;
@@ -2152,6 +2237,7 @@ L7_RC_t cosQueueDropParmsGlobalListSet(L7_qosCosDropParmsList_t *pVal)
 {
   L7_cosCfgParms_t          *pCfgGlob, *pCfgIntf;
   L7_uint32                 intIfNum;
+  L7_uint8                  queueSet;
 
   if (pVal == L7_NULLPTR)
     return L7_FAILURE;
@@ -2162,7 +2248,7 @@ L7_RC_t cosQueueDropParmsGlobalListSet(L7_qosCosDropParmsList_t *pVal)
   }
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value
@@ -2177,21 +2263,24 @@ L7_RC_t cosQueueDropParmsGlobalListSet(L7_qosCosDropParmsList_t *pVal)
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-    /* only work with configurable interfaces when changing global config */
-    if (cosCfgPtrFind(intIfNum, &pCfgIntf) == L7_SUCCESS)
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
     {
-        cosQueueDropParmsApply(intIfNum, pVal);
-    if (cosQueueDropParmsDiffer(pVal, pCfgIntf) != L7_FALSE)
-    {
-      cosQueueDropConfigUpdate(pVal, pCfgIntf);
-      pCosCfgData_g->cfgHdr.dataChanged = L7_TRUE;
-    }
-    }
-    else
-    {
-        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                "Unable to get COS taildrop/WRED config from intf %s\n",
-                ifName);
+      /* only work with configurable interfaces when changing global config */
+      if (cosCfgPtrFind(intIfNum, queueSet, &pCfgIntf) == L7_SUCCESS)
+      {
+          cosQueueDropParmsApply(intIfNum, queueSet, pVal);
+          if (cosQueueDropParmsDiffer(pVal, pCfgIntf) != L7_FALSE)
+          {
+            cosQueueDropConfigUpdate(pVal, pCfgIntf);
+            pCosCfgData_g->cfgHdr.dataChanged = L7_TRUE;
+          }
+      }
+      else
+      {
+          L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+                  "Unable to get COS taildrop/WRED config from intf %s, queueSet %u\n",
+                  ifName, queueSet);
+      }
     }
   }
 
@@ -2208,6 +2297,7 @@ L7_RC_t cosQueueDropParmsGlobalListSet(L7_qosCosDropParmsList_t *pVal)
 *           config parms on this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    queueId     @b{(input)}  Queue ID to de-configure
 *
 * @returns  L7_SUCCESS
@@ -2217,7 +2307,7 @@ L7_RC_t cosQueueDropParmsGlobalListSet(L7_qosCosDropParmsList_t *pVal)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueDropDefaultsRestore(L7_uint32 intIfNum, L7_uint32 queueId)
+L7_RC_t cosQueueDropDefaultsRestore(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 queueId)
 {
   L7_RC_t                     rc;
   L7_cosCfgParms_t            *pCfg;
@@ -2226,11 +2316,11 @@ L7_RC_t cosQueueDropDefaultsRestore(L7_uint32 intIfNum, L7_uint32 queueId)
   L7_uint32                   queueIndex, precIndex;
   L7_QOS_COS_QUEUE_MGMT_TYPE_t curMgmtType;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* Get current mgmt type so we don't inadvertently change it */
-  rc = cosQueueDropParmsListGet(intIfNum, &dropParmsList);
+  rc = cosQueueDropParmsListGet(intIfNum, queueSet, &dropParmsList);
 
   if (rc != L7_SUCCESS)
     return rc;
@@ -2238,7 +2328,7 @@ L7_RC_t cosQueueDropDefaultsRestore(L7_uint32 intIfNum, L7_uint32 queueId)
   curMgmtType = dropParmsList.queue[queueId].mgmtType;
 
   /* build defaults for target queue in a local structure */
-  cosDefaultQueueConfigBuild(&queueCfgDefaults, queueId);
+  cosDefaultQueueConfigBuild(&queueCfgDefaults, queueSet, queueId);
   /* create a parms list that is used for the 'set' function */
   memset(&dropParmsList, 0, sizeof(dropParmsList));
 
@@ -2261,7 +2351,7 @@ L7_RC_t cosQueueDropDefaultsRestore(L7_uint32 intIfNum, L7_uint32 queueId)
   if (intIfNum == L7_ALL_INTERFACES)
     rc = cosQueueDropParmsGlobalListSet(&dropParmsList);
   else
-    rc = cosQueueDropParmsListSet(intIfNum, &dropParmsList);
+    rc = cosQueueDropParmsListSet(intIfNum, queueSet, &dropParmsList);
 
   if (rc != L7_SUCCESS)
   {
@@ -2314,6 +2404,7 @@ L7_RC_t cosQueueNumDropPrecLevelsGet(L7_uint32 *pVal)
 * @purpose  Check if specified queue mgmt type is active for the queue
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    queueId     @b{(input)}  Queue id
 * @param    qMgmtType   @b{(input)}  Desired queue mgmt type value
 *
@@ -2326,7 +2417,7 @@ L7_RC_t cosQueueNumDropPrecLevelsGet(L7_uint32 *pVal)
 *
 * @end
 *********************************************************************/
-L7_BOOL cosQueueMgmtTypeIsActive(L7_uint32 intIfNum, L7_uint32 queueId,
+L7_BOOL cosQueueMgmtTypeIsActive(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 queueId,
                                  L7_QOS_COS_QUEUE_MGMT_TYPE_t qMgmtType)
 {
   L7_cosCfgParms_t              *pCfg;
@@ -2336,7 +2427,7 @@ L7_BOOL cosQueueMgmtTypeIsActive(L7_uint32 intIfNum, L7_uint32 queueId,
       (queueId > L7_QOS_COS_QUEUE_ID_MAX))
     return L7_FALSE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FALSE;
 
   /* determine which config field to check based on feature support */
@@ -2359,6 +2450,7 @@ L7_BOOL cosQueueMgmtTypeIsActive(L7_uint32 intIfNum, L7_uint32 queueId,
 * @purpose  Display the current COS Queue Configuration contents
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 *
 * @returns  void
 *
@@ -2369,7 +2461,7 @@ L7_BOOL cosQueueMgmtTypeIsActive(L7_uint32 intIfNum, L7_uint32 queueId,
 *
 * @end
 *********************************************************************/
-void cosQueueConfigShow(L7_uint32 intIfNum)
+void cosQueueConfigShow(L7_uint32 intIfNum, l7_cosq_set_t queueSet)
 {
   L7_cosIntfCfg_t       *pI;
   L7_cosQueueCfg_t      *pQ;
@@ -2398,8 +2490,8 @@ void cosQueueConfigShow(L7_uint32 intIfNum)
   {
     if (cosIntfIsConfigurable(intIfNum, &pCfgIntf) == L7_TRUE)
     {
-      pI = &pCfgIntf->cfg.intf;
-      pQ = pCfgIntf->cfg.queue;
+      pI = &pCfgIntf->cfg[queueSet].intf;
+      pQ = pCfgIntf->cfg[queueSet].queue;
     }
     else
     {
@@ -2410,6 +2502,7 @@ void cosQueueConfigShow(L7_uint32 intIfNum)
 
   /* display interface-level parms */
   COS_PRT(msgLvlReqd, "  Intf shaping rate       :  %u\n", pI->intfShapingRate);
+  COS_PRT(msgLvlReqd, "  Intf shaping burst size :  %u\n", pI->intfShapingBurstSize);
   COS_PRT(msgLvlReqd, "  Queue mgmt type per-intf:  %u\n", pI->queueMgmtTypePerIntf);
   COS_PRT(msgLvlReqd, "  WRED decay exponent     :  %u\n", pI->wredDecayExponent);
   COS_PRT(msgLvlReqd, "\n");

@@ -2005,7 +2005,8 @@ L7_RC_t hpcBoardWCinit_bcm56450(void)
     DAPI_CARD_ENTRY_t *dapiBroadPhysicalCardEntry = &dapiBroadPhysicalCardEntry_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1;
     L7_uint32 board_hwver = ptin_env_board_hwver();
 
-    PT_LOG_NOTICE(LOG_CTX_STARTUP, "OLT1T0F: BOARD_HWVER = %u", board_hwver);
+    PT_LOG_NOTICE(LOG_CTX_STARTUP, "OLT1T0F: %s = %u",
+                  BOARD_HWVER_STR, board_hwver);
 
     if (board_hwver >= 3)  /* BOARD_HWVER >= 3 */
     {

@@ -40,8 +40,9 @@
 /* PTin added: IGMP snooping */
 #if 1
   #include "logger.h"  
-  #include  "snooping_ptin_db.h"
-  #include  "ptin_igmp.h"
+  #include "snooping_ptin_db.h"
+  #include "ptin_igmp.h"
+  #include "ptin_intf.h"
 #endif
 
 /******************Protection Schemes Support************************************/
@@ -465,8 +466,8 @@ L7_RC_t ptin_snoop_static_channel_add(L7_uint16 vlanId, L7_inet_addr_t *channel)
   if (igmp_network_version==3)
   {
     L7_uint32 intIfNum;
-    L7_INTF_MASK_t mcastClientAttached;
-    if (ptin_igmp_clientIntfs_getList(vlanId, &mcastClientAttached, &noOfInterfaces)!=L7_SUCCESS)
+    ptin_port_bmp_t mcastClientAttached;
+    if (ptin_igmp_clientPtinport_getList(vlanId, &mcastClientAttached, &noOfInterfaces)!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_IGMP, "Error getting client interfaces of vlan %u",vlanId);
       return L7_SUCCESS;
@@ -541,8 +542,8 @@ L7_RC_t ptin_snoop_channel_remove(L7_uint16 vlanId, L7_inet_addr_t *channel)
   if (igmp_network_version==3)
   { 
     L7_uint32 intIfNum;
-    L7_INTF_MASK_t mcastClientAttached;
-    if (ptin_igmp_clientIntfs_getList(vlanId, &mcastClientAttached, &noOfInterfaces)!=L7_SUCCESS)
+    ptin_port_bmp_t mcastClientAttached;
+    if (ptin_igmp_clientPtinport_getList(vlanId, &mcastClientAttached, &noOfInterfaces)!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_IGMP, "Error getting client interfaces of vlan %u",vlanId);
       return L7_SUCCESS;
@@ -3972,7 +3973,7 @@ L7_RC_t snoopIntfApiVlanStaticMcastRtrMaskGet(L7_uint32 intIfNum,
   return L7_SUCCESS;
 }
 
-L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_BOOL isStatic, L7_BOOL isProtection)
+L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 ptin_port, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_BOOL isStatic, L7_BOOL isProtection)
 {
   L7_RC_t         rc = L7_SUCCESS;
   snoop_cb_t     *pSnoopCB = L7_NULLPTR;
@@ -3990,7 +3991,7 @@ L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *g
   inetAddrPrint(groupAddr, groupAddrStr);
   inetAddrPrint(sourceAddr, sourceAddrStr);
 
-  PT_LOG_DEBUG(LOG_CTX_IGMP, "Context [serviceId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isStatic:%u isProtection:%u]", serviceId, intIfNum, groupAddrStr, sourceAddrStr, isStatic, isProtection);
+  PT_LOG_DEBUG(LOG_CTX_IGMP, "Context [serviceId:%u ptin_port:%u groupAddr:%s sourceAddr:%s isStatic:%u isProtection:%u]", serviceId, ptin_port, groupAddrStr, sourceAddrStr, isStatic, isProtection);
 
   /* Get Snoop Execution Block and Control Block */
   pSnoopEB = snoopEBGet();
@@ -4003,7 +4004,7 @@ L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *g
   /* Fill the message */
   memset((L7_uchar8 *)&msg, 0, sizeof(msg));
   msg.msgId         = snoopMgmdSwitchPortOpen;
-  msg.intIfNum      = intIfNum;
+  msg.ptin_port     = ptin_port;
   msg.serviceId     = serviceId;
   memcpy(&msg.groupAddr, groupAddr, sizeof(msg.groupAddr));
   memcpy(&msg.sourceAddr, sourceAddr, sizeof(msg.sourceAddr));  
@@ -4037,25 +4038,50 @@ L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *g
     ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
 
     /* Sync the status of this switch port on the backup type-b protection port, if it exists */
-    ptin_prottypeb_intf_config_get(intIfNum, &protTypebIntfConfig);
+    /* FIXME TC16SXG: intIfNum->ptin_port */
+    ptin_prottypeb_intf_config_get(ptin_port, &protTypebIntfConfig);
 #endif
 
 #if PTIN_BOARD_IS_MATRIX
     /* Sync the status of this switch port on the backup backup matrix, if it exists */
     if(ptin_fpga_mx_is_matrixactive_rt())
     {
-      __matrix_mfdbport_sync(L7_ENABLE, PTIN_FPGA_STANDBY_MATRIX, serviceId, intIfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isStatic);
+      __matrix_mfdbport_sync(L7_ENABLE, PTIN_FPGA_STANDBY_MATRIX, serviceId, ptin_port, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isStatic);
     }
 #elif PTIN_BOARD_IS_LINECARD   
     if(protTypebIntfConfig.status == L7_ENABLE)       
     {
-      __remoteslot_mfdbport_sync(protTypebIntfConfig.slotId, protTypebIntfConfig.pairSlotId, L7_ENABLE, serviceId, intIfNum, protTypebIntfConfig.pairIntfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isStatic);
-      __matrix_mfdbport_sync(L7_ENABLE, PTIN_FPGA_ACTIVE_MATRIX, serviceId, protTypebIntfConfig.pairSlotId, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isStatic);
+      /* FIXME TC16SXG: intIfNum->ptin_port */
+      __remoteslot_mfdbport_sync(protTypebIntfConfig.slotId,
+                                 protTypebIntfConfig.pairSlotId,
+                                 L7_ENABLE,
+                                 serviceId,
+                                 ptin_port,
+                                 protTypebIntfConfig.pairPtinPort,
+                                 groupAddr->addr.ipv4.s_addr,
+                                 sourceAddr->addr.ipv4.s_addr,
+                                 isStatic);
+      __matrix_mfdbport_sync(L7_ENABLE,
+                             PTIN_FPGA_ACTIVE_MATRIX,
+                             serviceId,
+                             protTypebIntfConfig.pairSlotId,
+                             groupAddr->addr.ipv4.s_addr,
+                             sourceAddr->addr.ipv4.s_addr,
+                             isStatic);
     }
 #elif PTIN_BOARD_IS_STANDALONE
     if(protTypebIntfConfig.status == L7_ENABLE)
     {
-      msg.intIfNum      = protTypebIntfConfig.pairIntfNum;
+      if (L7_SUCCESS !=
+          (rc = ptin_intf_port2intIfNum(protTypebIntfConfig.pairPtinPort,
+                                        &msg.intIfNum))
+          )
+      {
+          PT_LOG_ERR(LOG_CTX_IGMP,
+                     "protTypebIntfConfig.pairPtinPort=%u => rc=%d",
+                     protTypebIntfConfig.pairPtinPort, rc);
+          return L7_FAILURE;
+      }
       msg.isProtection  = L7_TRUE;
 
       /* Send a Port_Open event to the FP */
@@ -4081,7 +4107,7 @@ L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *g
   return rc;
   
 }
-L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_BOOL isProtection)
+L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 ptin_port, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_BOOL isProtection)
 {
   L7_RC_t        rc = L7_SUCCESS;
   snoop_cb_t    *pSnoopCB = L7_NULLPTR;
@@ -4097,7 +4123,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   inetAddrPrint(sourceAddr, sourceAddrStr);
 
   PT_LOG_DEBUG(LOG_CTX_IGMP, "Context [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x isProtection:%s]",
-               serviceId, intIfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isProtection ? "Yes" : "No");
+               serviceId, ptin_port, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isProtection ? "Yes" : "No");
 
 #if !PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
   /*In L2 we do not support forwarding multicast packets based on the Source Address. 
@@ -4113,7 +4139,8 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
 
 
 #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
-  ptin_prottypeb_intf_config_get(intIfNum, &protTypebIntfConfig);
+/* FIXME TC16SXG: intIfNum->ptin_port */
+  ptin_prottypeb_intf_config_get(ptin_port, &protTypebIntfConfig);
 #endif
 
   /*Workaround to prevent MGMD from closing a port, when it is inactive and belongs to a protection scheme*/
@@ -4130,7 +4157,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   {
 //  if (ptin_debug_igmp_snooping)
       PT_LOG_NOTICE(LOG_CTX_IGMP, "Ignoring Port Close. This port is standby [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]",
-                  serviceId, intIfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr);
+                    serviceId, ptin_port, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr);
    
     return rc;
   } 
@@ -4145,7 +4172,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   /* Fill the message */
   memset((L7_uchar8 *)&msg, 0, sizeof(msg));
   msg.msgId         = snoopMgmdSwitchPortClose;
-  msg.intIfNum      = intIfNum;
+  msg.ptin_port     = ptin_port;
   msg.serviceId     = serviceId;
   memcpy(&msg.groupAddr, groupAddr, sizeof(msg.groupAddr));
   memcpy(&msg.sourceAddr, sourceAddr, sizeof(msg.sourceAddr));  
@@ -4171,19 +4198,43 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   /* Sync the status of this switch port on the backup backup matrix, if it exists */
   if(ptin_fpga_mx_is_matrixactive_rt())
   {
-    __matrix_mfdbport_sync(L7_DISABLE, 0, serviceId, intIfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, L7_FALSE);
+    __matrix_mfdbport_sync(L7_DISABLE, 0, serviceId, ptin_port, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, L7_FALSE);
   }
 #elif PTIN_BOARD_IS_LINECARD
   /* Sync the status of this switch port on the backup type-b protection port, if it exists */ 
   if(protTypebIntfConfig.status == L7_ENABLE)
   {
-    __remoteslot_mfdbport_sync(protTypebIntfConfig.slotId, protTypebIntfConfig.pairSlotId, L7_DISABLE, serviceId, intIfNum, protTypebIntfConfig.pairIntfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, L7_FALSE);
-    __matrix_mfdbport_sync(L7_DISABLE, 1, serviceId, protTypebIntfConfig.pairSlotId, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, L7_FALSE);
+    /* FIXME TC16SXG: intIfNum->ptin_port */
+    __remoteslot_mfdbport_sync(protTypebIntfConfig.slotId,
+                               protTypebIntfConfig.pairSlotId,
+                               L7_DISABLE,
+                               serviceId,
+                               ptin_port,
+                               protTypebIntfConfig.pairPtinPort,
+                               groupAddr->addr.ipv4.s_addr,
+                               sourceAddr->addr.ipv4.s_addr,
+                               L7_FALSE);
+    __matrix_mfdbport_sync(L7_DISABLE,
+                           1,
+                           serviceId,
+                           protTypebIntfConfig.pairSlotId,
+                           groupAddr->addr.ipv4.s_addr,
+                           sourceAddr->addr.ipv4.s_addr,
+                           L7_FALSE);
   }
 #elif PTIN_BOARD_IS_STANDALONE
   if(protTypebIntfConfig.status == L7_ENABLE)
   {
-    msg.intIfNum      = protTypebIntfConfig.pairIntfNum;
+    if (L7_SUCCESS !=
+        (rc = ptin_intf_port2intIfNum(protTypebIntfConfig.pairPtinPort,
+                                      &msg.intIfNum))
+        )
+    {
+        PT_LOG_ERR(LOG_CTX_IGMP,
+                   "protTypebIntfConfig.pairPtinPort=%u => rc=%d",
+                   protTypebIntfConfig.pairPtinPort, rc);
+        return L7_FAILURE;
+    }
     msg.isProtection  = L7_TRUE; 
 
     /* Send a Port_Close event to the FP */

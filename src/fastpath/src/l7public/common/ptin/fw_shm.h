@@ -8,7 +8,9 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#include "dtl_ptin.h"
+#include "ptin_globaldefs.h"
+#include "datatypes.h"
+//#include "dtl_ptin.h"
 
 //*****************************************************************************
 
@@ -107,8 +109,17 @@ typedef struct {
 } t_eth_status;
 
 typedef struct {
+  L7_uchar8     slot_id;
+  L7_uchar8     slot_matrix;                    /* This var will indicate the active SF board */
+  L7_uchar8     mx_is_active;
+} cpld_data_t;
+
+typedef struct {
   t_eth_status  intf[PTIN_SYSTEM_MAX_N_PORTS];
   L7_uchar8     SyncE_Recovery_clock[2];        /* Main and secondary ports */
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  cpld_data_t   cpld;
+#endif
 } t_fw_shm;
 
 #else

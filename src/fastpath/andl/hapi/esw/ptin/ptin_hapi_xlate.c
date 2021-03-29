@@ -56,28 +56,36 @@ static L7_RC_t ptin_hapi_xlate_egress_portsGroup_init(void);
 L7_RC_t ptin_hapi_xlate_init(void)
 {
   L7_BOOL enable;
-  L7_int port, bcm_port;
+  L7_uint32     bcm_port, bcm_unit;
+  DAPI_USP_t    usp;
+  BROAD_PORT_t  *hapiPortPtr;
+  extern DAPI_t *dapi_g;
   L7_RC_t rc = L7_SUCCESS;
 
-  /* Change Ingress Vlan Translate Keys for all physical ports (LAGs are included through their physical ports) */
-  for (port=0; port<ptin_sys_number_of_ports; port++)
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR)
   {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
+      return L7_FAILURE;
+  }
+
+  /* Change Ingress Vlan Translate Keys for all physical ports (LAGs are included through their physical ports) */
+  /* Run all usp ports */
+  USP_PHYPORT_ITERATE(usp, dapi_g)
+  {
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+    bcm_port    = hapiPortPtr->bcm_port;
+    bcm_unit    = hapiPortPtr->bcm_unit;
+
     /* Enable translations? */
     enable = L7_TRUE;
     /* Disable for FPGA port of OLT1T0 */
     #if (PTIN_BOARD == PTIN_BOARD_OLT1T0 || PTIN_BOARD == PTIN_BOARD_OLT1T0F)
-    if (port == PTIN_PORT_FPGA)
+    if (usp.port == PTIN_PORT_FPGA)
     {
       enable = L7_FALSE;
     }
     #endif
-
-    if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm unit id");
-      rc = L7_FAILURE;
-      continue;
-    }
 
     /* First key: First do a lookup for port + outerVlan + innerVlan.
        Second key: If failed do a second lookup for port + outerVlan */
@@ -1207,8 +1215,8 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
   action.new_inner_vlan     = xlate->newInnerVlanId;
   action.priority           = xlate->newOuterPrio;
   action.new_inner_pkt_prio = xlate->newInnerPrio;
-
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(unit=%u, port=%u, keyType=%u, ovlan=%u, ivlan=%u, &action)",
+  
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(unit=%u, gport=%u, keyType=%u, ovlan=%u, ivlan=%u, &action)",
                hapiPortPtr->bcm_unit, hapiPortPtr->bcm_gport, keyType, xlate->outerVlanId, xlate->innerVlanId);
 
   PT_LOG_TRACE(LOG_CTX_HAPI,"action.new_outer_vlan     = %u", action.new_outer_vlan);
@@ -1236,8 +1244,6 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
   PT_LOG_TRACE(LOG_CTX_HAPI,"action.ut_outer_prio      = %u", action.ut_outer_pkt_prio);
   PT_LOG_TRACE(LOG_CTX_HAPI,"action.ut_inner_pkt_prio  = %u", action.ut_inner_pkt_prio);
 
-  /*error = bcm_vlan_translate_action_add(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, xlate->outerVlanId, xlate->innerVlanId, &action);*/
-  /*FIXME*/
   error = bcm_vlan_translate_action_add(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_gport, keyType, xlate->outerVlanId, xlate->innerVlanId, &action);
 
   if (error == BCM_E_EXISTS)
@@ -1252,7 +1258,7 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
   }
   else if (error != BCM_E_NONE)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_add function (hapiPortPtr->bcm_port=%u): %d (\"%s\")", hapiPortPtr->bcm_port, error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -1622,73 +1628,56 @@ L7_RC_t ptin_hapi_xlate_egress_delete_all(int unit)
  * Define a group of ports identified by a class id
  * 
  * @param portgroup: class id (positive value)
- * @param usp_list: List of ports that make part of the group 
- * @param usp_list_size: Number of ports
+ * @param usp: port belonging to group 
  * @param dapi_g: System descriptor
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_hapi_xlate_egress_portsGroup_set(L7_uint32 portgroup, DAPI_USP_t *usp_list[], L7_uint8 usp_list_size, DAPI_t *dapi_g)
+L7_RC_t ptin_hapi_xlate_egress_portsGroup_set(L7_uint32 portgroup, DAPI_USP_t *usp, DAPI_t *dapi_g)
 {
-  L7_uint8 index;
-  L7_RC_t rc = L7_SUCCESS;
-
-  PT_LOG_TRACE(LOG_CTX_HAPI,"portgroup=%u usp_list[0]={%d,%d,%d} usp_list_size=%u",
-               portgroup, usp_list[0]->unit, usp_list[0]->slot, usp_list[0]->port, usp_list_size);
-
-  /* If group is empty, there is nothing to be done */
-  if (usp_list_size==0)
-  {
-    return L7_SUCCESS;
-  }
+  PT_LOG_TRACE(LOG_CTX_HAPI,"portgroup=%u usp={%d,%d,%d}",
+               portgroup, usp->unit, usp->slot, usp->port);
 
   /* Change Ingress Vlan Translate Keys for all physical ports (LAGs are included through their physical ports) */
-  for (index=0; index<usp_list_size; index++)
+  /* Validate usp */
+  if (usp->unit<0 || usp->slot<0 || usp->port<0)
   {
-    /* Validate usp */
-    if (usp_list[index]->unit<0 || usp_list[index]->slot<0 || usp_list[index]->port<0)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Invalid interface: {%d,%d,%d}", usp_list[index]->unit, usp_list[index]->slot, usp_list[index]->port);
-      rc = L7_FAILURE;
-      continue;
-    }
-
-    /* Get port pointers *of the group port */
-    dapiPortPtr = DAPI_PORT_GET( usp_list[index], dapi_g );
-    hapiPortPtr = HAPI_PORT_GET( usp_list[index], dapi_g );
-
-    /* Accept only physical interfaces */
-    if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) /*&& !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr)*/ )
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical", usp_list[index]->unit, usp_list[index]->slot, usp_list[index]->port);
-      rc = L7_FAILURE;
-      continue;
-    }
-
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Setting class id %d to single port {%d,%d,%d}",
-                 portgroup, usp_list[index]->unit, usp_list[index]->slot, usp_list[index]->port);
-    if (bcm_port_class_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_gport, bcmPortClassVlanTranslateEgress, (L7_uint32) portgroup ) != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class id %d to single port {%d,%d,%d} [VLAN XLATE]",
-              portgroup, usp_list[index]->unit, usp_list[index]->slot, usp_list[index]->port);
-      rc = L7_FAILURE;
-      continue;
-    }
-    /* PTin removed: Let Fastpath to manage EFP Class ids */
-    #if 0
-    if (bcm_port_class_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_gport, bcmPortClassFieldEgress, (L7_uint32) portgroup + EFP_STD_CLASS_ID_MAX) != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class id %d to single port {%d,%d,%d} [ECAP]",
-              portgroup, usp_list[index]->unit, usp_list[index]->slot, usp_list[index]->port);
-      rc = L7_FAILURE;
-      continue;
-    }
-    #endif
+    PT_LOG_ERR(LOG_CTX_HAPI,"Invalid interface: {%d,%d,%d}", usp->unit, usp->slot, usp->port);
+    return L7_FAILURE;
   }
+
+  /* Get port pointers *of the group port */
+  dapiPortPtr = DAPI_PORT_GET( usp, dapi_g );
+  hapiPortPtr = HAPI_PORT_GET( usp, dapi_g );
+
+  /* Accept only physical interfaces */
+  if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) /*&& !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr)*/ )
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical", usp->unit, usp->slot, usp->port);
+    return L7_FAILURE;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Setting class id %d to single port {%d,%d,%d}",
+               portgroup, usp->unit, usp->slot, usp->port);
+  if (bcm_port_class_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_gport, bcmPortClassVlanTranslateEgress, (L7_uint32) portgroup ) != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class id %d to single port {%d,%d,%d} [VLAN XLATE]",
+               portgroup, usp->unit, usp->slot, usp->port);
+    return L7_FAILURE;
+  }
+  /* PTin removed: Let Fastpath to manage EFP Class ids */
+  #if 0
+  if (bcm_port_class_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_gport, bcmPortClassFieldEgress, (L7_uint32) portgroup + EFP_STD_CLASS_ID_MAX) != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class id %d to single port {%d,%d,%d} [ECAP]",
+               portgroup, usp->unit, usp->slot, usp->port);
+    return L7_FAILURE;
+  }
+  #endif
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "Class id %d successfully assigned to the given ports", portgroup);
 
-  return rc;
+  return L7_SUCCESS;
 }
 
 /**
@@ -1753,32 +1742,38 @@ L7_RC_t ptin_hapi_xlate_egress_portsGroup_get(L7_uint32 *portgroup, DAPI_USP_t *
  */
 static L7_RC_t ptin_hapi_xlate_egress_portsGroup_init(void)
 {
-  L7_int port;
-  bcm_port_t bcm_port;
+  L7_uint32     bcm_unit, bcm_port;
+  DAPI_USP_t    usp;
+  BROAD_PORT_t  *hapiPortPtr;
+  extern DAPI_t *dapi_g;
   L7_RC_t rc = L7_SUCCESS;
-  
-  /* Change Ingress Vlan Translate Keys for all physical ports (LAGs are included through their physical ports) */
-  for (port=0; port<ptin_sys_number_of_ports; port++)
+
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR)
   {
-    if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm unit id");
-      rc = L7_FAILURE;
-      continue;
-    }
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
+      return L7_FAILURE;
+  }
+
+  /* Change Ingress Vlan Translate Keys for all physical ports (LAGs are included through their physical ports) */
+  USP_PHYPORT_ITERATE(usp, dapi_g)
+  {
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+    bcm_port    = hapiPortPtr->bcm_port;
+    bcm_unit    = hapiPortPtr->bcm_unit;
 
     /* Default class ids is port+1 */
-    if (bcm_port_class_set(bcm_unit, bcm_port, bcmPortClassVlanTranslateEgress, port+1 ) != BCM_E_NONE)
+    if (bcm_port_class_set(bcm_unit, bcm_port, bcmPortClassVlanTranslateEgress, usp.port+1 ) != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class id %u to port %d [VLAN XLATE]", port+1, port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class id %u to port %d [VLAN XLATE]", usp.port+1, usp.port);
       rc = L7_FAILURE;
       continue;
     }
     /* PTin removed: Let Fastpath to manage EFP Class ids */
     #if 0
-    if (bcm_port_class_set(bcm_unit, bcm_port, bcmPortClassFieldEgress, port+1 ) != BCM_E_NONE)
+    if (bcm_port_class_set(bcm_unit, bcm_port, bcmPortClassFieldEgress, usp.port+1 ) != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class id %u to port %d [ECAP]", port+1, port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class id %u to port %d [ECAP]", usp.port+1, usp.port);
       rc = L7_FAILURE;
       continue;
     }

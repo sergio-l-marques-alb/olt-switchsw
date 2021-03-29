@@ -24,18 +24,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 //C O M M O N************************************************************************************
 //DTL/APP LAYER**********************************************************************************
 //#include <my_types.h>
@@ -355,11 +343,9 @@ L7_RC_t ptin_hapi_ptp_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_ptp_
   BROAD_POLICY_RULE_t ruleId;
   T_index _1st_free, i;
   L7_RC_t rc = L7_SUCCESS;
-  bcm_port_t   bcm_port;
+  L7_uint32    bcm_unit, bcm_port;
   bcm_gport_t  gport;
-
-
-
+  extern DAPI_t *dapi_g;
 
   switch (entry->encap) {
   default:
@@ -562,19 +548,14 @@ L7_RC_t ptin_hapi_ptp_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_ptp_
       break;
     }
 
-
-    if ((rc=hapi_ptin_bcmPort_get(entry->key.prt, &bcm_port)) != L7_SUCCESS) {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm_port %u", bcm_port);
-        break;
-        //hapiBroadPolicyDelete(policyId);
-        //return L7_FAILURE;
-    }
-    /* FIXME: Only applied to unit 0 */
-    if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
+    /* Get bcm data from physical USP port */
+    if (hapi_ptin_get_bcmdata_from_uspport(entry->key.prt, dapi_g,
+                                           &bcm_unit, &bcm_port, &gport) != L7_SUCCESS)
     {
-      printf("Error with unit %d, port %d", 0, bcm_port);
-      return L7_FAILURE;
+        PT_LOG_ERR(LOG_CTX_HAPI, "Can't get bcm data from usp_port %u", entry->key.prt);
+        return L7_FAILURE;
     }
+
     if ((rc=hapiBroadPolicyApplyToIface(policyId, gport)) != L7_SUCCESS) {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error applying to gport %u", gport);
       break;
@@ -762,11 +743,19 @@ L7_RC_t ptin_ptp_fpga_entry(ptin_dtl_search_ptp_t *e, DAPI_CMD_GET_SET_t operati
     L7_RC_t rc=L7_SUCCESS;
     unsigned long r=0;
     L7_uint32 intIfNum;
+    nimUSP_t  usp;
 
+    /* FIXME TC16SXG: Convert ptin_port to DDUSP.port */
     if (ptin_intf_port2intIfNum(e->key.prt, &intIfNum)!=L7_SUCCESS) {
       PT_LOG_ERR(LOG_CTX_MISC, "Non existent port");
       return L7_ERROR;
     }
+    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MISC, "Non existent port");
+      return L7_FAILURE;
+    }
+    e->key.prt = usp.port-1;
 
     //PTIN_PORT_CPU
     switch (operation) {
@@ -888,25 +877,22 @@ void ptin_hapi_oam_table_init(void) {
 
 
 
-L7_RC_t ptin_hapi_oam_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_oam_t *entry) {
+L7_RC_t ptin_hapi_oam_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_oam_t *entry)
+{
+#if (!PTIN_BOARD_IS_STANDALONE)
+    return L7_FAILURE;
+#else
 //Filter MEP traffic to FPGA     (VCAP[+ICAP?])
 //Mutual exclusive with hapiBroadConfigCcmFilter     (trapping; ICAP)
-
-#if (!PTIN_BOARD_IS_STANDALONE)
- return L7_FAILURE;
-#else
-
-ptin_hapi_search_oam_t tbl_entry, *p;
-L7_uchar8 exact_mask[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-BROAD_POLICY_t      policyId = BROAD_POLICY_INVALID;
-BROAD_POLICY_RULE_t ruleId;
-T_index _1st_free, i;
-L7_RC_t rc = L7_SUCCESS;
-bcm_port_t   bcm_port;
-bcm_gport_t  gport;
-
-
-
+    ptin_hapi_search_oam_t tbl_entry, *p;
+    L7_uchar8 exact_mask[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+    BROAD_POLICY_t      policyId = BROAD_POLICY_INVALID;
+    BROAD_POLICY_RULE_t ruleId;
+    T_index _1st_free, i;
+    L7_RC_t rc = L7_SUCCESS;
+    L7_uint32    bcm_port, bcm_unit;
+    bcm_gport_t  gport;
+    extern DAPI_t *dapi_g;
 
     tbl_entry.e = *entry; //tbl_entry.e.key = entry->key;
     i = find_entry(&search_OAM_table, &tbl_entry, sizeof(tbl_entry), sizeof(entry->key), N_SEARCH_OAM, -1, &_1st_free);
@@ -1015,19 +1001,14 @@ bcm_gport_t  gport;
         break;
       }
 
-
-      if ((rc=hapi_ptin_bcmPort_get(entry->key.prt, &bcm_port)) != L7_SUCCESS) {
-          PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm_port %u", bcm_port);
-          break;
-          //hapiBroadPolicyDelete(policyId);
-          //return L7_FAILURE;
-      }
-      /* FIXME: Only applied to unit 0 */
-      if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
+      /* Get bcm data from physical USP port */
+      if (hapi_ptin_get_bcmdata_from_uspport(entry->key.prt, dapi_g,
+                                             &bcm_unit, &bcm_port, &gport) != L7_SUCCESS)
       {
-        printf("Error with unit %d, port %d", 0, bcm_port);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Can't get bcm data from usp_port %u", entry->key.prt);
         return L7_FAILURE;
       }
+
       if ((rc=hapiBroadPolicyApplyToIface(policyId, gport)) != L7_SUCCESS) {
         PT_LOG_ERR(LOG_CTX_HAPI, "Error applying to gport %u", gport);
         break;
@@ -1134,14 +1115,25 @@ ptin_dtl_search_oam_t   *entry;
 //DTL/APP LAYER**********************************************************************************
 L7_RC_t ptin_oam_fpga_entry(ptin_dtl_search_oam_t *e, DAPI_CMD_GET_SET_t operation) {
 #if (!PTIN_BOARD_IS_STANDALONE)
- return L7_FAILURE;
+    return L7_FAILURE;
 #else
+    L7_RC_t rc=L7_SUCCESS;
+    unsigned long r=0;
+    L7_uint32 intIfNum;
+    nimUSP_t  usp;
 
-L7_RC_t rc=L7_SUCCESS;
-unsigned long r=0;
-L7_uint32 intIfNum;
-
-    if (ptin_intf_port2intIfNum(e->key.prt, &intIfNum)!=L7_SUCCESS) {PT_LOG_ERR(LOG_CTX_MISC, "Non existent port"); return L7_FAILURE;}
+    /* FIXME TC16SXG: Convert ptin_port to DDUSP.port */
+    if (ptin_intf_port2intIfNum(e->key.prt, &intIfNum)!=L7_SUCCESS)
+    {
+        PT_LOG_ERR(LOG_CTX_MISC, "Non existent port");
+        return L7_FAILURE;
+    }
+    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MISC, "Non existent port");
+      return L7_FAILURE;
+    }
+    e->key.prt = usp.port-1;
 
     switch (operation) {
     default: return L7_ERROR;

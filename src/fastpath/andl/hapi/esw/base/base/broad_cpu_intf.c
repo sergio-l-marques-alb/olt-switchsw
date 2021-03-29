@@ -2387,6 +2387,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
            bcm_pkt->pkt_len);
 
     printf("rx_timestamp %u, rx_timestamp_upper %u, timestamp_flags 0X%X\n\r", bcm_pkt->rx_timestamp, bcm_pkt->rx_timestamp_upper, bcm_pkt->timestamp_flags);
+    printf("src_gport 0x%x, src_vport %u, src_trunk %u\n", bcm_pkt->src_gport, bcm_pkt->src_vport, bcm_pkt->src_trunk);
     fflush(stdout);
   }
   else if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL1)

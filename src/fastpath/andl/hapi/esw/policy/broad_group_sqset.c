@@ -31,7 +31,14 @@
 
 bcm_field_qualify_t l2SvtQset[] =   /* single VLAN tag */
 {
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
     bcmFieldQualifyInPorts,
 #endif
     bcmFieldQualifyDstMac,
@@ -51,8 +58,14 @@ bcm_field_qualify_t l2SvtQset[] =   /* single VLAN tag */
    for system policies (e.g. Hawkeye). */
 bcm_field_qualify_t l2SvtLookupStatusQset[] =   /* single VLAN tag */
 {
-
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
     bcmFieldQualifyInPorts,
 #endif
     bcmFieldQualifyDstMac,
@@ -73,7 +86,14 @@ bcm_field_qualify_t l2SvtLookupStatusQset[] =   /* single VLAN tag */
 bcm_field_qualify_t l3l4Qset[] =    /* IPv4 six-tuple  */
 {
 
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
     bcmFieldQualifyInPorts,
 #endif
     bcmFieldQualifySrcIp,
@@ -93,7 +113,14 @@ bcm_field_qualify_t l3l4Qset[] =    /* IPv4 six-tuple  */
 bcm_field_qualify_t l2l3SrcQset[] =    /* l2/3 src */
 {
 
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
     bcmFieldQualifyInPorts,
 #endif
     bcmFieldQualifySrcMac,
@@ -110,7 +137,14 @@ bcm_field_qualify_t l2l3SrcQset[] =    /* l2/3 src */
 
 bcm_field_qualify_t l2l3DstQset[] =    /* l2/3 dst */
 {
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
     bcmFieldQualifyInPorts,
 #endif
     bcmFieldQualifyDstMac,
@@ -128,7 +162,14 @@ bcm_field_qualify_t l2l3DstQset[] =    /* l2/3 dst */
 /* SQSet used for double wide mode policies */
 bcm_field_qualify_t l2l3l4Qset[] =    /* l2/l3/l4 */
 {
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
     bcmFieldQualifyInPorts,
 #endif
     bcmFieldQualifySrcMac,
@@ -157,8 +198,14 @@ bcm_field_qualify_t l2l3l4Qset[] =    /* l2/l3/l4 */
 
 bcm_field_qualify_t l2l3l4SrcMacGroupQset[] =    /* l2/l3/l4 */
 {
-
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
     bcmFieldQualifyInPorts,
 #endif
     bcmFieldQualifySrcMac,
@@ -194,7 +241,14 @@ bcm_field_qualify_t l2l3l4SrcMacGroupQset[] =    /* l2/l3/l4 */
 bcm_field_qualify_t l2l3l4ClassIdQset[] =    /* l2/l3/l4 */
 {
 
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
     bcmFieldQualifyInPorts,
 #endif
     bcmFieldQualifySrcMac,
@@ -239,7 +293,14 @@ bcm_field_qualify_t l2l3l4ClassIdQset[] =    /* l2/l3/l4 */
 bcm_field_qualify_t l2l3l4Xgs4ClassIdQset[] =    /* l2/l3/l4 */
 {
 
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
     bcmFieldQualifyInPorts,
 #endif
     bcmFieldQualifySrcMac,
@@ -316,7 +377,14 @@ bcm_field_qualify_t vlanl3Qset[] =    /* vlan/l3 */
 /* We use this qset on chips that support doublewide mode (e.g. Helix+, FB_B0, FB2, Triumph, etc.). */
 bcm_field_qualify_t systemQsetDouble[] =  /* System requirement */
 {
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
     bcmFieldQualifyInPorts,
 #endif
     bcmFieldQualifyDstMac,
@@ -341,7 +409,14 @@ bcm_field_qualify_t systemQsetDouble[] =  /* System requirement */
 
 bcm_field_qualify_t systemQset[] =  /* System requirement */
 {
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
     bcmFieldQualifyInPorts,
 #endif
     bcmFieldQualifyL2StationMove,
@@ -361,8 +436,15 @@ bcm_field_qualify_t systemQset[] =  /* System requirement */
 bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
 {
 
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
-  bcmFieldQualifyInPorts,
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
+    bcmFieldQualifyInPorts,
 #endif
   bcmFieldQualifySrcMac,
   bcmFieldQualifyDstMac,
@@ -415,7 +497,14 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
 #if 1
 bcm_field_qualify_t systemQsetVlanQoS[] =
 {
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+  bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  bcmFieldQualifyInterfaceClassPort,
+ #else
+  bcmFieldQualifyPortClass,
+ #endif
+#else
   bcmFieldQualifyInPorts,
 #endif
   bcmFieldQualifyOuterVlan,
@@ -433,10 +522,28 @@ bcm_field_qualify_t systemQsetVlanQoS[] =
 
 #define systemQsetVlanQoSSize (sizeof(systemQsetVlanQoS) / sizeof(bcm_field_qualify_t))
 
+/* QSET for QoS queues assignment */
+bcm_field_qualify_t systemQsetQoSqueues[] =
+{
+  bcmFieldQualifyOuterVlan,
+  bcmFieldQualifyDstVlanGports,
+  bcmFieldQualifyIntPriority,
+  bcmFieldQualifyStageIngress
+};
+
+#define systemQsetQoSqueuesSize (sizeof(systemQsetQoSqueues) / sizeof(bcm_field_qualify_t))
+
 
 bcm_field_qualify_t systemQsetPTin[] =  /* System requirement */
 {
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+  bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  bcmFieldQualifyInterfaceClassPort,
+ #else
+  bcmFieldQualifyPortClass,
+ #endif
+#else
   bcmFieldQualifyInPorts,
 #endif
 #if (PTIN_BOARD != PTIN_BOARD_TG16G && PTIN_BOARD != PTIN_BOARD_TG16GF && PTIN_BOARD != PTIN_BOARD_AG16GA)
@@ -466,7 +573,14 @@ bcm_field_qualify_t systemQsetPTin[] =  /* System requirement */
 
 bcm_field_qualify_t systemQsetStats[] =  /* System requirement */
 {
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+  bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  bcmFieldQualifyInterfaceClassPort,
+ #else
+  bcmFieldQualifyPortClass,
+ #endif
+#else
   bcmFieldQualifyInPorts,
 #endif
   bcmFieldQualifySrcTrunk,      /* PTin added: FP */
@@ -494,7 +608,14 @@ custom_field_qualify_t systemCustomQset[] =  /* System requirement */
 
 bcm_field_qualify_t iscsiQset[] =  /* iSCSI requirement */
 {
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
     bcmFieldQualifyInPorts,
 #endif
     bcmFieldQualifyL2StationMove,
@@ -517,7 +638,14 @@ custom_field_qualify_t iscsiCustomQset[] =  /* iSCSI requirement */
    fit the COS policies in the same slice as the IPv6 system policies. */
 bcm_field_qualify_t ipv6NdQsetScorpion[] =   /* req'd by system policies */
 {
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
     bcmFieldQualifyInPorts,
 #endif
     bcmFieldQualifyIp6HopLimit,    /* IP6_HOPLIMIT   */
@@ -531,7 +659,14 @@ bcm_field_qualify_t ipv6NdQsetScorpion[] =   /* req'd by system policies */
 
 bcm_field_qualify_t ipv6NdQset[] =   /* req'd by system policies */
 {
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
     bcmFieldQualifyInPorts,
 #endif
     bcmFieldQualifyIp6HopLimit,    /* IP6_HOPLIMIT   */
@@ -544,7 +679,14 @@ bcm_field_qualify_t ipv6NdQset[] =   /* req'd by system policies */
 
 bcm_field_qualify_t ipv6L3L4Qset[] =  /* includes VLAN ID */
 {
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
     bcmFieldQualifyInPorts,
 #endif
     bcmFieldQualifyEtherType,
@@ -574,7 +716,14 @@ bcm_field_qualify_t ipv6L3L4Qset[] =  /* includes VLAN ID */
    this qset requires removal of the Ethertype. */
 bcm_field_qualify_t ipv6L3L4ClassIdQset[] =  /* includes VLAN ID */
 {
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
     bcmFieldQualifyInPorts,
 #endif
     /*bcmFieldQualifySrcMac,*/        /* PTin added: IPv6 ACL rules */
@@ -621,7 +770,14 @@ bcm_field_qualify_t ipv6L3L4ClassIdQset[] =  /* includes VLAN ID */
 
 bcm_field_qualify_t ipv6SrcL4ClassIdQset[] =  /* includes VLAN ID */
 {
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
     bcmFieldQualifyInPorts,
 #endif
     bcmFieldQualifyOuterVlan,
@@ -656,8 +812,14 @@ bcm_field_qualify_t ipv6SrcL4ClassIdQset[] =  /* includes VLAN ID */
 
 bcm_field_qualify_t ipv6DstL4ClassIdQset[] =  /* includes VLAN ID */
 {
-
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
     bcmFieldQualifyInPorts,
 #endif
     bcmFieldQualifyOuterVlan,
@@ -713,9 +875,16 @@ bcm_field_qualify_t ipv6SrcL4Qset[] =  /* includes VLAN ID */
 
 bcm_field_qualify_t ipv6DstL4Qset[] =  /* includes VLAN ID */
 {
-#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    bcmFieldQualifyInPort,
+ #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+ #else
+    bcmFieldQualifyPortClass,
+ #endif
+#else
     bcmFieldQualifyInPorts,
-#endif    
+#endif
     bcmFieldQualifyOuterVlan,
     bcmFieldQualifyDstIp6,          
     bcmFieldQualifyIp6TrafficClass,          
@@ -957,9 +1126,11 @@ super_qset_definition_t ipv6NdQsetScorpionDef    = {ipv6NdQsetScorpion,    ipv6N
 
 /* PTin added: ICAP */
 #if 1
-super_qset_definition_t systemQsetVlanQoSDef     = {systemQsetVlanQoS,     systemQsetVlanQoSSize, 0, 0};
-super_qset_definition_t systemQsetPTinDef        = {systemQsetPTin,        systemQsetPTinSize,    0, 0};
-super_qset_definition_t systemQsetStatsDef       = {systemQsetStats,       systemQsetStatsSize,   0, 0};
+super_qset_definition_t systemQsetVlanQoSDef     = {systemQsetVlanQoS,     systemQsetVlanQoSSize,   0, 0};
+/* PTin added: for QoS queues assignment */
+super_qset_definition_t systemQsetQoSqueuesDef   = {systemQsetQoSqueues,   systemQsetQoSqueuesSize, 0, 0};
+super_qset_definition_t systemQsetPTinDef        = {systemQsetPTin,        systemQsetPTinSize,      0, 0};
+super_qset_definition_t systemQsetStatsDef       = {systemQsetStats,       systemQsetStatsSize,     0, 0};
 #endif
 
 /* Sqsets for other policies. */

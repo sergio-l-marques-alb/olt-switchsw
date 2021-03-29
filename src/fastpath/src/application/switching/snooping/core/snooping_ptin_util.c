@@ -592,7 +592,7 @@ static L7_uchar8* snoopPTinGroupRecordV3Build(L7_uint32 vlanId, L7_inet_addr_t* 
   L7_ushort16       shortVal;
   L7_uint32         ipv4Addr;
   snoopPTinProxySource_t* sourcePtr;
-  L7_INTF_MASK_t    mcastRtrAttached;  
+  ptin_port_bmp_t   mcastRtrAttached;  
   L7_uint32         noOfInterfaces = 0;
 
   /* Argument validation */
@@ -662,14 +662,17 @@ static L7_uchar8* snoopPTinGroupRecordV3Build(L7_uint32 vlanId, L7_inet_addr_t* 
   *length = SNOOP_IGMPV3_RECORD_GROUP_HEADER_MIN_LENGTH + L7_IP_ADDR_LEN * numberOfSources;
 //bufferOut=dataPtr;
 
-  if (ptin_igmp_rootIntfs_getList(vlanId, &mcastRtrAttached, &noOfInterfaces)==L7_SUCCESS)
+  if (ptin_igmp_rootptinPort_getList(vlanId, &mcastRtrAttached, &noOfInterfaces)==L7_SUCCESS)
   {
     L7_uint32         intf; /* Loop through internal interface numbers */
     /* Increment Counter on all root interfaces in this VLAN with multicast routers attached */
     for (intf = 1; intf <= L7_MAX_INTERFACE_COUNT; intf++)
     {
-      if (L7_INTF_ISMASKBITSET(mcastRtrAttached,intf)) 
+      if (L7_INTF_ISMASKBITSET(mcastRtrAttached,intf))
+      {
+        /* FIXME TC16SXG: intIfNum->ptin_port */
         ptin_igmp_stat_increment_field(intf, vlanId, (L7_uint32)-1, snoopRecordType2IGMPStatField(recordType,SNOOP_STAT_FIELD_TX));
+      }
     }  
   }
 
@@ -1276,8 +1279,8 @@ static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint
 
   char                debug_buf[IPV6_DISP_ADDR_LEN];
 
-  L7_INTF_MASK_t mcastRtrAttached;
-  L7_uint32      noOfInterfaces = 0;
+  ptin_port_bmp_t mcastRtrAttached;
+  L7_uint32       noOfInterfaces = 0;
   L7_uint8 intIfList[L7_MAX_INTERFACE_COUNT];
 
 
@@ -1289,7 +1292,7 @@ static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint
     return L7_NULLPTR;
   }
 
-  if (ptin_igmp_rootIntfs_getList(groupPtrAux->key.vlanId, &mcastRtrAttached, &noOfInterfaces)!=L7_SUCCESS)
+  if (ptin_igmp_rootptinPort_getList(groupPtrAux->key.vlanId, &mcastRtrAttached, &noOfInterfaces)!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_IGMP, "Failed ptin_igmp_rootIntfs_getList()");
     return L7_NULLPTR;
@@ -1310,6 +1313,7 @@ static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint
     /*Increment IGMPv3 Stats*/
     for (intf = 1; intf <= noOfActiveInterfaces; intf++)
     {
+      /* FIXME TC16SXG: intIfNum->ptin_port */
       ptin_igmp_stat_increment_field(intIfList[intf], groupPtrAux->key.vlanId, 0, snoopRecordType2IGMPStatField(groupPtrAux->recordType,SNOOP_STAT_FIELD_TX));          
     }
     /*End Stats*/

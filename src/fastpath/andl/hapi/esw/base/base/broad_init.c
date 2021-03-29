@@ -1958,7 +1958,8 @@ L7_RC_t hapiBroadPhysicalPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DA
     {
       usp.port = dapiCardInfoPtr->slotMap[slotMapIndex].portNum;
       hapiPortPtr  = (BROAD_PORT_t *)dapi_g->unit[usp.unit]->slot[usp.slot]->port[usp.port]->hapiPort;
-      hapiPortPtr->bcm_port =  dapiCardInfoPtr->slotMap[slotMapIndex].bcm_port;
+      hapiPortPtr->usp      = usp;
+      hapiPortPtr->bcm_port = dapiCardInfoPtr->slotMap[slotMapIndex].bcm_port;
 
       /* FIXME: BCMX - Field don't exist @ dapiCardInfoPtr->slotMap[slotMapIndex] */
       hapiPortPtr->bcm_modid = dapiCardInfoPtr->slotMap[slotMapIndex].bcm_cpuunit;
@@ -2163,6 +2164,7 @@ L7_RC_t hapiBroadCpuPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t 
   {
     hapiPortPtr  = (BROAD_PORT_t *)dapi_g->unit[usp.unit]->slot[usp.slot]->port[usp.port]->hapiPort;
 
+    hapiPortPtr->usp       = usp;
     hapiPortPtr->bcm_port  = dapiCardInfoPtr->slotMap[slotMapIndex].bcm_port;
     /* FIXME: BCMX - Field don't exist @ dapiCardInfoPtr->slotMap[slotMapIndex] */
     hapiPortPtr->bcm_modid = dapiCardInfoPtr->slotMap[slotMapIndex].bcm_cpuunit;

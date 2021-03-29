@@ -153,7 +153,7 @@ typedef struct
                                                             (L7_uchar8 *)(s),\
                                                             (L7_uint32)(l)))
 
-#define USL_L3_INTF_DB_LEN (platIntfVlanIntfMaxCountGet() + platIntfRouterMaxCountGet() + (PTIN_SYSTEM_N_IGMP_INSTANCES * PTIN_SYSTEM_N_UPLINK_INTERF))
+#define USL_L3_INTF_DB_LEN (platIntfVlanIntfMaxCountGet() + platIntfRouterMaxCountGet() + (PTIN_SYSTEM_N_IGMP_INSTANCES * PTIN_SYSTEM_N_CLIENT_PORTS))
 
 /*********************************************************************
 * @purpose  Initialize the IPMC tables, semaphores, ...

@@ -52,7 +52,7 @@ static L7_RC_t dsBindingTreeSearch(dsBindingTreeKey_t *key, L7_uint32 matchType,
 
 static L7_RC_t dsBindingCopy(dsBindingTreeNode_t *binding, dhcpSnoopBinding_t *extBinding);
 
-static L7_RC_t dsLeaseStatusUpdate(dsBindingTreeKey_t *key, L7_uint inetFamily, dsLeaseStatus_t leaseStatus, L7_uint32 intIfNum);
+static L7_RC_t dsLeaseStatusUpdate(dsBindingTreeKey_t *key, L7_uint inetFamily, dsLeaseStatus_t leaseStatus, L7_uint32 ptin_port);
 
 extern L7_RC_t dsCheckpointCallback(dsCkptEventType_t dsEvent, L7_enetMacAddr_t *macAddr);
 
@@ -177,7 +177,8 @@ L7_RC_t dsBindingsTableDelete(void)
 *********************************************************************/
 L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
                      L7_enetMacAddr_t *macAddr, L7_uint32 ipv4Addr,
-                     L7_ushort16 vlanId, L7_ushort16 innerVlanId /*PTin modified: DHCP */, L7_uint32 intIfNum)
+                     L7_ushort16 vlanId, L7_ushort16 innerVlanId, 
+                     L7_uint32 intIfNum, L7_uint32 ptin_port)
 {
   dsBindingTreeNode_t  binding, *pNode;
 
@@ -213,7 +214,8 @@ L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
     inetAddressSet(L7_AF_INET, &ipv4Addr, &pNode->ipAddr);        
     //pNode->vlanId = vlanId; /*PTIN remove*/
     pNode->innerVlanId = innerVlanId;     /* PTin added: DHCP */
-    pNode->intIfNum = intIfNum;
+    pNode->intIfNum  = intIfNum;
+    pNode->ptin_port = ptin_port;
     pNode->leaseStart = simSystemUpTimeGet();
 #ifdef L7_NSF_PACKAGE
     pNode->ckptFlag = DS_CKPT_DONE;
@@ -382,6 +384,7 @@ L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
 * @param    ipAddr       @b((input))  client IP address.
 * @param    vlanId       @b((input))  client VLAN ID.
 * @param    intIfNum     @b((input))  internal interface number.
+* @param    ptin_port    @b((input))  virtual interface number.
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -393,9 +396,9 @@ L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
 *
 * @end
 *********************************************************************/
-L7_RC_t dsv6BindingAdd(dsBindingType_t bindingType,
-                     L7_enetMacAddr_t *macAddr, L7_inet_addr_t *ipAddr,
-                     L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint32 intIfNum)
+L7_RC_t dsv6BindingAdd(dsBindingType_t bindingType, L7_enetMacAddr_t *macAddr, 
+                       L7_inet_addr_t *ipAddr, L7_ushort16 vlanId, 
+                       L7_ushort16 innerVlanId, L7_uint32 intIfNum, L7_uint32 ptin_port)
 {
   dsBindingTreeNode_t  binding, *pNode;
 
@@ -427,6 +430,7 @@ L7_RC_t dsv6BindingAdd(dsBindingType_t bindingType,
     memcpy(&pNode->ipAddr, ipAddr, sizeof(L7_inet_addr_t));    
     pNode->innerVlanId = innerVlanId;     /* PTin added: DHCP */
     pNode->intIfNum = intIfNum;
+    pNode->ptin_port = ptin_port;
     pNode->leaseStart = simSystemUpTimeGet();
 #ifdef L7_NSF_PACKAGE
     pNode->ckptFlag = DS_CKPT_DONE;
@@ -837,6 +841,7 @@ static L7_RC_t dsBindingCopy(dsBindingTreeNode_t *binding,
   }
   extBinding->innerVlanId = binding->innerVlanId;   /* PTin added: DHCP */
   extBinding->intIfNum = binding->intIfNum;
+  extBinding->ptin_port = binding->ptin_port;
   extBinding->bindingType = binding->bindingType;
   extBinding->remLease = 0;
   extBinding->flags = binding->flags;
@@ -866,9 +871,12 @@ static L7_RC_t dsBindingCopy(dsBindingTreeNode_t *binding,
 *
 * @end
 *********************************************************************/
-static L7_RC_t dsLeaseStatusUpdate(dsBindingTreeKey_t *key, L7_uint inetFamily, L7_uint messageType, L7_uint32 intIfNum)
+static L7_RC_t dsLeaseStatusUpdate(dsBindingTreeKey_t *key, L7_uint inetFamily, L7_uint messageType, L7_uint32 ptin_port)
 {
   dsBindingTreeNode_t *binding;
+
+  PT_LOG_TRACE(LOG_CTX_DHCP, "Updating lease status key [macAddr:%02x:%02x:%02x:%02x:%02x:%02x, vlanId=%u, messageType:%u]",
+               key->macAddr.addr[0], key->macAddr.addr[1], key->macAddr.addr[2], key->macAddr.addr[3], key->macAddr.addr[4], key->macAddr.addr[5], key->vlanId, messageType);
 
   if (dsBindingTreeSearch(key, L7_MATCH_EXACT, &binding) != L7_SUCCESS)
     return L7_FAILURE;
@@ -878,19 +886,23 @@ static L7_RC_t dsLeaseStatusUpdate(dsBindingTreeKey_t *key, L7_uint inetFamily, 
     return L7_SUCCESS;
   }
 
-  PT_LOG_TRACE(LOG_CTX_DHCP, "Updating lease status [macAddr:%02x:%02x:%02x:%02x:%02x:%02x messageType:%u]",
-            key->macAddr.addr[0], key->macAddr.addr[1], key->macAddr.addr[2], key->macAddr.addr[3], key->macAddr.addr[4], key->macAddr.addr[5], messageType);
+  PT_LOG_TRACE(LOG_CTX_DHCP, "Binding To Update: MAC=%02x:%02x:%02x:%02x:%02x:%02x; vlanId=%u"
+                             " ptin_port=%u, intIfNum=%u, innerVlanId=%u, ipAddr=0x%08x",
+               binding->key.macAddr.addr[0], binding->key.macAddr.addr[1], binding->key.macAddr.addr[2],
+               binding->key.macAddr.addr[3], binding->key.macAddr.addr[4], binding->key.macAddr.addr[5],
+               binding->key.vlanId, binding->ptin_port, binding->intIfNum,  binding->innerVlanId,
+               binding->ipAddr.addr.ipv4.s_addr);
 
   dsInfo->dsDbDataChanged = L7_TRUE;
   binding->leaseStatus    = messageType;
 
 
-/* PTIN added -> used to update port when a ONT change channel . Without this the ONT leases was always associated to the same port (intIfNum)*/
+/* PTIN added -> used to update port when a ONT change channel . Without this the ONT leases was always associated to the same port (ptin_port)*/
 #ifdef OPENSAF_SUPPORTED
-  if( intIfNum <= PTIN_SYSTEM_N_PONS && ((messageType && DS_LEASESTATUS_V4_REQUEST) || (messageType && DS_LEASESTATUS_V6_REQUEST)) )
+  if( ptin_port <= PTIN_SYSTEM_N_PONS && ((messageType && DS_LEASESTATUS_V4_REQUEST) || (messageType && DS_LEASESTATUS_V6_REQUEST)) )
   {
-    binding->intIfNum      = intIfNum;
-    PT_LOG_TRACE(LOG_CTX_DHCP, "Updating lease to %d ",binding->intIfNum);
+    binding->ptin_port      = ptin_port;
+    PT_LOG_TRACE(LOG_CTX_DHCP, "Updating lease to %d ",binding->ptin_port);
   }
 #endif
 
@@ -949,6 +961,9 @@ L7_RC_t dsBindingFlagsUpdate(dsBindingTreeKey_t *key, L7_uint8 flags)
 {
   dsBindingTreeNode_t *binding;
 
+  PT_LOG_TRACE(LOG_CTX_DHCP, "Updating lease flags key [macAddr:%02x:%02x:%02x:%02x:%02x:%02x flags:%02X]",
+            key->macAddr.addr[0], key->macAddr.addr[1], key->macAddr.addr[2], key->macAddr.addr[3], key->macAddr.addr[4], key->macAddr.addr[5], flags);
+
   if (dsBindingTreeSearch(key, L7_MATCH_EXACT, &binding) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_DHCP, "Unable to find requested entry [macAddr:%02x:%02x:%02x:%02x:%02x:%02x vlanId:%u ipType:%u], ",
@@ -956,8 +971,12 @@ L7_RC_t dsBindingFlagsUpdate(dsBindingTreeKey_t *key, L7_uint8 flags)
     return L7_FAILURE;
   }
 
-  PT_LOG_TRACE(LOG_CTX_DHCP, "Updating lease flags [macAddr:%02x:%02x:%02x:%02x:%02x:%02x flags:%02X]",
-            key->macAddr.addr[0], key->macAddr.addr[1], key->macAddr.addr[2], key->macAddr.addr[3], key->macAddr.addr[4], key->macAddr.addr[5], flags);
+  PT_LOG_TRACE(LOG_CTX_DHCP, "Binding To Update: MAC=%02x:%02x:%02x:%02x:%02x:%02x; vlanId=%u"
+                             " ptin_port=%u, intIfNum=%u, innerVlanId=%u, ipAddr=0x%08x",
+               binding->key.macAddr.addr[0],binding->key.macAddr.addr[1],binding->key.macAddr.addr[2],
+               binding->key.macAddr.addr[3],binding->key.macAddr.addr[4],binding->key.macAddr.addr[5],
+               binding->key.vlanId, binding->ptin_port, binding->intIfNum,  binding->innerVlanId,
+               binding->ipAddr.addr.ipv4.s_addr);
 
   dsInfo->dsDbDataChanged = L7_TRUE;
   binding->flags          = flags;
@@ -1148,7 +1167,7 @@ L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t *ipAddr, 
 *
 * @end
 *********************************************************************/
-L7_RC_t dsv4LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint16 vlanId, L7_uint messageType, L7_uint32 intIfNum)
+L7_RC_t dsv4LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint16 vlanId, L7_uint messageType, L7_uint32 ptin_port)
 {
   dsBindingTreeKey_t key;
 
@@ -1156,7 +1175,7 @@ L7_RC_t dsv4LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint16 vlanId, L7_ui
   memcpy(&key.macAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
   key.vlanId = vlanId;
   key.ipType = L7_AF_INET;
-  return dsLeaseStatusUpdate(&key, L7_AF_INET, messageType, intIfNum);
+  return dsLeaseStatusUpdate(&key, L7_AF_INET, messageType, ptin_port);
 }
 
 /*********************************************************************
@@ -1172,7 +1191,7 @@ L7_RC_t dsv4LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint16 vlanId, L7_ui
 *
 * @end
 *********************************************************************/
-L7_RC_t dsv6LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint16 vlanId, L7_uint messageType, L7_uint32 intIfNum)
+L7_RC_t dsv6LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint16 vlanId, L7_uint messageType, L7_uint32 ptin_port)
 {
   dsBindingTreeKey_t key;
 
@@ -1187,7 +1206,7 @@ L7_RC_t dsv6LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint16 vlanId, L7_ui
    */
   messageType += 10; 
 
-  return dsLeaseStatusUpdate(&key, L7_AF_INET6, messageType, intIfNum);
+  return dsLeaseStatusUpdate(&key, L7_AF_INET6, messageType, ptin_port);
 }
 
 /*********************************************************************

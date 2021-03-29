@@ -584,7 +584,7 @@ void sysapiPrintf(const char *format, ...);
 #else /*Ptin Modifed*/
 #include "logger.h"
 #define sysapiPrintf(format, args...) \
-PT_LOG_TRACE(LOG_CTX_LOGGER, format, ## args)
+PT_LOG_DEBUG(LOG_CTX_LOGGER, format, ## args)
 #endif
 
 #define SYSAPI_PRINTF(FLG,format,args...)        \

@@ -18,6 +18,8 @@
 #include "ptin_ipdtl0_packet.h"
 #include "usmdb_sim_api.h"
 
+#include "ptin_env_api.h"
+
 /* External VLAN used for inBand management purposes */
 static L7_uint16 vlan_inband = 0xFFFF;
 
@@ -351,7 +353,7 @@ inline L7_uint16 ptin_cfg_inband_vlan_get(void)
  * NOTE: 
  *  1. virtual interface eth0.2047 is created here
  *  2. all operations are accomplished through an external shell
- *     script '/usr/local/ptin/scripts/startBridge.sh'
+ *     script PTIN_INBAND_BRIDGE_SCRIPT
  * 
  * @author alex (4/10/2012)
  * 
@@ -417,11 +419,19 @@ L7_RC_t ptin_cfg_tc16sxg_aspen_packets(L7_BOOL enable)
 {
   int rc = L7_SUCCESS;
 
+  if (1!=ptin_env_board_hwver()) {
+      PT_LOG_INFO(LOG_CTX_API, "No need to run");
+      return L7_SUCCESS;
+  }
+
+
+  /* HW V1 */
+
   /* ASPEN A */
   rc = ptin_ipdtl0_control(PTIN_ASPEN2CPU_A_VLAN,       /*dtl0 VID*/
                            PTIN_ASPEN2CPU_A_VLAN_EXT,   /*External VID*/
                            PTIN_ASPEN2CPU_A_VLAN,       /*Internal VID*/
-                           L7_ALL_INTERFACES,           /*No specific IntIfNum*/
+                           PTIN_PORT_INVALID,           /*No specific port*/
                            PTIN_IPDTL0_INTERN_INBAND,   /*Type*/
                            enable);                     /*Enable*/
   if (rc != L7_SUCCESS)
@@ -434,7 +444,7 @@ L7_RC_t ptin_cfg_tc16sxg_aspen_packets(L7_BOOL enable)
   rc = ptin_ipdtl0_control(PTIN_ASPEN2CPU_B_VLAN,       /*dtl0 VID*/
                            PTIN_ASPEN2CPU_B_VLAN_EXT,   /*External VID*/
                            PTIN_ASPEN2CPU_B_VLAN,       /*Internal VID*/
-                           L7_ALL_INTERFACES,           /*No specific IntIfNum*/
+                           PTIN_PORT_INVALID,           /*No specific port*/
                            PTIN_IPDTL0_INTERN_INBAND,   /*Type*/
                            enable);                     /*Enable*/
   if (rc != L7_SUCCESS)
@@ -463,6 +473,12 @@ L7_RC_t ptin_cfg_tc16sxg_aspen_bridge_set(void)
 {
   int rc;
 
+  //if (1!=ptin_env_board_hwver()) {
+  //    PT_LOG_INFO(LOG_CTX_API, "No need to run " TC16SXG_ASPEN_BRIDGE_SCRIPT);
+  //    return L7_SUCCESS;
+  //}
+  //
+  ///* HW V1 */
   rc = system(TC16SXG_ASPEN_BRIDGE_SCRIPT);
   if (rc != 0)
   {
@@ -470,7 +486,7 @@ L7_RC_t ptin_cfg_tc16sxg_aspen_bridge_set(void)
     return L7_FAILURE;
   }
 
-  PT_LOG_TRACE(LOG_CTX_API, "InBand bridge script successfully executed");
+  PT_LOG_INFO(LOG_CTX_API, "InBand bridge script successfully executed");
 
   return L7_SUCCESS;
 }

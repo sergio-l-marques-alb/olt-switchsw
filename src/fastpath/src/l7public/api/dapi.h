@@ -555,7 +555,7 @@ typedef enum
   DAPI_CMD_PTIN_VLAN_CROSSCONNECT,
   DAPI_CMD_PTIN_VLAN_MULTICAST,
   DAPI_CMD_PTIN_MULTICAST_EGRESS_PORT,
-  DAPI_CMD_PTIN_VIRTUAL_PORT,
+  DAPI_CMD_PTIN_L2INTF,
   DAPI_CMD_PTIN_HW_RESOURCES,
   DAPI_CMD_PTIN_BW_POLICER,
   DAPI_CMD_PTIN_FP_COUNTERS,
@@ -1548,7 +1548,7 @@ typedef struct
 {
   L7_ulong32 appHandle;
 
-  L7_uint32 virtual_port;   /* PTin added: virtual ports */
+  L7_uint32 l2intf_hwid;   /* PTin added: L2intf */
 
   union
   {
@@ -2707,6 +2707,10 @@ typedef struct
 {
   L7_ulong32 appHandle;
 
+  /* This parameter will identify the queue set inside an interface
+     (for Trident3x3 switch / TC16SXG) */
+  l7_cosq_set_t queueSet;
+
   union
   {
     /***** DiffServ *****/
@@ -2880,6 +2884,7 @@ typedef struct
     {
       DAPI_CMD_GET_SET_t              getOrSet;
       L7_ulong32                      intfShapingRate;      /* 0 means no shaping, configured rate */
+      L7_ulong32                      intfShapingBurstSize; /* Burst size (in bytes) */
       DAPI_QOS_COS_QUEUE_MGMT_TYPE_t  queueMgmtTypePerIntf; /* 'not supported' means device uses per-queue mgmt */
       L7_ulong32                      wredDecayExponent;
     } intfConfig;

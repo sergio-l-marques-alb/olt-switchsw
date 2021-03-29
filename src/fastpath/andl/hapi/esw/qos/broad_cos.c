@@ -31,6 +31,7 @@
 #include "l7_usl_bcmx_port.h"
 #include "sysbrds.h"
 #include "soc/drv.h"
+#include "ptin_hapi_qos.h"
 
 /* Default weights used in non-QoS packages. */
 extern L7_uint32 wrr_default_weights[];
@@ -618,12 +619,49 @@ static L7_RC_t hapiBroadQosCosIntfTrustIpDscp(BROAD_PORT_t *hapiPortPtr, L7_ucha
   }
   return result;
 }
-static L7_RC_t hapiBroadQosCosIntfRateShape(BROAD_PORT_t *dstPortPtr, L7_uint32 egrRate)
+
+/**
+ * Port shaping configuration
+ * 
+ * @author mruas (08/01/21)
+ * 
+ * @param dstPortPtr 
+ * @param queueSet 
+ * @param egrRate 
+ * @param egrBurstSize 
+ * 
+ * @return L7_RC_t 
+ */
+static L7_RC_t hapiBroadQosCosIntfRateShape(BROAD_PORT_t *dstPortPtr, l7_cosq_set_t queueSet, L7_uint32 egrRate, L7_uint32 egrBurstSize)
 {
     int                              rv;
     L7_RC_t                          result = L7_SUCCESS;
     L7_uint32                         portSpeed;
     usl_bcm_port_shaper_config_t     shaperConfig;
+    ptin_dapi_port_t dapiPort;
+    bcm_gport_t      qos_gport;
+
+    /* Validate queueSet */
+    if (queueSet >= L7_MAX_CFG_QUEUESETS_PER_PORT)
+    {
+        PT_LOG_ERR(LOG_CTX_QOS, "Invalid queueSet %u",  queueSet);
+        return L7_FAILURE;
+    }
+    
+    /* Get QoS gport */
+    dapiPort.usp = &dstPortPtr->usp;
+    dapiPort.dapi_g = dapi_g;
+    if (ptin_hapi_qos_gport_get(&dapiPort, queueSet, -1 /*don't care*/, &qos_gport) != L7_SUCCESS)
+    {
+      qos_gport = BCM_GPORT_INVALID;
+      PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d: Using default gport",
+                   dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, -1);
+    }
+    else
+    {
+      PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d: Using gport 0x%x",
+                   dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, -1, qos_gport);
+    }
 
     memset(&shaperConfig, 0, sizeof(shaperConfig));
   
@@ -635,13 +673,12 @@ static L7_RC_t hapiBroadQosCosIntfRateShape(BROAD_PORT_t *dstPortPtr, L7_uint32 
     else
     {
       /* result is a percent converted to Kbps */
-      hapiBroadQosIntfSpeedGet(dstPortPtr, &portSpeed);
+      hapiBroadIntfSpeedGet(dstPortPtr, queueSet, &portSpeed);
       shaperConfig.rate = ((egrRate * portSpeed) / 100); 
-
     }
 
-    /* Set kbits_burst equal to 2% of kbit per sec */
-    shaperConfig.burst = shaperConfig.rate / 50; 
+    /* Set Burst size */
+    shaperConfig.burst = egrBurstSize; 
     
     /* For Katana switches, max shapers' burst size is 2MBps = 16000 Kbps */
     if (SOC_IS_KATANAX(dstPortPtr->bcm_unit))
@@ -650,11 +687,23 @@ static L7_RC_t hapiBroadQosCosIntfRateShape(BROAD_PORT_t *dstPortPtr, L7_uint32 
         shaperConfig.burst = 16000;
     }
 
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Shaping rate=%u burst=%u (gport=0x%x)", shaperConfig.rate, shaperConfig.burst, dstPortPtr->bcm_gport);
-        
-    rv = usl_bcmx_port_rate_egress_set(dstPortPtr->bcm_gport, shaperConfig);
+    PT_LOG_TRACE(LOG_CTX_QOS, "Shaping rate=%u burst=%u (gport=0x%x)", shaperConfig.rate, shaperConfig.burst, dstPortPtr->bcm_gport);
+    
+    /* PTin modified: QoS bypass */
+    rv = usl_bcm_gport_rate_egress_set(dstPortPtr->bcm_unit, dstPortPtr->bcm_port, qos_gport, &shaperConfig);
     if (L7_BCMX_OK(rv) != L7_TRUE)
+    {
       result = L7_FAILURE;
+      PT_LOG_ERR(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Error @ usl_bcm_gport_rate_egress_set(bcm_unit=%u, bcm_port=%u, qos_gport=0x%x, ...): rv=%d (%s)",
+                 dstPortPtr->usp.unit, dstPortPtr->usp.slot, dstPortPtr->usp.port, queueSet,
+                 dstPortPtr->bcm_unit, dstPortPtr->bcm_port, qos_gport, rv, bcm_errmsg(rv));
+    }
+    else
+    {
+      PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Success @ usl_bcm_gport_rate_egress_set(bcm_unit=%u, bcm_port=%u, qos_gport=0x%x, ...)",
+                   dstPortPtr->usp.unit, dstPortPtr->usp.slot, dstPortPtr->usp.port, queueSet,
+                   dstPortPtr->bcm_unit, dstPortPtr->bcm_port, qos_gport);
+    }
 
     return result;
 }
@@ -700,15 +749,21 @@ static void hapiBroadQosCosQueueScale(int *weights, int minimum, int maximum)
 /* Use the Egress BW meters to configure guaranteed minimum and maximum BW per port/per COS. */
 static L7_RC_t hapiBroadQosCosEgressBwConfig(BROAD_PORT_t *dstPortPtr, HAPI_BROAD_COS_PORT_t *cosData)
 {
-  int                               rv, i;
-  int                               schedulerMode;
-  int                               noDelay = 0;
-  int                               weights[BCM_COS_COUNT];
-  unsigned long                     minKbps[BCM_COS_COUNT];   /* PTin modified: QoS: int to unsigned long */
-  unsigned long                     maxKbps[BCM_COS_COUNT];   /* PTin modified: QoS: int to unsigned long */
-  L7_uint32                         portSpeed;
-  L7_RC_t                           result = L7_SUCCESS;
-  usl_bcm_port_cosq_sched_config_t  cosqSchedConfig;
+  int       rv, i;
+  int       schedulerMode;
+  int       noDelay = 0;
+  int       weights[BCM_COS_COUNT];
+  int       minKbps[BCM_COS_COUNT];   /* PTin modified: QoS: int to unsigned long */
+  int       maxKbps[BCM_COS_COUNT];   /* PTin modified: QoS: int to unsigned long */
+  L7_uint32 portSpeed;
+  L7_RC_t   result = L7_SUCCESS;
+  ptin_dapi_port_t dapiPort;
+  l7_cosq_set_t    queueSet;
+  L7_uint32        se_gport, flow_gport[BCM_COS_COUNT]; /* for Trident3X3: QoS hierarchy gports */
+  usl_bcm_port_cosq_sched_config_t cosqSchedConfig;
+
+  dapiPort.usp = &dstPortPtr->usp;
+  dapiPort.dapi_g = dapi_g;
 
   memset(&cosqSchedConfig, 0, sizeof(cosqSchedConfig));
 
@@ -716,70 +771,121 @@ static L7_RC_t hapiBroadQosCosEgressBwConfig(BROAD_PORT_t *dstPortPtr, HAPI_BROA
                      BCM_COSQ_DEFICIT_ROUND_ROBIN  : 
                      BCM_COSQ_WEIGHTED_ROUND_ROBIN;
 
-  hapiBroadQosIntfSpeedGet(dstPortPtr, &portSpeed);
-
   /* Start with default weights and remove any SP queues.
    */    
   memcpy(weights, wrr_default_weights, sizeof(weights));
   memset(minKbps, 0, sizeof(minKbps));
   memset(maxKbps, 0, sizeof(maxKbps));
 
-  for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+  /* Run all queueSet's */
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
-    if (cosData->schedType[i] == DAPI_QOS_COS_QUEUE_SCHED_TYPE_STRICT)
-    {
-      weights[i] = BCM_COSQ_WEIGHT_STRICT; /* zero */
-    }
-    else 
-    {
-      if (schedulerMode == BCM_COSQ_DEFICIT_ROUND_ROBIN)
-      {
-        /* PTin modified: Use provided weights */
-      #if 1
-        weights[i] = cosData->wrr_weights[i];
-      #else
-        /* Need to multiply weight by MTU quantum for BCM APIs when using WDRR mode. */
-        weights[i] *= BROAD_WDRR_MTU_QUANTA;
-        /* PTin added: correction for trident - Maximum weight for trident is 127 (not 128) */
-        weights[i]--;
-      #endif
-      }
-    }
+    // Extract port speed
+    hapiBroadIntfSpeedGet(dstPortPtr, queueSet, &portSpeed);
 
-    /* PTin modified: COS */
-    /* Kbps units */
-    if (L7_QOS_COS_QUEUE_BANDWIDTH_RATE_UNITS == L7_RATE_UNIT_KBPS)
+    /* Get QoS gport for L1 level */
+    if (ptin_hapi_qos_gport_get(&dapiPort, queueSet, -1 /*L1*/, &se_gport) != L7_SUCCESS)
     {
-      // Limit speeds
-      if (cosData->minBw[i] > portSpeed)  cosData->minBw[i] = portSpeed;
-      if (cosData->maxBw[i] > portSpeed)  cosData->maxBw[i] = portSpeed;
-
-      minKbps[i] = cosData->minBw[i];
-      maxKbps[i] = cosData->maxBw[i];
+      se_gport = BCM_GPORT_INVALID;
+      PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Using default gport",
+                   dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet);
     }
-    /* Percent units */
     else
     {
-      // Limit values
-      if (cosData->minBw[i] > 100)  cosData->minBw[i] = 100;
-      if (cosData->maxBw[i] > 100)  cosData->maxBw[i] = 100;
-
-      minKbps[i] = (cosData->minBw[i] * portSpeed) / 100;
-      maxKbps[i] = (cosData->maxBw[i] * portSpeed) / 100;
+      PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: SE gport 0x%x",
+                   dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, se_gport);
     }
-  }
 
-  /* apply the scheduling policy to the port */
-  cosqSchedConfig.delay = noDelay;
-  memcpy(&(cosqSchedConfig.weights), weights, sizeof(cosqSchedConfig.weights));
-  memcpy(&(cosqSchedConfig.minKbps), minKbps, sizeof(cosqSchedConfig.minKbps));
-  memcpy(&(cosqSchedConfig.maxKbps), maxKbps, sizeof(cosqSchedConfig.maxKbps));
-  cosqSchedConfig.mode = schedulerMode;
+    for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+    {
+      /* Get QoS gport for L2 level */
+      if (ptin_hapi_qos_gport_get(&dapiPort, queueSet, i, &flow_gport[i]) != L7_SUCCESS)
+      {
+        flow_gport[i] = BCM_GPORT_INVALID;
+        PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d: Using default gport",
+                     dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, i);
+      }
+      else
+      {
+        PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d: Flow gport 0x%x",
+                     dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, i, flow_gport[i]);
+      }
 
-  rv = usl_bcmx_port_cosq_sched_set(dstPortPtr->bcm_gport, cosqSchedConfig);
-  if (L7_BCMX_OK(rv) == L7_FALSE)
-  {
-    result = L7_FAILURE;
+      if (cosData->queueSet[queueSet].schedType[i] == DAPI_QOS_COS_QUEUE_SCHED_TYPE_STRICT)
+      {
+        weights[i] = BCM_COSQ_WEIGHT_STRICT; /* zero */
+      }
+      else 
+      {
+        if (schedulerMode == BCM_COSQ_DEFICIT_ROUND_ROBIN)
+        {
+          /* PTin modified: Use provided weights */
+#if 1
+          weights[i] = cosData->queueSet[queueSet].wrr_weights[i];
+#else
+          /* Need to multiply weight by MTU quantum for BCM APIs when using WDRR mode. */
+          weights[i] *= BROAD_WDRR_MTU_QUANTA;
+          /* PTin added: correction for trident - Maximum weight for trident is 127 (not 128) */
+          weights[i]--;
+#endif
+        }
+      }
+
+      /* PTin modified: COS */
+      /* Kbps units */
+      if (L7_QOS_COS_QUEUE_BANDWIDTH_RATE_UNITS == L7_RATE_UNIT_KBPS)
+      {
+        // Limit speeds
+        if (cosData->queueSet[queueSet].minBw[i] > portSpeed)  cosData->queueSet[queueSet].minBw[i] = portSpeed;
+        if (cosData->queueSet[queueSet].maxBw[i] > portSpeed)  cosData->queueSet[queueSet].maxBw[i] = portSpeed;
+
+        minKbps[i] = cosData->queueSet[queueSet].minBw[i];
+        maxKbps[i] = cosData->queueSet[queueSet].maxBw[i];
+      }
+      /* Percent units */
+      else
+      {
+        // Limit values
+        if (cosData->queueSet[queueSet].minBw[i] > 100)  cosData->queueSet[queueSet].minBw[i] = 100;
+        if (cosData->queueSet[queueSet].maxBw[i] > 100)  cosData->queueSet[queueSet].maxBw[i] = 100;
+
+        minKbps[i] = (cosData->queueSet[queueSet].minBw[i] * portSpeed) / 100;
+        maxKbps[i] = (cosData->queueSet[queueSet].maxBw[i] * portSpeed) / 100;
+      }
+
+      PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d: minBW= %d%% / %u Kbps, maxBW= %d%% / %u Kbps",
+                   dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, i,
+                   cosData->queueSet[queueSet].minBw[i], minKbps[i],
+                   cosData->queueSet[queueSet].maxBw[i], maxKbps[i]);
+    }
+
+    /* apply the scheduling policy to the port */
+    cosqSchedConfig.delay = noDelay;
+    memcpy(&(cosqSchedConfig.weights), weights, sizeof(cosqSchedConfig.weights));
+    memcpy(&(cosqSchedConfig.minKbps), minKbps, sizeof(cosqSchedConfig.minKbps));
+    memcpy(&(cosqSchedConfig.maxKbps), maxKbps, sizeof(cosqSchedConfig.maxKbps));
+    cosqSchedConfig.mode = schedulerMode;
+    /* For Trident3X3: give QoS gports */
+    cosqSchedConfig.se_gport = se_gport;
+    memcpy(&(cosqSchedConfig.flow_gport), flow_gport, sizeof(cosqSchedConfig.flow_gport));
+
+    /* New procedure */
+    rv = usl_bcm_gport_cosq_sched_set(dstPortPtr->bcm_unit,
+                                      dstPortPtr->bcm_port,
+                                      &cosqSchedConfig);
+    if (L7_BCMX_OK(rv) != L7_TRUE)
+    {
+      result = L7_FAILURE;
+      PT_LOG_ERR(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Error @ usl_bcm_gport_cosq_sched_set(bcm_unit=%u, bcm_port=%u, ...): rv=%d (%s)",
+                 dstPortPtr->usp.unit, dstPortPtr->usp.slot, dstPortPtr->usp.port, queueSet,
+                 dstPortPtr->bcm_unit, dstPortPtr->bcm_port, rv, bcm_errmsg(rv));
+    }
+    else
+    {
+      PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Success @ usl_bcm_gport_cosq_sched_set(bcm_unit=%u, bcm_port=%u, ...)",
+                   dstPortPtr->usp.unit, dstPortPtr->usp.slot, dstPortPtr->usp.port, queueSet,
+                   dstPortPtr->bcm_unit, dstPortPtr->bcm_port);
+    }
   }
 
   return result;
@@ -789,22 +895,22 @@ static L7_RC_t hapiBroadQosCosEgressBwConfig(BROAD_PORT_t *dstPortPtr, HAPI_BROA
    as accurate as using the egress BW meters. */
 static L7_RC_t hapiBroadQosCosQueueWeightsConfig(BROAD_PORT_t *dstPortPtr, HAPI_BROAD_COS_PORT_t *cosData)
 {
-  int           rv, i;
-  int           weights[BCM_COS_MAX+1];
-  int           minKbps[BCM_COS_MAX+1];
-  int           maxKbps[BCM_COS_MAX+1];
-  int           availBw = 100;
-  int           NO_DELAY = 0;
-  L7_RC_t       result = L7_SUCCESS;
-  L7_BOOL       weightedSchd = L7_FALSE; /* Set to L7_TRUE if atleast one queue is of type WEIGHTED */
-  usl_bcm_port_cosq_sched_config_t  cosqSchedConfig;
-  /* PTin added: COS */
-  #if 1
-  L7_uint32     portSpeed;
+  int     rv, i;
+  int     weights[BCM_COS_MAX+1];
+  int     minKbps[BCM_COS_MAX+1];
+  int     maxKbps[BCM_COS_MAX+1];
+  int     availBw = 100;
+  int     NO_DELAY = 0;
+  L7_RC_t result = L7_SUCCESS;
+  L7_BOOL weightedSchd = L7_FALSE; /* Set to L7_TRUE if atleast one queue is of type WEIGHTED */
+  ptin_dapi_port_t dapiPort;
+  l7_cosq_set_t    queueSet;
+  L7_uint32        se_gport, flow_gport[BCM_COS_COUNT]; /* for Trident3X3: QoS hierarchy gports */
+  L7_uint32        portSpeed;
+  usl_bcm_port_cosq_sched_config_t cosqSchedConfig;
 
-  // Extract port speed
-  hapiBroadQosIntfSpeedGet(dstPortPtr, &portSpeed);
-  #endif
+  dapiPort.usp = &dstPortPtr->usp;
+  dapiPort.dapi_g = dapi_g;
 
   memset(&cosqSchedConfig, 0, sizeof(cosqSchedConfig));
 
@@ -815,122 +921,169 @@ static L7_RC_t hapiBroadQosCosQueueWeightsConfig(BROAD_PORT_t *dstPortPtr, HAPI_
   memset(minKbps, 0, sizeof(minKbps));
   memset(maxKbps, 0, sizeof(maxKbps));
 
-  for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+  /* Run all queueSet's */
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
-    /* PTin added: COS */
-    #if 1
-    /* Kbps units */
-    if (L7_QOS_COS_QUEUE_BANDWIDTH_RATE_UNITS == L7_RATE_UNIT_KBPS)
+    // Extract port speed
+    hapiBroadIntfSpeedGet(dstPortPtr, queueSet, &portSpeed);
+
+    /* Get QoS gport for L1 level */
+    if (ptin_hapi_qos_gport_get(&dapiPort, queueSet, -1 /*L1*/, &se_gport) != L7_SUCCESS)
     {
-      // Limit speeds
-      if (cosData->minBw[i] > portSpeed)  cosData->minBw[i] = portSpeed;
-      if (cosData->maxBw[i] > portSpeed)  cosData->maxBw[i] = portSpeed;
-
-      minKbps[i] = cosData->minBw[i];
-      maxKbps[i] = cosData->maxBw[i];
-
-      // Translate min bandwidth to percentage
-      cosData->minBw[i] = (cosData->minBw[i] * 100) / portSpeed;
-      // Translate max bandwidth to percentage
-      cosData->maxBw[i] = (cosData->maxBw[i] * 100) / portSpeed;
-    }
-    /* Percent units */
-    else
-    {
-      // Limit values
-      if (cosData->minBw[i] > 100)  cosData->minBw[i] = 100;
-      if (cosData->maxBw[i] > 100)  cosData->maxBw[i] = 100;
-
-      minKbps[i] = (cosData->minBw[i] * portSpeed) / 100;
-      maxKbps[i] = (cosData->maxBw[i] * portSpeed) / 100;
-    }
-    #endif
-
-    if (cosData->schedType[i] == DAPI_QOS_COS_QUEUE_SCHED_TYPE_STRICT)
-    {
-      weights[i] = BCM_COSQ_WEIGHT_STRICT; /* zero */
+      se_gport = BCM_GPORT_INVALID;
+      PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Using default gport",
+                   dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet);
     }
     else
     {
-      /* Use these weights, instead of default ones */
-      weights[i] = cosData->wrr_weights[i];   /* PTin added: QoS */
-      weightedSchd = L7_TRUE;
+      PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: SE gport 0x%x",
+                   dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, se_gport);
     }
-  }
 
-  /* bw guarantees are configured in % so normalize weights accordingly */
-  if (weightedSchd == L7_TRUE)
-    hapiBroadQosCosQueueNormalize(weights, 100);
-
-  /* Calculate available bw left after meeting the guarantees. */
-  for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
-  {
-    if (DAPI_QOS_COS_QUEUE_SCHED_TYPE_WEIGHTED == cosData->schedType[i])
+    for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
     {
-      if (cosData->minBw[i] > 0)
+      /* Get QoS gport for L2 level */
+      if (ptin_hapi_qos_gport_get(&dapiPort, queueSet, i, &flow_gport[i]) != L7_SUCCESS)
       {
-        availBw -= cosData->minBw[i];
+        flow_gport[i] = BCM_GPORT_INVALID;
+        PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d: Using default gport",
+                     dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, i);
+      }
+      else
+      {
+        PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d: Using gport 0x%x",
+                     dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, i, flow_gport[i]);
+      }
+
+      /* PTin added: COS */
+#if 1
+      /* Kbps units */
+      if (L7_QOS_COS_QUEUE_BANDWIDTH_RATE_UNITS == L7_RATE_UNIT_KBPS)
+      {
+        // Limit speeds
+        if (cosData->queueSet[queueSet].minBw[i] > portSpeed)  cosData->queueSet[queueSet].minBw[i] = portSpeed;
+        if (cosData->queueSet[queueSet].maxBw[i] > portSpeed)  cosData->queueSet[queueSet].maxBw[i] = portSpeed;
+
+        minKbps[i] = cosData->queueSet[queueSet].minBw[i];
+        maxKbps[i] = cosData->queueSet[queueSet].maxBw[i];
+
+        // Translate min bandwidth to percentage
+        cosData->queueSet[queueSet].minBw[i] = (cosData->queueSet[queueSet].minBw[i] * 100) / portSpeed;
+        // Translate max bandwidth to percentage
+        cosData->queueSet[queueSet].maxBw[i] = (cosData->queueSet[queueSet].maxBw[i] * 100) / portSpeed;
+      }
+      /* Percent units */
+      else
+      {
+        // Limit values
+        if (cosData->queueSet[queueSet].minBw[i] > 100)  cosData->queueSet[queueSet].minBw[i] = 100;
+        if (cosData->queueSet[queueSet].maxBw[i] > 100)  cosData->queueSet[queueSet].maxBw[i] = 100;
+
+        minKbps[i] = (cosData->queueSet[queueSet].minBw[i] * portSpeed) / 100;
+        maxKbps[i] = (cosData->queueSet[queueSet].maxBw[i] * portSpeed) / 100;
+      }
+#endif
+
+      if (cosData->queueSet[queueSet].schedType[i] == DAPI_QOS_COS_QUEUE_SCHED_TYPE_STRICT)
+      {
+        weights[i] = BCM_COSQ_WEIGHT_STRICT; /* zero */
+      }
+      else
+      {
+        /* Use these weights, instead of default ones */
+        weights[i] = cosData->queueSet[queueSet].wrr_weights[i];   /* PTin added: QoS */
+        weightedSchd = L7_TRUE;
       }
     }
-  }
 
-  if (availBw < 0)
-  {
-    L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_DRIVER_COMPONENT_ID, 
-            "In %s, Failed to configure minimum bandwidth. Available bandwidth %d."
-            " Attempting to configure the bandwidth beyond it’s capabilities.",
-            __FUNCTION__, availBw);
-    return L7_FAILURE;
-  }
-  else
-  {
-    /* Normalize all the queues against available bandwidth 
-       based on the default weight ratios */
+    /* bw guarantees are configured in % so normalize weights accordingly */
     if (weightedSchd == L7_TRUE)
-      hapiBroadQosCosQueueNormalize(weights, availBw);
-  }
+      hapiBroadQosCosQueueNormalize(weights, 100);
 
-  for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
-  {
-    if (DAPI_QOS_COS_QUEUE_SCHED_TYPE_WEIGHTED == cosData->schedType[i])
+    /* Calculate available bw left after meeting the guarantees. */
+    for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
     {
-      if (cosData->minBw[i] > 0)
+      if (DAPI_QOS_COS_QUEUE_SCHED_TYPE_WEIGHTED == cosData->queueSet[queueSet].schedType[i])
       {
-        weights[i] += cosData->minBw[i];
-      }
-      else if (cosData->minBw[i] == 0)
-      {
-        if (weights[i] < BCM_COSQ_WEIGHT_MIN)
-          weights[i] = BCM_COSQ_WEIGHT_MIN;
+        if (cosData->queueSet[queueSet].minBw[i] > 0)
+        {
+          availBw -= cosData->queueSet[queueSet].minBw[i];
+        }
       }
     }
-  }
 
-  for (i = L7_MAX_CFG_QUEUES_PER_PORT; i <= BCM_COS_MAX; i++)
-  {
-    weights[i] = 0;
-  }
-
-/* scale weights so they fit within valid range */
-  if (weightedSchd == L7_TRUE)
-    hapiBroadQosCosQueueScale(weights, hapiBroadCosQueueWeightMin(), hapiBroadCosQueueWeightMax());
-
-  if (L7_SUCCESS == result)
-  {
-    cosqSchedConfig.delay = NO_DELAY;
-    memcpy(&(cosqSchedConfig.weights), weights, sizeof(cosqSchedConfig.weights));
-    memcpy(&(cosqSchedConfig.minKbps), minKbps, sizeof(cosqSchedConfig.minKbps));
-    memcpy(&(cosqSchedConfig.maxKbps), maxKbps, sizeof(cosqSchedConfig.maxKbps));
-
-    /* apply the scheduling policy to the port */
-    cosqSchedConfig.mode = hapiBroadCosQueueWDRRSupported() ? BCM_COSQ_DEFICIT_ROUND_ROBIN : BCM_COSQ_WEIGHTED_ROUND_ROBIN;
-
-    printf("%s(%d) I was here: weights={%u,%u,%u,%u,%u,%u,%u,%u}\r\n",__FUNCTION__,__LINE__,
-           cosqSchedConfig.weights[0],cosqSchedConfig.weights[1],cosqSchedConfig.weights[2],cosqSchedConfig.weights[3],cosqSchedConfig.weights[4],cosqSchedConfig.weights[5],cosqSchedConfig.weights[6],cosqSchedConfig.weights[7]);
-    rv = usl_bcmx_port_cosq_sched_set(dstPortPtr->bcm_gport, cosqSchedConfig);
-    if (L7_BCMX_OK(rv) == L7_FALSE)
+    if (availBw < 0)
     {
-      result = L7_FAILURE;
+      L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_DRIVER_COMPONENT_ID, 
+              "In %s, Failed to configure minimum bandwidth. Available bandwidth %d."
+              " Attempting to configure the bandwidth beyond it’s capabilities.",
+              __FUNCTION__, availBw);
+      return L7_FAILURE;
+    }
+    else
+    {
+      /* Normalize all the queues against available bandwidth 
+         based on the default weight ratios */
+      if (weightedSchd == L7_TRUE)
+        hapiBroadQosCosQueueNormalize(weights, availBw);
+    }
+
+    for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+    {
+      if (DAPI_QOS_COS_QUEUE_SCHED_TYPE_WEIGHTED == cosData->queueSet[queueSet].schedType[i])
+      {
+        if (cosData->queueSet[queueSet].minBw[i] > 0)
+        {
+          weights[i] += cosData->queueSet[queueSet].minBw[i];
+        }
+        else if (cosData->queueSet[queueSet].minBw[i] == 0)
+        {
+          if (weights[i] < BCM_COSQ_WEIGHT_MIN)
+            weights[i] = BCM_COSQ_WEIGHT_MIN;
+        }
+      }
+    }
+
+    for (i = L7_MAX_CFG_QUEUES_PER_PORT; i <= BCM_COS_MAX; i++)
+    {
+      weights[i] = 0;
+    }
+
+    /* scale weights so they fit within valid range */
+    if (weightedSchd == L7_TRUE)
+      hapiBroadQosCosQueueScale(weights, hapiBroadCosQueueWeightMin(), hapiBroadCosQueueWeightMax());
+
+    if (L7_SUCCESS == result)
+    {
+      cosqSchedConfig.delay = NO_DELAY;
+      memcpy(&(cosqSchedConfig.weights), weights, sizeof(cosqSchedConfig.weights));
+      memcpy(&(cosqSchedConfig.minKbps), minKbps, sizeof(cosqSchedConfig.minKbps));
+      memcpy(&(cosqSchedConfig.maxKbps), maxKbps, sizeof(cosqSchedConfig.maxKbps));
+
+      /* apply the scheduling policy to the port */
+      cosqSchedConfig.mode = hapiBroadCosQueueWDRRSupported() ? BCM_COSQ_DEFICIT_ROUND_ROBIN : BCM_COSQ_WEIGHTED_ROUND_ROBIN;
+
+      /* For Trident3X3: give QoS gports */
+      cosqSchedConfig.se_gport = se_gport;
+      memcpy(&(cosqSchedConfig.flow_gport), flow_gport, sizeof(cosqSchedConfig.flow_gport));
+
+      /* New procedure */
+      rv = usl_bcm_gport_cosq_sched_set(dstPortPtr->bcm_unit,
+                                        dstPortPtr->bcm_port,
+                                        &cosqSchedConfig);
+      if (L7_BCMX_OK(rv) != L7_TRUE)
+      {
+        result = L7_FAILURE;
+        PT_LOG_ERR(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Error @ usl_bcm_gport_cosq_sched_set(bcm_unit=%u, bcm_port=%u, ...): rv=%d (%s)",
+                   dstPortPtr->usp.unit, dstPortPtr->usp.slot, dstPortPtr->usp.port, queueSet,
+                   dstPortPtr->bcm_unit, dstPortPtr->bcm_port, rv, bcm_errmsg(rv));
+      }
+      else
+      {
+        PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Success @ usl_bcm_gport_cosq_sched_set(bcm_unit=%u, bcm_port=%u, ...)",
+                     dstPortPtr->usp.unit, dstPortPtr->usp.slot, dstPortPtr->usp.port, queueSet,
+                     dstPortPtr->bcm_unit, dstPortPtr->bcm_port);
+      }
     }
   }
 
@@ -1031,7 +1184,16 @@ static L7_RC_t hapiBroadQosCosApplyPolicy(BROAD_PORT_t *dstPortPtr, BROAD_PORT_t
 
     /* apply interface shaping config */
     if ((L7_SUCCESS == result) && (L7_TRUE == qosPortPtr->cos.intfShapingSpec))
-        result = hapiBroadQosCosIntfRateShape(dstPortPtr, qosPortPtr->cos.intfShaping);
+    {
+        l7_cosq_set_t queueSet;
+        for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
+        {
+            result = hapiBroadQosCosIntfRateShape(dstPortPtr, queueSet,
+                                                  qosPortPtr->cos.queueSet[queueSet].intfShaping,
+                                                  qosPortPtr->cos.queueSet[queueSet].intfShapingBurstSize);
+            if (result != L7_SUCCESS)  break;
+        }
+    }
 
     /* apply per-queue config */
     if ((L7_SUCCESS == result) && (L7_TRUE == qosPortPtr->cos.queueConfigSpec))
@@ -1236,7 +1398,7 @@ L7_RC_t hapiBroadQosCosIpDscpToTcMap(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data
     #endif
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error applying bcm_port_dscp_map_set: rv=%d", rv);
+      PT_LOG_ERR(LOG_CTX_QOS, "Error applying bcm_port_dscp_map_set: rv=%d", rv);
       result = L7_FAILURE;
     }
 
@@ -1391,7 +1553,9 @@ static L7_RC_t hapiBroadQosCosWredApply(DAPI_USP_t *usp)
     int                             colorIndex, rv;
     L7_uint32                       cosIndex;
     DAPI_USP_t                     *lagUsp;
-
+    ptin_dapi_port_t dapiPort;
+    l7_cosq_set_t queueSet;
+    bcm_gport_t   qos_gport;
 
     /* Just do nothing if this platform doesn't support WRED */
     if (cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_WRED_SUPPORT_FEATURE_ID) == L7_FALSE) 
@@ -1400,6 +1564,9 @@ static L7_RC_t hapiBroadQosCosWredApply(DAPI_USP_t *usp)
     hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
     dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
     qosPortPtr  = (HAPI_BROAD_QOS_PORT_t*)hapiPortPtr->qos;
+
+    dapiPort.usp = usp;
+    dapiPort.dapi_g = dapi_g;
 
     /* For WRED, set parameters as from the application, with CAP_AVERAGE set so 
        that it responds quickly to congestion going away. For taildrop, turn 
@@ -1412,68 +1579,102 @@ static L7_RC_t hapiBroadQosCosWredApply(DAPI_USP_t *usp)
         qosPortPtr = (HAPI_BROAD_QOS_PORT_t*)hapiLagPortPtr->qos;
     }
     parms.bcm_gport = (bcm_gport_t)(hapiPortPtr->bcm_gport);
-    for(cosIndex = 0; cosIndex < L7_MAX_CFG_QUEUES_PER_PORT; cosIndex++) 
-    {                
-        if (qosPortPtr->cos.dropType[cosIndex] == DAPI_QOS_COS_QUEUE_MGMT_TYPE_WRED) 
-        {
-            parms.flags[cosIndex] = BCM_COSQ_DISCARD_ENABLE | BCM_COSQ_DISCARD_CAP_AVERAGE;
 
-            /* PTin modified: QoS */
-            parms.gain[cosIndex] = qosPortPtr->cos.wredExponent[cosIndex];
+    /* FIXME: Use physical port's gport for now */
+    qos_gport = hapiPortPtr->bcm_gport;
 
-            /* PTin modified: Allow 6 DP levels */
-            for(colorIndex = 0; colorIndex < (L7_MAX_CFG_DROP_PREC_LEVELS*2); colorIndex++) 
-            {
-                parms.minThreshold[cosIndex][colorIndex] = 
-                    qosPortPtr->cos.perColorParams[cosIndex].wredMinThresh[colorIndex];
-                parms.maxThreshold[cosIndex][colorIndex] = 
-                    qosPortPtr->cos.perColorParams[cosIndex].wredMaxThresh[colorIndex];
-                parms.dropProb[cosIndex][colorIndex] = 
-                    qosPortPtr->cos.perColorParams[cosIndex].wredDropProb[colorIndex];
-            }
-        }
-        else if (qosPortPtr->cos.dropType[cosIndex] == DAPI_QOS_COS_QUEUE_MGMT_TYPE_TAILDROP) 
+    /* Run all queueSet's */
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
+    {
+        for(cosIndex = 0; cosIndex < L7_MAX_CFG_QUEUES_PER_PORT; cosIndex++) 
         {
-	  /* For XGS4, we are just disabling WRED in-chip, so the parameters 
-	     don't matter. If we want to support configurable tail-drop, 
-	     add BCM_COSQ_DISCARD_ENABLE to the flags. */
-            if (SOC_IS_KATANA2(hapiPortPtr->bcm_unit))
+#if 0 /* FIXME: Disabled for now */
+            /* Get QoS gport */
+            if (ptin_hapi_qos_gport_get(&dapiPort, queueSet, cosIndex, &qos_gport) != L7_SUCCESS)
             {
-              parms.flags[cosIndex] = BCM_COSQ_DISCARD_ENABLE; 
+                qos_gport = BCM_GPORT_INVALID;
+                PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d: Using default gport",
+                             dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, cosIndex);
             }
             else
             {
-              parms.flags[cosIndex] = 0; 
+                PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u, tc %d: Using gport 0x%x",
+                             dapiPort.usp->unit, dapiPort.usp->slot, dapiPort.usp->port, queueSet, cosIndex, qos_gport);
             }
-            parms.gain[cosIndex] = 0;
-            /* PTin modified: Allow 6 DP levels */
-            for(colorIndex = 0; colorIndex < (L7_MAX_CFG_DROP_PREC_LEVELS*2); colorIndex++) 
+#endif
+            if (qosPortPtr->cos.queueSet[queueSet].dropType[cosIndex] == DAPI_QOS_COS_QUEUE_MGMT_TYPE_WRED) 
             {
-                parms.minThreshold[cosIndex][colorIndex] = 0;
-                parms.maxThreshold[cosIndex][colorIndex] = 
-                    qosPortPtr->cos.perColorParams[cosIndex].taildropThresh[colorIndex];
-                parms.dropProb[cosIndex][colorIndex] = 0;
+                parms.flags[cosIndex] = BCM_COSQ_DISCARD_ENABLE | BCM_COSQ_DISCARD_CAP_AVERAGE;
+
+                /* PTin modified: QoS */
+                parms.gain[cosIndex] = qosPortPtr->cos.queueSet[queueSet].wredExponent[cosIndex];
+
+                /* PTin modified: Allow 6 DP levels */
+                for(colorIndex = 0; colorIndex < (L7_MAX_CFG_DROP_PREC_LEVELS*2); colorIndex++) 
+                {
+                    parms.minThreshold[cosIndex][colorIndex] = 
+                        qosPortPtr->cos.queueSet[queueSet].perColorParams[cosIndex].wredMinThresh[colorIndex];
+                    parms.maxThreshold[cosIndex][colorIndex] = 
+                        qosPortPtr->cos.queueSet[queueSet].perColorParams[cosIndex].wredMaxThresh[colorIndex];
+                    parms.dropProb[cosIndex][colorIndex] = 
+                        qosPortPtr->cos.queueSet[queueSet].perColorParams[cosIndex].wredDropProb[colorIndex];
+                }
             }
+            else if (qosPortPtr->cos.queueSet[queueSet].dropType[cosIndex] == DAPI_QOS_COS_QUEUE_MGMT_TYPE_TAILDROP) 
+            {
+          /* For XGS4, we are just disabling WRED in-chip, so the parameters 
+             don't matter. If we want to support configurable tail-drop, 
+             add BCM_COSQ_DISCARD_ENABLE to the flags. */
+                if (SOC_IS_KATANA2(hapiPortPtr->bcm_unit))
+                {
+                  parms.flags[cosIndex] = BCM_COSQ_DISCARD_ENABLE; 
+                }
+                else
+                {
+                  parms.flags[cosIndex] = 0; 
+                }
+                parms.gain[cosIndex] = 0;
+                /* PTin modified: Allow 6 DP levels */
+                for(colorIndex = 0; colorIndex < (L7_MAX_CFG_DROP_PREC_LEVELS*2); colorIndex++) 
+                {
+                    parms.minThreshold[cosIndex][colorIndex] = 0;
+                    parms.maxThreshold[cosIndex][colorIndex] = 
+                        qosPortPtr->cos.queueSet[queueSet].perColorParams[cosIndex].taildropThresh[colorIndex];
+                    parms.dropProb[cosIndex][colorIndex] = 0;
+                }
+            }
+            else
+            {
+                /* Something else, just disable chip WRED entirely */
+                parms.flags[cosIndex] = 0;
+                parms.gain[cosIndex] = 0;
+                /* PTin modified: Allow 6 DP levels */
+                for(colorIndex = 0; colorIndex < (L7_MAX_CFG_DROP_PREC_LEVELS*2); colorIndex++) 
+                {
+                    parms.minThreshold[cosIndex][colorIndex] = 0;
+                    parms.maxThreshold[cosIndex][colorIndex] = 100;
+                    parms.dropProb[cosIndex][colorIndex] = 0;
+                }
+            }
+        } /* End for each queue */
+
+        /* New procedure */
+        rv = usl_bcm_gport_wred_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, qos_gport, &parms);
+        if (!L7_BCMX_OK(rv)) 
+        {
+            PT_LOG_ERR(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Error @ usl_bcm_gport_wred_set(bcm_unit=%u, bcm_port=%u, qos_gport=0x%x, ...): rv=%d (%s)",
+                       hapiPortPtr->usp.unit, hapiPortPtr->usp.slot, hapiPortPtr->usp.port, queueSet,
+                       hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, qos_gport, rv, bcm_errmsg(rv));
+            return L7_FAILURE;
         }
         else
         {
-            /* Something else, just disable chip WRED entirely */
-            parms.flags[cosIndex] = 0;
-            parms.gain[cosIndex] = 0;
-            /* PTin modified: Allow 6 DP levels */
-            for(colorIndex = 0; colorIndex < (L7_MAX_CFG_DROP_PREC_LEVELS*2); colorIndex++) 
-            {
-                parms.minThreshold[cosIndex][colorIndex] = 0;
-                parms.maxThreshold[cosIndex][colorIndex] = 100;
-                parms.dropProb[cosIndex][colorIndex] = 0;
-            }
+            PT_LOG_TRACE(LOG_CTX_QOS, "usp {%d,%d,%d}, queueSet %u: Success @ usl_bcm_gport_wred_set(bcm_unit=%u, bcm_port=%u, qos_gport=0x%x, ...)",
+                         hapiPortPtr->usp.unit, hapiPortPtr->usp.slot, hapiPortPtr->usp.port, queueSet,
+                         hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, qos_gport);
         }
-    } /* End for each queue */
-    rv = usl_bcmx_port_wred_set(parms.bcm_gport, &parms);
-    if (!L7_BCMX_OK(rv)) 
-    {
-        return L7_FAILURE;
     }
+
     return L7_SUCCESS;
 }
 
@@ -1506,6 +1707,14 @@ L7_RC_t hapiBroadQosCosIntfConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
     L7_RC_t                         tmpRc;
     L7_BOOL                         wredChanged = L7_FALSE;
     L7_uint8                        cosIndex;
+    l7_cosq_set_t                   queueSet = cmdCos->queueSet;
+
+    /* Validate queueSet */
+    if (queueSet >= L7_MAX_CFG_QUEUESETS_PER_PORT)
+    {
+        PT_LOG_ERR(LOG_CTX_QOS, "Invalid queueSet %u",  queueSet);
+        return L7_FAILURE;
+    }
 
     hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
     dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
@@ -1520,14 +1729,15 @@ L7_RC_t hapiBroadQosCosIntfConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
     hapiBroadQosSemTake(dapi_g);
 
     qosPortPtr->cos.intfShapingSpec = L7_TRUE;
-    qosPortPtr->cos.intfShaping     = (L7_uint32)cmdCos->cmdData.intfConfig.intfShapingRate;
+    qosPortPtr->cos.queueSet[queueSet].intfShaping          = (L7_uint32)cmdCos->cmdData.intfConfig.intfShapingRate;
+    qosPortPtr->cos.queueSet[queueSet].intfShapingBurstSize = (L7_uint32)cmdCos->cmdData.intfConfig.intfShapingBurstSize;
     /* Ignore queueMgmtTypePerIntf, these devices configure mgmt type per-queue */
     /* Ptin modified: QoS */
     for (cosIndex = 0; cosIndex < L7_MAX_CFG_QUEUES_PER_PORT; cosIndex++)
     {
-      if (qosPortPtr->cos.wredExponent[cosIndex] != cmdCos->cmdData.intfConfig.wredDecayExponent) 
+      if (qosPortPtr->cos.queueSet[queueSet].wredExponent[cosIndex] != cmdCos->cmdData.intfConfig.wredDecayExponent) 
       {
-          qosPortPtr->cos.wredExponent[cosIndex] = cmdCos->cmdData.intfConfig.wredDecayExponent;
+          qosPortPtr->cos.queueSet[queueSet].wredExponent[cosIndex] = cmdCos->cmdData.intfConfig.wredDecayExponent;
           wredChanged = L7_TRUE;
       }
     }
@@ -1549,7 +1759,9 @@ L7_RC_t hapiBroadQosCosIntfConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
         {
           lagMemberPtr = HAPI_PORT_GET(&lagMemberSet[i].usp, dapi_g);
 
-          tmpRc = hapiBroadQosCosIntfRateShape(lagMemberPtr, qosPortPtr->cos.intfShaping);
+          tmpRc = hapiBroadQosCosIntfRateShape(lagMemberPtr, queueSet,
+                                               qosPortPtr->cos.queueSet[queueSet].intfShaping,
+                                               qosPortPtr->cos.queueSet[queueSet].intfShapingBurstSize);
           if (L7_SUCCESS != tmpRc)
             result = tmpRc;
           if (wredChanged == L7_TRUE) 
@@ -1563,7 +1775,9 @@ L7_RC_t hapiBroadQosCosIntfConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
     }
     else
     {
-      tmpRc = hapiBroadQosCosIntfRateShape(hapiPortPtr, qosPortPtr->cos.intfShaping);
+      tmpRc = hapiBroadQosCosIntfRateShape(hapiPortPtr, queueSet,
+                                           qosPortPtr->cos.queueSet[queueSet].intfShaping,
+                                           qosPortPtr->cos.queueSet[queueSet].intfShapingBurstSize);
       if (L7_SUCCESS != tmpRc)
         result = tmpRc;
       if (wredChanged == L7_TRUE) 
@@ -1687,6 +1901,14 @@ L7_RC_t hapiBroadQosCosQueueSchedConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
   DAPI_PORT_t                *dapiPortPtr;
   HAPI_BROAD_QOS_PORT_t      *qosPortPtr;
   L7_uint32                   index;
+  l7_cosq_set_t               queueSet = cmdCos->queueSet;
+
+  /* Validate queueSet */
+  if (queueSet >= L7_MAX_CFG_QUEUESETS_PER_PORT)
+  {
+      PT_LOG_ERR(LOG_CTX_QOS, "Invalid queueSet %u",  queueSet);
+      return L7_FAILURE;
+  }
 
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
   dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
@@ -1704,19 +1926,19 @@ L7_RC_t hapiBroadQosCosQueueSchedConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
 
   for (index = 0; index < L7_MAX_CFG_QUEUES_PER_PORT; index++)
   {
-    qosPortPtr->cos.minBw[index]     = cmdCos->cmdData.queueSchedConfig.minBandwidth[index];
-    qosPortPtr->cos.maxBw[index]     = cmdCos->cmdData.queueSchedConfig.maxBandwidth[index];
-    qosPortPtr->cos.schedType[index] = cmdCos->cmdData.queueSchedConfig.schedulerType[index];
-    qosPortPtr->cos.wrr_weights[index] = cmdCos->cmdData.queueSchedConfig.wrr_weight[index];    /* PTin added: QoS */
+    qosPortPtr->cos.queueSet[queueSet].minBw[index]       = cmdCos->cmdData.queueSchedConfig.minBandwidth[index];
+    qosPortPtr->cos.queueSet[queueSet].maxBw[index]       = cmdCos->cmdData.queueSchedConfig.maxBandwidth[index];
+    qosPortPtr->cos.queueSet[queueSet].schedType[index]   = cmdCos->cmdData.queueSchedConfig.schedulerType[index];
+    qosPortPtr->cos.queueSet[queueSet].wrr_weights[index] = cmdCos->cmdData.queueSchedConfig.wrr_weight[index];    /* PTin added: QoS */
   }
 
   /* treat remaining queues, if any, as SP */
   for (index = L7_MAX_CFG_QUEUES_PER_PORT; index <= BCM_COS_MAX; index++)
   {
-    qosPortPtr->cos.minBw[index]     = 0;
-    qosPortPtr->cos.maxBw[index]     = 0;
-    qosPortPtr->cos.schedType[index] = DAPI_QOS_COS_QUEUE_SCHED_TYPE_STRICT;
-    qosPortPtr->cos.wrr_weights[index] = 0;     /* PTin added: QoS */
+    qosPortPtr->cos.queueSet[queueSet].minBw[index]     = 0;
+    qosPortPtr->cos.queueSet[queueSet].maxBw[index]     = 0;
+    qosPortPtr->cos.queueSet[queueSet].schedType[index] = DAPI_QOS_COS_QUEUE_SCHED_TYPE_STRICT;
+    qosPortPtr->cos.queueSet[queueSet].wrr_weights[index] = 0;     /* PTin added: QoS */
   }
 
   if (BROAD_PORT_IS_LAG(hapiPortPtr))
@@ -1785,6 +2007,14 @@ L7_RC_t hapiBroadQosCosQueueDropConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
     HAPI_BROAD_QOS_PORT_t      *qosPortPtr;
     int                         colorIndex;
     L7_ulong32                  queueId;
+    l7_cosq_set_t               queueSet = cmdCos->queueSet;
+
+    /* Validate queueSet */
+    if (queueSet >= L7_MAX_CFG_QUEUESETS_PER_PORT)
+    {
+        PT_LOG_ERR(LOG_CTX_QOS, "Invalid queueSet %u",  queueSet);
+        return L7_FAILURE;
+    }
 
     hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
     dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
@@ -1798,32 +2028,32 @@ L7_RC_t hapiBroadQosCosQueueDropConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
 
     hapiBroadQosSemTake(dapi_g);
 
-    for(queueId=0; queueId < L7_MAX_CFG_QUEUES_PER_PORT; queueId++) 
+    for (queueId=0; queueId < L7_MAX_CFG_QUEUES_PER_PORT; queueId++)
     {
         if (cmdCos->cmdData.queueDropConfig.parms[queueId].dropType == DAPI_QOS_COS_QUEUE_MGMT_TYPE_UNCHANGED) 
         {
             continue;
         }
-        qosPortPtr->cos.dropType[queueId] = cmdCos->cmdData.queueDropConfig.parms[queueId].dropType;
-        if (qosPortPtr->cos.dropType[queueId] == DAPI_QOS_COS_QUEUE_MGMT_TYPE_WRED) 
+        qosPortPtr->cos.queueSet[queueSet].dropType[queueId] = cmdCos->cmdData.queueDropConfig.parms[queueId].dropType;
+        if (qosPortPtr->cos.queueSet[queueSet].dropType[queueId] == DAPI_QOS_COS_QUEUE_MGMT_TYPE_WRED) 
         {
             /* PTin added: QoS */
-            qosPortPtr->cos.wredExponent[queueId] = cmdCos->cmdData.queueDropConfig.parms[queueId].wred_decayExponent;
+            qosPortPtr->cos.queueSet[queueSet].wredExponent[queueId] = cmdCos->cmdData.queueDropConfig.parms[queueId].wred_decayExponent;
 
             /* PTin modified: allow 6 DP levels */
             for(colorIndex=0; colorIndex<(L7_MAX_CFG_DROP_PREC_LEVELS*2); colorIndex++) 
             {
-                qosPortPtr->cos.perColorParams[queueId].wredDropProb[colorIndex] = cmdCos->cmdData.queueDropConfig.parms[queueId].dropProb[colorIndex];
-                qosPortPtr->cos.perColorParams[queueId].wredMinThresh[colorIndex] = cmdCos->cmdData.queueDropConfig.parms[queueId].minThreshold[colorIndex];
-                qosPortPtr->cos.perColorParams[queueId].wredMaxThresh[colorIndex] = cmdCos->cmdData.queueDropConfig.parms[queueId].maxThreshold[colorIndex];
+                qosPortPtr->cos.queueSet[queueSet].perColorParams[queueId].wredDropProb[colorIndex] = cmdCos->cmdData.queueDropConfig.parms[queueId].dropProb[colorIndex];
+                qosPortPtr->cos.queueSet[queueSet].perColorParams[queueId].wredMinThresh[colorIndex] = cmdCos->cmdData.queueDropConfig.parms[queueId].minThreshold[colorIndex];
+                qosPortPtr->cos.queueSet[queueSet].perColorParams[queueId].wredMaxThresh[colorIndex] = cmdCos->cmdData.queueDropConfig.parms[queueId].maxThreshold[colorIndex];
             }
         }
-        else if (qosPortPtr->cos.dropType[queueId] == DAPI_QOS_COS_QUEUE_MGMT_TYPE_TAILDROP) 
+        else if (qosPortPtr->cos.queueSet[queueSet].dropType[queueId] == DAPI_QOS_COS_QUEUE_MGMT_TYPE_TAILDROP) 
         {
             /* PTin modified: allow 6 DP levels */
             for(colorIndex=0; colorIndex<(L7_MAX_CFG_DROP_PREC_LEVELS*2); colorIndex++) 
             {
-                qosPortPtr->cos.perColorParams[queueId].taildropThresh[colorIndex] = cmdCos->cmdData.queueDropConfig.parms[queueId].maxThreshold[colorIndex];
+                qosPortPtr->cos.queueSet[queueSet].perColorParams[queueId].taildropThresh[colorIndex] = cmdCos->cmdData.queueDropConfig.parms[queueId].maxThreshold[colorIndex];
             }
         }
     }
@@ -1946,13 +2176,20 @@ L7_RC_t hapiBroadQosCosPortLinkUpNotify(DAPI_USP_t *portUsp, DAPI_t *dapi_g)
 {
     BROAD_PORT_t          *hapiPortPtr;
     HAPI_BROAD_QOS_PORT_t *qosPortPtr;
+    l7_cosq_set_t          queueSet;
     L7_RC_t                result;
 
     hapiPortPtr = HAPI_PORT_GET(portUsp, dapi_g);
     qosPortPtr  = (HAPI_BROAD_QOS_PORT_t*)hapiPortPtr->qos;
 
     /* re-apply port policy to take into account possible link speed change */
-    result = hapiBroadQosCosIntfRateShape(hapiPortPtr, qosPortPtr->cos.intfShaping);
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
+    {
+        result = hapiBroadQosCosIntfRateShape(hapiPortPtr, queueSet,
+                                              qosPortPtr->cos.queueSet[queueSet].intfShaping,
+                                              qosPortPtr->cos.queueSet[queueSet].intfShapingBurstSize);
+        if (result != L7_SUCCESS)  break;
+    }
 
     if ((result == L7_SUCCESS) && hapiBroadQosCosEgressBwSupported())
     {

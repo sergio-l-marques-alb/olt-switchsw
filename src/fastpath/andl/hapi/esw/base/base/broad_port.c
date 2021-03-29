@@ -649,4 +649,78 @@ L7_RC_t hapiBroadSlotCtlInit(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t *d
 
 }
 
+/*********************************************************************
+*
+* @purpose Determines the bandwidth of an interface
+*
+* @param   BROAD_PORT_t       *hapiPortPtr (in)
+* @param   l7_cosq_set_t      queueSet (in)
+* @param   L7_uint32          *portSpeed (output)
+*
+* @returns none
+*
+* @notes   none
+*
+* @end
+*
+*********************************************************************/
+void hapiBroadIntfSpeedGet(BROAD_PORT_t *hapiPortPtr, l7_cosq_set_t queueSet, L7_uint32 *portSpeed)
+{
+#if (PLAT_BCM_CHIP == L7_BCM_TRIDENT3_X3)
+    /* Considering virtual ports (GPON + XGSPON) with different speeds */
+    if (L7_MAX_CFG_QUEUESETS_PER_PORT > 1 && queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT)
+    {
+        if ( (hapiPortPtr->usp.slot == 0)                                   /* Physical port */
+             && ((PTIN_SYSTEM_PON_PORTS_MASK >> hapiPortPtr->usp.port) & 1) /* PON port */
+             && hapiPortPtr->speed == DAPI_PORT_SPEED_GE_10GBPS )           /* 10G port */
+        {
+            switch (queueSet)
+            {
+                case L7_QOS_QSET_WIRED:
+                    *portSpeed = 2500000;
+                    break;
+                case L7_QOS_QSET_WIRELESS:
+                default:
+                    *portSpeed = 10000000;
+                    break;
+            }
+            return; /* We have already a valid output to return */
+        }
+    }
+#endif
+
+    /* use the cached value */
+    switch (hapiPortPtr->speed)
+    {
+    case DAPI_PORT_SPEED_FE_10MBPS:
+        *portSpeed = 10000;
+        break;
+    case DAPI_PORT_SPEED_FE_100MBPS:
+        *portSpeed = 100000;
+        break;
+    case DAPI_PORT_SPEED_GE_1GBPS:
+        *portSpeed = 1000000;
+        break;
+    /* PTin added: Speed 2.5G */
+    case DAPI_PORT_SPEED_GE_2G5BPS:
+        *portSpeed = 2500000;
+        break;
+    /* PTin end */
+    case DAPI_PORT_SPEED_GE_10GBPS:
+        *portSpeed = 10000000;
+        break;
+    /* PTin added: Speed 40G */
+    case DAPI_PORT_SPEED_GE_40GBPS:
+        *portSpeed = 40000000;
+        break;
+    /* PTin added: Speed 100G */
+    case DAPI_PORT_SPEED_GE_100GBPS:
+        *portSpeed = 100000000;
+        break;
+    /* PTin end */
+    default:
+        *portSpeed = 10000;
+        break;
+    }
+}
 

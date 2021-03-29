@@ -98,8 +98,7 @@ typedef enum
   PTIN_DTL_MSG_OAM_FPGA,
   PTIN_DTL_MSG_TEMPERATURE_MONITOR,   /* ptin_dtl_temperature_monitor_t */
   PTIN_DTL_MSG_OAM_BCM,
-  PTIN_DTL_MSG_SHAPER_MAX_BURST,
-  PTIN_DTL_MSG_SHAPER_MAX_BURST_GET,
+  PTIN_DTL_MSG_SHAPER_SET,
   PTIN_DTL_MSG_MAX
   
 } ptin_dtl_msg_enum;
@@ -123,7 +122,7 @@ typedef struct
 
 typedef struct
 {
-  L7_uint64 ptin_port_bmp;  /* PTIN_PORT bitmap (zero to use specific port, or 0xff..ff to apply to all ports) */
+  L7_uint64 port_bmp;       /* PTIN_PORT bitmap (zero to use specific port, or 0xff..ff to apply to all ports) */
   L7_uint16 ext_vlan;       /* Used to configure VCAP+ICAP */
   L7_uint16 int_vlan;       /* Used to configure only the ICAP */
   L7_int8   leaf_side;      /* -1 for all */
@@ -202,16 +201,9 @@ typedef struct
 /* L2 MAC Limiting status */
 typedef struct
 {
-  L7_uint32   vport_id;                /* vport id */
+  L7_uint32   l2intf_id;                /* l2intf_id */
   L7_uint8    status;                  /* Check if is over or within the limit. 0-Over, 1- Within */
 } ptin_l2_maclimit_vp_st_t;
-
-typedef struct
-{
-  L7_uint32    ptin_port;       // ptin port
-  L7_uint32    max_rate;        // shaper max rate
-  L7_uint32    burst_size;      // burst size           
-} ptin_intf_shaper_t;
 
 
 /* L3 module defines*/
@@ -555,7 +547,6 @@ typedef struct {
 
 typedef struct
 {
-  L7_uint64 ports_mask;     /* Indicates which array indexes are valid */
   L7_uint64 activity_mask;  /* Masks bitmap contents:
                              *   0x0001: Rx activity
                              *   0x0002: Tx activity 
@@ -566,7 +557,7 @@ typedef struct
                              *   0x0040: Rx Oversized packets 
                              *   0x0080: Rx Undersized packets 
                              *   0x0100: Rx Dropped packets */
-  L7_uint32 activity_bmap[PTIN_SYSTEM_N_PORTS]; /* maps each phy port */
+  L7_uint32 activity_bmap;
 } ptin_HWEth_PortsActivity_t;
 
 
@@ -667,6 +658,16 @@ typedef struct
   DAPI_USP_t  ddUsp;
 } ptin_vlan_mode_t;
 
+typedef struct
+{
+  L7_RATE_UNIT_t rate_units;    // Units to be applied for the rate params
+  L7_uint32    rate_min;        // shaper min rate (Percent x 10)
+  L7_uint32    rate_max;        // shaper max rate (Percent x 10)
+  L7_uint32    burst_size;      // burst size (kbits)
+  L7_int       tc;              // Traffic class (-1 for all)
+  l7_cosq_set_t queueSet;       // Destination queueSet
+} dtl_intf_shaper_t;
+
 /* Struct used to configure vlan mode via DTL */
 typedef struct
 {
@@ -687,6 +688,8 @@ typedef struct
     #define PTIN_BRIDGE_VLAN_MODE_MASK_MC_GROUP       0x20
   L7_int    multicast_group;        // Associate a multicast group
   L7_uint32 multicast_flag;     /* BCM_MULTICAST_TYPE_VLAN  | BCM_MULTICAST_TYPE_L3*/
+    #define PTIN_BRIDGE_VLAN_MODE_MASK_COSQ_DEST      0x40
+  l7_cosq_set_t qos_queueSet;
 } ptin_bridge_vlan_mode_t;
 
 /*The below values have been copied from bcm sdk*/  
@@ -701,7 +704,7 @@ typedef struct
   L7_int    vlanId;             /* Vlan Id (-1 to be applied on egress ports) */
   L7_int    multicast_group;    /* Multicast group id (-1 to be created) */
   L7_BOOL   destroy_on_clear;   /* Destroy MC group, if oper is CLEAR */
-  L7_int    virtual_gport; 
+  L7_int    l2intf_id; 
   L7_uint32 multicast_flag;     /* BCM_MULTICAST_TYPE_VLAN  | BCM_MULTICAST_TYPE_L3*/    
 } ptin_bridge_vlan_multicast_t;
 
@@ -721,12 +724,12 @@ typedef struct
   L7_int ext_ivid;
   L7_int int_ovid;
   L7_int int_ivid;
-  L7_int virtual_gport;
+  L7_int l2intf_id;
   L7_int multicast_group;
   L7_uint8 macLearnMax;
   L7_int  port_id;
   L7_int  type;
-} ptin_vport_t;
+} ptin_l2intf_t;
 
 /* Struct used to manipulate cross connects via DTL */
 typedef struct
@@ -775,6 +778,8 @@ typedef struct
     nimUSP_t          usp;
     L7_uint32         intIfNum;
   } value;
+  /* Vlan used to virtualize ports - only necessary for USP and INTIFNUM formats */
+  L7_uint16 vlan_gem;
 
   L7_uint8  port_type;
   L7_uint8  intIfNum_type;
@@ -970,14 +975,17 @@ typedef struct {
 #define PTIN_CLIENT_MASK_FIELD_INNERVLAN  0x04
 #define PTIN_CLIENT_MASK_FIELD_IPADDR     0x08
 #define PTIN_CLIENT_MASK_FIELD_MACADDR    0x10
+#define PTIN_CLIENT_MASK_FIELD_INTIFNUM   0x20
 
 typedef struct {
   L7_uint8    mask;                     /* Mask of fields to identify the client */
   ptin_intf_t ptin_intf;                /* [mask=0x01] PTin intf, which is attached */
+  L7_uint32   ptin_port;                /* [mask=0x01] PTin ptin_port */
   L7_uint16   outerVlan;                /* [mask=0x02] Outer Vlan  */
   L7_uint16   innerVlan;                /* [mask=0x04] Inner Vlan */
   L7_uint32   ipv4_addr;                /* [mask=0x08] IP address */
   L7_uchar8   macAddr[L7_MAC_ADDR_LEN]; /* [mask=0x10] Source MAC */
+  L7_uint32   intIfNum;                 /* [mask=0x20] IntIfNum */
 } ptin_client_id_t;
 
 typedef struct {                    /* Mask values used here come from the variable 'mask' in the struct msg_AccessNodeCircuitId_t */
@@ -1063,7 +1071,7 @@ typedef struct {
 
 typedef struct {
   L7_int             operation;         // Operation: DAPI_CMD_GET / DAPI_CMD_SET / DAPI_CMD_CLEAR / DAPI_CMD_CLEAR_ALL
-  L7_uint64          ptin_port_bmp;     // List of ports to apply profile
+  L7_uint64          port_bmp;          // List of ports to apply profile
   ptin_bw_profile_t  profile;           // Profile data
   ptin_bw_meter_t    meter;             // Meter info
   ptin_bw_policy_t  *policy_ptr;        // Policy pointer

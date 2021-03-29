@@ -32,7 +32,7 @@ typedef struct Dot1dTpFdbData_s
 {
   L7_uchar8               dot1dTpFdbAddress[L7_FDB_KEY_SIZE];
   L7_uint32               dot1dTpFdbPort;
-  L7_uint32               dot1dTpFdbVirtualPort;  /* PTin added: virtual ports */
+  L7_uint32               dot1dTpFdbL2intf;  /* PTin added: virtual ports */
   L7_ushort16             dot1dTpFdbEntryType;
   struct Dot1dTpFdbData_s *next;
 } dot1dTpFdbData_t;
@@ -42,7 +42,7 @@ typedef struct  fdbMeberInfo_s
   L7_uchar8 macAddr[L7_MAC_ADDR_LEN];
   L7_uint32 vlanId;
   L7_uint32 intIfNum;
-  L7_uint32 virtualPort;  /* PTin added: virtual ports */
+  L7_uint32 l2intf_id;  /* PTin added: virtual ports */
   L7_uchar8 entryType;
 } fdbMeberInfo_t;
 

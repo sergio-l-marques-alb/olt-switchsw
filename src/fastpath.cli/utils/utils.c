@@ -53,7 +53,7 @@
 *                                                                                *
 * Autor: Paulo Gonçalves                                                         *
 *********************************************************************************/
-int StrToLong(char *pstr, uint32 *pValue)
+int StrToLong(char *pstr, unsigned long *pValue)
 {
   uint32 base,value;
   int signal,RetValue;

@@ -117,7 +117,8 @@ L7_RC_t dtlQosCosMapIpDscpTrafficClassSet(L7_uint32 intIfNum,
 /*************************************************************************
 * @purpose  Set the COS trust mode for this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    trustMode   @b{(input)}  Trust mode value    
 * @param    pMapTable   @b{(input)}  Ptr to COS mapping table
 *
@@ -129,7 +130,7 @@ L7_RC_t dtlQosCosMapIpDscpTrafficClassSet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t dtlQosCosMapIntfTrustModeSet(L7_uint32 intIfNum, 
+L7_RC_t dtlQosCosMapIntfTrustModeSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                      L7_QOS_COS_MAP_INTF_MODE_t trustMode,
                                      DTL_QOS_COS_MAP_TABLE_t *pMapTable)
 {
@@ -177,6 +178,9 @@ L7_RC_t dtlQosCosMapIntfTrustModeSet(L7_uint32 intIfNum,
 
   } /* endswitch */
 
+  /* Group of queues */
+  dapiCmd.queueSet = queueSet;
+
   /* PTin added: + default prio */
   dapiCmd.cmdData.intfTrustModeConfig.mapTable.defaultPrio = pMapTable->defaultPrio;
 
@@ -197,7 +201,7 @@ L7_RC_t dtlQosCosMapIntfTrustModeSet(L7_uint32 intIfNum,
 
   dapiCmd.cmdData.intfTrustModeConfig.getOrSet = DAPI_CMD_SET;
 #if defined(FEAT_METRO_CPE_V1_0)
-  if (cosMapIntfTrustModeGet(L7_ALL_INTERFACES, &globMode) != L7_SUCCESS)
+  if (cosMapIntfTrustModeGet(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &globMode) != L7_SUCCESS)
    return L7_FAILURE;
 
   if (globMode != intfMode)
@@ -224,8 +228,10 @@ L7_RC_t dtlQosCosMapIntfTrustModeSet(L7_uint32 intIfNum,
 /*************************************************************************
 * @purpose  Set the COS interface config parameters
 *
-* @param    intIfNum        @b{(input)}  Internal interface number     
+* @param    intIfNum        @b{(input)}  Internal interface number
+* @param    queueSet        @b{(input)}  Group of queues
 * @param    intfShapingRate @b{(input)}  Interface shaping rate
+* @param    intfShapingBurstSize @b{(input)} Interface shaping burst size
 * @param    qMgmtTypeIntf   @b{(input)}  Queue mgmt type (per-interface)
 * @param    wredDecayExp    @b{(input)}  WRED decay exponent   
 *
@@ -238,8 +244,8 @@ L7_RC_t dtlQosCosMapIntfTrustModeSet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t dtlQosCosIntfConfigSet(L7_uint32 intIfNum, 
-                               L7_uint32 intfShapingRate,
+L7_RC_t dtlQosCosIntfConfigSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
+                               L7_uint32 intfShapingRate, L7_uint32 intfShapingBurstSize,
                                L7_QOS_COS_QUEUE_MGMT_TYPE_t qMgmtTypeIntf,
                                L7_uint32 wredDecayExp)
 {
@@ -275,8 +281,10 @@ L7_RC_t dtlQosCosIntfConfigSet(L7_uint32 intIfNum,
     break;
   }
 
+  dapiCmd.queueSet = queueSet;
   dapiCmd.cmdData.intfConfig.getOrSet = DAPI_CMD_SET;
   dapiCmd.cmdData.intfConfig.intfShapingRate = (L7_ulong32)intfShapingRate;
+  dapiCmd.cmdData.intfConfig.intfShapingBurstSize = (L7_ulong32)intfShapingBurstSize;
   dapiCmd.cmdData.intfConfig.queueMgmtTypePerIntf = portMgmtType;
   dapiCmd.cmdData.intfConfig.wredDecayExponent = (L7_ulong32)wredDecayExp;
   
@@ -291,7 +299,8 @@ L7_RC_t dtlQosCosIntfConfigSet(L7_uint32 intIfNum,
 /*************************************************************************
 * @purpose  Get the COS interface config parameters
 *
-* @param    intIfNum             @b{(input)}  Internal interface number     
+* @param    intIfNum             @b{(input)}  Internal interface number
+* @param    queueSet             @b{(input)}  Group of queues
 * @param    intfShapingRate      @b{(input)}  Interface shaping rate in kbps
 * @param    intfShapingBurstSize @b{(input)}  Interface shaping burst size in kbits
 *
@@ -300,7 +309,7 @@ L7_RC_t dtlQosCosIntfConfigSet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t dtlQosCosIntfStatusGet(L7_uint32 intIfNum, 
+L7_RC_t dtlQosCosIntfStatusGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                L7_uint32 *intfShapingRate,
                                L7_uint32 *intfShapingBurstSize)
 {
@@ -318,6 +327,7 @@ L7_RC_t dtlQosCosIntfStatusGet(L7_uint32 intIfNum,
   
   memset(&dapiCmd.cmdData.intfStatus, 0, sizeof(dapiCmd.cmdData.intfStatus));
 
+  dapiCmd.queueSet = queueSet;
   dapiCmd.cmdData.intfStatus.getOrSet = DAPI_CMD_GET;
   
   rc = dapiCtl(&ddUsp,DAPI_CMD_QOS_COS_INTF_STATUS,&dapiCmd);
@@ -336,7 +346,8 @@ L7_RC_t dtlQosCosIntfStatusGet(L7_uint32 intIfNum,
 /*************************************************************************
 * @purpose  Set the COS queue scheduler parameters for the interface
 *
-* @param    intIfNum        @b{(input)}  Internal interface number     
+* @param    intIfNum        @b{(input)}  Internal interface number
+* @param    queueSet        @b{(input)}  Group of queues
 * @param    *pMinBwList     @b{(input)}  Ptr to minimum bandwidth parm list
 * @param    *pMaxBwList     @b{(input)}  Ptr to maximum bandwidth parm list
 * @param    *pSchedTypeList @b{(input)}  Ptr to scheduler type list
@@ -350,7 +361,7 @@ L7_RC_t dtlQosCosIntfStatusGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t dtlQosCosQueueSchedConfigSet(L7_uint32 intIfNum, 
+L7_RC_t dtlQosCosQueueSchedConfigSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                      L7_qosCosQueueBwList_t *pMinBwList,
                                      L7_qosCosQueueBwList_t *pMaxBwList,
                                      L7_qosCosQueueSchedTypeList_t *pSchedTypeList,
@@ -394,6 +405,7 @@ L7_RC_t dtlQosCosQueueSchedConfigSet(L7_uint32 intIfNum,
     dapiCmd.cmdData.queueSchedConfig.schedulerType[i] = queueSchedType;
   } /* endfor i */
 
+  dapiCmd.queueSet = queueSet;
   dapiCmd.cmdData.queueSchedConfig.getOrSet = DAPI_CMD_SET;
   
   rc = dapiCtl(&ddUsp,DAPI_CMD_QOS_COS_QUEUE_SCHED_CONFIG,&dapiCmd);
@@ -408,7 +420,8 @@ L7_RC_t dtlQosCosQueueSchedConfigSet(L7_uint32 intIfNum,
 * @purpose  Set the COS drop config (taildrop or WRED) parameters
 *           on this interface
 *
-* @param    intIfNum      @b{(input)}  Internal interface number     
+* @param    intIfNum      @b{(input)}  Internal interface number
+* @param    queueSet      @b{(input)}  Group of queues
 * @param    *pDropParms   @b{(input)}  Ptr to drop parms list
 *
 * @returns  L7_SUCCESS
@@ -419,7 +432,7 @@ L7_RC_t dtlQosCosQueueSchedConfigSet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t dtlQosCosQueueDropConfigSet(L7_uint32 intIfNum, 
+L7_RC_t dtlQosCosQueueDropConfigSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                     L7_qosCosDropParmsList_t *pDropParms)
 {
   DAPI_QOS_CMD_t  dapiCmd;
@@ -482,6 +495,8 @@ L7_RC_t dtlQosCosQueueDropConfigSet(L7_uint32 intIfNum,
       dapiCmd.cmdData.queueDropConfig.parms[queueIndex].wred_decayExponent = 
           pDropParms->queue[queueIndex].wred_decayExponent;
   }
+
+  dapiCmd.queueSet = queueSet;
   dapiCmd.cmdData.queueDropConfig.getOrSet = DAPI_CMD_SET;
   
   rc = dapiCtl(&ddUsp,DAPI_CMD_QOS_COS_QUEUE_DROP_CONFIG,&dapiCmd);

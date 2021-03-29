@@ -193,7 +193,7 @@ L7_RC_t ptinMacBcastRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   L7_uchar8 *payload;
   L7_uint32 payloadLen;
   ptin_PDU_Msg_t msg;
-
+  L7_uint32 ptin_port;
   L7_uint32 intIfNum    = pduInfo->intIfNum;     /* Source port */
   L7_uint16 vlanId      = pduInfo->vlanId;       /* Vlan */
   L7_uint16 innerVlanId = pduInfo->innerVlanId;  /* Inner vlan */
@@ -231,12 +231,20 @@ L7_RC_t ptinMacBcastRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
     return L7_FAILURE;
   }
 
-  /* Validate interface and vlan, as belonging to a valid interface in a valid EVC */
-  if (ptin_evc_intfVlan_validate(intIfNum, vlanId)!=L7_SUCCESS)
+  /* Get ptin_port */
+  if (ptin_intf_intIfNum2port(intIfNum, 0/*Vlan*/, &ptin_port) != L7_SUCCESS) /* FIXME TC16SXG */
   {
     if (ptin_packet_debug_enable)
-      PT_LOG_ERR(LOG_CTX_PACKET,"intIfNum %u and vlan %u does not belong to any valid EVC/interface",
-                 intIfNum, vlanId);
+      PT_LOG_ERR(LOG_CTX_ERPS,"Error converting intIfNum %u to ptin_port", intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* Validate interface and vlan, as belonging to a valid interface in a valid EVC */
+  if (ptin_evc_intfVlan_validate(ptin_port, vlanId)!=L7_SUCCESS)
+  {
+    if (ptin_packet_debug_enable)
+      PT_LOG_ERR(LOG_CTX_PACKET,"ptin_port %u and vlan %u does not belong to any valid EVC/interface",
+                 ptin_port, vlanId);
     return L7_FAILURE;
   }
 
@@ -464,13 +472,13 @@ void ptin_packet_send(L7_uint32 intIfNum,
 
 
 static L7_RC_t ptin_packet_frame_unicast(L7_uint32 outgoingIf,
-                                         L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint32 vport_id,
+                                         L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint32 l2intf_id,
                                          L7_uchar8 *frame, L7_ushort16 frameLen);
 
 static L7_RC_t ptin_packet_frame_flood(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId,
                                        L7_uchar8 *frame, L7_ushort16 frameLen);
 
-static L7_RC_t ptin_packet_frame_send(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint32 vport_id,
+static L7_RC_t ptin_packet_frame_send(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint32 l2intf_id,
                                       L7_uchar8 *frame, L7_ushort16 frameLen);
 
 /*********************************************************************
@@ -506,7 +514,7 @@ L7_RC_t ptin_packet_frame_l2forward(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_u
   memset(&fdbEntry, 0, sizeof(fdbEntry));
   if(L7_SUCCESS == fdbFind(vidMac, L7_MATCH_EXACT, &fdbEntry))
   {
-    return ptin_packet_frame_unicast(fdbEntry.dot1dTpFdbPort, vlanId, innerVlanId, fdbEntry.dot1dTpFdbVirtualPort, frame, frameLen);
+    return ptin_packet_frame_unicast(fdbEntry.dot1dTpFdbPort, vlanId, innerVlanId, fdbEntry.dot1dTpFdbL2intf, frame, frameLen);
   }
 
   /* If Destination mac is not found in FDB table, flood the ARP Request/Reply
@@ -554,7 +562,7 @@ L7_RC_t ptin_packet_frame_l2forward_nonblocking(L7_uint32 intIfNum, L7_ushort16 
 * @param    outgoingIf   @b{(input)} outgoing interface number
 * @param    vlanId       @b{(input)} VLAN ID
 * @param    innerVlanId  @b{(input)} Inner VLAN ID
-* @param    vport_id     @b{(input)} Virtual Port id
+* @param    l2intf_id    @b{(input)} l2intf ID
 * @param    frame        @b{(input)} ethernet frame
 * @param    frameLen     @b{(input)} ethernet frame length, incl eth header (bytes)
 *
@@ -567,7 +575,7 @@ L7_RC_t ptin_packet_frame_l2forward_nonblocking(L7_uint32 intIfNum, L7_ushort16 
 *
 ***********************************************************************/
 static L7_RC_t ptin_packet_frame_unicast(L7_uint32 outgoingIf,
-                                         L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint32 vport_id,
+                                         L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint32 l2intf_id,
                                          L7_uchar8 *frame, L7_ushort16 frameLen)
 {
   L7_RC_t rc = L7_FAILURE;
@@ -575,7 +583,7 @@ static L7_RC_t ptin_packet_frame_unicast(L7_uint32 outgoingIf,
   L7_INTF_TYPES_t sysIntfType = 0;
 
   if (ptin_packet_debug_enable)
-    PT_LOG_TRACE(LOG_CTX_PACKET, "intIfNum=%u, vlanId=%u, innerVlanId=%u, vport_id=%u", outgoingIf, vlanId, innerVlanId, vport_id);
+    PT_LOG_TRACE(LOG_CTX_PACKET, "intIfNum=%u, vlanId=%u, innerVlanId=%u, l2intf_id=%u", outgoingIf, vlanId, innerVlanId, l2intf_id);
 
   /* Get interface type */
   nimGetIntfType(outgoingIf, &sysIntfType);
@@ -585,7 +593,7 @@ static L7_RC_t ptin_packet_frame_unicast(L7_uint32 outgoingIf,
     /* Do not evaluate port, if it is a virtual port */
     if (sysIntfType == L7_VLAN_PORT_INTF || L7_INTF_ISMASKBITSET(portMask, outgoingIf))
     {
-      if (ptin_packet_frame_send(outgoingIf, vlanId, innerVlanId, vport_id, frame, frameLen) == L7_SUCCESS)
+      if (ptin_packet_frame_send(outgoingIf, vlanId, innerVlanId, l2intf_id, frame, frameLen) == L7_SUCCESS)
       {
         return L7_SUCCESS;
       }
@@ -634,7 +642,7 @@ static L7_RC_t ptin_packet_frame_flood(L7_uint32 intIfNum, L7_ushort16 vlanId, L
     PT_LOG_TRACE(LOG_CTX_PACKET, "intIfNum=%u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
 
   /* Validate source port */
-  if (ptin_intf_intIfNum2port(intIfNum, &src_port) != L7_SUCCESS)
+  if (ptin_intf_intIfNum2port(intIfNum, vlanId, &src_port) != L7_SUCCESS)
   {
     if (ptin_packet_debug_enable)
       PT_LOG_ERR(LOG_CTX_PACKET, "Can't convert intIfNum=%u to ptin_port format", intIfNum);
@@ -654,13 +662,12 @@ static L7_RC_t ptin_packet_frame_flood(L7_uint32 intIfNum, L7_ushort16 vlanId, L
         }
 
       #if (PTIN_BOARD_IS_GPON)
-        if (ptin_intf_intIfNum2port(i, &dst_port) != L7_SUCCESS)
+        if (ptin_intf_intIfNum2port(i, vlanId, &dst_port) != L7_SUCCESS)
         {
           continue;
         }
         /* Prevent both src port and dst port to be PON ports (isolated) */
-        if (((PTIN_SYSTEM_PON_PORTS_MASK >> src_port) & 1) &&
-            ((PTIN_SYSTEM_PON_PORTS_MASK >> dst_port) & 1))
+        if (PTIN_PORT_IS_PON(src_port) && PTIN_PORT_IS_PON(dst_port))
         {
           continue;
         }
@@ -694,7 +701,7 @@ static L7_RC_t ptin_packet_frame_flood(L7_uint32 intIfNum, L7_ushort16 vlanId, L
 * @param    intIfNum    @b{(input)} outgoing interface
 * @param    vlanId      @b{(input)} VLAN ID
 * @param    innerVlanId @b{(input)} Inner VLAN ID
-* @param    vport_id    @b{(input)} Virtual Port id
+* @param    l2intf_id   @b{(input)} Virtual Port id
 * @param    frame       @b{(input)} ethernet frame
 * @param    frameLen    @b{(input)} ethernet frame length, incl eth header (bytes)
 *
@@ -706,7 +713,7 @@ static L7_RC_t ptin_packet_frame_flood(L7_uint32 intIfNum, L7_ushort16 vlanId, L
 * @end
 *
 ***********************************************************************/
-static L7_RC_t ptin_packet_frame_send(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint32 vport_id,
+static L7_RC_t ptin_packet_frame_send(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint32 l2intf_id,
                                       L7_uchar8 *frame, L7_ushort16 frameLen)
 {
   L7_netBufHandle   bufHandle;
@@ -728,32 +735,32 @@ static L7_RC_t ptin_packet_frame_send(L7_uint32 intIfNum, L7_ushort16 vlanId, L7
   }
 
   if (ptin_packet_debug_enable)
-    PT_LOG_TRACE(LOG_CTX_PACKET, "intIfNum=%u, vlanId=%u, innerVlanId=%u, vport_id=%u", intIfNum, vlanId, innerVlanId, vport_id);
+    PT_LOG_TRACE(LOG_CTX_PACKET, "intIfNum=%u, vlanId=%u, innerVlanId=%u, l2intf_id=%u", intIfNum, vlanId, innerVlanId, l2intf_id);
 
   /* QUATTRO service? */
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  if (vport_id != 0)
+  if (l2intf_id != 0)
   {
-    if (ptin_evc_extVlans_get_fromIntVlanVPort(vlanId, vport_id, &intIfNum, &vlanId_list[0][0], &vlanId_list[0][1]) != L7_SUCCESS)
+    if (ptin_evc_extVlans_get_from_IntVlan_l2intf(vlanId, l2intf_id, &intIfNum, &vlanId_list[0][0], &vlanId_list[0][1]) != L7_SUCCESS)
     {
       if (ptin_packet_debug_enable)
-        PT_LOG_ERR(LOG_CTX_PACKET, "Error obtaining Ext. VLANs for VLANs %u and VPort %u", vlanId, vport_id);
+        PT_LOG_ERR(LOG_CTX_PACKET, "Error obtaining Ext. VLANs for VLANs %u and l2intf_id %u", vlanId, l2intf_id);
       return L7_FAILURE;
     }
     number_of_vlans = 1;
   }
-  /* Quattro VLAN, but no vport? (flooding) */
+  /* Quattro VLAN, but no l2intf? (flooding) */
   else if (ptin_evc_is_quattro_fromIntVlan(vlanId) && !ptin_evc_intf_isRoot(vlanId, intIfNum))
   {
-    ptin_HwEthEvcFlow_t vport_flow;
+    ptin_HwEthEvcFlow_t l2intf_flow;
 
     /* Get list of vlans (outer+inner) to be flooded */
-    for (memset(&vport_flow, 0x00, sizeof(vport_flow));
-         ptin_evc_vlan_client_next(vlanId, intIfNum, &vport_flow, &vport_flow) == L7_SUCCESS && number_of_vlans < 16;
+    for (memset(&l2intf_flow, 0x00, sizeof(l2intf_flow));
+         ptin_evc_vlan_client_next(vlanId, intIfNum, &l2intf_flow, &l2intf_flow) == L7_SUCCESS && number_of_vlans < 16;
          number_of_vlans++)
     {
-      vlanId_list[number_of_vlans][0] = vport_flow.uni_ovid;
-      vlanId_list[number_of_vlans][1] = vport_flow.uni_ivid;
+      vlanId_list[number_of_vlans][0] = l2intf_flow.uni_ovid;
+      vlanId_list[number_of_vlans][1] = l2intf_flow.uni_ivid;
     }
   }
   /* Regular service */

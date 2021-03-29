@@ -388,7 +388,7 @@ void fdbInsert(char *mac, L7_uint32 intIfNum, L7_uint32 virtual_port /* PTin add
 
   memcpy(&data.dot1dTpFdbAddress[ivlLength], mac, L7_FDB_MAC_ADDR_LEN);
   data.dot1dTpFdbPort         = intIfNum;
-  data.dot1dTpFdbVirtualPort  = virtual_port;  /* PTin added: virtual ports */
+  data.dot1dTpFdbL2intf  = virtual_port;  /* PTin added: virtual ports */
   data.dot1dTpFdbEntryType    = entryType;
 
   osapiSemaTake(fdbTreeData.semId, L7_WAIT_FOREVER);
@@ -407,7 +407,7 @@ void fdbInsert(char *mac, L7_uint32 intIfNum, L7_uint32 virtual_port /* PTin add
   {
     pData->dot1dTpFdbPort = intIfNum;
     pData->dot1dTpFdbEntryType = entryType;
-    pData->dot1dTpFdbVirtualPort = virtual_port;  /* PTin added: virtual ports */
+    pData->dot1dTpFdbL2intf = virtual_port;  /* PTin added: virtual ports */
 
     fdb_stats.dup_adds++;
   }
@@ -494,7 +494,8 @@ L7_RC_t fdbFind(char *mac, L7_uint32 matchType, dot1dTpFdbData_t *pData)
 
   pfdbData = avlSearchLVL7(&fdbTreeData, mac, matchType);
 
-  if (pfdbData != L7_NULL)
+  //if (pfdbData != L7_NULL)
+  if (NULL != pData && pfdbData != L7_NULL)     //PTIn modified
     memcpy(pData, pfdbData, sizeof(dot1dTpFdbData_t));
 
   osapiSemaGive(fdbTreeData.semId);
@@ -530,7 +531,7 @@ L7_RC_t fdbDump(void)
     printf("dot1dTpFdbAddress=%02x:%02x/%02x:%02x:%02x:%02x:%02x:%02x  dot1dTpFdbPort=%-3u  dot1dTpFdbVirtualPort=0x%04x  dot1dTpFdbEntryType=%u\r\n",
            pfdbData->dot1dTpFdbAddress[0], pfdbData->dot1dTpFdbAddress[1],
            pfdbData->dot1dTpFdbAddress[2],pfdbData->dot1dTpFdbAddress[3],pfdbData->dot1dTpFdbAddress[4],pfdbData->dot1dTpFdbAddress[5],pfdbData->dot1dTpFdbAddress[6],pfdbData->dot1dTpFdbAddress[7],
-           pfdbData->dot1dTpFdbPort, pfdbData->dot1dTpFdbVirtualPort, pfdbData->dot1dTpFdbEntryType);
+           pfdbData->dot1dTpFdbPort, pfdbData->dot1dTpFdbL2intf, pfdbData->dot1dTpFdbEntryType);
   }
 
   osapiSemaGive(fdbTreeData.semId);

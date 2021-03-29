@@ -431,7 +431,7 @@ void ssmStatGet(void *statHandle)
 /*********************************************************************
 * @purpose  Clears the port statistics. 
 *          
-* @param    intIfNum @b{(input)} Internal Interface Number of the port
+* @param    ptin_port @b{(input)} Internal Interface Number of the port
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -440,7 +440,7 @@ void ssmStatGet(void *statHandle)
 *
 * @end
 *********************************************************************/
-L7_RC_t ssmPortStatsClear(L7_uint32 intIfNum)
+L7_RC_t ssmPortStatsClear(L7_uint32 ptin_port)
 {
   L7_RC_t rc = L7_SUCCESS;
 
@@ -1016,7 +1016,7 @@ L7_RC_t ssmTimersUpdate(void)
         SHMEM(slot,intf).link  = (linkState==L7_UP);
 
         /* Update activity status (only for SF local ports -> slot 0) */
-        if ((PTIN_SYSTEM_ETH_PORTS_MASK >> ptin_port) & 1)
+        if (PTIN_PORT_IS_FRONT_ETH(ptin_port))
         {
           SHMEM(slot,intf).link |=
                (((ptin_control_port_activity[ptin_port] & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) << 1) |

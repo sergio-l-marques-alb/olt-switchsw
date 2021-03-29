@@ -42,7 +42,7 @@ typedef struct
 typedef struct 
 {
   nimConfigID_t           configId;     /* must be first in intf cfg struct */
-  L7_cosCfgParms_t        cfg;          /* all intf configurable parms */
+  L7_cosCfgParms_t        cfg[L7_MAX_CFG_QUEUESETS_PER_PORT];    /* all intf configurable parms */
 
 } L7_cosCfgIntfParms_t;
 

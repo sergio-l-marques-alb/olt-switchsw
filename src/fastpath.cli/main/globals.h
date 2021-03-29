@@ -33,8 +33,8 @@
 #define ENDIAN_SWAP16(val) \
   ((unsigned short) (((unsigned short)(val)<<8) | ((unsigned short)(val)>>8)))
 #define ENDIAN_SWAP32(val) \
-  ((unsigned long) (((unsigned long)(val) >> 24) | (((unsigned long)(val) >> 8) & 0x0000ff00UL) | \
-                    ((unsigned long)(val) << 24) | (((unsigned long)(val) << 8) & 0x00ff0000UL)))
+  ((unsigned int)   (((unsigned int)(val) >> 24) | (((unsigned int)(val) >> 8) & 0x0000ff00UL) | \
+                    ((unsigned int)(val) << 24) | (((unsigned int)(val) << 8) & 0x00ff0000UL)))
 #define ENDIAN_SWAP64(val) \
   ((unsigned long long) (((unsigned long long)(val) >> 56) | (((unsigned long long)(val) >> 40) & 0x000000000000ff00ULL) | (((unsigned long long)(val) >> 24) & 0x0000000000ff0000ULL) | (((unsigned long long)(val) >> 8) & 0x00000000ff000000ULL) | \
                          ((unsigned long long)(val) << 56) | (((unsigned long long)(val) << 40) & 0x00ff000000000000ULL) | (((unsigned long long)(val) << 24) & 0x0000ff0000000000ULL) | (((unsigned long long)(val) << 8) & 0x000000ff00000000ULL)))
@@ -142,8 +142,8 @@ typedef signed char         int8;    //  8 bits
 typedef unsigned char       uint8;   //  8 bits
 typedef signed short        int16;   // 16 bits
 typedef unsigned short      uint16;  // 16 bits
-typedef signed long         int32;   // 32 bits
-typedef unsigned long       uint32;  // 32 bits
+typedef signed int          int32;   // 32 bits
+typedef unsigned int        uint32;  // 32 bits
 typedef signed long long    int64;   // 64 bits
 typedef unsigned long long  uint64;  // 64 bits
 

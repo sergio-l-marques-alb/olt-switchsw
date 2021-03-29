@@ -38,7 +38,7 @@ typedef L7_RC_t (*broad_ptin_generic_f)(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t oper
 L7_RC_t broad_ptin_example(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l2_maclimit(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l2_maclimit_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
-L7_RC_t broad_ptin_l2_maclimit_vport_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+L7_RC_t broad_ptin_l2_maclimit_l2intf_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l3_intf(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l3_ipmc(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_qos_classify(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
@@ -50,9 +50,7 @@ L7_RC_t broad_ptin_ptp_fpga_entry(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation,
 L7_RC_t broad_ptin_oam_fpga_entry(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_temperature_monitor(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_oam_bcm(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
-L7_RC_t broad_ptin_shaper_max_burst(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
-L7_RC_t broad_ptin_shaper_max_burst_get(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
-
+L7_RC_t broad_ptin_shaper_set(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 
 
 L7_RC_t broadPtin_oam_tx(int unit, int flags, bcm_gport_t gport_dst, bcm_mac_t *mac_dst, bcm_mac_t *mac_src, bcm_oam_endpoint_info_t *endpoint_info);
@@ -61,7 +59,7 @@ broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {
   broad_ptin_example,
   broad_ptin_l2_maclimit,
   broad_ptin_l2_maclimit_status,
-  broad_ptin_l2_maclimit_vport_status,
+  broad_ptin_l2_maclimit_l2intf_status,
   broad_ptin_l3_intf,
   broad_ptin_l3_ipmc,
   broad_ptin_qos_classify,
@@ -73,8 +71,7 @@ broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {
   broad_ptin_oam_fpga_entry,
   broad_ptin_temperature_monitor,
   broad_ptin_oam_bcm,
-  broad_ptin_shaper_max_burst,
-  broad_ptin_shaper_max_burst_get
+  broad_ptin_shaper_set,
 };
 
 /**
@@ -181,13 +178,13 @@ L7_RC_t broad_ptin_l2_maclimit_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operat
 }
 
 /**
- * Get a state of MAC limit state of a particular vport
+ * Get a state of MAC limit state of a particular l2intf
  * 
  *
  *  
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t broad_ptin_l2_maclimit_vport_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
+L7_RC_t broad_ptin_l2_maclimit_l2intf_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
 {
   L7_RC_t rc = L7_SUCCESS;
   ptin_l2_maclimit_vp_st_t *entry;
@@ -201,10 +198,10 @@ L7_RC_t broad_ptin_l2_maclimit_vport_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t 
                operation,
                 dataSize);
 
-  rc = ptin_hapi_vport_maclimit_status_get(entry->vport_id, &entry->status);
+  rc = ptin_hapi_l2intf_maclimit_status_get(entry->l2intf_id, &entry->status);
   if (rc != L7_SUCCESS)
   {
-     PT_LOG_ERR(LOG_CTX_HAPI, "Failed to get MAC limit state of vport_id %d", entry->vport_id);
+     PT_LOG_ERR(LOG_CTX_HAPI, "Failed to get MAC limit state of l2intf_id %d", entry->l2intf_id);
   }
   return rc;
 }
@@ -348,8 +345,8 @@ L7_RC_t broad_ptin_qos_classify(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L
     return L7_FAILURE;
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Input Parameters [port_bmp=0x%016llx intVlan=%u NNIVlan=%u trust_mode=%u priority=%u/0x%x -> int_prio=%u , pRemark_prio=%u ",
-            qos_cfg->ptin_port_bmp, qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->trust_mode, qos_cfg->priority, qos_cfg->priority_mask, qos_cfg->int_priority, qos_cfg->pbits_remark);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Input Parameters [usp_port_bmp=0x%016llx intVlan=%u NNIVlan=%u trust_mode=%u priority=%u/0x%x -> int_prio=%u , pRemark_prio=%u ",
+            qos_cfg->port_bmp, qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->trust_mode, qos_cfg->priority, qos_cfg->priority_mask, qos_cfg->int_priority, qos_cfg->pbits_remark);
 
   dapiPort.usp = usp;
   dapiPort.dapi_g = dapi_g;
@@ -478,122 +475,75 @@ L7_RC_t hapiBroadPtinGeneric(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
  * 
  * @return L7_RC_t 
  */
-L7_RC_t broad_ptin_shaper_max_burst(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
+L7_RC_t broad_ptin_shaper_set(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
 {
+  dtl_intf_shaper_t  *entry;
+  L7_uint32           rate_min_kbps, rate_max_kbps, burst_size;
+  ptin_dapi_port_t    dapiPort;
+  BROAD_PORT_t       *hapiPortPtr;
   L7_RC_t rc = L7_SUCCESS;
-  ptin_intf_shaper_t *entry;
-  DAPI_PORT_t           *dapiPortPtr;
-  BROAD_PORT_t          *hapiPortPtr;
-  L7_uint32             bcmSpeed = 0;
 
-  entry = (ptin_intf_shaper_t*) data;
+  entry = (dtl_intf_shaper_t*) data;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "%s: usp={%d,%d,%d} operation=%u dataSize=%u", __FUNCTION__, usp->unit, usp->slot, usp->port, operation, dataSize);
+  hapiPortPtr = HAPI_PORT_GET( usp, dapi_g );
 
-  dapiPortPtr   = DAPI_PORT_GET( usp, dapi_g );
-  hapiPortPtr   = HAPI_PORT_GET( usp, dapi_g );
+  PT_LOG_TRACE(LOG_CTX_QOS, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "speed %d", hapiPortPtr->speed );
+  dapiPort.usp    = usp;
+  dapiPort.dapi_g = dapi_g;
 
-  switch ( hapiPortPtr->speed )
+  /* Get/Set operation */
+  switch (operation)
   {
-      case DAPI_PORT_SPEED_GE_1GBPS:
-        bcmSpeed = 1000000;
-        break;
+  case DAPI_CMD_SET:
+    if (entry->rate_units == L7_RATE_UNIT_PERCENT)
+    {
+      L7_uint32 bcmSpeed;
 
-      /* PTin added: Speed 2.5G */
-      case DAPI_PORT_SPEED_GE_2G5BPS:
-        bcmSpeed = 2500000;
-        break;
-      /* PTin end */
+      /* Get port speed */
+      hapiBroadIntfSpeedGet(hapiPortPtr, entry->queueSet, &bcmSpeed);
 
-      case DAPI_PORT_SPEED_GE_10GBPS:
-        bcmSpeed = 10000000;
-        break;
+      rate_min_kbps = (L7_uint32) (((L7_uint64) entry->rate_min*bcmSpeed)/1000);
+      rate_max_kbps = (L7_uint32) (((L7_uint64) entry->rate_max*bcmSpeed)/1000);
 
-      /* PTin added: Speed 40G */
-      case DAPI_PORT_SPEED_GE_40GBPS:
-        bcmSpeed = 40000000;
-        break;
+      PT_LOG_TRACE(LOG_CTX_QOS, "rate_min=%u/%u Kbps rate_max=%u/%u Kbps bcmSpeed=%u", 
+                   entry->rate_min, rate_min_kbps, entry->rate_max, rate_max_kbps, bcmSpeed);
+    }
+    else if (entry->rate_units == L7_RATE_UNIT_KBPS)
+    {
+      rate_min_kbps = entry->rate_min;
+      rate_max_kbps = entry->rate_max;
 
-      /* PTin added: Speed 100G */
-      case DAPI_PORT_SPEED_GE_100GBPS:
-        bcmSpeed = 100000000;
-        break;
+      PT_LOG_TRACE(LOG_CTX_QOS, "rate_min=%u/%u Kbps rate_max=%u/%u Kbps", 
+                   entry->rate_min, rate_min_kbps, entry->rate_max, rate_max_kbps);
+    }
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_QOS, "Invalid unit %u", entry->rate_units);
+      return L7_FAILURE;
+    }
+    burst_size = entry->burst_size;
+    rc = ptin_hapi_qos_shaper_set(&dapiPort, entry->queueSet, entry->tc,
+                                  rate_min_kbps,
+                                  rate_max_kbps,
+                                  burst_size);
+    break;
 
-      default:
-        bcmSpeed = 2500000;
-        break;
+  case DAPI_CMD_GET:
+    rc = ptin_hapi_qos_shaper_get(&dapiPort, entry->queueSet, entry->tc,
+                                  &rate_min_kbps,
+                                  &rate_max_kbps,
+                                  &burst_size);
+    entry->rate_units = L7_RATE_UNIT_KBPS;
+    entry->rate_min   = rate_min_kbps;
+    entry->rate_max   = rate_max_kbps;
+    entry->burst_size = burst_size;
+    break;
+
+  default:
+    PT_LOG_ERR(LOG_CTX_QOS, "Unknown operation %u", operation);
+    return L7_FAILURE;
   }
-
-  rc = ptin_hapi_qos_shaper_max_burst_config(usp->unit, hapiPortPtr->bcm_port, ((entry->max_rate*bcmSpeed)/100), entry->burst_size);
-
-  return rc;
-}
-
-/**
- * Get shaper max rate and burst size
- * 
- * @param usp 
- * @param operation 
- * @param dataSize 
- * @param data 
- * @param dapi_g 
- * 
- * @return L7_RC_t 
- */
-L7_RC_t broad_ptin_shaper_max_burst_get(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
-{
-  L7_RC_t rc = L7_SUCCESS;
-  DAPI_PORT_t           *dapiPortPtr;
-  BROAD_PORT_t          *hapiPortPtr;
-  L7_uint32             bcmSpeed = 0;// max_rate, burst_size;
-  ptin_intf_shaper_t    *entry;
-
-  entry = (ptin_intf_shaper_t *) data;
-
-  PT_LOG_TRACE(LOG_CTX_HAPI, "%s: usp={%d,%d,%d} operation=%u dataSize=%u", __FUNCTION__, usp->unit, usp->slot, usp->port, operation, dataSize);
-
-  dapiPortPtr   = DAPI_PORT_GET( usp, dapi_g );
-  hapiPortPtr   = HAPI_PORT_GET( usp, dapi_g );
-
-  rc = ptin_hapi_qos_shaper_max_burst_get(usp->unit, hapiPortPtr->bcm_port, &entry->max_rate, &entry->burst_size);
-
-  switch ( hapiPortPtr->speed )
-  {
-    case DAPI_PORT_SPEED_GE_1GBPS:
-      bcmSpeed = 1000000;
-      break;
-
-    /* PTin added: Speed 2.5G */
-    case DAPI_PORT_SPEED_GE_2G5BPS:
-      bcmSpeed = 2500000;
-      break;
-    /* PTin end */
-
-    case DAPI_PORT_SPEED_GE_10GBPS:
-      bcmSpeed = 10000000;
-      break;
-
-    /* PTin added: Speed 40G */
-    case DAPI_PORT_SPEED_GE_40GBPS:
-      bcmSpeed = 40000000;
-      break;
-
-    /* PTin added: Speed 100G */
-    case DAPI_PORT_SPEED_GE_100GBPS:
-      bcmSpeed = 100000000;
-      break;
-
-    default:
-      bcmSpeed = 2500000;
-      break;
-  }
-
-  entry->max_rate   = (100 * (entry->max_rate))/(bcmSpeed);
-
-  PT_LOG_TRACE(LOG_CTX_HAPI, "entry->max_rate %u",   entry->max_rate);
-  PT_LOG_TRACE(LOG_CTX_HAPI, "entry->burst_size %u", entry->burst_size);
 
   return rc;
 }
@@ -989,9 +939,13 @@ L7_RC_t hapiBroadPtinPortExt(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
  */
 L7_RC_t hapiBroadPtinCountersRead(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
+  ptin_dapi_port_t dapiPort;
   L7_RC_t rc;
 
-  rc = hapi_ptin_counters_read((ptin_HWEthRFC2819_PortStatistics_t *)data);
+  /* Prepare dapiPort structure */
+  DAPIPORT_SET(&dapiPort, usp, dapi_g);
+
+  rc = hapi_ptin_counters_read(&dapiPort, (ptin_HWEthRFC2819_PortStatistics_t *)data);
   if (rc != L7_SUCCESS)
     return L7_FAILURE;
 
@@ -1011,14 +965,14 @@ L7_RC_t hapiBroadPtinCountersRead(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
  */
 L7_RC_t hapiBroadPtinCountersClear(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
-  ptin_HWEthRFC2819_PortStatistics_t *stat = (ptin_HWEthRFC2819_PortStatistics_t *) data;
-  L7_uint port;
+  ptin_dapi_port_t dapiPort;
 
-  port = stat->Port;
+  /* Prepare dapiPort structure */
+  DAPIPORT_SET(&dapiPort, usp, dapi_g);
 
-  if ( hapi_ptin_counters_clear(port) )
+  if ( hapi_ptin_counters_clear(&dapiPort) != L7_SUCCESS )
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error on hapi_ptin_counters_clear() on port# %u", port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error on hapi_ptin_counters_clear() on port# %u", dapiPort.usp->port);
     return L7_FAILURE;
   }
 
@@ -1038,9 +992,13 @@ L7_RC_t hapiBroadPtinCountersClear(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
  */
 L7_RC_t hapiBroadPtinCountersActivityGet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
+  ptin_dapi_port_t dapiPort;
   L7_RC_t rc;
 
-  rc = hapi_ptin_counters_activity_get((ptin_HWEth_PortsActivity_t*)data);
+  /* Prepare dapiPort structure */
+  DAPIPORT_SET(&dapiPort, usp, dapi_g);
+
+  rc = hapi_ptin_counters_activity_get(&dapiPort, (ptin_HWEth_PortsActivity_t*)data);
   if (rc != L7_SUCCESS)
     return L7_FAILURE;
 
@@ -1200,7 +1158,7 @@ L7_RC_t hapiBroadPtinVlanTranslatePortGroups(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
   switch ((L7_int) classSt->oper)
   {
   case DAPI_CMD_SET:
-    rc = ptin_hapi_xlate_egress_portsGroup_set(classSt->class_id, &usp, 1, dapi_g);
+    rc = ptin_hapi_xlate_egress_portsGroup_set(classSt->class_id, usp, dapi_g);
     break;
 
   case DAPI_CMD_GET:
@@ -1305,6 +1263,13 @@ L7_RC_t hapiBroadPtinBridgeVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
     return L7_SUCCESS;
   }
 
+  /* COS queue destination (wired, wireless, etc) */
+  if (mode->mask & PTIN_BRIDGE_VLAN_MODE_MASK_COSQ_DEST)
+  {
+    if (ptin_hapi_bridge_vlan_cosq_set(mode->vlanId, mode->qos_queueSet) != L7_SUCCESS)
+      rc = L7_FAILURE;
+  }
+
   /* Forward vlan configuration */
   if (mode->mask & PTIN_BRIDGE_VLAN_MODE_MASK_FWDVLAN)
   {
@@ -1386,7 +1351,7 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
   /* Previous port (Must be physical) */
   if (vlan_mode->ddUsp.unit == 1 &&     /* Unit 0 */
       vlan_mode->ddUsp.slot == 0 &&     /* Physical port */
-      vlan_mode->ddUsp.port >= 0 && vlan_mode->ddUsp.port < PTIN_SYSTEM_N_PORTS)
+      vlan_mode->ddUsp.port >= 0 && vlan_mode->ddUsp.port < L7_MAX_PHYSICAL_PORTS_PER_SLOT)
   {
     dapiPortPtr_prev = DAPI_PORT_GET(&vlan_mode->ddUsp, dapi_g);
     hapiPortPtr_prev = HAPI_PORT_GET(&vlan_mode->ddUsp, dapi_g);
@@ -1672,10 +1637,10 @@ L7_RC_t hapiBroadPtinMulticastEgressPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, voi
   switch (mode->oper)
   {
   case DAPI_CMD_SET:
-    rc = ptin_hapi_multicast_egress_port_add(&mode->multicast_group, mode->multicast_flag, mode->virtual_gport, &dapiPort);
+    rc = ptin_hapi_multicast_egress_port_add(&mode->multicast_group, mode->multicast_flag, mode->l2intf_id, &dapiPort);
     break;
   case DAPI_CMD_CLEAR:
-    rc = ptin_hapi_multicast_egress_port_remove(mode->multicast_group, mode->multicast_flag, mode->virtual_gport, &dapiPort);
+    rc = ptin_hapi_multicast_egress_port_remove(mode->multicast_group, mode->multicast_flag, mode->l2intf_id, &dapiPort);
     break;
   case DAPI_CMD_CLEAR_ALL:
     rc = ptin_hapi_multicast_egress_clean(mode->multicast_group, mode->destroy_on_clear);
@@ -1689,7 +1654,7 @@ L7_RC_t hapiBroadPtinMulticastEgressPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, voi
 }
 
 /**
- * Configure Virtual ports
+ * Configure L2intf's
  * 
  * @param usp 
  * @param cmd 
@@ -1698,52 +1663,50 @@ L7_RC_t hapiBroadPtinMulticastEgressPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, voi
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t hapiBroadPtinVirtualPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
+L7_RC_t hapiBroadPtinL2intfSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
   ptin_dapi_port_t dapiPort;
-  ptin_vport_t *vport = (ptin_vport_t *) data;
+  ptin_l2intf_t *l2intf = (ptin_l2intf_t *) data;
   L7_RC_t rc = L7_SUCCESS;
 
   DAPIPORT_SET(&dapiPort, usp, dapi_g);
 
-  switch (vport->oper)
+  switch (l2intf->oper)
   {
   case DAPI_CMD_SET:
-    if (vport->cmd == PTIN_VPORT_CMD_VP_OPER)
+    if (l2intf->cmd == PTIN_VPORT_CMD_VP_OPER)
     {
-
-
-      rc = ptin_hapi_vp_create(&dapiPort, 
-                               vport->ext_ovid, vport->ext_ivid,
-                               vport->int_ovid, vport->int_ivid,
-                               &vport->multicast_group,
-                               &vport->virtual_gport, vport->port_id, vport->type);
+      rc = ptin_hapi_l2intf_create(&dapiPort,
+                                   l2intf->ext_ovid, l2intf->ext_ivid,
+                                   l2intf->int_ovid, l2intf->int_ivid,
+                                   &l2intf->multicast_group,
+                                   &l2intf->l2intf_id, l2intf->port_id, l2intf->type);
 
       if (rc == L7_SUCCESS)
       {
-        rc = ptin_hapi_vport_maclimit_setmax(vport->virtual_gport, vport->macLearnMax);
+        rc = ptin_hapi_l2intf_maclimit_setmax(l2intf->l2intf_id, l2intf->macLearnMax);
       }
     }
-    else if (vport->cmd == PTIN_VPORT_CMD_MAXMAC_SET)
+    else if (l2intf->cmd == PTIN_VPORT_CMD_MAXMAC_SET)
     {
-      rc = ptin_hapi_vport_maclimit_setmax(vport->virtual_gport, vport->macLearnMax); 
+      rc = ptin_hapi_l2intf_maclimit_setmax(l2intf->l2intf_id, l2intf->macLearnMax); 
     }
     break;
 
   case DAPI_CMD_CLEAR:
   case DAPI_CMD_CLEAR_ALL:
-    if (vport->cmd == PTIN_VPORT_CMD_VP_OPER)
+    if (l2intf->cmd == PTIN_VPORT_CMD_VP_OPER)
     {
-      rc = ptin_hapi_vp_remove(&dapiPort, vport->ext_ovid, vport->ext_ivid, vport->virtual_gport, vport->multicast_group);
+      rc = ptin_hapi_l2intf_remove(&dapiPort, l2intf->ext_ovid, l2intf->ext_ivid, l2intf->l2intf_id, l2intf->multicast_group);
 
       if (rc == L7_SUCCESS)
       {
-        rc = ptin_hapi_vport_maclimit_reset(vport->virtual_gport);
+        rc = ptin_hapi_l2intf_maclimit_reset(l2intf->l2intf_id);
       }
     }
-    else if (vport->cmd == PTIN_VPORT_CMD_MAXMAC_SET)
+    else if (l2intf->cmd == PTIN_VPORT_CMD_MAXMAC_SET)
     {
-      rc = ptin_hapi_vport_maclimit_reset(vport->virtual_gport);
+      rc = ptin_hapi_l2intf_maclimit_reset(l2intf->l2intf_id);
     }
     break;
 
@@ -2436,29 +2399,28 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisSet(DAPI_USP_t *usp, L7_uint16 *preem
  * 
  * @param port 
  */
-void ptin_tapsettings_dump(L7_uint port)
+void ptin_tapsettings_dump(L7_uint usp_port)
 {
   DAPI_USP_t usp;
   L7_uint   i;
   L7_uint16 preemphasys[4] = {0, 0, 0, 0};
 
-  if (port >= ptin_sys_number_of_ports)
+  if (usp_port >= L7_MAX_PHYSICAL_PORTS_PER_SLOT)
   {
-    printf("Invalid port %u\r\n", port);
+    printf("Invalid port %u\r\n", usp_port);
     return;
   }
 
-  usp.unit = 1;
-  usp.slot = 0;
-  usp.port = port;
+  /* Init USP data */
+  hapi_ptin_usp_init(&usp, 0, usp_port);
 
   if (hapiBroadPTinPrbsPreemphasisGet(&usp, preemphasys, 4) != L7_SUCCESS)
   {
-    printf("Error reading current tap settings of port %u\r\n", port);
+    printf("Error reading current tap settings of port %u\r\n", usp_port);
     return;
   }
 
-  printf("Preemphasys for port %u (0x8060 with 0x8063:14=1):\r\n", port);
+  printf("Preemphasys for port %u (0x8060 with 0x8063:14=1):\r\n", usp_port);
   for (i = 0; i < 4; i++)
   {
     printf(" Lane %u: 0x%08x (pre=%2u main=%2u post=%2u)\r\n", i, preemphasys[i],
@@ -2475,19 +2437,19 @@ void ptin_tapsettings_dump(L7_uint port)
  * @param data 
  * @param force 
  */
-void ptin_tapsettings_set(L7_uint port, L7_uint16 pre, L7_uint16 main, L7_uint16 post, L7_uint force)
+void ptin_tapsettings_set(L7_uint usp_port, L7_uint16 pre, L7_uint16 main, L7_uint16 post, L7_uint force)
 {
   DAPI_USP_t usp;
   L7_uint   i;
   L7_uint16 preemphasys[4] = {0, 0, 0, 0};
 
-  if (port >= ptin_sys_number_of_ports)
+  if (usp_port >= L7_MAX_PHYSICAL_PORTS_PER_SLOT)
   {
-    printf("Invalid port %u\r\n", port);
+    printf("Invalid port %u\r\n", usp_port);
     return;
   }
 
-  printf("New preemphasys for port %u (0x82e2):\r\n", port);
+  printf("New preemphasys for port %u (0x82e2):\r\n", usp_port);
   for (i = 0; i < 4; i++)
   {
     preemphasys[i] = (pre & 0xf) | ((main & 0x3f)<<4) | ((post & 0x1f)<<10) | ((force & 1)<<15);
@@ -2496,13 +2458,12 @@ void ptin_tapsettings_set(L7_uint port, L7_uint16 pre, L7_uint16 main, L7_uint16
            preemphasys[i] & 0xf, (preemphasys[i]>>4) & 0x3f, (preemphasys[i]>>10) & 0x1f, (preemphasys[i]>>15) & 1);
   }
 
-  usp.unit = 1;
-  usp.slot = 0;
-  usp.port = port;
+  /* Init USP data */
+  hapi_ptin_usp_init(&usp, 0, usp_port);
 
   if (hapiBroadPTinPrbsPreemphasisSet(&usp, preemphasys, 4, force) != L7_SUCCESS)
   {
-    printf("Error setting new tap settings of port %u\r\n", port);
+    printf("Error setting new tap settings of port %u\r\n", usp_port);
     return;
   }
 

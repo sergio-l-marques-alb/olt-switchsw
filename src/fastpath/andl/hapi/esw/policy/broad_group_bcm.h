@@ -160,6 +160,8 @@ int l7_bcm_policy_destroy(int unit, BROAD_POLICY_t policy);
 
 int l7_bcm_policy_apply(int unit, BROAD_POLICY_t policy, bcm_port_t port);
 
+int l7_bcm_policy_apply_multi(int unit, BROAD_POLICY_t policy, bcm_pbmp_t pbmp);
+
 int l7_bcm_policy_apply_all(int unit, BROAD_POLICY_t policy);
 
 int l7_bcm_policy_remove(int unit, BROAD_POLICY_t policy, bcm_port_t port);
@@ -173,5 +175,35 @@ int l7_bcm_policy_counter_clear(int unit, BROAD_POLICY_t policy);
 void l7_bcm_policy_dataplane_cleanup(L7_uint32 unit, L7_uint32 policy, L7_uint32 rule, L7_uint32 cpu_modid, L7_uint32 cpu_modport);
 int l7_bcm_policy_rule_status_set(int unit, BROAD_POLICY_t policy, BROAD_POLICY_RULE_t rule, BROAD_RULE_STATUS_t status);
 int _policy_map_get_info(int unit, int policy, policy_map_table_t *policyPtr);
+
+/**
+ * Set a class id for a new added port
+ * 
+ * @author mruas (16/12/20)
+ * 
+ * @param unit 
+ * @param policyStage 
+ * @param portClass 
+ * @param port 
+ * 
+ * @return int 
+ */
+extern 
+int l7_policy_portclass_port_add(int unit, BROAD_POLICY_STAGE_t policyStage, unsigned char portClass, int port);
+
+/**
+ * Clear the classId for a removed port
+ * 
+ * @author mruas (16/12/20)
+ * 
+ * @param unit 
+ * @param policyStage 
+ * @param portClass 
+ * @param port 
+ * 
+ * @return int 
+ */
+extern 
+int l7_policy_portclass_port_remove(int unit, BROAD_POLICY_STAGE_t policyStage, unsigned char portClass, int port);
 
 #endif /* BROAD_GROUP_BCM_H */

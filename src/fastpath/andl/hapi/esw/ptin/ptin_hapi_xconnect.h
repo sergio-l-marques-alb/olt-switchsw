@@ -27,10 +27,29 @@ extern L7_RC_t ptin_hapi_bridge_free_resources(L7_uint16 *crossconnects);
  *                    addresses
  * @param cross_connects_apply: Use cross-connects to this vlan?
  * @param mac_learning_apply:   Apply mac learning to this vlan?
+ * @param mc_group: Multicast group 
+ * @param queueSet: Destination COS queue (l7_cosq_set_t) 
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_BOOL cross_connects_apply, L7_BOOL mac_learning_apply, L7_int mc_group);
+extern L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId,
+                                              L7_uint16 fwdVlanId,
+                                              L7_BOOL   cross_connects_apply,
+                                              L7_BOOL   mac_learning_apply,
+                                              L7_int    mc_group,
+                                              l7_cosq_set_t queueSet);
+
+/**
+ * For a particular VLAN select queue destination
+ * 
+ * @author mruas (29/12/20)
+ * 
+ * @param vlanId
+ * @param queueSet : l7_cosq_set_t
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_hapi_bridge_vlan_cosq_set(L7_uint16 vlanId, l7_cosq_set_t queueSet);
 
 /**
  * Define forward vlanId for a specific vlan for bridging 
@@ -129,7 +148,7 @@ extern L7_RC_t ptin_hapi_bridge_crossconnect_delete(L7_uint16 outerVlanId, L7_ui
 extern L7_RC_t ptin_hapi_bridge_crossconnect_delete_all(void);
 
 /**
- * Create Virtual port
+ * Create an L2intf
  * 
  * @param dapiPort      : PON port
  * @param match_ovid    : external outer vlan (GEMid)
@@ -137,32 +156,32 @@ extern L7_RC_t ptin_hapi_bridge_crossconnect_delete_all(void);
  * @param egress_ovid   : outer vlan inside switch
  * @param egress_ivid   : inner vlan inside switch 
  * @param mcast_group   : mc group (-1 to create) 
- * @param virtual_gport : vport id (to be returned) 
+ * @param l2intf_id     : l2intf id (to be returned) 
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
-                                   L7_uint16 match_ovid, L7_uint16 match_ivid, L7_uint16 egress_ovid, L7_uint16 egress_ivid,
-                                   L7_int *mcast_group,
-                                   L7_int *virtual_gport,
-                                   L7_int port_id, 
-                                   L7_int type);
+extern L7_RC_t ptin_hapi_l2intf_create(ptin_dapi_port_t *dapiPort,
+                                       L7_uint16 match_ovid, L7_uint16 match_ivid, L7_uint16 egress_ovid, L7_uint16 egress_ivid,
+                                       L7_int *mcast_group,
+                                       L7_int *l2intf_id,
+                                       L7_int port_id, 
+                                       L7_int type);
 
 /**
- * Remove virtual port
+ * Remove an L2intf
  * 
  * @param dapiPort      : PON port
  * @param match_ovid    : external Outer vlan (GEMid)
  * @param match_ivid    : external inner vlan (UNIVLAN) 
- * @param virtual_gport : vport id 
+ * @param l2intf_id     : l2intf id 
  * @param mcast_group   : multicast group
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
-                            L7_uint16 match_ovid, L7_uint16 match_ivid,
-                            L7_int virtual_gport,
-                            L7_int mcast_group);
+L7_RC_t ptin_hapi_l2intf_remove(ptin_dapi_port_t *dapiPort,
+                                L7_uint16 match_ovid, L7_uint16 match_ivid,
+                                L7_int l2intf_id,
+                                L7_int mcast_group);
 
 /**
  * Add port to egress multicast group

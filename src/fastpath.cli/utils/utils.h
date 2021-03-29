@@ -31,7 +31,7 @@ typedef struct tm TRTC;
 #endif
 
 
-_EXTERN_ int StrToLong(char *pstr, uint32 *pValue);
+_EXTERN_ int StrToLong(char *pstr, unsigned long *pValue);
          
 _EXTERN_ int StrToLongLong(char *pstr, uint64 *pValue);
 

@@ -75,7 +75,7 @@ L7_RC_t cliRunningConfigGlobalCosQueue(EwsContext ewsContext, L7_uint32 unit)
   if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_MAX_BW_FEATURE_ID) == L7_TRUE)
   {
     memset(&queueBwList, 0, sizeof(queueBwList));
-    if (usmDbQosCosQueueMaxBandwidthListGet(unit, L7_ALL_INTERFACES, &queueBwList) == L7_SUCCESS)
+    if (usmDbQosCosQueueMaxBandwidthListGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &queueBwList) == L7_SUCCESS)
     {
       memset (buf, 0,sizeof(buf));
       for (queueNum = 0 ; queueNum < L7_MAX_CFG_QUEUES_PER_PORT; queueNum++)
@@ -103,7 +103,7 @@ L7_RC_t cliRunningConfigGlobalCosQueue(EwsContext ewsContext, L7_uint32 unit)
   if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_MIN_BW_FEATURE_ID) == L7_TRUE)
   {
     memset(&queueBwList, 0, sizeof(queueBwList));
-    if (usmDbQosCosQueueMinBandwidthListGet(unit, L7_ALL_INTERFACES, &queueBwList) == L7_SUCCESS)
+    if (usmDbQosCosQueueMinBandwidthListGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &queueBwList) == L7_SUCCESS)
     {
       memset (buf, 0,sizeof(buf));
       for (queueNum = 0 ; queueNum < L7_MAX_CFG_QUEUES_PER_PORT; queueNum++)
@@ -132,7 +132,7 @@ L7_RC_t cliRunningConfigGlobalCosQueue(EwsContext ewsContext, L7_uint32 unit)
     /* Management Type */
     diff = L7_FALSE;
     memset(&queueMgmtTypeList, 0, sizeof(queueMgmtTypeList));
-    if (usmDbQosCosQueueMgmtTypeListGet(unit, L7_ALL_INTERFACES, &queueMgmtTypeList) == L7_SUCCESS)
+    if (usmDbQosCosQueueMgmtTypeListGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &queueMgmtTypeList) == L7_SUCCESS)
     {
       memset (buf, 0,sizeof(buf));
       for (queueNum = 0 ; queueNum < L7_MAX_CFG_QUEUES_PER_PORT; queueNum++)
@@ -160,7 +160,7 @@ L7_RC_t cliRunningConfigGlobalCosQueue(EwsContext ewsContext, L7_uint32 unit)
   {
     diff = L7_FALSE;
     memset(&queueSchedTypeList, 0, sizeof(queueSchedTypeList));
-    if (usmDbQosCosQueueSchedulerTypeListGet(unit, L7_ALL_INTERFACES, &queueSchedTypeList) == L7_SUCCESS)
+    if (usmDbQosCosQueueSchedulerTypeListGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &queueSchedTypeList) == L7_SUCCESS)
     {
       memset (buf, 0,sizeof(buf));
       memset (buf2, 0, sizeof(buf2));
@@ -205,7 +205,7 @@ L7_RC_t cliRunningConfigGlobalCosQueue(EwsContext ewsContext, L7_uint32 unit)
   /* Shaping Rate */
   if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_INTF_SHAPING_FEATURE_ID) == L7_TRUE)
   {
-    if (usmDbQosCosQueueIntfShapingRateGet(unit, L7_ALL_INTERFACES, &val) == L7_SUCCESS)
+    if (usmDbQosCosQueueIntfShapingRateGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &val, L7_NULLPTR) == L7_SUCCESS)
     {
       cliShowCmdInt(ewsContext, val, FD_QOS_COS_QCFG_INTF_SHAPING_RATE, pStrInfo_qos_TrafficShape_2);
     }
@@ -249,9 +249,9 @@ L7_RC_t cliRunningConfigInterfaceCosQueue(EwsContext ewsContext, L7_uint32 unit,
   {
     memset(&interfaceQueueBwMinList, 0, sizeof(interfaceQueueBwMinList));
     memset(&globalQueueBwMinList, 0, sizeof(globalQueueBwMinList));
-    if(usmDbQosCosQueueMinBandwidthListGet(unit, interface, &interfaceQueueBwMinList) == L7_SUCCESS)
+    if(usmDbQosCosQueueMinBandwidthListGet(unit, interface, L7_QOS_QSET_DEFAULT, &interfaceQueueBwMinList) == L7_SUCCESS)
     {
-      if(usmDbQosCosQueueMinBandwidthListGet(unit, L7_ALL_INTERFACES, &globalQueueBwMinList) == L7_SUCCESS)
+      if(usmDbQosCosQueueMinBandwidthListGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &globalQueueBwMinList) == L7_SUCCESS)
       {
         memset (buf, 0,sizeof(buf));
         for (queueNum = 0 ; queueNum < L7_MAX_CFG_QUEUES_PER_PORT; queueNum++)
@@ -282,8 +282,8 @@ L7_RC_t cliRunningConfigInterfaceCosQueue(EwsContext ewsContext, L7_uint32 unit,
     /* Scheduler Type (Strict) */
     memset(&interfaceQueueSchedTypeList, 0, sizeof(interfaceQueueSchedTypeList));
     memset(&globalQueueSchedTypeList, 0, sizeof(globalQueueSchedTypeList));
-    if (usmDbQosCosQueueSchedulerTypeListGet(unit, interface, &interfaceQueueSchedTypeList) == L7_SUCCESS  &&
-        usmDbQosCosQueueSchedulerTypeListGet(unit, L7_ALL_INTERFACES, &globalQueueSchedTypeList) == L7_SUCCESS)
+    if (usmDbQosCosQueueSchedulerTypeListGet(unit, interface, L7_QOS_QSET_DEFAULT, &interfaceQueueSchedTypeList) == L7_SUCCESS  &&
+        usmDbQosCosQueueSchedulerTypeListGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &globalQueueSchedTypeList) == L7_SUCCESS)
     {
       memset (buf, 0,sizeof(buf));
       for (queueNum = 0 ; queueNum < L7_MAX_CFG_QUEUES_PER_PORT; queueNum++)
@@ -314,8 +314,8 @@ L7_RC_t cliRunningConfigInterfaceCosQueue(EwsContext ewsContext, L7_uint32 unit,
   /* Shaping Rate */
   if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_INTF_SHAPING_FEATURE_ID) == L7_TRUE)
   {
-    if (usmDbQosCosQueueIntfShapingRateGet(unit, interface, &interfaceRate) == L7_SUCCESS  &&
-        usmDbQosCosQueueIntfShapingRateGet(unit, L7_ALL_INTERFACES, &globalRate) == L7_SUCCESS)
+    if (usmDbQosCosQueueIntfShapingRateGet(unit, interface, L7_QOS_QSET_DEFAULT, &interfaceRate, L7_NULLPTR) == L7_SUCCESS  &&
+        usmDbQosCosQueueIntfShapingRateGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &globalRate, L7_NULLPTR) == L7_SUCCESS)
     {
       cliShowCmdInt(ewsContext,interfaceRate,globalRate,pStrInfo_qos_TrafficShape_2);
     }
@@ -327,8 +327,8 @@ L7_RC_t cliRunningConfigInterfaceCosQueue(EwsContext ewsContext, L7_uint32 unit,
   {
     memset(&interfaceQueueBwMaxList, 0, sizeof(interfaceQueueBwMaxList));
     memset(&globalQueueBwMaxList, 0, sizeof(globalQueueBwMaxList));
-    if (usmDbQosCosQueueMaxBandwidthListGet(unit, interface, &interfaceQueueBwMaxList) == L7_SUCCESS &&
-        usmDbQosCosQueueMaxBandwidthListGet(unit, L7_ALL_INTERFACES, &globalQueueBwMaxList) == L7_SUCCESS)
+    if (usmDbQosCosQueueMaxBandwidthListGet(unit, interface, L7_QOS_QSET_DEFAULT, &interfaceQueueBwMaxList) == L7_SUCCESS &&
+        usmDbQosCosQueueMaxBandwidthListGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &globalQueueBwMaxList) == L7_SUCCESS)
     {
       memset (buf, 0,sizeof(buf));
       for (queueNum = 0 ; queueNum < L7_MAX_CFG_QUEUES_PER_PORT; queueNum++)
@@ -361,8 +361,8 @@ L7_RC_t cliRunningConfigInterfaceCosQueue(EwsContext ewsContext, L7_uint32 unit,
     diff2 = L7_FALSE;
     memset(&interfaceQueueMgmtTypeList, 0, sizeof(interfaceQueueMgmtTypeList));
     memset(&globalQueueMgmtTypeList, 0, sizeof(globalQueueMgmtTypeList));
-    if (usmDbQosCosQueueMgmtTypeListGet(unit, interface, &interfaceQueueMgmtTypeList) == L7_SUCCESS  &&
-        usmDbQosCosQueueMgmtTypeListGet(unit, L7_ALL_INTERFACES, &globalQueueMgmtTypeList) == L7_SUCCESS)
+    if (usmDbQosCosQueueMgmtTypeListGet(unit, interface, L7_QOS_QSET_DEFAULT, &interfaceQueueMgmtTypeList) == L7_SUCCESS  &&
+        usmDbQosCosQueueMgmtTypeListGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &globalQueueMgmtTypeList) == L7_SUCCESS)
     {
       buf[0] = '\0';
       buf2[0] = '\0';
@@ -426,7 +426,7 @@ L7_RC_t cliRunningConfigGlobalClassofService(EwsContext ewsContext, L7_uint32 un
 
   if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_MAP_TRUST_MODE_FEATURE_ID) == L7_TRUE)
   {
-    if (usmDbQosCosMapTrustModeGet (unit, L7_ALL_INTERFACES, &globalVal) == L7_SUCCESS &&
+    if (usmDbQosCosMapTrustModeGet (unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &globalVal) == L7_SUCCESS &&
         (globalVal != FD_QOS_COS_MAP_INTF_TRUST_MODE || EWSSHOWALL(ewsContext) == L7_SHOW_DEFAULT))
     {
       memset(buf, 0, sizeof(buf));
@@ -484,8 +484,8 @@ L7_RC_t cliRunningConfigGlobalClassofService(EwsContext ewsContext, L7_uint32 un
 
     for (dscp = 0; dscp < L7_QOS_COS_MAP_NUM_IPDSCP; dscp++)
     {
-      if ((usmDbQosCosMapIpDscpTrafficClassGet (unit, L7_ALL_INTERFACES, dscp, &globalVal) == L7_SUCCESS &&
-           usmDbQosCosMapIpDscpDefaultTrafficClassGet (unit, L7_ALL_INTERFACES, dscp, &defaultTrafficClass) == L7_SUCCESS) && (globalVal != defaultTrafficClass || EWSSHOWALL(ewsContext) == L7_SHOW_DEFAULT))
+      if ((usmDbQosCosMapIpDscpTrafficClassGet (unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, dscp, &globalVal) == L7_SUCCESS &&
+           usmDbQosCosMapIpDscpDefaultTrafficClassGet (unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, dscp, &defaultTrafficClass) == L7_SUCCESS) && (globalVal != defaultTrafficClass || EWSSHOWALL(ewsContext) == L7_SHOW_DEFAULT))
       {
         osapiSnprintf(buf, sizeof(buf), "%u %u", dscp, globalVal);
         osapiSnprintfAddBlanks (1, 0, 0, 0, L7_NULLPTR, stat, sizeof(stat), pStrInfo_qos_ClassofserviceIpDscpMapping, buf );
@@ -498,8 +498,8 @@ L7_RC_t cliRunningConfigGlobalClassofService(EwsContext ewsContext, L7_uint32 un
   {
     for (precedence = 0; precedence < L7_QOS_COS_MAP_NUM_IPPREC; precedence++)
     {
-      if ((usmDbQosCosMapIpPrecTrafficClassGet (unit, L7_ALL_INTERFACES, precedence, &globalVal) == L7_SUCCESS &&
-           usmDbQosCosMapIpPrecDefaultTrafficClassGet (unit, L7_ALL_INTERFACES, precedence, &defaultTrafficClass) == L7_SUCCESS) && ( globalVal != defaultTrafficClass || EWSSHOWALL(ewsContext) == L7_SHOW_DEFAULT))
+      if ((usmDbQosCosMapIpPrecTrafficClassGet (unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, precedence, &globalVal) == L7_SUCCESS &&
+           usmDbQosCosMapIpPrecDefaultTrafficClassGet (unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, precedence, &defaultTrafficClass) == L7_SUCCESS) && ( globalVal != defaultTrafficClass || EWSSHOWALL(ewsContext) == L7_SHOW_DEFAULT))
       {
         osapiSnprintf(buf, sizeof(buf), "%u %u", precedence, globalVal);
         osapiSnprintfAddBlanks (1, 0, 0, 0, L7_NULLPTR, stat, sizeof(stat), pStrInfo_qos_ClassofserviceIpPrecedenceMapping, buf );
@@ -534,8 +534,8 @@ L7_RC_t cliRunningConfigInterfaceClassofService(EwsContext ewsContext, L7_uint32
   if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_MAP_TRUST_MODE_FEATURE_ID) == L7_TRUE) &&
       (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_MAP_TRUST_MODE_PER_INTF_FEATURE_ID) == L7_TRUE))
   {
-    if ((usmDbQosCosMapTrustModeGet (unit, interface, &val) == L7_SUCCESS &&
-         usmDbQosCosMapTrustModeGet (unit, L7_ALL_INTERFACES, &globalVal) == L7_SUCCESS) &&
+    if ((usmDbQosCosMapTrustModeGet (unit, interface, L7_QOS_QSET_DEFAULT, &val) == L7_SUCCESS &&
+         usmDbQosCosMapTrustModeGet (unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &globalVal) == L7_SUCCESS) &&
         (val != globalVal || EWSSHOWALL(ewsContext) == L7_SHOW_DEFAULT))
     {
       memset(buf, 0, sizeof(buf));
@@ -593,8 +593,8 @@ L7_RC_t cliRunningConfigInterfaceClassofService(EwsContext ewsContext, L7_uint32
   {
     for (dscp = 0; dscp < L7_QOS_COS_MAP_NUM_IPDSCP; dscp++)
     {
-      if ((usmDbQosCosMapIpDscpTrafficClassGet(unit, interface, dscp, &val) == L7_SUCCESS &&
-           usmDbQosCosMapIpDscpTrafficClassGet(unit, L7_ALL_INTERFACES, dscp, &globalVal) == L7_SUCCESS) &&
+      if ((usmDbQosCosMapIpDscpTrafficClassGet(unit, interface, L7_QOS_QSET_DEFAULT, dscp, &val) == L7_SUCCESS &&
+           usmDbQosCosMapIpDscpTrafficClassGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, dscp, &globalVal) == L7_SUCCESS) &&
           (val != globalVal || EWSSHOWALL(ewsContext) == L7_SHOW_DEFAULT))
       {
         osapiSnprintf(buf, sizeof(buf), "%u %u", dscp, val);
@@ -610,8 +610,8 @@ L7_RC_t cliRunningConfigInterfaceClassofService(EwsContext ewsContext, L7_uint32
   {
     for (precedence = 0; precedence < L7_QOS_COS_MAP_NUM_IPPREC; precedence++)
     {
-      if ((usmDbQosCosMapIpPrecTrafficClassGet(unit, interface, precedence, &val) == L7_SUCCESS &&
-           usmDbQosCosMapIpPrecTrafficClassGet(unit, L7_ALL_INTERFACES, precedence, &globalVal) == L7_SUCCESS)&&
+      if ((usmDbQosCosMapIpPrecTrafficClassGet(unit, interface, L7_QOS_QSET_DEFAULT, precedence, &val) == L7_SUCCESS &&
+           usmDbQosCosMapIpPrecTrafficClassGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, precedence, &globalVal) == L7_SUCCESS)&&
           (val != globalVal || EWSSHOWALL(ewsContext) == L7_SHOW_DEFAULT))
       {
         osapiSnprintf(buf, sizeof(buf), "%u %u", precedence, val);
@@ -674,10 +674,10 @@ L7_RC_t cliRunningConfigInterfaceRandomDetect(EwsContext ewsContext, L7_uint32 u
     if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_MGMT_INTF_ONLY_FEATURE_ID) == L7_TRUE &&
         usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_WRED_SUPPORT_FEATURE_ID) == L7_TRUE)
     {
-      if ((usmDbQosCosQueueMgmtTypePerIntfGet(unit, interface, &val) == L7_SUCCESS) &&
+      if ((usmDbQosCosQueueMgmtTypePerIntfGet(unit, interface, L7_QOS_QSET_DEFAULT, &val) == L7_SUCCESS) &&
           (((val != FD_QOS_COS_QCFG_MGMT_TYPE) || (EWSSHOWALL(ewsContext) == L7_SHOW_DEFAULT))) && 
            ((interface == L7_ALL_INTERFACES) ||
-            (usmDbQosCosQueueMgmtTypePerIntfGet(unit, L7_ALL_INTERFACES, &globalVal) != L7_SUCCESS) ||
+            (usmDbQosCosQueueMgmtTypePerIntfGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &globalVal) != L7_SUCCESS) ||
             (val != globalVal)))
       {
         memset (buf, 0,sizeof(buf));
@@ -695,10 +695,10 @@ L7_RC_t cliRunningConfigInterfaceRandomDetect(EwsContext ewsContext, L7_uint32 u
     }
 
     /* Random Detect Exponential Weighting Constant */
-    if ((usmDbQosCosQueueWredDecayExponentGet(unit, interface, &val) == L7_SUCCESS) &&
+    if ((usmDbQosCosQueueWredDecayExponentGet(unit, interface, L7_QOS_QSET_DEFAULT, &val) == L7_SUCCESS) &&
         ((val != FD_QOS_COS_QCFG_WRED_DECAY_EXP) || (EWSSHOWALL(ewsContext) == L7_SHOW_DEFAULT)) && 
         ((interface == L7_ALL_INTERFACES) || 
-        (usmDbQosCosQueueWredDecayExponentGet(unit, L7_ALL_INTERFACES, &globalVal) != L7_SUCCESS) || 
+        (usmDbQosCosQueueWredDecayExponentGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &globalVal) != L7_SUCCESS) || 
         (val != globalVal)))
     {
       osapiSnprintfAddBlanks (1, 0, 0, 0, L7_NULLPTR, buf, sizeof(buf), pStrInfo_qos_RandomDetectExponentialWeightingConstant_1, val );
@@ -709,12 +709,12 @@ L7_RC_t cliRunningConfigInterfaceRandomDetect(EwsContext ewsContext, L7_uint32 u
     memset(skipThisQueue, 0, sizeof(skipThisQueue));
     if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_WRED_SUPPORT_FEATURE_ID) == L7_TRUE)
     {
-      if ((interface != L7_ALL_INTERFACES) || (usmDbQosCosQueueDefaultConfigGet(unit, interface, &defCfg) == L7_SUCCESS))
+      if ((interface != L7_ALL_INTERFACES) || (usmDbQosCosQueueDefaultConfigGet(unit, interface, L7_QOS_QSET_DEFAULT, &defCfg) == L7_SUCCESS))
       {
-          if (usmDbQosCosQueueDropParmsListGet(unit, interface, &dList) == L7_SUCCESS)
+          if (usmDbQosCosQueueDropParmsListGet(unit, interface, L7_QOS_QSET_DEFAULT, &dList) == L7_SUCCESS)
           {
             if ((interface == L7_ALL_INTERFACES) || 
-                (usmDbQosCosQueueDropParmsListGet(unit, L7_ALL_INTERFACES, &globalDList) == L7_SUCCESS)) 
+                (usmDbQosCosQueueDropParmsListGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &globalDList) == L7_SUCCESS)) 
             {
                 for (queueId = 0; queueId < L7_MAX_CFG_QUEUES_PER_PORT; queueId++)
                 {
@@ -895,12 +895,12 @@ L7_RC_t cliRunningConfigInterfaceTailDrop(EwsContext ewsContext, L7_uint32 unit,
 
   memset(skipThisQueue, 0, sizeof(skipThisQueue));
 
-  if ((interface != L7_ALL_INTERFACES) || (usmDbQosCosQueueDefaultConfigGet(unit, interface, &defCfg) == L7_SUCCESS))
+  if ((interface != L7_ALL_INTERFACES) || (usmDbQosCosQueueDefaultConfigGet(unit, interface, L7_QOS_QSET_DEFAULT, &defCfg) == L7_SUCCESS))
   {
-    if (usmDbQosCosQueueDropParmsListGet(unit, interface, &dropList) == L7_SUCCESS)
+    if (usmDbQosCosQueueDropParmsListGet(unit, interface, L7_QOS_QSET_DEFAULT, &dropList) == L7_SUCCESS)
     {
       if ((interface == L7_ALL_INTERFACES) || 
-          (usmDbQosCosQueueDropParmsListGet(unit, L7_ALL_INTERFACES, &globalDropList) == L7_SUCCESS)) 
+          (usmDbQosCosQueueDropParmsListGet(unit, L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &globalDropList) == L7_SUCCESS)) 
       {
           for (queueId = 0; queueId < L7_MAX_CFG_QUEUES_PER_PORT; queueId++)
           {

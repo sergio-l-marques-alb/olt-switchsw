@@ -248,14 +248,14 @@ extern int canal_buga;
 #define CCMSG_NGPON2_REM_GROUP_PORT                     0x91EF
 
 /* Fastpath typedefs */
-typedef uint8    L7_uint8;
-typedef uint16   L7_uint16;
-typedef uint32   L7_uint32;
-typedef uint64   L7_uint64;
-typedef int8     L7_int8;
-typedef int16    L7_int16;
-typedef int32    L7_int32;
-typedef int64    L7_int64;
+typedef unsigned char      L7_uint8;
+typedef unsigned short     L7_uint16;
+typedef unsigned int       L7_uint32;
+typedef unsigned long long L7_uint64;
+typedef char      L7_int8;
+typedef short     L7_int16;
+typedef int       L7_int32;
+typedef long long L7_int64;
 
 /*****************************************************************************
  * Structures exchanged on the messages
@@ -721,8 +721,7 @@ typedef struct {
   L7_uint8  stp_enable;           // DISABLED=0 or ENABLED=1
   L7_uint8  static_enable;        // DISABLED=0 or ENABLED=1
   L7_uint8  loadBalance_mode;     // FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
-  L7_uint32 members_pbmp;         // Ports bitmap (0  .. 31)
-  L7_uint32 members_pbmp2;        // Ports bitmap (32 .. 63)
+  L7_uint32 members_pbmp32[2];    // Ports bitmap [0..31, 32..63]
 } __attribute__((packed)) msg_LACPLagInfo_t;
 
 /* LAGs Status */

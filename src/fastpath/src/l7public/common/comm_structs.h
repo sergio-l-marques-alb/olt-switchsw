@@ -363,6 +363,9 @@ typedef struct dhcpSnoopBinding_s
   /* physical port where client is attached. */
   L7_uint32 intIfNum;
 
+  /* Virtual port */
+  L7_uint32 ptin_port;
+
   /* Time left on lease (minutes) */
   L7_uint32 remLease;
 

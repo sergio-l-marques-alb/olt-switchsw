@@ -148,6 +148,7 @@ void cosBuildDefaultConfigData(L7_uint32 ver)
   /* build global config defaults */
   pCfgGlob = &pCosCfgData_g->cosGlobal;
   pCfgGlob->cfg.intf.intfShapingRate = FD_QOS_COS_QCFG_INTF_SHAPING_RATE;
+  pCfgGlob->cfg.intf.intfShapingBurstSize = FD_QOS_COS_QCFG_INTF_SHAPING_BURSTSIZE;
 
   cosDefaultMappingConfigBuild(L7_ALL_INTERFACES, &pCfgGlob->cfg.mapping);
   cosDefaultIntfConfigBuild(&pCfgGlob->cfg.intf);
@@ -187,6 +188,8 @@ void cosBuildDefaultConfigData(L7_uint32 ver)
 void cosBuildDefaultIntfConfigData(nimConfigID_t *pConfigId,
                                    L7_cosCfgIntfParms_t *pCfgIntf)
 {
+  l7_cosq_set_t queueSet;
+
   if ((pConfigId == L7_NULLPTR) || (pCfgIntf == L7_NULLPTR))
     return;
 
@@ -203,7 +206,10 @@ void cosBuildDefaultIntfConfigData(nimConfigID_t *pConfigId,
    *        as all other interfaces (at least those that do not have
    *        per-interface config overrides).
    */
-  memcpy(&pCfgIntf->cfg, &pCosCfgData_g->cosGlobal.cfg, sizeof(pCfgIntf->cfg));
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
+  {
+    memcpy(&pCfgIntf->cfg[queueSet], &pCosCfgData_g->cosGlobal.cfg, sizeof(L7_cosCfgParms_t));
+  }
 }
 
 /*********************************************************************
@@ -221,6 +227,7 @@ void cosBuildDefaultIntfConfigData(nimConfigID_t *pConfigId,
 void cosDefaultMappingConfigBuild(L7_uint32 intIfNum, L7_cosMapCfg_t *pCfgMap)
 {
   L7_uint32         i, trafficClass;
+  l7_cosq_set_t     queueSet;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
   nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
@@ -229,45 +236,49 @@ void cosDefaultMappingConfigBuild(L7_uint32 intIfNum, L7_cosMapCfg_t *pCfgMap)
 
   memset(pCfgMap, 0, sizeof(*pCfgMap));
 
-  /* build default IP Precedence mapping table */
-  for (i = 0; i < L7_QOS_COS_MAP_NUM_IPPREC; i++)
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
-    if (cosDefaultMappingIpPrecGet(intIfNum, i, &trafficClass) != L7_SUCCESS)
+    /* build default IP Precedence mapping table */
+    for (i = 0; i < L7_QOS_COS_MAP_NUM_IPPREC; i++)
     {
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-              "%s: Cannot obtain default traffic class mapping for "
-              "IP Prec %u, intf %u, %s\n", __FUNCTION__, i, intIfNum, ifName);
-      return;
+      if (cosDefaultMappingIpPrecGet(intIfNum, queueSet, i, &trafficClass) != L7_SUCCESS)
+      {
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+                "%s: Cannot obtain default traffic class mapping for "
+                "IP Prec %u, intf %u (%s), queueSet %u\n", __FUNCTION__, i, intIfNum, ifName, queueSet);
+        return;
+      }
+      pCfgMap->ipPrecMapTable[i] = trafficClass;
     }
-    pCfgMap->ipPrecMapTable[i] = trafficClass;
-  }
 
-  /* build default IP DSCP mapping table
-   *
-   * NOTE:  Uses a fixed 8:1 ratio vs. IP Precedence table init, meaning DSCP
-   *        values 00-07 map to same queue as IP Precedence 0, DSCP 08-15 to
-   *        same queue as IP Precedence 1, etc.
-   */
-  for (i = 0; i < L7_QOS_COS_MAP_NUM_IPDSCP; i++)
-  {
-    if (cosDefaultMappingIpDscpGet(intIfNum, i, &trafficClass) != L7_SUCCESS)
+    /* build default IP DSCP mapping table
+     *
+     * NOTE:  Uses a fixed 8:1 ratio vs. IP Precedence table init, meaning DSCP
+     *        values 00-07 map to same queue as IP Precedence 0, DSCP 08-15 to
+     *        same queue as IP Precedence 1, etc.
+     */
+    for (i = 0; i < L7_QOS_COS_MAP_NUM_IPDSCP; i++)
     {
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-              "%s: Cannot obtain default traffic class mapping for "
-              "IP DSCP %u, intf %u, %s\n", __FUNCTION__, i, intIfNum, ifName);
-      return;
+      if (cosDefaultMappingIpDscpGet(intIfNum, queueSet, i, &trafficClass) != L7_SUCCESS)
+      {
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+                "%s: Cannot obtain default traffic class mapping for "
+                "IP DSCP %u, intf %u, %s\n", __FUNCTION__, i, intIfNum, ifName);
+        return;
+      }
+      pCfgMap->ipDscpMapTable[i] = trafficClass;
     }
-    pCfgMap->ipDscpMapTable[i] = trafficClass;
-  }
 
-  /* set default interface trust mode */
-  pCfgMap->intfTrustMode = FD_QOS_COS_MAP_INTF_TRUST_MODE;
+    /* set default interface trust mode */
+    pCfgMap->intfTrustMode = FD_QOS_COS_MAP_INTF_TRUST_MODE;
+  }
 }
 
 /*********************************************************************
 * @purpose  Get default traffic class mapping for specified IP precedence value
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    prec        @b{(input)}  IP precedence
 * @param    *pVal       @b{(output)} Ptr to traffic class output value
 *
@@ -279,12 +290,15 @@ void cosDefaultMappingConfigBuild(L7_uint32 intIfNum, L7_cosMapCfg_t *pCfgMap)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosDefaultMappingIpPrecGet(L7_uint32 intIfNum, L7_uint32 prec,
+L7_RC_t cosDefaultMappingIpPrecGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 prec,
                                    L7_uint32 *pVal)
 {
   if (intIfNum == 0)
     return L7_FAILURE;
 
+  if (queueSet >= L7_MAX_CFG_QUEUESETS_PER_PORT)
+    return L7_FAILURE;
+  
   if (prec >= L7_QOS_COS_MAP_NUM_IPPREC)
     return L7_FAILURE;
 
@@ -301,6 +315,7 @@ L7_RC_t cosDefaultMappingIpPrecGet(L7_uint32 intIfNum, L7_uint32 prec,
 * @purpose  Get default traffic class mapping for specified IP DSCP value
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    dscp        @b{(input)}  IP DSCP
 * @param    *pVal       @b{(output)} Ptr to traffic class output value
 *
@@ -312,10 +327,13 @@ L7_RC_t cosDefaultMappingIpPrecGet(L7_uint32 intIfNum, L7_uint32 prec,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosDefaultMappingIpDscpGet(L7_uint32 intIfNum, L7_uint32 dscp,
+L7_RC_t cosDefaultMappingIpDscpGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 dscp,
                                    L7_uint32 *pVal)
 {
   if (intIfNum == 0)
+    return L7_FAILURE;
+
+  if (queueSet >= L7_MAX_CFG_QUEUESETS_PER_PORT)
     return L7_FAILURE;
 
   if (dscp >= L7_QOS_COS_MAP_NUM_IPDSCP)
@@ -358,6 +376,7 @@ void cosDefaultIntfConfigBuild(L7_cosIntfCfg_t *pCfgIntf)
 
   /* NOTE:  Don't worry about feature present checking when setting defaults */
   pCfgIntf->intfShapingRate = FD_QOS_COS_QCFG_INTF_SHAPING_RATE;
+  pCfgIntf->intfShapingBurstSize = FD_QOS_COS_QCFG_INTF_SHAPING_BURSTSIZE;
   pCfgIntf->queueMgmtTypePerIntf = (L7_uchar8)FD_QOS_COS_QCFG_MGMT_TYPE;
   pCfgIntf->wredDecayExponent = FD_QOS_COS_QCFG_WRED_DECAY_EXP;
 }
@@ -375,11 +394,15 @@ void cosDefaultIntfConfigBuild(L7_cosIntfCfg_t *pCfgIntf)
 *********************************************************************/
 void cosDefaultQueueConfigAllBuild(L7_cosQueueCfg_t *pCfgQ)
 {
-  L7_uint32     i;
+  L7_uint32 i;
+  l7_cosq_set_t queueSet;
 
-  for (i = 0; i < L7_COS_INTF_QUEUE_MAX_COUNT; i++, pCfgQ++)
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
-    cosDefaultQueueConfigBuild(pCfgQ, i);
+    for (i = 0; i < L7_COS_INTF_QUEUE_MAX_COUNT; i++, pCfgQ++)
+    {
+      cosDefaultQueueConfigBuild(pCfgQ, queueSet, i);
+    }
   }
 }
 
@@ -387,6 +410,7 @@ void cosDefaultQueueConfigAllBuild(L7_cosQueueCfg_t *pCfgQ)
 * @purpose  Build default COS queue config data for a single queue
 *
 * @param    pCfgQ       @b{(input)}  Ptr to queue config data
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    queueId     @b{(input)}  Queue id
 *
 * @returns  void
@@ -395,7 +419,7 @@ void cosDefaultQueueConfigAllBuild(L7_cosQueueCfg_t *pCfgQ)
 *
 * @end
 *********************************************************************/
-void cosDefaultQueueConfigBuild(L7_cosQueueCfg_t *pCfgQ, L7_uint32 queueId)
+void cosDefaultQueueConfigBuild(L7_cosQueueCfg_t *pCfgQ, l7_cosq_set_t queueSet, L7_uint32 queueId)
 {
   L7_uint32     i;
   L7_uchar8     tdropThreshBase;
@@ -492,6 +516,8 @@ void cosResetDefaultIntfConfigData(L7_uint32 intIfNum,
                                    nimConfigID_t *pConfigId,
                                    L7_cosCfgIntfParms_t *pCfgIntf)
 {
+  l7_cosq_set_t queueSet;
+
   /* Check general intIfNum boundary conditions */
   if ((intIfNum == 0) || (intIfNum >= platIntfMaxCountGet()))
     return;
@@ -503,9 +529,12 @@ void cosResetDefaultIntfConfigData(L7_uint32 intIfNum,
   NIM_CONFIG_ID_COPY(&pCfgIntf->configId, pConfigId);
 
   /* build per-interface config defaults */
-  cosDefaultMappingConfigBuild(intIfNum, &pCfgIntf->cfg.mapping);
-  cosDefaultIntfConfigBuild(&pCfgIntf->cfg.intf);
-  cosDefaultQueueConfigAllBuild(&pCfgIntf->cfg.queue[0]);
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
+  {
+    cosDefaultMappingConfigBuild(intIfNum, &pCfgIntf->cfg[queueSet].mapping);
+    cosDefaultIntfConfigBuild(&pCfgIntf->cfg[queueSet].intf);
+    cosDefaultQueueConfigAllBuild(&pCfgIntf->cfg[queueSet].queue[0]);
+  }
 }
 
 /*********************************************************************
@@ -650,6 +679,7 @@ L7_RC_t cosConfigDataApply(void)
 *********************************************************************/
 L7_RC_t cosConfigIntfDataApply(L7_uint32 intIfNum, L7_cosCfgIntfParms_t *pCfgIntf)
 {
+  l7_cosq_set_t queueSet;
   L7_cosCfgParms_t  *pCfg;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
   nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
@@ -661,24 +691,28 @@ L7_RC_t cosConfigIntfDataApply(L7_uint32 intIfNum, L7_cosCfgIntfParms_t *pCfgInt
   if ((intIfNum == 0) || (intIfNum >= platIntfMaxCountGet()))
     return L7_FAILURE;
 
-  pCfg = &pCfgIntf->cfg;
-
-  /* apply current COS mapping table config */
-  if (cosConfigIntfMapTableDataApply(intIfNum, pCfg, L7_FALSE) != L7_SUCCESS)
+  /* Run all queue sets */
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
-    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-            "%s: Failed applying COS map table config data to interface %s \n",
-            __FUNCTION__, ifName);
-    return L7_FAILURE;
-  }
+    pCfg = &pCfgIntf->cfg[queueSet];
 
-  /* apply current COS queue config parms */
-  if (cosConfigIntfQueueCfgDataApply(intIfNum, pCfg) != L7_SUCCESS)
-  {
-    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-            "%s: Failed applying COS queue config data to interface %s \n",
-            __FUNCTION__, ifName);
-    return L7_FAILURE;
+    /* apply current COS mapping table config */
+    if (cosConfigIntfMapTableDataApply(intIfNum, queueSet, pCfg, L7_FALSE) != L7_SUCCESS)
+    {
+      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+              "%s: Failed applying COS map table config data to interface %s, queueSet %u\n",
+              __FUNCTION__, ifName, queueSet);
+      return L7_FAILURE;
+    }
+
+    /* apply current COS queue config parms */
+    if (cosConfigIntfQueueCfgDataApply(intIfNum, pCfg) != L7_SUCCESS)
+    {
+      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+              "%s: Failed applying COS queue config data to interface %s \n",
+              __FUNCTION__, ifName);
+      return L7_FAILURE;
+    }
   }
 
   return L7_SUCCESS;
@@ -688,6 +722,7 @@ L7_RC_t cosConfigIntfDataApply(L7_uint32 intIfNum, L7_cosCfgIntfParms_t *pCfgInt
 * @purpose  Apply COS component interface mapping table config data
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pCfg       @b{(input)}  Ptr to COS config parms
 * @param    forceDtl    @b{(input)}  Force DTL call even if in trust-dot1p mode
 *
@@ -699,8 +734,8 @@ L7_RC_t cosConfigIntfDataApply(L7_uint32 intIfNum, L7_cosCfgIntfParms_t *pCfgInt
 *
 * @end
 *********************************************************************/
-L7_RC_t cosConfigIntfMapTableDataApply(L7_uint32 intIfNum, L7_cosCfgParms_t *pCfg,
-                                       L7_BOOL forceDtl)
+L7_RC_t cosConfigIntfMapTableDataApply(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
+                                       L7_cosCfgParms_t *pCfg, L7_BOOL forceDtl)
 {
   if (pCfg == L7_NULLPTR)
     return L7_FAILURE;
@@ -730,7 +765,7 @@ L7_RC_t cosConfigIntfMapTableDataApply(L7_uint32 intIfNum, L7_cosCfgParms_t *pCf
     return L7_SUCCESS;
 
   /* apply current intf trust mode and corresponding mapping table */
-  if (cosMapIntfTrustModeApply(intIfNum, pCfg, forceDtl) != L7_SUCCESS)
+  if (cosMapIntfTrustModeApply(intIfNum, queueSet, pCfg, forceDtl) != L7_SUCCESS)
   {
     COS_PRT(COS_MSGLVL_HI,
             "\nError applying COS intf trust mode on intf %u\n",
@@ -757,13 +792,14 @@ L7_RC_t cosConfigIntfMapTableDataApply(L7_uint32 intIfNum, L7_cosCfgParms_t *pCf
 *********************************************************************/
 L7_RC_t cosConfigIntfQueueCfgDataApply(L7_uint32 intIfNum, L7_cosCfgParms_t *pCfg)
 {
-  L7_cosQueueCfg_t              *pQ;
-  L7_cosDropPrecCfg_t           *pDP;
-  L7_uint32                     queueId;
-  L7_uint32                     i;
-  L7_cosQueueSchedParms_t       qParms;
-  L7_qosCosDropParmsList_t      dropList;
-  L7_BOOL                       wRedSupport;
+  L7_cosQueueCfg_t         *pQ;
+  L7_cosDropPrecCfg_t      *pDP;
+  l7_cosq_set_t            queueSet;
+  L7_uint32                queueId;
+  L7_uint32                i;
+  L7_cosQueueSchedParms_t  qParms;
+  L7_qosCosDropParmsList_t dropList;
+  L7_BOOL                  wRedSupport;
 
   if (pCfg == L7_NULLPTR)
     return L7_FAILURE;
@@ -779,72 +815,77 @@ L7_RC_t cosConfigIntfQueueCfgDataApply(L7_uint32 intIfNum, L7_cosCfgParms_t *pCf
   wRedSupport = cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID,
                               L7_COS_QUEUE_WRED_SUPPORT_FEATURE_ID);
 
-  /* apply configuration for each queue */
-  for (queueId = 0; queueId < L7_MAX_CFG_QUEUES_PER_PORT; queueId++)
+  /* For each queue group */
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
-    pQ = &pCfg->queue[queueId];
-
-    /* construct queue config parm lists */
-    qParms.minBwList.bandwidth[queueId] = pQ->minBwPercent;
-    qParms.maxBwList.bandwidth[queueId] = pQ->maxBwPercent;
-    qParms.schedTypeList.schedType[queueId] =
-      (L7_QOS_COS_QUEUE_SCHED_TYPE_t)pQ->schedulerType;
-    qParms.wrr_weights.queue_weight[queueId] = pQ->wrr_weight;            /* PTin added: QoS */
-
-    dropList.queue[queueId].mgmtType = pQ->queueMgmtType;
-    dropList.queue[queueId].wred_decayExponent = pQ->wred_decayExponent;  /* PTin added: QoS */
-    /* construct tail drop and WRED parms lists */
-    for (i = 0; i < (L7_MAX_CFG_DROP_PREC_LEVELS+1); i++)
+    /* apply configuration for each queue */
+    for (queueId = 0; queueId < L7_MAX_CFG_QUEUES_PER_PORT; queueId++)
     {
-      pDP = &pQ->dropPrec[i];
+      pQ = &pCfg->queue[queueId];
 
-      dropList.queue[queueId].minThreshold[i] = pDP->wredMinThresh;
-      dropList.queue[queueId].tailDropMaxThreshold[i] = pDP->tdropThresh;
-      dropList.queue[queueId].wredMaxThreshold[i] = pDP->wredMaxThresh;
-      dropList.queue[queueId].dropProb[i] = pDP->wredDropProb;
-      if (pQ->queueMgmtType == L7_QOS_COS_QUEUE_MGMT_TYPE_WRED)
+      /* construct queue config parm lists */
+      qParms.minBwList.bandwidth[queueId] = pQ->minBwPercent;
+      qParms.maxBwList.bandwidth[queueId] = pQ->maxBwPercent;
+      qParms.schedTypeList.schedType[queueId] =
+        (L7_QOS_COS_QUEUE_SCHED_TYPE_t)pQ->schedulerType;
+      qParms.wrr_weights.queue_weight[queueId] = pQ->wrr_weight;            /* PTin added: QoS */
+
+      dropList.queue[queueId].mgmtType = pQ->queueMgmtType;
+      dropList.queue[queueId].wred_decayExponent = pQ->wred_decayExponent;  /* PTin added: QoS */
+      /* construct tail drop and WRED parms lists */
+      for (i = 0; i < (L7_MAX_CFG_DROP_PREC_LEVELS+1); i++)
       {
-    if (wRedSupport == L7_FALSE)
+        pDP = &pQ->dropPrec[i];
+
+        dropList.queue[queueId].minThreshold[i] = pDP->wredMinThresh;
+        dropList.queue[queueId].tailDropMaxThreshold[i] = pDP->tdropThresh;
+        dropList.queue[queueId].wredMaxThreshold[i] = pDP->wredMaxThresh;
+        dropList.queue[queueId].dropProb[i] = pDP->wredDropProb;
+        if (pQ->queueMgmtType == L7_QOS_COS_QUEUE_MGMT_TYPE_WRED)
         {
+          if (wRedSupport == L7_FALSE)
+              {
+            return L7_FAILURE;
+          }
+        }
+      } /* endfor drop-prec */
+    } /* endfor queueId */
+
+    /* apply queue config parms for this interface */
+    if (cosQueueSchedConfigApply(intIfNum, queueSet, &qParms) != L7_SUCCESS)
+    {
+      COS_PRT(COS_MSGLVL_HI,
+              "\nError applying COS queue config parms on intf %u, queueSet %u\n",
+              intIfNum, queueSet);
       return L7_FAILURE;
     }
-      }
-    } /* endfor drop-prec */
-  } /* endfor queueId */
 
-  /* apply queue config parms for this interface */
-  if (cosQueueSchedConfigApply(intIfNum, &qParms) != L7_SUCCESS)
-  {
-    COS_PRT(COS_MSGLVL_HI,
-            "\nError applying COS queue config parms on intf %u\n",
-            intIfNum);
-    return L7_FAILURE;
-  }
-
-  if (cosQueueDropParmsApply(intIfNum, &dropList) != L7_SUCCESS)
-  {
-    COS_PRT(COS_MSGLVL_HI,
-        "\nError applying COS intf config drop parms on intf %u\n",
-        intIfNum);
-    return L7_FAILURE;
-  }
-  /* apply interface config parms
-   *
-   * NOTE:  Do this last so that platforms supporting per-interface queue
-   *        management config get this command after the individual
-   *        tail drop or WRED commands are issued per queue.
-   */
-  if (cosQueueIntfConfigApply(intIfNum,
-                              pCfg->intf.intfShapingRate,
-                              pCfg->intf.queueMgmtTypePerIntf,
-                              pCfg->intf.wredDecayExponent)
-      != L7_SUCCESS)
-  {
-    COS_PRT(COS_MSGLVL_HI,
-            "\nError applying COS intf config parms on intf %u\n",
-            intIfNum);
-    return L7_FAILURE;
-  }
+    if (cosQueueDropParmsApply(intIfNum, queueSet, &dropList) != L7_SUCCESS)
+    {
+      COS_PRT(COS_MSGLVL_HI,
+          "\nError applying COS intf config drop parms on intf %u, queueSet %u\n",
+          intIfNum, queueSet);
+      return L7_FAILURE;
+    }
+    /* apply interface config parms
+     *
+     * NOTE:  Do this last so that platforms supporting per-interface queue
+     *        management config get this command after the individual
+     *        tail drop or WRED commands are issued per queue.
+     */
+    if (cosQueueIntfConfigApply(intIfNum, queueSet,
+                                pCfg->intf.intfShapingRate,
+                                pCfg->intf.intfShapingBurstSize,
+                                pCfg->intf.queueMgmtTypePerIntf,
+                                pCfg->intf.wredDecayExponent)
+        != L7_SUCCESS)
+    {
+      COS_PRT(COS_MSGLVL_HI,
+              "\nError applying COS intf config parms on intf %u, queueSet %u\n",
+              intIfNum, queueSet);
+      return L7_FAILURE;
+    }
+  } /* endfor queueSet */
 
   return L7_SUCCESS;
 }
@@ -868,6 +909,7 @@ L7_RC_t cosConfigIntfQueueCfgDataApply(L7_uint32 intIfNum, L7_cosCfgParms_t *pCf
 *********************************************************************/
 L7_RC_t cosConfigIntfDataUnapply(L7_uint32 intIfNum, L7_cosCfgIntfParms_t *pCfgIntf)
 {
+  l7_cosq_set_t         queueSet;
   nimConfigID_t         configId;
   L7_cosCfgIntfParms_t  intfCfg;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
@@ -895,40 +937,43 @@ L7_RC_t cosConfigIntfDataUnapply(L7_uint32 intIfNum, L7_cosCfgIntfParms_t *pCfgI
    */
   cosResetDefaultIntfConfigData(intIfNum, &configId, &intfCfg);
 
-  /* conditionally apply default COS mapping table config if different
-   * from current config
-   */
-  if (memcmp(&pCfgIntf->cfg.mapping, &intfCfg.cfg.mapping, sizeof(intfCfg.cfg.mapping)) != 0)
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
   {
-    /* if the previous and current trust modes differ, or if they are the same but
-     * not trust-dot1p mode, apply the default config data (forcing the DTL call
-     * via the flag parm)
+    /* conditionally apply default COS mapping table config if different
+     * from current config
      */
-    if ((pCfgIntf->cfg.mapping.intfTrustMode != intfCfg.cfg.mapping.intfTrustMode) ||
-        (pCfgIntf->cfg.mapping.intfTrustMode != L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P))
+    if (memcmp(&pCfgIntf->cfg[queueSet].mapping, &intfCfg.cfg[queueSet].mapping, sizeof(intfCfg.cfg[queueSet].mapping)) != 0)
     {
-      if (cosConfigIntfMapTableDataApply(intIfNum, &intfCfg.cfg, L7_TRUE) != L7_SUCCESS)
+      /* if the previous and current trust modes differ, or if they are the same but
+       * not trust-dot1p mode, apply the default config data (forcing the DTL call
+       * via the flag parm)
+       */
+      if ((pCfgIntf->cfg[queueSet].mapping.intfTrustMode != intfCfg.cfg[queueSet].mapping.intfTrustMode) ||
+          (pCfgIntf->cfg[queueSet].mapping.intfTrustMode != L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P))
       {
-        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                "%s: Failed to apply default COS map table config to interface %s \n",
-                __FUNCTION__, ifName);
-        return L7_FAILURE;
+        if (cosConfigIntfMapTableDataApply(intIfNum, queueSet, &intfCfg.cfg[queueSet], L7_TRUE) != L7_SUCCESS)
+        {
+          L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+                  "%s: Failed to apply default COS map table config to interface %s, queueSet %u\n",
+                  __FUNCTION__, ifName, queueSet);
+          return L7_FAILURE;
+        }
       }
     }
-  }
 
-  /* conditionally apply default COS queue config parms if different from
-   * current config
-   */
-  if ( (memcmp(&pCfgIntf->cfg.intf, &intfCfg.cfg.intf, sizeof(intfCfg.cfg.intf)) != 0) ||
-       (memcmp(pCfgIntf->cfg.queue, intfCfg.cfg.queue, sizeof(intfCfg.cfg.queue)) != 0) )
-  {
-    if (cosConfigIntfQueueCfgDataApply(intIfNum, &intfCfg.cfg) != L7_SUCCESS)
+    /* conditionally apply default COS queue config parms if different from
+     * current config
+     */
+    if ( (memcmp(&pCfgIntf->cfg[queueSet].intf, &intfCfg.cfg[queueSet].intf, sizeof(intfCfg.cfg[queueSet].intf)) != 0) ||
+         (memcmp(pCfgIntf->cfg[queueSet].queue, intfCfg.cfg[queueSet].queue, sizeof(intfCfg.cfg[queueSet].queue)) != 0) )
     {
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-              "%s: Failed to apply default COS queue config to interface %s \n",
-              __FUNCTION__, ifName);
-      return L7_FAILURE;
+      if (cosConfigIntfQueueCfgDataApply(intIfNum, &intfCfg.cfg[queueSet]) != L7_SUCCESS)
+      {
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+                "%s: Failed to apply default COS queue config to interface %s, queueSet %u\n",
+                __FUNCTION__, ifName, queueSet);
+        return L7_FAILURE;
+      }
     }
   }
 
@@ -1717,6 +1762,7 @@ void cosConfigDataShow(L7_uint32 intIfNum)
   L7_uint32             msgLvlReqd = COS_MSGLVL_ON; /* always display output */
   L7_cosCfgIntfParms_t  *pCfgIntf;
   nimUSP_t              *pUsp;
+  l7_cosq_set_t         queueSet;
 
   if (intIfNum == 0)
     intIfNum = L7_ALL_INTERFACES;
@@ -1759,8 +1805,12 @@ void cosConfigDataShow(L7_uint32 intIfNum)
   }
 
   /* NOTE:  L7_ALL_INTERFACES is used to display global config */
-  cosMapTableShow(intIfNum);
-  cosQueueConfigShow(intIfNum);
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
+  {
+    COS_PRT(msgLvlReqd, "\n### QueueSet %u\n", queueSet);
+    cosMapTableShow(intIfNum, queueSet);
+    cosQueueConfigShow(intIfNum, queueSet);
+  }
 }
 
 /*********************************************************************
@@ -1889,7 +1939,8 @@ void cosConfigIntfOverrideShow(void)
 *********************************************************************/
 static L7_BOOL cosConfigIntfMatchesGlobal(L7_uint32 intIfNum)
 {
-  L7_cosCfgIntfParms_t    *pCfgIntf;
+  L7_cosCfgIntfParms_t  *pCfgIntf;
+  l7_cosq_set_t         queueSet;
 
   /* make sure config data exists */
   if (pCosCfgData_g == L7_NULLPTR)
@@ -1900,9 +1951,12 @@ static L7_BOOL cosConfigIntfMatchesGlobal(L7_uint32 intIfNum)
     return L7_FALSE;
 
   /* compare the common 'cfg' sections of the global and interface configs */
-  if (memcmp(&pCfgIntf->cfg, &pCosCfgData_g->cosGlobal.cfg,
-             sizeof(L7_cosCfgParms_t)) != 0)
-    return L7_FALSE;
+  for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
+  {
+    if (memcmp(&pCfgIntf->cfg[queueSet], &pCosCfgData_g->cosGlobal.cfg,
+               sizeof(L7_cosCfgParms_t)) != 0)
+      return L7_FALSE;
+  }
 
   return L7_TRUE;
 }
@@ -1966,6 +2020,7 @@ void cosBuildTestIntfConfigData(L7_uint32 intIfNum, L7_cosCfgParms_t *pCfg)
   /* interface config */
   pIntf = &pCfg->intf;
   pIntf->intfShapingRate = 50;
+  pIntf->intfShapingBurstSize = 10000;
   pIntf->queueMgmtTypePerIntf = L7_QOS_COS_QUEUE_MGMT_TYPE_WRED;
   pIntf->wredDecayExponent = 15;
 
@@ -2013,6 +2068,7 @@ void cosBuildTestConfigData(void)
   L7_cosCfgIntfParms_t    *pCfgIntf;
   nimConfigID_t           configIdNull;
   L7_uint32               intIfNum;
+  l7_cosq_set_t           queueSet;
 
   memset(&configIdNull, 0, sizeof(configIdNull));
   memset(configIdSave, 0, sizeof(configIdSave));
@@ -2056,7 +2112,11 @@ void cosBuildTestConfigData(void)
 
         NIM_CONFIG_ID_COPY(&pCfgIntf->configId, &configIdSave[cfgIndex]);
 
-        cosBuildTestIntfConfigData(intIfNum, &pCfgIntf->cfg);
+        /* Run all queue sets */
+        for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
+        {
+          cosBuildTestIntfConfigData(intIfNum, &pCfgIntf->cfg[queueSet]);
+        }
       }
     }
   } /* endfor cfgIndex */

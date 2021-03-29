@@ -4,7 +4,6 @@
 #include "ptin_hapi_fp_utils.h"
 #include "broad_policy.h"
 #include "broad_group_bcm.h"
-#include "broad_l2_lag.h"
 
 #include "logger.h"
 
@@ -291,18 +290,21 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
                                     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
   L7_uint64            profile_macAddr;
   L7_RC_t              result;
+
   DAPI_PORT_t         *dapiPortPtr;
   BROAD_PORT_t        *hapiPortPtr;
   ptin_hapi_intf_t     portDescriptor;
-  pbmp_t               pbm, pbm_uplink, pbm_mask;
+  L7_uint64            usp_bmp;
+  bcm_pbmp_t           pbm, pbm_mask;
   BROAD_POLICY_STAGE_t stage = BROAD_POLICY_STAGE_INGRESS;
-  L7_RC_t rc;
+  /* Define if interfaces are set after commiting rule */
+  L7_BOOL              post_commit_intf_set = L7_FALSE;
 
   /* Trident switch only has 10 FP groups... excluding BW policers for this board */
-  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
-  PT_LOG_ERR(LOG_CTX_HAPI,"Not possible to configure BW policers");
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  PT_LOG_WARN(LOG_CTX_HAPI, "Not possible to configure BW policers for CXO640G");
   return L7_SUCCESS;
-  #endif
+#endif
 
   PT_LOG_TRACE(LOG_CTX_HAPI,"Starting processing...");
 
@@ -498,54 +500,54 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   }
   PT_LOG_TRACE(LOG_CTX_HAPI,"New rule added!");
 
-  /* Init interfaces mask (for inports field) */
-  hapi_ptin_allportsbmp_get(&pbm_mask);
-
-  /* Port bitmap of uplink interfaces */
-  BCM_PBMP_CLEAR(pbm_uplink);
-  hapi_ptin_bcmPbmPort_get(PTIN_SYSTEM_10G_PORTS_MASK, &pbm_uplink);
-
-  BCM_PBMP_CLEAR(pbm);
+  usp_bmp = 0;
   portDescriptor.gport    = -1;
   portDescriptor.bcm_port = -1;
   portDescriptor.trunk_id = -1;
 
+  /* Check ports to be used */
+  /* For valid usp values */
+  if (usp->unit >= 0 && usp->slot >= 0 && usp->port >= 0)
+  {
+    if (ptin_hapi_portDescriptor_get(usp, dapi_g, &portDescriptor, &dapiPortPtr, &hapiPortPtr) != L7_SUCCESS) 
+    {
+      hapiBroadPolicyCreateCancel();
+      PT_LOG_ERR(LOG_CTX_HAPI,"Error acquiring interface descriptor!");
+      return L7_FAILURE;
+    }
+    usp_bmp = portDescriptor.usp_bmp;
+
+    PT_LOG_TRACE(LOG_CTX_HAPI,"trunk_id=%d bcm_port=%d xlate_class_port=%d",
+              portDescriptor.trunk_id, portDescriptor.bcm_port, portDescriptor.xlate_class_port);
+
+    /* For TG16G board, if a trunk was provided, use the uplink ports */
+  #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF)
+    if (portDescriptor.trunk_id >= 0)
+    {
+      usp_bmp = PTIN_SYSTEM_10G_PORTS_MASK; /* All uplink ports */
+    }
+  #endif
+  }
+  /* Use port bitmap, if provided (only at ingress stage) */
+  else if (bwPolicer->port_bmp != 0)
+  {
+    PT_LOG_TRACE(LOG_CTX_HAPI,"Going to use usp_port bitmap 0x%llx", bwPolicer->port_bmp);
+
+    usp_bmp = bwPolicer->port_bmp;
+  }
+
+  /* Get pbm format of ports */
+  if (hapi_ptin_port_bitmap_get(usp, dapi_g, usp_bmp, &pbm, &pbm_mask) != L7_SUCCESS)
+  {
+    hapiBroadPolicyDelete(policyId);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error converting port bitmap to pbmp format");
+    return L7_FAILURE;
+  }
+
   if (stage == BROAD_POLICY_STAGE_INGRESS)
   {
-    /* For valid usp values */
-    if (usp->unit >= 0 && usp->slot >= 0 && usp->port >= 0)
-    {
-      if (ptin_hapi_portDescriptor_get(usp, dapi_g, &pbm, &portDescriptor, &dapiPortPtr, &hapiPortPtr) != L7_SUCCESS) 
-      {
-        hapiBroadPolicyCreateCancel();
-        PT_LOG_ERR(LOG_CTX_HAPI,"Error acquiring interface descriptor!");
-        return L7_FAILURE;
-      }
-      PT_LOG_TRACE(LOG_CTX_HAPI,"trunk_id=%d bcm_port=%d xlate_class_port=%d",
-                portDescriptor.trunk_id, portDescriptor.bcm_port, portDescriptor.xlate_class_port);
-
-      /* For TG16G board, if a trunk was provided, use the uplink ports */
-    #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF)
-      if (portDescriptor.trunk_id >= 0)
-      {
-        BCM_PBMP_ASSIGN(pbm, pbm_uplink);
-      }
-    #endif
-    }
-    /* Use port bitmap, if provided (only at ingress stage) */
-    else if (bwPolicer->ptin_port_bmp != 0)
-    {
-      PT_LOG_TRACE(LOG_CTX_HAPI,"Going to use port bitmap 0x%llx", bwPolicer->ptin_port_bmp);
-
-      if (hapi_ptin_bcmPbmPort_get(bwPolicer->ptin_port_bmp, &pbm) != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI,"Error getting port bitmap");
-        return L7_FAILURE;
-      }
-    }
-
     /* Trunk qualifier is not supported for TG16G boards (to allow using single-wide rules) */
-  #if (PTIN_BOARD != PTIN_BOARD_TG16G && PTIN_BOARD != PTIN_BOARD_TG16GF)
+#if (PTIN_BOARD != PTIN_BOARD_TG16G && PTIN_BOARD != PTIN_BOARD_TG16GF)
     /* Trunk id field */
     if (portDescriptor.trunk_id >= 0)
     {
@@ -558,9 +560,13 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
       PT_LOG_TRACE(LOG_CTX_HAPI,"TrunkId qualifier added");
     }
     else
-  #endif
-    if (!BCM_PBMP_IS_NULL(pbm))
+#endif
+    if (usp_bmp != 0)
     {
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+      /* Interfaces will be set after committing rule */
+      post_commit_intf_set = L7_TRUE;
+#else
       if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uint8 *)&pbm, (L7_uint8 *)&pbm_mask))!=L7_SUCCESS)
       {
         hapiBroadPolicyCreateCancel();
@@ -568,16 +574,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
         return result;
       }
       PT_LOG_TRACE(LOG_CTX_HAPI,"InPorts qualifier added");
-    }
-    else if (!BCM_PBMP_IS_NULL(pbm_uplink))
-    {
-      if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uint8 *)&pbm_uplink, (L7_uint8 *)&pbm_mask))!=L7_SUCCESS)
-      {
-        hapiBroadPolicyCreateCancel();
-        PT_LOG_ERR(LOG_CTX_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(INPORTS)");
-        return result;
-      }
-      PT_LOG_TRACE(LOG_CTX_HAPI,"(Uplink) InPorts qualifier added");
+#endif
     }
 
     /* Internal vlans */
@@ -604,6 +601,9 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   }
   else if (stage == BROAD_POLICY_STAGE_EGRESS)
   {
+    /* Interfaces will be set after committing rule */
+    post_commit_intf_set = L7_TRUE;
+
     /* External vlans */
     if (profile->outer_vlan_egress>0 && profile->outer_vlan_egress<4096)
     {
@@ -752,66 +752,15 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   }
   PT_LOG_TRACE(LOG_CTX_HAPI,"Policy committed");
 
-  /* Add physical ports for Egress rules */
-  if (stage == BROAD_POLICY_STAGE_EGRESS)
+  /* If interfaces are to be set after commiting rule, do it now */
+  if (post_commit_intf_set)
   {
-    /* For valid ports */
-    if (usp->unit >= 0 && usp->slot >= 0 && usp->port >= 0)
+    /* Add bitmap of ports to policy */
+    if (hapiBroadPolicyApplyToMultiIface(policyId, pbm) != L7_SUCCESS)
     {
-      L7_uint i;
-
-      /* Remove all ports */
-      rc = hapiBroadPolicyRemoveFromAll(policyId);
-      if (rc != L7_SUCCESS)
-      {
-        hapiBroadPolicyDelete(policyId);
-        PT_LOG_TRACE(LOG_CTX_HAPI, "Error removing all interfaces: rc=%d", rc);
-        return L7_FAILURE;
-      }
-
-      if (ptin_hapi_portDescriptor_get(usp, dapi_g, &pbm, &portDescriptor, &dapiPortPtr, &hapiPortPtr) != L7_SUCCESS)
-      {
-        hapiBroadPolicyDelete(policyId);
-        PT_LOG_ERR(LOG_CTX_HAPI,"Error acquiring interface descriptor!");
-        return L7_FAILURE;
-      }
-      PT_LOG_TRACE(LOG_CTX_HAPI,"trunk_id=%d bcm_port=%d xlate_class_port=%d",
-                portDescriptor.trunk_id, portDescriptor.bcm_port, portDescriptor.xlate_class_port);
-
-      /* Physical port */
-      if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
-      {
-        rc = hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcm_gport);
-        if (rc != L7_SUCCESS)
-        {
-          hapiBroadPolicyDelete(policyId);
-          PT_LOG_ERR(LOG_CTX_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u: rc=%d", usp->unit,usp->slot,usp->port, hapiPortPtr->bcm_port, rc);
-          return L7_FAILURE;
-        }
-      }
-      /* Logical port to be removed */
-      else if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_TRUE)
-      {
-        BROAD_PORT_t *hapiLagMemberPortPtr;
-
-        hapiBroadLagCritSecEnter ();
-        for (i = 0; i < L7_MAX_MEMBERS_PER_LAG; i++)
-        {
-          if (dapiPortPtr->modeparm.lag.memberSet[i].inUse == L7_TRUE)
-          {
-            hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
-
-            rc = hapiBroadPolicyApplyToIface(policyId, hapiLagMemberPortPtr->bcm_gport);
-            if (rc != L7_SUCCESS)
-            {
-              hapiBroadPolicyDelete(policyId);
-              PT_LOG_ERR(LOG_CTX_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u: rc=%d", usp->unit,usp->slot,usp->port, hapiLagMemberPortPtr->bcm_port, rc);
-              return L7_FAILURE;
-            }
-          }
-        }
-        hapiBroadLagCritSecExit ();
-      }
+      hapiBroadPolicyDelete(policyId);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error adding port bitmap to policyId %u", policyId);
+      return L7_FAILURE;
     }
   }
 

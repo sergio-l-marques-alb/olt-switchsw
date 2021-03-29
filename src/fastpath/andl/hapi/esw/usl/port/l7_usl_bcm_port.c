@@ -31,6 +31,8 @@
 #include "broad_mmu.h"
 #include "l7_usl_l2_db.h"
 
+#include "ptin_globaldefs.h"
+
 /*********************************************************************
 *
 * @purpose BCM API to set the broadcast rate threshold for a port
@@ -890,11 +892,11 @@ int usl_bcm_port_flow_control_set(int unit,
 *********************************************************************/
 int usl_bcm_port_cosq_sched_set(int unit, 
                                 bcm_port_t port, 
-                                usl_bcm_port_cosq_sched_config_t  *cosqSchedConfig)
+                                usl_bcm_port_cosq_sched_config_t *cosqSchedConfig)
 {
-  int                                 rv = BCM_E_NONE, cosq;
-  bcm_gport_t                         gport = BCM_GPORT_INVALID;
-  bcm_pbmp_t                          pbmp;
+  int         rv = BCM_E_NONE, cosq;
+  bcm_gport_t gport = BCM_GPORT_INVALID;
+  bcm_pbmp_t  pbmp;
 
   /* Check if the hardware should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_PORT_DB_ID))
@@ -930,7 +932,6 @@ int usl_bcm_port_cosq_sched_set(int unit,
     }
   }
 
- 
   /* Update the USL port database only on non-management units */
   if ((L7_BCMX_OK(rv) == L7_TRUE) && 
       (USL_BCM_CONFIGURE_DB(USL_PORT_DB_ID) == L7_TRUE)) 
@@ -943,9 +944,83 @@ int usl_bcm_port_cosq_sched_set(int unit,
     }
   }
 
+  return rv;
+}
+
+/*********************************************************************
+*
+* @purpose BCM API to set the cosq sched config for a gport
+* (Applicable to Trident3X3 with multi queueSet's)
+*
+* @param    unit              @{(input)} Local bcm unit number
+* @param    port              @{(input)} Local bcm port number
+* @param    cosqSchedConfig   @{(input)} cosq sched config data
+*
+*
+* @returns BCMX Error Code
+*
+* @notes 
+*
+* @end
+*
+*********************************************************************/
+int usl_bcm_gport_cosq_sched_set(int unit, 
+                                bcm_port_t port, 
+                                usl_bcm_port_cosq_sched_config_t *cosqSchedConfig)
+{
+  int         rv = BCM_E_NONE, cosq;
+  bcm_gport_t gport = BCM_GPORT_INVALID;
+
+  /* If qos_gport is not provided, use default procedure */
+  if ((cosqSchedConfig->se_gport == 0 || cosqSchedConfig->se_gport == BCM_GPORT_INVALID) ||
+      (cosqSchedConfig->flow_gport[0] == 0 || cosqSchedConfig->flow_gport[0] == BCM_GPORT_INVALID))
+  {
+    return usl_bcm_port_cosq_sched_set(unit, port, cosqSchedConfig);
+  }
+
+  /* Check if the hardware should be configured */
+  if (USL_BCM_CONFIGURE_HW(USL_PORT_DB_ID))
+  {
+    for (cosq = 0; cosq < BCM_COS_COUNT; cosq++)
+    {
+      rv = bcm_cosq_gport_sched_set(unit,
+                                    cosqSchedConfig->flow_gport[cosq],
+                                    0 /*Don't care*/,
+                                    cosqSchedConfig->mode, 
+                                    cosqSchedConfig->weights[cosq]);
+      PT_LOG_TRACE(LOG_CTX_QOS, "unit %d, port 0x%x, cosq %d: bcm_cosq_gport_sched_set(unit=%d, flow_gport=0x%x, 0, mode=%d, weight=%d)->rv=%d",
+                   unit, port, cosq,
+                   unit, cosqSchedConfig->flow_gport[cosq], cosqSchedConfig->mode, cosqSchedConfig->weights[cosq], rv);
+      if (rv != BCM_E_NONE)
+        break;
+
+      rv = bcm_cosq_gport_bandwidth_set(unit,
+                                        cosqSchedConfig->flow_gport[cosq],
+                                        0 /*Don't care*/, 
+                                        cosqSchedConfig->minKbps[cosq], 
+                                        cosqSchedConfig->maxKbps[cosq], 
+                                        0);
+      PT_LOG_TRACE(LOG_CTX_QOS, "unit %d, port 0x%x, cosq %d: bcm_cosq_gport_bandwidth_set(unit=%d, flow_gport=0x%x, 0, minKbps=%d, maxKbps=%d, 0)->rv=%d",
+                   unit, port, cosq,
+                   unit, cosqSchedConfig->flow_gport[cosq], cosqSchedConfig->minKbps[cosq], cosqSchedConfig->maxKbps[cosq], rv);
+      if (rv != BCM_E_NONE)
+        break;
+    }
+  }
+
+  /* Update the USL port database only on non-management units */
+  if ((L7_BCMX_OK(rv) == L7_TRUE) && 
+      (USL_BCM_CONFIGURE_DB(USL_PORT_DB_ID) == L7_TRUE)) 
+  {
+    /* Get the gport for the local bcm unit/port */
+    rv = usl_bcm_unit_port_to_gport(unit, port, &gport);
+    if (rv == BCM_E_NONE)
+    {
+      rv = usl_portdb_cosq_sched_set(USL_CURRENT_DB, gport, cosqSchedConfig); 
+    }
+  }
 
   return rv;
-
 }
 
 /*********************************************************************
@@ -996,6 +1071,66 @@ int usl_bcm_port_rate_egress_set(int unit,
   return rv;
 
 }
+
+/*********************************************************************
+* @purpose BCM API to set the rate shaper config for a gport
+* (Applicable to Trident3X3 with multi queueSet's)
+*
+* @param    unit          @{(input)} Local bcm unit number
+* @param    port          @{(input)} Local bcm port number
+* @param    qos_gport     @{(input)} QoS gport
+* @param    setget        @{(input)} Set or Get command
+* @param    args          @{(input)} cosq sched config data
+*
+*
+* @returns BCMX Error Code
+*
+* @notes 
+*
+* @end
+*
+*********************************************************************/
+int usl_bcm_gport_rate_egress_set(int unit, 
+                                  bcm_port_t port, 
+                                  bcm_gport_t qos_gport,
+                                  usl_bcm_port_shaper_config_t *shaperConfig)
+{
+  int                                 rv = BCM_E_NONE;
+  bcm_gport_t                         gport = BCM_GPORT_INVALID;
+
+  /* If qos_gport is not provided, use default procedure */
+  if (qos_gport == 0 || qos_gport == BCM_GPORT_INVALID)
+  {
+    return usl_bcm_port_rate_egress_set(unit, port, shaperConfig);
+  }
+  
+  /* Check if the hardware should be configured */
+  if (USL_BCM_CONFIGURE_HW(USL_PORT_DB_ID) == L7_TRUE)
+  {
+    /* Apply shaper configuration */
+    rv = bcm_cosq_gport_bandwidth_set(unit,
+                                      qos_gport,
+                                      0  /*Don't care*/, 
+                                      0, /* Min BW */
+                                      shaperConfig->rate, 
+                                      0);
+  }
+
+  /* Update the USL port database only on non-management units */
+  if ((L7_BCMX_OK(rv) == L7_TRUE) && 
+      (USL_BCM_CONFIGURE_DB(USL_PORT_DB_ID) == L7_TRUE)) 
+  {
+    /* Get the gport for the local bcm unit/port */
+    rv = usl_bcm_unit_port_to_gport(unit, port, &gport);
+    if (rv == BCM_E_NONE)
+    {
+      rv = usl_portdb_shaper_config_set(USL_CURRENT_DB, gport, shaperConfig); 
+    }
+  }
+
+  return rv;
+}
+
 
 
 /*********************************************************************
@@ -1585,10 +1720,10 @@ static uint32 l7_port_wred_percent_to_bytes(int unit, uint8 percent)
       cellsize = 208;
       totalmem = 46080;
     }
-    else if (SOC_IS_TRIDENT3X(unit))
+    else if (SOC_IS_HELIX5(unit))
     {
-      cellsize = 256;
-      totalmem = 32768;
+      cellsize = 256;//TD3_MMU_BYTES_PER_CELL;
+      totalmem = 0x40000;//TD3_WRED_CELL_FIELD_MAX;
     }
     /* OLT1T0F/TG16GF board */
     else if (SOC_IS_KATANA2(unit))
@@ -1620,7 +1755,7 @@ static uint32 l7_port_wred_percent_to_bytes(int unit, uint8 percent)
       totalmem = 16383;
     }
 
-    if (SOC_IS_KATANA2(unit) /*|| SOC_IS_TRIDENT3X(unit)*/)
+    if (SOC_IS_KATANA2(unit))
     {
       /* Katana2 have 4K queues (56450-DS106-RDS.pdf) */
       conversion_factor = totalmem / (1 + 2 * (NUM_PORT(unit)-1));
@@ -1654,21 +1789,41 @@ static uint32 l7_port_wred_percent_to_bytes(int unit, uint8 percent)
 int usl_bcm_port_wred_set(int unit, bcm_port_t port, 
                           usl_bcm_port_wred_config_t *wredParams)                          
 {
+  return usl_bcm_gport_wred_set(unit, port, wredParams->bcm_gport, wredParams);
+}
+
+
+/*********************************************************************
+* @purpose Set WRED parameters on a gport
+* (Applicable to Trident3X3 with multi queueSet's)
+*
+* @param   unit - local unit
+* @param   port - local port
+* @param   qos_gport
+* @param   wredParams - Pointer to WRED params for all queues/colors
+*
+* @returns BCM Error Code
+*
+* @comments Companion to customx_port_wred_set(), this function runs 
+*           on each unit.
+* @end
+*
+*********************************************************************/
+int usl_bcm_gport_wred_set(int unit, bcm_port_t port, 
+                           bcm_gport_t qos_gport,
+                           usl_bcm_port_wred_config_t *wredParams)
+{
   int                         queueIndex, precIndex, rv = BCM_E_NONE;
   bcm_cosq_gport_discard_t    discardParams;
   bcm_gport_t                 gport;
-
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-  PT_LOG_WARN(LOG_CTX_STARTUP, "FIXME! unit %u, port %u: WRED configuration",
-              unit, port);
-  return BCM_E_NONE;
-#endif
-        
+      
   /* Check if the hardware should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_PORT_DB_ID) == L7_TRUE)
   {
     for (queueIndex=0; queueIndex<L7_MAX_CFG_QUEUES_PER_PORT; queueIndex++) 
     {
+      bcm_cosq_gport_discard_t_init(&discardParams);
+
       discardParams.gain = wredParams->gain[queueIndex];
       /* PTin modified: Allow 6 DP levels */
       for (precIndex=0; precIndex<(L7_MAX_CFG_DROP_PREC_LEVELS*2); precIndex++) 
@@ -1676,7 +1831,7 @@ int usl_bcm_port_wred_set(int unit, bcm_port_t port,
         /* Initialize flags */
         discardParams.flags = 0;
 
-        if (SOC_IS_KATANA2(unit) || SOC_IS_TRIDENT3X(unit))
+        if (SOC_IS_KATANA2(unit))
         {
           /* Configure in cell units (no flags assigned) */
         }
@@ -1753,13 +1908,15 @@ int usl_bcm_port_wred_set(int unit, bcm_port_t port,
           }
         }
 
-        rv = bcm_cosq_gport_discard_set(unit, wredParams->bcm_gport, 
-                                        queueIndex, &discardParams);
+        rv = bcm_cosq_gport_discard_set(unit,
+                                        qos_gport, 
+                                        queueIndex,
+                                        &discardParams);
 
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
-          PT_LOG_ERR(LOG_CTX_HAPI, "unit %d, bcm_port=%u bcm_gport=0x%x queue=%u DP=%u, min=%u max=%u prob=%u flags=0x%x (rv=%d)",
-                     unit, port, wredParams->bcm_gport, queueIndex, precIndex,
+          PT_LOG_ERR(LOG_CTX_HAPI, "unit %d, bcm_port=%u qos_gport=0x%x queue=%u DP=%u, min=%u max=%u prob=%u flags=0x%x (rv=%d)",
+                     unit, port, qos_gport, queueIndex, precIndex,
                      discardParams.min_thresh, discardParams.max_thresh, discardParams.drop_probability, discardParams.flags, rv);
           break;
         }

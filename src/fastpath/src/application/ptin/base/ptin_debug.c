@@ -145,7 +145,7 @@ void ptin_debug(void)
   printf("\r\n");                                                          
   printf("  ptin_pvid_dump                                                  - Dump default vlans for all ports\r\n");
   printf("  ptin_xlate_dump <stage> [inv]                                   - Dump translation entries for ingress (1) or egress (2) stage\r\n");
-  printf("  dump_intf_vp_db                                                 - dumps virtual port scratchpad (ifNum, PON, GEMid)\r\n");
+  printf("  l2intf_db_dump                                                  - dumps virtual port scratchpad (ifNum, PON, GEMid)\r\n");
   printf("  dump_uplinkprot_traps                                           - info about ports/MEPs with uplink protection port traps triggered\r\n");
   printf("  ptin_erps_dump <id>                                             - prints info about ERPS (use -1 to display all)\r\n");
   printf("  ptin_intf_boardtype_dump                                        - prints board ids information\r\n");
@@ -215,7 +215,8 @@ void ptin_debug(void)
   printf("  ptin_fpcounters_flush_debug                                     - Flush configured EVC/client counters (at request)\r\n");
   printf("  ptin_debug_intf_cos_policer_set   <intf_type> <intf_id> <cos> <cir> <eir> <cbs> <ebs> - Create Interface/COS policer\r\n");
   printf("  ptin_debug_intf_cos_policer_clear <intf_type> <intf_id> <cos>   - Remove Interface/COS policer\r\n");
-  printf("  ptin_hapi_qos_dump                                              - Dump VLAN-QoS rules\r\n");
+  printf("  ptin_hapi_qos_vlan_dump                                         - Dump VLAN-QoS rules\r\n");
+  printf("  ptin_hapi_qos_gport_dump                                        - Dump Egress port scheduling hierarchy's GPORT table\r\n");
   printf("  ptin_vcap_defvid_dump                                           - Flush configured VCAP rules associated to defVID\r\n");
   printf("  ptin_aclDbDump_all                                              - Flush configured ACL \r\n");
   printf("  hapiBroadReconfigTrap <packet_type> <reenable>                  - Reconfigure IGMP=1/MLD=2/DHCP=3/PPPoE=4/APS=5/IPDTL0=7/MEP=8/MIP=9 trap rules\r\n");
@@ -680,6 +681,7 @@ void ptin_intf_dump(void)
 
   L7_uint   port;
   L7_uint16 slot, sport;
+  nimUSP_t  usp;
   L7_uint32 intIfNum = -1;
   L7_uint32 lagIntfNum = -1;
   L7_uint32 speed_mode;
@@ -699,8 +701,20 @@ void ptin_intf_dump(void)
   printf("+-------+------+------+---------+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
   printf("| Board | Slot | Port | IfN/Lag | bcm_port | MEF Ext.* | Ena | Link | Speed | FOvr/FMax |   RX:  bytes       bps |   TX:  bytes       bps |\r\n");
   printf("+-------+------+------+---------+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
-  for (port=0; port<ptin_sys_number_of_ports; port++)
+  for (port = 0; port < ptin_sys_number_of_ports; port++)
   {
+    /* Get intIfNum and USP */
+    if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS)
+    {
+      //PT_LOG_ERR(LOG_CTX_INTF, "Failed to convert ptin_port %u to intIfNum", port);
+      continue;
+    }
+    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_DTL, "Failed to convert ptin_port %u / intIfnum %u to USP", intIfNum, port);
+      continue;
+    }
+
     #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
     if (!KERNEL_NODE_IS("OLT1T0-AC"))
     {
@@ -711,9 +725,6 @@ void ptin_intf_dump(void)
       }
     }
     #endif
-
-    /* Get intIfNum ID */
-    ptin_intf_port2intIfNum(port, &intIfNum);
 
     /* Admin state */
     if (usmDbIfAdminStateGet(1, intIfNum, &admin) != L7_SUCCESS)
@@ -795,7 +806,7 @@ void ptin_intf_dump(void)
     }
 
     /* Get Oversize packets limit */
-    if (ptin_intf_frame_oversize_get(intIfNum, &frameOversize) != L7_SUCCESS)
+    if (ptin_intf_frame_oversize_get(port, &frameOversize) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Failed to get Oversize frame limit of port# %d", port);
       continue;
@@ -815,7 +826,7 @@ void ptin_intf_dump(void)
 
     /* Counters */
     portStats.Port = port;
-    ptin_intf_counters_read(&portStats);
+    ptin_intf_counters_read(port, &portStats);
 
     /* Get slot and port id */
     slot = sport = 0;
@@ -835,7 +846,7 @@ void ptin_intf_dump(void)
     }
 
     /* bcm_port_t */
-    bcm_port = hapiSlotMapPtr[port].bcm_port;
+    bcm_port = hapiSlotMapPtr[usp.port-1].bcm_port;
 
 #if (PTIN_BOARD_IS_MATRIX)
     L7_uint16 board_type;
@@ -905,7 +916,7 @@ void ptin_intf_dump(void)
     }
 
     /* Switch port: ge/xe (indexes changed according to the board) */
-    sprintf(bcm_port_str,"%.7s", hapiSlotMapPtr[port].portName);
+    sprintf(bcm_port_str,"%.7s", hapiSlotMapPtr[usp.port-1].portName);
 
     printf("|%-7.7s| %2u/%-2u|  %2u  |  %2u/%-3d | %2u (%-4.4s)| %-3.3s-%u/%u/%u | %-3.3s | %4.4s | %5.5s |%5u/%-5u|%s%12llu %9llu%s|%s%12llu %9llu%s|\r\n",
            board_id_str, slot, sport,

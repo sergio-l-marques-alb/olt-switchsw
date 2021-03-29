@@ -1406,19 +1406,19 @@ L7_RC_t snoopEBInit(void)
 
   /*Alloc Data for Group Interface Mask*/
   { 
-    PT_LOG_INFO(LOG_CTX_IGMP,"snoopChannelIntfMaskTreeHeap: Allocating %zu",PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES*sizeof(avlTreeTables_t));
-    pSnoopEB->snoopChannelIntfMaskTreeHeap =
+    PT_LOG_INFO(LOG_CTX_IGMP,"snoopChannelptinPortMaskTreeHeap: Allocating %zu",PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES*sizeof(avlTreeTables_t));
+    pSnoopEB->snoopChannelptinPortMaskTreeHeap =
                             (avlTreeTables_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                             PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES *
                             sizeof(avlTreeTables_t));
 
-    PT_LOG_INFO(LOG_CTX_IGMP,"snoopChannelIntfMaskTreeHeap: Allocating %zu",PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES*sizeof(snoopChannelIntfMaskInfoData_t)); 
-    pSnoopEB->snoopChannelIntfMaskDataHeap  = (snoopChannelIntfMaskInfoData_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
+    PT_LOG_INFO(LOG_CTX_IGMP,"snoopChannelptinPortMaskTreeHeap: Allocating %zu",PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES*sizeof(snoopChannelptinPortMaskInfoData_t)); 
+    pSnoopEB->snoopChannelptinPortMaskDataHeap  = (snoopChannelptinPortMaskInfoData_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                                 PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES *
-                                sizeof(snoopChannelIntfMaskInfoData_t));
+                                sizeof(snoopChannelptinPortMaskInfoData_t));
 
-    if ((pSnoopEB->snoopChannelIntfMaskTreeHeap == L7_NULLPTR) ||
-        (pSnoopEB->snoopChannelIntfMaskDataHeap == L7_NULLPTR)
+    if ((pSnoopEB->snoopChannelptinPortMaskTreeHeap == L7_NULLPTR) ||
+        (pSnoopEB->snoopChannelptinPortMaskDataHeap == L7_NULLPTR)
        )
     {
       L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_SNOOPING_COMPONENT_ID,
@@ -1426,12 +1426,12 @@ L7_RC_t snoopEBInit(void)
       return L7_FAILURE;
     }
 
-    PT_LOG_INFO(LOG_CTX_IGMP,"snoopChannelIntfMaskAvlTree: Allocating %zu",sizeof(avlTree_t));
+    PT_LOG_INFO(LOG_CTX_IGMP,"snoopChannelptinPortMaskAvlTree: Allocating %zu",sizeof(avlTree_t));
     /* AVL Tree creations - snoopGroupIntfMaskAvlTree*/
-    avlCreateAvlTree(&(pSnoopEB->snoopChannelIntfMaskAvlTree),  pSnoopEB->snoopChannelIntfMaskTreeHeap,
-                     pSnoopEB->snoopChannelIntfMaskDataHeap, PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES,
-                     sizeof(snoopChannelIntfMaskInfoData_t), 0x10,
-                     sizeof(snoopChannelIntfMaskInfoDataKey_t));  
+    avlCreateAvlTree(&(pSnoopEB->snoopChannelptinPortMaskAvlTree),  pSnoopEB->snoopChannelptinPortMaskTreeHeap,
+                     pSnoopEB->snoopChannelptinPortMaskDataHeap, PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES,
+                     sizeof(snoopChannelptinPortMaskInfoData_t), 0x10,
+                     sizeof(snoopChannelptinPortMaskInfoDataKey_t));  
     
   }
 

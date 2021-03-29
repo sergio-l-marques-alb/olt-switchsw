@@ -32,7 +32,8 @@
 #include "appl/stktask/topo_brd.h"
 #include "bcm/mirror.h"
 #include "feature.h"
-
+#include "broad_group_bcm.h"
+#include "ibde.h"
 
 extern DAPI_t *dapi_g;
 extern int custom_policy_init();
@@ -411,6 +412,19 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
         L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
       }
       actionPtr->u.ifp_parms.set_reason = param0;
+      break;
+
+    /* for QoS queue assignment (Unicast or Multicast queues) */
+    case BROAD_ACTION_SET_UCOSQ:
+    case BROAD_ACTION_SET_MCOSQ:
+      if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
+      {
+        actionPtr->u.vfp_parms.qos_queue_set[action_scope] = param0;
+      }
+      else
+      {
+        actionPtr->u.ifp_parms.qos_queue_set[action_scope] = param0;
+      }
       break;
 
     default:
@@ -1922,6 +1936,35 @@ L7_RC_t hapiBroadPolicyRemoveFromIface(BROAD_POLICY_t policy, bcm_gport_t gport)
 
 /*********************************************************************
 *
+* @purpose Apply a policy to a bitmap of ports
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t hapiBroadPolicyApplyToMultiIface(BROAD_POLICY_t policy, bcm_pbmp_t pbm)
+{
+    int     unit, rv;
+    L7_RC_t result = L7_SUCCESS;
+
+    CHECK_POLICY(policy);
+
+    /* Apply to all units */
+    for (unit = 0; unit < bde->num_devices(BDE_SWITCH_DEVICES); unit++)
+    {
+      /* apply policy to the specified port */
+      rv = l7_bcm_policy_apply_multi(unit, policy, pbm);
+      if (BCM_E_NONE != rv)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error rv %u unit %u", rv, unit);
+        result = L7_FAILURE;
+      }
+    }
+
+    return result;
+}
+
+/*********************************************************************
+*
 * @purpose Apply a policy to all Ethernet ports.
 *
 * @end
@@ -2423,6 +2466,44 @@ L7_uint32 hapiBroadMaxPoliciesPerBcmUnit()
 
 /* Debug */
 
+void hapiBroadPolicyDebugTable()
+{
+  int                   rv;
+  BROAD_POLICY_ENTRY_t *policyInfo;
+  int                   i;
+
+  policyInfo = osapiMalloc(L7_DRIVER_COMPONENT_ID, sizeof(BROAD_POLICY_ENTRY_t));
+  if (policyInfo == L7_NULL)
+  {
+    return;
+  }
+
+  printf("\nPolicy Table\n");
+  printf("  Id   Type  Flags  Rules\n");
+  for (i = 0; i < BROAD_MAX_POLICIES; i++)
+  {
+    rv = usl_db_policy_info_get(USL_CURRENT_DB, i, policyInfo);
+    if (rv == BCM_E_NONE)
+    {
+      printf("[%4d] ", i);
+      printf("%11s  %4x  %5d  ",
+                   hapiBroadPolicyTypeName(policyInfo->policyType),
+                   policyInfo->policyFlags,
+                   policyInfo->ruleCount);
+      printf("\n");
+
+      /* Free any rules allocated by usl_db_policy_info_get(). */
+      hapiBroadPolicyRulesPurge(policyInfo);
+    }
+    else if (rv != BCM_E_NOT_FOUND)
+    {
+      printf("Couldn't retrieve policy %d info from USL DB: rv = %d\n", i, rv);
+    }
+  }
+
+  osapiFree(L7_DRIVER_COMPONENT_ID, policyInfo);
+}
+
 void hapiBroadPolicyByteDump(L7_uchar8 *ptr, L7_int32 bytes, BROAD_POLICY_FIELD_t field)
 {
     L7_ushort16 data16;
@@ -2453,44 +2534,6 @@ void hapiBroadPolicyByteDump(L7_uchar8 *ptr, L7_int32 bytes, BROAD_POLICY_FIELD_
 
     while (bytes-- > 0)
         sysapiPrintf("%02x", *buf_ptr++);
-}
-
-void hapiBroadPolicyDebugTable()
-{
-  int                   rv;
-  BROAD_POLICY_ENTRY_t *policyInfo;
-  int                   i;
-
-  policyInfo = osapiMalloc(L7_DRIVER_COMPONENT_ID, sizeof(BROAD_POLICY_ENTRY_t));
-  if (policyInfo == L7_NULL)
-  {
-    return;
-  }
-
-  sysapiPrintf("\nPolicy Table\n");
-  sysapiPrintf("  Id   Type  Flags  Rules\n");
-  for (i = 0; i < BROAD_MAX_POLICIES; i++)
-  {
-    rv = usl_db_policy_info_get(USL_CURRENT_DB, i, policyInfo);
-    if (rv == BCM_E_NONE)
-    {
-      sysapiPrintf("[%4d] ", i);
-      sysapiPrintf("%11s  %4x  %5d  ",
-                   hapiBroadPolicyTypeName(policyInfo->policyType),
-                   policyInfo->policyFlags,
-                   policyInfo->ruleCount);
-      sysapiPrintf("\n");
-
-      /* Free any rules allocated by usl_db_policy_info_get(). */
-      hapiBroadPolicyRulesPurge(policyInfo);
-    }
-    else if (rv != BCM_E_NOT_FOUND)
-    {
-      sysapiPrintf("Couldn't retrieve policy %d info from USL DB: rv = %d\n", i, rv);
-    }
-  }
-
-  osapiFree(L7_DRIVER_COMPONENT_ID, policyInfo);
 }
 
 void hapiBroadPolicyDebugAction(BROAD_ACTION_ENTRY_t       *actionPtr,

@@ -30,10 +30,12 @@
 #include "ptin_ptp_fpga.h"
 #include "ptin_hapi_fp_bwpolicer.h"
 #include "ptin_hapi_fp_counters.h"
+#include "ptin_env_api.h"
 #include "broad_policy.h"
 #include "simapi.h"
 #include "broad_group_bcm.h"
 #include "bcm_int/esw/link.h"
+#include "broad_l2_lag.h"
 #include <bcm/time.h>
 #if 0//Required to init L3 Modules. Not used since FP is already performing the init of those Modules
 #include <bcm/init.h>
@@ -53,6 +55,8 @@
  * GLOBAL VARIABLES
  ********************************************************************/
 
+extern DAPI_t *dapi_g;
+
 extern L7_uint64 hapiBroadReceive_packets_count;
 extern L7_uint64 hapiBroadReceice_igmp_count;
 extern L7_uint64 hapiBroadReceice_mld_count;
@@ -61,7 +65,7 @@ extern L7_uint64 hapiBroadReceice_dhcpv6_count;
 extern L7_uint64 hapiBroadReceice_pppoe_count;
 
 BROAD_POLICY_t lacp_policyId   = BROAD_POLICY_INVALID;
-BROAD_POLICY_t bl2cpu_policyId[3] = {BROAD_POLICY_INVALID, BROAD_POLICY_INVALID, BROAD_POLICY_INVALID};
+BROAD_POLICY_t internal_inband_policyId[3] = {BROAD_POLICY_INVALID, BROAD_POLICY_INVALID, BROAD_POLICY_INVALID};
 
 /********************************************************************
  * INTERNAL VARIABLES
@@ -70,7 +74,7 @@ BROAD_POLICY_t bl2cpu_policyId[3] = {BROAD_POLICY_INVALID, BROAD_POLICY_INVALID,
 L7_int bcm_unit = 0;
 
 /* Lookup map to provide internal port# based on physical port */
-static DAPI_USP_t usp_map[PTIN_SYSTEM_N_PORTS];
+static DAPI_USP_t usp_map[L7_MAX_PHYSICAL_PORTS_PER_SLOT];
 
 BROAD_POLICY_t inband_policyId = 0;
 
@@ -99,7 +103,7 @@ ptin_stormControl_t stormControl_backup = { 0, 0, RATE_LIMIT_BCAST, RATE_LIMIT_M
 
 static L7_RC_t hapi_ptin_portMap_init(void);
 
-L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier);
+static L7_RC_t hapi_ptin_egress_ports(L7_uint usp_port_frontier);
 
 L7_RC_t ptin_hapi_phy_init_matrix(void);
 L7_RC_t ptin_hapi_phy_init_olt1t0(void);
@@ -127,20 +131,19 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable);
 /**
  * Blocked semaphore associated to physical port
  * 
- * @param ptin_port 
+ * @param usp_port 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_hapi_phySemaTake(L7_uint16 ptin_port)
+L7_RC_t ptin_hapi_phySemaTake(L7_uint16 usp_port)
 {
   DAPI_USP_t     ddUsp;
   BROAD_PORT_t  *hapiPortPtr;
-  extern DAPI_t *dapi_g;
 
   /* Validate arguments */
-  if (ptin_port >= ptin_sys_number_of_ports)
+  if (usp_port >= L7_MAX_PHYSICAL_PORTS_PER_SLOT)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid ptin_port %u", ptin_port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid usp_port %u", usp_port);
     return L7_FAILURE;
   }
 
@@ -151,28 +154,27 @@ L7_RC_t ptin_hapi_phySemaTake(L7_uint16 ptin_port)
     return L7_FAILURE;
   }
   
-  /* Get hapiPortPtr */
-  ddUsp.unit = bcm_unit+1;
-  ddUsp.slot = 0;
-  ddUsp.port = ptin_port;
+  /* Initialize USP */
+  hapi_ptin_usp_init(&ddUsp, 0, usp_port);
 
+  /* Get hapiPortPtr */
   hapiPortPtr = HAPI_PORT_GET(&ddUsp, dapi_g);
 
   /* Check if hapiPortPtr pointer is valid */
   if (hapiPortPtr == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: hapiPortPtr pointer is NULL", ptin_port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "usp_port %u: hapiPortPtr pointer is NULL", usp_port);
     return L7_FAILURE;
   }
   /* Block the semaphore related to this phy */
   if (hapiPortPtr->hapiModeparm.physical.phySemaphore == L7_NULL)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: bcm_port %u does not have any semaphore associated to it", ptin_port, hapiPortPtr->bcm_port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "usp_port %u: bcm_port %u does not have any semaphore associated to it", usp_port, hapiPortPtr->bcm_port);
     return L7_FAILURE;
   }
   if (osapiSemaTake(hapiPortPtr->hapiModeparm.physical.phySemaphore, L7_WAIT_FOREVER) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error blocking semaphore related to bcm_port %u", ptin_port, hapiPortPtr->bcm_port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "usp_port %u: Error blocking semaphore related to bcm_port %u", usp_port, hapiPortPtr->bcm_port);
     return L7_FAILURE;
   }
 
@@ -182,20 +184,19 @@ L7_RC_t ptin_hapi_phySemaTake(L7_uint16 ptin_port)
 /**
  * Release semaphore associated to physical port
  * 
- * @param ptin_port 
+ * @param usp_port 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_hapi_phySemaGive(L7_uint16 ptin_port)
+L7_RC_t ptin_hapi_phySemaGive(L7_uint16 usp_port)
 {
   DAPI_USP_t     ddUsp;
   BROAD_PORT_t  *hapiPortPtr;
-  extern DAPI_t *dapi_g;
 
   /* Validate arguments */
-  if (ptin_port >= ptin_sys_number_of_ports)
+  if (usp_port >= L7_MAX_PHYSICAL_PORTS_PER_SLOT)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid ptin_port %u", ptin_port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid usp_port %u", usp_port);
     return L7_FAILURE;
   }
 
@@ -206,28 +207,27 @@ L7_RC_t ptin_hapi_phySemaGive(L7_uint16 ptin_port)
     return L7_FAILURE;
   }
 
-  /* Get hapiPortPtr */
-  ddUsp.unit = bcm_unit+1;
-  ddUsp.slot = 0;
-  ddUsp.port = ptin_port;
+  /* Initialize USP */
+  hapi_ptin_usp_init(&ddUsp, 0, usp_port);
 
+  /* Get hapiPortPtr */
   hapiPortPtr = HAPI_PORT_GET(&ddUsp, dapi_g);
 
   /* Check if hapiPortPtr pointer is valid */
   if (hapiPortPtr == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: hapiPortPtr pointer is NULL", ptin_port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "usp_port %u: hapiPortPtr pointer is NULL", usp_port);
     return L7_FAILURE;
   }
   /* Release semaphore related to this phy */
   if (hapiPortPtr->hapiModeparm.physical.phySemaphore == L7_NULL)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: bcm_port %u does not have any semaphore associated to it", ptin_port, hapiPortPtr->bcm_port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "usp_port %u: bcm_port %u does not have any semaphore associated to it", usp_port, hapiPortPtr->bcm_port);
     return L7_FAILURE;
   }
   if (osapiSemaGive(hapiPortPtr->hapiModeparm.physical.phySemaphore) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error releasing semaphore related to bcm_port %u", ptin_port, hapiPortPtr->bcm_port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "usp_port %u: Error releasing semaphore related to bcm_port %u", usp_port, hapiPortPtr->bcm_port);
     return L7_FAILURE;
   }
 
@@ -283,56 +283,49 @@ L7_RC_t hapi_ptin_data_init(void)
  */
 L7_RC_t hapi_ptin_config_init(void)
 {
-  L7_RC_t rc = L7_SUCCESS;
+  L7_RC_t rc;
 
   /* Switch initializations */
-  if (ptin_hapi_switch_init()!=L7_SUCCESS)
-    rc = L7_FAILURE;
+  rc = ptin_hapi_switch_init();
+  if (rc != L7_SUCCESS)
+    return rc;
 
   /* PHY initializations */
-  if (ptin_hapi_phy_init()!=L7_SUCCESS)
-    rc = L7_FAILURE;
+  rc = ptin_hapi_phy_init();
+  if (rc != L7_SUCCESS)
+    return rc;
 
 #if PTIN_BOARD != PTIN_BOARD_AG16GA
   /* ptin_hapi_xlate initializations */
-  if (ptin_hapi_xlate_init()!=L7_SUCCESS)
-    rc = L7_FAILURE;
+  rc = ptin_hapi_xlate_init();
+  if (rc != L7_SUCCESS)
+    return rc;
 #endif
 
   /* ptin_hapi_bridge initializations */
-  if (ptin_hapi_bridge_init()!=L7_SUCCESS)
-    rc = L7_FAILURE;
+  rc = ptin_hapi_bridge_init();
+  if (rc != L7_SUCCESS)
+    return rc;
 
-  #if 0//Not Required. Already Performed by FP. 
-  /*Initialize L3 Module*/
-  if (bcm_init_selective(0, BCM_MODULE_L3) != L7_SUCCESS)
-    rc = L7_FAILURE;
-  #endif
-
-  #if 0//Not Required. Already Performed by FP
-  /*Initialize IPMC Table*/
-  if (bcm_ipmc_init(0) != L7_SUCCESS)
-    rc = L7_FAILURE;
-  #endif
-
-  if (hapiBroadSystemInstallPtin_postInit() != L7_SUCCESS)
-    rc = L7_FAILURE;
+  rc = hapiBroadSystemInstallPtin_postInit();
+  if (rc != L7_SUCCESS)
+    return rc;
 
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
   /* Reset L2mod interval */
   if (soc_l2x_stop(0 /*unit*/) != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI,"Error resetting L2MOD interval to 3s");
-    rc = L7_FAILURE;
+    return L7_FAILURE;
   }
   else if (soc_l2x_start(0 /*unit*/, 0 /*flags*/, 3500000 /*us*/) != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI,"Error resetting L2MOD interval to 3s");
-    rc = L7_FAILURE;
+    return L7_FAILURE;
   }
 #endif
 
-  return rc;
+  return L7_SUCCESS;
 }
 
 /**
@@ -602,10 +595,20 @@ L7_RC_t ptin_hapi_phy_init(void)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing OLT1T0F phys");
   }
+#elif (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  if (ptin_hapi_phy_init_tc16sxg() == L7_SUCCESS)
+  {
+    PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing TC16SXG phys");
+  }
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing TC16SXG phys");
+  }
 #endif
-
   /* Egress port configuration, only for PON boards */
-  if (hapi_ptin_egress_ports(max(PTIN_SYSTEM_N_PONS,PTIN_SYSTEM_N_ETH)) != L7_SUCCESS)
+  if (hapi_ptin_egress_ports(max(PTIN_SYSTEM_N_PONS_PHYSICAL,
+                                 PTIN_SYSTEM_N_ETH_PHYSICAL)
+                            ) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_HAPI,"Error initializing egress ports!");
     return L7_FAILURE;
@@ -637,8 +640,9 @@ L7_RC_t ptin_hapi_phy_init_matrix(void)
   L7_RC_t rc = L7_SUCCESS;
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
-  int i;
-  bcm_port_t bcm_port;
+  DAPI_USP_t  usp;
+  BROAD_PORT_t  *hapiPortPtr;
+  bcm_port_t bcm_unit, bcm_port;
 
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
@@ -649,21 +653,27 @@ L7_RC_t ptin_hapi_phy_init_matrix(void)
   dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiWCMapPtr         = dapiCardPtr->wcPortMap;
 
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR)
+  {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
+      return L7_FAILURE;
+  }
+
+  /* Run all physical ports, and configure the packet headers to be considered at the Load Balancing algorithms */
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
  #ifndef PTIN_LINKSCAN_CONTROL
   /* Run all ports */
-  for (i=0; i<ptin_sys_number_of_ports; i++)
+  USP_PHYPORT_ITERATE(usp, dapi_g)
   {
-    /* Get bcm_port format */
-    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error obtaining bcm_port for port %u", i);
-      continue;
-    }
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+    bcm_port    = hapiPortPtr->bcm_port;
+    bcm_unit    = hapiPortPtr->bcm_unit;
+
     /* Activate hw linkscan */
-    if (bcm_linkscan_mode_set(0, bcm_port, BCM_LINKSCAN_MODE_HW) != BCM_E_NONE)
+    if (bcm_linkscan_mode_set(bcm_unit, bcm_port, BCM_LINKSCAN_MODE_HW) != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing HW linkscan mode to port %u (bcm_port %u)", i, bcm_port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing HW linkscan mode to port %u (bcm_port %u)", usp.port, bcm_port);
       return L7_FAILURE;
     }
   }
@@ -685,105 +695,106 @@ L7_RC_t ptin_hapi_phy_init_matrix(void)
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
  #if (SDK_VERSION_IS < SDK_VERSION(6,5,0,0))
  #if (PHY_RECOVERY_PROCEDURE)
-  for (i = PTIN_SYS_LC_SLOT_MIN; i <= PTIN_SYS_LC_SLOT_MAX; i++)
   {
-    if (ptin_hapi_warpcore_reset(i, L7_FALSE) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error resetting warpcore of slot %u", i);
-      rc = L7_FAILURE;
-    }
-    else
-    {
-      PT_LOG_NOTICE(LOG_CTX_HAPI, "Warpcore of slot %u reseted!", i);
-    }
+      int i;
+
+      for (i = PTIN_SYS_LC_SLOT_MIN; i <= PTIN_SYS_LC_SLOT_MAX; i++)
+      {
+        if (ptin_hapi_warpcore_reset(i, L7_FALSE) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error resetting warpcore of slot %u", i);
+          rc = L7_FAILURE;
+        }
+        else
+        {
+          PT_LOG_NOTICE(LOG_CTX_HAPI, "Warpcore of slot %u reseted!", i);
+        }
+      }
   }
  #endif
  #endif /* SDK_VERSION_IS < SDK_VERSION(6,5,0,0) */
 #endif
 
   /* Run all ports */
-  for (i=0; i<ptin_sys_number_of_ports; i++)
+  USP_PHYPORT_ITERATE(usp, dapi_g)
   {
-    /* Get bcm_port format */
-    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error obtaining bcm_port for port %u", i);
-      continue;
-    }
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+    bcm_port    = hapiPortPtr->bcm_port;
+    bcm_unit    = hapiPortPtr->bcm_unit;
 
     /* Block semaphore associated to physical port */
-    if (ptin_hapi_phySemaTake(i) != L7_SUCCESS)
+    if (ptin_hapi_phySemaTake(usp.port) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error blocking semaphore", i);
+      PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error blocking semaphore", usp.port);
       return L7_FAILURE;
     }
 
   #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
     /* Local ports at 10G XAUI (Only applicable to CXO160G) */
-    if (hapiWCMapPtr[i].slotNum < 0 && hapiWCMapPtr[i].wcSpeedG == 10)
+    if (hapiWCMapPtr[usp.port].slotNum < 0 && hapiWCMapPtr[usp.port].wcSpeedG == 10)
     {
       if (ptin_hapi_xaui_set(bcm_port) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) at XAUI mode", i, bcm_port);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) at XAUI mode", usp.port, bcm_port);
         rc = L7_FAILURE;
         continue;
       }
-      PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at XAUI mode", i, bcm_port);
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at XAUI mode", usp.port, bcm_port);
     }
     /* Backplane 10G ports: disable linkscan */
     else
   #endif
-    if (hapiWCMapPtr[i].slotNum >= 0 && hapiWCMapPtr[i].wcSpeedG == 10)
+    if (hapiWCMapPtr[usp.port].slotNum >= 0 && hapiWCMapPtr[usp.port].wcSpeedG == 10)
     {
       /* Init 10G ports at SFI mode */
       if (ptin_hapi_sfi_set(bcm_port) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) at SFI", i, bcm_port);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) at SFI", usp.port, bcm_port);
         rc = L7_FAILURE;
         continue;
       }
-      PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at SFI", i, bcm_port);
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at SFI", usp.port, bcm_port);
 
     #ifdef PTIN_LINKSCAN_CONTROL
       /* Enable linkscan */
       if (ptin_hapi_linkscan_execute(bcm_port, L7_DISABLE) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error disabling linkscan for port %u (bcm_port %u)", i, bcm_port);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error disabling linkscan for port %u (bcm_port %u)", usp.port, bcm_port);
         rc = L7_FAILURE;
         break;
       }
-      PT_LOG_INFO(LOG_CTX_HAPI, "Linkscan disabled for port %u (bcm_port %u)", i, bcm_port);
+      PT_LOG_INFO(LOG_CTX_HAPI, "Linkscan disabled for port %u (bcm_port %u)", usp.port, bcm_port);
     #endif
     }
     /* Init 40G ports at KR4 mode */
-    else if (hapiWCMapPtr[i].wcSpeedG == 40)
+    else if (hapiWCMapPtr[usp.port].wcSpeedG == 40)
     {
-      if (hapiWCMapPtr[i].wcMode == BCM_PORT_IF_XLAUI)
+      if (hapiWCMapPtr[usp.port].wcMode == BCM_PORT_IF_XLAUI)
       {
         if (ptin_hapi_xlaui_set(bcm_port)!=L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) at XLAUI", i, bcm_port);
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) at XLAUI", usp.port, bcm_port);
           rc = L7_FAILURE;
           continue;
         }
-        PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at XLAUI", i, bcm_port);
+        PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at XLAUI", usp.port, bcm_port);
       }
       else
       {
         if (ptin_hapi_kr4_set(bcm_port)!=L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) at KR4", i, bcm_port);
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) at KR4", usp.port, bcm_port);
           rc = L7_FAILURE;
           continue;
         }
-        PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at KR4", i, bcm_port);
+        PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at KR4", usp.port, bcm_port);
       }
     }
 
     /* Release semaphore related to physical port */
-    if (ptin_hapi_phySemaGive(i) != L7_SUCCESS)
+    if (ptin_hapi_phySemaGive(usp.port) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error releasing semaphore", i);
+      PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error releasing semaphore", usp.port);
     }
   }
 #endif
@@ -1059,6 +1070,46 @@ L7_RC_t ptin_hapi_phy_init_tg16gf(void)
 
   return rc;
 }
+
+
+/**
+ * Initialize PHYs for TC16SXG
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_phy_init_tc16sxg(void)
+{
+  L7_RC_t rc = L7_SUCCESS;
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  DAPI_USP_t  usp;
+  BROAD_PORT_t  *hapiPortPtr;
+  bcm_port_t bcm_unit, bcm_port;
+
+  /* Run all ports */
+  USP_PHYPORT_ITERATE(usp, dapi_g)
+  {
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+    bcm_port    = hapiPortPtr->bcm_port;
+    bcm_unit    = hapiPortPtr->bcm_unit;
+
+    if ((PTIN_SYSTEM_10G_PORTS_MASK >> bcm_port) & 1)
+    {
+      /* Set XAUI mode */
+      if (ptin_hapi_sfi_set(bcm_port) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing bcm_port %u at SFI mode", bcm_port);
+        rc = L7_FAILURE;
+        continue;
+      }
+    }
+  }
+#else
+  rc = L7_NOT_SUPPORTED;
+#endif
+  return rc;
+}
+
 
 /**
  * Initialize PHYs for Ag16GA boards
@@ -1423,11 +1474,15 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
   L7_RC_t       rc = L7_SUCCESS;
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
-  L7_int     i, wcSpeedG=-1, wcMode=BCM_PORT_IF_NULL;
-  bcm_port_t bcm_port;
+  int i;
+  L7_int     wcSpeedG=-1, wcMode=BCM_PORT_IF_NULL;
   bcm_pbmp_t pbm, pbm_out;
   L7_uint8   number_of_ports;
-  L7_uint8   ptin_port_list[8];
+  L7_uint8   usp_port_list[8];
+
+  DAPI_USP_t    usp;
+  BROAD_PORT_t  *hapiPortPtr;
+  bcm_port_t bcm_unit, bcm_port;
 
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
@@ -1441,39 +1496,44 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
   BCM_PBMP_CLEAR(pbm);
   number_of_ports = 0;
 
-  /* Run all slots */
-  for (i=0; i<ptin_sys_number_of_ports; i++)
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR)
   {
-    /* Get bcm_port format */
-    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error obtaining bcm_port for port %u", i);
-      continue;
-    }
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
+      return L7_FAILURE;
+  }
+
+  /* Run all physical ports, and configure the packet headers to be considered at the Load Balancing algorithms */
+  USP_PHYPORT_ITERATE(usp, dapi_g)
+  {
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+    bcm_port    = hapiPortPtr->bcm_port;
+    bcm_unit    = hapiPortPtr->bcm_unit;
+
     /* Skip non SFI ports */
-    if (hapiWCMapPtr[i].slotNum < 0)
+    if (hapiWCMapPtr[usp.port].slotNum < 0)
     {
-      PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_port %u (port %u) not considered", bcm_port, i);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_port %u (port %u) not considered", bcm_port, usp.port);
       continue;
     }
     /* And add the ports associated to the provided slot_id */
-    if (hapiWCMapPtr[i].slotNum == slot_id)
+    if (hapiWCMapPtr[usp.port].slotNum == slot_id)
     {
       /* Allow up to 8 ports to be configured */
       if (number_of_ports < 8)
       {
         BCM_PBMP_PORT_ADD(pbm, bcm_port);
         /* Save speed of this port */
-        wcSpeedG = hapiWCMapPtr[i].wcSpeedG;
-        wcMode   = hapiWCMapPtr[i].wcMode;
-        PT_LOG_INFO(LOG_CTX_HAPI, "bcm_port %u (ptin_port %u) will be reseted", bcm_port, i);
+        wcSpeedG = hapiWCMapPtr[usp.port].wcSpeedG;
+        wcMode   = hapiWCMapPtr[usp.port].wcMode;
+        PT_LOG_INFO(LOG_CTX_HAPI, "bcm_port %u (ptin_port %u) will be reseted", bcm_port, usp.port);
 
         /* Store ptin_port to be configured */
-        ptin_port_list[number_of_ports++] = i;
+        usp_port_list[number_of_ports++] = usp.port;
       }
       else
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "bcm_port %u (port %u) can not be added to list of ports to be reseted... 8 ports is the maximum", bcm_port, i);
+        PT_LOG_ERR(LOG_CTX_HAPI, "bcm_port %u (port %u) can not be added to list of ports to be reseted... 8 ports is the maximum", bcm_port, usp.port);
       }
     }
   }
@@ -1489,15 +1549,15 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
   for (i = 0; i < number_of_ports; i++)
   {
     /* Block semaphore associated to physical port */
-    if (ptin_hapi_phySemaTake(ptin_port_list[i]) != L7_SUCCESS)
+    if (ptin_hapi_phySemaTake(usp_port_list[i]) != L7_SUCCESS)
     {
       /* Release previous locks */
       L7_uint8 j;
       for (j = 0; j < i; j++)
       {
-        ptin_hapi_phySemaGive(ptin_port_list[j]);
+        ptin_hapi_phySemaGive(usp_port_list[j]);
       }
-      PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error blocking semaphore", ptin_port_list[j]);
+      PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error blocking semaphore", usp_port_list[j]);
       return L7_FAILURE;
     }
   }
@@ -1605,9 +1665,9 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
   for (i = 0; i < number_of_ports; i++)
   {
     /* Release semaphore associated to physical port */
-    if (ptin_hapi_phySemaGive(ptin_port_list[i]) != L7_SUCCESS)
+    if (ptin_hapi_phySemaGive(usp_port_list[i]) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error releasing semaphore", ptin_port_list[i]);
+      PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error releasing semaphore", usp_port_list[i]);
     }
   }
   
@@ -1713,25 +1773,26 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
+static L7_RC_t hapi_ptin_egress_ports(L7_uint usp_port_frontier)
 {
-  int i, unit=0;
-  bcm_port_t bcm_port;
+  int i;
   bcm_gport_t gport_cpu;
   bcm_port_t  bcm_port_cpu;
+  L7_uint32     bcm_unit, bcm_port;
+  DAPI_USP_t    usp;
+  BROAD_PORT_t  *hapiPortPtr;
 
-  /* Validate arguments */
-  if (port_frontier>=ptin_sys_number_of_ports)
+  if (usp_port_frontier >= L7_MAX_PHYSICAL_PORTS_PER_SLOT)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Invalid port frontier (%u)",port_frontier);
+    PT_LOG_ERR(LOG_CTX_HAPI,"Invalid usp_port_frontier %u", usp_port_frontier);
     return L7_FAILURE;
   }
-
-  /* Switch unit */
-  if (hapi_ptin_bcmUnit_get(&unit) != L7_SUCCESS)
+  
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI,"bcm_port map not initialized!");
-    return L7_FAILURE;
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
+      return L7_FAILURE;
   }
 
   /* Prepare port bitmaps */
@@ -1757,17 +1818,17 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
   BCM_PBMP_PORT_ADD(pbm_egress_root_ports, bcm_port_cpu);
   BCM_PBMP_PORT_ADD(pbm_egress_community_ports, bcm_port_cpu);
 
-  for (i=0; i<ptin_sys_number_of_ports; i++)
+  /* Run all usp ports */
+  USP_PHYPORT_ITERATE(usp, dapi_g)
   {
-    if (hapi_ptin_bcmPort_get(i, &bcm_port) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Error getting bcm_port for port %u",i);
-      return L7_FAILURE;
-    }
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+    bcm_port    = hapiPortPtr->bcm_port;
+    bcm_unit    = hapiPortPtr->bcm_unit;
+
     /* All ports */
     BCM_PBMP_PORT_ADD(pbm_egress_all_ports, bcm_port);
     /* Root/community ports */
-    if (i>=port_frontier)
+    if (usp.port >= usp_port_frontier)
     {
       BCM_PBMP_PORT_ADD(pbm_egress_root_ports, bcm_port);
       BCM_PBMP_PORT_ADD(pbm_egress_community_ports, bcm_port);
@@ -1791,36 +1852,39 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
   }
 
   /* PON ports: egress ports are the ethernet ones only */
-  for (i=0; i<port_frontier; i++)
+  for (usp.port = 0;
+       usp.port < usp_port_frontier &&
+       usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;
+       usp.port++)
   {
-    if (hapi_ptin_bcmPort_get(i, &bcm_port) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Error getting bcm_port for port %u",i);
-      return L7_FAILURE;
-    }
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+    bcm_port    = hapiPortPtr->bcm_port;
+    bcm_unit    = hapiPortPtr->bcm_unit;
+
     /* Configure egress ports list */
-    if (bcm_port_egress_set(unit, bcm_port, 0, pbm_egress_root_ports)!=BCM_E_NONE)
+    if (bcm_port_egress_set(bcm_unit, bcm_port, 0, pbm_egress_root_ports)!=BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI,"Error setting egress bitmap for port %u",i);
       return L7_FAILURE;
     }
-    PT_LOG_DEBUG(LOG_CTX_HAPI,"Egress bitmap configured for PON port %u (bcm_port=%u)",i, bcm_port);
+    PT_LOG_DEBUG(LOG_CTX_HAPI,"Egress bitmap configured for PON port %u (bcm_port=%u)", usp.port, bcm_port);
   }
   /* ETH ports */
-  for (i=port_frontier; i<ptin_sys_number_of_ports; i++)
+  for (usp.port = usp_port_frontier;
+       usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;
+       usp.port++)
   {
-    if (hapi_ptin_bcmPort_get(i, &bcm_port) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Error getting bcm_port for port %u",i);
-      return L7_FAILURE;
-    }
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+    bcm_port    = hapiPortPtr->bcm_port;
+    bcm_unit    = hapiPortPtr->bcm_unit;
+
     /* Configure egress ports list */
-    if (bcm_port_egress_set(unit, bcm_port, 0, pbm_egress_all_ports)!=BCM_E_NONE)
+    if (bcm_port_egress_set(bcm_unit, bcm_port, 0, pbm_egress_all_ports)!=BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Error setting egress bitmap for port %u",i);
+      PT_LOG_ERR(LOG_CTX_HAPI,"Error setting egress bitmap for port %u", usp.port);
       return L7_FAILURE;
     }
-    PT_LOG_DEBUG(LOG_CTX_HAPI,"Egress bitmap configured for ETH port %u (bcm_port=%u)",i,bcm_port);
+    PT_LOG_DEBUG(LOG_CTX_HAPI,"Egress bitmap configured for ETH port %u (bcm_port=%u)", usp.port, bcm_port);
   }
 
   PT_LOG_DEBUG(LOG_CTX_HAPI,"Egress bitmap configured for all ports");
@@ -1915,6 +1979,417 @@ L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL l
 }
 
 
+/**
+ * Get port descriptor from ddUsp interface
+ * 
+ * @param ddUsp : unit, slot and port reference
+ * @param dapi_g
+ * @param intf_desc : interface descriptor with gport, bcm_port 
+ *                  (-1 if not physical) and trunk_id (-1 if not
+ *                  trunk)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, ptin_hapi_intf_t *intf_desc,
+                                     DAPI_PORT_t **dapiPortPtr_ret, BROAD_PORT_t **hapiPortPtr_ret)
+{
+  L7_uint       i;
+  DAPI_PORT_t  *dapiPortPtr;
+  BROAD_PORT_t *hapiPortPtr;
+  bcm_gport_t   gport=-1;
+  bcm_trunk_t   trunk_id=-1;
+  bcm_port_t    bcm_port=-1;
+  L7_uint32     /*efp_class_port=0,*/ xlate_class_port=0;
+  L7_uint64     usp_bmp;
+
+  /* Validate interface */
+  if (ddUsp==L7_NULLPTR || (ddUsp->unit<0 && ddUsp->slot<0 && ddUsp->port<0))
+  {
+    PT_LOG_WARN(LOG_CTX_HAPI,"No provided interface!");
+    return L7_SUCCESS;
+  }
+  if (ddUsp->unit<0 || ddUsp->slot<0 || ddUsp->port<0)
+  {
+    PT_LOG_WARN(LOG_CTX_HAPI,"Invalid interface!");
+    return L7_FAILURE;
+  }
+
+  dapiPortPtr = DAPI_PORT_GET( ddUsp, dapi_g );
+  hapiPortPtr = HAPI_PORT_GET( ddUsp, dapi_g );
+
+  /* Extract gport */
+  gport = hapiPortPtr->bcm_gport;
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Analysing interface {%d,%d,%d}: gport=0x%08x",ddUsp->unit,ddUsp->slot,ddUsp->port,gport);
+
+  /* Extract Trunk id */
+  if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
+  {
+    trunk_id = hapiPortPtr->hapiModeparm.lag.tgid;
+    PT_LOG_TRACE(LOG_CTX_HAPI,"Interface {%d,%d,%d} is a lag: trunk_id = %d",ddUsp->unit,ddUsp->slot,ddUsp->port,trunk_id);
+  }
+  /* Extract Physical port */
+  else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
+  {
+    bcm_port = hapiPortPtr->bcm_port;
+    PT_LOG_TRACE(LOG_CTX_HAPI,"Interface {%d,%d,%d} is a port: bcm_port = %d",ddUsp->unit,ddUsp->slot,ddUsp->port,bcm_port);
+  }
+  /* Not valid type */
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI,"Interface has a not valid type: error!");
+    return L7_FAILURE;
+  }
+
+  /* Class port */
+  //efp_class_port   = (ddUsp->slot*L7_MAX_PORTS_PER_SLOT) + ddUsp->port + 1 + EFP_STD_CLASS_ID_MAX;
+  xlate_class_port = (ddUsp->slot*L7_MAX_PORTS_PER_SLOT) + ddUsp->port + 1;
+
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Interface {%d,%d,%d}: xlate_class_port=%d",
+            ddUsp->unit,ddUsp->slot,ddUsp->port,xlate_class_port);
+
+  /* Add physical interface to port bitmap */
+  usp_bmp = 0;
+
+  /* Extract Trunk id */
+  if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
+  {
+    hapiBroadLagCritSecEnter();
+    /* Apply to all member ports */
+    for (i=0; i<L7_MAX_MEMBERS_PER_LAG; i++)
+    {
+      if (!dapiPortPtr->modeparm.lag.memberSet[i].inUse)  continue;
+
+      /* Add this physical port to bitmap */
+      usp_bmp |= (1ULL << dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
+      PT_LOG_TRACE(LOG_CTX_HAPI,"usp_port %d added", dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
+    }
+    hapiBroadLagCritSecExit();
+  }
+  /* Extract Physical port */
+  else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
+  {
+    usp_bmp |= (1ULL << ddUsp->port);
+    PT_LOG_TRACE(LOG_CTX_HAPI,"usp_port %d considered", ddUsp->port);
+  }
+  /* Not valid type */
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI,"Interface has a not valid type: error!");
+    //return L7_FAILURE;
+  }
+
+  /* Update interface descriptor */
+  if (intf_desc != L7_NULLPTR)
+  {
+    intf_desc->gport            = gport;
+    intf_desc->trunk_id         = trunk_id;
+    intf_desc->bcm_port         = bcm_port;
+    //intf_desc->efp_class_port   = efp_class_port;
+    intf_desc->xlate_class_port = xlate_class_port;
+    intf_desc->usp_bmp          = usp_bmp;
+  }
+
+  if (dapiPortPtr_ret != L7_NULLPTR)
+  {
+    *dapiPortPtr_ret = dapiPortPtr;
+  }
+  if (hapiPortPtr_ret != L7_NULLPTR)
+  {
+    *hapiPortPtr_ret = hapiPortPtr;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get pbm format por ports
+ * 
+ * @param dapiPort 
+ * @param ptin_port_bmp 
+ * @param pbm 
+ * @param pbm_mask 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapi_ptin_port_bitmap_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_uint64 usp_port_bmp,
+                                  bcm_pbmp_t *pbm, bcm_pbmp_t *pbm_mask)
+{
+  L7_int i;
+  DAPI_PORT_t  *dapiPortPtr = L7_NULLPTR;
+  BROAD_PORT_t *hapiPortPtr = L7_NULLPTR;
+
+  BCM_PBMP_CLEAR(*pbm);
+
+  if (usp_port_bmp != 0)
+  {
+    hapi_ptin_get_bcm_from_usp_bitmap(usp_port_bmp, pbm);
+  }
+  else if (ddUsp->port >= 0 && ddUsp->slot >= 0 && ddUsp->port >= 0)
+  {
+    BROAD_PORT_t *hapiPortPtr_member;
+
+    dapiPortPtr = DAPI_PORT_GET( ddUsp, dapi_g );
+    hapiPortPtr = HAPI_PORT_GET( ddUsp, dapi_g );
+
+    /* Extract Trunk id */
+    if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
+    {
+      /* Apply to all member ports */
+      for (i=0; i<L7_MAX_MEMBERS_PER_LAG; i++)
+      {
+        if (!dapiPortPtr->modeparm.lag.memberSet[i].inUse)  continue;
+
+        hapiPortPtr_member = HAPI_PORT_GET( &dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
+        if (hapiPortPtr_member==L7_NULLPTR)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error getting HAPI_PORT_GET for usp={%d,%d,%d}",
+                  dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                  dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                  dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
+          return L7_FAILURE;
+        }
+
+        /* Add this physical port to bitmap */
+        BCM_PBMP_PORT_ADD(*pbm, hapiPortPtr_member->bcm_port);
+        PT_LOG_TRACE(LOG_CTX_HAPI,"bcm_port %d added", hapiPortPtr_member->bcm_port);
+      }
+    }
+    /* Extract Physical port */
+    else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
+    {
+      BCM_PBMP_PORT_ADD(*pbm, hapiPortPtr->bcm_port);
+      PT_LOG_TRACE(LOG_CTX_HAPI,"bcm_port %d considered", hapiPortPtr->bcm_port);
+    }
+    /* Not valid type */
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI,"Interface has a not valid type: error!");
+      return L7_FAILURE;
+    }
+  }
+
+  /* PBM mask: all ports */
+  hapi_ptin_get_bcm_from_usp_bitmap(-1 /*All ports*/, pbm_mask);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Initialize USP data
+ * 
+ * @author mruas (17/11/20)
+ * 
+ * @param usp 
+ * @param usp_slot 
+ * @param usp_port 
+ */
+void hapi_ptin_usp_init(DAPI_USP_t *usp, int usp_slot, int usp_port)
+{
+  L7_uint32 unit_number;
+
+  /* Run all physical ports, and configure the packet headers to be considered at the Load Balancing algorithms */
+  unitMgrNumberGet(&unit_number);
+  usp->unit = (L7_int8) unit_number;
+  usp->slot = usp_slot;
+  usp->port = usp_port;
+}
+
+/**
+ * Get bcm_unit and bcm_port from USP 
+ * 
+ * @author mruas (17/11/20)
+ * 
+ * @param usp (in) 
+ * @param dapi_g (in) 
+ * @param bcm_unit (out) 
+ * @param bcm_port (out) 
+ * @param bcm_gport (out) 
+ *  
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE 
+ */
+L7_RC_t hapi_ptin_get_bcmdata_from_usp(DAPI_USP_t *usp, DAPI_t *dapi_g,
+                                       L7_uint32 *bcm_unit, L7_uint32 *bcm_port, L7_uint32 *bcm_gport)
+{
+  BROAD_PORT_t *hapiPortPtr;
+
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR ||
+      dapi_g->unit[usp->unit] == L7_NULLPTR ||
+      dapi_g->unit[usp->unit]->slot[usp->slot] == L7_NULLPTR)
+  {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
+      return L7_FAILURE;
+  }
+
+  hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
+
+  if (hapiPortPtr == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "hapiPortPtr is NULLPTR");
+    return L7_FAILURE;
+  }
+  
+  if (bcm_unit != L7_NULLPTR)
+  {
+    *bcm_unit = hapiPortPtr->bcm_unit;
+  }
+  if (bcm_port != L7_NULLPTR)
+  {
+    *bcm_port = hapiPortPtr->bcm_port;
+  }
+  if (bcm_gport != L7_NULLPTR)
+  {
+    *bcm_gport = hapiPortPtr->bcm_gport;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get bcm_unit and bcm_port from USP physical port 
+ * 
+ * @author mruas (17/11/20)
+ * 
+ * @param usp_port (in) 
+ * @param dapi_g (in)  
+ * @param bcm_unit (out) 
+ * @param bcm_port (out) 
+ * @param bcm_gport (out) 
+ *  
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE 
+ */
+L7_RC_t hapi_ptin_get_bcmdata_from_uspport(L7_uint32 usp_port, DAPI_t *dapi_g,
+                                           L7_uint32 *bcm_unit, L7_uint32 *bcm_port, L7_uint32 *bcm_gport)
+{
+  DAPI_USP_t usp;
+
+  hapi_ptin_usp_init(&usp, 0, usp_port);
+
+  return hapi_ptin_get_bcmdata_from_usp(&usp, dapi_g, bcm_unit, bcm_port, bcm_gport);
+}
+
+/**
+ * Get USP from bcm data
+ * 
+ * @author mruas (17/11/20)
+ * 
+ * @param bcm_unit (in) 
+ * @param bcm_port (in) 
+ * @param bcm_gport (in) 
+ * @param usp (out) 
+ *  
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE 
+ */
+L7_RC_t hapi_ptin_get_usp_from_bcmdata(L7_uint bcm_unit, L7_uint bcm_port, L7_uint bcm_gport,
+                                       DAPI_USP_t *usp)
+{
+  DAPI_USP_t _usp;
+  BROAD_PORT_t *hapiPortPtr;
+
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR)
+  {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
+      return L7_FAILURE;
+  }
+
+  /* Run all USP ports to find this bcm_port */
+  USP_PHYPORT_ITERATE(_usp, dapi_g)
+  {
+    hapiPortPtr = HAPI_PORT_GET(&_usp, dapi_g);
+    if ((bcm_unit == (L7_uint)-1 || hapiPortPtr->bcm_unit == bcm_unit ) &&
+        (bcm_port == (L7_uint)-1 || hapiPortPtr->bcm_port == bcm_port ) &&
+        (bcm_gport== (L7_uint)-1 || hapiPortPtr->bcm_gport== bcm_gport))
+    {
+      if (usp != L7_NULLPTR)
+      {
+        *usp = _usp;
+      }
+      return L7_SUCCESS;
+    }
+  }
+
+  return L7_NOT_EXIST;
+}
+
+/**
+ * Get USP port from bcm data
+ * 
+ * @author mruas (17/11/20)
+ * 
+ * @param bcm_unit (in) 
+ * @param bcm_port (in) 
+ * @param bcm_gport (in) 
+ * @param usp_port (out) 
+ *  
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE 
+ */
+L7_RC_t hapi_ptin_get_uspport_from_bcmdata(L7_uint bcm_unit, L7_uint bcm_port, L7_uint bcm_gport,
+                                           L7_uint32 *usp_port)
+{
+  DAPI_USP_t usp;
+  BROAD_PORT_t *hapiPortPtr;
+
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR)
+  {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
+      return L7_FAILURE;
+  }
+
+  /* Run all USP ports to find this bcm_port */
+  USP_PHYPORT_ITERATE(usp, dapi_g)
+  {
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+    if ((bcm_unit == (L7_uint)-1 || hapiPortPtr->bcm_unit == bcm_unit ) &&
+        (bcm_port == (L7_uint)-1 || hapiPortPtr->bcm_port == bcm_port ) &&
+        (bcm_gport== (L7_uint)-1 || hapiPortPtr->bcm_gport== bcm_gport))
+    {
+      if (usp_port != L7_NULLPTR)
+      {
+        *usp_port = usp.port;
+      }
+      return L7_SUCCESS;
+    }
+  }
+
+  return L7_NOT_EXIST;
+}
+
+/**
+ * Get pbmp value for a bitmap of ptin_ports
+ * 
+ * @param port_bmp (in)
+ * @param bcm_pbm (out)
+ */
+void hapi_ptin_get_bcm_from_usp_bitmap(L7_uint64 usp_bmp, pbmp_t *bcm_bmp)
+{
+  DAPI_USP_t usp;
+  BROAD_PORT_t *hapiPortPtr;
+
+  /* Clear port bitmap */
+  BCM_PBMP_CLEAR(*bcm_bmp);
+
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR)
+  {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
+      return;
+  }
+
+  USP_PHYPORT_ITERATE(usp, dapi_g)
+  {
+    if (((usp_bmp >> usp.port) & 1))
+    {
+      hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+      BCM_PBMP_PORT_ADD(*bcm_bmp, hapiPortPtr->bcm_port);
+    }
+  }
+}
+
+
+/* Not supported functions if port virtualization is enabled */
+#ifndef PORT_VIRTUALIZATION_N_1
 /** 
  * Get bcm unit id for this switch. 
  * Normally is ZERO, but nervertheless it's better to be sure 
@@ -2024,8 +2499,9 @@ L7_RC_t hapi_ptin_port_get(L7_int bcm_port, L7_int *port)
  */
 void hapi_ptin_allportsbmp_get(pbmp_t *pbmp_mask)
 {
-  L7_int ptin_port;
-  bcm_port_t bcm_port;
+  DAPI_USP_t usp;
+  L7_uint32 /*bcm_unit,*/ bcm_port;
+  BROAD_PORT_t  *hapiPortPtr;
 
   /* Argument must not be a null pointer */
   if (pbmp_mask==L7_NULLPTR)
@@ -2033,150 +2509,18 @@ void hapi_ptin_allportsbmp_get(pbmp_t *pbmp_mask)
 
   /* Interfaces mask (for inports field) */
   BCM_PBMP_CLEAR(*pbmp_mask);
-  for (ptin_port=0; ptin_port<ptin_sys_number_of_ports; ptin_port++)
+
+  /* Run all phy ports */
+  USP_PHYPORT_ITERATE(usp, dapi_g)
   {
-    if (hapi_ptin_bcmPort_get(ptin_port,&bcm_port)==L7_SUCCESS)
-    {
-      BCM_PBMP_PORT_ADD(*pbmp_mask,bcm_port);
-      //PT_LOG_TRACE(LOG_CTX_HAPI,"Ptin port %d added to pbm_mask",ptin_port);
-    }
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+    bcm_port    = hapiPortPtr->bcm_port;
+    //bcm_unit    = hapiPortPtr->bcm_unit;
+
+    BCM_PBMP_PORT_ADD(*pbmp_mask, bcm_port);
   }
 }
-
-/**
- * Get port descriptor from ddUsp interface
- * 
- * @param ddUsp : unit, slot and port reference
- * @param dapi_g
- * @param pbmp : If is a physical port, it will be ADDED to this
- *               port bitmap.
- * @param intf_desc : interface descriptor with gport, bcm_port 
- *                  (-1 if not physical) and trunk_id (-1 if not
- *                  trunk)
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, pbmp_t *pbmp, ptin_hapi_intf_t *intf_desc,
-                                     DAPI_PORT_t **dapiPortPtr_ret, BROAD_PORT_t **hapiPortPtr_ret)
-{
-  DAPI_PORT_t  *dapiPortPtr;
-  BROAD_PORT_t *hapiPortPtr;
-  bcm_gport_t   gport=-1;
-  bcm_trunk_t   trunk_id=-1;
-  bcm_port_t    bcm_port=-1;
-  L7_uint32     /*efp_class_port=0,*/ xlate_class_port=0;
-
-  /* Validate interface */
-  if (ddUsp==L7_NULLPTR || (ddUsp->unit<0 && ddUsp->slot<0 && ddUsp->port<0))
-  {
-    PT_LOG_WARN(LOG_CTX_HAPI,"No provided interface!");
-    return L7_SUCCESS;
-  }
-  if (ddUsp->unit<0 || ddUsp->slot<0 || ddUsp->port<0)
-  {
-    PT_LOG_WARN(LOG_CTX_HAPI,"Invalid interface!");
-    return L7_FAILURE;
-  }
-
-  dapiPortPtr = DAPI_PORT_GET( ddUsp, dapi_g );
-  hapiPortPtr = HAPI_PORT_GET( ddUsp, dapi_g );
-
-  /* Extract gport */
-  gport = hapiPortPtr->bcm_gport;
-  PT_LOG_TRACE(LOG_CTX_HAPI,"Analysing interface {%d,%d,%d}: gport=0x%08x",ddUsp->unit,ddUsp->slot,ddUsp->port,gport);
-
-  /* Extract Trunk id */
-  if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
-  {
-    trunk_id = hapiPortPtr->hapiModeparm.lag.tgid;
-    PT_LOG_TRACE(LOG_CTX_HAPI,"Interface {%d,%d,%d} is a lag: trunk_id = %d",ddUsp->unit,ddUsp->slot,ddUsp->port,trunk_id);
-  }
-  /* Extract Physical port */
-  else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
-  {
-    bcm_port = hapiPortPtr->bcm_port;
-    PT_LOG_TRACE(LOG_CTX_HAPI,"Interface {%d,%d,%d} is a port: bcm_port = %d",ddUsp->unit,ddUsp->slot,ddUsp->port,bcm_port);
-  }
-  /* Not valid type */
-  else
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Interface has a not valid type: error!");
-    return L7_FAILURE;
-  }
-
-  /* Class port */
-  //efp_class_port   = (ddUsp->slot*L7_MAX_PORTS_PER_SLOT) + ddUsp->port + 1 + EFP_STD_CLASS_ID_MAX;
-  xlate_class_port = (ddUsp->slot*L7_MAX_PORTS_PER_SLOT) + ddUsp->port + 1;
-
-  PT_LOG_TRACE(LOG_CTX_HAPI,"Interface {%d,%d,%d}: xlate_class_port=%d",
-            ddUsp->unit,ddUsp->slot,ddUsp->port,xlate_class_port);
-
-  /* Add physical interface to port bitmap */
-  if (pbmp!=L7_NULLPTR)
-  {
-    L7_uint i;
-    BROAD_PORT_t *hapiPortPtr_member;
-
-    BCM_PBMP_CLEAR(*pbmp);
-
-    /* Extract Trunk id */
-    if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
-    {
-      /* Apply to all member ports */
-      for (i=0; i<L7_MAX_MEMBERS_PER_LAG; i++)
-      {
-        if (!dapiPortPtr->modeparm.lag.memberSet[i].inUse)  continue;
-
-        hapiPortPtr_member = HAPI_PORT_GET( &dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
-        if (hapiPortPtr_member==L7_NULLPTR)
-        {
-          PT_LOG_ERR(LOG_CTX_HAPI, "Error getting HAPI_PORT_GET for usp={%d,%d,%d}",
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
-          //return L7_FAILURE;
-        }
-
-        /* Add this physical port to bitmap */
-        BCM_PBMP_PORT_ADD(*pbmp, hapiPortPtr_member->bcm_port);
-        PT_LOG_TRACE(LOG_CTX_HAPI,"bcm_port %d added", hapiPortPtr_member->bcm_port);
-      }
-    }
-    /* Extract Physical port */
-    else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
-    {
-      BCM_PBMP_PORT_ADD(*pbmp, hapiPortPtr->bcm_port);
-      PT_LOG_TRACE(LOG_CTX_HAPI,"bcm_port %d considered", hapiPortPtr->bcm_port);
-    }
-    /* Not valid type */
-    else
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Interface has a not valid type: error!");
-      //return L7_FAILURE;
-    }
-  }
-
-  /* Update interface descriptor */
-  if (intf_desc!=L7_NULLPTR)
-  {
-    intf_desc->gport            = gport;
-    intf_desc->trunk_id         = trunk_id;
-    intf_desc->bcm_port         = bcm_port;
-    //intf_desc->efp_class_port   = efp_class_port;
-    intf_desc->xlate_class_port = xlate_class_port;
-  }
-
-  if (dapiPortPtr_ret != L7_NULLPTR)
-  {
-    *dapiPortPtr_ret = dapiPortPtr;
-  }
-  if (hapiPortPtr_ret != L7_NULLPTR)
-  {
-    *hapiPortPtr_ret = hapiPortPtr;
-  }
-
-  return L7_SUCCESS;
-}
+#endif /*PORT_VIRTUALIZATION_N_1*/
 
 /**
  * get linkscan state
@@ -2599,7 +2943,7 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
  */
 L7_RC_t ptin_hapi_clock_recovery_set(L7_int main_port, L7_int bckp_port, DAPI_t *dapi_g)
 {
-  bcm_port_t bcm_port=-1;
+  L7_int32       bcm_unit=0, bcm_port=-1;
 
   PT_LOG_DEBUG(LOG_CTX_HAPI, "main_port=%d bckp_port=%d", main_port, bckp_port);
 
@@ -2607,16 +2951,17 @@ L7_RC_t ptin_hapi_clock_recovery_set(L7_int main_port, L7_int bckp_port, DAPI_t 
   if (main_port >= 0)
   {
     /* Validate port */
-    if (main_port >= ptin_sys_number_of_ports)
+    if (main_port >= L7_MAX_PHYSICAL_PORTS_PER_SLOT)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Invalid port: main_port=%d", main_port);
       return L7_FAILURE;
     }
 
-    /* Get bcm_port reference */
-    if (hapi_ptin_bcmPort_get(main_port, &bcm_port) != L7_SUCCESS) 
+    /* Get bcm unit and port from physical USP port */
+    if (hapi_ptin_get_bcmdata_from_uspport(main_port, dapi_g,
+                                           &bcm_unit, &bcm_port, L7_NULLPTR) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Invalid port: main_port=%d", main_port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Can't get bcm data from usp_port %d", main_port);
       return L7_FAILURE;
     }
 
@@ -2634,7 +2979,7 @@ L7_RC_t ptin_hapi_clock_recovery_set(L7_int main_port, L7_int bckp_port, DAPI_t 
   #endif
 
     /* Configure main clock */
-    if (bcm_switch_control_set(0, bcmSwitchSynchronousPortClockSource, bcm_port) != L7_SUCCESS)
+    if (bcm_switch_control_set(bcm_unit, bcmSwitchSynchronousPortClockSource, bcm_port) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error setting main recovery clock from bcm_port=%d", bcm_port);
       return L7_FAILURE;
@@ -2646,16 +2991,17 @@ L7_RC_t ptin_hapi_clock_recovery_set(L7_int main_port, L7_int bckp_port, DAPI_t 
   if (bckp_port >= 0)
   {
     /* Validate port */
-    if (bckp_port >= ptin_sys_number_of_ports)
+    if (bckp_port >= L7_MAX_PHYSICAL_PORTS_PER_SLOT)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Invalid port: backup_port=%d", bckp_port);
       return L7_FAILURE;
     }
 
-    /* Get bcm_port reference */
-    if (hapi_ptin_bcmPort_get(bckp_port, &bcm_port) != L7_SUCCESS) 
+    /* Get bcm unit and port from physical USP port */
+    if (hapi_ptin_get_bcmdata_from_uspport(bckp_port, dapi_g,
+                                           &bcm_unit, &bcm_port, L7_NULLPTR) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Invalid port: backup_port=%d", bckp_port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Can't get bcm data from usp_port %d", main_port);
       return L7_FAILURE;
     }
 
@@ -2673,7 +3019,7 @@ L7_RC_t ptin_hapi_clock_recovery_set(L7_int main_port, L7_int bckp_port, DAPI_t 
   #endif
 
     /* Configure backup clock */
-    if (bcm_switch_control_set(0, bcmSwitchSynchronousPortClockSourceBkup, bcm_port) != L7_SUCCESS)
+    if (bcm_switch_control_set(bcm_unit, bcmSwitchSynchronousPortClockSourceBkup, bcm_port) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error setting backup recovery clock from bcm_port=%d", bcm_port);
       return L7_FAILURE;
@@ -2954,10 +3300,9 @@ L7_RC_t hapi_ptin_egress_port_type_get(ptin_dapi_port_t *dapiPort, L7_int *port_
  */
 L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_type)
 {
-  L7_int i;
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr, *hapiPortPtr_member;
-  bcm_port_t    bcm_unit, bcm_port;
+  DAPI_USP_t    usp;
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "dapiPort={%d,%d,%d}",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
@@ -3004,6 +3349,8 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
   /* LAG port */
   else
   {
+    L7_int i;
+
     /* Apply to all member ports */
     for (i=0; i<L7_MAX_MEMBERS_PER_LAG; i++)
     {
@@ -3039,27 +3386,19 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
     }
   }
 
-  /* Get bcm_unit */
-  if (hapi_ptin_bcmUnit_get(&bcm_unit) != L7_SUCCESS)
+  /* Run all usp ports */
+  USP_PHYPORT_ITERATE(usp, dapi_g)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Error getting bcm_unit");
-    return L7_FAILURE;
-  }
+    bcm_port_t bcm_unit, bcm_port;
 
-  /* Run iteratively all ports, and apply new port map */
-  for (i=0; i<ptin_sys_number_of_ports; i++)
-  {
-    /* Get bcm_port */
-    if (hapi_ptin_bcmPort_get(i, &bcm_port) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Error getting bcm_port for port %u",i);
-      continue;
-    }
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+    bcm_port    = hapiPortPtr->bcm_port;
+    bcm_unit    = hapiPortPtr->bcm_unit;
 
     /* Block semaphore associated to physical port */
-    if (ptin_hapi_phySemaTake(i) != L7_SUCCESS)
+    if (ptin_hapi_phySemaTake(usp.port) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error blocking semaphore", i);
+      PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error blocking semaphore", usp.port);
       return L7_FAILURE;
     }
 
@@ -3068,7 +3407,7 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
     {
       if (bcm_port_egress_set(bcm_unit, bcm_port, 0, pbm_egress_all_ports)!=BCM_E_NONE)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI,"Error setting egress bitmap for port %u",i);
+        PT_LOG_ERR(LOG_CTX_HAPI,"Error setting egress bitmap for port %u", usp.port);
         return L7_FAILURE;
       }
     }
@@ -3077,7 +3416,7 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
     {
       if (bcm_port_egress_set(bcm_unit, bcm_port, 0, pbm_egress_community_ports)!=BCM_E_NONE)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI,"Error setting egress bitmap for port %u",i);
+        PT_LOG_ERR(LOG_CTX_HAPI,"Error setting egress bitmap for port %u", usp.port);
         return L7_FAILURE;
       }
     }
@@ -3086,15 +3425,15 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
     {
       if (bcm_port_egress_set(bcm_unit, bcm_port, 0, pbm_egress_root_ports)!=BCM_E_NONE)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI,"Error setting egress bitmap for port %u",i);
+        PT_LOG_ERR(LOG_CTX_HAPI,"Error setting egress bitmap for port %u", usp.port);
         return L7_FAILURE;
       }
     }
 
     /* Release semaphore related to physical port */
-    if (ptin_hapi_phySemaGive(i) != L7_SUCCESS)
+    if (ptin_hapi_phySemaGive(usp.port) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error releasing semaphore", i);
+      PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error releasing semaphore", usp.port);
     }
   }
 
@@ -3483,283 +3822,370 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
+L7_RC_t hapi_ptin_counters_read(ptin_dapi_port_t *dapiPort, ptin_HWEthRFC2819_PortStatistics_t *portStats)
 {
   ptin_HWEthRFC2819_StatisticsBlock_t *rx, *tx;
   L7_uint64 tmp=0, tmp1=0, tmp2=0/*, tmp3=0*/;
   L7_uint64 mtuePkts=0;
   L7_uint64 pkts1519to2047, pkts2048to4095, pkts4096to9216, pkts9217to16383;
-  L7_uint cos, port, unit;
+  L7_uint cos;
+  L7_uint32 bcm_unit, bcm_port;
 
-  if (portStats->Port >= ptin_sys_number_of_ports)
+  /* Get bcm data from USP */
+  if (hapi_ptin_get_bcmdata_from_usp(dapiPort->usp, dapiPort->dapi_g,
+                                     &bcm_unit, &bcm_port, L7_NULLPTR) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error getting bcm data from usp {%d,%d,%d}", 
+               dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
     return L7_FAILURE;
-
+  }
+  
   /* Clear stats */
   memset(&portStats->Rx, 0x00, sizeof(portStats->Rx));
   memset(&portStats->Tx, 0x00, sizeof(portStats->Tx));
 
-  port = usp_map[portStats->Port].port;
-  unit = usp_map[portStats->Port].unit;
   rx = &portStats->Rx;
   tx = &portStats->Tx;
 
   /* Valkyrie */
-  if (SOC_IS_VALKYRIE2(unit))
+  if (SOC_IS_VALKYRIE2(bcm_unit))
   {
-    /* 10G Ethernet port ? */
-    if (PTIN_IS_PORT_10G(portStats->Port))
+    /* 10G Ethernet bcm_port ? */
+    if (HAPI_PHY_PORT_IS_10G(dapiPort->usp->port))
     {
       // Rx counters
-      soc_counter_get(unit, port, IRMEGr , 0, &tmp1);
-      soc_counter_get(unit, port, IRMEBr , 0, &tmp2);
+      soc_counter_get(bcm_unit, bcm_port, IRMEGr , 0, &tmp1);
+      soc_counter_get(bcm_unit, bcm_port, IRMEBr , 0, &tmp2);
       mtuePkts = tmp1 + tmp2;                                                         /* Packets > MTU bytes (good and bad) */
       /* PTin modified: SDK 6.3.0 */
       #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-      soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &tmp1);
+      soc_counter_get(bcm_unit, bcm_port, DROP_PKT_CNT_INGr, 0, &tmp1);
       tmp = tmp1;
       #else
-      soc_counter_get(unit, port, IRDROPr          , 0, &tmp1);
-      soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &tmp2);
+      soc_counter_get(bcm_unit, bcm_port, IRDROPr          , 0, &tmp1);
+      soc_counter_get(bcm_unit, bcm_port, DROP_PKT_CNT_INGr, 0, &tmp2);
       tmp = tmp1 + tmp2 + tmp3; //tmp3 is here 0 (init @ top of function)
       #endif
       //( tmp >= mtuePkts ) ? ( tmp -= mtuePkts ) : ( tmp = 0 );
       rx->etherStatsDropEvents = tmp;// + mtuePkts;                                      /* Drop Events */
-      soc_counter_get(unit, port, IRBYTr , 0, &rx->etherStatsOctets);                 /* Octets */                   
-      soc_counter_get(unit, port, IRPKTr , 0, &rx->etherStatsPkts);                   /* Packets (>=64 bytes) */
-      soc_counter_get(unit, port, IRBCAr , 0, &rx->etherStatsBroadcastPkts);          /* Broadcasts */               
-      soc_counter_get(unit, port, IRMCAr , 0, &rx->etherStatsMulticastPkts);          /* Muilticast */               
-      soc_counter_get(unit, port, IRFCSr , 0, &rx->etherStatsCRCAlignErrors);         /* FCS Errors (64-1518 bytes)*/
+      soc_counter_get(bcm_unit, bcm_port, IRBYTr , 0, &rx->etherStatsOctets);                 /* Octets */                   
+      soc_counter_get(bcm_unit, bcm_port, IRPKTr , 0, &rx->etherStatsPkts);                   /* Packets (>=64 bytes) */
+      soc_counter_get(bcm_unit, bcm_port, IRBCAr , 0, &rx->etherStatsBroadcastPkts);          /* Broadcasts */               
+      soc_counter_get(bcm_unit, bcm_port, IRMCAr , 0, &rx->etherStatsMulticastPkts);          /* Muilticast */               
+      soc_counter_get(bcm_unit, bcm_port, IRFCSr , 0, &rx->etherStatsCRCAlignErrors);         /* FCS Errors (64-1518 bytes)*/
       rx->etherStatsCollisions = 0;                                                   /* Collisions */               
-      soc_counter_get(unit, port, IRUNDr , 0, &rx->etherStatsUndersizePkts);          /* Undersize */                
-      soc_counter_get(unit, port, IROVRr , 0, &rx->etherStatsOversizePkts);           /* Oversize: 1523-MTU bytes */ 
+      soc_counter_get(bcm_unit, bcm_port, IRUNDr , 0, &rx->etherStatsUndersizePkts);          /* Undersize */                
+      soc_counter_get(bcm_unit, bcm_port, IROVRr , 0, &rx->etherStatsOversizePkts);           /* Oversize: 1523-MTU bytes */ 
       rx->etherStatsOversizePkts += mtuePkts;                                         /* Oversize: >MTU bytes */
-      soc_counter_get(unit, port, IRFRGr , 0, &rx->etherStatsFragments);              /* Fragments */
-      soc_counter_get(unit, port, IRJBRr , 0, &rx->etherStatsJabbers);                /* Jabbers */                  
-      soc_counter_get(unit, port, IR64r  , 0, &rx->etherStatsPkts64Octets);           /* 64B packets */              
-      soc_counter_get(unit, port, IR127r , 0, &rx->etherStatsPkts65to127Octets);      /* 65-127B packets */          
-      soc_counter_get(unit, port, IR255r , 0, &rx->etherStatsPkts128to255Octets);     /* 128-255B packets */         
-      soc_counter_get(unit, port, IR511r , 0, &rx->etherStatsPkts256to511Octets);     /* 256-511B packets */         
-      soc_counter_get(unit, port, IR1023r, 0, &rx->etherStatsPkts512to1023Octets);    /* 512-1023B packets */        
-      soc_counter_get(unit, port, IR1518r, 0, &rx->etherStatsPkts1024to1518Octets);   /* 1024-1518B packets */       
+      soc_counter_get(bcm_unit, bcm_port, IRFRGr , 0, &rx->etherStatsFragments);              /* Fragments */
+      soc_counter_get(bcm_unit, bcm_port, IRJBRr , 0, &rx->etherStatsJabbers);                /* Jabbers */                  
+      soc_counter_get(bcm_unit, bcm_port, IR64r  , 0, &rx->etherStatsPkts64Octets);           /* 64B packets */              
+      soc_counter_get(bcm_unit, bcm_port, IR127r , 0, &rx->etherStatsPkts65to127Octets);      /* 65-127B packets */          
+      soc_counter_get(bcm_unit, bcm_port, IR255r , 0, &rx->etherStatsPkts128to255Octets);     /* 128-255B packets */         
+      soc_counter_get(bcm_unit, bcm_port, IR511r , 0, &rx->etherStatsPkts256to511Octets);     /* 256-511B packets */         
+      soc_counter_get(bcm_unit, bcm_port, IR1023r, 0, &rx->etherStatsPkts512to1023Octets);    /* 512-1023B packets */        
+      soc_counter_get(bcm_unit, bcm_port, IR1518r, 0, &rx->etherStatsPkts1024to1518Octets);   /* 1024-1518B packets */       
 
-      soc_counter_get(unit, port, IR2047r, 0, &pkts1519to2047);                       /* 1519-2047 Bytes packets */
-      soc_counter_get(unit, port, IR4095r, 0, &pkts2048to4095);                       /* 2048-4095 Bytes packets */
-      soc_counter_get(unit, port, IR9216r, 0, &pkts4096to9216);                       /* 4096-9216 Bytes packets */
-      soc_counter_get(unit, port, IR16383r,0, &pkts9217to16383);                      /* 9217-16383 Bytes packets */
+      soc_counter_get(bcm_unit, bcm_port, IR2047r, 0, &pkts1519to2047);                       /* 1519-2047 Bytes packets */
+      soc_counter_get(bcm_unit, bcm_port, IR4095r, 0, &pkts2048to4095);                       /* 2048-4095 Bytes packets */
+      soc_counter_get(bcm_unit, bcm_port, IR9216r, 0, &pkts4096to9216);                       /* 4096-9216 Bytes packets */
+      soc_counter_get(bcm_unit, bcm_port, IR16383r,0, &pkts9217to16383);                      /* 9217-16383 Bytes packets */
       rx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
 
-      soc_counter_get_rate(unit, port, IRBYTr , 0, &rx->Throughput);                  /* Throughput */               
+      soc_counter_get_rate(bcm_unit, bcm_port, IRBYTr , 0, &rx->Throughput);                  /* Throughput */               
 
       // Tx counters
       tmp1 = 0;
       for (cos = 0; cos < 8; cos++)
       {
-        if (soc_counter_get(unit, port, SOC_COUNTER_NON_DMA_COSQ_DROP_PKT, cos, &tmp) == SOC_E_NONE)
+        if (soc_counter_get(bcm_unit, bcm_port, SOC_COUNTER_NON_DMA_COSQ_DROP_PKT, cos, &tmp) == SOC_E_NONE)
         {
           tmp1 += tmp;
         }
       }
-      //soc_counter_get(unit, port, DROP_PKT_CNTr , 0, &tmp1);
-      //soc_counter_get(unit, port, HOLDROP_PKT_CNTr, 0, &tmp2);
-      //soc_counter_get(unit, port, EGRDROPPKTCOUNTr, 0, &tmp3);
+      //soc_counter_get(bcm_unit, bcm_port, DROP_PKT_CNTr , 0, &tmp1);
+      //soc_counter_get(bcm_unit, bcm_port, HOLDROP_PKT_CNTr, 0, &tmp2);
+      //soc_counter_get(bcm_unit, bcm_port, EGRDROPPKTCOUNTr, 0, &tmp3);
       tx->etherStatsDropEvents = tmp1; /* + tmp2 + tmp3;*/                            /* Drop Events */
-      soc_counter_get(unit, port, ITBYTr , 0, &tx->etherStatsOctets);                 /* Octets */                   
-      soc_counter_get(unit, port, ITPKTr , 0, &tx->etherStatsPkts);                   /* Packets */                  
-      soc_counter_get(unit, port, ITBCAr , 0, &tx->etherStatsBroadcastPkts);          /* Broadcasts */               
-      soc_counter_get(unit, port, ITMCAr , 0, &tx->etherStatsMulticastPkts);          /* Muilticast */               
-      soc_counter_get(unit, port, ITFCSr , 0, &tx->etherStatsCRCAlignErrors);         /* FCS Errors (64-1518 bytes)*/
+      soc_counter_get(bcm_unit, bcm_port, ITBYTr , 0, &tx->etherStatsOctets);                 /* Octets */                   
+      soc_counter_get(bcm_unit, bcm_port, ITPKTr , 0, &tx->etherStatsPkts);                   /* Packets */                  
+      soc_counter_get(bcm_unit, bcm_port, ITBCAr , 0, &tx->etherStatsBroadcastPkts);          /* Broadcasts */               
+      soc_counter_get(bcm_unit, bcm_port, ITMCAr , 0, &tx->etherStatsMulticastPkts);          /* Muilticast */               
+      soc_counter_get(bcm_unit, bcm_port, ITFCSr , 0, &tx->etherStatsCRCAlignErrors);         /* FCS Errors (64-1518 bytes)*/
       tx->etherStatsCollisions = 0;                                                   /* Collisions */               
       tx->etherStatsUndersizePkts = 0;                                                /* Undersize */                
-      soc_counter_get(unit, port, ITOVRr,  0, &tx->etherStatsOversizePkts);           /* Oversize: 1523-MTU bytes */ 
-      soc_counter_get(unit, port, ITFRGr , 0, &tx->etherStatsFragments);              /* Fragments */                
+      soc_counter_get(bcm_unit, bcm_port, ITOVRr,  0, &tx->etherStatsOversizePkts);           /* Oversize: 1523-MTU bytes */ 
+      soc_counter_get(bcm_unit, bcm_port, ITFRGr , 0, &tx->etherStatsFragments);              /* Fragments */                
       tx->etherStatsJabbers       = 0;                                                /* Jabbers */                  
-      soc_counter_get(unit, port, IT64r  , 0, &tx->etherStatsPkts64Octets);           /* 64B packets */              
-      soc_counter_get(unit, port, IT127r , 0, &tx->etherStatsPkts65to127Octets);      /* 65-127B packets */          
-      soc_counter_get(unit, port, IT255r , 0, &tx->etherStatsPkts128to255Octets);     /* 128-255B packets */         
-      soc_counter_get(unit, port, IT511r , 0, &tx->etherStatsPkts256to511Octets);     /* 256-511B packets */         
-      soc_counter_get(unit, port, IT1023r, 0, &tx->etherStatsPkts512to1023Octets);    /* 512-1023B packets */        
-      soc_counter_get(unit, port, IT1518r, 0, &tx->etherStatsPkts1024to1518Octets);   /* 1024-1518B packets */       
+      soc_counter_get(bcm_unit, bcm_port, IT64r  , 0, &tx->etherStatsPkts64Octets);           /* 64B packets */              
+      soc_counter_get(bcm_unit, bcm_port, IT127r , 0, &tx->etherStatsPkts65to127Octets);      /* 65-127B packets */          
+      soc_counter_get(bcm_unit, bcm_port, IT255r , 0, &tx->etherStatsPkts128to255Octets);     /* 128-255B packets */         
+      soc_counter_get(bcm_unit, bcm_port, IT511r , 0, &tx->etherStatsPkts256to511Octets);     /* 256-511B packets */         
+      soc_counter_get(bcm_unit, bcm_port, IT1023r, 0, &tx->etherStatsPkts512to1023Octets);    /* 512-1023B packets */        
+      soc_counter_get(bcm_unit, bcm_port, IT1518r, 0, &tx->etherStatsPkts1024to1518Octets);   /* 1024-1518B packets */       
 
-      soc_counter_get(unit, port, IT2047r, 0, &pkts1519to2047);                       /* 1519-2047 Bytes packets */
-      soc_counter_get(unit, port, IT4095r, 0, &pkts2048to4095);                       /* 2048-4095 Bytes packets */
-      soc_counter_get(unit, port, IT9216r, 0, &pkts4096to9216);                       /* 4096-9216 Bytes packets */
-      soc_counter_get(unit, port, IT16383r,0, &pkts9217to16383);                      /* 9217-16383 Bytes packets */
+      soc_counter_get(bcm_unit, bcm_port, IT2047r, 0, &pkts1519to2047);                       /* 1519-2047 Bytes packets */
+      soc_counter_get(bcm_unit, bcm_port, IT4095r, 0, &pkts2048to4095);                       /* 2048-4095 Bytes packets */
+      soc_counter_get(bcm_unit, bcm_port, IT9216r, 0, &pkts4096to9216);                       /* 4096-9216 Bytes packets */
+      soc_counter_get(bcm_unit, bcm_port, IT16383r,0, &pkts9217to16383);                      /* 9217-16383 Bytes packets */
       tx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
 
-      soc_counter_get_rate(unit, port, ITBYTr , 0, &tx->Throughput);                  /* Throughput */
+      soc_counter_get_rate(bcm_unit, bcm_port, ITBYTr , 0, &tx->Throughput);                  /* Throughput */
     }
-    /* 1G or 2.5G Ethernet port ? */
-    else if (PTIN_IS_PORT_PON(portStats->Port) || PTIN_IS_PORT_ETH(portStats->Port))
+    /* 1G or 2.5G Ethernet bcm_port ? */
+    else if (HAPI_PHY_PORT_IS_PON(dapiPort->usp->port) || HAPI_PHY_PORT_IS_ETH(dapiPort->usp->port))
     {
       // Rx counters
-      soc_counter_get(unit, port, GRMTUEr, 0, &mtuePkts);                             /* Packets > MTU bytes (good and bad) */
+      soc_counter_get(bcm_unit, bcm_port, GRMTUEr, 0, &mtuePkts);                             /* Packets > MTU bytes (good and bad) */
       /* PTin modified: SDK 6.3.0 */
       #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-      soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &tmp1);
+      soc_counter_get(bcm_unit, bcm_port, DROP_PKT_CNT_INGr, 0, &tmp1);
       rx->etherStatsDropEvents = tmp1;// + mtuePkts;                                     /* Drop Events */
       #else
-      soc_counter_get(unit, port, GRDROPr          , 0, &tmp1);
-      soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &tmp2);
+      soc_counter_get(bcm_unit, bcm_port, GRDROPr          , 0, &tmp1);
+      soc_counter_get(bcm_unit, bcm_port, DROP_PKT_CNT_INGr, 0, &tmp2);
       rx->etherStatsDropEvents = tmp1 + tmp2;// + mtuePkts;                              /* Drop Events */
       #endif
-      soc_counter_get(unit, port, GRBYTr , 0, &tmp1);
-      soc_counter_get(unit, port, RRBYTr , 0, &tmp2);
+      soc_counter_get(bcm_unit, bcm_port, GRBYTr , 0, &tmp1);
+      soc_counter_get(bcm_unit, bcm_port, RRBYTr , 0, &tmp2);
       rx->etherStatsOctets = tmp1 + tmp2;                                             /* Octets */
-      soc_counter_get(unit, port, GRPKTr , 0, &rx->etherStatsPkts);                   /* Packets (>=64 bytes) */
-      soc_counter_get(unit, port, GRBCAr , 0, &rx->etherStatsBroadcastPkts);          /* Broadcasts */
-      soc_counter_get(unit, port, GRMCAr , 0, &rx->etherStatsMulticastPkts);          /* Muilticast */
-      soc_counter_get(unit, port, GRFCSr , 0, &rx->etherStatsCRCAlignErrors);         /* FCS Errors (64-1518 bytes)*/
+      soc_counter_get(bcm_unit, bcm_port, GRPKTr , 0, &rx->etherStatsPkts);                   /* Packets (>=64 bytes) */
+      soc_counter_get(bcm_unit, bcm_port, GRBCAr , 0, &rx->etherStatsBroadcastPkts);          /* Broadcasts */
+      soc_counter_get(bcm_unit, bcm_port, GRMCAr , 0, &rx->etherStatsMulticastPkts);          /* Muilticast */
+      soc_counter_get(bcm_unit, bcm_port, GRFCSr , 0, &rx->etherStatsCRCAlignErrors);         /* FCS Errors (64-1518 bytes)*/
       rx->etherStatsCollisions = 0;                                                   /* Collisions */
-      soc_counter_get(unit, port, GRUNDr , 0, &rx->etherStatsUndersizePkts);          /* Undersize */
-      //soc_counter_get(unit, port, GROVRr,  0, &tmp1);
-      //soc_counter_get(unit, port, GRMGVr,  0, &tmp2);
+      soc_counter_get(bcm_unit, bcm_port, GRUNDr , 0, &rx->etherStatsUndersizePkts);          /* Undersize */
+      //soc_counter_get(bcm_unit, bcm_port, GROVRr,  0, &tmp1);
+      //soc_counter_get(bcm_unit, bcm_port, GRMGVr,  0, &tmp2);
       //rx->etherStatsOversizePkts = tmp1 + tmp2;                                       /* Oversize: 1519-MTU bytes */
-      soc_counter_get(unit, port, GROVRr,  0, &rx->etherStatsOversizePkts);           /* Oversize: 1523-MTU bytes */
+      soc_counter_get(bcm_unit, bcm_port, GROVRr,  0, &rx->etherStatsOversizePkts);           /* Oversize: 1523-MTU bytes */
       rx->etherStatsOversizePkts += mtuePkts;                                         /* Oversize: >MTU bytes */
-      soc_counter_get(unit, port, GRFRGr , 0, &rx->etherStatsFragments);              /* Fragments */
-      soc_counter_get(unit, port, GRJBRr , 0, &rx->etherStatsJabbers);                /* Jabbers */
-      soc_counter_get(unit, port, GR64r  , 0, &rx->etherStatsPkts64Octets);           /* 64B packets */
-      soc_counter_get(unit, port, GR127r , 0, &rx->etherStatsPkts65to127Octets);      /* 65-127B packets */
-      soc_counter_get(unit, port, GR255r , 0, &rx->etherStatsPkts128to255Octets);     /* 128-255B packets */
-      soc_counter_get(unit, port, GR511r , 0, &rx->etherStatsPkts256to511Octets);     /* 256-511B packets */
-      soc_counter_get(unit, port, GR1023r, 0, &rx->etherStatsPkts512to1023Octets);    /* 512-1023B packets */
-      soc_counter_get(unit, port, GR1518r, 0, &rx->etherStatsPkts1024to1518Octets);   /* 1024-1518B packets */
+      soc_counter_get(bcm_unit, bcm_port, GRFRGr , 0, &rx->etherStatsFragments);              /* Fragments */
+      soc_counter_get(bcm_unit, bcm_port, GRJBRr , 0, &rx->etherStatsJabbers);                /* Jabbers */
+      soc_counter_get(bcm_unit, bcm_port, GR64r  , 0, &rx->etherStatsPkts64Octets);           /* 64B packets */
+      soc_counter_get(bcm_unit, bcm_port, GR127r , 0, &rx->etherStatsPkts65to127Octets);      /* 65-127B packets */
+      soc_counter_get(bcm_unit, bcm_port, GR255r , 0, &rx->etherStatsPkts128to255Octets);     /* 128-255B packets */
+      soc_counter_get(bcm_unit, bcm_port, GR511r , 0, &rx->etherStatsPkts256to511Octets);     /* 256-511B packets */
+      soc_counter_get(bcm_unit, bcm_port, GR1023r, 0, &rx->etherStatsPkts512to1023Octets);    /* 512-1023B packets */
+      soc_counter_get(bcm_unit, bcm_port, GR1518r, 0, &rx->etherStatsPkts1024to1518Octets);   /* 1024-1518B packets */
 
-      soc_counter_get(unit, port, GR2047r, 0, &pkts1519to2047);                       /* 1519-2047 Bytes packets */
-      soc_counter_get(unit, port, GR4095r, 0, &pkts2048to4095);                       /* 2048-4095 Bytes packets */
-      soc_counter_get(unit, port, GR9216r, 0, &pkts4096to9216);                       /* 4096-9216 Bytes packets */
+      soc_counter_get(bcm_unit, bcm_port, GR2047r, 0, &pkts1519to2047);                       /* 1519-2047 Bytes packets */
+      soc_counter_get(bcm_unit, bcm_port, GR4095r, 0, &pkts2048to4095);                       /* 2048-4095 Bytes packets */
+      soc_counter_get(bcm_unit, bcm_port, GR9216r, 0, &pkts4096to9216);                       /* 4096-9216 Bytes packets */
       pkts9217to16383 = 0;
       rx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
 
-      soc_counter_get_rate(unit, port, GRBYTr , 0, &rx->Throughput);                  /* Throughput */
+      soc_counter_get_rate(bcm_unit, bcm_port, GRBYTr , 0, &rx->Throughput);                  /* Throughput */
 
       // Tx counters
       tmp1 = 0;
       for (cos = 0; cos < 8; cos++)
       {
-        if (soc_counter_get(unit, port, SOC_COUNTER_NON_DMA_COSQ_DROP_PKT, cos, &tmp) == SOC_E_NONE)
+        if (soc_counter_get(bcm_unit, bcm_port, SOC_COUNTER_NON_DMA_COSQ_DROP_PKT, cos, &tmp) == SOC_E_NONE)
         {
           tmp1 += tmp;
         }
       }
-      //soc_counter_get(unit, port, DROP_PKT_CNTr   , 0, &tmp1);
-      //soc_counter_get(unit, port, HOLDROP_PKT_CNTr, 0, &tmp2);
-      //soc_counter_get(unit, port, EGRDROPPKTCOUNTr, 0, &tmp3);
+      //soc_counter_get(bcm_unit, bcm_port, DROP_PKT_CNTr   , 0, &tmp1);
+      //soc_counter_get(bcm_unit, bcm_port, HOLDROP_PKT_CNTr, 0, &tmp2);
+      //soc_counter_get(bcm_unit, bcm_port, EGRDROPPKTCOUNTr, 0, &tmp3);
       tx->etherStatsDropEvents = tmp1; /* + tmp2 + tmp3;*/                            /* Drop Events */
-      soc_counter_get(unit, port, GTBYTr , 0, &tx->etherStatsOctets);                 /* Octets */                   
-      soc_counter_get(unit, port, GTPKTr , 0, &tx->etherStatsPkts);                   /* Packets */                  
-      soc_counter_get(unit, port, GTBCAr , 0, &tx->etherStatsBroadcastPkts);          /* Broadcasts */               
-      soc_counter_get(unit, port, GTMCAr , 0, &tx->etherStatsMulticastPkts);          /* Muilticast */               
-      soc_counter_get(unit, port, GTFCSr , 0, &tx->etherStatsCRCAlignErrors);         /* FCS Errors (64-1518 bytes)*/
+      soc_counter_get(bcm_unit, bcm_port, GTBYTr , 0, &tx->etherStatsOctets);                 /* Octets */                   
+      soc_counter_get(bcm_unit, bcm_port, GTPKTr , 0, &tx->etherStatsPkts);                   /* Packets */                  
+      soc_counter_get(bcm_unit, bcm_port, GTBCAr , 0, &tx->etherStatsBroadcastPkts);          /* Broadcasts */               
+      soc_counter_get(bcm_unit, bcm_port, GTMCAr , 0, &tx->etherStatsMulticastPkts);          /* Muilticast */               
+      soc_counter_get(bcm_unit, bcm_port, GTFCSr , 0, &tx->etherStatsCRCAlignErrors);         /* FCS Errors (64-1518 bytes)*/
       tx->etherStatsCollisions = 0;                                                   /* Collisions */               
       tx->etherStatsUndersizePkts = 0;                                                /* Undersize */                
-      //soc_counter_get(unit, port, GTOVRr,  0, &tmp1);
-      //soc_counter_get(unit, port, GTMGVr,  0, &tmp2);
+      //soc_counter_get(bcm_unit, bcm_port, GTOVRr,  0, &tmp1);
+      //soc_counter_get(bcm_unit, bcm_port, GTMGVr,  0, &tmp2);
       //tx->etherStatsOversizePkts = tmp1 + tmp2;                                       /* Oversize: 1519-MTU bytes */
-      soc_counter_get(unit, port, GTOVRr , 0, &tx->etherStatsOversizePkts);           /* Oversize: 1523-MTU bytes */               
-      soc_counter_get(unit, port, GTFRGr , 0, &tx->etherStatsFragments);              /* Fragments */               
-      soc_counter_get(unit, port, GTJBRr , 0, &tx->etherStatsJabbers);                /* Jabbers */                 
-      soc_counter_get(unit, port, GT64r  , 0, &tx->etherStatsPkts64Octets);           /* 64B packets */             
-      soc_counter_get(unit, port, GT127r , 0, &tx->etherStatsPkts65to127Octets);      /* 65-127B packets */         
-      soc_counter_get(unit, port, GT255r , 0, &tx->etherStatsPkts128to255Octets);     /* 128-255B packets */        
-      soc_counter_get(unit, port, GT511r , 0, &tx->etherStatsPkts256to511Octets);     /* 256-511B packets */        
-      soc_counter_get(unit, port, GT1023r, 0, &tx->etherStatsPkts512to1023Octets);    /* 512-1023B packets */       
-      soc_counter_get(unit, port, GT1518r, 0, &tx->etherStatsPkts1024to1518Octets);   /* 1024-1518B packets */
+      soc_counter_get(bcm_unit, bcm_port, GTOVRr , 0, &tx->etherStatsOversizePkts);           /* Oversize: 1523-MTU bytes */               
+      soc_counter_get(bcm_unit, bcm_port, GTFRGr , 0, &tx->etherStatsFragments);              /* Fragments */               
+      soc_counter_get(bcm_unit, bcm_port, GTJBRr , 0, &tx->etherStatsJabbers);                /* Jabbers */                 
+      soc_counter_get(bcm_unit, bcm_port, GT64r  , 0, &tx->etherStatsPkts64Octets);           /* 64B packets */             
+      soc_counter_get(bcm_unit, bcm_port, GT127r , 0, &tx->etherStatsPkts65to127Octets);      /* 65-127B packets */         
+      soc_counter_get(bcm_unit, bcm_port, GT255r , 0, &tx->etherStatsPkts128to255Octets);     /* 128-255B packets */        
+      soc_counter_get(bcm_unit, bcm_port, GT511r , 0, &tx->etherStatsPkts256to511Octets);     /* 256-511B packets */        
+      soc_counter_get(bcm_unit, bcm_port, GT1023r, 0, &tx->etherStatsPkts512to1023Octets);    /* 512-1023B packets */       
+      soc_counter_get(bcm_unit, bcm_port, GT1518r, 0, &tx->etherStatsPkts1024to1518Octets);   /* 1024-1518B packets */
 
-      soc_counter_get(unit, port, GT2047r, 0, &pkts1519to2047);                       /* 1519-2047 Bytes packets */
-      soc_counter_get(unit, port, GT4095r, 0, &pkts2048to4095);                       /* 2048-4095 Bytes packets */
-      soc_counter_get(unit, port, GT9216r, 0, &pkts4096to9216);                       /* 4096-9216 Bytes packets */
+      soc_counter_get(bcm_unit, bcm_port, GT2047r, 0, &pkts1519to2047);                       /* 1519-2047 Bytes packets */
+      soc_counter_get(bcm_unit, bcm_port, GT4095r, 0, &pkts2048to4095);                       /* 2048-4095 Bytes packets */
+      soc_counter_get(bcm_unit, bcm_port, GT9216r, 0, &pkts4096to9216);                       /* 4096-9216 Bytes packets */
       pkts9217to16383 = 0;
       tx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
 
-      soc_counter_get_rate(unit, port, GTBYTr , 0, &tx->Throughput);                  /* Throughput */
+      soc_counter_get_rate(bcm_unit, bcm_port, GTBYTr , 0, &tx->Throughput);                  /* Throughput */
     }
     else
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "PTin port# %u is neither GbE or 10G interface", portStats->Port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "PTin bcm_port# %u is neither GbE or 10G interface", portStats->Port);
       return L7_FAILURE;
     }
   }
-  else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIDENT3X(unit) || SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
+  else if (SOC_IS_TRIDENT(bcm_unit) || SOC_IS_TRIUMPH3(bcm_unit) || SOC_IS_KATANA2(bcm_unit))
   {
     /* Rx counters */
-    soc_counter_get(unit, port, RMTUEr, 0, &mtuePkts);                              /* Packets > MTU bytes (good and bad) */
-    soc_counter_get(unit, port, RDROPr           , 0, &tmp1);
-    soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &tmp2);
+    soc_counter_get(bcm_unit, bcm_port, RMTUEr, 0, &mtuePkts);                              /* Packets > MTU bytes (good and bad) */
+    soc_counter_get(bcm_unit, bcm_port, RDROPr           , 0, &tmp1);
+    soc_counter_get(bcm_unit, bcm_port, DROP_PKT_CNT_INGr, 0, &tmp2);
     rx->etherStatsDropEvents = tmp1 + tmp2;                                         /* Drop Events */
-    soc_counter_get(unit, port, RBYTr , 0, &rx->etherStatsOctets);
-    //soc_counter_get(unit, port, RBYTr , 0, &tmp1);
-    //soc_counter_get(unit, port, RBYTr , 0, &tmp2);
+    soc_counter_get(bcm_unit, bcm_port, RBYTr , 0, &rx->etherStatsOctets);
+    //soc_counter_get(bcm_unit, bcm_port, RBYTr , 0, &tmp1);
+    //soc_counter_get(bcm_unit, bcm_port, RBYTr , 0, &tmp2);
     //rx->etherStatsOctets = tmp1 + tmp2;                                           /* Octets */
-    soc_counter_get(unit, port, RPKTr , 0, &rx->etherStatsPkts);                    /* Packets (>=64 bytes) */
-    soc_counter_get(unit, port, RBCAr , 0, &rx->etherStatsBroadcastPkts);           /* Broadcasts */
-    soc_counter_get(unit, port, RMCAr , 0, &rx->etherStatsMulticastPkts);           /* Muilticast */
-    soc_counter_get(unit, port, RFCSr , 0, &rx->etherStatsCRCAlignErrors);          /* FCS Errors (64-1518 bytes)*/
+    soc_counter_get(bcm_unit, bcm_port, RPKTr , 0, &rx->etherStatsPkts);                    /* Packets (>=64 bytes) */
+    soc_counter_get(bcm_unit, bcm_port, RBCAr , 0, &rx->etherStatsBroadcastPkts);           /* Broadcasts */
+    soc_counter_get(bcm_unit, bcm_port, RMCAr , 0, &rx->etherStatsMulticastPkts);           /* Muilticast */
+    soc_counter_get(bcm_unit, bcm_port, RFCSr , 0, &rx->etherStatsCRCAlignErrors);          /* FCS Errors (64-1518 bytes)*/
     rx->etherStatsCollisions = 0;                                                   /* Collisions */
-    soc_counter_get(unit, port, RUNDr , 0, &rx->etherStatsUndersizePkts);           /* Undersize */
-    //soc_counter_get(unit, port, ROVRr,  0, &tmp1);
-    //soc_counter_get(unit, port, RMGVr,  0, &tmp2);
+    soc_counter_get(bcm_unit, bcm_port, RUNDr , 0, &rx->etherStatsUndersizePkts);           /* Undersize */
+    //soc_counter_get(bcm_unit, bcm_port, ROVRr,  0, &tmp1);
+    //soc_counter_get(bcm_unit, bcm_port, RMGVr,  0, &tmp2);
     //rx->etherStatsOversizePkts = tmp1 + tmp2;                                       /* Oversize: 1519-MTU bytes */
-    soc_counter_get(unit, port, ROVRr,  0, &rx->etherStatsOversizePkts);            /* Oversize: 1523-MTU bytes */
+    soc_counter_get(bcm_unit, bcm_port, ROVRr,  0, &rx->etherStatsOversizePkts);            /* Oversize: 1523-MTU bytes */
     rx->etherStatsOversizePkts += mtuePkts;                                         /* Oversize: >MTU bytes */
-    soc_counter_get(unit, port, RFRGr , 0, &rx->etherStatsFragments);               /* Fragments */
-    soc_counter_get(unit, port, RJBRr , 0, &rx->etherStatsJabbers);                 /* Jabbers */
-    soc_counter_get(unit, port, R64r  , 0, &rx->etherStatsPkts64Octets);            /* 64B packets */
-    soc_counter_get(unit, port, R127r , 0, &rx->etherStatsPkts65to127Octets);       /* 65-127B packets */
-    soc_counter_get(unit, port, R255r , 0, &rx->etherStatsPkts128to255Octets);      /* 128-255B packets */
-    soc_counter_get(unit, port, R511r , 0, &rx->etherStatsPkts256to511Octets);      /* 256-511B packets */
-    soc_counter_get(unit, port, R1023r, 0, &rx->etherStatsPkts512to1023Octets);     /* 512-1023B packets */
-    soc_counter_get(unit, port, R1518r, 0, &rx->etherStatsPkts1024to1518Octets);    /* 1024-1518B packets */
+    soc_counter_get(bcm_unit, bcm_port, RFRGr , 0, &rx->etherStatsFragments);               /* Fragments */
+    soc_counter_get(bcm_unit, bcm_port, RJBRr , 0, &rx->etherStatsJabbers);                 /* Jabbers */
+    soc_counter_get(bcm_unit, bcm_port, R64r  , 0, &rx->etherStatsPkts64Octets);            /* 64B packets */
+    soc_counter_get(bcm_unit, bcm_port, R127r , 0, &rx->etherStatsPkts65to127Octets);       /* 65-127B packets */
+    soc_counter_get(bcm_unit, bcm_port, R255r , 0, &rx->etherStatsPkts128to255Octets);      /* 128-255B packets */
+    soc_counter_get(bcm_unit, bcm_port, R511r , 0, &rx->etherStatsPkts256to511Octets);      /* 256-511B packets */
+    soc_counter_get(bcm_unit, bcm_port, R1023r, 0, &rx->etherStatsPkts512to1023Octets);     /* 512-1023B packets */
+    soc_counter_get(bcm_unit, bcm_port, R1518r, 0, &rx->etherStatsPkts1024to1518Octets);    /* 1024-1518B packets */
 
-    soc_counter_get(unit, port, R2047r, 0, &pkts1519to2047);                        /* 1519-2047 Bytes packets */
-    soc_counter_get(unit, port, R4095r, 0, &pkts2048to4095);                        /* 2048-4095 Bytes packets */
-    soc_counter_get(unit, port, R9216r, 0, &pkts4096to9216);                        /* 4096-9216 Bytes packets */
+    soc_counter_get(bcm_unit, bcm_port, R2047r, 0, &pkts1519to2047);                        /* 1519-2047 Bytes packets */
+    soc_counter_get(bcm_unit, bcm_port, R4095r, 0, &pkts2048to4095);                        /* 2048-4095 Bytes packets */
+    soc_counter_get(bcm_unit, bcm_port, R9216r, 0, &pkts4096to9216);                        /* 4096-9216 Bytes packets */
     pkts9217to16383 = 0;
     rx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
 
-    soc_counter_get_rate(unit, port, RBYTr , 0, &rx->Throughput);                   /* Throughput */
+    soc_counter_get_rate(bcm_unit, bcm_port, RBYTr , 0, &rx->Throughput);                   /* Throughput */
 
     // Tx counters
     tmp1 = 0;
     for (cos = 0; cos < 8; cos++)
     {
-      if (soc_counter_get(unit, port, SOC_COUNTER_NON_DMA_COSQ_DROP_PKT, cos, &tmp) == SOC_E_NONE)
+      if (soc_counter_get(bcm_unit, bcm_port, SOC_COUNTER_NON_DMA_COSQ_DROP_PKT, cos, &tmp) == SOC_E_NONE)
       {
         tmp1 += tmp;
       }
     }
-    //soc_counter_get(unit, port, DROP_PKT_CNTr   , 0, &tmp1);
-    //soc_counter_get(unit, port, HOLDROP_PKT_CNTr, 0, &tmp2);
-    //soc_counter_get(unit, port, EGRDROPPKTCOUNTr, 0, &tmp3);
+    //soc_counter_get(bcm_unit, bcm_port, DROP_PKT_CNTr   , 0, &tmp1);
+    //soc_counter_get(bcm_unit, bcm_port, HOLDROP_PKT_CNTr, 0, &tmp2);
+    //soc_counter_get(bcm_unit, bcm_port, EGRDROPPKTCOUNTr, 0, &tmp3);
     tx->etherStatsDropEvents = tmp1; /* + tmp2 + tmp3;*/                            /* Drop Events */
-    soc_counter_get(unit, port, TBYTr , 0, &tx->etherStatsOctets);                  /* Octets */                   
-    soc_counter_get(unit, port, TPKTr , 0, &tx->etherStatsPkts);                    /* Packets */                  
-    soc_counter_get(unit, port, TBCAr , 0, &tx->etherStatsBroadcastPkts);           /* Broadcasts */               
-    soc_counter_get(unit, port, TMCAr , 0, &tx->etherStatsMulticastPkts);           /* Muilticast */               
-    soc_counter_get(unit, port, TFCSr , 0, &tx->etherStatsCRCAlignErrors);          /* FCS Errors (64-1518 bytes)*/
+    soc_counter_get(bcm_unit, bcm_port, TBYTr , 0, &tx->etherStatsOctets);                  /* Octets */                   
+    soc_counter_get(bcm_unit, bcm_port, TPKTr , 0, &tx->etherStatsPkts);                    /* Packets */                  
+    soc_counter_get(bcm_unit, bcm_port, TBCAr , 0, &tx->etherStatsBroadcastPkts);           /* Broadcasts */               
+    soc_counter_get(bcm_unit, bcm_port, TMCAr , 0, &tx->etherStatsMulticastPkts);           /* Muilticast */               
+    soc_counter_get(bcm_unit, bcm_port, TFCSr , 0, &tx->etherStatsCRCAlignErrors);          /* FCS Errors (64-1518 bytes)*/
     tx->etherStatsCollisions = 0;                                                   /* Collisions */               
     tx->etherStatsUndersizePkts = 0;                                                /* Undersize */                
-    //soc_counter_get(unit, port, TOVRr,  0, &tmp1);
-    //soc_counter_get(unit, port, TMGVr,  0, &tmp2);
+    //soc_counter_get(bcm_unit, bcm_port, TOVRr,  0, &tmp1);
+    //soc_counter_get(bcm_unit, bcm_port, TMGVr,  0, &tmp2);
     //tx->etherStatsOversizePkts = tmp1 + tmp2;                                       /* Oversize: 1519-MTU bytes */
-    soc_counter_get(unit, port, TOVRr,  0, &tx->etherStatsOversizePkts);            /* Oversize: 1523-MTU bytes */
-    soc_counter_get(unit, port, TFRGr , 0, &tx->etherStatsFragments);               /* Fragments */               
-    soc_counter_get(unit, port, TJBRr , 0, &tx->etherStatsJabbers);                 /* Jabbers */                 
-    soc_counter_get(unit, port, T64r  , 0, &tx->etherStatsPkts64Octets);            /* 64B packets */             
-    soc_counter_get(unit, port, T127r , 0, &tx->etherStatsPkts65to127Octets);       /* 65-127B packets */         
-    soc_counter_get(unit, port, T255r , 0, &tx->etherStatsPkts128to255Octets);      /* 128-255B packets */        
-    soc_counter_get(unit, port, T511r , 0, &tx->etherStatsPkts256to511Octets);      /* 256-511B packets */        
-    soc_counter_get(unit, port, T1023r, 0, &tx->etherStatsPkts512to1023Octets);     /* 512-1023B packets */       
-    soc_counter_get(unit, port, T1518r, 0, &tx->etherStatsPkts1024to1518Octets);    /* 1024-1518B packets */
+    soc_counter_get(bcm_unit, bcm_port, TOVRr,  0, &tx->etherStatsOversizePkts);            /* Oversize: 1523-MTU bytes */
+    soc_counter_get(bcm_unit, bcm_port, TFRGr , 0, &tx->etherStatsFragments);               /* Fragments */               
+    soc_counter_get(bcm_unit, bcm_port, TJBRr , 0, &tx->etherStatsJabbers);                 /* Jabbers */                 
+    soc_counter_get(bcm_unit, bcm_port, T64r  , 0, &tx->etherStatsPkts64Octets);            /* 64B packets */             
+    soc_counter_get(bcm_unit, bcm_port, T127r , 0, &tx->etherStatsPkts65to127Octets);       /* 65-127B packets */         
+    soc_counter_get(bcm_unit, bcm_port, T255r , 0, &tx->etherStatsPkts128to255Octets);      /* 128-255B packets */        
+    soc_counter_get(bcm_unit, bcm_port, T511r , 0, &tx->etherStatsPkts256to511Octets);      /* 256-511B packets */        
+    soc_counter_get(bcm_unit, bcm_port, T1023r, 0, &tx->etherStatsPkts512to1023Octets);     /* 512-1023B packets */       
+    soc_counter_get(bcm_unit, bcm_port, T1518r, 0, &tx->etherStatsPkts1024to1518Octets);    /* 1024-1518B packets */
 
-    soc_counter_get(unit, port, T2047r, 0, &pkts1519to2047);                        /* 1519-2047 Bytes packets */
-    soc_counter_get(unit, port, T4095r, 0, &pkts2048to4095);                        /* 2048-4095 Bytes packets */
-    soc_counter_get(unit, port, T9216r, 0, &pkts4096to9216);                        /* 4096-9216 Bytes packets */
+    soc_counter_get(bcm_unit, bcm_port, T2047r, 0, &pkts1519to2047);                        /* 1519-2047 Bytes packets */
+    soc_counter_get(bcm_unit, bcm_port, T4095r, 0, &pkts2048to4095);                        /* 2048-4095 Bytes packets */
+    soc_counter_get(bcm_unit, bcm_port, T9216r, 0, &pkts4096to9216);                        /* 4096-9216 Bytes packets */
     pkts9217to16383 = 0;
     tx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
 
-    soc_counter_get_rate(unit, port, TBYTr , 0, &tx->Throughput);                   /* Throughput */
+    soc_counter_get_rate(bcm_unit, bcm_port, TBYTr , 0, &tx->Throughput);                   /* Throughput */
   }
+#if (SDK_VERSION_IS >= SDK_VERSION(6,5,7,0))
+  else if (SOC_IS_HELIX5(bcm_unit))
+  {
+    /* Rx counters */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_RMTUEr, 0, &mtuePkts);                              /* Packets > MTU bytes (good and bad) */
+    soc_counter_get(bcm_unit, bcm_port, RDROPr           , 0, &tmp1);
+    soc_counter_get(bcm_unit, bcm_port, DROP_PKT_CNT_INGr, 0, &tmp2);
+    rx->etherStatsDropEvents = tmp1 + tmp2;                                         /* Drop Events */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_RBYTr , 0, &rx->etherStatsOctets);
+    //soc_counter_get(bcm_unit, bcm_port, RBYTr , 0, &tmp1);
+    //soc_counter_get(bcm_unit, bcm_port, RBYTr , 0, &tmp2);
+    //rx->etherStatsOctets = tmp1 + tmp2;                                           /* Octets */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_RPKTr , 0, &rx->etherStatsPkts);                    /* Packets (>=64 bytes) */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_RBCAr , 0, &rx->etherStatsBroadcastPkts);           /* Broadcasts */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_RMCAr , 0, &rx->etherStatsMulticastPkts);           /* Muilticast */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_RFCSr , 0, &rx->etherStatsCRCAlignErrors);          /* FCS Errors (64-1518 bytes)*/
+    rx->etherStatsCollisions = 0;                                                   /* Collisions */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_RUNDr , 0, &rx->etherStatsUndersizePkts);           /* Undersize */
+    //soc_counter_get(bcm_unit, bcm_port, ROVRr,  0, &tmp1);
+    //soc_counter_get(bcm_unit, bcm_port, RMGVr,  0, &tmp2);
+    //rx->etherStatsOversizePkts = tmp1 + tmp2;                                       /* Oversize: 1519-MTU bytes */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_ROVRr,  0, &rx->etherStatsOversizePkts);            /* Oversize: 1523-MTU bytes */
+    rx->etherStatsOversizePkts += mtuePkts;                                         /* Oversize: >MTU bytes */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_RFRGr , 0, &rx->etherStatsFragments);               /* Fragments */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_RJBRr , 0, &rx->etherStatsJabbers);                 /* Jabbers */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_R64r  , 0, &rx->etherStatsPkts64Octets);            /* 64B packets */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_R127r , 0, &rx->etherStatsPkts65to127Octets);       /* 65-127B packets */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_R255r , 0, &rx->etherStatsPkts128to255Octets);      /* 128-255B packets */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_R511r , 0, &rx->etherStatsPkts256to511Octets);      /* 256-511B packets */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_R1023r, 0, &rx->etherStatsPkts512to1023Octets);     /* 512-1023B packets */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_R1518r, 0, &rx->etherStatsPkts1024to1518Octets);    /* 1024-1518B packets */
+
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_R2047r, 0, &pkts1519to2047);                        /* 1519-2047 Bytes packets */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_R4095r, 0, &pkts2048to4095);                        /* 2048-4095 Bytes packets */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_R9216r, 0, &pkts4096to9216);                        /* 4096-9216 Bytes packets */
+    pkts9217to16383 = 0;
+    rx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
+
+    soc_counter_get_rate(bcm_unit, bcm_port, XLMIB_RBYTr , 0, &rx->Throughput);                   /* Throughput */
+
+    // Tx counters
+    tmp1 = 0;
+    for (cos = 0; cos < 8; cos++)
+    {
+      if (soc_counter_get(bcm_unit, bcm_port, SOC_COUNTER_NON_DMA_COSQ_DROP_PKT, cos, &tmp) == SOC_E_NONE)
+      {
+        tmp1 += tmp;
+      }
+    }
+    //soc_counter_get(bcm_unit, bcm_port, DROP_PKT_CNTr   , 0, &tmp1);
+    //soc_counter_get(bcm_unit, bcm_port, HOLDROP_PKT_CNTr, 0, &tmp2);
+    //soc_counter_get(bcm_unit, bcm_port, EGRDROPPKTCOUNTr, 0, &tmp3);
+    tx->etherStatsDropEvents = tmp1; /* + tmp2 + tmp3;*/                            /* Drop Events */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_TBYTr , 0, &tx->etherStatsOctets);                  /* Octets */                   
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_TPKTr , 0, &tx->etherStatsPkts);                    /* Packets */                  
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_TBCAr , 0, &tx->etherStatsBroadcastPkts);           /* Broadcasts */               
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_TMCAr , 0, &tx->etherStatsMulticastPkts);           /* Muilticast */               
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_TFCSr , 0, &tx->etherStatsCRCAlignErrors);          /* FCS Errors (64-1518 bytes)*/
+    tx->etherStatsCollisions = 0;                                                   /* Collisions */               
+    tx->etherStatsUndersizePkts = 0;                                                /* Undersize */                
+    //soc_counter_get(bcm_unit, bcm_port, TOVRr,  0, &tmp1);
+    //soc_counter_get(bcm_unit, bcm_port, TMGVr,  0, &tmp2);
+    //tx->etherStatsOversizePkts = tmp1 + tmp2;                                       /* Oversize: 1519-MTU bytes */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_TOVRr,  0, &tx->etherStatsOversizePkts);            /* Oversize: 1523-MTU bytes */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_TFRGr , 0, &tx->etherStatsFragments);               /* Fragments */               
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_TJBRr , 0, &tx->etherStatsJabbers);                 /* Jabbers */                 
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_T64r  , 0, &tx->etherStatsPkts64Octets);            /* 64B packets */             
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_T127r , 0, &tx->etherStatsPkts65to127Octets);       /* 65-127B packets */         
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_T255r , 0, &tx->etherStatsPkts128to255Octets);      /* 128-255B packets */        
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_T511r , 0, &tx->etherStatsPkts256to511Octets);      /* 256-511B packets */        
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_T1023r, 0, &tx->etherStatsPkts512to1023Octets);     /* 512-1023B packets */       
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_T1518r, 0, &tx->etherStatsPkts1024to1518Octets);    /* 1024-1518B packets */
+
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_T2047r, 0, &pkts1519to2047);                        /* 1519-2047 Bytes packets */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_T4095r, 0, &pkts2048to4095);                        /* 2048-4095 Bytes packets */
+    soc_counter_get(bcm_unit, bcm_port, XLMIB_T9216r, 0, &pkts4096to9216);                        /* 4096-9216 Bytes packets */
+    pkts9217to16383 = 0;
+    tx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
+
+    soc_counter_get_rate(bcm_unit, bcm_port, XLMIB_TBYTr , 0, &tx->Throughput);                   /* Throughput */
+  }
+#endif
   else
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Switch family not defined");
@@ -3794,143 +4220,147 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t hapi_ptin_counters_clear(L7_uint phyPort)
+L7_RC_t hapi_ptin_counters_clear(ptin_dapi_port_t *dapiPort)
 {
-  L7_uint port, unit;
+  L7_uint32 bcm_unit, bcm_port;
 
-  if (phyPort >= ptin_sys_number_of_ports)
-    return L7_FAILURE;
-
-  port = usp_map[phyPort].port;
-  unit = usp_map[phyPort].unit;
-
-  /* 1G or 2.5G Ethernet port ? */
-  if (SOC_IS_VALKYRIE2(unit))
+  /* Get bcm data from USP */
+  if (hapi_ptin_get_bcmdata_from_usp(dapiPort->usp, dapiPort->dapi_g,
+                                     &bcm_unit, &bcm_port, L7_NULLPTR) != L7_SUCCESS)
   {
-    /* 10G Ethernet port ? */
-    if (PTIN_IS_PORT_10G(phyPort))
+    PT_LOG_ERR(LOG_CTX_INTF, "Error getting bcm data from usp {%d,%d,%d}", 
+               dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_FAILURE;
+  }
+
+  /* 1G or 2.5G Ethernet bcm_port ? */
+  if (SOC_IS_VALKYRIE2(bcm_unit))
+  {
+    /* 10G Ethernet bcm_port ? */
+    if (HAPI_PHY_PORT_IS_10G(dapiPort->usp->port))
     {
       /* Rx counters */
-      soc_counter_set(unit, port, IRBYTr , 0, 0);
-      soc_counter_set(unit, port, DROP_PKT_CNTr , 0, 0);
-      soc_counter_set(unit, port, IRPKTr , 0, 0);
-      soc_counter_set(unit, port, IRBCAr , 0, 0);
-      soc_counter_set(unit, port, IRMCAr , 0, 0);
-      soc_counter_set(unit, port, IRFCSr , 0, 0);
-      soc_counter_set(unit, port, IRUNDr , 0, 0);
-      soc_counter_set(unit, port, IROVRr , 0, 0);
-      soc_counter_set(unit, port, IRFRGr , 0, 0);
-      soc_counter_set(unit, port, IRJBRr , 0, 0);
-      soc_counter_set(unit, port, IR64r  , 0, 0);
-      soc_counter_set(unit, port, IR127r , 0, 0);
-      soc_counter_set(unit, port, IR255r , 0, 0);
-      soc_counter_set(unit, port, IR511r , 0, 0);
-      soc_counter_set(unit, port, IR1023r, 0, 0);
-      soc_counter_set(unit, port, IR1518r, 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IRBYTr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, DROP_PKT_CNTr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IRPKTr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IRBCAr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IRMCAr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IRFCSr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IRUNDr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IROVRr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IRFRGr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IRJBRr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IR64r  , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IR127r , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IR255r , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IR511r , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IR1023r, 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IR1518r, 0, 0);
 
       /* Tx counters */
-      soc_counter_set(unit, port, ITBYTr , 0, 0);
-      soc_counter_set(unit, port, HOLDr ,  0, 0);
-      soc_counter_set(unit, port, ITPKTr , 0, 0);
-      soc_counter_set(unit, port, ITBCAr , 0, 0);
-      soc_counter_set(unit, port, ITMCAr , 0, 0);
-      soc_counter_set(unit, port, ITFCSr , 0, 0);
-      //soc_counter_set(unit, port, ITXCLr , 0, 0);
-      soc_counter_set(unit, port, ITOVRr , 0, 0);
-      soc_counter_set(unit, port, ITFRGr , 0, 0);
-      //soc_counter_set(unit, port, ITJBRr , 0, 0);
-      soc_counter_set(unit, port, IT64r  , 0, 0);
-      soc_counter_set(unit, port, IT127r , 0, 0);
-      soc_counter_set(unit, port, IT255r , 0, 0);
-      soc_counter_set(unit, port, IT511r , 0, 0);
-      soc_counter_set(unit, port, IT1023r, 0, 0);
-      soc_counter_set(unit, port, IT1518r, 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, ITBYTr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, HOLDr ,  0, 0);
+      soc_counter_set(bcm_unit, bcm_port, ITPKTr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, ITBCAr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, ITMCAr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, ITFCSr , 0, 0);
+      //soc_counter_set(bcm_unit, bcm_port, ITXCLr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, ITOVRr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, ITFRGr , 0, 0);
+      //soc_counter_set(bcm_unit, bcm_port, ITJBRr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IT64r  , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IT127r , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IT255r , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IT511r , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IT1023r, 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, IT1518r, 0, 0);
     }
-    else if (PTIN_IS_PORT_PON(phyPort) || PTIN_IS_PORT_ETH(phyPort))
+    else if (HAPI_PHY_PORT_IS_PON(dapiPort->usp->port) || HAPI_PHY_PORT_IS_ETH(dapiPort->usp->port))
     {
       /* Rx counters */
-      soc_counter_set(unit, port, GRBYTr , 0, 0);
-      soc_counter_set(unit, port, DROP_PKT_CNTr , 0, 0);
-      soc_counter_set(unit, port, GRPKTr , 0, 0);
-      soc_counter_set(unit, port, GRBCAr , 0, 0);
-      soc_counter_set(unit, port, GRMCAr , 0, 0);
-      soc_counter_set(unit, port, GRFCSr , 0, 0);
-      soc_counter_set(unit, port, GRUNDr , 0, 0);
-      soc_counter_set(unit, port, GROVRr , 0, 0);
-      soc_counter_set(unit, port, GRFRGr , 0, 0);
-      soc_counter_set(unit, port, GRJBRr , 0, 0);
-      soc_counter_set(unit, port, GR64r  , 0, 0);
-      soc_counter_set(unit, port, GR127r , 0, 0);
-      soc_counter_set(unit, port, GR255r , 0, 0);
-      soc_counter_set(unit, port, GR511r , 0, 0);
-      soc_counter_set(unit, port, GR1023r, 0, 0);
-      soc_counter_set(unit, port, GR1518r, 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GRBYTr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, DROP_PKT_CNTr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GRPKTr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GRBCAr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GRMCAr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GRFCSr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GRUNDr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GROVRr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GRFRGr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GRJBRr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GR64r  , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GR127r , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GR255r , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GR511r , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GR1023r, 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GR1518r, 0, 0);
 
       /* Tx counters */
-      soc_counter_set(unit, port, GTBYTr , 0, 0);
-      soc_counter_set(unit, port, HOLDr ,  0, 0);
-      soc_counter_set(unit, port, GTPKTr , 0, 0);
-      soc_counter_set(unit, port, GTBCAr , 0, 0);
-      soc_counter_set(unit, port, GTMCAr , 0, 0);
-      soc_counter_set(unit, port, GTFCSr , 0, 0);
-      soc_counter_set(unit, port, GTXCLr , 0, 0);
-      soc_counter_set(unit, port, GTOVRr , 0, 0);
-      soc_counter_set(unit, port, GTFRGr , 0, 0);
-      soc_counter_set(unit, port, GTJBRr , 0, 0);
-      soc_counter_set(unit, port, GT64r  , 0, 0);
-      soc_counter_set(unit, port, GT127r , 0, 0);
-      soc_counter_set(unit, port, GT255r , 0, 0);
-      soc_counter_set(unit, port, GT511r , 0, 0);
-      soc_counter_set(unit, port, GT1023r, 0, 0);
-      soc_counter_set(unit, port, GT1518r, 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GTBYTr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, HOLDr ,  0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GTPKTr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GTBCAr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GTMCAr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GTFCSr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GTXCLr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GTOVRr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GTFRGr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GTJBRr , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GT64r  , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GT127r , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GT255r , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GT511r , 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GT1023r, 0, 0);
+      soc_counter_set(bcm_unit, bcm_port, GT1518r, 0, 0);
     }
     else
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "PTin port# %u is neither GbE or 10G interface", phyPort);
+      PT_LOG_ERR(LOG_CTX_HAPI, "PTin bcm_port# %u is neither GbE or 10G interface", dapiPort->usp->port);
       return L7_FAILURE;
     }
   }
-  else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIDENT3X(unit) || SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
+  else if (SOC_IS_TRIDENT(bcm_unit)  || SOC_IS_HELIX5(bcm_unit) || 
+           SOC_IS_TRIUMPH3(bcm_unit) || SOC_IS_KATANA2(bcm_unit))
   {
     /* Rx counters */
-    soc_counter_set(unit, port, RMTUEr, 0, 0);
-    soc_counter_set(unit, port, RDROPr , 0, 0);
-    soc_counter_set(unit, port, DROP_PKT_CNTr , 0, 0);
-    soc_counter_set(unit, port, RBYTr , 0, 0);
-    soc_counter_set(unit, port, RPKTr , 0, 0);
-    soc_counter_set(unit, port, RBCAr , 0, 0);
-    soc_counter_set(unit, port, RMCAr , 0, 0);
-    soc_counter_set(unit, port, RFCSr , 0, 0);
-    soc_counter_set(unit, port, RUNDr , 0, 0);
-    soc_counter_set(unit, port, ROVRr , 0, 0);
-    soc_counter_set(unit, port, RFRGr , 0, 0);
-    soc_counter_set(unit, port, RJBRr , 0, 0);
-    soc_counter_set(unit, port, R64r  , 0, 0);
-    soc_counter_set(unit, port, R127r , 0, 0);
-    soc_counter_set(unit, port, R255r , 0, 0);
-    soc_counter_set(unit, port, R511r , 0, 0);
-    soc_counter_set(unit, port, R1023r, 0, 0);
-    soc_counter_set(unit, port, R1518r, 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, RMTUEr, 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, RDROPr , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, DROP_PKT_CNTr , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, RBYTr , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, RPKTr , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, RBCAr , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, RMCAr , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, RFCSr , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, RUNDr , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, ROVRr , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, RFRGr , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, RJBRr , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, R64r  , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, R127r , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, R255r , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, R511r , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, R1023r, 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, R1518r, 0, 0);
 
     /* Tx counters */
-    soc_counter_set(unit, port, DROP_PKT_CNTr,  0, 0);
-    soc_counter_set(unit, port, EGRDROPPKTCOUNTr,  0, 0);
-    //soc_counter_set(unit, port, HOLDr ,  0, 0);
-    soc_counter_set(unit, port, TBYTr , 0, 0);
-    soc_counter_set(unit, port, TPKTr , 0, 0);
-    soc_counter_set(unit, port, TBCAr , 0, 0);
-    soc_counter_set(unit, port, TMCAr , 0, 0);
-    soc_counter_set(unit, port, TFCSr , 0, 0);
-    //soc_counter_set(unit, port, TXCLr , 0, 0);
-    soc_counter_set(unit, port, TOVRr , 0, 0);
-    soc_counter_set(unit, port, TFRGr , 0, 0);
-    //soc_counter_set(unit, port, TJBRr , 0, 0);
-    soc_counter_set(unit, port, T64r  , 0, 0);
-    soc_counter_set(unit, port, T127r , 0, 0);
-    soc_counter_set(unit, port, T255r , 0, 0);
-    soc_counter_set(unit, port, T511r , 0, 0);
-    soc_counter_set(unit, port, T1023r, 0, 0);
-    soc_counter_set(unit, port, T1518r, 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, DROP_PKT_CNTr,  0, 0);
+    soc_counter_set(bcm_unit, bcm_port, EGRDROPPKTCOUNTr,  0, 0);
+    //soc_counter_set(bcm_unit, bcm_port, HOLDr ,  0, 0);
+    soc_counter_set(bcm_unit, bcm_port, TBYTr , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, TPKTr , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, TBCAr , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, TMCAr , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, TFCSr , 0, 0);
+    //soc_counter_set(bcm_unit, bcm_port, TXCLr , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, TOVRr , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, TFRGr , 0, 0);
+    //soc_counter_set(bcm_unit, bcm_port, TJBRr , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, T64r  , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, T127r , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, T255r , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, T511r , 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, T1023r, 0, 0);
+    soc_counter_set(bcm_unit, bcm_port, T1518r, 0, 0);
   }
   else
   {
@@ -3938,7 +4368,7 @@ L7_RC_t hapi_ptin_counters_clear(L7_uint phyPort)
     return L7_FAILURE;
   }
   
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Port# %u counters cleared", phyPort);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Port# %u counters cleared", dapiPort->usp->port);
   return L7_SUCCESS;
 }
 
@@ -3953,216 +4383,219 @@ L7_RC_t hapi_ptin_counters_clear(L7_uint phyPort)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t hapi_ptin_counters_activity_get(ptin_HWEth_PortsActivity_t *portsActivity)
+L7_RC_t hapi_ptin_counters_activity_get(ptin_dapi_port_t *dapiPort, ptin_HWEth_PortsActivity_t *portsActivity)
 {
-  L7_uint port;
-  L7_uint port_remap, unit;
-  L7_uint64 old_mask;
   L7_uint64 rate;
+  L7_uint32 bcm_unit, bcm_port;
 
-  old_mask = portsActivity->ports_mask;
-  portsActivity->ports_mask = 0;
-
-  for (port=0; port<ptin_sys_number_of_ports && port<PTIN_SYSTEM_N_PORTS; port++)
+  /* Get bcm data from USP */
+  if (hapi_ptin_get_bcmdata_from_usp(dapiPort->usp, dapiPort->dapi_g,
+                                     &bcm_unit, &bcm_port, L7_NULLPTR) != L7_SUCCESS)
   {
-    if (! (old_mask & ((L7_uint64) 1<<port)))
-      continue;
+    PT_LOG_ERR(LOG_CTX_INTF, "Error getting bcm data from usp {%d,%d,%d}", 
+               dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_FAILURE;
+  }
 
-    port_remap = usp_map[port].port;
-    unit       = usp_map[port].unit;
-    portsActivity->ports_mask |= (L7_uint64) 1 << port;
-    portsActivity->activity_bmap[port] = 0;
+  portsActivity->activity_bmap = 0;
 
-    /* The process used to read counters activity is to read its rate. This
-     * may eventually fail to provide an accurate result in cases where rate
-       it too low and return 0 */
+  /* The process used to read counters activity is to read its rate. This
+   * may eventually fail to provide an accurate result in cases where rate
+     it too low and return 0 */
 
-    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_DROPPACKETS) {
-      soc_counter_get_rate(unit, port_remap, DROP_PKT_CNTr , 0, &rate);
-      if (rate > 0)
-        portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_DROPPACKETS;
-    }
+  if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_DROPPACKETS) {
+    soc_counter_get_rate(bcm_unit, bcm_port, DROP_PKT_CNTr , 0, &rate);
+    if (rate > 0)
+      portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_RX_DROPPACKETS;
+  }
 
-    if (SOC_IS_VALKYRIE2(unit))
-    {
-      /* 10G Ethernet port ? */
-      if (PTIN_IS_PORT_10G(port))
-      {
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) {
-          soc_counter_get_rate(unit, port_remap, IRBYTr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_ACTIVITY;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) {
-          soc_counter_get_rate(unit, port_remap, ITBYTr, 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_ACTIVITY;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_COLLISIONS) {
-          #if 0
-          soc_counter_get_rate(unit, port_remap, ITXCLr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_COLLISIONS;
-          #endif
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS) {
-          soc_counter_get_rate(unit, port_remap, IRFCSr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_JABBERS) {
-          soc_counter_get_rate(unit, port_remap, IRJBRr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_JABBERS;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS) {
-          soc_counter_get_rate(unit, port_remap, IRFRGr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS) {
-          soc_counter_get_rate(unit, port_remap, IROVRr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS) {
-          soc_counter_get_rate(unit, port_remap, IRUNDr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS;
-        }
-      }
-      /* 1G or 2.5G Ethernet port ? */
-      else if (PTIN_IS_PORT_PON(port) || PTIN_IS_PORT_ETH(port))
-      {
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) {
-          soc_counter_get_rate(unit, port_remap, GRBYTr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_ACTIVITY;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) {
-          soc_counter_get_rate(unit, port_remap, GTBYTr, 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_ACTIVITY;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_COLLISIONS) {
-          soc_counter_get_rate(unit, port_remap, GTXCLr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_COLLISIONS;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS) {
-          soc_counter_get_rate(unit, port_remap, GRFCSr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_JABBERS) {
-          soc_counter_get_rate(unit, port_remap, GRJBRr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_JABBERS;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS) {
-          soc_counter_get_rate(unit, port_remap, GRFRGr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS) {
-          soc_counter_get_rate(unit, port_remap, GROVRr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS) {
-          soc_counter_get_rate(unit, port_remap, GRUNDr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS;
-        }
-      }
-      else
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "PTin port# %u is neither GbE or 10G interface", port);
-        return L7_FAILURE;
-      }
-    }
-    else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIDENT3X(unit) || SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
+  if (SOC_IS_VALKYRIE2(bcm_unit))
+  {
+    /* 10G Ethernet port ? */
+    if (HAPI_PHY_PORT_IS_10G(dapiPort->usp->port))
     {
       if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) {
-        soc_counter_get_rate(unit, port_remap, RBYTr , 0, &rate);
+        soc_counter_get_rate(bcm_unit, bcm_port, IRBYTr , 0, &rate);
         if (rate > 0)
-          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_ACTIVITY;
+          portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_RX_ACTIVITY;
       }
 
       if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) {
-        soc_counter_get_rate(unit, port_remap, TBYTr, 0, &rate);
+        soc_counter_get_rate(bcm_unit, bcm_port, ITBYTr, 0, &rate);
         if (rate > 0)
-          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_ACTIVITY;
+          portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_TX_ACTIVITY;
       }
 
       if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_COLLISIONS) {
-        soc_counter_get_rate(unit, port_remap, TXCLr , 0, &rate);
+        #if 0
+        soc_counter_get_rate(bcm_unit, bcm_port, ITXCLr , 0, &rate);
         if (rate > 0)
-          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_COLLISIONS;
+          portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_TX_COLLISIONS;
+        #endif
       }
 
       if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS) {
-        soc_counter_get_rate(unit, port_remap, RFCSr , 0, &rate);
+        soc_counter_get_rate(bcm_unit, bcm_port, IRFCSr , 0, &rate);
         if (rate > 0)
-          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS;
+          portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS;
       }
 
       if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_JABBERS) {
-        soc_counter_get_rate(unit, port_remap, RJBRr , 0, &rate);
+        soc_counter_get_rate(bcm_unit, bcm_port, IRJBRr , 0, &rate);
         if (rate > 0)
-          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_JABBERS;
+          portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_RX_JABBERS;
       }
 
       if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS) {
-        soc_counter_get_rate(unit, port_remap, RFRGr , 0, &rate);
+        soc_counter_get_rate(bcm_unit, bcm_port, IRFRGr , 0, &rate);
         if (rate > 0)
-          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS;
+          portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS;
       }
 
       if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS) {
-        soc_counter_get_rate(unit, port_remap, ROVRr , 0, &rate);
+        soc_counter_get_rate(bcm_unit, bcm_port, IROVRr , 0, &rate);
         if (rate > 0)
-          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS;
+          portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS;
       }
 
       if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS) {
-        soc_counter_get_rate(unit, port_remap, RUNDr , 0, &rate);
+        soc_counter_get_rate(bcm_unit, bcm_port, IRUNDr , 0, &rate);
         if (rate > 0)
-          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS;
+          portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS;
+      }
+    }
+    /* 1G or 2.5G Ethernet dapiPort->usp->port ? */
+    else if (HAPI_PHY_PORT_IS_PON(dapiPort->usp->port) || HAPI_PHY_PORT_IS_ETH(dapiPort->usp->port))
+    {
+      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) {
+        soc_counter_get_rate(bcm_unit, bcm_port, GRBYTr , 0, &rate);
+        if (rate > 0)
+          portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_RX_ACTIVITY;
+      }
+
+      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) {
+        soc_counter_get_rate(bcm_unit, bcm_port, GTBYTr, 0, &rate);
+        if (rate > 0)
+          portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_TX_ACTIVITY;
+      }
+
+      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_COLLISIONS) {
+        soc_counter_get_rate(bcm_unit, bcm_port, GTXCLr , 0, &rate);
+        if (rate > 0)
+          portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_TX_COLLISIONS;
+      }
+
+      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS) {
+        soc_counter_get_rate(bcm_unit, bcm_port, GRFCSr , 0, &rate);
+        if (rate > 0)
+          portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS;
+      }
+
+      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_JABBERS) {
+        soc_counter_get_rate(bcm_unit, bcm_port, GRJBRr , 0, &rate);
+        if (rate > 0)
+          portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_RX_JABBERS;
+      }
+
+      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS) {
+        soc_counter_get_rate(bcm_unit, bcm_port, GRFRGr , 0, &rate);
+        if (rate > 0)
+          portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS;
+      }
+
+      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS) {
+        soc_counter_get_rate(bcm_unit, bcm_port, GROVRr , 0, &rate);
+        if (rate > 0)
+          portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS;
+      }
+
+      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS) {
+        soc_counter_get_rate(bcm_unit, bcm_port, GRUNDr , 0, &rate);
+        if (rate > 0)
+          portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS;
       }
     }
     else
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Switch family not defined");
+      PT_LOG_ERR(LOG_CTX_HAPI, "USP port# %u is neither GbE or 10G interface", dapiPort->usp->port);
       return L7_FAILURE;
     }
+  }
+  else if (SOC_IS_TRIDENT(bcm_unit)  || SOC_IS_HELIX5(bcm_unit) ||
+           SOC_IS_TRIUMPH3(bcm_unit) || SOC_IS_KATANA2(bcm_unit))
+  {
+    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) {
+      soc_counter_get_rate(bcm_unit, bcm_port, RBYTr , 0, &rate);
+      if (rate > 0)
+        portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_RX_ACTIVITY;
+    }
+
+    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) {
+      soc_counter_get_rate(bcm_unit, bcm_port, TBYTr, 0, &rate);
+      if (rate > 0)
+        portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_TX_ACTIVITY;
+    }
+
+    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_COLLISIONS) {
+      soc_counter_get_rate(bcm_unit, bcm_port, TXCLr , 0, &rate);
+      if (rate > 0)
+        portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_TX_COLLISIONS;
+    }
+
+    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS) {
+      soc_counter_get_rate(bcm_unit, bcm_port, RFCSr , 0, &rate);
+      if (rate > 0)
+        portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS;
+    }
+
+    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_JABBERS) {
+      soc_counter_get_rate(bcm_unit, bcm_port, RJBRr , 0, &rate);
+      if (rate > 0)
+        portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_RX_JABBERS;
+    }
+
+    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS) {
+      soc_counter_get_rate(bcm_unit, bcm_port, RFRGr , 0, &rate);
+      if (rate > 0)
+        portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS;
+    }
+
+    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS) {
+      soc_counter_get_rate(bcm_unit, bcm_port, ROVRr , 0, &rate);
+      if (rate > 0)
+        portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS;
+    }
+
+    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS) {
+      soc_counter_get_rate(bcm_unit, bcm_port, RUNDr , 0, &rate);
+      if (rate > 0)
+        portsActivity->activity_bmap |= PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS;
+    }
+  }
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Switch family not defined");
+    return L7_FAILURE;
   }
 
   return L7_SUCCESS;
 }
 
 
-L7_RC_t hapi_ptin_counters_read_debug(L7_uint phyPort)
+L7_RC_t hapi_ptin_counters_read_debug(L7_uint usp_port)
 {
+  DAPI_USP_t usp;
+  ptin_dapi_port_t dapiPort;
   ptin_HWEthRFC2819_PortStatistics_t portStats;
 
-  portStats.Port = phyPort;
+  /* Initialize USP */
+  hapi_ptin_usp_init(&usp, 0, usp_port);
 
-  if (hapi_ptin_counters_read(&portStats) != L7_SUCCESS) {
+  DAPIPORT_SET(&dapiPort, &usp, dapi_g);
+
+  portStats.Port = usp_port;
+
+  if (hapi_ptin_counters_read(&dapiPort, &portStats) != L7_SUCCESS) {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error reading counter!");
     return L7_FAILURE;
   }
@@ -4175,22 +4608,28 @@ L7_RC_t hapi_ptin_counters_read_debug(L7_uint phyPort)
   return L7_SUCCESS;
 }
 
-L7_RC_t hapi_ptin_counters_activity_get_debug(L7_uint phyPort)
+L7_RC_t hapi_ptin_counters_activity_get_debug(L7_uint usp_port)
 {
+  DAPI_USP_t usp;
+  ptin_dapi_port_t dapiPort;
   ptin_HWEth_PortsActivity_t portsActivity;
 
-  portsActivity.ports_mask = 1 << phyPort;
+  /* Initialize USP */
+  hapi_ptin_usp_init(&usp, 0, usp_port);
+
+  DAPIPORT_SET(&dapiPort, &usp, dapi_g);
+
   portsActivity.activity_mask = 0xFFFF;
 
-  if (hapi_ptin_counters_activity_get(&portsActivity) != L7_SUCCESS) {
+  if (hapi_ptin_counters_activity_get(&dapiPort, &portsActivity) != L7_SUCCESS)
+  {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error on hapi_ptin_counters_activity_get()");
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_HAPI, "Port# %2u", phyPort);
-  PT_LOG_DEBUG(LOG_CTX_HAPI, " .port_mask         = 0x%llX", portsActivity.ports_mask);
-  PT_LOG_DEBUG(LOG_CTX_HAPI, " .activity_mask     = 0x%llX", portsActivity.activity_mask);
-  PT_LOG_DEBUG(LOG_CTX_HAPI, " .activity_bmap[%02u] = 0x%08X", phyPort, portsActivity.activity_bmap[phyPort]);
+  PT_LOG_DEBUG(LOG_CTX_HAPI, "Port# %2u", dapiPort.usp->port);
+  PT_LOG_DEBUG(LOG_CTX_HAPI, " .activity_mask = 0x%llX", portsActivity.activity_mask);
+  PT_LOG_DEBUG(LOG_CTX_HAPI, " .activity_bmap = 0x%08X", portsActivity.activity_bmap);
 
   return L7_SUCCESS;
 }
@@ -4657,7 +5096,9 @@ static L7_RC_t hapi_ptin_portMap_init(void)
 #endif
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "Port mapping:");
-  for (i = 0; i < ptin_sys_number_of_ports; i++)
+  for (i = 0;
+       i < dapiCardPtr->numOfPortMapEntries && i < L7_MAX_PHYSICAL_PORTS_PER_SLOT;
+       i++)
   {
     /* Initialize port name */
     sprintf(hapiSlotMapPtr[i].portName, "%.10s", SOC_PORT_NAME(0, hapiSlotMapPtr[i].bcm_port));
@@ -4688,7 +5129,7 @@ static L7_RC_t hapi_ptin_portMap_init(void)
     }
   #endif
 
-    PT_LOG_INFO(LOG_CTX_HAPI, " Port# %2u => Remapped# bcm_port=%2u (%s)", i, usp_map[i].port, hapiSlotMapPtr[i].portName);
+    PT_LOG_INFO(LOG_CTX_HAPI, " USP Port# %2u => Remapped# bcm_port=%2u (%s)", i, usp_map[i].port, hapiSlotMapPtr[i].portName);
   }
 
   #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
@@ -5029,7 +5470,7 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
     return rc;
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G /*|| PTIN_BOARD == PTIN_BOARD_TG16GF*/)
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_TC16SXG)
   /* Firmware mode 2 */
   rc = bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 2);
   if (rc != BCM_E_NONE)
@@ -5038,6 +5479,17 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
     return rc;
   }
   PT_LOG_DEBUG(LOG_CTX_HAPI, "Success applying Firmware mode 2 to bcm_port %u", bcm_port);
+#endif
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  /* Firmware mode 2 */
+  rc = bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_DFE_ENABLE, 1);
+  if (rc != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error applying DFE to bcm_port %u (rc=%d)", bcm_port, rc);
+    return rc;
+  }
+  PT_LOG_DEBUG(LOG_CTX_HAPI, "Success applying DFE to bcm_port %u", bcm_port);
 #endif
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G)
@@ -5281,31 +5733,153 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   L7_uint8    prio;
   L7_BOOL     remark_pbits;
   int         bcm_unit, bcm_port;
-  L7_uint32   unit_number;
   DAPI_USP_t  usp;
   BROAD_PORT_t *hapiPortPtr;
   bcm_error_t rv;
   L7_RC_t     rc;
-  extern DAPI_t *dapi_g;
 
   rc = L7_SUCCESS;
 
-  /* Run all physical ports, and configure the packet headers to be considered at the Load Balancing algorithms */
-  unitMgrNumberGet(&unit_number);
-  usp.unit = (L7_int8) unit_number;
-  usp.slot = 0;   /* Default hapi usp slot number to phy. intfs. */
-  usp.port = 0;
   /* Validate dapi_g pointers */
-  if (dapi_g == L7_NULLPTR ||
-      dapi_g->unit[usp.unit] == L7_NULLPTR ||
-      dapi_g->unit[usp.unit]->slot[usp.slot] == L7_NULLPTR)
+  if (dapi_g == L7_NULLPTR)
   {
       PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
       return L7_FAILURE;
   }
 
+  /* For TC16SXG, create a special rule for Aspen traffic */
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  if (1 != ptin_env_board_hwver())
+  {
+    L7_ushort16 vlanId_data, vlanId_mask;
+    BROAD_POLICY_t      policyId;
+    BROAD_POLICY_RULE_t ruleId;
+
+    /* BroadLight packets should have high priority */
+    vlanId_data = PTIN_ASPEN2CPU_A_VLAN;
+    vlanId_mask = 0xffe;
+
+    /* Create policy to give more priority to BL packets */
+    rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_QOS_QUEUES);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+      return L7_FAILURE;
+    }
+    /* Define qualifiers and actions */
+    do
+    {
+      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGHEST);
+      if (rc != L7_SUCCESS)  break;
+      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *) &vlanId_data, (L7_uchar8 *) &vlanId_mask);
+      if (rc != L7_SUCCESS)  break;
+      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ,
+                                        HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS15,
+                                        0 /*HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS15*/,
+                                        0 /*HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS15*/);
+      if (rc != L7_SUCCESS)  break;
+      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_PERMIT, 0, 0, 0);
+      if (rc != L7_SUCCESS)  break;
+    } while (0);
+
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error configurating rule.");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+    /* Commit rule */
+    rc = hapiBroadPolicyCommit(&policyId);
+    if (L7_SUCCESS != rc)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error committing policy!");
+      return L7_FAILURE;
+    }
+    /* Save policy */
+    internal_inband_policyId[0] = policyId;
+
+    PT_LOG_NOTICE(LOG_CTX_STARTUP,"ASPEN exception rules added: ruleId:%u policyId:%u",ruleId, policyId);
+  }
+
+  /* QoS queues assignment */
+  {
+    L7_uint32 l2intf_data, l2intf_mask;
+    L7_uint8  intpri_data, intpri_mask;
+    BROAD_POLICY_t      policyId;
+    BROAD_POLICY_RULE_t ruleId;
+    l7_cosq_set_t       queueSet;
+    L7_uint8            queue_index, tc;
+    L7_RC_t rc = L7_SUCCESS;
+
+    /* Create policy to give more priority to BL packets */
+    rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_QOS_QUEUES);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+      return L7_FAILURE;
+    }
+
+    /* Masks */
+    BCM_GPORT_VLAN_PORT_ID_SET(l2intf_mask, 0x20000-L2INTF_ID_MAX_PER_QUEUE);
+    intpri_mask = 7;    /* full mask */
+
+    /* Wired and Wireless queues */
+    for (queueSet = 0; queueSet < L7_QOS_QSET_MAX && rc == L7_SUCCESS; queueSet++)
+    {
+      /* L2intf data qualifier*/
+      if (queueSet == L7_QOS_QSET_WIRELESS) /* Wireless Queues */
+      {
+        BCM_GPORT_VLAN_PORT_ID_SET(l2intf_data, L2INTF_ID_MAX_PER_QUEUE);
+      }
+      else  /* Wired Queues */
+      {
+        BCM_GPORT_VLAN_PORT_ID_SET(l2intf_data, 1);
+      }
+
+      /* Run all 8 wired + 8 wireless queues */
+      for (tc = 0; tc < 8 && rc == L7_SUCCESS; tc++)
+      {
+        intpri_data = tc;
+
+        /* Queue index to be used at the FP rule action:
+           0-7: Wired queues; 8-15: Wireless queues */
+        queue_index = queueSet*8 + tc;
+
+        /* Define qualifiers and actions */
+        rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
+        if (rc != L7_SUCCESS)  break;
+        rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_L2INTF_ID, (L7_uchar8 *)&l2intf_data, (L7_uchar8 *)&l2intf_mask);
+        if (rc != L7_SUCCESS)  break;
+        if (tc < 7) /* Don't apply this qualifier for TC 8: This will be the default for queue for TC>=7 */
+        {
+          rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INT_PRIO, (L7_uchar8 *)&intpri_data, (L7_uchar8 *)&intpri_mask);
+          if (rc != L7_SUCCESS)  break;
+        }
+        rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_UCOSQ, queue_index, 0, 0);
+        if (rc != L7_SUCCESS)  break;
+      }
+    }
+
+    /* Check if error */
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error configurating rule");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+    /* Commit rule */
+    rc = hapiBroadPolicyCommit(&policyId);
+    if (L7_SUCCESS != rc)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error committing policy!");
+      return L7_FAILURE;
+    }
+
+    PT_LOG_NOTICE(LOG_CTX_STARTUP,"QoS queue assigment was a success! policyId=%u", policyId);
+  }
+
   /* For OLT1T0 */
-#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#elif (PTIN_BOARD == PTIN_BOARD_OLT1T0)
   {
     L7_ushort16 vlanId, vlanMask;
     BROAD_POLICY_t      policyId;
@@ -5347,7 +5921,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       return L7_FAILURE;
     }
     /* Save policy */
-    bl2cpu_policyId[0] = policyId;
+    internal_inband_policyId[0] = policyId;
     PT_LOG_NOTICE(LOG_CTX_STARTUP,"BL2CPU rule added: ruleId:%u policyId:%u", ruleId, policyId);
 
 
@@ -5389,7 +5963,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       PT_LOG_ERR(LOG_CTX_STARTUP, "Error committing policy!");
       return L7_FAILURE;
     }
-    bl2cpu_policyId[1] = policyId;
+    internal_inband_policyId[1] = policyId;
 
     PT_LOG_NOTICE(LOG_CTX_STARTUP,"BL2CPU exception rules added: ruleId:%u policyId:%u",ruleId, policyId);
   }
@@ -5407,9 +5981,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   }
 
   /* Run all usp ports */
-  for (usp.port = 0;
-       usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;
-       usp.port++)
+  USP_PHYPORT_ITERATE(usp, dapi_g)
   {
     hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
     bcm_port    = hapiPortPtr->bcm_port;
@@ -5612,40 +6184,23 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     }
 
 
-    #if 0
-    /* Only apply to downlink interfaces */
-    rc = hapiBroadPolicyRemoveFromAll(policyId);
+#if 0
+    /* Get pbm format of ports */
+    hapi_ptin_get_bcm_from_usp_bitmap(PTIN_SYSTEM_PON_PORTS_MASK | PTIN_SYSTEM_ETH_PORTS_MASK, &pbm);
+
+    /* Add PON ports to policy */
+    rc = hapiBroadPolicyApplyToMultiIface(policyId, pbm);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_STARTUP, "Error removing all interfaces");
-      hapiBroadPolicyDelete(policyId);
-      return L7_FAILURE;
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding pon ports: rc=%d", rc);
+      //hapiBroadPolicyDelete(policyId);
+      //return L7_FAILURE;
     }
-    for (port = 0; port < max(PTIN_SYSTEM_N_PONS, PTIN_SYSTEM_N_ETH); port++)
-    //for (port = 0; port < PTIN_SYSTEM_N_PORTS -1; port++)
+    else
     {
-      rc = hapi_ptin_bcmPort_get(port, &bcm_port);
-      if (rc != L7_SUCCESS)  break;
-
-      /* FIXME: Only applied to unit 0 */
-      if (bcmy_lut_unit_port_to_gport_get(bcm_unit, bcm_port, &gport) != BCMY_E_NONE)
-      {
-        printf("Error with unit %d, port %d", 0, bcm_port);
-        return L7_FAILURE;
-      }
-
-      rc = hapiBroadPolicyApplyToIface(policyId, gport);
-      if (rc != L7_SUCCESS)  break;
-
-      PT_LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / gport 0x%x added to outer->inner prio copy rule", port, bcm_port, gport);
+      PT_LOG_TRACE(LOG_CTX_STARTUP, "Pon/Eth ports added to policy");
     }
-    if (rc != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding ports");
-      hapiBroadPolicyDelete(policyId);
-      return L7_FAILURE;
-    }
-    #endif
+#endif
   }
    
 #endif
@@ -5667,15 +6222,14 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
      At egressing is important to guarantee PBIT value of outer vlan is null: Multicast GEM of OLTD only deals with pbit=0 */
   {
     /* Multicast services */
-    bcm_gport_t   gport;
-    //L7_uint32     ip_addr = 0xe0000000, ip_addr_mask=0xf0000000;
+    bcm_pbmp_t    pbm;
     L7_uchar8     macAddr_iptv_value[6] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0x00 };
     L7_uchar8     macAddr_iptv_mask[6]  = { 0xff, 0xff, 0xff, 0x80, 0x00, 0x00 };
     L7_uint16     vlan_value, vlan_mask;
     L7_uint32     ipdst_value = 0xe0000000;
     L7_uint32     ipdst_mask  = 0xf0000000;
     L7_uint16     ethType = 0x0800, ethType_mask = 0xffff;
-    L7_uint32     packetRes = 6 /*Unknown L3MC*/, packetRes_mask = 0xff;
+    L7_uint32     packetRes = BCM_FIELD_PKT_RES_L3MCUNKNOWN, packetRes_mask = 0xff;
     BROAD_POLICY_t      policyId;
     BROAD_POLICY_RULE_t ruleId;
 
@@ -5735,49 +6289,20 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 
     PT_LOG_TRACE(LOG_CTX_STARTUP, "PolicyId=%u", policyId);
 
-    /* First, remoe all ports */
-    rc = hapiBroadPolicyRemoveFromAll(policyId);
+    /* Get pbm format of ports */
+    hapi_ptin_get_bcm_from_usp_bitmap(PTIN_SYSTEM_PON_PORTS_MASK, &pbm);
+
+    /* Add PON ports to policy */
+    rc = hapiBroadPolicyApplyToMultiIface(policyId, pbm);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_STARTUP, "XXX Error removing all ports: rc=%d", rc);
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding pon ports: rc=%d", rc);
       //hapiBroadPolicyDelete(policyId);
       //return L7_FAILURE;
     }
-
-    /* Run all usp ports */
-    for (usp.port = 0;
-         usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;
-         usp.port++)
+    else
     {
-      hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
-      bcm_port    = hapiPortPtr->bcm_port;
-      bcm_unit    = hapiPortPtr->bcm_unit;
-
-      /* Add only PON ports */
-
-      /* FIXME: Only applied to unit 0 */
-      if (bcmy_lut_unit_port_to_gport_get(bcm_unit, bcm_port, &gport) != BCMY_E_NONE)
-      {
-        printf("Error with unit %d, port %d", bcm_unit, bcm_port);
-        return L7_FAILURE;
-      }
-
-      if ((PTIN_SYSTEM_PON_PORTS_MASK >> usp.port) & 1)
-      {
-        rc = hapiBroadPolicyApplyToIface(policyId, gport);
-        if (rc != L7_SUCCESS)
-        {
-          PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding bcm_unit %d/bcm_port %d/gport 0x%x: rc=%d",
-                     bcm_unit, bcm_port, gport, rc);
-          //hapiBroadPolicyDelete(policyId);
-          //return L7_FAILURE;
-        }
-        else
-        {
-          PT_LOG_TRACE(LOG_CTX_STARTUP, "unit %u / bcm_port %u / gport 0x%x added to Pbit=0 force rule",
-                       bcm_unit, bcm_port, gport);
-        }
-      }
+      PT_LOG_TRACE(LOG_CTX_STARTUP, "Pon ports added to Pbit=0 force rule");
     }
 
     PT_LOG_TRACE(LOG_CTX_STARTUP, "Going to create FP rule to prevent IPTV flooding...");
@@ -5843,13 +6368,100 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       return L7_FAILURE;
     }
 
-    PT_LOG_TRACE(LOG_CTX_STARTUP, "PolicyId=%u", policyId);
+#if 0
+    /* Get pbm format of backplane ports */
+    hapi_ptin_get_bcm_from_usp_bitmap(PTIN_SYSTEM_10G_PORTS_MASK, &pbm);
+
+    /* Add PON ports to policy */
+    rc = hapiBroadPolicyApplyToMultiIface(policyId, pbm);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding pon ports: rc=%d", rc);
+    }
+    else
+    {
+      PT_LOG_TRACE(LOG_CTX_STARTUP, "Backplane ports added");
+    }
+#endif
+
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Unknown IPTV PolicyId=%u", policyId);
+  }
+#endif
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  /* Unknown L2 traffic @ downstream will be limited to 100Mbps */
+  {
+    bcm_pbmp_t    pbm;
+    L7_uint32     packetRes = BCM_FIELD_PKT_RES_L2UNKNOWN, packetRes_mask = 0xff;
+    BROAD_POLICY_t      policyId;
+    BROAD_POLICY_RULE_t ruleId;
+
+    /* Create Policy to clear outer pbit field for Multicast services (only for pon ports) */
+    rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+      return L7_FAILURE;
+    }
+    /* Egress stage */
+    if (hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_INGRESS) != L7_SUCCESS)
+    {
+      printf("Error creating a egress policy\r\n");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+
+    do
+    {
+      /* Priority higher than dot1p rules */
+      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW);
+      if (rc != L7_SUCCESS)  break;
+      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PACKETRES, (L7_uchar8 *) &packetRes, (L7_uchar8 *) &packetRes_mask);
+      if (rc != L7_SUCCESS)  break;
+      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_DROPPREC,
+                                        BROAD_COLOR_YELLOW, BROAD_COLOR_YELLOW, BROAD_COLOR_RED);
+      if (rc != L7_SUCCESS)  break;
+
+    } while (0);
+
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error configuring rule");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+
+    /* Apply rules */
+    rc = hapiBroadPolicyCommit(&policyId);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error commiting policy");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+
+    /* Get pbm format of backplane ports */
+    hapi_ptin_get_bcm_from_usp_bitmap(PTIN_SYSTEM_10G_PORTS_MASK, &pbm);
+
+    /* Add PON ports to policy */
+    rc = hapiBroadPolicyApplyToMultiIface(policyId, pbm);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding xPON ports: rc=%d", rc);
+    }
+    else
+    {
+      PT_LOG_TRACE(LOG_CTX_STARTUP, "xPON ports added");
+    }
+
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Unknown MC PolicyId=%u", policyId);
   }
 #endif
 
   return L7_SUCCESS;
 }
 
+#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
 /**
  * AG16g static switching 
  * 
@@ -5950,11 +6562,8 @@ L7_RC_t ag16ga_bck_static_switching()
 
       } while (0);
 
-
       PT_LOG_TRACE(LOG_CTX_STARTUP, "PolicyId=%u", policyId);
-
     }
-
   }
 
   return L7_SUCCESS;
@@ -6055,6 +6664,7 @@ L7_RC_t ag16ga_frontal_static_switching()
 
   return L7_SUCCESS;
 }
+#endif /*#if (PTIN_BOARD == PTIN_BOARD_AG16GA)*/
 
 L7_RC_t teste_case3(void)
 {
@@ -6254,6 +6864,7 @@ L7_RC_t teste_case(void)
   L7_RC_t             rc = L7_SUCCESS;
 
   /* Multicast services */
+  bcm_pbmp_t    pbm;
   //L7_uint8      ip_type = BROAD_IP_TYPE_IPV4, ip_type_mask = 0xff;
   L7_uint16     ethertype = 0x0800, ethertype_mask = 0xffff;
   L7_uint32     ip_addr = 0xe0000000, ip_addr_mask=0xf0000000;
@@ -6320,276 +6931,27 @@ L7_RC_t teste_case(void)
 
   PT_LOG_TRACE(LOG_CTX_STARTUP, "PolicyId=%u", policyId);
 
-#if 0
-  /* First, remoe all ports */
-  if (hapiBroadPolicyRemoveFromAll(policyId) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error removing all ports");
-    hapiBroadPolicyDelete(policyId);
-    return L7_FAILURE;
-  }
-  /* Add only PON ports */
-  for (port = 0; port < ptin_sys_number_of_ports; port++)
-  {
-    if (hapi_ptin_bcmPort_get(port, &bcm_port) == L7_SUCCESS)
-    {
-      /* FIXME: Only applied to unit 0 */
-      if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
-      {
-        printf("Error with unit %d, port %d", 0, bcm_port);
-        return L7_FAILURE;
-      }
+  /* Get pbm format of backplane ports */
+  hapi_ptin_get_bcm_from_usp_bitmap(PTIN_SYSTEM_10G_PORTS_MASK, &pbm);
 
-      if ((PTIN_SYSTEM_PON_PORTS_MASK >> port) & 1)
-      {
-        if (hapiBroadPolicyApplyToIface(policyId, gport) != L7_SUCCESS)
-        {
-          PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding port %u", port);
-          hapiBroadPolicyDelete(policyId);
-          return L7_FAILURE;
-        }
-        PT_LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / gport 0x%x added to Pbit=0 force rule", port, bcm_port, gport);
-      }
-    }
-  }
-#endif
-
-  return L7_SUCCESS;
-}
-
-
-BROAD_POLICY_t policyId_teste = BROAD_POLICY_INVALID;
-L7_RC_t fp_teste(void)
-{
-  BROAD_POLICY_t      policyId;
-  BROAD_POLICY_RULE_t ruleId;
-  L7_RC_t             rc = L7_SUCCESS;
-
-  /* Multicast services */
-  L7_int        port;
-  bcm_gport_t   gport;
-  bcm_port_t    bcm_port;
-  L7_uint16     vlanId_value;
-  L7_uint16     vlanId_mask;
-
-  /** INGRESS STAGE **/
-
-  if (policyId_teste != BROAD_POLICY_INVALID)
-  {
-    hapiBroadPolicyDelete(policyId_teste);
-    policyId_teste = BROAD_POLICY_INVALID;
-  }
-
-  /* Multicast services */
-  vlanId_value = PTIN_SYSTEM_EVC_BCAST_VLAN_MIN;
-  vlanId_mask  = PTIN_SYSTEM_EVC_BCAST_VLAN_MASK;
-
-  /* Create Policy to clear outer pbit field for Multicast services (only for pon ports) */
-  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_PTIN);
+  /* Add PON ports to policy */
+  rc = hapiBroadPolicyApplyToMultiIface(policyId, pbm);
   if (rc != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
-    return L7_FAILURE;
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding pon ports: rc=%d", rc);
   }
-  rc = hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_EGRESS);
-  if (rc != L7_SUCCESS)
+  else
   {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
-    return L7_FAILURE;
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Backplane ports added");
   }
-
-  do
-  {
-    /* Priority higher than dot1p rules */
-    rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
-    if (rc != L7_SUCCESS)  break;
-
-    /* Multicast EVCs */
-    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *) &vlanId_value, (L7_uchar8 *) &vlanId_mask);
-    if (rc != L7_SUCCESS)  break;
-
-    /* Change packet priority to 0 */
-    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, 0, 0, 0);
-    if (rc != L7_SUCCESS)  break;
-  } while (0);
-
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error configuring rule");
-    hapiBroadPolicyCreateCancel();
-    return L7_FAILURE;
-  }
-
-  /* Apply rules */
-  rc = hapiBroadPolicyCommit(&policyId);
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error commiting policy");
-    hapiBroadPolicyCreateCancel();
-    return L7_FAILURE;
-  }
-
-  hapiBroadPolicyRemoveFromAll(policyId);
-
-  /* Add PON ports */
-  for (port = 0; port < ptin_sys_number_of_ports; port++)
-  {
-    if (hapi_ptin_bcmPort_get(port, &bcm_port) == L7_SUCCESS)
-    {
-      /* FIXME: Only applied to unit 0 */
-      if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
-      {
-        printf("Error with unit %d, port %d", 0, bcm_port);
-        return L7_FAILURE;
-      }
-
-      if ((PTIN_SYSTEM_PON_PORTS_MASK >> port) & 1)
-      {
-        if (hapiBroadPolicyApplyToIface(policyId, gport) != L7_SUCCESS)
-        {
-          PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding port %u", port);
-          hapiBroadPolicyDelete(policyId);
-          return L7_FAILURE;
-        }
-        PT_LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / gport 0x%x added to Pbit=0 force rule", port, bcm_port, gport);
-      }
-    }
-  }
-
-  policyId_teste = policyId;
-
-  return L7_SUCCESS;
-}
-
-
-BROAD_POLICY_t policyId_teste2 = BROAD_POLICY_INVALID;
-L7_RC_t fp_teste2(L7_int port_in, L7_int port_out, L7_int vlan_add)
-{
-  BROAD_POLICY_t      policyId;
-  BROAD_POLICY_RULE_t ruleId;
-  L7_RC_t             rc = L7_SUCCESS;
-
-  /* Multicast services */
-  bcm_port_t    bcm_port;
-  bcm_gport_t   gport;
-//L7_uint16     vlanId_value;
-//L7_uint16     vlanId_mask;
-
-  /** INGRESS STAGE **/
-  if (policyId_teste2 != BROAD_POLICY_INVALID)
-  {
-    hapiBroadPolicyDelete(policyId_teste2);
-    policyId_teste2 = BROAD_POLICY_INVALID;
-  }
-
-  printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
-
-  /* Create Policy to clear outer pbit field for Multicast services (only for pon ports) */
-  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_IPSG);
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
-    return L7_FAILURE;
-  }
-
-  printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
-
-  rc = hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_LOOKUP);
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
-    hapiBroadPolicyCreateCancel();
-    return L7_FAILURE;
-  }
-
-  printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
-
-  /* Priority higher than dot1p rules */
-  rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
-    hapiBroadPolicyCreateCancel();
-    return L7_FAILURE;
-  }
-
-  printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
-
-//vlanId_value = 1;
-//vlanId_mask  = 0xfff;
-//rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *) &vlanId_value, (L7_uchar8 *) &vlanId_mask);
-//if (rc != L7_SUCCESS)
-//{
-//  PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
-//  hapiBroadPolicyCreateCancel();
-//  return L7_FAILURE;
-//}
-
-  rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_ADD_OUTER_VID, vlan_add, 0, 0);
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
-    hapiBroadPolicyCreateCancel();
-    return L7_FAILURE;
-  }
-
-  printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
-
-#if 0
-  rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_REDIRECT, 1, 0, port_out);
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
-    hapiBroadPolicyCreateCancel();
-    return L7_FAILURE;
-  }
-#endif
-  printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
-
-  /* Apply rules */
-  rc = hapiBroadPolicyCommit(&policyId);
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error commiting policy");
-    hapiBroadPolicyCreateCancel();
-    return L7_FAILURE;
-  }
-
-  printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
-
-  //hapiBroadPolicyRemoveFromAll(policyId);
-
-  printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
-
-  /* Add PON ports */
-  if (hapi_ptin_bcmPort_get(port_in, &bcm_port) == L7_SUCCESS)
-  {
-    /* FIXME: Only applied to unit 0 */
-    if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
-    {
-      printf("Error with unit %d, port %d", 0, bcm_port);
-      return L7_FAILURE;
-    }
-
-    if (hapiBroadPolicyApplyToIface(policyId, gport) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding port %u", bcm_port);
-      hapiBroadPolicyDelete(policyId);
-      return L7_FAILURE;
-    }
-  }
-
-  printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
-
-  policyId_teste2 = policyId;
 
   return L7_SUCCESS;
 }
 
 
 /* VCAP rules for Default VLAN */
-static BROAD_POLICY_t policyId_pvid[PTIN_SYSTEM_N_PORTS]  = {[0 ... PTIN_SYSTEM_N_PORTS-1] = BROAD_POLICY_INVALID};
-static BROAD_POLICY_t ruleId_pvid[PTIN_SYSTEM_N_PORTS]    = {[0 ... PTIN_SYSTEM_N_PORTS-1] = BROAD_POLICY_INVALID};
+static BROAD_POLICY_t policyId_pvid[L7_MAX_PHYSICAL_PORTS_PER_SLOT]  = {[0 ... L7_MAX_PHYSICAL_PORTS_PER_SLOT-1] = BROAD_POLICY_INVALID};
+static BROAD_POLICY_t ruleId_pvid[L7_MAX_PHYSICAL_PORTS_PER_SLOT]    = {[0 ... L7_MAX_PHYSICAL_PORTS_PER_SLOT-1] = BROAD_POLICY_INVALID};
 
 /**
  * Configure default (Outer+Inner) VLANs using VCAP
@@ -6628,7 +6990,7 @@ L7_RC_t ptin_hapi_vcap_defvid(DAPI_USP_t *usp, L7_uint16 outerVlan, L7_uint16 in
 
   /* Validate port */
   port = usp->port;
-  if (port >= PTIN_SYSTEM_N_PORTS)
+  if (port >= L7_MAX_PHYSICAL_PORTS_PER_SLOT)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Invalid USP {%d,%d,%d}", usp->unit, usp->slot, usp->port);
     return L7_FAILURE;
@@ -6738,7 +7100,7 @@ void ptin_vcap_defvid_dump(void)
 
   printf("Dumping VCAP defVID rules:\r\n");
 
-  for (i = 0; i < PTIN_SYSTEM_N_PORTS; i++)
+  for (i = 0; i < L7_MAX_PHYSICAL_PORTS_PER_SLOT; i++)
   {
     if (policyId_pvid[i] != BROAD_POLICY_INVALID && ruleId_pvid[i] != BROAD_POLICY_INVALID)
     {
@@ -6780,7 +7142,7 @@ L7_RC_t ptin_hapi_L3UcastTtl1ToCpu_set(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *
 }
 
 BROAD_POLICY_t policyId_trap = BROAD_POLICY_INVALID;
-L7_int    trap_port = -1;
+L7_int    trap_usp_port = -1;
 L7_uint16 trap_ovlan=0, trap_ivlan=0;
 L7_uint8  trap_only_drops = 0;
 
@@ -6795,9 +7157,9 @@ void ptin_debug_trap_packets_state( void )
 
   printf("Trap rule defined:\r\n");
 
-  if (trap_port>=0)
+  if (trap_usp_port>=0)
   {
-    printf(" Inport = %d\r\n",trap_port);
+    printf(" USP Inport = %d\r\n",trap_usp_port);
   }
   if (trap_ovlan>0 && trap_ovlan<4096)
   {
@@ -6842,19 +7204,19 @@ L7_RC_t ptin_debug_trap_packets_cancel( void )
 }
 
 
-L7_RC_t ptin_debug_trap_packets( L7_int port, L7_uint16 ovlan, L7_uint16 ivlan, L7_uint8 only_drops )
+L7_RC_t ptin_debug_trap_packets(L7_int usp_port, L7_uint16 ovlan, L7_uint16 ivlan, L7_uint8 only_drops )
 {
   BROAD_POLICY_t      policyId = BROAD_POLICY_INVALID;
   BROAD_POLICY_RULE_t ruleId = BROAD_POLICY_RULE_INVALID;
   BROAD_METER_ENTRY_t meterInfo;
-  bcm_port_t          bcm_port;
+  L7_uint32           bcm_unit, bcm_port, bcm_port_mask;
   pbmp_t              pbm, pbm_mask;
   L7_uint16           vlan_mask = 0x0fff;
   L7_uint8            drop = 1, drop_mask = 1;
   L7_RC_t rc = L7_SUCCESS;
 
   /* Validate arguments */
-  if (port<0 &&
+  if (usp_port<0 &&
       (ovlan==0 || ovlan>=4096) &&
       (ivlan==0 || ivlan>=4096) &&
       !only_drops)
@@ -6863,27 +7225,30 @@ L7_RC_t ptin_debug_trap_packets( L7_int port, L7_uint16 ovlan, L7_uint16 ivlan, 
     return L7_SUCCESS;
   }
 
-  if (port>=0)
+  if (usp_port>=0)
   {
-    printf("Port %d was given\r\n",port);
+    printf("Port %d was given\r\n",usp_port);
 
-    /* Validate port */
-    if (hapi_ptin_bcmPort_get(port, &bcm_port)!=L7_SUCCESS)
+    /* Get bcm unit and port from physical USP port */
+    if (hapi_ptin_get_bcmdata_from_uspport(usp_port, dapi_g,
+                                           &bcm_unit, &bcm_port, L7_NULLPTR) != L7_SUCCESS)
     {
-      printf("Error getting bcm_port of port %d\r\n",port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Can't get bcm data from usp_port %d", usp_port);
       return L7_FAILURE;
     }
+    bcm_port_mask = 0xffff;
 
-    printf("bcm_port = %d\r\n",bcm_port);
+    printf("bcm_unit=%d bcm_port=%d\r\n", bcm_unit, bcm_port);
 
     /* Define port bitmap */
     BCM_PBMP_CLEAR(pbm);
     BCM_PBMP_PORT_ADD(pbm,bcm_port);
-    hapi_ptin_allportsbmp_get(&pbm_mask);
+
+    hapi_ptin_get_bcm_from_usp_bitmap(-1 /*All ports*/, &pbm_mask);
   }
   else
   {
-    port = -1;
+    usp_port = -1;
     printf("No port provided\r\n");
   }
 
@@ -6901,9 +7266,9 @@ L7_RC_t ptin_debug_trap_packets( L7_int port, L7_uint16 ovlan, L7_uint16 ivlan, 
   meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
 
   /* Clear saved paremeters */
-  trap_port  = -1;
-  trap_ovlan =  0;
-  trap_ivlan =  0;
+  trap_usp_port   = -1;
+  trap_ovlan      = 0;
+  trap_ivlan      = 0;
   trap_only_drops = 0;
 
   /* Create policy */
@@ -6925,18 +7290,22 @@ L7_RC_t ptin_debug_trap_packets( L7_int port, L7_uint16 ovlan, L7_uint16 ivlan, 
   }
 
   /* Add source port qualifier */
-  if (port>=0)
+  if (usp_port>=0)
   {
-    printf("Adding port qualifier (port=%u, bcm_port=%d)\r\n",port,bcm_port);
+    printf("Adding port qualifier (port=%u, bcm_port=%d)\r\n",usp_port,bcm_port);
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORT, (L7_uchar8 *)&bcm_port, (L7_uchar8 *)&bcm_port_mask);
+#else
     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uchar8 *)&pbm, (L7_uchar8 *)&pbm_mask);
+#endif
     if (rc != L7_SUCCESS)
     {
-      printf("Error adding port qualifier (port=%u, bcm_port=%d)\r\n",port,bcm_port);
+      printf("Error adding port qualifier (port=%u, bcm_port=%d)\r\n",usp_port,bcm_port);
       hapiBroadPolicyCreateCancel();
       return L7_FAILURE;
     }
-    trap_port = port;
-    printf("Port qualifier (port=%u, bcm_port=%d) added\r\n",port,bcm_port);
+    trap_usp_port = usp_port;
+    printf("Port qualifier (port=%u, bcm_port=%d) added\r\n",usp_port,bcm_port);
   }
   /* Add outer vlan qualifier */
   if (ovlan>0 && ovlan<4096)
@@ -7018,17 +7387,17 @@ L7_RC_t ptin_debug_trap_packets( L7_int port, L7_uint16 ovlan, L7_uint16 ivlan, 
   return L7_SUCCESS;
 }
 
-L7_RC_t ptin_debug_trap_packets_tx(L7_int src_port, L7_int port, L7_uint16 ovlan, L7_uint16 ivlan)
+L7_RC_t ptin_debug_trap_packets_tx(L7_int src_port, L7_int usp_port, L7_uint16 ovlan, L7_uint16 ivlan)
 {
   BROAD_POLICY_t      policyId = BROAD_POLICY_INVALID;
   BROAD_POLICY_RULE_t ruleId = BROAD_POLICY_RULE_INVALID;
-  bcm_port_t          bcm_port;
+  L7_uint32           bcm_unit, bcm_port;
   L7_uint16           mask = 0xffff;
   BROAD_METER_ENTRY_t meterInfo;
   L7_RC_t rc = L7_SUCCESS;
 
   /* Validate arguments */
-  if (port<0 &&
+  if (usp_port < 0 &&
       (ovlan==0 || ovlan>=4096) &&
       (ivlan==0 || ivlan>=4096))
   {
@@ -7036,23 +7405,24 @@ L7_RC_t ptin_debug_trap_packets_tx(L7_int src_port, L7_int port, L7_uint16 ovlan
     return L7_SUCCESS;
   }
 
-  /* Source port */
-  if (port>=0)
+  /* Destination port */
+  if (usp_port >= 0)
   {
-    printf("Port %d was given\r\n",port);
+    printf("Port %d was given\r\n",usp_port);
 
-    /* Validate port */
-    if (hapi_ptin_bcmPort_get(port, &bcm_port)!=L7_SUCCESS)
+    /* Get bcm unit and port from physical USP port */
+    if (hapi_ptin_get_bcmdata_from_uspport(usp_port, dapi_g,
+                                           &bcm_unit, &bcm_port, L7_NULLPTR) != L7_SUCCESS)
     {
-      printf("Error getting bcm_port of port %d\r\n",port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Can't get bcm data from usp_port %d", usp_port);
       return L7_FAILURE;
     }
 
-    printf("bcm_port = %d\r\n",bcm_port);
+    printf("bcm_unit=%d bcm_port=%d\r\n", bcm_unit, bcm_port);
   }
   else
   {
-    port = -1;
+    usp_port = -1;
     printf("No port provided\r\n");
   }
 
@@ -7070,9 +7440,9 @@ L7_RC_t ptin_debug_trap_packets_tx(L7_int src_port, L7_int port, L7_uint16 ovlan
   meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
 
   /* Clear saved paremeters */
-  trap_port  = -1;
-  trap_ovlan =  0;
-  trap_ivlan =  0;
+  trap_usp_port   = -1;
+  trap_ovlan      = 0;
+  trap_ivlan      = 0;
   trap_only_drops = 0;
 
   /* Create policy */
@@ -7102,18 +7472,18 @@ L7_RC_t ptin_debug_trap_packets_tx(L7_int src_port, L7_int port, L7_uint16 ovlan
   }
 
   /* Add source port qualifier */
-  if (port>=0)
+  if (usp_port>=0)
   {
-    printf("Adding port qualifier (port=%u, bcm_port=%d)\r\n",port,bcm_port);
+    printf("Adding port qualifier (port=%u, bcm_port=%d)\r\n",usp_port,bcm_port);
     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OUTPORT, (L7_uchar8 *)&bcm_port, (L7_uchar8 *)&mask);
     if (rc != L7_SUCCESS)
     {
-      printf("Error adding port qualifier (port=%u, bcm_port=%d)\r\n",port,bcm_port);
+      printf("Error adding port qualifier (usp_port=%u, bcm_port=%d)\r\n",usp_port,bcm_port);
       hapiBroadPolicyCreateCancel();
       return L7_FAILURE;
     }
-    trap_port = src_port;
-    printf("Port qualifier (port=%u, bcm_port=%d) added\r\n",port,bcm_port);
+    trap_usp_port = src_port;
+    printf("Port qualifier (usp_port=%u, bcm_port=%d) added\r\n",usp_port,bcm_port);
   }
 
   /* Add outer vlan qualifier */
@@ -7211,14 +7581,16 @@ L7_RC_t ptin_debug_trap_packets_show( L7_int bcm_port, bcm_pkt_t *bcm_pkt )
   }
 
   /* Check if packet properties match the defined rule */
-  if (trap_port>=0)
+  if (trap_usp_port>=0)
   {
-    /* Validate port */
-    if (hapi_ptin_bcmPort_get(trap_port, &trap_bcm_port)!=L7_SUCCESS)
+    /* Get bcm unit and port from physical USP port */
+    if (hapi_ptin_get_bcmdata_from_uspport(trap_usp_port, dapi_g,
+                                           L7_NULLPTR, &trap_bcm_port, L7_NULLPTR) != L7_SUCCESS)
     {
-      printf("Error getting bcm_port of trap_port %d\r\n",trap_port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Can't get bcm data from trap_usp_port %d", trap_usp_port);
       return L7_FAILURE;
     }
+
     if (bcm_port != trap_bcm_port)
       return L7_SUCCESS;
   }
@@ -7233,8 +7605,8 @@ L7_RC_t ptin_debug_trap_packets_show( L7_int bcm_port, bcm_pkt_t *bcm_pkt )
       return L7_SUCCESS;
   }
 
-  printf("Packet received on port %u (bcm_port %u), oVlan=%u.%d, iVlan=%u.%d (int.prio=%d cos=%d):\r\n",
-         trap_port, bcm_port,
+  printf("Packet received on usp_port %u (bcm_port %u), oVlan=%u.%d, iVlan=%u.%d (int.prio=%d cos=%d):\r\n",
+         trap_usp_port, bcm_port,
          bcm_pkt->vlan, bcm_pkt->vlan_pri,
          bcm_pkt->inner_vlan, bcm_pkt->inner_vlan_pri,
          bcm_pkt->prio_int, bcm_pkt->cos);
@@ -7255,27 +7627,29 @@ L7_RC_t ptin_debug_trap_packets_show( L7_int bcm_port, bcm_pkt_t *bcm_pkt )
   return L7_SUCCESS;
 }
 
-L7_RC_t ptin_hapi_register_set(L7_int ptin_port, L7_uint16 block, L7_uint16 offset, L7_uint16 value)
+L7_RC_t ptin_hapi_register_set(L7_int usp_port, L7_uint16 block, L7_uint16 offset, L7_uint16 value)
 {
   bcm_error_t rv;
-  bcm_port_t bcm_port;
+  L7_uint32 bcm_unit, bcm_port;
 
-  if (hapi_ptin_bcmPort_get(ptin_port, &bcm_port) != L7_SUCCESS)
+  /* Get bcm unit and port from physical USP port */
+  if (hapi_ptin_get_bcmdata_from_uspport(usp_port, dapi_g,
+                                         &bcm_unit, &bcm_port, L7_NULLPTR) != L7_SUCCESS)
   {
-    printf("Error getting bcm_port from ptin_port %u\r\n", ptin_port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Can't get bcm data from usp_port %d", usp_port);
     return L7_FAILURE;
   }
 
   /* Force links to be up: bit 6 of register 0x8012 */
-  rv = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, BCM_PORT_PHY_REG_INDIRECT_ADDR(0,block,offset), value);
+  rv = bcm_port_phy_set(bcm_unit, bcm_port, BCM_PORT_PHY_INTERNAL, BCM_PORT_PHY_REG_INDIRECT_ADDR(0,block,offset), value);
 
   if (rv != BCM_E_NONE)
   {
-    printf("Error writing to register 0x%04x/0x%x at port %u\r\n", block, offset, ptin_port);
+    printf("Error writing to register 0x%04x/0x%x at usp_port %u\r\n", block, offset, usp_port);
     return L7_FAILURE;
   }
 
-  printf("Success writing to register 0x%04x/0x%x at port %u\r\n", block, offset, ptin_port);
+  printf("Success writing to register 0x%04x/0x%x at usp_port %u\r\n", block, offset, usp_port);
   fflush(stdout);
 
   return L7_SUCCESS;

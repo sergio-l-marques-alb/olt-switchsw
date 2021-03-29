@@ -27,6 +27,24 @@
 #include "cos_exports.h"
 #include "defaultconfig.h"
 
+/* COS queue destination */
+typedef enum l7_cosq_set_e {
+    L7_QOS_QSET_DEFAULT  = 0,
+    L7_QOS_QSET_WIRED    = 0,
+    L7_QOS_QSET_WIRELESS = 1,
+    L7_QOS_QSET_MAX,
+    L7_QOS_QSET_PORT = -1,
+} l7_cosq_set_t;
+
+/* Some switches allow more than 1 group of queues per port */
+#ifndef L7_MAX_CFG_QUEUESETS_PER_PORT
+ #if (PLAT_BCM_CHIP == L7_BCM_TRIDENT3_X3)
+  #define L7_MAX_CFG_QUEUESETS_PER_PORT     L7_QOS_QSET_MAX
+ #else
+  #define L7_MAX_CFG_QUEUESETS_PER_PORT     1
+ #endif
+#endif
+
 /* the following values are established here if not already defined in platform.h */
 #ifndef L7_MAX_CFG_QUEUES_PER_PORT
   #define L7_MAX_CFG_QUEUES_PER_PORT            1
@@ -142,7 +160,8 @@ L7_RC_t cosMapIpPrecIndexGetNext(L7_uint32 prec, L7_uint32 *pNext);
 /*************************************************************************
 * @purpose  Get the assigned traffic class (queue) for this IP precedence
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    prec        @b{(input)}  IP precedence     
 * @param    *pVal       @b{(output)} Ptr to traffic class output value    
 *
@@ -153,13 +172,14 @@ L7_RC_t cosMapIpPrecIndexGetNext(L7_uint32 prec, L7_uint32 *pNext);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpPrecTrafficClassGet(L7_uint32 intIfNum, L7_uint32 prec,
+L7_RC_t cosMapIpPrecTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 prec,
                                     L7_uint32 *pVal);
 
 /*************************************************************************
 * @purpose  Set the assigned traffic class (queue) for this IP precedence
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    prec        @b{(input)}  IP precedence     
 * @param    val         @b{(input)}  Traffic class value    
 *
@@ -170,7 +190,7 @@ L7_RC_t cosMapIpPrecTrafficClassGet(L7_uint32 intIfNum, L7_uint32 prec,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpPrecTrafficClassSet(L7_uint32 intIfNum, L7_uint32 prec,
+L7_RC_t cosMapIpPrecTrafficClassSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 prec,
                                     L7_uint32 val);
 
 /*************************************************************************
@@ -192,7 +212,8 @@ L7_RC_t cosMapIpPrecTrafficClassGlobalSet(L7_uint32 prec, L7_uint32 val);
 /*************************************************************************
 * @purpose  Get default traffic class mapping for specified IP precedence value
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    prec        @b{(input)}  IP precedence     
 * @param    *pVal       @b{(output)} Ptr to traffic class output value    
 *
@@ -206,13 +227,14 @@ L7_RC_t cosMapIpPrecTrafficClassGlobalSet(L7_uint32 prec, L7_uint32 val);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpPrecDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint32 prec, 
+L7_RC_t cosMapIpPrecDefaultTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 prec, 
                                            L7_uint32 *pVal);
 
 /*************************************************************************
 * @purpose  Restore default IP precedence mappings for this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -221,7 +243,7 @@ L7_RC_t cosMapIpPrecDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint32 prec,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpPrecDefaultsRestore(L7_uint32 intIfNum);
+L7_RC_t cosMapIpPrecDefaultsRestore(L7_uint32 intIfNum, l7_cosq_set_t queueSet);
 
 /*************************************************************************
 * @purpose  Restore default IP precedence mappings globally for all interfaces
@@ -269,7 +291,8 @@ L7_RC_t cosMapIpDscpIndexGetNext(L7_uint32 dscp, L7_uint32 *pNext);
 /*************************************************************************
 * @purpose  Get the assigned traffic class (queue) for this IP DSCP
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    dscp        @b{(input)}  IP DSCP     
 * @param    *pVal       @b{(output)} Ptr to traffic class output value    
 *
@@ -280,13 +303,14 @@ L7_RC_t cosMapIpDscpIndexGetNext(L7_uint32 dscp, L7_uint32 *pNext);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpDscpTrafficClassGet(L7_uint32 intIfNum, L7_uint32 dscp, 
+L7_RC_t cosMapIpDscpTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 dscp, 
                                     L7_uint32 *pVal);
 
 /*************************************************************************
 * @purpose  Set the assigned traffic class (queue) for this IP DSCP
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    dscp        @b{(input)}  IP DSCP     
 * @param    val         @b{(input)}  Traffic class value    
 *
@@ -297,7 +321,7 @@ L7_RC_t cosMapIpDscpTrafficClassGet(L7_uint32 intIfNum, L7_uint32 dscp,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpDscpTrafficClassSet(L7_uint32 intIfNum, L7_uint32 dscp, 
+L7_RC_t cosMapIpDscpTrafficClassSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 dscp, 
                                     L7_uint32 val);
 
 /*************************************************************************
@@ -319,7 +343,8 @@ L7_RC_t cosMapIpDscpTrafficClassGlobalSet(L7_uint32 dscp, L7_uint32 val);
 /*************************************************************************
 * @purpose  Get default traffic class mapping for specified IP DSCP value
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    dscp        @b{(input)}  IP DSCP     
 * @param    *pVal       @b{(output)} Ptr to traffic class output value    
 *
@@ -333,13 +358,14 @@ L7_RC_t cosMapIpDscpTrafficClassGlobalSet(L7_uint32 dscp, L7_uint32 val);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpDscpDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint32 dscp, 
+L7_RC_t cosMapIpDscpDefaultTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 dscp, 
                                            L7_uint32 *pVal);
 
 /*************************************************************************
 * @purpose  Restore default IP DSCP mappings for this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -348,7 +374,7 @@ L7_RC_t cosMapIpDscpDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint32 dscp,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpDscpDefaultsRestore(L7_uint32 intIfNum);
+L7_RC_t cosMapIpDscpDefaultsRestore(L7_uint32 intIfNum, l7_cosq_set_t queueSet);
 
 /*************************************************************************
 * @purpose  Restore default IP DSCP mappings globally for all interfaces
@@ -411,7 +437,8 @@ L7_BOOL cosMapIntfIsValid(L7_uint32 intIfNum);
 /*************************************************************************
 * @purpose  Get the COS trust mode for this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to trust mode output value    
 *
 * @returns  L7_SUCCESS
@@ -421,13 +448,14 @@ L7_BOOL cosMapIntfIsValid(L7_uint32 intIfNum);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIntfTrustModeGet(L7_uint32 intIfNum, 
+L7_RC_t cosMapIntfTrustModeGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                L7_QOS_COS_MAP_INTF_MODE_t *pVal);
 
 /*************************************************************************
 * @purpose  Set the COS trust mode for this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    val         @b{(input)}  Trust mode value    
 *
 * @returns  L7_SUCCESS
@@ -437,7 +465,7 @@ L7_RC_t cosMapIntfTrustModeGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIntfTrustModeSet(L7_uint32 intIfNum, 
+L7_RC_t cosMapIntfTrustModeSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                L7_QOS_COS_MAP_INTF_MODE_t val);
 
 /*************************************************************************
@@ -457,7 +485,8 @@ L7_RC_t cosMapIntfTrustModeGlobalSet(L7_QOS_COS_MAP_INTF_MODE_t val);
 /*************************************************************************
 * @purpose  Get the COS untrusted port default traffic class for this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to untrusted traffic class output value    
 *
 * @returns  L7_SUCCESS
@@ -467,13 +496,14 @@ L7_RC_t cosMapIntfTrustModeGlobalSet(L7_QOS_COS_MAP_INTF_MODE_t val);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapUntrustedPortDefaultTrafficClassGet(L7_uint32 intIfNum, 
+L7_RC_t cosMapUntrustedPortDefaultTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                                   L7_uint32 *pVal);
 
 /*********************************************************************
 * @purpose  Handle update to port default priority
 *
 * @param    intIfNum                @b{(input)}  Internal interface number
+* @param    queueSet                @b{(input)}  Group of queues
 * @param    portDefaultPriority     @b{(input)}  Port default priority
 * @param    portDefaultTrafficClass @b{(input)}  Port default traffic class
 *
@@ -494,7 +524,7 @@ L7_RC_t cosMapUntrustedPortDefaultTrafficClassGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-void cosMapPortDefaultPriorityUpdate(L7_uint32 intIfNum, 
+void cosMapPortDefaultPriorityUpdate(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                      L7_uint32 portDefaultPriority,
                                      L7_uint32 portDefaultTrafficClass);
 
@@ -502,6 +532,7 @@ void cosMapPortDefaultPriorityUpdate(L7_uint32 intIfNum,
 * @purpose  Handle update to number of operational traffic classes
 *
 * @param    intIfNum          @b{(input)}  Internal interface number
+* @param    queueSet          @b{(input)}  Group of queues
 * @param    numTrafficClasses @b{(input)}  Number of traffic classes
 *
 * @returns  L7_SUCCESS
@@ -522,13 +553,14 @@ void cosMapPortDefaultPriorityUpdate(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-void cosMapNumTrafficClassesUpdate(L7_uint32 intIfNum, 
+void cosMapNumTrafficClassesUpdate(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                    L7_uint32 numTrafficClasses);
 
 /*********************************************************************
 * @purpose  Check if 802.1p user priority mapping is active
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 *
 * @returns  L7_TRUE
 * @returns  L7_FALSE
@@ -543,7 +575,7 @@ void cosMapNumTrafficClassesUpdate(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_BOOL cosMapDot1pMappingIsActive(L7_uint32 intIfNum);
+L7_BOOL cosMapDot1pMappingIsActive(L7_uint32 intIfNum, l7_cosq_set_t queueSet);
 
 /*********************************************************************
 * @purpose  Verify specified queue config interface index exists
@@ -650,7 +682,8 @@ L7_RC_t cosQueueDropPrecIndexGetNext(L7_uint32 dropPrec, L7_uint32 *pNext);
 /*************************************************************************
 * @purpose  Restore default settings for all queues on this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -659,7 +692,7 @@ L7_RC_t cosQueueDropPrecIndexGetNext(L7_uint32 dropPrec, L7_uint32 *pNext);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueDefaultsRestore(L7_uint32 intIfNum);
+L7_RC_t cosQueueDefaultsRestore(L7_uint32 intIfNum, l7_cosq_set_t queueSet);
 
 /*************************************************************************
 * @purpose  Restore default settings for all queues globally on all interfaces
@@ -678,8 +711,10 @@ L7_RC_t cosQueueDefaultsGlobalRestore(void);
 /*************************************************************************
 * @purpose  Get the COS egress shaping rate for this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
-* @param    *pVal       @b{(output)} Ptr to intf shaping rate output value    
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
+* @param    *rate       @b{(output)} Ptr to intf shaping rate output value
+* @param    *burstSize  @b{(output)} Intf shaping burst size
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -688,13 +723,15 @@ L7_RC_t cosQueueDefaultsGlobalRestore(void);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueIntfShapingRateGet(L7_uint32 intIfNum, L7_uint32 *pVal);
+L7_RC_t cosQueueIntfShapingRateGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 *rate, L7_uint32 *burstSize);
 
 /*************************************************************************
 * @purpose  Set the COS egress shaping rate for this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
-* @param    val         @b{(input)}  Intf shaping rate value    
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
+* @param    rate        @b{(input)}  Intf shaping rate value
+* @param    burstSize   @b{(input)}  Intf shaping burst size
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -703,12 +740,13 @@ L7_RC_t cosQueueIntfShapingRateGet(L7_uint32 intIfNum, L7_uint32 *pVal);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueIntfShapingRateSet(L7_uint32 intIfNum, L7_uint32 val);
+L7_RC_t cosQueueIntfShapingRateSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 rate, L7_uint32 burstSize);
 
 /*************************************************************************
 * @purpose  Get the COS interface parameters for this interface
 *
-* @param    intIfNum        @b{(input)}  Internal interface number     
+* @param    intIfNum        @b{(input)}  Internal interface number
+* @param    queueSet        @b{(input)}  Group of queues
 * @param    intfShapingRate @b{(input)}  Interface shaping rate in kbps
 * @param    intfShapingBurstSize @b{(input)}  Interface shaping burst size in kbits
 *
@@ -719,14 +757,15 @@ L7_RC_t cosQueueIntfShapingRateSet(L7_uint32 intIfNum, L7_uint32 val);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueIntfShapingStatusGet(L7_uint32 intIfNum, 
+L7_RC_t cosQueueIntfShapingStatusGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                      L7_uint32 *intfShapingRate,
                                      L7_uint32 *intfShapingBurstSize);
 
 /*************************************************************************
 * @purpose  Set the COS egress shaping rate globally for all interfaces
 *
-* @param    val         @b{(input)}  Intf shaping rate value    
+* @param    rate        @b{(input)}  Intf shaping rate value
+* @param    burstSize   @b{(input)}  Intf shaping burst size
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -735,12 +774,13 @@ L7_RC_t cosQueueIntfShapingStatusGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueIntfShapingRateGlobalSet(L7_uint32 val);
+L7_RC_t cosQueueIntfShapingRateGlobalSet(L7_uint32 rate, L7_uint32 burstSize);
 
 /*************************************************************************
 * @purpose  Get the COS queue management type for this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to mgmt type output value    
 *
 * @returns  L7_SUCCESS
@@ -753,13 +793,14 @@ L7_RC_t cosQueueIntfShapingRateGlobalSet(L7_uint32 val);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMgmtTypePerIntfGet(L7_uint32 intIfNum, 
+L7_RC_t cosQueueMgmtTypePerIntfGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                    L7_QOS_COS_QUEUE_MGMT_TYPE_t *pVal);
 
 /*************************************************************************
 * @purpose  Set the COS queue management type for this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    val         @b{(input)}  Queue mgmt type value    
 *
 * @returns  L7_SUCCESS
@@ -772,7 +813,7 @@ L7_RC_t cosQueueMgmtTypePerIntfGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMgmtTypePerIntfSet(L7_uint32 intIfNum, 
+L7_RC_t cosQueueMgmtTypePerIntfSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                    L7_QOS_COS_QUEUE_MGMT_TYPE_t val);
 
 /*************************************************************************
@@ -793,7 +834,8 @@ L7_RC_t cosQueueMgmtTypePerIntfGlobalSet(L7_QOS_COS_QUEUE_MGMT_TYPE_t val);
 /*************************************************************************
 * @purpose  Get the WRED decay exponent for this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to decay exponent output value    
 *
 * @returns  L7_SUCCESS
@@ -803,12 +845,13 @@ L7_RC_t cosQueueMgmtTypePerIntfGlobalSet(L7_QOS_COS_QUEUE_MGMT_TYPE_t val);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueWredDecayExponentGet(L7_uint32 intIfNum, L7_uint32 *pVal);
+L7_RC_t cosQueueWredDecayExponentGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 *pVal);
 
 /*************************************************************************
 * @purpose  Set the WRED decay exponent for this interface
 *
-* @param    intIfNum    @b{(input)} Internal interface number     
+* @param    intIfNum    @b{(input)} Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    val         @b{(input)} Decay exponent value    
 *
 * @returns  L7_SUCCESS
@@ -818,7 +861,7 @@ L7_RC_t cosQueueWredDecayExponentGet(L7_uint32 intIfNum, L7_uint32 *pVal);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueWredDecayExponentSet(L7_uint32 intIfNum, L7_uint32 val);
+L7_RC_t cosQueueWredDecayExponentSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 val);
 
 /*************************************************************************
 * @purpose  Set the WRED decay exponent globally for all interfaces
@@ -837,7 +880,8 @@ L7_RC_t cosQueueWredDecayExponentGlobalSet(L7_uint32 val);
 /*************************************************************************
 * @purpose  Get the minimum bandwidth list for all queues on this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to min bandwidth output list    
 *
 * @returns  L7_SUCCESS
@@ -847,13 +891,14 @@ L7_RC_t cosQueueWredDecayExponentGlobalSet(L7_uint32 val);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMinBandwidthListGet(L7_uint32 intIfNum,
+L7_RC_t cosQueueMinBandwidthListGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                     L7_qosCosQueueBwList_t *pVal);
 
 /*************************************************************************
 * @purpose  Set the minimum bandwidth list for all queues on this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(input)}  Ptr to min bandwidth list    
 *
 * @returns  L7_SUCCESS
@@ -863,7 +908,7 @@ L7_RC_t cosQueueMinBandwidthListGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMinBandwidthListSet(L7_uint32 intIfNum,
+L7_RC_t cosQueueMinBandwidthListSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                     L7_qosCosQueueBwList_t *pVal);
 
 /*************************************************************************
@@ -888,7 +933,8 @@ L7_RC_t cosQueueMinBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
 /*************************************************************************
 * @purpose  Get the maximum bandwidth list for all queues on this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to max bandwidth output list    
 *
 * @returns  L7_SUCCESS
@@ -898,13 +944,14 @@ L7_RC_t cosQueueMinBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMaxBandwidthListGet(L7_uint32 intIfNum,
+L7_RC_t cosQueueMaxBandwidthListGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                     L7_qosCosQueueBwList_t *pVal);
 
 /*************************************************************************
 * @purpose  Set the maximum bandwidth list for all queues on this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(input)}  Ptr to max bandwidth list    
 *
 * @returns  L7_SUCCESS
@@ -914,7 +961,7 @@ L7_RC_t cosQueueMaxBandwidthListGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMaxBandwidthListSet(L7_uint32 intIfNum,
+L7_RC_t cosQueueMaxBandwidthListSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                     L7_qosCosQueueBwList_t *pVal);
 
 /*************************************************************************
@@ -939,7 +986,8 @@ L7_RC_t cosQueueMaxBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
 /*************************************************************************
 * @purpose  Get the scheduler type list for all queues on this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to scheduler type output list    
 *
 * @returns  L7_SUCCESS
@@ -949,14 +997,15 @@ L7_RC_t cosQueueMaxBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueSchedulerTypeListGet(L7_uint32 intIfNum,
+L7_RC_t cosQueueSchedulerTypeListGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                      L7_qosCosQueueSchedTypeList_t *pVal);
 
 /* PTin added: QoS */
 /*************************************************************************
 * @purpose  Get the Weight list for all queues on this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to weights output list    
 *
 * @returns  L7_SUCCESS
@@ -966,13 +1015,14 @@ L7_RC_t cosQueueSchedulerTypeListGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueWeightListGet(L7_uint32 intIfNum,
+L7_RC_t cosQueueWeightListGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                               L7_qosCosQueueWeightList_t *pVal);
 
 /*************************************************************************
 * @purpose  Set the scheduler type list for all queues on this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(input)}  Ptr to scheduler type list    
 *
 * @returns  L7_SUCCESS
@@ -982,7 +1032,7 @@ L7_RC_t cosQueueWeightListGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueSchedulerTypeListSet(L7_uint32 intIfNum,
+L7_RC_t cosQueueSchedulerTypeListSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                      L7_qosCosQueueSchedTypeList_t *pVal);
 
 /* PTin added: QoS */
@@ -990,6 +1040,7 @@ L7_RC_t cosQueueSchedulerTypeListSet(L7_uint32 intIfNum,
 * @purpose  Set the scheduler type list for all queues on this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(input)}  Ptr to scheduler type list
 *
 * @returns  L7_SUCCESS
@@ -999,7 +1050,7 @@ L7_RC_t cosQueueSchedulerTypeListSet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueWeightListSet(L7_uint32 intIfNum,
+L7_RC_t cosQueueWeightListSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                               L7_qosCosQueueWeightList_t *pVal);
 
 /*************************************************************************
@@ -1044,7 +1095,8 @@ L7_RC_t cosQueueWeightGlobalListSet(L7_qosCosQueueWeightList_t *pVal,
 /*************************************************************************
 * @purpose  Get the queue management type list for all queues on this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to queue mgmt type output list    
 *
 * @returns  L7_SUCCESS
@@ -1057,13 +1109,14 @@ L7_RC_t cosQueueWeightGlobalListSet(L7_qosCosQueueWeightList_t *pVal,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMgmtTypeListGet(L7_uint32 intIfNum,
+L7_RC_t cosQueueMgmtTypeListGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                 L7_qosCosQueueMgmtTypeList_t *pVal);
 
 /*************************************************************************
 * @purpose  Set the queue management type list for all queues on this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(input)}  Ptr to queue mgmt type list    
 *
 * @returns  L7_SUCCESS
@@ -1076,7 +1129,7 @@ L7_RC_t cosQueueMgmtTypeListGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueMgmtTypeListSet(L7_uint32 intIfNum,
+L7_RC_t cosQueueMgmtTypeListSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                 L7_qosCosQueueMgmtTypeList_t *pVal);
 
 /*************************************************************************
@@ -1104,7 +1157,8 @@ L7_RC_t cosQueueMgmtTypeGlobalListSet(L7_qosCosQueueMgmtTypeList_t *pVal,
 /*************************************************************************
 * @purpose  Get the queue WRED / taildrop config parms list for this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to drop parms output list    
 *
 * @returns  L7_SUCCESS
@@ -1114,13 +1168,14 @@ L7_RC_t cosQueueMgmtTypeGlobalListSet(L7_qosCosQueueMgmtTypeList_t *pVal,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueDropParmsListGet(L7_uint32 intIfNum,
+L7_RC_t cosQueueDropParmsListGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet,
                                  L7_qosCosDropParmsList_t *pVal);
 
 /*************************************************************************
 * @purpose  Set the queue WRED / taildrop config parms list for this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(input)}  Ptr to drop parms list    
 *
 * @returns  L7_SUCCESS
@@ -1130,7 +1185,7 @@ L7_RC_t cosQueueDropParmsListGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueDropParmsListSet(L7_uint32 intIfNum, 
+L7_RC_t cosQueueDropParmsListSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                  L7_qosCosDropParmsList_t *pVal);
 
 /*************************************************************************
@@ -1149,7 +1204,8 @@ L7_RC_t cosQueueDropParmsGlobalListSet(L7_qosCosDropParmsList_t *pVal);
 * @purpose  Restore default settings of all WRED / taildrop 
 *           config parms on this interface
 *
-* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    queueId     @b{(input)}  Queue ID to de-configure
 *
 * @returns  L7_SUCCESS
@@ -1159,7 +1215,7 @@ L7_RC_t cosQueueDropParmsGlobalListSet(L7_qosCosDropParmsList_t *pVal);
 *
 * @end
 *********************************************************************/
-L7_RC_t cosQueueDropDefaultsRestore(L7_uint32 intIfNum, L7_uint32 queueId);
+L7_RC_t cosQueueDropDefaultsRestore(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 queueId);
 
 /*************************************************************************
 * @purpose  Get the number of configurable queues per port

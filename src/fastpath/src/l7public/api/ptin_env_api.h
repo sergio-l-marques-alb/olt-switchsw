@@ -23,6 +23,12 @@
 
 #include "ptin_globaldefs.h"
 
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+#define BOARD_HWVER_STR "BOARD_VER"
+#define BOARD_MODE_STR  "BOARD_CONFIG_MODE"
+#else
+#define BOARD_HWVER_STR "BOARD_HWVER"
+#endif
 /**
  * Read all environment variables at the beginning
  * 
@@ -44,5 +50,17 @@ L7_RC_t ptin_env_init(void);
  */
 extern 
 L7_uint32 ptin_env_board_hwver(void);
+
+/**
+ * Return board _board_mode
+ * 
+ * @author rfernandes (06/01/21)
+ * 
+ * @param void 
+ * 
+ * @return unsigned int : board_mode
+ */
+extern
+L7_uint32 ptin_env_board_mode_get(void);
 
 #endif /* _PTIN_ENV_API_H */

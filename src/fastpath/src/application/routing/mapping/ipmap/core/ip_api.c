@@ -2487,12 +2487,12 @@ L7_RC_t ipMapRtrIntfIpAddressSet(L7_uint32 intIfNum,
     {
         if (pCfg->addrs[j].ipAddr != L7_NULL_IP_ADDR)
         {
-            ip_addr.sin_addr.s_addr = htonl(pCfg->addrs[j].ipAddr);
-            PT_LOG_ERR(LOG_CTX_INTF, 
-                       "Error: Primary IP Address %s can not be changed",
-                       inet_ntoa(ip_addr.sin_addr));
-            ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-            return L7_ALREADY_CONFIGURED;
+          ip_addr.sin_addr.s_addr = htonl(pCfg->addrs[j].ipAddr);
+          PT_LOG_ERR(LOG_CTX_INTF, 
+                     "Error: Primary IP Address %s can not be changed",
+                     inet_ntoa(ip_addr.sin_addr));
+          ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
+          return L7_ALREADY_CONFIGURED;
         }
     }
   

@@ -3586,11 +3586,11 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
       /* Save virtual port */
       if (BCM_GPORT_IS_VLAN_PORT(bcm_l2_addr->port))
       {
-        macAddressInfo.virtual_port = _SHR_GPORT_VLAN_PORT_ID_GET(bcm_l2_addr->port);
+        macAddressInfo.l2intf_hwid = _SHR_GPORT_VLAN_PORT_ID_GET(bcm_l2_addr->port);
       }
       else
       {
-        macAddressInfo.virtual_port = 0;
+        macAddressInfo.l2intf_hwid = 0;
       }
       #endif
 
@@ -3598,7 +3598,7 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
       if (BCM_GPORT_IS_SET(bcm_l2_addr->port))
       {
         PT_LOG_TRACE(LOG_CTX_HAPI, " Physical");
-        ptin_hapi_maclimit_inc(bcm_l2_addr);
+        ptin_hapi_maclimit_inc(bcm_l2_addr);            //FIXME TC16SXG IS THIS CORRECT???? This is incrementing Flow instead of physical
       } 
       /* PTin added: LAGS ports */
       else if((bcm_l2_addr->tgid > 0) && ((bcm_l2_addr->tgid < PTIN_SYSTEM_N_LAGS)))
@@ -3610,11 +3610,11 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
 
       if (BCM_GPORT_IS_VLAN_PORT(bcm_l2_addr->port))
       {
-        macAddressInfo.virtual_port = _SHR_GPORT_VLAN_PORT_ID_GET(bcm_l2_addr->port);
+        macAddressInfo.l2intf_hwid = _SHR_GPORT_VLAN_PORT_ID_GET(bcm_l2_addr->port);
       }
       else
       {
-        macAddressInfo.virtual_port = 0;
+        macAddressInfo.l2intf_hwid = 0;
         /* PTin added: physical ports */
         if (BCM_GPORT_IS_SET(bcm_l2_addr->port))
         {
@@ -3628,8 +3628,6 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
           ptin_hapi_maclimit_inc(bcm_l2_addr);
         }
       }
-
-
 
       /* increment the learn counter regardless of failure */
       hapiMacStats.learn++;
@@ -3829,11 +3827,11 @@ void hapiBroadAddrMacUpdateAge(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *dap
     /* Save virtual port */
     if (BCM_GPORT_IS_VLAN_PORT(bcm_l2_addr->port))
     {
-      macAddressInfo.virtual_port = _SHR_GPORT_VLAN_PORT_ID_GET(bcm_l2_addr->port);
+      macAddressInfo.l2intf_hwid = _SHR_GPORT_VLAN_PORT_ID_GET(bcm_l2_addr->port);
     }
     else
     {
-      macAddressInfo.virtual_port = 0;
+      macAddressInfo.l2intf_hwid = 0;
     }
     #endif
 

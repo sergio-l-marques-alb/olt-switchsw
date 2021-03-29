@@ -54,6 +54,9 @@ typedef struct {
 
   L7_uint16 controlVidInternal;
 
+  L7_uint32 ptin_port0;
+  L7_uint32 ptin_port1;
+
   L7_uint32 port0intfNum;
   L7_uint32 port1intfNum;
 

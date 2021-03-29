@@ -367,13 +367,13 @@ void usl_dump_policy(L7_uint32 policyId, L7_BOOL filteredOutput, USL_DB_TYPE_t d
 
   if (uslPolicyDbActive == L7_FALSE)
   {
-    sysapiPrintf("Policy database is not active\n");
+    printf("Policy database is not active\n");
     return;
   }
 
   if (policyId >= BROAD_MAX_POLICIES)
   {
-    sysapiPrintf("Invalid policy ID\n");
+    printf("Invalid policy ID\n");
     return;
   }
 
@@ -391,20 +391,20 @@ void usl_dump_policy(L7_uint32 policyId, L7_BOOL filteredOutput, USL_DB_TYPE_t d
     return;
   }
 
-  sysapiPrintf("Dumping Policy %s\n", (dbType == USL_OPERATIONAL_DB) ? USL_OPERATIONAL_DB_NAME : USL_SHADOW_DB_NAME);
+  printf("Dumping Policy %s\n", (dbType == USL_OPERATIONAL_DB) ? USL_OPERATIONAL_DB_NAME : USL_SHADOW_DB_NAME);
 
   if (pUslPolicyDBPtr[policyId].used)
   {
-    sysapiPrintf("\n");
-    sysapiPrintf("   policyId:                    %d\n",   policyId);
-    sysapiPrintf("   policyMode:                  %s\n",   policyPortModeStr[pUslPolicyDBPtr[policyId].policyMode]);
-    sysapiPrintf("   policyType:                  %s\n",   policyTypeStr[pUslPolicyDBPtr[policyId].policyInfo.policyType]);
-    sysapiPrintf("   policyStage:                 %s\n",   policyStageStr[pUslPolicyDBPtr[policyId].policyInfo.policyStage]);
-    sysapiPrintf("   policyFlags:                 %d\n",   pUslPolicyDBPtr[policyId].policyInfo.policyFlags);
-    sysapiPrintf("   strictEthTypes:              %d\n",   pUslPolicyDBPtr[policyId].policyInfo.strictEthTypes);
-    sysapiPrintf("   ruleCount:                   %d\n",   pUslPolicyDBPtr[policyId].policyInfo.ruleCount);
-    sysapiPrintf("   hashVal:                     0x%x\n", pUslPolicyDBPtr[policyId].hashVal);
-    sysapiPrintf("\n");
+    printf("\n");
+    printf("   policyId:                    %d\n",   policyId);
+    printf("   policyMode:                  %s\n",   policyPortModeStr[pUslPolicyDBPtr[policyId].policyMode]);
+    printf("   policyType:                  %s\n",   policyTypeStr[pUslPolicyDBPtr[policyId].policyInfo.policyType]);
+    printf("   policyStage:                 %s\n",   policyStageStr[pUslPolicyDBPtr[policyId].policyInfo.policyStage]);
+    printf("   policyFlags:                 %d\n",   pUslPolicyDBPtr[policyId].policyInfo.policyFlags);
+    printf("   strictEthTypes:              %d\n",   pUslPolicyDBPtr[policyId].policyInfo.strictEthTypes);
+    printf("   ruleCount:                   %d\n",   pUslPolicyDBPtr[policyId].policyInfo.ruleCount);
+    printf("   hashVal:                     0x%x\n", pUslPolicyDBPtr[policyId].hashVal);
+    printf("\n");
 
     if (!filteredOutput)
     {
@@ -412,7 +412,7 @@ void usl_dump_policy(L7_uint32 policyId, L7_BOOL filteredOutput, USL_DB_TYPE_t d
       ruleId = 0;
       while (rulePtr != L7_NULL)
       {
-        sysapiPrintf("   Rule %d\n", ruleId);
+        printf("   Rule %d\n", ruleId);
         hapiBroadPolicyDebugRule(rulePtr, pUslPolicyDBPtr[policyId].policyInfo.policyStage);
 
         ruleId++;
@@ -433,12 +433,12 @@ void usl_dump_policy_db(USL_DB_TYPE_t dbType, L7_BOOL detailed)
 
   if (uslPolicyDbActive == L7_FALSE)
   {
-    sysapiPrintf("Policy database is not active\n");
+    printf("Policy database is not active\n");
     return;
   }
   else
   {
-    sysapiPrintf("Policy database is active\n");
+    printf("Policy database is active\n");
   }
 
   USL_POLICY_DB_LOCK_TAKE();
@@ -450,7 +450,7 @@ void usl_dump_policy_db(USL_DB_TYPE_t dbType, L7_BOOL detailed)
     return;
   }
 
-  sysapiPrintf("Dumping Policy %s\n", (dbType == USL_OPERATIONAL_DB) ? USL_OPERATIONAL_DB_NAME : USL_SHADOW_DB_NAME);
+  printf("Dumping Policy %s\n", (dbType == USL_OPERATIONAL_DB) ? USL_OPERATIONAL_DB_NAME : USL_SHADOW_DB_NAME);
 
   policiesUsed      = 0;
   rulesUsed         = 0;
@@ -466,10 +466,10 @@ void usl_dump_policy_db(USL_DB_TYPE_t dbType, L7_BOOL detailed)
     }
   }
 
-  sysapiPrintf("\n");
-  sysapiPrintf("Number of policies used:                %d\n",       policiesUsed);
-  sysapiPrintf("Number of rules used:                   %d\n",       rulesUsed);
-  sysapiPrintf("\n");
+  printf("\n");
+  printf("Number of policies used:                %d\n",       policiesUsed);
+  printf("Number of rules used:                   %d\n",       rulesUsed);
+  printf("\n");
 
   USL_POLICY_DB_LOCK_GIVE();
 }
@@ -478,19 +478,19 @@ extern int policy_map_table_t_size();
 
 void usl_policy_db_memory_info()
 {
-  sysapiPrintf("BROAD_MAX_POLICIES                 == %d\n", BROAD_MAX_POLICIES);
-  sysapiPrintf("BROAD_MAX_POLICIES_PER_BCM_UNIT    == %d\n", BROAD_MAX_POLICIES_PER_BCM_UNIT);
-  sysapiPrintf("BROAD_MAX_RULES_PER_POLICY         == %d\n", BROAD_MAX_RULES_PER_POLICY);
-  sysapiPrintf("BROAD_MAX_SYSTEM_POLICIES          == %d\n", BROAD_MAX_SYSTEM_POLICIES);
-  sysapiPrintf("sizeof(policy_map_table_t)         == %d\n", policy_map_table_t_size());
-  sysapiPrintf("sizeof(BROAD_POLICY_ENTRY_t)       == %zu\n", sizeof(BROAD_POLICY_ENTRY_t));
-  sysapiPrintf("sizeof(BROAD_POLICY_RULE_ENTRY_t)  == %zu\n", sizeof(BROAD_POLICY_RULE_ENTRY_t));
-  sysapiPrintf("sizeof(BROAD_FIELD_ENTRY_t)        == %zu\n", sizeof(BROAD_FIELD_ENTRY_t));
-  sysapiPrintf("sizeof(BROAD_ACTION_ENTRY_t)       == %zu\n", sizeof(BROAD_ACTION_ENTRY_t));
-  sysapiPrintf("\n\n");
+  printf("BROAD_MAX_POLICIES                 == %d\n", BROAD_MAX_POLICIES);
+  printf("BROAD_MAX_POLICIES_PER_BCM_UNIT    == %d\n", BROAD_MAX_POLICIES_PER_BCM_UNIT);
+  printf("BROAD_MAX_RULES_PER_POLICY         == %d\n", BROAD_MAX_RULES_PER_POLICY);
+  printf("BROAD_MAX_SYSTEM_POLICIES          == %d\n", BROAD_MAX_SYSTEM_POLICIES);
+  printf("sizeof(policy_map_table_t)         == %d\n", policy_map_table_t_size());
+  printf("sizeof(BROAD_POLICY_ENTRY_t)       == %zu\n", sizeof(BROAD_POLICY_ENTRY_t));
+  printf("sizeof(BROAD_POLICY_RULE_ENTRY_t)  == %zu\n", sizeof(BROAD_POLICY_RULE_ENTRY_t));
+  printf("sizeof(BROAD_FIELD_ENTRY_t)        == %zu\n", sizeof(BROAD_FIELD_ENTRY_t));
+  printf("sizeof(BROAD_ACTION_ENTRY_t)       == %zu\n", sizeof(BROAD_ACTION_ENTRY_t));
+  printf("\n\n");
 
-  sysapiPrintf("policy_map_table[]          == %u\n", BROAD_MAX_BCM_UNITS_PER_CPU * policy_map_table_t_size() * BROAD_MAX_POLICIES_PER_BCM_UNIT);
-  sysapiPrintf("pUslOperPolicyDB[]          == %zu\n", sizeof(BROAD_USL_POLICY_t) * BROAD_MAX_POLICIES);
+  printf("policy_map_table[]          == %u\n", BROAD_MAX_BCM_UNITS_PER_CPU * policy_map_table_t_size() * BROAD_MAX_POLICIES_PER_BCM_UNIT);
+  printf("pUslOperPolicyDB[]          == %zu\n", sizeof(BROAD_USL_POLICY_t) * BROAD_MAX_POLICIES);
 }
 
 /*********************************************************************

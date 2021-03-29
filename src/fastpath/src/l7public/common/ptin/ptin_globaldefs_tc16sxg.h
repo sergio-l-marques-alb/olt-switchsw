@@ -4,8 +4,25 @@
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED
 
+/* Allows direct control over port add/remove of a LAG (shortcut to message queues) */
+#define LAG_DIRECT_CONTROL_FEATURE  1
+
+/* Activate this flag to select several ports using Inport+InterfaceClassId qualifiers, instead of Inports */
+#define ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+
 /* Info about ASPEN devices */
 #define TC16SXG_ASPEN_BRIDGE_SCRIPT "/bin/sh /usr/local/ptin/scripts/startAspenBridge.sh"  /* Only applicable to TC16SXG */
+
+/* 
+  ASPEN N:1 modes (4:1 or 2:1)
+  In these modes, MAC GPON ASPEN muxes several PONs in a SWITCH<=>ASPEN
+  physical interface
+*/
+#define PORT_VIRTUALIZATION_N_1     /* Port virtualization enabled */
+#define PORT_VIRTUALIZATION_2_1     /* Port virtualization mode */
+
+#define PTIN_MODE_MPM  0
+#define PTIN_MODE_GPON 1
 
 /* Special EVCs for this equipment */
 #define PTIN_ASPEN2CPU_A_EVC         (PTIN_SYSTEM_EXT_EVCS_MGMT+0)     /* MACGPON-CPU EVC */
@@ -17,8 +34,8 @@
 #define PTIN_ASPEN2CPU_B_VLAN_EXT       100
 #define PTIN_ASPEN2CPU_A_SMAC           { 0x00, 0x10, 0x18, 0x00, 0x00, 0x00 }
 #define PTIN_ASPEN2CPU_B_SMAC           { 0x00, 0x10, 0x18, 0x00, 0x00, 0x01 }
-#define PTIN_ASPEN2CPU_A_PORT           0
-#define PTIN_ASPEN2CPU_B_PORT           8
+#define PTIN_ASPEN2CPU_A_INTIFNUM       1
+#define PTIN_ASPEN2CPU_B_INTIFNUM       9
 
 #define RATE_LIMIT_ASPEN    4096
 #define BUCKET_SIZE_ASPEN   1024
@@ -43,18 +60,23 @@
 # define PTIN_SLOT_WORK             0
 # define PTIN_SLOT_PROT             1
 
-# define PTIN_SYSTEM_N_PORTS           33   /* (Trident3-X3) FIXME 32? 33? ...*/
-# define PTIN_SYSTEM_N_PONS            16   /* (Trident3-X3) FIXME */
+# define PTIN_SYSTEM_N_PONS            32   /* (Trident3-X3) */
 # define PTIN_SYSTEM_N_ETH             0
+# define PTIN_SYSTEM_N_UPLINK          16
+# define PTIN_SYSTEM_N_INTERNAL        1
+# define PTIN_SYSTEM_N_PORTS           (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_UPLINK + PTIN_SYSTEM_N_INTERNAL)
+# define PTIN_SYSTEM_N_PONS_PHYSICAL   16
+# define PTIN_SYSTEM_N_ETH_PHYSICAL    0
+# define PTIN_SYSTEM_N_PORTS_PHYSICAL  (PTIN_SYSTEM_N_PONS_PHYSICAL + PTIN_SYSTEM_N_UPLINK + PTIN_SYSTEM_N_INTERNAL)
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   0
-# define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS
-# define PTIN_SYSTEM_N_PORTS_AND_LAGS  max(PTIN_SYSTEM_N_PORTS, PTIN_SYSTEM_N_LAGS)
+# define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS_PHYSICAL
 # define PTIN_SYSTEM_N_INTERF          (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_N_LAGS)
-# define PTIN_SYSTEM_N_UPLINK_INTERF   (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH)
+# define PTIN_SYSTEM_N_CLIENT_PORTS    (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH)
 
-# define PTIN_SYSTEM_PON_PORTS_MASK    0x0000FFFF
+/* These are switch-physical ports (not ptin_ports): only to be used at HAPI layer */
+# define PTIN_SYSTEM_PON_PORTS_MASK    ((1ULL<<PTIN_SYSTEM_N_PONS_PHYSICAL)-1)   /*0xFFFFFFFF*/
 # define PTIN_SYSTEM_ETH_PORTS_MASK    0x00000000
-# define PTIN_SYSTEM_10G_PORTS_MASK    0xFFFF0000   /* (Trident3-X3) FIXME 33? 49?*/
+# define PTIN_SYSTEM_10G_PORTS_MASK    (0xFFFFULL<<PTIN_SYSTEM_N_PONS_PHYSICAL) /* (Trident3-X3) FIXME 33? 49?*/
 # define PTIN_SYSTEM_PORTS_MASK        (PTIN_SYSTEM_PON_PORTS_MASK | PTIN_SYSTEM_ETH_PORTS_MASK | PTIN_SYSTEM_10G_PORTS_MASK)
 
 # define PTIN_SYSTEM_N_EVCS            4002  /* Maximum nr of EVCs allowed in this equipment */
@@ -101,9 +123,9 @@
 #  define PTIN_SYSTEM_EVC_QUATTRO_VLAN_MASK     (~(PTIN_SYSTEM_EVC_QUATTRO_VLANS-1) & 0xfff) /*0x0c00*/
 # endif
 
-# define PTIN_SYSTEM_N_IGMP_INSTANCES                  40     /* Maximum nr of IGMP instances */
+# define PTIN_SYSTEM_N_IGMP_INSTANCES                  80     /* Maximum nr of IGMP instances */
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP           (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
-# define PTIN_SYSTEM_IGMP_MAXINTERFACES                PTIN_SYSTEM_N_UPLINK_INTERF                                                 /* Maximum nr of interfaces per multicast group */
+# define PTIN_SYSTEM_IGMP_MAXINTERFACES                PTIN_SYSTEM_N_CLIENT_PORTS                                                 /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF             128   /* 128 ONUs per port */
 # define PTIN_SYSTEM_IGMP_MAXONUS                      (PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF*PTIN_SYSTEM_N_INTERF)
 # define PTIN_SYSTEM_IGMP_MAXDEVICES_PER_ONU           8     /* Settop boxes connected to ONUs */
@@ -123,6 +145,13 @@
 # define PTIN_SYSTEM_N_PPPOE_INSTANCES                 32     /* Maximum nr of PPPoE instances */
 # define PTIN_SYSTEM_DHCP_MAXCLIENTS                   8192  /* Maximum DHCP clients */
 # define PTIN_SYSTEM_PPPOE_MAXCLIENTS                  8192  /* Maximum PPPoE clients */
+
+/* The following constants will allow L2intf range separation, in order to allow
+   specific QoS configurations for each range.
+   For TC16SXG board, 2 ranges will be defined with the first applied to GPON ports,
+   and the second for XGSPON ports */
+#define L2INTF_ID_MAX           PTIN_SYSTEM_N_CLIENTS
+#define L2INTF_QUEUES_NUMBER    2
 
 #define SNOOP_PTIN_MGMD_SUPPORT //Comment this line if you want to disable MGMD integration (not supported..)
 #define SNOOP_PTIN_IGMPv3_GLOBAL 1//Change to 0 if you want to globally disable IGMPv3 Module

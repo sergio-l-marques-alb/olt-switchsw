@@ -2,6 +2,7 @@
 #include "ptin_globaldefs.h"
 #include "ptin_structs.h"
 #include "dtl_ptin.h"
+#include "ptin_intf.h"
 #include "logger.h"
 
 /**
@@ -181,14 +182,27 @@ L7_RC_t dtlPtinL2PortExtGet(L7_uint32 intIfNum, ptin_HWPortExt_t *mefExt)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t dtlPtinCountersRead(ptin_HWEthRFC2819_PortStatistics_t *data)
+L7_RC_t dtlPtinCountersRead(L7_uint32 intIfNum, ptin_HWEthRFC2819_PortStatistics_t *data)
 {
   DAPI_USP_t ddUsp;
-  L7_RC_t rc;
+  nimUSP_t   usp;
+  L7_RC_t    rc;
 
-  ddUsp.unit = -1;
-  ddUsp.slot = -1;
-  ddUsp.port = -1;
+  if (intIfNum==L7_ALL_INTERFACES)
+  {
+    ddUsp.unit = -1;
+    ddUsp.slot = -1;
+    ddUsp.port = -1;
+  }
+  else
+  {
+    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+      return L7_FAILURE;
+
+    ddUsp.unit = usp.unit;
+    ddUsp.slot = usp.slot;
+    ddUsp.port = usp.port - 1;
+  }
 
   rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_COUNTERS_READ, (void *) data);
 
@@ -206,14 +220,27 @@ L7_RC_t dtlPtinCountersRead(ptin_HWEthRFC2819_PortStatistics_t *data)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t dtlPtinCountersClear(ptin_HWEthRFC2819_PortStatistics_t *data)
+L7_RC_t dtlPtinCountersClear(L7_uint32 intIfNum, ptin_HWEthRFC2819_PortStatistics_t *data)
 {
   DAPI_USP_t ddUsp;
-  L7_RC_t rc;
+  nimUSP_t   usp;
+  L7_RC_t    rc;
 
-  ddUsp.unit = -1;
-  ddUsp.slot = -1;
-  ddUsp.port = -1;
+  if (intIfNum==L7_ALL_INTERFACES)
+  {
+    ddUsp.unit = -1;
+    ddUsp.slot = -1;
+    ddUsp.port = -1;
+  }
+  else
+  {
+    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+      return L7_FAILURE;
+
+    ddUsp.unit = usp.unit;
+    ddUsp.slot = usp.slot;
+    ddUsp.port = usp.port - 1;
+  }
 
   rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_COUNTERS_CLEAR, (void *) data);
 
@@ -226,22 +253,36 @@ L7_RC_t dtlPtinCountersClear(ptin_HWEthRFC2819_PortStatistics_t *data)
  *  
  * Note: at the moment, masks are ignored, therefore all values 
  * are read for all ports)
- * 
+ *  
+ * @param intIfNum : interface 
  * @param data Structure with port# and masks (port# must be set)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t dtlPtinCountersActivityGet(ptin_HWEth_PortsActivity_t *data)
+L7_RC_t dtlPtinCountersActivityGet(L7_uint32 intIfNum, ptin_HWEth_PortsActivity_t *data)
 {
+  nimUSP_t   usp;
   DAPI_USP_t ddUsp;
   L7_RC_t rc;
 
-  ddUsp.unit = -1;
-  ddUsp.slot = -1;
-  ddUsp.port = -1;
+  if (intIfNum==L7_ALL_INTERFACES)
+  {
+    ddUsp.unit = -1;
+    ddUsp.slot = -1;
+    ddUsp.port = -1;
+  }
+  else
+  {
+    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+      return L7_FAILURE;
 
+    ddUsp.unit = usp.unit;
+    ddUsp.slot = usp.slot;
+    ddUsp.port = usp.port - 1;
+  }
+  
   rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_COUNTERS_ACTIVITY_GET, (void *) data);
-
+  
   return rc;
 }
 
@@ -449,14 +490,30 @@ L7_RC_t dtlPtinBridgeCrossconnect( L7_uint32 intIfNum, L7_uint32 intIfNum2, ptin
  */
 L7_RC_t dtlPtinBWPolicer( L7_uint32 intIfNum, ptin_bwPolicer_t *bw_policer )
 {
-  nimUSP_t usp;
+  nimUSP_t   usp;
   DAPI_USP_t ddUsp;
-
+  L7_uint32  ptin_port, _intIfNum;
+  L7_uint64  usp_port_bmp;
+  
   /* Validate arguments */
   if (bw_policer == L7_NULLPTR)
   {
     return L7_FAILURE;
   }
+  
+  /* Convert ptin_port bitmap to usp.port format */
+  usp_port_bmp = 0;
+  for (ptin_port = 0; ptin_port < PTIN_SYSTEM_N_PORTS; ptin_port++)
+  {
+    if (((bw_policer->port_bmp >> ptin_port) & 1) &&
+        ptin_intf_port2intIfNum(ptin_port, &_intIfNum) == L7_SUCCESS &&
+        nimGetUnitSlotPort(_intIfNum, &usp) == L7_SUCCESS)
+    {
+      usp_port_bmp |= (1ULL << (usp.port-1));
+    }
+  }
+  /* Replace port bitmap with the ddUSP bits */
+  bw_policer->port_bmp = usp_port_bmp;
 
   /* First interface */
   if ( intIfNum == L7_ALL_INTERFACES )
@@ -751,7 +808,7 @@ L7_RC_t dtlPtinMulticastEgressPort(L7_uint32 intIfNum, ptin_bridge_vlan_multicas
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t dtlPtinVirtualPort(L7_uint32 intIfNum, ptin_vport_t *vport )
+L7_RC_t dtlPtinL2intf(L7_uint32 intIfNum, ptin_l2intf_t *vport )
 {
   nimUSP_t usp;
   DAPI_USP_t ddUsp;
@@ -774,7 +831,7 @@ L7_RC_t dtlPtinVirtualPort(L7_uint32 intIfNum, ptin_vport_t *vport )
     ddUsp.port = usp.port - 1;
   }
 
-  rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_VIRTUAL_PORT, (void *) vport);
+  rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_L2INTF, (void *) vport);
 
   return rc;
 }

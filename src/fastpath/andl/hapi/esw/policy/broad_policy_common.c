@@ -65,6 +65,7 @@ static int broadFieldMapTable[BROAD_FIELD_LAST] =
   BROAD_FIELD_INT_PRIO_SIZE,        /* PTin added: FP */
   BROAD_FIELD_COLOR_SIZE,           /* PTin added: FP */
   BROAD_FIELD_PACKETRES_SIZE,       /* PTin added: FP */
+  BROAD_FIELD_L2INTF_ID_SIZE,       /* PTin added: FP */
   BROAD_FIELD_IPFLAGS_SIZE,       /* PTin added: FP */
 };
 
@@ -110,6 +111,7 @@ static char *broadFieldNameTable[BROAD_FIELD_LAST] =
     "INT_PRIO",         /* PTin added: FP */
     "COLOR"             /* PTin added: FP */
     "PACKETRES"         /* PTin added: FP */
+    "L2INTF_ID"         /* PTin added: FP */
     "IPFLAGS"           /* PTIn added: FP */
 };
 
@@ -124,6 +126,8 @@ static char *broadActionNameTable[BROAD_ACTION_LAST] =
     "COPY2CPU",
     "TSTOCPU ",
     "SETCOSQ ",
+    "SETUCOSQ",
+    "SETMCOSQ",
     "SETDSCP ",
     "SETTOS  ",
     "SETUSERP",
@@ -355,6 +359,9 @@ L7_uchar8 *hapiBroadPolicyFieldValuePtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_PO
   case BROAD_FIELD_PACKETRES:
     ptr = fieldInfo->fieldPacketRes.value;
     break;
+  case BROAD_FIELD_L2INTF_ID:
+    ptr = fieldInfo->fieldL2intfId.value;
+    break;
   case BROAD_FIELD_IPFLAGS:
     ptr = fieldInfo->fieldIpFlags.value;
     break;
@@ -489,6 +496,9 @@ L7_uchar8 *hapiBroadPolicyFieldMaskPtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_POL
     break;
   case BROAD_FIELD_PACKETRES:       /* PTin added: FP */
     ptr = fieldInfo->fieldPacketRes.mask;
+    break;
+  case BROAD_FIELD_L2INTF_ID:       /* PTin added: FP */
+    ptr = fieldInfo->fieldL2intfId.mask;
     break;
   case BROAD_FIELD_IPFLAGS:         /* PTin added: FP */
     ptr = fieldInfo->fieldIpFlags.mask;
@@ -676,6 +686,19 @@ void hapiBroadPolicyActionParmsGet(BROAD_ACTION_ENTRY_t       *actionPtr,
     else
     {
       *param0 = actionPtr->u.ifp_parms.set_inner_cfi[action_scope];
+    }
+    break;
+
+  /* for QoS queue assignment (Unicast or Multicast queues) */
+  case BROAD_ACTION_SET_UCOSQ:
+  case BROAD_ACTION_SET_MCOSQ:
+    if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
+    {
+      *param0 = actionPtr->u.vfp_parms.qos_queue_set[action_scope];
+    }
+    else
+    {
+      *param0 = actionPtr->u.ifp_parms.qos_queue_set[action_scope];
     }
     break;
 

@@ -108,6 +108,7 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     bcmFieldQualifyIntPriority,    /* Internal priority, PTin added: FP */
     bcmFieldQualifyColor,          /* Packet color, PTin added: FP */
     bcmFieldQualifyPacketRes,      /* Packet type, PTin added: FP */
+    bcmFieldQualifyDstVlanGports,  /* L2intf id */
     bcmFieldQualifyIpFlags,        /* IP flags field of IP header*/
 };
 
@@ -134,10 +135,29 @@ static action_map_entry_t xgs4_ingress_set_cosq_action_map =
     /* SET_COSQ */
     {
       /* PTin modified: CoS */
-        { bcmFieldActionGpPrioIntNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { bcmFieldActionYpPrioIntNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { bcmFieldActionRpPrioIntNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
+        { bcmFieldActionGpPrioIntNew,   PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { bcmFieldActionYpPrioIntNew,   PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { bcmFieldActionRpPrioIntNew,   PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
     };
+
+#if 0 /* Don't consider color for now */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,5,18,0))
+static action_map_entry_t xgs4_ingress_set_ucosq_action_map =
+    /* SET_UCOSQ (New Action) */
+    {
+        { bcmFieldActionGpUcastCosQNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { bcmFieldActionYpUcastCosQNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { bcmFieldActionRpUcastCosQNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+    };
+static action_map_entry_t xgs4_ingress_set_mcosq_action_map =
+    /* SET_MCOSQ (New Action) */
+    {
+        { bcmFieldActionGpMcastCosQNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { bcmFieldActionYpMcastCosQNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { bcmFieldActionRpMcastCosQNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+    };
+#endif
+#endif
 
 static action_map_entry_t xgs4_ingress_set_userprio_action_map =
     /* SET_USERPRIO */
@@ -237,6 +257,34 @@ static action_map_entry_t ingress_action_map[BROAD_ACTION_LAST] =
         { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
+    /* SET_UCOSQ (New Action) */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,5,18,0))
+    {
+        { bcmFieldActionUcastCosQNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
+        { PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+#else
+    {
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+#endif
+    /* SET_MCOSQ (New Action) */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,5,18,0))
+    {
+        { bcmFieldActionMcastCosQNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
+        { PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+#else
+    {
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+#endif
     /* SET_DSCP */
     {
         { bcmFieldActionGpDscpNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
@@ -393,6 +441,34 @@ static action_map_entry_t lookup_action_map[BROAD_ACTION_LAST] =
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
+    /* SET_UCOSQ (New Action) */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,5,18,0))
+    {
+        { bcmFieldActionUcastCosQNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
+        { PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+#else
+    {
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+#endif
+    /* SET_MCOSQ (New Action) */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,5,18,0))
+    {
+        { bcmFieldActionMcastCosQNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
+        { PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+#else
+    {
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+#endif
     /* SET_DSCP */
     {
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
@@ -562,6 +638,18 @@ static action_map_entry_t egress_action_map[BROAD_ACTION_LAST] =
         { PROFILE_ACTION_INVALID,  PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* SET_COSQ */
+    {
+        { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+    /* SET_UCOSQ (New Action) */
+    {
+        { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+    /* SET_MCOSQ (New Action) */
     {
         { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
@@ -1481,7 +1569,7 @@ static int _policy_super_qset_add(int                      unit,
       rv = bcm_field_group_create_mode(unit, qsetPtr->qsetAgg, 0, bcmFieldGroupModeAuto, &gid);
       if (rv != BCM_E_NONE)
       {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
           sysapiPrintf("%s(%d) bcm_field_group_create_mode: gid=%d, rv=%d\n", __FUNCTION__, __LINE__, gid, rv);
         PT_LOG_ERR(LOG_CTX_STARTUP,"Error with group_create: rv=%d", rv);
         break;
@@ -1491,7 +1579,7 @@ static int _policy_super_qset_add(int                      unit,
       rv = bcm_field_group_status_get(unit, gid, &qsetPtr->status);
       if (rv != BCM_E_NONE)
       {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
           sysapiPrintf("%s(%d) bcm_field_group_status_get: gid=%d, rv=%d\n", __FUNCTION__, __LINE__, gid, rv);
         PT_LOG_ERR(LOG_CTX_STARTUP,"Error with status_get: rv=%d", rv);
         break;
@@ -1610,7 +1698,7 @@ static int _policy_super_qset_init_ifp(int unit)
            SOC_IS_SCORPION(unit)  ||
            SOC_IS_VALKYRIE2(unit) ||
            SOC_IS_TRIDENT(unit)   || /* PTin added: new switch 56843 (Trident) */
-           SOC_IS_TRIDENT3X(unit) || /* PTin added: new switch 56370 (Trident3X3) */
+           SOC_IS_HELIX5(unit)    || /* PTin added: new switch 56370 (Trident3X3) */
            SOC_IS_TRIUMPH3(unit)  || /* PTin added: new switch 5664x and 5634x (Triumph3 and Helix4) */
            SOC_IS_KATANA2(unit)      /* PTin added: new switch 5645x (Katana2) */
          )
@@ -1675,6 +1763,16 @@ static int _policy_super_qset_init_ifp(int unit)
   rv = _policy_super_qset_add(unit, &systemQsetVlanQoSDef, applicable_policy_types);
   PT_LOG_TRACE(LOG_CTX_STARTUP,"Added vlanQoSQsetDef qset: rv=%d", rv);
 
+  /* Only for Trident3x3: for QoS queues assignment */
+  if (SOC_IS_HELIX5(unit))
+  {
+      /* Dedicated group for QoS queues assignment */
+      memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
+      applicable_policy_types[BROAD_POLICY_TYPE_QOS_QUEUES] = L7_TRUE;
+      rv = _policy_super_qset_add(unit, &systemQsetQoSqueuesDef, applicable_policy_types);
+      PT_LOG_TRACE(LOG_CTX_STARTUP,"Added systemQsetQoSqueuesDef qset: rv=%d", rv);
+  }
+
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
   applicable_policy_types[BROAD_POLICY_TYPE_SYSTEM]      = L7_TRUE;
   applicable_policy_types[BROAD_POLICY_TYPE_SYSTEM_PORT] = L7_TRUE;
@@ -1690,9 +1788,9 @@ static int _policy_super_qset_init_ifp(int unit)
   /* PTin added: new switch 5664x (Triumph3) */
   /* PTin added: new switch 5645x (Katana2) */
   if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) || 
-      SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit) || SOC_IS_TRIDENT(unit) || SOC_IS_TRIDENT3X(unit))
+      SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit) || SOC_IS_TRIDENT(unit) || SOC_IS_HELIX5(unit))
   {
-    if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIDENT3(unit) || SOC_IS_TRIDENT3X(unit))
+    if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIDENT3(unit) || SOC_IS_HELIX5(unit))
       PT_LOG_WARN(LOG_CTX_MISC, "Using systemQsetTriumph2Def for TRIDENT family!");
 
     if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
@@ -1880,21 +1978,27 @@ static int _policy_super_qset_init(int unit)
 
 static int _policy_action_map_init(int unit)
 {
-  if ((SOC_IS_TR_VL(unit)) ||
-      (SOC_IS_SCORPION(unit)) || 
-      (SOC_IS_TRIUMPH2(unit)) || 
-      (SOC_IS_APOLLO(unit)) ||
-      (SOC_IS_ENDURO(unit)) ||
+  if ((SOC_IS_TR_VL(unit))     ||
+      (SOC_IS_SCORPION(unit))  || 
+      (SOC_IS_TRIUMPH2(unit))  || 
+      (SOC_IS_APOLLO(unit))    ||
+      (SOC_IS_ENDURO(unit))    ||
       (SOC_IS_VALKYRIE2(unit)) ||
-      (SOC_IS_TRIDENT(unit)) ||     /* PTin added: new switch 56843 (Trident) */
-      (SOC_IS_TRIDENT3X(unit)) ||   /* PTin added: new switch 56370 (Trident3X3) */
-      (SOC_IS_TRIUMPH3(unit)) ||    /* PTin added: new switch 5664x (Triumph3) */
+      (SOC_IS_TRIDENT(unit))   ||   /* PTin added: new switch 56843 (Trident) */
+      (SOC_IS_HELIX5(unit))    ||   /* PTin added: new switch 56370 (Trident3X3) */
+      (SOC_IS_TRIUMPH3(unit))  ||   /* PTin added: new switch 5664x (Triumph3) */
       (SOC_IS_KATANA2(unit))        /* PTin added: new switch 5645x (Katana2) */
      )
   {
     /* Modify action maps for certain actions. */
-    memcpy(&ingress_action_map[BROAD_ACTION_SET_COSQ],              &xgs4_ingress_set_cosq_action_map,              sizeof(action_map_entry_t));
-    memcpy(&ingress_action_map[BROAD_ACTION_SET_USERPRIO],          &xgs4_ingress_set_userprio_action_map,          sizeof(action_map_entry_t));
+    memcpy(&ingress_action_map[BROAD_ACTION_SET_COSQ],     &xgs4_ingress_set_cosq_action_map,     sizeof(action_map_entry_t));
+#if 0 /* Don't consider color for now */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,5,18,0))
+    memcpy(&ingress_action_map[BROAD_ACTION_SET_UCOSQ],    &xgs4_ingress_set_ucosq_action_map,    sizeof(action_map_entry_t));
+    memcpy(&ingress_action_map[BROAD_ACTION_SET_MCOSQ],    &xgs4_ingress_set_mcosq_action_map,    sizeof(action_map_entry_t));
+#endif
+#endif
+    memcpy(&ingress_action_map[BROAD_ACTION_SET_USERPRIO], &xgs4_ingress_set_userprio_action_map, sizeof(action_map_entry_t));
     /* PTin added */
     memcpy(&ingress_action_map[BROAD_ACTION_SET_USERPRIO_INNERTAG], &xgs4_ingress_set_userprio_innertag_action_map, sizeof(action_map_entry_t));
 
@@ -1956,6 +2060,11 @@ void _policy_group_alloc_type(BROAD_POLICY_TYPE_t type, group_alloc_block_t *blo
     /* PTin end */
     case BROAD_POLICY_TYPE_COSQ:
         *block = ALLOC_BLOCK_QOS;
+        *dir   = ALLOC_LOW_TO_HIGH;
+        break;
+    /* QoS queues assignment policy type */
+    case BROAD_POLICY_TYPE_QOS_QUEUES:
+        *block = ALLOC_BLOCK_QOS_QUEUES;
         *dir   = ALLOC_LOW_TO_HIGH;
         break;
     default:
@@ -2580,7 +2689,16 @@ int _policy_group_calc_qset(int                             unit,
       }
       else if (entryPtr->policyStage == BROAD_POLICY_STAGE_INGRESS)
       {
+#ifndef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
         BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyInPorts);
+#else
+        BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyInPort);
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+        BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyInterfaceClassPort);
+        #else
+        BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyPortClass);
+        #endif
+#endif
       }
       else if (entryPtr->policyStage == BROAD_POLICY_STAGE_EGRESS)
       {
@@ -3369,11 +3487,11 @@ static int _policy_group_add_std_field(int                   unit,
         break;
     case BROAD_FIELD_PORTCLASS:
         /* PTin modified: SDK 6.3.0 */
-        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
         rv = bcm_field_qualify_InterfaceClassPort(unit, eid, *((uint32*)value), *((uint32*)mask));
-        #else
+#else
         rv = bcm_field_qualify_PortClass(unit, eid, *((uint32*)value), *((uint32*)mask));
-        #endif
+#endif
         break;
     case BROAD_FIELD_DROP:
         rv = bcm_field_qualify_Drop(unit,eid,*((uint8*)value), 1);
@@ -3392,6 +3510,9 @@ static int _policy_group_add_std_field(int                   unit,
         break;
     case BROAD_FIELD_PACKETRES:
         rv = bcm_field_qualify_PacketRes(unit,eid,*((uint32*)value),*((uint32*)mask));
+        break;
+    case BROAD_FIELD_L2INTF_ID:
+        rv = bcm_field_qualify_DstVlanGports(unit,eid,*((uint32*)value),*((uint32*)mask));
         break;
     case BROAD_FIELD_IPFLAGS:
         rv = bcm_field_qualify_IpFlags(unit,eid,*((uint8*)value),*((uint8*)mask));
@@ -3964,7 +4085,7 @@ static int _policy_group_add_stat(int unit, bcm_field_entry_t eid, bcm_field_gro
     bcm_field_stat_t       stat[2];
     int                    stat_id;
 
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("%s(%d) gid=%u, eid=%u",__FUNCTION__,__LINE__,gid,eid);
 
     counterPtr = &rulePtr->counter.counterInfo;
@@ -4026,7 +4147,7 @@ static int _policy_group_add_stat(int unit, bcm_field_entry_t eid, bcm_field_gro
       return rv;
     }
 
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("%s(%d) Success! rv=%d",__FUNCTION__,__LINE__,rv);
 
     return rv;
@@ -4204,14 +4325,14 @@ int hapiBroadPolicyFirstAclDsGroupGet(int unit)
   /* Although Scorpion, TR2, and Apollo support intraslice doublewide mode,
      their system qsets end up using doublewide mode. */
   if (_policy_supports_intraslice_doublewide_mode(unit) && 
-      !SOC_IS_SCORPION(unit) && 
-      !SOC_IS_TRIUMPH2(unit) && 
-      !SOC_IS_APOLLO(unit) &&
-      !SOC_IS_ENDURO(unit) &&
+      !SOC_IS_SCORPION(unit)  && 
+      !SOC_IS_TRIUMPH2(unit)  && 
+      !SOC_IS_APOLLO(unit)    &&
+      !SOC_IS_ENDURO(unit)    &&
       !SOC_IS_VALKYRIE2(unit) &&
-      !SOC_IS_TRIDENT(unit) &&      /* PTin added: new switch 56843 (Trident) */
-      !SOC_IS_TRIDENT3X(unit) &&    /* PTin added: new switch 56370 (Trident3X3) */
-      !SOC_IS_TRIUMPH3(unit) &&     /* PTin added: new switch 5664x (Triumph3) */
+      !SOC_IS_TRIDENT(unit)   &&	/* PTin added: new switch 56843 (Trident) */
+      !SOC_IS_HELIX5(unit)    &&    /* PTin added: new switch 56370 (Trident3X3) */
+      !SOC_IS_TRIUMPH3(unit)  &&    /* PTin added: new switch 5664x (Triumph3) */
       !SOC_IS_KATANA2(unit)         /* PTin added: new switch 5645x (Katana2) */
      )
   {
@@ -4301,9 +4422,13 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
 
       /* PTin added: QoS */
       /* QoS rules */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].lowPrio       = lowPrioGroup + 1;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].highPrio      = lowPrioGroup + 1;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].group_prio    = lowPrioGroup + 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].lowPrio           = lowPrioGroup + 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].highPrio          = lowPrioGroup + 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].group_prio        = lowPrioGroup + 1;
+
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].lowPrio    = lowPrioGroup + 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].highPrio   = lowPrioGroup + 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].group_prio = lowPrioGroup + 1;
 
       /* PTin added: policer */
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio      = lowPrioGroup + 1;
@@ -4334,9 +4459,13 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].group_prio   = 1;
 
       /* PTin added: QoS */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].lowPrio       = 1;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].highPrio      = 1;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].group_prio    = 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].lowPrio           = 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].highPrio          = 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].group_prio        = 1;
+
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].lowPrio    = 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].highPrio   = 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].group_prio = 1;
 
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio    = groups-2;
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio   = groups-1;
@@ -4387,9 +4516,13 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
         group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].group_prio   = lowPrio + 2;
 
         /* PTin added: QoS */
-        group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].lowPrio       = lowPrio + 2;
-        group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].highPrio      = groups - 1;
-        group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].group_prio    = lowPrio + 2;
+        group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].lowPrio           = lowPrio + 2;
+        group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].highPrio          = groups - 1;
+        group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].group_prio        = lowPrio + 2;
+
+        group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].lowPrio    = lowPrio + 2;
+        group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].highPrio   = groups - 1;
+        group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].group_prio = lowPrio + 2;
 
         /* PTin added: policer */
         group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio      = lowPrio + 2;
@@ -4429,9 +4562,13 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].group_prio   = lowPrioGroup + 0;
 
           /* PTin added: QoS */
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].lowPrio       = lowPrioGroup + 4;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].highPrio      = lowPrioGroup + 5;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].group_prio    = lowPrioGroup + 4;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].lowPrio           = lowPrioGroup + 4;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].highPrio          = lowPrioGroup + 5;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].group_prio        = lowPrioGroup + 4;
+
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].lowPrio    = lowPrioGroup + 4;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].highPrio   = lowPrioGroup + 5;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].group_prio = lowPrioGroup + 4;
 
           /* PTin added: policer */
           #if 0
@@ -4450,6 +4587,46 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio      = lowPrioGroup + 7;
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].group_prio    = lowPrioGroup + 6;
           /* PTin end */
+        }
+        if (SOC_IS_HELIX5(unit))    /* Only for Trident3x3 switch */
+        {
+            /* low priority group starts at 0 and goes for 1 or 2 */
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio       = 0;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio      = lowPrioGroup - 1;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].group_prio    = groups;   /* High priority */
+            if (hapiBroadBcmGroupRequired(unit))
+            {
+              group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio--;
+            }
+
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio    = lowPrioGroup + 0;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio   = lowPrioGroup + 3;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].group_prio = lowPrioGroup + 0;
+
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio      = lowPrioGroup + 0;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio     = lowPrioGroup + 3; //groups/2 - 1;   /*groups - 1;*/     /* PTin modified: policer */
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].group_prio   = lowPrioGroup + 0;
+
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].lowPrio           = lowPrioGroup + 4;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].highPrio          = lowPrioGroup + 5;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].group_prio        = lowPrioGroup + 4;
+
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio    = lowPrioGroup + 6;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio   = lowPrioGroup + 7;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].group_prio = lowPrioGroup + 6;
+
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = lowPrioGroup + 8;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = lowPrioGroup + 9;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].group_prio  = lowPrioGroup + 8;
+
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio          = lowPrioGroup + 10;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio         = lowPrioGroup + 13;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].group_prio       = lowPrioGroup + 10;
+
+            /* QoS Queue assignment */
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].lowPrio    = lowPrioGroup + 14;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].highPrio   = lowPrioGroup + 15;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].group_prio = lowPrioGroup + 14;
         }
         else
         {
@@ -4471,9 +4648,13 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].group_prio   = lowPrioGroup + 0;
 
           /* PTin added: QoS */
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].lowPrio       = lowPrioGroup + 4;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].highPrio      = lowPrioGroup + 5;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].group_prio    = lowPrioGroup + 4;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].lowPrio           = lowPrioGroup + 4;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].highPrio          = lowPrioGroup + 5;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].group_prio        = lowPrioGroup + 4;
+
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].lowPrio    = lowPrioGroup + 4;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].highPrio   = lowPrioGroup + 5;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].group_prio = lowPrioGroup + 4;
 
           /* PTin added: client stats: groups 0-6 [ 7 * 256/(4*2) = 224 clients ] */
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio    = lowPrioGroup + 6;
@@ -4526,6 +4707,10 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio,
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio,
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].group_prio);
+    PT_LOG_INFO(LOG_CTX_STARTUP," ALLOC_BLOCK_QOS_QUEUES  : Groups %u - %u (gprio=%d)",
+             group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].lowPrio,
+             group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].highPrio,
+             group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].group_prio);
 
     return BCM_E_NONE;
 }
@@ -4571,15 +4756,15 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
     {
     case BROAD_POLICY_STAGE_LOOKUP:
       if (SOC_IS_FIREBOLT2(unit) ||
-          SOC_IS_TR_VL(unit) ||
-          SOC_IS_SCORPION(unit) || 
-          SOC_IS_TRIUMPH2(unit) || 
-          SOC_IS_APOLLO(unit)   ||
-          SOC_IS_ENDURO(unit)   ||
+          SOC_IS_TR_VL(unit)     ||
+          SOC_IS_SCORPION(unit)  || 
+          SOC_IS_TRIUMPH2(unit)  || 
+          SOC_IS_APOLLO(unit)    ||
+          SOC_IS_ENDURO(unit)    ||
           SOC_IS_VALKYRIE2(unit) ||
-          SOC_IS_TRIDENT(unit)  ||      /* PTin added: new switch 56843 (Trident) */
-          SOC_IS_TRIDENT3X(unit) ||     /* PTin added: new switch 56370 (Trident3X3) */
-          SOC_IS_TRIUMPH3(unit) ||      /* PTin added: new switch 5664x (Triumph3) */
+          SOC_IS_TRIDENT(unit)   ||     /* PTin added: new switch 56843 (Trident) */
+          SOC_IS_HELIX5(unit)    ||     /* PTin added: new switch 56370 (Trident3X3) */
+          SOC_IS_TRIUMPH3(unit)  ||     /* PTin added: new switch 5664x (Triumph3) */
           SOC_IS_KATANA2(unit)          /* PTin added: new switch 5645x (Katana2) */
          )
         total_slices = 4;
@@ -4591,13 +4776,17 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
       {
         total_slices = 8;
       }
+      else if (SOC_IS_HELIX5(unit)) /* Trident3x3 switch: 18 groups */
+      {
+        total_slices = 18;
+      }
       else if ((SOC_IS_FIREBOLT(unit)  || 
           SOC_IS_FIREBOLT2(unit) ||
-          SOC_IS_TR_VL(unit) ||
+          SOC_IS_TR_VL(unit)     ||
           SOC_IS_RAVEN(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) ||
-          SOC_IS_TRIUMPH3(unit) ||      /* PTin added: new switch 5664x (Triumph3) */
-          SOC_IS_KATANA2(unit) ||       /* PTin added: new switch 5645x (Katana2) */
-          SOC_IS_TRIDENT3X(unit))       /* PTin added: new switch 56370 (Trident3X3) */
+          SOC_IS_TRIUMPH3(unit)  ||     /* PTin added: new switch 5664x (Triumph3) */
+          SOC_IS_KATANA2(unit)   ||     /* PTin added: new switch 5645x (Katana2) */
+          SOC_IS_HELIX5(unit))          /* PTin added: new switch 56370 (Trident3X3) */
            && !SOC_IS_TRIDENT(unit))    /* PTin added: new switch 56843 (Trident) */
           total_slices = 16;
       else if (SOC_IS_RAPTOR(unit) || SOC_IS_HAWKEYE(unit)) 
@@ -4635,7 +4824,7 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
           SOC_IS_ENDURO(unit)    ||
           SOC_IS_VALKYRIE2(unit) ||
           SOC_IS_TRIDENT(unit)   || /* PTin added: new switch 56843 (Trident) */
-          SOC_IS_TRIDENT3X(unit) || /* PTin added: new switch 56370 (Trident3X3) */
+          SOC_IS_HELIX5(unit)    || /* PTin added: new switch 56370 (Trident3X3) */
           SOC_IS_TRIUMPH3(unit)  || /* PTin added: new switch 5664x (Triumph3) */
           SOC_IS_KATANA2(unit)      /* PTin added: new switch 5645x (Katana2) */
          )
@@ -4665,7 +4854,7 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
         SOC_IS_ENDURO(unit)    ||
         SOC_IS_VALKYRIE2(unit) ||
         SOC_IS_TRIDENT(unit)   ||   /* PTin added: new switch 56843 (Trident) */
-        SOC_IS_TRIDENT3X(unit) ||   /* PTin added: new switch 56843 (Trident3X3) */
+        SOC_IS_HELIX5(unit)    ||   /* PTin added: new switch 56843 (Trident3X3) */
         SOC_IS_TRIUMPH3(unit)  ||   /* PTin added: new switch 5664x (Triumph3) */
         SOC_IS_KATANA2(unit)        /* PTin added: new switch 5645x (Katana2) */
        )
@@ -4687,7 +4876,7 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
         SOC_IS_ENDURO(unit)    ||
         SOC_IS_VALKYRIE2(unit) ||
         SOC_IS_TRIDENT(unit)   ||   /* PTin added: new switch 56843 (Trident) */
-        SOC_IS_TRIDENT3X(unit) ||   /* PTin added: new switch 56370 (Trident3X3) */
+        SOC_IS_HELIX5(unit)    ||   /* PTin added: new switch 56370 (Trident3X3) */
         SOC_IS_TRIUMPH3(unit)  ||   /* PTin added: new switch 5664x (Triumph3) */
         SOC_IS_KATANA2(unit)        /* PTin added: new switch 5645x (Katana2) */
        )
@@ -5009,7 +5198,7 @@ int policy_group_add_rule(int                        unit,
         }
         else
         {
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
             sysapiPrintf("%s(%d) Attached global policer_id %d to eid %d\r\n", __FUNCTION__, __LINE__, *policer_id, eid);
         }
       }
@@ -5049,11 +5238,9 @@ int policy_group_add_rule(int                        unit,
     {
       rv = bcm_field_entry_install(unit, eid);
 
-      /* PTin added: SDK 6.3.0 */
-      #if 1
-      if ( rv != BCM_E_NONE)
+      if (rv != BCM_E_NONE)
       {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
           sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
 
         PT_LOG_ERR(LOG_CTX_HAPI, "Error commiting rule: unit=%d stage=%d gid=%d eid=%d (maxgroups=%d)",
@@ -5064,13 +5251,9 @@ int policy_group_add_rule(int                        unit,
                                         eid, rulePtr->meterSrcEntry,  /* PTin added: Policer/Counter */
                                         rulePtr->policer.policer_id, rulePtr->counter.counter_id);
       }
-      #endif
 
-      /* PTin added: FFP */
-      #if 1
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
           sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
-      #endif
     }
 
     if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
@@ -5083,11 +5266,13 @@ int policy_group_set_pbm(int                  unit,
                          BROAD_POLICY_STAGE_t policyStage,
                          BROAD_GROUP_t        group,
                          BROAD_ENTRY_t        entry,
-                         bcm_pbmp_t           pbm)
+                         bcm_pbmp_t           pbm,
+                         unsigned char        portClass)
 {
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-    PT_LOG_WARN(LOG_CTX_STARTUP, "FIXME! InPorts Qual at Field Processor");
-    return  BCM_E_NONE;
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    PT_LOG_WARN(LOG_CTX_INTF, "[policy_group_set_pbm->portclass] portClass: Stage %u, gid %u, eid %u, portClass %u",
+                policyStage, group, entry, portClass);
+    return policy_group_set_portclass(unit, policyStage, group, entry, pbm, portClass);
 #else
     int               rv;
     group_table_t    *groupPtr;
@@ -5102,7 +5287,10 @@ int policy_group_set_pbm(int                  unit,
     groupPtr = &group_table[unit][policyStage][group];
 
     /* The following policy types are active on all ports and don't need to use the pbm. */
-    if ((BROAD_POLICY_TYPE_VLAN == groupPtr->type) || (BROAD_POLICY_TYPE_ISCSI == groupPtr->type))
+    /* for QoS queue assignment, inports are not necessary */
+    if ((BROAD_POLICY_TYPE_VLAN  == groupPtr->type) ||
+        (BROAD_POLICY_TYPE_ISCSI == groupPtr->type) ||
+        (BROAD_POLICY_TYPE_QOS_QUEUES == groupPtr->type))
     {
         return BCM_E_NONE;
     }
@@ -5112,11 +5300,8 @@ int policy_group_set_pbm(int                  unit,
     /* Reinstall only works for actions, so remove and install the entry explicitly. */
     rv = bcm_field_entry_remove(unit, eid);
 
-    /* PTin added: FFP */
-    #if 1
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
         sysapiPrintf("- bcm_field_entry_remove rv = %d (entry=%d)\n", rv, eid);
-    #endif
 
     if (BCM_E_NONE != rv)
         return rv;
@@ -5130,7 +5315,7 @@ int policy_group_set_pbm(int                  unit,
     rv = bcm_field_entry_install(unit, eid);
 
     /* PTin added: FFP */
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
         sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
 
     if (BCM_E_NONE != rv)
@@ -5155,16 +5340,24 @@ int policy_group_set_portclass(int                  unit,
     group_table_t    *groupPtr;
     bcm_field_entry_t eid;
     unsigned int      portMask  = BCM_FIELD_EXACT_MATCH_MASK;
-    unsigned int      portClassBmp;
+    unsigned int      portClass_val, portClass_mask;
     unsigned int      bcm_port;
     int               numPorts;
+    BOOL              install_rule = L7_FALSE;
+
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+      sysapiPrintf("portClass: Stage=%u group=%u entry=%u portClass=%u",
+                   policyStage, group, entry, portClass);
 
     CHECK_GROUP(unit,policyStage,group);
 
     groupPtr = &group_table[unit][policyStage][group];
 
     /* VLAN policies will always include all ports */
-    if ((BROAD_POLICY_TYPE_VLAN == groupPtr->type) || (BROAD_POLICY_TYPE_ISCSI == groupPtr->type))
+    /* for QoS queue assignment, inports are not necessary */
+    if ((BROAD_POLICY_TYPE_VLAN  == groupPtr->type) ||
+        (BROAD_POLICY_TYPE_ISCSI == groupPtr->type) ||
+        (BROAD_POLICY_TYPE_QOS_QUEUES == groupPtr->type))
     {
         return BCM_E_NONE;
     }
@@ -5174,11 +5367,8 @@ int policy_group_set_portclass(int                  unit,
     /* Reinstall only works for actions, so remove and install the entry explicitly. */
     rv = bcm_field_entry_remove(unit, eid);
 
-    /* PTin added: FFP */
-    #if 1
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
         sysapiPrintf("- bcm_field_entry_remove rv = %d (entry=%d)\n", rv, eid);
-    #endif
 
     if (BCM_E_NONE != rv)
         return rv;
@@ -5188,20 +5378,81 @@ int policy_group_set_portclass(int                  unit,
        never match rule (as a NULL pbmp would do for ingress) */
     if (BCM_PBMP_NOT_NULL(pbm))
     {
-      /* Don't burn a portClassId if only one port uses this rule */
+      bcm_pbmp_t tempPbm;
+
+      /* Filter only Ethernet ports */
+      BCM_PBMP_CLEAR(tempPbm);
+      BCM_PBMP_ASSIGN(tempPbm, PBMP_E_ALL(unit));
+      BCM_PBMP_AND(tempPbm, pbm);
+
+      /* Count number of active ports */
       BCM_PBMP_COUNT(pbm, numPorts);
+
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+      /* If port bitmap contain all ethernet ports, there is no need for the ClassId */
+      if (BCM_PBMP_EQ(tempPbm, PBMP_E_ALL(unit)))
+      {
+        if (policyStage == BROAD_POLICY_STAGE_LOOKUP ||
+            policyStage == BROAD_POLICY_STAGE_INGRESS)
+        {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+            sysapiPrintf("stage=%u group=%u entry=%u: Deactivating InPort qualifier",
+                         policyStage, group, entry);
+
+          rv = bcm_field_qualify_InPort(unit, eid, 0, 0);
+          if (BCM_E_NONE != rv)
+            return rv;
+        }
+        else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
+        {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+            sysapiPrintf("stage=%u group=%u entry=%u: Deactivating OutPort qualifier",
+                         policyStage, group, entry);
+
+          rv = bcm_field_qualify_OutPort(unit, eid, 0, 0);
+          if (BCM_E_NONE != rv)
+            return rv;
+        }
+
+        /* PTin modified: SDK 6.3.0 */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+        rv = bcm_field_qualify_InterfaceClassPort(unit, eid, 0, 0);
+#else
+        rv = bcm_field_qualify_PortClass(unit, eid, 0, 0);
+#endif
+        if (BCM_E_NONE != rv)
+            return rv;
+
+        /* Rule will be reinstalled! */
+        install_rule = L7_TRUE;
+      }
+      else
+#endif /*ICAP_INTERFACES_SELECTION_BY_CLASSPORT*/
+      /* Don't burn a portClassId if only one port uses this rule */
       if (numPorts == 1)
       {
         BCM_PBMP_ITER(pbm, bcm_port)
         {
-          if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
+          if (policyStage == BROAD_POLICY_STAGE_LOOKUP
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+              || policyStage == BROAD_POLICY_STAGE_INGRESS
+#endif
+             )
           {
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+              sysapiPrintf("stage=%u group=%u entry=%u: Adding InPort qualifier(bcm_port %u)",
+                           policyStage, group, entry, bcm_port);
+
             rv = bcm_field_qualify_InPort(unit, eid, bcm_port, portMask);
             if (BCM_E_NONE != rv)
                 return rv;
           }
           else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
           {
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+              sysapiPrintf("stage=%u group=%u entry=%u: Adding OutPort qualifier(bcm_port %u)",
+                           policyStage, group, entry, bcm_port);
+
             rv = bcm_field_qualify_OutPort(unit, eid, bcm_port, portMask);
             if (BCM_E_NONE != rv)
                 return rv;
@@ -5209,50 +5460,97 @@ int policy_group_set_portclass(int                  unit,
           break;
         }
 
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+          sysapiPrintf("stage=%u group=%u entry=%u: Deactivating InterfaceClassPort qualifier",
+                       policyStage, group, entry);
+
         /* PTin modified: SDK 6.3.0 */
-        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
         rv = bcm_field_qualify_InterfaceClassPort(unit, eid, 0, 0);
-        #else
+#else
         rv = bcm_field_qualify_PortClass(unit, eid, 0, 0);
-        #endif
+#endif
         if (BCM_E_NONE != rv)
             return rv;
+
+        /* Rule will be reinstalled! */
+        install_rule = L7_TRUE;
       }
-      else
+      /* Multiple ports */
+      else if (portClass != BROAD_INVALID_PORT_CLASS)
       {
-        if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
+        if (policyStage == BROAD_POLICY_STAGE_LOOKUP
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+            || policyStage == BROAD_POLICY_STAGE_INGRESS
+#endif
+            )
         {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+            sysapiPrintf("stage=%u group=%u entry=%u: Deactivating InPort qualifier",
+                         policyStage, group, entry);
+
           rv = bcm_field_qualify_InPort(unit, eid, 0, 0);
           if (BCM_E_NONE != rv)
               return rv;
         }
         else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
         {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+            sysapiPrintf("stage=%u group=%u entry=%u: Deactivating OutPort qualifier",
+                         policyStage, group, entry);
+
           rv = bcm_field_qualify_OutPort(unit, eid, 0, 0);
           if (BCM_E_NONE != rv)
               return rv;
         }
-        portClassBmp = 1 << portClass;
+
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+        portClass_val  = portClass;
+        portClass_mask = 0xff;
+#else
+        portClass_val  = 1 << portClass;
+        portClass_mask = 1 << portClass;
+#endif
+
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+          sysapiPrintf("stage=%u group=%u entry=%u: Adding InterfaceClassPort qualifier(portClass %u)",
+                       policyStage, group, entry, portClass_val);
 
         /* PTin modified: SDK 6.3.0 */
-        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-        rv = bcm_field_qualify_InterfaceClassPort(unit, eid, portClassBmp, portClassBmp);
-        #else
-        rv = bcm_field_qualify_PortClass(unit, eid, portClassBmp, portClassBmp);
-        #endif
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+        rv = bcm_field_qualify_InterfaceClassPort(unit, eid, portClass_val, portClass_mask);
+#else
+        rv = bcm_field_qualify_PortClass(unit, eid, portClass_val, portClass_mask);
+#endif
         if (BCM_E_NONE != rv)
             return rv;
+
+        /* Rule will be reinstalled! */
+        install_rule = L7_TRUE;
       }
-
-      rv = bcm_field_entry_install(unit, eid);
-
-      /* PTin added: FFP */
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-        sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
-
-      if (BCM_E_NONE != rv)
-          return rv;
     }
+
+    /* Only install rule, if port/classId is valid */
+    if (install_rule)
+    {
+        rv = bcm_field_entry_install(unit, eid);
+
+        /* PTin added: FFP */
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+          sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
+
+        if (BCM_E_NONE != rv)
+            return rv;
+    }
+    else
+    {
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+          sysapiPrintf("unit=%u eid=%u will NOT be reinstalled", unit, eid);
+    }
+
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+      sysapiPrintf("stage=%u group=%u entry=%u: Done (rv=%d)",
+                   policyStage, group, entry, rv);
 
     return rv;
 }
@@ -5264,6 +5562,17 @@ int policy_port_class_add_remove(int                  unit,
                                  L7_BOOL              add)
 {
     int               rv = BCM_E_NONE;
+
+#if 1 /* ClassId table management modified */
+    if (add)
+    {
+      rv = l7_policy_portclass_port_add(unit, policyStage, portClass, port);
+    }
+    else
+    {
+      rv = l7_policy_portclass_port_remove(unit, policyStage, portClass, port);
+    }
+#else
     L7_uint32         portClassBmp;
     bcm_port_class_t  portClassType;
 
@@ -5271,6 +5580,12 @@ int policy_port_class_add_remove(int                  unit,
     {
       portClassType = bcmPortClassFieldLookup;
     }
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    else if (policyStage == BROAD_POLICY_STAGE_INGRESS)
+    {
+      portClassType = bcmPortClassFieldIngress;
+    }
+#endif
     else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
     {
       portClassType = bcmPortClassFieldEgress;
@@ -5280,12 +5595,27 @@ int policy_port_class_add_remove(int                  unit,
       return BCM_E_PARAM;
     }
 
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+    if (!add)
+    {
+      /* No ports should use Class id 0xff */
+      portClassBmp = BROAD_INVALID_PORT_CLASS;
+    }
+    else
+    {
+      portClassBmp = portClass;
+    }
+
+    rv = bcm_port_class_set(unit, port, portClassType, portClassBmp);
+
+#else /*ICAP_INTERFACES_SELECTION_BY_CLASSPORT*/
+
     if (portClass != BROAD_INVALID_PORT_CLASS)
     {
       rv = bcm_port_class_get(unit, port, portClassType, &portClassBmp);
       if (BCM_E_NONE != rv)
           return rv;
-  
+
       if (add)
       {
         portClassBmp |= (1 << portClass);
@@ -5294,10 +5624,11 @@ int policy_port_class_add_remove(int                  unit,
       {
         portClassBmp &= ~(1 << portClass);
       }
-  
+
       rv = bcm_port_class_set(unit, port, portClassType, portClassBmp);
     }
-
+#endif /*ICAP_INTERFACES_SELECTION_BY_CLASSPORT*/
+#endif
     return rv;
 }
 int policy_group_set_outervlan(int                  unit,
@@ -5333,11 +5664,8 @@ int policy_group_set_outervlan(int                  unit,
     /* Reinstall only works for actions, so remove and install the entry explicitly. */
     rv = bcm_field_entry_remove(unit, eid);
 
-    /* PTin added: FFP */
-    #if 1
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
         sysapiPrintf("- bcm_field_entry_remove rv = %d (entry=%d)\n", rv, eid);
-    #endif
 
     if (BCM_E_NONE != rv)
     {
@@ -5361,7 +5689,7 @@ int policy_group_set_outervlan(int                  unit,
       rv = bcm_field_entry_install(unit, eid);
 
       /* PTin added: FFP */
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
         sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
 
       if (BCM_E_NONE != rv)
@@ -5381,18 +5709,24 @@ int policy_port_class_pbmp_update(int                  unit,
   int       rv = BCM_E_NONE;
   L7_uint32 port;
 
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
+    sysapiPrintf("Updating portClass: stage=%u oldPortClass=%u newPortClass=%u: Updating class port",
+                 policyStage, oldPortClass, newPortClass);
+
   BCM_PBMP_ITER(pbm, port)
   {
     /* Remove the old port class first. */
     rv = policy_port_class_add_remove(unit, port, policyStage, oldPortClass, L7_FALSE);
     if (BCM_E_NONE != rv)
     {
+      PT_LOG_ERR(LOG_CTX_HAPI, " error @policy_port_class_add_remove old port %u", rv);
       break;
     }
     /* Set the new port class. */
     rv = policy_port_class_add_remove(unit, port, policyStage, newPortClass, L7_TRUE);
     if (BCM_E_NONE != rv)
     {
+      PT_LOG_ERR(LOG_CTX_HAPI, " error @policy_port_class_add_remove new port %u", rv);
       break;
     }
   }
@@ -5474,11 +5808,8 @@ int policy_group_delete_rule(int                  unit,
 
     rv = bcm_field_entry_remove(unit, eid);
 
-    /* PTin added: FFP */
-    #if 1
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
         sysapiPrintf("- bcm_field_entry_remove rv = %d (entry=%d)\n", rv, eid);
-    #endif
 
     /* If rv is BCM_E_UNAVAIL, it is possible that we are trying to remove
      * a rule that is not installed in the hardware. So, continue with the
@@ -5709,16 +6040,13 @@ void policy_group_dataplane_cleanup(int                  unit,
 
     eid = BROAD_ENTRY_TO_BCM_ENTRY(entry);
 
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("- new manager notify entry %d, modid %d, modport %d\n", eid, cpu_modid, cpu_modport);
 
     rv = bcm_field_entry_remove(unit, eid);
 
-    /* PTin added: FFP */
-    #if 1
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
         sysapiPrintf("- bcm_field_entry_remove rv = %d (entry=%d)\n", rv, eid);
-    #endif
 
     if (BCM_E_NONE != rv)
     {
@@ -5749,7 +6077,7 @@ void policy_group_dataplane_cleanup(int                  unit,
     rv = bcm_field_entry_install(unit, eid);
 
     /* PTin added: FFP */
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
       sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
 
     if (BCM_E_NONE != rv)
@@ -5891,7 +6219,7 @@ int policy_group_create_default_rule(int unit,
     rv = bcm_field_entry_install(unit, eid);
 
     /* PTin added: FFP */
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LIGHT)
       sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
 
     if (BCM_E_NONE != rv)

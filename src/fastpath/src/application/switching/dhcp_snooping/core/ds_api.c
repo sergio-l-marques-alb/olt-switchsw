@@ -60,8 +60,9 @@ extern dsCfgData_t *dsCfgData;
 extern osapiRWLock_t dsCfgRWLock;
 extern dsIntfInfo_t *dsIntfInfo;
 
+#if 0
 static L7_uchar8 nullMacAddr[L7_ENET_MAC_ADDR_LEN] = {0,0,0,0,0,0};
-
+#endif
 
 
 /*********************************************************************
@@ -2176,7 +2177,12 @@ L7_RC_t dsDbStoreIntervalGet(L7_uint32 *storeInterval)
 L7_RC_t dsStaticBindingAdd(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr,
                            L7_ushort16 vlanId, L7_ushort16 innerVlanId /*PTin modified: DHCP */, L7_uint32 intIfNum)
 {
-  L7_RC_t rc;
+
+#if 1
+    /*Unused. If needed, migration from intIfNum -> ptin_port and respective changes must be done*/
+    return L7_FAILURE;
+#else
+    L7_RC_t rc;
 
   /* Validate IP address. Don't allow 0, mcast or above, loopback. */
   if ((ipAddr == 0) || 
@@ -2211,6 +2217,7 @@ L7_RC_t dsStaticBindingAdd(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr,
 
   osapiWriteLockGive(dsCfgRWLock);
   return rc;
+#endif
 }
 
 /*********************************************************************

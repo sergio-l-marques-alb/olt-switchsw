@@ -440,6 +440,9 @@ typedef struct dsBindingTreeNode_s
   /* physical port where client is attached. */
   L7_uint32 intIfNum;
 
+  /* virtual port where client is attached. */
+  L7_uint32 ptin_port;
+
   /* Time when binding learned (seconds since boot) */
   L7_uint32 leaseStart;
 
@@ -477,6 +480,9 @@ typedef struct dsDbBindingTreeNode_s
 
   /* physical port where client is attached. */
   L7_uint32 intIfNum;
+
+  /* virtual port where client is attached. */
+  L7_uint32 ptin_port;
 
   /* Time when binding learned (seconds since boot) */
   L7_uint32 remLease;
@@ -571,7 +577,7 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
                      L7_uchar8 *frame, L7_ushort16 frameLen,
                      L7_BOOL requestFlag,
                      L7_ushort16 innerVlanId, L7_uint client_idx);            /* PTin modified: DHCP snooping */
-L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
+L7_RC_t dsFrameSend(L7_uint32 ptin_port, L7_ushort16 vlanId,
                     L7_ushort16 innerVlanId, L7_uint client_idx,              /* PTin modified: DHCP snooping */
                     L7_uchar8 *frame, L7_ushort16 frameLen);
 L7_RC_t dsBindingNthEntryGet (dhcpSnoopBinding_t *dsBinding,
@@ -689,12 +695,12 @@ L7_BOOL _dsIntfL2RelayGet(L7_uint32 intIfNum);
  * Verify if a particular (internal) vlan+interface is 
  * part of a DHCP active EVC.
  * 
- * @param vlanId : internal vlan
- * @param intIfNum : interface reference
+ * @param vlanId    : internal vlan
+ * @param ptin_port : interface reference
  * 
  * @return L7_BOOL : L7_TRUE/L7_FALSE
  */
-L7_BOOL dsVlanIntfIsSnooping(L7_uint16 vlanId, L7_uint32 intIfNum);
+L7_BOOL dsVlanIntfIsSnooping(L7_uint16 vlanId, L7_uint32 ptin_port);
 
 /**
  * Verify if a particular (internal) vlan+interface is 
@@ -705,7 +711,7 @@ L7_BOOL dsVlanIntfIsSnooping(L7_uint16 vlanId, L7_uint32 intIfNum);
  * 
  * @return L7_BOOL : L7_TRUE/L7_FALSE
  */
-L7_BOOL _dsVlanIntfL2RelayGet(L7_uint16 vlanId, L7_uint32 intIfNum);
+L7_BOOL _dsVlanIntfL2RelayGet(L7_uint16 vlanId, L7_uint32 ptin_port);
 /* PTin end */
 
 void _dsIntfL2RelayTrust(L7_uint32 intIfNum);
@@ -908,19 +914,24 @@ L7_RC_t dsLocalServerCb(L7_uint32 sendMsgType,
 /* ds_binding.c */
 L7_RC_t dsBindingsTableCreate(void);
 L7_RC_t dsBindingsTableDelete(void);
-L7_RC_t dsBindingAdd(dsBindingType_t bindingType, L7_enetMacAddr_t *macAddr, 
-                     L7_uint32 ipAddr,
-                     L7_ushort16 vlanId, L7_ushort16 innerVlanId /*PTin modified: DHCP */, L7_uint32 intIfNum);
-L7_RC_t dsv6BindingAdd(dsBindingType_t bindingType, L7_enetMacAddr_t *macAddr,
-                       L7_inet_addr_t *ipAddr, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint32 intIfNum);
+
+L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
+                     L7_enetMacAddr_t *macAddr, L7_uint32 ipv4Addr,
+                     L7_ushort16 vlanId, L7_ushort16 innerVlanId, 
+                     L7_uint32 intIfNum, L7_uint32 ptin_port);
+
+L7_RC_t dsv6BindingAdd(dsBindingType_t bindingType, L7_enetMacAddr_t *macAddr, 
+                       L7_inet_addr_t *ipAddr, L7_ushort16 vlanId, 
+                       L7_ushort16 innerVlanId, L7_uint32 intIfNum, L7_uint32 ptin_port);
+
 L7_RC_t dsBindingRemove(dsBindingTreeKey_t *key);
 L7_BOOL dsBindingExists(dsBindingTreeKey_t *key, L7_uint32 ipAddr,
                         L7_ushort16 vlanId);
 L7_RC_t dsBindingFind(dhcpSnoopBinding_t *dsBinding, L7_uint32 matchType);
 L7_RC_t dsBindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr, L7_ushort16 vlanId);
 L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t *ipAddr, L7_ushort16 vlanId);
-L7_RC_t dsv4LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint16 vlanId, L7_uint messageType, L7_uint32 intIfNum);
-L7_RC_t dsv6LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint16 vlanId, L7_uint messageType, L7_uint32 intIfNum);
+L7_RC_t dsv4LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint16 vlanId, L7_uint messageType, L7_uint32 ptin_port);
+L7_RC_t dsv6LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint16 vlanId, L7_uint messageType, L7_uint32 ptin_port);
 L7_RC_t dsBindingFlagsUpdate(dsBindingTreeKey_t *key, L7_uint8 flags);
 L7_RC_t dsBindingLeaseSet(dsBindingTreeKey_t *key, L7_uint32 leaseTime);
 L7_uint32 _dsBindingsCount(void);

@@ -593,13 +593,13 @@ L7_RC_t ptin_ipdtl0_deinit(void)
  * @param dtl0Vid 
  * @param outerVid 
  * @param internalVid 
- * @param intfNum 
+ * @param ptin_port 
  * @param type 
  * @param enable 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 internalVid, L7_uint32 intfNum, ptin_ipdtl0_type_t type, L7_BOOL enable)
+L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 internalVid, L7_uint32 ptin_port, ptin_ipdtl0_type_t type, L7_BOOL enable)
 {
     L7_RC_t rc = L7_SUCCESS;
 
@@ -626,7 +626,14 @@ L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 int
     /* Convert to internal VLAN ID(if not previously provided) */
     if(enable && (internalVid == (L7_uint16)-1))
     {
-      rc = ptin_xlate_ingress_get(intfNum, outerVid, PTIN_XLATE_NOT_DEFINED, &internalVid, L7_NULLPTR);
+      /* Validate ports */
+      if (ptin_port >= PTIN_SYSTEM_N_INTERF)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF,"Invalid ptin_port %d", ptin_port);
+        return L7_FAILURE;
+      }
+        
+      rc = ptin_xlate_ingress_get(ptin_port, outerVid, PTIN_XLATE_NOT_DEFINED, &internalVid, L7_NULLPTR);
       if ((rc != L7_SUCCESS) || (internalVid == 0))
       {
           PT_LOG_ERR(LOG_CTX_API,"Error Enabling IP dtl0");
@@ -660,7 +667,8 @@ L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 int
         ptin_ipdtl0_dtl0Vid_info[dtl0Vid].outerVid = outerVid;
         ptin_ipdtl0_dtl0Vid_info[dtl0Vid].type = type;
 
-        PT_LOG_INFO(LOG_CTX_API,"(dtl0Vid=%d, outerVid=%d, intfNum=%d, type=%d, enable=%d) internalVid %d\n", dtl0Vid, outerVid, intfNum, type, enable, internalVid);
+        PT_LOG_INFO(LOG_CTX_API,"(dtl0Vid=%d, outerVid=%d, ptin_port=%d, type=%d, enable=%d) internalVid %d\n",
+                    dtl0Vid, outerVid, ptin_port, type, enable, internalVid);
     }
 
     return rc;
@@ -740,17 +748,17 @@ L7_RC_t ptin_ipdtl0_mirrorPacketCapture(L7_netBufHandle netBufHandle,
  */
 L7_RC_t ptin_ipdtl0_control_b(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint32 lag_idx, ptin_ipdtl0_type_t type, L7_BOOL enable)
 {
-    L7_uint32   intfNum;
+    L7_uint32   ptin_port;
     L7_RC_t     rc = L7_SUCCESS;
 
-    rc = ptin_intf_lag2intIfNum(lag_idx, &intfNum);
+    rc = ptin_intf_lag2port(lag_idx, &ptin_port);
     if (rc != L7_SUCCESS)
     {
         PT_LOG_ERR(LOG_CTX_API,"Error Enabling IP dtl0");
         return rc;
     }
 
-    ptin_ipdtl0_control(dtl0Vid, outerVid, (L7_uint16)-1, intfNum, type, enable);
+    ptin_ipdtl0_control(dtl0Vid, outerVid, (L7_uint16)-1, ptin_port, type, enable);
 
     return rc;
 }

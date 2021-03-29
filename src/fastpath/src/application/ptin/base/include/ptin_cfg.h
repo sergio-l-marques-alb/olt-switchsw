@@ -50,7 +50,7 @@ extern L7_uint16 ptin_cfg_inband_vlan_get(void);
  * NOTE: 
  *  1. virtual interface eth0.4093 is created here 
  *  2. all operations are accomplished through an external shell script 
- *     '/usr/local/ptin/scripts/startBridge.sh'
+ *     PTIN_INBAND_BRIDGE_SCRIPT
  * 
  * @author alex (4/10/2012)
  * 

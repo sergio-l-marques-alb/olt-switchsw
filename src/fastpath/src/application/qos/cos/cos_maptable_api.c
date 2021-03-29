@@ -78,6 +78,7 @@ L7_RC_t cosMapIpPrecIndexGetNext(L7_uint32 prec, L7_uint32 *pNext)
 * @purpose  Get the assigned traffic class (queue) for this IP precedence
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    prec        @b{(input)}  IP precedence
 * @param    *pVal       @b{(output)} Ptr to traffic class output value
 *
@@ -88,7 +89,7 @@ L7_RC_t cosMapIpPrecIndexGetNext(L7_uint32 prec, L7_uint32 *pNext)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpPrecTrafficClassGet(L7_uint32 intIfNum, L7_uint32 prec,
+L7_RC_t cosMapIpPrecTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 prec,
                                     L7_uint32 *pVal)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -100,7 +101,7 @@ L7_RC_t cosMapIpPrecTrafficClassGet(L7_uint32 intIfNum, L7_uint32 prec,
   if (pVal == L7_NULLPTR)
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   *pVal = pCfg->mapping.ipPrecMapTable[prec];
@@ -111,6 +112,7 @@ L7_RC_t cosMapIpPrecTrafficClassGet(L7_uint32 intIfNum, L7_uint32 prec,
 * @purpose  Set the assigned traffic class (queue) for this IP precedence
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    prec        @b{(input)}  IP precedence
 * @param    val         @b{(input)}  Traffic class value
 *
@@ -121,7 +123,7 @@ L7_RC_t cosMapIpPrecTrafficClassGet(L7_uint32 intIfNum, L7_uint32 prec,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpPrecTrafficClassSet(L7_uint32 intIfNum, L7_uint32 prec,
+L7_RC_t cosMapIpPrecTrafficClassSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 prec,
                                     L7_uint32 val)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -142,7 +144,7 @@ L7_RC_t cosMapIpPrecTrafficClassSet(L7_uint32 intIfNum, L7_uint32 prec,
   if ((L7_uchar8)val > (pCosInfo_g->numTrafficClasses[intIfNum] - 1))
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* this is a no-op if currently configured value is same as new value */
@@ -180,6 +182,7 @@ L7_RC_t cosMapIpPrecTrafficClassGlobalSet(L7_uint32 prec, L7_uint32 val)
 {
   L7_cosCfgParms_t  *pCfgGlob, *pCfgIntf;
   L7_uint32         intIfNum, globIntIfNum;
+  l7_cosq_set_t     queueSet;
 
   /* check IP precedence in range */
   if (cosMapIpPrecIndexGet(prec) != L7_SUCCESS)
@@ -195,7 +198,7 @@ L7_RC_t cosMapIpPrecTrafficClassGlobalSet(L7_uint32 prec, L7_uint32 val)
     return L7_FAILURE;
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value
@@ -211,22 +214,25 @@ L7_RC_t cosMapIpPrecTrafficClassGlobalSet(L7_uint32 prec, L7_uint32 val)
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-    /* only work with configurable interfaces when changing global config */
-    if (cosCfgPtrFind(intIfNum, &pCfgIntf) == L7_SUCCESS)
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
     {
-      if (cosMapIpPrecTrafficClassSet(intIfNum, prec, val) != L7_SUCCESS)
+      /* only work with configurable interfaces when changing global config */
+      if (cosCfgPtrFind(intIfNum, queueSet, &pCfgIntf) == L7_SUCCESS)
       {
-        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                "Unable to set global IP precedence mapping on intf %s "
-                "(prec=%u class=%u)\n", ifName, prec, val);
-      }
+        if (cosMapIpPrecTrafficClassSet(intIfNum, queueSet, prec, val) != L7_SUCCESS)
+        {
+          L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+                  "Unable to set global IP precedence mapping on intf %s, queueSet %u "
+                  "(prec=%u class=%u)\n", ifName, queueSet, prec, val);
+        }
 
-      /* if global-only config supported, find and remember intIfNum to use
-       * for global 'apply' call below
-       */
-      if (globIntIfNum == 0)
-        if (cosIntfIsWriteableCond(intIfNum, L7_TRUE, L7_COS_MAP_IPPREC_PER_INTF_FEATURE_ID) == L7_TRUE)
-          globIntIfNum = intIfNum;
+        /* if global-only config supported, find and remember intIfNum to use
+         * for global 'apply' call below
+         */
+        if (globIntIfNum == 0)
+          if (cosIntfIsWriteableCond(intIfNum, L7_TRUE, L7_COS_MAP_IPPREC_PER_INTF_FEATURE_ID) == L7_TRUE)
+            globIntIfNum = intIfNum;
+      }
     }
   }
 
@@ -246,6 +252,7 @@ L7_RC_t cosMapIpPrecTrafficClassGlobalSet(L7_uint32 prec, L7_uint32 val)
 * @purpose  Get default traffic class mapping for specified IP precedence value
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    prec        @b{(input)}  IP precedence
 * @param    *pVal       @b{(output)} Ptr to traffic class output value
 *
@@ -259,17 +266,18 @@ L7_RC_t cosMapIpPrecTrafficClassGlobalSet(L7_uint32 prec, L7_uint32 val)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpPrecDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint32 prec,
+L7_RC_t cosMapIpPrecDefaultTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 prec,
                                            L7_uint32 *pVal)
 {
   /* called function checks input parms */
-  return cosDefaultMappingIpPrecGet(intIfNum, prec, pVal);
+  return cosDefaultMappingIpPrecGet(intIfNum, queueSet, prec, pVal);
 }
 
 /*************************************************************************
 * @purpose  Restore default IP precedence mappings for this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -278,7 +286,7 @@ L7_RC_t cosMapIpPrecDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint32 prec,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpPrecDefaultsRestore(L7_uint32 intIfNum)
+L7_RC_t cosMapIpPrecDefaultsRestore(L7_uint32 intIfNum, l7_cosq_set_t queueSet)
 {
   L7_uint32     i, val;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
@@ -287,12 +295,12 @@ L7_RC_t cosMapIpPrecDefaultsRestore(L7_uint32 intIfNum)
   /* update each interface config value using default mapping */
   for (i = 0; i < L7_QOS_COS_MAP_NUM_IPPREC; i++)
   {
-    if ((cosDefaultMappingIpPrecGet(intIfNum, i, &val) != L7_SUCCESS) ||
-        (cosMapIpPrecTrafficClassSet(intIfNum, i, val) != L7_SUCCESS))
+    if ((cosDefaultMappingIpPrecGet(intIfNum, queueSet, i, &val) != L7_SUCCESS) ||
+        (cosMapIpPrecTrafficClassSet(intIfNum, queueSet, i, val) != L7_SUCCESS))
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-              "Unable to set default IP precedence mapping for intf %s, "
-              "prec=%u class=%u\n", ifName, i, val);
+              "Unable to set default IP precedence mapping for intf %s, queueSet %u "
+              "prec=%u class=%u\n", ifName, queueSet, i, val);
     }
   }
 
@@ -318,7 +326,7 @@ L7_RC_t cosMapIpPrecDefaultsGlobalRestore(void)
   /* update each global config value using default mapping */
   for (i = 0; i < L7_QOS_COS_MAP_NUM_IPPREC; i++)
   {
-    if ((cosDefaultMappingIpPrecGet(L7_ALL_INTERFACES, i, &val) != L7_SUCCESS) ||
+    if ((cosDefaultMappingIpPrecGet(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, i, &val) != L7_SUCCESS) ||
         (cosMapIpPrecTrafficClassGlobalSet(i, val) != L7_SUCCESS))
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
@@ -379,6 +387,7 @@ L7_RC_t cosMapIpDscpIndexGetNext(L7_uint32 dscp, L7_uint32 *pNext)
 * @purpose  Get the assigned traffic class (queue) for this IP DSCP
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    dscp        @b{(input)}  IP DSCP
 * @param    *pVal       @b{(output)} Ptr to traffic class output value
 *
@@ -389,7 +398,7 @@ L7_RC_t cosMapIpDscpIndexGetNext(L7_uint32 dscp, L7_uint32 *pNext)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpDscpTrafficClassGet(L7_uint32 intIfNum, L7_uint32 dscp,
+L7_RC_t cosMapIpDscpTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 dscp,
                                     L7_uint32 *pVal)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -401,7 +410,7 @@ L7_RC_t cosMapIpDscpTrafficClassGet(L7_uint32 intIfNum, L7_uint32 dscp,
   if (pVal == L7_NULLPTR)
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   *pVal = pCfg->mapping.ipDscpMapTable[dscp];
@@ -412,6 +421,7 @@ L7_RC_t cosMapIpDscpTrafficClassGet(L7_uint32 intIfNum, L7_uint32 dscp,
 * @purpose  Set the assigned traffic class (queue) for this IP DSCP
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    dscp        @b{(input)}  IP DSCP
 * @param    val         @b{(input)}  Traffic class value
 *
@@ -422,7 +432,7 @@ L7_RC_t cosMapIpDscpTrafficClassGet(L7_uint32 intIfNum, L7_uint32 dscp,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpDscpTrafficClassSet(L7_uint32 intIfNum, L7_uint32 dscp,
+L7_RC_t cosMapIpDscpTrafficClassSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 dscp,
                                     L7_uint32 val)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -443,7 +453,7 @@ L7_RC_t cosMapIpDscpTrafficClassSet(L7_uint32 intIfNum, L7_uint32 dscp,
   if ((L7_uchar8)val > (pCosInfo_g->numTrafficClasses[intIfNum] - 1))
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* this is a no-op if currently configured value is same as new value */
@@ -481,6 +491,7 @@ L7_RC_t cosMapIpDscpTrafficClassGlobalSet(L7_uint32 dscp, L7_uint32 val)
 {
   L7_cosCfgParms_t  *pCfgGlob, *pCfgIntf;
   L7_uint32         intIfNum, globIntIfNum;
+  l7_cosq_set_t     queueSet;
 
   /* check IP DSCP in range */
   if (cosMapIpDscpIndexGet(dscp) != L7_SUCCESS)
@@ -496,7 +507,7 @@ L7_RC_t cosMapIpDscpTrafficClassGlobalSet(L7_uint32 dscp, L7_uint32 val)
     return L7_FAILURE;
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* update each configurable interface with this global value
@@ -512,22 +523,25 @@ L7_RC_t cosMapIpDscpTrafficClassGlobalSet(L7_uint32 dscp, L7_uint32 val)
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-    /* only work with configurable interfaces when changing global config */
-    if (cosCfgPtrFind(intIfNum, &pCfgIntf) == L7_SUCCESS)
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
     {
-      if (cosMapIpDscpTrafficClassSet(intIfNum, dscp, val) != L7_SUCCESS)
+      /* only work with configurable interfaces when changing global config */
+      if (cosCfgPtrFind(intIfNum, queueSet, &pCfgIntf) == L7_SUCCESS)
       {
-        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                "Unable to set global IP DSCP mapping on intf %s "
-                "(dscp=%u class=%u)\n", ifName, dscp, val);
-      }
+        if (cosMapIpDscpTrafficClassSet(intIfNum, queueSet, dscp, val) != L7_SUCCESS)
+        {
+          L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+                  "Unable to set global IP DSCP mapping on intf %s, queueSet %u "
+                  "(dscp=%u class=%u)\n", ifName, queueSet, dscp, val);
+        }
 
-      /* if global-only config supported, find and remember intIfNum to use
-       * for global 'apply' call below
-       */
-      if (globIntIfNum == 0)
-        if (cosIntfIsWriteableCond(intIfNum, L7_TRUE, L7_COS_MAP_IPDSCP_PER_INTF_FEATURE_ID) == L7_TRUE)
-          globIntIfNum = intIfNum;
+        /* if global-only config supported, find and remember intIfNum to use
+         * for global 'apply' call below
+         */
+        if (globIntIfNum == 0)
+          if (cosIntfIsWriteableCond(intIfNum, L7_TRUE, L7_COS_MAP_IPDSCP_PER_INTF_FEATURE_ID) == L7_TRUE)
+            globIntIfNum = intIfNum;
+      }
     }
   }
 
@@ -547,6 +561,7 @@ L7_RC_t cosMapIpDscpTrafficClassGlobalSet(L7_uint32 dscp, L7_uint32 val)
 * @purpose  Get default traffic class mapping for specified IP DSCP value
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    dscp        @b{(input)}  IP DSCP
 * @param    *pVal       @b{(output)} Ptr to traffic class output value
 *
@@ -560,17 +575,18 @@ L7_RC_t cosMapIpDscpTrafficClassGlobalSet(L7_uint32 dscp, L7_uint32 val)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpDscpDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint32 dscp,
+L7_RC_t cosMapIpDscpDefaultTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 dscp,
                                            L7_uint32 *pVal)
 {
   /* called function checks input parms */
-  return cosDefaultMappingIpDscpGet(intIfNum, dscp, pVal);
+  return cosDefaultMappingIpDscpGet(intIfNum, queueSet, dscp, pVal);
 }
 
 /*************************************************************************
 * @purpose  Restore default IP DSCP mappings for this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -579,7 +595,7 @@ L7_RC_t cosMapIpDscpDefaultTrafficClassGet(L7_uint32 intIfNum, L7_uint32 dscp,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIpDscpDefaultsRestore(L7_uint32 intIfNum)
+L7_RC_t cosMapIpDscpDefaultsRestore(L7_uint32 intIfNum, l7_cosq_set_t queueSet)
 {
   L7_uint32     i, val;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
@@ -588,12 +604,12 @@ L7_RC_t cosMapIpDscpDefaultsRestore(L7_uint32 intIfNum)
   /* update each interface config value using default mapping */
   for (i = 0; i < L7_QOS_COS_MAP_NUM_IPDSCP; i++)
   {
-    if ((cosDefaultMappingIpDscpGet(intIfNum, i, &val) != L7_SUCCESS) ||
-        (cosMapIpDscpTrafficClassSet(intIfNum, i, val) != L7_SUCCESS))
+    if ((cosDefaultMappingIpDscpGet(intIfNum, queueSet, i, &val) != L7_SUCCESS) ||
+        (cosMapIpDscpTrafficClassSet(intIfNum, queueSet, i, val) != L7_SUCCESS))
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-              "Unable to set default IP DSCP mapping for intf %s, "
-              "prec=%u class=%u\n", ifName, i, val);
+              "Unable to set default IP DSCP mapping for intf %s, queueSet %u "
+              "prec=%u class=%u\n", ifName, queueSet, i, val);
     }
   }
 
@@ -619,7 +635,7 @@ L7_RC_t cosMapIpDscpDefaultsGlobalRestore(void)
   /* update each global config value using default mapping */
   for (i = 0; i < L7_QOS_COS_MAP_NUM_IPDSCP; i++)
   {
-    if ((cosDefaultMappingIpDscpGet(L7_ALL_INTERFACES, i, &val) != L7_SUCCESS) ||
+    if ((cosDefaultMappingIpDscpGet(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, i, &val) != L7_SUCCESS) ||
         (cosMapIpDscpTrafficClassGlobalSet(i, val) != L7_SUCCESS))
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
@@ -695,6 +711,7 @@ L7_BOOL cosMapIntfIsValid(L7_uint32 intIfNum)
 * @purpose  Get the COS trust mode for this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to trust mode output value
 *
 * @returns  L7_SUCCESS
@@ -704,7 +721,7 @@ L7_BOOL cosMapIntfIsValid(L7_uint32 intIfNum)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIntfTrustModeGet(L7_uint32 intIfNum,
+L7_RC_t cosMapIntfTrustModeGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                L7_QOS_COS_MAP_INTF_MODE_t *pVal)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -712,7 +729,7 @@ L7_RC_t cosMapIntfTrustModeGet(L7_uint32 intIfNum,
   if (pVal == L7_NULLPTR)
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   *pVal = (L7_QOS_COS_MAP_INTF_MODE_t)pCfg->mapping.intfTrustMode;
@@ -723,6 +740,7 @@ L7_RC_t cosMapIntfTrustModeGet(L7_uint32 intIfNum,
 * @purpose  Set the COS trust mode for this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    val         @b{(input)}  Trust mode value
 *
 * @returns  L7_SUCCESS
@@ -732,7 +750,7 @@ L7_RC_t cosMapIntfTrustModeGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapIntfTrustModeSet(L7_uint32 intIfNum,
+L7_RC_t cosMapIntfTrustModeSet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                L7_QOS_COS_MAP_INTF_MODE_t val)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -748,11 +766,11 @@ L7_RC_t cosMapIntfTrustModeSet(L7_uint32 intIfNum,
       (val > L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP))
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
 #if defined(FEAT_METRO_CPE_V1_0)
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   /* Do not allow config change of interface mode when global mode is different.
@@ -774,7 +792,7 @@ L7_RC_t cosMapIntfTrustModeSet(L7_uint32 intIfNum,
   pCfg->mapping.intfTrustMode = (L7_uchar8)val;
 
   /* setting flag to true to force DTL call even if changing to trust-dot1p mode */
-  (void)cosMapIntfTrustModeApply(intIfNum, pCfg, L7_TRUE);  /* rc ignored here */
+  (void)cosMapIntfTrustModeApply(intIfNum, queueSet, pCfg, L7_TRUE);  /* rc ignored here */
 
   if (pCfg->mapping.intfTrustMode != (L7_uchar8)val)
    pCosCfgData_g->cfgHdr.dataChanged = L7_TRUE;
@@ -798,6 +816,7 @@ L7_RC_t cosMapIntfTrustModeGlobalSet(L7_QOS_COS_MAP_INTF_MODE_t val)
 {
   L7_cosCfgParms_t  *pCfgGlob, *pCfgIntf;
   L7_uint32         intIfNum;
+  l7_cosq_set_t     queueSet;
 
   /* check proposed value against trust mode range */
   if ((val < L7_QOS_COS_MAP_INTF_MODE_UNTRUSTED) ||
@@ -805,7 +824,7 @@ L7_RC_t cosMapIntfTrustModeGlobalSet(L7_QOS_COS_MAP_INTF_MODE_t val)
     return L7_FAILURE;
 
   /* make sure global config can be referenced */
-  if (cosCfgPtrFind(L7_ALL_INTERFACES, &pCfgGlob) != L7_SUCCESS)
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, L7_QOS_QSET_DEFAULT, &pCfgGlob) != L7_SUCCESS)
     return L7_FAILURE;
 
   if (pCfgGlob->mapping.intfTrustMode != (L7_uchar8)val)
@@ -826,14 +845,17 @@ L7_RC_t cosMapIntfTrustModeGlobalSet(L7_QOS_COS_MAP_INTF_MODE_t val)
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-    /* only work with configurable interfaces when changing global config */
-    if (cosCfgPtrFind(intIfNum, &pCfgIntf) == L7_SUCCESS)
+    for (queueSet = 0; queueSet < L7_MAX_CFG_QUEUESETS_PER_PORT; queueSet++)
     {
-      if (cosMapIntfTrustModeSet(intIfNum, val) != L7_SUCCESS)
+      /* only work with configurable interfaces when changing global config */
+      if (cosCfgPtrFind(intIfNum, queueSet, &pCfgIntf) == L7_SUCCESS)
       {
-        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
-                "Unable to set global \'%s\' trust mode on intf %s\n",
-                cosMapIntfModeStr[val], ifName);
+        if (cosMapIntfTrustModeSet(intIfNum, queueSet, val) != L7_SUCCESS)
+        {
+          L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+                  "Unable to set global \'%s\' trust mode on intf %s, queueSet %u\n",
+                  cosMapIntfModeStr[val], ifName, queueSet);
+        }
       }
     }
   } /* endfor i */
@@ -846,6 +868,7 @@ L7_RC_t cosMapIntfTrustModeGlobalSet(L7_QOS_COS_MAP_INTF_MODE_t val)
 * @purpose  Get the COS untrusted port default traffic class for this interface
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    *pVal       @b{(output)} Ptr to untrusted traffic class output value
 *
 * @returns  L7_SUCCESS
@@ -855,7 +878,7 @@ L7_RC_t cosMapIntfTrustModeGlobalSet(L7_QOS_COS_MAP_INTF_MODE_t val)
 *
 * @end
 *********************************************************************/
-L7_RC_t cosMapUntrustedPortDefaultTrafficClassGet(L7_uint32 intIfNum,
+L7_RC_t cosMapUntrustedPortDefaultTrafficClassGet(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                                   L7_uint32 *pVal)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -864,7 +887,7 @@ L7_RC_t cosMapUntrustedPortDefaultTrafficClassGet(L7_uint32 intIfNum,
   if (pVal == L7_NULLPTR)
     return L7_FAILURE;
 
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
 
   if (intIfNum == L7_ALL_INTERFACES)
@@ -880,6 +903,7 @@ L7_RC_t cosMapUntrustedPortDefaultTrafficClassGet(L7_uint32 intIfNum,
 * @purpose  Handle update to port default priority
 *
 * @param    intIfNum                @b{(input)}  Internal interface number
+* @param    queueSet                @b{(input)}  Group of queues
 * @param    portDefaultPriority     @b{(input)}  Port default priority
 * @param    portDefaultTrafficClass @b{(input)}  Port default traffic class
 *
@@ -900,7 +924,7 @@ L7_RC_t cosMapUntrustedPortDefaultTrafficClassGet(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-void cosMapPortDefaultPriorityUpdate(L7_uint32 intIfNum,
+void cosMapPortDefaultPriorityUpdate(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                      L7_uint32 portDefaultPriority,
                                      L7_uint32 portDefaultTrafficClass)
 {
@@ -947,7 +971,7 @@ void cosMapPortDefaultPriorityUpdate(L7_uint32 intIfNum,
   }
 
   /* stop here if interface is not configurable for COS */
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return;
 
   /* re-apply the current COS interface trust mode, which will use the new
@@ -962,7 +986,7 @@ void cosMapPortDefaultPriorityUpdate(L7_uint32 intIfNum,
     if (pCfg->mapping.intfTrustMode == L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P)
       return;
 
-    if (cosConfigIntfMapTableDataApply(intIfNum, pCfg, L7_FALSE) != L7_SUCCESS)
+    if (cosConfigIntfMapTableDataApply(intIfNum, queueSet, pCfg, L7_FALSE) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
               "%s: Unable to apply port default traffic class COS mapping to intf %s \n",
@@ -976,6 +1000,7 @@ void cosMapPortDefaultPriorityUpdate(L7_uint32 intIfNum,
 * @purpose  Handle update to number of operational traffic classes
 *
 * @param    intIfNum          @b{(input)}  Internal interface number
+* @param    queueSet          @b{(input)}  Group of queues
 * @param    numTrafficClasses @b{(input)}  Number of traffic classes
 *
 * @returns  L7_SUCCESS
@@ -996,7 +1021,7 @@ void cosMapPortDefaultPriorityUpdate(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-void cosMapNumTrafficClassesUpdate(L7_uint32 intIfNum,
+void cosMapNumTrafficClassesUpdate(L7_uint32 intIfNum, l7_cosq_set_t queueSet, 
                                    L7_uint32 numTrafficClasses)
 {
   L7_cosCfgParms_t  *pCfg;
@@ -1033,7 +1058,7 @@ void cosMapNumTrafficClassesUpdate(L7_uint32 intIfNum,
   *pNum = (L7_uchar8)numTrafficClasses;
 
   /* stop here if interface is not configurable for COS */
-  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+  if (cosCfgPtrFind(intIfNum, queueSet, &pCfg) != L7_SUCCESS)
     return;
 
   /* re-initialize the COS mapping tables */
@@ -1044,7 +1069,7 @@ void cosMapNumTrafficClassesUpdate(L7_uint32 intIfNum,
    */
   if (intIfNum != L7_ALL_INTERFACES)
   {
-    if (cosConfigIntfMapTableDataApply(intIfNum, pCfg, L7_FALSE) != L7_SUCCESS)
+    if (cosConfigIntfMapTableDataApply(intIfNum, queueSet, pCfg, L7_FALSE) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
               "%s: Unable to apply default COS map table config to intf %s \n",
@@ -1058,6 +1083,7 @@ void cosMapNumTrafficClassesUpdate(L7_uint32 intIfNum,
 * @purpose  Check if 802.1p user priority mapping is active
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 *
 * @returns  L7_TRUE
 * @returns  L7_FALSE
@@ -1072,7 +1098,7 @@ void cosMapNumTrafficClassesUpdate(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_BOOL cosMapDot1pMappingIsActive(L7_uint32 intIfNum)
+L7_BOOL cosMapDot1pMappingIsActive(L7_uint32 intIfNum, l7_cosq_set_t queueSet)
 {
   L7_BOOL                     rc = L7_FALSE;
   L7_QOS_COS_MAP_INTF_MODE_t  intfTrustMode;
@@ -1085,7 +1111,7 @@ L7_BOOL cosMapDot1pMappingIsActive(L7_uint32 intIfNum)
     return L7_TRUE;
 
   /* NOTE:  intIfNum validity is checked within the called function chain */
-  if (cosMapIntfTrustModeGet(intIfNum, &intfTrustMode) == L7_SUCCESS)
+  if (cosMapIntfTrustModeGet(intIfNum, queueSet, &intfTrustMode) == L7_SUCCESS)
     if (intfTrustMode == L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P)
       rc = L7_TRUE;
 
@@ -1146,7 +1172,8 @@ L7_BOOL cosMapTableContentIsValid(L7_uint32 intIfNum, L7_cosMapCfg_t *pCfgMap)
 * @purpose  Display the current COS Mapping Table contents
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
-*
+* @param    queueSet    @b{(input)}  Group of queues
+* 
 * @returns  void
 *
 * @comments Engineering debug function.
@@ -1156,7 +1183,7 @@ L7_BOOL cosMapTableContentIsValid(L7_uint32 intIfNum, L7_cosMapCfg_t *pCfgMap)
 *
 * @end
 *********************************************************************/
-void cosMapTableShow(L7_uint32 intIfNum)
+void cosMapTableShow(L7_uint32 intIfNum, l7_cosq_set_t queueSet)
 {
   L7_cosMapCfg_t        *pMap;
   L7_uint32             msgLvlReqd;
@@ -1176,12 +1203,12 @@ void cosMapTableShow(L7_uint32 intIfNum)
   {
     if (cosIntfIsConfigurable(intIfNum, &pCfgIntf) == L7_TRUE)
     {
-      pMap = &pCfgIntf->cfg.mapping;
+      pMap = &pCfgIntf->cfg[queueSet].mapping;
     }
     else
     {
-      COS_PRT(msgLvlReqd, "\nCould not find configuration for interface %u\n\n",
-              intIfNum);
+      COS_PRT(msgLvlReqd, "\nCould not find configuration for interface %u, queueSet %u\n\n",
+              intIfNum, queueSet);
       return;
     }
   }
@@ -1189,8 +1216,8 @@ void cosMapTableShow(L7_uint32 intIfNum)
   /* display all relevant mapping tables */
   cosMapPortDefaultPriorityTableShow(intIfNum, msgLvlReqd);
   cosMapDot1pTableShow(intIfNum, msgLvlReqd);
-  cosMapIpPrecTableShow(intIfNum, msgLvlReqd);
-  cosMapIpDscpTableShow(intIfNum, msgLvlReqd);
+  cosMapIpPrecTableShow(intIfNum, queueSet, msgLvlReqd);
+  cosMapIpDscpTableShow(intIfNum, queueSet, msgLvlReqd);
 
   /* display interface trust mode */
   COS_PRT(msgLvlReqd, "  Interface Trust Mode:  %s\n",
@@ -1275,6 +1302,7 @@ void cosMapDot1pTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd)
 * @purpose  Display formatted COS IP precedence mapping table
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    msgLvlReqd  @b{(input)}  COS debug message level required
 *
 * @returns  void
@@ -1286,7 +1314,7 @@ void cosMapDot1pTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd)
 *
 * @end
 *********************************************************************/
-void cosMapIpPrecTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd)
+void cosMapIpPrecTableShow(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 msgLvlReqd)
 {
   L7_cosMapCfg_t        *pMap;
   L7_cosCfgIntfParms_t  *pCfgIntf;
@@ -1303,17 +1331,18 @@ void cosMapIpPrecTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd)
   {
     if (cosIntfIsConfigurable(intIfNum, &pCfgIntf) == L7_TRUE)
     {
-      pMap = &pCfgIntf->cfg.mapping;
+      pMap = &pCfgIntf->cfg[queueSet].mapping;
     }
     else
     {
-      COS_PRT(msgLvlReqd, "\nCould not find configuration for interface %u\n\n",
-              intIfNum);
+      COS_PRT(msgLvlReqd, "\nCould not find configuration for interface %u, queueSet %u\n\n",
+              intIfNum, queueSet);
       return;
     }
   }
 
   /* display IP precedence mapping table */
+  COS_PRT(msgLvlReqd, "intIfNum %u, queueSet %u\n", intIfNum, queueSet);
   COS_PRT(msgLvlReqd, "  IP Precedence Map:  0 1 2 3 4 5 6 7 \n");
   COS_PRT(msgLvlReqd, "                      - - - - - - - - \n");
   COS_PRT(msgLvlReqd, "           queue id:  ");
@@ -1328,6 +1357,7 @@ void cosMapIpPrecTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd)
 * @purpose  Display formatted COS IP DSCP mapping table
 *
 * @param    intIfNum    @b{(input)}  Internal interface number
+* @param    queueSet    @b{(input)}  Group of queues
 * @param    msgLvlReqd  @b{(input)}  COS debug message level required
 *
 * @returns  void
@@ -1339,7 +1369,7 @@ void cosMapIpPrecTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd)
 *
 * @end
 *********************************************************************/
-void cosMapIpDscpTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd)
+void cosMapIpDscpTableShow(L7_uint32 intIfNum, l7_cosq_set_t queueSet, L7_uint32 msgLvlReqd)
 {
   L7_cosMapCfg_t        *pMap;
   L7_cosCfgIntfParms_t  *pCfgIntf;
@@ -1356,17 +1386,18 @@ void cosMapIpDscpTableShow(L7_uint32 intIfNum, L7_uint32 msgLvlReqd)
   {
     if (cosIntfIsConfigurable(intIfNum, &pCfgIntf) == L7_TRUE)
     {
-      pMap = &pCfgIntf->cfg.mapping;
+      pMap = &pCfgIntf->cfg[queueSet].mapping;
     }
     else
     {
-      COS_PRT(msgLvlReqd, "\nCould not find configuration for interface %u\n\n",
-              intIfNum);
+      COS_PRT(msgLvlReqd, "\nCould not find configuration for interface %u, queueSet %u\n\n",
+              intIfNum, queueSet);
       return;
     }
   }
 
   /* display IP DSCP mapping table */
+  COS_PRT(msgLvlReqd, "intIfNum %u, queueSet %u\n", intIfNum, queueSet);
   COS_PRT(msgLvlReqd, "  IP DSCP Map: \\                       1 1 1 1 1 1 \n");
   COS_PRT(msgLvlReqd, "                \\  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 \n");
   COS_PRT(msgLvlReqd, "                 \\ - - - - - - - - - - - - - - - - ");

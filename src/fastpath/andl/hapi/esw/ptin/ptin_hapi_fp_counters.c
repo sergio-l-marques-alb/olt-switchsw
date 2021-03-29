@@ -220,9 +220,10 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
   DAPI_PORT_t        *dapiPortPtr;
   BROAD_PORT_t       *hapiPortPtr;
   ptin_hapi_intf_t    portDescriptor;
-  pbmp_t              pbm, pbm_mask;
   L7_uint8            packets_type;
   BROAD_POLICY_STAGE_t  stage;
+  pbmp_t              pbm, pbm_mask;
+  L7_uint64           usp_bmp;
 
   PT_LOG_TRACE(LOG_CTX_HAPI,"Starting processing...");
 
@@ -320,21 +321,26 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
 
   /* AT THIS POINT POLICER_PTR HAS A VALID ADDRESS */
 
-  /* Interfaces mask (for inports field) */
-  hapi_ptin_allportsbmp_get(&pbm_mask);
-
-  BCM_PBMP_CLEAR(pbm);
+  usp_bmp = 0;
   portDescriptor.gport            = -1;
   portDescriptor.bcm_port         = -1;
   portDescriptor.trunk_id         = -1;
 //portDescriptor.efp_class_port   =  0;
   portDescriptor.xlate_class_port =  0;
 
-  if (ptin_hapi_portDescriptor_get(usp, dapi_g, &pbm, &portDescriptor, &dapiPortPtr, &hapiPortPtr) != L7_SUCCESS ||
+  if (ptin_hapi_portDescriptor_get(usp, dapi_g, &portDescriptor, &dapiPortPtr, &hapiPortPtr) != L7_SUCCESS ||
       (portDescriptor.bcm_port < 0 && portDescriptor.trunk_id < 0) ||
       (dapiPortPtr == L7_NULLPTR || hapiPortPtr == L7_NULLPTR))
   {
     PT_LOG_ERR(LOG_CTX_HAPI,"Error acquiring interface descriptor!");
+    return L7_FAILURE;
+  }
+  usp_bmp = portDescriptor.usp_bmp;
+
+  /* Get pbm format of ports */
+  if (hapi_ptin_port_bitmap_get(usp, dapi_g, usp_bmp, &pbm, &pbm_mask) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error converting port bitmap to pbmp format");
     return L7_FAILURE;
   }
 
@@ -452,10 +458,26 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
       {
         if (portDescriptor.bcm_port>=0)
         {
-          PT_LOG_TRACE(LOG_CTX_HAPI,"value = %08x %08x",pbm.pbits[0],pbm.pbits[1]);
-          PT_LOG_TRACE(LOG_CTX_HAPI,"mask  = %08x %08x",pbm_mask.pbits[0],pbm_mask.pbits[1]);
+#ifdef ICAP_INTERFACES_SELECTION_BY_CLASSPORT
+          {
+            bcm_port_t bcm_port, bcm_port_mask;
 
-          if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uint8 *)&pbm, (L7_uint8 *)&pbm_mask))!=L7_SUCCESS)
+            bcm_port = portDescriptor.bcm_port;
+            bcm_port_mask = 0xffff;
+
+            PT_LOG_TRACE(LOG_CTX_HAPI,"bcm_port = %x/%x", bcm_port, bcm_port_mask);
+
+            result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORT, (L7_uint8 *)&bcm_port, (L7_uint8 *)&bcm_port_mask);
+          }
+#else
+          {
+            PT_LOG_TRACE(LOG_CTX_HAPI,"value = %08x %08x",pbm.pbits[0],pbm.pbits[1]);
+            PT_LOG_TRACE(LOG_CTX_HAPI,"mask  = %08x %08x",pbm_mask.pbits[0],pbm_mask.pbits[1]);
+
+            result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uint8 *)&pbm, (L7_uint8 *)&pbm_mask);
+          }
+#endif
+          if (result != L7_SUCCESS)
           {
             PT_LOG_ERR(LOG_CTX_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(INPORTS)");
             break;
@@ -648,45 +670,14 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
     /* Add physical ports for Lookup/Egress rules */
     if (stage == BROAD_POLICY_STAGE_LOOKUP || stage == BROAD_POLICY_STAGE_EGRESS)
     {
-      /* For valid ports */
-      if (usp->unit >= 0 && usp->slot >= 0 && usp->port >= 0)
+      if (BCM_PBMP_NOT_NULL(pbm))
       {
-        L7_uint i;
-
-        /* Remove all ports */
-        hapiBroadPolicyRemoveFromAll(policyId);
-
-        /* Physical port */
-        if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
+        /* Add bitmap of ports to policy */
+        if (hapiBroadPolicyApplyToMultiIface(policyId, pbm) != L7_SUCCESS)
         {
-          if (hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcm_gport) != L7_SUCCESS)
-          {
-            hapiBroadPolicyDelete(policyId);
-            PT_LOG_ERR(LOG_CTX_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u!", usp->unit,usp->slot,usp->port, hapiPortPtr->bcm_port);
-            return L7_FAILURE;
-          }
-        }
-        /* Logical port to be added (add lag members) */
-        else if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_TRUE)
-        {
-          BROAD_PORT_t *hapiLagMemberPortPtr;
-
-          hapiBroadLagCritSecEnter ();
-          for (i = 0; i < L7_MAX_MEMBERS_PER_LAG; i++)
-          {
-            if (dapiPortPtr->modeparm.lag.memberSet[i].inUse == L7_TRUE)
-            {
-              hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
-
-              if (hapiBroadPolicyApplyToIface(policyId, hapiLagMemberPortPtr->bcm_gport) != L7_SUCCESS)
-              {
-                hapiBroadPolicyDelete(policyId);
-                PT_LOG_ERR(LOG_CTX_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u!", usp->unit,usp->slot,usp->port, hapiLagMemberPortPtr->bcm_port);
-                return L7_FAILURE;
-              }
-            }
-          }
-          hapiBroadLagCritSecExit ();
+          hapiBroadPolicyDelete(policyId);
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error adding port bitmap to policyId %u", policyId);
+          return L7_FAILURE;
         }
       }
     }

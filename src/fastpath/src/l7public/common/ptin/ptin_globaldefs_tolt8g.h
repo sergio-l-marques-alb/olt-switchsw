@@ -13,13 +13,18 @@
 #define PTIN_SYS_MX1_SLOT           (PTIN_SYS_LC_SLOT_MIN-1)
 #define PTIN_SYS_MX2_SLOT           (PTIN_SYS_LC_SLOT_MAX+1)
 
-# define PTIN_SYSTEM_N_PORTS           12
 # define PTIN_SYSTEM_N_PONS            8 
 # define PTIN_SYSTEM_N_ETH             0
+# define PTIN_SYSTEM_N_UPLINK          4
+# define PTIN_SYSTEM_N_INTERNAL        0
+# define PTIN_SYSTEM_N_PORTS           (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_UPLINK + PTIN_SYSTEM_N_INTERNAL)
+# define PTIN_SYSTEM_N_PORTS_PHYSICAL  PTIN_SYSTEM_N_PORTS
+# define PTIN_SYSTEM_N_PONS_PHYSICAL   PTIN_SYSTEM_N_PONS
+# define PTIN_SYSTEM_N_ETH_PHYSICAL    PTIN_SYSTEM_N_ETH
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   0
-# define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS
-# define PTIN_SYSTEM_N_PORTS_AND_LAGS  max(PTIN_SYSTEM_N_PORTS, PTIN_SYSTEM_N_LAGS)
+# define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS_PHYSICAL
 # define PTIN_SYSTEM_N_INTERF          (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_N_LAGS)
+# define PTIN_SYSTEM_N_CLIENT_PORTS    (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH)
 
 # define PTIN_SYSTEM_PON_PORTS_MASK    0x000000FF
 # define PTIN_SYSTEM_ETH_PORTS_MASK    0x00000000
@@ -85,6 +90,10 @@
 # define PTIN_SYSTEM_N_PPPOE_INSTANCES              8     /* Maximum nr of PPPoE instances */
 # define PTIN_SYSTEM_DHCP_MAXCLIENTS                512   /* Maximum DHCP clients */
 # define PTIN_SYSTEM_PPPOE_MAXCLIENTS               512   /* Maximum PPPoE clients */
+
+/* The following constants will allow L2intf range separation, in order to allow
+   specific QoS configurations for each range. */
+#define L2INTF_ID_MAX   PTIN_SYSTEM_N_CLIENTS
 
 #define SNOOP_PTIN_MGMD_SUPPORT //Comment this line if you want to disable MGMD integration (not supported..)
 #define SNOOP_PTIN_IGMPv3_GLOBAL 1//Change to 0 if you want to globally disable IGMPv3 Module

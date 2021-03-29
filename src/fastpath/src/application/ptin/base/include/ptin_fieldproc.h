@@ -213,7 +213,7 @@ extern L7_RC_t ptin_pppoePkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable);
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_stormControl_get(L7_BOOL enable, L7_uint32 intIfNum, L7_uint16 vlanId, L7_uint16 vlanId_mask, ptin_stormControl_t *stormControl);
+extern L7_RC_t ptin_stormControl_get(L7_BOOL enable, L7_uint32 ptin_port, L7_uint16 vlanId, L7_uint16 vlanId_mask, ptin_stormControl_t *stormControl);
 
 /**
  * Storm control profile set
@@ -249,12 +249,12 @@ extern L7_RC_t ptin_multicast_rateLimit(L7_BOOL enable, L7_uint16 vlanId);
 /**
  * Control QoS egress remarking
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param enable 
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_qos_egress_remark(L7_uint32 intIfNum, L7_BOOL enable);
+extern L7_RC_t ptin_qos_egress_remark(L7_uint32 ptin_port, L7_BOOL enable);
 
 typedef struct
 {

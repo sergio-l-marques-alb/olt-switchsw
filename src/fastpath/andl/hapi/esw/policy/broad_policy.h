@@ -577,6 +577,22 @@ L7_RC_t hapiBroadPolicyRemoveFromIface(BROAD_POLICY_t policy,
 
 /*********************************************************************
 *
+* @purpose Apply a policy to a bitmap of ports.
+* 
+* @param   BROAD_POLICY_t policy - policy to apply
+* @param   pbm - bitmap of bcm_ports
+*
+* @returns L7_RC_t
+*
+* @notes   Same as individually adding all ports, only faster.
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t hapiBroadPolicyApplyToMultiIface(BROAD_POLICY_t policy, bcm_pbmp_t pbm);
+
+/*********************************************************************
+*
 * @purpose Remove a policy from all Ethernet ports..
 *
 * @param   BROAD_POLICY_t policy   - policy to remove

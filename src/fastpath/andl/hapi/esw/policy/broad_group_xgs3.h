@@ -70,6 +70,7 @@ typedef enum
   ALLOC_BLOCK_PTIN,         /* used for PTIN special polices */    /* PTin added: policer */
   ALLOC_BLOCK_STATS_EVC,    /* used for PTIN special polices */    /* PTin added: stats */
   ALLOC_BLOCK_STATS_CLIENT, /* used for PTIN special polices */    /* PTin added: stats */
+  ALLOC_BLOCK_QOS_QUEUES,   /* used for PTIN special polices */    /* PTin added: for QoS queues assignment */
   ALLOC_BLOCK_MAX
 } group_alloc_block_t;
 
@@ -135,7 +136,8 @@ int policy_group_set_pbm(int                  unit,
                          BROAD_POLICY_STAGE_t policyStage,
                          BROAD_GROUP_t        group,
                          BROAD_ENTRY_t        entry,
-                         bcm_pbmp_t           pbm);
+                         bcm_pbmp_t           pbm,
+                         unsigned char        portClass);
 
 int policy_group_set_portclass(int                  unit,
                                BROAD_POLICY_STAGE_t policyStage,

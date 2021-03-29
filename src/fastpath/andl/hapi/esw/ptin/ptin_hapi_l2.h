@@ -39,7 +39,7 @@ extern L7_RC_t ptin_hapi_maclimit_dec(bcm_l2_addr_t *bcm_l2_addr);
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_vport_maclimit_reset(bcm_gport_t gport);
+extern L7_RC_t ptin_hapi_l2intf_maclimit_reset(bcm_gport_t gport);
 
 /**
  * Set maximum number of learned MAC addresses (Vport level)
@@ -48,7 +48,7 @@ extern L7_RC_t ptin_hapi_vport_maclimit_reset(bcm_gport_t gport);
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint8 max_value);
+extern L7_RC_t ptin_hapi_l2intf_maclimit_setmax(bcm_gport_t gport, L7_uint8 max_value);
 
 /**
  * Set maximum number of learned MAC addresses
@@ -90,18 +90,18 @@ extern L7_RC_t ptin_hapi_maclimit_status(DAPI_USP_t *ddUsp, L7_uint32 *mac_learn
  *  
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_vport_maclimit_alarmconfig(bcm_gport_t gport, int bcm_port, L7_uint16 outer_vid, L7_uint port_id, L7_uint type);
+extern L7_RC_t ptin_hapi_l2intf_maclimit_alarmconfig(bcm_gport_t gport, int bcm_port, L7_uint16 outer_vid, L7_uint port_id, L7_uint type);
 
 /**
- * Get MAC limit state of a particular vport
+ * Get MAC limit state of a particular l2intf
  * 
- * @param vport_id    : vport_id (virtual port)
- * @param over_limit  : if updated to TRUE is over limit (or 
- *                    error), if FALSE is under_limit
+ * @param l2intf_id    : l2intf_id (virtual port)
+ * @param over_limit   : if updated to TRUE is over limit (or 
+ *                       error), if FALSE is under_limit
  *  
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_vport_maclimit_status_get(L7_uint32 vport_id, L7_uint8 *over_limit);
+extern L7_RC_t ptin_hapi_l2intf_maclimit_status_get(L7_uint32 l2intf_id, L7_uint8 *over_limit);
 
 /**
  * Configures the information needed to generate alarms

@@ -17,6 +17,8 @@
 #include "dapi_db.h"
 #include "logger.h"
 
+extern DAPI_t *dapi_g;
+
 
 int ptin_port_stat(bcm_port_t bcm_port)
 {
@@ -462,8 +464,7 @@ int ptin_lookup_counter_clear(L7_int index)
 
 int ptin_lookup_counter_set(L7_int type, L7_int stage, L7_int index, L7_int port, L7_uint16 outerVlan, L7_uint16 innerVlan)
 {
-  bcm_port_t          bcm_port;
-  bcm_gport_t         gport;
+  L7_uint32           bcm_unit, bcm_port, gport;
   BROAD_POLICY_t      policyId;
   BROAD_POLICY_RULE_t ruleId;
   L7_uint8  dmac[]       = {0x00, 0x00, 0xc0, 0x01, 0x01, 0x02};
@@ -476,18 +477,12 @@ int ptin_lookup_counter_set(L7_int type, L7_int stage, L7_int index, L7_int port
   }
 
   /* Apply this rule only to GE48 port */
-  if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
+  if (hapi_ptin_get_bcmdata_from_uspport(port, dapi_g, &bcm_unit, &bcm_port, &gport) != L7_SUCCESS)
   {
     printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
     fflush(stdout);
     hapiBroadPolicyDelete(policyId);
     return L7_FAILURE;
-  }
-  /* FIXME: Only applied to unit 0 */
-  if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
-  {
-    printf("Error with unit %d, port %d", 0, bcm_port);
-    return -1;
   }
 
   ptin_lookup_counter_clear(index);
@@ -596,8 +591,7 @@ static BROAD_POLICY_t policyId_pvid[PTIN_SYSTEM_N_PORTS]  = {[0 ... PTIN_SYSTEM_
 
 int ptin_lookup_pvid_set(L7_int port, L7_uint16 outerVlan, L7_uint16 innerVlan, L7_uint8 vlan_format)
 {
-  bcm_port_t          bcm_port;
-  bcm_gport_t         gport;
+  L7_uint32           bcm_unit, bcm_port, gport;
   BROAD_POLICY_t      policyId;
   BROAD_POLICY_RULE_t ruleId;
   L7_uint8  mask[]       = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
@@ -619,17 +613,11 @@ int ptin_lookup_pvid_set(L7_int port, L7_uint16 outerVlan, L7_uint16 innerVlan, 
   if (outerVlan >= 1 && outerVlan <= 4095)
   {
     /* Apply this rule only to GE48 port */
-    if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
+    if (hapi_ptin_get_bcmdata_from_uspport(port, dapi_g, &bcm_unit, &bcm_port, &gport) != L7_SUCCESS)
     {
       printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
       fflush(stdout);
       return L7_FAILURE;
-    }
-    /* FIXME: Only applied to unit 0 */
-    if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
-    {
-      printf("Error with unit %d, port %d", 0, bcm_port);
-      return -1;
     }
 
     hapiBroadPolicyCreate(BROAD_POLICY_TYPE_PORT);
@@ -1000,20 +988,17 @@ bcm_error_t ptin_phyctrl_link_get(bcm_port_t bcm_port)
 int ptin_vlan_single_translate_action_add(int port, bcm_vlan_t oVlanId, bcm_vlan_t newOVlanId)
 {
   int error;
-  bcm_port_t  bcm_port;
-  bcm_gport_t gport;
+  L7_uint32 bcm_unit, bcm_port, gport;
   bcm_vlan_translate_key_t keyType;
   bcm_vlan_action_set_t action;
 
   // Validate port, and get bcm_port reference
-  if (port>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port,&bcm_port)!=L7_SUCCESS)
+  if (port>=PTIN_SYSTEM_N_PORTS ||
+      hapi_ptin_get_bcmdata_from_uspport(port, dapi_g, &bcm_unit, &bcm_port, &gport) !=L7_SUCCESS)
   {
     printf("Port is invalid\r\n");
     return -1;
   }
-
-  // Calculate gport
-  BCM_GPORT_LOCAL_SET(gport,bcm_port);
 
   keyType = bcmVlanTranslateKeyPortOuter;
 
@@ -1029,9 +1014,10 @@ int ptin_vlan_single_translate_action_add(int port, bcm_vlan_t oVlanId, bcm_vlan
 
   action.new_outer_vlan = newOVlanId;
 
-  error = bcm_vlan_translate_action_add(0,gport,keyType,oVlanId,0,&action);
+  error = bcm_vlan_translate_action_add(bcm_unit,gport,keyType,oVlanId,0,&action);
 
-  printf("bcm_vlan_translate_action_add(0,%u[%d],%u,%u,%u,&action) => %d (\"%s\")\r\n",gport,bcm_port,keyType,oVlanId,0,error,bcm_errmsg(error));
+  printf("bcm_vlan_translate_action_add(%u,%u[%d],%u,%u,%u,&action) => %d (\"%s\")\r\n",
+         bcm_unit,gport,bcm_port,keyType,oVlanId,0,error,bcm_errmsg(error));
 
   return error;
 }
@@ -1039,25 +1025,23 @@ int ptin_vlan_single_translate_action_add(int port, bcm_vlan_t oVlanId, bcm_vlan
 int ptin_vlan_single_translate_action_delete(int port, bcm_vlan_t oVlanId)
 {
   int error;
-  bcm_port_t  bcm_port;
-  bcm_gport_t gport;
+  L7_uint32 bcm_unit, bcm_port, gport;
   bcm_vlan_translate_key_t keyType;
 
   // Validate port, and get bcm_port reference
-  if (port>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port,&bcm_port)!=L7_SUCCESS)
+  if (port>=PTIN_SYSTEM_N_PORTS ||
+      hapi_ptin_get_bcmdata_from_uspport(port, dapi_g, &bcm_unit, &bcm_port, &gport)!=L7_SUCCESS)
   {
     printf("Port is invalid\r\n");
     return -1;
   }
 
-  // Calculate gport
-  BCM_GPORT_LOCAL_SET(gport,bcm_port);
-
   keyType = bcmVlanTranslateKeyPortOuter;
 
-  error = bcm_vlan_translate_action_delete(0,gport,keyType,oVlanId,0);
+  error = bcm_vlan_translate_action_delete(bcm_unit,gport,keyType,oVlanId,0);
 
-  printf("bcm_vlan_translate_action_delete(0,%u[%d],%u,%u,%u) => %d (\"%s\")\r\n",gport,bcm_port,keyType,oVlanId,0,error,bcm_errmsg(error));
+  printf("bcm_vlan_translate_action_delete(%u,%u[%d],%u,%u,%u) => %d (\"%s\")\r\n",
+         bcm_unit,gport,bcm_port,keyType,oVlanId,0,error,bcm_errmsg(error));
 
   return error;
 }
@@ -1067,20 +1051,17 @@ int ptin_vlan_single_translate_action_delete(int port, bcm_vlan_t oVlanId)
 int ptin_vlan_double_translate_action_add(int port, bcm_vlan_t oVlanId, bcm_vlan_t iVlanId, bcm_vlan_t newOVlanId)
 {
   int error;
-  bcm_port_t  bcm_port;
-  bcm_gport_t gport;
+  L7_uint32 bcm_unit, bcm_port, gport;
   bcm_vlan_translate_key_t keyType;
   bcm_vlan_action_set_t action;
 
   // Validate port, and get bcm_port reference
-  if (port>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port,&bcm_port)!=L7_SUCCESS)
+  if (port>=PTIN_SYSTEM_N_PORTS ||
+      hapi_ptin_get_bcmdata_from_uspport(port, dapi_g, &bcm_unit, &bcm_port, &gport)!=L7_SUCCESS)
   {
     printf("Port is invalid\r\n");
     return -1;
   }
-
-  // Calculate gport
-  BCM_GPORT_LOCAL_SET(gport,bcm_port);
 
   keyType = bcmVlanTranslateKeyPortDouble;
 
@@ -1096,9 +1077,10 @@ int ptin_vlan_double_translate_action_add(int port, bcm_vlan_t oVlanId, bcm_vlan
 
   action.new_outer_vlan = newOVlanId;
 
-  error = bcm_vlan_translate_action_add(0,gport,keyType,oVlanId,iVlanId,&action);
+  error = bcm_vlan_translate_action_add(bcm_unit,gport,keyType,oVlanId,iVlanId,&action);
 
-  printf("bcm_vlan_translate_action_add(0,%u[%d],%u,%u,%u,&action) => %d (\"%s\")\r\n",gport,bcm_port,keyType,oVlanId,iVlanId,error,bcm_errmsg(error));
+  printf("bcm_vlan_translate_action_add(%u,%u[%d],%u,%u,%u,&action) => %d (\"%s\")\r\n",
+         bcm_unit,gport,bcm_port,keyType,oVlanId,iVlanId,error,bcm_errmsg(error));
 
   return error;
 }
@@ -1106,25 +1088,23 @@ int ptin_vlan_double_translate_action_add(int port, bcm_vlan_t oVlanId, bcm_vlan
 int ptin_vlan_double_translate_action_delete(int port, bcm_vlan_t oVlanId, bcm_vlan_t iVlanId)
 {
   int error;
-  bcm_port_t  bcm_port;
-  bcm_gport_t gport;
+  L7_uint32 bcm_unit, bcm_port, gport;
   bcm_vlan_translate_key_t keyType;
 
   // Validate port, and get bcm_port reference
-  if (port>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port,&bcm_port)!=L7_SUCCESS)
+  if (port>=PTIN_SYSTEM_N_PORTS ||
+      hapi_ptin_get_bcmdata_from_uspport(port, dapi_g, &bcm_unit, &bcm_port, &gport)!=L7_SUCCESS)
   {
     printf("Port is invalid\r\n");
     return -1;
   }
 
-  // Calculate gport
-  BCM_GPORT_LOCAL_SET(gport,bcm_port);
-
   keyType = bcmVlanTranslateKeyPortDouble;
 
-  error = bcm_vlan_translate_action_delete(0,gport,keyType,oVlanId,iVlanId);
+  error = bcm_vlan_translate_action_delete(bcm_unit,gport,keyType,oVlanId,iVlanId);
 
-  printf("bcm_vlan_translate_action_delete(0,%u[%d],%u,%u,%u) => %d (\"%s\")\r\n",gport,bcm_port,keyType,oVlanId,iVlanId,error,bcm_errmsg(error));
+  printf("bcm_vlan_translate_action_delete(%u,%u[%d],%u,%u,%u) => %d (\"%s\")\r\n",
+         bcm_unit,gport,bcm_port,keyType,oVlanId,iVlanId,error,bcm_errmsg(error));
 
   return error;
 }
@@ -1252,20 +1232,19 @@ int ptin_vlan_single_cross_connect_add(int port1, int port2, bcm_vlan_t oVlanId)
   bcm_gport_t gport1, gport2;
 
   // Validate port, and get bcm_port reference
-  if (port1>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port1,&bcm_port1)!=L7_SUCCESS ||
-      port2>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port2,&bcm_port2)!=L7_SUCCESS)
+  if (port1>=PTIN_SYSTEM_N_PORTS ||
+      hapi_ptin_get_bcmdata_from_uspport(port1, dapi_g, L7_NULLPTR, &bcm_port1, &gport1)!=L7_SUCCESS ||
+      port2>=PTIN_SYSTEM_N_PORTS ||
+      hapi_ptin_get_bcmdata_from_uspport(port2, dapi_g, L7_NULLPTR, &bcm_port2, &gport2)!=L7_SUCCESS)
   {
     printf("Port is invalid\r\n");
     return -1;
   }
 
-  // Calculate gport
-  BCM_GPORT_LOCAL_SET(gport1,bcm_port1);
-  BCM_GPORT_LOCAL_SET(gport2,bcm_port2);
-
   error = bcm_vlan_cross_connect_add(0,oVlanId,BCM_VLAN_INVALID,gport1,gport2);
 
-  printf("bcm_vlan_cross_connect_add(0,%u,%u,%u[%d],%u[%d]) => %d (\"%s\")\r\n",oVlanId,BCM_VLAN_INVALID,gport1,bcm_port1,gport2,bcm_port2,error,bcm_errmsg(error));
+  printf("bcm_vlan_cross_connect_add(0,%u,%u,%u[%d],%u[%d]) => %d (\"%s\")\r\n",
+         oVlanId,BCM_VLAN_INVALID,gport1,bcm_port1,gport2,bcm_port2,error,bcm_errmsg(error));
 
   return error;
 }
@@ -1276,7 +1255,8 @@ int ptin_vlan_single_cross_connect_delete(bcm_vlan_t oVlanId)
 
   error = bcm_vlan_cross_connect_delete(0,oVlanId,BCM_VLAN_INVALID);
 
-  printf("bcm_vlan_cross_connect_delete(0,%u,%u) => %d (\"%s\")\r\n",oVlanId,BCM_VLAN_INVALID,error,bcm_errmsg(error));
+  printf("bcm_vlan_cross_connect_delete(0,%u,%u) => %d (\"%s\")\r\n",
+         oVlanId,BCM_VLAN_INVALID,error,bcm_errmsg(error));
 
   return error;
 }
@@ -1290,20 +1270,19 @@ int ptin_vlan_double_cross_connect_add(int port1, int port2, bcm_vlan_t oVlanId,
   bcm_gport_t gport1, gport2;
 
   // Validate port, and get bcm_port reference
-  if (port1>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port1,&bcm_port1)!=L7_SUCCESS ||
-      port2>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port2,&bcm_port2)!=L7_SUCCESS)
+  if (port1>=PTIN_SYSTEM_N_PORTS ||
+      hapi_ptin_get_bcmdata_from_uspport(port1, dapi_g, L7_NULLPTR, &bcm_port1, &gport1)!=L7_SUCCESS ||
+      port2>=PTIN_SYSTEM_N_PORTS ||
+      hapi_ptin_get_bcmdata_from_uspport(port2, dapi_g, L7_NULLPTR, &bcm_port2, &gport2)!=L7_SUCCESS)
   {
     printf("Port is invalid\r\n");
     return -1;
   }
 
-  // Calculate gport
-  BCM_GPORT_LOCAL_SET(gport1,bcm_port1);
-  BCM_GPORT_LOCAL_SET(gport2,bcm_port2);
-
   error = bcm_vlan_cross_connect_add(0,oVlanId,iVlanId,gport1,gport2);
 
-  printf("bcm_vlan_cross_connect_add(0,%u,%u,%u[%d],%u[%d]) => %d (\"%s\")\r\n",oVlanId,iVlanId,gport1,bcm_port1,gport2,bcm_port2,error,bcm_errmsg(error));
+  printf("bcm_vlan_cross_connect_add(0,%u,%u,%u[%d],%u[%d]) => %d (\"%s\")\r\n",
+         oVlanId,iVlanId,gport1,bcm_port1,gport2,bcm_port2,error,bcm_errmsg(error));
 
   return error;
 }
@@ -1348,18 +1327,20 @@ int ptin_switch_control_get(bcm_switch_control_t type)
 int ptin_switch_control_port_set(int port, bcm_switch_control_t type, int arg)
 {
   int error;
-  bcm_port_t  bcm_port;
+  L7_uint32 bcm_unit, bcm_port;
 
   // Validate port, and get bcm_port reference
-  if (port>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port,&bcm_port)!=L7_SUCCESS)
+  if (port>=PTIN_SYSTEM_N_PORTS ||
+      hapi_ptin_get_bcmdata_from_uspport(port, dapi_g, &bcm_unit, &bcm_port, L7_NULLPTR) != L7_SUCCESS)
   {
     printf("Port is invalid\r\n");
     return -1;
   }
 
-  error = bcm_switch_control_port_set(0,bcm_port,type,arg);
+  error = bcm_switch_control_port_set(bcm_unit,bcm_port,type,arg);
 
-  printf("bcm_switch_control_port_set(0,%d,%d,%d) => %d (\"%s\")\r\n",bcm_port,type,arg,error,bcm_errmsg(error));
+  printf("bcm_switch_control_port_set(%u,%u,%d,%d) => %d (\"%s\")\r\n",
+         bcm_unit,bcm_port,type,arg,error,bcm_errmsg(error));
 
   return error;
 }
@@ -1368,19 +1349,21 @@ int ptin_switch_control_port_set(int port, bcm_switch_control_t type, int arg)
 int ptin_switch_control_port_get(int port, bcm_switch_control_t type)
 {
   int error;
-  bcm_port_t  bcm_port;
+  L7_uint32 bcm_unit, bcm_port;
   int arg;
 
   // Validate port, and get bcm_port reference
-  if (port>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port,&bcm_port)!=L7_SUCCESS)
+  if (port>=PTIN_SYSTEM_N_PORTS ||
+      hapi_ptin_get_bcmdata_from_uspport(port, dapi_g, &bcm_unit, &bcm_port, L7_NULLPTR) != L7_SUCCESS)
   {
     printf("Port is invalid\r\n");
     return -1;
   }
 
-  error = bcm_switch_control_port_get(0,bcm_port,type,&arg);
+  error = bcm_switch_control_port_get(bcm_unit,bcm_port,type,&arg);
 
-  printf("bcm_switch_control_port_get(0,%d,%d,&arg) => %d (\"%s\") arg=%d\r\n",bcm_port,type,error,bcm_errmsg(error),arg);
+  printf("bcm_switch_control_port_get(%u,%u,%d,&arg) => %d (\"%s\") arg=%d\r\n",
+         bcm_unit,bcm_port,type,error,bcm_errmsg(error),arg);
 
   return error;
 }
@@ -1389,22 +1372,20 @@ int ptin_switch_control_port_get(int port, bcm_switch_control_t type)
 int ptin_port_control_set(int port, bcm_port_control_t type, int arg)
 {
   int error;
-  bcm_port_t  bcm_port;
+  L7_uint32 bcm_unit, bcm_port;
 
-  #if 0
   // Validate port, and get bcm_port reference
-  if (port>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port,&bcm_port)!=L7_SUCCESS)
+  if (port>=PTIN_SYSTEM_N_PORTS ||
+      hapi_ptin_get_bcmdata_from_uspport(port, dapi_g, &bcm_unit, &bcm_port, L7_NULLPTR) != L7_SUCCESS)
   {
     printf("Port is invalid\r\n");
     return -1;
   }
-  #else
-  bcm_port = port;
-  #endif
 
-  error = bcm_port_control_set(0,bcm_port,type,arg);
+  error = bcm_port_control_set(bcm_unit,bcm_port,type,arg);
 
-  printf("bcm_port_control_set(0,%d,%d,%d) => %d (\"%s\")\r\n",bcm_port,type,arg,error,bcm_errmsg(error));
+  printf("bcm_port_control_set(%d,%d,%d,%d) => %d (\"%s\")\r\n",
+         bcm_unit,bcm_port,type,arg,error,bcm_errmsg(error));
 
   return error;
 }
@@ -1413,23 +1394,21 @@ int ptin_port_control_set(int port, bcm_port_control_t type, int arg)
 int ptin_port_control_get(int port, bcm_port_control_t type)
 {
   int error;
-  bcm_port_t  bcm_port;
+  L7_uint32 bcm_unit, bcm_port;
   int arg;
 
-  #if 0
   // Validate port, and get bcm_port reference
-  if (port>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port,&bcm_port)!=L7_SUCCESS)
+  if (port>=PTIN_SYSTEM_N_PORTS ||
+      hapi_ptin_get_bcmdata_from_uspport(port, dapi_g, &bcm_unit, &bcm_port, L7_NULLPTR) != L7_SUCCESS)
   {
     printf("Port is invalid\r\n");
     return -1;
   }
-  #else
-  bcm_port = port;
-  #endif
 
-  error = bcm_port_control_get(0,bcm_port,type,&arg);
+  error = bcm_port_control_get(bcm_unit,bcm_port,type,&arg);
 
-  printf("bcm_port_control_get(0,%d,%d,&arg) => %d (\"%s\") arg=%d\r\n",bcm_port,type,error,bcm_errmsg(error),arg);
+  printf("bcm_port_control_get(%d,%d,%d,&arg) => %d (\"%s\") arg=%d\r\n",
+         bcm_unit,bcm_port,type,error,bcm_errmsg(error),arg);
 
   return error;
 }
@@ -1440,18 +1419,20 @@ int ptin_port_control_get(int port, bcm_port_control_t type)
 int ptin_vlan_control_port_set(int port, bcm_vlan_control_port_t type, int arg)
 {
   int error;
-  bcm_port_t  bcm_port;
+  L7_uint32 bcm_unit, bcm_port;
 
   // Validate port, and get bcm_port reference
-  if (port>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port,&bcm_port)!=L7_SUCCESS)
+  if (port>=PTIN_SYSTEM_N_PORTS ||
+      hapi_ptin_get_bcmdata_from_uspport(port, dapi_g, &bcm_unit, &bcm_port, L7_NULLPTR) != L7_SUCCESS)
   {
     printf("Port is invalid\r\n");
     return -1;
   }
 
-  error = bcm_vlan_control_port_set(0,bcm_port,type,arg);
+  error = bcm_vlan_control_port_set(bcm_unit,bcm_port,type,arg);
 
-  printf("bcm_vlan_control_port_set(0,%d,%d,%d) => %d (\"%s\")\r\n",bcm_port,type,arg,error,bcm_errmsg(error));
+  printf("bcm_vlan_control_port_set(%u,%u,%d,%d) => %d (\"%s\")\r\n",
+         bcm_unit,bcm_port,type,arg,error,bcm_errmsg(error));
 
   return error;
 }
@@ -1460,19 +1441,21 @@ int ptin_vlan_control_port_set(int port, bcm_vlan_control_port_t type, int arg)
 int ptin_vlan_control_port_get(int port, bcm_vlan_control_port_t type)
 {
   int error;
-  bcm_port_t  bcm_port;
+  L7_uint32 bcm_unit, bcm_port;
   int arg;
 
   // Validate port, and get bcm_port reference
-  if (port>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port,&bcm_port)!=L7_SUCCESS)
+  if (port>=PTIN_SYSTEM_N_PORTS ||
+      hapi_ptin_get_bcmdata_from_uspport(port, dapi_g, &bcm_unit, &bcm_port, L7_NULLPTR) != L7_SUCCESS)
   {
     printf("Port is invalid\r\n");
     return -1;
   }
 
-  error = bcm_vlan_control_port_get(0,bcm_port,type,&arg);
+  error = bcm_vlan_control_port_get(bcm_unit,bcm_port,type,&arg);
 
-  printf("bcm_vlan_control_port_get(0,%d,%d,&arg) => %d (\"%s\") arg=%d\r\n",bcm_port,type,error,bcm_errmsg(error),arg);
+  printf("bcm_vlan_control_port_get(%u,%u,%d,&arg) => %d (\"%s\") arg=%d\r\n",
+         bcm_unit,bcm_port,type,error,bcm_errmsg(error),arg);
 
   return error;
 }
@@ -1481,18 +1464,20 @@ int ptin_vlan_control_port_get(int port, bcm_vlan_control_port_t type)
 int ptin_port_phy_control_set(int port, bcm_port_phy_control_t type, int arg)
 {
   int error;
-  bcm_port_t bcm_port;
+  L7_uint32 bcm_unit, bcm_port;
 
   // Validate port, and get bcm_port reference
-  if (port>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port,&bcm_port)!=L7_SUCCESS)
+  if (port>=PTIN_SYSTEM_N_PORTS ||
+      hapi_ptin_get_bcmdata_from_uspport(port, dapi_g, &bcm_unit, &bcm_port, L7_NULLPTR) != L7_SUCCESS)
   {
     printf("Port is invalid\r\n");
     return -1;
   }
 
-  error = bcm_port_phy_control_set(0, bcm_port, type,arg);
+  error = bcm_port_phy_control_set(bcm_unit, bcm_port, type,arg);
 
-  printf("bcm_port_phy_control_set(0,%d,%d,%d) => %d (\"%s\")\r\n",bcm_port,type,arg,error,bcm_errmsg(error));
+  printf("bcm_port_phy_control_set(%u,%u,%d,%d) => %d (\"%s\")\r\n",
+         bcm_unit,bcm_port,type,arg,error,bcm_errmsg(error));
 
   return error;
 }
@@ -1501,19 +1486,21 @@ int ptin_port_phy_control_set(int port, bcm_port_phy_control_t type, int arg)
 int ptin_port_phy_control_get(int port, bcm_port_phy_control_t type)
 {
   int error;
-  bcm_port_t bcm_port;
+  L7_uint32 bcm_unit, bcm_port;
   int arg;
 
   // Validate port, and get bcm_port reference
-  if (port>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port,&bcm_port)!=L7_SUCCESS)
+  if (port>=PTIN_SYSTEM_N_PORTS ||
+      hapi_ptin_get_bcmdata_from_uspport(port, dapi_g, &bcm_unit, &bcm_port, L7_NULLPTR) != L7_SUCCESS)
   {
     printf("Port is invalid\r\n");
     return -1;
   }
 
-  error = bcm_port_phy_control_get(0, bcm_port, type, &arg);
+  error = bcm_port_phy_control_get(bcm_unit, bcm_port, type, &arg);
 
-  printf("bcm_port_phy_control_get(0,%d,%d,&arg) => %d (\"%s\") arg=%d\r\n",bcm_port,type,error,bcm_errmsg(error),arg);
+  printf("bcm_port_phy_control_get(%u,%u,%d,&arg) => %d (\"%s\") arg=%d\r\n",
+         bcm_unit,bcm_port,type,error,bcm_errmsg(error),arg);
 
   return error;
 }
@@ -1872,21 +1859,16 @@ int ptin_vp_group_create(L7_uint32 port_nni, L7_uint32 port_uni, L7_uint16 vid_n
   bcm_vlan_control_vlan_t control;
 
   // Get bcm_port_t values
-  if (port_nni>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port_nni, &bcm_port_nni)!=L7_SUCCESS)
+  if (port_nni>=PTIN_SYSTEM_N_PORTS ||
+      hapi_ptin_get_bcmdata_from_uspport(port_nni, dapi_g, L7_NULLPTR, &bcm_port_nni, L7_NULLPTR) != L7_SUCCESS)
   {
     printf("Port %u is invalid\r\n", port_nni);
     return -1;
   }
-  if (port_uni>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port_uni, &bcm_port_uni)!=L7_SUCCESS)
+  if (port_uni>=PTIN_SYSTEM_N_PORTS ||
+      hapi_ptin_get_bcmdata_from_uspport(port_uni, dapi_g, L7_NULLPTR, &bcm_port_uni, &gport_uni) != L7_SUCCESS)
   {
     printf("Port %u is invalid\r\n", port_uni);
-    return -1;
-  }
-
-  /* Initialize gport values */
-  if (bcm_port_gport_get(0, bcm_port_uni, &gport_uni) != BCM_E_NONE)
-  {
-    printf("bcm_port %u is invalid\r\n", bcm_port_uni);
     return -1;
   }
 

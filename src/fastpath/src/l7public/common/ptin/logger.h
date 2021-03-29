@@ -38,6 +38,7 @@ typedef enum {
     LOG_CTX_HAPI,
     LOG_CTX_DTL,
     LOG_CTX_L2,
+    LOG_CTX_QOS,
     LOG_CTX_XLATE,
     LOG_CTX_API,
     LOG_CTX_EVC,

@@ -104,13 +104,13 @@ L7_RC_t ptin_ipdtl0_mirrorPacketCapture(L7_netBufHandle netBufHandle,
  * @param dtl0Vid 
  * @param outerVid 
  * @param internalVid 
- * @param intfNum 
+ * @param ptin_port 
  * @param type 
  * @param enable 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 internalVid, L7_uint32 intfNum, ptin_ipdtl0_type_t type, L7_BOOL enable);
+L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 internalVid, L7_uint32 ptin_port, ptin_ipdtl0_type_t type, L7_BOOL enable);
 
 /**
  * Enables/Disables IP/ARP packets through dtl0
