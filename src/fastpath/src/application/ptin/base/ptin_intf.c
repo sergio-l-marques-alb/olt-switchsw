@@ -355,8 +355,29 @@ L7_RC_t ptin_intf_post_init(void)
       PT_LOG_INFO(LOG_CTX_INTF, "Port# %u (intIfNum %u) enabled", i, map_port2intIfNum[i]);
     }
 #endif
+
+#ifdef PTIN_LINKFAULTS_IGNORE /* Disable remote faults checking for all uplink ports */
+    /* Ignore remote link faults for uplink ports */
+    /* Only applicable for SF boards or Standalone systems, where uplink protection schemes may be running */
+ #if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_STANDALONE) 
+    /* Uplink ports */
+    if (PTIN_PORT_IS_FRONT_ETH(i))
+    {
+      rc = ptin_intf_linkfaults_enable(map_port2intIfNum[i], L7_TRUE /*Local faults*/,  L7_FALSE /*Remote faults*/);
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF, "Error disabling remote linkfaults for port %u (rc=%d)", i, rc);
+      }
+      else
+      {
+        PT_LOG_INFO(LOG_CTX_INTF, "Remote linkfaults disabled for port %u", i);
+      }
+    }
+ #endif
+#endif
+
     /* For internal ports (linecards only) */
-  #if (PTIN_BOARD_IS_LINECARD)
+#if (PTIN_BOARD_IS_LINECARD)
     /* Internal interfaces of linecards, should always be trusted */
     if (PTIN_PORT_IS_INTERNAL(i))
     {
@@ -367,7 +388,7 @@ L7_RC_t ptin_intf_post_init(void)
         return L7_FAILURE;
       }
     }
-  #endif
+#endif
 
 #if (PTIN_BOARD == PTIN_BOARD_AG16GA)
     rc = usmDbDvlantagIntfModeSet(1, map_port2intIfNum[i], L7_DISABLE);  
@@ -412,19 +433,6 @@ L7_RC_t ptin_intf_post_init(void)
       PT_LOG_ERR(LOG_CTX_INTF, "Phy# %u: Error initializing QoS definitions",i);
       return L7_FAILURE;
     }
-
-//#if (PTIN_BOARD == PTIN_BOARD_TOLT8G)
-//    /* For TOLT8G, configure MAC learn priority with higher value on uplink interfaces */
-//    if (PTIN_IS_PORT_PON(i))
-//    {
-//      rc = dtlPtinL2LearnPortSet(map_port2intIfNum[i], PTIN_SYSTEM_PON_PRIO);
-//      if (rc != L7_SUCCESS)
-//      {
-//        PT_LOG_ERR(LOG_CTX_INTF, "Failed to set Mac Learn priority on port# %u", i);
-//        return L7_FAILURE;
-//      }
-//    }
-//#endif
   }
 
 
@@ -3880,7 +3888,10 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
           (ptin_prot_uplink_index_find(lag_port, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS) &&
           (dot3adBlockedStateGet(lag_intf, &value) == L7_SUCCESS))
       {
+        /* Applicable if we want to disable remote faults only for uplink protection interfaces */
+      #if !defined(PTIN_LINKFAULTS_IGNORE)
         (void) ptin_intf_linkfaults_enable(port, L7_TRUE /*Local faults*/,  L7_FALSE /*Remote faults*/);
+      #endif
         (void) ptin_prot_uplink_intf_block(port, value);
       }
       
@@ -3943,7 +3954,10 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
           (ptin_prot_uplink_index_find(lag_port, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS))
       {
         ptin_prot_uplink_intf_block(port, -1 /* Enable ALS */);
+        /* Applicable if we want to disable remote faults only for uplink protection interfaces */
+      #if !defined(PTIN_LINKFAULTS_IGNORE)
         (void) ptin_intf_linkfaults_enable(port, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
+      #endif
       }
 
       lagConf_data[lag_idx].members_pbmp64 &= ~((L7_uint64)1 << port);
@@ -6196,7 +6210,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
   }
 #endif
 
-  #ifdef MAP_CPLD
+#ifdef MAP_CPLD
   /* Only active matrix will manage linkscan and force links */
   if (!ptin_fpga_mx_is_matrixactive())
   {
@@ -6204,7 +6218,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
     PT_LOG_ERR(LOG_CTX_MSG, "I am not active matrix");
     return L7_SUCCESS;
   }
-  #endif
+#endif
 
   /* Run all slot ports */
   for (port_idx = 0; port_idx < PTIN_SYS_INTFS_PER_SLOT_MAX; port_idx++)
@@ -6223,7 +6237,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
       continue;
     }
 
-    #ifdef PTIN_LINKSCAN_CONTROL
+#ifdef PTIN_LINKSCAN_CONTROL
     if (linkscan_update_control && PTIN_BOARD_LS_CTRL(board_id))
     {
       /* If downlink board, or protection port -> force link up */
@@ -6265,7 +6279,27 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
         PT_LOG_INFO(LOG_CTX_INTF, "Linkscan enabled for port %u", ptin_port);
       }
     }
-    #endif
+#endif
+
+#ifdef PTIN_LINKFAULTS_IGNORE /* Disable remote faults checking for all uplink ports */
+    /* If the inserted board is uplink type, ignore link faults from any of their ports */
+    if (PTIN_BOARD_IS_UPLINK(board_id))
+    {
+      rc = ptin_intf_linkfaults_enable(intIfNum, L7_TRUE /*Local faults*/,  L7_FALSE /*Remote faults*/);
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF, "Error disabling remote linkfaults for port %u (rc=%d)", ptin_port, rc);
+      }
+      else
+      {
+        PT_LOG_INFO(LOG_CTX_INTF, "Remote linkfaults disabled for port %u", ptin_port);
+      }
+    }
+    else
+    {
+      (void) ptin_intf_linkfaults_enable(intIfNum, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
+    }
+#endif
 
     /* Reset counters */
     ptin_intf_counters_clear(ptin_port);
@@ -6353,7 +6387,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
     return L7_FAILURE;
   }
 
-  #ifdef MAP_CPLD
+#ifdef MAP_CPLD
   /* Only active matrix will manage linkscan and force links */
   if (!ptin_fpga_mx_is_matrixactive())
   {
@@ -6361,7 +6395,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
     PT_LOG_ERR(LOG_CTX_MSG, "I am not active matrix");
     return L7_SUCCESS;
   }
-  #endif
+#endif
 
   /* Run all slot ports */
   for (port_idx = 0; port_idx < PTIN_SYS_INTFS_PER_SLOT_MAX; port_idx++)
@@ -6380,7 +6414,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
       continue;
     }
 
-    #ifdef PTIN_LINKSCAN_CONTROL
+#ifdef PTIN_LINKSCAN_CONTROL
     if (linkscan_update_control && PTIN_BOARD_LS_CTRL(board_id))
     {
       /* If downlink board, or protection port -> force link up */
@@ -6422,19 +6456,24 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
         PT_LOG_INFO(LOG_CTX_INTF, "Link-down caused for port %u", ptin_port);
       }
     }
-    #endif
+#endif
+
+#ifdef PTIN_LINKFAULTS_IGNORE /* Disable remote faults checking for all uplink ports */
+    /* Restore linkfaults ignore setting */
+    (void) ptin_intf_linkfaults_enable(intIfNum, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
+#endif
   }
 
- #if (PHY_RECOVERY_PROCEDURE)
-  #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+#if (PHY_RECOVERY_PROCEDURE)
+ #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
   /* Mark this slot to be reseted */
   if (rc_global == L7_SUCCESS)
   {
     slots_to_be_reseted[slot_id] = L7_TRUE;
     PT_LOG_INFO(LOG_CTX_INTF, "Slot %u marked to be reseted ", slot_id);
   }
-  #endif
  #endif
+#endif
 
   /* Unblock board event processing */
   osapiSemaGive(ptin_boardaction_sem);

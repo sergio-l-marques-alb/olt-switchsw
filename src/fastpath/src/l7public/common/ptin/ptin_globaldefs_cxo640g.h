@@ -6,6 +6,8 @@
 
 /* To manage linkscan, uncomment this line */
 //#define PTIN_LINKSCAN_CONTROL
+/* Disable remote faults checking for all uplink ports */
+//#define PTIN_LINKFAULTS_IGNORE
 #define PHY_RECOVERY_PROCEDURE 1
 
 /* Allows direct control over port add/remove of a LAG (shortcut to message queues) */

@@ -1,6 +1,8 @@
 #ifndef _PTIN_GLOBALDEFS_OLT1T0_H
 #define _PTIN_GLOBALDEFS_OLT1T0_H
 
+//#define PTIN_LINKFAULTS_IGNORE
+
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED
 
