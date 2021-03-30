@@ -41,7 +41,7 @@
 
 # define PTIN_SYSTEM_N_PORTS           17
 # define PTIN_SYSTEM_N_PONS            0
-# define PTIN_SYSTEM_N_ETH             0
+# define PTIN_SYSTEM_N_ETH             PTIN_SYSTEM_N_LOCAL_PORTS
 # define PTIN_SYSTEM_N_UPLINK          PTIN_SYSTEM_N_LOCAL_PORTS
 # define PTIN_SYSTEM_N_INTERNAL        0
 # define PTIN_SYSTEM_N_PORTS_PHYSICAL  PTIN_SYSTEM_N_PORTS
