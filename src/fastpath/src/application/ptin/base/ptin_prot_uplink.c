@@ -3075,6 +3075,8 @@ L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_
     }
   }
 
+  /* Applicable if we want to disable remote faults only for uplink protection interfaces */
+#if !defined(PTIN_LINKFAULTS_IGNORE)
   /* If Laser can be disabled, disable linkfaults processing */
   if (!laserON)
   {
@@ -3087,6 +3089,7 @@ L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_
       return L7_FAILURE;
     }
   }
+#endif
 
   osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
 
@@ -3294,9 +3297,12 @@ L7_RC_t ptin_prot_uplink_clear(L7_uint8 protIdx)
   /* Activate both LAGs */
   ptin_prot_select_intf(protIdx, PORT_ALL);
 
+  /* Applicable if we want to disable remote faults only for uplink protection interfaces */
+#if !defined(PTIN_LINKFAULTS_IGNORE)
   /* Make sure linkfaults are enabled */
   (void) ptin_intf_linkfaults_enable(uplinkprot[protIdx].protParams.intIfNumW, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
   (void) ptin_intf_linkfaults_enable(uplinkprot[protIdx].protParams.intIfNumP, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
+#endif
 
   /* Disable entry */
   uplinkprot[protIdx].admin = L7_FALSE;
@@ -3353,9 +3359,12 @@ L7_RC_t ptin_prot_uplink_clear_all()
     /* Activate both LAGs */
     ptin_prot_select_intf(protIdx, PORT_ALL);
 
+    /* Applicable if we want to disable remote faults only for uplink protection interfaces */
+#if !defined(PTIN_LINKFAULTS_IGNORE)
     /* Make sure linkfaults are enabled */
     (void) ptin_intf_linkfaults_enable(uplinkprot[protIdx].protParams.intIfNumW, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
     (void) ptin_intf_linkfaults_enable(uplinkprot[protIdx].protParams.intIfNumP, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
+#endif
 
     /* Disable entry */
     uplinkprot[protIdx].admin = L7_FALSE;
