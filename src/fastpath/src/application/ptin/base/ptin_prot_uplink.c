@@ -1888,7 +1888,7 @@ L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event)
           else
           {
             /* Instant switch to Normal machine-state */
-            PT_LOG_INFO(LOG_CTX_INTF, "PROT_STATE_Normal => PROT_STATE_Normal state (%u)", i); 
+            PT_LOG_INFO(LOG_CTX_INTF, "PROT_STATE_WorkAdmin => PROT_STATE_Normal state (%u)", i); 
             uplinkprotFsmTransition(i, PROT_STATE_Normal, __LINE__);
           }
 
