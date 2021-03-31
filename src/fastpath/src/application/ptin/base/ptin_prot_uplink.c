@@ -1898,6 +1898,36 @@ L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event)
       /* link down @ protection */
       else
       {
+#if 1 /* OLTOSNG-23349/OLTSWITCH-1457: when both active and inactive ports are down, it will not switch */
+        if ((state_machine == PROT_STATE_Protection) && !SF[PORT_WORKING])
+        {
+          /* Protection state, and no SF in working -> Instant switch to Normal machine-state (Working) */
+          PT_LOG_INFO(LOG_CTX_INTF,"PROT_STATE_Protection => PROT_STATE_Normal state (%u)", i);
+          uplinkprotSwitchTo(i, PORT_WORKING, PROT_LReq_LINK, __LINE__);
+          uplinkprotFsmTransition(i, PROT_STATE_Normal, __LINE__);
+
+          ptin_prot_timer_stop(i);
+        }
+        else if ((state_machine == PROT_STATE_ProtAdmin) && (operator_cmd[i] == OPCMD_MS))
+        {
+          /* ProtAdmin state and in Manual-Switch mode... */
+          if (!SF[PORT_WORKING])
+          {
+            /* If no SF in working -> Instant switch to Normal machine-state (Working) */
+            PT_LOG_INFO(LOG_CTX_INTF,"PROT_STATE_Protection => PROT_STATE_Normal state (%u)", i);
+            uplinkprotSwitchTo(i, PORT_WORKING, PROT_LReq_LINK, __LINE__);
+            uplinkprotFsmTransition(i, PROT_STATE_Normal, __LINE__);
+          }
+          else
+          {
+            /* Instant switch to Normal machine-state */
+            PT_LOG_INFO(LOG_CTX_INTF, "PROT_STATE_ProtAdmin => PROT_STATE_Protection state (%u)", i); 
+            uplinkprotFsmTransition(i, PROT_STATE_Protection, __LINE__);
+          }
+
+          ptin_prot_timer_stop(i);
+        }
+#else
         if (state_machine == PROT_STATE_Protection)
         {
           /* If in protection state -> Instant switch to Normal machine-state */
@@ -1916,6 +1946,7 @@ L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event)
 
           ptin_prot_timer_stop(i);
         }
+#endif
       }
       break; 
 
