@@ -19,9 +19,11 @@ OLT_DIR      = $(subst /$(FP_FOLDER),,$(shell pwd))
 KERNEL_BASE  = /home/olt_shared/switchdrvr/netband-libs/trunk/linux-kernel-legacy
 
 # Cross-Compiler
-export TOOLCHAIN_BASE_DIR = /opt/broadcom_kt2_hx4/usr
+export TOOLCHAIN_BASE_DIR = /opt/xldk/5.0.3/kt2/usr
 export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
+export CCACHE_TEMPDIR     = $(CURRENT_PATH)/.ccache
+export CCACHE_DIR         = $(CURRENT_PATH)/.ccache
 CROSS_COMPILE             = arm-linux-
 
 # Kernel and SDK paths

@@ -641,23 +641,34 @@ static void snoopBuildDefaultConfigDataV4(snoopCfgDataV4_t *pCfgV4)
 
   memset(pCfgV4, 0, sizeof(*pCfgV4));
 
-  for (cfgIndex = 1; cfgIndex < L7_IGMP_SNOOPING_MAX_INTF_REL_4_4; cfgIndex++)
+  for (cfgIndex = 1; 
+      ((cfgIndex < L7_IGMP_SNOOPING_MAX_INTF_REL_4_4) && 
+       (cfgIndex < L7_IGMP_SNOOPING_MAX_INTF)); 
+       cfgIndex++)
   {
     /*
      * Copied from the V4 version of snoopBuildDefaultIntfConfigData()
      */
     if (FD_IGMP_SNOOPING_INTF_MODE == L7_ENABLE)
+    {
       pCfgV4->snoopIntfCfgData[cfgIndex].intfMode |= SNOOP_VLAN_MODE;
+    }
     else
+    {
       pCfgV4->snoopIntfCfgData[cfgIndex].intfMode &= ~SNOOP_VLAN_MODE;
+    }
     pCfgV4->snoopIntfCfgData[cfgIndex].intfMcastRtrAttached = FD_IGMP_SNOOPING_MCASTRTR_STATUS;
 
     for(vIdx = 1 ; vIdx < (L7_DOT1Q_MAX_VLAN_ID + 1) ; vIdx++)
     {
       if (FD_IGMP_SNOOPING_MCASTRTR_STATUS == L7_DISABLE)
+      {
         L7_VLAN_CLRMASKBIT(pCfgV4->snoopIntfCfgData[cfgIndex].vlanStaticMcastRtr, vIdx);
+      }
       else
+      {
         L7_VLAN_SETMASKBIT(pCfgV4->snoopIntfCfgData[cfgIndex].vlanStaticMcastRtr, vIdx);
+      }
     }
   }
 
@@ -673,12 +684,20 @@ static void snoopBuildDefaultConfigDataV4(snoopCfgDataV4_t *pCfgV4)
   /**********************************
   * Building interface config data  *
   **********************************/
-  for (cfgIndex = 1; cfgIndex < L7_IGMP_SNOOPING_MAX_INTF_REL_4_4; cfgIndex++)
+  for (cfgIndex = 1; 
+       ((cfgIndex < L7_IGMP_SNOOPING_MAX_INTF_REL_4_4) &&
+       (cfgIndex < L7_IGMP_SNOOPING_MAX_INTF));
+       cfgIndex++)
   {
     if (FD_IGMP_SNOOPING_INTF_FAST_LEAVE_ADMIN_MODE == L7_ENABLE)
+    {
       pCfgV4->snoopIntfCfgData[cfgIndex].intfMode |= SNOOP_VLAN_FAST_LEAVE_MODE;
+    }
     else
+    {
       pCfgV4->snoopIntfCfgData[cfgIndex].intfMode &= ~SNOOP_VLAN_FAST_LEAVE_MODE;
+    }
+
     pCfgV4->snoopIntfCfgData[cfgIndex].groupMembershipInterval = FD_IGMP_SNOOPING_GROUP_MEMBERSHIP_INTERVAL;
     pCfgV4->snoopIntfCfgData[cfgIndex].responseTime = FD_IGMP_SNOOPING_MAX_RESPONSE_TIME;
     pCfgV4->snoopIntfCfgData[cfgIndex].mcastRtrExpiryTime = FD_IGMP_SNOOPING_MCAST_RTR_EXPIRY_TIME;

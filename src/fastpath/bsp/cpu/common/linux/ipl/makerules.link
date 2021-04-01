@@ -262,6 +262,7 @@ $(exec_name): $(pkglib_file) $(pkgarc_file) $(iplobjs)
 		$(gc_option) -lm \
 		-Wl,-Bstatic $(CPPLIBS) $(OSLIBS_STATIC) \
 		-Wl,-Bdynamic $(OSLIBS) \
+        -Wl,--rpath-link=$(BUILDIR)/usr/local/lib \
 		$(GCOV_LINK)
 
 

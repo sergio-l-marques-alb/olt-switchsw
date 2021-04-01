@@ -5071,7 +5071,7 @@ L7_RC_t ptin_intf_ucast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
  */
 L7_RC_t ptin_QoS_intf_cos_policer_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_bw_meter_t *meter)
 {
-  L7_uint32         ptin_port;
+  L7_uint32         ptin_port = 0;
   ptin_bw_profile_t profile;
   L7_RC_t           rc = L7_SUCCESS;
 
@@ -5119,7 +5119,7 @@ L7_RC_t ptin_QoS_intf_cos_policer_set(const ptin_intf_t *ptin_intf, L7_uint8 cos
  */
 L7_RC_t ptin_QoS_intf_cos_policer_clear(const ptin_intf_t *ptin_intf, L7_uint8 cos)
 {
-  L7_uint32         ptin_port;
+  L7_uint32         ptin_port = 0;
   ptin_bw_profile_t profile;
   L7_RC_t           rc = L7_SUCCESS;
 
@@ -5166,7 +5166,7 @@ L7_RC_t ptin_QoS_intf_cos_policer_clear(const ptin_intf_t *ptin_intf, L7_uint8 c
 L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *intfQos)
 {
   L7_uint8  prio, prio2, cos;
-  L7_uint32 ptin_port, intIfNum;
+  L7_uint32 ptin_port = 0, intIfNum;
   L7_RC_t   rc, rc_global = L7_SUCCESS;
   L7_QOS_COS_MAP_INTF_MODE_t trust_mode;
 
@@ -5278,10 +5278,10 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
     entry.ptin_port  = ptin_port;
     entry.burst_size = ptin_burst_size[ptin_port]; 
 
-		if (intfQos->shaping_rate <= (ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE]))
-		{
+	if (intfQos->shaping_rate <= (ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE]))
+	{
       entry.max_rate   = intfQos->shaping_rate;
-		}
+    }
     else
     {
       entry.max_rate   = ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE];
@@ -9316,7 +9316,7 @@ L7_RC_t ptin_intf_active_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth)
  */
 L7_RC_t ptin_intf_shaper_max_set(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 max_rate, L7_uint32 burst_size)
 {
-  L7_uint32 ptin_port, intIfNum;
+  L7_uint32 ptin_port = 0, intIfNum;
   ptin_intf_shaper_t   entry;
 
   /* Validate interface */

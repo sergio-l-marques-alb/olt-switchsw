@@ -2284,7 +2284,7 @@ l7_rpc_client_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount])
   if (rv >= 0) 
   {
     argi = 0;
-    for (s = 0; s < snmpValCount; s++) 
+    for (s = 0; ((s < snmpValCount) && ((argi+1) < BCM_CUSTOM_ARGS_MAX)); s++) 
     {
       COMPILER_64_SET(stats[s], args[argi], args[argi+1]);
       argi += 2;
@@ -2325,7 +2325,7 @@ l7_rpc_client_port_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount])
   if (rv >= 0) 
   {
     argi = 0;
-    for (s = 0; s < snmpValCount; s++) 
+    for (s = 0; ((s < snmpValCount) && ((argi+1) < BCM_CUSTOM_ARGS_MAX)); s++) 
     {
       COMPILER_64_SET(stats[s], args[argi], args[argi+1]);
       argi += 2;
