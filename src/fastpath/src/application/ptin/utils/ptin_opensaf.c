@@ -30,7 +30,7 @@
 #ifdef OPENSAF_SUPPORTED
 #include "ptin_opensaf_checkpoint.h"
 #include "ptin_opensaf.h"
-#include <saEvt.h>
+#include "saEvt.h"
 
 
 /*******************************

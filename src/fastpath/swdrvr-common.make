@@ -57,7 +57,7 @@ export LVL7_MAKEFILE_DISPLAY_MODE ?= S
 
 all: welcome setsdk cli shell mgmd
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
-	@echo "Compiling switchdrvr for $(BOARD) with $(NUM_CPUS) cores..."
+	@echo "Compiling switchdrvr for $(BOARD) with $(NUM_CPUS) cores... [BUILDIR=$(BUILDIR)]"
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH)
 	@if [ -f $(BIN_PATH)/$(BIN_FILE) ]; then\
 		echo "Saving original $(BIN_FILE) binary...";\
