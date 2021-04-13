@@ -1787,7 +1787,7 @@ L7_RC_t dsFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
   if (frameLen > DS_DHCP_PACKET_SIZE_MAX)
   {
-        PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet", 
+        PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet: %u", 
                    frameLen);
         return L7_FAILURE;    
   }

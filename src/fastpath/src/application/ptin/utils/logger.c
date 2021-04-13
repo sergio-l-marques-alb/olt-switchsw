@@ -9,632 +9,418 @@
  * Notes: 
  */
 
-#include "logger.h"
+#include "ptin/logger.h"
 #include <stdio.h>
-#include <stdarg.h>
 #include <string.h>
-#include <time.h>
-#include <sys/time.h>
-#include <errno.h>
-//#include <stdlib.h> //Added this lib for system()
+#include "osapi.h"
+#include "l7_resources.h"
+#include "ptin_globaldefs.h"
 
-#define MAX_OUTBUF_LEN          512 /* Output buffer max length */
-#define MAX_FILE_LEN            15  /* Filename max length */
-#define MAX_FUNC_LEN            35  /* Function max length */
-#define MAX_LINE_LEN            5   /* Line# max length */
-#define MAX_FILEFUNCLINE_LEN    30  /* Filename+function+line# max length */
-#define MAX_TIMESTAMP_LEN       24  /* Timestamp max length*/
-#define MAX_LOG_LINES         4096  /* Max File Lines */
-
-/* Severity strings */
-static const char *log_sev_str[LOG_SEV_LAST] = {
-    "OFF",
-    "[PRINT]   ",
-    "[FATAL]   ",
-    "[CRITICAL]",
-    "[ERROR]   ",
-    "[WARNING] ",
-    "[NOTICE]  ",
-    "[INFO]    ",
-    "[DEBUG]   ",
-    "[TRACE]   ",
+/* Example of contexts structure initialization
+   IMPORTANT: the last parameter, file_id, MUST be updated upon execution of
+   log_file_open() function, which returns the correct file_id */
+log_ctx_entry_t contexts[LOG_CONTEXT_LAST] =
+{
+    {"LOGGER"     , "LOG"     , LOG_SEV_DEBUG, LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"IPC"        , "IPC"     , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"MSGHANDLER" , "HDLR"    , LOG_SEV_INFO , LOG_COLOR_MAGENTA, LOG_MODE_FILE, 0},
+    {"MSG"        , "MSG"     , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"INTF"       , "INTF"    , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"TRUNKS"     , "TRUNK"   , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"HAPI"       , "HAPI"    , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"DTL"        , "DTL"     , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"L2"         , "L2"      , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"XLATE"      , "XLATE"   , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"API"        , "API"     , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"EVC"        , "EVC"     , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"CONTROL"    , "CTRL"    , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"IGMP"       , "IGMP"    , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"DHCP"       , "DHCP"    , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"PPPOE"      , "PPPOE"   , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"ROUTING"    , "ROUTI"   , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"PACKET"     , "PKT"     , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"CNFGR"      , "CNFGR"   , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"MISC"       , "MISC"    , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"OAM"        , "OAM"     , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"ERPS"       , "ERPS"    , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"DAI"        , "DAI"     , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"EVENTS"     , "EVENT"   , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"SDK"        , "SDK"     , LOG_SEV_DEBUG, LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"STARTUP"    , "START"   , LOG_SEV_TRACE, LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"OPENSAF"    , "OPENSA"  , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"QOS"        , "QOS"     , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"RATEMONLIB" , "RMNLIB"  , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"RATEMON_SD" , "RTMON"   , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"RFC2819"    , "RFC"     , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
 };
 
-/* Context strings */
-static const char *log_ctx_str[LOG_CONTEXT_LAST] = {
-    "LOG  ",
-    "IPC  ",
-    "HDLR ",
-    "MSG  ",
-    "INTF ",
-    "TRUNK",
-    "HAPI ",
-    "DTL  ",
-    "L2   ",
-    "QOS  ",
-    "XLATE",
-    "API  ",
-    "EVC  ",
-    "CTRL ",
-    "IGMP ",
-    "DHCP ",
-    "PPPOE",
-    "PROTB",
-    "ROUTI",
-    "SSM  ",
-    "PKT  ",
-    "CNFGR",
-    "MISC ",
-    "OAM  ",
-    "ERPS ",
-    "IPSG ",
-    "DAI  ",
-    "R2819",
-    "EVENT",
-    "SDK  ",
-    "START",
-    "OPENSAF",    
+
+/* List of protocols to be initialized */
+logpcap_prot_entry_t protocols[PROT_LAST] =
+{
+    {"IGMP",    { 0 }, 0, LOGPCAP_REG_MODE_RAW,  {{0}, {0}, 0x0000} },
+    {"LACP",    { 0 }, 0, LOGPCAP_REG_MODE_RAW,  {{0}, {0}, 0x0000} },
+    {"DSP",     { 0 }, 0, LOGPCAP_REG_MODE_RAW,  {{0}, {0}, 0x0000} }
 };
 
-/* Severity color */
-static int log_sev_color[LOG_SEV_LAST] = {
-    LOG_COLOR_DEFAULT,  /* (off) */
-    LOG_COLOR_DEFAULT,  /* Always print */
-    LOG_BRIGHT_RED,     /* LOG_SEV_FATAL    */
-    LOG_BRIGHT_RED,     /* LOG_SEV_CRITICAL */
-    LOG_BRIGHT_RED,     /* LOG_SEV_ERROR    */
-    LOG_BRIGHT_YELLOW,  /* LOG_SEV_WARNING  */
-    LOG_COLOR_YELLOW,   /* LOG_SEV_NOTICE   */
-    LOG_BRIGHT_WHITE,   /* LOG_SEV_INFO     */
-    LOG_COLOR_DEFAULT,  /* LOG_SEV_DEBUG    */
-    LOG_COLOR_DEFAULT,  /* LOG_SEV_TRACE    */
-};
+/* Number of protocols */
+int n_prot = sizeof(protocols) / sizeof(protocols[0]);
 
-/* Colors escape string */
-static char *log_colors[LOG_COLOR_LAST] = {
-    "\x1B[00m",     /* Reset */
-    "\x1B[00;30m",  /* Black */
-    "\x1B[00;31m",  /* Red */
-    "\x1B[00;32m",  /* Green */
-    "\x1B[00;33m",  /* Yellow */
-    "\x1B[00;34m",  /* Blue */
-    "\x1B[00;35m",  /* Magenta */
-    "\x1B[00;36m",  /* Cyan */
-    "\x1B[00;37m",  /* White */
-    "\x1B[01;30m",  /* Bright Black */
-    "\x1B[01;31m",  /* Bright Red */
-    "\x1B[01;32m",  /* Bright Green */
-    "\x1B[01;33m",  /* Bright Yellow */
-    "\x1B[01;34m",  /* Bright Blue */
-    "\x1B[01;35m",  /* Bright Magenta */
-    "\x1B[01;36m",  /* Bright Cyan */
-    "\x1B[01;37m",  /* Bright White */
-    "\x1B[02;30m",  /* Dark Black */
-    "\x1B[02;31m",  /* Dark Red */
-    "\x1B[02;32m",  /* Dark Green */
-    "\x1B[02;33m",  /* Dark Yellow */
-    "\x1B[02;34m",  /* Dark Blue */
-    "\x1B[02;35m",  /* Dark Magenta */
-    "\x1B[02;36m",  /* Dark Cyan */
-    "\x1B[02;37m"   /* Dark White */
-};
+/* File index assigned by logpcap upon logpcap_file_open() call */
+uint32_t file_id;       /* Update logpcap_prot_entry_t 3rd parameter with this value */
 
-/* Colors escape string */
-static char *log_colors_str[LOG_COLOR_LAST] = {
-    "Reset",
-    "Black",
-    "Red",
-    "Green",
-    "Yellow",
-    "Blue",
-    "Magenta",
-    "Cyan",
-    "White",
-    "Bright Black",
-    "Bright Red",
-    "Bright Green",
-    "Bright Yellow",
-    "Bright Blue",
-    "Bright Magenta",
-    "Bright Cyan",
-    "Bright White",
-    "Dark Black",
-    "Dark Red",
-    "Dark Green",
-    "Dark Yellow",
-    "Dark Blue",
-    "Dark Magenta",
-    "Dark Cyan",
-    "Dark White",
-};
+static uint32_t default_file_id=-1;
 
-/* Logger default configuration
- * NOTE: it is assumed that entries are sorted by context indexes! */
-static struct log_cfg_entry_s log_cfg[LOG_CONTEXT_LAST] = {
-    {LOG_CTX_LOGGER,            LOG_SEV_DEBUG,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_IPC,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_MSGHANDLER,        LOG_SEV_INFO ,       LOG_COLOR_MAGENTA,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_MSG,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_INTF,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_TRUNKS,            LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_HAPI,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_DTL,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_L2,                LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_QOS,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_XLATE,             LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_API,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_EVC,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_CONTROL,           LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_IGMP,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_DHCP,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_PPPOE,             LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_PROTB,             LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_ROUTING,           LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_SSM,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_PACKET,            LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_CNFGR,             LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_MISC,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_OAM,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_ERPS,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_IPSG,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_DAI,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_RFC2819,           LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_EVENTS,            LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_FILE3  },
-    {LOG_CTX_SDK,               LOG_SEV_DEBUG,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_FILE2  },
-    {LOG_CTX_STARTUP,           LOG_SEV_TRACE,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_OPENSAF,           LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-};
+/**** Static functions *******************************************************/
+/** 
+ * Thread for log rotation
+ */
+static void ptin_logger_thread(void)
+{
+    int *arg= 0; /*not important, it is not used*/
+    thread_logrotate(arg);
+}
 
-typedef enum {
-  WRITE_UNLOCK,
-  WRITE_LOCK
-}write_lock_t;
-
-static struct s_outFile {
-  log_output_t output;
-  write_lock_t lock;
-  FILE        *stream[LOG_OUTPUT_MAX];
-} outFile = { LOG_OUTPUT_UNINIT, WRITE_UNLOCK };
-
-
+/**** External functions *******************************************************/
 /**
  * Outputs (stdout) help on how to configure logger on-the-fly
  */
-void logger_help(void)
+void swdrv_logger_help(void)
 {
     int i;
 
-    printf("Logger help:\n"
-           "\n"
-           "Configuration functions\n"
-           "  logger_sev_set  (<ctx_mask>, <severity>)\n"
-           "  logger_color_set(<ctx_mask>, <color>)\n");
-
     printf("\nContext mask\n");
-    for ( i=0; i<LOG_CONTEXT_LAST; i++ )
-        printf("  0x%08X - %s\n", 1<<i, log_ctx_str[i]);
-
-    printf("\nSeverity levels\n");
-    for ( i=0; i<LOG_SEV_LAST; i++ )
-        printf("  %02d - %s\n", i, log_sev_str[i]);
-
-    printf("\nColors list\n");
-    for ( i=0; i<LOG_COLOR_LAST; i++ )
-        printf("  %02d - %s%s%s\n", i, log_colors[i], log_colors_str[i], log_colors[LOG_COLOR_DEFAULT]);
+    for (i=0; i<LOG_CONTEXT_LAST; i++)
+    {
+        printf("  0x%08X - %s\n", 1<<i, contexts[i].description);
+    }
 
     fflush(stdout);
+
+    logger_conf_dump();
 }
 
-/**
- * Initialize logger
- * 
- * @param default_output : type of output
- */
-void logger_init(log_output_t default_output)
+/** 
+ * Returns the default_file_id value 
+ */ 
+uint32_t swdrv_logger_get_default_fileid(void)
 {
-  logger_deinit();
-
-  outFile.lock = WRITE_LOCK;
-
-  /* Initialize stream descriptors */
-  memset(outFile.stream, 0x00, sizeof(outFile.stream));
-  outFile.stream[LOG_OUTPUT_STDERR] = stderr;
-  outFile.stream[LOG_OUTOUT_STDOUT] = stdout;
-
-  outFile.output  = LOG_OUTPUT_UNINIT;
-  outFile.lock    = WRITE_UNLOCK;
-
-  fprintf(stdout,"General log initialization done!\r\n");
-
-  /* Default output */
-  if (default_output < LOG_OUTPUT_MAX)
-  {
-    outFile.lock    = WRITE_LOCK;
-    outFile.output  = default_output;
-    outFile.lock    = WRITE_UNLOCK;
-
-    fprintf(stdout,"log initialized for default output %u\r\n", default_output);
-  }
+    return default_file_id;
 }
 
-/**
- * Deinitialize logger
- */
-void logger_deinit(void)
+/** 
+ * Init logger 
+ */ 
+int swdrv_logger_init(void)
 {
-  int i;
+    int           i;
+    log_ret_t     ret;
+    uint32_t      file_id2, file_id3, file_rate_mon_id;
+    static log_config_t  config = {"swdrv", 0, 0, 0, LOG_THREAD_EXTERNAL};
+    log_file_conf_t fc;
 
-  outFile.lock = WRITE_LOCK;
-
-  /* Close file descriptors */
-  for (i = LOG_OUTPUT_FILE; i < LOG_OUTPUT_MAX; i++)
-  {
-    if (outFile.stream[i] != NULL)
+    /* Initialize */
+    ret = logger_init(&config);
+    if (ret != 0)
     {
-      fclose(outFile.stream[i]);
-      outFile.stream[i] = NULL;
+        printf("Error: logger_init(&config) ret=%d\n", ret);
+        return 1;
     }
-  }
 
-  outFile.output  = LOG_OUTPUT_UNINIT;
-  outFile.lock = WRITE_UNLOCK;
-
-  fprintf(stdout,"log deinitialized!\r\n" );
-}
-
-/**
- * Initialize stream descriptors for each output type
- * 
- * @param output : type of output
- */
-void logger_output_file_set(log_output_t output, char *filename)
-{
-  FILE *stream;
-
-  /* Check if logger is initialized */
-  if (outFile.output == LOG_OUTPUT_UNINIT)
-  {
-    fprintf(stdout,"Logger not initialized\r\n");
-    return;
-  }
-
-  if (output < LOG_OUTPUT_FILE || output >= LOG_OUTPUT_MAX )
-  {
-    fprintf(stderr,"Invalid output %u\r\n", output );
-    return;
-  }
-
-  outFile.lock = WRITE_LOCK;
-
-  /* Close file descriptor */
-  if (outFile.stream[output] != NULL)
-  {
-    fclose(outFile.stream[output]);
-    outFile.stream[output] = NULL;
-  }
-
-  /* Open and set new file */
-  if (filename != NULL && filename[0] != '\0')
-  {
-    stream = fopen(filename, "a+"); 
-
-    if (NULL == stream)
+    /* Open/create the log files */
+    i =sizeof(fc.filename)-1;    
+    fc.filename[i]      =0;
+    strncpy(fc.filename, LOG_OUTPUT_FILE_DEFAULT, i);
+    fc.max_size         =5242880; //5 Mbytes;
+    fc.nr_files         =30;
+    fc.use_compression  =1;
+    if (0 != logger_file_open(&fc, &default_file_id))
     {
-      fprintf(stderr,"Output %u NOT initialized: error %d \"%s\"\r\n", output, errno, strerror(errno) );
+        printf("Error: logger_file_open(%s, 1200, &default_file_id) ret=%d\n", LOG_OUTPUT_FILE_DEFAULT, ret);
+        return 2;
     }
-    else
+
+    strncpy(fc.filename, LOG_OUTPUT_FILE_DEFAULT2, i);
+    if (0 != logger_file_open(&fc, &file_id2))
     {
-      outFile.stream[output] = stream;
-      fprintf(stdout,"Log initialized for output %u: filename=\"%s\"\r\n", output, filename );
+        printf("Error: logger_file_open(%s, 1200, &file_id) ret=%d\n", LOG_OUTPUT_FILE_DEFAULT2, ret);
+        return 3;
     }
-  }
 
-  outFile.lock = WRITE_UNLOCK;
-}
+    strncpy(fc.filename, LOG_OUTPUT_FILE_DEFAULT3, i);
+    if (0 != logger_file_open(&fc, &file_id3))
+    {
+        printf("Error: logger_file_open(%s, 1200, &file_id) ret=%d\n", LOG_OUTPUT_FILE_DEFAULT3, ret);
+        return 4;
+    }
 
-/**
- * Redirect logger to a specific file
- *  
- * @param output : type of output
- * @param output_file_path : path and file name
- */
-void logger_redirect(log_output_t output, char* output_file_path)
-{
-  FILE * temp_stream;
-  
-  /* Check if logger is initialized */
-  if (outFile.output == LOG_OUTPUT_UNINIT)
-  {
-    fprintf(stdout,"Logger not initialized\r\n");
-    return;
-  }
+    strncpy(fc.filename, EVENT_RATE_MON_OUTPUT_FILE_DEFAULT, i);
+    if (0 != logger_file_open(&fc, &file_rate_mon_id))
+    {
+        printf("Error: logger_file_open(%s, 1200, &file_id) ret=%d\n", EVENT_RATE_MON_OUTPUT_FILE_DEFAULT, ret);
+        return 4;
+    }
 
-  if (output < LOG_OUTPUT_FILE || output >= LOG_OUTPUT_MAX ||
-      output_file_path == NULL || output_file_path[0] == '\0')
-  {
-    fprintf(stdout,"Invalid arguments\r\n");
-    return;
-  }
+    /* Update the contexts structure with the correct file_id */
+    for (i=0; i<LOG_CONTEXT_LAST ; i++) 
+    {
+        contexts[i].file_id     = default_file_id;
+    }
+    contexts[LOG_CTX_EVENTS].file_id =  file_id3;
 
-  /* Firstly, try to open the new file */
-  temp_stream = fopen( output_file_path, "a+");
+    /* Set Event Rate Mon Output File for its context */
+    contexts[LOG_CTX_EVENT_RATE_MON].file_id =  file_rate_mon_id;
 
-  /* If error, do nothing */
-  if (NULL == temp_stream)
-  {
-    fprintf(stdout,"log NOT initialized error %d \"%s\"\r\n", errno, strerror(errno) );
-    return;
-  }
+    /* Configure the logger contexts */
+    ret = logger_ctx_config(contexts, LOG_CONTEXT_LAST);    //n_ctx);
+    if (ret != 0)
+    {
+        printf("Error: logger_ctx_config(contexts, n_ctx) ret=%d\n", ret);
+        return 5;
+    }
 
-  /* Otherwise, close the previous file */
-  outFile.lock = WRITE_LOCK;
+    logger_conf_dump();
 
-  if ( outFile.stream[output] != NULL )
-  {
-    fclose(outFile.stream[output]);
-    outFile.stream[output] = NULL;
-  }
+    ret = osapiTaskCreate("logrotate", ptin_logger_thread, 0, 0,
+                          L7_DEFAULT_STACK_SIZE,
+                          L7_DEFAULT_TASK_PRIORITY,
+                          L7_DEFAULT_TASK_SLICE);
 
-  /* Save new file descriptor */
-  outFile.stream[output] = temp_stream;
+    if (ret == L7_ERROR)
+    {
+        printf("%s: osapiTaskCreate() for logrotation thread creation has failed.\n", __FUNCTION__);
+        return 6;
+    }
 
-  outFile.lock = WRITE_UNLOCK;
-  fprintf(stdout,"Log redirected to \"%s\" for output %u\r\n", output_file_path, output);
+    xLOG_NOTICE(LOG_CTX_STARTUP, "Logger initialized!");
+
+    return 0;
 }
 
 /**
  * Sets severity level for a group of contexts
- * 
- * @param ctx_mask bitmap that defines which contexts are affected 
- * (bit position corresponds to the context index) 
+ *  
+ * @param ctx_mask bitmap that defines which contexts are 
+ *                 affected + * (bit position corresponds to the
+ *                 context index) *
  * @param sev severity threshold
  * 
  * @return int Zero if OK, otherwise means error
  */
-int logger_sev_set(unsigned int ctx_mask, int sev)
+L7_int32 swdrv_logger_sev_set(unsigned int ctx_mask, int sev)
 {
-    unsigned int ctx;
+    int ctx;
+    const char* str_severity;
 
-    /* Validate input parameters */
-    if ( (sev < 0) || (sev >= LOG_SEV_LAST) )
-        return 1;
+    printf("Running %s function...\r\n", __FUNCTION__);
+    PT_LOG_NOTICE(LOG_CTX_LOGGER,"Going to change severity attributes: ctx_mask=0x%08X sev=%u",
+                  ctx_mask, sev);
 
-    for ( ctx = 0; ctx_mask != 0; ctx_mask >>= 1, ctx++ ) {
-        if ( ctx >= LOG_CONTEXT_LAST )
-            break;
-
-        if ( ctx_mask & 1 ) {
-            log_cfg[ctx].severity = sev;
-            fprintf(stdout,"%s severity level set to %s\r\n", log_ctx_str[ctx], log_sev_str[sev]);
+    for (ctx = 0; ctx < LOG_CONTEXT_LAST; ctx++)
+    {
+        if ((ctx_mask >> ctx) & 1)
+        {
+            (void) log_sev_set(ctx, sev);
+            str_severity = swdrv_logger_sev_text(sev);
+            printf("Log severity of %s context modified to %s\r\n", contexts[ctx].tag, str_severity);
+            PT_LOG_NOTICE(LOG_CTX_LOGGER,
+                          "Log severity of %s context modified to %s", 
+                          contexts[ctx].tag, str_severity);
         }
     }
 
-    fflush(stdout);
+    printf("Done!\r\n");
+    PT_LOG_NOTICE(LOG_CTX_LOGGER,"Done!");
 
     return 0;
 }
 
-/**  
- * Sets a color for a group of contexts
- * 
- * @param ctx_mask bitmap that defines which contexts are affected 
- * (bit position corresponds to the context index) 
- * @param color color array index of desired color (log_color_t)
- * 
- * @return int Zero if OK, otherwise means error
- */
-int logger_color_set(unsigned int ctx_mask, int color)
+/** */
+L7_int32 swdrv_logger_sev_set_(unsigned int ctx, int sev)
 {
-    unsigned int ctx;
+    (void) log_sev_set(ctx, sev);
+    return 0;
+}
 
-    /* Validate input parameters */
-    if ( (color < 0) || (color >= LOG_COLOR_LAST) )
-        return 1;
+/**
+  * Convert severity to text
+  *  
+  * @param[in] sev   severity 
+  *
+  * @return char*  Text
+ */
+const char* swdrv_logger_sev_text(int sev)
+{
+    char      *str;
+    log_ret_t  rv;
 
-    for ( ctx = 0; ctx_mask != 0; ctx_mask >>= 1, ctx++ ) {
-        if ( ctx >= LOG_CONTEXT_LAST )
-            break;
+    rv = log_sev_enum2str(sev, &str);
+    if (rv != LOG_OK)
+    {
+      return "unknown";
+    }
+    return str;
+}
 
-        if ( ctx_mask & 1 ) {
-            log_cfg[ctx].color = color;
-            fprintf(stdout,"%s color set to '%s**** COLOR ****%s'\r\n", log_ctx_str[ctx], log_colors[color], log_colors[LOG_COLOR_DEFAULT]);
+/**
+ * Convert text to severity
+ *  
+ * @param[in] str   text
+ *
+ * @return int      severity
+ */
+int swdrv_logger_text_sev(char *str)
+{
+    int sev;
+
+    for (sev = 0 ; sev < LOG_SEV_LAST ; sev++)
+    {
+        if (strcmp(str, swdrv_logger_sev_text(sev)) == 0)
+        {
+            return sev;
         }
     }
+    return -1;
+}
 
-    fflush(stdout);
+/**
+ * Convert context to text
+ *  
+ * @param [in] ctx   context 
+ *
+ * @return char*  Text
+ */
+const char* swdrv_logger_ctx_text(int ctx)
+{
+    if ((ctx < 0) || (ctx >= LOG_CONTEXT_LAST))
+    {
+        return "unknown";
+    }
+
+    return (const char*)contexts[ctx].tag;
+}
+
+/**
+ * Gets severity level for a context
+ *  
+ * @param [in] ctx   context 
+ *  
+ * @return int      severity
+ */
+int swdrv_logger_sev_get(int ctx)
+{
+    log_ret_t       rv;
+    log_severity_t  sev;
+
+    rv = log_sev_get(ctx , &sev);
+    if (rv != LOG_OK)
+    {
+      return 0;
+    }
+
+    return (int)sev;
+}
+
+/** Calls display_time_regs() from nbtools libtime */
+int swdrv_display_time_regs(void)
+{
+    calc_avgr();
+    display_time_regs();
+    return 0;
+}
+
+/** */
+int swdrv_reset_time_regs(void)
+{
+    return reset_time_regs();
+}
+
+/* ====================================================================================== */
+/* ====================================================================================== */
+/*  +---------+
+    | LOGPCAP |  
+    +---------+
+*/
+
+/**
+ * Initializes logpcap lib with the protocols defined in logger.h
+ * 
+ * @author Andre Temprilho (19-Mar-19)
+ * 
+ * @return 0 - OK
+ */
+int swdrv_logpcap_init(void)
+{
+    logpcap_ret_t       ret;
+    int                 i;
+    logpcap_config_t    configLogPcap = {"SWDRV", 10000, 0xC0A80101, 2222};
+    logpcap_file_conf_t file_conf = {LOGPCAP_OUTPUT_FILE_DEFAULT,
+                                     (1UL<<21),                         /* file max size */
+                                     8,                                 /* nr of files (rotations) */
+                                     1,                                 /* 0 - no compression; 1 - gzip compression */
+                                     65535,                             /* Snaplenght */
+                                     LOGPCAP_PCAP_HDR_NETWORK_ETHERNET};/* Ethernet */
+
+    /* logpcap init */
+    ret = logpcap_init(&configLogPcap);
+    if (ret != LOGPCAP_OK)
+    {
+        printf("Error: logpcap_init(&configLogPcap) ret=%d\n", ret);
+        return 1;
+    }
+
+    /* Open/create the logpcap log files */
+    ret = logpcap_file_open(&file_conf, &file_id);
+    if (ret != LOGPCAP_OK)
+    {
+        printf("Error: logpcap_file_open(\"%s\", %u, &file_id) ret=%d\n",
+               file_conf.filename,
+               file_conf.max_size,
+               ret);
+        return 1;
+    }
+    
+    /* Update the protocols structure with the correct file_id */
+    protocols[PROT_IGMP].file_id    = file_id;
+    protocols[PROT_LACP].file_id    = file_id;
+    protocols[PROT_DSP].file_id     = file_id;
+    /* Update for other protocols as well (as new ones are created) */
+
+    /* Enable all packet streams */
+    for (i = 0; i < n_prot; i++)
+    {
+        memset(&(protocols[i].port[0]), LOGPCAP_STREAM_OFF, 256);  /* 256 interfaces to use */
+    }
+
+    /* Configure the logpcap protocols (in a static way) */
+    ret = logpcap_prot_config(protocols, n_prot);
+    if (ret != LOGPCAP_OK)
+    {
+        printf("Error: logpcap_prot_config(protocols, n_prot) ret=%d\n", ret);
+        return 1;
+    }
+
+    /* Dump configurations */
+    logpcap_conf_dump();
+    logpcap_stream_conf_dump(-1); /* View all protocols */
 
     return 0;
 }
 
 /**
- * Sets output for a particular list of contexts
- * 
- * @param ctx_mask bitmap that defines which contexts are affected 
- * (bit position corresponds to the context index) 
- * @param sev severity threshold
- * 
- * @return int Zero if OK, otherwise means error
+ * Modify logpcap protocols configurations/filters at run-time
  */
-int log_output_set(unsigned int ctx_mask, int output)
+int swdrv_logpcap_prot_set(int prot_id, int port_id, uint8_t stream_mask)
 {
-    unsigned int ctx;
-
-    /* Validate input parameters */
-    if ( (output < 0) || (output >= LOG_OUTPUT_MAX) )
-        return 1;
-
-    for ( ctx = 0; ctx_mask != 0; ctx_mask >>= 1, ctx++ ) {
-        if ( ctx >= LOG_CONTEXT_LAST )
-            break;
-
-        if ( ctx_mask & 1 ) {
-            log_cfg[ctx].output = output;
-            fprintf(stdout,"%s: output set to %u\r\n", log_ctx_str[ctx], output);
-        }
-    }
-
-    fflush(stdout);
-
-    return 0;
+    return logpcap_prot_set(prot_id, port_id, stream_mask);
 }
 
-
-/**
- * Composes a string with a timestamp
- * 
- * @param output Pointer to the output string
- * 
- * @return char* Returns the same input pointer
- */
-static char* get_time(char* output)
+void swdrv_logpcap_conf_dump(void)
 {
-    struct timeval   tv;
-    struct tm        date;
-    time_t           timeabs;
-
-    if (output) {
-        time (&timeabs);
-        localtime_r (&timeabs, &date);
-        gettimeofday (&tv, NULL);
-        sprintf (output, "%04d%02d%02d-%02dh%02dm%02d.%03d",
-                 date.tm_year+1900, date.tm_mon+1, date.tm_mday, date.tm_hour, date.tm_min, date.tm_sec, (int)(tv.tv_usec/1000));
-    }
-
-    return output;
+    logpcap_conf_dump();
 }
 
-
-int logger_check(log_context_t ctx, log_severity_t sev) {
-    /* Validate input parameters */
-    if ( (ctx < 0) || (ctx >= LOG_CONTEXT_LAST) ||
-         (sev < 0) || (sev >= LOG_SEV_LAST) ) {
-        return 0;
-    }
-
-    /* For the requested context, check if log severity allows print */
-    if ( sev > log_cfg[ctx].severity )
-        return 0;
-
-    return 1;
-}
-
-static unsigned int max_log_lines = 0;
-/**
- * Prints a log message
- * 
- * @param ctx  Context
- * @param sev  Severity
- * @param file Filename (can be NULL)
- * @param func Function name (can be NULL)
- * @param line Line# (if zero, is ignored)
- * @param fmt  Format string+ arguments (like printf)
- */
-int logger_print(log_context_t ctx, log_severity_t sev, char const *file,
-                 char const *func, int line, char const *fmt, ...)
+void swdrv_logpcap_stream_conf_dump(int prot_id)
 {
-    va_list vargs;
-    char    timestamp[MAX_TIMESTAMP_LEN];
-    char    filefunc[MAX_OUTBUF_LEN];
-    char    outbuf[MAX_OUTBUF_LEN];
-    int     maxlen;
-    int     offset;
-    int     nchars;
-    char   *color;
-    FILE   *stream = stdout;
-
-//    /* Validate input parameters */
-//    if ( (ctx < 0) || (ctx >= LOG_CONTEXT_LAST) ||
-//         (sev < 0) || (sev >= LOG_SEV_LAST) ) {
-//        return;
-//    }
-//
-//    /* For the requested context, check if log severity allows print */
-//    if ( sev > log_cfg[ctx].severity )
-//        return;
-
-    /* Get color: give priority to context color (only if != default)*/
-    if ( log_cfg[ctx].color == LOG_COLOR_DEFAULT )
-        color = log_colors[log_sev_color[sev]];
-    else
-        color = log_colors[log_cfg[ctx].color];
-
-    /* Determine maximum length for file+func+line and compose string */
-    nchars = 0;
-    maxlen = 0;
-    filefunc[0] = '\0';
-    if ( file != NULL ) {
-        maxlen += MAX_FILE_LEN;
-        nchars += snprintf(filefunc+nchars, MAX_OUTBUF_LEN-nchars, "%s ", file);
-    }
-    if ( func != NULL ) {
-        maxlen += MAX_FUNC_LEN;
-        nchars += snprintf(filefunc+nchars, MAX_OUTBUF_LEN-nchars, "%s", func);
-    }
-    if ( line > 0 ) {
-        maxlen += MAX_LINE_LEN;
-        nchars += snprintf(filefunc+nchars, MAX_OUTBUF_LEN-nchars, "(%d)", line);
-    }
-    #if 0
-    else
-    {
-        /* Add the () to the function name (without line nr) */
-        nchars += snprintf(filefunc+nchars, MAX_OUTBUF_LEN-nchars, "()");
-    }
-    #endif
-
-    /* Determine offset to truncate string size */
-    offset = 0;
-    if ( nchars > maxlen ) {
-        offset = nchars - maxlen;
-        filefunc[offset+0] = '.';
-        filefunc[offset+1] = '.';
-        filefunc[offset+2] = '.';
-    }
-
-    /* Print to a string the std pattern */
-    nchars = snprintf(outbuf, MAX_OUTBUF_LEN, "%s %s %-*s %s ", get_time(timestamp),
-                      log_ctx_str[ctx], maxlen, filefunc+offset, log_sev_str[sev]);
-
-    /* Continue printing the log itself */
-    va_start(vargs, fmt);
-    vsnprintf (outbuf + nchars, MAX_OUTBUF_LEN-nchars, fmt, vargs);
-    va_end(vargs);
-
-    /* Can we print? */
-    if (outFile.lock == WRITE_LOCK)
-    {
-      return -1;
-    }
-
-    /* Use stream inside log_cfg structure (only if not default) */
-    if ((log_cfg[ctx].output > LOG_OUTPUT_DEFAULT && log_cfg[ctx].output < LOG_OUTPUT_MAX) &&
-        outFile.stream[log_cfg[ctx].output] != NULL)
-    {
-      stream = outFile.stream[log_cfg[ctx].output];
-    }
-    /* For default stream, use generic defined at log_init */
-    else if ((outFile.output >= LOG_OUTPUT_DEFAULT && outFile.output < LOG_OUTPUT_MAX) &&
-              outFile.stream[outFile.output] != NULL) 
-    {
-      stream = outFile.stream[outFile.output];
-    }
-
-    /* Output it... */
-    fprintf( stream, "%s%.*s%s\r\n", color, MAX_OUTBUF_LEN, outbuf, log_colors[LOG_COLOR_DEFAULT]);
-
-    /* fflush for files */
-    if (stream!=stdout && stream!=stderr)
-    {
-      if(++max_log_lines >= MAX_LOG_LINES)
-      {
-        /*To be replaced with semaphore  or signal approach*/
-        //system("/usr/local/ptin/sbin/logrotate /etc/logrotate.conf.d&"); 
-                
-        max_log_lines = 0;        
-      }
-      fflush(stream);
-    }
-
-    return 1;
+    logpcap_stream_conf_dump(prot_id);
 }
-

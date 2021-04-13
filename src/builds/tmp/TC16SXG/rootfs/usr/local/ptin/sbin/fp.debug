@@ -11,7 +11,7 @@ fi
 
 echo "Applying mask $mask..."
 
-fp.shell dev logger_sev_set $mask $severity
+fp.shell dev swdrv_logger_sev_set $mask $severity
 
 echo "Done!"
 

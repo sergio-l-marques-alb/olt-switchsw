@@ -3135,7 +3135,7 @@ int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args)
 {
   L7_BOOL   logit = L7_FALSE, printit = L7_FALSE;
   L7_uchar8 buf[LOG_MSG_MAX_MSG_SIZE];
-  log_severity_t ptin_log_sev = LOG_SEV_PRINT;
+  log_severity_t ptin_log_sev = LOG_SEV_DEBUG;
 
   if( (meta_data == L7_NULLPTR) )
   {
@@ -3223,7 +3223,8 @@ int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args)
       }
       else
       {
-        if (logger_check(LOG_CTX_SDK, ptin_log_sev)) logger_print(LOG_CTX_SDK, ptin_log_sev, meta_data->file, meta_data->func, meta_data->line, "%s", buf);
+        if (logger_check(LOG_CTX_SDK, ptin_log_sev))
+          logger_print(LOG_CTX_SDK, ptin_log_sev, meta_data->file, meta_data->func, meta_data->line, "\r\n", "%s", buf);
       }
     }
   }

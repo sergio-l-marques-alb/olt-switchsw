@@ -348,7 +348,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_APP_LOGGER_OUTPUT:
     {
       /* Logger redirection: this will be inactive when using the logger from NBTOOLS */
-#if 1
+#if 0
       L7_uint8 output;
       char *filename;
 

@@ -721,10 +721,19 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
    * To minimize dumping of lots of sigsegv files, we will set
    * a static variable to handle only the first sigsegv
    */
-  if ((already_called == 1) && (sig == SIGSEGV)) {
+  if ((already_called == 1) && (sig == SIGSEGV))
+  {
       exit(0);
   }
 
+  /* For some systems, when a devshell command is called, signal 17 is generated...
+     The reason is still unknown, and so, for now, we are ignoring this signal. */
+  if (sig == SIGCHLD)
+  {
+    PT_LOG_NOTICE(LOG_CTX_STARTUP, "Signal %d ignored", sig);
+    return;
+  }
+  
   /*
    *become the highest priority task
    *so that we don't get preempted
@@ -744,7 +753,7 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
      PT_LOG_NOTICE(LOG_CTX_STARTUP,"Terminating SDK...");
      hpcHardwareFini();
      PT_LOG_NOTICE(LOG_CTX_STARTUP,"SDK terminated!");
-     logger_deinit();
+     logger_close();
      printf("OLTSWITCH terminated... Good bye!\r\n");
      fflush(stdout);
      exit(0);
@@ -866,7 +875,7 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
   PT_LOG_NOTICE(LOG_CTX_STARTUP,"Terminating SDK...");
   hpcHardwareFini();
   PT_LOG_NOTICE(LOG_CTX_STARTUP,"SDK terminated!");
-  logger_deinit();
+  logger_close();
   printf("OLTSWITCH crashed!\r\n");
 
   if (BACKTRACE_FILE)
@@ -898,13 +907,8 @@ int main(int argc, char *argv[], char *envp[])
   stack_t sig_stack;
 #endif
 
-  /* Initialize logger */
-  logger_init(LOG_OUTPUT_FILE);
-
-  /* Configure output files */
-  logger_output_file_set(LOG_OUTPUT_FILE,  LOG_OUTPUT_FILE_DEFAULT);
-  logger_output_file_set(LOG_OUTPUT_FILE2, LOG_OUTPUT_FILE_DEFAULT2);
-  logger_output_file_set(LOG_OUTPUT_FILE3, LOG_OUTPUT_FILE_DEFAULT3);
+  swdrv_logger_init();  /* Initialize logger */
+  swdrv_logpcap_init(); /* Initialize logpcap */
 
   fflush(stdout);
 
