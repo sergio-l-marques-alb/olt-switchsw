@@ -288,6 +288,10 @@ void ptin_debug(void)
   printf("\r\n");
   printf("  ipc_msg_bytes_debug_enable (0/1)                                - Dump IPC MSGs' bytes\r\n");
   printf("\r\n");
+  printf("  ptin_dhcp_stat_dhcpInstance_dump <evc_id> <ptinPort>            - Dump stats at Dhcp Instance level\r\n");
+  printf("  ptin_dhcp_stat_client_dump <evc_id> <ptinPort> <vlanId>         - Dump stats at Client level\r\n");
+  printf("  ptin_dhcp_stat_intf_dump <ptinPort>                             - Dump stats at Interface level\r\n");
+  printf("\r\n");
 
   fflush(stdout);
 }
