@@ -2320,6 +2320,8 @@ L7_RC_t ptin_dhcp_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_int
     return L7_FAILURE;
   }
 
+  PT_LOG_INFO(LOG_CTX_DHCP,"Get Stats for dhcp_inst=%u, ptin_port=%u",dhcp_idx, ptin_port );
+
   /* Return pointer to stat structure */
   if (stat_port!=L7_NULLPTR)
   {
@@ -5375,4 +5377,150 @@ static L7_RC_t ptin_dhcp_clientId_restore(ptin_client_id_t *client)
   return L7_SUCCESS;
 }
 #endif
+
+
+
+/*Dump stats at per Dhcp Instance level (Network Service)*/
+void ptin_dhcp_stat_dhcpInstance_dump(L7_uint32 evc_idx, L7_uint32 ptin_port)
+{
+    ptin_DHCP_Statistics_t stats;
+    L7_uint32 dhcp_idx;
+    ptin_evc_intfCfg_t intfCfg;
+    ptin_intf_t ptin_intf;
+
+    /* Validate interface */
+    if (ptin_intf_port2ptintf(ptin_port,  &ptin_intf)!=L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_DHCP,"Invalid ptin_port %u",ptin_port);
+      return;
+    }
+
+    /* Check if EVC is active, and if interface is part of the EVC */
+    if (ptin_evc_intfCfg_get(evc_idx, &ptin_intf, &intfCfg)!=L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_DHCP,"Error getting interface (%u/%u) configuration from EVC %u",ptin_intf.intf_id, ptin_intf.intf_id, evc_idx);
+      return;
+    }
+    if (!intfCfg.in_use)
+    {
+      PT_LOG_ERR(LOG_CTX_DHCP,"Interface %u/%u is not in use by EVC %u",ptin_intf.intf_id, ptin_intf.intf_id, evc_idx);
+      return;
+    }
+
+    /* Get Dhcp instance */
+    if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx)!=L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_DHCP,"EVC %u does not belong to any DHCP instance",evc_idx);
+      return;
+    }
+
+    PT_LOG_INFO(LOG_CTX_DHCP,"Get Stats for dhcp_inst=%u, ptin_port=%u",dhcp_idx, ptin_port );
+
+    osapiSemaTake(ptin_dhcp_stats_sem,-1);
+    memcpy(&stats, &dhcpInstances[dhcp_idx].stats_intf[ptin_port], sizeof(ptin_DHCP_Statistics_t));
+    osapiSemaGive(ptin_dhcp_stats_sem);
+
+
+    printf("dhcp_rx_intercepted                             =  %u\r\n", stats.dhcp_rx_intercepted);
+    printf("dhcp_rx                                         =  %u\r\n", stats.dhcp_rx);
+    printf("dhcp_rx_filtered                                =  %u\r\n", stats.dhcp_rx_filtered);
+    printf("dhcp_tx_forwarded                               =  %u\r\n", stats.dhcp_tx_forwarded);
+    printf("dhcp_tx_failed                                  =  %u\r\n", stats.dhcp_tx_failed);
+    printf("dhcp_rx_client_requests_without_options         =  %u\r\n", stats.dhcp_rx_client_requests_without_options);
+    printf("dhcp_tx_client_requests_with_option82           =  %u\r\n", stats.dhcp_tx_client_requests_with_option82);
+    printf("dhcp_tx_client_requests_with_option37           =  %u\r\n", stats.dhcp_tx_client_requests_with_option37);
+    printf("dhcp_tx_client_requests_with_option18           =  %u\r\n", stats.dhcp_tx_client_requests_with_option18);
+    printf("dhcp_rx_server_replies_with_option82            =  %u\r\n", stats.dhcp_rx_server_replies_with_option82);
+    printf("dhcp_rx_server_replies_with_option37            =  %u\r\n", stats.dhcp_rx_server_replies_with_option37);
+    printf("dhcp_rx_server_replies_with_option18            =  %u\r\n", stats.dhcp_rx_server_replies_with_option18);
+    printf("dhcp_tx_server_replies_without_options          =  %u\r\n", stats.dhcp_tx_server_replies_without_options);
+    printf("dhcp_rx_client_pkts_onTrustedIntf               =  %u\r\n", stats.dhcp_rx_client_pkts_onTrustedIntf);
+    printf("dhcp_rx_client_pkts_withOps_onUntrustedIntf     =  %u\r\n", stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf);
+    printf("dhcp_rx_server_pkts_onUntrustedIntf             =  %u\r\n", stats.dhcp_rx_server_pkts_onUntrustedIntf);
+
+}
+
+
+
+
+/*Dump stats at per interface level*/
+void ptin_dhcp_stat_intf_dump(L7_uint32 ptin_port)
+{
+    ptin_DHCP_Statistics_t stats;
+
+    /* Validate interface */
+    if (ptin_port >= PTIN_SYSTEM_N_INTERF)
+    {
+        PT_LOG_ERR(LOG_CTX_DHCP,"Invalid ptin_port %u",ptin_port);
+        return;
+    }
+
+    PT_LOG_INFO(LOG_CTX_DHCP, "Get client Stats");
+    osapiSemaTake(ptin_dhcp_stats_sem,-1);
+    memcpy(&stats, &global_stats_intf[ptin_port], sizeof(ptin_DHCP_Statistics_t));
+    osapiSemaGive(ptin_dhcp_stats_sem);
+
+    printf( "dhcp_rx_intercepted                             =  %u\r\n", stats.dhcp_rx_intercepted);
+    printf( "dhcp_rx                                         =  %u\r\n", stats.dhcp_rx);
+    printf( "dhcp_rx_filtered                                =  %u\r\n", stats.dhcp_rx_filtered);
+    printf( "dhcp_tx_forwarded                               =  %u\r\n", stats.dhcp_tx_forwarded);
+    printf( "dhcp_tx_failed                                  =  %u\r\n", stats.dhcp_tx_failed);
+    printf( "dhcp_rx_client_requests_without_options         =  %u\r\n", stats.dhcp_rx_client_requests_without_options);
+    printf( "dhcp_tx_client_requests_with_option82           =  %u\r\n", stats.dhcp_tx_client_requests_with_option82);
+    printf( "dhcp_tx_client_requests_with_option37           =  %u\r\n", stats.dhcp_tx_client_requests_with_option37);
+    printf( "dhcp_tx_client_requests_with_option18           =  %u\r\n", stats.dhcp_tx_client_requests_with_option18);
+    printf( "dhcp_rx_server_replies_with_option82            =  %u\r\n", stats.dhcp_rx_server_replies_with_option82);
+    printf( "dhcp_rx_server_replies_with_option37            =  %u\r\n", stats.dhcp_rx_server_replies_with_option37);
+    printf( "dhcp_rx_server_replies_with_option18            =  %u\r\n", stats.dhcp_rx_server_replies_with_option18);
+    printf( "dhcp_tx_server_replies_without_options          =  %u\r\n", stats.dhcp_tx_server_replies_without_options);
+    printf( "dhcp_rx_client_pkts_onTrustedIntf               =  %u\r\n", stats.dhcp_rx_client_pkts_onTrustedIntf);
+    printf( "dhcp_rx_client_pkts_withOps_onUntrustedIntf     =  %u\r\n", stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf);
+    printf( "dhcp_rx_server_pkts_onUntrustedIntf             =  %u\r\n", stats.dhcp_rx_server_pkts_onUntrustedIntf);
+
+}
+
+/*Dump stats at per service client level*/
+void ptin_dhcp_stat_client_dump(L7_uint16 evc_id, L7_uint16 ptin_port, L7_uint16 innervlan)
+{
+    L7_RC_t                 rc;
+    ptin_client_id_t        client;
+    ptin_DHCP_Statistics_t  stats;
+
+    PT_LOG_INFO(LOG_CTX_DHCP, "Get client Stats");
+
+    client.innerVlan = innervlan;
+    client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+
+    rc = ptin_intf_port2typeId(ptin_port, &client.ptin_intf.intf_type, &client.ptin_intf.intf_id);
+    if (rc != L7_SUCCESS) 
+    {
+        PT_LOG_ERR(LOG_CTX_DHCP, "Error converting from ptin_port=%u to ptin_intf",ptin_port);
+        return;
+    }
+
+    client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+
+    /* Get statistics */
+    rc = ptin_dhcp_stat_client_get(evc_id, &client, &stats);
+
+
+    printf("dhcp_rx_intercepted                             =  %u\r\n", stats.dhcp_rx_intercepted);
+    printf("dhcp_rx                                         =  %u\r\n", stats.dhcp_rx);
+    printf("dhcp_rx_filtered                                =  %u\r\n", stats.dhcp_rx_filtered);
+    printf("dhcp_tx_forwarded                               =  %u\r\n", stats.dhcp_tx_forwarded);
+    printf("dhcp_tx_failed                                  =  %u\r\n", stats.dhcp_tx_failed);
+    printf("dhcp_rx_client_requests_without_options         =  %u\r\n", stats.dhcp_rx_client_requests_without_options);
+    printf("dhcp_tx_client_requests_with_option82           =  %u\r\n", stats.dhcp_tx_client_requests_with_option82);
+    printf("dhcp_tx_client_requests_with_option37           =  %u\r\n", stats.dhcp_tx_client_requests_with_option37);
+    printf("dhcp_tx_client_requests_with_option18           =  %u\r\n", stats.dhcp_tx_client_requests_with_option18);
+    printf("dhcp_rx_server_replies_with_option82            =  %u\r\n", stats.dhcp_rx_server_replies_with_option82);
+    printf("dhcp_rx_server_replies_with_option37            =  %u\r\n", stats.dhcp_rx_server_replies_with_option37);
+    printf("dhcp_rx_server_replies_with_option18            =  %u\r\n", stats.dhcp_rx_server_replies_with_option18);
+    printf("dhcp_tx_server_replies_without_options          =  %u\r\n", stats.dhcp_tx_server_replies_without_options);
+    printf("dhcp_rx_client_pkts_onTrustedIntf               =  %u\r\n", stats.dhcp_rx_client_pkts_onTrustedIntf);
+    printf("dhcp_rx_client_pkts_withOps_onUntrustedIntf     =  %u\r\n", stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf);
+    printf("dhcp_rx_server_pkts_onUntrustedIntf             =  %u\r\n", stats.dhcp_rx_server_pkts_onUntrustedIntf);
+
+}
+
 
