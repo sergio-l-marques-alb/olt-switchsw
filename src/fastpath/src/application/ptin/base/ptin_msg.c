@@ -342,6 +342,7 @@ L7_RC_t ptin_to_fp_ip_notation(chmessage_ip_addr_t *ptinIpAddr, L7_inet_addr_t *
 extern void ptin_msg_defaults_reset(msg_HwGenReq_t *msgPtr)
 {
   L7_uint8 mode;
+  ptin_NtwConnectivity_t ptinNtwConn;
 
   if (msgPtr == L7_NULLPTR)
   {
@@ -407,7 +408,7 @@ extern void ptin_msg_defaults_reset(msg_HwGenReq_t *msgPtr)
     ptin_prot_uplink_clear_all();
 
     /*Remove inband */
-    ptin_NtwConnectivity_t ptinNtwConn;
+
 
     /* Unconfig Connectivity */
     memset(&ptinNtwConn, 0x00, sizeof(ptin_NtwConnectivity_t));
@@ -10185,6 +10186,7 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
   return L7_SUCCESS;
 }
 
+
 /**
  * Remove a DHCP bind table entry
  * 
@@ -10241,6 +10243,7 @@ L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCP_bind_table_entry_t *table, L7_ui
 
   return L7_SUCCESS;
 }
+
 
 /*IP Source Guard Management Functions **************************************************/
 
