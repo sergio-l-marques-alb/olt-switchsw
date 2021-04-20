@@ -401,11 +401,12 @@ extern void ptin_msg_defaults_reset(msg_HwGenReq_t *msgPtr)
   ptin_msg_NGPON2_clear();
 #endif
 
-  /* Remove prot uplink configuration  */
-  ptin_prot_uplink_clear_all();
-
   if (mode == DEFAULT_RESET_MODE_FULL)
   {
+    /* Remove prot uplink configuration  */
+    ptin_prot_uplink_clear_all();
+
+    /*Remove inband */
     ptin_NtwConnectivity_t ptinNtwConn;
 
     /* Unconfig Connectivity */
