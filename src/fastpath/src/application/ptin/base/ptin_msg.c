@@ -16468,7 +16468,6 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
   /* Validate Session ID */
   sessionNum = 1; // msg->sessionId;
-
   if( sessionNum > L7_MIRRORING_MAX_SESSIONS || sessionNum == 0)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid sessionNum %u", sessionNum);
@@ -16507,8 +16506,6 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
     PT_LOG_TRACE(LOG_CTX_MSG, "Configuring Destination interface intfNum %d", dstIntfNum);
 
     rc = usmDbSwPortMonitorDestPortSet(unit, sessionNum, dstIntfNum);
-
-
     if(rc != L7_SUCCESS)
     {
       if (rc == L7_ALREADY_CONFIGURED)
@@ -16521,8 +16518,7 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
           PT_LOG_TRACE(LOG_CTX_MSG, "Destination interface is already configured with a different value (current intfNum %d)", auxIntfNum);
           return L7_FAILURE;
         }
-        //else
-        //  Nothing to be done
+
       }
       else
       {
@@ -16537,6 +16533,11 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
   {
     for (n=0; n<msg->n_intf && n<PTIN_SYSTEM_MAX_N_PORTS; n++)
     {
+
+      PT_LOG_TRACE(LOG_CTX_MSG, "Configuring Src port type %u and id %d", 
+                   msg->src_intf[n].intf.intf_type, 
+                   msg->src_intf[n].intf.intf_id);
+
       /* Convert Src intfId to intfNum */
       if (ptin_msg_ptinPort_get(msg->src_intf[n].intf.intf_type, msg->src_intf[n].intf.intf_id, &ptin_port)!=L7_SUCCESS)
       {
@@ -16571,7 +16572,7 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
       usmDbConvertMaskToList(&srcIntfMask, listSrcPorts, &numPorts);
       listSrcPorts[numPorts++] = srcIntfNum;
 
-      PT_LOG_TRACE(LOG_CTX_MSG, "Configuring Source interface intfNum %d with direction %u", dstIntfNum, type);
+      PT_LOG_TRACE(LOG_CTX_MSG, "Configuring Source interface intfNum %d with direction %u", srcIntfNum, type);
       
       if (type == L7_MIRROR_UNCONFIGURED)
       {
@@ -16588,8 +16589,8 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
         if (msg->src_intf[n].intf.intf_type == 1)
         {
           ptin_intf_intIfNum2port(srcIntfNum, &ptin_port_aux); 
-
-          PT_LOG_TRACE(LOG_CTX_MSG, "Adding intfNum Src %d", ptin_port_aux);
+                                                                        
+          PT_LOG_TRACE(LOG_CTX_MSG, "Adding Src ptin_port %d", ptin_port_aux);
         }
 
         /* Configure Egress XLATE on the destination interface */
@@ -16597,8 +16598,8 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
         {
           L7_uint32 auxIntfNum, ptin_port_dst;
 
-          PT_LOG_TRACE(LOG_CTX_MSG, "Src intfNum %d", ptin_port_aux);
-          PT_LOG_TRACE(LOG_CTX_MSG, "Dst intfNum %d", msg->dst_intf.intf_id);
+          PT_LOG_TRACE(LOG_CTX_MSG, "Adding Src ptin_port %d", ptin_port_aux);
+          PT_LOG_TRACE(LOG_CTX_MSG, "Adding Dst ptin_port %d", msg->dst_intf.intf_id);
 
           ptin_port_dst = msg->dst_intf.intf_id;
 
@@ -16607,8 +16608,6 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
             usmDbSwPortMonitorDestPortGet(unit, sessionNum, &auxIntfNum);
             ptin_intf_intIfNum2port(auxIntfNum, &ptin_port_dst); 
           }
-
-          PT_LOG_TRACE(LOG_CTX_MSG, "Dst intfNum %d", msg->dst_intf.intf_id);
           xlate_outer_vlan_replicate_Dstport(1, ptin_port_aux, ptin_port_dst);
         }
 
@@ -16660,6 +16659,9 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Get the Dst port(s) of the Monitor session*/
       usmDbSwPortMonitorDestPortGet(unit, sessionNum, &listDstPorts[0]);
 
+      PT_LOG_TRACE(LOG_CTX_MSG, "Retrieve dst IntfNum port %u",
+                   listDstPorts[0]);
+
       /* Convert to ptin format*/
       ptin_intf_intIfNum2port(listDstPorts[0],&ptinDst_aux);
 
@@ -16669,32 +16671,31 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Remove Monitor Session */
       rc = usmDbSwPortMonitorSessionRemove(unit, sessionNum);
 
-
       /* Disable Monitor Session */
       rc = usmDbSwPortMonitorModeSet(unit, sessionNum, L7_DISABLE);
       if(rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG, "Some error occurred (%d)", rc);     
       } 
+
       rc = usmDbSwPortMonitorSourcePortRemove(unit, sessionNum, listSrcPorts[0]);
       if(rc != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "Some error occurred (%d)", rc);     
-      } 
-      rc = usmDbSwPortMonitorDestPortRemove(unit, sessionNum);
-      
-      if(rc != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_MSG, "Some error occurred (%d)", rc);     
+        PT_LOG_ERR(LOG_CTX_MSG, "Error at usmDbSwPortMonitorSourcePortRemove (%d)", rc);     
       } 
 
-      usmDbDvlantagIntfModeSet(0, listDstPorts[0], 0 /* service provider double tag mode*/);  
-        PT_LOG_ERR(LOG_CTX_MSG, "listDstPorts[0] (%d)", listDstPorts[0]);
-      usmDbDvlantagIntfModeSet(0, listDstPorts[0], 1 /* service provider double tag mode*/);
+      rc = usmDbSwPortMonitorDestPortRemove(unit, sessionNum);
+      if(rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Error at usmDbSwPortMonitorDestPortRemove (%d)", rc);     
+      } 
+
+      usmDbDvlantagIntfModeSet(unit, listDstPorts[0], 0 /* disable,service provider double tag mode*/);  
+      usmDbDvlantagIntfModeSet(unit, listDstPorts[0], 1 /* configure service provider double tag mode*/);
     }
   }
 
-  PT_LOG_TRACE(LOG_CTX_MSG, "Return value is %u",rc_global);
+  PT_LOG_TRACE(LOG_CTX_MSG, "Global rc of port mirror configuration is %u",rc_global);
   return rc_global;
 }
 
