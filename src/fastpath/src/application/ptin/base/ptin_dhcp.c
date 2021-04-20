@@ -2294,15 +2294,12 @@ L7_RC_t ptin_dhcp_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_int
     return L7_FAILURE;
   }
 
-
   /* Validate interface */
   if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_DHCP,"Invalid interface %u/%u",ptin_intf->intf_id,ptin_intf->intf_id);
     return L7_FAILURE;
   }
-  PT_LOG_WARN(LOG_CTX_DHCP,"Interface %u/%u",ptin_intf->intf_id,ptin_intf->intf_id);
-  PT_LOG_WARN(LOG_CTX_DHCP,"ptin_port %u/%u",ptin_port);
 
   /* Check if EVC is active, and if interface is part of the EVC */
   if (ptin_evc_intfCfg_get(evc_idx,ptin_intf,&intfCfg)!=L7_SUCCESS)
