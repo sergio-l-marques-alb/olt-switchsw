@@ -238,30 +238,6 @@ elif [ "$1" == "CXO640G" ]; then
   export PTIN_MGMD_PLATFORM_ROOT_PORT_IS_ON_MAX_PORT_ID=0
 
 # Trident3-X3
-elif [ "$1" == "TC16SXG" ]; then
-  BOARD=$1
-  CPU=td3x3arm
-  
-  export COMPILER_DIR=/opt/xldk/6.0.1/helix5/usr/bin
-  export COMPILER_PREFIX=aarch64-linux-
-#  export LD_LIB_PATH=/opt/broadcom_kt2_hx4/usr/lib
-
-  # Overide local variables with the ones comming from the makefile (if defined)
-  export COMPILER_DIR="${TOOLCHAIN_BIN_DIR:-$COMPILER_DIR}"
-  PREFIX=`echo $COMPILER | awk -F'/' '{print $NF}'`
-  if [ ! -z $PREFIX ]; then export COMPILER_PREFIX=$PREFIX; fi
-  export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-$LD_LIB_PATH}"
-
-  export PTIN_MGMD_PLATFORM_MAX_CHANNELS=4096
-  export PTIN_MGMD_PLATFORM_MAX_WHITELIST=16384
-  export PTIN_MGMD_PLATFORM_MAX_CLIENTS=512
-  export PTIN_MGMD_PLATFORM_MAX_PORTS=16
-  export PTIN_MGMD_PLATFORM_MAX_PORT_ID=22
-  export PTIN_MGMD_PLATFORM_MAX_SERVICES=40
-  export PTIN_MGMD_PLATFORM_MAX_SERVICE_ID=255
-  export PTIN_MGMD_PLATFORM_ADMISSION_CONTROL_SUPPORT=1
-  export PTIN_MGMD_PLATFORM_ROOT_PORT_IS_ON_MAX_PORT_ID=1
-
 elif [ "$1" == "TG4G" ]; then
   BOARD=$1
   CPU=e500

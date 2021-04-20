@@ -18,5 +18,4 @@ all clean cleanall:
 	@$(MAKE) -f fp.shell-olt1t0.make $@
 	@$(MAKE) -f fp.shell-olt1t0f.make $@
 	@$(MAKE) -f fp.shell-tt04sxg.make $@
-	@$(MAKE) -f fp.shell-tc16sxg.make $@
 
