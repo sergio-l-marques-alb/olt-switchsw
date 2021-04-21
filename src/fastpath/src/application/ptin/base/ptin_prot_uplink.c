@@ -2622,6 +2622,7 @@ L7_RC_t uplinkprotResetStateMachine(L7_uint16 protIdx)
     
     PT_LOG_DEBUG(LOG_CTX_INTF, "Processing protIndex %u", i);
 
+    osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
     /* Check if Entry is valid */
     if (!uplinkprot[i].admin)
     {
@@ -2630,8 +2631,6 @@ L7_RC_t uplinkprotResetStateMachine(L7_uint16 protIdx)
     }
 
     PT_LOG_INFO(LOG_CTX_INTF, "Resetting protIndex %u", i);
-
-    osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
 
     /* Stop any timer */
     ptin_prot_timer_stop(i);
@@ -3734,11 +3733,16 @@ L7_RC_t ptin_prot_uplink_state_sync(void)
 
   PT_LOG_DEBUG(LOG_CTX_INTF, "%u groups returned", n);
 
-  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
 
+  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
   /* Run all groups */
   for (i = 0; i < n; i++)
   {
+    if (i >= MAX_UPLINK_PROT)
+    {
+      break;
+    }
+
     protIdx = prot_state[i].protIndex;
 
     PT_LOG_DEBUG(LOG_CTX_INTF, "Processing element index %u (protIdx=%u)", i, protIdx);
@@ -3750,11 +3754,14 @@ L7_RC_t ptin_prot_uplink_state_sync(void)
       continue;
     }
     
-    /* If in the other side, there are active timers, reset machine! */
+    /* If in the other side, there are active timers, reset machine!
+      (already use ptin_prot_uplink_sem inside uplinkprotResetStateMachine) */
     if (prot_state[i].reset_machine)
     {
+      osapiSemaGive(ptin_prot_uplink_sem);
       PT_LOG_DEBUG(LOG_CTX_INTF, "We have timers active... resetting protection group %u", protIdx);
       uplinkprotResetStateMachine(protIdx);
+      osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
     }
     else
     {
@@ -3762,10 +3769,11 @@ L7_RC_t ptin_prot_uplink_state_sync(void)
       operator_cmd[protIdx] = prot_state[i].operator_cmd;
       operator_switchToPortType[protIdx] = prot_state[i].operator_switchToPortType;
     }
+
     PT_LOG_DEBUG(LOG_CTX_INTF, "Group index %u status copied; operator_cmd=%u; operator_switchToPortType=%u",
                  protIdx, operator_cmd[protIdx], operator_switchToPortType[protIdx]);
 
-    /* Guarantee the correct state for each interface */
+    /* Guarantee the correct state for each interface (already use ptin_prot_uplink_sem inside) */
     if (ptin_prot_uplink_group_reload(protIdx) == L7_SUCCESS)
     {
       PT_LOG_DEBUG(LOG_CTX_INTF, "protIdx=%u: Interfaces state reloaded", protIdx);
