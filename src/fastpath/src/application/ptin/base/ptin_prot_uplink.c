@@ -2622,13 +2622,14 @@ L7_RC_t uplinkprotResetStateMachine(L7_uint16 protIdx)
     
     PT_LOG_DEBUG(LOG_CTX_INTF, "Processing protIndex %u", i);
 
-    osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
     /* Check if Entry is valid */
     if (!uplinkprot[i].admin)
     {
       //PT_LOG_ERR(LOG_CTX_INTF, "protIdx=%d empty", i);
       continue;
     }
+
+    osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
 
     PT_LOG_INFO(LOG_CTX_INTF, "Resetting protIndex %u", i);
 
@@ -2667,14 +2668,13 @@ L7_RC_t uplinkprotResetStateMachine(L7_uint16 protIdx)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Error restarting protIndex %u", i);
       rc_global = rc;
+      osapiSemaGive(ptin_prot_uplink_sem);
       continue;
     }
-    
     osapiSemaGive(ptin_prot_uplink_sem);
 
     PT_LOG_INFO(LOG_CTX_INTF, "Machine resetted for protIndex %u", i);
   }
-
   return (rc_global);
 }
 
