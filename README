@@ -1,0 +1,40 @@
+* We can use command to setup the environment of the local repo on Cetcomp
+```sh
+sh local_manager.sh -s
+```
+
+**or
+
+*** Verfy if the netband-libs link is created and is in the rigth place
+
+*** Verfy if the build_dir build_dir link has been created in this directory
+
+* MGMD compilation
+```sh
+cd src/fastpath
+./mgmd_compile.sh TG16GF
+./mgmd_compile.sh AG16GA
+./mgmd_compile.sh OLT1T0F
+./mgmd_compile.sh OLT1T0
+./mgmd_compile.sh TT04SXG
+./mgmd_compile.sh TA48GE
+./mgmd_compile.sh TG16G
+./mgmd_compile.sh CXO160G
+./mgmd_compile.sh CXO640G
+```
+
+* Compile for all boards
+```sh
+make all
+```
+
+* Create package
+```sh
+cd src
+sh create_packge.new cxo640g
+```
+
+* Clean all compilation files from the repo folders
+```sh
+sh local_manager.sh -clean
+```
