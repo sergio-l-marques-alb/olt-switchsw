@@ -519,6 +519,7 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
   PT_LOG_DEBUG(LOG_CTX_ROUTING, "Adding vlan %u to interface %s", routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
   if(__ioctl_vlanintf_add(routingVlanId) != 0)
   {
+    __ioctl_vlanintf_remove(routingVlanId);
     PT_LOG_ERR(LOG_CTX_ROUTING, "ioctl error (errno:%d). Unable to add a new vlan %u to the %s interface", errno, routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
     return L7_FAILURE;
   }
@@ -536,6 +537,7 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
   if(__ioctl_vlanintf_enable(routingIntf->intf_id) != 0)
   {
     PT_LOG_ERR(LOG_CTX_ROUTING, "ioctl error (errno:%d). Unable to enable %s%u interface", errno, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+    __ioctl_vlanintf_remove(routingVlanId);
     return L7_FAILURE;
   }
   
@@ -544,6 +546,8 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
   if(usmDbIpVlanRoutingIntfCreate(PTIN_ROUTING_USMDB_UNITINDEX, internalVlanId, routingIntf->intf_id+1) != 0)
   {
     PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to associate %s%u with vlan %u on OLTSWITCH's routing tables", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, internalVlanId);
+    __ioctl_vlanintf_remove(routingVlanId);
+    usmDbIpVlanRoutingIntfDelete(PTIN_ROUTING_USMDB_UNITINDEX, internalVlanId);
     return L7_FAILURE;
   }
 
@@ -553,6 +557,8 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
   if(L7_SUCCESS != ptin_ipdtl0_control(routingVlanId, routingVlanId, internalVlanId, routingIntfNum, PTIN_IPDTL0_ETH_IPv4, L7_TRUE))
   {
     PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to allow IP/ARP packets through dtl0 for this vlan");
+    __ioctl_vlanintf_remove(routingVlanId);
+    usmDbIpVlanRoutingIntfDelete(PTIN_ROUTING_USMDB_UNITINDEX, internalVlanId);
     return L7_FAILURE;
   }
 #endif /* PTIN_BOARD_IS_MATRIX */
@@ -577,12 +583,16 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
     if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(&physicalIntf, &physicalIntfNum))
     {
       PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to to convert physicalIntf %u/%u to intfNum", physicalIntf.intf_type, physicalIntf.intf_id);
+      __ioctl_vlanintf_remove(routingVlanId);
+      usmDbIpVlanRoutingIntfDelete(PTIN_ROUTING_USMDB_UNITINDEX, internalVlanId);
       return L7_FAILURE;
     }
 
     if (nimGetIntfAddress(physicalIntfNum, L7_NULL, &macAddr.addr[0]) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to get physical interface MAC address [physicalIntf:%u/%u]", physicalIntf.intf_type, physicalIntf.intf_id);
+     __ioctl_vlanintf_remove(routingVlanId);
+     usmDbIpVlanRoutingIntfDelete(PTIN_ROUTING_USMDB_UNITINDEX, internalVlanId);
       return L7_FAILURE;
     }
 
@@ -590,6 +600,8 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
     if(__intf_macaddress_set(routingIntf, &macAddr) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to set %s%u interface MAC address", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+      __ioctl_vlanintf_remove(routingVlanId);
+      usmDbIpVlanRoutingIntfDelete(PTIN_ROUTING_USMDB_UNITINDEX, internalVlanId);
       return L7_FAILURE;
     }
 

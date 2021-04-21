@@ -3936,7 +3936,10 @@ L7_RC_t ipMapRtrIntfIpAddressValidityCheck(L7_IP_ADDR_t ipAddress,
 
   /* an IP address or subnet mask of 0 is invalid */
   if ((ipAddress == L7_NULL_IP_ADDR) || (subnetMask == L7_NULL_IP_MASK))
+  {
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Reject IpAdress or mask all 0's");
     return L7_FAILURE;
+  }
 
   /* A host portion of all 0's or all 1's is prohibited if netmask is 30 bits or shorter. */
   if ((subnetMask != 0xFFFFFFFF) && (subnetMask != 0xFFFFFFFE))
@@ -3944,29 +3947,52 @@ L7_RC_t ipMapRtrIntfIpAddressValidityCheck(L7_IP_ADDR_t ipAddress,
     if (((ipAddress & ~subnetMask) == L7_NULL_IP_ADDR) ||
         ((ipAddress & ~subnetMask) == ~subnetMask))
     {
+      PT_LOG_ERR(LOG_CTX_ROUTING, "Reject IpAdress and mask combination off all 0's or 1's (0x%x)",
+                 ipAddress);
       return L7_FAILURE;
     }
   }
 
   /* reject the class A net 0 address */
   if (((ipAddress & IN_CLASSA_NET) >> IN_CLASSA_NSHIFT) == 0)
-    return L7_FAILURE;
-
+  {
+    PT_LOG_TRACE(LOG_CTX_ROUTING, "Class A net 0 Address (0x%x)",
+                 ipAddress);
+    return L7_SUCCESS;
+  }
+   
   /* reject the class A net 127 (loopback) address */
   if (((ipAddress & IN_CLASSA_NET) >> IN_CLASSA_NSHIFT) == IN_LOOPBACKNET)
-    return L7_FAILURE;
-
+  {
+    PT_LOG_TRACE(LOG_CTX_ROUTING, "Loopback Address (0x%x)",
+                 ipAddress);
+    return L7_SUCCESS;
+  } 
   /* accept all other class A */
   if ((L7_BOOL)IN_CLASSA(ipAddress) == L7_TRUE)
+  {
+    PT_LOG_TRACE(LOG_CTX_ROUTING, "Class A, Ip Address (0x%x)",
+                 ipAddress);
     return L7_SUCCESS;
-
+  }  
   /* accept all class B */
   if ((L7_BOOL)IN_CLASSB(ipAddress) == L7_TRUE)
+  {
+    PT_LOG_TRACE(LOG_CTX_ROUTING, "Class B, Ip Address (0x%x)",
+                 ipAddress);
     return L7_SUCCESS;
-
+  }  
   /* accept all class C */
   if ((L7_BOOL)IN_CLASSC(ipAddress) == L7_TRUE)
+  {
+    PT_LOG_TRACE(LOG_CTX_ROUTING, "Class C, Ip Address (0x%x)",
+                 ipAddress);
     return L7_SUCCESS;
+  }  
+
+  PT_LOG_ERR(LOG_CTX_ROUTING, "Reject Ip Address 0x%x and subnet 0x%x",
+             ipAddress,
+             subnetMask);
 
   /* reject everything else (class D, E, etc.) */
   return L7_FAILURE;
