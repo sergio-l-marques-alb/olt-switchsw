@@ -16972,6 +16972,7 @@ L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIntf* data)
      if(L7_SUCCESS != ptin_routing_intf_create(&routingIntf, internalVlan))
      {
        PT_LOG_ERR(LOG_CTX_MSG, "Unable to create a new routing interface");
+       ptin_routing_intf_remove(&routingIntf);
        return L7_FAILURE;
      }
   }
@@ -16989,6 +16990,10 @@ L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIntf* data)
   if(L7_SUCCESS != ptin_routing_intf_ipaddress_set(&routingIntf, L7_AF_INET, ENDIAN_SWAP32(data->ipAddress), ENDIAN_SWAP32(data->subnetMask)))
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Unable to set interface IP address");
+    if (data->routingIntf.intf_type == PTIN_EVC_INTF_ROUTING)
+    {
+      ptin_routing_intf_remove(&routingIntf);
+    }
     return L7_FAILURE;
   }
 
