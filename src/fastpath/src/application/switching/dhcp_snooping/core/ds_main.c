@@ -3603,14 +3603,15 @@ int _dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
       udp_header->checksum = osapiHtons((L7_uint16) inetChecksum(tempPtr, ((osapiNtohs(udp_header->length)) + 12)));
 
       /* PTIN added*/
-      if (//0==inudpcksum
-          // ||
+      if (0==inudpcksum
+          ||
 
           /* In RFC768 (UDP):
             An all zero  transmitted checksum  value means that the 
             transmitter  generated  no checksum*/
 
-          inudpcksum==udp_header->checksum) {
+          inudpcksum==udp_header->checksum)
+      {
           if (NULL!=udpcksumOK) *udpcksumOK = 1;
       }
       else {
