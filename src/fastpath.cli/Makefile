@@ -10,12 +10,6 @@ help h:
 	@echo ""
 
 all clean cleanall:
-	@$(MAKE) -f fp.cli-cxo640g.make $@
-	@$(MAKE) -f fp.cli-cxo160g.make $@
-	@$(MAKE) -f fp.cli-ta48ge.make $@
-	@$(MAKE) -f fp.cli-tg16g.make $@
-	@$(MAKE) -f fp.cli-tg16gf.make $@
-	@$(MAKE) -f fp.cli-olt1t0.make $@
-	@$(MAKE) -f fp.cli-olt1t0f.make $@
-	@$(MAKE) -f fp.cli-tt04sxg.make $@
+	@$(MAKE) -f fp.cli-ae48ge.make $@
+	@$(MAKE) -f fp.cli-ag16ga.make $@
 

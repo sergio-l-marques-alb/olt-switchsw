@@ -1,9 +1,0 @@
-BOARD=OLT1T0
-CPU=helixarm
-
-TOOLCHAIN_BASE_DIR=/opt/broadcom
-TOOLCHAIN_BIN_DIR=$(TOOLCHAIN_BASE_DIR)/bin
-LD_LIBRARY_PATH=$(TOOLCHAIN_BASE_DIR)/lib
-CROSS_COMPILE=$(TOOLCHAIN_BIN_DIR)/arm-linux-
-
-include fp.shell-common.make

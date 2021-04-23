@@ -1,5 +1,22 @@
 #!/bin/sh
 
+############################################################################################
+
+print_help()
+{
+  echo ""
+  echo "Usage :$APP card_name"
+  echo ""
+  echo "Examples:"
+  echo "  $APP ae48ge				     # build and create packages for fastpath"
+  echo ""
+  echo "card_name:"
+  echo "  ae48ge ag16ga          # available card names"
+  echo ""
+}
+
+############################################################################################
+
 # These variables are defined by the calling script
 #MODULE=fastpath-olt
 
@@ -32,6 +49,20 @@ if [ $# -ge 1 ]; then
  DEV_BOARD=$1
  DEV_BOARD_SW="$(echo $1 | awk -F '-' '{print $1}')"
 fi
+
+case $DEV_BOARD_SW in
+    "AE48GE" | "ae48ge")
+      DEV_BOARD_SW="ae48ge"
+      ;;
+    "AG16GA" | "ag16ga")
+      DEV_BOARD_SW="ag16ga"
+      ;;
+    *)
+      log_write "$APP: invalid card -- '$DEV_BOARD_SW'"
+      print_help
+      exit 1
+      ;;
+  esac
 
 echo "DEV_BOARD_SW=$DEV_BOARD_SW" >>$LOG_FILE
 
