@@ -135,8 +135,12 @@ L7_RC_t dsFrameIntfFilterSend(L7_uint32 ptin_port, L7_ushort16 vlanId,
                        L7_uchar8 *frame, L7_ushort16 frameLen,
                        L7_BOOL requestFlag, L7_ushort16 innerVlanId, L7_uint client_idx);   /* PTin modified: DHCP snooping */
 
-int dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
-                            L7_BOOL added, L7_ushort16 lenChng);
+#define dsUdpCheckSumCalculate(frame, frameLen, added, lenChng)\
+        _dsUdpCheckSumCalculate(frame, frameLen, added, lenChng, NULL, NULL, 0)
+int _dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
+                            L7_BOOL added, L7_ushort16 lenChng,
+                            int *ipv4cksumOK, int *udpcksumOK,
+                            int dont_fill_outcksum_if_NOK_incksum);
 
 static L7_RC_t dsv6AddOption9(L7_uchar8 *frame, L7_uint32 *frameLen, L7_uchar8 *dhcpRelayFrame, L7_ushort16 dhcpRelayFrameLen);
 
@@ -1790,6 +1794,28 @@ L7_RC_t dsFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
         PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet: %u", 
                    frameLen);
         return L7_FAILURE;    
+  }
+  { // Check packets' checksums
+      L7_uint32 l=frameLen;
+      int ipv4cksumOK, udpcksumOK, r;
+
+      r = _dsUdpCheckSumCalculate(frame, &l, L7_TRUE, 0,
+                                  &ipv4cksumOK, &udpcksumOK, 1);
+      if (L7_SUCCESS==r) {
+          if (!(ipv4cksumOK && udpcksumOK)) { //1 or the 2 cksums (IP, UDP) NOK
+              if (DEBUG_ENABLED(LOG_CTX_DHCP)) {
+                  PT_LOG_ERR(LOG_CTX_DHCP,
+                             "IPv4cksum %s UDPcksum %s",
+                             ipv4cksumOK? "OK":"NOK", udpcksumOK? "OK":"NOK");
+              }
+          }//1 or the 2 cksums (IP, UDP) NOK
+          else {
+              PT_LOG_PEDANTIC(LOG_CTX_DHCP, "Chksums OK");
+          }
+      }//if (L7_SUCCESS==r)
+      else {
+          PT_LOG_ERR(LOG_CTX_DHCP, "_dsUdpCheckSumCalculate()=%d", r);
+      }
   }
   if(L7_IP_VERSION == ipVersion)
   {
@@ -3479,26 +3505,48 @@ void dsFrameCVlanTagAdd(L7_uchar8 *frame, L7_ushort16 *frameLen,
 * @param    frameLen  @b{(inout)} Length of the frame
 * @param    added     @b{(input)} the bytes added or deleted.
 * @param    lenChng   @b{(input)} number of the bytes added or deleted.
+* 
+* PTIN added:
+* @param    ipv4cksumOK:
+*           If !=NULL, function checks if this checksum's OK
+*           (valid just for IPv4, not v6, but v6 will always say "OK")
+* @param    udpcksumOK
+*           If !=NULL, function checks if this checksum's OK
+* @param    dont_fill_outcksum_if_NOK_incksum
+* 
+* 
+* @returns  L7_SUCCESS, L7_FAILURE, ...
 *
-* @returns  none
-*
-* @notes    none
+* @notes    When not returning L7_SUCCESS, function might not have completed,
+*           ergo return values *[...]cksumOK might not be filled.
+* 
+*           If any of [...]cksumOK parameters isn't NULL, lenChng must be 0
 *
 * @end
 *********************************************************************/
-int dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
-                            L7_BOOL added, L7_ushort16 lenChng)
+int _dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
+                            L7_BOOL added, L7_ushort16 lenChng,
+                            int *ipv4cksumOK, int *udpcksumOK,
+                            int dont_fill_outcksum_if_NOK_incksum)
 {
    L7_ushort16 ethHdrLen = sysNetDataOffsetGet(frame);
    L7_uchar8 ipVersion = (0xF0 & *(L7_uchar8*) (frame + ethHdrLen)) >> 4;
    L7_uint32 offset = 0, total_length;
+   L7_ushort16 inipv4cksum, inudpcksum; /* PTIN added*/
+   L7_RC_t r=L7_SUCCESS;
+   L7_uchar8 *psuedoHdr = dsInfo->pktBuff, *tempPtr = L7_NULLPTR;
 
+   if (0!=lenChng && (NULL!=ipv4cksumOK || NULL!=udpcksumOK)) {
+       PT_LOG_ERR(LOG_CTX_DHCP,
+                  "[...]cksumOK can only be returned when lenChng is 0");
+       return L7_ERROR;
+   }
+   
    if (L7_IP_VERSION == ipVersion)
    {
       L7_ipHeader_t *ipHeader = (L7_ipHeader_t*) (frame + ethHdrLen);
       L7_udp_header_t *udp_header;
       L7_ushort16 ipHdrLen = dsIpHdrLen(ipHeader), proto = IP_PROT_UDP, udpLen = 0;
-      L7_uchar8 *psuedoHdr = dsInfo->pktBuff, *tempPtr = L7_NULLPTR;
 
       if ((dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_CLIENT) || (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_SERVER))
       {
@@ -3509,17 +3557,20 @@ int dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
 
       /* Calculate the UDP checksum.*/
       udp_header = (L7_udp_header_t *) ((L7_char8 *) ipHeader + ipHdrLen);
+      inudpcksum = udp_header->checksum;    /* PTIN added*/
       udp_header->checksum = 0x0000;
 
-      if ((added == L7_TRUE))
-      {
-         udp_header->length = osapiHtons(osapiNtohs(udp_header->length) + lenChng);
-         *frameLen = *frameLen + lenChng;
-      }
-      else
-      {
-         udp_header->length = osapiHtons(osapiNtohs(udp_header->length) - lenChng);
-         *frameLen = *frameLen - lenChng;
+      if (0!=lenChng) { /* PTIN modified (added cataliser if) */
+          if ((added == L7_TRUE))
+          {
+             udp_header->length = osapiHtons(osapiNtohs(udp_header->length) + lenChng);
+             *frameLen = *frameLen + lenChng;
+          }
+          else
+          {
+             udp_header->length = osapiHtons(osapiNtohs(udp_header->length) - lenChng);
+             *frameLen = *frameLen - lenChng;
+          }
       }
       udpLen = udp_header->length;
       proto  = osapiHtons(proto);
@@ -3544,42 +3595,90 @@ int dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
       {
          PT_LOG_ERR(LOG_CTX_DHCP, "Invalid length (%d > %d) processing udp_header", 
                     total_length, DS_DHCP_PACKET_SIZE_MAX);
-         return L7_FAILURE;
+         r = L7_FAILURE;
+         goto _reset_pkt_buffer_and_return;
       }
      
       memcpy(psuedoHdr, udp_header, osapiNtohs(udp_header->length));
       udp_header->checksum = osapiHtons((L7_uint16) inetChecksum(tempPtr, ((osapiNtohs(udp_header->length)) + 12)));
+
+      /* PTIN added*/
+      if (//0==inudpcksum
+          // ||
+
+          /* In RFC768 (UDP):
+            An all zero  transmitted checksum  value means that the 
+            transmitter  generated  no checksum*/
+
+          inudpcksum==udp_header->checksum) {
+          if (NULL!=udpcksumOK) *udpcksumOK = 1;
+      }
+      else {
+          if (NULL!=udpcksumOK) *udpcksumOK = 0;
+          if (dont_fill_outcksum_if_NOK_incksum) {
+              udp_header->checksum = inudpcksum; //not changing incoming cksum
+          }
+
+          /* NOTE:
+             One can check cksum by filling that field with 0, recalculating
+             and comparing with the incoming value (this approach).
+             One could also, with the incoming value in that field, recalculate.
+             In that case, if the incoming cksum was right, the result would
+             be 0, like...:
+           
+          *udpcksumOK =
+              (0==inetChecksum(tempPtr,
+                               ((osapiNtohs(udp_header->length)) + 12)))
+                          ? 1: 0;   */
+      } /* PTIN added*/
+      
+#if 0   /*PTIN modified*/
       /* Reset the packet buffer after usage.*/
       psuedoHdr = dsInfo->pktBuff;
       memset(psuedoHdr, 0, DS_DHCP_PACKET_SIZE_MAX);
+#endif
 
       /* Now calculate the IP checksum.*/
-      if ((added == L7_TRUE))
-      {
-         ipHeader->iph_len = osapiHtons(osapiNtohs(ipHeader->iph_len) + lenChng);
+      if (0!=lenChng) { /* PTIN modified (added cataliser if) */
+          if ((added == L7_TRUE))
+          {
+             ipHeader->iph_len = osapiHtons(osapiNtohs(ipHeader->iph_len) + lenChng);
+          }
+          else
+          {
+             ipHeader->iph_len = osapiHtons(osapiNtohs(ipHeader->iph_len) - lenChng);
+          }
       }
-      else
-      {
-         ipHeader->iph_len = osapiHtons(osapiNtohs(ipHeader->iph_len) - lenChng);
-      }
+      inipv4cksum = ipHeader->iph_csum; /* PTIN added*/
       ipHeader->iph_csum = 0x0000;
       ipHeader->iph_csum = osapiHtons((L7_uint16) inetChecksum(ipHeader, ipHdrLen));
 
+      /* PTIN added*/
+      if (inipv4cksum==ipHeader->iph_csum) {
+          if (NULL!=ipv4cksumOK) *ipv4cksumOK = 1;
+      }
+      else {
+          if (NULL!=ipv4cksumOK) *ipv4cksumOK = 0;
+          if (dont_fill_outcksum_if_NOK_incksum) {
+              ipHeader->iph_csum = inipv4cksum; //not changing incoming cksum
+          }
+      } /* PTIN added*/
+      
       if ((dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_CLIENT) || (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_SERVER))
       {
          L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
          osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, "(%s)The new UDP length (%d), UDP chksum (%x) IP-len (%d) IP- chksum (%x).", __FUNCTION__, osapiNtohs(udp_header->length), osapiNtohs(udp_header->checksum), osapiNtohs(ipHeader->iph_len), osapiNtohs(ipHeader->iph_csum));
          dsTraceWrite(traceMsg);
       }
-   }
+   }//if (L7_IP_VERSION == ipVersion)   //IPv4
    else
-   {
+   {//IPv6
       L7_ip6Header_t *ipHeader = (L7_ip6Header_t*) (frame + ethHdrLen);
       L7_udp_header_t *udp_header = (L7_udp_header_t *) ((L7_char8 *) ipHeader + L7_IP6_HEADER_LEN);
       L7_uint32 udpLen = 0, proto = IP_PROT_UDP;
-      L7_uchar8 *psuedoHdr = dsInfo->pktBuff, *tempPtr = L7_NULLPTR;
 
       /* Calculate the UDP checksum.*/
+      inudpcksum = udp_header->checksum;    /* PTIN added*/
       udp_header->checksum = 0x0000;
 
       udpLen = osapiHtonl(osapiNtohs(udp_header->length));
@@ -3619,21 +3718,59 @@ int dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
       {
          PT_LOG_ERR(LOG_CTX_DHCP, "Invalid length (%d > %d) processing udp_header", 
                     total_length, DS_DHCP_PACKET_SIZE_MAX);
-         //return L7_FAILURE;
+         r = L7_FAILURE;
+         goto _reset_pkt_buffer_and_return;
       }
       else
       {
           memcpy(psuedoHdr, udp_header, osapiNtohs(udp_header->length));
           udp_header->checksum = inetChecksum(tempPtr, (osapiNtohs(udp_header->length) + 40));
           udp_header->checksum = osapiHtons(udp_header->checksum);
+
+          /* PTIN added*/
+          if (0==udp_header->checksum) {
+              udp_header->checksum = 0xffff;
+
+              /* In RFC8200 (IPv6)  (obsoleting RFC2460):
+              o  Unlike IPv4, the default behavior when UDP packets are
+                 originated by an IPv6 node is that the UDP checksum is not
+                 optional.  That is, whenever originating a UDP packet, an IPv6
+                 node must compute a UDP checksum over the packet and the
+                 pseudo-header, and, if that computation yields a result of
+                 zero, it must be changed to hex FFFF for placement in the UDP
+                 header.  IPv6 receivers must discard UDP packets containing a
+                 zero checksum and should log the error.*/
+          }
+
+          if (inudpcksum==udp_header->checksum) {
+              if (NULL!=udpcksumOK) *udpcksumOK = 1;
+          }
+          else {
+              if (NULL!=udpcksumOK) *udpcksumOK = 0;
+              if (dont_fill_outcksum_if_NOK_incksum) {
+                  //not changing incoming cksum
+                  udp_header->checksum = inudpcksum;
+              }
+          }
+          /* Unkike IPv4, v6 doesn't have header cksum, so we don't need this.
+             However, the calling party might be calling without knowing
+             whether it is IPv4 or v6 and validating both so just in case...*/
+          if (NULL!=ipv4cksumOK) *ipv4cksumOK=1;
+          /* PTIN added*/
       }
 
+#if 0   /*PTIN modified*/
       /* Reset the packet buffer after usage.*/
       psuedoHdr = dsInfo->pktBuff;
       memset(psuedoHdr, 0, DS_DHCP_PACKET_SIZE_MAX);
-   }
+#endif
+   }//IPv6
 
-   return L7_SUCCESS;
+_reset_pkt_buffer_and_return:
+    /* Reset the packet buffer after usage.*/
+    psuedoHdr = dsInfo->pktBuff;
+    memset(psuedoHdr, 0, DS_DHCP_PACKET_SIZE_MAX);
+    return r;
 }
 #endif
 /*********************************************************************
