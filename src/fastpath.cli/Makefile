@@ -17,6 +17,5 @@ all clean cleanall:
 	@$(MAKE) -f fp.cli-tg16gf.make $@
 	@$(MAKE) -f fp.cli-olt1t0.make $@
 	@$(MAKE) -f fp.cli-olt1t0f.make $@
-	@$(MAKE) -f fp.cli-tt04sxg.make $@
 	@$(MAKE) -f fp.cli-tc16sxg.make $@
 

@@ -43,14 +43,6 @@ elif [ $2 == "olt1t0" ]; then
  BOARD="OLT1T0"
  MKBOARDS_FOLDER=CXOLT1T0
  OUTPUT=output/FastPath-Ent-esw-xgs4-helixarm-LR-CSxw-IQH_OLT1T0
- elif [ $2 == "tt04sxg" ]; then
- BOARD="TT04SXG"
- MKBOARDS_FOLDER=TT04SXG
- OUTPUT=output/FastPath-Ent-esw-xgs4-katanaarm-LR-CSxw-IQH_TT04SXG
-elif [ $2 == "ag16ga" ]; then
- BOARD="AG16GA"
- MKBOARDS_FOLDER=AG16GA
- OUTPUT=output/FastPath-Ent-esw-xgs4-katanaarm-LR-CSxw-IQH_AG16GA
 elif [ $2 == "tc16sxg" ]; then
  BOARD="TC16SXG"
  MKBOARDS_FOLDER=TC16SXG

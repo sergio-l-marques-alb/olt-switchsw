@@ -45,30 +45,6 @@ if [ "$1" == "TG16GF" ]; then
   export PTIN_MGMD_PLATFORM_ADMISSION_CONTROL_SUPPORT=1
   export PTIN_MGMD_PLATFORM_ROOT_PORT_IS_ON_MAX_PORT_ID=1
 
-elif [ "$1" == "AG16GA" ]; then
-  BOARD=$1
-  CPU=katanaarm
-
-  export COMPILER_DIR=/opt/broadcom_kt2_hx4/usr/bin
-  export COMPILER_PREFIX=arm-linux-
-  export LD_LIB_PATH=/opt/broadcom_kt2_hx4/usr/lib
-
-  # Overide local variables with the ones comming from the makefile (if defined)
-  export COMPILER_DIR="${TOOLCHAIN_BIN_DIR:-$COMPILER_DIR}"
-  PREFIX=`echo $COMPILER | awk -F'/' '{print $NF}'`
-  if [ ! -z $PREFIX ]; then export COMPILER_PREFIX=$PREFIX; fi
-  export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-$LD_LIB_PATH}"
-
-  export PTIN_MGMD_PLATFORM_MAX_CHANNELS=4096
-  export PTIN_MGMD_PLATFORM_MAX_WHITELIST=16384
-  export PTIN_MGMD_PLATFORM_MAX_CLIENTS=512
-  export PTIN_MGMD_PLATFORM_MAX_PORTS=16
-  export PTIN_MGMD_PLATFORM_MAX_PORT_ID=23
-  export PTIN_MGMD_PLATFORM_MAX_SERVICES=40
-  export PTIN_MGMD_PLATFORM_MAX_SERVICE_ID=255
-  export PTIN_MGMD_PLATFORM_ADMISSION_CONTROL_SUPPORT=1
-  export PTIN_MGMD_PLATFORM_ROOT_PORT_IS_ON_MAX_PORT_ID=1
-
 elif [ "$1" == "OLT1T0F" ]; then
   BOARD=$1
   CPU=katanaarm
@@ -116,30 +92,6 @@ elif [ "$1" == "OLT1T0" ]; then
   export PTIN_MGMD_PLATFORM_MAX_SERVICE_ID=255
   export PTIN_MGMD_PLATFORM_ADMISSION_CONTROL_SUPPORT=1
   export PTIN_MGMD_PLATFORM_ROOT_PORT_IS_ON_MAX_PORT_ID=0
-
-elif [ "$1" == "TT04SXG" ]; then
-  BOARD=$1
-  CPU=katanaarm
-  
-  export COMPILER_DIR=/opt/broadcom_kt2_hx4/usr/bin
-  export COMPILER_PREFIX=arm-linux-
-  export LD_LIB_PATH=/opt/broadcom_kt2_hx4/usr/lib
-
-  # Overide local variables with the ones comming from the makefile (if defined)
-  export COMPILER_DIR="${TOOLCHAIN_BIN_DIR:-$COMPILER_DIR}"
-  PREFIX=`echo $COMPILER | awk -F'/' '{print $NF}'`
-  if [ ! -z $PREFIX ]; then export COMPILER_PREFIX=$PREFIX; fi
-  export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-$LD_LIB_PATH}"
-
-  export PTIN_MGMD_PLATFORM_MAX_CHANNELS=4096
-  export PTIN_MGMD_PLATFORM_MAX_WHITELIST=16384
-  export PTIN_MGMD_PLATFORM_MAX_CLIENTS=512
-  export PTIN_MGMD_PLATFORM_MAX_PORTS=4
-  export PTIN_MGMD_PLATFORM_MAX_PORT_ID=11
-  export PTIN_MGMD_PLATFORM_MAX_SERVICES=40
-  export PTIN_MGMD_PLATFORM_MAX_SERVICE_ID=255
-  export PTIN_MGMD_PLATFORM_ADMISSION_CONTROL_SUPPORT=1
-  export PTIN_MGMD_PLATFORM_ROOT_PORT_IS_ON_MAX_PORT_ID=1
 
 elif [ "$1" == "TA48GE" ]; then
   BOARD=$1
@@ -262,29 +214,17 @@ elif [ "$1" == "TC16SXG" ]; then
   export PTIN_MGMD_PLATFORM_ADMISSION_CONTROL_SUPPORT=1
   export PTIN_MGMD_PLATFORM_ROOT_PORT_IS_ON_MAX_PORT_ID=1
 
+elif [ "$1" == "AG16GA" ]; then
+  echo "[MGMD] Invalid Card $BOARD for version 3.*!"
+  exit 1
+
+elif [ "$1" == "TT04SXG" ]; then
+  echo "[MGMD] Card $BOARD is deprecated!"
+  exit 1
+
 elif [ "$1" == "TG4G" ]; then
-  BOARD=$1
-  CPU=e500
-  
-  export COMPILER_DIR=/opt/eldk/usr/bin
-  export COMPILER_PREFIX=ppc_85xxDP-
-#  export LD_LIB_PATH=/opt/broadcom_kt2_hx4/usr/lib
-
-  # Overide local variables with the ones comming from the makefile (if defined)
-  export COMPILER_DIR="${TOOLCHAIN_BIN_DIR:-$COMPILER_DIR}"
-  PREFIX=`echo $COMPILER | awk -F'/' '{print $NF}'`
-  if [ ! -z $PREFIX ]; then export COMPILER_PREFIX=$PREFIX; fi
-  export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-$LD_LIB_PATH}"
-
-  export PTIN_MGMD_PLATFORM_MAX_CHANNELS=1024
-  export PTIN_MGMD_PLATFORM_MAX_WHITELIST=4096
-  export PTIN_MGMD_PLATFORM_MAX_CLIENTS=512
-  export PTIN_MGMD_PLATFORM_MAX_PORTS=4
-  export PTIN_MGMD_PLATFORM_MAX_PORT_ID=10
-  export PTIN_MGMD_PLATFORM_MAX_SERVICES=40
-  export PTIN_MGMD_PLATFORM_MAX_SERVICE_ID=131071
-  export PTIN_MGMD_PLATFORM_ADMISSION_CONTROL_SUPPORT=1
-  export PTIN_MGMD_PLATFORM_ROOT_PORT_IS_ON_MAX_PORT_ID=1
+  echo "[MGMD] Card $BOARD is deprecated!"
+  exit 1
 
 elif [ "$1" == "TOLT8G" ]; then
   echo "[MGMD] Card $BOARD is deprecated!"
