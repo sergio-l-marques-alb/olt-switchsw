@@ -5761,6 +5761,10 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
   if (dhcpPacket->op == L7_DHCP_BOOTP_REPLY)
   {
     requestFlag = L7_FALSE;
+
+    /*FIXME: This test is NOT valid right now because we are not dealing only 
+      with IntfNum but ptin_port that can have zero value. This should be dealt later*/
+
     if (relayOptIntIfNum != L7_NULL)
     {
        //Change ethernet priority bit
@@ -5782,14 +5786,15 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
       /* PTin modified: DHCP snooping */
       if (dsFrameIntfFilterSend(relayOptIntIfNum, vlanId, frame, frameLen, L7_FALSE, innerVlanId, client_idx) == L7_SUCCESS)
       {
-        dsInfo->debugStats.serverOption82Tx++;
+        /*dsInfo->debugStats.serverOption82Tx++;
         if (ptin_debug_dhcp_snooping)
         {
             PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_dhcp_stat_increment_field DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS ptin_port=%u pduInfo->vlanId=%u", intIfNum2port(intIfNum, 0), vlanId);
             PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_dhcp_stat_increment_field DHCP_STAT_FIELD_TX_FORWARDED ptin_port=%u pduInfo->vlanId=%u", intIfNum2port(intIfNum, 0), vlanId);
         }
         ptin_dhcp_stat_increment_field(intIfNum2port(intIfNum, 0), vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS);
-        ptin_dhcp_stat_increment_field(intIfNum2port(intIfNum, 0), vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED);
+        ptin_dhcp_stat_increment_field(intIfNum2port(intIfNum, 0), vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED); 
+        */ 
         return L7_SUCCESS;
       }
       return L7_FAILURE;
@@ -5806,6 +5811,11 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
       frameEthPrty  = (L7_uint8*)(frame + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
       *frameEthPrty &= 0x1F; //Reset p-bit
       *frameEthPrty |= ((0x7 & ethPrty) << 5); //Set p-bit
+
+      PT_LOG_TRACE(LOG_CTX_DHCP, "(%s)Frame forward inputs for DHCP %s are: intIfNum(%d), vlanId(%d), innerVlanId(%d)"
+                   "relayOptIntIfNum(%d), frameLen(%d) ", __FUNCTION__,
+                   (dhcpPacket->op == L7_DHCP_BOOTP_REQUEST) ? "request":"reply",
+                   intIfNum, vlanId, innerVlanId, relayOptIntIfNum, frameLen);
 
       /* If there is no Circuit-id information in the Reply pakcets,
          Forward the DHCP replies to the interface based on the DHCP Snooping
