@@ -36,7 +36,7 @@ setup_repo()
             echo "$APP: build_dir is created, pointing to -> /home/olt_shared/oltosng/build_dir"
         else
             if [ -d "/home/olt_shared/oltosng/build_dir_$VERSION" ]; then
-                ln -s /home/olt_shared/oltosng/build_dir_$VERSION
+                ln -s /home/olt_shared/oltosng/build_dir_$VERSION build_dir
                 echo "$APP: build_dir is created, pointing to -> /home/olt_shared/oltosng/build_dir_$VERSION"
             else
                 echo "$APP: ERROR! the build_dir folder for version $VERSION do not exist (/home/olt_shared/oltosng/build_dir_$VERSION)"
@@ -44,6 +44,16 @@ setup_repo()
         fi
     else
         echo "$APP: build_dir already exists"
+        R_LINK=$(realpath build_dir | awk -F 'oltosng/' '{print $2}')
+        if [ "$VERSION" == "trunk" ]; then
+            if [ ! "$R_LINK" == "build_dir" ]; then
+              echo "$APP: ${RED}build_dir is not according this version!${NC}"
+            fi
+        else
+            if [ ! "$R_LINK" == "build_dir_$VERSION" ]; then
+              echo "$APP: ${RED}build_dir is not according this version!${NC}"
+            fi
+        fi
     fi
 }
 
@@ -59,6 +69,11 @@ clean_repo()
 APP=`basename $0`
 VERSION="trunk"
 LINK_ARCH=$(ls src | grep -m 1 -oP '(swdrv)|(fastpath)')
+
+#Color
+RED=`tput setaf 1`
+NC=`tput sgr0`
+###
 
 #Arguments
 arg=`echo "$1" | cut -f1 -d' '`
@@ -80,6 +95,14 @@ case $arg in
         VERSION=$get_version
       else
         echo "$APP: Setup repo -> set defaul 'trunk'"
+        VERSION="trunk"
+      fi
+    fi
+    if [ "$VERSION" == "trunk" ]; then
+      if [ "$LINK_ARCH" == "fastpath" ]; then
+        VERSION=$(ls /home/olt_shared/oltosng | grep -oP '3.([0-9]+)' | tail -1)
+      elif [ "$LINK_ARCH" == "swdrv" ]; then
+        #VERSION=$(ls /home/olt_shared/oltosng | grep -oP '4.([0-9]+)' | tail -1)
         VERSION="trunk"
       fi
     fi
