@@ -53,63 +53,19 @@ exit $?
 fi
 
 if  [ $scriptVerbose -eq 1 ]; then
-	echo "Going to update fastpath image on mkboards of olt1t0...press Ctrl+C to abort"
+	echo "Going to update fastpath image on mkboards of ag16ga...press Ctrl+C to abort"
 	sleep 1
 fi
-cd $mkBoardsPath/CXOLT1T0
 if  [ $scriptDebugCommands -eq 1 ]; then
-	echo "OLT1T0 -> sudo sh fastpath_olt1t0.sh"
+	echo "sudo sh fastpath_ag16ga.sh"
 fi
-echo $password | sudo -S sh fastpath_olt1t0.sh
-
-if  [ $scriptDebugCommands -eq 1 ]; then
-        echo "OLT1T0-AC -> sudo sh fastpath_olt1t0.sh"
-fi
-cd $mkBoardsPath/CXOLT1T0-AC 
-echo $password | sudo -S sh fastpath_olt1t0.sh
+cd ../ag16ga
+echo $password | sudo -S sh fastpath_ag16ga.sh 
 
 if  [ $? -ne 0 ]; then
 	echo -e "
       ######################################################################################################################\n
-      # Failed to update MK Boards of OLT1T0 | MKBoardsVersion=$oltVersion | SVNVersion=$svnRelease ################################################\n
-      ######################################################################################################################"
-
-exit $?
-fi
-
-if  [ $scriptVerbose -eq 1 ]; then
-        echo "Going to update fastpath image on mkboards of olt1t0f...press Ctrl+C to abort"
-        sleep 1
-fi
-cd $mkBoardsPath/CXOLT1T0-F
-if  [ $scriptDebugCommands -eq 1 ]; then
-        echo "OLT1T0F -> sudo sh fastpath_olt1t0.sh"
-fi
-echo $password | sudo -S sh fastpath_olt1t0.sh
-
-if  [ $? -ne 0 ]; then
-    echo -e "
-    ######################################################################################################################\n
-    # Failed to update MK Boards of OLT1T0F | MKBoardsVersion=$oltVersion | SVNVersion=$svnRelease ###############################################\n
-    ######################################################################################################################"
-
-    exit $?
-fi
-
-if  [ $scriptVerbose -eq 1 ]; then
-	echo "Going to update fastpath image on mkboards of olt1t1...press Ctrl+C to abort"
-	sleep 1
-fi
-if  [ $scriptDebugCommands -eq 1 ]; then
-	echo "sudo sh fastpath_cxo160g.sh"
-fi
-cd ../CXO160G 
-echo $password | sudo -S sh fastpath_cxo160g.sh 
-
-if  [ $? -ne 0 ]; then
-	echo -e "
-      ######################################################################################################################\n
-      # Failed to update MK Boards of OLT1T1 | MKBoardsVersion=$oltVersion | SVNVersion=$svnRelease ################################################\n
+      # Failed to update MK Boards of ag16ga | MKBoardsVersion=$oltVersion | SVNVersion=$svnRelease ################################################\n
       ######################################################################################################################"
 
 exit $?
