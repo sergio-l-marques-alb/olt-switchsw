@@ -1811,10 +1811,12 @@ L7_RC_t dsFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
           }//1 or the 2 cksums (IP, UDP) NOK
           else {
               PT_LOG_PEDANTIC(LOG_CTX_DHCP, "Chksums OK");
+              return L7_FAILURE;
           }
       }//if (L7_SUCCESS==r)
       else {
           PT_LOG_ERR(LOG_CTX_DHCP, "_dsUdpCheckSumCalculate()=%d", r);
+          return L7_FAILURE;
       }
   }
   if(L7_IP_VERSION == ipVersion)
