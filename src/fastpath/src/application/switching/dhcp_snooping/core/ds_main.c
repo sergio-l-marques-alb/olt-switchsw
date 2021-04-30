@@ -1808,10 +1808,10 @@ L7_RC_t dsFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
                              "IPv4cksum %s UDPcksum %s",
                              ipv4cksumOK? "OK":"NOK", udpcksumOK? "OK":"NOK");
               }
+              return L7_FAILURE;
           }//1 or the 2 cksums (IP, UDP) NOK
           else {
               PT_LOG_PEDANTIC(LOG_CTX_DHCP, "Chksums OK");
-              return L7_FAILURE;
           }
       }//if (L7_SUCCESS==r)
       else {
