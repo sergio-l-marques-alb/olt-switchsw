@@ -1089,25 +1089,27 @@ L7_RC_t inetAddressNot(L7_inet_addr_t *src, L7_inet_addr_t *dest)
 
 L7_int32 inetChecksum(void *header,  L7_int32 len)
 {
-  L7_ulong32 sum = 0;
-
+    L7_ulong32 i, sum = 0;
     L7_ushort16 *sp = header;
-
     L7_int32 odd = (len % 2);
 
     len /= 2;
-    while (--len >= 0)
-        sum += osapiNtohs(*sp++);
+    for (i=0; i<len; i++) {
+        sum += osapiNtohs(*sp);
+        sp++;
+    }
+
     if (odd)
     {
-        L7_uchar8 pad[2];
-    pad[0] = *(L7_uchar8 *)sp;
-    pad[1] = 0;
-    sp = (L7_ushort16 *)pad;
-    sum += osapiNtohs(*sp);
+        L7_uchar8 *pad;
+
+        pad = (L7_uchar8 *)sp;
+        sum += *pad<<8;
     }
-    while (sum > 0xffff)
-    sum = (sum & 0xffff) + (sum >> 16);
+
+    while (sum > 0xffff) {
+        sum = (sum & 0xffff) + (sum >> 16);
+    }
     sum = ~sum & 0xffff;
     return (sum);
 }
