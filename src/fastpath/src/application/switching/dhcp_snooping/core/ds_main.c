@@ -2175,12 +2175,6 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
             return L7_FAILURE;
           }
 
-          if (ptin_debug_dhcp_snooping)
-          {
-              PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_dhcp_stat_increment_field DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITH_OPTION82 ptin_port=%u pduInfo->vlanId=%u", ptin_port, vlanId);
-          }
-          ptin_dhcp_stat_increment_field(ptin_port, vlanId, client_idx, DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITH_OPTION82);
-
           /* Set the relayop_added bit so we know, when processing the server response, that it was us who added the relay option */
           PT_LOG_TRACE(LOG_CTX_DHCP, "dsRelayAgentInfoAdd returned %u", rcRelayAgentInfoAdd);
           if(rcRelayAgentInfoAdd == L7_SUCCESS)
@@ -2950,11 +2944,9 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    //Increment server tx counters   
    if (ptin_debug_dhcp_snooping)
    {
-       //PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_dhcp_stat_increment_field DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS ptin_port=%u pduInfo->vlanId=%u", ptin_port, vlanId);
-       PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_dhcp_stat_increment_field DHCP_STAT_FIELD_TX_FORWARDED ptin_port=%u pduInfo->vlanId=%u", ptin_port, vlanId);
+       PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_dhcp_stat_increment_field DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS ptin_port=%u pduInfo->vlanId=%u", ptin_port_client, vlanId);
    }
-   //ptin_dhcp_stat_increment_field(ptin_port, vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS);
-   ptin_dhcp_stat_increment_field(ptin_port, vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED);
+   ptin_dhcp_stat_increment_field(ptin_port_client, vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS);
    
 
    //Remove the entry in the binding table if the client has previously sent a release
@@ -5623,88 +5615,43 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
      interface from Option-82 sub-option Circuit-Id*/
   if (dhcpPacket->op == L7_DHCP_BOOTP_REPLY)
   {
-    requestFlag = L7_FALSE;
+      requestFlag = L7_FALSE;
 
-    /*FIXME: This test is NOT valid right now because we are not dealing only 
-      with IntfNum but ptin_port that can have zero value. This should be dealt later*/
-
-    if (relayOptIntIfNum != L7_NULL)
-    {
-       //Change ethernet priority bit
+      //Change ethernet priority bit
       if (ptin_dhcp_ethPrty_get(vlanId, &ethPrty) != L7_SUCCESS)
       {
-         if (ptin_debug_dhcp_snooping)
-           PT_LOG_ERR(LOG_CTX_DHCP, "Unable to get ethernet priority");
-         return L7_FAILURE;
+          if (ptin_debug_dhcp_snooping)
+              PT_LOG_ERR(LOG_CTX_DHCP, "Unable to get ethernet priority");
+          return L7_FAILURE;
       }
       frameEthPrty  = (L7_uint8*)(frame + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
       *frameEthPrty &= 0x1F; //Reset p-bit
       *frameEthPrty |= ((0x7 & ethPrty) << 5); //Set p-bit
 
       PT_LOG_TRACE(LOG_CTX_DHCP, "(%s)Frame forward inputs for DHCP %s are: intIfNum(%d), vlanId(%d), innerVlanId(%d)"
-                   "relayOptIntIfNum(%d), frameLen(%d) ", __FUNCTION__,
-                   (dhcpPacket->op == L7_DHCP_BOOTP_REQUEST) ? "request":"reply",
-                   intIfNum, vlanId, innerVlanId, relayOptIntIfNum, frameLen);
+                 "relayOptIntIfNum(%d), frameLen(%d) ", __FUNCTION__,
+                 (dhcpPacket->op == L7_DHCP_BOOTP_REQUEST) ? "request":"reply",
+                 intIfNum, vlanId, innerVlanId, relayOptIntIfNum, frameLen);
 
       /* PTin modified: DHCP snooping */
       if (dsFrameIntfFilterSend(relayOptIntIfNum, vlanId, frame, frameLen, L7_FALSE, innerVlanId, client_idx) == L7_SUCCESS)
       {
-        /*dsInfo->debugStats.serverOption82Tx++;
-        if (ptin_debug_dhcp_snooping)
-        {
-            PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_dhcp_stat_increment_field DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS ptin_port=%u pduInfo->vlanId=%u", intIfNum2port(intIfNum, 0), vlanId);
-            PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_dhcp_stat_increment_field DHCP_STAT_FIELD_TX_FORWARDED ptin_port=%u pduInfo->vlanId=%u", intIfNum2port(intIfNum, 0), vlanId);
-        }
-        ptin_dhcp_stat_increment_field(intIfNum2port(intIfNum, 0), vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS);
-        ptin_dhcp_stat_increment_field(intIfNum2port(intIfNum, 0), vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED); 
-        */ 
-        return L7_SUCCESS;
+          dsInfo->debugStats.serverOption82Tx++;
+          if (ptin_debug_dhcp_snooping)
+          {
+              PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_dhcp_stat_increment_field DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS ptin_port=%u pduInfo->vlanId=%u", relayOptIntIfNum, vlanId);
+          }
+          ptin_dhcp_stat_increment_field(relayOptIntIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS);
+           
+          return L7_SUCCESS;
       }
       return L7_FAILURE;
-    }
-    else
-    {
-       //Change ethernet priority bit
-      if (ptin_dhcp_ethPrty_get(vlanId, &ethPrty) != L7_SUCCESS)
-      {
-         if (ptin_debug_dhcp_snooping)
-           PT_LOG_ERR(LOG_CTX_DHCP, "Unable to get ethernet priority");
-         return L7_FAILURE;
-      }
-      frameEthPrty  = (L7_uint8*)(frame + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
-      *frameEthPrty &= 0x1F; //Reset p-bit
-      *frameEthPrty |= ((0x7 & ethPrty) << 5); //Set p-bit
-
-      PT_LOG_TRACE(LOG_CTX_DHCP, "(%s)Frame forward inputs for DHCP %s are: intIfNum(%d), vlanId(%d), innerVlanId(%d)"
-                   "relayOptIntIfNum(%d), frameLen(%d) ", __FUNCTION__,
-                   (dhcpPacket->op == L7_DHCP_BOOTP_REQUEST) ? "request":"reply",
-                   intIfNum, vlanId, innerVlanId, relayOptIntIfNum, frameLen);
-
-      /* If there is no Circuit-id information in the Reply pakcets,
-         Forward the DHCP replies to the interface based on the DHCP Snooping
-         binding for the client. */
-      if (dsReplyFrameForward(intIfNum, vlanId, dhcpPacket->chaddr, frame,
-                              frameLen, innerVlanId, client_idx) != L7_SUCCESS)     /* PTin modified: DHCP snooping */
-      {
-        if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
-        {
-          L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
-          osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
-                        "(%s)Failed to get DHCP snooping binding for MAC(%s)",
-                        __FUNCTION__, dhcpPacket->chaddr);
-          dsTraceWrite(traceMsg);
-        }
-      }
-      else
-      {
-        return L7_SUCCESS;
-      }
-    }
   }
   else
   {
     requestFlag = L7_TRUE;
   }
+
   if (dsFrameFlood(intIfNum, vlanId, frame, frameLen,
                    requestFlag, innerVlanId, client_idx) == L7_SUCCESS)     /* PTin modified: DHCP snooping */
   {
@@ -5717,6 +5664,7 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
     #endif
     return L7_SUCCESS;
   }
+
   return L7_FAILURE;
 }
 
