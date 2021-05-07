@@ -172,8 +172,8 @@ L7_uint32 osapiDevShellCommand(L7_char8 * cmd)
       func_addr = osapiAddressLookup(func_name);
       func_ptr  = (L7_FUNCPTR) UINT_TO_PTR(func_addr);
 
-      PT_LOG_TRACE(LOG_CTX_MISC,"cmd=\"%s\" func_name=\"%s\" func_addr=0x%llx func_ptr=%p args[0]=%d args[1]=%d args[2]=%d",
-                   cmd, func_name, func_addr, func_ptr, args[0], args[1], args[2]);
+      PT_LOG_TRACE(LOG_CTX_MISC,"cmd=\"%s\" func_name=\"%s\" func_addr=0x%llx func_ptr=0x%llx args[0]=%d args[1]=%d args[2]=%d",
+                   cmd, func_name, func_addr, PTR_TO_UINT64(func_ptr), args[0], args[1], args[2]);
 
       if (func_ptr)
       {
@@ -399,7 +399,12 @@ void osapiDebugShell(void) {
  *********************************************************************/
 #define OSAPI_ADDRESS_LOOKUP_CACHE_SIZE 8
 #define OSAPI_ADDRESS_LOOKUP_NAME_SIZE 64
+
+#ifdef PTRS_ARE_64BITS
 #define OSAPI_ADDRESS_LOOKUP_FMT_STRING "%16llx%64s"
+#else
+#define OSAPI_ADDRESS_LOOKUP_FMT_STRING "%8llx%64s"
+#endif
 L7_uint64 osapiAddressLookup(L7_char8 *funcName)
 {
   int retval = 0;
