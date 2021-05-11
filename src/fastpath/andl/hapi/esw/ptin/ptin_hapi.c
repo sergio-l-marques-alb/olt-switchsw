@@ -5675,7 +5675,7 @@ L7_RC_t hapiBroadSystemInstallPtin_preInit(void)
     if (rc != L7_SUCCESS)  break;
     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *) &lacp_etherType, exact_match);
     if (rc != L7_SUCCESS)  break;
-    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_BPDU_COS, 0, 0);
+    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS11, 0, 0);
     if (rc != L7_SUCCESS)  break;
     rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
     if (rc != L7_SUCCESS)  break;
