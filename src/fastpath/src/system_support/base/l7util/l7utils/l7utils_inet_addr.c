@@ -1104,7 +1104,7 @@ L7_int32 inetChecksum(void *header,  L7_int32 len)
         L7_uchar8 *pad;
 
         pad = (L7_uchar8 *)sp;
-        sum += *pad<<8;
+        sum += (L7_ulong32)*pad << 8;
     }
 
     while (sum > 0xffff) {
