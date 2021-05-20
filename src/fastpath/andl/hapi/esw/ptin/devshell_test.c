@@ -3358,8 +3358,8 @@ int ber_stop(void)
   return 0;
 }
 
-#define MAX_TX_MAIN_START   ((2<<6)-1)
-#define MAX_TX_POST_END     ((2<<5)-1)
+#define MAX_TX_MAIN_START   ((1<<6)-1)
+#define MAX_TX_POST_END     ((1<<5)-1)
 /**
  * 
  * 
@@ -3496,14 +3496,14 @@ int get_tx_ber(char *file,
 
 
 
-#define MAX_RX_PRE_END      ((2<<5)-1)
+#define MAX_RX_PRE_END      ((1<<5)-1)
 /*Originally, PRE had no range (default value); 
   TG16GF/Cortina PHY needed a 6bit range.*/
 
 //#define MAX_RX_MAIN_START   (31)
 /* Original value; TG16GF/Cortina PHY needed 5=>9bits */
-#define MAX_RX_MAIN_START   ((2<<9)-1)
-#define MAX_RX_POST_END     ((2<<6)-1)
+#define MAX_RX_MAIN_START   ((1<<9)-1)
+#define MAX_RX_POST_END     ((1<<6)-1)
 /**
  *
  *
