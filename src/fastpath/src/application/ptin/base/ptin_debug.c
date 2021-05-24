@@ -278,8 +278,8 @@ void ptin_debug(void)
 #endif
 
   printf("\r\n");
-  printf("  logger_help                                                     - displays logger help\r\n");
-  printf("  logger_sev_set   <ctx_mask> <severity>                          - use logger_help for more info\r\n");
+  printf("  swdrv_logger_help                                               - displays logger help\r\n");
+  printf("  swdrv_logger_sev_set   <ctx_mask> <severity>                    - use logger_help for more info\r\n");
   printf("  logger_color_set <ctx_mask> <color>                             - use logger_help for more info\r\n");
   printf("  l7_logf_enable <enable>                                         - Enable/disable L7_LOGF traces\r\n");
   printf("\r\n");                                                          
