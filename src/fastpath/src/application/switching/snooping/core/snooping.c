@@ -445,6 +445,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
   L7_uint8           query_count          = 0;
   L7_uint8           local_router_port_id = -1;
+  L7_uint32          ptin_port;
 
   /* Get start and length of incoming frame */
   SYSAPI_NET_MBUF_GET_DATASTART(netBufHandle, data);
@@ -485,82 +486,96 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 #endif
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
-  if(igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY && (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_FAILURE) )
+  rc = ptin_intf_intIfNum2port(pduInfo->intIfNum, &ptin_port);
+  if(rc != L7_SUCCESS)
   {
-    L7_uint32 ptin_port;
+    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid intfNum %d", 
+               pduInfo->intIfNum);
+    return L7_FAILURE;
+  }
 
-    ptin_port = pduInfo->intIfNum-1;
-    PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on uplink port, going to define local router port. ptin_port = %u ",ptin_port);
-
-    rc = ptin_igmp_set_local_router_port(ptin_port, 0xFF);
-    if (rc == L7_FAILURE)
+#if (PTIN_BOARD_IS_STANDALONE)
+/* For OLT1T0/AC/F Only uplink ports and LAGs should process queries count */
+  if ((ptin_port >= PTIN_SYSTEM_N_PONS && ptin_port < (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH)/* Uplink ports */) ||
+      (ptin_port >= PTIN_SYSTEM_N_PORTS && ptin_port < (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_N_LAGS)/* LAGs */))
+#elif (PTIN_BOARD_IS_MATRIX)
+/* For SF boards,  Only uplink ports and LAGs should process queries count*/
+  if (ptin_port < (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_N_LAGS_EXTERNAL)/* User LAGs */)
+#endif
+  {
+    if (igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY && (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_FAILURE))
     {
-      return L7_FAILURE;
-    }
+      PT_LOG_TRACE(LOG_CTX_IGMP, "Query received on uplink port, going to define local router port. ptin_port = %u ", ptin_port);
+
+      rc = ptin_igmp_set_local_router_port(ptin_port, 0xFF);
+      if (rc == L7_FAILURE)
+      {
+        return L7_FAILURE;
+      }
+      else
+      {
+        /* Send General Query */
+        PT_LOG_NOTICE(LOG_CTX_IGMP, "RING: Going to send general querys to all client and dynamic ports!!");
+        ptin_igmp_generalquerier_reset((L7_uint32)-1, (L7_uint32)-1);
+      }
+
+      /* Start timmer for the local router port */
+
+      PT_LOG_TRACE(LOG_CTX_IGMP, "Start_timer for the local router port");
+
+      ptin_igmp_ring_osapiSemaTake();
+
+      ptin_igmp_timer_start(ptin_port, PTIN_IGMP_CLIENTIDX_MAX - 1);
+
+      ptin_igmp_ring_osapiSemaGive();
+
+      PT_LOG_TRACE(LOG_CTX_IGMP, "Timer started!");
+
+    } 
     else
     {
-      /* Send General Query */
-      PT_LOG_NOTICE(LOG_CTX_IGMP,"RING: Going to send general querys to all client and dynamic ports!!");
-      ptin_igmp_generalquerier_reset((L7_uint32) -1, (L7_uint32) -1); 
-    }
+      /* check if the query is received on client port */
+      rc = ptin_igmp_port_type_get(pduInfo->intIfNum - 1, &port_type);
 
-    /* Start timmer for the local router port */
-
-    PT_LOG_TRACE(LOG_CTX_IGMP,"Start_timer for the local router port");
-
-    ptin_igmp_ring_osapiSemaTake();
-
-    ptin_igmp_timer_start(ptin_port, PTIN_IGMP_CLIENTIDX_MAX - 1);
-
-    ptin_igmp_ring_osapiSemaGive();
-
-    PT_LOG_TRACE(LOG_CTX_IGMP,"Timer started!");
-
-  }
-  else
-  {
-
-    /* check if the query is received on client port */
-    rc = ptin_igmp_port_type_get(pduInfo->intIfNum-1, &port_type);
-
-    if (rc == L7_SUCCESS)
-    {
-      if(igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY && (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_SUCCESS))
+      if (rc == L7_SUCCESS)
       {
-        PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on uplink port!");
-
-        if ( (port_type == PTIN_IGMP_LOCAL_ROUTER_PORT) )
+        if (igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY && (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_SUCCESS))
         {
-          PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on LRP!");
-          PT_LOG_TRACE(LOG_CTX_IGMP,"Going to rearm the timer for the LRP.");
-      
-          ptin_igmp_ring_osapiSemaTake();
-          ptin_igmp_timer_start(pduInfo->intIfNum-1, PTIN_IGMP_CLIENTIDX_MAX - 1);
-          ptin_igmp_ring_osapiSemaGive();
-      
-          PT_LOG_TRACE(LOG_CTX_IGMP,"Timer started!");
-        }
-      }
-    
-      if(igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY)
-      {
-        if ( (port_type == PTIN_IGMP_PORT_CLIENT) )
-        {
-          PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on a dynamic client port!");
-          ptin_igmp_get_port_query_count(pduInfo->intIfNum-1, &query_count);
+          PT_LOG_TRACE(LOG_CTX_IGMP, "Query received on uplink port!");
 
-          if (query_count == 2)
+          if ((port_type == PTIN_IGMP_LOCAL_ROUTER_PORT))
           {
-            if (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_SUCCESS)
-            {
-              ptin_igmp_ring_osapiSemaTake();
-              ptin_igmp_timer_stop(local_router_port_id, PTIN_IGMP_CLIENTIDX_MAX - 1);
-              ptin_igmp_ring_osapiSemaGive();
-            }
+            PT_LOG_TRACE(LOG_CTX_IGMP, "Query received on LRP!");
+            PT_LOG_TRACE(LOG_CTX_IGMP, "Going to rearm the timer for the LRP.");
 
-            PT_LOG_NOTICE(LOG_CTX_IGMP,"Dynamic client port (ptin_port %u) has received 2 querys. Going to set all dynamic ports to default!  ", pduInfo->intIfNum-1);
-            ptin_igmp_ports_default(0xFF);
-            PT_LOG_NOTICE(LOG_CTX_IGMP,"All dynamic ports set to default! ");
+            ptin_igmp_ring_osapiSemaTake();
+            ptin_igmp_timer_start(pduInfo->intIfNum - 1, PTIN_IGMP_CLIENTIDX_MAX - 1);
+            ptin_igmp_ring_osapiSemaGive();
+
+            PT_LOG_TRACE(LOG_CTX_IGMP, "Timer started!");
+          }
+        }
+
+        if (igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY)
+        {
+          if ((port_type == PTIN_IGMP_PORT_CLIENT))
+          {
+            PT_LOG_TRACE(LOG_CTX_IGMP, "Query received on a dynamic client port!");
+            ptin_igmp_get_port_query_count(pduInfo->intIfNum - 1, &query_count);
+
+            if (query_count == 2)
+            {
+              if (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_SUCCESS)
+              {
+                ptin_igmp_ring_osapiSemaTake();
+                ptin_igmp_timer_stop(local_router_port_id, PTIN_IGMP_CLIENTIDX_MAX - 1);
+                ptin_igmp_ring_osapiSemaGive();
+              }
+
+              PT_LOG_NOTICE(LOG_CTX_IGMP, "Dynamic client port (ptin_port %u) has received 2 querys. Going to set all dynamic ports to default!  ", pduInfo->intIfNum - 1);
+              ptin_igmp_ports_default(0xFF);
+              PT_LOG_NOTICE(LOG_CTX_IGMP, "All dynamic ports set to default! ");
+            }
           }
         }
       }
@@ -3118,7 +3133,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
       }
 #endif
 
-    /*4.1.6. QRV (Querier’s Robustness Variable)*/
+    /*4.1.6. QRV (Querierï¿½s Robustness Variable)*/
     /*...in which case the receivers use the default [Robustness Variable] value specified in
     section 8.1 or a statically configured value. */
       SNOOP_GET_BYTE(byteVal, dataPtr);  /*Resv+SFlag+QRV - 4 bits + 1 bit + 3 bits*/  
