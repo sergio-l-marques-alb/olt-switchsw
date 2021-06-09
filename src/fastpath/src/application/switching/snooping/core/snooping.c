@@ -445,6 +445,8 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   L7_uint8           query_count          = 0;
   L7_uint8           local_router_port_id = -1;
 
+  ptin_port = intIfNum2port(pduInfo->intIfNum, 0);
+
   /* Get start and length of incoming frame */
   SYSAPI_NET_MBUF_GET_DATASTART(netBufHandle, data);
   SYSAPI_NET_MBUF_GET_DATALENGTH(netBufHandle, dataLength);
@@ -482,81 +484,82 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   }
 #endif
 
-  if(igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY && (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_FAILURE) )
-  {
-    L7_uint32 ptin_port;
-
-    ptin_port = pduInfo->intIfNum-1;
-    PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on uplink port, going to define local router port. ptin_port = %u ",ptin_port);
-
-    rc = ptin_igmp_set_local_router_port(ptin_port, 0xFF);
-    if (rc == L7_FAILURE)
+    /* uplink port and lags*/
+    if ( ptin_port < (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_INTERNAL_LAGID_BASE)   
     {
-      return L7_FAILURE;
+    if (igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY && (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_FAILURE))
+    {
+      PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on uplink port, going to define local router port. ptin_port = %u ", ptin_port);
+
+      rc = ptin_igmp_set_local_router_port(ptin_port, 0xFF);
+      if (rc == L7_FAILURE)
+      {
+        return L7_FAILURE;
+      }
+      else
+      {
+        /* Send General Query */
+        PT_LOG_NOTICE(LOG_CTX_IGMP,"RING: Going to send general querys to all client and dynamic ports!!");
+        ptin_igmp_generalquerier_reset((L7_uint32) -1, (L7_uint32) -1); 
+      }
+
+      /* Start timmer for the local router port */
+
+      PT_LOG_TRACE(LOG_CTX_IGMP,"Start_timer for the local router port");
+
+      ptin_igmp_ring_osapiSemaTake();
+
+      ptin_igmp_timer_start(ptin_port, PTIN_IGMP_CLIENTIDX_MAX - 1);
+
+      ptin_igmp_ring_osapiSemaGive();
+
+      PT_LOG_TRACE(LOG_CTX_IGMP,"Timer started!");
+
     }
     else
     {
-      /* Send General Query */
-      PT_LOG_NOTICE(LOG_CTX_IGMP,"RING: Going to send general querys to all client and dynamic ports!!");
-      ptin_igmp_generalquerier_reset((L7_uint32) -1, (L7_uint32) -1); 
-    }
+      /* check if the query is received on client port */
+      rc = ptin_igmp_port_type_get(ptin_port, &port_type);
 
-    /* Start timmer for the local router port */
-
-    PT_LOG_TRACE(LOG_CTX_IGMP,"Start_timer for the local router port");
-
-    ptin_igmp_ring_osapiSemaTake();
-
-    ptin_igmp_timer_start(ptin_port, PTIN_IGMP_CLIENTIDX_MAX - 1);
-
-    ptin_igmp_ring_osapiSemaGive();
-
-    PT_LOG_TRACE(LOG_CTX_IGMP,"Timer started!");
-
-  }
-  else
-  {
-    /* check if the query is received on client port */
-    rc = ptin_igmp_port_type_get(pduInfo->intIfNum-1, &port_type);
-
-    if (rc == L7_SUCCESS)
-    {
-      if(igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY && (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_SUCCESS))
+      if (rc == L7_SUCCESS)
       {
-        PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on uplink port!");
-
-        if ( (port_type == PTIN_IGMP_LOCAL_ROUTER_PORT) )
+        if(igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY && (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_SUCCESS))
         {
-          PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on LRP!");
-          PT_LOG_TRACE(LOG_CTX_IGMP,"Going to rearm the timer for the LRP.");
-      
-          ptin_igmp_ring_osapiSemaTake();
-          ptin_igmp_timer_start(pduInfo->intIfNum-1, PTIN_IGMP_CLIENTIDX_MAX - 1);
-          ptin_igmp_ring_osapiSemaGive();
-      
-          PT_LOG_TRACE(LOG_CTX_IGMP,"Timer started!");
-        }
-      }
-    
-      if(igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY)
-      {
-        if ( (port_type == PTIN_IGMP_PORT_CLIENT) )
-        {
-          PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on a dynamic client port!");
-          ptin_igmp_get_port_query_count(pduInfo->intIfNum-1, &query_count);
+          PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on uplink port!");
 
-          if (query_count == 2)
+          if ( (port_type == PTIN_IGMP_LOCAL_ROUTER_PORT) )
           {
-            if (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_SUCCESS)
-            {
-              ptin_igmp_ring_osapiSemaTake();
-              ptin_igmp_timer_stop(local_router_port_id, PTIN_IGMP_CLIENTIDX_MAX - 1);
-              ptin_igmp_ring_osapiSemaGive();
-            }
+            PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on LRP!");
+            PT_LOG_TRACE(LOG_CTX_IGMP,"Going to rearm the timer for the LRP.");
+        
+            ptin_igmp_ring_osapiSemaTake();
+            ptin_igmp_timer_start(ptin_port, PTIN_IGMP_CLIENTIDX_MAX - 1);
+            ptin_igmp_ring_osapiSemaGive();
+        
+            PT_LOG_TRACE(LOG_CTX_IGMP,"Timer started!");
+          }
+        }
+      
+        if(igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY)
+        {
+          if (port_type == PTIN_IGMP_PORT_CLIENT)
+          {
+            PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on a dynamic client port!");
+            ptin_igmp_get_port_query_count(ptin_port, &query_count);
 
-            PT_LOG_NOTICE(LOG_CTX_IGMP,"Dynamic client port (ptin_port %u) has received 2 querys. Going to set all dynamic ports to default!  ", pduInfo->intIfNum-1);
-            ptin_igmp_ports_default(0xFF);
-            PT_LOG_NOTICE(LOG_CTX_IGMP,"All dynamic ports set to default! ");
+            if (query_count == 2)
+            {
+              if (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_SUCCESS)
+              {
+                ptin_igmp_ring_osapiSemaTake();
+                ptin_igmp_timer_stop(local_router_port_id, PTIN_IGMP_CLIENTIDX_MAX - 1);
+                ptin_igmp_ring_osapiSemaGive();
+              }
+
+              PT_LOG_NOTICE(LOG_CTX_IGMP,"Dynamic client port (ptin_port %u) has received 2 querys. Going to set all dynamic ports to default!  ", pduInfo->intIfNum-1);
+              ptin_igmp_ports_default(0xFF);
+              PT_LOG_NOTICE(LOG_CTX_IGMP,"All dynamic ports set to default! ");
+            }
           }
         }
       }
