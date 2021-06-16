@@ -2216,7 +2216,7 @@ struct ber_t {
   unsigned int ber;
 };
 
-#define MAX_MEASUREMENTS  1024
+#define MAX_MEASUREMENTS  8192
 
 struct ber_t results_tx[N_SLOTS_MAX][N_LANES_MAX][MAX_MEASUREMENTS]; /* slot, port, results */
 struct ber_t results_rx[N_SLOTS_MAX][N_LANES_MAX][MAX_MEASUREMENTS]; /* slot, port, results */
