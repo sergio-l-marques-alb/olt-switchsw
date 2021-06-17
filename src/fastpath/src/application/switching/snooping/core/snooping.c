@@ -484,28 +484,34 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   }
 #endif
 
-    /* uplink port and lags*/
-    if ( ptin_port < (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_INTERNAL_LAGID_BASE)   
-    {
+#if (PTIN_BOARD_IS_STANDALONE)
+/* For OLT1T0/AC/F Only uplink ports and LAGs should process queries count */
+  if ((ptin_port >= PTIN_SYSTEM_N_PONS && ptin_port < (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH)/* Uplink ports */) ||
+      (ptin_port >= PTIN_SYSTEM_N_PORTS && ptin_port < (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_N_LAGS)/* LAGs */))
+#elif (PTIN_BOARD_IS_MATRIX)
+/* For SF boards,  Only uplink ports and LAGs should process queries count*/
+  if (ptin_port < (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_N_LAGS_EXTERNAL)/* User LAGs */)
+#endif
+  {
     if (igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY && (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_FAILURE))
     {
-      PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on uplink port, going to define local router port. ptin_port = %u ", ptin_port);
+      PT_LOG_TRACE(LOG_CTX_IGMP, "Query received on uplink port, going to define local router port. ptin_port = %u ", ptin_port);
 
       rc = ptin_igmp_set_local_router_port(ptin_port, 0xFF);
       if (rc == L7_FAILURE)
       {
         return L7_FAILURE;
-      }
+      } 
       else
       {
         /* Send General Query */
-        PT_LOG_NOTICE(LOG_CTX_IGMP,"RING: Going to send general querys to all client and dynamic ports!!");
-        ptin_igmp_generalquerier_reset((L7_uint32) -1, (L7_uint32) -1); 
+        PT_LOG_NOTICE(LOG_CTX_IGMP, "RING: Going to send general querys to all client and dynamic ports!!");
+        ptin_igmp_generalquerier_reset((L7_uint32)-1, (L7_uint32)-1);
       }
 
       /* Start timmer for the local router port */
 
-      PT_LOG_TRACE(LOG_CTX_IGMP,"Start_timer for the local router port");
+      PT_LOG_TRACE(LOG_CTX_IGMP, "Start_timer for the local router port");
 
       ptin_igmp_ring_osapiSemaTake();
 
@@ -513,7 +519,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 
       ptin_igmp_ring_osapiSemaGive();
 
-      PT_LOG_TRACE(LOG_CTX_IGMP,"Timer started!");
+      PT_LOG_TRACE(LOG_CTX_IGMP, "Timer started!");
 
     }
     else
