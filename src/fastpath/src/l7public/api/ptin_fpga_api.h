@@ -93,9 +93,14 @@ typedef enum
 #define matrix_board_version() ((CPLD_ID_GET() == CPLD_ID_CXO640G_V1) ? 1 : 2)
 #endif  // PTIN_BOARD_IS_MATRIX
 
+//#if PTIN_BOARD_LINECARD_FAMILY
+extern int LC_in_OLT1T1(void);
+extern int LC_in_OLT1T3(void);
+//#endif
+
 
 /**
- * Maps FPGA and PLD registers map
+ * Maps FPGA and PLD registers ma;
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */

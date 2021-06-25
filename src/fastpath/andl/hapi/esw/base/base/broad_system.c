@@ -230,6 +230,7 @@ L7_RC_t hapiBroadStdPortInit(DAPI_PORT_t *dapiPortPtr)
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_HW_PROCEDURE                 ] = (HAPICTLFUNCPTR_t)hapiBroadHwApply;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_L3                           ] = (HAPICTLFUNCPTR_t)hapiBroadPtinL3Manage;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_MEP_CTRL                     ] = (HAPICTLFUNCPTR_t)hapiBroadPtinMEPControl;
+  dapiPortPtr->cmdTable[DAPI_CMD_PTIN_TAP_SET                      ] = (HAPICTLFUNCPTR_t)hapiBroadSystemPTinTapSet;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_GENERIC                      ] = (HAPICTLFUNCPTR_t)hapiBroadPtinGeneric;
   /* PTin end */
 
@@ -1968,6 +1969,48 @@ L7_RC_t hapiBroadSystemPTinPrbs(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAP
     case DAPI_CMD_GET:
       status = hapiBroadPTinPrbsRxStatus( usp, &dapiCmd->cmdData.prbsStatus.rxErrors, dapi_g );
       break;
+
+    default:
+      status = L7_FAILURE;
+  }
+
+  return status;
+}
+
+
+
+
+L7_RC_t hapiBroadSystemPTinTapSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
+                              DAPI_t *dapi_g)
+{
+  DAPI_SYSTEM_CMD_t *dapiCmd   = (DAPI_SYSTEM_CMD_t*)data;
+  L7_RC_t status=L7_SUCCESS;
+  L7_uint16 preemphasys[4/*lanes*/] = {0, 0, 0, 0};
+  L7_uint16 pre, _main, post;
+  L7_BOOL force = 1;
+  unsigned int i;
+
+  switch (dapiCmd->cmdData.tapSettingsConfig.getOrSet)  {
+    case DAPI_CMD_SET:
+      pre = dapiCmd->cmdData.tapSettingsConfig.pre;
+      _main = dapiCmd->cmdData.tapSettingsConfig.main;
+      post = dapiCmd->cmdData.tapSettingsConfig.post;
+      for (i = 0; i < 4; i++) {
+        preemphasys[i] = (pre & 0xf) | ((_main & 0x3f)<<4) | ((post & 0x1f)<<10)
+                          | ((force? 1:0)<<15);
+      }
+      PT_LOG_INFO(LOG_CTX_HAPI,
+                  "usp (%u, %u, %u) (0x82e2): "
+                  "pre=%u main=%u post=%u => preemphasys=0x%x force=%d",
+                  usp->unit, usp->slot, usp->port,
+                  pre, _main, post, preemphasys[0], force);
+
+      status = hapiBroadPTinPrbsPreemphasisSet(usp, preemphasys, 4, force);
+      //ptin_tapsettings_set
+      break;
+
+    //case DAPI_CMD_GET:
+    //  break;
 
     default:
       status = L7_FAILURE;

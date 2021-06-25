@@ -463,6 +463,25 @@ L7_RC_t hapiBroadSystemPPPoEConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
 *
 *********************************************************************/
 L7_RC_t hapiBroadSystemPTinPrbs(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
+
+/*********************************************************************
+*
+* @purpose Set Tap Settings
+*
+* @param   DAPI_USP_t *usp    - needs to be a valid usp
+* @param   DAPI_CMD_t  cmd
+* @param   void       *data
+* @param   DAPI_t     *dapi_g - the driver object
+*
+* @returns L7_RC_t result
+*
+* @notes   none
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t hapiBroadSystemPTinTapSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
+                              DAPI_t *dapi_g);
 #endif
 
 /*********************************************************************
