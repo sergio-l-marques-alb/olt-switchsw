@@ -13988,6 +13988,9 @@ L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
 {
   L7_uint8  enable;
   L7_uint32 i, port;
+#if  (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  L7_uint32 j;
+#endif
   L7_RC_t rc, rc_global = L7_SUCCESS;
 
   if (n_msg == 0)
@@ -14005,9 +14008,15 @@ L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
 
     enable = ENDIAN_SWAP8(msg->enable);
 
-    /* Run all ports */
-    for (port = 0; port < ptin_sys_number_of_ports; port++)
-    {
+#if  (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+    for (j=0; j<2; j++)
+    /*For some ununderstood reason, there's a problem with the 1st enable with
+      TC16SXG boards.*/
+#else
+#endif
+    {/* Run all ports */
+     for (port = 0; port < ptin_sys_number_of_ports; port++)
+     {
       /* Skip non backplane ports */
       if (!PTIN_PORT_IS_INTERNAL_PRBS_TAP_SETTINGS(port, msg->SlotId? 1:0))
       {
@@ -14023,8 +14032,9 @@ L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
       }
 
       PT_LOG_TRACE(LOG_CTX_MSG, "Success setting PRBS enable of port %u to %u", port, enable);
+     }//for
     }
-  }
+  }//if
   /* Apply to each port */
   else
   {
