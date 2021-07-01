@@ -2040,6 +2040,11 @@ L7_RC_t hapiBroadPTinPrbsEnable(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g)
   /* For OLT1T1, SFI and XFI modes, invert PRBS sequence */
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
   if (dapiCardPtr->wcPortMap[port].wcSpeedG == 10)
+#elif  (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  //if (1)
+#else
+  if (0)
+#endif
   {
     rv = bcm_port_control_set(0, bcm_port, bcmPortControlPrbsTxInvertData,
                               enable? 1:0);
@@ -2052,7 +2057,7 @@ L7_RC_t hapiBroadPTinPrbsEnable(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g)
     }
     PT_LOG_TRACE(LOG_CTX_HAPI, "Success inverting PRBS sequence to port %d, bcm_port=%d", port, bcm_port);
   }
-#endif
+
   /* PRBS enable */
   rv = bcm_port_control_set(0, bcm_port, bcmPortControlPrbsTxEnable,
                             enable? 1:0);
@@ -2064,6 +2069,19 @@ L7_RC_t hapiBroadPTinPrbsEnable(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g)
     return L7_FAILURE;
   }
 
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+#if 0
+  rv = bcm_port_control_set(0, bcm_port, bcmPortControlPrbsRxInvertData,
+                            enable? 1:0);
+  if (BCM_E_NONE != rv)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI,
+               "bcmPortControlPrbsRxInvertData port %d, bcm_port=%d => %d (%s)",
+               port, bcm_port, rv, bcm_errmsg(rv));
+    return L7_FAILURE;
+  }
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Success inverting PRBS sequence Rx to port %d, bcm_port=%d", port, bcm_port);
+#endif
   rv = bcm_port_control_set(0, bcm_port, bcmPortControlPrbsRxEnable,
                             enable? 1:0);
   if (BCM_E_NONE != rv)
@@ -2073,6 +2091,7 @@ L7_RC_t hapiBroadPTinPrbsEnable(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g)
                enable, port, bcm_port, rv, bcm_errmsg(rv));
     return L7_FAILURE;
   }
+#endif
 
   /* Restore KR4 mode */
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
