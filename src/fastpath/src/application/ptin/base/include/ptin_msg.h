@@ -1297,6 +1297,15 @@ extern L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg);
 extern L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status *msg_out, L7_int *n_msg);
 
 /**
+ * Set Tap Settings
+ * 
+ * @param msg_in : Tap Settings inputs 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_tap_settings(msg_ptin_tap_settings *msg_in);
+
+/**
  * Used to create a new MEP
  * 
  * @author joaom (5/31/2013)

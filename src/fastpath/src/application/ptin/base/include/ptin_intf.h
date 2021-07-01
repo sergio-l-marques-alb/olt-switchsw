@@ -36,6 +36,9 @@
     ((ptin_port) < PTIN_SYSTEM_N_PONS || (ptin_port) < PTIN_SYSTEM_N_ETH)
 #define PTIN_PORT_IS_INTERNAL(ptin_port) \
     ((ptin_port) >= PTIN_SYSTEM_N_PONS && (ptin_port) >= PTIN_SYSTEM_N_ETH && (ptin_port) < PTIN_SYSTEM_N_PORTS)
+    //((ptin_port) >= (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH) && (ptin_port) < PTIN_SYSTEM_N_PORTS-PTIN_SYSTEM_N_INTERNAL)
+extern int PTIN_PORT_IS_INTERNAL_PRBS_TAP_SETTINGS(L7_uint32 ptin_port,
+                                                   unsigned char slot_0W_1P);
 
 /* The following Macros are used to distinguish PON from XGSPON ports */
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)

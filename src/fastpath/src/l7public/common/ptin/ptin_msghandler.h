@@ -206,6 +206,7 @@
 #define CCMSG_ETH_PCS_PRBS_STATUS           0x9081  // PRBS lock and number of errors
 #define CCMSG_ETH_PRBS_ENABLE               0x0530  // Enable PRBS tx/rx
 #define CCMSG_ETH_PRBS_STATUS               0x0531  // PRBS lock and number of errors
+#define CCMSG_ETH_TAP_SETTINGS              0x0532  // Tap Settings
                                                     
 #define CCMSG_ETH_IGMP_ADMISSION_CONTROL    0x9082  // struct msg_IgmpAdmissionControl_t
 
@@ -2346,6 +2347,20 @@ typedef struct
 {
   L7_int32 rxErrors;
 } __attribute__((packed)) msg_ptin_prbs_status;
+
+typedef struct
+{
+    L7_uint8 pre;   /* pre cursor - default 0x0F */
+
+/* NEW */
+    L7_uint16 main; /* main cursor */
+
+    L7_uint8 post;  /* post cursor */
+    L7_uint8 slew;  /* slew control - default 0x0A */
+    L7_uint8 mx;    /* source matrix */
+} __attribute__((packed)) msg_ptin_tap_settings;
+/* Please check twin rx_ber_txmsg_t */
+
 
 
 /* CCMSG_SWITCH_TEMPERATURE_GET */

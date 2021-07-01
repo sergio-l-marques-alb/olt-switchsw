@@ -63,9 +63,9 @@
 #include "ptin_rfc2819_buffer.h"
 #include "ptin_rfc2819.h"
 #include "dai_api.h"
-#include <dtl_ptin.h>
+#include "dtl_ptin.h"
 
-#include <ptin_ipdtl0_packet.h>
+#include "ptin_ipdtl0_packet.h"
 
 #include "sirerrors.h"
 
@@ -14007,7 +14007,7 @@ L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
     for (port = 0; port < ptin_sys_number_of_ports; port++)
     {
       /* Skip non backplane ports */
-      if (!PTIN_PORT_IS_INTERNAL(port))
+      if (!PTIN_PORT_IS_INTERNAL_PRBS_TAP_SETTINGS(port, msg->SlotId? 1:0))
       {
         continue;
       }
@@ -14094,7 +14094,7 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
     for (port = 0, i = 0; port < ptin_sys_number_of_ports; port++)
     {
       /* Skip non backplane ports */
-      if (!PTIN_PORT_IS_INTERNAL(port))
+      if (!PTIN_PORT_IS_INTERNAL_PRBS_TAP_SETTINGS(port, msg_in->SlotId? 1:0))
       {
         continue;
       }
@@ -14164,6 +14164,75 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
   }
 
   return L7_SUCCESS;
+}
+
+
+
+
+L7_RC_t ptin_msg_tap_settings(msg_ptin_tap_settings *msg_in)
+{
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    return L7_NOT_SUPPORTED;
+#else
+    L7_uint32 ptin_port;
+    L7_uint32 intIfNum;
+    DAPI_SYSTEM_CMD_t dapiCmd;
+    L7_uint16 _main;
+    L7_RC_t rc, rc_global = L7_SUCCESS;
+
+    _main=ENDIAN_SWAP16(msg_in->main);
+
+    /* Apply to all ports */
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Input tap settings:");
+    PT_LOG_DEBUG(LOG_CTX_MSG," pre = %u",   msg_in->pre);
+    PT_LOG_DEBUG(LOG_CTX_MSG," main = %u",  _main);
+    PT_LOG_DEBUG(LOG_CTX_MSG," post = %u",  msg_in->post);
+    PT_LOG_DEBUG(LOG_CTX_MSG," slew = %u",  msg_in->slew);
+    PT_LOG_DEBUG(LOG_CTX_MSG," mx = %u",    msg_in->mx);
+
+    /* Run all ports */
+    for (ptin_port = 0; ptin_port < ptin_sys_number_of_ports; ptin_port++)
+    {
+      /* Skip non backplane ports */
+      if (!PTIN_PORT_IS_INTERNAL_PRBS_TAP_SETTINGS(ptin_port, msg_in->mx? 1:0))
+      {
+        continue;
+      }
+
+      /* Convert to intIfNum */
+      if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_API,
+                   "Error converting ptin_port %u to intIfNum", ptin_port);
+        continue;
+      }
+
+      dapiCmd.cmdData.tapSettingsConfig.getOrSet = DAPI_CMD_SET;
+      dapiCmd.cmdData.tapSettingsConfig.main = _main;
+      dapiCmd.cmdData.tapSettingsConfig.post = msg_in->post;
+      dapiCmd.cmdData.tapSettingsConfig.pre  = msg_in->pre;
+      rc=dtlPtinTapSet(intIfNum, &dapiCmd);
+      if (rc!=L7_SUCCESS)  {
+        PT_LOG_ERR(LOG_CTX_MSG,
+                   "dtlPtinTapSet(ptin_port=%u, main=%u, post=%u, pre=%u) = %d",
+                   ptin_port,
+                   _main, //dapiCmd.cmdData.tapSettingsConfig.main,
+                   dapiCmd.cmdData.tapSettingsConfig.post,
+                   dapiCmd.cmdData.tapSettingsConfig.pre,
+                   rc);
+        continue;
+      }
+      PT_LOG_DEBUG(LOG_CTX_MSG, "dtlPtinTapSet(ptin_port=%u, ...) OK", ptin_port);
+    }//for
+
+    /* Total success? */
+    if (rc_global == L7_SUCCESS)
+    {
+      PT_LOG_TRACE(LOG_CTX_MSG, "Success tap setting"); 
+    }
+
+    return L7_SUCCESS;
+#endif
 }
 
 /****************************************************************************** 
