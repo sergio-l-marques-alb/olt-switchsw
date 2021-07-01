@@ -2216,32 +2216,8 @@ int configure_equalizer(unsigned char port, unsigned char equalizer)
 // *****************************************************************************
 //      definicao da estrutura que suporta o protocolo de comunicacao          *
 // *****************************************************************************
-typedef struct
-{
-   unsigned int   protocolId;               //identificador do tipo de protocolo
-   unsigned int   srcId;                    //endereco fonte   (nao obrigatorio)
-   //UWORD  pageSize;                 //indica o tamanho da pagina de leitura
-   unsigned int   dstId;                    //endereco destino (nao obrigatorio)
-   unsigned int   flags;                    //flags (bit0-0:comando, 1:resposta)
-   unsigned int   counter;                  //contador usado para identificar as msg
-   unsigned int   msgId;                    //codigo da mensagem a enviar
-   unsigned int   infoDim;                  //dimensao em bytes validos  do buffer info
-   unsigned char  info[6144]; //buffer de dados
-} ipc_msg;
-
-extern int  open_ipc        (int porto_rx,
-                               unsigned int ipaddr,
-                               int  (*MessageHandler)(ipc_msg *inbuffer, ipc_msg *outbuffer),
-                               int timeout,
-                               int *handlerid);
-
-extern int  close_ipc       (int handler);
-
-extern int  send_data       (int canal_id,
-                               int porto_destino,
-                               unsigned int ipdest,
-                               ipc_msg *sendbuffer,
-                               ipc_msg *receivebuffer);
+#include "ipc.h"
+#include "ipc_lib.h"
 
 #define N_SLOTS_MAX   (PTIN_SYSTEM_MAX_N_FULLSLOTS-2)
 #define N_GROUPS_MAX  7
@@ -2326,7 +2302,7 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
   /* Compose TX message */
   txmsg.protocolId   = 1;
   txmsg.srcId        = 7100;
-  txmsg.dstId        = 6100;
+  txmsg.dstId        = IPC_HW_PORTO_MSG_CXP;
   txmsg.flags        = 0;
   txmsg.counter      = rand ();
   txmsg.msgId        = 0x531;
@@ -2490,7 +2466,7 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
           /* For each slot, get remote values (just to reset them!) (4 ports at once) */
           for (slot=0; slot<p_tx.n_slots; slot++)
           {
-            ret = send_data (canal_ipc, 6100, p_tx.ip_addr[slot], &txmsg, &rxmsg);
+            ret = send_data (canal_ipc, IPC_HW_PORTO_MSG_CXP, p_tx.ip_addr[slot], &txmsg, &rxmsg);
             if (ret != 0) {
               fprintf(fd, "   [ERROR] Failed remote values extraction from slot %u\n", p_tx.slot[slot]);
               //fclose(fd);
@@ -2586,7 +2562,7 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
           for (slot=0; slot<p_tx.n_slots; slot++)
           {
             memset(rxmsg.info, 0xFF, 4*sizeof(int));
-            ret = send_data (canal_ipc, 6100, p_tx.ip_addr[slot], &txmsg, &rxmsg);
+            ret = send_data (canal_ipc, IPC_HW_PORTO_MSG_CXP, p_tx.ip_addr[slot], &txmsg, &rxmsg);
             if (ret != 0) {
               fprintf(fd, "   [ERROR] Failed remote values extraction from slot %u\n", p_tx.slot[slot]);
               //fclose(fd);
@@ -2813,7 +2789,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
   /* Compose TX message */
   txmsg.protocolId   = 1;
   txmsg.srcId        = 7100;
-  txmsg.dstId        = 6100;
+  txmsg.dstId        = IPC_HW_PORTO_MSG_CXP;
   txmsg.flags        = 0;
   txmsg.counter      = rand ();
   txmsg.msgId        = 0x532;
@@ -2909,7 +2885,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
               txmsg.info[3] = 0x0A; /* Slew control - default 0x0A */
               txmsg.info[4] = mx;   /* Source matrix */
 
-              ret = send_data (canal_ipc, 6100, p_rx.ip_addr[slot], &txmsg, &rxmsg);
+              ret = send_data (canal_ipc, IPC_HW_PORTO_MSG_CXP, p_rx.ip_addr[slot], &txmsg, &rxmsg);
               if (ret != 0) {
                 fprintf(fd, "Error setting remote tap values slot %u\n", p_rx.slot[slot]);
                 //fclose(fd);
@@ -3714,7 +3690,7 @@ int init_remote_ber(int enable,
   /* Compose TX message */
   txmsg.protocolId   = 1;
   txmsg.srcId        = 7100;
-  txmsg.dstId        = 6100;
+  txmsg.dstId        = IPC_HW_PORTO_MSG_CXP;
   txmsg.flags        = 0;
   txmsg.counter      = rand ();
   txmsg.msgId        = 0x530;
@@ -3728,7 +3704,7 @@ int init_remote_ber(int enable,
   {
     txmsg.info[1] = 0xff;   /* All 4 lanes */
     txmsg.info[2] = enable & 1;
-    ret = send_data (canal_ipc, 6100, ip_addr[i], &txmsg, &rxmsg);
+    ret = send_data (canal_ipc, IPC_HW_PORTO_MSG_CXP, ip_addr[i], &txmsg, &rxmsg);
     if (ret != 0) {
       printf("Error initing remote BER in slot %u\n", slot[i]);
       return -1;
@@ -3919,7 +3895,7 @@ int set_remote_tapcursors( int tap_pre, int tap_main, int tap_post,
   /* Compose TX message */
   txmsg.protocolId   = 1;
   txmsg.srcId        = 7100;
-  txmsg.dstId        = 6100;
+  txmsg.dstId        = IPC_HW_PORTO_MSG_CXP;
   txmsg.flags        = 0;
   txmsg.counter      = rand ();
   txmsg.msgId        = 0x532;
@@ -3935,7 +3911,7 @@ int set_remote_tapcursors( int tap_pre, int tap_main, int tap_post,
     txmsg.info[3] = 0x0A;     /* Slew control - default 0x0A */
     txmsg.info[4] = mx;       /* Source matrix */
 
-    ret = send_data (canal_ipc, 6100, ip_addr[i], &txmsg, &rxmsg);
+    ret = send_data (canal_ipc, IPC_HW_PORTO_MSG_CXP, ip_addr[i], &txmsg, &rxmsg);
     if (ret != 0) {
       printf("Error setting remote BER in slot %u\n", slot[i]);
       return -1;
@@ -4044,7 +4020,7 @@ int get_remote_ber( int n_groups,
   /* Compose TX message */
   txmsg.protocolId   = 1;
   txmsg.srcId        = 7100;
-  txmsg.dstId        = 6100;
+  txmsg.dstId        = IPC_HW_PORTO_MSG_CXP;
   txmsg.flags        = 0;
   txmsg.counter      = rand ();
   txmsg.msgId        = 0x531;
@@ -4064,7 +4040,7 @@ int get_remote_ber( int n_groups,
   /* For each slot, get remote values (just to reset them!) (4 ports at once) */
   for (i=0; i<n_slots; i++) {
     memset(rxmsg.info, 0xFF, 4*sizeof(int));
-    ret = send_data (canal_ipc, 6100, ip_addr[i], &txmsg, &rxmsg);
+    ret = send_data (canal_ipc, IPC_HW_PORTO_MSG_CXP, ip_addr[i], &txmsg, &rxmsg);
     if (ret != 0) {
       printf("Error getting remote values from slot %u\n", slot[i]);
       return -1;
@@ -4124,7 +4100,7 @@ int remote_reg_read(unsigned int ip_addr, int port, int mmd, int addr, unsigned 
   /* Compose TX message */
   txmsg.protocolId   = 1;
   txmsg.srcId        = 7100;
-  txmsg.dstId        = 6100;
+  txmsg.dstId        = IPC_HW_PORTO_MSG_CXP;
   txmsg.flags        = 0;
   txmsg.counter      = rand ();
   txmsg.msgId        = 0x53A;
@@ -4142,7 +4118,7 @@ int remote_reg_read(unsigned int ip_addr, int port, int mmd, int addr, unsigned 
   }
 
   /* Send request */
-  ret = send_data (canal_ipc, 6100, ip_addr, &txmsg, &rxmsg);
+  ret = send_data (canal_ipc, IPC_HW_PORTO_MSG_CXP, ip_addr, &txmsg, &rxmsg);
 
   usleep(1*1000);
 
@@ -4195,7 +4171,7 @@ int remote_reg_write(unsigned int ip_addr, int port, int mmd, int addr, int valu
   /* Compose TX message */
   txmsg.protocolId   = 1;
   txmsg.srcId        = 7100;
-  txmsg.dstId        = 6100;
+  txmsg.dstId        = IPC_HW_PORTO_MSG_CXP;
   txmsg.flags        = 0;
   txmsg.counter      = rand ();
   txmsg.msgId        = 0x53B;
@@ -4214,7 +4190,7 @@ int remote_reg_write(unsigned int ip_addr, int port, int mmd, int addr, int valu
   }
 
   /* Send message */
-  ret = send_data (canal_ipc, 6100, ip_addr, &txmsg, &rxmsg);
+  ret = send_data (canal_ipc, IPC_HW_PORTO_MSG_CXP, ip_addr, &txmsg, &rxmsg);
 
   usleep(1*1000);
 
@@ -4258,7 +4234,7 @@ int remote_var_read(unsigned int ip_addr, int port, int mmd, int addr, unsigned 
   /* Compose TX message */
   txmsg.protocolId   = 1;
   txmsg.srcId        = 7100;
-  txmsg.dstId        = 6100;
+  txmsg.dstId        = IPC_HW_PORTO_MSG_CXP;
   txmsg.flags        = 0;
   txmsg.counter      = rand ();
   txmsg.msgId        = 0x53C;
@@ -4276,7 +4252,7 @@ int remote_var_read(unsigned int ip_addr, int port, int mmd, int addr, unsigned 
   }
 
   /* Send request */
-  ret = send_data (canal_ipc, 6100, ip_addr, &txmsg, &rxmsg);
+  ret = send_data (canal_ipc, IPC_HW_PORTO_MSG_CXP, ip_addr, &txmsg, &rxmsg);
 
   usleep(1*1000);
 
@@ -4330,7 +4306,7 @@ int remote_var_write(unsigned int ip_addr, int port, int mmd, int addr, int valu
   /* Compose TX message */
   txmsg.protocolId   = 1;
   txmsg.srcId        = 7100;
-  txmsg.dstId        = 6100;
+  txmsg.dstId        = IPC_HW_PORTO_MSG_CXP;
   txmsg.flags        = 0;
   txmsg.counter      = rand ();
   txmsg.msgId        = 0x53D;
@@ -4353,7 +4329,7 @@ int remote_var_write(unsigned int ip_addr, int port, int mmd, int addr, int valu
   }
 
   /* Send message */
-  ret = send_data (canal_ipc, 6100, ip_addr, &txmsg, &rxmsg);
+  ret = send_data (canal_ipc, IPC_HW_PORTO_MSG_CXP, ip_addr, &txmsg, &rxmsg);
 
   usleep(1*1000);
 
