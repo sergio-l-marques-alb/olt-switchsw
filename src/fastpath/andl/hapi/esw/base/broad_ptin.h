@@ -281,6 +281,16 @@ L7_RC_t hapiBroadPTinPrbsEnable(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g)
 L7_RC_t hapiBroadPTinPrbsRxStatus(DAPI_USP_t *usp, L7_uint32 *rxErrors, DAPI_t *dapi_g);
 
 /**
+ * Set preemphasys data
+ * 
+ * @param usp 
+ * @param preemphasys 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadPTinPrbsPreemphasisSet(DAPI_USP_t *usp, L7_uint16 *preemphasys, L7_int number_of_lanes, L7_BOOL force);
+
+/**
  * Get system resources
  * 
  * @param usp 

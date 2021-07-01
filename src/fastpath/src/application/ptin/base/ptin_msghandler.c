@@ -4439,6 +4439,32 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
     break;
 
+    case CCMSG_ETH_TAP_SETTINGS:
+    {
+      msg_ptin_tap_settings *ptr_in;
+      //L7_int n = MSG_N_ELEMS(sizeof(msg_ptin_tap_settings));
+    
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_TAP_SETTINGS (0x%04X)", msgId);
+    
+      CHECK_INFO_SIZE_MOD(msg_ptin_tap_settings);
+    
+      ptr_in  = (msg_ptin_tap_settings *) inbuffer->info;
+    
+      /* Execute command */
+      rc = ptin_msg_tap_settings(ptr_in);
+    
+      if (L7_SUCCESS != rc)
+      {
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "ptin_msg_tap_settings()=%d", rc);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+    }
+    break;
+
 
     /************************************************************************** 
      * OAM MEPs Configuration

@@ -9384,3 +9384,41 @@ void ptin_intf_slotportmap_dump(void)
 }
 #endif
 
+
+
+
+
+
+
+
+
+
+int PTIN_PORT_IS_INTERNAL_PRBS_TAP_SETTINGS(L7_uint32 ptin_port,
+                                            unsigned char slot_0W_1P)
+{
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+    return PTIN_PORT_IS_INTERNAL(ptin_port);
+#else
+    if (LC_in_OLT1T1()) {
+        switch (slot_0W_1P) {
+        default: return 0;
+        case 0:
+            return ptin_port>=44 && ptin_port<48;
+        case 1:
+            return ptin_port>=36 && ptin_port<40;
+        }// switch
+    }// LC_in_OLT1T1()
+    else
+    if (LC_in_OLT1T3()) {
+        switch (slot_0W_1P) {
+        default: return 0;
+        case 0:
+            return ptin_port>=36 && ptin_port<40;
+        case 1:
+            return ptin_port>=44 && ptin_port<48;
+        }// switch
+    }//LC_in_OLT1T3()
+    else return 0;
+#endif
+}//PTIN_PORT_IS_INTERNAL_PRBS_TAP_SETTINGS
+

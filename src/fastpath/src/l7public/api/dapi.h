@@ -566,6 +566,7 @@ typedef enum
   DAPI_CMD_PTIN_HW_PROCEDURE,
   DAPI_CMD_PTIN_L3,
   DAPI_CMD_PTIN_MEP_CTRL,
+  DAPI_CMD_PTIN_TAP_SET,    //Set Tap Settings (PRBS, Preemphasis related)
   DAPI_CMD_PTIN_GENERIC,
   /* PTin end */
 
@@ -954,6 +955,15 @@ typedef struct
       L7_BOOL                     enable;
       L7_uint32                   rxErrors;
     } prbsStatus;
+
+    /* PTIn added: Tap Settings */
+    struct
+    {
+      DAPI_CMD_GET_SET_t          getOrSet;
+      L7_uint16                   pre;
+      L7_uint16                   main;
+      L7_uint16                   post;
+    } tapSettingsConfig;
 
   } cmdData;
 

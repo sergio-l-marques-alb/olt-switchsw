@@ -189,6 +189,15 @@ extern L7_RC_t dtlPtinStormControl( L7_uint32 intIfNum, L7_BOOL enable, ptin_sto
 extern L7_RC_t dtlPtinPcsPrbs( L7_uint32 intIfNum, DAPI_SYSTEM_CMD_t *dapiCmd );
 
 /**
+ * Tap Settings
+ *  
+ * @param dapiCmd
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t dtlPtinTapSet( L7_uint32 intIfNum, DAPI_SYSTEM_CMD_t *dapiCmd );
+
+/**
  * Slot mode
  *  
  * @param dapiCmd

@@ -3,6 +3,7 @@
 
 #include "datatypes.h"
 #include "ptin_structs.h"
+#include "ptin_utils.h"
 
 #define PHY_MAX_MAXFRAME              2048
 
@@ -19,6 +20,181 @@
 #define PHY_PORT_1000AN_GBPS          6   /* PTin added: Speed 1G with/ Autoneg */
 #define PHY_PORT_40_GBPS              7   /* PTin added: Speed 40G */
 #define PHY_PORT_100_GBPS             8   /* PTin added: Speed 100G */
+
+#define PTIN_PORT_ALL       PTIN_SYSTEM_N_INTERF
+#define PTIN_PORT_INVALID   ((L7_uint32)-1)
+
+#define PTIN_PORT_IS_VALID(ptin_port) \
+    ((ptin_port) < PTIN_SYSTEM_N_INTERF)
+
+/* Macros to check interface phy-type */
+#define PTIN_PORT_IS_PON(ptin_port) \
+    ((ptin_port) <  (PTIN_SYSTEM_N_PONS))
+#define PTIN_PORT_IS_FRONT_ETH(ptin_port) \
+    ((ptin_port) >= (PTIN_SYSTEM_N_PONS) && (ptin_port) < (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH))
+#define PTIN_PORT_IS_FRONT(ptin_port) \
+    ((ptin_port) <  (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH))
+#define PTIN_PORT_IS_INTERNAL(ptin_port) \
+    ((ptin_port) >= (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH) && (ptin_port) < PTIN_SYSTEM_N_PORTS)
+    //((ptin_port) >= (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH) && (ptin_port) < PTIN_SYSTEM_N_PORTS-PTIN_SYSTEM_N_INTERNAL)
+extern int PTIN_PORT_IS_INTERNAL_PRBS_TAP_SETTINGS(L7_uint32 ptin_port,
+                                                   unsigned char slot_0W_1P);
+
+/* The following Macros are used to distinguish PON from XGSPON ports */
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+ #define PTIN_PORT_IS_PON_GPON_TYPE(ptin_port) \
+    ((ptin_port) < PTIN_SYSTEM_N_PONS/2)
+ #define PTIN_PORT_IS_PON_XGSPON_TYPE(ptin_port) \
+    ((ptin_port) >= PTIN_SYSTEM_N_PONS/2 && (ptin_port) < PTIN_SYSTEM_N_PONS)
+#else
+ #define PTIN_PORT_IS_PON_GPON_TYPE(ptin_port)   PTIN_PORT_IS_PON(ptin_port)
+ #define PTIN_PORT_IS_PON_XGSPON_TYPE(ptin_port) L7_FALSE
+#endif
+
+/* Macros to check interface type */
+#define PTIN_PORT_IS_PHY(ptin_port) \
+    ((ptin_port) < PTIN_SYSTEM_N_PORTS)
+#define PTIN_PORT_IS_LAG(ptin_port) \
+    ((ptin_port) >= PTIN_SYSTEM_N_PORTS && (ptin_port) < (PTIN_SYSTEM_N_PORTS+PTIN_SYSTEM_N_LAGS))
+#define PTIN_PORT_IS_OTHER_TYPE(ptin_port) \
+    ((ptin_port) >= (PTIN_SYSTEM_N_PORTS+PTIN_SYSTEM_N_LAGS) && (ptin_port) < PTIN_SYSTEM_N_INTERF)
+
+/*Bitmap Macro Handlers*/
+#define UCHAR8_BITSIZE  (sizeof(L7_uchar8)*8)
+
+typedef struct {
+    bmp_cell_t value[PTIN_SYSTEM_N_INTERF/8 + 1];
+} ptin_port_bmp_t;
+
+#define PTINPORT_BITMAP_SET(ptin_port_bmp,  ptin_port) \
+    BITMAP_SET((ptin_port_bmp).value, ptin_port)
+
+#define PTINPORT_BITMAP_CLEAR(ptin_port_bmp,  ptin_port) \
+    BITMAP_CLEAR((ptin_port_bmp).value, ptin_port)
+
+#define PTINPORT_BITMAP_CLEARALL(ptin_port_bmp) \
+    BITMAP_CLEARALL((ptin_port_bmp).value)
+
+#define PTINPORT_BITMAP_IS_SET(ptin_port_bmp,  ptin_port) \
+    BITMAP_IS_SET((ptin_port_bmp).value, ptin_port)
+
+#define PTINPORT_BITMAP_IS_WORD_SET(ptin_port_bmp, ptin_port) \
+    (ptin_port_bmp.value[((ptin_port)/UCHAR8_BITSIZE)] == 0 ? 0 : 1)
+
+#define BITMAP_IS_CLEAR(ptin_port_bmp,  ptin_port) \
+    BITMAP_IS_CLEAR((ptin_port_bmp).value, ptin_port)
+
+#define BITMAP_IS_CLEARALL(ptin_port_bmp) \
+    BITMAP_IS_CLEARALL((ptin_port_bmp).value)
+
+
+#ifdef PORT_VIRTUALIZATION_N_1
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+ #if defined (PORT_VIRTUALIZATION_4_1) /*ASPEN 4:1*/
+/* Please check
+   https://jira.ptin.corppt.com/secure/attachment/620082/screenshot-1.png
+   https://jira.ptin.corppt.com/browse/OLTSWITCH-1371
+*/
+  #define PTIN_CARD_MAX_N_MODES          2 /* 0 - MPM, 1- GPON mode*/
+  #define PORT_VIRTUALIZATION_VID_N_SETS 4
+
+  static const
+  L7_uint32 phy2vport[PTIN_CARD_MAX_N_MODES][PTIN_SYSTEM_N_PONS_PHYSICAL][PORT_VIRTUALIZATION_VID_N_SETS] = {
+     {{ 16,   0,  17,   1},
+      {-1U, -1U, -1U, -1U},
+      { 18,   2,  19,   3},
+      {-1U, -1U, -1U, -1U},
+      { 20,   4,  21,   5},
+      {-1U, -1U, -1U, -1U},
+      { 22,   6,  23,   7},
+      {-1U, -1U, -1U, -1U},
+      { 24,   8,  25,   9},
+      {-1U, -1U, -1U, -1U},
+      { 26,  10,  27,  11},
+      {-1U, -1U, -1U, -1U},
+      { 28,  12,  29,  13},
+      {-1U, -1U, -1U, -1U},
+      { 30,  14,  31,  15},
+      {-1U, -1U, -1U, -1U}}, 
+
+     {{ 0,  -1U,  1,  16}, 
+      {-1U, -1U, -1U, 17},     
+      { 2,  -1U,  3,  18},   
+      {-1U, -1U, -1U, 19},     
+      { 4,  -1U,  5,  20},   
+      {-1U, -1U, -1U, 21},     
+      { 6,  -1U,  7,  22},   
+      {-1U, -1U, -1U, 23},     
+      { 8,  -1U,  9,  24},   
+      {-1U, -1U, -1U, 25},     
+      { 10, -1U,  11, 26},     
+      {-1U, -1U, -1U, 27},     
+      { 12, -1U,  13, 28},     
+      {-1U, -1U, -1U, 29},     
+      { 14, -1U,  15, 30},          
+      {-1U, -1U, -1U, 31}},   
+
+  };
+
+ #elif defined (PORT_VIRTUALIZATION_2_1) /*ASPEN 2:1*/
+/* Please check
+   https://jira.ptin.corppt.com/secure/attachment/620085/screenshot-2.png
+   https://jira.ptin.corppt.com/browse/OLTSWITCH-1371
+*/
+
+  #define PTIN_CARD_MAX_N_MODES          2/* 0 - MPM, 1- GPON mode*/
+  #define PORT_VIRTUALIZATION_VID_N_SETS 4
+
+  static const
+  L7_uint32 phy2vport[PTIN_CARD_MAX_N_MODES][PTIN_SYSTEM_N_PONS_PHYSICAL][PORT_VIRTUALIZATION_VID_N_SETS] = {
+     {{ 16,   0, -1U, -1U},     
+      {-1U, -1U,  17,   1},     
+      { 18,   2, -1U, -1U},     
+      {-1U, -1U,  19,   3},     
+      { 20,   4, -1U, -1U},     
+      {-1U, -1U,  21,   5},     
+      { 22,   6, -1U, -1U},     
+      {-1U, -1U,  23,   7},     
+      { 24,   8, -1U, -1U},     
+      {-1U, -1U,  25,   9},     
+      { 26,  10, -1U, -1U},     
+      {-1U, -1U,  27,  11},     
+      { 28,  12, -1U, -1U},     
+      {-1U, -1U,  29,  13},     
+      { 30,  14, -1U, -1U},     
+      {-1U, -1U,  31,  15}}, 
+
+     {{ 0,  -1U, -1U, 16},    
+      { 1,  -1U, -1U, 17},    
+      { 2,  -1U, -1U, 18},    
+      { 3,  -1U, -1U, 19},    
+      { 4,  -1U, -1U, 20},    
+      { 5,  -1U, -1U, 21},    
+      { 6,  -1U, -1U, 22},    
+      { 7,  -1U, -1U, 23},    
+      { 8,  -1U, -1U, 24},    
+      { 9,  -1U, -1U, 25},    
+      { 10, -1U, -1U, 26},    
+      { 11, -1U, -1U, 27},    
+      { 12, -1U, -1U, 28},    
+      { 13, -1U, -1U, 29},    
+      { 14, -1U, -1U, 30},    
+      { 15, -1U, -1U, 31}},   
+  };
+
+ #else /*defined (PORT_VIRTUALIZATION_?_1)*/
+  #error "Port virtualization mode not defined!"
+ #endif /* defined (PORT_VIRTUALIZATION_?_1) */
+
+#else /* Other boards */
+ #error "Port virtualization not supported!"
+#endif
+
+#else /*PORT_VIRTUALIZATION_N_1*/
+ /* Default */
+ #define PORT_VIRTUALIZATION_VID_N_SETS 1
+#endif /*PORT_VIRTUALIZATION_N_1*/
+
 
 extern L7_BOOL linkscan_update_control;
 

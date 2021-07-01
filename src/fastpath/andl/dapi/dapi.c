@@ -488,6 +488,7 @@ DAPI_NAME_CONTAINER_t dapi_cmd_name_g[DAPI_NUM_OF_CMDS] =
 {DAPI_CMD_PTIN_HW_PROCEDURE_NAME},
 {DAPI_CMD_PTIN_L3_NAME},
 {DAPI_CMD_PTIN_MEP_CTRL_NAME},
+{DAPI_CMD_PTIN_TAP_SET_NAME},
 {DAPI_CMD_PTIN_GENERIC_NAME},
 };
 
@@ -889,6 +890,7 @@ L7_RC_t dapiCtl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data)
 //  case DAPI_CMD_SYSTEM_SNOOP_CONFIG:        /* For dealing with physical interfaces (not CPU)*/
 //  case DAPI_CMD_SYSTEM_DHCP_CONFIG:         /* For dealing with physical interfaces (not CPU)*/
     case DAPI_CMD_PTIN_MEP_CTRL:
+    case DAPI_CMD_PTIN_TAP_SET:
     case DAPI_CMD_PTIN_GENERIC:
 
       /* This situation applies to all interfaces */

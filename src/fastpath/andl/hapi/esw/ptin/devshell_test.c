@@ -2277,6 +2277,7 @@ typedef struct {
     L7_uint8 slew;  /* slew control - default 0x0A */
     L7_uint8 mx;    /* source matrix */
 } __attribute__((packed)) rx_ber_txmsg_t;
+/* Please check twin msg_ptin_tap_settings */
 
 struct params p_tx, p_rx;
 
