@@ -6054,7 +6054,7 @@ static void CHMessage_runtime_meter_update(L7_uint msg_id, L7_uint32 time_delta)
 {
   struct_runtime_t *msg_runtime_ptr;
 
-  if (msg_id<CCMSG_ID_MIN && msg_id>CCMSG_ID_MAX)
+  if (msg_id<CCMSG_ID_MIN || msg_id>CCMSG_ID_MAX)
   {
     return;
   }
