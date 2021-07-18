@@ -14232,6 +14232,7 @@ L7_RC_t ptin_msg_tap_settings(msg_ptin_tap_settings *msg_in)
                    dapiCmd.cmdData.tapSettingsConfig.post,
                    dapiCmd.cmdData.tapSettingsConfig.pre,
                    rc);
+        rc_global = L7_FAILURE;
         continue;
       }
       PT_LOG_DEBUG(LOG_CTX_MSG, "dtlPtinTapSet(ptin_port=%u, ...) OK", ptin_port);
@@ -14243,7 +14244,7 @@ L7_RC_t ptin_msg_tap_settings(msg_ptin_tap_settings *msg_in)
       PT_LOG_TRACE(LOG_CTX_MSG, "Success tap setting"); 
     }
 
-    return L7_SUCCESS;
+    return rc_global;
 #endif
 }
 

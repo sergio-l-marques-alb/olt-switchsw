@@ -2907,9 +2907,23 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
                 //fclose(fd);
                 continue;
               }
+              if (rxmsg.flags != IPCLIB_FLAGS_ACK
+                  || *((L7_uint32 *)rxmsg.info) != ENDIAN_SWAP32(0))
+              {
+                fprintf(fd,
+                        "Slot %u  refused setting remote tap values "
+                        "pre=%-2u main=%-2u post=%-2u: reg=0x%04X\n\n",
+                        p_rx.slot[slot],
+                        tap_pre, tap_main, tap_post, reg);
+                //fclose(fd);
+                continue;
+              }
               usleep(1*1000);
             }
-            fprintf(fd, "=> Remote tap settings updated to main=%-2u post=%-2u: reg=0x%04X\n\n", tap_main, tap_post, reg);
+            fprintf(fd,
+                    "=> Remote tap settings updated to "
+                    "pre=%-2u main=%-2u post=%-2u: reg=0x%04X\n\n",
+                    tap_pre, tap_main, tap_post, reg);
           }
           else
           {
