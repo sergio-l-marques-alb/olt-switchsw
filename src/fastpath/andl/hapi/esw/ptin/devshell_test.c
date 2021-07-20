@@ -2282,6 +2282,9 @@ int remote_var_read(unsigned int ip_addr, int port, int mmd, int addr, unsigned 
 int remote_var_write(unsigned int ip_addr, int port, int mmd, int addr, int value);
 
 #define TEST_TIME 10
+#define RTX_BER_MAX 0xFFFF
+#define RTX_BER_ERR RTX_BER_MAX
+#define PRBS_LOCK(rtx_ber)  ((rtx_ber) < RTX_BER_MAX)
 
 void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
 {
@@ -2591,8 +2594,8 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
               }
 
               results_tx[slot][port_idx][idx].ber += tx_ber;
-              if (results_tx[slot][port_idx][idx].ber > 0xFFFF)
-                results_tx[slot][port_idx][idx].ber = 0xFFFF;
+              if (results_tx[slot][port_idx][idx].ber > RTX_BER_MAX)
+                results_tx[slot][port_idx][idx].ber = RTX_BER_MAX;
 
               results_iter[slot][port_idx] = tx_ber;
             }
@@ -2944,7 +2947,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
               if (rc != L7_SUCCESS)
               {
                 fprintf(fd, "ERROR reading rx status from port %u\n", port);
-                continue;
+                //continue;
               }
             }
           }
@@ -2964,7 +2967,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
               if (rc != L7_SUCCESS)
               {
                 fprintf(fd, "ERROR reading rx status from port %u\n", port);
-                continue;
+                //continue;
               }
             }
           }
@@ -3001,10 +3004,11 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
               port = p_rx.port_list[slot][port_idx];
               if ( port < 0 )  continue;
 
+              rx_ber = RTX_BER_ERR; //If PRBS get doesn't work...
               rc = bcm_port_control_get(0, port, bcmPortControlPrbsRxStatus, &rx_ber);
               if (rc != L7_SUCCESS) {
                 fprintf(fd, "ERROR reading rx status from port %u\n", port);
-                continue;
+                //continue;
               }
 
               /* Sum errors */
@@ -3012,8 +3016,8 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
 
               /* Save results */
               results_rx[slot][port_idx][idx].ber += rx_ber;
-              if (results_rx[slot][port_idx][idx].ber > 0xFFFF)
-                results_rx[slot][port_idx][idx].ber = 0xFFFF;
+              if (results_rx[slot][port_idx][idx].ber > RTX_BER_MAX)
+                results_rx[slot][port_idx][idx].ber = RTX_BER_MAX;
 
               results_iter[slot][port_idx] = rx_ber;
             }
