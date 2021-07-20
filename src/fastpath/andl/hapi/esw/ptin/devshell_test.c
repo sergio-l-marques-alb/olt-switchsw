@@ -3206,6 +3206,11 @@ int ber_init(void)
   HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
   HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
 
+  if (ber_init_done) {
+      printf("\n\r%s was already run! \n\r", __FUNCTION__);
+      return -1;
+  }
+  
   /* Open IPC channel */
   if (canal_ipc >= 0)
   {
