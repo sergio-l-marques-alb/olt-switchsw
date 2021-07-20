@@ -2799,7 +2799,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
   memset(txmsg.info, 0, sizeof(rx_ber_txmsg_t));
 
   /* Do stuff... */
-  do {
+  do {          //while (1)
     ret = 0;
     ber_rx_running = 0;
 
@@ -2904,8 +2904,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
               ret = send_data (canal_ipc, IPC_HW_PORTO_MSG_CXP, p_rx.ip_addr[slot], &txmsg, &rxmsg);
               if (ret != 0) {
                 fprintf(fd, "Error setting remote tap values slot %u\n", p_rx.slot[slot]);
-                //fclose(fd);
-                continue;
+                goto next_tap_settings_vector;  //continue;
               }
               if (rxmsg.flags != IPCLIB_FLAGS_ACK
                   || *((L7_uint32 *)rxmsg.info) != ENDIAN_SWAP32(0))
@@ -2915,11 +2914,10 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
                         "pre=%-2u main=%-2u post=%-2u: reg=0x%04X\n\n",
                         p_rx.slot[slot],
                         tap_pre, tap_main, tap_post, reg);
-                //fclose(fd);
-                continue;
+                goto next_tap_settings_vector;  //continue;
               }
               usleep(1*1000);
-            }
+            }//for (slot=0...
             fprintf(fd,
                     "=> Remote tap settings updated to "
                     "pre=%-2u main=%-2u post=%-2u: reg=0x%04X\n\n",
@@ -2946,7 +2944,6 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
               if (rc != L7_SUCCESS)
               {
                 fprintf(fd, "ERROR reading rx status from port %u\n", port);
-                //fclose(fd);
                 continue;
               }
             }
@@ -2967,12 +2964,11 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
               if (rc != L7_SUCCESS)
               {
                 fprintf(fd, "ERROR reading rx status from port %u\n", port);
-                //fclose(fd);
                 continue;
               }
             }
           }
-        }
+        }//if ( iter == 1...
 
         /* Maximum number of readings for one iteration */
         max_count = (p_rx.mode>>8) & 0xff;
@@ -3008,7 +3004,6 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
               rc = bcm_port_control_get(0, port, bcmPortControlPrbsRxStatus, &rx_ber);
               if (rc != L7_SUCCESS) {
                 fprintf(fd, "ERROR reading rx status from port %u\n", port);
-                //fclose(fd);
                 continue;
               }
 
@@ -3054,11 +3049,15 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
 
           if (stop)
             break;
-        }
+        }//for (count=0...
 
         fprintf(fd, "--------------------------------------------------------------------------------------\n");
         fflush(fd);
 
+        /* Update index */
+        idx++;  //Moved to here
+
+next_tap_settings_vector:
         /* Update main tap at the end of each post cycle? */
         if ( (p_rx.mode & 1) ) {
           tap_main -= p_rx.main_step;
@@ -3108,7 +3107,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
         }
 
         /* Update index */
-        idx++;
+        //idx++;    Moved upwards
 
         if (stop)
           break;
@@ -3186,7 +3185,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
 
       if (stop)
         break;
-    }
+    }//for (iter=1...
 
     printf("\nBER @rx done!\n");
 
