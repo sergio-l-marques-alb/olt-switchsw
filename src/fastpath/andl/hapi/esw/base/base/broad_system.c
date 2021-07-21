@@ -2015,27 +2015,63 @@ L7_RC_t hapiBroadSystemPTinTapSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 {
   DAPI_SYSTEM_CMD_t *dapiCmd   = (DAPI_SYSTEM_CMD_t*)data;
   L7_RC_t status=L7_SUCCESS;
-  L7_uint16 preemphasys[4/*lanes*/] = {0, 0, 0, 0};
+  L7_uint32 preemphasys;
   L7_uint16 pre, _main, post;
-  L7_BOOL force = 1;
-  unsigned int i;
 
   switch (dapiCmd->cmdData.tapSettingsConfig.getOrSet)  {
     case DAPI_CMD_SET:
       pre = dapiCmd->cmdData.tapSettingsConfig.pre;
       _main = dapiCmd->cmdData.tapSettingsConfig.main;
       post = dapiCmd->cmdData.tapSettingsConfig.post;
-      for (i = 0; i < 4; i++) {
-        preemphasys[i] = (pre & 0xf) | ((_main & 0x3f)<<4) | ((post & 0x1f)<<10)
-                          | ((force? 1:0)<<15);
-      }
+      /* Masks' reference: TSC-E_TSC-F-AN103.pdf (pg 9) table 4
+                            "Serdes Transmitter Equalization Controls"    */
+      preemphasys = (pre & 0x1f) | ((_main & 0x3f)<<8) | ((post & 0x3f)<<16);
+      /* Shifts' reference:     phy control <port>
+                                ex: phy control xe20-xe21
+       
+                                phy diag <port> dsc
+                                ex: phy diag xe20 dsc */
       PT_LOG_INFO(LOG_CTX_HAPI,
                   "usp (%u, %u, %u) (0x82e2): "
-                  "pre=%u main=%u post=%u => preemphasys=0x%x force=%d",
+                  "pre=%u main=%u post=%u => preemphasys=0x%x",
                   usp->unit, usp->slot, usp->port,
-                  pre, _main, post, preemphasys[0], force);
+                  pre, _main, post, preemphasys);
 
-      status = hapiBroadPTinPrbsPreemphasisSet(usp, preemphasys, 4, force);
+      {
+          SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
+          DAPI_CARD_ENTRY_t            *dapiCardPtr;
+          HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
+          bcm_port_t  bcm_port;
+          int rv;
+
+          sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
+          dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
+          hapiSlotMapPtr       = dapiCardPtr->slotMap;
+
+          /* Validate usp reference */
+          if ( usp->unit != 1 ||
+               usp->slot != 0 ||
+               usp->port >= dapiCardPtr->numOfSlotMapEntries )
+          {
+            PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Invalid port reference {%d,%d,%d}",usp->unit,usp->slot,usp->port);
+            return L7_FAILURE;
+          }
+
+          bcm_port = hapiSlotMapPtr[usp->port].bcm_port;
+
+          rv = bcm_port_phy_control_set(0, bcm_port,
+                                        BCM_PORT_PHY_CONTROL_PREEMPHASIS,
+                                        preemphasys);
+          if (rv != BCM_E_NONE) {
+              PT_LOG_ERR(LOG_CTX_HAPI,
+                         "bcm_port_phy_control_set"
+                         "(...BCM_PORT_PHY_CONTROL_PREEMPHASIS...)="
+                         "%d (%s)",
+                         rv, bcm_errmsg(rv));
+              return L7_FAILURE;
+          }
+      }
+      //status = hapiBroadPTinPrbsPreemphasisSet(usp, preemphasys, 4, force);
       //ptin_tapsettings_set
       break;
 
