@@ -1093,7 +1093,11 @@ L7_RC_t ptin_hapi_phy_init_tc16sxg(void)
     bcm_port    = hapiPortPtr->bcm_port;
     bcm_unit    = hapiPortPtr->bcm_unit;
 
-    if ((PTIN_SYSTEM_10G_PORTS_MASK >> bcm_port) & 1)
+    //if ((PTIN_SYSTEM_10G_PORTS_MASK >> bcm_port) & 1)
+    if ((PTIN_SYSTEM_10G_PORTS_MASK >> (bcm_port-1)) & 1)
+    //Martelada sobre martelada:
+    //PTIN_SYSTEM_10G_PORTS_MASK deveria ser abordada via ptin_port; foi-o
+    //c/ bcm_port. Teve de sê-lo agora c/ bcm_port-1
     {
       /* Set XAUI mode */
       if (ptin_hapi_sfi_set(bcm_port) != L7_SUCCESS)
