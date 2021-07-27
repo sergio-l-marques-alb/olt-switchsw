@@ -2231,9 +2231,9 @@ struct params {
   int start_delay;
   int test_time;
   int mode;
-  int pre_start;    //Just
+  int pre_start;
   int pre_end;
-  int pre_step;     //_rx_
+  int pre_step;
   int main_start;
   int main_end;
   int main_step;
@@ -2288,11 +2288,11 @@ int remote_var_write(unsigned int ip_addr, int port, int mmd, int addr, int valu
 
 void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
 {
-  int tap_main, tap_post, tap_direction;
+  int tap_pre, tap_main, tap_post, tap_direction;
   int reg;
   ipc_msg txmsg, rxmsg;
   L7_RC_t rc;
-  int ret;
+  int ret, rv;
   int i, idx, slot, port, port_idx, iter;
   char iter_str[10];
   char file[128];
@@ -2350,6 +2350,9 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
                   " start delay     = %u\n"
                   " test time       = %u\n"
                   " mode            = %u\n"
+                  " pre start       = %u\n"
+                  " pre end         = %u\n"
+                  " pre step        = %u\n"
                   " main start      = %u\n"
                   " main end        = %u\n"
                   " main step       = %u\n"
@@ -2359,6 +2362,7 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
                   " n_slots         = %u\n",
               iter, p_tx.n_iter,
               p_tx.reset_delay, p_tx.start_delay, p_tx.test_time, p_tx.mode,
+              p_tx.pre_start, p_tx.pre_end, p_tx.pre_step,
               p_tx.main_start, p_tx.main_end, p_tx.main_step,
               p_tx.post_start, p_tx.post_end, p_tx.post_step,
               p_tx.n_slots);
@@ -2375,6 +2379,10 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
 //      for (tap_main=p_tx.main_start; tap_main>=p_tx.main_end; tap_main-=p_tx.main_step) {
 //        for (tap_post=p_tx.post_start; tap_post<=p_tx.post_end; tap_post+=p_tx.post_step, idx++) {
 
+      for ( tap_pre = p_tx.pre_start;
+            tap_pre <= p_tx.pre_end;
+            tap_pre += p_tx.pre_step)
+      {
       tap_main = p_tx.main_start;
       tap_post = p_tx.post_start;
       tap_direction = p_tx.post_step;
@@ -2385,7 +2393,7 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
 
         if ( !(p_tx.mode & 0x08) )
         {
-          reg = 0x8000 | (tap_post<<10) | (tap_main<<4);
+          reg = 0x8000 | (tap_post<<10) | (tap_main<<4) | tap_pre;
         }
 
         /* Only apply tap settings and reset BER in the first iteration
@@ -2402,8 +2410,16 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
               {
                 port = p_tx.port_list[slot][port_idx];
                 if ( port < 0 )  continue;
-              
-                bcm_port_phy_control_set(0, port, BCM_PORT_PHY_CONTROL_PREEMPHASIS, reg);
+
+                rv = bcm_port_phy_control_set(0, port, BCM_PORT_PHY_CONTROL_PREEMPHASIS, reg);
+                if (BCM_E_NONE != rv) {
+                    fprintf(fd,
+                            "bcm_port_phy_control_set(...port %d...)= %d (%s)"
+                            "pre=%-2u main=%-2u post=%-2u: reg=0x%04X\n\n",
+                            port, rv, bcm_errmsg(rv),
+                            tap_pre, tap_main, tap_post, reg);
+                    goto next_tap_settings_vector;
+                }
               }
             }
             fprintf(fd, "=> Main=%2u Post=%2u Reg=0x%04X\n\n", tap_main, tap_post, reg);
@@ -2587,7 +2603,7 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
               /* Save results */
               if (count==0)
               {
-                results_tx[slot][port_idx][idx].pre = -1;
+                results_tx[slot][port_idx][idx].pre = tap_pre;
                 results_tx[slot][port_idx][idx].main = tap_main;
                 results_tx[slot][port_idx][idx].post = tap_post;
                 results_tx[slot][port_idx][idx].reg  = reg;
@@ -2636,6 +2652,10 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
         fprintf(fd, "--------------------------------------------------------------------------------------\n");
         fflush(fd);
 
+        /* Update index */
+        idx++;    //Moved into here
+
+next_tap_settings_vector:
         /* Update main tap at the end of each post cycle? */
         if ( (p_tx.mode & 1) ) {
           tap_main -= p_tx.main_step;
@@ -2685,11 +2705,12 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
         }
 
         /* Update index */
-        idx++;
+        //idx++;    //Moved upwards
 
         if (stop)
           break;
-      }
+      }//while
+      }//for ( tap_pre = p_tx.pre_start
 
 //      if (stop)
 //        break;
@@ -2723,8 +2744,8 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
 
       /* The heading of this table varies with the number of slots being tested */
       char str1[768], str2[768], tmp[768];
-      strcpy(str1, "+------+------+--------+");
-      strcpy(str2, "| MAIN | POST |  REG   |");
+      strcpy(str1, "+------+------+------+--------+");
+      strcpy(str2, "| PRE  | MAIN | POST |  REG   |");
       for (slot=0; slot<p_tx.n_slots; slot++) {
         for (port_idx=0; port_idx<N_LANES_MAX; port_idx++) {
           port = p_tx.port_list[slot][port_idx];
@@ -2743,7 +2764,8 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
 
       /* Print columns with the BER results */
       for (i=0; i<idx; i++) { /* idx represents the number of main+post values */
-        fprintf(fd, "|  %-2u  |  %-2u  | 0x%04X |",
+        fprintf(fd, "|  %-2u  |  %-2u  |  %-2u  | 0x%04X |",
+               results_tx[0][0][i].pre,
                results_tx[0][0][i].main,
                results_tx[0][0][i].post,
                results_tx[0][0][i].reg);
@@ -3381,6 +3403,12 @@ int ber_stop(void)
   return 0;
 }
 
+#define MAX_TX_PRE_END      ((1<<4)-1)
+/*Originally, PRE had no range (default value); 
+   fp.shell phy control xe8
+  fp.shell phy diag xe8 dsc
+  ...showed "0" being written to PRE
+ */
 #define MAX_TX_MAIN_START   ((1<<6)-1)
 #define MAX_TX_POST_END     ((1<<5)-1)
 /**
@@ -3403,6 +3431,7 @@ int get_tx_ber(char *file,
                int optimize_lc,
                int n_iter,
                int reset_delay, int start_delay, int test_time, int mode,
+               int pre_start , int pre_end, int pre_step,
                int main_start , int main_end, int main_step,
                int post_start , int post_end, int post_step,
                int n_groups,
@@ -3438,6 +3467,13 @@ int get_tx_ber(char *file,
     printf("Invalid file name: %.20s\n", file);
     return -1;
   }
+  if (pre_start < 0 || pre_start > pre_end || pre_end > MAX_TX_PRE_END ||
+      pre_step <= 0)
+  {
+    printf("Mandatory 0 <= pre_start <= pre_end <= %u and pre_step > 0\n",
+           MAX_TX_PRE_END);
+    return -1;
+  }
   if (main_start > MAX_TX_MAIN_START || post_end > MAX_TX_POST_END) {
     printf("main_start or post_end out of range! Max %u,%u\n",
            MAX_TX_MAIN_START, MAX_TX_POST_END);
@@ -3459,6 +3495,9 @@ int get_tx_ber(char *file,
   p_tx.start_delay = start_delay;
   p_tx.test_time   = test_time;
   p_tx.mode        = mode;
+  p_tx.pre_start   = pre_start;
+  p_tx.pre_end     = pre_end;
+  p_tx.pre_step    = pre_step;
   p_tx.main_start  = main_start;
   p_tx.main_end    = main_end;
   p_tx.main_step   = main_step;
@@ -4944,6 +4983,7 @@ int ptin_ber_help(void)
          " Run BER meter at RX Line Card\n"
          "   fp.shell dev \"get_tx_ber('<file>', <optimize_lc>, <n_iters>,\n"
          "                              <reset_delay>, <start delay>, <test time>, <mode>,\n"
+         "                              <pre_start>, <pre_end>, <pre_step>,\n"
          "                              <main_start>, <main_end>, <main_step>,\n"
          "                              <post_start>, <post_end>, <port_step>,\n"
          "                              <n_groups>,\n"
