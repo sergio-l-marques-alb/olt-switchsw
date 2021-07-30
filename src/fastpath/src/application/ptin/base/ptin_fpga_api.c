@@ -563,14 +563,7 @@ int LC_in_OLT1T1(void)
 {
 #if PTIN_BOARD_LINECARD_FAMILY
     static unsigned char s=-1;
-    //volatile unsigned char *p=(unsigned char *)cpld_map;
-    //
-    //if (MAP_FAILED==cpld_map || NULL==cpld_map) {
-    //    s=0;
-    //    return 0;
-    //}
-    //
-    //if (0x01==p[0x1E] || 0x10==p[0x1E])
+
     if (0x01==CPLD_SLOT_MATRIX_GET() || 0x10==CPLD_SLOT_MATRIX_GET())
     { /*CLemos info 25Jun2021*/
         if (s!=1) {
@@ -595,14 +588,7 @@ int LC_in_OLT1T3(void)
 {
 #if PTIN_BOARD_LINECARD_FAMILY
     static unsigned char s=-1;
-    //volatile unsigned char *p=(unsigned char *)cpld_map;
-    //
-    //if (MAP_FAILED==cpld_map || NULL==cpld_map) {
-    //    s=0;
-    //    return 0;
-    //}
-    //
-    //if (0x00==p[0x1E] || 0x11==p[0x1E])
+
     if (0x00==CPLD_SLOT_MATRIX_GET() || 0x11==CPLD_SLOT_MATRIX_GET())
     { /*CLemos info 25Jun2021*/
         if (s!=1) {
