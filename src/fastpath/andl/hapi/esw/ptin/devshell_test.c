@@ -5094,7 +5094,7 @@ int ptin_ber_help(void)
          "\n"
          " Example commands:\n"
          "  fp.shell dev \"get_remote_reg('test_reg.txt', 1,0x8037, 1,1,3)\"\n"
-         "  fp.shell dev \"get_tx_ber('test_tx.log', 0x02,1,5,20,60, 0x01, 63,32,2, 0,31,2, 1,1,3)\"\n"
+         "  fp.shell dev \"get_tx_ber('test_tx.log', 0x02,1,5,20,60, 0x01, 15,15,1, 63,32,2, 0,31,2, 1,1,3)\"\n"
          "  fp.shell dev \"get_rx_ber('test_rx.log', 0x00,1,5,20,5,  0x02, 15,16,1, 63,32,2, 0,31,2, 2, 8,2, 8,12)\"\n"
          "  fp.cli m 1007 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63\n"
          "\n"
