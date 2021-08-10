@@ -2023,6 +2023,7 @@ L7_RC_t hapiBroadSystemPTinTapSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
       pre = dapiCmd->cmdData.tapSettingsConfig.pre;
       _main = dapiCmd->cmdData.tapSettingsConfig.main;
       post = dapiCmd->cmdData.tapSettingsConfig.post;
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
       /* Masks' reference: TSC-E_TSC-F-AN103.pdf (pg 9) table 4
                             "Serdes Transmitter Equalization Controls"    */
       preemphasys = (pre & 0x1f) | ((_main & 0x3f)<<8) | ((post & 0x3f)<<16);
@@ -2031,6 +2032,14 @@ L7_RC_t hapiBroadSystemPTinTapSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
        
                                 phy diag <port> dsc
                                 ex: phy diag xe20 dsc */
+#else
+      /* Please check ptin_tapsettings_set(), ptin_ber_tx_task() and
+         note the difference to the above shifts*/
+      preemphasys = (pre & 0xf) | ((_main & 0x3f)<<4) | ((post & 0x1f)<<10)
+                    //pre | _main<<4) | post<<10
+                        | 1<<15; //force
+
+#endif
       PT_LOG_INFO(LOG_CTX_HAPI,
                   "usp (%u, %u, %u) (0x82e2): "
                   "pre=%u main=%u post=%u => preemphasys=0x%x",
