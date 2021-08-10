@@ -2284,7 +2284,7 @@ int remote_var_write(unsigned int ip_addr, int port, int mmd, int addr, int valu
 #define TEST_TIME 10
 #define RTX_BER_MAX 0xFFFF
 #define RTX_BER_ERR RTX_BER_MAX
-#define PRBS_LOCK(rtx_ber)  ((rtx_ber) < RTX_BER_MAX)
+#define PRBS_LOCK(rtx_ber)  ((rtx_ber) < RTX_BER_ERR)
 
 void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
 {
@@ -2808,6 +2808,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
   char file[128];
   FILE *fd;
   int rx_ber, rx_ber_sum;
+  int all_prbs_fail_lock;
   unsigned int max_count, count;
   unsigned int results_iter[N_SLOTS_MAX][N_LANES_MAX];
 
@@ -2905,6 +2906,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
           reg = (tap_main<<8) | tap_post;
         }
 
+        all_prbs_fail_lock=0;
         /* Only apply tap settings and reset BER in the first iteration
          * For the next ones, just monitor BER values after each test_time
          */
@@ -2978,19 +2980,24 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
           sleep(p_rx.start_delay);
 
           /* For each slot and for each port, read ber error to reset to zero */
-          for (slot=0; slot<p_rx.n_slots; slot++)
+          for (slot=0,
+               all_prbs_fail_lock=1 //...and check if all are failing lock
+               ; slot<p_rx.n_slots; slot++)
           {
             for (port_idx=0; port_idx<N_LANES_MAX; port_idx++)
             {
               port = p_rx.port_list[slot][port_idx];
               if ( port < 0 )  continue;
 
+              rx_ber = RTX_BER_ERR; //If PRBS get doesn't work...
               rc = bcm_port_control_get(0, port, bcmPortControlPrbsRxStatus, &rx_ber);
               if (rc != L7_SUCCESS)
               {
                 fprintf(fd, "ERROR reading rx status from port %u\n", port);
                 //continue;
               }
+
+              if (PRBS_LOCK(rx_ber)) all_prbs_fail_lock=0; //at least 1 locks
             }
           }
         }//if ( iter == 1...
@@ -3002,7 +3009,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
         for (count=0; count<max_count; count++)
         {
           /* Wait the integration time... */
-          sleep(p_rx.test_time);
+          if (!all_prbs_fail_lock) sleep(p_rx.test_time);
 
           rx_ber_sum = 0;
           memset(results_iter,0xff,sizeof(results_iter));
@@ -3031,6 +3038,9 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
               if (rc != L7_SUCCESS) {
                 fprintf(fd, "ERROR reading rx status from port %u\n", port);
                 //continue;
+              }
+              if (all_prbs_fail_lock) {
+                  rx_ber = RTX_BER_ERR; //...or all_prbs_fail_lock.
               }
 
               /* Sum errors */
@@ -3081,7 +3091,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
         fflush(fd);
 
         /* Update index */
-        idx++;  //Moved to here
+        idx++;  //Moved into here
 
 next_tap_settings_vector:
         /* Update main tap at the end of each post cycle? */
