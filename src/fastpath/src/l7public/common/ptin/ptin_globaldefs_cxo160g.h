@@ -25,9 +25,16 @@
 /* Define for the ring configuration support */
 #define ONE_MULTICAST_VLAN_RING_SUPPORT 1
 
-# define PTIN_PHY_PREEMPHASIS_DEFAULT         0xBF00 /* main=48 post=15 */
-# define PTIN_PHY_PREEMPHASIS_FARTHEST_SLOTS  0xCEC0 /* main=44 post=19 */
-# define PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS   0xB720 /* main=50 post=13 */
+// Shifts/masks' info in hapiBroadSystemPTinTapSet()
+//# define PTIN_PHY_PREEMPHASIS_DEFAULT         0xBF00 /* main=48 post=15 */
+//# define PTIN_PHY_PREEMPHASIS_FARTHEST_SLOTS  0xCEC0 /* main=44 post=19 */
+//# define PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS   0xB720 /* main=50 post=13 */
+#define PTIN_PHY_DEFAULT_CXO2LC_PRE     0
+#define PTIN_PHY_DEFAULT_CXO2LC_MAIN    50
+#define PTIN_PHY_DEFAULT_CXO2LC_POST    13
+#define PTIN_PHY_CXO2TC16SXG_PRE    4
+#define PTIN_PHY_CXO2TC16SXG_MAIN   18
+#define PTIN_PHY_CXO2TC16SXG_POST   14
 
 #define PTIN_SYS_LC_SLOT_MIN        2
 #define PTIN_SYS_LC_SLOT_MAX        4

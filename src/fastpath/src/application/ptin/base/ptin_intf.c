@@ -6092,13 +6092,14 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
 L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
 {
   L7_RC_t   rc_global = L7_SUCCESS;
+#if (LINKSCAN_MANAGEABLE_BOARD || PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+  L7_int    port_idx, ptin_port = -1;
+  L7_RC_t   rc;
+#endif
 
 /* Only applied to CXO640G boards */
 #if (LINKSCAN_MANAGEABLE_BOARD)
-
-  L7_int    port_idx, ptin_port = -1;
   L7_uint16 board_id_current;
-  L7_RC_t   rc;
 
   PT_LOG_DEBUG(LOG_CTX_INTF,"Inserting board %u at slot %u", board_id, slot_id);
 
@@ -6243,7 +6244,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
       /* If downlink board, or protection port -> force link up */
       if (PTIN_BOARD_IS_DOWNLINK(board_id) || ptin_intf_is_uplinkProtection(ptin_port))
       {
-        /* It it is going to force a link up, it is importante to avoid loops during that procedure.
+        /* If it is going to force a link up, it is importante to avoid loops during that procedure.
            To guarantee that, this port will be removed from all vlans.
            Only protection ports at inactive state, don't need this procedure */
         if (!ptin_intf_is_uplinkProtection(ptin_port) ||
@@ -6307,6 +6308,63 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
 
   /* Unblock board event processing */
   osapiSemaGive(ptin_boardaction_sem);
+#endif
+
+  /* Apply TAP settings (PRE, MAIN, POST) to modular systems' CXOs
+     @board (LC,UPLNKC) insertion*/
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+  for (port_idx = 0; port_idx < PTIN_SYS_INTFS_PER_SLOT_MAX; port_idx++)
+  {
+    L7_uint32 intIfNum;
+    DAPI_SYSTEM_CMD_t dapiCmd;
+
+    ptin_port = ptin_sys_slotport_to_intf_map[slot_id][port_idx];
+
+    /* If not used, skip */
+    if (ptin_port < 0)
+      continue;
+
+    /* Validate port */
+    if (ptin_port >= ptin_sys_number_of_ports)
+    {
+      rc_global = L7_FAILURE; //max(L7_FAILURE, rc_global);
+      PT_LOG_ERR(LOG_CTX_INTF,"Invalid ptin_port %d", ptin_port);
+      continue;
+    }
+
+    intIfNum = port2intIfNum(ptin_port);    //ptin_intf_slotPort2IntIfNum()
+#if 0
+    if (0==intIfNum || intIfNum >= platIntfMaxCountGet())
+    {   //>=L7_ALL_INTERFACES  >=L7_MAX_INTERFACE_COUNT    ==L7_INVALID_INTF
+        rc_global = L7_FAILURE; //max(L7_FAILURE, rc_global);
+        PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %d", intIfNum);
+        continue;
+    }
+#endif
+    if (PTIN_BOARD_TYPE_TC16SXG == board_id) {
+        dapiCmd.cmdData.tapSettingsConfig.pre  = PTIN_PHY_CXO2TC16SXG_PRE;
+        dapiCmd.cmdData.tapSettingsConfig.main = PTIN_PHY_CXO2TC16SXG_MAIN;
+        dapiCmd.cmdData.tapSettingsConfig.post = PTIN_PHY_CXO2TC16SXG_POST;
+    }
+    else {
+        dapiCmd.cmdData.tapSettingsConfig.pre  = PTIN_PHY_DEFAULT_CXO2LC_PRE;
+        dapiCmd.cmdData.tapSettingsConfig.main = PTIN_PHY_DEFAULT_CXO2LC_MAIN;
+        dapiCmd.cmdData.tapSettingsConfig.post = PTIN_PHY_DEFAULT_CXO2LC_POST;
+    }
+    dapiCmd.cmdData.tapSettingsConfig.getOrSet = DAPI_CMD_SET;
+    rc=dtlPtinTapSet(intIfNum, &dapiCmd);
+    if (rc!=L7_SUCCESS)  {
+      PT_LOG_ERR(LOG_CTX_INTF,
+                 "dtlPtinTapSet(ptin_port=%u, pre=%u, main=%u, post=%u) = %d",
+                 ptin_port,
+                 dapiCmd.cmdData.tapSettingsConfig.pre,
+                 dapiCmd.cmdData.tapSettingsConfig.main,
+                 dapiCmd.cmdData.tapSettingsConfig.post,
+                 rc);
+      rc_global = L7_FAILURE;
+    }
+
+  }//for (port_idx = 0...
 #endif
 
 /* For now, disable this piece of code */
