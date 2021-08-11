@@ -5631,6 +5631,125 @@ L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable)
 }
 
 /**
+ * Set an interface's TAP settings 
+ * (a.k.a. preemphasis, PRE/MAIN/POST)
+ * 
+ * @param ptin_port 
+ * @param pre, main, post (TAP settings) 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_tap_set(L7_uint32 ptin_port,
+                     L7_uint16 pre, L7_uint16 main, L7_uint16 post)
+{
+    L7_uint32 intIfNum;
+    L7_RC_t   rc;
+    DAPI_SYSTEM_CMD_t dapiCmd;
+
+    //ptin_port = ptin_sys_slotport_to_intf_map[slot_id][port_idx];
+
+    /* If not used, skip */
+    if (ptin_port < 0) {
+      PT_LOG_ERR(LOG_CTX_INTF,"Unused ptin_port %d", ptin_port);
+      return L7_SUCCESS;
+    }
+
+    /* Validate port */
+    if (ptin_port >= ptin_sys_number_of_ports)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF,"Invalid ptin_port %d", ptin_port);
+      return L7_FAILURE;
+    }
+
+    intIfNum = port2intIfNum(ptin_port);    //ptin_intf_slotPort2IntIfNum()
+#if 0
+    if (0==intIfNum || intIfNum >= platIntfMaxCountGet())
+    {   //>=L7_ALL_INTERFACES  >=L7_MAX_INTERFACE_COUNT    ==L7_INVALID_INTF
+        rc_global = L7_FAILURE; //max(L7_FAILURE, rc_global);
+        PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %d", intIfNum);
+        continue;
+    }
+#endif
+
+    dapiCmd.cmdData.tapSettingsConfig.pre  =        pre;
+    dapiCmd.cmdData.tapSettingsConfig.main =        main;
+    dapiCmd.cmdData.tapSettingsConfig.post =        post;
+    dapiCmd.cmdData.tapSettingsConfig.getOrSet =    DAPI_CMD_SET;
+    rc = dtlPtinTapSet(intIfNum, &dapiCmd);
+    if (rc!=L7_SUCCESS)  {
+      PT_LOG_ERR(LOG_CTX_INTF,
+                 "dtlPtinTapSet(ptin_port=%u, pre=%u, main=%u, post=%u) = %d",
+                 ptin_port,
+                 dapiCmd.cmdData.tapSettingsConfig.pre,
+                 dapiCmd.cmdData.tapSettingsConfig.main,
+                 dapiCmd.cmdData.tapSettingsConfig.post,
+                 rc);
+      return L7_FAILURE;
+    }
+
+    return L7_SUCCESS;
+}
+
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+/**
+ * Set TAP settings for interfaces CXO/matrix => LC with the 
+ * optimal values obtained via devshell_test.c tools
+ * 
+ * @param slot_id 
+ * @param board_id  (the board type in this slot: TC16SXG, 
+ *                  TU40G(R)...
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_tap_set_cxo_2_LC(L7_uint16 slot_id, L7_uint16 board_id)
+{
+ /* Apply TAP settings (PRE, MAIN, POST) to modular systems' CXOs */
+  L7_RC_t   rc, rc_global=L7_SUCCESS;
+  L7_int    port_idx;
+  L7_uint32 ptin_port;
+  L7_uint16 pre, main_, post;
+
+  for (port_idx = 0; port_idx < PTIN_SYS_INTFS_PER_SLOT_MAX; port_idx++) {
+      rc = ptin_intf_slotPort2port(slot_id, port_idx, &ptin_port);
+      if (L7_SUCCESS != rc || ptin_port >= ptin_sys_number_of_ports)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF,
+                   "slot_id=%u port_idx=%d => ptin_intf_slotPort2port()=%d "
+                   "ptin_port=%u",
+                   slot_id, port_idx, rc, ptin_port);
+        rc_global = rc;
+        continue;
+      }
+
+      switch (board_id) {
+      default:
+          pre  = PTIN_PHY_DEFAULT_CXO2LC_PRE;
+          main_= PTIN_PHY_DEFAULT_CXO2LC_MAIN;
+          post = PTIN_PHY_DEFAULT_CXO2LC_POST;
+          break;
+      case PTIN_BOARD_TYPE_TC16SXG:
+          pre  = PTIN_PHY_CXO2TC16SXG_PRE;
+          main_= PTIN_PHY_CXO2TC16SXG_MAIN;
+          post = PTIN_PHY_CXO2TC16SXG_POST;
+          break;
+      }//switch
+
+      rc = ptin_tap_set(ptin_port, pre, main_, post);
+      if (L7_SUCCESS != rc)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF,
+                   "ptin_port=%u; pre=%u, main=%u, post=%u => "
+                   "ptin_tap_set()=%d",
+                   ptin_port, pre, main_, post, rc);
+        rc_global = rc;
+      }
+  }//for
+
+  return rc_global;
+}
+#endif
+
+/**
  * Reset warpcore associated to a specific slot 
  * 
  * @param slot_id 
@@ -6310,61 +6429,16 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
   osapiSemaGive(ptin_boardaction_sem);
 #endif
 
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   /* Apply TAP settings (PRE, MAIN, POST) to modular systems' CXOs
      @board (LC,UPLNKC) insertion*/
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
-  for (port_idx = 0; port_idx < PTIN_SYS_INTFS_PER_SLOT_MAX; port_idx++)
-  {
-    L7_uint32 intIfNum;
-    DAPI_SYSTEM_CMD_t dapiCmd;
-
-    ptin_port = ptin_sys_slotport_to_intf_map[slot_id][port_idx];
-
-    /* If not used, skip */
-    if (ptin_port < 0)
-      continue;
-
-    /* Validate port */
-    if (ptin_port >= ptin_sys_number_of_ports)
-    {
-      rc_global = L7_FAILURE; //max(L7_FAILURE, rc_global);
-      PT_LOG_ERR(LOG_CTX_INTF,"Invalid ptin_port %d", ptin_port);
-      continue;
-    }
-
-    intIfNum = port2intIfNum(ptin_port);    //ptin_intf_slotPort2IntIfNum()
-#if 0
-    if (0==intIfNum || intIfNum >= platIntfMaxCountGet())
-    {   //>=L7_ALL_INTERFACES  >=L7_MAX_INTERFACE_COUNT    ==L7_INVALID_INTF
-        rc_global = L7_FAILURE; //max(L7_FAILURE, rc_global);
-        PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %d", intIfNum);
-        continue;
-    }
-#endif
-    if (PTIN_BOARD_TYPE_TC16SXG == board_id) {
-        dapiCmd.cmdData.tapSettingsConfig.pre  = PTIN_PHY_CXO2TC16SXG_PRE;
-        dapiCmd.cmdData.tapSettingsConfig.main = PTIN_PHY_CXO2TC16SXG_MAIN;
-        dapiCmd.cmdData.tapSettingsConfig.post = PTIN_PHY_CXO2TC16SXG_POST;
-    }
-    else {
-        dapiCmd.cmdData.tapSettingsConfig.pre  = PTIN_PHY_DEFAULT_CXO2LC_PRE;
-        dapiCmd.cmdData.tapSettingsConfig.main = PTIN_PHY_DEFAULT_CXO2LC_MAIN;
-        dapiCmd.cmdData.tapSettingsConfig.post = PTIN_PHY_DEFAULT_CXO2LC_POST;
-    }
-    dapiCmd.cmdData.tapSettingsConfig.getOrSet = DAPI_CMD_SET;
-    rc=dtlPtinTapSet(intIfNum, &dapiCmd);
-    if (rc!=L7_SUCCESS)  {
-      PT_LOG_ERR(LOG_CTX_INTF,
-                 "dtlPtinTapSet(ptin_port=%u, pre=%u, main=%u, post=%u) = %d",
-                 ptin_port,
-                 dapiCmd.cmdData.tapSettingsConfig.pre,
-                 dapiCmd.cmdData.tapSettingsConfig.main,
-                 dapiCmd.cmdData.tapSettingsConfig.post,
-                 rc);
-      rc_global = L7_FAILURE;
-    }
-
-  }//for (port_idx = 0...
+  rc = ptin_tap_set_cxo_2_LC(slot_id, board_id);
+  if (L7_SUCCESS != rc)  {
+    PT_LOG_ERR(LOG_CTX_INTF,
+               "ptin_tap_set_cxo_2_LC(slot_id=%u, board_id=%u) = %d",
+               slot_id, board_id, rc);
+    rc_global = L7_FAILURE; //max(L7_FAILURE, rc_global);
+  }
 #endif
 
 /* For now, disable this piece of code */
