@@ -5811,6 +5811,32 @@ L7_RC_t ptin_intf_slot_reset(L7_int slot_id, L7_BOOL force_linkup)
     }
   }
 
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+  {
+    L7_uint16 board_id;
+
+    /* Get current board id */
+    //osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);     //Can't, otherwise deadlock in CCMSG_HW_BOARD_ACTION (0x9007)
+    rc = ptin_slot_boardid_get(slot_id, &board_id);
+    if (L7_SUCCESS != rc) {
+      //osapiSemaGive(ptin_boardaction_sem);
+      PT_LOG_ERR(LOG_CTX_INTF, "Error getting board id for slot %u (rc=%d)", slot_id, rc);
+      return L7_FAILURE;
+    }
+    //osapiSemaGive(ptin_boardaction_sem);
+    
+    /* Apply TAP settings (PRE, MAIN, POST) to modular systems' CXOs
+       @slot (LC,UPLNKC) / warpcore reset*/
+    rc = ptin_tap_set_cxo_2_LC(slot_id, board_id);
+    if (L7_SUCCESS != rc)  {
+      PT_LOG_ERR(LOG_CTX_INTF,
+                 "ptin_tap_set_cxo_2_LC(slot_id=%u, board_id=%u) = %d",
+                 slot_id, board_id, rc);
+      return L7_FAILURE;
+    }
+  }
+#endif
+
   PT_LOG_INFO(LOG_CTX_INTF,"HW-RESET procedure applied to slot %d", slot_id);
 
   return L7_SUCCESS;
