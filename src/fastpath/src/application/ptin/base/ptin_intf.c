@@ -464,6 +464,8 @@ L7_RC_t ptin_intf_post_init(void)
   memset(lag_uplink_protection_ports_bmp, 0x00, sizeof(lag_uplink_protection_ports_bmp));
 #endif
 
+  //ptin_tap_set_LC_2_cxo();
+
   return L7_SUCCESS;
 }
 
@@ -5692,8 +5694,8 @@ L7_RC_t ptin_tap_set(L7_uint32 ptin_port,
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
 /**
- * Set TAP settings for interfaces CXO/matrix => LC with the 
- * optimal values obtained via devshell_test.c tools
+ * Set TAP settings for interfaces CXO/matrix => LC with optimal
+ * values obtained via devshell_test.c tools 
  * 
  * @param slot_id 
  * @param board_id  (the board type in this slot: TC16SXG, 
@@ -5748,6 +5750,125 @@ L7_RC_t ptin_tap_set_cxo_2_LC(L7_uint16 slot_id, L7_uint16 board_id)
   return rc_global;
 }
 #endif
+
+L7_RC_t ptin_tap_set_LC_2_cxo(void)
+{
+ /* Apply TAP settings (PRE, MAIN, POST) to modular systems' LCs (LC => CXO) */
+#if 0
+       !defined(PTIN_PHY_LC2CXO_1T1W_PRE) || !defined(PTIN_PHY_LC2CXO_1T1W_MAIN) || !defined(PTIN_PHY_LC2CXO_1T1W_POST)
+    || !defined(PTIN_PHY_LC2CXO_1T1P_PRE) || !defined(PTIN_PHY_LC2CXO_1T1P_MAIN) || !defined(PTIN_PHY_LC2CXO_1T1P_POST)
+    || !defined(PTIN_PHY_LC2CXO_1T3W_PRE) || !defined(PTIN_PHY_LC2CXO_1T3W_MAIN) || !defined(PTIN_PHY_LC2CXO_1T3W_POST)
+    || !defined(PTIN_PHY_LC2CXO_1T3P_PRE) || !defined(PTIN_PHY_LC2CXO_1T3P_MAIN) || !defined(PTIN_PHY_LC2CXO_1T3P_POST)
+  PT_LOG_INFO(LOG_CTX_INTF, "LC in %s, TAP settings undefined",
+              LC_in_OLT1T1()? "OLT1T1":
+              LC_in_OLT1T3()? "OLT1T3": "unknown system");
+  return L7_FAILURE;
+#elif (PTIN_BOARD == PTIN_BOARD_TC16SXG) /* || (PTIN_BOARD == PTIN_BOARD_... */
+  L7_RC_t   rc, rc_global=L7_SUCCESS;
+  L7_uint32 ptin_port;
+  L7_uint16 pre, main_, post;
+
+  if (LC_in_OLT1T1()) {
+      PT_LOG_INFO(LOG_CTX_INTF, "LC in OLT1T1");
+  }
+  else {
+  if (LC_in_OLT1T3()) {
+      PT_LOG_INFO(LOG_CTX_INTF, "LC in OLT1T3");
+  }
+  else
+    PT_LOG_ERR(LOG_CTX_INTF, "LC in neither OLT1T1 nor OLT1T3");
+    return L7_FAILURE;
+  }
+
+  for (ptin_port = 0; ptin_port < ptin_sys_number_of_ports; ptin_port++)
+  {
+    /* Skip non backplane ports */
+    //if (!PTIN_PORT_IS_INTERNAL(ptin_port)) continue;
+    if (PTIN_PORT_IS_INTERNAL_PRBS_TAP_SETTINGS(ptin_port, 0 /*Working*/)) {
+      if (LC_in_OLT1T1()) {
+#if !defined(PTIN_PHY_LC2CXO_1T1W_PRE) || !defined(PTIN_PHY_LC2CXO_1T1W_MAIN) || !defined(PTIN_PHY_LC2CXO_1T1W_POST)
+        PT_LOG_INFO(LOG_CTX_INTF,
+                    "ptin_port=%u (W), LC in OLT1T1, TAP settings undefined",
+                    ptin_port);
+        return L7_FAILURE;
+#else
+        pre  = PTIN_PHY_LC2CXO_1T1W_PRE;
+        main_= PTIN_PHY_LC2CXO_1T1W_MAIN;
+        post = PTIN_PHY_LC2CXO_1T1W_POST;
+#endif
+      }
+      else
+      if (LC_in_OLT1T3()) {
+#if !defined(PTIN_PHY_LC2CXO_1T3W_PRE) || !defined(PTIN_PHY_LC2CXO_1T3W_MAIN) || !defined(PTIN_PHY_LC2CXO_1T3W_POST)
+          PT_LOG_INFO(LOG_CTX_INTF,
+                      "ptin_port=%u (W), LC in OLT1T3, TAP settings undefined",
+                      ptin_port);
+          return L7_FAILURE;
+#else
+        pre  = PTIN_PHY_LC2CXO_1T3W_PRE;
+        main_= PTIN_PHY_LC2CXO_1T3W_MAIN;
+        post = PTIN_PHY_LC2CXO_1T3W_POST;
+#endif
+      }
+      else {
+        PT_LOG_ERR(LOG_CTX_INTF, "LC in neither OLT1T1 nor OLT1T3");
+        continue; //return L7_FAILURE;
+      }
+    }//if (PTIN_PORT_IS_... /*Working*/
+    else
+    if (PTIN_PORT_IS_INTERNAL_PRBS_TAP_SETTINGS(ptin_port, 1 /*Protection*/)) {
+        if (LC_in_OLT1T1()) {
+#if !defined(PTIN_PHY_LC2CXO_1T1P_PRE) || !defined(PTIN_PHY_LC2CXO_1T1P_MAIN) || !defined(PTIN_PHY_LC2CXO_1T1P_POST)
+        PT_LOG_INFO(LOG_CTX_INTF,
+                    "ptin_port=%u (P), LC in OLT1T1, TAP settings undefined",
+                    ptin_port);
+        return L7_FAILURE;
+#else
+          pre  = PTIN_PHY_LC2CXO_1T1P_PRE;
+          main_= PTIN_PHY_LC2CXO_1T1P_MAIN;
+          post = PTIN_PHY_LC2CXO_1T1P_POST;
+#endif
+        }
+        else
+        if (LC_in_OLT1T3()) {
+#if !defined(PTIN_PHY_LC2CXO_1T3P_PRE) || !defined(PTIN_PHY_LC2CXO_1T3P_MAIN) || !defined(PTIN_PHY_LC2CXO_1T3P_POST)
+
+        PT_LOG_INFO(LOG_CTX_INTF,
+                    "ptin_port=%u (P), LC in OLT1T3, TAP settings undefined",
+                    ptin_port);
+        return L7_FAILURE;
+#else
+          pre  = PTIN_PHY_LC2CXO_1T3P_PRE;
+          main_= PTIN_PHY_LC2CXO_1T3P_MAIN;
+          post = PTIN_PHY_LC2CXO_1T3P_POST;
+#endif
+        }
+        else {
+          PT_LOG_ERR(LOG_CTX_INTF, "LC in neither OLT1T1 nor OLT1T3");
+          continue; //return L7_FAILURE;
+        }
+    }//if (PTIN_PORT_IS_... /*Protection*/
+    else continue;
+
+    rc = ptin_tap_set(ptin_port, pre, main_, post);
+    if (L7_SUCCESS != rc)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF,
+                 "ptin_port=%u; pre=%u, main=%u, post=%u => "
+                 "ptin_tap_set()=%d",
+                 ptin_port, pre, main_, post, rc);
+      rc_global = rc;
+    }
+  }//for
+
+  return rc_global;
+#else
+  PT_LOG_INFO(LOG_CTX_INTF, "LC in %s, TAP not set",
+              LC_in_OLT1T1()? "OLT1T1":
+              LC_in_OLT1T3()? "OLT1T3": "unknown system");
+  return L7_FAILURE;
+#endif
+}
 
 /**
  * Reset warpcore associated to a specific slot 

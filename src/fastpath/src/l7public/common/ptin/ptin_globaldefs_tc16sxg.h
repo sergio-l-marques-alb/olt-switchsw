@@ -51,6 +51,20 @@
 #define IGMP_DYNAMIC_CLIENTS_SUPPORTED
 #define IGMP_SMART_MC_EVC_SUPPORTED /* SFR service model.  Creation/removal of L3 Interfaces on MC-IPTV Services */
 
+/* TAP settings */
+//#define PTIN_PHY_LC2CXO_1T1W_PRE    10
+//#define PTIN_PHY_LC2CXO_1T1W_MAIN   65
+//#define PTIN_PHY_LC2CXO_1T1W_POST   20
+//#define PTIN_PHY_LC2CXO_1T1P_PRE    0
+//#define PTIN_PHY_LC2CXO_1T1P_MAIN   50
+//#define PTIN_PHY_LC2CXO_1T1P_POST   10
+#define PTIN_PHY_LC2CXO_1T3W_PRE    10
+#define PTIN_PHY_LC2CXO_1T3W_MAIN   65
+#define PTIN_PHY_LC2CXO_1T3W_POST   20
+#define PTIN_PHY_LC2CXO_1T3P_PRE    0
+#define PTIN_PHY_LC2CXO_1T3P_MAIN   50
+#define PTIN_PHY_LC2CXO_1T3P_POST   10
+
 #define PTIN_SYS_LC_SLOT_MIN        2
 #define PTIN_SYS_LC_SLOT_MAX        19
 #define PTIN_SYS_SLOTS_MAX          20
