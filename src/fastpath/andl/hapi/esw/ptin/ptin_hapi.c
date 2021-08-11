@@ -4938,7 +4938,8 @@ L7_RC_t ptin_hapi_xlaui_set(bcm_port_t bcm_port)
     return L7_FAILURE;
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if 0 && (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G)
+  /* Moved to APP layer */
   /* Reconfigure tap settings */
   rc = soc_phyctrl_control_set(0, bcm_port, SOC_PHY_CONTROL_PREEMPHASIS, PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS);
   if (rc != BCM_E_NONE)
@@ -5040,7 +5041,8 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
   PT_LOG_DEBUG(LOG_CTX_HAPI, "Success applying Firmware mode 2 to bcm_port %u", bcm_port);
 #endif
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if 0 && (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G)
+  /* Moved to APP layer */
   /* Reconfigure tap settings */
   rc = soc_phyctrl_control_set(0, bcm_port, SOC_PHY_CONTROL_PREEMPHASIS, PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS);
   if (rc != BCM_E_NONE)
