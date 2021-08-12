@@ -5754,16 +5754,7 @@ L7_RC_t ptin_tap_set_cxo_2_LC(L7_uint16 slot_id, L7_uint16 board_id)
 L7_RC_t ptin_tap_set_LC_2_cxo(void)
 {
  /* Apply TAP settings (PRE, MAIN, POST) to modular systems' LCs (LC => CXO) */
-#if 0
-       !defined(PTIN_PHY_LC2CXO_1T1W_PRE) || !defined(PTIN_PHY_LC2CXO_1T1W_MAIN) || !defined(PTIN_PHY_LC2CXO_1T1W_POST)
-    || !defined(PTIN_PHY_LC2CXO_1T1P_PRE) || !defined(PTIN_PHY_LC2CXO_1T1P_MAIN) || !defined(PTIN_PHY_LC2CXO_1T1P_POST)
-    || !defined(PTIN_PHY_LC2CXO_1T3W_PRE) || !defined(PTIN_PHY_LC2CXO_1T3W_MAIN) || !defined(PTIN_PHY_LC2CXO_1T3W_POST)
-    || !defined(PTIN_PHY_LC2CXO_1T3P_PRE) || !defined(PTIN_PHY_LC2CXO_1T3P_MAIN) || !defined(PTIN_PHY_LC2CXO_1T3P_POST)
-  PT_LOG_INFO(LOG_CTX_INTF, "LC in %s, TAP settings undefined",
-              LC_in_OLT1T1()? "OLT1T1":
-              LC_in_OLT1T3()? "OLT1T3": "unknown system");
-  return L7_FAILURE;
-#elif (PTIN_BOARD == PTIN_BOARD_TC16SXG) /* || (PTIN_BOARD == PTIN_BOARD_... */
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG) /* || (PTIN_BOARD == PTIN_BOARD_... */
   L7_RC_t   rc, rc_global=L7_SUCCESS;
   L7_uint32 ptin_port;
   L7_uint16 pre, main_, post;
