@@ -464,7 +464,7 @@ L7_RC_t ptin_intf_post_init(void)
   memset(lag_uplink_protection_ports_bmp, 0x00, sizeof(lag_uplink_protection_ports_bmp));
 #endif
 
-  //ptin_tap_set_LC_2_cxo();
+  ptin_tap_set_LC_2_cxo();
 
   return L7_SUCCESS;
 }
@@ -5786,28 +5786,28 @@ L7_RC_t ptin_tap_set_LC_2_cxo(void)
     //if (!PTIN_PORT_IS_INTERNAL(ptin_port)) continue;
     if (PTIN_PORT_IS_INTERNAL_PRBS_TAP_SETTINGS(ptin_port, 0 /*Working*/)) {
       if (LC_in_OLT1T1()) {
-#if !defined(PTIN_PHY_LC2CXO_1T1W_PRE) || !defined(PTIN_PHY_LC2CXO_1T1W_MAIN) || !defined(PTIN_PHY_LC2CXO_1T1W_POST)
+#if defined(PTIN_PHY_LC2CXO_1T1W_PRE) && defined(PTIN_PHY_LC2CXO_1T1W_MAIN) && defined(PTIN_PHY_LC2CXO_1T1W_POST)
+        pre  = PTIN_PHY_LC2CXO_1T1W_PRE;
+        main_= PTIN_PHY_LC2CXO_1T1W_MAIN;
+        post = PTIN_PHY_LC2CXO_1T1W_POST;
+#else
         PT_LOG_INFO(LOG_CTX_INTF,
                     "ptin_port=%u (W), LC in OLT1T1, TAP settings undefined",
                     ptin_port);
         return L7_FAILURE;
-#else
-        pre  = PTIN_PHY_LC2CXO_1T1W_PRE;
-        main_= PTIN_PHY_LC2CXO_1T1W_MAIN;
-        post = PTIN_PHY_LC2CXO_1T1W_POST;
 #endif
       }
       else
       if (LC_in_OLT1T3()) {
-#if !defined(PTIN_PHY_LC2CXO_1T3W_PRE) || !defined(PTIN_PHY_LC2CXO_1T3W_MAIN) || !defined(PTIN_PHY_LC2CXO_1T3W_POST)
-          PT_LOG_INFO(LOG_CTX_INTF,
-                      "ptin_port=%u (W), LC in OLT1T3, TAP settings undefined",
-                      ptin_port);
-          return L7_FAILURE;
-#else
+#if defined(PTIN_PHY_LC2CXO_1T3W_PRE) && defined(PTIN_PHY_LC2CXO_1T3W_MAIN) && defined(PTIN_PHY_LC2CXO_1T3W_POST)
         pre  = PTIN_PHY_LC2CXO_1T3W_PRE;
         main_= PTIN_PHY_LC2CXO_1T3W_MAIN;
         post = PTIN_PHY_LC2CXO_1T3W_POST;
+#else
+        PT_LOG_INFO(LOG_CTX_INTF,
+                    "ptin_port=%u (W), LC in OLT1T3, TAP settings undefined",
+                    ptin_port);
+        return L7_FAILURE;
 #endif
       }
       else {
@@ -5818,29 +5818,28 @@ L7_RC_t ptin_tap_set_LC_2_cxo(void)
     else
     if (PTIN_PORT_IS_INTERNAL_PRBS_TAP_SETTINGS(ptin_port, 1 /*Protection*/)) {
         if (LC_in_OLT1T1()) {
-#if !defined(PTIN_PHY_LC2CXO_1T1P_PRE) || !defined(PTIN_PHY_LC2CXO_1T1P_MAIN) || !defined(PTIN_PHY_LC2CXO_1T1P_POST)
-        PT_LOG_INFO(LOG_CTX_INTF,
-                    "ptin_port=%u (P), LC in OLT1T1, TAP settings undefined",
-                    ptin_port);
-        return L7_FAILURE;
-#else
+#if defined(PTIN_PHY_LC2CXO_1T1P_PRE) && defined(PTIN_PHY_LC2CXO_1T1P_MAIN) && defined(PTIN_PHY_LC2CXO_1T1P_POST)
           pre  = PTIN_PHY_LC2CXO_1T1P_PRE;
           main_= PTIN_PHY_LC2CXO_1T1P_MAIN;
           post = PTIN_PHY_LC2CXO_1T1P_POST;
+#else
+          PT_LOG_INFO(LOG_CTX_INTF,
+                      "ptin_port=%u (P), LC in OLT1T1, TAP settings undefined",
+                      ptin_port);
+          return L7_FAILURE;
 #endif
         }
         else
         if (LC_in_OLT1T3()) {
-#if !defined(PTIN_PHY_LC2CXO_1T3P_PRE) || !defined(PTIN_PHY_LC2CXO_1T3P_MAIN) || !defined(PTIN_PHY_LC2CXO_1T3P_POST)
-
-        PT_LOG_INFO(LOG_CTX_INTF,
-                    "ptin_port=%u (P), LC in OLT1T3, TAP settings undefined",
-                    ptin_port);
-        return L7_FAILURE;
-#else
+#if defined(PTIN_PHY_LC2CXO_1T3P_PRE) && defined(PTIN_PHY_LC2CXO_1T3P_MAIN) && defined(PTIN_PHY_LC2CXO_1T3P_POST)
           pre  = PTIN_PHY_LC2CXO_1T3P_PRE;
           main_= PTIN_PHY_LC2CXO_1T3P_MAIN;
           post = PTIN_PHY_LC2CXO_1T3P_POST;
+#else
+          PT_LOG_INFO(LOG_CTX_INTF,
+                      "ptin_port=%u (P), LC in OLT1T3, TAP settings undefined",
+                      ptin_port);
+          return L7_FAILURE;
 #endif
         }
         else {
