@@ -23,6 +23,7 @@
 //# define PTIN_PHY_PREEMPHASIS_DEFAULT         0xBF00 /* main=48 post=15 */
 //# define PTIN_PHY_PREEMPHASIS_FARTHEST_SLOTS  0xCEC0 /* main=44 post=19 */
 //# define PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS   0xB720 /* main=50 post=13 */
+/* TAP settings */
 #define PTIN_PHY_DEFAULT_CXO2LC_PRE     0
 #define PTIN_PHY_DEFAULT_CXO2LC_MAIN    50
 #define PTIN_PHY_DEFAULT_CXO2LC_POST    13
