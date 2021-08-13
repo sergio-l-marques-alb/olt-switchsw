@@ -1020,6 +1020,15 @@ extern L7_RC_t ptin_intf_frame_oversize_get(L7_uint32 intIfNum, L7_uint32 *frame
 extern L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable);
 
 /**
+ * Set TAP settings for interfaces LC => CXO/matrix with optimal
+ * values obtained via devshell_test.c tools 
+ * 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_tap_set_LC_2_cxo(void);
+
+/**
  * Reset warpcore associated to a specific slot 
  * 
  * @param slot_id 
