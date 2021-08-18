@@ -6569,15 +6569,15 @@ L7_RC_t ptin_tap_set(L7_uint32 ptin_port,
       return L7_FAILURE;
     }
 
-    intIfNum = port2intIfNum(ptin_port);    //ptin_intf_slotPort2IntIfNum()
-#if 0
-    if (0==intIfNum || intIfNum >= platIntfMaxCountGet())
-    {   //>=L7_ALL_INTERFACES  >=L7_MAX_INTERFACE_COUNT    ==L7_INVALID_INTF
-        rc_global = L7_FAILURE; //max(L7_FAILURE, rc_global);
-        PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %d", intIfNum);
-        continue;
+    rc = ptin_intf_port2intIfNum(ptin_port, &intIfNum);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF,
+                 "Error getting intfNum from ptin_port %d (rc %d)",
+                 ptin_port,
+                 rc);
+      return L7_FAILURE;
     }
-#endif
 
     dapiCmd.cmdData.tapSettingsConfig.pre  =        pre;
     dapiCmd.cmdData.tapSettingsConfig.main =        main;
