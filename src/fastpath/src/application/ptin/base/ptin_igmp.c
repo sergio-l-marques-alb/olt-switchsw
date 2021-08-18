@@ -9300,8 +9300,6 @@ L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, L7_BOOL set_t
  */
 static L7_RC_t ptin_igmp_instance_delete(L7_uint16 igmp_idx)
 {
-  L7_uint32 i;
-  L7_uint igmp_inst;
 
   /* Validate arguments */
   if (igmp_idx >= PTIN_SYSTEM_N_IGMP_INSTANCES)
@@ -9338,16 +9336,6 @@ static L7_RC_t ptin_igmp_instance_delete(L7_uint16 igmp_idx)
   igmpInstances[igmp_idx].nni_ovid        = 0;
   igmpInstances[igmp_idx].n_evcs          = 0;
   igmpInstances[igmp_idx].inUse           = L7_FALSE;
-
-  /* Reset direct referencing to igmp index from evc ids */
-  for (i=0; i<PTIN_SYSTEM_N_EXTENDED_EVCS; i++)
-  {
-    if (ptin_evc_igmpInst_get(i, &igmp_inst) == L7_SUCCESS &&
-        igmp_inst == igmp_idx)
-    {
-      ptin_evc_igmpInst_set(i, IGMP_INVALID_ENTRY);
-    }
-  }
 
   return L7_SUCCESS;
 }
