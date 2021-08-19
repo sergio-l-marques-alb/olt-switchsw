@@ -696,7 +696,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       SETIPCACKOK(outbuffer);
       #else
       /* Execute command */      
-      ptin_msg_task_process(msgId, (void*)(inbuffer->info), infoDim, 3000);
+      ptin_msg_task_process(msgId, (void*)(inbuffer->info), infoDim, 6000);
       SETIPCACKOK(outbuffer);
       #endif
 
