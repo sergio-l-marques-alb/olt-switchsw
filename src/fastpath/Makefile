@@ -8,7 +8,7 @@
 ################################################
 
 # List of all supported cards
-cards = cxo640g cxo160g ta48ge tc16sxg tg16g tg16gf olt1t0 olt1t0f
+cards = tc16sxg
 
 
 ######################## Do not change any line below ########################
