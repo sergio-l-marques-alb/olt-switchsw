@@ -465,7 +465,9 @@ L7_RC_t ptin_intf_post_init(void)
 #endif
 
   ptin_tap_set_LC_2_cxo();
-
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  ptin_tap_set_tc16sxg_aspen();
+#endif
   return L7_SUCCESS;
 }
 
@@ -5859,6 +5861,94 @@ L7_RC_t ptin_tap_set_LC_2_cxo(void)
   return L7_FAILURE;
 #endif
 }
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+L7_RC_t ptin_tap_set_tc16sxg_aspen(void)
+{
+    /* Apply TAP settings (PRE, MAIN, POST) BCM56370 => ASPEN */
+    L7_RC_t   rc, rc_global=L7_SUCCESS;
+    L7_uint32 ptin_port, intIfNum, i;
+    const
+    struct {
+        L7_uint16 pre;
+        L7_uint16 main;
+        L7_uint16 post;
+    } aspen_taps[16] = {
+#define PTIN_PHY_SWITCH2ASPEN_PRE   6
+#define PTIN_PHY_SWITCH2ASPEN_MAIN  0x2a
+#define PTIN_PHY_SWITCH2ASPEN_POST  3
+        {PTIN_PHY_SWITCH2ASPEN_PRE, PTIN_PHY_SWITCH2ASPEN_MAIN,
+            PTIN_PHY_SWITCH2ASPEN_POST},    //Não nos deram este valor
+        {PTIN_PHY_SWITCH2ASPEN_PRE, PTIN_PHY_SWITCH2ASPEN_MAIN,
+            PTIN_PHY_SWITCH2ASPEN_POST},
+        {PTIN_PHY_SWITCH2ASPEN_PRE, PTIN_PHY_SWITCH2ASPEN_MAIN,
+            PTIN_PHY_SWITCH2ASPEN_POST},
+        {PTIN_PHY_SWITCH2ASPEN_PRE, PTIN_PHY_SWITCH2ASPEN_MAIN,
+            PTIN_PHY_SWITCH2ASPEN_POST},
+        {PTIN_PHY_SWITCH2ASPEN_PRE, PTIN_PHY_SWITCH2ASPEN_MAIN,
+            PTIN_PHY_SWITCH2ASPEN_POST},
+        {PTIN_PHY_SWITCH2ASPEN_PRE, PTIN_PHY_SWITCH2ASPEN_MAIN,
+            PTIN_PHY_SWITCH2ASPEN_POST},
+        {PTIN_PHY_SWITCH2ASPEN_PRE, PTIN_PHY_SWITCH2ASPEN_MAIN,
+            PTIN_PHY_SWITCH2ASPEN_POST},
+        {PTIN_PHY_SWITCH2ASPEN_PRE, PTIN_PHY_SWITCH2ASPEN_MAIN,
+            PTIN_PHY_SWITCH2ASPEN_POST},
+        {PTIN_PHY_SWITCH2ASPEN_PRE, PTIN_PHY_SWITCH2ASPEN_MAIN,
+            PTIN_PHY_SWITCH2ASPEN_POST},    //Não nos deram este valor
+        {PTIN_PHY_SWITCH2ASPEN_PRE, PTIN_PHY_SWITCH2ASPEN_MAIN,
+            PTIN_PHY_SWITCH2ASPEN_POST},
+        {PTIN_PHY_SWITCH2ASPEN_PRE, PTIN_PHY_SWITCH2ASPEN_MAIN,
+            PTIN_PHY_SWITCH2ASPEN_POST},
+        {PTIN_PHY_SWITCH2ASPEN_PRE, PTIN_PHY_SWITCH2ASPEN_MAIN,
+            PTIN_PHY_SWITCH2ASPEN_POST},
+        {PTIN_PHY_SWITCH2ASPEN_PRE, PTIN_PHY_SWITCH2ASPEN_MAIN,
+            PTIN_PHY_SWITCH2ASPEN_POST},
+        {PTIN_PHY_SWITCH2ASPEN_PRE, PTIN_PHY_SWITCH2ASPEN_MAIN,
+            PTIN_PHY_SWITCH2ASPEN_POST},
+        {PTIN_PHY_SWITCH2ASPEN_PRE, PTIN_PHY_SWITCH2ASPEN_MAIN,
+            PTIN_PHY_SWITCH2ASPEN_POST},
+        {PTIN_PHY_SWITCH2ASPEN_PRE, PTIN_PHY_SWITCH2ASPEN_MAIN,
+            PTIN_PHY_SWITCH2ASPEN_POST},
+    };
+
+
+    //for (intIfNum = 1; intIfNum <= L7_MAX_PORT_COUNT; intIfNum++)
+    for (intIfNum = 1; intIfNum <= L7_MAX_INTERFACE_COUNT; intIfNum++)
+    //for (ptin_port = 0; ptin_port < ptin_sys_number_of_ports; ptin_port++)
+    {
+        rc = ptin_intf_intIfNum2port(intIfNum, 0, &ptin_port);
+        if (L7_SUCCESS != rc) continue;
+
+        if (!PTIN_PORT_IS_PON(ptin_port)) continue; //break;
+        //if (ptin_port>=16) break;
+
+        i = intIfNum-1; //ptin_port;
+        rc = ptin_tap_set(ptin_port, 
+                          aspen_taps[i].pre, aspen_taps[i].main,
+                          aspen_taps[i].post);
+        if (L7_SUCCESS != rc)
+        {
+          PT_LOG_ERR(LOG_CTX_INTF,
+                     "ptin_port=%u; intIfNum=%u; pre=%u, main=%u, post=%u => "
+                     "ptin_tap_set()=%d",
+                     ptin_port, intIfNum,
+                     aspen_taps[i].pre, aspen_taps[i].main, aspen_taps[i].post,
+                     rc);
+          rc_global = rc;
+        }
+        else {
+          PT_LOG_INFO(LOG_CTX_INTF,
+                      "ptin_port=%u; intIfNum=%u; pre=%u, main=%u, post=%u => "
+                      "ptin_tap_set()=%d",
+                      ptin_port, intIfNum,
+                      aspen_taps[i].pre, aspen_taps[i].main, aspen_taps[i].post,
+                      rc);
+        }
+    }//for
+
+    return rc_global;
+}
+#endif
 
 /**
  * Reset warpcore associated to a specific slot 
