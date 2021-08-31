@@ -5745,11 +5745,11 @@ L7_RC_t ptin_tap_set_LC_2_cxo(void)
   if (LC_in_OLT1T1()) {
       PT_LOG_INFO(LOG_CTX_INTF, "LC in OLT1T1");
   }
-  else {
+  else
   if (LC_in_OLT1T3()) {
       PT_LOG_INFO(LOG_CTX_INTF, "LC in OLT1T3");
   }
-  else
+  else {
     PT_LOG_ERR(LOG_CTX_INTF, "LC in neither OLT1T1 nor OLT1T3");
     return L7_FAILURE;
   }
@@ -5786,7 +5786,7 @@ L7_RC_t ptin_tap_set_LC_2_cxo(void)
       }
       else {
         PT_LOG_ERR(LOG_CTX_INTF, "LC in neither OLT1T1 nor OLT1T3");
-        continue; //return L7_FAILURE;
+        return L7_FAILURE;
       }
     }//if (PTIN_PORT_IS_... /*Working*/
     else
@@ -5818,7 +5818,7 @@ L7_RC_t ptin_tap_set_LC_2_cxo(void)
         }
         else {
           PT_LOG_ERR(LOG_CTX_INTF, "LC in neither OLT1T1 nor OLT1T3");
-          continue; //return L7_FAILURE;
+          return L7_FAILURE;
         }
     }//if (PTIN_PORT_IS_... /*Protection*/
     else continue;
@@ -5831,6 +5831,12 @@ L7_RC_t ptin_tap_set_LC_2_cxo(void)
                  "ptin_tap_set()=%d",
                  ptin_port, pre, main_, post, rc);
       rc_global = rc;
+    }
+    else {
+        PT_LOG_INFO(LOG_CTX_INTF,
+                    "ptin_port=%u; pre=%u, main=%u, post=%u => "
+                    "ptin_tap_set()=%d",
+                    ptin_port, pre, main_, post, rc);
     }
   }//for
 
