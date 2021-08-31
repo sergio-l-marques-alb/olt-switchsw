@@ -1026,7 +1026,19 @@ extern L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable);
  * 
  * @return L7_RC_t 
  */
+extern
 L7_RC_t ptin_tap_set_LC_2_cxo(void);
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+/**
+ * Set TAP settings for PON interfaces SWITCH => ASPEN (MACGPON)
+ * 
+ * 
+ * @return L7_RC_t 
+ */
+extern
+L7_RC_t ptin_tap_set_tc16sxg_aspen(void);
+#endif
 
 /**
  * Reset warpcore associated to a specific slot 
