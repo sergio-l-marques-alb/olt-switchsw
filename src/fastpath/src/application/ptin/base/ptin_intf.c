@@ -5713,6 +5713,19 @@ L7_RC_t ptin_tap_set_cxo_2_LC(L7_uint16 slot_id, L7_uint16 board_id)
   L7_uint32 ptin_port;
   L7_uint16 pre, main_, post;
 
+  switch (board_id) {
+  default:
+      pre  = PTIN_PHY_DEFAULT_CXO2LC_PRE;
+      main_= PTIN_PHY_DEFAULT_CXO2LC_MAIN;
+      post = PTIN_PHY_DEFAULT_CXO2LC_POST;
+      break;
+  case PTIN_BOARD_TYPE_TC16SXG:
+      pre  = PTIN_PHY_CXO2TC16SXG_PRE;
+      main_= PTIN_PHY_CXO2TC16SXG_MAIN;
+      post = PTIN_PHY_CXO2TC16SXG_POST;
+      break;
+  }//switch
+
   for (port_idx = 0; port_idx < PTIN_SYS_INTFS_PER_SLOT_MAX; port_idx++) {
       rc = ptin_intf_slotPort2port(slot_id, port_idx, &ptin_port);
       if (L7_SUCCESS != rc || ptin_port >= ptin_sys_number_of_ports)
@@ -5725,19 +5738,6 @@ L7_RC_t ptin_tap_set_cxo_2_LC(L7_uint16 slot_id, L7_uint16 board_id)
         continue;
       }
 
-      switch (board_id) {
-      default:
-          pre  = PTIN_PHY_DEFAULT_CXO2LC_PRE;
-          main_= PTIN_PHY_DEFAULT_CXO2LC_MAIN;
-          post = PTIN_PHY_DEFAULT_CXO2LC_POST;
-          break;
-      case PTIN_BOARD_TYPE_TC16SXG:
-          pre  = PTIN_PHY_CXO2TC16SXG_PRE;
-          main_= PTIN_PHY_CXO2TC16SXG_MAIN;
-          post = PTIN_PHY_CXO2TC16SXG_POST;
-          break;
-      }//switch
-
       rc = ptin_tap_set(ptin_port, pre, main_, post);
       if (L7_SUCCESS != rc)
       {
@@ -5747,6 +5747,12 @@ L7_RC_t ptin_tap_set_cxo_2_LC(L7_uint16 slot_id, L7_uint16 board_id)
                    ptin_port, pre, main_, post, rc);
         rc_global = rc;
       }
+      else {
+        PT_LOG_INFO(LOG_CTX_INTF,
+                    "ptin_port=%u; pre=%u, main=%u, post=%u => "
+                    "ptin_tap_set()=%d",
+                    ptin_port, pre, main_, post, rc);
+      }
   }//for
 
   return rc_global;
@@ -5755,8 +5761,13 @@ L7_RC_t ptin_tap_set_cxo_2_LC(L7_uint16 slot_id, L7_uint16 board_id)
 
 L7_RC_t ptin_tap_set_LC_2_cxo(void)
 {
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+ /* CXOs are not LCs */
+  return L7_FAILURE;
+
+
  /* Apply TAP settings (PRE, MAIN, POST) to modular systems' LCs (LC => CXO) */
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG) /* || (PTIN_BOARD == PTIN_BOARD_... */
+#elif (PTIN_BOARD == PTIN_BOARD_TC16SXG) /* || (PTIN_BOARD == PTIN_BOARD_... */
   L7_RC_t   rc, rc_global=L7_SUCCESS;
   L7_uint32 ptin_port;
   L7_uint16 pre, main_, post;
@@ -6037,8 +6048,8 @@ L7_RC_t ptin_intf_slot_reset(L7_int slot_id, L7_BOOL force_linkup)
     rc = ptin_tap_set_cxo_2_LC(slot_id, board_id);
     if (L7_SUCCESS != rc)  {
       PT_LOG_ERR(LOG_CTX_INTF,
-                 "ptin_tap_set_cxo_2_LC(slot_id=%u, board_id=%u) = %d",
-                 slot_id, board_id, rc);
+                 "ptin_tap_set_cxo_2_LC(slot_id=%u, board_id=0x%x(%u)) = %d",
+                 slot_id, board_id, board_id, rc);
       return L7_FAILURE;
     }
   }
@@ -6668,8 +6679,8 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
   rc = ptin_tap_set_cxo_2_LC(slot_id, board_id);
   if (L7_SUCCESS != rc)  {
     PT_LOG_ERR(LOG_CTX_INTF,
-               "ptin_tap_set_cxo_2_LC(slot_id=%u, board_id=%u) = %d",
-               slot_id, board_id, rc);
+               "ptin_tap_set_cxo_2_LC(slot_id=%u, board_id=0x%x(%u)) = %d",
+               slot_id, board_id, board_id, rc);
     rc_global = L7_FAILURE; //max(L7_FAILURE, rc_global);
   }
 #endif
