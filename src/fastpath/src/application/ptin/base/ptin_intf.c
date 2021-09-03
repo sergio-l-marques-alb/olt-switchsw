@@ -165,6 +165,11 @@ static L7_uint16 ptin_slot_boardid[PTIN_SYS_SLOTS_MAX+1];
   memset(&lagConf_data[lag_idx], 0xFF, sizeof(lagConf_data[0]));  \
 }
 
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+L7_RC_t ptin_tap_set_cxo_2_LC(L7_uint16 slot_id, L7_uint16 board_id);
+#endif
+
+
 /**
  * Local Functions Prototypes
  */
@@ -1624,6 +1629,22 @@ L7_RC_t ptin_intf_boardid_set(L7_int ptin_port, L7_uint16 board_id)
   PT_LOG_INFO(LOG_CTX_INTF,"Slot %u: updated board_id = %u", slot_id, board_id);
   #endif
 
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+  /* Apply TAP settings (PRE, MAIN, POST) to modular systems' CXOs
+     @board (LC,UPLNKC) insertion*/
+  {
+    L7_RC_t   rc;
+
+    rc = ptin_tap_set_cxo_2_LC(slot_id, board_id);
+    if (L7_SUCCESS != rc)  {
+      PT_LOG_ERR(LOG_CTX_INTF,
+                 "ptin_tap_set_cxo_2_LC(slot_id=%u, board_id=0x%x(%u)) = %d",
+                 slot_id, board_id, board_id, rc);
+      //rc_global = L7_FAILURE; //max(L7_FAILURE, rc_global);
+    }
+  }
+  #endif
+
   return L7_SUCCESS;
 }
 
@@ -1681,6 +1702,21 @@ L7_RC_t ptin_slot_boardtype_set(L7_int slot_id, L7_uint16 board_id)
 
   ptin_slot_boardid[slot_id] = board_id;
   PT_LOG_INFO(LOG_CTX_INTF,"Slot %u: updated board_id = %u", slot_id, board_id);
+  #endif
+
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+  /* Apply TAP settings (PRE, MAIN, POST) to modular systems' CXOs
+     @board (LC,UPLNKC) insertion*/
+  {
+    L7_RC_t   rc;
+
+    rc = ptin_tap_set_cxo_2_LC(slot_id, board_id);
+    if (L7_SUCCESS != rc)  {
+      PT_LOG_ERR(LOG_CTX_INTF,
+                 "ptin_tap_set_cxo_2_LC(slot_id=%u, board_id=0x%x(%u)) = %d",
+                 slot_id, board_id, board_id, rc);
+    }
+  }
   #endif
 
   return L7_SUCCESS;
@@ -6010,32 +6046,6 @@ L7_RC_t ptin_intf_slot_reset(L7_int slot_id, L7_BOOL force_linkup)
     }
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
-  {
-    L7_uint16 board_id;
-
-    /* Get current board id */
-    //osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);     //Can't, otherwise deadlock in CCMSG_HW_BOARD_ACTION (0x9007)
-    rc = ptin_slot_boardid_get(slot_id, &board_id);
-    if (L7_SUCCESS != rc) {
-      //osapiSemaGive(ptin_boardaction_sem);
-      PT_LOG_ERR(LOG_CTX_INTF, "Error getting board id for slot %u (rc=%d)", slot_id, rc);
-      return L7_FAILURE;
-    }
-    //osapiSemaGive(ptin_boardaction_sem);
-    
-    /* Apply TAP settings (PRE, MAIN, POST) to modular systems' CXOs
-       @slot (LC,UPLNKC) / warpcore reset*/
-    rc = ptin_tap_set_cxo_2_LC(slot_id, board_id);
-    if (L7_SUCCESS != rc)  {
-      PT_LOG_ERR(LOG_CTX_INTF,
-                 "ptin_tap_set_cxo_2_LC(slot_id=%u, board_id=0x%x(%u)) = %d",
-                 slot_id, board_id, board_id, rc);
-      return L7_FAILURE;
-    }
-  }
-#endif
-
   PT_LOG_INFO(LOG_CTX_INTF,"HW-RESET procedure applied to slot %d", slot_id);
 
   return L7_SUCCESS;
@@ -6436,14 +6446,14 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
 L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
 {
   L7_RC_t   rc_global = L7_SUCCESS;
-#if (LINKSCAN_MANAGEABLE_BOARD || PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
-  L7_int    port_idx, ptin_port = -1;
-  L7_RC_t   rc;
-#endif
 
 /* Only applied to CXO640G boards */
 #if (LINKSCAN_MANAGEABLE_BOARD)
+
+  L7_int    port_idx, ptin_port = -1;
+  L7_uint32 intIfNum = L7_ALL_INTERFACES;
   L7_uint16 board_id_current;
+  L7_RC_t   rc;
 
   PT_LOG_DEBUG(LOG_CTX_INTF,"Inserting board %u at slot %u", board_id, slot_id);
 
@@ -6632,18 +6642,6 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
 
   /* Unblock board event processing */
   osapiSemaGive(ptin_boardaction_sem);
-#endif
-
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
-  /* Apply TAP settings (PRE, MAIN, POST) to modular systems' CXOs
-     @board (LC,UPLNKC) insertion*/
-  rc = ptin_tap_set_cxo_2_LC(slot_id, board_id);
-  if (L7_SUCCESS != rc)  {
-    PT_LOG_ERR(LOG_CTX_INTF,
-               "ptin_tap_set_cxo_2_LC(slot_id=%u, board_id=0x%x(%u)) = %d",
-               slot_id, board_id, board_id, rc);
-    rc_global = L7_FAILURE; //max(L7_FAILURE, rc_global);
-  }
 #endif
 
 /* For now, disable this piece of code */
