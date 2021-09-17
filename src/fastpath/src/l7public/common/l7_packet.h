@@ -1013,6 +1013,7 @@ typedef enum
 /***********************************************************************/
 /* PTP V2 Message Header Structure (Standard).                         */
 /***********************************************************************/
+#define DEFAULT_PTP_TAG_PCP 6
 
 /** An IEEE-1588 defined octet array used to uniquely represent the identity
  *  of a PTP clock. The most significant octet is assigned to byte 0. */

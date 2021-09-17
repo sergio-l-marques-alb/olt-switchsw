@@ -528,7 +528,7 @@ L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbyte
               ptpHeader->reserved3 = dtltod.tsNanoseconds;
 
               udpHeader->checksum = 0x0000; /* none. If checksum is not defined the OS IP Stack ignores it */
-            }
+            }//if (osapiNtohs(udpHeader->destPort) == UDP_PORT_EVENT_PTP)
 
             if (dtlNetPtinDebug & DTLNET_PTINDEBUG_RX_LEVEL4)
             {
@@ -556,12 +556,12 @@ L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbyte
                             ptpHeader->sourcePortIdentity.clockIdentity[0], ptpHeader->sourcePortIdentity.clockIdentity[1], ptpHeader->sourcePortIdentity.clockIdentity[2], ptpHeader->sourcePortIdentity.clockIdentity[3], 
                             ptpHeader->sourcePortIdentity.clockIdentity[4], ptpHeader->sourcePortIdentity.clockIdentity[5], ptpHeader->sourcePortIdentity.clockIdentity[6], ptpHeader->sourcePortIdentity.clockIdentity[7],
                             ptpHeader->sourcePortIdentity.portNumber, ptpHeader->controlField, ptpHeader->logMessageInterval);
-            }
-          }
-        }
+            }//if (dtlNetPtinDebug & DTLNET_PTINDEBUG_RX_LEVEL4)
+          }//if (/* PTP Timestamp: UDP Port 319 or 320 */)
+        }//if(ip_header->iph_prot == IP_PROT_UDP)
       }
       #endif
-    }
+    }//if(etype == L7_ETYPE_ARP) ... else ...
 
     if (mac_learn == L7_TRUE)
     {
@@ -1765,8 +1765,14 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
 
                   info->dtlCmdInfo.cmdType.L2.flags |= L7_DTL_PKT_F_TIMESYNC;
                   #endif
+                }//if (osapiNtohs(udpHeader->destPort) == UDP_PORT_EVENT_PTP)
+
+                { /* Set PTP packets' PCP */
+                  data[14] = (data[14] & ~(L7_VLAN_TAG_PRIORITY_MASK>>8))
+                             | DEFAULT_PTP_TAG_PCP<<5;
+                  info->dtlCmdInfo.priority = DEFAULT_PTP_TAG_PCP;
                 }
-              }
+              }//if (/* PTP Timestamp: UDP Port 319 or 320 */)
             }
           }
           #endif
