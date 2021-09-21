@@ -1736,7 +1736,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
               ptpHeader = (L7_PtpV2_header_t *)((L7_char8 *)udpHeader + sizeof(L7_udp_header_t));
 
               /* PTP Timestamp: UDP Port 319 */
-              if ((ptin_ipdtl0_dtl0Type_get(dtl0Vid) == PTIN_IPDTL0_ETH_IPv4_UDP_PTP ) && ((osapiNtohs(udpHeader->destPort) == UDP_PORT_EVENT_PTP) || (osapiNtohs(udpHeader->destPort) == UDP_PORT_GENERAL_PTP)))
+              if (((osapiNtohs(udpHeader->destPort) == UDP_PORT_EVENT_PTP) || (osapiNtohs(udpHeader->destPort) == UDP_PORT_GENERAL_PTP)))
               {
                 if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL3)
                 {
@@ -1753,6 +1753,14 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
 
                 if (osapiNtohs(udpHeader->destPort) == UDP_PORT_EVENT_PTP)
                 {
+                 L7_uint16 pidg;
+
+                 pidg = ptin_ipdtl0_dtl0Type_get(dtl0Vid);
+                 PT_LOG_TRACE(LOG_CTX_DTL,
+                              "ptin_ipdtl0_dtl0Type_get(dtl0Vid = %u) = %u \t"
+                              "PTIN_IPDTL0_ETH_IPv4_UDP_PTP = %d",
+                              dtl0Vid, pidg, PTIN_IPDTL0_ETH_IPv4_UDP_PTP);
+                 if (PTIN_IPDTL0_ETH_IPv4_UDP_PTP == pidg) {
                   #if ((PTIN_BOARD == PTIN_BOARD_TG16G) || (PTIN_BOARD == PTIN_BOARD_TG16GF) || (PTIN_BOARD == PTIN_BOARD_TA48GE) ||(PTIN_BOARD == PTIN_BOARD_AG16GA))
                   ptpTs.validTsRecord = L7_TRUE; 
                   ptpTs.inetAddr.ipv4Addr = ip_header->iph_dst;
@@ -1763,6 +1771,8 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
 
                   info->dtlCmdInfo.cmdType.L2.flags |= L7_DTL_PKT_F_TIMESYNC;
                   #endif
+                 }//if (PTIN_IPDTL0_ETH_IPv4_UDP_PTP == pidg)
+
                 }//if (osapiNtohs(udpHeader->destPort) == UDP_PORT_EVENT_PTP)
 
                 { /* Set PTP packets' PCP */
@@ -1771,7 +1781,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
                   info->dtlCmdInfo.priority = DEFAULT_PTP_TAG_PCP;
                 }
               }//if (/* PTP Timestamp: UDP Port 319 or 320 */)
-            }
+            }//if(ip_header->iph_prot == IP_PROT_UDP)
           }
           #endif
 
