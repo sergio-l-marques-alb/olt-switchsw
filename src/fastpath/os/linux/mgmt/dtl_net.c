@@ -1476,7 +1476,6 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
     info->dtlCmdInfo.cmdType.L2.vlanId = vlan;
     info->dtlCmdInfo.cmdType.L2.flags = 0;
     info->dtlCmd = DTL_CMD_TX_L2;
-    info->discard = L7_FALSE;
 
     /*
     *we are done
@@ -1665,9 +1664,8 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
                SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Entry with Vlan=0x%02x%02x and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found. This packet will be discarded.\n\r",
                              keyToFind[0], keyToFind[1],
                              keyToFind[2], keyToFind[3], keyToFind[4], keyToFind[5], keyToFind[6], keyToFind[7]);
-
-               fdbEntry.dot1dTpFdbPort = 0;
              }
+             fdbEntry.dot1dTpFdbPort = 0;
            }
 
            if(fdbEntry.dot1dTpFdbPort)
