@@ -400,13 +400,13 @@ L7_RC_t ptin_hapi_hash_init(void)
 
   if (bcm_switch_control_set(0, bcmSwitchHashMultiMoveDepthEgressVlanTranslate1, 2) != BCM_E_NONE)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmSwitchHashDualMoveDepthEgressVlan switch_control to 4");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmSwitchHashMultiMoveDepthEgressVlanTranslate1 switch_control to 2");
     rc = L7_FAILURE;
   }
 
   if (bcm_switch_control_set(0, bcmSwitchHashMultiMoveDepthEgressVlanTranslate2, 2) != BCM_E_NONE)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmSwitchHashDualMoveDepthEgressVlan switch_control to 4");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmSwitchHashMultiMoveDepthEgressVlanTranslate2 switch_control to 2");
     rc = L7_FAILURE;
   }
 
