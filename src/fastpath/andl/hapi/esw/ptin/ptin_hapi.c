@@ -398,6 +398,18 @@ L7_RC_t ptin_hapi_hash_init(void)
     rc = L7_FAILURE;
   }
 
+  if (bcm_switch_control_set(0, bcmSwitchHashMultiMoveDepthEgressVlanTranslate1, 2) != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmSwitchHashDualMoveDepthEgressVlan switch_control to 4");
+    rc = L7_FAILURE;
+  }
+
+  if (bcm_switch_control_set(0, bcmSwitchHashMultiMoveDepthEgressVlanTranslate2, 2) != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmSwitchHashDualMoveDepthEgressVlan switch_control to 4");
+    rc = L7_FAILURE;
+  }
+
 #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
   L7_uint32 i, banks;
   L7_int    hash_type;
