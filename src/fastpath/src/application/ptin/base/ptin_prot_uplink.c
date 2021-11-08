@@ -1931,16 +1931,27 @@ L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event)
       /* link up @ working port */
       if (portType == PORT_WORKING)
       {
-        /* Check if revert (to working) should be applied */
-        if ((state_machine == PROT_STATE_Protection) && (uplinkprot[i].protParams.revert2working) && (!SD[PORT_WORKING]))
-        {
-          if (!ptin_prot_timer_isrunning(i))
-          {
-            PT_LOG_DEBUG(LOG_CTX_INTF,"Going to start timer for protIdx %u", i);
-            ptin_prot_timer_start(i, uplinkprot[i].protParams.WaitToRestoreTimer);
+        if (state_machine == PROT_STATE_Protection) {
+          if (SF[PORT_PROTECTION]) {
+            /* In normal machine-state and SF in working port -> Instant switch to protection */
+            PT_LOG_INFO(LOG_CTX_INTF,"PROT_STATE_Protection => PROT_STATE_Normal state (%u)", i);
+            uplinkprotSwitchTo(i, PORT_WORKING, PROT_LReq_LINK, __LINE__);
+            uplinkprotFsmTransition(i, PROT_STATE_Normal, __LINE__);
+
+            ptin_prot_timer_stop(i);
           }
-        }
-      }
+          else
+          /* Check if revert (to working) should be applied */
+          if ((uplinkprot[i].protParams.revert2working) && (!SD[PORT_WORKING]))
+          {
+            if (!ptin_prot_timer_isrunning(i))
+            {
+              PT_LOG_DEBUG(LOG_CTX_INTF,"Going to start timer for protIdx %u", i);
+              ptin_prot_timer_start(i, uplinkprot[i].protParams.WaitToRestoreTimer);
+            }
+          }
+        }//if (state_machine == PROT_STATE_Protection)
+      }//if (portType == PORT_WORKING)
       /* link up @ protection port */
       else
       {
