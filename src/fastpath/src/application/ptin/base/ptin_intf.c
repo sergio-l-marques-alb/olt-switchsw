@@ -2548,7 +2548,8 @@ L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint16 virtual_vid,
   if ( _ptin_port >= PTIN_SYSTEM_N_INTERF ||
       (_ptin_port >= ptin_sys_number_of_ports && _ptin_port < PTIN_SYSTEM_N_PORTS))
   {
-    PT_LOG_WARN(LOG_CTX_INTF, "intIfNum# %u is not assigned! (%u)", intIfNum, _ptin_port);
+    /* Can happen on IGMP module */
+    PT_LOG_TRACE(LOG_CTX_INTF, "intIfNum# %u is not assigned! (%u)", intIfNum, _ptin_port);
     return L7_FAILURE;
   }
 
