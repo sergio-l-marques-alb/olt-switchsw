@@ -222,7 +222,7 @@ typedef struct
 {
   L7_cosMapCfg_t          mapping;      /* mapping table config */
   L7_cosIntfCfg_t         intf;         /* other interface config */
-  L7_cosQueueCfg_t        queue[L7_COS_INTF_QUEUE_MAX_COUNT];
+  L7_cosQueueCfg_t        queue[L7_MAX_CFG_QUEUES_PER_PORT];
 
 } L7_cosCfgParms_t;
 

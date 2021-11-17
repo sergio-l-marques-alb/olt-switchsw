@@ -1533,13 +1533,6 @@ L7_RC_t cosIntfChangeCallback(L7_uint32 intIfNum, L7_uint32 event,
   NIM_EVENT_COMPLETE_INFO_t status;
   L7_cosCfgIntfParms_t      *pCfgIntf = L7_NULLPTR;
 
-  status.intIfNum        = intIfNum;
-  status.component       = L7_FLEX_QOS_COS_COMPONENT_ID;
-  status.event           = event;
-  status.correlator      = correlator;
-  status.response.rc     = rc;
-  status.response.reason = NIM_ERR_RC_UNUSED;
-
   if (cosDeregister_g.cosIntfChange == L7_TRUE)
   {
     rc = L7_SUCCESS;
@@ -1569,7 +1562,7 @@ L7_RC_t cosIntfChangeCallback(L7_uint32 intIfNum, L7_uint32 event,
       PT_LOG_DEBUG(LOG_CTX_INTF,"Event L7_DETACH received: intIfNUm=%u", intIfNum);
       if (cosIntfIsConfigurable(intIfNum, &pCfgIntf) == L7_TRUE)
         rc = cosConfigIntfDataUnapply(intIfNum, pCfgIntf);
-      PT_LOG_INFO(LOG_CTX_EVENTS,"Event L7_DETACH processed: intIfNUm=%u", intIfNum);
+      PT_LOG_INFO(LOG_CTX_EVENTS,"Event L7_DETACH processed: intIfNUm=%u rc %d", intIfNum, rc);
       break;
 
     case L7_DELETE:
@@ -1585,7 +1578,7 @@ L7_RC_t cosIntfChangeCallback(L7_uint32 intIfNum, L7_uint32 event,
       break;
 
     case L7_INACTIVE:
-      PT_LOG_DEBUG(LOG_CTX_INTF,"Event L7_INACTIVE received: intIfNUm=%u", intIfNum);
+   PT_LOG_DEBUG(LOG_CTX_INTF,"Event L7_INACTIVE received: intIfNUm=%u", intIfNum);
       pCosIntfInfo_g[intIfNum].intfIsActive = L7_FALSE;
       PT_LOG_INFO(LOG_CTX_EVENTS,"Event L7_INACTIVE processed: intIfNUm=%u", intIfNum);
       break;
@@ -1636,7 +1629,13 @@ L7_RC_t cosIntfChangeCallback(L7_uint32 intIfNum, L7_uint32 event,
     status.response.reason = NIM_ERR_RC_OUT_OF_SEQUENCE;
   }
 
-  status.response.rc = rc;
+
+  status.intIfNum        = intIfNum;
+  status.component       = L7_FLEX_QOS_COS_COMPONENT_ID;
+  status.event           = event;
+  status.correlator      = correlator;
+  status.response.rc     = rc;
+
   nimEventStatusCallback(status);
 
   return rc;

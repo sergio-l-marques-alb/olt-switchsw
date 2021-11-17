@@ -1088,7 +1088,6 @@ void nimEventStatusCallback(NIM_EVENT_COMPLETE_INFO_t status)
   /* take the correlator semaphore and tally the response */
   if ((rc = nimEventTally(status,&done)) != L7_SUCCESS)
   {
-    NIM_LOG_MSG("NIM: Error in the tally routine\n");
     PT_LOG_ERR(LOG_CTX_EVENTS, "NIM: Error in the tally routine: Event=%u, intIfNum=%u", status.event, status.intIfNum);
   }
   else if (done == L7_TRUE)
@@ -1496,8 +1495,6 @@ L7_RC_t nimEventTally(NIM_EVENT_COMPLETE_INFO_t status,L7_BOOL *complete)
 
   if (status.correlator != correlatorTable.correlator)
   {
-    NIM_L7_LOG_ERROR("NIM: Unexpected status callback on correlator(%d), event(%d), intIf(%d)\n",
-                  status.correlator,status.event,status.intIfNum);
     PT_LOG_ERR(LOG_CTX_EVENTS, "NIM: Unexpected status callback on correlator(%d), event(%d), intIf(%d)",
              status.correlator,status.event,status.intIfNum);
     rc = L7_FAILURE;
