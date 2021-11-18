@@ -13079,10 +13079,10 @@ L7_RC_t ptin_msg_uplink_prot_info_get(ipc_msg *inbuffer, ipc_msg *outbuffer)
     ENDIAN_SWAP8_MOD(protInfo_in[i].intf.intf_type);
     ENDIAN_SWAP8_MOD(protInfo_in[i].intf.intf_id);
 
-    PT_LOG_TRACE(LOG_CTX_MSG, "Message contents:");
-    PT_LOG_TRACE(LOG_CTX_MSG, " MsgId  = %u"    , inbuffer->msgId);
-    PT_LOG_TRACE(LOG_CTX_MSG, " slotId = %u"    , protInfo_in[i].slotId);
-    PT_LOG_TRACE(LOG_CTX_MSG, " intf   = %u/%u" , protInfo_in[i].intf.intf_type, protInfo_in[i].intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Message contents:");
+    PT_LOG_DEBUG(LOG_CTX_MSG, " MsgId  = %u"    , inbuffer->msgId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " slotId = %u"    , protInfo_in[i].slotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " intf   = %u/%u" , protInfo_in[i].intf.intf_type, protInfo_in[i].intf.intf_id);
 
     memset(&protInfo_out[i], 0x00, sizeof(msg_HWuplinkProtInfo));
     protInfo_out[i].slotId          = ENDIAN_SWAP8(protInfo_in[i].slotId);
@@ -13112,12 +13112,27 @@ L7_RC_t ptin_msg_uplink_prot_info_get(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     if (rc == L7_SUCCESS)
     {
+      unsigned char laserOn, ALSConf, TXfaults, LACPport;
+
+      laserOn = (flags & PROT_UPLINK_FLAGS_LASER_MASK) == PROT_UPLINK_FLAGS_LASER_MASK;
+      ALSConf = (flags & PROT_UPLINK_FLAGS_ALS_MASK) == PROT_UPLINK_FLAGS_ALS_MASK;
+      TXfaults = (flags & PROT_UPLINK_FLAGS_REMOTE_FAULTS_MASK) == PROT_UPLINK_FLAGS_REMOTE_FAULTS_MASK;
+      LACPport = (flags & PROT_UPLINK_FLAGS_LACP_MASK) == PROT_UPLINK_FLAGS_LACP_MASK;
+
       protInfo_out[i].protIndex = ENDIAN_SWAP8(protIdx);
       protInfo_out[i].portType  = ENDIAN_SWAP8(portType);
-      protInfo_out[i].laserOn   = ENDIAN_SWAP8((flags & PROT_UPLINK_FLAGS_LASER_MASK) == PROT_UPLINK_FLAGS_LASER_MASK);
-      protInfo_out[i].ALSConf   = ENDIAN_SWAP8((flags & PROT_UPLINK_FLAGS_ALS_MASK) == PROT_UPLINK_FLAGS_ALS_MASK);
-      protInfo_out[i].TXfaults  = ENDIAN_SWAP8((flags & PROT_UPLINK_FLAGS_REMOTE_FAULTS_MASK) == PROT_UPLINK_FLAGS_REMOTE_FAULTS_MASK);
-      protInfo_out[i].LACPport  = ENDIAN_SWAP8((flags & PROT_UPLINK_FLAGS_LACP_MASK) == PROT_UPLINK_FLAGS_LACP_MASK);
+      protInfo_out[i].laserOn   = ENDIAN_SWAP8(laserOn);
+      protInfo_out[i].ALSConf   = ENDIAN_SWAP8(ALSConf);
+      protInfo_out[i].TXfaults  = ENDIAN_SWAP8(TXfaults);
+      protInfo_out[i].LACPport  = ENDIAN_SWAP8(LACPport);
+
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Message got contents...");
+      PT_LOG_DEBUG(LOG_CTX_MSG, " protIndex = %u", protIdx);
+      PT_LOG_DEBUG(LOG_CTX_MSG, " portType = %u",  portType);
+      PT_LOG_DEBUG(LOG_CTX_MSG, " laserOn = %u",   laserOn);
+      PT_LOG_DEBUG(LOG_CTX_MSG, " ALSConf = %u",   ALSConf);
+      PT_LOG_DEBUG(LOG_CTX_MSG, " TXfaults = %u",  TXfaults);
+      PT_LOG_DEBUG(LOG_CTX_MSG, " LACPport = %u",  LACPport);
     }
     else
     {
