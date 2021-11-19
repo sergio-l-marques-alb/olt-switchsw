@@ -301,6 +301,19 @@ extern L7_RC_t ptin_prot_uplink_state(L7_uint8 protIdx, uplinkprot_st *state, PR
  */
 extern L7_RC_t ptin_prot_uplink_state_sync(void);
 
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+/**
+ * Reload a slot's protection groups' interfaces
+ * 
+ * @author rcosta@alticelabs.com (Nov2021)
+ * 
+ * @param slot 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_prot_uplink_slot_reload(L7_uint16 slot);
+#endif
+
 /**
  * Suspend uplink protection machine
  * 

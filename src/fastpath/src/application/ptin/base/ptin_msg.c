@@ -811,21 +811,24 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
 L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
 {
   L7_RC_t rc = L7_SUCCESS;
+  L7_uint16 slot_id  = ENDIAN_SWAP8(msg->generic_id),
+            board_id = ENDIAN_SWAP8(msg->param);
 
   PT_LOG_INFO(LOG_CTX_MSG, "ptin_msg_board_action");
   PT_LOG_DEBUG(LOG_CTX_MSG," slot       = %u",   ENDIAN_SWAP8(msg->slot_id));
-  PT_LOG_DEBUG(LOG_CTX_MSG," generic_id = %u",    ENDIAN_SWAP8(msg->generic_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," generic_id = %u",    slot_id);
   PT_LOG_DEBUG(LOG_CTX_MSG," type       = 0x%02x", ENDIAN_SWAP8(msg->type));
-  PT_LOG_DEBUG(LOG_CTX_MSG," param      = 0x%02x", ENDIAN_SWAP8(msg->param));
+  PT_LOG_DEBUG(LOG_CTX_MSG," param      = 0x%02x", board_id);
 
   #if (PTIN_BOARD_IS_MATRIX)
 
   /* insertion action */
   if (ENDIAN_SWAP8(msg->type) == 0x03)
   {
-    PT_LOG_INFO(LOG_CTX_MSG,"Insertion detected (slot %u, board_id=%u)", ENDIAN_SWAP8(msg->generic_id), ENDIAN_SWAP8(msg->param));
+    PT_LOG_INFO(LOG_CTX_MSG,"Insertion detected (slot %u, board_id=%u)",
+                slot_id, board_id);
 
-    rc = ptin_slot_action_insert(ENDIAN_SWAP8(msg->generic_id), ENDIAN_SWAP8(msg->param));
+    rc = ptin_slot_action_insert(slot_id, board_id);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error inserting card (%d)", rc);
@@ -833,14 +836,23 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
     else
     {
       PT_LOG_INFO(LOG_CTX_MSG, "Card inserted successfully");
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+      {
+        L7_RC_t r;
+
+        r = ptin_prot_uplink_slot_reload(slot_id);
+        if (L7_SUCCESS != r)
+            PT_LOG_ERR(LOG_CTX_MSG, "ptin_prot_uplink_slot_reload()=%d", rc);
+      }
+#endif
     }
   }
   /* Board removed */
   else if (ENDIAN_SWAP8(msg->type) == 0x00)
   {
-    PT_LOG_INFO(LOG_CTX_MSG,"Remotion detected (slot %u)", ENDIAN_SWAP8(msg->generic_id));
+    PT_LOG_INFO(LOG_CTX_MSG,"Remotion detected (slot %u)", slot_id);
 
-    rc = ptin_slot_action_remove(ENDIAN_SWAP8(msg->generic_id));
+    rc = ptin_slot_action_remove(slot_id);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error removing card (%d)", rc);
