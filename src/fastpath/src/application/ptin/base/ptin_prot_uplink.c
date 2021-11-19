@@ -3804,6 +3804,61 @@ L7_RC_t ptin_prot_uplink_state_sync(void)
 }
 
 
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+L7_RC_t ptin_prot_uplink_slot_reload(L7_uint16 slot)
+{
+  L7_uint32 ptin_port, intIfNum;
+  L7_uint8  protIdx, portType;
+  L7_RC_t r;
+
+  for (ptin_port = 0; ptin_port < ptin_sys_number_of_ports; ptin_port++) {
+    L7_uint16 ports_slot;
+
+    r = ptin_intf_port2SlotPort(ptin_port, &ports_slot, L7_NULLPTR, L7_NULLPTR);
+    if (L7_SUCCESS != r)
+    {
+      if (DEBUG_ENABLED(LOG_CTX_INTF)) {
+        PT_LOG_ERR(LOG_CTX_INTF, "ptin_intf_port2SlotPort() = %d", r);
+      }
+      continue;
+    }
+    if (slot!=ports_slot) continue;
+    //This interface belongs to the given slot
+
+    r = ptin_prot_uplink_index_find(ptin_port, &protIdx, &portType);
+    if (L7_SUCCESS != r /* || protIdx>=MAX_UPLINK_PROT*/) {
+      if (TRACE_ENABLED(LOG_CTX_INTF)) {
+        PT_LOG_ERR(LOG_CTX_INTF, "ptin_prot_uplink_index_find() = %d", r);
+      }
+      continue;
+    }
+    //This interface belongs to an UPLINK PROTECTION instance
+
+    r = ptin_intf_port2intIfNum(ptin_port, &intIfNum);
+    if (L7_SUCCESS != r) {
+      {//if (TRACE_ENABLED(LOG_CTX_INTF)) {
+        PT_LOG_ERR(LOG_CTX_INTF, "ptin_intf_port2intIfNum() = %d", r);
+      }
+      continue;
+    }
+
+    r=ptin_remote_laser_control(intIfNum,
+                                //please check ptin_prot_uplink_info_get()
+                                portType==uplinkprot[protIdx].activePortType?
+                                0:1);
+    //r = ptin_prot_select_intf(protIdx, uplinkprot[protIdx].activePortType);
+    //r = ptin_prot_uplink_intf_reload(ptin_port);
+    if (L7_SUCCESS != r) {
+      PT_LOG_ERR(LOG_CTX_INTF, "ptin_remote_laser_control() = %d", r);
+      continue;
+    }
+  }//for (ptin_port...
+
+  return L7_SUCCESS;
+}//ptin_prot_uplink_slot_reload
+#endif
+
+
 void ptin_prot_uplink_dump(L7_uint8 protIdx)
 {
   if (protIdx >= MAX_UPLINK_PROT)
