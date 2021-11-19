@@ -221,4 +221,8 @@ extern int logger_print(log_context_t ctx, log_severity_t sev, char const *file,
     (logger_check(ctx, LOG_SEV_PRINT   ) ? logger_print(ctx, LOG_SEV_PRINT   , NULL, __FUNCTION__, __LINE__, fmt, ##args) : 0)
     
 
+#define TRACE_ENABLED(ctx) logger_check(ctx, LOG_SEV_TRACE)
+#define DEBUG_ENABLED(ctx) logger_check(ctx, LOG_SEV_DEBUG)
+
+
 #endif /* _LOGGER_H */
