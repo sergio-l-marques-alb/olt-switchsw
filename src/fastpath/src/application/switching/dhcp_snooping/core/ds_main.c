@@ -5317,6 +5317,14 @@ L7_RC_t dsFrameIntfFilterSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   }
   if (intfType == DOT1AD_INTFERFACE_TYPE_NNI)
   {
+    /* contemplate the double tag that is going to be add*/
+    if ((frameLen + 2 * L7_ENET_HDR_SIZE) > DS_DHCP_PACKET_SIZE_MAX)
+    {
+      PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet invalid",
+                 frameLen);
+      return L7_FAILURE;
+    }
+    
     dsFrameDoubleVlanTagAdd(intIfNum,vlanId,frame, &frameLen, innerVlanId, frameTemp);
 
     if (dsFrameSend(intIfNum, vlanId, innerVlanId, client_idx, frameTemp, frameLen) != L7_SUCCESS)    /* PTin modified: DHCP snooping */
@@ -5470,6 +5478,13 @@ L7_RC_t dsFrameIntfFilterSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
          {
            if (dot1adIsFieldConfigured(subscrEntry->configMask, DOT1AD_MATCH_SVID) == L7_TRUE)
            {
+             /* contemplate the double tag that is going to be add*/
+             if ((frameLen + 2*L7_ENET_HDR_SIZE) > DS_DHCP_PACKET_SIZE_MAX)
+             {
+               PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet invalid",
+                          frameLen);
+               return L7_FAILURE;
+             }
              dsFrameSVlanTagAdd(intIfNum, frame, &frameLen, subscrEntry->svidToMatch, frameTemp);
              if (dot1adIsFieldConfigured(subscrEntry->configMask, DOT1AD_MATCH_CVID) == L7_TRUE)
              {
@@ -5585,6 +5600,13 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
     return L7_SUCCESS;
   }
 
+  if (frameLen > DS_DHCP_PACKET_SIZE_MAX)
+  {
+     PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet invalid (%u)",
+                frameLen);
+     return L7_FAILURE;
+  }
+
   SYSAPI_NET_MBUF_GET(bufHandle);
   if (bufHandle == L7_NULL)
   {
@@ -5593,14 +5615,6 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
     dsInfo->debugStats.txFail++;
     ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FAILED);
     return L7_FAILURE;
-  }
-
-  /* PTin added: DHCP snooping */
-  if (frameLen > DS_DHCP_PACKET_SIZE_MAX)
-  {
-     PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet invalid (%u)", 
-                frameLen);
-     return L7_FAILURE;    
   }
 
   SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, dataStart);
@@ -5643,6 +5657,7 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
         {
           PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet is invalid (%u)",
                      frameLen);
+          SYSAPI_NET_MBUF_FREE(bufHandle);
           return L7_FAILURE;
          }
       }
