@@ -57,7 +57,7 @@
 #endif
 
 #define DS_IFACE_INFO_STR_SIZE   L7_NIM_IFNAME_SIZE + 25
-#define DS_DHCP_PACKET_SIZE_MAX  1518
+#define DS_DHCP_PACKET_SIZE_MAX  1534 /* Change to support some FGW packtes with two tags*/
 typedef enum 
 {
     DS_CNFGR_INIT = 0,
