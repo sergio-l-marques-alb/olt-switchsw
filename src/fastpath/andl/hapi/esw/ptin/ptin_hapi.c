@@ -1828,6 +1828,7 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
   return L7_SUCCESS;
 }
 
+
 /**
  * Control local/remote linkfaults enable
  * 
@@ -1912,6 +1913,39 @@ L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL l
   }
 
   return rc;
+}
+
+
+/**
+ * ptin_hapi_linkfaults_enable()'s debug function
+ * 
+ * @author rcosta@alticelabs.com (Dec2021)
+ * 
+ * @param unit
+ * @param port
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_linkfaults_get(int bcm_unit, int bcm_port) {
+  int v;
+
+  if (BCM_E_NONE == bcm_port_control_get(bcm_unit, bcm_port,
+                                         bcmPortControlLinkFaultLocalEnable,
+                                         &v))
+  {
+    printf("\n\r unit %d port %d bcmPortControlLinkFaultLocalEnable => %d",
+           bcm_unit, bcm_port, v);
+  }
+
+  if (BCM_E_NONE == bcm_port_control_get(bcm_unit, bcm_port,
+                                         bcmPortControlLinkFaultRemoteEnable,
+                                         &v))
+  {
+    printf("\n\r unit %d port %d bcmPortControlLinkFaultRemoteEnable => %d",
+           bcm_unit, bcm_port, v);
+  }
+
+  return L7_SUCCESS;
 }
 
 
