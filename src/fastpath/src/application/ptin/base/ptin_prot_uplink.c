@@ -1488,8 +1488,8 @@ L7_RC_t uplinkProtApplyOperator(L7_uint protIdx)
       {
         PT_LOG_INFO(LOG_CTX_INTF, "Going to PROT_STATE_Protection");
     
+        uplinkprotSwitchTo(protIdx, PORT_PROTECTION, PROT_LReq_OC, __LINE__);
         uplinkprotFsmTransition(protIdx, PROT_STATE_Protection, __LINE__); 
-        uplinkprot[protIdx].activePortType = PORT_PROTECTION;
     
         PT_LOG_INFO(LOG_CTX_INTF, "Selecting Protection LAG");
     
@@ -1501,8 +1501,8 @@ L7_RC_t uplinkProtApplyOperator(L7_uint protIdx)
         PT_LOG_INFO(LOG_CTX_INTF, "Going to PROT_STATE_Normal");
     
         /* Goto normal state */
+        uplinkprotSwitchTo(protIdx, PORT_WORKING, PROT_LReq_OC, __LINE__);
         uplinkprotFsmTransition(protIdx, PROT_STATE_Normal, __LINE__); 
-        uplinkprot[protIdx].activePortType = PORT_WORKING;
     
         PT_LOG_INFO(LOG_CTX_INTF, "Selecting Working LAG");
     
