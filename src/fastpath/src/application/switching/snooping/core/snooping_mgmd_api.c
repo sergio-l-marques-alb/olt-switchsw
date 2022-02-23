@@ -839,7 +839,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   L7_uchar8             packet[L7_MAX_FRAME_SIZE];
   L7_uchar8            *dataPtr;
   L7_uint32             packetLength = payloadLength;
-  L7_uint32             dstIpAddr;
+  L7_uint32             dstIpAddr, intIfNum;
   L7_uchar8            *destIpPtr;
   L7_inet_addr_t        destIp;
   L7_uint32             activeState;  
@@ -847,25 +847,32 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   L7_uint16             int_ivlan    = 0; 
   ptin_IgmpProxyCfg_t   igmpCfg; 
   L7_uint32             ptin_port = portId-1;
+  L7_RC_t               rc;
    
   PT_LOG_TRACE(LOG_CTX_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
 
+  rc = ptin_intf_port2intIfNum(ptin_port, &intIfNum);
+  if (rc != L7_SUCCESS)
+  {
+     PT_LOG_ERR(LOG_CTX_IGMP, "Error getting intIfNum");
+     return FAILURE;
+  }
 
 #if 1 //ndef ONE_MULTICAST_VLAN_RING_SUPPORT
   /* Do nothing for slave matrix */
   if (!ptin_fpga_mx_is_matrixactive_rt())
   {
     if (ptin_debug_igmp_snooping)
-      PT_LOG_NOTICE(LOG_CTX_IGMP,"Silently ignoring packet transmission. I'm a Slave Matrix [portId=%u serviceId=%u]",portId, serviceId );
+      PT_LOG_NOTICE(LOG_CTX_IGMP,"Silently ignoring packet transmission. I'm a Slave Matrix [portId=%u serviceId=%u]",portId, serviceId);
     return SUCCESS;
   }
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
   //Ignore if the port has link down
-  if ( (nimGetIntfActiveState(portId, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE) )
+  if ( (nimGetIntfActiveState(intIfNum, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE) )
   {
     if (ptin_debug_igmp_snooping)
-      PT_LOG_NOTICE(LOG_CTX_IGMP,"Silently ignoring packet transmission. Outgoing interface [portId=%u serviceId=%u] is down!",portId,serviceId );    
+      PT_LOG_NOTICE(LOG_CTX_IGMP,"Silently ignoring packet transmission. Outgoing interface [portId=%u serviceId=%u] is down!",intIfNum,serviceId);    
     return SUCCESS;
   }
 
