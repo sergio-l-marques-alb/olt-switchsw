@@ -14018,7 +14018,7 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
   L7_inet_addr_t sourceAddr;
   L7_BOOL        isProtection = L7_TRUE;
   L7_RC_t        rc = L7_SUCCESS;
-  L7_uint32      ptin_port = portId -1;
+  L7_uint32      ptin_port = portId;
 
   PT_LOG_TRACE(LOG_CTX_IGMP, "Received request to sync port");
 
