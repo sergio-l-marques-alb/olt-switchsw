@@ -116,6 +116,8 @@ L7_RC_t ptin_hapi_phy_init_tg4g(void);
 
 L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable);
 
+L7_RC_t ptin_hapi_Xable_TX_serdes(int unit, bcm_port_t bcm_port, L7_uint8 enable);
+
 /**
  * Apply global switch configurations
  * 
@@ -1997,7 +1999,7 @@ L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL l
 L7_RC_t ptin_hapi_tx_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL enable)
 {
   BROAD_PORT_t *hapiPortPtr;
-  L7_int rv;
+  //L7_int rv;
   L7_RC_t rc = L7_SUCCESS;
 
   /* Validate interface */
@@ -2028,7 +2030,19 @@ L7_RC_t ptin_hapi_tx_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL enable)
   }
 
   /* Enable or Disable TX */
-  /* FIXME SERÁ ALTERADO TBD de acordo c/ CS00012200408 e subsequente */
+#if 1
+  /* ALTERADO de acordo c/ CS00012200408 e subsequente */
+  rc = ptin_hapi_Xable_TX_serdes(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, enable);
+  if (L7_SUCCESS != rc)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI,"ptin_hapi_Xable_TX_serdes() = %d", rc);
+  }
+  else
+  {
+    PT_LOG_INFO(LOG_CTX_HAPI,"unit %u, bcm_port %u: Transmission %s!",
+                hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, ((enable) ? "enabled" : "disabled"));
+  }
+#else
   rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortControlTxEnable, enable);
   if (rv != BCM_E_NONE)
   {
@@ -2040,6 +2054,7 @@ L7_RC_t ptin_hapi_tx_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL enable)
     PT_LOG_INFO(LOG_CTX_HAPI,"unit %u, bcm_port %u: Transmission %s!",
                 hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, ((enable) ? "enabled" : "disabled"));
   }
+#endif
 
   /* Release semalhore */
   if (osapiSemaGive(hapiPortPtr->hapiModeparm.physical.phySemaphore) != L7_SUCCESS)
@@ -7892,4 +7907,147 @@ L7_RC_t ptin_hapi_temperature_monitor(ptin_dtl_temperature_monitor_t *temp_info)
   }
 #endif
 }
+
+
+/**
+ * Enables/disables TX serdes while allowing analysis @RX
+ * 
+ * @param unit
+ * @param bcm_port
+ * @param enable
+ * 
+ * @return L7_RC_t 
+ */
+// Check f.i. MODIFY_PHYXGXS_BLK0_MISC_CTRL1r to understand defines below...
+// [rcosta@cetcomp fastpath]$ find vendor/*/ -name '*.[h]'|xargs grep -n BLK0 |grep MISC |grep CTRL1 |grep MODIFY
+// ...and XGXSBLK0_MISCCONTROL1 in 56640-PR103-RDS.pdf
+/*
+BLOCKADDRESS
+Reg offset BLOCKADDRESS_OFFSET @block All @dev nr All
+*/
+#define BLOCKADDRESS_OFFSET 0x1f
+/*
+AERBLK_AER
+Reg offset AERBLK_AER_OFFSET @block AERBLK_AER_BLOCK @dev nr All
+*/
+#define AERBLK_AER_BLOCK    0xffd0
+#define AERBLK_AER_OFFSET   0x1e
+/*
+XGXSBLK0_MISCCONTROL1
+Reg offset XGXSBLK0_MISCCONTROL1_OFFSET @block XGXSBLK0_MISCCONTROL1_BLOCK
+*/
+#define XGXSBLK0_MISCCONTROL1_BLOCK     0x8000
+#define XGXSBLK0_MISCCONTROL1_OFFSET    0x1e
+
+#include "soc/phy/xgxs16g.h"
+//#include "wcmod.h"
+//#include "wc40.h"
+#include "appl/diag/diag.h"
+
+L7_RC_t ptin_hapi_Xable_TX_serdes(int unit, bcm_port_t bcm_port, L7_uint8 enable) { 
+    //int    phyaddr;    //phy_id
+    uint16 phy_data,
+           bits = XGXSBLK0_MISCCONTROL1_PMD_LANE0_TX_DISABLE_MASK | XGXSBLK0_MISCCONTROL1_PMD_LANE1_TX_DISABLE_MASK |
+                  XGXSBLK0_MISCCONTROL1_PMD_LANE2_TX_DISABLE_MASK | XGXSBLK0_MISCCONTROL1_PMD_LANE3_TX_DISABLE_MASK |
+                  XGXSBLK0_MISCCONTROL1_GLOBAL_PMD_TX_DISABLE_MASK;
+    int us, rv, rv_OK=BCM_E_NONE;//=SOC_E_NONE;
+    uint32 flags=BCM_PORT_PHY_INTERNAL;
+
+
+    //phyaddr = port_to_phyaddr(unit, bcm_port);
+
+
+    //How to access Warpcore SERDES registers using AER (Address Expansion Register) block
+    //https://brcmsemiconductor-csm.wolkenservicedesk.com/wolken-support/article?articleId=17970
+
+    //cmdlist.c => if_esw_phy() => ... => soc_miim_read()/soc_miim_write() => bcm_linkscan_enable_get()/bcm_linkscan_enable_set()
+    /* Disable linkscan */
+    if (bcm_linkscan_enable_get(unit, &us) != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error reading linkscan mode");
+      return L7_FAILURE;
+    }
+    if (bcm_linkscan_enable_set(unit, 0) != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error disablink linkscan to all ports");
+      return L7_FAILURE;
+    }
+
+    //Set block to AER
+    rv = bcm_port_phy_set(unit, bcm_port, flags, BLOCKADDRESS_OFFSET, AERBLK_AER_BLOCK);
+    //rv = soc_miim_write(unit, phyaddr, BLOCKADDRESS_OFFSET, AERBLK_AER_BLOCK);
+    if (rv_OK != rv) {
+        PT_LOG_ERR(LOG_CTX_HAPI, "bcm_port_phy_set(..., BLOCKADDRESS_OFFSET, AERBLK_AER_BLOCK) = %d", rv);
+        return L7_FAILURE;
+    }
+    //Set device type to CORE, BC to all lanes
+    rv = bcm_port_phy_set(unit, bcm_port, flags, AERBLK_AER_OFFSET, 0x01ff);
+    if (rv_OK != rv) {
+        PT_LOG_ERR(LOG_CTX_HAPI, "bcm_port_phy_set(..., AERBLK_AER_OFFSET, ...) = %d", rv);
+        return L7_FAILURE;
+    }
+    //Set Block to XGXSBLK0_MISCCONTROL1's
+    rv = bcm_port_phy_set(unit, bcm_port, flags, BLOCKADDRESS_OFFSET, XGXSBLK0_MISCCONTROL1_BLOCK);
+    if (rv_OK != rv) {
+        PT_LOG_ERR(LOG_CTX_HAPI, "bcm_port_phy_set(..., BLOCKADDRESS_OFFSET, XGXSBLK0_MISCCONTROL1_BLOCK) = %d", rv);
+        return L7_FAILURE;
+    }
+
+
+    //Write value to XGXSBLK0_MISCCONTROL1 (PMD_LANEx_TX_DISABLE (4lanes) | GLOBAL_PMD_TX_DISABLE
+    {
+        uint32 v;
+        rv = bcm_port_phy_get(unit, bcm_port, flags, XGXSBLK0_MISCCONTROL1_OFFSET, &v);
+        if (rv_OK != rv) {
+            PT_LOG_ERR(LOG_CTX_HAPI, "bcm_esw_port_phy_get() = %d", rv);
+            return L7_FAILURE;
+        }
+        phy_data = v;
+    }
+    //rv = soc_miim_read(unit, phyaddr, XGXSBLK0_MISCCONTROL1_OFFSET, &phy_data);
+    if (enable) phy_data &= ~bits;
+    else        phy_data |= bits;
+    rv = bcm_port_phy_set(unit, bcm_port, flags, XGXSBLK0_MISCCONTROL1_OFFSET, phy_data);
+    if (rv_OK != rv) {
+        PT_LOG_ERR(LOG_CTX_HAPI, "soc_miim_write(..., XGXSBLK0_MISCCONTROL1_OFFSET, ...) = %d", rv);
+        return L7_FAILURE;
+    }
+
+#if 0
+    fp.shell link off
+    #(ou fp.shell linkscan off)
+
+    [root@OLT1T0~]# fp.shell phy xe3 0x1f 0xffd0
+    Broadcom shell > phy xe3 0x1f 0xffd0
+
+    [root@OLT1T0~]# fp.shell phy xe3 0x1e 0x01ff
+    Broadcom shell > phy xe3 0x1e 0x01ff
+
+    [root@OLT1T0~]# fp.shell  phy xe3 0x1f 0x8000
+    Broadcom shell > phy xe3 0x1f 0x8000
+
+    [root@OLT1T0~]# fp.shell phy xe3 0x1e 0xf800
+    Broadcom shell > phy xe3 0x1e 0xf800
+
+    [root@OLT1T0~]# fp.shell phy xe3 0x1e
+    Broadcom shell > phy xe3 0x1e
+
+    [root@OLT1T0~]# Port xe3 (PHY addr 0xc1) Reg 0x001e: 0xf800
+#endif
+
+
+    /* Restore linkscan mode */
+#if (SDK_VERSION_IS > SDK_VERSION(6,4,3,0))
+    rv = bcm_linkscan_enable_set(0, BCM_LINKSCAN_INTERVAL_DEFAULT);
+#else
+    rv = bcm_linkscan_enable_set(0, 250000);
+#endif
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error restoring linkscan mode to all ports");
+      return L7_FAILURE;
+    }
+
+    return L7_SUCCESS;
+}//ptin_hapi_Xable_TX_serdes
 
