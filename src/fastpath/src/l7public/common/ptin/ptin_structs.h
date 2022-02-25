@@ -354,6 +354,7 @@ typedef struct
 #define PTIN_HWPROC_FRAME_OVERSIZE    6
 #define PTIN_HWPROC_WARPCORE_RESET    7
 #define PTIN_HWPROC_LINKFAULTS_ENABLE 8 /* param1=local param2=remote */
+#define PTIN_HWPROC_TX_ENABLE         9 /* param1=enable */
 typedef struct
 {
   DAPI_CMD_GET_SET_t  operation;

@@ -4,6 +4,8 @@
 /* Disable remote faults checking for all uplink ports */
 //#define PTIN_LINKFAULTS_IGNORE
 
+//#define UPLNK_PROT_DISABLE_JUST_TX
+
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED
 

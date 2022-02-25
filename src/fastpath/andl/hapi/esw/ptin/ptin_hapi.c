@@ -1984,6 +1984,74 @@ L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL l
 
 
 /**
+ * Control Traffic transmission at the port level
+ *
+ * @author mruas (14/08/17)
+ *
+ * @param ddUsp
+ * @param dapi_g
+ * @param enable
+ *
+ * @return L7_RC_t
+ */
+L7_RC_t ptin_hapi_tx_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL enable)
+{
+  BROAD_PORT_t *hapiPortPtr;
+  L7_int rv;
+  L7_RC_t rc = L7_SUCCESS;
+
+  /* Validate interface */
+  if (ddUsp==L7_NULLPTR || (ddUsp->unit<0 && ddUsp->slot<0 && ddUsp->port<0))
+  {
+    PT_LOG_WARN(LOG_CTX_HAPI,"No provided interface!");
+    return L7_SUCCESS;
+  }
+
+  hapiPortPtr = HAPI_PORT_GET( ddUsp, dapi_g );
+
+  /* Check if hapiPortPtr pointer is valid */
+  if (hapiPortPtr == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ddUsp={%u,%u,%u}: hapiPortPtr pointer is NULL", ddUsp->unit, ddUsp->slot, ddUsp->port);
+    return L7_FAILURE;
+  }
+  if (hapiPortPtr->hapiModeparm.physical.phySemaphore == L7_NULL)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ddUsp={%u,%u,%u}: bcm_port %u does not have any semaphore associated to it", ddUsp->unit, ddUsp->slot, ddUsp->port, hapiPortPtr->bcm_port);
+    return L7_FAILURE;
+  }
+  /* Block the semaphore related to this phy */
+  if (osapiSemaTake(hapiPortPtr->hapiModeparm.physical.phySemaphore, L7_WAIT_FOREVER) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ddUsp={%u,%u,%u}: Error blocking semaphore related to bcm_port %u", ddUsp->unit, ddUsp->slot, ddUsp->port, hapiPortPtr->bcm_port);
+    return L7_FAILURE;
+  }
+
+  /* Enable or Disable TX */
+  /* FIXME SERÁ ALTERADO TBD de acordo c/ CS00012200408 e subsequente */
+  rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortControlTxEnable, enable);
+  if (rv != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error setting bcmPortControlTxEnable for port %u. Error %d.", hapiPortPtr->bcm_port, rv);
+    rc = L7_FAILURE;
+  }
+  else
+  {
+    PT_LOG_INFO(LOG_CTX_HAPI,"unit %u, bcm_port %u: Transmission %s!",
+                hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, ((enable) ? "enabled" : "disabled"));
+  }
+
+  /* Release semalhore */
+  if (osapiSemaGive(hapiPortPtr->hapiModeparm.physical.phySemaphore) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ddUsp={%u,%u,%u}: Error releasing semaphore related to bcm_port %u", ddUsp->unit, ddUsp->slot, ddUsp->port, hapiPortPtr->bcm_port);
+  }
+
+  return rc;
+}
+
+
+/**
  * Get port descriptor from ddUsp interface
  * 
  * @param ddUsp : unit, slot and port reference

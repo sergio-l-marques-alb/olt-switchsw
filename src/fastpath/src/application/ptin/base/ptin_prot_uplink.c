@@ -80,6 +80,7 @@ static PROT_PortType_t operator_switchToPortType[MAX_UPLINK_PROT];
 L7_RC_t uplinkprotFsmTransition(L7_uint16 protIdx, PROT_STATE_t state, L7_uint32 __line__);
 L7_RC_t uplinkprotSwitchTo(L7_uint16 protIdx, PROT_PortType_t portType, PROT_LReq_t localRequest, L7_uint32 __line__);
 
+static L7_RC_t ptin_prot_uplink_clear_nosem(L7_uint8 protIdx);
 
 /**
  * Initialize Module 
@@ -204,25 +205,107 @@ L7_RC_t ptin_prot_uplink_init(void)
 /**
  * Control uplink laser
  * 
- * @param intIfNum 
+ * @param slot
+ * @param port
  * @param txdisable : L7_FALSE / L7_TRUE / -1
  *                    (-1 will enable enable ALS)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
+L7_RC_t ptin_remote_laser_control(L7_uint16 slot, L7_uint16 port,
+                                   L7_int txdisable,
+                                   L7_uint32 try)
+{
+    msg_HwEthernet_t cfg_msg;
+    L7_uint32 ipAddr = 0;
+    L7_uint32 answer, answer_size;
+    int ret;
+
+#if (PTIN_BOARD_IS_STANDALONE)
+    ipAddr = simGetIpcIpAddr();
+    if (0x00 == ipAddr)
+#else
+    /* Determine the IP address of the working port/slot */
+    if (L7_SUCCESS != ptin_fpga_slot_ip_addr_get(slot, &ipAddr))
+#endif
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Failed to obtain ipAddress of slotId:%u", slot);
+      return L7_ERROR;
+    }
+
+    /* Prepare message contents */
+    memset(&cfg_msg, 0x00, sizeof(msg_HwEthernet_t));
+    cfg_msg.slotIndex = ENDIAN_SWAP8(slot);
+    cfg_msg.BoardType = ENDIAN_SWAP8(0);
+    cfg_msg.InterfaceIndex = ENDIAN_SWAP8(port);
+    cfg_msg.conf_mask = ENDIAN_SWAP16(0x1800);
+    if (txdisable < 0)
+    {
+      cfg_msg.optico.laserON_OFF = ENDIAN_SWAP8(L7_TRUE);
+      cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_TRUE);
+    }
+    else
+    {
+      cfg_msg.optico.laserON_OFF = ENDIAN_SWAP8(!(txdisable & 1));
+      cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_FALSE);
+    }
+
+    PT_LOG_INFO(LOG_CTX_INTF,
+                "Try %u: Sending message to slotId %u / ipAddr 0x%08x",
+                try, slot, ipAddr);
+
+    answer_size = sizeof(L7_uint32);
+    ret = send_ipc_message(IPC_HW_PORTO_MSG_CXP, //IPC_HARDWARE_PORT,
+                           ipAddr,
+                           CHMSG_TUxG_ETH_CONFIG, //MSG_TUxG_ETH_CONFIG,
+                           (char *) &cfg_msg,
+                           (char *) &answer,
+                           sizeof(msg_HwEthernet_t),
+                           &answer_size);
+
+    if (ret != 0)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF,
+                 "Try %u: Error communicating to slotId %u / ipAddr 0x%08x",
+                 try, slot, ipAddr);
+      return L7_FAILURE;
+    }
+
+    return L7_SUCCESS;
+}
+
+/**
+ * Blocking mechanism split: 
+ * ptin_prot_uplink_intf_block() calls 
+ * _ptin_prot_uplink_intf_block() 
+ * 
+ * @param intIfNum 
+ * @param txdisable : L7_FALSE / L7_TRUE
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t _ptin_prot_uplink_intf_block(L7_uint32 intIfNum, L7_int txdisable,
+                                     L7_int override_active_mx)
 {
   L7_INTF_TYPES_t sysIntfType;
-  msg_HwEthernet_t cfg_msg;
   L7_uint16 slot, port, board_type;
   L7_uint32 i, members_configured, members_number, intIfNum_list[PTIN_SYSTEM_N_PORTS], intIfNum_member;
-  L7_uint32 ipAddr = 0;
-  L7_uint32 answer_size;
-  int ret = 0;
+  //L7_uint32 try;
+  L7_RC_t ret;//=L7_ERROR;
 
   PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u, txDisable=%d", intIfNum, txdisable);
   
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G) && defined (UPLNK_PROT_DISABLE_JUST_TX)
+  //override_active_mx = 1;
+#else
+  override_active_mx = 0;
+#endif
+
 #if (PTIN_BOARD_IS_MATRIX)
+  if (override_active_mx) {
+      PT_LOG_WARN(LOG_CTX_CONTROL, "Overriding \"is_active_mx?\"");
+  }
+  else
   if (!ptin_fpga_mx_is_matrixactive())
   {
     PT_LOG_WARN(LOG_CTX_INTF, "Laser control will not be done for the inactive matrix");
@@ -272,7 +355,6 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
       ptin_intf_linkfaults_enable(intIfNum2port(intIfNum_member,0), L7_FALSE /*Local faults*/,  L7_FALSE /*Remote faults*/);
     }
 
-    ret = -1;
     /* Convert to */
     if (ptin_intf_intIfNum2SlotPort(intIfNum_member, &slot, &port, &board_type) != L7_SUCCESS)
     {
@@ -315,19 +397,42 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
       slot = (port >= PTIN_SYSTEM_N_LOCAL_PORTS / 2) ? 5 : 1;
       /* Correct port id: range 0-3 to 0-1 */
       port %= (PTIN_SYSTEM_N_LOCAL_PORTS / 2);
+
+#if 0 && defined (UPLNK_PROT_DISABLE_JUST_TX)
+      /* This would be http://svn.ptin.corppt.com/repo/olt-swdrv r4795
+         "merge" (from 2T2 to 1T1) to here (olt-switchsw repo).
+         However, each CXO160G (1T1) direct controls both its PHYs and
+         the other CXO's (unlike CXO2T2) => this doesn't seem necessary.
+       
+         In fact,i'm questioning right now override_active_mx 's relevance.*/
+
+      /* Check if this port belongs to this CXO2T2 (or the other)*/
+      {
+          L7_uint16 we_are_in_slot;
+
+          we_are_in_slot = ptin_fpga_board_slot_get();
+          if (we_are_in_slot != slot) {
+              PT_LOG_INFO(LOG_CTX_INTF,
+                          "OLT2T2: we're in slot %u whereas "
+                          "this port belongs to slot %u",
+                          we_are_in_slot, slot);
+              break;
+          }
+      }
+#endif
     }
     /* If intIfNum refers to another slot, it should be a TU40G */
     else if (slot >= PTIN_SYS_LC_SLOT_MIN && slot <= PTIN_SYS_LC_SLOT_MAX)
     {
       if (port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
       {
-        PT_LOG_ERR(LOG_CTX_INTF, "OLT1T3: Invalid port (%u) for slot %u", port, slot);
+        PT_LOG_ERR(LOG_CTX_INTF, "OLT1T1: Invalid port (%u) for slot %u", port, slot);
         break;
       }
       /* Only apply it to TU40G boards */
       if (board_type != PTIN_BOARD_TYPE_TU40G && board_type != PTIN_BOARD_TYPE_TU40GR)
       {
-        PT_LOG_ERR(LOG_CTX_INTF, "OLT1T3: Invalid board type %u for intIfNum_member %u", board_type, intIfNum_member);
+        PT_LOG_ERR(LOG_CTX_INTF, "OLT1T1: Invalid board type %u for intIfNum_member %u", board_type, intIfNum_member);
         break;
       }
 #if 0
@@ -356,54 +461,21 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
     break;
 #endif
 
-    PT_LOG_DEBUG(LOG_CTX_INTF, "Going to configure intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
+    PT_LOG_INFO(LOG_CTX_INTF, "Going to configure intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
 
-#if (PTIN_BOARD_IS_STANDALONE)
-    ipAddr = simGetIpcIpAddr();
+#if defined (UPLNK_PROT_DISABLE_JUST_TX)
+    ret = ptin_intf_tx_enable(intIfNum_member, txdisable<=0? 1:0);
 #else
-    /* Determine the IP address of the working port/slot */
-    if (L7_SUCCESS != ptin_fpga_slot_ip_addr_get(slot, &ipAddr))
-    {
-      PT_LOG_ERR(LOG_CTX_INTF, "Failed to obtain ipAddress of slotId:%u", slot);
-      break;
-    }
+    ret = ptin_remote_laser_control(slot, port, txdisable, 0); //try);
 #endif
-
-    /* Prepare message contents */
-    memset(&cfg_msg, 0x00, sizeof(msg_HwEthernet_t));
-    cfg_msg.slotIndex = ENDIAN_SWAP8(slot);
-    cfg_msg.BoardType = ENDIAN_SWAP8(0);
-    cfg_msg.InterfaceIndex = ENDIAN_SWAP8(port);
-    cfg_msg.conf_mask = ENDIAN_SWAP16(0x1800);
-    if (txdisable < 0)
-    {
-      cfg_msg.optico.laserON_OFF = ENDIAN_SWAP8(L7_TRUE);
-      cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_TRUE);
-    } else
-    {
-      cfg_msg.optico.laserON_OFF = ENDIAN_SWAP8(!(txdisable & 1));
-      cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_FALSE);
-    }
-
-    PT_LOG_DEBUG(LOG_CTX_INTF, " Sending message to slotId %u / ipAddr 0x%08x" , slot, ipAddr);
-
-    answer_size = sizeof(L7_uint32);
-    ret = send_ipc_message(IPC_HW_PORTO_MSG_CXP,
-                           ipAddr,
-                           CHMSG_TUxG_ETH_CONFIG,
-                           (char *)&cfg_msg,
-                           NULL,
-                           sizeof(msg_HwEthernet_t),
-                           NULL);
-
-    if (ret != 0)
-    {
-      PT_LOG_ERR(LOG_CTX_INTF, "Error communicating to slotId %u / ipAddr 0x%08x", slot, ipAddr);
+    if (L7_SUCCESS != ret) {
+      PT_LOG_ERR(LOG_CTX_INTF, "Failed configuring intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
+      break;
     }
 
     members_configured++;
     PT_LOG_INFO(LOG_CTX_INTF, "intIfNum_member %u / slot %u, port %u: Succesfully set txdisable=%d", intIfNum_member, slot, port, txdisable);
-  }
+  }//for (i = 0; i < members_number; i++)
 
   /* Reenable local faults */
   if (!txdisable)
@@ -430,7 +502,8 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 ptin_port, L7_int block_state)
+L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 ptin_port, L7_int block_state,
+                                    L7_int override_active_mx)
 {
   ptin_intf_t ptin_intf;
   L7_uint32   intIfNum;
@@ -475,7 +548,7 @@ L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 ptin_port, L7_int block_state)
     if (isStatic)
     {
       PT_LOG_DEBUG(LOG_CTX_INTF, "Controlling remote laser of ptin_port %u", ptin_port);
-      rc = ptin_remote_laser_control(intIfNum, block_state);
+      rc = _ptin_prot_uplink_intf_block(intIfNum, block_state, override_active_mx);
     }
 
     PT_LOG_INFO(LOG_CTX_INTF, "ptin_intf %u/%u blocking state changed to %d value (rc=%d)",
@@ -502,7 +575,7 @@ L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 ptin_port, L7_int block_state)
     }
     else
     {
-      PT_LOG_DEBUG(LOG_CTX_INTF, "ptin_port %u is a physical port and don't belong to any LAG!", ptin_port);
+      PT_LOG_DEBUG(LOG_CTX_INTF, "ptin_port %u is a physical port and doesn't belong to any LAG!", ptin_port);
 
       if (!block_state)
       {
@@ -523,7 +596,7 @@ L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 ptin_port, L7_int block_state)
     }
 
     PT_LOG_DEBUG(LOG_CTX_INTF, "Controlling remote laser of ptin_port %u", ptin_port);
-    rc = ptin_remote_laser_control(intIfNum, block_state);
+    rc = _ptin_prot_uplink_intf_block(intIfNum, block_state, override_active_mx);
   }
 
   PT_LOG_DEBUG(LOG_CTX_INTF, "rc=%u", rc);
@@ -539,7 +612,9 @@ L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 ptin_port, L7_int block_state)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_prot_select_intf(L7_uint32 protIdx, PROT_PortType_t portType)
+static
+L7_RC_t _ptin_prot_select_intf(L7_uint32 protIdx, PROT_PortType_t portType,
+                               L7_int override_active_mx)
 {
   L7_BOOL block_intfW, block_intfP;
 
@@ -560,8 +635,8 @@ L7_RC_t ptin_prot_select_intf(L7_uint32 protIdx, PROT_PortType_t portType)
   if (portType == PORT_ALL)
   {
     /* Undo any special schemes for protection */
-    ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.ptin_port_w, -1);
-    ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.ptin_port_p, -1);
+    ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.ptin_port_w, -1, override_active_mx);
+    ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.ptin_port_p, -1, override_active_mx);
 
     PT_LOG_INFO(LOG_CTX_INTF, "LAGs %u and %u restored!", uplinkprot[protIdx].protParams.ptin_port_w, uplinkprot[protIdx].protParams.ptin_port_p);
     return L7_SUCCESS;
@@ -593,23 +668,28 @@ L7_RC_t ptin_prot_select_intf(L7_uint32 protIdx, PROT_PortType_t portType)
   /* Firstly, block the inactive ports */
   if (block_intfW)
   {
-    ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.ptin_port_w, L7_TRUE);
+    ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.ptin_port_w, L7_TRUE, override_active_mx);
   }
   if (block_intfP)
   {
-    ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.ptin_port_p, L7_TRUE);
+    ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.ptin_port_p, L7_TRUE, override_active_mx);
   }
   /* Only then, unblock the active ones */
   if (!block_intfW)
   {
-    ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.ptin_port_w, L7_FALSE);
+    ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.ptin_port_w, L7_FALSE, override_active_mx);
   }
   if (!block_intfP)
   {
-    ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.ptin_port_p, L7_FALSE);
+    ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.ptin_port_p, L7_FALSE, override_active_mx);
   }
 
   return L7_SUCCESS;
+}//_ptin_prot_select_intf
+
+L7_RC_t ptin_prot_select_intf(L7_uint32 protIdx, PROT_PortType_t portType)
+{
+  return _ptin_prot_select_intf(protIdx, portType, 0);
 }
 
 /**
@@ -1488,8 +1568,6 @@ L7_RC_t uplinkProtApplyOperator(L7_uint protIdx)
         uplinkprotFsmTransition(protIdx, PROT_STATE_Protection, __LINE__); 
     
         PT_LOG_INFO(LOG_CTX_INTF, "Selecting Protection LAG");
-    
-        ptin_prot_select_intf(protIdx, PORT_PROTECTION);
       }
       /* Otherwise, goto normal state */
       else
@@ -1503,7 +1581,6 @@ L7_RC_t uplinkProtApplyOperator(L7_uint protIdx)
         PT_LOG_INFO(LOG_CTX_INTF, "Selecting Working LAG");
     
         /* In the beginning the active LAG is the Working one */
-        ptin_prot_select_intf(protIdx, PORT_WORKING);
       }
 
       /* Command returns to NoRequest state */
@@ -1596,10 +1673,12 @@ L7_RC_t uplinkProtApplyOperator(L7_uint protIdx)
  * @param ptin_port 
  * @param protIdx
  * @param portType 
+ * @param is_active 
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_NOT_EXIST
  */
-L7_RC_t ptin_prot_uplink_index_find(L7_uint32 ptin_port, L7_uint8 *protIdx, L7_uint8 *portType)
+static
+L7_RC_t ptin_prot_uplink_index_find_nosem(L7_uint32 ptin_port, L7_uint8 *protIdx, L7_uint8 *portType, L7_BOOL *is_active)
 {
   L7_uint8 i, type;
 
@@ -1630,8 +1709,20 @@ L7_RC_t ptin_prot_uplink_index_find(L7_uint32 ptin_port, L7_uint8 *protIdx, L7_u
 
   if (protIdx != L7_NULLPTR)  *protIdx = i;
   if (portType != L7_NULLPTR) *portType = type;
+  if (is_active != L7_NULLPTR) *is_active = (uplinkprot[i].activePortType == type);
   
   return L7_SUCCESS;
+}
+
+
+L7_RC_t ptin_prot_uplink_index_find(L7_uint32 intIfNum, L7_uint8 *protIdx,
+                                    L7_uint8 *portType, L7_BOOL *is_active)
+{
+  L7_RC_t r;
+  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
+  r = ptin_prot_uplink_index_find_nosem(intIfNum, protIdx, portType, is_active);
+  osapiSemaGive(ptin_prot_uplink_sem);
+  return r;
 }
 
 
@@ -1675,7 +1766,7 @@ L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event)
   osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
 
   /* Run all instances to find where the input interface belongs*/
-  if (ptin_prot_uplink_index_find(ptin_port, &i, &portType) != L7_SUCCESS)
+  if (ptin_prot_uplink_index_find_nosem(ptin_port, &i, &portType, L7_NULLPTR) != L7_SUCCESS)
   {
     osapiSemaGive(ptin_prot_uplink_sem);
     PT_LOG_WARN(LOG_CTX_INTF, "No protection group found!");
@@ -2624,7 +2715,7 @@ else
  * 
  * @return L7_RC_t 
  */
-L7_RC_t uplinkprotResetStateMachine(L7_uint16 protIdx)
+static L7_RC_t uplinkprotResetStateMachine_nosem(L7_uint16 protIdx)
 {
   L7_uint16 i;
   L7_RC_t rc, rc_global = L7_SUCCESS;
@@ -2651,8 +2742,6 @@ L7_RC_t uplinkprotResetStateMachine(L7_uint16 protIdx)
       //PT_LOG_ERR(LOG_CTX_INTF, "protIdx=%d empty", i);
       continue;
     }
-
-    osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
 
     PT_LOG_INFO(LOG_CTX_INTF, "Resetting protIndex %u", i);
 
@@ -2691,15 +2780,24 @@ L7_RC_t uplinkprotResetStateMachine(L7_uint16 protIdx)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Error restarting protIndex %u", i);
       rc_global = rc;
-      osapiSemaGive(ptin_prot_uplink_sem);
       continue;
     }
-    osapiSemaGive(ptin_prot_uplink_sem);
 
     PT_LOG_INFO(LOG_CTX_INTF, "Machine resetted for protIndex %u", i);
   }
   return (rc_global);
 }
+
+
+L7_RC_t uplinkprotResetStateMachine(L7_uint16 protIdx)
+{
+  L7_RC_t r;
+  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
+  r = uplinkprotResetStateMachine_nosem(protIdx);
+  osapiSemaGive(ptin_prot_uplink_sem);
+  return r;
+}
+
 
 /**
  * Suspend uplink protection machine
@@ -2779,7 +2877,7 @@ L7_RC_t ptin_prot_uplink_resume(void)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_prot_uplink_intf_reload(L7_uint32 ptin_port)
+static L7_RC_t ptin_prot_uplink_intf_reload_nosem(L7_uint32 ptin_port)
 {
   L7_RC_t rc;
   L7_uint32 intIfNum;
@@ -2833,7 +2931,7 @@ L7_RC_t ptin_prot_uplink_intf_reload(L7_uint32 ptin_port)
     else
     {
       ptin_port_lag = 0;
-      PT_LOG_DEBUG(LOG_CTX_INTF, "ptin_port %u is a physical port and don't belong to any LAG... ok!", ptin_port);
+      PT_LOG_DEBUG(LOG_CTX_INTF, "ptin_port %u is a physical port and doesn't belong to any LAG... ok!", ptin_port);
     }
   }
   else if (sysIntfType == L7_LAG_INTF)
@@ -2856,7 +2954,7 @@ L7_RC_t ptin_prot_uplink_intf_reload(L7_uint32 ptin_port)
     PT_LOG_DEBUG(LOG_CTX_INTF, "Using lag ptin_port %u...", ptin_port);
   }
 
-  rc = ptin_prot_uplink_index_find(ptin_port, &protIdx, &portType);
+  rc = ptin_prot_uplink_index_find_nosem(ptin_port, &protIdx, &portType, L7_NULLPTR);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_WARN(LOG_CTX_INTF, "No group found using this ptin_port %u", ptin_port);
@@ -2884,13 +2982,13 @@ L7_RC_t ptin_prot_uplink_intf_reload(L7_uint32 ptin_port)
   if (portType == uplinkprot[protIdx].activePortType)
   {
     PT_LOG_INFO(LOG_CTX_INTF, "ptin_port %u will be unblocked!", ptin_port);
-    rc = ptin_prot_uplink_intf_block(ptin_port, L7_FALSE);
+    rc = ptin_prot_uplink_intf_block(ptin_port, L7_FALSE, 0);
   }
   /* If this is the inactive port, block it */
   else
   {
     PT_LOG_INFO(LOG_CTX_INTF, "ptin_port %u will be blocked!", ptin_port);
-    rc = ptin_prot_uplink_intf_block(ptin_port, L7_TRUE);
+    rc = ptin_prot_uplink_intf_block(ptin_port, L7_TRUE, 0);
   }
   
   if (rc != L7_SUCCESS)
@@ -2901,6 +2999,17 @@ L7_RC_t ptin_prot_uplink_intf_reload(L7_uint32 ptin_port)
   return rc;
 }
 
+
+L7_RC_t ptin_prot_uplink_intf_reload(L7_uint32 intIfNum)
+{
+  L7_RC_t r;
+  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
+  r = ptin_prot_uplink_intf_reload_nosem(intIfNum);
+  osapiSemaGive(ptin_prot_uplink_sem);
+  return r;
+}
+
+
 /**
  * Reload a protection group
  * 
@@ -2910,7 +3019,7 @@ L7_RC_t ptin_prot_uplink_intf_reload(L7_uint32 ptin_port)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_prot_uplink_group_reload(L7_int protIdx)
+static L7_RC_t ptin_prot_uplink_group_reload_nosem(L7_int protIdx)
 {
   L7_RC_t rc;
 
@@ -2939,6 +3048,45 @@ L7_RC_t ptin_prot_uplink_group_reload(L7_int protIdx)
   return rc;
 }
 
+
+L7_RC_t ptin_prot_uplink_group_reload(L7_int protIdx)
+{
+  L7_RC_t r;
+  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
+  r = ptin_prot_uplink_group_reload_nosem(protIdx);
+  osapiSemaGive(ptin_prot_uplink_sem);
+  return r;
+}
+
+
+#if 0
+L7_RC_t ptin_prot_uplink_reload_id(L7_uint32 protIdx)
+{
+    L7_RC_t rc;
+
+    if (protIdx>=MAX_UPLINK_PROT) {
+        PT_LOG_INFO(LOG_CTX_INTF, "protIdx %u >= MAX_UPLINK_PROT %u",
+                    protIdx, MAX_UPLINK_PROT);
+        return L7_FAILURE;
+    }
+
+    /* Skip inactive instances */
+    if (!uplinkprot[protIdx].admin)  return L7_SUCCESS; //L7_NOT_EXIST;
+
+    PT_LOG_INFO(LOG_CTX_INTF, "Selecting protIdx %u => %u",
+                protIdx, uplinkprot[protIdx].activePortType);
+
+    rc = ptin_prot_select_intf(protIdx, uplinkprot[protIdx].activePortType);
+    if (rc != L7_SUCCESS) {
+      PT_LOG_ERR(LOG_CTX_INTF, "protIdx=%u: Error detected: rc=%d", protIdx,rc);
+      return rc;
+    }
+
+    return L7_SUCCESS;
+}
+#endif
+
+
 /**
  * Reload all protection groups
  * 
@@ -2946,7 +3094,7 @@ L7_RC_t ptin_prot_uplink_group_reload(L7_int protIdx)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_prot_uplink_reload(void)
+static L7_RC_t ptin_prot_uplink_reload_nosem(void)
 {
   L7_uint8 i;
   L7_RC_t rc, rc_global = L7_SUCCESS;
@@ -2974,6 +3122,16 @@ L7_RC_t ptin_prot_uplink_reload(void)
   }
 
   return rc_global;
+}
+
+
+L7_RC_t ptin_prot_uplink_reload(void)
+{
+  L7_RC_t r;
+  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
+  r = ptin_prot_uplink_reload_nosem();
+  osapiSemaGive(ptin_prot_uplink_sem);
+  return r;
 }
 
 
@@ -3135,20 +3293,24 @@ L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_
       //return L7_FAILURE;
     }
   }
+
+  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
   
   /* If the protection group is already active, clear it */
   if (uplinkprot[protIdx].admin)
   {
     if (force)
     {
-      if (ptin_prot_uplink_clear(protIdx) != L7_SUCCESS) 
+      if (ptin_prot_uplink_clear_nosem(protIdx) != L7_SUCCESS) 
       {
+        osapiSemaGive(ptin_prot_uplink_sem);
         PT_LOG_ERR(LOG_CTX_INTF, "Error clearing protection group (protIdx=%u)", protIdx);
         return L7_FAILURE;
       }
     }
     else
     {
+      osapiSemaGive(ptin_prot_uplink_sem);
       PT_LOG_WARN(LOG_CTX_INTF, "Protection group %u alrteady exists", protIdx);
       return L7_SUCCESS;
     }
@@ -3169,8 +3331,6 @@ L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_
     }
   }
 #endif
-
-  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
 
   /* Clear entry */
   memset(&uplinkprot[protIdx], 0x00, sizeof(uplinkprot[protIdx]));
@@ -3238,33 +3398,33 @@ L7_RC_t ptin_prot_uplink_alarmFlagsEn_set(L7_uint8 protIdx, L7_uint32 alarmFlags
     PT_LOG_ERR(LOG_CTX_INTF, "Invalid index. Max index is %u", MAX_UPLINK_PROT);
     return L7_FAILURE;
   }
+
+  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
+
   /* If the protection group is already active, clear it */
   if (!uplinkprot[protIdx].admin)
   {
+    osapiSemaGive(ptin_prot_uplink_sem);
     PT_LOG_WARN(LOG_CTX_INTF, "Protection group %u does not exists", protIdx);
     return L7_FAILURE;
   }
 
-  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
   /* Save original status of alarm flags */
   alarmFlagsEn_h = uplinkprot[protIdx].protParams.alarmsEnFlag;
   /* Update alarm flags */
   uplinkprot[protIdx].protParams.alarmsEnFlag = alarmFlagsEn;
-  osapiSemaGive(ptin_prot_uplink_sem);
 
   /* If alarm flags change, reset protection machine */
   if ( (alarmFlagsEn_h & (MASK_PORT_LINK | MASK_PORT_BW)) != (alarmFlagsEn & (MASK_PORT_LINK | MASK_PORT_BW)) )
   {
     PT_LOG_INFO(LOG_CTX_INTF, "Resetting protection group %u", protIdx);
 
-    rc = uplinkprotResetStateMachine(protIdx);
+    rc = uplinkprotResetStateMachine_nosem(protIdx);
 
     /* Error? Revert alarm flags */
     if (rc != L7_SUCCESS)
     {
-      osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
       uplinkprot[protIdx].protParams.alarmsEnFlag = alarmFlagsEn_h;
-      osapiSemaGive(ptin_prot_uplink_sem);
       PT_LOG_ERR(LOG_CTX_INTF, "Error resetting protection group %u (rc=%d)", protIdx, rc);
     }
     else
@@ -3272,6 +3432,8 @@ L7_RC_t ptin_prot_uplink_alarmFlagsEn_set(L7_uint8 protIdx, L7_uint32 alarmFlags
       PT_LOG_INFO(LOG_CTX_INTF, "Success resetting protection group %u", protIdx);
     }
   }
+
+  osapiSemaGive(ptin_prot_uplink_sem);
   
   return rc;
 }
@@ -3292,14 +3454,16 @@ L7_RC_t ptin_prot_uplink_operationMode_set(L7_uint8 protIdx, L7_uint32 operation
     PT_LOG_ERR(LOG_CTX_INTF, "Invalid index. Max index is %u", MAX_UPLINK_PROT);
     return L7_FAILURE;
   }
+
+  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
+
   /* If the protection group is already active, clear it */
   if (!uplinkprot[protIdx].admin)
   {
+    osapiSemaGive(ptin_prot_uplink_sem);
     PT_LOG_WARN(LOG_CTX_INTF, "Protection group %u does not exists", protIdx);
     return L7_FAILURE;
   }
-
-  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
 
   uplinkprot[protIdx].protParams.revert2working = operationMode;
 
@@ -3324,14 +3488,16 @@ L7_RC_t ptin_prot_uplink_restoreTime_set(L7_uint8 protIdx, L7_uint32 restore_tim
     PT_LOG_ERR(LOG_CTX_INTF, "Invalid index. Max index is %u", MAX_UPLINK_PROT);
     return L7_FAILURE;
   }
+
+  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
+
   /* If the protection group is already active, clear it */
   if (!uplinkprot[protIdx].admin)
   {
+    osapiSemaGive(ptin_prot_uplink_sem);
     PT_LOG_WARN(LOG_CTX_INTF, "Protection group %u does not exists", protIdx);
     return L7_FAILURE;
   }
-
-  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
 
   uplinkprot[protIdx].protParams.WaitToRestoreTimer = restore_time;
 
@@ -3347,7 +3513,7 @@ L7_RC_t ptin_prot_uplink_restoreTime_set(L7_uint8 protIdx, L7_uint32 restore_tim
  *  
  * @return L7_RC_t  
  */
-L7_RC_t ptin_prot_uplink_clear(L7_uint8 protIdx)
+static L7_RC_t ptin_prot_uplink_clear_nosem(L7_uint8 protIdx)
 {
   if (protIdx >= MAX_UPLINK_PROT)
   {
@@ -3361,8 +3527,6 @@ L7_RC_t ptin_prot_uplink_clear(L7_uint8 protIdx)
     return L7_FAILURE;
   }
 
-  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
-
   /* Stop any timer */
   ptin_prot_timer_stop(protIdx);
 
@@ -3375,6 +3539,10 @@ L7_RC_t ptin_prot_uplink_clear(L7_uint8 protIdx)
 
   /* Activate both LAGs */
   ptin_prot_select_intf(protIdx, PORT_ALL);
+#if defined (UPLNK_PROT_DISABLE_JUST_TX)
+  ptin_intf_tx_enable(port2intIfNum(uplinkprot[protIdx].protParams.ptin_port_w), 1);
+  ptin_intf_tx_enable(port2intIfNum(uplinkprot[protIdx].protParams.ptin_port_p), 1);
+#endif
 
   /* Applicable if we want to disable remote faults only for uplink protection interfaces */
 #if !defined(PTIN_LINKFAULTS_IGNORE)
@@ -3389,13 +3557,20 @@ L7_RC_t ptin_prot_uplink_clear(L7_uint8 protIdx)
   /* Clear entry */
   memset(&uplinkprot[protIdx], 0x00, sizeof(uplinkprot[protIdx]));
 
-  osapiSemaGive(ptin_prot_uplink_sem);
-
   PT_LOG_INFO(LOG_CTX_INTF, "ProtIndex %u initialized!\r\n", protIdx);
 
   return L7_SUCCESS;
 }
 
+
+L7_RC_t ptin_prot_uplink_clear(L7_uint8 protIdx)
+{
+  L7_RC_t r;
+  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
+  r = ptin_prot_uplink_clear_nosem(protIdx);
+  osapiSemaGive(ptin_prot_uplink_sem);
+  return r;
+}
 
 
 /**
@@ -3409,21 +3584,18 @@ L7_RC_t ptin_prot_uplink_clear_all()
 {
   L7_uint32 protIdx=0;
 
+  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
+
   for (protIdx=0; protIdx < MAX_UPLINK_PROT ;protIdx++)
   {
-    if (protIdx >= MAX_UPLINK_PROT)
-    {
-      PT_LOG_ERR(LOG_CTX_INTF, "Invalid index. Max index is %u", MAX_UPLINK_PROT);
-      continue;
-    }
-
+#if 1
+    ptin_prot_uplink_clear_nosem(protIdx);
+#else
     if (!uplinkprot[protIdx].admin)
     {
       PT_LOG_TRACE(LOG_CTX_INTF, "Nothing to do... already disabled!");
       continue;
     }
-
-    osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
 
     /* Stop any timer */
     ptin_prot_timer_stop(protIdx);
@@ -3437,6 +3609,10 @@ L7_RC_t ptin_prot_uplink_clear_all()
 
     /* Activate both LAGs */
     ptin_prot_select_intf(protIdx, PORT_ALL);
+#if defined (UPLNK_PROT_DISABLE_JUST_TX)
+    ptin_intf_tx_enable(port2intIfNum(uplinkprot[protIdx].protParams.ptin_port_w), 1);
+    ptin_intf_tx_enable(port2intIfNum(uplinkprot[protIdx].protParams.ptin_port_p), 1);
+#endif
 
     /* Applicable if we want to disable remote faults only for uplink protection interfaces */
 #if !defined(PTIN_LINKFAULTS_IGNORE)
@@ -3450,11 +3626,12 @@ L7_RC_t ptin_prot_uplink_clear_all()
 
     /* Clear entry */
     memset(&uplinkprot[protIdx], 0x00, sizeof(uplinkprot[protIdx]));
-
-    osapiSemaGive(ptin_prot_uplink_sem);
+#endif
 
     PT_LOG_INFO(LOG_CTX_INTF, "ProtIndex %u initialized!\r\n", protIdx);
   }
+
+  osapiSemaGive(ptin_prot_uplink_sem);
 
   return L7_SUCCESS;
 }
@@ -3475,7 +3652,10 @@ L7_RC_t ptin_prot_uplink_clear_all()
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_prot_uplink_info_get(ptin_intf_t *ptin_intf, L7_uint8 *out_protIdx, L7_uchar8 *out_portType, L7_uint32 *out_flags)
+static
+L7_RC_t
+ptin_prot_uplink_info_get_nosem(ptin_intf_t *ptin_intf, L7_uint8 *out_protIdx,
+                                L7_uchar8 *out_portType, L7_uint32 *out_flags)
 {
   L7_RC_t rc;
   L7_BOOL is_lag_member = L7_FALSE;
@@ -3530,7 +3710,7 @@ L7_RC_t ptin_prot_uplink_info_get(ptin_intf_t *ptin_intf, L7_uint8 *out_protIdx,
     else
     {
       intIfNum_lag = 0;
-      PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u is a physical port and don't belong to any LAG... ok!", intIfNum);
+      PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u is a physical port and doesn't belong to any LAG... ok!", intIfNum);
     }
   }
   else if (sysIntfType == L7_LAG_INTF)
@@ -3554,7 +3734,7 @@ L7_RC_t ptin_prot_uplink_info_get(ptin_intf_t *ptin_intf, L7_uint8 *out_protIdx,
   }
 
   /* Search for protection group where this interface belongs */
-  rc = ptin_prot_uplink_index_find(ptin_port, &protIdx, &portType);
+  rc = ptin_prot_uplink_index_find_nosem(ptin_port, &protIdx, &portType, L7_NULLPTR);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_WARN(LOG_CTX_INTF, "No group found using ptin_port %u", ptin_port);
@@ -3580,7 +3760,11 @@ L7_RC_t ptin_prot_uplink_info_get(ptin_intf_t *ptin_intf, L7_uint8 *out_protIdx,
   /* Other types */
   else
   {
+#if defined (UPLNK_PROT_DISABLE_JUST_TX)
+    if (1)
+#else
     if (portType == uplinkprot[protIdx].activePortType)
+#endif
     {
       /* Laser is turned ON, and ALS is off */
       flags |= PROT_UPLINK_FLAGS_LASER_MASK;
@@ -3599,6 +3783,19 @@ L7_RC_t ptin_prot_uplink_info_get(ptin_intf_t *ptin_intf, L7_uint8 *out_protIdx,
   return L7_SUCCESS;
 }
 
+
+L7_RC_t ptin_prot_uplink_info_get(ptin_intf_t *ptin_intf, L7_uint8 *out_protIdx,
+                                  L7_uchar8 *out_portType, L7_uint32 *out_flags)
+{
+  L7_RC_t r;
+  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
+  r = ptin_prot_uplink_info_get_nosem(ptin_intf, out_protIdx, out_portType,
+                                      out_flags);
+  osapiSemaGive(ptin_prot_uplink_sem);
+  return r;
+}
+
+
 /**
  * Get protection group configuration
  * 
@@ -3615,12 +3812,6 @@ L7_RC_t ptin_prot_uplink_config_get(L7_uint8 protIdx, uplinkprotParams_st *confi
     return L7_FAILURE;
   }
 
-  if (!uplinkprot[protIdx].admin)
-  {
-    PT_LOG_ERR(LOG_CTX_INTF, "Nothing to do... already disabled!");
-    return L7_FAILURE;
-  }
-
   if (config == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Invalid pointer");
@@ -3628,6 +3819,13 @@ L7_RC_t ptin_prot_uplink_config_get(L7_uint8 protIdx, uplinkprotParams_st *confi
   }
 
   osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
+
+  if (!uplinkprot[protIdx].admin)
+  {
+    osapiSemaGive(ptin_prot_uplink_sem);
+    PT_LOG_ERR(LOG_CTX_INTF, "Nothing to do... already disabled!");
+    return L7_FAILURE;
+  }
 
   *config = uplinkprot[protIdx].protParams;
 
@@ -3654,12 +3852,6 @@ L7_RC_t ptin_prot_uplink_status(L7_uint8 protIdx, uplinkprot_status_st *status)
     return L7_FAILURE;
   }
 
-  if (!uplinkprot[protIdx].admin)
-  {
-    //PT_LOG_ERR(LOG_CTX_INTF, "Nothing to do... already disabled!");
-    return L7_FAILURE;
-  }
-
   if (status == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Invalid pointer");
@@ -3667,6 +3859,13 @@ L7_RC_t ptin_prot_uplink_status(L7_uint8 protIdx, uplinkprot_status_st *status)
   }
 
   osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
+
+  if (!uplinkprot[protIdx].admin)
+  {
+    osapiSemaGive(ptin_prot_uplink_sem);
+    //PT_LOG_ERR(LOG_CTX_INTF, "Nothing to do... already disabled!");
+    return L7_FAILURE;
+  }
 
   status->activePortType      = uplinkprot[protIdx].activePortType;
   status->alarmsW             = uplinkprot[protIdx].hAlarms[PORT_WORKING];
@@ -3704,17 +3903,13 @@ L7_RC_t ptin_prot_uplink_status(L7_uint8 protIdx, uplinkprot_status_st *status)
  *  
  * @return L7_RC_t  
  */
-L7_RC_t ptin_prot_uplink_state(L7_uint8 protIdx, uplinkprot_st *state, PROT_OPCMD_t *cmd, PROT_PortType_t *switchToPortType, L7_BOOL *reset_machine)
+static
+L7_RC_t ptin_prot_uplink_state_nosem(L7_uint8 protIdx, uplinkprot_st *state, PROT_OPCMD_t *cmd,
+                                     PROT_PortType_t *switchToPortType, L7_BOOL *reset_machine)
 {
   if (protIdx >= MAX_UPLINK_PROT)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Invalid index. Max index is %u", MAX_UPLINK_PROT);
-    return L7_FAILURE;
-  }
-
-  if (!uplinkprot[protIdx].admin)
-  {
-    //PT_LOG_ERR(LOG_CTX_INTF, "Nothing to do... already disabled!");
     return L7_FAILURE;
   }
 
@@ -3724,9 +3919,14 @@ L7_RC_t ptin_prot_uplink_state(L7_uint8 protIdx, uplinkprot_st *state, PROT_OPCM
     return L7_FAILURE;
   }
 
+  if (!uplinkprot[protIdx].admin)
+  {
+    PT_LOG_DEBUG(LOG_CTX_INTF, "Nothing to do... already disabled!");
+    return L7_FAILURE;
+  }
+
   /* Copy Machine state to output structure */
-  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
-  if (state != L7_NULLPTR)
+  //if (state != L7_NULLPTR)
   {
     memcpy(state, &uplinkprot[protIdx], sizeof(uplinkprot_st));
     PT_LOG_DEBUG(LOG_CTX_INTF, "Status of protIdx %u copied", protIdx);
@@ -3746,9 +3946,18 @@ L7_RC_t ptin_prot_uplink_state(L7_uint8 protIdx, uplinkprot_st *state, PROT_OPCM
     *reset_machine = ptin_prot_timer_isrunning(protIdx);
     PT_LOG_DEBUG(LOG_CTX_INTF, "reset_machine[%u]=%u", protIdx, *reset_machine);
   }
-  osapiSemaGive(ptin_prot_uplink_sem);
 
   return L7_SUCCESS;
+}
+
+L7_RC_t ptin_prot_uplink_state(L7_uint8 protIdx, uplinkprot_st *state, PROT_OPCMD_t *cmd, PROT_PortType_t *switchToPortType, L7_BOOL *reset_machine)
+{
+  L7_RC_t r;
+  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
+  r = ptin_prot_uplink_state_nosem(protIdx, state, cmd, switchToPortType,
+                                   reset_machine);
+  osapiSemaGive(ptin_prot_uplink_sem);
+  return r;
 }
 
 /**
@@ -3814,10 +4023,8 @@ L7_RC_t ptin_prot_uplink_state_sync(void)
       (already use ptin_prot_uplink_sem inside uplinkprotResetStateMachine) */
     if (prot_state[i].reset_machine)
     {
-      osapiSemaGive(ptin_prot_uplink_sem);
       PT_LOG_DEBUG(LOG_CTX_INTF, "We have timers active... resetting protection group %u", protIdx);
-      uplinkprotResetStateMachine(protIdx);
-      osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
+      uplinkprotResetStateMachine_nosem(protIdx);
     }
     else
     {
@@ -3830,7 +4037,7 @@ L7_RC_t ptin_prot_uplink_state_sync(void)
                  protIdx, operator_cmd[protIdx], operator_switchToPortType[protIdx]);
 
     /* Guarantee the correct state for each interface (already use ptin_prot_uplink_sem inside) */
-    if (ptin_prot_uplink_group_reload(protIdx) == L7_SUCCESS)
+    if (ptin_prot_uplink_group_reload_nosem(protIdx) == L7_SUCCESS)
     {
       PT_LOG_DEBUG(LOG_CTX_INTF, "protIdx=%u: Interfaces state reloaded", protIdx);
     }
@@ -3870,7 +4077,7 @@ L7_RC_t ptin_prot_uplink_slot_reload(L7_uint16 slot)
     if (slot!=ports_slot) continue;
     //This interface belongs to the given slot
 
-    r = ptin_prot_uplink_index_find(ptin_port, &protIdx, &portType);
+    r = ptin_prot_uplink_index_find(ptin_port, &protIdx, &portType, L7_NULLPTR);
     if (L7_SUCCESS != r /* || protIdx>=MAX_UPLINK_PROT*/) {
       if (TRACE_ENABLED(LOG_CTX_INTF)) {
         PT_LOG_ERR(LOG_CTX_INTF, "ptin_prot_uplink_index_find() = %d", r);
@@ -3887,14 +4094,15 @@ L7_RC_t ptin_prot_uplink_slot_reload(L7_uint16 slot)
       continue;
     }
 
-    r=ptin_remote_laser_control(intIfNum,
+    r=_ptin_prot_uplink_intf_block(intIfNum,
                                 //please check ptin_prot_uplink_info_get()
                                 portType==uplinkprot[protIdx].activePortType?
-                                0:1);
+                                0:1,
+                                0);
     //r = ptin_prot_select_intf(protIdx, uplinkprot[protIdx].activePortType);
     //r = ptin_prot_uplink_intf_reload(ptin_port);
     if (L7_SUCCESS != r) {
-      PT_LOG_ERR(LOG_CTX_INTF, "ptin_remote_laser_control() = %d", r);
+      PT_LOG_ERR(LOG_CTX_INTF, "_ptin_prot_uplink_intf_block() = %d", r);
       continue;
     }
   }//for (ptin_port...

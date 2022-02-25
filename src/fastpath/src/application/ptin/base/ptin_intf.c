@@ -1222,6 +1222,45 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
   {
     osapiSleepMSec(10); /* Sleep for 10ms */
   }
+
+#ifdef UPLNK_PROT_DISABLE_JUST_TX
+  {
+      L7_uint32 lag_intIfNum, intIfNumAux=intIfNum;
+      L7_uint8  protIdx;
+      L7_BOOL   is_active;
+      L7_uint32 ptin_port;
+
+      if (dot3adAggGet(intIfNumAux, &lag_intIfNum) == L7_SUCCESS)
+      //if (usmDbDot3adIntfIsMemberGet(1, intIfNumAux, &lag_intIfNum) == L7_SUCCESS)
+      {
+          intIfNumAux = lag_intIfNum;
+      }
+
+      if (L7_SUCCESS == ptin_intf_intIfNum2port(intIfNumAux, 0, //don't care
+                                                &ptin_port)
+          &&
+          L7_SUCCESS == ptin_prot_uplink_index_find(ptin_port,
+                                                    &protIdx, L7_NULLPTR,
+                                                    &is_active))
+      {
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G) /*&& defined (UPLNK_PROT_DISABLE_JUST_TX)*/
+          if (L7_SUCCESS != ptin_prot_uplink_intf_block(intIfNum, is_active? 0:1, 1))
+#else
+          if (L7_SUCCESS != ptin_prot_uplink_intf_block(intIfNum, is_active? 0:1, 0))
+#endif
+          {
+              PT_LOG_ERR(LOG_CTX_INTF, "ptin_prot_uplink_intf_block() NOK");
+          }
+          else {
+              PT_LOG_TRACE(LOG_CTX_INTF,
+                           "intIfNum=%u, lag_intIfNum=%u, intIfNumAux=%u,"
+                           " protIdx=%u is_active=%d",
+                           intIfNum, lag_intIfNum, intIfNumAux,
+                           protIdx, is_active);
+          }
+      }
+  }
+#endif
   
   #if (0 /*PTIN_BOARD == PTIN_BOARD_OLT1T0F*/)
   if (config_mode_new != 0)
@@ -3751,7 +3790,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     if (lagConf_data[lag_idx].static_enable != lagInfo->static_enable)
     {
       /* If this lag belongs to a protection group, report error */
-      if (ptin_prot_uplink_index_find(lag_port, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS)
+      if (ptin_prot_uplink_index_find(lag_port, L7_NULLPTR, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u: You are not allowed to change this parameter when this LAG belongs to a protection", lag_idx);
         rc = L7_FAILURE;
@@ -3923,17 +3962,19 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
         rc = L7_FAILURE;
         continue;
       }
+#if !((PTIN_BOARD == PTIN_BOARD_CXO640G) && defined (UPLNK_PROT_DISABLE_JUST_TX))
       /* If this LAG is a static LAG and is part of a protection group, ALS should be disabled, and blocked if necessary */
       if ((lagInfo->static_enable) && 
-          (ptin_prot_uplink_index_find(lag_port, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS) &&
+          (ptin_prot_uplink_index_find(lag_port, L7_NULLPTR, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS) &&
           (dot3adBlockedStateGet(lag_intf, &value) == L7_SUCCESS))
       {
         /* Applicable if we want to disable remote faults only for uplink protection interfaces */
       #if !defined(PTIN_LINKFAULTS_IGNORE)
         (void) ptin_intf_linkfaults_enable(port, L7_TRUE /*Local faults*/,  L7_FALSE /*Remote faults*/);
       #endif
-        (void) ptin_prot_uplink_intf_block(port, value);
+        (void) ptin_prot_uplink_intf_block(port, value, 0);
       }
+#endif
       
       #if 0
       /* Restore admin state of this interface */
@@ -3991,9 +4032,9 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       }
       /* If this LAG is a static LAG and is part of a protection group, ALS should be reenabled */
       if ((lagInfo->static_enable) && 
-          (ptin_prot_uplink_index_find(lag_port, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS))
+          (ptin_prot_uplink_index_find(lag_port, L7_NULLPTR, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS))
       {
-        ptin_prot_uplink_intf_block(port, -1 /* Enable ALS */);
+        ptin_prot_uplink_intf_block(port, -1 /* Enable ALS */, 0);
         /* Applicable if we want to disable remote faults only for uplink protection interfaces */
       #if !defined(PTIN_LINKFAULTS_IGNORE)
         (void) ptin_intf_linkfaults_enable(port, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
@@ -4197,7 +4238,7 @@ L7_RC_t ptin_intf_Lag_delete(L7_uint32 lag_idx)
   }
 
   /* Check if LAG is part of a protection scheme */
-  if (ptin_prot_uplink_index_find(lag_port, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS)
+  if (ptin_prot_uplink_index_find(lag_port, L7_NULLPTR, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u is being used in a protection scheme! Cannot be removed", lag_idx);
     return L7_FAILURE;
@@ -5532,6 +5573,87 @@ L7_RC_t ptin_intf_linkfaults_enable(L7_uint32 ptin_port, L7_BOOL local_enable, L
     PT_LOG_ERR(LOG_CTX_INTF,"Error applying HW procedure to ptin_port=%u", ptin_port);
   }
 
+  return rc;
+}
+
+
+/**
+ * Control traffic transmission at the port level
+ *  
+ * @param intIfNum : Interface
+ * @param enable : Enable transmission
+ *  
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_intf_tx_enable(L7_uint32 intIfNum, L7_BOOL enable)
+{
+  ptin_hwproc_t hw_proc;
+  L7_INTF_TYPES_t sysIntfType;
+  L7_RC_t   rc = L7_SUCCESS;
+  
+  /* Validate interface */
+  if (intIfNum == 0 || intIfNum > L7_ALL_INTERFACES)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u", intIfNum);
+    return L7_FAILURE;
+  }
+  
+  memset(&hw_proc,0x00,sizeof(hw_proc));
+  
+  hw_proc.operation = DAPI_CMD_SET;
+  hw_proc.procedure = PTIN_HWPROC_TX_ENABLE;
+  hw_proc.mask = 0xff;
+  hw_proc.param1 = (L7_int32) enable;
+  
+  /* Get interface type */
+  if (nimGetIntfType(intIfNum, &sysIntfType) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Error obtaining interface type for intIfNum=%u", intIfNum);
+    return L7_FAILURE;
+  }
+  
+  /* Physical interface? */
+  if (sysIntfType == L7_PHYSICAL_INTF)
+  {
+    /* Apply procedure */
+    rc = dtlPtinHwProc(intIfNum, &hw_proc);
+  }
+  /* LAG interface? */
+  else if (sysIntfType == L7_LAG_INTF)
+  {
+    L7_uint32 i, number_of_members = PTIN_SYSTEM_N_PORTS;
+    L7_uint32 memberList[PTIN_SYSTEM_N_PORTS];
+  
+    /* Get LAG members */
+    if (usmDbDot3adMemberListGet(1, intIfNum, &number_of_members, memberList) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF,"Error obtaining list of members for intIfNum=%u", intIfNum);
+      return L7_FAILURE;
+    }
+  
+    /* Apply procedure  to all LAG members */
+    for (i = 0; i < number_of_members; i++)
+    {
+      rc = dtlPtinHwProc(memberList[i], &hw_proc);
+      if (rc != L7_SUCCESS)  break;
+    }
+  }
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Unknown interface type (%u) for intIfNum=%u", sysIntfType, intIfNum);
+    return L7_FAILURE;
+  }
+  
+  /* Check return value */
+  if (rc == L7_SUCCESS)
+  {
+    PT_LOG_TRACE(LOG_CTX_INTF,"HW procedure applied to intIfNum=%u", intIfNum);
+  }
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Error applying HW procedure to intIfNum=%u", intIfNum);
+  }
+  
   return rc;
 }
 

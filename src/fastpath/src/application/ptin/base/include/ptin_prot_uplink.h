@@ -182,10 +182,11 @@ extern L7_RC_t ptin_prot_uplink_init(void);
  * @param ptin_port 
  * @param protIdx
  * @param portType 
+ * @param is_active 
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_NOT_EXIST
  */
-extern L7_RC_t ptin_prot_uplink_index_find(L7_uint32 ptin_port, L7_uint8 *protIdx, L7_uint8 *portType);
+extern L7_RC_t ptin_prot_uplink_index_find(L7_uint32 ptin_port, L7_uint8 *protIdx, L7_uint8 *portType, L7_BOOL *is_active);
 
 /**
  * Blocking mechanism implemented here
@@ -195,7 +196,9 @@ extern L7_RC_t ptin_prot_uplink_index_find(L7_uint32 ptin_port, L7_uint8 *protId
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 ptin_port, L7_int block_state);
+extern
+L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 ptin_port, L7_int block_state,
+                                    L7_int override_active_mx);
 
 /**
  * Create a protection group

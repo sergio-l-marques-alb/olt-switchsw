@@ -1003,6 +1003,16 @@ extern L7_RC_t ptin_intf_frame_oversize_set(L7_uint32 ptin_port, L7_uint32 frame
 extern L7_RC_t ptin_intf_linkfaults_enable(L7_uint32 ptin_port, L7_BOOL local_enable, L7_BOOL remote_enable);
 
 /**
+ * Control traffic transmission at the port level
+ *  
+ * @param intIfNum : Interface
+ * @param enable : Enable transmission
+ *  
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_intf_tx_enable(L7_uint32 intIfNum, L7_BOOL enable);
+
+/**
  * Read Maximum frame size
  * 
  * @param ptin_port 

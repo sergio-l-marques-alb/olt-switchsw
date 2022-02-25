@@ -9,6 +9,8 @@
 //#define PTIN_LINKFAULTS_IGNORE
 #define PHY_RECOVERY_PROCEDURE 1
 
+//#define UPLNK_PROT_DISABLE_JUST_TX
+
 /* Allows direct control over port add/remove of a LAG (shortcut to message queues) */
 #define LAG_DIRECT_CONTROL_FEATURE  1
 
