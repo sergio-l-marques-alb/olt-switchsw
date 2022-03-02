@@ -274,6 +274,70 @@ L7_RC_t ptin_remote_laser_control(L7_uint16 slot, L7_uint16 port,
     return L7_SUCCESS;
 }
 
+
+/**
+ * Control uplink PHY 
+ * 1st ETH UPLNKPROT version would act upon laser TX; SFR asked 
+ * afterwards to act upon the PHY (maintaining optical TX power)
+ * 
+ * @param slot
+ * @param port
+ * @param txdisable : L7_FALSE / L7_TRUE
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_remote_PHY_control(L7_uint16 slot, L7_uint16 port,
+                                L7_int enable,
+                                L7_uint32 try)
+{
+    msg_UplnkProtDisJustTX cfg_msg;
+    L7_uint32 ipAddr = 0;
+    L7_uint32 answer, answer_size;
+    int ret;
+
+#if (PTIN_BOARD_IS_STANDALONE)
+    ipAddr = simGetIpcIpAddr();
+    if (0x00 == ipAddr)
+#else
+    /* Determine the IP address of the working port/slot */
+    if (L7_SUCCESS != ptin_fpga_slot_ip_addr_get(slot, &ipAddr))
+#endif
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Failed to obtain ipAddress of slotId:%u", slot);
+      return L7_ERROR;
+    }
+
+    /* Prepare message contents */
+    memset(&cfg_msg, 0x00, sizeof(msg_UplnkProtDisJustTX));
+    cfg_msg.slotIndex = ENDIAN_SWAP8(slot);
+    cfg_msg.BoardType = ENDIAN_SWAP8(0);
+    cfg_msg.InterfaceIndex = ENDIAN_SWAP8(port);
+    cfg_msg.enable = ENDIAN_SWAP32(enable);
+
+    PT_LOG_INFO(LOG_CTX_INTF,
+                "Try %u: Sending message to slotId %u / ipAddr 0x%08x",
+                try, slot, ipAddr);
+
+    answer_size = sizeof(L7_uint32);
+    ret = send_ipc_message(IPC_HW_PORTO_MSG_CXP,
+                           ipAddr,
+                           CHMSG_ETH_CONFIG_UPLNKPROT_DISBL_JUST_TX,
+                           (char *) &cfg_msg,
+                           (char *) &answer,
+                           sizeof(msg_UplnkProtDisJustTX),
+                           &answer_size);
+
+    if (ret != 0)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF,
+                 "Try %u: Error communicating to slotId %u / ipAddr 0x%08x",
+                 try, slot, ipAddr);
+      return L7_FAILURE;
+    }
+
+    return L7_SUCCESS;
+}
+
 /**
  * Blocking mechanism split: 
  * ptin_prot_uplink_intf_block() calls 
@@ -465,6 +529,8 @@ L7_RC_t _ptin_prot_uplink_intf_block(L7_uint32 intIfNum, L7_int txdisable,
 
 #if defined (UPLNK_PROT_DISABLE_JUST_TX)
     ret = ptin_intf_tx_enable(intIfNum_member, txdisable<=0? 1:0);
+#elif defined (UPLNK_PROT_DISABLE_JUST_TX_PHYNOTBCM)
+    ret = ptin_remote_PHY_control(slot, port, txdisable<=0? 1:0, 0); //try);
 #else
     ret = ptin_remote_laser_control(slot, port, txdisable, 0); //try);
 #endif

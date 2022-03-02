@@ -358,7 +358,7 @@
 
 /* Messages sent to other entities */
 #define CHMSG_TUxG_ETH_CONFIG                     0x9411    /* msg_HwEthernet_t */
-
+#define CHMSG_ETH_CONFIG_UPLNKPROT_DISBL_JUST_TX  0x9415    /* msg_UplnkProtDisJustTX */
 
 /*Multicast Package Defines*/
 #ifndef PTIN_IGMP_PACKAGE_MASK_UNIT
@@ -3278,6 +3278,16 @@ typedef struct
   } __attribute__ ((packed)) optico;
   unsigned char        serviceType;                  // 4000 - { 1 - inni, 0 - uni }
 } __attribute__ ((packed)) msg_HwEthernet_t;
+
+
+typedef struct
+{
+  unsigned char        slotIndex;                    //Indice do slot
+  unsigned char        BoardType;                    //Tipo de Carta
+  unsigned char        InterfaceIndex;               //Indice do interface
+
+  unsigned long        enable;                       //enable/disable TX
+} __attribute__ ((packed)) msg_UplnkProtDisJustTX;
 
 
 typedef struct 
