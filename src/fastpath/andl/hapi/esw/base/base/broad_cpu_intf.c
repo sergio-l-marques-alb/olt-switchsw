@@ -1770,6 +1770,16 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
       _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_TRUE);
     }
 
+    {
+      bcm_port_t p;
+
+      BCM_PBMP_ITER(bcm_pkt.tx_upbmp, p) {
+        if (IS_CPU_PORT(hapiPortPtr->bcm_unit, p)) {
+          BCM_PBMP_PORT_REMOVE(bcm_pkt.tx_upbmp, p);
+        }
+      }
+    }
+
     portIsForwarding = hapiBroadPortIsForwarding(&destUsp, cmdInfo->cmdData.send.vlanID, dapi_g);
 
     if (portIsForwarding == L7_TRUE)
