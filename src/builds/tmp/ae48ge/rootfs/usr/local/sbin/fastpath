@@ -6,6 +6,7 @@ app_name=switchdrvr
 app_path=/usr/local/sbin/$app_name
 cli=/usr/local/sbin/fp.cli
 proc_txt=/usr/local/log/fastpath/proc.txt
+SWDRV_CRASH=0x00060301 # code for reboot cause (OLTSWITCH-1537)
 
 select_config_mode()
 {
@@ -106,7 +107,7 @@ elif [ $mode = "boot" ]; then
             echo "Fastpath watchdog fired after 10x12 seconds of inactivity!" > /var/log/system_error_info.log
             /bin/sh /usr/local/scripts/transfer_logs.sh
             echo "FASTPATH NOT RESPONDING: rebooting" 
-            /sbin/reboot
+            /sbin/reboot -ldc_detail=$SWDRV_CRASH
             exit;
         else
             sleep 30
