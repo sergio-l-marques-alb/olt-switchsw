@@ -218,7 +218,7 @@ L7_RC_t ptin_remote_laser_control(L7_uint16 slot, L7_uint16 port,
 {
     msg_HwEthernet_t cfg_msg;
     L7_uint32 ipAddr = 0;
-    L7_uint32 answer, answer_size;
+    //L7_uint32 answer, answer_size;
     int ret;
 
 #if (PTIN_BOARD_IS_STANDALONE)
@@ -254,14 +254,14 @@ L7_RC_t ptin_remote_laser_control(L7_uint16 slot, L7_uint16 port,
                 "Try %u: Sending message to slotId %u / ipAddr 0x%08x",
                 try, slot, ipAddr);
 
-    answer_size = sizeof(L7_uint32);
+    //answer_size = sizeof(L7_uint32);
     ret = send_ipc_message(IPC_HW_PORTO_MSG_CXP, //IPC_HARDWARE_PORT,
                            ipAddr,
                            CHMSG_TUxG_ETH_CONFIG, //MSG_TUxG_ETH_CONFIG,
                            (char *) &cfg_msg,
-                           (char *) &answer,
+                           NULL, //(char *) &answer,
                            sizeof(msg_HwEthernet_t),
-                           &answer_size);
+                           NULL); //&answer_size);
 
     if (ret != 0)
     {
@@ -292,7 +292,7 @@ L7_RC_t ptin_remote_PHY_control(L7_uint16 slot, L7_uint16 port,
 {
     msg_UplnkProtDisJustTX cfg_msg;
     L7_uint32 ipAddr = 0;
-    L7_uint32 answer, answer_size;
+    //L7_uint32 answer, answer_size;
     int ret;
 
 #if (PTIN_BOARD_IS_STANDALONE)
@@ -318,14 +318,14 @@ L7_RC_t ptin_remote_PHY_control(L7_uint16 slot, L7_uint16 port,
                 "Try %u: Sending message to slotId %u / ipAddr 0x%08x",
                 try, slot, ipAddr);
 
-    answer_size = sizeof(L7_uint32);
+    //answer_size = sizeof(L7_uint32);
     ret = send_ipc_message(IPC_HW_PORTO_MSG_CXP,
                            ipAddr,
                            CHMSG_ETH_CONFIG_UPLNKPROT_DISBL_JUST_TX,
                            (char *) &cfg_msg,
-                           (char *) &answer,
+                           NULL, //(char *) &answer,
                            sizeof(msg_UplnkProtDisJustTX),
-                           &answer_size);
+                           NULL); //&answer_size);
 
     if (ret != 0)
     {
