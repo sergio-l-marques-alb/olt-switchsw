@@ -1770,7 +1770,9 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
       _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_TRUE);
     }
 
-    {
+    { /* Somewhere between SDKs 6.5.7 and 6.5.20
+         _bcm_xgs3_tx_pipe_bypass_header_setup() complains
+         "trying to set cpu port as untagged target port" */
       bcm_port_t p;
 
       BCM_PBMP_ITER(bcm_pkt.tx_upbmp, p) {
