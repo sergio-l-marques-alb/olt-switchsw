@@ -10,7 +10,13 @@
 //#define PTIN_LINKFAULTS_IGNORE
 #define PHY_RECOVERY_PROCEDURE 1
 
-//#define UPLNK_PROT_DISABLE_JUST_TX
+/* 
+    New SFR ETH UPLNKPROT paradigm (set PHY LNK_DWN while maintaining TX laser power):
+ 
+    UPLNK_PROT_DISABLE_JUST_TX              sets BCM's PHYs (as in olt-swdrv / builds 4 / *2T* boards)
+    UPLNK_PROT_DISABLE_JUST_TX_PHYNOTBCM    sets VSC8488-15 PHYs (which, unlike the others, are not just Xpointing)
+*/
+#define UPLNK_PROT_DISABLE_JUST_TX_PHYNOTBCM
 
 /* Allows direct control over port add/remove of a LAG (shortcut to message queues) */
 #define LAG_DIRECT_CONTROL_FEATURE  1
