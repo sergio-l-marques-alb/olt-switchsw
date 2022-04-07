@@ -335,6 +335,38 @@ L7_RC_t ptin_remote_PHY_control(L7_uint16 slot, L7_uint16 port,
       return L7_FAILURE;
     }
 
+
+    { /* Disable ALS */
+      msg_HwEthernet_t cfg_msg;
+
+      memset(&cfg_msg, 0x00, sizeof(msg_HwEthernet_t));
+      cfg_msg.slotIndex = ENDIAN_SWAP8(slot);
+      cfg_msg.BoardType = ENDIAN_SWAP8(0);
+      cfg_msg.InterfaceIndex = ENDIAN_SWAP8(port);
+      cfg_msg.conf_mask = ENDIAN_SWAP16(0x1000); //Just ALS
+      cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_FALSE);
+
+      PT_LOG_INFO(LOG_CTX_INTF,
+                  "Try %u: Disabling port %u slotId %u ALS / ipAddr 0x%08x",
+                  try, port, slot, ipAddr);
+
+      //answer_size = sizeof(L7_uint32);
+      ret = send_ipc_message(IPC_HW_PORTO_MSG_CXP, //IPC_HARDWARE_PORT,
+                             ipAddr,
+                             CHMSG_TUxG_ETH_CONFIG, //MSG_TUxG_ETH_CONFIG,
+                             (char *) &cfg_msg,
+                             NULL, //(char *) &answer,
+                             sizeof(msg_HwEthernet_t),
+                             NULL); //&answer_size);
+      if (ret != 0)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF,
+                   "Try %u: Error communicating to slotId %u / ipAddr 0x%08x",
+                   try, slot, ipAddr);
+        return L7_FAILURE;
+      }
+    }
+
     return L7_SUCCESS;
 }
 
