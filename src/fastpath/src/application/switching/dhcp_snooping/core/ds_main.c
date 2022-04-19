@@ -1603,9 +1603,6 @@ L7_RC_t dsPacketQueue(L7_uchar8 *ethHeader, L7_uint32 dataLen,
     return L7_SUCCESS;
 }
 
-
-
-
 /*********************************************************************
 * @purpose  Convert type of a DHCP packet to text.
 *
@@ -1669,7 +1666,6 @@ dhcpv6_packet_type_str( L7_dhcp6_pkt_type_t pkt_type )
  * @param port: uint32_t
  * @param vlan: uint32_t
  * @param protocol: DHCP_PROTOCOL, DHCPV6_PROTOCOL,
- *                PPPOE_PROTOCOL
  * @param packet: int
  *
  * @return int: RC_SUCCESS/RC_FAILURE
