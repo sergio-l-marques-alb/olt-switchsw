@@ -469,6 +469,7 @@ L7_RC_t pppoePacketQueue(L7_uchar8 *frame, L7_uint32 dataLen,
   return L7_SUCCESS;
 }
 
+
 /**
 * Convert type of a PPPoE packet to text
 *
@@ -480,13 +481,12 @@ char*
 pppoe_packet_type_str( unsigned int code )
 {
   switch ( code ) {
-    case PPPOE_PADI: return ("PADI");
-    case PPPOE_PADO: return ("PADO");
-    case PPPOE_PADR: return ("PADR");
-    case PPPOE_PADS: return ("PADS");
-    case PPPOE_PADT: return ("PADT");
-    case PPPOE_SESSION_DATA: return ("SESSION_DATA");
-    default: return ("????");
+    case L7_PPPOE_PADI: return ("PADI");
+    case L7_PPPOE_PADO: return ("PADO");
+    case L7_PPPOE_PADR: return ("PADR");
+    case L7_PPPOE_PADS: return ("PADS");
+    case L7_PPPOE_PADT: return ("PADT");
+    default: return ("SESSION_DATA");
   }
   return ("????");
 }
@@ -505,7 +505,7 @@ pppoe_packet_type_str( unsigned int code )
 void
 pppoe_packet_type_debug( L7_uint32 port , L7_uint32 vlan , int protocol , int packet )
 {
-    if (ptin_debug_dhcp_snooping) {
+    if (ptin_debug_pppoe_snooping) {
         char spkt[64+1];
         char sptc[6+1];
 
@@ -514,7 +514,7 @@ pppoe_packet_type_debug( L7_uint32 port , L7_uint32 vlan , int protocol , int pa
         }
 
         switch ( protocol ) {
-            case PPPOE_PROTOCOL:
+            case PPPoE_PROTOCOL:
                 strcpy( sptc , "PPPoE");
                 sprintf( spkt , "%s----------" , pppoe_packet_type_str(packet) );
                 break;
@@ -523,11 +523,13 @@ pppoe_packet_type_debug( L7_uint32 port , L7_uint32 vlan , int protocol , int pa
                 strcpy( spkt , "??????""------" );
                 break;
         }
-        if (!_dsVlanIsIntfRoot(vlan, port)) {
-            PT_LOG_TRACE(LOG_CTX_DHCP, "PktType %-6s [%2d:%4d] cli ---%.12s--> srv" , sptc , port , vlan , spkt );
-        }
-        else {
+        if(ptin_pppoe_is_intfRoot(port, vlan) == L7_TRUE)
+        {
             PT_LOG_TRACE(LOG_CTX_DHCP, "PktType %-6s [%2d:%4d] cli <--%.12s--- srv" , sptc , port- PTIN_SYSTEM_N_PONS , vlan , spkt );
+        }
+        else 
+        {
+            PT_LOG_TRACE(LOG_CTX_DHCP, "PktType %-6s [%2d:%4d] cli ---%.12s--> srv" , sptc , port , vlan , spkt );
         }
     }
 }
@@ -1451,7 +1453,7 @@ void pppoeProcessServerFrame(L7_uchar8* frame, L7_uint32 frameLen, L7_uint32 int
    {
      PT_LOG_INFO(LOG_CTX_PPPOE, "PPPoE: verType=%02x code=%02x sessionId=%04x length=%04x",
               pppoe_header->verType, pppoe_header->code, osapiNtohs(pppoe_header->sessionId), osapiNtohs(pppoe_header->length));
-     pppoe_packet_type_debug( intIfNum , vlanId , PPPoE_PROTOCOL , pppoe_header->code );
+     pppoe_packet_type_debug( intIfNum , vlanId , PPPoE_PROTOCOL  , pppoe_header->code );
    }
 
    /* If we received a PPPoE frame other than PADO/PADS/PADT on a server port, drop it */

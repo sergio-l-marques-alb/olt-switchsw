@@ -18,6 +18,7 @@
 /*********************************************************** 
  * Defines
  ***********************************************************/
+#define PPPoE_PROTOCOL                  0x03 
 
 #define CIRCUITID_ACCESSNODEID          0x0001
 #define CIRCUITID_CHASSIS               0x0002
