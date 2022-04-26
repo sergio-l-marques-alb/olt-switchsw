@@ -1,0 +1,12 @@
+# $Id: bcm88850_legacy_interop_board.bcm
+# $Copyright: (c) 2021 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# The purpose of the file is to load the fabric links of DNX device with speed of 25G.
+# This will be done only for specific boards
+# where the DNX device is connected to legacy DPP device (for reference see rc/dnx.soc)
+
+#Board Properties
+
+port_init_speed_fabric.BCM8885X=25000
+

@@ -1,0 +1,5 @@
+config delete flexe_device_mode*
+config delete ucode_port_20.*
+if $?flexe \
+    "config add flexe_device_mode=DISABLED"
+

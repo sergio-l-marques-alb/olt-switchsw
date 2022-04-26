@@ -1,0 +1,27 @@
+#ifndef PHY_POWER_UP_INTERNAL_H_INCLUDED
+#define PHY_POWER_UP_INTERNAL_H_INCLUDED
+
+#include <shared/shrextend/shrextend_debug.h>
+
+/**
+ * \brief - Power up NIF Blackhawk
+ *
+ */
+shr_error_e dnx_phy_nif_bh_power_up(
+    int unit);
+
+/**
+ * \brief - Power up Fabric Blackhawk
+ *
+ */
+shr_error_e dnx_phy_fabric_bh_power_up(
+    int unit);
+
+/**
+ * \brief - Power up NIF Falcon
+ *
+ */
+shr_error_e dnx_phy_nif_falcon_power_up(
+    int unit);
+
+#endif

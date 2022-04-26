@@ -1,0 +1,73 @@
+/** \file src/bcm/dnx/cosq/ingress/rate_class_common.h
+ * $Id$
+ * 
+ * Common functionality for VOQ and VSQ rate classes
+ * 
+ * $Copyright: (c) 2021 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ *
+ */
+
+#ifndef _RATE_CLASS_COMMON_H_INCLUDED_
+#define _RATE_CLASS_COMMON_H_INCLUDED_
+
+#ifndef BCM_DNX_SUPPORT
+#error "This file is for use by DNX (JR2) family only!"
+#endif
+
+#include <bcm/types.h>
+#include <soc/dnx/dbal/dbal.h>
+#include "ingress_congestion_dbal.h"
+
+/**
+ * \brief -
+ *     Sets WRED parameters per rate-class and drop precedence,
+ *     including wred-enable.
+ */
+int dnx_rate_class_common_wred_set(
+    int unit,
+    dbal_tables_e table_id,
+    dnx_ingress_congestion_dbal_wred_key_t * key,
+    dnx_ingress_congestion_wred_info_t * wred);
+
+/**
+ * \brief -
+ * get WRED parameters and translate them to user units
+ */
+int dnx_rate_class_common_wred_get(
+    int unit,
+    dbal_tables_e table_id,
+    dnx_ingress_congestion_dbal_wred_key_t * key,
+    dnx_ingress_congestion_wred_info_t * info);
+
+/**
+ * \brief -
+ *     clear WRED parameters per rate-class and drop precedence,
+ *     including wred-enable.
+ */
+int dnx_rate_class_common_wred_clear(
+    int unit,
+    dbal_tables_e table_id,
+    dnx_ingress_congestion_dbal_wred_key_t * key);
+
+/** 
+ * \brief -  Set WRED average configuration
+ */
+int dnx_rate_class_common_wred_avrg_set(
+    int unit,
+    dbal_tables_e wred_table_id,
+    dbal_tables_e avrg_table_id,
+    dnx_ingress_congestion_dbal_wred_key_t * key,
+    uint32 gain);
+
+/** 
+ * \brief -  get WRED average configuration
+ */
+int dnx_rate_class_common_wred_avrg_get(
+    int unit,
+    dbal_tables_e wred_table_id,
+    dbal_tables_e avrg_table_id,
+    dnx_ingress_congestion_dbal_wred_key_t * key,
+    uint32 *gain);
+
+#endif

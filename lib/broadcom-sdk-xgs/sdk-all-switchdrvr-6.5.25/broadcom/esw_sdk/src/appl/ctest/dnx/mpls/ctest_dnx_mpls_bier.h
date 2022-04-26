@@ -1,0 +1,13 @@
+/**
+ * \file ctest_dnx_mpls_bier.h
+ *
+ * $Copyright: (c) 2021 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+#ifndef CTEST_DNX_MPLS_BIER_H_INCLUDED
+/* { */
+#define CTEST_DNX_MPLS_BIER_H_INCLUDED
+
+extern sh_sand_cmd_t dnx_mpls_bier_tests[];
+/* } */
+#endif /* CTEST_DNX_MPLS_BIER_H_INCLUDED */
